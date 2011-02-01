@@ -1,0 +1,40 @@
+class Other{
+	NamedConstructor() = @();
+	
+	void print(){
+		"Other".print();
+	}
+
+}
+
+class Main{
+	Main() = @();
+	
+	void print(){
+		"Main::print".print();
+	}
+	
+	bool run(){
+		other = Other:NamedConstructor();
+		{
+			str = "Run";
+			str.print();
+		}
+		other.print();
+		return true;
+	}
+}
+
+void main(){
+	main = Main();
+	
+	if(main.run()){
+		"Succeeded".print();
+	}else{
+		"Failed".print();
+	}
+
+}
+
+
+

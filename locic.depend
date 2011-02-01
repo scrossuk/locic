@@ -1,0 +1,528 @@
+# depslib dependency file v1.0
+1282592838 source:/home/scross/Projects/locic/src/Class.cpp
+	<iostream>
+	<fstream>
+	<string>
+	"Type.h"
+	"Class.h"
+	"Method.h"
+
+1283503012 /home/scross/Projects/locic/src/Class.h
+	<string>
+	"Type.h"
+
+1284499593 /home/scross/Projects/locic/src/Type.h
+	"List.h"
+	<string>
+	<map>
+
+1281366236 /home/scross/Projects/locic/src/List.h
+	<vector>
+
+1281973636 /home/scross/Projects/locic/src/ClassInstance.h
+	<string>
+	<map>
+	"Object.h"
+	"List.h"
+
+1281974014 /home/scross/Projects/locic/src/Object.h
+	<string>
+	"List.h"
+
+1284137484 /home/scross/Projects/locic/src/Method.h
+	<string>
+	<sstream>
+	"List.h"
+	"ParamSpec.h"
+	"Tree.h"
+	"Resolver.h"
+	"MethodDef.h"
+	"InternalClass.h"
+
+1281979186 /home/scross/Projects/locic/src/ClassVar.h
+	<string>
+
+1281973670 source:/home/scross/Projects/locic/src/ClassInstance.cpp
+	"Method.h"
+	"Class.h"
+	"ClassInstance.h"
+
+1281973774 source:/home/scross/Projects/locic/src/Construct.cpp
+	"Construct.h"
+	"Type.h"
+
+1284137266 /home/scross/Projects/locic/src/Construct.h
+	<sstream>
+	"List.h"
+	"Tree.h"
+	"Type.h"
+
+1282405724 /home/scross/Projects/locic/src/Tree.h
+	<string>
+
+1284501854 source:/home/scross/Projects/locic/src/Context.cpp
+	<stdio.h>
+	<sstream>
+	<string>
+	<cstdlib>
+	"Type.h"
+	"Context.h"
+	"Class.h"
+	"Interface.h"
+
+1284501843 /home/scross/Projects/locic/src/Context.h
+	<string>
+	<map>
+	<set>
+
+1281973927 /home/scross/Projects/locic/src/FloatType.h
+	"Type.h"
+
+1282053781 source:/home/scross/Projects/locic/src/Boolean.cpp
+	<iostream>
+	"Boolean.h"
+	"MethodInstance.h"
+
+1281974522 /home/scross/Projects/locic/src/Boolean.h
+	"Tree.h"
+	"Object.h"
+
+1281974618 /home/scross/Projects/locic/src/MethodInstance.h
+	<vector>
+	<map>
+	<string>
+
+1281974050 source:/home/scross/Projects/locic/src/Float.cpp
+	"Boolean.h"
+	"Float.h"
+
+1281974037 /home/scross/Projects/locic/src/Float.h
+	<string>
+	"Tree.h"
+	"Object.h"
+
+1281972465 source:/home/scross/Projects/locic/src/FloatType.cpp
+	"FloatType.h"
+
+1281974630 source:/home/scross/Projects/locic/src/If.cpp
+	"If.h"
+	"Tree.h"
+	"MethodInstance.h"
+	"Boolean.h"
+
+1284066566 /home/scross/Projects/locic/src/If.h
+	<string>
+	"Tree.h"
+	"Type.h"
+
+1282054054 source:/home/scross/Projects/locic/src/Integer.cpp
+	<iostream>
+	<string>
+	"Integer.h"
+	"Boolean.h"
+
+1281974666 /home/scross/Projects/locic/src/Integer.h
+	"Tree.h"
+	"Object.h"
+
+1281979387 source:/home/scross/Projects/locic/src/Method.cpp
+	"Method.h"
+	"MethodInstance.h"
+	"ParamSpec.h"
+	"Tree.h"
+	"Object.h"
+
+1282588442 /home/scross/Projects/locic/src/ParamSpec.h
+	<string>
+	"Type.h"
+
+1281974775 source:/home/scross/Projects/locic/src/MethodInstance.cpp
+	"MethodInstance.h"
+
+1281974828 source:/home/scross/Projects/locic/src/Return.cpp
+	"Return.h"
+	"Tree.h"
+	"Object.h"
+	"MethodInstance.h"
+
+1282486738 /home/scross/Projects/locic/src/Return.h
+	<string>
+	"Tree.h"
+
+1281974847 source:/home/scross/Projects/locic/src/Scope.cpp
+	"Scope.h"
+	"Tree.h"
+	"Object.h"
+
+1284135042 /home/scross/Projects/locic/src/Scope.h
+	"List.h"
+	"Tree.h"
+	"Resolver.h"
+
+1282053825 source:/home/scross/Projects/locic/src/String.cpp
+	<iostream>
+	"String.h"
+
+1281974891 /home/scross/Projects/locic/src/String.h
+	<string>
+	"Tree.h"
+	"Object.h"
+
+1281978545 source:/home/scross/Projects/locic/src/Variable.cpp
+	<string>
+	"Variable.h"
+	"MethodInstance.h"
+
+1284051435 /home/scross/Projects/locic/src/Variable.h
+	<sstream>
+	<string>
+	"Tree.h"
+
+1281978585 source:/home/scross/Projects/locic/src/VariableDeclare.cpp
+	<string>
+	"VariableDeclare.h"
+	"Type.h"
+	"Tree.h"
+	"MethodInstance.h"
+	"Object.h"
+
+1284050644 /home/scross/Projects/locic/src/VariableDeclare.h
+	<sstream>
+	<string>
+	"Tree.h"
+	"Type.h"
+
+1284138756 source:/home/scross/Projects/locic/src/main.cpp
+	<iostream>
+	<string>
+	"Context.h"
+	"Type.h"
+
+1281979679 source:/home/scross/Projects/locic/src/MethodCall.cpp
+	"MethodCall.h"
+	"Object.h"
+
+1283975102 /home/scross/Projects/locic/src/MethodCall.h
+	<vector>
+	<string>
+	"Tree.h"
+	"List.h"
+	"Type.h"
+	"MethodDef.h"
+
+1284138145 source:/home/scross/Projects/locic/src/Parser.tab.c
+	<iostream>
+	<string>
+	"Method.h"
+	"ProxyMethodDef.h"
+	"Tree.h"
+	"List.h"
+	"Type.h"
+	"ParamSpec.h"
+	"Context.h"
+	"InternalClass.h"
+	"ExternalClass.h"
+	"Scope.h"
+	"If.h"
+	"VariableDeclare.h"
+	"Return.h"
+	"Variable.h"
+	"Construct.h"
+	"DirectConstruct.h"
+	"MethodCall.h"
+	<stddef.h>
+	<libintl.h>
+	<alloca.h>
+	<malloc.h>
+	<stdlib.h>
+	<stdlib.h>
+	<stdio.h>
+
+1284138145 source:/home/scross/Projects/locic/src/lex.yy.c
+	<stdio.h>
+	<string.h>
+	<errno.h>
+	<stdlib.h>
+	<inttypes.h>
+	<string>
+	"Context.h"
+	"Tree.h"
+	"Class.h"
+	"ParamSpec.h"
+	"StringTree.h"
+	"BoolTree.h"
+	"UintTree.h"
+	"FloatTree.h"
+	"Parser.tab.h"
+	<unistd.h>
+
+1284138145 /home/scross/Projects/locic/src/Parser.tab.h
+
+1284050722 /home/scross/Projects/locic/src/Resolver.h
+	<vector>
+	<map>
+	<string>
+
+1284137088 /home/scross/Projects/locic/src/MethodDef.h
+	<cctype>
+	<sstream>
+	<string>
+	"List.h"
+	"Type.h"
+
+1284501236 source:/home/scross/Projects/locic/src/Type.cpp
+	<string>
+	<fstream>
+	"MethodDef.h"
+	"Type.h"
+
+1284123735 /home/scross/Projects/locic/src/StringTree.h
+	<sstream>
+	<string>
+	"Tree.h"
+
+1283969436 /home/scross/Projects/locic/src/BoolTree.h
+	<string>
+	"Tree.h"
+
+1283969364 /home/scross/Projects/locic/src/UintTree.h
+	<string>
+	"Tree.h"
+
+1283969420 /home/scross/Projects/locic/src/FloatTree.h
+	<sstream>
+	<string>
+	"Type.h"
+	"Tree.h"
+	"MethodDef.h"
+
+1284136533 source:/home/scross/Projects/locic/src/InternalClass.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	"Type.h"
+	"InternalClass.h"
+	"Method.h"
+
+1284121786 /home/scross/Projects/locic/src/InternalClass.h
+	<string>
+	<map>
+	<set>
+	<vector>
+	"Type.h"
+	"Class.h"
+
+1284137842 /home/scross/Projects/locic/src/ProxyMethodDef.h
+	<sstream>
+	<string>
+	"List.h"
+	"Type.h"
+	"MethodDef.h"
+
+1284069220 /home/scross/Projects/locic/src/ExternalClass.h
+	<iostream>
+	<fstream>
+	<string>
+	<set>
+	"Type.h"
+	"Class.h"
+	"ProxyMethodDef.h"
+
+1284120413 /home/scross/Projects/locic/src/ThisConstruct.h
+	<sstream>
+	"List.h"
+	"Tree.h"
+	"Type.h"
+
+1284137245 /home/scross/Projects/locic/src/DirectConstruct.h
+	<sstream>
+	"List.h"
+	"Tree.h"
+	"Type.h"
+
+1284501157 /home/scross/Projects/locic/src/Interface.h
+	<iostream>
+	<fstream>
+	<string>
+	<set>
+	"Type.h"
+	"ProxyMethodDef.h"
+
+1284501854 source:/home/scross/Projects/locic/src/compiler/Context.cpp
+	<stdio.h>
+	<sstream>
+	<string>
+	<cstdlib>
+	"Type.h"
+	"Context.h"
+	"Class.h"
+	"Interface.h"
+
+1284499593 /home/scross/Projects/locic/src/compiler/Type.h
+	"List.h"
+	<string>
+	<map>
+
+1281366236 /home/scross/Projects/locic/src/compiler/List.h
+	<vector>
+
+1284501843 /home/scross/Projects/locic/src/compiler/Context.h
+	<string>
+	<map>
+	<set>
+
+1283503012 /home/scross/Projects/locic/src/compiler/Class.h
+	<string>
+	"Type.h"
+
+1284501157 /home/scross/Projects/locic/src/compiler/Interface.h
+	<iostream>
+	<fstream>
+	<string>
+	<set>
+	"Type.h"
+	"ProxyMethodDef.h"
+
+1284137842 /home/scross/Projects/locic/src/compiler/ProxyMethodDef.h
+	<sstream>
+	<string>
+	"List.h"
+	"Type.h"
+	"MethodDef.h"
+
+1284137088 /home/scross/Projects/locic/src/compiler/MethodDef.h
+	<cctype>
+	<sstream>
+	<string>
+	"List.h"
+	"Type.h"
+
+1284136533 source:/home/scross/Projects/locic/src/compiler/InternalClass.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	"Type.h"
+	"InternalClass.h"
+	"Method.h"
+
+1284121786 /home/scross/Projects/locic/src/compiler/InternalClass.h
+	<string>
+	<map>
+	<set>
+	<vector>
+	"Type.h"
+	"Class.h"
+
+1284137484 /home/scross/Projects/locic/src/compiler/Method.h
+	<string>
+	<sstream>
+	"List.h"
+	"ParamSpec.h"
+	"Tree.h"
+	"Resolver.h"
+	"MethodDef.h"
+	"InternalClass.h"
+
+1282588442 /home/scross/Projects/locic/src/compiler/ParamSpec.h
+	<string>
+	"Type.h"
+
+1282405724 /home/scross/Projects/locic/src/compiler/Tree.h
+	<string>
+
+1284050722 /home/scross/Projects/locic/src/compiler/Resolver.h
+	<vector>
+	<map>
+	<string>
+
+1296590400 source:/home/scross/Projects/locic/src/compiler/Parser.tab.c
+	<iostream>
+	<string>
+	"Method.h"
+	"ProxyMethodDef.h"
+	"Tree.h"
+	"List.h"
+	"Type.h"
+	"ParamSpec.h"
+	"Context.h"
+	"InternalClass.h"
+	"ExternalClass.h"
+	"Interface.h"
+	"Scope.h"
+	"If.h"
+	"VariableDeclare.h"
+	"Return.h"
+	"Variable.h"
+	"Construct.h"
+	"DirectConstruct.h"
+	"MethodCall.h"
+	<stddef.h>
+	<libintl.h>
+	<alloca.h>
+	<malloc.h>
+	<stdlib.h>
+	<stdlib.h>
+	<stdio.h>
+
+1284069220 /home/scross/Projects/locic/src/compiler/ExternalClass.h
+	<iostream>
+	<fstream>
+	<string>
+	<set>
+	"Type.h"
+	"Class.h"
+	"ProxyMethodDef.h"
+
+1284135042 /home/scross/Projects/locic/src/compiler/Scope.h
+	"List.h"
+	"Tree.h"
+	"Resolver.h"
+
+1284066566 /home/scross/Projects/locic/src/compiler/If.h
+	<string>
+	"Tree.h"
+	"Type.h"
+
+1284050644 /home/scross/Projects/locic/src/compiler/VariableDeclare.h
+	<sstream>
+	<string>
+	"Tree.h"
+	"Type.h"
+
+1282486738 /home/scross/Projects/locic/src/compiler/Return.h
+	<string>
+	"Tree.h"
+
+1284051435 /home/scross/Projects/locic/src/compiler/Variable.h
+	<sstream>
+	<string>
+	"Tree.h"
+
+1284137266 /home/scross/Projects/locic/src/compiler/Construct.h
+	<sstream>
+	"List.h"
+	"Tree.h"
+	"Type.h"
+
+1284137245 /home/scross/Projects/locic/src/compiler/DirectConstruct.h
+	<sstream>
+	"List.h"
+	"Tree.h"
+	"Type.h"
+
+1283975102 /home/scross/Projects/locic/src/compiler/MethodCall.h
+	<vector>
+	<string>
+	"Tree.h"
+	"List.h"
+	"Type.h"
+	"MethodDef.h"
+
+1284501236 source:/home/scross/Projects/locic/src/compiler/Type.cpp
+	<string>
+	<fstream>
+	"MethodDef.h"
+	"Type.h"
+
