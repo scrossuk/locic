@@ -1,0 +1,44 @@
+
+class Array<T>(size_t numElements, T * data){
+	
+	Array(){
+		return @(0, NULL);
+	}
+	
+	~Array(){
+		if(@data != NULL){
+			free(@data);
+		}
+	}
+	
+	T * at(size_t index){
+		return &@data[index];
+	}
+	
+	size_t size(){
+		return @numElements;
+	}
+	
+	void pushBack(T value){
+		@numElements++;
+		
+		@data = reinterpret_cast<T *>(realloc(@data, @numElements * sizeof(T)));
+		
+		// Move 'value' into array memory.
+		@data[@numElements - 1] := #(value);
+		
+		// Make 'value' valid again.
+		value := T();
+	}
+	
+}
+
+Array<int> blah(){
+	auto array = Array<int>();
+	
+	array.pushBack(4);
+	*(array.at(0)) = 5;
+	
+	return #(array);
+}
+
