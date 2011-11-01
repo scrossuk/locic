@@ -8,11 +8,6 @@ typedef struct AST_TypeVar{
 	char * name;
 } AST_TypeVar;
 
-inline AST_TypeVar * AST_MakeTypeVar(AST_Type * type, char * name){
-	AST_TypeVar * typeVar = malloc(sizeof(AST_TypeVar));
-	typeVar->type = type;
-	typeVar->name = name;
-	return typeVar;
-}
+AST_TypeVar * AST_MakeTypeVar(AST_Type * type, char * name);
 
 #endif

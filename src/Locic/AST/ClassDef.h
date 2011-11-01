@@ -9,12 +9,6 @@ typedef struct AST_ClassDef{
 	AST_List * methodDefinitions;
 } AST_ClassDef;
 
-inline AST_ClassDef * AST_MakeClassDef(char * name, AST_List * members, AST_List * definitions){
-	AST_ClassDef * classDef = malloc(sizeof(AST_ClassDef));
-	classDef->name = name;
-	classDef->memberVariables = members;
-	classDef->methodDefinitions = definitions;
-	return classDef;
-}
+AST_ClassDef * AST_MakeClassDef(char * name, AST_List * members, AST_List * definitions);
 
 #endif

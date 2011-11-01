@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <Locic/Lexer.h>
+#include <Locic/Token.h>
 
 extern FILE * yyin;
 extern "C" int yylex();
@@ -9,10 +10,10 @@ Locic_Lexer::Locic_Lexer(FILE * file){
 }
 	
 Locic_Lexer::~Locic_Lexer(){
-	fclose(file_);
+	fclose(yyin);
 }
 	
-bool Locic_Lexer::lex(Token * token){
+bool Locic_Lexer::lex(Locic_Token * token){
 	int lexVal = yylex();
 	if(lexVal == 0){
 		return false;

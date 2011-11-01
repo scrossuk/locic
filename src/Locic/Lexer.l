@@ -2,8 +2,10 @@
 
 #include <string.h>
 #include <Locic/AST.h>
-#include <Locic/Lexer.h>
 #include <Locic/Parser.h>
+#include <Locic/Token.h>
+
+Locic_TokenValue yylval;
 
 /*
 "\""                    { strText = ""; BEGIN(STRING_STATE); }
@@ -44,18 +46,18 @@ interface               { return LOCIC_TOKEN_INTERFACE; }
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }
 
-void                    { yylval.str = strcpy(yytext); return LOCIC_TOKEN_VOIDNAME; }
-int                     { yylval.str = strcpy(yytext); return LOCIC_TOKEN_INTNAME; }
-bool                    { yylval.str = strcpy(yytext); return LOCIC_TOKEN_BOOLNAME; }
-float                   { yylval.str = strcpy(yytext); return LOCIC_TOKEN_FLOATNAME; }
+void                    { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_VOIDNAME; }
+int                     { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_INTNAME; }
+bool                    { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_BOOLNAME; }
+float                   { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_FLOATNAME; }
 
 true                    { yylval.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
 false                   { yylval.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }
 [0-9]+                  { yylval.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
 [0-9]+\.[0-9]+          { yylval.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9]*       { yylval.str = strcpy(yytext); return LOCIC_TOKEN_UCNAME; }
-[a-z][A-Za-z0-9]*       { yylval.str = strcpy(yytext); return LOCIC_TOKEN_LCNAME; }
+[A-Z][A-Za-z0-9]*       { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_UCNAME; }
+[a-z][A-Za-z0-9]*       { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_LCNAME; }
 
 "=="                    { return LOCIC_TOKEN_ISEQUAL; }
 "!="                    { return LOCIC_TOKEN_NOTEQUAL; }

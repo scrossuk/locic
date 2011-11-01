@@ -537,8 +537,10 @@ char *yytext;
 
 #include <string.h>
 #include <Locic/AST.h>
-#include <Locic/Lexer.h>
 #include <Locic/Parser.h>
+#include <Locic/Token.h>
+
+Locic_TokenValue yylval;
 
 /*
 "\""                    { strText = ""; BEGIN(STRING_STATE); }
@@ -556,7 +558,7 @@ char *yytext;
 //%x STRING_STATE
 
 
-#line 560 "lex.yy.c"
+#line 562 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT_STATE 1
@@ -744,10 +746,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 29 "Lexer.l"
+#line 31 "Lexer.l"
 
 
-#line 751 "lex.yy.c"
+#line 753 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -832,258 +834,258 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 31 "Lexer.l"
+#line 33 "Lexer.l"
 { BEGIN(COMMENT_STATE); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 32 "Lexer.l"
+#line 34 "Lexer.l"
 { }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 33 "Lexer.l"
+#line 35 "Lexer.l"
 { }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 34 "Lexer.l"
+#line 36 "Lexer.l"
 { }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 35 "Lexer.l"
+#line 37 "Lexer.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 37 "Lexer.l"
+#line 39 "Lexer.l"
 { return LOCIC_TOKEN_IF; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 38 "Lexer.l"
+#line 40 "Lexer.l"
 { return LOCIC_TOKEN_ELSE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 39 "Lexer.l"
+#line 41 "Lexer.l"
 { return LOCIC_TOKEN_WHILE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 40 "Lexer.l"
+#line 42 "Lexer.l"
 { return LOCIC_TOKEN_FOR; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 41 "Lexer.l"
+#line 43 "Lexer.l"
 { return LOCIC_TOKEN_RETURN; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 42 "Lexer.l"
+#line 44 "Lexer.l"
 { return LOCIC_TOKEN_CLASS; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 43 "Lexer.l"
+#line 45 "Lexer.l"
 { return LOCIC_TOKEN_INTERFACE; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 44 "Lexer.l"
+#line 46 "Lexer.l"
 { return LOCIC_TOKEN_AUTO; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 45 "Lexer.l"
+#line 47 "Lexer.l"
 { return LOCIC_TOKEN_CONST; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 47 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_VOIDNAME; }
+#line 49 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_VOIDNAME; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 48 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_INTNAME; }
+#line 50 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_INTNAME; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 49 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_BOOLNAME; }
+#line 51 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_BOOLNAME; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 50 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_FLOATNAME; }
+#line 52 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_FLOATNAME; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 52 "Lexer.l"
+#line 54 "Lexer.l"
 { yylval.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 53 "Lexer.l"
+#line 55 "Lexer.l"
 { yylval.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 54 "Lexer.l"
+#line 56 "Lexer.l"
 { yylval.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 55 "Lexer.l"
+#line 57 "Lexer.l"
 { yylval.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 57 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_UCNAME; }
+#line 59 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_UCNAME; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 58 "Lexer.l"
-{ yylval.str = strcpy(yytext); return LOCIC_TOKEN_LCNAME; }
+#line 60 "Lexer.l"
+{ yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_LCNAME; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 60 "Lexer.l"
+#line 62 "Lexer.l"
 { return LOCIC_TOKEN_ISEQUAL; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 61 "Lexer.l"
+#line 63 "Lexer.l"
 { return LOCIC_TOKEN_NOTEQUAL; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 62 "Lexer.l"
+#line 64 "Lexer.l"
 { return LOCIC_TOKEN_GREATEROREQUAL; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 63 "Lexer.l"
+#line 65 "Lexer.l"
 { return LOCIC_TOKEN_LESSOREQUAL; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 64 "Lexer.l"
+#line 66 "Lexer.l"
 { return LOCIC_TOKEN_PTRACCESS; }
 	YY_BREAK
 case 30:
 /* rule 30 can match eol */
 YY_RULE_SETUP
-#line 66 "Lexer.l"
+#line 68 "Lexer.l"
 { }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 68 "Lexer.l"
+#line 70 "Lexer.l"
 { return LOCIC_TOKEN_SETEQUAL; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 69 "Lexer.l"
+#line 71 "Lexer.l"
 { return LOCIC_TOKEN_PLUS; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 70 "Lexer.l"
+#line 72 "Lexer.l"
 { return LOCIC_TOKEN_MINUS; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 71 "Lexer.l"
+#line 73 "Lexer.l"
 { return LOCIC_TOKEN_STAR; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 72 "Lexer.l"
+#line 74 "Lexer.l"
 { return LOCIC_TOKEN_FORWARDSLASH; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 73 "Lexer.l"
+#line 75 "Lexer.l"
 { return LOCIC_TOKEN_EXCLAIMMARK; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 74 "Lexer.l"
+#line 76 "Lexer.l"
 { return LOCIC_TOKEN_AMPERSAND; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 75 "Lexer.l"
+#line 77 "Lexer.l"
 { return LOCIC_TOKEN_QUESTIONMARK; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 76 "Lexer.l"
+#line 78 "Lexer.l"
 { return LOCIC_TOKEN_AT; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 77 "Lexer.l"
+#line 79 "Lexer.l"
 { return LOCIC_TOKEN_COMMA; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 78 "Lexer.l"
+#line 80 "Lexer.l"
 { return LOCIC_TOKEN_COLON; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 79 "Lexer.l"
+#line 81 "Lexer.l"
 { return LOCIC_TOKEN_SEMICOLON; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 80 "Lexer.l"
+#line 82 "Lexer.l"
 { return LOCIC_TOKEN_LROUNDBRACKET; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 81 "Lexer.l"
+#line 83 "Lexer.l"
 { return LOCIC_TOKEN_RROUNDBRACKET; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 82 "Lexer.l"
+#line 84 "Lexer.l"
 { return LOCIC_TOKEN_LCURLYBRACKET; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 83 "Lexer.l"
+#line 85 "Lexer.l"
 { return LOCIC_TOKEN_RCURLYBRACKET; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 84 "Lexer.l"
+#line 86 "Lexer.l"
 { return LOCIC_TOKEN_DOT; }
 	YY_BREAK
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 85 "Lexer.l"
+#line 87 "Lexer.l"
 { }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 86 "Lexer.l"
+#line 88 "Lexer.l"
 { }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 88 "Lexer.l"
+#line 90 "Lexer.l"
 ECHO;
 	YY_BREAK
-#line 1087 "lex.yy.c"
+#line 1089 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT_STATE):
 	yyterminate();
@@ -2082,7 +2084,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 88 "Lexer.l"
+#line 90 "Lexer.l"
 
 
 

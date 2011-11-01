@@ -8,11 +8,6 @@ typedef struct AST_ClassDecl{
 	AST_List * methodDeclarations;
 } AST_ClassDecl;
 
-inline AST_ClassDecl * AST_MakeClassDecl(char * name, AST_List * declarations){
-	AST_ClassDecl * classDecl = malloc(sizeof(AST_ClassDecl));
-	classDecl->name = name;
-	classDecl->methodDeclarations = declarations;
-	return classDecl;
-}
+AST_ClassDecl * AST_MakeClassDecl(char * name, AST_List * declarations);
 
 #endif

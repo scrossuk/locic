@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <Locic/Token.h>
 
-Locic_TokenValue yylval;
+extern Locic_TokenValue yylval;
 
 class Locic_Lexer{
 	public:

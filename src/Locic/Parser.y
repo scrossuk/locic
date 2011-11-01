@@ -4,6 +4,7 @@
 %token_type { Locic_Token }
 %extra_argument { void * context }
 
+%include {#include <assert.h>}
 %include {#include <Locic/Token.h>}
 %include {#include <Locic/AST.h>}
 
@@ -18,6 +19,9 @@
 %type classMethodDef { AST_ClassMethodDef * }
 
 %type type { AST_Type * }
+
+%type ucName { char * }
+%type lcName { char * }
 
 %type varName { char * }
 %type methodName { char * }
@@ -53,6 +57,11 @@ file(F) ::= .
 	{
 		F = AST_MakeFile();
 	}
+	
+file(F) ::= INTERFACE.
+	{
+		F = AST_MakeFile();
+	}
 
 file(NF) ::= file(OF) classDecl(D).
 	{
@@ -76,12 +85,12 @@ classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCUR
 	
 ucName(N) ::= UCNAME(NAME).
 	{
-		N = (NAME).str;
+		N = (NAME).value.str;
 	}
 	
 lcName(N) ::= LCNAME(NAME).
 	{
-		N = (NAME).str;
+		N = (NAME).value.str;
 	}
 	
 varName(V) ::= lcName(N).
@@ -101,22 +110,22 @@ typeName(T) ::= ucName(N).
 	
 typeName(T) ::= VOIDNAME(N).
 	{
-		T = (N).str;
+		T = (N).value.str;
 	}
 	
 typeName(T) ::= BOOLNAME(N).
 	{
-		T = (N).str;
+		T = (N).value.str;
 	}
 	
 typeName(T) ::= INTNAME(N).
 	{
-		T = (N).str;
+		T = (N).value.str;
 	}
 	
 typeName(T) ::= FLOATNAME(N).
 	{
-		T = (N).str;
+		T = (N).value.str;
 	}
 	
 type(T) ::= typeName(N).
@@ -252,13 +261,13 @@ statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE scope(F).
 statement(S) ::= FOR LROUNDBRACKET varName COLON value(V) RROUNDBRACKET scope.
 	{
 		// TODO
-		S = V;
+		S = AST_MakeValueStmt(V);
 	}
 	
 statement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope.
 	{
 		// TODO
-		S = V;
+		S = AST_MakeValueStmt(V);
 	}
 	
 statement(S) ::= AUTO varName(N) SETEQUAL value(V) SEMICOLON.
@@ -273,12 +282,12 @@ statement(S) ::= type(T) varName(N) SETEQUAL value(V) SEMICOLON.
 
 statement(S) ::= lcName(N) SETEQUAL value(V) SEMICOLON.
 	{
-		S = AST_MakeVarAssign(AST_MakeLocalVar(N), V);
+		S = AST_MakeAssignVar(AST_MakeLocalVar(N), V);
 	}
 
 statement(S) ::= AT lcName(N) SETEQUAL value(V) SEMICOLON.
 	{
-		S = AST_MakeVarAssign(AST_MakeThisVar(N), V);
+		S = AST_MakeAssignVar(AST_MakeThisVar(N), V);
 	}
 
 statement(S) ::= value(V) SEMICOLON.
@@ -308,17 +317,17 @@ precision7(V) ::= AT lcName(N).
 
 precision7(V) ::= BOOLCONSTANT(C).
 	{
-		V = AST_MakeBoolConstant((C).boolValue);
+		V = AST_MakeBoolConstant((C).value.boolValue);
 	}
 	
 precision7(V) ::= INTCONSTANT(C).
 	{
-		V = AST_MakeIntConstant((C).intValue);
+		V = AST_MakeIntConstant((C).value.intValue);
 	}
 	
 precision7(V) ::= FLOATCONSTANT(C).
 	{
-		V = AST_MakeFloatConstant((C).floatValue);
+		V = AST_MakeFloatConstant((C).value.floatValue);
 	}
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
@@ -424,6 +433,21 @@ precision2(V) ::= precision3(VAL).
 precision2(V) ::= precision3(L) ISEQUAL precision3(R).
 	{
 		V = AST_MakeBinary(AST_BINARY_ISEQUAL, L, R);
+	}
+	
+precision2(V) ::= precision3(L) NOTEQUAL precision3(R).
+	{
+		V = AST_MakeBinary(AST_BINARY_NOTEQUAL, L, R);
+	}
+	
+precision2(V) ::= precision3(L) GREATEROREQUAL precision3(R).
+	{
+		V = AST_MakeBinary(AST_BINARY_GREATEROREQUAL, L, R);
+	}
+	
+precision2(V) ::= precision3(L) LESSOREQUAL precision3(R).
+	{
+		V = AST_MakeBinary(AST_BINARY_LESSOREQUAL, L, R);
 	}
 
 precision1(V) ::= precision2(VAL).

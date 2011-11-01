@@ -3,11 +3,11 @@
 #include <Locic/Lexer.h>
 #include <Locic/Parser.h>
 
-void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
+extern "C" void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 
-void Locic_Parse(void * parser, int id, Locic_TokenValue token, void * context);
+extern "C" void Locic_Parse(void * parser, int id, Locic_TokenValue token, void * context);
 
-void Locic_ParseFree(void * parser, void (*freeFunc)(void *));
+extern "C" void Locic_ParseFree(void * parser, void (*freeFunc)(void *));
 
 extern "C" void * Locic_alloc(size_t size){
 	return malloc(size);
