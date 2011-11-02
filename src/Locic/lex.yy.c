@@ -540,7 +540,7 @@ char *yytext;
 #include <Locic/Parser.h>
 #include <Locic/Token.h>
 
-Locic_TokenValue yylval;
+Locic_Token yylval;
 
 /*
 "\""                    { strText = ""; BEGIN(STRING_STATE); }

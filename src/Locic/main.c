@@ -6,9 +6,11 @@
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 
-void Locic_Parse(void * parser, int id, Locic_TokenValue token, AST_File ** resultAST);
+void Locic_Parse(void * parser, int id, Locic_Token token, AST_File ** resultAST);
 
 void Locic_ParseFree(void * parser, void (*freeFunc)(void *));
+
+void Locic_ParseTrace(FILE * stream, char * zPrefix);
 
 void * Locic_alloc(size_t size){
 	return malloc(size);
@@ -21,7 +23,7 @@ void Locic_free(void * ptr){
 FILE * yyin;
 int yylex();
 
-extern Locic_TokenValue yylval;
+extern Locic_Token yylval;
 
 int main(int argc, char * argv[]){
 	if(argc < 2){
@@ -41,10 +43,10 @@ int main(int argc, char * argv[]){
 	
 	unsigned int numTokens = 0;
 	
+	//Locic_ParseTrace(stdout, "==> ");
+	
 	while(1){
 		int lexVal = yylex();
-		
-		printf("lexVal = %d\n", lexVal);
 		
 		Locic_Parse(parser, lexVal, yylval, &resultAST);
 		

@@ -4,10 +4,10 @@
 %include {#include <Locic/AST.h>}
 
 %name Locic_Parse
+%extra_argument { AST_File ** resultAST }
 %start_symbol start
 %token_prefix LOCIC_TOKEN_
 %token_type { Locic_Token }
-%extra_argument { AST_File ** resultAST }
 
 %parse_accept {
 	printf("Success!\n");
@@ -21,7 +21,6 @@
 	printf("Syntax error\n");
 }
 
-%type start { AST_File * }
 %type file { AST_File * }
 
 %type classDecl { AST_ClassDecl * }
@@ -62,25 +61,17 @@
 %type precision6 { AST_Value * }
 %type precision7 { AST_Value * }
 	
-start(S) ::= file(F) .
+start ::= file(F) .
 	{
 		printf("Completed parsing\n");
-		S = F;
+		*(resultAST) = F;
 	}
+	
+// Nasty hack to create ERROR token and error non-terminal (UNKNOWN can never be sent by the lexer).
+start ::= UNKNOWN ERROR error.
 
 file(F) ::= .
 	{
-		F = AST_MakeFile();
-	}
-
-file(F) ::= ERROR.
-	{
-		F = AST_MakeFile();
-	}
-	
-file(F) ::= error.
-	{
-		printf("ERROR\n");
 		F = AST_MakeFile();
 	}
 	
@@ -111,12 +102,12 @@ classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCUR
 	
 ucName(N) ::= UCNAME(NAME).
 	{
-		N = (NAME).value.str;
+		N = (NAME).str;
 	}
 	
 lcName(N) ::= LCNAME(NAME).
 	{
-		N = (NAME).value.str;
+		N = (NAME).str;
 	}
 	
 varName(V) ::= lcName(N).
@@ -136,22 +127,22 @@ typeName(T) ::= ucName(N).
 	
 typeName(T) ::= VOIDNAME(N).
 	{
-		T = (N).value.str;
+		T = (N).str;
 	}
 	
 typeName(T) ::= BOOLNAME(N).
 	{
-		T = (N).value.str;
+		T = (N).str;
 	}
 	
 typeName(T) ::= INTNAME(N).
 	{
-		T = (N).value.str;
+		T = (N).str;
 	}
 	
 typeName(T) ::= FLOATNAME(N).
 	{
-		T = (N).value.str;
+		T = (N).str;
 	}
 	
 type(T) ::= typeName(N).
@@ -343,17 +334,17 @@ precision7(V) ::= AT lcName(N).
 
 precision7(V) ::= BOOLCONSTANT(C).
 	{
-		V = AST_MakeBoolConstant((C).value.boolValue);
+		V = AST_MakeBoolConstant((C).boolValue);
 	}
 	
 precision7(V) ::= INTCONSTANT(C).
 	{
-		V = AST_MakeIntConstant((C).value.intValue);
+		V = AST_MakeIntConstant((C).intValue);
 	}
 	
 precision7(V) ::= FLOATCONSTANT(C).
 	{
-		V = AST_MakeFloatConstant((C).value.floatValue);
+		V = AST_MakeFloatConstant((C).floatValue);
 	}
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
