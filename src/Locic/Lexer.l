@@ -86,6 +86,7 @@ false                   { yylval.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT;
 "."                     { return LOCIC_TOKEN_DOT; }
 \n                      { }
 [ \t\r]+                { }
+.                       { return LOCIC_TOKEN_ERROR; }
 
 %%
 

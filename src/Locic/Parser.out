@@ -1,13 +1,17 @@
 State 0:
           start ::= * file
       (1) file ::= *
+          file ::= * ERROR
+          file ::= * error
           file ::= * INTERFACE
           file ::= * file classDecl
           file ::= * file classDef
 
+                         ERROR shift  120
                      INTERFACE shift  118
-                          file shift  46
+                         error shift  119
                          start accept
+                          file shift  46
                      {default} reduce 1
 
 State 1:
@@ -69,14 +73,14 @@ State 1:
           precision0 ::= * precision1
           value ::= * precision0
 
-                 RCURLYBRACKET shift  130
+                 RCURLYBRACKET shift  132
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                        LCNAME shift  171
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           STAR shift  31
                             IF shift  91
@@ -85,9 +89,9 @@ State 1:
                           AUTO shift  47
                             AT shift  50
                         RETURN shift  6
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
@@ -95,22 +99,22 @@ State 1:
                           type shift  43
                         ucName shift  72
                         lcName shift  81
-                      typeName shift  171
+                      typeName shift  173
                          value shift  77
-                     statement shift  129
-                    precision0 shift  135
-                    precision1 shift  136
+                     statement shift  131
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 2:
           ucName ::= * UCNAME
           lcName ::= * LCNAME
-     (33) valueList ::= *
+     (35) valueList ::= *
           valueList ::= * nonEmptyValueList
           nonEmptyValueList ::= * value
           nonEmptyValueList ::= * nonEmptyValueList COMMA value
@@ -151,36 +155,36 @@ State 2:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                         value shift  150
+                        lcName shift  157
+                         value shift  152
              nonEmptyValueList shift  105
                      valueList shift  95
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
-                     {default} reduce 33
+                    precision7 shift  150
+                     {default} reduce 35
 
 State 3:
           ucName ::= * UCNAME
           lcName ::= * LCNAME
-     (33) valueList ::= *
+     (35) valueList ::= *
           valueList ::= * nonEmptyValueList
           nonEmptyValueList ::= * value
           nonEmptyValueList ::= * nonEmptyValueList COMMA value
@@ -221,36 +225,36 @@ State 3:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                         value shift  150
+                        lcName shift  157
+                         value shift  152
              nonEmptyValueList shift  105
                      valueList shift  99
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
-                     {default} reduce 33
+                    precision7 shift  150
+                     {default} reduce 35
 
 State 4:
           ucName ::= * UCNAME
           lcName ::= * LCNAME
-     (33) valueList ::= *
+     (35) valueList ::= *
           valueList ::= * nonEmptyValueList
           nonEmptyValueList ::= * value
           nonEmptyValueList ::= * nonEmptyValueList COMMA value
@@ -291,36 +295,36 @@ State 4:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                         value shift  150
+                        lcName shift  157
+                         value shift  152
              nonEmptyValueList shift  105
                      valueList shift  102
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
-                     {default} reduce 33
+                    precision7 shift  150
+                     {default} reduce 35
 
 State 5:
           ucName ::= * UCNAME
           lcName ::= * LCNAME
-     (33) valueList ::= *
+     (35) valueList ::= *
           valueList ::= * nonEmptyValueList
           nonEmptyValueList ::= * value
           nonEmptyValueList ::= * nonEmptyValueList COMMA value
@@ -361,31 +365,31 @@ State 5:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                         value shift  150
+                        lcName shift  157
+                         value shift  152
              nonEmptyValueList shift  105
                      valueList shift  94
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
-                     {default} reduce 33
+                    precision7 shift  150
+                     {default} reduce 35
 
 State 6:
           ucName ::= * UCNAME
@@ -427,28 +431,28 @@ State 6:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  76
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 7:
           ucName ::= * UCNAME
@@ -490,28 +494,28 @@ State 7:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  78
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 8:
           ucName ::= * UCNAME
@@ -553,28 +557,28 @@ State 8:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  80
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 9:
           ucName ::= * UCNAME
@@ -616,28 +620,28 @@ State 9:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  82
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 10:
           ucName ::= * UCNAME
@@ -679,28 +683,28 @@ State 10:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  84
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 11:
           ucName ::= * UCNAME
@@ -742,28 +746,28 @@ State 11:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  86
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 12:
           ucName ::= * UCNAME
@@ -806,28 +810,28 @@ State 12:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  90
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 13:
           ucName ::= * UCNAME
@@ -869,28 +873,28 @@ State 13:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                          value shift  92
-                    precision0 shift  135
-                    precision1 shift  136
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 14:
           ucName ::= * UCNAME
@@ -932,28 +936,28 @@ State 14:
           value ::= * precision0
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                         value shift  157
-                    precision0 shift  135
-                    precision1 shift  136
+                        lcName shift  157
+                         value shift  159
+                    precision0 shift  137
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 15:
           ucName ::= * UCNAME
@@ -994,27 +998,27 @@ State 15:
           precision0 ::= * precision1
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision0 shift  104
-                    precision1 shift  136
+                    precision1 shift  138
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 16:
           ucName ::= * UCNAME
@@ -1054,26 +1058,26 @@ State 16:
           precision1 ::= precision2 QUESTIONMARK precision1 COLON * precision1
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision1 shift  137
+                        lcName shift  157
+                    precision1 shift  139
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 17:
           ucName ::= * UCNAME
@@ -1113,26 +1117,26 @@ State 17:
           precision1 ::= precision2 QUESTIONMARK * precision1 COLON precision1
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision1 shift  97
                     precision2 shift  98
                     precision3 shift  62
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 18:
           ucName ::= * UCNAME
@@ -1165,24 +1169,24 @@ State 18:
           precision2 ::= precision3 LESSOREQUAL * precision3
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision3 shift  63
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 19:
           ucName ::= * UCNAME
@@ -1215,24 +1219,24 @@ State 19:
           precision2 ::= precision3 GREATEROREQUAL * precision3
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision3 shift  64
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 20:
           ucName ::= * UCNAME
@@ -1265,24 +1269,24 @@ State 20:
           precision2 ::= precision3 NOTEQUAL * precision3
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision3 shift  65
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 21:
           ucName ::= * UCNAME
@@ -1315,24 +1319,24 @@ State 21:
           precision2 ::= precision3 ISEQUAL * precision3
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision3 shift  66
                     precision4 shift  69
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 22:
           ucName ::= * UCNAME
@@ -1362,23 +1366,23 @@ State 22:
           precision3 ::= precision3 MINUS * precision4
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision4 shift  67
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 23:
           ucName ::= * UCNAME
@@ -1408,23 +1412,23 @@ State 23:
           precision3 ::= precision3 PLUS * precision4
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
+                        lcName shift  157
                     precision4 shift  68
-                    precision5 shift  140
+                    precision5 shift  142
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 24:
           ucName ::= * UCNAME
@@ -1439,24 +1443,24 @@ State 24:
           type ::= * type STAR CONST
           classMethodDef ::= type methodName LROUNDBRACKET * typeVarList RROUNDBRACKET scope
           typeVar ::= * type varName
-     (29) typeVarList ::= *
+     (31) typeVarList ::= *
           typeVarList ::= * nonEmptyTypeVarList
           nonEmptyTypeVarList ::= * typeVar
           nonEmptyTypeVarList ::= * nonEmptyTypeVarList COMMA typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  163
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  165
            nonEmptyTypeVarList shift  113
                    typeVarList shift  74
-                     {default} reduce 29
+                     {default} reduce 31
 
 State 25:
           ucName ::= * UCNAME
@@ -1471,24 +1475,24 @@ State 25:
           type ::= * type STAR CONST
           classMethodDef ::= ucName LROUNDBRACKET * typeVarList RROUNDBRACKET scope
           typeVar ::= * type varName
-     (29) typeVarList ::= *
+     (31) typeVarList ::= *
           typeVarList ::= * nonEmptyTypeVarList
           nonEmptyTypeVarList ::= * typeVar
           nonEmptyTypeVarList ::= * nonEmptyTypeVarList COMMA typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  163
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  165
            nonEmptyTypeVarList shift  113
                    typeVarList shift  106
-                     {default} reduce 29
+                     {default} reduce 31
 
 State 26:
           classDef ::= CLASS ucName LROUNDBRACKET * typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET
@@ -1503,24 +1507,24 @@ State 26:
           type ::= * type STAR
           type ::= * type STAR CONST
           typeVar ::= * type varName
-     (29) typeVarList ::= *
+     (31) typeVarList ::= *
           typeVarList ::= * nonEmptyTypeVarList
           nonEmptyTypeVarList ::= * typeVar
           nonEmptyTypeVarList ::= * nonEmptyTypeVarList COMMA typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  163
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  165
            nonEmptyTypeVarList shift  113
                    typeVarList shift  109
-                     {default} reduce 29
+                     {default} reduce 31
 
 State 27:
           ucName ::= * UCNAME
@@ -1535,24 +1539,24 @@ State 27:
           type ::= * type STAR CONST
           classMethodDecl ::= type methodName LROUNDBRACKET * typeVarList RROUNDBRACKET SEMICOLON
           typeVar ::= * type varName
-     (29) typeVarList ::= *
+     (31) typeVarList ::= *
           typeVarList ::= * nonEmptyTypeVarList
           nonEmptyTypeVarList ::= * typeVar
           nonEmptyTypeVarList ::= * nonEmptyTypeVarList COMMA typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  163
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  165
            nonEmptyTypeVarList shift  113
                    typeVarList shift  111
-                     {default} reduce 29
+                     {default} reduce 31
 
 State 28:
           ucName ::= * UCNAME
@@ -1567,24 +1571,24 @@ State 28:
           type ::= * type STAR CONST
           classMethodDecl ::= ucName LROUNDBRACKET * typeVarList RROUNDBRACKET SEMICOLON
           typeVar ::= * type varName
-     (29) typeVarList ::= *
+     (31) typeVarList ::= *
           typeVarList ::= * nonEmptyTypeVarList
           nonEmptyTypeVarList ::= * typeVar
           nonEmptyTypeVarList ::= * nonEmptyTypeVarList COMMA typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  163
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  165
            nonEmptyTypeVarList shift  113
                    typeVarList shift  115
-                     {default} reduce 29
+                     {default} reduce 31
 
 State 29:
           ucName ::= * UCNAME
@@ -1611,22 +1615,22 @@ State 29:
           precision4 ::= precision4 FORWARDSLASH * precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  138
+                        lcName shift  157
+                    precision5 shift  140
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 30:
           ucName ::= * UCNAME
@@ -1653,22 +1657,22 @@ State 30:
           precision4 ::= precision4 STAR * precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  139
+                        lcName shift  157
+                    precision5 shift  141
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 31:
           ucName ::= * UCNAME
@@ -1695,22 +1699,22 @@ State 31:
           precision5 ::= STAR * precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  141
+                        lcName shift  157
+                    precision5 shift  143
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 32:
           ucName ::= * UCNAME
@@ -1737,22 +1741,22 @@ State 32:
           precision5 ::= * STAR precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  142
+                        lcName shift  157
+                    precision5 shift  144
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 33:
           ucName ::= * UCNAME
@@ -1779,22 +1783,22 @@ State 33:
           precision5 ::= * STAR precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  143
+                        lcName shift  157
+                    precision5 shift  145
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 34:
           ucName ::= * UCNAME
@@ -1821,22 +1825,22 @@ State 34:
           precision5 ::= * STAR precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  144
+                        lcName shift  157
+                    precision5 shift  146
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 35:
           ucName ::= * UCNAME
@@ -1863,22 +1867,22 @@ State 35:
           precision5 ::= * STAR precision5
 
                  LROUNDBRACKET shift  15
-                        UCNAME shift  177
-                        LCNAME shift  169
+                        UCNAME shift  179
+                        LCNAME shift  171
                           STAR shift  31
                             AT shift  56
-                  BOOLCONSTANT shift  153
-                   INTCONSTANT shift  152
-                 FLOATCONSTANT shift  151
+                  BOOLCONSTANT shift  155
+                   INTCONSTANT shift  154
+                 FLOATCONSTANT shift  153
                           PLUS shift  35
                          MINUS shift  34
                    EXCLAIMMARK shift  33
                      AMPERSAND shift  32
                         ucName shift  71
-                        lcName shift  155
-                    precision5 shift  145
+                        lcName shift  157
+                    precision5 shift  147
                     precision6 shift  70
-                    precision7 shift  148
+                    precision7 shift  150
 
 State 36:
           classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList * RCURLYBRACKET
@@ -1896,17 +1900,17 @@ State 36:
           classMethodDef ::= * ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope
           classMethodDef ::= * type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope
 
-                 RCURLYBRACKET shift  159
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                 RCURLYBRACKET shift  161
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
-                classMethodDef shift  119
+                classMethodDef shift  121
                           type shift  42
                         ucName shift  107
-                      typeName shift  171
+                      typeName shift  173
 
 State 37:
           classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList * RCURLYBRACKET
@@ -1924,17 +1928,17 @@ State 37:
           classMethodDecl ::= * ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
           classMethodDecl ::= * type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 
-                 RCURLYBRACKET shift  178
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                 RCURLYBRACKET shift  180
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
-               classMethodDecl shift  160
+               classMethodDecl shift  162
                           type shift  44
                         ucName shift  117
-                      typeName shift  171
+                      typeName shift  173
 
 State 38:
           ucName ::= * UCNAME
@@ -1950,16 +1954,16 @@ State 38:
           typeVar ::= * type varName
           nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA * typeVar
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
                          CONST shift  41
                           type shift  45
-                        ucName shift  176
-                      typeName shift  171
-                       typeVar shift  164
+                        ucName shift  178
+                      typeName shift  173
+                       typeVar shift  166
 
 State 39:
           lcName ::= * LCNAME
@@ -1968,9 +1972,9 @@ State 39:
           precision6 ::= precision6 PTRACCESS * varName
           precision6 ::= precision6 PTRACCESS * methodName LROUNDBRACKET valueList RROUNDBRACKET
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                         lcName shift  101
-                       varName shift  134
+                       varName shift  136
                     methodName shift  96
 
 State 40:
@@ -1980,9 +1984,9 @@ State 40:
           precision6 ::= precision6 DOT * varName
           precision6 ::= precision6 DOT * methodName LROUNDBRACKET valueList RROUNDBRACKET
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                         lcName shift  101
-                       varName shift  147
+                       varName shift  149
                     methodName shift  100
 
 State 41:
@@ -1994,13 +1998,13 @@ State 41:
           typeName ::= * FLOATNAME
           type ::= CONST * typeName
 
-                        UCNAME shift  177
-                      VOIDNAME shift  175
-                      BOOLNAME shift  174
-                       INTNAME shift  173
-                     FLOATNAME shift  172
-                        ucName shift  176
-                      typeName shift  170
+                        UCNAME shift  179
+                      VOIDNAME shift  177
+                      BOOLNAME shift  176
+                       INTNAME shift  175
+                     FLOATNAME shift  174
+                        ucName shift  178
+                      typeName shift  172
 
 State 42:
           lcName ::= * LCNAME
@@ -2009,9 +2013,9 @@ State 42:
           type ::= type * STAR CONST
           classMethodDef ::= type * methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                           STAR shift  116
-                        lcName shift  162
+                        lcName shift  164
                     methodName shift  75
 
 State 43:
@@ -2021,9 +2025,9 @@ State 43:
           type ::= type * STAR CONST
           statement ::= type * varName SETEQUAL value SEMICOLON
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                           STAR shift  116
-                        lcName shift  168
+                        lcName shift  170
                        varName shift  93
 
 State 44:
@@ -2033,9 +2037,9 @@ State 44:
           type ::= type * STAR CONST
           classMethodDecl ::= type * methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                           STAR shift  116
-                        lcName shift  162
+                        lcName shift  164
                     methodName shift  112
 
 State 45:
@@ -2045,10 +2049,10 @@ State 45:
           type ::= type * STAR CONST
           typeVar ::= type * varName
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                           STAR shift  116
-                        lcName shift  168
-                       varName shift  166
+                        lcName shift  170
+                       varName shift  168
 
 State 46:
       (0) start ::= file *
@@ -2059,16 +2063,16 @@ State 46:
 
                              $ reduce 0
                          CLASS shift  58
-                     classDecl shift  180
-                      classDef shift  179
+                     classDecl shift  182
+                      classDef shift  181
 
 State 47:
           lcName ::= * LCNAME
           varName ::= * lcName
           statement ::= AUTO * varName SETEQUAL value SEMICOLON
 
-                        LCNAME shift  169
-                        lcName shift  168
+                        LCNAME shift  171
+                        lcName shift  170
                        varName shift  83
 
 State 48:
@@ -2076,8 +2080,8 @@ State 48:
           varName ::= * lcName
           statement ::= FOR LROUNDBRACKET * varName COLON value RROUNDBRACKET scope
 
-                        LCNAME shift  169
-                        lcName shift  168
+                        LCNAME shift  171
+                        lcName shift  170
                        varName shift  87
 
 State 49:
@@ -2085,14 +2089,14 @@ State 49:
           scope ::= * LCURLYBRACKET statementList RCURLYBRACKET
 
                  LCURLYBRACKET shift  59
-                         scope shift  120
+                         scope shift  122
 
 State 50:
           lcName ::= * LCNAME
           statement ::= AT * lcName SETEQUAL value SEMICOLON
           precision7 ::= AT * lcName
 
-                        LCNAME shift  169
+                        LCNAME shift  171
                         lcName shift  79
 
 State 51:
@@ -2100,21 +2104,21 @@ State 51:
           statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET * scope
 
                  LCURLYBRACKET shift  59
-                         scope shift  126
+                         scope shift  128
 
 State 52:
           scope ::= * LCURLYBRACKET statementList RCURLYBRACKET
           statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET * scope
 
                  LCURLYBRACKET shift  59
-                         scope shift  127
+                         scope shift  129
 
 State 53:
           scope ::= * LCURLYBRACKET statementList RCURLYBRACKET
           statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE * scope
 
                  LCURLYBRACKET shift  59
-                         scope shift  128
+                         scope shift  130
 
 State 54:
           scope ::= * LCURLYBRACKET statementList RCURLYBRACKET
@@ -2128,59 +2132,59 @@ State 55:
           ucName ::= * UCNAME
           precision7 ::= ucName COLON * ucName LROUNDBRACKET valueList RROUNDBRACKET
 
-                        UCNAME shift  177
+                        UCNAME shift  179
                         ucName shift  103
 
 State 56:
           lcName ::= * LCNAME
           precision7 ::= AT * lcName
 
-                        LCNAME shift  169
-                        lcName shift  154
+                        LCNAME shift  171
+                        lcName shift  156
 
 State 57:
           classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET * scope
           scope ::= * LCURLYBRACKET statementList RCURLYBRACKET
 
                  LCURLYBRACKET shift  59
-                         scope shift  158
+                         scope shift  160
 
 State 58:
           classDecl ::= CLASS * ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET
           classDef ::= CLASS * ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET
           ucName ::= * UCNAME
 
-                        UCNAME shift  177
+                        UCNAME shift  179
                         ucName shift  73
 
 State 59:
           scope ::= LCURLYBRACKET * statementList RCURLYBRACKET
-     (38) statementList ::= *
+     (40) statementList ::= *
           statementList ::= * statementList statement
 
                  statementList shift  1
-                     {default} reduce 38
+                     {default} reduce 40
 
 State 60:
           classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET * classMethodDefList RCURLYBRACKET
-     (22) classMethodDefList ::= *
+     (24) classMethodDefList ::= *
           classMethodDefList ::= * classMethodDefList classMethodDef
 
             classMethodDefList shift  36
-                     {default} reduce 22
+                     {default} reduce 24
 
 State 61:
           classDecl ::= CLASS ucName LCURLYBRACKET * classMethodDeclList RCURLYBRACKET
-     (20) classMethodDeclList ::= *
+     (22) classMethodDeclList ::= *
           classMethodDeclList ::= * classMethodDeclList classMethodDecl
 
            classMethodDeclList shift  37
-                     {default} reduce 20
+                     {default} reduce 22
 
 State 62:
           precision3 ::= precision3 * PLUS precision4
           precision3 ::= precision3 * MINUS precision4
-     (75) precision2 ::= precision3 *
+     (77) precision2 ::= precision3 *
           precision2 ::= precision3 * ISEQUAL precision3
           precision2 ::= precision3 * NOTEQUAL precision3
           precision2 ::= precision3 * GREATEROREQUAL precision3
@@ -2192,81 +2196,81 @@ State 62:
                       NOTEQUAL shift  20
                 GREATEROREQUAL shift  19
                    LESSOREQUAL shift  18
-                     {default} reduce 75
+                     {default} reduce 77
 
 State 63:
           precision3 ::= precision3 * PLUS precision4
           precision3 ::= precision3 * MINUS precision4
-     (79) precision2 ::= precision3 LESSOREQUAL precision3 *
+     (81) precision2 ::= precision3 LESSOREQUAL precision3 *
+
+                          PLUS shift  23
+                         MINUS shift  22
+                     {default} reduce 81
+
+State 64:
+          precision3 ::= precision3 * PLUS precision4
+          precision3 ::= precision3 * MINUS precision4
+     (80) precision2 ::= precision3 GREATEROREQUAL precision3 *
+
+                          PLUS shift  23
+                         MINUS shift  22
+                     {default} reduce 80
+
+State 65:
+          precision3 ::= precision3 * PLUS precision4
+          precision3 ::= precision3 * MINUS precision4
+     (79) precision2 ::= precision3 NOTEQUAL precision3 *
 
                           PLUS shift  23
                          MINUS shift  22
                      {default} reduce 79
 
-State 64:
+State 66:
           precision3 ::= precision3 * PLUS precision4
           precision3 ::= precision3 * MINUS precision4
-     (78) precision2 ::= precision3 GREATEROREQUAL precision3 *
+     (78) precision2 ::= precision3 ISEQUAL precision3 *
 
                           PLUS shift  23
                          MINUS shift  22
                      {default} reduce 78
 
-State 65:
-          precision3 ::= precision3 * PLUS precision4
-          precision3 ::= precision3 * MINUS precision4
-     (77) precision2 ::= precision3 NOTEQUAL precision3 *
-
-                          PLUS shift  23
-                         MINUS shift  22
-                     {default} reduce 77
-
-State 66:
-          precision3 ::= precision3 * PLUS precision4
-          precision3 ::= precision3 * MINUS precision4
-     (76) precision2 ::= precision3 ISEQUAL precision3 *
-
-                          PLUS shift  23
-                         MINUS shift  22
-                     {default} reduce 76
-
 State 67:
           precision4 ::= precision4 * STAR precision5
           precision4 ::= precision4 * FORWARDSLASH precision5
-     (74) precision3 ::= precision3 MINUS precision4 *
+     (76) precision3 ::= precision3 MINUS precision4 *
 
                           STAR shift  30
                   FORWARDSLASH shift  29
-                     {default} reduce 74
+                     {default} reduce 76
 
 State 68:
           precision4 ::= precision4 * STAR precision5
           precision4 ::= precision4 * FORWARDSLASH precision5
-     (73) precision3 ::= precision3 PLUS precision4 *
+     (75) precision3 ::= precision3 PLUS precision4 *
 
                           STAR shift  30
                   FORWARDSLASH shift  29
-                     {default} reduce 73
+                     {default} reduce 75
 
 State 69:
           precision4 ::= precision4 * STAR precision5
           precision4 ::= precision4 * FORWARDSLASH precision5
-     (72) precision3 ::= precision4 *
+     (74) precision3 ::= precision4 *
 
                           STAR shift  30
                   FORWARDSLASH shift  29
-                     {default} reduce 72
+                     {default} reduce 74
 
 State 70:
           precision6 ::= precision6 * DOT varName
           precision6 ::= precision6 * DOT methodName LROUNDBRACKET valueList RROUNDBRACKET
           precision6 ::= precision6 * PTRACCESS varName
           precision6 ::= precision6 * PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET
-     (63) precision5 ::= precision6 *
+     (65) precision5 ::= precision6 *
 
                            DOT shift  40
                      PTRACCESS shift  39
-                     {default} reduce 63
+                     {default} reduce 65
 
 State 71:
           precision7 ::= ucName * LROUNDBRACKET valueList RROUNDBRACKET
@@ -2276,13 +2280,13 @@ State 71:
                          COLON shift  55
 
 State 72:
-     (11) typeName ::= ucName *
+     (13) typeName ::= ucName *
           precision7 ::= ucName * LROUNDBRACKET valueList RROUNDBRACKET
           precision7 ::= ucName * COLON ucName LROUNDBRACKET valueList RROUNDBRACKET
 
                  LROUNDBRACKET shift  5
                          COLON shift  55
-                     {default} reduce 11
+                     {default} reduce 13
 
 State 73:
           classDecl ::= CLASS ucName * LCURLYBRACKET classMethodDeclList RCURLYBRACKET
@@ -2304,41 +2308,41 @@ State 75:
 State 76:
           statement ::= RETURN value * SEMICOLON
 
-                     SEMICOLON shift  121
+                     SEMICOLON shift  123
 
 State 77:
           statement ::= value * SEMICOLON
 
-                     SEMICOLON shift  122
+                     SEMICOLON shift  124
 
 State 78:
           statement ::= AT lcName SETEQUAL value * SEMICOLON
 
-                     SEMICOLON shift  123
+                     SEMICOLON shift  125
 
 State 79:
           statement ::= AT lcName * SETEQUAL value SEMICOLON
-     (52) precision7 ::= AT lcName *
+     (54) precision7 ::= AT lcName *
 
                       SETEQUAL shift  7
-                     {default} reduce 52
+                     {default} reduce 54
 
 State 80:
           statement ::= lcName SETEQUAL value * SEMICOLON
 
-                     SEMICOLON shift  124
+                     SEMICOLON shift  126
 
 State 81:
           statement ::= lcName * SETEQUAL value SEMICOLON
-     (51) precision7 ::= lcName *
+     (53) precision7 ::= lcName *
 
                       SETEQUAL shift  8
-                     {default} reduce 51
+                     {default} reduce 53
 
 State 82:
           statement ::= AUTO varName SETEQUAL value * SEMICOLON
 
-                     SEMICOLON shift  125
+                     SEMICOLON shift  127
 
 State 83:
           statement ::= AUTO varName * SETEQUAL value SEMICOLON
@@ -2371,11 +2375,11 @@ State 88:
                  LROUNDBRACKET shift  48
 
 State 89:
-     (40) statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope *
+     (42) statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope *
           statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope * ELSE scope
 
                           ELSE shift  53
-                     {default} reduce 40
+                     {default} reduce 42
 
 State 90:
           statement ::= IF LROUNDBRACKET value * RROUNDBRACKET scope
@@ -2392,7 +2396,7 @@ State 91:
 State 92:
           statement ::= type varName SETEQUAL value * SEMICOLON
 
-                     SEMICOLON shift  131
+                     SEMICOLON shift  133
 
 State 93:
           statement ::= type varName * SETEQUAL value SEMICOLON
@@ -2402,12 +2406,12 @@ State 93:
 State 94:
           precision7 ::= ucName LROUNDBRACKET valueList * RROUNDBRACKET
 
-                 RROUNDBRACKET shift  132
+                 RROUNDBRACKET shift  134
 
 State 95:
           precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList * RROUNDBRACKET
 
-                 RROUNDBRACKET shift  133
+                 RROUNDBRACKET shift  135
 
 State 96:
           precision6 ::= precision6 PTRACCESS methodName * LROUNDBRACKET valueList RROUNDBRACKET
@@ -2420,16 +2424,16 @@ State 97:
                          COLON shift  16
 
 State 98:
-     (80) precision1 ::= precision2 *
+     (82) precision1 ::= precision2 *
           precision1 ::= precision2 * QUESTIONMARK precision1 COLON precision1
 
                   QUESTIONMARK shift  17
-                     {default} reduce 80
+                     {default} reduce 82
 
 State 99:
           precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList * RROUNDBRACKET
 
-                 RROUNDBRACKET shift  146
+                 RROUNDBRACKET shift  148
 
 State 100:
           precision6 ::= precision6 DOT methodName * LROUNDBRACKET valueList RROUNDBRACKET
@@ -2437,16 +2441,16 @@ State 100:
                  LROUNDBRACKET shift  3
 
 State 101:
-      (9) varName ::= lcName *
-     (10) methodName ::= lcName *
+     (11) varName ::= lcName *
+     (12) methodName ::= lcName *
 
-                 LROUNDBRACKET reduce 10
-                     {default} reduce 9
+                 LROUNDBRACKET reduce 12
+                     {default} reduce 11
 
 State 102:
           precision7 ::= ucName COLON ucName LROUNDBRACKET valueList * RROUNDBRACKET
 
-                 RROUNDBRACKET shift  149
+                 RROUNDBRACKET shift  151
 
 State 103:
           precision7 ::= ucName COLON ucName * LROUNDBRACKET valueList RROUNDBRACKET
@@ -2456,14 +2460,14 @@ State 103:
 State 104:
           precision7 ::= LROUNDBRACKET precision0 * RROUNDBRACKET
 
-                 RROUNDBRACKET shift  156
+                 RROUNDBRACKET shift  158
 
 State 105:
-     (34) valueList ::= nonEmptyValueList *
+     (36) valueList ::= nonEmptyValueList *
           nonEmptyValueList ::= nonEmptyValueList * COMMA value
 
                          COMMA shift  14
-                     {default} reduce 34
+                     {default} reduce 36
 
 State 106:
           classMethodDef ::= ucName LROUNDBRACKET typeVarList * RROUNDBRACKET scope
@@ -2471,11 +2475,11 @@ State 106:
                  RROUNDBRACKET shift  57
 
 State 107:
-     (11) typeName ::= ucName *
+     (13) typeName ::= ucName *
           classMethodDef ::= ucName * LROUNDBRACKET typeVarList RROUNDBRACKET scope
 
                  LROUNDBRACKET shift  25
-                     {default} reduce 11
+                     {default} reduce 13
 
 State 108:
           classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET * LCURLYBRACKET classMethodDefList RCURLYBRACKET
@@ -2490,7 +2494,7 @@ State 109:
 State 110:
           classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET * SEMICOLON
 
-                     SEMICOLON shift  161
+                     SEMICOLON shift  163
 
 State 111:
           classMethodDecl ::= type methodName LROUNDBRACKET typeVarList * RROUNDBRACKET SEMICOLON
@@ -2503,16 +2507,16 @@ State 112:
                  LROUNDBRACKET shift  27
 
 State 113:
-     (30) typeVarList ::= nonEmptyTypeVarList *
+     (32) typeVarList ::= nonEmptyTypeVarList *
           nonEmptyTypeVarList ::= nonEmptyTypeVarList * COMMA typeVar
 
                          COMMA shift  38
-                     {default} reduce 30
+                     {default} reduce 32
 
 State 114:
           classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET * SEMICOLON
 
-                     SEMICOLON shift  165
+                     SEMICOLON shift  167
 
 State 115:
           classMethodDecl ::= ucName LROUNDBRACKET typeVarList * RROUNDBRACKET SEMICOLON
@@ -2520,406 +2524,417 @@ State 115:
                  RROUNDBRACKET shift  114
 
 State 116:
-     (18) type ::= type STAR *
+     (20) type ::= type STAR *
           type ::= type STAR * CONST
 
-                         CONST shift  167
-                     {default} reduce 18
+                         CONST shift  169
+                     {default} reduce 20
 
 State 117:
-     (11) typeName ::= ucName *
+     (13) typeName ::= ucName *
           classMethodDecl ::= ucName * LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 
                  LROUNDBRACKET shift  28
-                     {default} reduce 11
-
-State 118:
-      (2) file ::= INTERFACE *
-
-                     {default} reduce 2
-
-State 119:
-     (23) classMethodDefList ::= classMethodDefList classMethodDef *
-
-                     {default} reduce 23
-
-State 120:
-     (27) classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope *
-
-                     {default} reduce 27
-
-State 121:
-     (49) statement ::= RETURN value SEMICOLON *
-
-                     {default} reduce 49
-
-State 122:
-     (48) statement ::= value SEMICOLON *
-
-                     {default} reduce 48
-
-State 123:
-     (47) statement ::= AT lcName SETEQUAL value SEMICOLON *
-
-                     {default} reduce 47
-
-State 124:
-     (46) statement ::= lcName SETEQUAL value SEMICOLON *
-
-                     {default} reduce 46
-
-State 125:
-     (44) statement ::= AUTO varName SETEQUAL value SEMICOLON *
-
-                     {default} reduce 44
-
-State 126:
-     (43) statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope *
-
-                     {default} reduce 43
-
-State 127:
-     (42) statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope *
-
-                     {default} reduce 42
-
-State 128:
-     (41) statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope *
-
-                     {default} reduce 41
-
-State 129:
-     (39) statementList ::= statementList statement *
-
-                     {default} reduce 39
-
-State 130:
-     (37) scope ::= LCURLYBRACKET statementList RCURLYBRACKET *
-
-                     {default} reduce 37
-
-State 131:
-     (45) statement ::= type varName SETEQUAL value SEMICOLON *
-
-                     {default} reduce 45
-
-State 132:
-     (56) precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET *
-
-                     {default} reduce 56
-
-State 133:
-     (62) precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET *
-
-                     {default} reduce 62
-
-State 134:
-     (61) precision6 ::= precision6 PTRACCESS varName *
-
-                     {default} reduce 61
-
-State 135:
-     (83) value ::= precision0 *
-
-                     {default} reduce 83
-
-State 136:
-     (82) precision0 ::= precision1 *
-
-                     {default} reduce 82
-
-State 137:
-     (81) precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1 *
-
-                     {default} reduce 81
-
-State 138:
-     (71) precision4 ::= precision4 FORWARDSLASH precision5 *
-
-                     {default} reduce 71
-
-State 139:
-     (70) precision4 ::= precision4 STAR precision5 *
-
-                     {default} reduce 70
-
-State 140:
-     (69) precision4 ::= precision5 *
-
-                     {default} reduce 69
-
-State 141:
-     (68) precision5 ::= STAR precision5 *
-
-                     {default} reduce 68
-
-State 142:
-     (67) precision5 ::= AMPERSAND precision5 *
-
-                     {default} reduce 67
-
-State 143:
-     (66) precision5 ::= EXCLAIMMARK precision5 *
-
-                     {default} reduce 66
-
-State 144:
-     (65) precision5 ::= MINUS precision5 *
-
-                     {default} reduce 65
-
-State 145:
-     (64) precision5 ::= PLUS precision5 *
-
-                     {default} reduce 64
-
-State 146:
-     (60) precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET *
-
-                     {default} reduce 60
-
-State 147:
-     (59) precision6 ::= precision6 DOT varName *
-
-                     {default} reduce 59
-
-State 148:
-     (58) precision6 ::= precision7 *
-
-                     {default} reduce 58
-
-State 149:
-     (57) precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET *
-
-                     {default} reduce 57
-
-State 150:
-     (35) nonEmptyValueList ::= value *
-
-                     {default} reduce 35
-
-State 151:
-     (55) precision7 ::= FLOATCONSTANT *
-
-                     {default} reduce 55
-
-State 152:
-     (54) precision7 ::= INTCONSTANT *
-
-                     {default} reduce 54
-
-State 153:
-     (53) precision7 ::= BOOLCONSTANT *
-
-                     {default} reduce 53
-
-State 154:
-     (52) precision7 ::= AT lcName *
-
-                     {default} reduce 52
-
-State 155:
-     (51) precision7 ::= lcName *
-
-                     {default} reduce 51
-
-State 156:
-     (50) precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET *
-
-                     {default} reduce 50
-
-State 157:
-     (36) nonEmptyValueList ::= nonEmptyValueList COMMA value *
-
-                     {default} reduce 36
-
-State 158:
-     (26) classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope *
-
-                     {default} reduce 26
-
-State 159:
-      (6) classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET *
-
-                     {default} reduce 6
-
-State 160:
-     (21) classMethodDeclList ::= classMethodDeclList classMethodDecl *
-
-                     {default} reduce 21
-
-State 161:
-     (25) classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON *
-
-                     {default} reduce 25
-
-State 162:
-     (10) methodName ::= lcName *
-
-                     {default} reduce 10
-
-State 163:
-     (31) nonEmptyTypeVarList ::= typeVar *
-
-                     {default} reduce 31
-
-State 164:
-     (32) nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar *
-
-                     {default} reduce 32
-
-State 165:
-     (24) classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON *
-
-                     {default} reduce 24
-
-State 166:
-     (28) typeVar ::= type varName *
-
-                     {default} reduce 28
-
-State 167:
-     (19) type ::= type STAR CONST *
-
-                     {default} reduce 19
-
-State 168:
-      (9) varName ::= lcName *
-
-                     {default} reduce 9
-
-State 169:
-      (8) lcName ::= LCNAME *
-
-                     {default} reduce 8
-
-State 170:
-     (17) type ::= CONST typeName *
-
-                     {default} reduce 17
-
-State 171:
-     (16) type ::= typeName *
-
-                     {default} reduce 16
-
-State 172:
-     (15) typeName ::= FLOATNAME *
-
-                     {default} reduce 15
-
-State 173:
-     (14) typeName ::= INTNAME *
-
-                     {default} reduce 14
-
-State 174:
-     (13) typeName ::= BOOLNAME *
-
                      {default} reduce 13
 
-State 175:
-     (12) typeName ::= VOIDNAME *
-
-                     {default} reduce 12
-
-State 176:
-     (11) typeName ::= ucName *
-
-                     {default} reduce 11
-
-State 177:
-      (7) ucName ::= UCNAME *
-
-                     {default} reduce 7
-
-State 178:
-      (5) classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET *
-
-                     {default} reduce 5
-
-State 179:
-      (4) file ::= file classDef *
+State 118:
+      (4) file ::= INTERFACE *
 
                      {default} reduce 4
 
-State 180:
-      (3) file ::= file classDecl *
+State 119:
+      (3) file ::= error *
 
                      {default} reduce 3
+
+State 120:
+      (2) file ::= ERROR *
+
+                     {default} reduce 2
+
+State 121:
+     (25) classMethodDefList ::= classMethodDefList classMethodDef *
+
+                     {default} reduce 25
+
+State 122:
+     (29) classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope *
+
+                     {default} reduce 29
+
+State 123:
+     (51) statement ::= RETURN value SEMICOLON *
+
+                     {default} reduce 51
+
+State 124:
+     (50) statement ::= value SEMICOLON *
+
+                     {default} reduce 50
+
+State 125:
+     (49) statement ::= AT lcName SETEQUAL value SEMICOLON *
+
+                     {default} reduce 49
+
+State 126:
+     (48) statement ::= lcName SETEQUAL value SEMICOLON *
+
+                     {default} reduce 48
+
+State 127:
+     (46) statement ::= AUTO varName SETEQUAL value SEMICOLON *
+
+                     {default} reduce 46
+
+State 128:
+     (45) statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope *
+
+                     {default} reduce 45
+
+State 129:
+     (44) statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope *
+
+                     {default} reduce 44
+
+State 130:
+     (43) statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope *
+
+                     {default} reduce 43
+
+State 131:
+     (41) statementList ::= statementList statement *
+
+                     {default} reduce 41
+
+State 132:
+     (39) scope ::= LCURLYBRACKET statementList RCURLYBRACKET *
+
+                     {default} reduce 39
+
+State 133:
+     (47) statement ::= type varName SETEQUAL value SEMICOLON *
+
+                     {default} reduce 47
+
+State 134:
+     (58) precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET *
+
+                     {default} reduce 58
+
+State 135:
+     (64) precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET *
+
+                     {default} reduce 64
+
+State 136:
+     (63) precision6 ::= precision6 PTRACCESS varName *
+
+                     {default} reduce 63
+
+State 137:
+     (85) value ::= precision0 *
+
+                     {default} reduce 85
+
+State 138:
+     (84) precision0 ::= precision1 *
+
+                     {default} reduce 84
+
+State 139:
+     (83) precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1 *
+
+                     {default} reduce 83
+
+State 140:
+     (73) precision4 ::= precision4 FORWARDSLASH precision5 *
+
+                     {default} reduce 73
+
+State 141:
+     (72) precision4 ::= precision4 STAR precision5 *
+
+                     {default} reduce 72
+
+State 142:
+     (71) precision4 ::= precision5 *
+
+                     {default} reduce 71
+
+State 143:
+     (70) precision5 ::= STAR precision5 *
+
+                     {default} reduce 70
+
+State 144:
+     (69) precision5 ::= AMPERSAND precision5 *
+
+                     {default} reduce 69
+
+State 145:
+     (68) precision5 ::= EXCLAIMMARK precision5 *
+
+                     {default} reduce 68
+
+State 146:
+     (67) precision5 ::= MINUS precision5 *
+
+                     {default} reduce 67
+
+State 147:
+     (66) precision5 ::= PLUS precision5 *
+
+                     {default} reduce 66
+
+State 148:
+     (62) precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET *
+
+                     {default} reduce 62
+
+State 149:
+     (61) precision6 ::= precision6 DOT varName *
+
+                     {default} reduce 61
+
+State 150:
+     (60) precision6 ::= precision7 *
+
+                     {default} reduce 60
+
+State 151:
+     (59) precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET *
+
+                     {default} reduce 59
+
+State 152:
+     (37) nonEmptyValueList ::= value *
+
+                     {default} reduce 37
+
+State 153:
+     (57) precision7 ::= FLOATCONSTANT *
+
+                     {default} reduce 57
+
+State 154:
+     (56) precision7 ::= INTCONSTANT *
+
+                     {default} reduce 56
+
+State 155:
+     (55) precision7 ::= BOOLCONSTANT *
+
+                     {default} reduce 55
+
+State 156:
+     (54) precision7 ::= AT lcName *
+
+                     {default} reduce 54
+
+State 157:
+     (53) precision7 ::= lcName *
+
+                     {default} reduce 53
+
+State 158:
+     (52) precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET *
+
+                     {default} reduce 52
+
+State 159:
+     (38) nonEmptyValueList ::= nonEmptyValueList COMMA value *
+
+                     {default} reduce 38
+
+State 160:
+     (28) classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope *
+
+                     {default} reduce 28
+
+State 161:
+      (8) classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET *
+
+                     {default} reduce 8
+
+State 162:
+     (23) classMethodDeclList ::= classMethodDeclList classMethodDecl *
+
+                     {default} reduce 23
+
+State 163:
+     (27) classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON *
+
+                     {default} reduce 27
+
+State 164:
+     (12) methodName ::= lcName *
+
+                     {default} reduce 12
+
+State 165:
+     (33) nonEmptyTypeVarList ::= typeVar *
+
+                     {default} reduce 33
+
+State 166:
+     (34) nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar *
+
+                     {default} reduce 34
+
+State 167:
+     (26) classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON *
+
+                     {default} reduce 26
+
+State 168:
+     (30) typeVar ::= type varName *
+
+                     {default} reduce 30
+
+State 169:
+     (21) type ::= type STAR CONST *
+
+                     {default} reduce 21
+
+State 170:
+     (11) varName ::= lcName *
+
+                     {default} reduce 11
+
+State 171:
+     (10) lcName ::= LCNAME *
+
+                     {default} reduce 10
+
+State 172:
+     (19) type ::= CONST typeName *
+
+                     {default} reduce 19
+
+State 173:
+     (18) type ::= typeName *
+
+                     {default} reduce 18
+
+State 174:
+     (17) typeName ::= FLOATNAME *
+
+                     {default} reduce 17
+
+State 175:
+     (16) typeName ::= INTNAME *
+
+                     {default} reduce 16
+
+State 176:
+     (15) typeName ::= BOOLNAME *
+
+                     {default} reduce 15
+
+State 177:
+     (14) typeName ::= VOIDNAME *
+
+                     {default} reduce 14
+
+State 178:
+     (13) typeName ::= ucName *
+
+                     {default} reduce 13
+
+State 179:
+      (9) ucName ::= UCNAME *
+
+                     {default} reduce 9
+
+State 180:
+      (7) classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET *
+
+                     {default} reduce 7
+
+State 181:
+      (6) file ::= file classDef *
+
+                     {default} reduce 6
+
+State 182:
+      (5) file ::= file classDecl *
+
+                     {default} reduce 5
 
 ----------------------------------------------------
 Symbols:
     0: $:
-    1: INTERFACE
-    2: CLASS
-    3: LCURLYBRACKET
-    4: RCURLYBRACKET
-    5: LROUNDBRACKET
-    6: RROUNDBRACKET
-    7: UCNAME
-    8: LCNAME
-    9: VOIDNAME
-   10: BOOLNAME
-   11: INTNAME
-   12: FLOATNAME
-   13: CONST
-   14: STAR
-   15: SEMICOLON
-   16: COMMA
-   17: IF
-   18: ELSE
-   19: FOR
-   20: COLON
-   21: WHILE
-   22: AUTO
-   23: SETEQUAL
-   24: AT
-   25: RETURN
-   26: BOOLCONSTANT
-   27: INTCONSTANT
-   28: FLOATCONSTANT
-   29: DOT
-   30: PTRACCESS
-   31: PLUS
-   32: MINUS
-   33: EXCLAIMMARK
-   34: AMPERSAND
-   35: FORWARDSLASH
-   36: ISEQUAL
-   37: NOTEQUAL
-   38: GREATEROREQUAL
-   39: LESSOREQUAL
-   40: QUESTIONMARK
-   41: error:
-   42: file: <lambda> INTERFACE CLASS
-   43: classDecl: CLASS
-   44: classDef: CLASS
-   45: classMethodDeclList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   46: classMethodDecl: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   47: classMethodDefList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   48: classMethodDef: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   49: type: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   50: ucName: UCNAME
-   51: lcName: LCNAME
-   52: varName: LCNAME
-   53: methodName: LCNAME
-   54: typeName: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME
-   55: typeVar: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   56: nonEmptyTypeVarList: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   57: typeVarList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
-   58: value: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   59: nonEmptyValueList: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   60: valueList: <lambda> LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   61: scope: LCURLYBRACKET
-   62: statementList: <lambda> LROUNDBRACKET UCNAME LCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST STAR IF FOR WHILE AUTO AT RETURN BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   63: statement: LROUNDBRACKET UCNAME LCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST STAR IF FOR WHILE AUTO AT RETURN BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   64: precision0: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   65: precision1: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   66: precision2: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   67: precision3: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   68: precision4: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   69: precision5: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
-   70: precision6: LROUNDBRACKET UCNAME LCNAME AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT
-   71: precision7: LROUNDBRACKET UCNAME LCNAME AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT
-   72: start: INTERFACE CLASS
+    1: ERROR
+    2: INTERFACE
+    3: CLASS
+    4: LCURLYBRACKET
+    5: RCURLYBRACKET
+    6: LROUNDBRACKET
+    7: RROUNDBRACKET
+    8: UCNAME
+    9: LCNAME
+   10: VOIDNAME
+   11: BOOLNAME
+   12: INTNAME
+   13: FLOATNAME
+   14: CONST
+   15: STAR
+   16: SEMICOLON
+   17: COMMA
+   18: IF
+   19: ELSE
+   20: FOR
+   21: COLON
+   22: WHILE
+   23: AUTO
+   24: SETEQUAL
+   25: AT
+   26: RETURN
+   27: BOOLCONSTANT
+   28: INTCONSTANT
+   29: FLOATCONSTANT
+   30: DOT
+   31: PTRACCESS
+   32: PLUS
+   33: MINUS
+   34: EXCLAIMMARK
+   35: AMPERSAND
+   36: FORWARDSLASH
+   37: ISEQUAL
+   38: NOTEQUAL
+   39: GREATEROREQUAL
+   40: LESSOREQUAL
+   41: QUESTIONMARK
+   42: error:
+   43: start: ERROR INTERFACE CLASS
+   44: file: <lambda> ERROR INTERFACE CLASS
+   45: classDecl: CLASS
+   46: classDef: CLASS
+   47: classMethodDeclList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   48: classMethodDecl: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   49: classMethodDefList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   50: classMethodDef: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   51: type: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   52: ucName: UCNAME
+   53: lcName: LCNAME
+   54: varName: LCNAME
+   55: methodName: LCNAME
+   56: typeName: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME
+   57: typeVar: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   58: nonEmptyTypeVarList: UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   59: typeVarList: <lambda> UCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST
+   60: value: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   61: nonEmptyValueList: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   62: valueList: <lambda> LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   63: scope: LCURLYBRACKET
+   64: statementList: <lambda> LROUNDBRACKET UCNAME LCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST STAR IF FOR WHILE AUTO AT RETURN BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   65: statement: LROUNDBRACKET UCNAME LCNAME VOIDNAME BOOLNAME INTNAME FLOATNAME CONST STAR IF FOR WHILE AUTO AT RETURN BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   66: precision0: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   67: precision1: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   68: precision2: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   69: precision3: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   70: precision4: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   71: precision5: LROUNDBRACKET UCNAME LCNAME STAR AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT PLUS MINUS EXCLAIMMARK AMPERSAND
+   72: precision6: LROUNDBRACKET UCNAME LCNAME AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT
+   73: precision7: LROUNDBRACKET UCNAME LCNAME AT BOOLCONSTANT INTCONSTANT FLOATCONSTANT

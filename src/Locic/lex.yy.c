@@ -371,8 +371,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 50
-#define YY_END_OF_BUFFER 51
+#define YY_NUM_RULES 51
+#define YY_END_OF_BUFFER 52
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -382,7 +382,7 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[115] =
     {   0,
-        0,    0,    2,    2,   51,   50,   49,   48,   36,   37,
+        0,    0,    2,    2,   52,   50,   49,   48,   36,   37,
        43,   44,   34,   32,   40,   33,   47,   35,   21,   41,
        42,   50,   31,   50,   38,   39,   23,   24,   24,   24,
        24,   24,   24,   24,   24,   24,   24,   24,   45,   46,
@@ -1082,10 +1082,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 90 "Lexer.l"
+#line 89 "Lexer.l"
+{ return LOCIC_TOKEN_ERROR; }
+	YY_BREAK
+case 51:
+YY_RULE_SETUP
+#line 91 "Lexer.l"
 ECHO;
 	YY_BREAK
-#line 1089 "lex.yy.c"
+#line 1094 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT_STATE):
 	yyterminate();
@@ -2084,7 +2089,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 90 "Lexer.l"
+#line 91 "Lexer.l"
 
 
 

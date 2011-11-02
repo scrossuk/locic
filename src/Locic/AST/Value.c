@@ -85,3 +85,28 @@ AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, AST_List 
 	construct->parameters = parameters;
 	return value;
 }
+
+/* AST_MemberAccess */
+
+AST_Value * AST_MakeMemberAccess(AST_Value * object, char * memberName){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_MEMBERACCESS);
+	AST_MemberAccess * memberAccess = &(value->memberAccess);
+	memberAccess->object = object;
+	memberAccess->memberName = memberName;
+	return value;
+}
+
+/* AST_MethodCall */
+
+AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, AST_List * parameters){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_METHODCALL);
+	AST_MethodCall * methodCall = &(value->methodCall);
+	methodCall->object = object;
+	methodCall->methodName = methodName;
+	methodCall->parameters = parameters;
+	return value;
+}
+
+
+
+

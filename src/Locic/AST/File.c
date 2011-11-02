@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <Locic/AST/ClassDecl.h>
 #include <Locic/AST/ClassDef.h>
 #include <Locic/AST/File.h>
@@ -20,3 +21,10 @@ AST_File * AST_FileAddClassDef(AST_File * file, AST_ClassDef * classDef){
 	file->classDefinitions = AST_ListAppend(file->classDefinitions, classDef);
 	return file;
 }
+
+void AST_PrintFile(AST_File * file){
+	printf("----Class Declarations:\n");
+	printf("\n----Class Definitions:\n");
+	printf("\n");
+}
+

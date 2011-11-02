@@ -66,13 +66,26 @@ typedef struct AST_Construct{
 	AST_List * parameters;
 } AST_Construct;
 
+typedef struct AST_MemberAccess{
+	struct AST_Value * object;
+	char * memberName;
+} AST_MemberAccess;
+
+typedef struct AST_MethodCall{
+	struct AST_Value * object;
+	char * methodName;
+	AST_List * parameters;
+} AST_MethodCall;
+
 typedef enum AST_ValueType{
 	AST_VALUE_CONSTANT,
 	AST_VALUE_VARACCESS,
 	AST_VALUE_UNARY,
 	AST_VALUE_BINARY,
 	AST_VALUE_TERNARY,
-	AST_VALUE_CONSTRUCT
+	AST_VALUE_CONSTRUCT,
+	AST_VALUE_MEMBERACCESS,
+	AST_VALUE_METHODCALL
 } AST_ValueType;
 	
 typedef struct AST_Value{
@@ -85,6 +98,8 @@ typedef struct AST_Value{
 		AST_Binary binary;
 		AST_Ternary ternary;
 		AST_Construct construct;
+		AST_MemberAccess memberAccess;
+		AST_MethodCall methodCall;
 	};
 } AST_Value;
 

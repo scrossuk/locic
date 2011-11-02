@@ -4,13 +4,15 @@
 /* First off, code is included that follows the "include" declaration
 ** in the input grammar file. */
 #include <stdio.h>
-#line 7 "Parser.y"
+#line 1 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 #include <assert.h>
-#line 8 "Parser.y"
+#line 2 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
+#include <stdio.h>
+#line 3 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 #include <Locic/Token.h>
-#line 9 "Parser.y"
+#line 4 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 #include <Locic/AST.h>
-#line 14 "Parser.c"
+#line 16 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -61,34 +63,37 @@
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 74
+#define YYNOCODE 75
 #define YYACTIONTYPE unsigned short int
 #define Locic_ParseTOKENTYPE  Locic_Token 
 typedef union {
   int yyinit;
   Locic_ParseTOKENTYPE yy0;
-  AST_ClassDef * yy21;
-  AST_File * yy50;
-  AST_ClassMethodDef * yy62;
-  AST_Value * yy81;
-  AST_ClassMethodDecl * yy85;
-  char * yy99;
-  AST_Type * yy112;
-  AST_TypeVar * yy115;
-  AST_ClassDecl * yy124;
-  AST_Scope * yy128;
-  AST_List * yy134;
-  AST_Statement * yy137;
+  char * yy45;
+  AST_ClassDecl * yy52;
+  AST_ClassDef * yy59;
+  AST_ClassMethodDecl * yy65;
+  AST_ClassMethodDef * yy68;
+  AST_Value * yy75;
+  AST_Scope * yy76;
+  AST_Statement * yy99;
+  AST_Type * yy100;
+  AST_List * yy102;
+  AST_TypeVar * yy121;
+  AST_File * yy122;
+  int yy149;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
 #endif
-#define Locic_ParseARG_SDECL  void * context ;
-#define Locic_ParseARG_PDECL , void * context 
-#define Locic_ParseARG_FETCH  void * context  = yypParser->context 
-#define Locic_ParseARG_STORE yypParser->context  = context 
-#define YYNSTATE 181
-#define YYNRULE 84
+#define Locic_ParseARG_SDECL  AST_File ** resultAST ;
+#define Locic_ParseARG_PDECL , AST_File ** resultAST 
+#define Locic_ParseARG_FETCH  AST_File ** resultAST  = yypParser->resultAST 
+#define Locic_ParseARG_STORE yypParser->resultAST  = resultAST 
+#define YYNSTATE 183
+#define YYNRULE 86
+#define YYERRORSYMBOL 42
+#define YYERRSYMDT yy149
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -157,160 +162,158 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **                     shifting non-terminals after a reduce.
 **  yy_default[]       Default action for each state.
 */
-#define YY_ACTTAB_COUNT (486)
+#define YY_ACTTAB_COUNT (478)
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */   130,   15,   28,  177,  169,  175,  174,  173,  172,   41,
- /*    10 */    31,    5,   61,   91,   26,   88,   30,   85,   47,  114,
- /*    20 */    50,    6,  153,  152,  151,  167,   55,   35,   34,   33,
- /*    30 */    32,   43,   72,   81,   40,   39,  171,   29,   71,  155,
- /*    40 */    77,  101,  147,  100,   27,  129,  135,  136,   98,   62,
- /*    50 */    69,  140,   70,  148,   71,  155,   68,  140,   70,  148,
- /*    60 */    45,  176,  150,  105,   94,  171,  164,  165,  135,  136,
- /*    70 */    98,   62,   69,  140,   70,  148,  168,   87,   71,  155,
- /*    80 */   101,  134,   96,   38,   71,  155,  150,  105,  102,   23,
- /*    90 */    22,  110,  135,  136,   98,   62,   69,  140,   70,  148,
- /*   100 */    71,  155,   67,  140,   70,  148,  168,   83,  150,  105,
- /*   110 */    99,  161,  180,  179,  135,  136,   98,   62,   69,  140,
- /*   120 */    70,  148,   71,  155,  181,   15,   58,  177,  169,  108,
- /*   130 */   150,  105,   95,  162,   31,  112,  135,  136,   98,   62,
- /*   140 */    69,  140,   70,  148,   56,   60,  153,  152,  151,   71,
- /*   150 */   155,   35,   34,   33,   32,   25,  177,  157,  175,  174,
- /*   160 */   173,  172,   41,  135,  136,   98,   62,   69,  140,   70,
- /*   170 */   148,   71,  155,  168,  166,  178,  168,   93,  177,   92,
- /*   180 */   175,  174,  173,  172,   41,  135,  136,   98,   62,   69,
- /*   190 */   140,   70,  148,   71,  155,   57,  162,  159,   75,   14,
- /*   200 */   177,   90,  175,  174,  173,  172,   41,  135,  136,   98,
- /*   210 */    62,   69,  140,   70,  148,   71,  155,  176,  156,   23,
- /*   220 */    22,  170,    4,   86,   21,   20,   19,   18,  149,  135,
- /*   230 */   136,   98,   62,   69,  140,   70,  148,   71,  155,  191,
- /*   240 */     3,   45,  176,  146,   17,   84,  171,  163,  113,  115,
- /*   250 */    16,  135,  136,   98,   62,   69,  140,   70,  148,   71,
- /*   260 */   155,    2,   13,   45,  176,  133,  132,   82,  171,  163,
- /*   270 */   113,  111,  131,  135,  136,   98,   62,   69,  140,   70,
- /*   280 */   148,   71,  155,   12,   53,   45,  176,   11,   54,   80,
- /*   290 */   171,  163,  113,  109,   48,  135,  136,   98,   62,   69,
- /*   300 */   140,   70,  148,   71,  155,   52,   10,   45,  176,   51,
- /*   310 */   169,   78,  171,  163,  113,  106,  116,  135,  136,   98,
- /*   320 */    62,   69,  140,   70,  148,   71,  155,  125,   46,   45,
- /*   330 */   176,   71,  155,   76,  171,  163,  113,   74,    9,  135,
- /*   340 */   136,   98,   62,   69,  140,   70,  148,   71,  155,   24,
- /*   350 */   145,   70,  148,    8,   71,  155,  124,  123,  266,    7,
- /*   360 */   122,  104,  136,   98,   62,   69,  140,   70,  148,   97,
- /*   370 */    98,   62,   69,  140,   70,  148,   71,  155,  177,  121,
- /*   380 */   175,  174,  173,  172,   71,  155,   49,   36,   37,    1,
- /*   390 */   177,  137,   98,   62,   69,  140,   70,  148,   71,  155,
- /*   400 */    73,   66,   69,  140,   70,  148,   71,  155,  158,  154,
- /*   410 */    59,  169,   71,  155,   89,   65,   69,  140,   70,  148,
- /*   420 */    71,  155,  103,   64,   69,  140,   70,  148,  128,   63,
- /*   430 */    69,  140,   70,  148,   71,  155,  127,  126,   79,  144,
- /*   440 */    70,  148,   71,  155,  118,   71,  155,  120,   71,  155,
- /*   450 */   267,  267,  267,  143,   70,  148,   71,  155,  267,  267,
- /*   460 */   267,  142,   70,  148,  141,   70,  148,  139,   70,  148,
- /*   470 */   160,  267,  267,   44,  117,  138,   70,  148,  171,  119,
- /*   480 */    42,  107,  267,  267,  267,  171,
+ /*     0 */   132,   15,   28,  179,  171,  177,  176,  175,  174,   41,
+ /*    10 */    31,    5,  169,   91,   61,   88,   26,   85,   47,  114,
+ /*    20 */    50,    6,  155,  154,  153,  167,   55,   35,   34,   33,
+ /*    30 */    32,   43,   72,   81,   40,   39,  173,   38,   71,  157,
+ /*    40 */    77,  101,  149,  100,   27,  131,  137,  138,   98,   62,
+ /*    50 */    69,  142,   70,  150,   71,  157,   68,  142,   70,  150,
+ /*    60 */    71,  157,  152,  105,   94,  119,  270,   46,  137,  138,
+ /*    70 */    98,   62,   69,  142,   70,  150,   71,  157,   67,  142,
+ /*    80 */    70,  150,   45,  178,  152,  105,  102,  173,  166,  110,
+ /*    90 */   137,  138,   98,   62,   69,  142,   70,  150,   71,  157,
+ /*   100 */   179,  163,  177,  176,  175,  174,  152,  105,   99,  101,
+ /*   110 */   136,   96,  137,  138,   98,   62,   69,  142,   70,  150,
+ /*   120 */   108,   71,  157,   30,   15,  183,  179,  171,   58,  152,
+ /*   130 */   105,   95,  164,   31,  112,  137,  138,   98,   62,   69,
+ /*   140 */   142,   70,  150,   56,   29,  155,  154,  153,   71,  157,
+ /*   150 */    35,   34,   33,   32,   60,  179,  159,  177,  176,  175,
+ /*   160 */   174,   41,  137,  138,   98,   62,   69,  142,   70,  150,
+ /*   170 */    25,   71,  157,  170,   87,  180,   23,   22,  179,   92,
+ /*   180 */   177,  176,  175,  174,   41,  137,  138,   98,   62,   69,
+ /*   190 */   142,   70,  150,   71,  157,  170,   83,  161,   71,  157,
+ /*   200 */   179,   90,  177,  176,  175,  174,   41,  137,  138,   98,
+ /*   210 */    62,   69,  142,   70,  150,   71,  157,  147,   70,  150,
+ /*   220 */   182,  181,  171,   86,   71,  157,  170,  168,  116,  137,
+ /*   230 */   138,   98,   62,   69,  142,   70,  150,   14,   71,  157,
+ /*   240 */    57,   66,   69,  142,   70,  150,   84,  170,   93,  164,
+ /*   250 */   158,   75,  137,  138,   98,   62,   69,  142,   70,  150,
+ /*   260 */    71,  157,  120,  118,   23,   22,   71,  157,   82,   21,
+ /*   270 */    20,   19,   18,    4,  137,  138,   98,   62,   69,  142,
+ /*   280 */    70,  150,   71,  157,  151,  146,   70,  150,  148,  178,
+ /*   290 */    80,   71,  157,  172,  195,   17,  137,  138,   98,   62,
+ /*   300 */    69,  142,   70,  150,    3,   71,  157,   16,   65,   69,
+ /*   310 */   142,   70,  150,   78,    2,   13,  135,  134,  133,  137,
+ /*   320 */   138,   98,   62,   69,  142,   70,  150,   71,  157,   12,
+ /*   330 */   162,   54,   53,   44,  117,   76,   71,  157,  173,   48,
+ /*   340 */    11,  137,  138,   98,   62,   69,  142,   70,  150,   10,
+ /*   350 */   104,  138,   98,   62,   69,  142,   70,  150,   71,  157,
+ /*   360 */    52,   51,    9,   45,  178,  127,   71,  157,  173,  165,
+ /*   370 */   113,  115,    8,   97,   98,   62,   69,  142,   70,  150,
+ /*   380 */   126,  139,   98,   62,   69,  142,   70,  150,   71,  157,
+ /*   390 */     7,   24,  125,  124,   71,  157,   45,  178,  123,   71,
+ /*   400 */   157,  173,  165,  113,  111,   64,   69,  142,   70,  150,
+ /*   410 */    49,   63,   69,  142,   70,  150,   45,  178,  145,   70,
+ /*   420 */   150,  173,  165,  113,  109,   45,  178,   71,  157,   36,
+ /*   430 */   173,  165,  113,  106,   45,  178,   71,  157,   37,  173,
+ /*   440 */   165,  113,   74,    1,   73,  179,  144,   70,  150,   71,
+ /*   450 */   157,  160,   71,  157,   59,  143,   70,  150,  121,   42,
+ /*   460 */   107,  171,  156,  103,  173,   89,  271,  130,  141,   70,
+ /*   470 */   150,  140,   70,  150,   79,  129,  128,  122,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     4,    5,    5,    7,    8,    9,   10,   11,   12,   13,
- /*    10 */    14,    5,    3,   17,    5,   19,   14,   21,   22,    6,
- /*    20 */    24,   25,   26,   27,   28,   13,   20,   31,   32,   33,
- /*    30 */    34,   49,   50,   51,   29,   30,   54,   35,   50,   51,
- /*    40 */    58,   51,   52,   53,    5,   63,   64,   65,   66,   67,
- /*    50 */    68,   69,   70,   71,   50,   51,   68,   69,   70,   71,
- /*    60 */    49,   50,   58,   59,   60,   54,   55,   15,   64,   65,
- /*    70 */    66,   67,   68,   69,   70,   71,   51,   52,   50,   51,
- /*    80 */    51,   52,   53,   16,   50,   51,   58,   59,   60,   31,
- /*    90 */    32,    6,   64,   65,   66,   67,   68,   69,   70,   71,
- /*   100 */    50,   51,   68,   69,   70,   71,   51,   52,   58,   59,
- /*   110 */    60,   15,   43,   44,   64,   65,   66,   67,   68,   69,
- /*   120 */    70,   71,   50,   51,    0,    5,    2,    7,    8,    6,
- /*   130 */    58,   59,   60,   51,   14,   53,   64,   65,   66,   67,
- /*   140 */    68,   69,   70,   71,   24,    3,   26,   27,   28,   50,
- /*   150 */    51,   31,   32,   33,   34,    5,    7,   58,    9,   10,
- /*   160 */    11,   12,   13,   64,   65,   66,   67,   68,   69,   70,
- /*   170 */    71,   50,   51,   51,   52,    4,   51,   52,    7,   58,
- /*   180 */     9,   10,   11,   12,   13,   64,   65,   66,   67,   68,
- /*   190 */    69,   70,   71,   50,   51,    6,   51,    4,   53,   16,
- /*   200 */     7,   58,    9,   10,   11,   12,   13,   64,   65,   66,
- /*   210 */    67,   68,   69,   70,   71,   50,   51,   50,    6,   31,
- /*   220 */    32,   54,    5,   58,   36,   37,   38,   39,    6,   64,
- /*   230 */    65,   66,   67,   68,   69,   70,   71,   50,   51,    5,
- /*   240 */     5,   49,   50,    6,   40,   58,   54,   55,   56,   57,
- /*   250 */    20,   64,   65,   66,   67,   68,   69,   70,   71,   50,
- /*   260 */    51,    5,   23,   49,   50,    6,    6,   58,   54,   55,
- /*   270 */    56,   57,   15,   64,   65,   66,   67,   68,   69,   70,
- /*   280 */    71,   50,   51,    5,   18,   49,   50,   20,    6,   58,
- /*   290 */    54,   55,   56,   57,    5,   64,   65,   66,   67,   68,
- /*   300 */    69,   70,   71,   50,   51,    6,    5,   49,   50,    6,
- /*   310 */     8,   58,   54,   55,   56,   57,   14,   64,   65,   66,
- /*   320 */    67,   68,   69,   70,   71,   50,   51,   15,   42,   49,
- /*   330 */    50,   50,   51,   58,   54,   55,   56,   57,   23,   64,
- /*   340 */    65,   66,   67,   68,   69,   70,   71,   50,   51,    5,
- /*   350 */    69,   70,   71,   23,   50,   51,   15,   15,   72,   23,
- /*   360 */    15,   64,   65,   66,   67,   68,   69,   70,   71,   65,
- /*   370 */    66,   67,   68,   69,   70,   71,   50,   51,    7,   15,
- /*   380 */     9,   10,   11,   12,   50,   51,    6,   47,   45,   62,
- /*   390 */     7,   65,   66,   67,   68,   69,   70,   71,   50,   51,
- /*   400 */    50,   67,   68,   69,   70,   71,   50,   51,   61,   51,
- /*   410 */     3,    8,   50,   51,   61,   67,   68,   69,   70,   71,
- /*   420 */    50,   51,   50,   67,   68,   69,   70,   71,   61,   67,
- /*   430 */    68,   69,   70,   71,   50,   51,   61,   61,   51,   69,
- /*   440 */    70,   71,   50,   51,    1,   50,   51,   61,   50,   51,
- /*   450 */    73,   73,   73,   69,   70,   71,   50,   51,   73,   73,
- /*   460 */    73,   69,   70,   71,   69,   70,   71,   69,   70,   71,
- /*   470 */    46,   73,   73,   49,   50,   69,   70,   71,   54,   48,
- /*   480 */    49,   50,   73,   73,   73,   54,
+ /*     0 */     5,    6,    6,    8,    9,   10,   11,   12,   13,   14,
+ /*    10 */    15,    6,   14,   18,    4,   20,    6,   22,   23,    7,
+ /*    20 */    25,   26,   27,   28,   29,   16,   21,   32,   33,   34,
+ /*    30 */    35,   51,   52,   53,   30,   31,   56,   17,   52,   53,
+ /*    40 */    60,   53,   54,   55,    6,   65,   66,   67,   68,   69,
+ /*    50 */    70,   71,   72,   73,   52,   53,   70,   71,   72,   73,
+ /*    60 */    52,   53,   60,   61,   62,   42,   43,   44,   66,   67,
+ /*    70 */    68,   69,   70,   71,   72,   73,   52,   53,   70,   71,
+ /*    80 */    72,   73,   51,   52,   60,   61,   62,   56,   57,    7,
+ /*    90 */    66,   67,   68,   69,   70,   71,   72,   73,   52,   53,
+ /*   100 */     8,   16,   10,   11,   12,   13,   60,   61,   62,   53,
+ /*   110 */    54,   55,   66,   67,   68,   69,   70,   71,   72,   73,
+ /*   120 */     7,   52,   53,   15,    6,    0,    8,    9,    3,   60,
+ /*   130 */    61,   62,   53,   15,   55,   66,   67,   68,   69,   70,
+ /*   140 */    71,   72,   73,   25,   36,   27,   28,   29,   52,   53,
+ /*   150 */    32,   33,   34,   35,    4,    8,   60,   10,   11,   12,
+ /*   160 */    13,   14,   66,   67,   68,   69,   70,   71,   72,   73,
+ /*   170 */     6,   52,   53,   53,   54,    5,   32,   33,    8,   60,
+ /*   180 */    10,   11,   12,   13,   14,   66,   67,   68,   69,   70,
+ /*   190 */    71,   72,   73,   52,   53,   53,   54,    5,   52,   53,
+ /*   200 */     8,   60,   10,   11,   12,   13,   14,   66,   67,   68,
+ /*   210 */    69,   70,   71,   72,   73,   52,   53,   71,   72,   73,
+ /*   220 */    45,   46,    9,   60,   52,   53,   53,   54,   15,   66,
+ /*   230 */    67,   68,   69,   70,   71,   72,   73,   17,   52,   53,
+ /*   240 */     7,   69,   70,   71,   72,   73,   60,   53,   54,   53,
+ /*   250 */     7,   55,   66,   67,   68,   69,   70,   71,   72,   73,
+ /*   260 */    52,   53,    1,    2,   32,   33,   52,   53,   60,   37,
+ /*   270 */    38,   39,   40,    6,   66,   67,   68,   69,   70,   71,
+ /*   280 */    72,   73,   52,   53,    7,   71,   72,   73,    7,   52,
+ /*   290 */    60,   52,   53,   56,    6,   41,   66,   67,   68,   69,
+ /*   300 */    70,   71,   72,   73,    6,   52,   53,   21,   69,   70,
+ /*   310 */    71,   72,   73,   60,    6,   24,    7,    7,   16,   66,
+ /*   320 */    67,   68,   69,   70,   71,   72,   73,   52,   53,    6,
+ /*   330 */    48,    7,   19,   51,   52,   60,   52,   53,   56,    6,
+ /*   340 */    21,   66,   67,   68,   69,   70,   71,   72,   73,    6,
+ /*   350 */    66,   67,   68,   69,   70,   71,   72,   73,   52,   53,
+ /*   360 */     7,    7,   24,   51,   52,   16,   52,   53,   56,   57,
+ /*   370 */    58,   59,   24,   67,   68,   69,   70,   71,   72,   73,
+ /*   380 */    16,   67,   68,   69,   70,   71,   72,   73,   52,   53,
+ /*   390 */    24,    6,   16,   16,   52,   53,   51,   52,   16,   52,
+ /*   400 */    53,   56,   57,   58,   59,   69,   70,   71,   72,   73,
+ /*   410 */     7,   69,   70,   71,   72,   73,   51,   52,   71,   72,
+ /*   420 */    73,   56,   57,   58,   59,   51,   52,   52,   53,   49,
+ /*   430 */    56,   57,   58,   59,   51,   52,   52,   53,   47,   56,
+ /*   440 */    57,   58,   59,   64,   52,    8,   71,   72,   73,   52,
+ /*   450 */    53,   63,   52,   53,    4,   71,   72,   73,   50,   51,
+ /*   460 */    52,    9,   53,   52,   56,   63,   74,   63,   71,   72,
+ /*   470 */    73,   71,   72,   73,   53,   63,   63,   63,
 };
-#define YY_SHIFT_USE_DFLT (-5)
+#define YY_SHIFT_USE_DFLT (-6)
 #define YY_SHIFT_COUNT (117)
-#define YY_SHIFT_MIN   (-4)
-#define YY_SHIFT_MAX   (443)
+#define YY_SHIFT_MIN   (-5)
+#define YY_SHIFT_MAX   (452)
 static const short yy_shift_ofst[] = {
- /*     0 */   443,   -4,  120,  120,  120,  120,  120,  120,  120,  120,
- /*    10 */   120,  120,  120,  120,  120,  120,  120,  120,  120,  120,
- /*    20 */   120,  120,  120,  120,  149,  149,  149,  149,  149,  120,
- /*    30 */   120,  120,  120,  120,  120,  120,  193,  171,  149,  403,
- /*    40 */   403,  371,  302,  302,  302,  302,  124,  403,  403,  407,
- /*    50 */   403,  407,  407,  407,  407,  383,  403,  407,  383,   -5,
- /*    60 */    -5,   -5,  188,   58,   58,   58,   58,    2,    2,    2,
- /*    70 */     5,    6,    6,    9,  380,  344,  364,  345,  342,  336,
- /*    80 */   341,  330,  312,  315,  303,  301,  299,  267,  289,  266,
- /*    90 */   282,  278,  257,  239,  260,  259,  256,  230,  204,  237,
- /*   100 */   235,  234,  222,  217,  212,  183,  189,  150,  142,  123,
- /*   110 */    96,   85,   39,   67,   52,   13,   12,   -3,
+ /*     0 */   261,   -5,  118,  118,  118,  118,  118,  118,  118,  118,
+ /*    10 */   118,  118,  118,  118,  118,  118,  118,  118,  118,  118,
+ /*    20 */   118,  118,  118,  118,  147,  147,  147,  147,  147,  118,
+ /*    30 */   118,  118,  118,  118,  118,  118,  192,  170,  147,  452,
+ /*    40 */   452,   92,  213,  213,  213,  213,  125,  452,  452,  450,
+ /*    50 */   452,  450,  450,  450,  450,  437,  452,  450,  437,   -6,
+ /*    60 */    -6,   -6,  232,  144,  144,  144,  144,  108,  108,  108,
+ /*    70 */     4,    5,    5,   10,  403,  385,  382,  377,  376,  366,
+ /*    80 */   364,  348,  349,  338,  354,  343,  353,  319,  333,  313,
+ /*    90 */   324,  323,  302,  291,  310,  309,  308,  286,  254,  281,
+ /*   100 */   298,  288,  277,  267,  243,  220,  233,  164,  150,  113,
+ /*   110 */    85,   82,   38,   20,    9,   12,   -2,   -4,
 };
-#define YY_REDUCE_USE_DFLT (-19)
+#define YY_REDUCE_USE_DFLT (-21)
 #define YY_REDUCE_COUNT (61)
-#define YY_REDUCE_MIN   (-18)
-#define YY_REDUCE_MAX   (431)
+#define YY_REDUCE_MIN   (-20)
+#define YY_REDUCE_MAX   (421)
 static const short yy_reduce_ofst[] = {
- /*     0 */   286,  -18,   72,   50,   28,    4,  275,  253,  231,  209,
- /*    10 */   187,  165,  143,  121,   99,  297,  326,  304,  362,  356,
- /*    20 */   348,  334,   34,  -12,  280,  258,  236,  214,  192,  406,
- /*    30 */   398,  395,  392,  384,  370,  281,  431,  424,   11,   29,
- /*    40 */   -10,  167,  145,  125,   82,  122,   69,   55,   25,  386,
- /*    50 */   387,  376,  375,  367,  353,  372,  358,  347,  350,  327,
- /*    60 */   340,  343,
+ /*     0 */    23,  -20,   69,   46,   24,    2,  275,  253,  230,  208,
+ /*    10 */   186,  163,  141,  119,   96,  284,  314,  306,  342,  336,
+ /*    20 */   239,  172,    8,  -14,  383,  374,  365,  345,  312,  400,
+ /*    30 */   397,  384,  375,  347,  214,  146,  408,  282,   31,   56,
+ /*    40 */   -12,  237,  196,  194,   79,  173,  175,  142,  120,  414,
+ /*    50 */   421,  413,  412,  404,  402,  411,  409,  388,  392,  379,
+ /*    60 */   380,  391,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   182,  265,  214,  214,  214,  214,  265,  265,  265,  265,
- /*    10 */   265,  265,  265,  265,  265,  265,  265,  265,  265,  265,
- /*    20 */   265,  265,  265,  265,  210,  210,  210,  210,  210,  265,
- /*    30 */   265,  265,  265,  265,  265,  265,  265,  265,  265,  265,
- /*    40 */   265,  265,  265,  265,  265,  265,  265,  265,  265,  265,
- /*    50 */   265,  265,  265,  265,  265,  265,  265,  265,  265,  219,
- /*    60 */   203,  201,  256,  260,  259,  258,  257,  255,  254,  253,
- /*    70 */   244,  265,  192,  265,  265,  265,  265,  265,  265,  233,
- /*    80 */   265,  232,  265,  265,  265,  265,  265,  265,  265,  221,
- /*    90 */   265,  265,  265,  265,  265,  265,  265,  265,  261,  265,
- /*   100 */   265,  190,  265,  265,  265,  215,  265,  192,  265,  265,
- /*   110 */   265,  265,  265,  211,  265,  265,  199,  192,  183,  204,
- /*   120 */   208,  230,  229,  228,  227,  225,  224,  223,  222,  220,
- /*   130 */   218,  226,  237,  243,  242,  264,  263,  262,  252,  251,
- /*   140 */   250,  249,  248,  247,  246,  245,  241,  240,  239,  238,
- /*   150 */   216,  236,  235,  234,  233,  232,  231,  217,  207,  187,
- /*   160 */   202,  206,  191,  212,  213,  205,  209,  200,  190,  189,
- /*   170 */   198,  197,  196,  195,  194,  193,  192,  188,  186,  185,
- /*   180 */   184,
+ /*     0 */   184,  269,  218,  218,  218,  218,  269,  269,  269,  269,
+ /*    10 */   269,  269,  269,  269,  269,  269,  269,  269,  269,  269,
+ /*    20 */   269,  269,  269,  269,  214,  214,  214,  214,  214,  269,
+ /*    30 */   269,  269,  269,  269,  269,  269,  269,  269,  269,  269,
+ /*    40 */   269,  269,  269,  269,  269,  269,  269,  269,  269,  269,
+ /*    50 */   269,  269,  269,  269,  269,  269,  269,  269,  269,  223,
+ /*    60 */   207,  205,  260,  264,  263,  262,  261,  259,  258,  257,
+ /*    70 */   248,  269,  196,  269,  269,  269,  269,  269,  269,  237,
+ /*    80 */   269,  236,  269,  269,  269,  269,  269,  269,  269,  225,
+ /*    90 */   269,  269,  269,  269,  269,  269,  269,  269,  265,  269,
+ /*   100 */   269,  194,  269,  269,  269,  219,  269,  196,  269,  269,
+ /*   110 */   269,  269,  269,  215,  269,  269,  203,  196,  187,  186,
+ /*   120 */   185,  208,  212,  234,  233,  232,  231,  229,  228,  227,
+ /*   130 */   226,  224,  222,  230,  241,  247,  246,  268,  267,  266,
+ /*   140 */   256,  255,  254,  253,  252,  251,  250,  249,  245,  244,
+ /*   150 */   243,  242,  220,  240,  239,  238,  237,  236,  235,  221,
+ /*   160 */   211,  191,  206,  210,  195,  216,  217,  209,  213,  204,
+ /*   170 */   194,  193,  202,  201,  200,  199,  198,  197,  196,  192,
+ /*   180 */   190,  189,  188,
 };
 
 /* The next table maps tokens into fallback tokens.  If a construct
@@ -403,25 +406,25 @@ void Locic_ParseTrace(FILE *TraceFILE, char *zTracePrompt){
 /* For tracing shifts, the names of all terminals and nonterminals
 ** are required.  The following table supplies these names */
 static const char *const yyTokenName[] = { 
-  "$",             "INTERFACE",     "CLASS",         "LCURLYBRACKET",
-  "RCURLYBRACKET",  "LROUNDBRACKET",  "RROUNDBRACKET",  "UCNAME",      
-  "LCNAME",        "VOIDNAME",      "BOOLNAME",      "INTNAME",     
-  "FLOATNAME",     "CONST",         "STAR",          "SEMICOLON",   
-  "COMMA",         "IF",            "ELSE",          "FOR",         
-  "COLON",         "WHILE",         "AUTO",          "SETEQUAL",    
-  "AT",            "RETURN",        "BOOLCONSTANT",  "INTCONSTANT", 
-  "FLOATCONSTANT",  "DOT",           "PTRACCESS",     "PLUS",        
-  "MINUS",         "EXCLAIMMARK",   "AMPERSAND",     "FORWARDSLASH",
-  "ISEQUAL",       "NOTEQUAL",      "GREATEROREQUAL",  "LESSOREQUAL", 
-  "QUESTIONMARK",  "error",         "file",          "classDecl",   
-  "classDef",      "classMethodDeclList",  "classMethodDecl",  "classMethodDefList",
-  "classMethodDef",  "type",          "ucName",        "lcName",      
-  "varName",       "methodName",    "typeName",      "typeVar",     
-  "nonEmptyTypeVarList",  "typeVarList",   "value",         "nonEmptyValueList",
-  "valueList",     "scope",         "statementList",  "statement",   
-  "precision0",    "precision1",    "precision2",    "precision3",  
-  "precision4",    "precision5",    "precision6",    "precision7",  
-  "start",       
+  "$",             "ERROR",         "INTERFACE",     "CLASS",       
+  "LCURLYBRACKET",  "RCURLYBRACKET",  "LROUNDBRACKET",  "RROUNDBRACKET",
+  "UCNAME",        "LCNAME",        "VOIDNAME",      "BOOLNAME",    
+  "INTNAME",       "FLOATNAME",     "CONST",         "STAR",        
+  "SEMICOLON",     "COMMA",         "IF",            "ELSE",        
+  "FOR",           "COLON",         "WHILE",         "AUTO",        
+  "SETEQUAL",      "AT",            "RETURN",        "BOOLCONSTANT",
+  "INTCONSTANT",   "FLOATCONSTANT",  "DOT",           "PTRACCESS",   
+  "PLUS",          "MINUS",         "EXCLAIMMARK",   "AMPERSAND",   
+  "FORWARDSLASH",  "ISEQUAL",       "NOTEQUAL",      "GREATEROREQUAL",
+  "LESSOREQUAL",   "QUESTIONMARK",  "error",         "start",       
+  "file",          "classDecl",     "classDef",      "classMethodDeclList",
+  "classMethodDecl",  "classMethodDefList",  "classMethodDef",  "type",        
+  "ucName",        "lcName",        "varName",       "methodName",  
+  "typeName",      "typeVar",       "nonEmptyTypeVarList",  "typeVarList", 
+  "value",         "nonEmptyValueList",  "valueList",     "scope",       
+  "statementList",  "statement",     "precision0",    "precision1",  
+  "precision2",    "precision3",    "precision4",    "precision5",  
+  "precision6",    "precision7",  
 };
 #endif /* NDEBUG */
 
@@ -431,88 +434,90 @@ static const char *const yyTokenName[] = {
 static const char *const yyRuleName[] = {
  /*   0 */ "start ::= file",
  /*   1 */ "file ::=",
- /*   2 */ "file ::= INTERFACE",
- /*   3 */ "file ::= file classDecl",
- /*   4 */ "file ::= file classDef",
- /*   5 */ "classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET",
- /*   6 */ "classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET",
- /*   7 */ "ucName ::= UCNAME",
- /*   8 */ "lcName ::= LCNAME",
- /*   9 */ "varName ::= lcName",
- /*  10 */ "methodName ::= lcName",
- /*  11 */ "typeName ::= ucName",
- /*  12 */ "typeName ::= VOIDNAME",
- /*  13 */ "typeName ::= BOOLNAME",
- /*  14 */ "typeName ::= INTNAME",
- /*  15 */ "typeName ::= FLOATNAME",
- /*  16 */ "type ::= typeName",
- /*  17 */ "type ::= CONST typeName",
- /*  18 */ "type ::= type STAR",
- /*  19 */ "type ::= type STAR CONST",
- /*  20 */ "classMethodDeclList ::=",
- /*  21 */ "classMethodDeclList ::= classMethodDeclList classMethodDecl",
- /*  22 */ "classMethodDefList ::=",
- /*  23 */ "classMethodDefList ::= classMethodDefList classMethodDef",
- /*  24 */ "classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON",
- /*  25 */ "classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON",
- /*  26 */ "classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope",
- /*  27 */ "classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope",
- /*  28 */ "typeVar ::= type varName",
- /*  29 */ "typeVarList ::=",
- /*  30 */ "typeVarList ::= nonEmptyTypeVarList",
- /*  31 */ "nonEmptyTypeVarList ::= typeVar",
- /*  32 */ "nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar",
- /*  33 */ "valueList ::=",
- /*  34 */ "valueList ::= nonEmptyValueList",
- /*  35 */ "nonEmptyValueList ::= value",
- /*  36 */ "nonEmptyValueList ::= nonEmptyValueList COMMA value",
- /*  37 */ "scope ::= LCURLYBRACKET statementList RCURLYBRACKET",
- /*  38 */ "statementList ::=",
- /*  39 */ "statementList ::= statementList statement",
- /*  40 */ "statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope",
- /*  41 */ "statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope",
- /*  42 */ "statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope",
- /*  43 */ "statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope",
- /*  44 */ "statement ::= AUTO varName SETEQUAL value SEMICOLON",
- /*  45 */ "statement ::= type varName SETEQUAL value SEMICOLON",
- /*  46 */ "statement ::= lcName SETEQUAL value SEMICOLON",
- /*  47 */ "statement ::= AT lcName SETEQUAL value SEMICOLON",
- /*  48 */ "statement ::= value SEMICOLON",
- /*  49 */ "statement ::= RETURN value SEMICOLON",
- /*  50 */ "precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET",
- /*  51 */ "precision7 ::= lcName",
- /*  52 */ "precision7 ::= AT lcName",
- /*  53 */ "precision7 ::= BOOLCONSTANT",
- /*  54 */ "precision7 ::= INTCONSTANT",
- /*  55 */ "precision7 ::= FLOATCONSTANT",
- /*  56 */ "precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET",
- /*  57 */ "precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET",
- /*  58 */ "precision6 ::= precision7",
- /*  59 */ "precision6 ::= precision6 DOT varName",
- /*  60 */ "precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET",
- /*  61 */ "precision6 ::= precision6 PTRACCESS varName",
- /*  62 */ "precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET",
- /*  63 */ "precision5 ::= precision6",
- /*  64 */ "precision5 ::= PLUS precision5",
- /*  65 */ "precision5 ::= MINUS precision5",
- /*  66 */ "precision5 ::= EXCLAIMMARK precision5",
- /*  67 */ "precision5 ::= AMPERSAND precision5",
- /*  68 */ "precision5 ::= STAR precision5",
- /*  69 */ "precision4 ::= precision5",
- /*  70 */ "precision4 ::= precision4 STAR precision5",
- /*  71 */ "precision4 ::= precision4 FORWARDSLASH precision5",
- /*  72 */ "precision3 ::= precision4",
- /*  73 */ "precision3 ::= precision3 PLUS precision4",
- /*  74 */ "precision3 ::= precision3 MINUS precision4",
- /*  75 */ "precision2 ::= precision3",
- /*  76 */ "precision2 ::= precision3 ISEQUAL precision3",
- /*  77 */ "precision2 ::= precision3 NOTEQUAL precision3",
- /*  78 */ "precision2 ::= precision3 GREATEROREQUAL precision3",
- /*  79 */ "precision2 ::= precision3 LESSOREQUAL precision3",
- /*  80 */ "precision1 ::= precision2",
- /*  81 */ "precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1",
- /*  82 */ "precision0 ::= precision1",
- /*  83 */ "value ::= precision0",
+ /*   2 */ "file ::= ERROR",
+ /*   3 */ "file ::= error",
+ /*   4 */ "file ::= INTERFACE",
+ /*   5 */ "file ::= file classDecl",
+ /*   6 */ "file ::= file classDef",
+ /*   7 */ "classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET",
+ /*   8 */ "classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET",
+ /*   9 */ "ucName ::= UCNAME",
+ /*  10 */ "lcName ::= LCNAME",
+ /*  11 */ "varName ::= lcName",
+ /*  12 */ "methodName ::= lcName",
+ /*  13 */ "typeName ::= ucName",
+ /*  14 */ "typeName ::= VOIDNAME",
+ /*  15 */ "typeName ::= BOOLNAME",
+ /*  16 */ "typeName ::= INTNAME",
+ /*  17 */ "typeName ::= FLOATNAME",
+ /*  18 */ "type ::= typeName",
+ /*  19 */ "type ::= CONST typeName",
+ /*  20 */ "type ::= type STAR",
+ /*  21 */ "type ::= type STAR CONST",
+ /*  22 */ "classMethodDeclList ::=",
+ /*  23 */ "classMethodDeclList ::= classMethodDeclList classMethodDecl",
+ /*  24 */ "classMethodDefList ::=",
+ /*  25 */ "classMethodDefList ::= classMethodDefList classMethodDef",
+ /*  26 */ "classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON",
+ /*  27 */ "classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON",
+ /*  28 */ "classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope",
+ /*  29 */ "classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope",
+ /*  30 */ "typeVar ::= type varName",
+ /*  31 */ "typeVarList ::=",
+ /*  32 */ "typeVarList ::= nonEmptyTypeVarList",
+ /*  33 */ "nonEmptyTypeVarList ::= typeVar",
+ /*  34 */ "nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar",
+ /*  35 */ "valueList ::=",
+ /*  36 */ "valueList ::= nonEmptyValueList",
+ /*  37 */ "nonEmptyValueList ::= value",
+ /*  38 */ "nonEmptyValueList ::= nonEmptyValueList COMMA value",
+ /*  39 */ "scope ::= LCURLYBRACKET statementList RCURLYBRACKET",
+ /*  40 */ "statementList ::=",
+ /*  41 */ "statementList ::= statementList statement",
+ /*  42 */ "statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope",
+ /*  43 */ "statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope",
+ /*  44 */ "statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope",
+ /*  45 */ "statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope",
+ /*  46 */ "statement ::= AUTO varName SETEQUAL value SEMICOLON",
+ /*  47 */ "statement ::= type varName SETEQUAL value SEMICOLON",
+ /*  48 */ "statement ::= lcName SETEQUAL value SEMICOLON",
+ /*  49 */ "statement ::= AT lcName SETEQUAL value SEMICOLON",
+ /*  50 */ "statement ::= value SEMICOLON",
+ /*  51 */ "statement ::= RETURN value SEMICOLON",
+ /*  52 */ "precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET",
+ /*  53 */ "precision7 ::= lcName",
+ /*  54 */ "precision7 ::= AT lcName",
+ /*  55 */ "precision7 ::= BOOLCONSTANT",
+ /*  56 */ "precision7 ::= INTCONSTANT",
+ /*  57 */ "precision7 ::= FLOATCONSTANT",
+ /*  58 */ "precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET",
+ /*  59 */ "precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET",
+ /*  60 */ "precision6 ::= precision7",
+ /*  61 */ "precision6 ::= precision6 DOT varName",
+ /*  62 */ "precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET",
+ /*  63 */ "precision6 ::= precision6 PTRACCESS varName",
+ /*  64 */ "precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET",
+ /*  65 */ "precision5 ::= precision6",
+ /*  66 */ "precision5 ::= PLUS precision5",
+ /*  67 */ "precision5 ::= MINUS precision5",
+ /*  68 */ "precision5 ::= EXCLAIMMARK precision5",
+ /*  69 */ "precision5 ::= AMPERSAND precision5",
+ /*  70 */ "precision5 ::= STAR precision5",
+ /*  71 */ "precision4 ::= precision5",
+ /*  72 */ "precision4 ::= precision4 STAR precision5",
+ /*  73 */ "precision4 ::= precision4 FORWARDSLASH precision5",
+ /*  74 */ "precision3 ::= precision4",
+ /*  75 */ "precision3 ::= precision3 PLUS precision4",
+ /*  76 */ "precision3 ::= precision3 MINUS precision4",
+ /*  77 */ "precision2 ::= precision3",
+ /*  78 */ "precision2 ::= precision3 ISEQUAL precision3",
+ /*  79 */ "precision2 ::= precision3 NOTEQUAL precision3",
+ /*  80 */ "precision2 ::= precision3 GREATEROREQUAL precision3",
+ /*  81 */ "precision2 ::= precision3 LESSOREQUAL precision3",
+ /*  82 */ "precision1 ::= precision2",
+ /*  83 */ "precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1",
+ /*  84 */ "precision0 ::= precision1",
+ /*  85 */ "value ::= precision0",
 };
 #endif /* NDEBUG */
 
@@ -826,90 +831,92 @@ static const struct {
   YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
   unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 72, 1 },
-  { 42, 0 },
-  { 42, 1 },
-  { 42, 2 },
-  { 42, 2 },
-  { 43, 5 },
-  { 44, 8 },
-  { 50, 1 },
-  { 51, 1 },
+  { 43, 1 },
+  { 44, 0 },
+  { 44, 1 },
+  { 44, 1 },
+  { 44, 1 },
+  { 44, 2 },
+  { 44, 2 },
+  { 45, 5 },
+  { 46, 8 },
   { 52, 1 },
   { 53, 1 },
   { 54, 1 },
-  { 54, 1 },
-  { 54, 1 },
-  { 54, 1 },
-  { 54, 1 },
-  { 49, 1 },
-  { 49, 2 },
-  { 49, 2 },
-  { 49, 3 },
-  { 45, 0 },
-  { 45, 2 },
+  { 55, 1 },
+  { 56, 1 },
+  { 56, 1 },
+  { 56, 1 },
+  { 56, 1 },
+  { 56, 1 },
+  { 51, 1 },
+  { 51, 2 },
+  { 51, 2 },
+  { 51, 3 },
   { 47, 0 },
   { 47, 2 },
-  { 46, 5 },
-  { 46, 6 },
+  { 49, 0 },
+  { 49, 2 },
   { 48, 5 },
   { 48, 6 },
-  { 55, 2 },
-  { 57, 0 },
-  { 57, 1 },
-  { 56, 1 },
-  { 56, 3 },
-  { 60, 0 },
-  { 60, 1 },
+  { 50, 5 },
+  { 50, 6 },
+  { 57, 2 },
+  { 59, 0 },
   { 59, 1 },
-  { 59, 3 },
-  { 61, 3 },
+  { 58, 1 },
+  { 58, 3 },
   { 62, 0 },
-  { 62, 2 },
-  { 63, 5 },
-  { 63, 7 },
-  { 63, 7 },
-  { 63, 5 },
-  { 63, 5 },
-  { 63, 5 },
-  { 63, 4 },
-  { 63, 5 },
-  { 63, 2 },
+  { 62, 1 },
+  { 61, 1 },
+  { 61, 3 },
   { 63, 3 },
-  { 71, 3 },
+  { 64, 0 },
+  { 64, 2 },
+  { 65, 5 },
+  { 65, 7 },
+  { 65, 7 },
+  { 65, 5 },
+  { 65, 5 },
+  { 65, 5 },
+  { 65, 4 },
+  { 65, 5 },
+  { 65, 2 },
+  { 65, 3 },
+  { 73, 3 },
+  { 73, 1 },
+  { 73, 2 },
+  { 73, 1 },
+  { 73, 1 },
+  { 73, 1 },
+  { 73, 4 },
+  { 73, 6 },
+  { 72, 1 },
+  { 72, 3 },
+  { 72, 6 },
+  { 72, 3 },
+  { 72, 6 },
   { 71, 1 },
   { 71, 2 },
-  { 71, 1 },
-  { 71, 1 },
-  { 71, 1 },
-  { 71, 4 },
-  { 71, 6 },
+  { 71, 2 },
+  { 71, 2 },
+  { 71, 2 },
+  { 71, 2 },
   { 70, 1 },
   { 70, 3 },
-  { 70, 6 },
   { 70, 3 },
-  { 70, 6 },
   { 69, 1 },
-  { 69, 2 },
-  { 69, 2 },
-  { 69, 2 },
-  { 69, 2 },
-  { 69, 2 },
+  { 69, 3 },
+  { 69, 3 },
   { 68, 1 },
   { 68, 3 },
   { 68, 3 },
+  { 68, 3 },
+  { 68, 3 },
   { 67, 1 },
-  { 67, 3 },
-  { 67, 3 },
+  { 67, 5 },
   { 66, 1 },
-  { 66, 3 },
-  { 66, 3 },
-  { 66, 3 },
-  { 66, 3 },
-  { 65, 1 },
-  { 65, 5 },
-  { 64, 1 },
-  { 58, 1 },
+  { 60, 1 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -965,467 +972,477 @@ static void yy_reduce(
   **     break;
   */
       case 0: /* start ::= file */
-#line 52 "Parser.y"
+#line 66 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		printf("Parsed file successfully");
+		printf("Completed parsing\n");
+		yygotominor.yy122 = yymsp[0].minor.yy122;
 	}
-#line 973 "Parser.c"
+#line 981 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
       case 1: /* file ::= */
-      case 2: /* file ::= INTERFACE */ yytestcase(yyruleno==2);
-#line 57 "Parser.y"
+      case 2: /* file ::= ERROR */ yytestcase(yyruleno==2);
+      case 4: /* file ::= INTERFACE */ yytestcase(yyruleno==4);
+#line 72 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy50 = AST_MakeFile();
+		yygotominor.yy122 = AST_MakeFile();
 	}
-#line 981 "Parser.c"
+#line 990 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 3: /* file ::= file classDecl */
-#line 67 "Parser.y"
+      case 3: /* file ::= error */
+#line 82 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy50 = AST_FileAddClassDecl(yymsp[-1].minor.yy50, yymsp[0].minor.yy124);
+		printf("ERROR\n");
+		yygotominor.yy122 = AST_MakeFile();
 	}
-#line 988 "Parser.c"
+#line 998 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 4: /* file ::= file classDef */
-#line 72 "Parser.y"
+      case 5: /* file ::= file classDecl */
+#line 93 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy50 = AST_FileAddClassDef(yymsp[-1].minor.yy50, yymsp[0].minor.yy21);
+		yygotominor.yy122 = AST_FileAddClassDecl(yymsp[-1].minor.yy122, yymsp[0].minor.yy52);
 	}
-#line 995 "Parser.c"
+#line 1005 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 5: /* classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET */
-#line 77 "Parser.y"
+      case 6: /* file ::= file classDef */
+#line 98 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy124 = AST_MakeClassDecl(yymsp[-3].minor.yy99, yymsp[-1].minor.yy134);
+		yygotominor.yy122 = AST_FileAddClassDef(yymsp[-1].minor.yy122, yymsp[0].minor.yy59);
 	}
-#line 1002 "Parser.c"
+#line 1012 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 6: /* classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET */
-#line 82 "Parser.y"
+      case 7: /* classDecl ::= CLASS ucName LCURLYBRACKET classMethodDeclList RCURLYBRACKET */
+#line 103 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy21 = AST_MakeClassDef(yymsp[-6].minor.yy99, yymsp[-4].minor.yy134, yymsp[-1].minor.yy134);
+		yygotominor.yy52 = AST_MakeClassDecl(yymsp[-3].minor.yy45, yymsp[-1].minor.yy102);
 	}
-#line 1009 "Parser.c"
+#line 1019 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 7: /* ucName ::= UCNAME */
-      case 8: /* lcName ::= LCNAME */ yytestcase(yyruleno==8);
-      case 12: /* typeName ::= VOIDNAME */ yytestcase(yyruleno==12);
-      case 13: /* typeName ::= BOOLNAME */ yytestcase(yyruleno==13);
-      case 14: /* typeName ::= INTNAME */ yytestcase(yyruleno==14);
-      case 15: /* typeName ::= FLOATNAME */ yytestcase(yyruleno==15);
-#line 87 "Parser.y"
+      case 8: /* classDef ::= CLASS ucName LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classMethodDefList RCURLYBRACKET */
+#line 108 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy99 = (yymsp[0].minor.yy0).value.str;
+		yygotominor.yy59 = AST_MakeClassDef(yymsp[-6].minor.yy45, yymsp[-4].minor.yy102, yymsp[-1].minor.yy102);
 	}
-#line 1021 "Parser.c"
+#line 1026 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 9: /* varName ::= lcName */
-      case 10: /* methodName ::= lcName */ yytestcase(yyruleno==10);
-      case 11: /* typeName ::= ucName */ yytestcase(yyruleno==11);
-#line 97 "Parser.y"
+      case 9: /* ucName ::= UCNAME */
+      case 10: /* lcName ::= LCNAME */ yytestcase(yyruleno==10);
+      case 14: /* typeName ::= VOIDNAME */ yytestcase(yyruleno==14);
+      case 15: /* typeName ::= BOOLNAME */ yytestcase(yyruleno==15);
+      case 16: /* typeName ::= INTNAME */ yytestcase(yyruleno==16);
+      case 17: /* typeName ::= FLOATNAME */ yytestcase(yyruleno==17);
+#line 113 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy99 = yymsp[0].minor.yy99;
+		yygotominor.yy45 = (yymsp[0].minor.yy0).value.str;
 	}
-#line 1030 "Parser.c"
+#line 1038 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 16: /* type ::= typeName */
-#line 132 "Parser.y"
+      case 11: /* varName ::= lcName */
+      case 12: /* methodName ::= lcName */ yytestcase(yyruleno==12);
+      case 13: /* typeName ::= ucName */ yytestcase(yyruleno==13);
+#line 123 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy112 = AST_MakeNamedType(AST_TYPE_MUTABLE, yymsp[0].minor.yy99);
+		yygotominor.yy45 = yymsp[0].minor.yy45;
 	}
-#line 1037 "Parser.c"
+#line 1047 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 17: /* type ::= CONST typeName */
-#line 137 "Parser.y"
+      case 18: /* type ::= typeName */
+#line 158 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy112 = AST_MakeNamedType(AST_TYPE_CONST, yymsp[0].minor.yy99);
+		yygotominor.yy100 = AST_MakeNamedType(AST_TYPE_MUTABLE, yymsp[0].minor.yy45);
 	}
-#line 1044 "Parser.c"
+#line 1054 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 18: /* type ::= type STAR */
-#line 142 "Parser.y"
+      case 19: /* type ::= CONST typeName */
+#line 163 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy112 = AST_MakePtrType(AST_TYPE_MUTABLE, yymsp[-1].minor.yy112);
+		yygotominor.yy100 = AST_MakeNamedType(AST_TYPE_CONST, yymsp[0].minor.yy45);
 	}
-#line 1051 "Parser.c"
+#line 1061 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 19: /* type ::= type STAR CONST */
-#line 147 "Parser.y"
+      case 20: /* type ::= type STAR */
+#line 168 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy112 = AST_MakePtrType(AST_TYPE_CONST, yymsp[-2].minor.yy112);
+		yygotominor.yy100 = AST_MakePtrType(AST_TYPE_MUTABLE, yymsp[-1].minor.yy100);
 	}
-#line 1058 "Parser.c"
+#line 1068 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 20: /* classMethodDeclList ::= */
-      case 22: /* classMethodDefList ::= */ yytestcase(yyruleno==22);
-      case 29: /* typeVarList ::= */ yytestcase(yyruleno==29);
-      case 33: /* valueList ::= */ yytestcase(yyruleno==33);
-      case 38: /* statementList ::= */ yytestcase(yyruleno==38);
-#line 152 "Parser.y"
+      case 21: /* type ::= type STAR CONST */
+#line 173 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListCreate();
+		yygotominor.yy100 = AST_MakePtrType(AST_TYPE_CONST, yymsp[-2].minor.yy100);
 	}
-#line 1069 "Parser.c"
+#line 1075 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 21: /* classMethodDeclList ::= classMethodDeclList classMethodDecl */
-#line 157 "Parser.y"
+      case 22: /* classMethodDeclList ::= */
+      case 24: /* classMethodDefList ::= */ yytestcase(yyruleno==24);
+      case 31: /* typeVarList ::= */ yytestcase(yyruleno==31);
+      case 35: /* valueList ::= */ yytestcase(yyruleno==35);
+      case 40: /* statementList ::= */ yytestcase(yyruleno==40);
+#line 178 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(yymsp[-1].minor.yy134, yymsp[0].minor.yy85);
+		yygotominor.yy102 = AST_ListCreate();
 	}
-#line 1076 "Parser.c"
+#line 1086 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 23: /* classMethodDefList ::= classMethodDefList classMethodDef */
-#line 167 "Parser.y"
+      case 23: /* classMethodDeclList ::= classMethodDeclList classMethodDecl */
+#line 183 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(yymsp[-1].minor.yy134, yymsp[0].minor.yy62);
+		yygotominor.yy102 = AST_ListAppend(yymsp[-1].minor.yy102, yymsp[0].minor.yy65);
 	}
-#line 1083 "Parser.c"
+#line 1093 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 24: /* classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON */
-#line 172 "Parser.y"
+      case 25: /* classMethodDefList ::= classMethodDefList classMethodDef */
+#line 193 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy85 = AST_MakeClassMethodDecl(0, yymsp[-4].minor.yy99, yymsp[-2].minor.yy134);
+		yygotominor.yy102 = AST_ListAppend(yymsp[-1].minor.yy102, yymsp[0].minor.yy68);
 	}
-#line 1090 "Parser.c"
+#line 1100 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 25: /* classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON */
-#line 177 "Parser.y"
+      case 26: /* classMethodDecl ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON */
+#line 198 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy85 = AST_MakeClassMethodDecl(yymsp[-5].minor.yy112, yymsp[-4].minor.yy99, yymsp[-2].minor.yy134);
+		yygotominor.yy65 = AST_MakeClassMethodDecl(0, yymsp[-4].minor.yy45, yymsp[-2].minor.yy102);
 	}
-#line 1097 "Parser.c"
+#line 1107 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 26: /* classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope */
-#line 182 "Parser.y"
+      case 27: /* classMethodDecl ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON */
+#line 203 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy62 = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(0, yymsp[-4].minor.yy99, yymsp[-2].minor.yy134), yymsp[0].minor.yy128);
+		yygotominor.yy65 = AST_MakeClassMethodDecl(yymsp[-5].minor.yy100, yymsp[-4].minor.yy45, yymsp[-2].minor.yy102);
 	}
-#line 1104 "Parser.c"
+#line 1114 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 27: /* classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope */
-#line 187 "Parser.y"
+      case 28: /* classMethodDef ::= ucName LROUNDBRACKET typeVarList RROUNDBRACKET scope */
+#line 208 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy62 = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(yymsp[-5].minor.yy112, yymsp[-4].minor.yy99, yymsp[-2].minor.yy134), yymsp[0].minor.yy128);
+		yygotominor.yy68 = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(0, yymsp[-4].minor.yy45, yymsp[-2].minor.yy102), yymsp[0].minor.yy76);
 	}
-#line 1111 "Parser.c"
+#line 1121 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 28: /* typeVar ::= type varName */
-#line 192 "Parser.y"
+      case 29: /* classMethodDef ::= type methodName LROUNDBRACKET typeVarList RROUNDBRACKET scope */
+#line 213 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy115 = AST_MakeTypeVar(yymsp[-1].minor.yy112, yymsp[0].minor.yy99);
+		yygotominor.yy68 = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(yymsp[-5].minor.yy100, yymsp[-4].minor.yy45, yymsp[-2].minor.yy102), yymsp[0].minor.yy76);
 	}
-#line 1118 "Parser.c"
+#line 1128 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 30: /* typeVarList ::= nonEmptyTypeVarList */
-      case 34: /* valueList ::= nonEmptyValueList */ yytestcase(yyruleno==34);
-#line 202 "Parser.y"
+      case 30: /* typeVar ::= type varName */
+#line 218 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = yymsp[0].minor.yy134;
+		yygotominor.yy121 = AST_MakeTypeVar(yymsp[-1].minor.yy100, yymsp[0].minor.yy45);
 	}
-#line 1126 "Parser.c"
+#line 1135 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 31: /* nonEmptyTypeVarList ::= typeVar */
-#line 207 "Parser.y"
+      case 32: /* typeVarList ::= nonEmptyTypeVarList */
+      case 36: /* valueList ::= nonEmptyValueList */ yytestcase(yyruleno==36);
+#line 228 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(AST_ListCreate(), yymsp[0].minor.yy115);
+		yygotominor.yy102 = yymsp[0].minor.yy102;
 	}
-#line 1133 "Parser.c"
+#line 1143 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 32: /* nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar */
-#line 212 "Parser.y"
+      case 33: /* nonEmptyTypeVarList ::= typeVar */
+#line 233 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(yymsp[-2].minor.yy134, yymsp[0].minor.yy115);
+		yygotominor.yy102 = AST_ListAppend(AST_ListCreate(), yymsp[0].minor.yy121);
 	}
-#line 1140 "Parser.c"
+#line 1150 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 35: /* nonEmptyValueList ::= value */
-#line 227 "Parser.y"
+      case 34: /* nonEmptyTypeVarList ::= nonEmptyTypeVarList COMMA typeVar */
+#line 238 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(AST_ListCreate(), yymsp[0].minor.yy81);
+		yygotominor.yy102 = AST_ListAppend(yymsp[-2].minor.yy102, yymsp[0].minor.yy121);
 	}
-#line 1147 "Parser.c"
+#line 1157 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 36: /* nonEmptyValueList ::= nonEmptyValueList COMMA value */
-#line 232 "Parser.y"
+      case 37: /* nonEmptyValueList ::= value */
+#line 253 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(yymsp[-2].minor.yy134, yymsp[0].minor.yy81);
+		yygotominor.yy102 = AST_ListAppend(AST_ListCreate(), yymsp[0].minor.yy75);
 	}
-#line 1154 "Parser.c"
+#line 1164 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 37: /* scope ::= LCURLYBRACKET statementList RCURLYBRACKET */
-#line 237 "Parser.y"
+      case 38: /* nonEmptyValueList ::= nonEmptyValueList COMMA value */
+#line 258 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy128 = AST_MakeScope(yymsp[-1].minor.yy134);
+		yygotominor.yy102 = AST_ListAppend(yymsp[-2].minor.yy102, yymsp[0].minor.yy75);
 	}
-#line 1161 "Parser.c"
+#line 1171 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 39: /* statementList ::= statementList statement */
-#line 247 "Parser.y"
+      case 39: /* scope ::= LCURLYBRACKET statementList RCURLYBRACKET */
+#line 263 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy134 = AST_ListAppend(yymsp[-1].minor.yy134, yymsp[0].minor.yy137);
+		yygotominor.yy76 = AST_MakeScope(yymsp[-1].minor.yy102);
 	}
-#line 1168 "Parser.c"
+#line 1178 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 40: /* statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope */
-#line 252 "Parser.y"
+      case 41: /* statementList ::= statementList statement */
+#line 273 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeIf(yymsp[-2].minor.yy81, yymsp[0].minor.yy128, NULL);
+		yygotominor.yy102 = AST_ListAppend(yymsp[-1].minor.yy102, yymsp[0].minor.yy99);
 	}
-#line 1175 "Parser.c"
+#line 1185 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 41: /* statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope */
-#line 257 "Parser.y"
+      case 42: /* statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope */
+#line 278 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeIf(yymsp[-4].minor.yy81, yymsp[-2].minor.yy128, yymsp[0].minor.yy128);
+		yygotominor.yy99 = AST_MakeIf(yymsp[-2].minor.yy75, yymsp[0].minor.yy76, NULL);
 	}
-#line 1182 "Parser.c"
+#line 1192 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 42: /* statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope */
-      case 43: /* statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope */ yytestcase(yyruleno==43);
-#line 262 "Parser.y"
+      case 43: /* statement ::= IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope */
+#line 283 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
+{
+		yygotominor.yy99 = AST_MakeIf(yymsp[-4].minor.yy75, yymsp[-2].minor.yy76, yymsp[0].minor.yy76);
+	}
+#line 1199 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
+        break;
+      case 44: /* statement ::= FOR LROUNDBRACKET varName COLON value RROUNDBRACKET scope */
+      case 45: /* statement ::= WHILE LROUNDBRACKET value RROUNDBRACKET scope */ yytestcase(yyruleno==45);
+#line 288 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
 		// TODO
-		yygotominor.yy137 = AST_MakeValueStmt(yymsp[-2].minor.yy81);
+		yygotominor.yy99 = AST_MakeValueStmt(yymsp[-2].minor.yy75);
 	}
-#line 1191 "Parser.c"
+#line 1208 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 44: /* statement ::= AUTO varName SETEQUAL value SEMICOLON */
-#line 274 "Parser.y"
+      case 46: /* statement ::= AUTO varName SETEQUAL value SEMICOLON */
+#line 300 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeAutoVarDecl(yymsp[-3].minor.yy99, yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeAutoVarDecl(yymsp[-3].minor.yy45, yymsp[-1].minor.yy75);
 	}
-#line 1198 "Parser.c"
+#line 1215 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 45: /* statement ::= type varName SETEQUAL value SEMICOLON */
-#line 279 "Parser.y"
+      case 47: /* statement ::= type varName SETEQUAL value SEMICOLON */
+#line 305 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeVarDecl(yymsp[-4].minor.yy112, yymsp[-3].minor.yy99, yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeVarDecl(yymsp[-4].minor.yy100, yymsp[-3].minor.yy45, yymsp[-1].minor.yy75);
 	}
-#line 1205 "Parser.c"
+#line 1222 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 46: /* statement ::= lcName SETEQUAL value SEMICOLON */
-#line 284 "Parser.y"
+      case 48: /* statement ::= lcName SETEQUAL value SEMICOLON */
+#line 310 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeAssignVar(AST_MakeLocalVar(yymsp[-3].minor.yy99), yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeAssignVar(AST_MakeLocalVar(yymsp[-3].minor.yy45), yymsp[-1].minor.yy75);
 	}
-#line 1212 "Parser.c"
+#line 1229 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 47: /* statement ::= AT lcName SETEQUAL value SEMICOLON */
-#line 289 "Parser.y"
+      case 49: /* statement ::= AT lcName SETEQUAL value SEMICOLON */
+#line 315 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeAssignVar(AST_MakeThisVar(yymsp[-3].minor.yy99), yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeAssignVar(AST_MakeThisVar(yymsp[-3].minor.yy45), yymsp[-1].minor.yy75);
 	}
-#line 1219 "Parser.c"
+#line 1236 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 48: /* statement ::= value SEMICOLON */
-#line 294 "Parser.y"
+      case 50: /* statement ::= value SEMICOLON */
+#line 320 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeValueStmt(yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeValueStmt(yymsp[-1].minor.yy75);
 	}
-#line 1226 "Parser.c"
+#line 1243 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 49: /* statement ::= RETURN value SEMICOLON */
-#line 299 "Parser.y"
+      case 51: /* statement ::= RETURN value SEMICOLON */
+#line 325 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy137 = AST_MakeReturn(yymsp[-1].minor.yy81);
+		yygotominor.yy99 = AST_MakeReturn(yymsp[-1].minor.yy75);
 	}
-#line 1233 "Parser.c"
+#line 1250 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 50: /* precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET */
-#line 304 "Parser.y"
+      case 52: /* precision7 ::= LROUNDBRACKET precision0 RROUNDBRACKET */
+#line 330 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = yymsp[-1].minor.yy81;
+		yygotominor.yy75 = yymsp[-1].minor.yy75;
 	}
-#line 1240 "Parser.c"
+#line 1257 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 51: /* precision7 ::= lcName */
-#line 309 "Parser.y"
+      case 53: /* precision7 ::= lcName */
+#line 335 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeVarAccess(AST_MakeLocalVar(yymsp[0].minor.yy99));
+		yygotominor.yy75 = AST_MakeVarAccess(AST_MakeLocalVar(yymsp[0].minor.yy45));
 	}
-#line 1247 "Parser.c"
+#line 1264 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 52: /* precision7 ::= AT lcName */
-#line 314 "Parser.y"
+      case 54: /* precision7 ::= AT lcName */
+#line 340 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeVarAccess(AST_MakeThisVar(yymsp[0].minor.yy99));
+		yygotominor.yy75 = AST_MakeVarAccess(AST_MakeThisVar(yymsp[0].minor.yy45));
 	}
-#line 1254 "Parser.c"
+#line 1271 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 53: /* precision7 ::= BOOLCONSTANT */
-#line 319 "Parser.y"
+      case 55: /* precision7 ::= BOOLCONSTANT */
+#line 345 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBoolConstant((yymsp[0].minor.yy0).value.boolValue);
+		yygotominor.yy75 = AST_MakeBoolConstant((yymsp[0].minor.yy0).value.boolValue);
 	}
-#line 1261 "Parser.c"
+#line 1278 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 54: /* precision7 ::= INTCONSTANT */
-#line 324 "Parser.y"
+      case 56: /* precision7 ::= INTCONSTANT */
+#line 350 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeIntConstant((yymsp[0].minor.yy0).value.intValue);
+		yygotominor.yy75 = AST_MakeIntConstant((yymsp[0].minor.yy0).value.intValue);
 	}
-#line 1268 "Parser.c"
+#line 1285 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 55: /* precision7 ::= FLOATCONSTANT */
-#line 329 "Parser.y"
+      case 57: /* precision7 ::= FLOATCONSTANT */
+#line 355 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeFloatConstant((yymsp[0].minor.yy0).value.floatValue);
+		yygotominor.yy75 = AST_MakeFloatConstant((yymsp[0].minor.yy0).value.floatValue);
 	}
-#line 1275 "Parser.c"
+#line 1292 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 56: /* precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET */
-#line 334 "Parser.y"
+      case 58: /* precision7 ::= ucName LROUNDBRACKET valueList RROUNDBRACKET */
+#line 360 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeConstruct(yymsp[-3].minor.yy99, NULL, yymsp[-1].minor.yy134);
+		yygotominor.yy75 = AST_MakeConstruct(yymsp[-3].minor.yy45, NULL, yymsp[-1].minor.yy102);
 	}
-#line 1282 "Parser.c"
+#line 1299 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 57: /* precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET */
-#line 339 "Parser.y"
+      case 59: /* precision7 ::= ucName COLON ucName LROUNDBRACKET valueList RROUNDBRACKET */
+#line 365 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeConstruct(yymsp[-5].minor.yy99, yymsp[-3].minor.yy99, yymsp[-1].minor.yy134);
+		yygotominor.yy75 = AST_MakeConstruct(yymsp[-5].minor.yy45, yymsp[-3].minor.yy45, yymsp[-1].minor.yy102);
 	}
-#line 1289 "Parser.c"
+#line 1306 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 58: /* precision6 ::= precision7 */
-      case 63: /* precision5 ::= precision6 */ yytestcase(yyruleno==63);
-      case 69: /* precision4 ::= precision5 */ yytestcase(yyruleno==69);
-      case 72: /* precision3 ::= precision4 */ yytestcase(yyruleno==72);
-      case 75: /* precision2 ::= precision3 */ yytestcase(yyruleno==75);
-      case 80: /* precision1 ::= precision2 */ yytestcase(yyruleno==80);
-      case 82: /* precision0 ::= precision1 */ yytestcase(yyruleno==82);
-      case 83: /* value ::= precision0 */ yytestcase(yyruleno==83);
-#line 344 "Parser.y"
+      case 60: /* precision6 ::= precision7 */
+      case 65: /* precision5 ::= precision6 */ yytestcase(yyruleno==65);
+      case 71: /* precision4 ::= precision5 */ yytestcase(yyruleno==71);
+      case 74: /* precision3 ::= precision4 */ yytestcase(yyruleno==74);
+      case 77: /* precision2 ::= precision3 */ yytestcase(yyruleno==77);
+      case 82: /* precision1 ::= precision2 */ yytestcase(yyruleno==82);
+      case 84: /* precision0 ::= precision1 */ yytestcase(yyruleno==84);
+      case 85: /* value ::= precision0 */ yytestcase(yyruleno==85);
+#line 370 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = yymsp[0].minor.yy81;
+		yygotominor.yy75 = yymsp[0].minor.yy75;
 	}
-#line 1303 "Parser.c"
+#line 1320 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 59: /* precision6 ::= precision6 DOT varName */
-#line 349 "Parser.y"
+      case 61: /* precision6 ::= precision6 DOT varName */
+#line 375 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeMemberAccess(yymsp[-2].minor.yy81, yymsp[0].minor.yy99);
+		yygotominor.yy75 = AST_MakeMemberAccess(yymsp[-2].minor.yy75, yymsp[0].minor.yy45);
 	}
-#line 1310 "Parser.c"
+#line 1327 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 60: /* precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET */
-#line 354 "Parser.y"
+      case 62: /* precision6 ::= precision6 DOT methodName LROUNDBRACKET valueList RROUNDBRACKET */
+#line 380 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeMethodCall(yymsp[-5].minor.yy81, yymsp[-3].minor.yy99, yymsp[-1].minor.yy134);
+		yygotominor.yy75 = AST_MakeMethodCall(yymsp[-5].minor.yy75, yymsp[-3].minor.yy45, yymsp[-1].minor.yy102);
 	}
-#line 1317 "Parser.c"
+#line 1334 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 61: /* precision6 ::= precision6 PTRACCESS varName */
-#line 359 "Parser.y"
+      case 63: /* precision6 ::= precision6 PTRACCESS varName */
+#line 385 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeMemberAccess(AST_MakeUnary(AST_UNARY_DEREF, yymsp[-2].minor.yy81), yymsp[0].minor.yy99);
+		yygotominor.yy75 = AST_MakeMemberAccess(AST_MakeUnary(AST_UNARY_DEREF, yymsp[-2].minor.yy75), yymsp[0].minor.yy45);
 	}
-#line 1324 "Parser.c"
+#line 1341 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 62: /* precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET */
-#line 364 "Parser.y"
+      case 64: /* precision6 ::= precision6 PTRACCESS methodName LROUNDBRACKET valueList RROUNDBRACKET */
+#line 390 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeMethodCall(AST_MakeUnary(AST_UNARY_DEREF, yymsp[-5].minor.yy81), yymsp[-3].minor.yy99, yymsp[-1].minor.yy134);
+		yygotominor.yy75 = AST_MakeMethodCall(AST_MakeUnary(AST_UNARY_DEREF, yymsp[-5].minor.yy75), yymsp[-3].minor.yy45, yymsp[-1].minor.yy102);
 	}
-#line 1331 "Parser.c"
+#line 1348 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 64: /* precision5 ::= PLUS precision5 */
-#line 374 "Parser.y"
+      case 66: /* precision5 ::= PLUS precision5 */
+#line 400 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeUnary(AST_UNARY_PLUS, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeUnary(AST_UNARY_PLUS, yymsp[0].minor.yy75);
 	}
-#line 1338 "Parser.c"
+#line 1355 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 65: /* precision5 ::= MINUS precision5 */
-#line 379 "Parser.y"
+      case 67: /* precision5 ::= MINUS precision5 */
+#line 405 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeUnary(AST_UNARY_MINUS, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeUnary(AST_UNARY_MINUS, yymsp[0].minor.yy75);
 	}
-#line 1345 "Parser.c"
+#line 1362 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 66: /* precision5 ::= EXCLAIMMARK precision5 */
-#line 384 "Parser.y"
+      case 68: /* precision5 ::= EXCLAIMMARK precision5 */
+#line 410 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeUnary(AST_UNARY_NEGATE, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeUnary(AST_UNARY_NEGATE, yymsp[0].minor.yy75);
 	}
-#line 1352 "Parser.c"
+#line 1369 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 67: /* precision5 ::= AMPERSAND precision5 */
-#line 389 "Parser.y"
+      case 69: /* precision5 ::= AMPERSAND precision5 */
+#line 415 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeUnary(AST_UNARY_ADDRESSOF, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeUnary(AST_UNARY_ADDRESSOF, yymsp[0].minor.yy75);
 	}
-#line 1359 "Parser.c"
+#line 1376 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 68: /* precision5 ::= STAR precision5 */
-#line 394 "Parser.y"
+      case 70: /* precision5 ::= STAR precision5 */
+#line 420 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeUnary(AST_UNARY_DEREF, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeUnary(AST_UNARY_DEREF, yymsp[0].minor.yy75);
 	}
-#line 1366 "Parser.c"
+#line 1383 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 70: /* precision4 ::= precision4 STAR precision5 */
-#line 404 "Parser.y"
+      case 72: /* precision4 ::= precision4 STAR precision5 */
+#line 430 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_MULTIPLY, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_MULTIPLY, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1373 "Parser.c"
+#line 1390 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 71: /* precision4 ::= precision4 FORWARDSLASH precision5 */
-#line 409 "Parser.y"
+      case 73: /* precision4 ::= precision4 FORWARDSLASH precision5 */
+#line 435 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_DIVIDE, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_DIVIDE, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1380 "Parser.c"
+#line 1397 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 73: /* precision3 ::= precision3 PLUS precision4 */
-#line 419 "Parser.y"
+      case 75: /* precision3 ::= precision3 PLUS precision4 */
+#line 445 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_ADD, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_ADD, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1387 "Parser.c"
+#line 1404 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 74: /* precision3 ::= precision3 MINUS precision4 */
-#line 424 "Parser.y"
+      case 76: /* precision3 ::= precision3 MINUS precision4 */
+#line 450 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_SUBTRACT, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_SUBTRACT, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1394 "Parser.c"
+#line 1411 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 76: /* precision2 ::= precision3 ISEQUAL precision3 */
-#line 434 "Parser.y"
+      case 78: /* precision2 ::= precision3 ISEQUAL precision3 */
+#line 460 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_ISEQUAL, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_ISEQUAL, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1401 "Parser.c"
+#line 1418 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 77: /* precision2 ::= precision3 NOTEQUAL precision3 */
-#line 439 "Parser.y"
+      case 79: /* precision2 ::= precision3 NOTEQUAL precision3 */
+#line 465 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_NOTEQUAL, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_NOTEQUAL, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1408 "Parser.c"
+#line 1425 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 78: /* precision2 ::= precision3 GREATEROREQUAL precision3 */
-#line 444 "Parser.y"
+      case 80: /* precision2 ::= precision3 GREATEROREQUAL precision3 */
+#line 470 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_GREATEROREQUAL, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_GREATEROREQUAL, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1415 "Parser.c"
+#line 1432 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 79: /* precision2 ::= precision3 LESSOREQUAL precision3 */
-#line 449 "Parser.y"
+      case 81: /* precision2 ::= precision3 LESSOREQUAL precision3 */
+#line 475 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeBinary(AST_BINARY_LESSOREQUAL, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeBinary(AST_BINARY_LESSOREQUAL, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1422 "Parser.c"
+#line 1439 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
-      case 81: /* precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1 */
-#line 459 "Parser.y"
+      case 83: /* precision1 ::= precision2 QUESTIONMARK precision1 COLON precision1 */
+#line 485 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
 {
-		yygotominor.yy81 = AST_MakeTernary(yymsp[-4].minor.yy81, yymsp[-2].minor.yy81, yymsp[0].minor.yy81);
+		yygotominor.yy75 = AST_MakeTernary(yymsp[-4].minor.yy75, yymsp[-2].minor.yy75, yymsp[0].minor.yy75);
 	}
-#line 1429 "Parser.c"
+#line 1446 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
         break;
       default:
         break;
@@ -1473,6 +1490,10 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
+#line 16 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
+
+	printf("Failure!\n");
+#line 1497 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
   Locic_ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
@@ -1487,6 +1508,10 @@ static void yy_syntax_error(
 ){
   Locic_ParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
+#line 20 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
+
+	printf("Syntax error\n");
+#line 1515 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
   Locic_ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1505,6 +1530,10 @@ static void yy_accept(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser accepts */
+#line 12 "/home/scross/Projects/locic/dist/src/Locic/Parser.y"
+
+	printf("Success!\n");
+#line 1537 "/home/scross/Projects/locic/dist/src/Locic/Parser.c"
   Locic_ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

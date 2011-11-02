@@ -16,4 +16,6 @@ AST_File * AST_FileAddClassDecl(AST_File * file, AST_ClassDecl * classDecl);
 
 AST_File * AST_FileAddClassDef(AST_File * file, AST_ClassDef * classDef);
 
+void AST_PrintFile(AST_File * file);
+
 #endif

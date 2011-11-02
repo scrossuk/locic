@@ -1,13 +1,27 @@
+%include {#include <assert.h>}
+%include {#include <stdio.h>}
+%include {#include <Locic/Token.h>}
+%include {#include <Locic/AST.h>}
+
 %name Locic_Parse
 %start_symbol start
 %token_prefix LOCIC_TOKEN_
 %token_type { Locic_Token }
-%extra_argument { void * context }
+%extra_argument { AST_File ** resultAST }
 
-%include {#include <assert.h>}
-%include {#include <Locic/Token.h>}
-%include {#include <Locic/AST.h>}
+%parse_accept {
+	printf("Success!\n");
+}
 
+%parse_failure {
+	printf("Failure!\n");
+}
+
+%syntax_error {
+	printf("Syntax error\n");
+}
+
+%type start { AST_File * }
 %type file { AST_File * }
 
 %type classDecl { AST_ClassDecl * }
@@ -48,13 +62,25 @@
 %type precision6 { AST_Value * }
 %type precision7 { AST_Value * }
 	
-start ::= file .
+start(S) ::= file(F) .
 	{
-		printf("Parsed file successfully");
+		printf("Completed parsing\n");
+		S = F;
 	}
 
 file(F) ::= .
 	{
+		F = AST_MakeFile();
+	}
+
+file(F) ::= ERROR.
+	{
+		F = AST_MakeFile();
+	}
+	
+file(F) ::= error.
+	{
+		printf("ERROR\n");
 		F = AST_MakeFile();
 	}
 	
