@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <Locic/AST/ClassDef.h>
 #include <Locic/AST/List.h>
@@ -8,5 +9,9 @@ AST_ClassDef * AST_MakeClassDef(char * name, AST_List * members, AST_List * defi
 	classDef->memberVariables = members;
 	classDef->methodDefinitions = definitions;
 	return classDef;
+}
+
+void AST_PrintClassDef(AST_ClassDef * def){
+	printf("class %s(...){\n...\n}\n", def->name);
 }
 

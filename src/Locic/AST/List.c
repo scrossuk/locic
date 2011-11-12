@@ -12,6 +12,8 @@ AST_ListElement * AST_ListEnd(){
 
 AST_List * AST_ListCreate(){
 	AST_List * list = malloc(sizeof(AST_List));
+	list->head.next = NULL;
+	list->head.data = NULL;
 	list->tail = &(list->head);
 	return list;
 }
@@ -23,6 +25,8 @@ AST_List * AST_ListAppend(AST_List * list, void * ptr){
 	tail->next = listElement;
 	list->tail = listElement;
 	listElement->next = NULL;
+	
+	listElement->data = ptr;
 	
 	return list;
 }

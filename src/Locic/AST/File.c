@@ -23,8 +23,16 @@ AST_File * AST_FileAddClassDef(AST_File * file, AST_ClassDef * classDef){
 }
 
 void AST_PrintFile(AST_File * file){
+	AST_ListElement * element;
 	printf("----Class Declarations:\n");
+	for(element = AST_ListBegin(file->classDeclarations); element != AST_ListEnd(file->classDeclarations); element = element->next){
+		AST_ClassDecl * decl = (AST_ClassDecl *) element->data;
+		AST_PrintClassDecl(decl);
+	}
 	printf("\n----Class Definitions:\n");
-	printf("\n");
+	for(element = AST_ListBegin(file->classDefinitions); element != AST_ListEnd(file->classDefinitions); element = element->next){
+		AST_ClassDef * def = (AST_ClassDef *) element->data;
+		AST_PrintClassDef(def);
+	}
 }
 

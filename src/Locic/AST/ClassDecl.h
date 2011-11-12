@@ -10,4 +10,6 @@ typedef struct AST_ClassDecl{
 
 AST_ClassDecl * AST_MakeClassDecl(char * name, AST_List * declarations);
 
+void AST_PrintClassDecl(AST_ClassDecl * decl);
+
 #endif

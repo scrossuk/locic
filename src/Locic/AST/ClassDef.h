@@ -11,4 +11,6 @@ typedef struct AST_ClassDef{
 
 AST_ClassDef * AST_MakeClassDef(char * name, AST_List * members, AST_List * definitions);
 
+void AST_PrintClassDef(AST_ClassDef * def);
+
 #endif

@@ -1,4 +1,19 @@
 
+type ImplicitCopyable{
+	ImplicitCopy(const ImplicitCopyable *);
+}
+
+data Expression = Variable(String name) |
+		FloatValue(float value) |
+		IntValue(int value) |
+		StringValue(String value);
+		
+data Vector3<T>(T x, T y, T z);
+
+alias Vector3f = Vector3<Float>;
+		
+Expression::Variable
+
 class Array<T>(size_t numElements, T * data){
 	
 	Array(){
@@ -22,13 +37,10 @@ class Array<T>(size_t numElements, T * data){
 	void pushBack(T value){
 		@numElements++;
 		
-		@data = reinterpret_cast<T *>(realloc(@data, @numElements * sizeof(T)));
+		@data = reinterpret_cast<T *>(::realloc(@data, @numElements * sizeof(T)));
 		
-		// Move 'value' into array memory.
+		// Move value into array memory.
 		@data[@numElements - 1] := #(value);
-		
-		// Make 'value' valid again.
-		value := T();
 	}
 	
 }
