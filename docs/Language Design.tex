@@ -9,8 +9,98 @@
 
 \section{Introduction}
 
+\subsection{Purpose}
+
 \paragraph{}
-The purpose of this document is (or will be) to document the design of the Loci language, as well as providing some reasoning behind the design choices.
+This document describes and rationalises the design of the Loci general programming language. Note that this is not a specification.
+
+\subsection{Name}
+
+\paragraph{}
+While it has been suggested that Loci could stand for `Loci: objects, classes and interfaces', this is not the intended understanding because the language is much more than just being object orientated. Instead, the name reflects the following definitions of its singular form:
+
+\begin{quotation}
+\emph{locus} - the set of all points or lines that satisfy or are determined by specific conditions
+\end{quotation}
+\begin{quotation}
+\emph{locus} - A place or locality, especially a centre of activity
+\end{quotation}
+
+\subsection{Aims}
+
+\paragraph{}
+In general, Loci is designed to satisfy the following goals:
+
+\begin{itemize}
+\item Modular - The language must help to produce programs in which the basic problem is split into distinct components, which can be easily re-combined to solve other problems.
+\item Portable - The language should be independent of any specific machine architecture or operating system, such that programs can be ported easily.
+\item Compatible - The language must be compatible with existing languages/standards so that it can make use of existing services.
+\item Simple - The language must remove all unnecessary complexity and maximize developer efficiency so that time can be best spent solving the problem at hand. It is important to reduce the learning curve to remove any barriers preventing new developers from embracing the language.
+\item Clean - The language must help to produce clean and consistent applications which can be easily read and understood. It is important that when one developer sees code written by another developer it is easy for them to understand it, in order to aid collaboration.
+\item Small - The language must produce resulting code that is small and free of dependencies except those specified in the program and understood to the developer, such that distribution is simple and fast.
+\item Fast - The language must provide good performance, to maximise its utility.
+\end{itemize}
+
+\section{Overview}
+
+\subsection{Use Case}
+
+\paragraph{}
+The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating interoperation of different programming languages with C as a `bridge'. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
+
+\paragraph{}
+Unfortunately, these languages have significant problems. For example, C++ and D place undue attention to compile-time funtionality that serves to complicate the source code. Interestingly, Objective-C shifts the vast majority of the burden to run-time, and hence uses weak typing. Preference of programming languages is certainly based on the opinion of individual programmers, however languages also face general criticism. In particular, C++ attracts criticism due to its large set of features and rules that ultimately combine to produce complex semantics. Equally, however, programmers support the combination of powerful features as found in a multi-paradigm language such as C++.
+
+\paragraph{}
+The design of languages that are both simple and powerful is difficult, and popular existing programming languages represent a variety of reasonable solutions. A number of newer languages have emerged that operate at a `higher level' than languages such as C and C++, of which examples are Java and C\#. Typically, these languages use primitives and pointers as fundamental types, deploy some form of garbage collection, use classes as their fundamental data structures and provide the means to construct inheritance hierarchies. There is a disputed performance cost to using these languages over lower level languages, which is generally found to be small and hence arguably insignificant.
+
+\paragraph{}
+However, these languages also suffer significant problems: there are no deterministic destruction routines (which must be provided by the programmer through constructs such as try...finally), the languages have extensive dependencies on the large and complex environment that supports them and they lack direct access to lower level routines typically available in C. Furthermore, despite aims to remain simple, many of these languages have become increasingly complex as it is discovered the initial design was insufficiently powerful. Special cases (e.g. Java's + operator for strings) further serve to complicate the languages.
+
+\paragraph{}
+
+
+\subsection{Specific Goals}
+
+\paragraph{}
+Establishing this basis for Loci, it is possible to elaborate more specific goals for the language:
+
+\begin{itemize}
+\item Provide stable interfaces between modules without relying on C - a change in one module should not require the other module to be re-compiled. In particular, classes can change their internal structure without breaking API compatibility.
+\item Follow a standard binary interface for each platform - this means that modules compiled by different compilers must work together. Loci creates standard C functions with fixed naming rules and calling conventions.
+\item Fast compile times - this is vital to maximise productivity. Loci files are effectively isolated from each other, such that they can be tokenized and parsed in parallel, and then the resulting structures can be used to resolve and verify dependencies. This is much more efficient than existing methods.
+\item Minimal syntactic complexity. For example, header guards are required in C to prevent a header from being included twice. In Loci all files are equal and are only analyzed once, so there is no need to add any sort of guards. Furthermore the Loci compiler uses multiple passes so type declarations/definitions do not have to appear before their use - they simply have to be given somewhere in the source.
+\item Minimal semantic complexity. Loci avoids language features (or combinations of language features) that affect the readability and predictability of code. For example, Loci does not support function or method overloading, since these can easily increase the complexity of the language with little to no added benefit.
+\item Provide a powerful polymorphism mechanism. Loci provides interfaces, that are effectively equivalent to C++ pure virtual classes with a virtual destructor, or Java interfaces. Loci uses structural typing, so casts are allowed from classes to interfaces if the class provides all the methods required by the interface.
+\end{itemize}
+
+\paragraph{}
+One of the defining aspects of Loci is that everything is an object and all objects are subject to the same rules (unlike Java, in which the string + operator is a special case). Loci places an emphasis on interfaces, to such an extent that they are the only way polymorphism can be achieved, and extends inheritance only contributes to code reuse. As a result of this, Loci is able to easily support multiple inheritance, however the units being inherited from are called ‘partial classes’. The relationship of interfaces, classes and partial classes is not complicated, however it needs to be (and will be) demonstrated in code.
+
+\paragraph{}
+Further defining aspects of Loci include the elimination of global and static variables, no downcasting, no null, no switch statements, no break or continue, a for-each loop, clear naming rules, easy to read import statements and no static methods. Each of the 'features' left out are considered at least unnecessary and potentially harmful. However, Loci shares many things in common with other languages: unchecked exceptions, packages, garbage collection, operator overloading, generics (unlike Java these do not suffer type erasure) and an immutable string type (like Java strings, except implemented as ropes).
+
+\paragraph{}
+Loci is focused on the goal of providing one effective method to solve problems, rather than providing multiple (and potentially poor) solutions. As a result, the design of the language is focused on removing unnecessary features and maintaining conceptual consistency. The language can help the developer to avoid common pitfalls and eliminate the additional complexity that arises with the existence of null, global data, manual memory allocation, checked exceptions etc.. Furthermore Loci enforces some important design decisions, to alleviate groups of programmers from having to define code design specifications and provide useful assumptions to developers reading code. For example, capitalised names must be type names or type constructors, whereas names that start with a lower case letter must be variables or method/function names. The only exceptions to this rule are the built-in types, which are named starting with lowercase (e.g. int), since this is familiar to programmers from Java and C++.
+
+\paragraph{}
+The conceptual model of the language seeks to reject the notion that programming languages must be complicated, or that any particular paradigm should be used exclusively, using ideas from a variety of existing languages and integrating them effectively. The language aims to target general purpose software on various platforms, respecting the need for languages such as C++ at lower levels, or scripting languages at higher levels.
+
+\section{Design Decisions}
+
+\subsection{Stack Allocated vs Heap Allocated}
+
+\paragraph{Stack Allocated}
+\begin{itemize}
+\item Cheaper allocation/deallocation
+\item Extra work to identify locations of variable length data on the stack
+\end{itemize}
+
+\paragraph{Heap Allocated Data}
+\begin{itemize}
+\item Simpler to implement
+\item Cheaper moving
+\end{itemize}
 
 \end{document}
 
