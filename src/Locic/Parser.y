@@ -160,7 +160,7 @@ type(NT) ::= type(OT) STAR.
 		NT = AST_MakePtrType(AST_TYPE_MUTABLE, OT);
 	}
 
-type(NT) ::= type(OT)STAR CONST.
+type(NT) ::= type(OT) STAR CONST.
 	{
 		NT = AST_MakePtrType(AST_TYPE_CONST, OT);
 	}

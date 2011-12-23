@@ -2,10 +2,12 @@
 
 #include <string.h>
 #include <Locic/AST.h>
+#include <Locic/LexerContext.h>
 #include <Locic/Parser.h>
 #include <Locic/Token.h>
 
-Locic_Token yylval;
+#define YY_EXTRA_TYPE Locic_LexerContext *
+#define YY_USER_ACTION yyextra->lineNumber = yylineno;
 
 /*
 "\""                    { strText = ""; BEGIN(STRING_STATE); }
@@ -14,7 +16,7 @@ Locic_Token yylval;
 <STRING_STATE>"\\\\"          { strText += "\\"; }
 <STRING_STATE>"\\n"           { strText += "\n"; }
 <STRING_STATE>"\\t"           { strText += "\t"; }
-<STRING_STATE>"\""            { yylval.value = new String(strText);
+<STRING_STATE>"\""            { token.value = new String(strText);
 				BEGIN(INITIAL);
 				return STRING; }
 <STRING_STATE>.               { strText += yytext; }
@@ -24,7 +26,10 @@ Locic_Token yylval;
 
 %}
 
+%option prefix="Locic_GeneratedLexer_"
+%option reentrant
 %option noyywrap
+%option yylineno
 
 %x COMMENT_STATE
 
@@ -46,18 +51,18 @@ interface               { return LOCIC_TOKEN_INTERFACE; }
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }
 
-void                    { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_VOIDNAME; }
-int                     { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_INTNAME; }
-bool                    { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_BOOLNAME; }
-float                   { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_FLOATNAME; }
+void                    { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_VOIDNAME; }
+int                     { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_INTNAME; }
+bool                    { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_BOOLNAME; }
+float                   { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_FLOATNAME; }
 
-true                    { yylval.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
-false                   { yylval.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }
-[0-9]+                  { yylval.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
-[0-9]+\.[0-9]+          { yylval.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
+true                    { yyextra->token.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
+false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }
+[0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
+[0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9]*       { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_UCNAME; }
-[a-z][A-Za-z0-9]*       { yylval.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_LCNAME; }
+[A-Z][A-Za-z0-9]*       { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_UCNAME; }
+[a-z][A-Za-z0-9]*       { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_LCNAME; }
 
 "=="                    { return LOCIC_TOKEN_ISEQUAL; }
 "!="                    { return LOCIC_TOKEN_NOTEQUAL; }
@@ -90,4 +95,19 @@ false                   { yylval.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT;
 
 %%
 
+void * Locic_LexAlloc(FILE * file, Locic_LexerContext * context){
+	void * lexer;
+	Locic_GeneratedLexer_lex_init(&lexer);
+	Locic_GeneratedLexer_set_in(file, lexer);
+	Locic_GeneratedLexer_set_extra(context, lexer);
+	return lexer;
+}
+
+int Locic_Lex(void * lexer){
+	return Locic_GeneratedLexer_lex(lexer);
+}
+
+void Locic_LexFree(void * lexer){
+	Locic_GeneratedLexer_lex_destroy(lexer);
+}
 

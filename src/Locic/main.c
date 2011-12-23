@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Locic/AST.h>
+#include <Locic/Lexer.h>
+#include <Locic/LexerContext.h>
 #include <Locic/Parser.h>
 #include <Locic/Token.h>
 
@@ -20,11 +22,6 @@ void Locic_free(void * ptr){
 	free(ptr);
 }
 
-FILE * yyin;
-int yylex();
-
-extern Locic_Token yylval;
-
 int main(int argc, char * argv[]){
 	if(argc < 2){
 		printf("Locic: No files provided\n");
@@ -35,8 +32,13 @@ int main(int argc, char * argv[]){
 
 	FILE * file = fopen(filename, "rb");
 	
-	yyin = file;
+	if(file == 0){
+		printf("Failed to open file\n");
+		return 1;
+	}
 	
+	Locic_LexerContext lexerContext;
+	void * lexer = Locic_LexAlloc(file, &lexerContext);
 	void * parser = Locic_ParseAlloc(Locic_alloc);
 	
 	AST_File * resultAST = 0;
@@ -46,9 +48,11 @@ int main(int argc, char * argv[]){
 	//Locic_ParseTrace(stdout, "==> ");
 	
 	while(1){
-		int lexVal = yylex();
+	        int lexVal = Locic_Lex(lexer);
+	        
+	        //printf("Found token at line %d\n", (int) lexerContext.lineNumber);
 		
-		Locic_Parse(parser, lexVal, yylval, &resultAST);
+		Locic_Parse(parser, lexVal, lexerContext.token, &resultAST);
 		
 		if(lexVal == 0){
 			break;
@@ -63,6 +67,7 @@ int main(int argc, char * argv[]){
 	
 	printf("Used %d tokens\n", numTokens);
 	
+	Locic_LexFree(lexer);
 	Locic_ParseFree(parser, Locic_free);
 	
 	fclose(file);
