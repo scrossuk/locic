@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include <Locic/AST.h>
+#include <Locic/CodeGen.h>
 #include <Locic/Lexer.h>
 #include <Locic/LexerContext.h>
 #include <Locic/Parser.h>
@@ -71,6 +74,18 @@ int main(int argc, char * argv[]){
 	
 	if(parserContext.parseFailed != 1){
 		AST_PrintFile(parserContext.resultAST);
+		
+		printf("Generating code...\n");
+		
+		size_t moduleNameLen = strlen(argv[1]);
+		char * moduleName = strcpy(malloc(moduleNameLen + 3), argv[1]);
+		moduleName[moduleNameLen] = '.';
+		moduleName[moduleNameLen + 1] = 'o';
+		moduleName[moduleNameLen + 2] = 0;
+		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
+		Locic_CodeGen(codeGenContext, parserContext.resultAST);
+		Locic_CodeGenDump(codeGenContext);
+		Locic_CodeGenFree(codeGenContext);
 	}else{
 		printf("Parsing failed.\n");
 	}

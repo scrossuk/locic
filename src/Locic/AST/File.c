@@ -7,6 +7,8 @@
 
 AST_File * AST_MakeFile(){
 	AST_File * file = malloc(sizeof(AST_File));
+	file->functionDeclarations = AST_ListCreate();
+	file->functionDefinitions = AST_ListCreate();
 	file->classDeclarations = AST_ListCreate();
 	file->classDefinitions = AST_ListCreate();
 	return file;

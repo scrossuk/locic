@@ -7,5 +7,17 @@ add_custom_command(OUTPUT Parser.c Parser.h Parser.out COMMAND lemon Parser.y MA
 # Generate Lexer (depends on Parser.h for symbols)
 add_custom_command(OUTPUT Lexer.c COMMAND flex -o Lexer.c ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.l MAIN_DEPENDENCY Lexer.l DEPENDS Parser.h)
 
+# Find LLVM (for code generation)
+find_package(LLVM REQUIRED)
+
+add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
+include_directories(${LLVM_INCLUDE_DIRS})
+
 # Compile
-add_executable(locic main.c Lexer.c Parser.c AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/File.c AST/List.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)
+add_executable(locic main.c Lexer.c Parser.c CodeGen.cpp AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/File.c AST/List.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)
+
+# Link with LLVM
+link_directories(${LLVM_LIBRARY_DIRS})
+llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core jit native)
+target_link_libraries(locic ${REQ_LLVM_LIBRARIES})
+
