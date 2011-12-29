@@ -51,10 +51,10 @@ interface               { return LOCIC_TOKEN_INTERFACE; }
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }
 
-void                    { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_VOIDNAME; }
-int                     { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_INTNAME; }
-bool                    { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_BOOLNAME; }
-float                   { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_FLOATNAME; }
+void                    { return LOCIC_TOKEN_VOIDNAME; }
+int                     { return LOCIC_TOKEN_INTNAME; }
+bool                    { return LOCIC_TOKEN_BOOLNAME; }
+float                   { return LOCIC_TOKEN_FLOATNAME; }
 
 true                    { yyextra->token.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
 false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }

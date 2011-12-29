@@ -3,9 +3,8 @@
 
 #include <Locic/AST/ClassDecl.h>
 #include <Locic/AST/ClassDef.h>
-#include <Locic/AST/ClassMethodDecl.h>
-#include <Locic/AST/ClassMethodDef.h>
 #include <Locic/AST/File.h>
+#include <Locic/AST/Function.h>
 #include <Locic/AST/List.h>
 #include <Locic/AST/Scope.h>
 #include <Locic/AST/Statement.h>

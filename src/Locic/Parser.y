@@ -1,24 +1,26 @@
 %include {#include <assert.h>}
 %include {#include <stdio.h>}
-%include {#include <Locic/Token.h>}
 %include {#include <Locic/AST.h>}
+%include {#include <Locic/ParserContext.h>}
+%include {#include <Locic/Token.h>}
 
 %name Locic_Parse
-%extra_argument { AST_File ** resultAST }
+%extra_argument { Locic_ParserContext * parserContext }
 %start_symbol start
 %token_prefix LOCIC_TOKEN_
 %token_type { Locic_Token }
 
 %parse_accept {
-	printf("Success!\n");
+	//printf("Success!\n");
 }
 
 %parse_failure {
-	printf("Failure!\n");
+	//printf("Failure!\n");
+	parserContext->parseFailed = 1;
 }
 
 %syntax_error {
-	printf("Syntax error\n");
+	printf("Syntax error on line %d\n", (int) parserContext->lineNumber);
 }
 
 %type file { AST_File * }
@@ -26,18 +28,17 @@
 %type classDecl { AST_ClassDecl * }
 %type classDef { AST_ClassDef * }
 
-%type classMethodDeclList { AST_List * }
-%type classMethodDecl { AST_ClassMethodDecl * }
-%type classMethodDefList { AST_List * }
-%type classMethodDef { AST_ClassMethodDef * }
+%type functionDecl { AST_FunctionDecl * }
+%type functionDef { AST_FunctionDef * }
 
+%type classMethodDeclList { AST_List * }
+%type classMethodDefList { AST_List * }
+
+%type basicType { AST_BasicTypeEnum }
 %type type { AST_Type * }
 
-%type ucName { char * }
 %type lcName { char * }
-
-%type varName { char * }
-%type methodName { char * }
+%type ucName { char * }
 %type typeName { char * }
 
 %type typeVar { AST_TypeVar * }
@@ -64,7 +65,7 @@
 start ::= file(F) .
 	{
 		printf("Completed parsing\n");
-		*(resultAST) = F;
+		parserContext->resultAST = F;
 	}
 	
 // Nasty hack to create ERROR token and error non-terminal (UNKNOWN can never be sent by the lexer).
@@ -79,6 +80,16 @@ file(F) ::= INTERFACE.
 	{
 		F = AST_MakeFile();
 	}
+	
+file(NF) ::= file(OF) functionDecl(D).
+	{
+		NF = AST_FileAddFunctionDecl(OF, D);
+	}
+
+file(NF) ::= file(OF) functionDef(D).
+	{
+		NF = AST_FileAddFunctionDef(OF, D);
+	}
 
 file(NF) ::= file(OF) classDecl(D).
 	{
@@ -88,6 +99,16 @@ file(NF) ::= file(OF) classDecl(D).
 file(NF) ::= file(OF) classDef(D).
 	{
 		NF = AST_FileAddClassDef(OF, D);
+	}
+	
+functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+	{
+		D = AST_MakeFunctionDecl(T, N, P);
+	}
+	
+functionDef(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+	{
+		D = AST_MakeFunctionDef(AST_MakeFunctionDecl(T, N, P), S);
 	}
 	
 classDecl(D) ::= CLASS ucName(N) LCURLYBRACKET classMethodDeclList(DL) RCURLYBRACKET.
@@ -100,59 +121,54 @@ classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCUR
 		D = AST_MakeClassDef(N, VL, DL);
 	}
 	
-ucName(N) ::= UCNAME(NAME).
-	{
-		N = (NAME).str;
-	}
-	
 lcName(N) ::= LCNAME(NAME).
 	{
 		N = (NAME).str;
 	}
 	
-varName(V) ::= lcName(N).
+ucName(N) ::= UCNAME(NAME).
 	{
-		V = N;
+		N = (NAME).str;
 	}
 	
-methodName(M) ::= lcName(N).
+basicType(T) ::= VOIDNAME.
 	{
-		M = N;
+		T = AST_TYPE_BASIC_VOID;
 	}
 	
-typeName(T) ::= ucName(N).
+basicType(T) ::= BOOLNAME.
 	{
-		T = N;
+		T = AST_TYPE_BASIC_BOOL;
 	}
 	
-typeName(T) ::= VOIDNAME(N).
+basicType(T) ::= INTNAME.
 	{
-		T = (N).str;
+		T = AST_TYPE_BASIC_INT;
 	}
 	
-typeName(T) ::= BOOLNAME(N).
+basicType(T) ::= FLOATNAME.
 	{
-		T = (N).str;
+		T = AST_TYPE_BASIC_FLOAT;
 	}
 	
-typeName(T) ::= INTNAME(N).
+type(T) ::= basicType(BT).
 	{
-		T = (N).str;
+		T = AST_MakeBasicType(AST_TYPE_MUTABLE, BT);
+	}
+
+type(T) ::= CONST basicType(BT).
+	{
+		T = AST_MakeBasicType(AST_TYPE_CONST, BT);
 	}
 	
-typeName(T) ::= FLOATNAME(N).
-	{
-		T = (N).str;
-	}
-	
-type(T) ::= typeName(N).
+type(T) ::= ucName(N).
 	{
 		T = AST_MakeNamedType(AST_TYPE_MUTABLE, N);
 	}
 
-type(T) ::= CONST typeName(TN).
+type(T) ::= CONST ucName(N).
 	{
-		T = AST_MakeNamedType(AST_TYPE_CONST, TN);
+		T = AST_MakeNamedType(AST_TYPE_CONST, N);
 	}
 
 type(NT) ::= type(OT) STAR.
@@ -170,7 +186,7 @@ classMethodDeclList(DL) ::= .
 		DL = AST_ListCreate();
 	}
 	
-classMethodDeclList(DL) ::= classMethodDeclList(ODL) classMethodDecl(D).
+classMethodDeclList(DL) ::= classMethodDeclList(ODL) functionDecl(D).
 	{
 		DL = AST_ListAppend(ODL, D);
 	}
@@ -180,32 +196,12 @@ classMethodDefList(DL) ::= .
 		DL = AST_ListCreate();
 	}
 	
-classMethodDefList(DL) ::= classMethodDefList(ODL) classMethodDef(D).
+classMethodDefList(DL) ::= classMethodDefList(ODL) functionDef(D).
 	{
 		DL = AST_ListAppend(ODL, D);
 	}
 	
-classMethodDecl(D) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
-	{
-		D = AST_MakeClassMethodDecl(0, N, P);
-	}
-	
-classMethodDecl(D) ::= type(T) methodName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
-	{
-		D = AST_MakeClassMethodDecl(T, N, P);
-	}
-	
-classMethodDef(D) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
-	{
-		D = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(0, N, P), S);
-	}
-	
-classMethodDef(D) ::= type(T) methodName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
-	{
-		D = AST_MakeClassMethodDef(AST_MakeClassMethodDecl(T, N, P), S);
-	}
-	
-typeVar(TV) ::= type(T) varName(N).
+typeVar(TV) ::= type(T) lcName(N).
 	{
 		TV = AST_MakeTypeVar(T, N);
 	}
@@ -275,7 +271,7 @@ statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE scope(F).
 		S = AST_MakeIf(V, T, F);
 	}
 	
-statement(S) ::= FOR LROUNDBRACKET varName COLON value(V) RROUNDBRACKET scope.
+statement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scope.
 	{
 		// TODO
 		S = AST_MakeValueStmt(V);
@@ -287,12 +283,12 @@ statement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope.
 		S = AST_MakeValueStmt(V);
 	}
 	
-statement(S) ::= AUTO varName(N) SETEQUAL value(V) SEMICOLON.
+statement(S) ::= AUTO lcName(N) SETEQUAL value(V) SEMICOLON.
 	{
 		S = AST_MakeAutoVarDecl(N, V);
 	}
 	
-statement(S) ::= type(T) varName(N) SETEQUAL value(V) SEMICOLON.
+statement(S) ::= type(T) lcName(N) SETEQUAL value(V) SEMICOLON.
 	{
 		S = AST_MakeVarDecl(T, N, V);
 	}
@@ -362,22 +358,22 @@ precision6(V) ::= precision7(VAL).
 		V = VAL;
 	}
 
-precision6(V) ::= precision6(S) DOT varName(N).
+precision6(V) ::= precision6(S) DOT lcName(N).
 	{
 		V = AST_MakeMemberAccess(S, N);
 	}
 
-precision6(V) ::= precision6(O) DOT methodName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
+precision6(V) ::= precision6(O) DOT lcName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
 	{
 		V = AST_MakeMethodCall(O, N, P);
 	}
 
-precision6(V) ::= precision6(SP) PTRACCESS varName(N).
+precision6(V) ::= precision6(SP) PTRACCESS lcName(N).
 	{
 		V = AST_MakeMemberAccess(AST_MakeUnary(AST_UNARY_DEREF, SP), N);
 	}
 
-precision6(V) ::= precision6(OP) PTRACCESS methodName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
+precision6(V) ::= precision6(OP) PTRACCESS lcName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
 	{
 		V = AST_MakeMethodCall(AST_MakeUnary(AST_UNARY_DEREF, OP), N, P);
 	}

@@ -1,10 +1,16 @@
 #include <stdlib.h>
 #include <Locic/AST/Type.h>
 
-inline AST_Type * AST_AllocateType(AST_TypeIsNamed isNamed, AST_TypeIsMutable isMutable){
+inline AST_Type * AST_AllocateType(AST_TypeEnum typeEnum, AST_TypeIsMutable isMutable){
 	AST_Type * type = malloc(sizeof(AST_Type));
-	type->isNamed = isNamed;
+	type->typeEnum = typeEnum;
 	type->isMutable = isMutable;
+	return type;
+}
+
+AST_Type * AST_MakeBasicType(AST_TypeIsMutable isMutable, AST_BasicTypeEnum typeEnum){
+	AST_Type * type = AST_AllocateType(AST_TYPE_BASIC, isMutable);
+	(type->basicType).typeEnum = typeEnum;
 	return type;
 }
 

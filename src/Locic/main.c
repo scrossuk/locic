@@ -4,11 +4,12 @@
 #include <Locic/Lexer.h>
 #include <Locic/LexerContext.h>
 #include <Locic/Parser.h>
+#include <Locic/ParserContext.h>
 #include <Locic/Token.h>
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 
-void Locic_Parse(void * parser, int id, Locic_Token token, AST_File ** resultAST);
+void Locic_Parse(void * parser, int id, Locic_Token token, Locic_ParserContext * parserContext);
 
 void Locic_ParseFree(void * parser, void (*freeFunc)(void *));
 
@@ -38,10 +39,15 @@ int main(int argc, char * argv[]){
 	}
 	
 	Locic_LexerContext lexerContext;
+	lexerContext.lineNumber = 0;
+	
+	Locic_ParserContext parserContext;
+	parserContext.lineNumber = 0;
+	parserContext.parseFailed = 0;
+	parserContext.resultAST = NULL;
+	
 	void * lexer = Locic_LexAlloc(file, &lexerContext);
 	void * parser = Locic_ParseAlloc(Locic_alloc);
-	
-	AST_File * resultAST = 0;
 	
 	unsigned int numTokens = 0;
 	
@@ -51,8 +57,10 @@ int main(int argc, char * argv[]){
 	        int lexVal = Locic_Lex(lexer);
 	        
 	        //printf("Found token at line %d\n", (int) lexerContext.lineNumber);
+	        
+	        parserContext.lineNumber = lexerContext.lineNumber;
 		
-		Locic_Parse(parser, lexVal, lexerContext.token, &resultAST);
+		Locic_Parse(parser, lexVal, lexerContext.token, &parserContext);
 		
 		if(lexVal == 0){
 			break;
@@ -61,8 +69,10 @@ int main(int argc, char * argv[]){
 		numTokens++;
 	}
 	
-	if(resultAST != 0){
-		AST_PrintFile(resultAST);
+	if(parserContext.parseFailed != 1){
+		AST_PrintFile(parserContext.resultAST);
+	}else{
+		printf("Parsing failed.\n");
 	}
 	
 	printf("Used %d tokens\n", numTokens);

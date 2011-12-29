@@ -8,4 +8,4 @@ add_custom_command(OUTPUT Parser.c Parser.h Parser.out COMMAND lemon Parser.y MA
 add_custom_command(OUTPUT Lexer.c COMMAND flex -o Lexer.c ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.l MAIN_DEPENDENCY Lexer.l DEPENDS Parser.h)
 
 # Compile
-add_executable(locic main.c Lexer.c Parser.c AST/ClassDecl.c AST/ClassDef.c AST/ClassMethodDecl.c AST/ClassMethodDef.c AST/File.c AST/List.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)
+add_executable(locic main.c Lexer.c Parser.c AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/File.c AST/List.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)

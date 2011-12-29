@@ -12,6 +12,16 @@ AST_File * AST_MakeFile(){
 	return file;
 }
 
+AST_File * AST_FileAddFunctionDecl(AST_File * file, AST_FunctionDecl * functionDecl){
+	file->functionDeclarations = AST_ListAppend(file->functionDeclarations, functionDecl);
+	return file;
+}
+
+AST_File * AST_FileAddFunctionDef(AST_File * file, AST_FunctionDef * functionDef){
+	file->functionDefinitions = AST_ListAppend(file->functionDefinitions, functionDef);
+	return file;
+}
+
 AST_File * AST_FileAddClassDecl(AST_File * file, AST_ClassDecl * classDecl){
 	file->classDeclarations = AST_ListAppend(file->classDeclarations, classDecl);
 	return file;
