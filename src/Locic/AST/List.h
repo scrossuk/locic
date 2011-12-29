@@ -1,6 +1,8 @@
 #ifndef LOCIC_AST_LIST_H
 #define LOCIC_AST_LIST_H
 
+#include <stdlib.h>
+
 typedef struct AST_ListElement{
 	struct AST_ListElement * next;
 	void * data;
@@ -14,6 +16,8 @@ typedef struct AST_List{
 AST_ListElement * AST_ListBegin(AST_List * list);
 
 AST_ListElement * AST_ListEnd();
+
+size_t AST_ListSize(AST_List * list);
 
 AST_List * AST_ListCreate();
 

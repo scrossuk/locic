@@ -10,6 +10,15 @@ AST_ListElement * AST_ListEnd(){
 	return NULL;
 }
 
+size_t AST_ListSize(AST_List * list){
+	size_t n = 0;
+	AST_ListElement * it;
+	for(it = AST_ListBegin(list); it != AST_ListEnd(); it = it->next){
+		n++;
+	}
+	return n;
+}
+
 AST_List * AST_ListCreate(){
 	AST_List * list = malloc(sizeof(AST_List));
 	list->head.next = NULL;

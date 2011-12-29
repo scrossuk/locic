@@ -18,6 +18,6 @@ add_executable(locic main.c Lexer.c Parser.c CodeGen.cpp AST/ClassDecl.c AST/Cla
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
-llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core jit native)
+llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core native)
 target_link_libraries(locic ${REQ_LLVM_LIBRARIES})
 
