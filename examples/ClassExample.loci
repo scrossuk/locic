@@ -1,7 +1,7 @@
 
 class ClassExample(){
 	void method(){
-		Object obj = new Object();
+		Object obj = Object();
 		
 	}
 }
