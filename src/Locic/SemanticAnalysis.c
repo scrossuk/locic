@@ -3,13 +3,73 @@
 #include <Locic/SemanticAnalysis.h>
 #include <Locic/SemanticContext.h>
 
-/* Initial phase: build the semantic structure with function and class declarations (so they can be referenced by the second phase). */
-
-SEM_Context * Locic_SemanticAnalysis_BuildDeclarations(AST_Context * synContext){
+SEM_Context * Locic_SemanticAnalysis_Run(AST_Context * synContext){
+	Locic_SemanticContext * context = Locic_SemanticContext_Alloc();
 	
+	//-- Initial phase: scan for function and class declarations (so they can be referenced by the second phase).
+	
+	Locic_ListElement * moduleIter, * iter;
+	Locic_List * list;
+	AST_Module * synModule;
+	AST_FunctionDecl * synFunctionDecl;
+	SEM_FunctionDecl * semFunctionDecl
+	
+	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
+		synModule = moduleIter->data;
+		list = synModule->functionDeclarations;
+		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
+			synFunctionDecl = iter->data;
+			
+			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDecl) == NULL){
+				return NULL;
+			}
+		}
+		
+		list = synModule->functionDefinitions;
+		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
+			synFunctionDef = iter->data;
+			
+			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDef->declaration) == NULL){
+				return NULL;
+			}
+		}
+	}
+	
+	//-- In-depth phase: extend the semantic structure with the definitions of functions and class methods.
+	
+	SEM_Context * semContext = SEM_MakeContext();
+	
+	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
+		synModule = moduleIter->data;
+		Locic_List_Append(semContext->modules, Locic_SemanticAnalysis_ConvertModule(context, semContext, synModule));
+	}
+	
+	return semContext;
 }
 
-/* In-depth phase: extend the semantic structure with the definitions of functions and class methods. */
+SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, AST_Module * module){
+	Locic_List * list;
+	Locic_ListElement * it;
+	AST_FunctionDef * synFunctionDef;
+	
+	SEM_Module * semModule = SEM_MakeModule(module->name);
+	
+	// Build each function definition.
+	list = module->functionDefinitions;
+	for(it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
+		synFunctionDef = iter->data;
+		
+		semFunctionDef = Locic_SemanticAnalysis_ConvertFunctionDef(context, synFunctionDef);
+		
+		if(semFunctionDef == NULL){
+			return NULL;
+		}
+		
+		Locic_List_Append(semModule->functionDefinitions, semFunctionDef);
+	}
+	
+	return semModule;
+}
 
 SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, AST_Type * type){
 	switch(type->typeEnum){
@@ -34,6 +94,42 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 		default:
 			return NULL;
 	}
+}
+
+SEM_FunctionDecl * Locic_SemanticAnalysis_ConvertFunctionDecl(Locic_SemanticContext * context, AST_FunctionDecl * functionDecl){
+	Locic_List * parameterVars;
+	Locic_ListElement * it;
+	AST_Type * returnType, * paramType;
+	SEM_Type * semReturnType, * semParamType;
+	SEM_Var * semParamVar;
+	AST_TypeVar * typeVar;
+	size_t id;
+	
+	returnType = functionDecl->returnType;
+	semReturnType = Locic_SemanticAnalysis_ConvertType(context, returnType);
+	
+	if(semReturnType == NULL){
+		return NULL;
+	}
+	
+	id = 0;
+	parameterVars = Locic_List_Alloc();
+	
+	for(it = Locic_List_Begin(functionDecl->parameters); it != Locic_List_End(functionDecl->parameters); it = it->next, id++){
+		typeVar = it->data;
+		paramType = typeVar->type;
+		semParamType = Locic_SemanticAnalysis_ConvertType(context, paramType);
+		
+		if(semParamType == NULL){
+			return NULL;
+		}
+		
+		semParamVar = SEM_MakeVar(SEM_VAR_PARAM, id, semParamType);
+		
+		Locic_List_Append(parameterVars, semParamVar);
+	}
+	
+	return SEM_MakeFunctionDecl(semReturnType, functionDecl->name, parameterVars);
 }
 
 int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
@@ -108,7 +204,7 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 		
 		// Create a mapping from the parameter's name to its variable information.
 		if(Locic_StringMap_Insert(context->functionContext.parameters, typeVar->name, paramVar) != NULL){
-			printf("Semantic Analysis Error: Function parameters share variable names.");
+			printf("Semantic Analysis Error: cannot share names between function parameters.");
 			return NULL;
 		}
 	}
@@ -120,8 +216,10 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 		return NULL;
 	}
 	
+	Locic_SemanticContext_EndFunction(context);
+	
 	// Build and return the function definition.
-	return SEM_MakeFunctionDef(semFunctionDecl, scope)
+	return SEM_MakeFunctionDef(semFunctionDecl, scope);
 }
 
 SEM_Scope * Locic_SemanticAnalysis_ConvertScope(Locic_SemanticContext * context, AST_Scope * scope){

@@ -2,6 +2,7 @@
 #define LOCIC_SEM_VALUE_H
 
 #include <Locic/List.h>
+#include <Locic/SEM/Function.h>
 #include <Locic/SEM/Var.h>
 
 typedef enum SEM_ConstantType{
@@ -89,7 +90,7 @@ typedef enum SEM_ValueType{
 } SEM_ValueType;
 	
 typedef struct SEM_Value{
-	SEM_Type type;
+	SEM_Type * type;
 	SEM_ValueType valueType;
 	
 	union{
@@ -112,16 +113,16 @@ SEM_Value * SEM_MakeFloatConstant(float val);
 
 SEM_Value * SEM_MakeVarAccess(SEM_Var * var);
 
-SEM_Value * SEM_MakeUnary(SEM_UnaryType type, SEM_Value * operand);
+SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_Value * operand, SEM_Type * type);
 
-SEM_Value * SEM_MakeBinary(SEM_BinaryType type, SEM_Value * left, SEM_Value * right);
+SEM_Value * SEM_MakeBinary(SEM_BinaryType binaryType, SEM_Value * left, SEM_Value * right, SEM_Type * type);
 
-SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * ifFalse);
+SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * ifFalse, SEM_Type * type);
 
-SEM_Value * SEM_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters);
+SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type);
 
-SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, char * memberName);
+SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, size_t memberId);
 
-SEM_Value * SEM_MakeMethodCall(SEM_Value * object, char * methodName, Locic_List * parameters);
+SEM_Value * SEM_MakeMethodCall(SEM_Value * object, SEM_FunctionDecl * method, Locic_List * parameters);
 
 #endif

@@ -9,6 +9,6 @@ typedef struct SEM_Scope{
 	Locic_List * statementList;
 } SEM_Scope;
 
-SEM_Scope * SEM_MakeScope(Locic_List * statementList);
+SEM_Scope * SEM_MakeScope();
 
 #endif

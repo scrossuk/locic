@@ -14,9 +14,9 @@ SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_BasicTypeEnum type
 	return type;
 }
 
-SEM_Type * SEM_MakeNamedType(SEM_TypeIsMutable isMutable, char * name){
-	SEM_Type * type = SEM_AllocateType(SEM_TYPE_NAMED, isMutable);
-	(type->namedType).name = name;
+SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_ClassDecl * classDecl){
+	SEM_Type * type = SEM_AllocateType(SEM_TYPE_CLASS, isMutable);
+	(type->classType).classDecl = classDecl;
 	return type;
 }
 
@@ -24,19 +24,6 @@ SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_Type * ptrType){
 	SEM_Type * type = SEM_AllocateType(SEM_TYPE_PTR, isMutable);
 	(type->ptrType).ptrType = ptrType;
 	return type;
-}
-
-int SEM_CompareTypes(SEM_Type * firstType, SEM_Type * secondType){
-	if(firstType->typeEnum != secondType->typeEnum){
-		return 0;
-	}
-	
-	// TODO
-	return 1;
-}
-
-int SEM_TypeIsNumeric(SEM_Type * type){
-	
 }
 
 

@@ -9,17 +9,19 @@ extern "C" {
 #include <Locic/Stack.h>
 #include <Locic/StringMap.h>
 
-// Holds information about a scope.
+// Holds information about a scope during its construction.
 typedef struct Locic_SemanticContext_Scope{
 	SEM_Scope * scope;
-	StringMap * localVariables;
+	Locic_StringMap localVariables;
 } Locic_SemanticScope;
 
+// Holds information about a function during its construction.
 typedef struct Locic_SemanticContext_Function{
 	StringMap * parameters;
 	size_t nextVarId;
 } Locic_SemanticScope;
 
+// Holds information about a class during its construction.
 typedef struct Locic_SemanticContext_Class{
 	StringMap * memberVariables;
 } Locic_SemanticScope;
@@ -28,8 +30,8 @@ typedef struct Locic_SemanticContext_Class{
 typedef struct Locic_SemanticContext{
 	SEM_ClassDecl * classDecl;
 	SEM_FunctionDecl * functionDecl;
-	StringMap * functionDeclarations;
-	StringMap * classDeclarations;
+	Locic_StringMap functionDeclarations;
+	Locic_StringMap classDeclarations;
 	Locic_SemanticContext_Class * classContext;
 	Locic_SemanticContext_Function * functionContext;
 	Stack * scopeStack;

@@ -10,8 +10,6 @@ typedef struct SEM_ClassDef{
 	Locic_List * methodDefinitions;
 } SEM_ClassDef;
 
-SEM_ClassDef * SEM_MakeClassDef(char * name, Locic_List * members, Locic_List * definitions);
-
-void SEM_PrintClassDef(SEM_ClassDef * def);
+SEM_ClassDef * SEM_MakeClassDef(SEM_ClassDecl * declaration, Locic_List * memberVariables, Locic_List * methodDefinitions);
 
 #endif

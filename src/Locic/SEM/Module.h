@@ -8,9 +8,9 @@
 
 typedef struct SEM_Module{
 	char * name;
-	Locic_List * functionImports;
+	Locic_List * functionDeclarations;
 	Locic_List * functionDefinitions;
-	Locic_List * classImports;
+	Locic_List * classDeclarations;
 	Locic_List * classDefinitions;
 } SEM_Module;
 

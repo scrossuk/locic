@@ -6,6 +6,7 @@
 #include <Locic/CodeGen.h>
 #include <Locic/Lexer.h>
 #include <Locic/LexerContext.h>
+#include <Locic/List.h>
 #include <Locic/Parser.h>
 #include <Locic/ParserContext.h>
 #include <Locic/Token.h>
@@ -47,7 +48,9 @@ int main(int argc, char * argv[]){
 	Locic_ParserContext parserContext;
 	parserContext.lineNumber = 0;
 	parserContext.parseFailed = 0;
-	parserContext.resultAST = NULL;
+	
+	AST_Context * synContext = AST_MakeContext();
+	parserContext.synContext = synContext;
 	
 	void * lexer = Locic_LexAlloc(file, &lexerContext);
 	void * parser = Locic_ParseAlloc(Locic_alloc);
@@ -73,8 +76,6 @@ int main(int argc, char * argv[]){
 	}
 	
 	if(parserContext.parseFailed != 1){
-		AST_PrintFile(parserContext.resultAST);
-		
 		printf("Generating code...\n");
 		
 		size_t moduleNameLen = strlen(argv[1]);
@@ -82,8 +83,9 @@ int main(int argc, char * argv[]){
 		moduleName[moduleNameLen] = '.';
 		moduleName[moduleNameLen + 1] = 'o';
 		moduleName[moduleNameLen + 2] = 0;
+		
 		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
-		Locic_CodeGen(codeGenContext, parserContext.resultAST);
+		Locic_CodeGen(codeGenContext, Locic_List_Begin(synContext->modules)->data);
 		Locic_CodeGenDump(codeGenContext);
 		Locic_CodeGenFree(codeGenContext);
 	}else{

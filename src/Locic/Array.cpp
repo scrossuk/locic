@@ -33,14 +33,14 @@ extern "C" {
 		return array->back();
 	}
 	
-	void* Locic_Array_Get(void* arrayPtr, size_t level) {
+	void* Locic_Array_Get(void* arrayPtr, size_t index) {
 		ArrayType* array = reinterpret_cast<ArrayType*>(arrayPtr);
-		return (*array)[level];
+		return (*array)[index];
 	}
 	
-	void Locic_Array_Set(void* arrayPtr, size_t level, void * data) {
+	void Locic_Array_Set(void* arrayPtr, size_t index, void * data) {
 		ArrayType* array = reinterpret_cast<ArrayType*>(arrayPtr);
-		(*array)[level] = data;
+		(*array)[index] = data;
 	}
 	
 	size_t Locic_Array_Size(void* arrayPtr) {

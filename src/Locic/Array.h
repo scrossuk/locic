@@ -5,23 +5,25 @@
 extern "C" {
 #endif
 
-void * Locic_Array_Alloc();
+typedef void * Locic_Array;
 
-void Locic_Array_Free(void * stack);
+Locic_Array Locic_Array_Alloc();
 
-void Locic_Array_PushBack(void * stack, void * data);
+void Locic_Array_Free(Locic_Array array);
 
-void Locic_Array_PopBack(void * stack);
+void Locic_Array_PushBack(Locic_Array array, void * data);
 
-void * Locic_Array_Front(void * stack);
+void Locic_Array_PopBack(Locic_Array array);
 
-void * Locic_Array_Back(void * stack);
+void * Locic_Array_Front(Locic_Array array);
 
-void * Locic_Array_Get(void * stack, size_t level);
+void * Locic_Array_Back(Locic_Array array);
 
-void Locic_Array_Set(void * stack, size_t level, void * data);
+void * Locic_Array_Get(Locic_Array array, size_t index);
 
-size_t Locic_Array_Size(void * stack);
+void Locic_Array_Set(Locic_Array array, size_t index, void * data);
+
+size_t Locic_Array_Size(Locic_Array array);
 
 #ifdef __cplusplus
 }

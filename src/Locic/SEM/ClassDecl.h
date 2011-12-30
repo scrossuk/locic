@@ -5,7 +5,7 @@
 
 typedef struct SEM_ClassDecl{
 	char * name;
-	SEM_ClassDef * definition; // NULL if no definition.
+	struct SEM_ClassDef * definition; // NULL if no definition.
 	Locic_List * methodDeclarations;
 } SEM_ClassDecl;
 

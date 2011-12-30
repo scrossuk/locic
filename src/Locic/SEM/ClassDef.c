@@ -3,15 +3,11 @@
 #include <Locic/SEM/ClassDef.h>
 #include <Locic/List.h>
 
-SEM_ClassDef * SEM_MakeClassDef(char * name, Locic_List * members, Locic_List * definitions){
+SEM_ClassDef * SEM_MakeClassDef(SEM_ClassDecl * declaration, Locic_List * memberVariables, Locic_List * methodDefinitions){
 	SEM_ClassDef * classDef = malloc(sizeof(SEM_ClassDef));
-	classDef->name = name;
-	classDef->memberVariables = members;
-	classDef->methodDefinitions = definitions;
+	classDef->declaration = declaration;
+	classDef->memberVariables = memberVariables;
+	classDef->methodDefinitions = methodDefinitions;
 	return classDef;
-}
-
-void SEM_PrintClassDef(SEM_ClassDef * def){
-	printf("class %s(...){\n...\n}\n", def->name);
 }
 

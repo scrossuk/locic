@@ -63,7 +63,7 @@ Locic_SemanticContext_Scope * Locic_SemanticContext_TopScope(Locic_SemanticConte
 
 SEM_Var * Locic_SemanticContext_DefineLocalVar(Locic_SemanticContext * context, const char * varName, SEM_Type varType){
 	Locic_SemanticContext_Scope * currentScope = Locic_SemanticContext_TopScope(context);
-	SEM_Var * semVar = SEM_MakeLocalVar(context->functionContext.nextVarId++, varType);
+	SEM_Var * semVar = SEM_MakeVar(SEM_VAR_LOCAL, context->functionContext.nextVarId++, varType);
 	
 	// Add to local variable name map for this scope.
 	SEM_Var * existingVar = Locic_StringMap_Insert(currentScope->localVariables, varName, semVar);

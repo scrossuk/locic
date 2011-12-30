@@ -24,7 +24,7 @@
 	printf("Syntax error on line %d\n", (int) parserContext->lineNumber);
 }
 
-%type file { AST_File * }
+%type module { AST_Module * }
 
 %type classDecl { AST_ClassDecl * }
 %type classDef { AST_ClassDef * }
@@ -63,43 +63,43 @@
 %type precision6 { AST_Value * }
 %type precision7 { AST_Value * }
 	
-start ::= file(F) .
+start ::= module(M) .
 	{
 		printf("Completed parsing\n");
-		parserContext->resultAST = F;
+		Locic_List_Append(parserContext->synContext->modules, M);
 	}
 	
 // Nasty hack to create ERROR token and error non-terminal (UNKNOWN can never be sent by the lexer).
 start ::= UNKNOWN ERROR error.
 
-file(F) ::= .
+module(M) ::= .
 	{
-		F = AST_MakeFile();
+		M = AST_MakeModule();
 	}
 	
-file(F) ::= INTERFACE.
+module(M) ::= INTERFACE.
 	{
-		F = AST_MakeFile();
+		M = AST_MakeModule();
 	}
 	
-file(NF) ::= file(OF) functionDecl(D).
+module(NM) ::= module(OM) functionDecl(D).
 	{
-		NF = AST_FileAddFunctionDecl(OF, D);
+		NM = AST_ModuleAddFunctionDecl(OM, D);
 	}
 
-file(NF) ::= file(OF) functionDef(D).
+module(NM) ::= module(OM) functionDef(D).
 	{
-		NF = AST_FileAddFunctionDef(OF, D);
+		NM = AST_ModuleAddFunctionDef(OM, D);
 	}
 
-file(NF) ::= file(OF) classDecl(D).
+module(NM) ::= module(OM) classDecl(D).
 	{
-		NF = AST_FileAddClassDecl(OF, D);
+		NM = AST_ModuleAddClassDecl(OM, D);
 	}
 
-file(NF) ::= file(OF) classDef(D).
+module(NM) ::= module(OM) classDef(D).
 	{
-		NF = AST_FileAddClassDef(OF, D);
+		NM = AST_ModuleAddClassDef(OM, D);
 	}
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.

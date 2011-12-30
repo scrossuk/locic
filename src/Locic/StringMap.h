@@ -5,18 +5,20 @@
 extern "C" {
 #endif
 
-void * Locic_StringMap_Alloc();
+typedef void * Locic_StringMap;
 
-void Locic_StringMap_Free(void * stringMap);
+Locic_StringMap Locic_StringMap_Alloc();
 
-void Locic_StringMap_Clear(void * stringMap);
+void Locic_StringMap_Free(Locic_StringMap stringMap);
 
-void * Locic_StringMap_Find(void * stringMap, const char * str);
+void Locic_StringMap_Clear(Locic_StringMap stringMap);
+
+void * Locic_StringMap_Find(Locic_StringMap stringMap, const char * str);
 
 // Return value is existing value in map, which if not NULL indicates the insert failed.
-void * Locic_StringMap_Insert(void * stringMap, const char * str, void * data);
+void * Locic_StringMap_Insert(Locic_StringMap stringMap, const char * str, void * data);
 
-void * Locic_StringMap_Erase(void * stringMap, const char * str);
+void * Locic_StringMap_Erase(Locic_StringMap stringMap, const char * str);
 
 #ifdef __cplusplus
 }

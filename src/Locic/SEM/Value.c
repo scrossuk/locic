@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <Locic/List.h>
+#include <Locic/SEM/Type.h>
 #include <Locic/SEM/Value.h>
 #include <Locic/SEM/Var.h>
 
 inline SEM_Value * SEM_AllocateValue(SEM_ValueType type){
 	SEM_Value * value = malloc(sizeof(SEM_Value));
-	value->type = type;
+	value->valueType = type;
 	return value;
 }
 
@@ -16,6 +17,7 @@ SEM_Value * SEM_MakeBoolConstant(int val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_BOOL;
 	constant->boolConstant = val;
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_BOOL);
 	return value;
 }
 
@@ -24,6 +26,7 @@ SEM_Value * SEM_MakeIntConstant(int val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_INT;
 	constant->intConstant = val;
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_INT);
 	return value;
 }
 
@@ -32,6 +35,7 @@ SEM_Value * SEM_MakeFloatConstant(float val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_FLOAT;
 	constant->floatConstant = val;
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_FLOAT);
 	return value;
 }
 
@@ -40,69 +44,74 @@ SEM_Value * SEM_MakeFloatConstant(float val){
 SEM_Value * SEM_MakeVarAccess(SEM_Var * var){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_VARACCESS);
 	(value->varAccess).var = var;
+	value->type = var->type;
 	return value;
 }
 
 /* SEM_Unary */
 
-SEM_Value * SEM_MakeUnary(SEM_UnaryType type, SEM_Value * operand){
+SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_Value * operand, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY);
 	SEM_Unary * unary = &(value->unary);
-	unary->type = type;
+	unary->type = unaryType;
 	unary->value = operand;
+	value->type = type;
 	return value;
 }
 
 /* SEM_Binary */
 
-SEM_Value * SEM_MakeBinary(SEM_BinaryType type, SEM_Value * left, SEM_Value * right){
+SEM_Value * SEM_MakeBinary(SEM_BinaryType binaryType, SEM_Value * left, SEM_Value * right, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_BINARY);
 	SEM_Binary * binary = &(value->binary);
-	binary->type = type;
+	binary->type = binaryType;
 	binary->left = left;
 	binary->right = right;
+	value->type = type;
 	return value;
 }
 
 /* SEM_Ternary */
 
-SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * ifFalse){
+SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * ifFalse, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_TERNARY);
 	SEM_Ternary * ternary = &(value->ternary);
 	ternary->condition = cond;
 	ternary->ifTrue = ifTrue;
 	ternary->ifFalse = ifFalse;
+	value->type = type;
 	return value;
 }
 
 /* SEM_Construct */
 
-SEM_Value * SEM_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters){
+SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_CONSTRUCT);
 	SEM_Construct * construct = &(value->construct);
-	construct->typeName = typeName;
-	construct->constructorName = constructorName;
+	construct->classDecl = classDecl;
+	construct->constructorId = constructorId;
 	construct->parameters = parameters;
+	value->type = type;
 	return value;
 }
 
 /* SEM_MemberAccess */
 
-SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, char * memberName){
+SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, size_t memberId){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_MEMBERACCESS);
 	SEM_MemberAccess * memberAccess = &(value->memberAccess);
 	memberAccess->object = object;
-	memberAccess->memberName = memberName;
+	memberAccess->memberId = memberId;
 	return value;
 }
 
 /* SEM_MethodCall */
 
-SEM_Value * SEM_MakeMethodCall(SEM_Value * object, char * methodName, Locic_List * parameters){
+SEM_Value * SEM_MakeMethodCall(SEM_Value * object, SEM_FunctionDecl * method, Locic_List * parameters){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_METHODCALL);
 	SEM_MethodCall * methodCall = &(value->methodCall);
 	methodCall->object = object;
-	methodCall->methodName = methodName;
+	methodCall->method = method;
 	methodCall->parameters = parameters;
 	return value;
 }

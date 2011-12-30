@@ -63,8 +63,8 @@ class CodeGen{
 			module_->dump();
 		}
 		
-		void genFile(AST_File * file){
-			Locic_List * functions = file->functionDefinitions;
+		void genFile(AST_Module * module){
+			Locic_List * functions = module->functionDefinitions;
 			for(Locic_ListElement * it = Locic_List_Begin(functions); it != Locic_List_End(functions); it = it->next){
 				genFunctionDef(reinterpret_cast<AST_FunctionDef *>(it->data));
 			}
@@ -247,8 +247,8 @@ extern "C"{
 		delete reinterpret_cast<CodeGen *>(context);
 	}
 	
-	void Locic_CodeGen(void * context, AST_File * file){
-		reinterpret_cast<CodeGen *>(context)->genFile(file);
+	void Locic_CodeGen(void * context, AST_Module * module){
+		reinterpret_cast<CodeGen *>(context)->genFile(module);
 	}
 	
 	void Locic_CodeGenDump(void * context){
