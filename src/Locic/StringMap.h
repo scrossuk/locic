@@ -9,6 +9,8 @@ void * Locic_StringMap_Alloc();
 
 void Locic_StringMap_Free(void * stringMap);
 
+void Locic_StringMap_Clear(void * stringMap);
+
 void * Locic_StringMap_Find(void * stringMap, const char * str);
 
 // Return value is existing value in map, which if not NULL indicates the insert failed.

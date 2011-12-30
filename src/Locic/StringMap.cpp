@@ -17,6 +17,11 @@ extern "C" {
 		delete reinterpret_cast<MapType*>(stringMap);
 	}
 	
+	void Locic_StringMap_Clear(void * stringMap){
+		MapType* map = reinterpret_cast<MapType*>(stringMap);
+		map->clear();
+	}
+	
 	void* Locic_Map_Find(void* stringMap, const char* str) {
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		IteratorType it = map->find(str);

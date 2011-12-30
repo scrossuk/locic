@@ -30,21 +30,6 @@ SEM_Statement * SEM_MakeIf(SEM_Value * cond, SEM_Scope * ifTrue, SEM_Scope * ifF
 	return statement;
 }
 
-/* SEM_VarDecl */
-
-SEM_Statement * SEM_MakeVarDecl(SEM_Type * type, char * varName, SEM_Value * value){
-	SEM_Statement * statement = SEM_AllocateStatement(SEM_STATEMENT_VARDECL);
-	SEM_VarDecl * varDecl = &(statement->varDecl);
-	varDecl->type = type;
-	varDecl->varName = varName;
-	varDecl->value = value;
-	return statement;
-}
-
-SEM_Statement * SEM_MakeAutoVarDecl(char * varName, SEM_Value * value){
-	return SEM_MakeVarDecl(NULL, varName, value);
-}
-
 /* SEM_AssignVar */
 
 SEM_Statement * SEM_MakeAssignVar(SEM_Var * var, SEM_Value * value){

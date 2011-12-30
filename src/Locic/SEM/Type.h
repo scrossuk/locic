@@ -8,12 +8,12 @@ typedef enum SEM_TypeEnum{
 } SEM_TypeEnum;
 
 typedef enum SEM_TypeIsMutable{
-	SEM_TYPE_MUTABLE,
-	SEM_TYPE_CONST
+	SEM_TYPE_CONST = 0
+	SEM_TYPE_MUTABLE = 1
 } SEM_TypeIsMutable;
 
 typedef enum SEM_BasicTypeEnum{
-	SEM_TYPE_BASIC_VOID,
+	SEM_TYPE_BASIC_VOID = 0,
 	SEM_TYPE_BASIC_INT,
 	SEM_TYPE_BASIC_BOOL,
 	SEM_TYPE_BASIC_FLOAT
@@ -44,7 +44,7 @@ typedef struct SEM_Type{
 
 SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_BasicTypeEnum typeEnum);
 
-SEM_Type * SEM_MakeNamedType(SEM_TypeIsMutable isMutable, char * name);
+SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_ClassDecl * classDecl);
 
 SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_Type * ptrType);
 
