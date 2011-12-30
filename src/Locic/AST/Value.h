@@ -1,7 +1,7 @@
 #ifndef LOCIC_AST_VALUE_H
 #define LOCIC_AST_VALUE_H
 
-#include <Locic/AST/List.h>
+#include <Locic/List.h>
 #include <Locic/AST/Var.h>
 
 typedef enum AST_ConstantType{
@@ -63,7 +63,7 @@ typedef struct AST_Ternary{
 typedef struct AST_Construct{
 	char * typeName;
 	char * constructorName; // NULL for default constructor.
-	AST_List * parameters;
+	Locic_List * parameters;
 } AST_Construct;
 
 typedef struct AST_MemberAccess{
@@ -74,7 +74,7 @@ typedef struct AST_MemberAccess{
 typedef struct AST_MethodCall{
 	struct AST_Value * object;
 	char * methodName;
-	AST_List * parameters;
+	Locic_List * parameters;
 } AST_MethodCall;
 
 typedef enum AST_ValueType{
@@ -117,10 +117,10 @@ AST_Value * AST_MakeBinary(AST_BinaryType type, AST_Value * left, AST_Value * ri
 
 AST_Value * AST_MakeTernary(AST_Value * cond, AST_Value * ifTrue, AST_Value * ifFalse);
 
-AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, AST_List * parameters);
+AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters);
 
 AST_Value * AST_MakeMemberAccess(AST_Value * object, char * memberName);
 
-AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, AST_List * parameters);
+AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, Locic_List * parameters);
 
 #endif

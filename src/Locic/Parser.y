@@ -1,6 +1,7 @@
 %include {#include <assert.h>}
 %include {#include <stdio.h>}
 %include {#include <Locic/AST.h>}
+%include {#include <Locic/List.h>}
 %include {#include <Locic/ParserContext.h>}
 %include {#include <Locic/Token.h>}
 
@@ -31,8 +32,8 @@
 %type functionDecl { AST_FunctionDecl * }
 %type functionDef { AST_FunctionDef * }
 
-%type classMethodDeclList { AST_List * }
-%type classMethodDefList { AST_List * }
+%type classMethodDeclList { Locic_List * }
+%type classMethodDefList { Locic_List * }
 
 %type basicType { AST_BasicTypeEnum }
 %type type { AST_Type * }
@@ -42,15 +43,15 @@
 %type typeName { char * }
 
 %type typeVar { AST_TypeVar * }
-%type nonEmptyTypeVarList { AST_List * }
-%type typeVarList { AST_List * }
+%type nonEmptyTypeVarList { Locic_List * }
+%type typeVarList { Locic_List * }
 
 %type value { AST_Value * }
-%type nonEmptyValueList { AST_List * }
-%type valueList { AST_List * }
+%type nonEmptyValueList { Locic_List * }
+%type valueList { Locic_List * }
 
 %type scope { AST_Scope * }
-%type statementList { AST_List * }
+%type statementList { Locic_List * }
 %type statement { AST_Statement * }
 
 %type precision0 { AST_Value * }
@@ -183,22 +184,22 @@ type(NT) ::= type(OT) STAR CONST.
 	
 classMethodDeclList(DL) ::= .
 	{
-		DL = AST_ListCreate();
+		DL = Locic_List_Alloc();
 	}
 	
 classMethodDeclList(DL) ::= classMethodDeclList(ODL) functionDecl(D).
 	{
-		DL = AST_ListAppend(ODL, D);
+		DL = Locic_List_Append(ODL, D);
 	}
 	
 classMethodDefList(DL) ::= .
 	{
-		DL = AST_ListCreate();
+		DL = Locic_List_Alloc();
 	}
 	
 classMethodDefList(DL) ::= classMethodDefList(ODL) functionDef(D).
 	{
-		DL = AST_ListAppend(ODL, D);
+		DL = Locic_List_Append(ODL, D);
 	}
 	
 typeVar(TV) ::= type(T) lcName(N).
@@ -208,7 +209,7 @@ typeVar(TV) ::= type(T) lcName(N).
 	
 typeVarList(TVL) ::= .
 	{
-		TVL = AST_ListCreate();
+		TVL = Locic_List_Alloc();
 	}
 	
 typeVarList(TVL) ::= nonEmptyTypeVarList(L).
@@ -218,17 +219,17 @@ typeVarList(TVL) ::= nonEmptyTypeVarList(L).
 	
 nonEmptyTypeVarList(TVL) ::= typeVar(TV).
 	{
-		TVL = AST_ListAppend(AST_ListCreate(), TV);
+		TVL = Locic_List_Append(Locic_List_Alloc(), TV);
 	}
 	
 nonEmptyTypeVarList(TVL) ::= nonEmptyTypeVarList(L) COMMA typeVar(TV).
 	{
-		TVL = AST_ListAppend(L, TV);
+		TVL = Locic_List_Append(L, TV);
 	}
 	
 valueList(VL) ::= .
 	{
-		VL = AST_ListCreate();
+		VL = Locic_List_Alloc();
 	}
 	
 valueList(VL) ::= nonEmptyValueList(L).
@@ -238,12 +239,12 @@ valueList(VL) ::= nonEmptyValueList(L).
 	
 nonEmptyValueList(VL) ::= value(V).
 	{
-		VL = AST_ListAppend(AST_ListCreate(), V);
+		VL = Locic_List_Append(Locic_List_Alloc(), V);
 	}
 	
 nonEmptyValueList(VL) ::= nonEmptyValueList(L) COMMA value(V).
 	{
-		VL = AST_ListAppend(L, V);
+		VL = Locic_List_Append(L, V);
 	}
 	
 scope(S) ::= LCURLYBRACKET statementList(SL) RCURLYBRACKET.
@@ -253,12 +254,12 @@ scope(S) ::= LCURLYBRACKET statementList(SL) RCURLYBRACKET.
 	
 statementList(SL) ::= .
 	{
-		SL = AST_ListCreate();
+		SL = Locic_List_Alloc();
 	}
 	
 statementList(SL) ::= statementList(L) statement(S).
 	{
-		SL = AST_ListAppend(L, S);
+		SL = Locic_List_Append(L, S);
 	}
 	
 statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).

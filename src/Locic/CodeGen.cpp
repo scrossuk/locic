@@ -64,8 +64,8 @@ class CodeGen{
 		}
 		
 		void genFile(AST_File * file){
-			AST_List * functions = file->functionDefinitions;
-			for(AST_ListElement * it = AST_ListBegin(functions); it != AST_ListEnd(); it = it->next){
+			Locic_List * functions = file->functionDefinitions;
+			for(Locic_ListElement * it = Locic_List_Begin(functions); it != Locic_List_End(functions); it = it->next){
 				genFunctionDef(reinterpret_cast<AST_FunctionDef *>(it->data));
 			}
 		}
@@ -83,7 +83,7 @@ class CodeGen{
 			variables_.clear();
 		
 			currentFunctionType_ = FunctionType::get(Type::getInt32Ty(getGlobalContext()),
-	                             std::vector<Type*>(AST_ListSize(functionDef->declaration->parameters), Type::getInt32Ty(getGlobalContext())), false);
+	                             std::vector<Type*>(Locic_List_Size(functionDef->declaration->parameters), Type::getInt32Ty(getGlobalContext())), false);
 	                
 	                // Create function.
 			currentFunction_ = Function::Create(currentFunctionType_, Function::ExternalLinkage, functionDef->declaration->name, module_);
@@ -92,11 +92,12 @@ class CodeGen{
 			builder_.SetInsertPoint(currentBasicBlock_);
 			
 			// Store arguments onto stack.
-			AST_ListElement * it;
+			Locic_ListElement * it;
 			std::size_t i;
 			Function::arg_iterator arg;
 			
-			for (it = AST_ListBegin(functionDef->declaration->parameters), i = 0, arg = currentFunction_->arg_begin(); it != AST_ListEnd(); ++arg, it = it->next, i++){
+			Locic_List * functionParameters = functionDef->declaration->parameters;
+			for (it = Locic_List_Begin(functionParameters), i = 0, arg = currentFunction_->arg_begin(); it != Locic_List_End(functionParameters); ++arg, it = it->next, i++){
 				AST_TypeVar * typeVar = reinterpret_cast<AST_TypeVar *>(it->data);
 				
 				// Create an alloca for this variable.
@@ -116,9 +117,9 @@ class CodeGen{
 		}
 		
 		void genScope(AST_Scope * scope){
-			AST_List * list = scope->statementList;
+			Locic_List * list = scope->statementList;
 			
-			for(AST_ListElement * it = AST_ListBegin(list); it != AST_ListEnd(); it = it->next){
+			for(Locic_ListElement * it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
 				AST_Statement * statement = reinterpret_cast<AST_Statement *>(it->data);
 				genStatement(statement);
 			}

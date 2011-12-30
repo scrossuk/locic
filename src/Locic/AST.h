@@ -9,7 +9,7 @@ extern "C" {
 #include <Locic/AST/ClassDef.h>
 #include <Locic/AST/File.h>
 #include <Locic/AST/Function.h>
-#include <Locic/AST/List.h>
+#include <Locic/List.h>
 #include <Locic/AST/Scope.h>
 #include <Locic/AST/Statement.h>
 #include <Locic/AST/Type.h>

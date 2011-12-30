@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <Locic/AST/Function.h>
-#include <Locic/AST/List.h>
+#include <Locic/List.h>
 #include <Locic/AST/Scope.h>
 #include <Locic/AST/Type.h>
 
-AST_FunctionDecl * AST_MakeFunctionDecl(AST_Type * returnType, char * name, AST_List * parameters){
+AST_FunctionDecl * AST_MakeFunctionDecl(AST_Type * returnType, char * name, Locic_List * parameters){
 	AST_FunctionDecl * functionDecl = malloc(sizeof(AST_FunctionDecl));
 	functionDecl->returnType = returnType;
 	functionDecl->name = name;

@@ -14,7 +14,7 @@ add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 include_directories(${LLVM_INCLUDE_DIRS})
 
 # Compile
-add_executable(locic main.c Lexer.c Parser.c CodeGen.cpp AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/File.c AST/List.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)
+add_executable(locic main.c List.c StringMap.cpp Lexer.c Parser.c CodeGen.cpp AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/File.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <Locic/AST/List.h>
+#include <Locic/List.h>
 #include <Locic/AST/Value.h>
 #include <Locic/AST/Var.h>
 
@@ -77,7 +77,7 @@ AST_Value * AST_MakeTernary(AST_Value * cond, AST_Value * ifTrue, AST_Value * if
 
 /* AST_Construct */
 
-AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, AST_List * parameters){
+AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters){
 	AST_Value * value = AST_AllocateValue(AST_VALUE_CONSTRUCT);
 	AST_Construct * construct = &(value->construct);
 	construct->typeName = typeName;
@@ -98,7 +98,7 @@ AST_Value * AST_MakeMemberAccess(AST_Value * object, char * memberName){
 
 /* AST_MethodCall */
 
-AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, AST_List * parameters){
+AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, Locic_List * parameters){
 	AST_Value * value = AST_AllocateValue(AST_VALUE_METHODCALL);
 	AST_MethodCall * methodCall = &(value->methodCall);
 	methodCall->object = object;
