@@ -68,20 +68,124 @@ A problem is that the modules holding these classes can be loaded in any order. 
 The class record holds the following information in its `header':
 
 \begin{itemize}
-\item The size of the class record.
-\item Whether the total size of this class has been determined.
 \item The total size of the class, of if not yet determined, its known minimum size (i.e. based on primitive members such as integers).
 \item A pointer to another class record, which must be updated once the size of this class has been determined.
-\item An offset within that class record of which entry needs to be updated.
 \end{itemize}
 
 \paragraph{}
-It also holds information in each entry, which corresponds to a member of the class with an unknown size.
+Hence, in C code, the header looks like the following:
 
-\begin{itemize}
-\item The size of the member class.
-\item A pointer to the member class record.
-\end{itemize}
+\begin{verbatim}
+struct ClassRecordHeader{
+    size_t classSize;
+    struct ClassRecord * nextRecord;
+};
+\end{verbatim}
+
+\paragraph{}
+It also holds information in each entry, which corresponds to a member of the class that has an unknown size at compile-time. This is simply the offset of the member class within its parent and a pointer to its class record:
+
+\begin{verbatim}
+struct ClassRecordEntry{
+    size_t memberClassOffset;
+    struct ClassRecord * memberClassRecord;
+};
+\end{verbatim}
+
+\paragraph{}
+This leads to the definition of `ClassRecord':
+
+\begin{verbatim}
+struct ClassRecord{
+    struct ClassRecordHeader header;
+    struct ClassRecordEntry entries[];
+};
+\end{verbatim}
+
+\paragraph{}
+The intial values are specified similar to the following (note that the entry array is null-terminated):
+
+\begin{verbatim}
+struct ClassRecord classRecord = {{CLASS_MIN_SIZE, NULL},
+                                  {{CLASS_MIN_SIZE, &memberAClassRecord},
+                                   {CLASS_MIN_SIZE, &memberBClassRecord},
+                                   {CLASS_MIN_SIZE, NULL}}};
+\end{verbatim}
+
+\paragraph{}
+Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size of the members of the class that had a known size at compile-time (and hence are its minimum size). This value must be at least sizeof(void *), since it includes a pointer to the vtable.
+
+\section{Resolution}
+
+\paragraph{}
+The resolution procedure uses the following algorithm:
+
+\begin{verbatim}
+int isComplete(struct ClassRecord * classRecord){
+    size_t prevValue = 0;
+    ClassRecordEntry * entry = &(classRecord->entries[0]);
+    while(true){
+    	if(entry->memberClassOffset == prevValue){
+            return 0;
+        }else if(entry->memberClassRecord == NULL){
+            return 1;
+        }else{
+            prevValue = classRecord->entries[i].memberClassOffset;
+            entry++;
+        }
+    }
+}
+
+void fillRecords(struct ClassRecord * classRecord){
+    struct ClassRecord * nextClassRecord = classRecord->header.nextRecord;
+    while(nextClassRecord != NULL){
+        ClassRecordEntry * entry = &(nextClassRecord->entries[0]);
+        int addOffset = 0;
+        while(true){
+            if(entry->memberClassRecord == classRecord){
+                addOffset = 1;
+            }else if(addOffset){
+                entry->memberClassOffset += classRecord->header.classSize;
+            }
+            
+            if(entry->memberClassRecord == NULL){
+                break;
+            }else{
+                entry++;
+            }
+        }
+        nextClassRecord->header.classSize += classRecord->header.classSize;
+        if(isComplete(nextClassRecord)){
+            fillRecords(nextClassRecord);
+        }
+        nextClassRecord = nextClassRecord->header.nextRecord;
+    }
+}
+
+void resolve(struct ClassRecord * classRecord){
+    size_t offset = classRecord->header.classSize;
+    ClassRecordEntry * entry = &(classRecord->entries[0]);
+    while(true){
+    	struct ClassRecordEntry * entry = &(classRecord->entries[i]);
+        struct ClassRecord * memberClassRecord = entry->memberClassRecord;
+        if(isComplete(memberClassRecord)){
+            offset += memberClassRecord->header.classSize;
+        }
+        
+        entry->memberClassOffset = offset;
+        
+        if(entry->memberClassRecord == NULL){
+            break;
+        }else{
+            entry++;
+        }
+    }
+    
+    if(isComplete(classRecord)){
+        fillRecords(classRecord);
+    }
+}
+\end{verbatim}
 
 \end{document}
 
