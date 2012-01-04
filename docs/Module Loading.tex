@@ -69,16 +69,18 @@ The class record holds the following information in its `header':
 
 \begin{itemize}
 \item The total size of the class, of if not yet determined, its known minimum size (i.e. based on primitive members such as integers).
+\item The size of the class record, in terms of the number of entries.
 \item A pointer to another class record, which must be updated once the size of this class has been determined.
+\item The offset of the entry of the 
 \end{itemize}
 
 \paragraph{}
 Hence, in C code, the header looks like the following:
 
 \begin{verbatim}
-struct ClassRecordHeader{
+struct ClassSizeInfo{
     size_t classSize;
-    struct ClassRecord * nextRecord;
+    size_t offsets[];
 };
 \end{verbatim}
 
@@ -86,9 +88,17 @@ struct ClassRecordHeader{
 It also holds information in each entry, which corresponds to a member of the class that has an unknown size at compile-time. This is simply the offset of the member class within its parent and a pointer to its class record:
 
 \begin{verbatim}
+struct ClassRecordEntryPointer{
+    struct ClassRecord * nextRecord;
+    size_t nextOffset;
+};
+\end{verbatim}
+
+\begin{verbatim}
 struct ClassRecordEntry{
-    size_t memberClassOffset;
-    struct ClassRecord * memberClassRecord;
+    struct ClassRecord * memberRecord;
+    size_t memberClassSize;
+    struct ClassRecordEntryPointer nextPtr;
 };
 \end{verbatim}
 
@@ -97,19 +107,23 @@ This leads to the definition of `ClassRecord':
 
 \begin{verbatim}
 struct ClassRecord{
-    struct ClassRecordHeader header;
+    struct ClassSizeInfo * sizeInfo;
+    size_t emptySlotCount, numEntries;
+    struct ClassRecordEntryPointer parentList;
     struct ClassRecordEntry entries[];
 };
 \end{verbatim}
 
 \paragraph{}
-The intial values are specified similar to the following (note that the entry array is null-terminated):
+The intial values are specified similar to the following:
 
 \begin{verbatim}
-struct ClassRecord classRecord = {{CLASS_MIN_SIZE, NULL},
-                                  {{CLASS_MIN_SIZE, &memberAClassRecord},
-                                   {CLASS_MIN_SIZE, &memberBClassRecord},
-                                   {CLASS_MIN_SIZE, NULL}}};
+struct ClassSizeInfo classSizeInfo = {CLASS_MIN_SIZE, {0, 0}};
+
+struct ClassRecord classRecord = {&classSizeInfo, 2, 2,
+                                  {NULL, 0},
+                                  {{&memberAClassRecord, NULL, 0},
+                                   {&memberBClassRecord, NULL, 0}}};
 \end{verbatim}
 
 \paragraph{}
@@ -121,54 +135,56 @@ Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size 
 The resolution procedure uses the following algorithm:
 
 \begin{verbatim}
-int isComplete(struct ClassRecord * classRecord){
-    size_t prevValue = 0;
-    ClassRecordEntry * entry = &(classRecord->entries[0]);
-    while(true){
-    	if(entry->memberClassOffset == prevValue){
-            return 0;
-        }else if(entry->memberClassRecord == NULL){
-            return 1;
-        }else{
-            prevValue = classRecord->entries[i].memberClassOffset;
-            entry++;
-        }
-    }
-}
-
-void fillRecords(struct ClassRecord * classRecord){
-    struct ClassRecord * nextClassRecord = classRecord->header.nextRecord;
-    while(nextClassRecord != NULL){
-        ClassRecordEntry * entry = &(nextClassRecord->entries[0]);
-        int addOffset = 0;
-        while(true){
-            if(entry->memberClassRecord == classRecord){
-                addOffset = 1;
-            }else if(addOffset){
-                entry->memberClassOffset += classRecord->header.classSize;
+// Fill parents in with this class' size, now that it has been computed.
+void fillParents(struct ClassRecord * classRecord){
+    struct ClassRecord * nextRecord = classRecord->parentList.nextRecord;
+    size_t nextOffset = classRecord->parentList.nextOffset;
+    while(nextRecord != NULL){
+    	nextParentClassRecord->entries[nextOffset].memberClassSize = classRecord->sizeInfo->classSize;
+        nextParentClassRecord->emptySlotCount--;
+        
+        if(nextParentClassRecord->emptySlotCount == 0){
+            // All member sizes now known => calculate offsets.
+            size_t offset = nextRecord->sizeInfo->classSize;
+            for(size_t i = 0; i < nextRecord->numEntries; i++){
+                nextRecord->sizeInfo->offsets[i] = offset;
+                offset += nextRecord->entries[i].memberClassSize;
             }
+            nextRecord->sizeInfo->classSize = offset;
             
-            if(entry->memberClassRecord == NULL){
-                break;
-            }else{
-                entry++;
-            }
+            fillParents(nextRecord);
         }
-        nextClassRecord->header.classSize += classRecord->header.classSize;
-        if(isComplete(nextClassRecord)){
-            fillRecords(nextClassRecord);
-        }
-        nextClassRecord = nextClassRecord->header.nextRecord;
+        
+        struct ClassRecordPointer * nextPtr = &(nextRecord->entries[nextOffset].nextPtr);
+        nextRecord = nextPtr->nextRecord;
+        nextOffset = nextPtr->nextOffset;
     }
 }
 
 void resolve(struct ClassRecord * classRecord){
-    size_t offset = classRecord->header.classSize;
+    for(size_t i = 0; i < classRecord->numEntries; i++){
+        if(classRecord->entries[i].memberRecord->emptySlotCount == 0){
+            classRecord->entries[i].memberClassSize = classRecord->entries[i].memberRecord->sizeInfo->classSize;
+            classRecord->emptySlotCount--;
+        }
+    }
+    
+    if(classRecord->emptySlotCount == 0){
+        fillParents(classRecord);
+    }else{
+        for(size_t i = 0; i < classRecord->numEntries; i++){
+            if(classRecord->entries[i].memberClassSize == 0){
+            	classRecord->entries[i].nextPtr.nextRecord = classRecord->entries[i].memberRecord->
+                classRecord->entries[i].memberClassSize = classRecord->entries[i].memberRecord->sizeInfo->classSize;
+                classRecord->emptySlotCount--;
+            }
+        }
+    }
     ClassRecordEntry * entry = &(classRecord->entries[0]);
     while(true){
     	struct ClassRecordEntry * entry = &(classRecord->entries[i]);
         struct ClassRecord * memberClassRecord = entry->memberClassRecord;
-        if(isComplete(memberClassRecord)){
+        if(memberClassRecord->){
             offset += memberClassRecord->header.classSize;
         }
         
