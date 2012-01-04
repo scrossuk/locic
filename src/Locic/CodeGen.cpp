@@ -6,7 +6,9 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
+#include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <cstdio>
 #include <iostream>
@@ -37,6 +39,35 @@ class CodeGen{
 			fpm_(module_){
 			
 			InitializeNativeTarget();
+			
+			TargetRegistry::iterator it;
+			
+			for(it = TargetRegistry::begin(); it != TargetRegistry::end(); ++it){
+				std::cout << "Got target: name=" << (*it).getName() << ", description=" << (*it).getShortDescription() << std::endl;
+			}
+			
+			std::cout << "Default target triple: " << sys::getHostTriple() << std::endl;
+			
+			std::string error;
+			const Target * target = TargetRegistry::lookupTarget(sys::getHostTriple(), error);
+			
+			if(target != NULL){
+				std::cout << "Default target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
+								
+				std::cout << "--Does " << (target->hasJIT() ? "" : "not ") << "support just-in-time compilation." << std::endl;
+				std::cout << "--Does " << (target->hasTargetMachine() ? "" : "not ") << "support code generation." << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmBackend() ? "" : "not ") << "support .o generation." << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmLexer() ? "" : "not ") << "support .s lexing." << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmParser() ? "" : "not ") << "support .s parsing." << std::endl;
+				std::cout << "--Does " << (target->hasAsmPrinter() ? "" : "not ") << "support .s printing." << std::endl;
+				std::cout << "--Does " << (target->hasMCDisassembler() ? "" : "not ") << "support disassembling." << std::endl;
+				std::cout << "--Does " << (target->hasMCInstPrinter() ? "" : "not ") << "support printing instructions." << std::endl;
+				std::cout << "--Does " << (target->hasMCCodeEmitter() ? "" : "not ") << "support instruction encoding." << std::endl;
+				std::cout << "--Does " << (target->hasMCObjectStreamer() ? "" : "not ") << "support streaming to files." << std::endl;
+				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files." << std::endl;
+			}else{
+				std::cout << "Error when looking up default target: " << error << std::endl;
+			}
 	
 			// Set up the optimizer pipeline.
 			// Provide basic AliasAnalysis support for GVN.
