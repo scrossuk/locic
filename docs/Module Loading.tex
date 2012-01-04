@@ -1,0 +1,99 @@
+\documentclass{article}
+
+\title{Loci Module Loading}
+\author{Stephen Cross}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\paragraph{}
+Loci provides the ability for external classes to be used without knowledge of their size at compile-time (or even link-time), since they can be loaded in at run-time through shared libraries. Instances of these classes can be stored on the stack, which is more efficient than existing cross-API-boundary solutions that require placing instances of unknown classes on the heap. However, it makes the computation of sizes and offsets within objects more complex.
+
+\paragraph{}
+For example, consider the following example:
+
+\begin{verbatim}
+class A(B b, C c){}
+
+class B(D d){}
+
+class C(int i){}
+
+class D(int i){}
+\end{verbatim}
+
+\paragraph{}
+Given that these classes are all in separate modules that are not defined until run-time, their sizes can only be determined at run-time. The problem is that A cannot access its member C without knowledge of the size of B, since that determines the offset. Furthermore, when A is allocated it determines its size by querying B, which then queries D, and then by querying D. With enough levels, this can become inefficient.
+
+\paragraph{}
+Hence a possible solution is to cache values via a conditional that checks if the value has already been computed and therefore doesn't re-compute it. This is better, but evaluating the conditionals themselves is expensive considering that it will be performed so often. There are also some problematic cases to consider:
+
+\begin{verbatim}
+class A(B b){}
+
+class B(C d){}
+
+class C(A a){}
+\end{verbatim}
+
+\paragraph{}
+Here there is a cycle of dependencies that should result in an error.
+
+\paragraph{}
+Fortunately, there is a better solution available. Due to the need to support C++'s static constructors and destructors, it is possible to have a function run when a module is first loaded. LLVM provides this, for example, via `\emph{llvm.global\_ctors}' and `\emph{llvm.global\_dtors}'. Unfortunately, testing proves it is not possible to rely on the priority values to correctly order running the functions within a single module, but this doesn't present a significant difficulty in this case, since modules may be loaded in an undesirable order anyway.
+
+\paragraph{}
+The solution is therefore to have a function run when each compiled Loci module is loaded, which will determine the sizes of each of the classes and give an error if there are cycles of dependencies within classes.
+
+\section{Class Record}
+
+\paragraph{}
+In order to facilitate this solution, a structure called the 'class record' must be defined for representing the current state of the process of determining the sizes and offsets. Consider this example:
+
+\begin{verbatim}
+class A(B b){}
+
+class B(C d){}
+
+class C(int i){}
+\end{verbatim}
+
+\paragraph{}
+A problem is that the modules holding these classes can be loaded in any order. In the ordering C, B, A, each simply does one step to calculate its own size. However, in the ordering A, B, C, no work is done until C is loaded, at which point the sizes of A and B must be determined. Whichever order the modules are loaded, an equivalent amount of computation is performed, but how it is spread may vary.
+
+\paragraph{}
+The class record holds the following information in its `header':
+
+\begin{itemize}
+\item The size of the class record.
+\item Whether the total size of this class has been determined.
+\item The total size of the class, of if not yet determined, its known minimum size (i.e. based on primitive members such as integers).
+\item A pointer to another class record, which must be updated once the size of this class has been determined.
+\item An offset within that class record of which entry needs to be updated.
+\end{itemize}
+
+\paragraph{}
+It also holds information in each entry, which corresponds to a member of the class with an unknown size.
+
+\begin{itemize}
+\item The size of the member class.
+\item A pointer to the member class record.
+\end{itemize}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
