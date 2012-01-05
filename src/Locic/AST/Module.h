@@ -7,13 +7,14 @@
 #include <Locic/AST/Function.h>
 
 typedef struct AST_Module{
+	char * name;
 	Locic_List * functionDeclarations;
 	Locic_List * functionDefinitions;
 	Locic_List * classDeclarations;
 	Locic_List * classDefinitions;
 } AST_Module;
 
-AST_Module * AST_MakeModule();
+AST_Module * AST_MakeModule(char * name);
 
 AST_Module * AST_ModuleAddFunctionDecl(AST_Module * module, AST_FunctionDecl * functionDecl);
 

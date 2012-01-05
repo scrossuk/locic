@@ -6,8 +6,9 @@
 #include <Locic/AST/ClassDef.h>
 #include <Locic/AST/Module.h>
 
-AST_Module * AST_MakeModule(){
+AST_Module * AST_MakeModule(char * name){
 	AST_Module * module = malloc(sizeof(AST_Module));
+	module->name = name;
 	module->functionDeclarations = Locic_List_Alloc();
 	module->functionDefinitions = Locic_List_Alloc();
 	module->classDeclarations = Locic_List_Alloc();

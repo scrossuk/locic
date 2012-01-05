@@ -6,6 +6,7 @@
 
 typedef struct Locic_ParserContext{
 	AST_Context * synContext;
+	const char * currentFileName;
 	size_t lineNumber;
 	int parseFailed;
 } Locic_ParserContext;

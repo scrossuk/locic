@@ -9,6 +9,7 @@
 #include <Locic/List.h>
 #include <Locic/Parser.h>
 #include <Locic/ParserContext.h>
+#include <Locic/SemanticAnalysis.h>
 #include <Locic/Token.h>
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
@@ -51,6 +52,7 @@ int main(int argc, char * argv[]){
 	
 	AST_Context * synContext = AST_MakeContext();
 	parserContext.synContext = synContext;
+	parserContext.currentFileName = filename;
 	
 	void * lexer = Locic_LexAlloc(file, &lexerContext);
 	void * parser = Locic_ParseAlloc(Locic_alloc);
@@ -83,6 +85,12 @@ int main(int argc, char * argv[]){
 		moduleName[moduleNameLen] = '.';
 		moduleName[moduleNameLen + 1] = 'o';
 		moduleName[moduleNameLen + 2] = 0;
+
+		// Try to do semantic analysis...
+		SEM_ModuleGroup * moduleGroup = Locic_SemanticAnalysis_Run(synContext);
+		if(moduleGroup != NULL){
+			printf("Successfully performed semantic analysis.\n");
+		}
 		
 		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
 		Locic_CodeGen(codeGenContext, Locic_List_Begin(synContext->modules)->data);

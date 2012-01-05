@@ -3,31 +3,30 @@
 #include <Locic/SemanticAnalysis.h>
 #include <Locic/SemanticContext.h>
 
-SEM_Context * Locic_SemanticAnalysis_Run(AST_Context * synContext){
+SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 	Locic_SemanticContext * context = Locic_SemanticContext_Alloc();
 	
 	//-- Initial phase: scan for function and class declarations (so they can be referenced by the second phase).
 	
-	Locic_ListElement * moduleIter, * iter;
-	Locic_List * list;
-	AST_Module * synModule;
-	AST_FunctionDecl * synFunctionDecl;
-	SEM_FunctionDecl * semFunctionDecl
-	
+	Locic_ListElement * moduleIter;
 	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
-		synModule = moduleIter->data;
-		list = synModule->functionDeclarations;
+		AST_Module * synModule = moduleIter->data;
+		
+		// Look for function declarations.
+		Locic_List * list = synModule->functionDeclarations;
+		Locic_ListElement * iter;
 		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
-			synFunctionDecl = iter->data;
+			AST_FunctionDecl * synFunctionDecl = iter->data;
 			
 			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDecl) == NULL){
 				return NULL;
 			}
 		}
 		
+		// Look for function definitions.
 		list = synModule->functionDefinitions;
 		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
-			synFunctionDef = iter->data;
+			AST_FunctionDef * synFunctionDef = iter->data;
 			
 			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDef->declaration) == NULL){
 				return NULL;
@@ -37,29 +36,26 @@ SEM_Context * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 	
 	//-- In-depth phase: extend the semantic structure with the definitions of functions and class methods.
 	
-	SEM_Context * semContext = SEM_MakeContext();
+	SEM_ModuleGroup * semModuleGroup = SEM_MakeModuleGroup();
 	
 	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
-		synModule = moduleIter->data;
-		Locic_List_Append(semContext->modules, Locic_SemanticAnalysis_ConvertModule(context, semContext, synModule));
+		AST_Module * synModule = moduleIter->data;
+		Locic_List_Append(semModuleGroup->modules, Locic_SemanticAnalysis_ConvertModule(context, synModule));
 	}
 	
-	return semContext;
+	return semModuleGroup;
 }
 
 SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, AST_Module * module){
-	Locic_List * list;
-	Locic_ListElement * it;
-	AST_FunctionDef * synFunctionDef;
-	
 	SEM_Module * semModule = SEM_MakeModule(module->name);
 	
 	// Build each function definition.
-	list = module->functionDefinitions;
+	Locic_List * list = module->functionDefinitions;
+	Locic_ListElement * it;
 	for(it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
-		synFunctionDef = iter->data;
+		AST_FunctionDef * synFunctionDef = it->data;
 		
-		semFunctionDef = Locic_SemanticAnalysis_ConvertFunctionDef(context, synFunctionDef);
+		SEM_FunctionDef * semFunctionDef = Locic_SemanticAnalysis_ConvertFunctionDef(context, synFunctionDef);
 		
 		if(semFunctionDef == NULL){
 			return NULL;
@@ -187,14 +183,11 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 	
 	Locic_SemanticContext_StartFunction(context, NULL, semFunctionDecl);
 	
-	// Add parameters to the current context.
-	Locic_List * synParameters, * semParameters;
-	Locic_ListElement * synIterator, * semIterator;
-	
 	// AST information gives parameter names; SEM information gives parameter variable information.
-	synParameters = functionDef->declaration->parameters;
-	semParameters = semfunctionDecl->parameterVars;
+	Locic_List * synParameters = functionDef->declaration->parameters;
+	Locic_List * semParameters = semFunctionDecl->parameterVars;
 	
+	Locic_ListElement * synIterator, * semIterator;
 	for(synIterator = Locic_List_Begin(synParameters), semIterator = Locic_List_Begin(semParameters);
 		synIterator != Locic_List_End(synParameters);
 		synIterator = synIterator->next, semIterator = semIterator->next){
@@ -203,7 +196,7 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 		SEM_Var * paramVar = semIterator->data;
 		
 		// Create a mapping from the parameter's name to its variable information.
-		if(Locic_StringMap_Insert(context->functionContext.parameters, typeVar->name, paramVar) != NULL){
+		if(Locic_StringMap_Insert(context->functionContext->parameters, typeVar->name, paramVar) != NULL){
 			printf("Semantic Analysis Error: cannot share names between function parameters.");
 			return NULL;
 		}
@@ -230,7 +223,8 @@ SEM_Scope * Locic_SemanticAnalysis_ConvertScope(Locic_SemanticContext * context,
 	
 	// Go through each syntactic statement, and create a corresponding semantic statement.
 	Locic_List * synStatements = scope->statementList;
-	for(Locic_ListElement * it = Locic_List_Begin(synStatement); it != Locic_List_End(synStatement); it = it->next){
+	Locic_ListElement * it;
+	for(it = Locic_List_Begin(synStatements); it != Locic_List_End(synStatements); it = it->next){
 		SEM_Statement * statement = Locic_SemanticAnalysis_ConvertStatement(context, it->data);
 		if(statement == NULL){
 			return NULL;
@@ -250,7 +244,7 @@ SEM_Var * Locic_SemanticAnalysis_ConvertVar(Locic_SemanticContext * context, AST
 	switch(var->type){
 		case AST_VAR_LOCAL:
 		{
-			SEM_Var * semVar = Locic_SemanticContext_FindLocalVar(var->localVar.name);
+			SEM_Var * semVar = Locic_SemanticContext_FindLocalVar(context, var->localVar.name);
 			if(semVar != NULL){
 				return semVar;
 			}
@@ -331,7 +325,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		}
 		case AST_STATEMENT_ASSIGNVAR:
 		{
-			SEM_Var * semVar = Locic_SemanticAnalysis_ConvertVar(statement->assignVar.var);
+			SEM_Var * semVar = Locic_SemanticAnalysis_ConvertVar(context, statement->assignVar.var);
 			if(semVar == NULL){
 				return NULL;
 			}
@@ -384,7 +378,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 		}
 		case AST_VALUE_VARACCESS:
 		{
-			SEM_Var * var = Locic_SEM_ConvertVar(context, value->varAccess.var);
+			SEM_Var * var = Locic_SemanticAnalysis_ConvertVar(context, value->varAccess.var);
 			if(var == NULL){
 				return NULL;
 			}
@@ -392,7 +386,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 		}
 		case AST_VALUE_UNARY:
 		{
-			SEM_Value * operand = Locic_SEM_ConvertValue(context, value->unary.value);
+			SEM_Value * operand = Locic_SemanticAnalysis_ConvertValue(context, value->unary.value);
 			if(operand == NULL){
 				return NULL;
 			}
@@ -400,8 +394,8 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			switch(value->unary.type){
 				case AST_UNARY_PLUS:
 				{
-					if(operand->type.typeEnum == SEM_TYPE_BASIC){
-						SEM_BasicTypeEnum basicType = operand->type.basicType.typeEnum;
+					if(operand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum basicType = operand->type->basicType.typeEnum;
 						if(basicType == SEM_TYPE_BASIC_INT || basicType == SEM_TYPE_BASIC_FLOAT){
 							return SEM_MakeUnary(SEM_UNARY_PLUS, operand, operand->type);
 						}
@@ -411,8 +405,8 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_UNARY_MINUS:
 				{
-					if(operand->type.typeEnum == SEM_TYPE_BASIC){
-						SEM_BasicTypeEnum basicType = operand->type.basicType.typeEnum;
+					if(operand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum basicType = operand->type->basicType.typeEnum;
 						if(basicType == SEM_TYPE_BASIC_INT || basicType == SEM_TYPE_BASIC_FLOAT){
 							return SEM_MakeUnary(SEM_UNARY_MINUS, operand, operand->type);
 						}
@@ -426,7 +420,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_UNARY_DEREF:
 				{
-					if(operand->type.typeEnum != SEM_TYPE_PTR){
+					if(operand->type->typeEnum != SEM_TYPE_PTR){
 						return SEM_MakeUnary(SEM_UNARY_DEREF, operand, SEM_MakePtrType(SEM_TYPE_MUTABLE, operand->type));
 					}
 					
@@ -435,8 +429,8 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_UNARY_NEGATE:
 				{
-					if(operand->type.typeEnum == SEM_TYPE_BASIC){
-						SEM_BasicTypeEnum basicType = operand->type.basicType.typeEnum;
+					if(operand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum basicType = operand->type->basicType.typeEnum;
 						if(basicType == SEM_TYPE_BASIC_INT || basicType == SEM_TYPE_BASIC_FLOAT){
 							return SEM_MakeUnary(SEM_UNARY_NEGATE, operand, operand->type);
 						}
@@ -451,8 +445,8 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 		case AST_VALUE_BINARY:
 		{
 			SEM_Value * leftOperand, * rightOperand;
-			leftOperand = Locic_SEM_ConvertValue(context, value->binary.left);
-			rightOperand = Locic_SEM_ConvertValue(context, value->binary.right);
+			leftOperand = Locic_SemanticAnalysis_ConvertValue(context, value->binary.left);
+			rightOperand = Locic_SemanticAnalysis_ConvertValue(context, value->binary.right);
 			if(leftOperand == NULL || rightOperand == NULL){
 				return NULL;
 			}
@@ -460,10 +454,10 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			switch(value->binary.type){
 				case AST_BINARY_ADD:
 				{
-					if(leftOperand->type.typeEnum == SEM_TYPE_BASIC && rightOperand->type.typeEnum == SEM_TYPE_BASIC){
+					if(leftOperand->type->typeEnum == SEM_TYPE_BASIC && rightOperand->type->typeEnum == SEM_TYPE_BASIC){
 						SEM_BasicTypeEnum leftBasicType, rightBasicType;
-						leftBasicType = leftOperand->type.basicType.typeEnum;
-						rightBasicType = rightOperand->type.basicType.typeEnum;
+						leftBasicType = leftOperand->type->basicType.typeEnum;
+						rightBasicType = rightOperand->type->basicType.typeEnum;
 						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
 							&& leftBasicType == rightBasicType){
 							return SEM_MakeBinary(SEM_BINARY_ADD, leftOperand, rightOperand, leftOperand->type);

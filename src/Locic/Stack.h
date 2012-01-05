@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+typedef void * Locic_Stack;
+
 void * Locic_Stack_Alloc();
 
 void Locic_Stack_Free(void * stack);

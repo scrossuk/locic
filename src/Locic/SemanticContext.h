@@ -13,18 +13,18 @@ extern "C" {
 typedef struct Locic_SemanticContext_Scope{
 	SEM_Scope * scope;
 	Locic_StringMap localVariables;
-} Locic_SemanticScope;
+} Locic_SemanticContext_Scope;
 
 // Holds information about a function during its construction.
 typedef struct Locic_SemanticContext_Function{
-	StringMap * parameters;
+	Locic_StringMap * parameters;
 	size_t nextVarId;
-} Locic_SemanticScope;
+} Locic_SemanticContext_Function;
 
 // Holds information about a class during its construction.
 typedef struct Locic_SemanticContext_Class{
-	StringMap * memberVariables;
-} Locic_SemanticScope;
+	Locic_StringMap * memberVariables;
+} Locic_SemanticContext_Class;
 
 // Manages conversion from AST to SEM structure.
 typedef struct Locic_SemanticContext{
@@ -34,7 +34,7 @@ typedef struct Locic_SemanticContext{
 	Locic_StringMap classDeclarations;
 	Locic_SemanticContext_Class * classContext;
 	Locic_SemanticContext_Function * functionContext;
-	Stack * scopeStack;
+	Locic_Stack * scopeStack;
 } Locic_SemanticContext;
 
 Locic_SemanticContext * Locic_SemanticContext_Alloc();
@@ -42,6 +42,8 @@ Locic_SemanticContext * Locic_SemanticContext_Alloc();
 void Locic_SemanticContext_Free(Locic_SemanticContext * context);
 
 void Locic_SemanticContext_StartFunction(Locic_SemanticContext * context, SEM_ClassDecl * classDecl, SEM_FunctionDecl * functionDecl);
+
+void Locic_SemanticContext_EndFunction(Locic_SemanticContext * context);
 
 void Locic_SemanticContext_PushScope(Locic_SemanticContext * context, SEM_Scope * scope);
 
@@ -51,7 +53,7 @@ Locic_SemanticContext_Scope * Locic_SemanticContext_TopScope(Locic_SemanticConte
 
 SEM_Var * Locic_SemanticContext_DefineLocalVar(Locic_SemanticContext * context, const char * varName, SEM_Type * type);
 
-SEM_Var * Locic_SemanticContext_FindLocalVar(Locic_SemanticContext * context, const char * varName, SEM_Type * type);
+SEM_Var * Locic_SemanticContext_FindLocalVar(Locic_SemanticContext * context, const char * varName);
 
 #ifdef __cplusplus
 }

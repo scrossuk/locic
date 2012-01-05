@@ -1,5 +1,6 @@
 %include {#include <assert.h>}
 %include {#include <stdio.h>}
+%include {#include <string.h>}
 %include {#include <Locic/AST.h>}
 %include {#include <Locic/List.h>}
 %include {#include <Locic/ParserContext.h>}
@@ -74,12 +75,12 @@ start ::= UNKNOWN ERROR error.
 
 module(M) ::= .
 	{
-		M = AST_MakeModule();
+		M = AST_MakeModule(strcpy(malloc(strlen(parserContext->currentFileName) + 1), parserContext->currentFileName));
 	}
 	
 module(M) ::= INTERFACE.
 	{
-		M = AST_MakeModule();
+		M = AST_MakeModule(strcpy(malloc(strlen(parserContext->currentFileName) + 1), parserContext->currentFileName));
 	}
 	
 module(NM) ::= module(OM) functionDecl(D).

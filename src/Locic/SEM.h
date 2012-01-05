@@ -7,13 +7,12 @@ extern "C" {
 
 #include <Locic/SEM/ClassDecl.h>
 #include <Locic/SEM/ClassDef.h>
-#include <Locic/SEM/File.h>
 #include <Locic/SEM/Function.h>
-#include <Locic/List.h>
+#include <Locic/SEM/Module.h>
+#include <Locic/SEM/ModuleGroup.h>
 #include <Locic/SEM/Scope.h>
 #include <Locic/SEM/Statement.h>
 #include <Locic/SEM/Type.h>
-#include <Locic/SEM/TypeVar.h>
 #include <Locic/SEM/Value.h>
 #include <Locic/SEM/Var.h>
 

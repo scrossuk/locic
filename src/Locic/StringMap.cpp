@@ -9,11 +9,11 @@ typedef std::pair<std::string, void*> PairType;
 
 extern "C" {
 
-	void* Locic_Map_Alloc() {
+	void* Locic_StringMap_Alloc() {
 		return new MapType();
 	}
 	
-	void Locic_Map_Free(void* stringMap) {
+	void Locic_StringMap_Free(void* stringMap) {
 		delete reinterpret_cast<MapType*>(stringMap);
 	}
 	
@@ -22,7 +22,7 @@ extern "C" {
 		map->clear();
 	}
 	
-	void* Locic_Map_Find(void* stringMap, const char* str) {
+	void* Locic_StringMap_Find(void* stringMap, const char* str) {
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		IteratorType it = map->find(str);
 		
@@ -34,7 +34,7 @@ extern "C" {
 	}
 	
 	// Return value is existing value in map, which if not NULL indicates the insert failed.
-	void* Locic_Map_Insert(void* stringMap, const char* str, void* data) {
+	void* Locic_StringMap_Insert(void* stringMap, const char* str, void* data) {
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		std::pair<IteratorType, bool> ret = map->insert(PairType(str, data));
 		
@@ -46,7 +46,7 @@ extern "C" {
 		}
 	}
 	
-	void* Locic_Map_Erase(void* stringMap, const char* str) {
+	void* Locic_StringMap_Erase(void* stringMap, const char* str) {
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		IteratorType it = map->find(str);
 		
