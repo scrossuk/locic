@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <Locic/SemanticContext.h>
 
 Locic_SemanticContext * Locic_SemanticContext_Alloc(){
@@ -77,7 +78,7 @@ SEM_Var * Locic_SemanticContext_DefineLocalVar(Locic_SemanticContext * context, 
 	
 	if(existingVar == NULL){
 		// Add to SEM structure.
-		Locic_Array_PushBack(currentScope->scope, semVar);
+		Locic_Array_PushBack(currentScope->scope->localVariables, semVar);
 		return semVar;
 	}
 	

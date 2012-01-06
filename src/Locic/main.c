@@ -90,6 +90,8 @@ int main(int argc, char * argv[]){
 		SEM_ModuleGroup * moduleGroup = Locic_SemanticAnalysis_Run(synContext);
 		if(moduleGroup != NULL){
 			printf("Successfully performed semantic analysis.\n");
+		}else{
+			printf("Semantic Analysis failed\n");
 		}
 		
 		void * codeGenContext = Locic_CodeGenAlloc(moduleName);

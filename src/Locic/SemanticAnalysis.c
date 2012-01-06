@@ -17,8 +17,14 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 		Locic_ListElement * iter;
 		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
 			AST_FunctionDecl * synFunctionDecl = iter->data;
+			SEM_FunctionDecl * semFunctionDecl = Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDecl);
 			
-			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDecl) == NULL){
+			if(semFunctionDecl != NULL){
+				if(Locic_StringMap_Insert(context->functionDeclarations, semFunctionDecl->name, semFunctionDecl) != NULL){
+					printf("Semantic Analysis Error: function already defined with name '%s'.\n", semFunctionDecl->name);
+					return NULL;
+				}
+			}else{
 				return NULL;
 			}
 		}
@@ -27,8 +33,14 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 		list = synModule->functionDefinitions;
 		for(iter = Locic_List_Begin(list); iter != Locic_List_End(list); iter = iter->next){
 			AST_FunctionDef * synFunctionDef = iter->data;
+			SEM_FunctionDecl * semFunctionDecl = Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDef->declaration);
 			
-			if(Locic_SemanticAnalysis_ConvertFunctionDecl(context, synFunctionDef->declaration) == NULL){
+			if(semFunctionDecl != NULL){
+				if(Locic_StringMap_Insert(context->functionDeclarations, semFunctionDecl->name, semFunctionDecl) != NULL){
+					printf("Semantic Analysis Error: function already defined with name '%s'.\n", semFunctionDecl->name);
+					return NULL;
+				}
+			}else{
 				return NULL;
 			}
 		}
@@ -40,7 +52,11 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 	
 	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
 		AST_Module * synModule = moduleIter->data;
-		Locic_List_Append(semModuleGroup->modules, Locic_SemanticAnalysis_ConvertModule(context, synModule));
+		SEM_Module * semModule = Locic_SemanticAnalysis_ConvertModule(context, synModule);
+		if(semModule == NULL){
+			return NULL;
+		}
+		Locic_List_Append(semModuleGroup->modules, semModule);
 	}
 	
 	return semModuleGroup;
@@ -77,7 +93,7 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 		{
 			SEM_ClassDecl * classDecl = Locic_StringMap_Find(context->classDeclarations, type->namedType.name);
 			if(classDecl == NULL){
-				printf("Semantic Analysis Error: unknown class type with name '%s'\n", type->namedType.name);
+				printf("Semantic Analysis Error: Unknown class type with name '%s'\n", type->namedType.name);
 				return NULL;
 			}
 			
@@ -88,6 +104,7 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 			return SEM_MakePtrType(type->isMutable, Locic_SemanticAnalysis_ConvertType(context, type->ptrType.ptrType));
 		}
 		default:
+			printf("Internal Compiler Error: Unknown AST_Type type enum.\n");
 			return NULL;
 	}
 }
@@ -177,7 +194,7 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 	// Find the corresponding semantic function declaration.
 	SEM_FunctionDecl * semFunctionDecl = Locic_StringMap_Find(context->functionDeclarations, functionDef->declaration->name);
 	if(semFunctionDecl == NULL){
-		printf("Internal compiler error: semantic function declaration not found for definition.");
+		printf("Internal compiler error: semantic function declaration not found for definition '%s'.\n", functionDef->declaration->name);
 		return NULL;
 	}
 	
@@ -197,7 +214,7 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 		
 		// Create a mapping from the parameter's name to its variable information.
 		if(Locic_StringMap_Insert(context->functionContext->parameters, typeVar->name, paramVar) != NULL){
-			printf("Semantic Analysis Error: cannot share names between function parameters.");
+			printf("Semantic Analysis Error: cannot share names between function parameters.\n");
 			return NULL;
 		}
 	}
@@ -224,6 +241,7 @@ SEM_Scope * Locic_SemanticAnalysis_ConvertScope(Locic_SemanticContext * context,
 	// Go through each syntactic statement, and create a corresponding semantic statement.
 	Locic_List * synStatements = scope->statementList;
 	Locic_ListElement * it;
+	
 	for(it = Locic_List_Begin(synStatements); it != Locic_List_End(synStatements); it = it->next){
 		SEM_Statement * statement = Locic_SemanticAnalysis_ConvertStatement(context, it->data);
 		if(statement == NULL){
@@ -258,6 +276,7 @@ SEM_Var * Locic_SemanticAnalysis_ConvertVar(Locic_SemanticContext * context, AST
 			return NULL;
 		}
 		default:
+			printf("Internal Compiler Error: Unknown AST_Var type enum.\n");
 			return NULL;
 	}
 }
@@ -321,6 +340,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				printf("Semantic Analysis Error: Local variable name already exists\n");
 				return NULL;
 			}
+			
 			return SEM_MakeAssignVar(semVar, semValue);
 		}
 		case AST_STATEMENT_ASSIGNVAR:
@@ -344,7 +364,12 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		}
 		case AST_STATEMENT_RETURN:
 		{
-			SEM_Value * semValue = Locic_SemanticAnalysis_ConvertValue(context, statement->assignVar.value);
+			if(statement->returnStmt.value == NULL){
+				printf("Internal compiler error: Cannot return NULL AST_Value\n");
+				return NULL;
+			}
+			
+			SEM_Value * semValue = Locic_SemanticAnalysis_ConvertValue(context, statement->returnStmt.value);
 			if(semValue == NULL){
 				return NULL;
 			}
@@ -362,6 +387,11 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 }
 
 SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context, AST_Value * value){
+	if(value == NULL){
+		printf("Internal compiler error: Cannot convert NULL AST_Value\n");
+		return NULL;
+	}
+
 	switch(value->type){
 		case AST_VALUE_CONSTANT:
 		{
@@ -373,6 +403,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				case AST_CONSTANT_FLOAT:
 					return SEM_MakeFloatConstant(value->constant.floatConstant);
 				default:
+					printf("Internal Compiler Error: Unknown constant type enum.\n");
 					return NULL;
 			}
 		}
@@ -439,6 +470,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 					return NULL;
 				}
 				default:
+					printf("Internal Compiler Error: Unknown unary value type enum.\n");
 					return NULL;
 			}
 		}
@@ -468,18 +500,45 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_BINARY_SUBTRACT:
 				{
-					
-					break;
+					if(leftOperand->type->typeEnum == SEM_TYPE_BASIC && rightOperand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum leftBasicType, rightBasicType;
+						leftBasicType = leftOperand->type->basicType.typeEnum;
+						rightBasicType = rightOperand->type->basicType.typeEnum;
+						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
+							&& leftBasicType == rightBasicType){
+							return SEM_MakeBinary(SEM_BINARY_SUBTRACT, leftOperand, rightOperand, leftOperand->type);
+						}
+					}
+					printf("Semantic Analysis Error: Subtraction between non-numeric or non-identical types\n");
+					return NULL;
 				}
 				case AST_BINARY_MULTIPLY:
 				{
-					
-					break;
+					if(leftOperand->type->typeEnum == SEM_TYPE_BASIC && rightOperand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum leftBasicType, rightBasicType;
+						leftBasicType = leftOperand->type->basicType.typeEnum;
+						rightBasicType = rightOperand->type->basicType.typeEnum;
+						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
+							&& leftBasicType == rightBasicType){
+							return SEM_MakeBinary(SEM_BINARY_MULTIPLY, leftOperand, rightOperand, leftOperand->type);
+						}
+					}
+					printf("Semantic Analysis Error: Multiplication between non-numeric or non-identical types\n");
+					return NULL;
 				}
 				case AST_BINARY_DIVIDE:
 				{
-					
-					break;
+					if(leftOperand->type->typeEnum == SEM_TYPE_BASIC && rightOperand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_BasicTypeEnum leftBasicType, rightBasicType;
+						leftBasicType = leftOperand->type->basicType.typeEnum;
+						rightBasicType = rightOperand->type->basicType.typeEnum;
+						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
+							&& leftBasicType == rightBasicType){
+							return SEM_MakeBinary(SEM_BINARY_DIVIDE, leftOperand, rightOperand, leftOperand->type);
+						}
+					}
+					printf("Semantic Analysis Error: Division between non-numeric or non-identical types\n");
+					return NULL;
 				}
 				case AST_BINARY_ISEQUAL:
 				{
@@ -502,31 +561,34 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 					break;
 				}
 				default:
-					break;
+					printf("Internal Compiler Error: Unknown binary value type enum.\n");
+					return NULL;
 			}
+			printf("Internal Compiler Error: Unimplemented binary operator.\n");
 			return NULL;
 		}
 		case AST_VALUE_TERNARY:
 		{
-			
+			printf("Internal Compiler Error: Unimplemented ternary operator.\n");
 			return NULL;
 		}
 		case AST_VALUE_CONSTRUCT:
 		{
-			
+			printf("Internal Compiler Error: Unimplemented constructor call.\n");
 			return NULL;
 		}
 		case AST_VALUE_MEMBERACCESS:
 		{
-			
+			printf("Internal Compiler Error: Unimplemented member access.\n");
 			return NULL;
 		}
 		case AST_VALUE_METHODCALL:
 		{
-			
+			printf("Internal Compiler Error: Unimplemented method call.\n");
 			return NULL;
 		}
 		default:
+			printf("Internal Compiler Error: Unknown AST_Value type enum.\n");
 			return NULL;
 	}
 }

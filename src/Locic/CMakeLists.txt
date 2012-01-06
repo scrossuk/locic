@@ -13,6 +13,8 @@ find_package(LLVM REQUIRED)
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 include_directories(${LLVM_INCLUDE_DIRS})
 
+SET(CMAKE_BUILD_TYPE Debug)
+
 # Compile
 add_executable(locic main.c Array.cpp List.c SemanticAnalysis.c SemanticContext.c Stack.cpp StringMap.cpp Lexer.c Parser.c CodeGen.cpp AST/ClassDecl.c AST/ClassDef.c AST/Context.c AST/Function.c AST/Module.c AST/Scope.c AST/Statement.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c SEM/ClassDecl.c SEM/ClassDef.c SEM/Function.c SEM/Module.c SEM/ModuleGroup.c SEM/Scope.c SEM/Statement.c SEM/Type.c SEM/Value.c SEM/Var.c)
 
