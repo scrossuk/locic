@@ -50,8 +50,8 @@ int main(int argc, char * argv[]){
 	parserContext.lineNumber = 0;
 	parserContext.parseFailed = 0;
 	
-	AST_Context * synContext = AST_MakeContext();
-	parserContext.synContext = synContext;
+	AST_ModuleGroup * synModuleGroup = AST_MakeModuleGroup();
+	parserContext.moduleGroup = synModuleGroup;
 	parserContext.currentFileName = filename;
 	
 	void * lexer = Locic_LexAlloc(file, &lexerContext);
@@ -62,11 +62,11 @@ int main(int argc, char * argv[]){
 	//Locic_ParseTrace(stdout, "==> ");
 	
 	while(1){
+	        parserContext.lineNumber = lexerContext.lineNumber;
+	        
 	        int lexVal = Locic_Lex(lexer);
 	        
 	        //printf("Found token at line %d\n", (int) lexerContext.lineNumber);
-	        
-	        parserContext.lineNumber = lexerContext.lineNumber;
 		
 		Locic_Parse(parser, lexVal, lexerContext.token, &parserContext);
 		
@@ -78,26 +78,28 @@ int main(int argc, char * argv[]){
 	}
 	
 	if(parserContext.parseFailed != 1){
-		printf("Generating code...\n");
-		
-		size_t moduleNameLen = strlen(argv[1]);
-		char * moduleName = strcpy(malloc(moduleNameLen + 3), argv[1]);
-		moduleName[moduleNameLen] = '.';
-		moduleName[moduleNameLen + 1] = 'o';
-		moduleName[moduleNameLen + 2] = 0;
+		printf("Performing semantic analysis...\n");
 
 		// Try to do semantic analysis...
-		SEM_ModuleGroup * moduleGroup = Locic_SemanticAnalysis_Run(synContext);
-		if(moduleGroup != NULL){
+		SEM_ModuleGroup * semModuleGroup = Locic_SemanticAnalysis_Run(synModuleGroup);
+		if(semModuleGroup != NULL){
 			printf("Successfully performed semantic analysis.\n");
+			
+			printf("Generating code...\n");
+		
+			size_t moduleNameLen = strlen(argv[1]);
+			char * moduleName = strcpy(malloc(moduleNameLen + 3), argv[1]);
+			moduleName[moduleNameLen] = '.';
+			moduleName[moduleNameLen + 1] = 'o';
+			moduleName[moduleNameLen + 2] = 0;
+		
+			void * codeGenContext = Locic_CodeGenAlloc(moduleName);
+			Locic_CodeGen(codeGenContext, Locic_List_Begin(semModuleGroup->modules)->data);
+			Locic_CodeGenDump(codeGenContext);
+			Locic_CodeGenFree(codeGenContext);
 		}else{
 			printf("Semantic Analysis failed\n");
 		}
-		
-		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
-		Locic_CodeGen(codeGenContext, Locic_List_Begin(synContext->modules)->data);
-		Locic_CodeGenDump(codeGenContext);
-		Locic_CodeGenFree(codeGenContext);
 	}else{
 		printf("Parsing failed.\n");
 	}

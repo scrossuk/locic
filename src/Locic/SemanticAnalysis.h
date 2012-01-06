@@ -9,7 +9,7 @@ extern "C" {
 #include <Locic/SEM.h>
 #include <Locic/SemanticContext.h>
 
-SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext);
+SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup);
 
 SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, AST_Module * module);
 

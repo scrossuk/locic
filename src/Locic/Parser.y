@@ -67,7 +67,7 @@
 start ::= module(M) .
 	{
 		printf("Completed parsing\n");
-		Locic_List_Append(parserContext->synContext->modules, M);
+		Locic_List_Append(parserContext->moduleGroup->modules, M);
 	}
 	
 // Nasty hack to create ERROR token and error non-terminal (UNKNOWN can never be sent by the lexer).

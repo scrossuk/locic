@@ -13,10 +13,11 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
-#include <Locic/AST.h>
 #include <Locic/CodeGen.h>
+#include <Locic/SEM.h>
 
 using namespace llvm;
 
@@ -94,10 +95,10 @@ class CodeGen{
 			module_->dump();
 		}
 		
-		void genFile(AST_Module * module){
+		void genFile(SEM_Module * module){
 			Locic_List * functions = module->functionDefinitions;
 			for(Locic_ListElement * it = Locic_List_Begin(functions); it != Locic_List_End(functions); it = it->next){
-				genFunctionDef(reinterpret_cast<AST_FunctionDef *>(it->data));
+				genFunctionDef(reinterpret_cast<SEM_FunctionDef *>(it->data));
 			}
 		}
 		
@@ -110,11 +111,11 @@ class CodeGen{
 		}
 
 		
-		void genFunctionDef(AST_FunctionDef * functionDef){
+		void genFunctionDef(SEM_FunctionDef * functionDef){
 			variables_.clear();
 		
 			currentFunctionType_ = FunctionType::get(Type::getInt32Ty(getGlobalContext()),
-	                             std::vector<Type*>(Locic_List_Size(functionDef->declaration->parameters), Type::getInt32Ty(getGlobalContext())), false);
+	                             std::vector<Type*>(Locic_List_Size(functionDef->declaration->parameterVars), Type::getInt32Ty(getGlobalContext())), false);
 	                
 	                // Create function.
 			currentFunction_ = Function::Create(currentFunctionType_, Function::ExternalLinkage, functionDef->declaration->name, module_);
@@ -127,14 +128,17 @@ class CodeGen{
 			std::size_t i;
 			Function::arg_iterator arg;
 			
-			Locic_List * functionParameters = functionDef->declaration->parameters;
+			Locic_List * functionParameters = functionDef->declaration->parameterVars;
 			for (it = Locic_List_Begin(functionParameters), i = 0, arg = currentFunction_->arg_begin(); it != Locic_List_End(functionParameters); ++arg, it = it->next, i++){
-				AST_TypeVar * typeVar = reinterpret_cast<AST_TypeVar *>(it->data);
+				SEM_Var * paramVar = reinterpret_cast<SEM_Var *>(it->data);
+				
+				std::ostringstream stream;
+    				stream << "param" << paramVar->varId;
 				
 				// Create an alloca for this variable.
-    				AllocaInst * stackObject = CreateEntryBlockAlloca(typeVar->name);
+    				AllocaInst * stackObject = CreateEntryBlockAlloca(stream.str());
     				
-    				variables_[std::string(typeVar->name)] = stackObject;
+    				variables_[stream.str()] = stackObject;
 
     				// Store the initial value into the alloca.
     				builder_.CreateStore(arg, stackObject);
@@ -147,121 +151,146 @@ class CodeGen{
 			fpm_.run(*currentFunction_);
 		}
 		
-		void genScope(AST_Scope * scope){
+		void genScope(SEM_Scope * scope){
+			Locic_Array array = scope->localVariables;
+			
+			for(std::size_t i = 0; i < Locic_Array_Size(array); i++){
+				SEM_Var * localVar = reinterpret_cast<SEM_Var *>(Locic_Array_Get(array, i));
+				
+				std::ostringstream stream;
+    				stream << "local" << localVar->varId;
+				
+				// Create an alloca for this variable.
+    				AllocaInst * stackObject = CreateEntryBlockAlloca(stream.str());
+    				
+    				variables_[stream.str()] = stackObject;
+			}
+		
 			Locic_List * list = scope->statementList;
 			
 			for(Locic_ListElement * it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
-				AST_Statement * statement = reinterpret_cast<AST_Statement *>(it->data);
+				SEM_Statement * statement = reinterpret_cast<SEM_Statement *>(it->data);
 				genStatement(statement);
 			}
 		}
 		
-		void genStatement(AST_Statement * statement){
+		void genStatement(SEM_Statement * statement){
 			switch(statement->type){
-				case AST_STATEMENT_VALUE:
-					
+				case SEM_STATEMENT_VALUE:
+					genValue(statement->valueStmt.value);
 					break;
-				case AST_STATEMENT_IF:
-					
+				case SEM_STATEMENT_IF:
+					std::cout << "CodeGen error: Unimplemented IF statement." << std::endl;
 					break;
-				case AST_STATEMENT_VARDECL:
+				case SEM_STATEMENT_ASSIGNVAR:
 				{
-					// Create an alloca for this variable.
-    					AllocaInst * stackObject = CreateEntryBlockAlloca(statement->varDecl.varName);
-    				
-    					variables_[std::string(statement->varDecl.varName)] = stackObject;
-
-    					// Store the initial value into the alloca.
-    					builder_.CreateStore(genValue(statement->varDecl.value), stackObject);
-					break;
-				}
-				case AST_STATEMENT_ASSIGNVAR:
-				{
-					AST_Var * var = statement->assignVar.var;
-					switch(var->type){
-						case AST_VAR_LOCAL:
-							builder_.CreateStore(genValue(statement->assignVar.value), variables_[std::string(var->localVar.name)]);
+					SEM_Var * var = statement->assignVar.var;
+					switch(var->varType){
+						case SEM_VAR_LOCAL:
+						{
+							std::ostringstream stream;
+    							stream << "local" << var->varId;
+							builder_.CreateStore(genValue(statement->assignVar.value), variables_[stream.str()]);
 							break;
-						case AST_VAR_THIS:
+						}
+						case SEM_VAR_THIS:
 							break;
 						default:
-							std::cout << "Unknown variable type" << std::endl;
+							std::cout << "CodeGen error: Unknown variable type in assignment statement." << std::endl;
 					}
 					break;
 				}
-				case AST_STATEMENT_RETURN:
+				case SEM_STATEMENT_RETURN:
 					builder_.CreateRet(genValue(statement->returnStmt.value));
 					break;
 				default:
-					std::cout << "Unknown statement" << std::endl;
+					std::cout << "CodeGen error: Unknown statement." << std::endl;
 			}
 		}
 		
-		Value * genValue(AST_Value * value){
-			switch(value->type){
-				case AST_VALUE_CONSTANT:
+		Value * genValue(SEM_Value * value){
+			switch(value->valueType){
+				case SEM_VALUE_CONSTANT:
 				{
 					switch(value->constant.type){
-						case AST_CONSTANT_BOOL:
+						case SEM_CONSTANT_BOOL:
 							return ConstantInt::get(getGlobalContext(), APInt(32, value->constant.boolConstant));
-						case AST_CONSTANT_INT:
+						case SEM_CONSTANT_INT:
 							return ConstantInt::get(getGlobalContext(), APInt(32, value->constant.intConstant));
-						case AST_CONSTANT_FLOAT:
+						case SEM_CONSTANT_FLOAT:
 							return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 						default:
-							std::cout << "Unknown constant" << std::endl;
+							std::cout << "CodeGen error: Unknown constant." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
-				case AST_VALUE_VARACCESS:
+				case SEM_VALUE_VARACCESS:
 				{
-					AST_Var * var = value->varAccess.var;
-					switch(var->type){
-						case AST_VAR_LOCAL:
-							return builder_.CreateLoad(variables_[std::string(var->localVar.name)], var->localVar.name);
-						case AST_VAR_THIS:
+					SEM_Var * var = value->varAccess.var;
+					switch(var->varType){
+						case SEM_VAR_PARAM:
+						{
+							std::ostringstream stream;
+    							stream << "param" << var->varId;
+							return builder_.CreateLoad(variables_[stream.str()], stream.str());
+						}
+						case SEM_VAR_LOCAL:
+						{
+							std::ostringstream stream;
+    							stream << "local" << var->varId;
+							return builder_.CreateLoad(variables_[stream.str()], stream.str());
+						}
+						case SEM_VAR_THIS:
 							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 						default:
-							std::cout << "Unknown variable type" << std::endl;
+							std::cout << "CodeGen error: Unknown variable type in variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 					return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 				}
-				case AST_VALUE_UNARY:
+				case SEM_VALUE_UNARY:
 				{
+					std::cout << "CodeGen error: Unimplemented unary operation." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 2));
 				}
-				case AST_VALUE_BINARY:
+				case SEM_VALUE_BINARY:
 				{
 					switch(value->binary.type){
-						case AST_BINARY_ADD:
+						case SEM_BINARY_ADD:
 							return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_SUBTRACT:
+						case SEM_BINARY_SUBTRACT:
 							return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_MULTIPLY:
+						case SEM_BINARY_MULTIPLY:
 							return builder_.CreateMul(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_DIVIDE:
+						case SEM_BINARY_DIVIDE:
 							return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_ISEQUAL:
+						case SEM_BINARY_ISEQUAL:
 							return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_NOTEQUAL:
+						case SEM_BINARY_NOTEQUAL:
 							return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_GREATEROREQUAL:
+						case SEM_BINARY_GREATEROREQUAL:
 							return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
-						case AST_BINARY_LESSOREQUAL:
+						case SEM_BINARY_LESSOREQUAL:
 							return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
 						default:
-							std::cout << "Unknown binary operand" << std::endl;
+							std::cout << "CodeGen error: Unknown binary operand." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
-				case AST_VALUE_TERNARY:
-				case AST_VALUE_CONSTRUCT:
-				case AST_VALUE_MEMBERACCESS:
-				case AST_VALUE_METHODCALL:
+				case SEM_VALUE_TERNARY:
+					std::cout << "CodeGen error: Unimplemented ternary operation." << std::endl;
+					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				case SEM_VALUE_CONSTRUCT:
+					std::cout << "CodeGen error: Unimplemented constructor call." << std::endl;
+					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				case SEM_VALUE_MEMBERACCESS:
+					std::cout << "CodeGen error: Unimplemented member access." << std::endl;
+					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				case SEM_VALUE_METHODCALL:
+					std::cout << "CodeGen error: Unimplemented method call." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 				default:
-					std::cout << "Unknown value" << std::endl;
+					std::cout << "CodeGen error: Unknown value." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 			}
 		}
@@ -278,7 +307,7 @@ extern "C"{
 		delete reinterpret_cast<CodeGen *>(context);
 	}
 	
-	void Locic_CodeGen(void * context, AST_Module * module){
+	void Locic_CodeGen(void * context, SEM_Module * module){
 		reinterpret_cast<CodeGen *>(context)->genFile(module);
 	}
 	

@@ -5,7 +5,7 @@
 #include <Locic/List.h>
 
 typedef struct SEM_Scope{
-	Locic_Array * localVariables;
+	Locic_Array localVariables;
 	Locic_List * statementList;
 } SEM_Scope;
 

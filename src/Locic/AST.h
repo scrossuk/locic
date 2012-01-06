@@ -7,9 +7,9 @@ extern "C" {
 
 #include <Locic/AST/ClassDecl.h>
 #include <Locic/AST/ClassDef.h>
-#include <Locic/AST/Context.h>
 #include <Locic/AST/Function.h>
 #include <Locic/AST/Module.h>
+#include <Locic/AST/ModuleGroup.h>
 #include <Locic/AST/Scope.h>
 #include <Locic/AST/Statement.h>
 #include <Locic/AST/Type.h>

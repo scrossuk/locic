@@ -3,13 +3,12 @@
 #include <Locic/SemanticAnalysis.h>
 #include <Locic/SemanticContext.h>
 
-SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
+SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 	Locic_SemanticContext * context = Locic_SemanticContext_Alloc();
 	
 	//-- Initial phase: scan for function and class declarations (so they can be referenced by the second phase).
-	
 	Locic_ListElement * moduleIter;
-	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
+	for(moduleIter = Locic_List_Begin(moduleGroup->modules); moduleIter != Locic_List_End(moduleGroup->modules); moduleIter = moduleIter->next){
 		AST_Module * synModule = moduleIter->data;
 		
 		// Look for function declarations.
@@ -47,10 +46,9 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_Context * synContext){
 	}
 	
 	//-- In-depth phase: extend the semantic structure with the definitions of functions and class methods.
-	
 	SEM_ModuleGroup * semModuleGroup = SEM_MakeModuleGroup();
 	
-	for(moduleIter = Locic_List_Begin(synContext->modules); moduleIter != Locic_List_End(synContext->modules); moduleIter = moduleIter->next){
+	for(moduleIter = Locic_List_Begin(moduleGroup->modules); moduleIter != Locic_List_End(moduleGroup->modules); moduleIter = moduleIter->next){
 		AST_Module * synModule = moduleIter->data;
 		SEM_Module * semModule = Locic_SemanticAnalysis_ConvertModule(context, synModule);
 		if(semModule == NULL){
@@ -293,6 +291,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		}
 		case AST_STATEMENT_IF:
 		{
+			printf("Internal Compiler Error: Unimplemented IF statement.\n");
 			return NULL;
 		}
 		case AST_STATEMENT_VARDECL:

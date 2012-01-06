@@ -5,7 +5,7 @@
 #include <Locic/AST.h>
 
 typedef struct Locic_ParserContext{
-	AST_Context * synContext;
+	AST_ModuleGroup * moduleGroup;
 	const char * currentFileName;
 	size_t lineNumber;
 	int parseFailed;

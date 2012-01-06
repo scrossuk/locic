@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <map>
 #include <string>
 
@@ -14,15 +15,18 @@ extern "C" {
 	}
 	
 	void Locic_StringMap_Free(void* stringMap) {
+		assert(stringMap != NULL);
 		delete reinterpret_cast<MapType*>(stringMap);
 	}
 	
 	void Locic_StringMap_Clear(void * stringMap){
+		assert(stringMap != NULL);
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		map->clear();
 	}
 	
 	void* Locic_StringMap_Find(void* stringMap, const char* str) {
+		assert(stringMap != NULL);
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		IteratorType it = map->find(str);
 		
@@ -35,6 +39,7 @@ extern "C" {
 	
 	// Return value is existing value in map, which if not NULL indicates the insert failed.
 	void* Locic_StringMap_Insert(void* stringMap, const char* str, void* data) {
+		assert(stringMap != NULL);
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		std::pair<IteratorType, bool> ret = map->insert(PairType(str, data));
 		
@@ -47,6 +52,7 @@ extern "C" {
 	}
 	
 	void* Locic_StringMap_Erase(void* stringMap, const char* str) {
+		assert(stringMap != NULL);
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		IteratorType it = map->find(str);
 		
