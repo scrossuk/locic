@@ -98,7 +98,7 @@ int main(int argc, char * argv[]){
 			Locic_CodeGenDump(codeGenContext);
 			Locic_CodeGenFree(codeGenContext);
 		}else{
-			printf("Semantic Analysis failed\n");
+			printf("Semantic Analysis failed.\n");
 		}
 	}else{
 		printf("Parsing failed.\n");

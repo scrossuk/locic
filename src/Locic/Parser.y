@@ -397,7 +397,7 @@ precision5(V) ::= MINUS precision5(VAL).
 
 precision5(V) ::= EXCLAIMMARK precision5(VAL).
 	{
-		V = AST_MakeUnary(AST_UNARY_NEGATE, VAL);
+		V = AST_MakeUnary(AST_UNARY_NOT, VAL);
 	}
 
 precision5(V) ::= AMPERSAND precision5(VAL).

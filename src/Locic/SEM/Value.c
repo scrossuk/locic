@@ -17,7 +17,7 @@ SEM_Value * SEM_MakeBoolConstant(int val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_BOOL;
 	constant->boolConstant = val;
-	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_BOOL);
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
 	return value;
 }
 
@@ -26,7 +26,7 @@ SEM_Value * SEM_MakeIntConstant(int val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_INT;
 	constant->intConstant = val;
-	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_INT);
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_INT);
 	return value;
 }
 
@@ -35,7 +35,7 @@ SEM_Value * SEM_MakeFloatConstant(float val){
 	SEM_Constant * constant = &(value->constant);
 	constant->type = SEM_CONSTANT_FLOAT;
 	constant->floatConstant = val;
-	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_BASIC_FLOAT);
+	value->type = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_FLOAT);
 	return value;
 }
 
@@ -50,9 +50,36 @@ SEM_Value * SEM_MakeVarAccess(SEM_Var * var){
 
 /* SEM_Unary */
 
-SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_Value * operand, SEM_Type * type){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY);
-	SEM_Unary * unary = &(value->unary);
+SEM_Value * SEM_MakeUnaryBool(SEM_UnaryBoolType unaryType, SEM_Value * operand, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_BOOL);
+	SEM_UnaryBool * unary = &(value->unaryBool);
+	unary->type = unaryType;
+	unary->value = operand;
+	value->type = type;
+	return value;
+}
+
+SEM_Value * SEM_MakeUnaryInt(SEM_UnaryIntType unaryType, SEM_Value * operand, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_INT);
+	SEM_UnaryInt * unary = &(value->unaryInt);
+	unary->type = unaryType;
+	unary->value = operand;
+	value->type = type;
+	return value;
+}
+
+SEM_Value * SEM_MakeUnaryFloat(SEM_UnaryFloatType unaryType, SEM_Value * operand, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_FLOAT);
+	SEM_UnaryFloat * unary = &(value->unaryFloat);
+	unary->type = unaryType;
+	unary->value = operand;
+	value->type = type;
+	return value;
+}
+
+SEM_Value * SEM_MakeUnaryPointer(SEM_UnaryPointerType unaryType, SEM_Value * operand, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_POINTER);
+	SEM_UnaryPointer * unary = &(value->unaryPointer);
 	unary->type = unaryType;
 	unary->value = operand;
 	value->type = type;

@@ -13,7 +13,6 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
-#include <sstream>
 #include <string>
 
 #include <Locic/CodeGen.h>
@@ -30,7 +29,7 @@ class CodeGen{
 		Function * currentFunction_;
 		BasicBlock * currentBasicBlock_;
 		FunctionPassManager fpm_;
-		std::map<std::string, AllocaInst *> variables_;
+		std::map<std::size_t, AllocaInst *> localVariables_, paramVariables_;
 
 	public:
 		CodeGen(const char * moduleName)
@@ -101,21 +100,56 @@ class CodeGen{
 				genFunctionDef(reinterpret_cast<SEM_FunctionDef *>(it->data));
 			}
 		}
-		
-		/// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
-		/// the function.  This is used for mutable variables etc.
-		AllocaInst * CreateEntryBlockAlloca(const std::string &varName) {
-  			IRBuilder<> tmp(&currentFunction_->getEntryBlock(),
-                 		currentFunction_->getEntryBlock().begin());
-			return tmp.CreateAlloca(Type::getInt32Ty(getGlobalContext()), 0, varName.c_str());
-		}
 
+		Type * genType(SEM_Type * type){
+			switch(type->typeEnum){
+				case SEM_TYPE_BASIC:
+				{
+					switch(type->basicType.typeEnum){
+						case SEM_TYPE_BASIC_VOID:
+							return Type::getVoidTy(getGlobalContext());
+						case SEM_TYPE_BASIC_INT:
+							return Type::getInt32Ty(getGlobalContext());
+						case SEM_TYPE_BASIC_BOOL:
+							return Type::getInt32Ty(getGlobalContext());
+						case SEM_TYPE_BASIC_FLOAT:
+							return Type::getFloatTy(getGlobalContext());
+						default:
+							std::cout << "CodeGen error: Unknown basic type." << std::endl;
+							return Type::getVoidTy(getGlobalContext());
+							
+					}
+				}
+				case SEM_TYPE_CLASS:
+				{
+					std::cout << "CodeGen error: Class type not implemented." << std::endl;
+					return Type::getInt32Ty(getGlobalContext());
+				}
+				case SEM_TYPE_PTR:
+				{
+					return PointerType::get(genType(type->ptrType.ptrType), 0);
+				}
+				default:
+				{
+					std::cout << "CodeGen error: Unknown type." << std::endl;
+					return Type::getVoidTy(getGlobalContext());
+				}
+			}
+		}
 		
 		void genFunctionDef(SEM_FunctionDef * functionDef){
-			variables_.clear();
+			Locic_List * functionParameters = functionDef->declaration->parameterVars;
+			Locic_ListElement * it;
+			
+			std::vector<Type *> parameterTypes;
+			
+			// Get parameter types.
+			for (it = Locic_List_Begin(functionParameters); it != Locic_List_End(functionParameters); it = it->next){
+				SEM_Var * paramVar = reinterpret_cast<SEM_Var *>(it->data);
+				parameterTypes.push_back(genType(paramVar->type));
+			}
 		
-			currentFunctionType_ = FunctionType::get(Type::getInt32Ty(getGlobalContext()),
-	                             std::vector<Type*>(Locic_List_Size(functionDef->declaration->parameterVars), Type::getInt32Ty(getGlobalContext())), false);
+			currentFunctionType_ = FunctionType::get(genType(functionDef->declaration->returnType), parameterTypes, false);
 	                
 	                // Create function.
 			currentFunction_ = Function::Create(currentFunctionType_, Function::ExternalLinkage, functionDef->declaration->name, module_);
@@ -124,21 +158,15 @@ class CodeGen{
 			builder_.SetInsertPoint(currentBasicBlock_);
 			
 			// Store arguments onto stack.
-			Locic_ListElement * it;
-			std::size_t i;
 			Function::arg_iterator arg;
 			
-			Locic_List * functionParameters = functionDef->declaration->parameterVars;
-			for (it = Locic_List_Begin(functionParameters), i = 0, arg = currentFunction_->arg_begin(); it != Locic_List_End(functionParameters); ++arg, it = it->next, i++){
+			for (it = Locic_List_Begin(functionParameters), arg = currentFunction_->arg_begin(); it != Locic_List_End(functionParameters); ++arg, it = it->next){
 				SEM_Var * paramVar = reinterpret_cast<SEM_Var *>(it->data);
 				
-				std::ostringstream stream;
-    				stream << "param" << paramVar->varId;
-				
 				// Create an alloca for this variable.
-    				AllocaInst * stackObject = CreateEntryBlockAlloca(stream.str());
+				AllocaInst * stackObject = builder_.CreateAlloca(genType(paramVar->type));
     				
-    				variables_[stream.str()] = stackObject;
+    				paramVariables_[paramVar->varId] = stackObject;
 
     				// Store the initial value into the alloca.
     				builder_.CreateStore(arg, stackObject);
@@ -149,6 +177,9 @@ class CodeGen{
 			verifyFunction(*currentFunction_);
 			
 			fpm_.run(*currentFunction_);
+			
+			paramVariables_.clear();
+			localVariables_.clear();
 		}
 		
 		void genScope(SEM_Scope * scope){
@@ -157,13 +188,10 @@ class CodeGen{
 			for(std::size_t i = 0; i < Locic_Array_Size(array); i++){
 				SEM_Var * localVar = reinterpret_cast<SEM_Var *>(Locic_Array_Get(array, i));
 				
-				std::ostringstream stream;
-    				stream << "local" << localVar->varId;
-				
 				// Create an alloca for this variable.
-    				AllocaInst * stackObject = CreateEntryBlockAlloca(stream.str());
+    				AllocaInst * stackObject = builder_.CreateAlloca(genType(localVar->type));
     				
-    				variables_[stream.str()] = stackObject;
+    				localVariables_[localVar->varId] = stackObject;
 			}
 		
 			Locic_List * list = scope->statementList;
@@ -188,9 +216,7 @@ class CodeGen{
 					switch(var->varType){
 						case SEM_VAR_LOCAL:
 						{
-							std::ostringstream stream;
-    							stream << "local" << var->varId;
-							builder_.CreateStore(genValue(statement->assignVar.value), variables_[stream.str()]);
+							builder_.CreateStore(genValue(statement->assignVar.value), localVariables_[var->varId]);
 							break;
 						}
 						case SEM_VAR_THIS:
@@ -208,7 +234,7 @@ class CodeGen{
 			}
 		}
 		
-		Value * genValue(SEM_Value * value){
+		Value * genValue(SEM_Value * value, bool genLValue = false){
 			switch(value->valueType){
 				case SEM_VALUE_CONSTANT:
 				{
@@ -218,7 +244,7 @@ class CodeGen{
 						case SEM_CONSTANT_INT:
 							return ConstantInt::get(getGlobalContext(), APInt(32, value->constant.intConstant));
 						case SEM_CONSTANT_FLOAT:
-							return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+							return ConstantFP::get(getGlobalContext(), APFloat(value->constant.floatConstant));
 						default:
 							std::cout << "CodeGen error: Unknown constant." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
@@ -230,28 +256,82 @@ class CodeGen{
 					switch(var->varType){
 						case SEM_VAR_PARAM:
 						{
-							std::ostringstream stream;
-    							stream << "param" << var->varId;
-							return builder_.CreateLoad(variables_[stream.str()], stream.str());
+							if(genLValue){
+								return paramVariables_[var->varId];
+							}else{
+								return builder_.CreateLoad(paramVariables_[var->varId]);
+							}
 						}
 						case SEM_VAR_LOCAL:
 						{
-							std::ostringstream stream;
-    							stream << "local" << var->varId;
-							return builder_.CreateLoad(variables_[stream.str()], stream.str());
+							if(genLValue){
+								return localVariables_[var->varId];
+							}else{
+								return builder_.CreateLoad(localVariables_[var->varId]);
+							}
 						}
 						case SEM_VAR_THIS:
+						{
+							std::cout << "CodeGen error: Unimplemented member variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
+						}
 						default:
+						{
 							std::cout << "CodeGen error: Unknown variable type in variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
+						}
 					}
 					return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 				}
-				case SEM_VALUE_UNARY:
+				case SEM_VALUE_UNARY_BOOL:
 				{
-					std::cout << "CodeGen error: Unimplemented unary operation." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 2));
+					switch(value->unaryBool.type){
+						case SEM_UNARY_BOOL_NOT:
+							return builder_.CreateNot(genValue(value->unaryBool.value));
+						default:
+							std::cout << "CodeGen error: Unknown unary bool operand." << std::endl;
+							return genValue(value->unaryBool.value);
+					}
+				}
+				case SEM_VALUE_UNARY_INT:
+				{
+					switch(value->unaryInt.type){
+						case SEM_UNARY_INT_PLUS:
+							return genValue(value->unaryInt.value);
+						case SEM_UNARY_INT_MINUS:
+							return builder_.CreateNeg(genValue(value->unaryInt.value));
+						default:
+							std::cout << "CodeGen error: Unknown unary int operand." << std::endl;
+							return genValue(value->unaryInt.value);
+					}
+				}
+				case SEM_VALUE_UNARY_FLOAT:
+				{
+					switch(value->unaryFloat.type){
+						case SEM_UNARY_FLOAT_PLUS:
+							return genValue(value->unaryFloat.value);
+						case SEM_UNARY_FLOAT_MINUS:
+							return builder_.CreateFNeg(genValue(value->unaryFloat.value));
+						default:
+							std::cout << "CodeGen error: Unknown unary float operand." << std::endl;
+							return genValue(value->unaryFloat.value);
+					}
+				}
+				case SEM_VALUE_UNARY_POINTER:
+				{
+					switch(value->unaryPointer.type){
+						case SEM_UNARY_POINTER_ADDRESSOF:
+							return genValue(value->unaryPointer.value, true);
+						case SEM_UNARY_POINTER_DEREF:
+							if(genLValue){
+								return genValue(value->unaryPointer.value);
+							}else{
+								return builder_.CreateLoad(genValue(value->unaryPointer.value));
+							}
+						default:
+							std::cout << "CodeGen error: Unknown unary pointer operand." << std::endl;
+							return genValue(value->unaryPointer.value);
+					}
 				}
 				case SEM_VALUE_BINARY:
 				{

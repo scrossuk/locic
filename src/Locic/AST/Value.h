@@ -29,7 +29,7 @@ typedef enum AST_UnaryType{
 	AST_UNARY_MINUS,
 	AST_UNARY_ADDRESSOF,
 	AST_UNARY_DEREF,
-	AST_UNARY_NEGATE
+	AST_UNARY_NOT
 } AST_UnaryType;
 	
 typedef struct AST_Unary{

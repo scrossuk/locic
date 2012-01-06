@@ -33,9 +33,15 @@ typedef struct SEM_PtrType{
 	struct SEM_Type * ptrType;
 } SEM_PtrType;
 
+typedef enum SEM_TypeIsLValue{
+	SEM_TYPE_LVALUE,
+	SEM_TYPE_RVALUE
+} SEM_TypeIsLValue;
+
 typedef struct SEM_Type{
 	SEM_TypeEnum typeEnum;
 	SEM_TypeIsMutable isMutable;
+	SEM_TypeIsLValue isLValue;
 	
 	union{
 		SEM_BasicType basicType;
@@ -44,10 +50,12 @@ typedef struct SEM_Type{
 	};
 } SEM_Type;
 
-SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_BasicTypeEnum typeEnum);
+SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_BasicTypeEnum typeEnum);
 
-SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_ClassDecl * classDecl);
+SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_ClassDecl * classDecl);
 
-SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_Type * ptrType);
+SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_Type * ptrType);
+
+SEM_Type * SEM_CopyType(SEM_Type * type);
 
 #endif
