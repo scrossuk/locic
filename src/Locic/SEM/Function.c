@@ -4,9 +4,9 @@
 #include <Locic/SEM/Scope.h>
 #include <Locic/SEM/Type.h>
 
-SEM_FunctionDecl * SEM_MakeFunctionDecl(SEM_Type * returnType, char * name, Locic_List * parameterVars){
+SEM_FunctionDecl * SEM_MakeFunctionDecl(SEM_Type * type, char * name, Locic_List * parameterVars){
 	SEM_FunctionDecl * functionDecl = malloc(sizeof(SEM_FunctionDecl));
-	functionDecl->returnType = returnType;
+	functionDecl->type = type;
 	functionDecl->name = name;
 	functionDecl->parameterVars = parameterVars;
 	return functionDecl;

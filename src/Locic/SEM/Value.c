@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <Locic/List.h>
+#include <Locic/SEM/Function.h>
 #include <Locic/SEM/Type.h>
 #include <Locic/SEM/Value.h>
 #include <Locic/SEM/Var.h>
@@ -119,14 +120,23 @@ SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, size_t memberId){
 	return value;
 }
 
-/* SEM_MethodCall */
+/* SEM_FunctionCall */
 
-SEM_Value * SEM_MakeMethodCall(SEM_Value * object, SEM_FunctionDecl * method, Locic_List * parameters){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_METHODCALL);
-	SEM_MethodCall * methodCall = &(value->methodCall);
-	methodCall->object = object;
-	methodCall->method = method;
-	methodCall->parameters = parameters;
+SEM_Value * SEM_MakeFunctionCall(SEM_Value * functionValue, Locic_List * parameters, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_FUNCTIONCALL);
+	SEM_FunctionCall * functionCall = &(value->functionCall);
+	functionCall->functionValue = functionValue;
+	functionCall->parameters = parameters;
+	value->type = type;
+	return value;
+}
+
+/* SEM_FunctionRef */
+
+SEM_Value * SEM_MakeFunctionRef(SEM_FunctionDecl * decl, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_FUNCTIONREF);
+	value->functionRef.functionDecl = decl;
+	value->type = type;
 	return value;
 }
 

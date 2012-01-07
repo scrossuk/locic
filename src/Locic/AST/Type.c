@@ -26,3 +26,10 @@ AST_Type * AST_MakePtrType(AST_TypeIsMutable isMutable, AST_Type * ptrType){
 	return type;
 }
 
+AST_Type * AST_MakeFuncType(AST_TypeIsMutable isMutable, AST_Type * returnType, Locic_List * parameterTypes){
+	AST_Type * type = AST_AllocateType(AST_TYPE_FUNC, isMutable);
+	(type->funcType).returnType = returnType;
+	(type->funcType).parameterTypes = parameterTypes;
+	return type;
+}
+

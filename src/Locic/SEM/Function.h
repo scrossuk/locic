@@ -6,13 +6,13 @@
 #include <Locic/SEM/Type.h>
 
 typedef struct SEM_FunctionDecl{
-	SEM_Type * returnType;
+	SEM_Type * type;
 	char * name;
 	Locic_List * parameterVars;
 	struct SEM_FunctionDef * definition; // NULL if no definition.
 } SEM_FunctionDecl;
 
-SEM_FunctionDecl * SEM_MakeFunctionDecl(SEM_Type * returnType, char * name, Locic_List * parameterVars);
+SEM_FunctionDecl * SEM_MakeFunctionDecl(SEM_Type * type, char * name, Locic_List * parameterVars);
 
 typedef struct SEM_FunctionDef{
 	SEM_FunctionDecl * declaration;

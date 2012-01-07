@@ -38,6 +38,8 @@
 
 %type basicType { AST_BasicTypeEnum }
 %type type { AST_Type * }
+%type nonEmptyTypeList { Locic_List * }
+%type typeList { Locic_List * }
 
 %type lcName { char * }
 %type ucName { char * }
@@ -183,6 +185,36 @@ type(NT) ::= type(OT) STAR CONST.
 		NT = AST_MakePtrType(AST_TYPE_CONST, OT);
 	}
 	
+type(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+	{
+		NT = AST_MakeFuncType(AST_TYPE_MUTABLE, RT, PTL);
+	}
+	
+type(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET CONST.
+	{
+		NT = AST_MakeFuncType(AST_TYPE_CONST, RT, PTL);
+	}
+	
+nonEmptyTypeList(TL) ::= type(T).
+	{
+		TL = Locic_List_Append(Locic_List_Alloc(), T);
+	}
+	
+nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
+	{
+		TL = Locic_List_Append(OTL, T);
+	}
+	
+typeList(TL) ::= .
+	{
+		TL = Locic_List_Alloc();
+	}
+	
+typeList(TL) ::= nonEmptyTypeList(NETL).
+	{
+		TL = NETL;
+	}
+	
 classMethodDeclList(DL) ::= .
 	{
 		DL = Locic_List_Alloc();
@@ -317,12 +349,12 @@ precision7(V) ::= LROUNDBRACKET precision0(BV) RROUNDBRACKET.
 
 precision7(V) ::= lcName(N).
 	{
-		V = AST_MakeVarAccess(AST_MakeLocalVar(N));
+		V = AST_MakeVarValue(AST_MakeLocalVar(N));
 	}
 
 precision7(V) ::= AT lcName(N).
 	{
-		V = AST_MakeVarAccess(AST_MakeThisVar(N));
+		V = AST_MakeVarValue(AST_MakeThisVar(N));
 	}
 
 precision7(V) ::= BOOLCONSTANT(C).
@@ -360,19 +392,14 @@ precision6(V) ::= precision6(S) DOT lcName(N).
 		V = AST_MakeMemberAccess(S, N);
 	}
 
-precision6(V) ::= precision6(O) DOT lcName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
-	{
-		V = AST_MakeMethodCall(O, N, P);
-	}
-
 precision6(V) ::= precision6(SP) PTRACCESS lcName(N).
 	{
 		V = AST_MakeMemberAccess(AST_MakeUnary(AST_UNARY_DEREF, SP), N);
 	}
 
-precision6(V) ::= precision6(OP) PTRACCESS lcName(N) LROUNDBRACKET valueList(P) RROUNDBRACKET.
+precision6(V) ::= precision6(F) LROUNDBRACKET valueList(P) RROUNDBRACKET.
 	{
-		V = AST_MakeMethodCall(AST_MakeUnary(AST_UNARY_DEREF, OP), N, P);
+		V = AST_MakeFunctionCall(F, P);
 	}
 	
 precision5(V) ::= precision6(VAL).

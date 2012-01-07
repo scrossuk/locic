@@ -85,11 +85,14 @@ typedef struct SEM_MemberAccess{
 	size_t memberId;
 } SEM_MemberAccess;
 
-typedef struct SEM_MethodCall{
-	struct SEM_Value * object;
-	SEM_FunctionDecl * method;
+typedef struct SEM_FunctionRef{
+	SEM_FunctionDecl * functionDecl;
+} SEM_FunctionRef;
+
+typedef struct SEM_FunctionCall{
+	struct SEM_Value * functionValue;
 	Locic_List * parameters;
-} SEM_MethodCall;
+} SEM_FunctionCall;
 
 typedef enum SEM_ValueType{
 	SEM_VALUE_CONSTANT,
@@ -100,7 +103,8 @@ typedef enum SEM_ValueType{
 	SEM_VALUE_TERNARY,
 	SEM_VALUE_CONSTRUCT,
 	SEM_VALUE_MEMBERACCESS,
-	SEM_VALUE_METHODCALL
+	SEM_VALUE_FUNCTIONREF,
+	SEM_VALUE_FUNCTIONCALL
 } SEM_ValueType;
 	
 typedef struct SEM_Value{
@@ -116,7 +120,8 @@ typedef struct SEM_Value{
 		SEM_Ternary ternary;
 		SEM_Construct construct;
 		SEM_MemberAccess memberAccess;
-		SEM_MethodCall methodCall;
+		SEM_FunctionRef functionRef;
+		SEM_FunctionCall functionCall;
 	};
 } SEM_Value;
 
@@ -140,6 +145,8 @@ SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, L
 
 SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, size_t memberId);
 
-SEM_Value * SEM_MakeMethodCall(SEM_Value * object, SEM_FunctionDecl * method, Locic_List * parameters);
+SEM_Value * SEM_MakeFunctionCall(SEM_Value * functionValue, Locic_List * parameters, SEM_Type * type);
+
+SEM_Value * SEM_MakeFunctionRef(struct SEM_FunctionDecl * decl, SEM_Type * type);
 
 #endif

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <Locic/List.h>
 #include <Locic/SEM/Type.h>
 
 inline SEM_Type * SEM_AllocateType(SEM_TypeEnum typeEnum, SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue){
@@ -27,6 +28,13 @@ SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValu
 	return type;
 }
 
+SEM_Type * SEM_MakeFuncType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_Type * returnType, Locic_List * parameterTypes){
+	SEM_Type * type = SEM_AllocateType(SEM_TYPE_FUNC, isMutable, isLValue);
+	(type->funcType).returnType = returnType;
+	(type->funcType).parameterTypes = parameterTypes;
+	return type;
+}
+
 SEM_Type * SEM_CopyType(SEM_Type * type){
 	SEM_Type * newType = malloc(sizeof(SEM_Type));
 	newType->typeEnum = type->typeEnum;
@@ -42,6 +50,9 @@ SEM_Type * SEM_CopyType(SEM_Type * type){
 			break;
 		case SEM_TYPE_PTR:
 			newType->ptrType = type->ptrType;
+			break;
+		case SEM_TYPE_FUNC:
+			newType->funcType = type->funcType;
 			break;
 		default:
 			break;

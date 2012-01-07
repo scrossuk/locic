@@ -20,9 +20,9 @@ typedef struct AST_Constant{
 	};
 } AST_Constant;
 
-typedef struct AST_VarAccess{
+typedef struct AST_VarValue{
 	AST_Var * var;
-} AST_VarAccess;
+} AST_VarValue;
 
 typedef enum AST_UnaryType{
 	AST_UNARY_PLUS,
@@ -71,21 +71,20 @@ typedef struct AST_MemberAccess{
 	char * memberName;
 } AST_MemberAccess;
 
-typedef struct AST_MethodCall{
-	struct AST_Value * object;
-	char * methodName;
+typedef struct AST_FunctionCall{
+	struct AST_Value * functionValue;
 	Locic_List * parameters;
-} AST_MethodCall;
+} AST_FunctionCall;
 
 typedef enum AST_ValueType{
 	AST_VALUE_CONSTANT,
-	AST_VALUE_VARACCESS,
+	AST_VALUE_VAR,
 	AST_VALUE_UNARY,
 	AST_VALUE_BINARY,
 	AST_VALUE_TERNARY,
 	AST_VALUE_CONSTRUCT,
 	AST_VALUE_MEMBERACCESS,
-	AST_VALUE_METHODCALL
+	AST_VALUE_FUNCTIONCALL
 } AST_ValueType;
 	
 typedef struct AST_Value{
@@ -93,13 +92,13 @@ typedef struct AST_Value{
 			
 	union{
 		AST_Constant constant;
-		AST_VarAccess varAccess;
+		AST_VarValue varValue;
 		AST_Unary unary;
 		AST_Binary binary;
 		AST_Ternary ternary;
 		AST_Construct construct;
 		AST_MemberAccess memberAccess;
-		AST_MethodCall methodCall;
+		AST_FunctionCall functionCall;
 	};
 } AST_Value;
 
@@ -109,7 +108,7 @@ AST_Value * AST_MakeIntConstant(int val);
 
 AST_Value * AST_MakeFloatConstant(float val);
 
-AST_Value * AST_MakeVarAccess(AST_Var * var);
+AST_Value * AST_MakeVarValue(AST_Var * var);
 
 AST_Value * AST_MakeUnary(AST_UnaryType type, AST_Value * operand);
 
@@ -121,6 +120,6 @@ AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, Locic_Lis
 
 AST_Value * AST_MakeMemberAccess(AST_Value * object, char * memberName);
 
-AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, Locic_List * parameters);
+AST_Value * AST_MakeFunctionCall(AST_Value * functionValue, Locic_List * parameters);
 
 #endif

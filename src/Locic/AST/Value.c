@@ -37,9 +37,9 @@ AST_Value * AST_MakeFloatConstant(float val){
 
 /* AST_Var */
 
-AST_Value * AST_MakeVarAccess(AST_Var * var){
-	AST_Value * value = AST_AllocateValue(AST_VALUE_VARACCESS);
-	(value->varAccess).var = var;
+AST_Value * AST_MakeVarValue(AST_Var * var){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_VAR);
+	(value->varValue).var = var;
 	return value;
 }
 
@@ -96,14 +96,13 @@ AST_Value * AST_MakeMemberAccess(AST_Value * object, char * memberName){
 	return value;
 }
 
-/* AST_MethodCall */
+/* AST_FunctionCall */
 
-AST_Value * AST_MakeMethodCall(AST_Value * object, char * methodName, Locic_List * parameters){
-	AST_Value * value = AST_AllocateValue(AST_VALUE_METHODCALL);
-	AST_MethodCall * methodCall = &(value->methodCall);
-	methodCall->object = object;
-	methodCall->methodName = methodName;
-	methodCall->parameters = parameters;
+AST_Value * AST_MakeFunctionCall(AST_Value * functionValue, Locic_List * parameters){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_FUNCTIONCALL);
+	AST_FunctionCall * functionCall = &(value->functionCall);
+	functionCall->functionValue = functionValue;
+	functionCall->parameters = parameters;
 	return value;
 }
 

@@ -1,10 +1,13 @@
 #ifndef LOCIC_AST_TYPE_H
 #define LOCIC_AST_TYPE_H
 
+#include <Locic/List.h>
+
 typedef enum AST_TypeEnum{
 	AST_TYPE_BASIC,
 	AST_TYPE_NAMED,
-	AST_TYPE_PTR
+	AST_TYPE_PTR,
+	AST_TYPE_FUNC
 } AST_TypeEnum;
 
 typedef enum AST_TypeIsMutable{
@@ -31,6 +34,11 @@ typedef struct AST_PtrType{
 	struct AST_Type * ptrType;
 } AST_PtrType;
 
+typedef struct AST_FuncType{
+	struct AST_Type * returnType;
+	Locic_List * parameterTypes;
+} AST_FuncType;
+
 typedef struct AST_Type{
 	AST_TypeEnum typeEnum;
 	AST_TypeIsMutable isMutable;
@@ -39,6 +47,7 @@ typedef struct AST_Type{
 		AST_BasicType basicType;
 		AST_NamedType namedType;
 		AST_PtrType ptrType;
+		AST_FuncType funcType;
 	};
 } AST_Type;
 
@@ -47,5 +56,7 @@ AST_Type * AST_MakeBasicType(AST_TypeIsMutable isMutable, AST_BasicTypeEnum type
 AST_Type * AST_MakeNamedType(AST_TypeIsMutable isMutable, char * name);
 
 AST_Type * AST_MakePtrType(AST_TypeIsMutable isMutable, AST_Type * ptrType);
+
+AST_Type * AST_MakeFuncType(AST_TypeIsMutable isMutable, AST_Type * returnType, Locic_List * parameterTypes);
 
 #endif

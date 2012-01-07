@@ -1,12 +1,14 @@
 #ifndef LOCIC_SEM_TYPE_H
 #define LOCIC_SEM_TYPE_H
 
+#include <Locic/List.h>
 #include <Locic/SEM/ClassDecl.h>
 
 typedef enum SEM_TypeEnum{
 	SEM_TYPE_BASIC,
 	SEM_TYPE_CLASS,
-	SEM_TYPE_PTR
+	SEM_TYPE_PTR,
+	SEM_TYPE_FUNC
 } SEM_TypeEnum;
 
 typedef enum SEM_TypeIsMutable{
@@ -33,6 +35,11 @@ typedef struct SEM_PtrType{
 	struct SEM_Type * ptrType;
 } SEM_PtrType;
 
+typedef struct SEM_FuncType{
+	struct SEM_Type * returnType;
+	Locic_List * parameterTypes;
+} SEM_FuncType;
+
 typedef enum SEM_TypeIsLValue{
 	SEM_TYPE_LVALUE,
 	SEM_TYPE_RVALUE
@@ -47,6 +54,7 @@ typedef struct SEM_Type{
 		SEM_BasicType basicType;
 		SEM_ClassType classType;
 		SEM_PtrType ptrType;
+		SEM_FuncType funcType;
 	};
 } SEM_Type;
 
@@ -55,6 +63,8 @@ SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLVa
 SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_ClassDecl * classDecl);
 
 SEM_Type * SEM_MakePtrType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_Type * ptrType);
+
+SEM_Type * SEM_MakeFuncType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_Type * returnType, Locic_List * parameterTypes);
 
 SEM_Type * SEM_CopyType(SEM_Type * type);
 

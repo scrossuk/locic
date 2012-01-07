@@ -10,6 +10,9 @@
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
+
+
+#include <assert.h>
 #include <cstdio>
 #include <iostream>
 #include <map>
@@ -29,6 +32,7 @@ class CodeGen{
 		Function * currentFunction_;
 		BasicBlock * currentBasicBlock_;
 		FunctionPassManager fpm_;
+		std::map<SEM_FunctionDecl *, Function *> functions_;
 		std::map<std::size_t, AllocaInst *> localVariables_, paramVariables_;
 
 	public:
@@ -95,10 +99,36 @@ class CodeGen{
 		}
 		
 		void genFile(SEM_Module * module){
-			Locic_List * functions = module->functionDefinitions;
-			for(Locic_ListElement * it = Locic_List_Begin(functions); it != Locic_List_End(functions); it = it->next){
-				genFunctionDef(reinterpret_cast<SEM_FunctionDef *>(it->data));
+			assert(module != NULL);
+			
+			Locic_List * functionDecls = module->functionDeclarations;
+			for(Locic_ListElement * declIt = Locic_List_Begin(functionDecls); declIt != Locic_List_End(functionDecls); declIt = declIt->next){
+				SEM_FunctionDecl * decl = reinterpret_cast<SEM_FunctionDecl *>(declIt->data);
+				assert(decl != NULL);
+				functions_[decl] = Function::Create(genFunctionType(decl->type), Function::ExternalLinkage, decl->name, module_);
 			}
+		
+			Locic_List * functionDefs = module->functionDefinitions;
+			for(Locic_ListElement * defIt = Locic_List_Begin(functionDefs); defIt != Locic_List_End(functionDefs); defIt = defIt->next){
+				genFunctionDef(reinterpret_cast<SEM_FunctionDef *>(defIt->data));
+			}
+		}
+		
+		FunctionType * genFunctionType(SEM_Type * type){
+			assert(type != NULL);
+			assert(type->typeEnum == SEM_TYPE_FUNC);
+			
+			Type * returnType = genType(type->funcType.returnType);
+			
+			std::vector<Type *> paramTypes;
+			Locic_ListElement * it;
+			Locic_List * params = type->funcType.parameterTypes;
+			for(it = Locic_List_Begin(params); it != Locic_List_End(params); it = it->next){
+				paramTypes.push_back(genType(reinterpret_cast<SEM_Type *>(it->data)));
+			}
+			
+			bool isVarArg = false;
+			return FunctionType::get(returnType, paramTypes, isVarArg);
 		}
 
 		Type * genType(SEM_Type * type){
@@ -127,7 +157,17 @@ class CodeGen{
 				}
 				case SEM_TYPE_PTR:
 				{
-					return PointerType::get(genType(type->ptrType.ptrType), 0);
+					Type * ptrType = genType(type->ptrType.ptrType);
+					if(ptrType->isVoidTy()){
+						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
+						return Type::getInt8Ty(getGlobalContext())->getPointerTo();
+					}else{
+						return ptrType->getPointerTo();
+					}
+				}
+				case SEM_TYPE_FUNC:
+				{
+					return genFunctionType(type)->getPointerTo();
 				}
 				default:
 				{
@@ -138,21 +178,9 @@ class CodeGen{
 		}
 		
 		void genFunctionDef(SEM_FunctionDef * functionDef){
-			Locic_List * functionParameters = functionDef->declaration->parameterVars;
-			Locic_ListElement * it;
-			
-			std::vector<Type *> parameterTypes;
-			
-			// Get parameter types.
-			for (it = Locic_List_Begin(functionParameters); it != Locic_List_End(functionParameters); it = it->next){
-				SEM_Var * paramVar = reinterpret_cast<SEM_Var *>(it->data);
-				parameterTypes.push_back(genType(paramVar->type));
-			}
-		
-			currentFunctionType_ = FunctionType::get(genType(functionDef->declaration->returnType), parameterTypes, false);
-	                
-	                // Create function.
-			currentFunction_ = Function::Create(currentFunctionType_, Function::ExternalLinkage, functionDef->declaration->name, module_);
+			// Create function.
+			currentFunction_ = functions_[functionDef->declaration];
+			assert(currentFunction_ != NULL);
 			
 			currentBasicBlock_ = BasicBlock::Create(getGlobalContext(), "entry", currentFunction_);
 			builder_.SetInsertPoint(currentBasicBlock_);
@@ -160,7 +188,9 @@ class CodeGen{
 			// Store arguments onto stack.
 			Function::arg_iterator arg;
 			
-			for (it = Locic_List_Begin(functionParameters), arg = currentFunction_->arg_begin(); it != Locic_List_End(functionParameters); ++arg, it = it->next){
+			Locic_List * param = functionDef->declaration->parameterVars;
+			Locic_ListElement * it;
+			for (it = Locic_List_Begin(param), arg = currentFunction_->arg_begin(); it != Locic_List_End(param); ++arg, it = it->next){
 				SEM_Var * paramVar = reinterpret_cast<SEM_Var *>(it->data);
 				
 				// Create an alloca for this variable.
@@ -374,9 +404,24 @@ class CodeGen{
 				case SEM_VALUE_MEMBERACCESS:
 					std::cout << "CodeGen error: Unimplemented member access." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
-				case SEM_VALUE_METHODCALL:
-					std::cout << "CodeGen error: Unimplemented method call." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				case SEM_VALUE_FUNCTIONCALL:
+				{
+					std::vector<Value *> parameters;
+					
+					Locic_List * list = value->functionCall.parameters;
+					for(Locic_ListElement * it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
+						SEM_Value * paramValue = reinterpret_cast<SEM_Value *>(it->data);
+						parameters.push_back(genValue(paramValue));
+					}
+					
+					return builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
+				}
+				case SEM_VALUE_FUNCTIONREF:
+				{
+					Function * function = functions_[value->functionRef.functionDecl];
+					assert(function != NULL);
+					return function;
+				}
 				default:
 					std::cout << "CodeGen error: Unknown value." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 0));

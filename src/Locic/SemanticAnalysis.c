@@ -6,6 +6,8 @@
 SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 	Locic_SemanticContext * context = Locic_SemanticContext_Alloc();
 	
+	Locic_List * functionDeclarations = Locic_List_Alloc();
+	
 	//-- Initial phase: scan for function and class declarations (so they can be referenced by the second phase).
 	Locic_ListElement * moduleIter;
 	for(moduleIter = Locic_List_Begin(moduleGroup->modules); moduleIter != Locic_List_End(moduleGroup->modules); moduleIter = moduleIter->next){
@@ -23,6 +25,7 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 					printf("Semantic Analysis Error: function already defined with name '%s'.\n", semFunctionDecl->name);
 					return NULL;
 				}
+				Locic_List_Append(functionDeclarations, semFunctionDecl);
 			}else{
 				return NULL;
 			}
@@ -39,6 +42,7 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 					printf("Semantic Analysis Error: function already defined with name '%s'.\n", semFunctionDecl->name);
 					return NULL;
 				}
+				Locic_List_Append(functionDeclarations, semFunctionDecl);
 			}else{
 				return NULL;
 			}
@@ -50,7 +54,7 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 	
 	for(moduleIter = Locic_List_Begin(moduleGroup->modules); moduleIter != Locic_List_End(moduleGroup->modules); moduleIter = moduleIter->next){
 		AST_Module * synModule = moduleIter->data;
-		SEM_Module * semModule = Locic_SemanticAnalysis_ConvertModule(context, synModule);
+		SEM_Module * semModule = Locic_SemanticAnalysis_ConvertModule(context, functionDeclarations, synModule);
 		if(semModule == NULL){
 			return NULL;
 		}
@@ -60,12 +64,17 @@ SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 	return semModuleGroup;
 }
 
-SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, AST_Module * module){
+SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, Locic_List * functionDeclarations, AST_Module * module){
 	SEM_Module * semModule = SEM_MakeModule(module->name);
+	Locic_ListElement * it;
+	
+	// Add all declarations to each module.
+	for(it = Locic_List_Begin(functionDeclarations); it != Locic_List_End(functionDeclarations); it = it->next){
+		Locic_List_Append(semModule->functionDeclarations, it->data);
+	}
 	
 	// Build each function definition.
 	Locic_List * list = module->functionDefinitions;
-	Locic_ListElement * it;
 	for(it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next){
 		AST_FunctionDef * synFunctionDef = it->data;
 		
@@ -81,11 +90,11 @@ SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * contex
 	return semModule;
 }
 
-SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, AST_Type * type){
+SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, AST_Type * type, SEM_TypeIsLValue isLValue){
 	switch(type->typeEnum){
 		case AST_TYPE_BASIC:
 		{
-			return SEM_MakeBasicType(type->isMutable, SEM_TYPE_LVALUE, type->basicType.typeEnum);
+			return SEM_MakeBasicType(type->isMutable, isLValue, type->basicType.typeEnum);
 		}
 		case AST_TYPE_NAMED:
 		{
@@ -95,11 +104,36 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 				return NULL;
 			}
 			
-			return SEM_MakeClassType(type->isMutable, SEM_TYPE_LVALUE, classDecl);
+			return SEM_MakeClassType(type->isMutable, isLValue, classDecl);
 		}
 		case AST_TYPE_PTR:
 		{
-			return SEM_MakePtrType(type->isMutable, SEM_TYPE_LVALUE, Locic_SemanticAnalysis_ConvertType(context, type->ptrType.ptrType));
+			// Pointed-to types are always l-values (otherwise they couldn't have their address taken).
+			SEM_Type * ptrType = Locic_SemanticAnalysis_ConvertType(context, type->ptrType.ptrType, SEM_TYPE_LVALUE);
+			
+			if(ptrType == NULL){
+				return NULL;
+			}
+			
+			return SEM_MakePtrType(type->isMutable, isLValue, ptrType);
+		}
+		case AST_TYPE_FUNC:
+		{
+			SEM_Type * returnType = Locic_SemanticAnalysis_ConvertType(context, type->funcType.returnType, SEM_TYPE_RVALUE);
+			if(returnType == NULL){
+				return NULL;
+			}
+			
+			Locic_List * parameterTypes = Locic_List_Alloc();
+			Locic_ListElement * it;
+			for(it = Locic_List_Begin(type->funcType.parameterTypes); it != Locic_List_End(type->funcType.parameterTypes); it = it->next){
+				SEM_Type * paramType = Locic_SemanticAnalysis_ConvertType(context, it->data, SEM_TYPE_LVALUE);
+				if(paramType == NULL){
+					return NULL;
+				}
+				Locic_List_Append(parameterTypes, paramType);
+			}
+			return SEM_MakeFuncType(type->isMutable, isLValue, returnType, parameterTypes);
 		}
 		default:
 			printf("Internal Compiler Error: Unknown AST_Type type enum.\n");
@@ -108,16 +142,8 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 }
 
 SEM_FunctionDecl * Locic_SemanticAnalysis_ConvertFunctionDecl(Locic_SemanticContext * context, AST_FunctionDecl * functionDecl){
-	Locic_List * parameterVars;
-	Locic_ListElement * it;
-	AST_Type * returnType, * paramType;
-	SEM_Type * semReturnType, * semParamType;
-	SEM_Var * semParamVar;
-	AST_TypeVar * typeVar;
-	size_t id;
-	
-	returnType = functionDecl->returnType;
-	semReturnType = Locic_SemanticAnalysis_ConvertType(context, returnType);
+	AST_Type * returnType = functionDecl->returnType;
+	SEM_Type * semReturnType = Locic_SemanticAnalysis_ConvertType(context, returnType, SEM_TYPE_RVALUE);
 	
 	if(semReturnType == NULL){
 		return NULL;
@@ -126,24 +152,29 @@ SEM_FunctionDecl * Locic_SemanticAnalysis_ConvertFunctionDecl(Locic_SemanticCont
 	// Return values are always R-values.
 	semReturnType->isLValue = SEM_TYPE_RVALUE;
 	
-	id = 0;
-	parameterVars = Locic_List_Alloc();
+	size_t id = 0;
+	Locic_List * parameterVars = Locic_List_Alloc();
+	Locic_List * parameterTypes = Locic_List_Alloc();
 	
+	Locic_ListElement * it;
 	for(it = Locic_List_Begin(functionDecl->parameters); it != Locic_List_End(functionDecl->parameters); it = it->next, id++){
-		typeVar = it->data;
-		paramType = typeVar->type;
-		semParamType = Locic_SemanticAnalysis_ConvertType(context, paramType);
+		AST_TypeVar * typeVar = it->data;
+		AST_Type * paramType = typeVar->type;
+		SEM_Type * semParamType = Locic_SemanticAnalysis_ConvertType(context, paramType, SEM_TYPE_LVALUE);
 		
 		if(semParamType == NULL){
 			return NULL;
 		}
 		
-		semParamVar = SEM_MakeVar(SEM_VAR_PARAM, id, semParamType);
+		SEM_Var * semParamVar = SEM_MakeVar(SEM_VAR_PARAM, id, semParamType);
 		
+		Locic_List_Append(parameterTypes, semParamType);
 		Locic_List_Append(parameterVars, semParamVar);
 	}
 	
-	return SEM_MakeFunctionDecl(semReturnType, functionDecl->name, parameterVars);
+	SEM_Type * functionType = SEM_MakeFuncType(SEM_TYPE_MUTABLE, SEM_TYPE_RVALUE, semReturnType, parameterTypes);
+	
+	return SEM_MakeFunctionDecl(functionType, functionDecl->name, parameterVars);
 }
 
 int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
@@ -192,6 +223,32 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 			}
 			return 1;
 		}
+		case SEM_TYPE_FUNC:
+		{
+			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceType->funcType.returnType, destType->funcType.returnType)){
+				return 0;
+			}
+			
+			Locic_List * sourceList = sourceType->funcType.parameterTypes;
+			Locic_List * destList = destType->funcType.parameterTypes;
+			
+			if(Locic_List_Size(sourceList) != Locic_List_Size(destList)){
+				return 0;
+			}
+			
+			Locic_ListElement * sourceIt = Locic_List_Begin(sourceList);
+			Locic_ListElement * destIt = Locic_List_Begin(destList);
+			
+			while(sourceIt != Locic_List_End(sourceList)){
+				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceIt->data, destIt->data)){
+					return 0;
+				}
+				sourceIt = sourceIt->next;
+				destIt = destIt->next;
+			}
+			
+			return 1;
+		}
 		default:
 			return 0;
 	}
@@ -201,7 +258,8 @@ int Locic_SemanticAnalysis_CanDoImplicitCopy(Locic_SemanticContext * context, SE
 	switch(type->typeEnum){
 		case SEM_TYPE_BASIC:
 		case SEM_TYPE_PTR:
-			// Basic and pointer types can be copied implicitly.
+		case SEM_TYPE_FUNC:
+			// Basic, pointer and function types can be copied implicitly.
 			return 1;
 		default:
 			return 0;
@@ -276,29 +334,6 @@ SEM_Scope * Locic_SemanticAnalysis_ConvertScope(Locic_SemanticContext * context,
 	return semScope;
 }
 
-SEM_Var * Locic_SemanticAnalysis_ConvertVar(Locic_SemanticContext * context, AST_Var * var){
-	switch(var->type){
-		case AST_VAR_LOCAL:
-		{
-			SEM_Var * semVar = Locic_SemanticContext_FindLocalVar(context, var->localVar.name);
-			if(semVar != NULL){
-				return semVar;
-			}
-			
-			printf("Semantic Analysis Error: Local variable '%s' was not found\n", var->localVar.name);
-			return NULL; 
-		}
-		case AST_VAR_THIS:
-		{
-			printf("Semantic Analysis Error: Member variables not implemented.\n");
-			return NULL;
-		}
-		default:
-			printf("Internal Compiler Error: Unknown AST_Var type enum.\n");
-			return NULL;
-	}
-}
-
 SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * context, AST_Statement * statement){
 	switch(statement->type){
 		case AST_STATEMENT_VALUE:
@@ -344,7 +379,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				type->isLValue = SEM_TYPE_LVALUE;
 			}else{
 				// Using type annotation - verify that it is compatible with the type of the initial value.
-				type = Locic_SemanticAnalysis_ConvertType(context, typeAnnotation);
+				type = Locic_SemanticAnalysis_ConvertType(context, typeAnnotation, SEM_TYPE_LVALUE);
 				if(type == NULL){
 					return NULL;
 				}
@@ -414,7 +449,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, context->functionDecl->returnType)){
+			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, context->functionDecl->type->funcType.returnType)){
 				printf("Semantic Analysis Error: Cannot cast value in return statement to function's return type.\n");
 				return NULL;
 			}
@@ -447,13 +482,36 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 					return NULL;
 			}
 		}
-		case AST_VALUE_VARACCESS:
+		case AST_VALUE_VAR:
 		{
-			SEM_Var * var = Locic_SemanticAnalysis_ConvertVar(context, value->varAccess.var);
-			if(var == NULL){
-				return NULL;
+			AST_Var * synVar = value->varValue.var;
+			switch(synVar->type){
+				case AST_VAR_LOCAL:
+				{
+					SEM_Var * semVar = Locic_SemanticContext_FindLocalVar(context, synVar->localVar.name);
+					if(semVar != NULL){
+						return SEM_MakeVarValue(semVar);
+					}
+					
+					// Not a variable - try looking for functions.
+					SEM_FunctionDecl * decl = Locic_StringMap_Find(context->functionDeclarations, synVar->localVar.name);
+					
+					if(decl != NULL){
+						return SEM_MakeFunctionRef(decl, decl->type);
+					}
+					
+					printf("Semantic Analysis Error: Local variable '%s' was not found\n", synVar->localVar.name);
+					return NULL; 
+				}
+				case AST_VAR_THIS:
+				{
+					printf("Semantic Analysis Error: Member variables not implemented.\n");
+					return NULL;
+				}
+				default:
+					printf("Internal Compiler Error: Unknown AST_Var type enum.\n");
+					return NULL;
 			}
-			return SEM_MakeVarValue(var);
 		}
 		case AST_VALUE_UNARY:
 		{
@@ -668,10 +726,51 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			printf("Internal Compiler Error: Unimplemented member access.\n");
 			return NULL;
 		}
-		case AST_VALUE_METHODCALL:
+		case AST_VALUE_FUNCTIONCALL:
 		{
-			printf("Internal Compiler Error: Unimplemented method call.\n");
-			return NULL;
+			SEM_Value * functionValue = Locic_SemanticAnalysis_ConvertValue(context, value->functionCall.functionValue);
+			
+			if(functionValue == NULL){
+				return NULL;
+			}
+			
+			if(functionValue->type->typeEnum != SEM_TYPE_FUNC){
+				printf("Semantic Analysis Error: Can't call non-function type.\n");
+				return NULL;
+			}
+			
+			Locic_List * typeList = functionValue->type->funcType.parameterTypes;
+			Locic_List * synValueList = value->functionCall.parameters;
+			
+			if(Locic_List_Size(typeList) != Locic_List_Size(synValueList)){
+				printf("Semantic Analysis Error: Function called with %lu number of parameters; expected %lu.\n", Locic_List_Size(synValueList), Locic_List_Size(typeList));
+				return NULL;
+			}
+			
+			Locic_List * semValueList = Locic_List_Alloc();
+			
+			Locic_ListElement * typeIt = Locic_List_Begin(typeList);
+			Locic_ListElement * valueIt = Locic_List_Begin(synValueList);
+			
+			while(valueIt != Locic_List_End(synValueList)){
+				SEM_Value * param = Locic_SemanticAnalysis_ConvertValue(context, valueIt->data);
+				
+				if(param == NULL){
+					return NULL;
+				}
+			
+				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, param->type, typeIt->data)){
+					printf("Semantic Analysis Error: Cannot convert parameter value to type expected by function.\n");
+					return NULL;
+				}
+				
+				Locic_List_Append(semValueList, param);
+				
+				typeIt = typeIt->next;
+				valueIt = valueIt->next;
+			}
+			
+			return SEM_MakeFunctionCall(functionValue, semValueList, functionValue->type->funcType.returnType);
 		}
 		default:
 			printf("Internal Compiler Error: Unknown AST_Value type enum.\n");
