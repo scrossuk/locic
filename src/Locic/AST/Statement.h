@@ -22,10 +22,9 @@ typedef struct AST_VarDecl{
 	AST_Value * value;
 } AST_VarDecl;
 
-typedef struct AST_AssignVar{
-	AST_Var * var;
-	AST_Value * value;
-} AST_AssignVar;
+typedef struct AST_AssignStmt{
+	AST_Value * lValue, * rValue;
+} AST_AssignStmt;
 
 typedef struct AST_ReturnStmt{
 	AST_Value * value;
@@ -35,7 +34,7 @@ typedef enum AST_StatementType{
 	AST_STATEMENT_VALUE,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_VARDECL,
-	AST_STATEMENT_ASSIGNVAR,
+	AST_STATEMENT_ASSIGN,
 	AST_STATEMENT_RETURN
 } AST_StatementType;
 	
@@ -46,7 +45,7 @@ typedef struct AST_Statement{
 		AST_ValueStmt valueStmt;
 		AST_IfStmt ifStmt;
 		AST_VarDecl varDecl;
-		AST_AssignVar assignVar;
+		AST_AssignStmt assignStmt;
 		AST_ReturnStmt returnStmt;
 	};
 } AST_Statement;
@@ -59,7 +58,7 @@ AST_Statement * AST_MakeVarDecl(AST_Type * type, char * varName, AST_Value * val
 
 AST_Statement * AST_MakeAutoVarDecl(char * varName, AST_Value * value);
 
-AST_Statement * AST_MakeAssignVar(AST_Var * var, AST_Value * value);
+AST_Statement * AST_MakeAssign(AST_Value * lValue, AST_Value * rValue);
 
 AST_Statement * AST_MakeReturn(AST_Value * value);
 

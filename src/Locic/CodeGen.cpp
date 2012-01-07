@@ -174,9 +174,17 @@ class CodeGen{
 			
 			genScope(functionDef->scope);
 			
+			// Check the generated function is correct.
 			verifyFunction(*currentFunction_);
 			
-			//fpm_.run(*currentFunction_);
+			std::cout << "---Before optimisation:" << std::endl;
+			
+			module_->dump();
+			
+			std::cout << "---Running optimisations..." << std::endl;
+			
+			// Run optimisations.
+			fpm_.run(*currentFunction_);
 			
 			paramVariables_.clear();
 			localVariables_.clear();
@@ -210,20 +218,12 @@ class CodeGen{
 				case SEM_STATEMENT_IF:
 					std::cout << "CodeGen error: Unimplemented IF statement." << std::endl;
 					break;
-				case SEM_STATEMENT_ASSIGNVAR:
+				case SEM_STATEMENT_ASSIGN:
 				{
-					SEM_Var * var = statement->assignVar.var;
-					switch(var->varType){
-						case SEM_VAR_LOCAL:
-						{
-							builder_.CreateStore(genValue(statement->assignVar.value), localVariables_[var->varId]);
-							break;
-						}
-						case SEM_VAR_THIS:
-							break;
-						default:
-							std::cout << "CodeGen error: Unknown variable type in assignment statement." << std::endl;
-					}
+					SEM_Value * lValue = statement->assignStmt.lValue;
+					SEM_Value * rValue = statement->assignStmt.rValue;
+					
+					builder_.CreateStore(genValue(rValue), genValue(lValue, true));
 					break;
 				}
 				case SEM_STATEMENT_RETURN:
@@ -250,9 +250,13 @@ class CodeGen{
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
-				case SEM_VALUE_VARACCESS:
+				case SEM_VALUE_COPY:
 				{
-					SEM_Var * var = value->varAccess.var;
+					return genValue(value->copyValue.value);
+				}
+				case SEM_VALUE_VAR:
+				{
+					SEM_Var * var = value->varValue.var;
 					switch(var->varType){
 						case SEM_VAR_PARAM:
 						{
@@ -281,7 +285,6 @@ class CodeGen{
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 						}
 					}
-					return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 				}
 				case SEM_VALUE_UNARY:
 				{

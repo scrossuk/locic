@@ -197,6 +197,17 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 	}
 }
 
+int Locic_SemanticAnalysis_CanDoImplicitCopy(Locic_SemanticContext * context, SEM_Type * type){
+	switch(type->typeEnum){
+		case SEM_TYPE_BASIC:
+		case SEM_TYPE_PTR:
+			// Basic and pointer types can be copied implicitly.
+			return 1;
+		default:
+			return 0;
+	}
+}
+
 SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContext * context, AST_FunctionDef * functionDef){
 	// Find the corresponding semantic function declaration.
 	SEM_FunctionDecl * semFunctionDecl = Locic_StringMap_Find(context->functionDeclarations, functionDef->declaration->name);
@@ -314,9 +325,12 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			if(semValue->type->typeEnum == SEM_TYPE_CLASS){
-				if(semValue->type->isLValue == SEM_TYPE_LVALUE){
-					printf("Semantic Analysis Error: Cannot assign l-value to variable.\n");
+			if(semValue->type->isLValue == SEM_TYPE_LVALUE){
+				if(Locic_SemanticAnalysis_CanDoImplicitCopy(context, semValue->type)){
+					// If possible, an implicit copy can create an r-value.
+					semValue = SEM_MakeCopyValue(semValue);
+				}else{
+					printf("Semantic Analysis Error: Cannot assign l-value in declaration (must be copied or emptied).\n");
 					return NULL;
 				}
 			}
@@ -336,7 +350,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				}
 				
 				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, type)){
-					printf("Semantic Analysis Error: Cannot cast variable's initial value type to annotated type.\n");
+					printf("Semantic Analysis Error: Cannot cast variable's initial value type to annotated type in declaration.\n");
 					return NULL;
 				}
 			}
@@ -347,31 +361,46 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			return SEM_MakeAssignVar(semVar, semValue);
+			return SEM_MakeAssign(SEM_MakeVarValue(semVar), semValue);
 		}
-		case AST_STATEMENT_ASSIGNVAR:
+		case AST_STATEMENT_ASSIGN:
 		{
-			SEM_Var * semVar = Locic_SemanticAnalysis_ConvertVar(context, statement->assignVar.var);
-			if(semVar == NULL){
+			SEM_Value * lValue = Locic_SemanticAnalysis_ConvertValue(context, statement->assignStmt.lValue);
+			if(lValue == NULL){
 				return NULL;
 			}
 			
-			if(semVar->type->isMutable == SEM_TYPE_CONST){
-				printf("Semantic Analysis Error: Cannot assign to const variable.\n");
+			if(lValue->type->isMutable == SEM_TYPE_CONST){
+				printf("Semantic Analysis Error: Cannot assign to const value.\n");
 				return NULL;
 			}
 			
-			SEM_Value * semValue = Locic_SemanticAnalysis_ConvertValue(context, statement->assignVar.value);
-			if(semValue == NULL){
+			if(lValue->type->isLValue == SEM_TYPE_RVALUE){
+				printf("Semantic Analysis Error: Cannot assign to r-value.\n");
 				return NULL;
 			}
 			
-			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, semVar->type)){
-				printf("Semantic Analysis Error: Cannot cast value to variable's type in assignment statement.\n");
+			SEM_Value * rValue = Locic_SemanticAnalysis_ConvertValue(context, statement->assignStmt.rValue);
+			if(rValue == NULL){
 				return NULL;
 			}
 			
-			return SEM_MakeAssignVar(semVar, semValue);
+			if(rValue->type->isLValue == SEM_TYPE_LVALUE){
+				if(Locic_SemanticAnalysis_CanDoImplicitCopy(context, rValue->type)){
+					// If possible, an implicit copy can create an r-value.
+					rValue = SEM_MakeCopyValue(rValue);
+				}else{
+					printf("Semantic Analysis Error: Cannot assign l-value (must be copied or emptied).\n");
+					return NULL;
+				}
+			}
+			
+			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, rValue->type, lValue->type)){
+				printf("Semantic Analysis Error: Cannot cast r-value to l-value's type in assignment statement.\n");
+				return NULL;
+			}
+			
+			return SEM_MakeAssign(lValue, rValue);
 		}
 		case AST_STATEMENT_RETURN:
 		{
@@ -424,7 +453,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			if(var == NULL){
 				return NULL;
 			}
-			return SEM_MakeVarAccess(var);
+			return SEM_MakeVarValue(var);
 		}
 		case AST_VALUE_UNARY:
 		{

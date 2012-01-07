@@ -32,11 +32,11 @@ SEM_Statement * SEM_MakeIf(SEM_Value * cond, SEM_Scope * ifTrue, SEM_Scope * ifF
 
 /* SEM_AssignVar */
 
-SEM_Statement * SEM_MakeAssignVar(SEM_Var * var, SEM_Value * value){
-	SEM_Statement * statement = SEM_AllocateStatement(SEM_STATEMENT_ASSIGNVAR);
-	SEM_AssignVar * assignVar = &(statement->assignVar);
-	assignVar->var = var;
-	assignVar->value = value;
+SEM_Statement * SEM_MakeAssign(SEM_Value * lValue, SEM_Value * rValue){
+	SEM_Statement * statement = SEM_AllocateStatement(SEM_STATEMENT_ASSIGN);
+	SEM_AssignStmt * assignStmt = &(statement->assignStmt);
+	assignStmt->lValue = lValue;
+	assignStmt->rValue = rValue;
 	return statement;
 }
 

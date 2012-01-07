@@ -45,13 +45,13 @@ AST_Statement * AST_MakeAutoVarDecl(char * varName, AST_Value * value){
 	return AST_MakeVarDecl(NULL, varName, value);
 }
 
-/* AST_AssignVar */
+/* AST_AssignStmt */
 
-AST_Statement * AST_MakeAssignVar(AST_Var * var, AST_Value * value){
-	AST_Statement * statement = AST_AllocateStatement(AST_STATEMENT_ASSIGNVAR);
-	AST_AssignVar * assignVar = &(statement->assignVar);
-	assignVar->var = var;
-	assignVar->value = value;
+AST_Statement * AST_MakeAssign(AST_Value * lValue, AST_Value * rValue){
+	AST_Statement * statement = AST_AllocateStatement(AST_STATEMENT_ASSIGN);
+	AST_AssignStmt * assignStmt = &(statement->assignStmt);
+	assignStmt->lValue = lValue;
+	assignStmt->rValue = rValue;
 	return statement;
 }
 

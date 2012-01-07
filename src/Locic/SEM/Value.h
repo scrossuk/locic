@@ -5,6 +5,13 @@
 #include <Locic/SEM/Function.h>
 #include <Locic/SEM/Var.h>
 
+typedef enum SEM_OpType{
+	SEM_OP_BOOL,
+	SEM_OP_INT,
+	SEM_OP_FLOAT,
+	SEM_OP_PTR
+} SEM_OpType;
+
 typedef enum SEM_ConstantType{
 	SEM_CONSTANT_BOOL,
 	SEM_CONSTANT_INT,
@@ -21,16 +28,13 @@ typedef struct SEM_Constant{
 	};
 } SEM_Constant;
 
-typedef struct SEM_VarAccess{
-	SEM_Var * var;
-} SEM_VarAccess;
+typedef struct SEM_CopyValue{
+	struct SEM_Value * value;
+} SEM_CopyValue;
 
-typedef enum SEM_OpType{
-	SEM_OP_BOOL,
-	SEM_OP_INT,
-	SEM_OP_FLOAT,
-	SEM_OP_PTR
-} SEM_OpType;
+typedef struct SEM_VarValue{
+	SEM_Var * var;
+} SEM_VarValue;
 
 typedef enum SEM_UnaryType{
 	SEM_UNARY_PLUS,
@@ -89,7 +93,8 @@ typedef struct SEM_MethodCall{
 
 typedef enum SEM_ValueType{
 	SEM_VALUE_CONSTANT,
-	SEM_VALUE_VARACCESS,
+	SEM_VALUE_COPY,
+	SEM_VALUE_VAR,
 	SEM_VALUE_UNARY,
 	SEM_VALUE_BINARY,
 	SEM_VALUE_TERNARY,
@@ -104,7 +109,8 @@ typedef struct SEM_Value{
 	
 	union{
 		SEM_Constant constant;
-		SEM_VarAccess varAccess;
+		SEM_CopyValue copyValue;
+		SEM_VarValue varValue;
 		SEM_Unary unary;
 		SEM_Binary binary;
 		SEM_Ternary ternary;
@@ -120,7 +126,9 @@ SEM_Value * SEM_MakeIntConstant(int val);
 
 SEM_Value * SEM_MakeFloatConstant(float val);
 
-SEM_Value * SEM_MakeVarAccess(SEM_Var * var);
+SEM_Value * SEM_MakeCopyValue(SEM_Value * operand);
+
+SEM_Value * SEM_MakeVarValue(SEM_Var * var);
 
 SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_OpType opType, SEM_Value * operand, SEM_Type * type);
 

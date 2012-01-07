@@ -295,14 +295,9 @@ statement(S) ::= type(T) lcName(N) SETEQUAL value(V) SEMICOLON.
 		S = AST_MakeVarDecl(T, N, V);
 	}
 
-statement(S) ::= lcName(N) SETEQUAL value(V) SEMICOLON.
+statement(S) ::= value(LV) SETEQUAL value(RV) SEMICOLON.
 	{
-		S = AST_MakeAssignVar(AST_MakeLocalVar(N), V);
-	}
-
-statement(S) ::= AT lcName(N) SETEQUAL value(V) SEMICOLON.
-	{
-		S = AST_MakeAssignVar(AST_MakeThisVar(N), V);
+		S = AST_MakeAssign(LV, RV);
 	}
 
 statement(S) ::= value(V) SEMICOLON.

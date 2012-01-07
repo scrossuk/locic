@@ -39,11 +39,23 @@ SEM_Value * SEM_MakeFloatConstant(float val){
 	return value;
 }
 
-/* SEM_Var */
+/* SEM_CopyValue */
 
-SEM_Value * SEM_MakeVarAccess(SEM_Var * var){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_VARACCESS);
-	(value->varAccess).var = var;
+SEM_Value * SEM_MakeCopyValue(SEM_Value * operand){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_COPY);
+	(value->copyValue).value = operand;
+	
+	SEM_Type * type = SEM_CopyType(operand->type);
+	type->isLValue = SEM_TYPE_RVALUE;
+	value->type = type;
+	return value;
+}
+
+/* SEM_VarValue */
+
+SEM_Value * SEM_MakeVarValue(SEM_Var * var){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_VAR);
+	(value->varValue).var = var;
 	value->type = var->type;
 	return value;
 }
