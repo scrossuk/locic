@@ -442,9 +442,9 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						typeCopy->isLValue = SEM_TYPE_RVALUE;
 						SEM_BasicTypeEnum basicType = typeCopy->basicType.typeEnum;
 						if(basicType == SEM_TYPE_BASIC_INT){
-							return SEM_MakeUnaryInt(SEM_UNARY_INT_PLUS, operand, typeCopy);
+							return SEM_MakeUnary(SEM_UNARY_PLUS, SEM_OP_INT, operand, typeCopy);
 						}else if(basicType == SEM_TYPE_BASIC_FLOAT){
-							return SEM_MakeUnaryFloat(SEM_UNARY_FLOAT_PLUS, operand, typeCopy);
+							return SEM_MakeUnary(SEM_UNARY_PLUS, SEM_OP_FLOAT, operand, typeCopy);
 						}
 					}
 					printf("Semantic Analysis Error: Unary plus on non-numeric type.\n");
@@ -458,9 +458,9 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						typeCopy->isLValue = SEM_TYPE_RVALUE;
 						SEM_BasicTypeEnum basicType = typeCopy->basicType.typeEnum;
 						if(basicType == SEM_TYPE_BASIC_INT){
-							return SEM_MakeUnaryInt(SEM_UNARY_INT_MINUS, operand, typeCopy);
+							return SEM_MakeUnary(SEM_UNARY_MINUS, SEM_OP_INT, operand, typeCopy);
 						}else if(basicType == SEM_TYPE_BASIC_FLOAT){
-							return SEM_MakeUnaryFloat(SEM_UNARY_FLOAT_MINUS, operand, typeCopy);
+							return SEM_MakeUnary(SEM_UNARY_MINUS, SEM_OP_FLOAT, operand, typeCopy);
 						}
 					}
 					printf("Semantic Analysis Error: Unary minus on non-numeric type.\n");
@@ -468,17 +468,17 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_UNARY_ADDRESSOF:
 				{
-					if(operand->type->isLValue == SEM_TYPE_RVALUE){
-						printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
-						return NULL;
+					if(operand->type->isLValue == SEM_TYPE_LVALUE){
+						return SEM_MakeUnary(SEM_UNARY_ADDRESSOF, SEM_OP_PTR, operand, SEM_MakePtrType(SEM_TYPE_MUTABLE, SEM_TYPE_RVALUE, operand->type));
 					}
 					
-					return SEM_MakeUnaryPointer(SEM_UNARY_POINTER_ADDRESSOF, operand, SEM_MakePtrType(SEM_TYPE_MUTABLE, SEM_TYPE_RVALUE, operand->type));
+					printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
+					return NULL;
 				}
 				case AST_UNARY_DEREF:
 				{
 					if(operand->type->typeEnum == SEM_TYPE_PTR){
-						return SEM_MakeUnaryPointer(SEM_UNARY_POINTER_DEREF, operand, operand->type->ptrType.ptrType);
+						return SEM_MakeUnary(SEM_UNARY_DEREF, SEM_OP_PTR, operand, operand->type->ptrType.ptrType);
 					}
 					
 					printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
@@ -486,7 +486,16 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				}
 				case AST_UNARY_NOT:
 				{
-					printf("Semantic Analysis Error: Unimplemented NOT unary operation.\n");
+					if(operand->type->typeEnum == SEM_TYPE_BASIC){
+						SEM_Type * typeCopy = SEM_CopyType(operand->type);
+						typeCopy->isMutable = SEM_TYPE_MUTABLE;
+						typeCopy->isLValue = SEM_TYPE_RVALUE;
+						if(typeCopy->basicType.typeEnum == SEM_TYPE_BASIC_BOOL){
+							return SEM_MakeUnary(SEM_UNARY_NOT, SEM_OP_BOOL, operand, typeCopy);
+						}
+					}
+					
+					printf("Semantic Analysis Error: Unary NOT on non-bool type.\n");
 					return NULL;
 				}
 				default:
@@ -510,11 +519,16 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						SEM_BasicTypeEnum leftBasicType, rightBasicType;
 						leftBasicType = leftOperand->type->basicType.typeEnum;
 						rightBasicType = rightOperand->type->basicType.typeEnum;
-						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
-							&& leftBasicType == rightBasicType){
+						
+						if(leftBasicType == rightBasicType){
 							SEM_Type * typeCopy = SEM_CopyType(leftOperand->type);
 							typeCopy->isLValue = SEM_TYPE_RVALUE;
-							return SEM_MakeBinary(SEM_BINARY_ADD, leftOperand, rightOperand, typeCopy);
+							
+							if(leftBasicType == SEM_TYPE_BASIC_INT){
+								return SEM_MakeBinary(SEM_BINARY_ADD, SEM_OP_INT, leftOperand, rightOperand, typeCopy);
+							}else if(leftBasicType == SEM_TYPE_BASIC_FLOAT){
+								return SEM_MakeBinary(SEM_BINARY_ADD, SEM_OP_FLOAT, leftOperand, rightOperand, typeCopy);
+							}
 						}
 					}
 					printf("Semantic Analysis Error: Addition between non-numeric or non-identical types.\n");
@@ -526,11 +540,16 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						SEM_BasicTypeEnum leftBasicType, rightBasicType;
 						leftBasicType = leftOperand->type->basicType.typeEnum;
 						rightBasicType = rightOperand->type->basicType.typeEnum;
-						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
-							&& leftBasicType == rightBasicType){
+						
+						if(leftBasicType == rightBasicType){
 							SEM_Type * typeCopy = SEM_CopyType(leftOperand->type);
 							typeCopy->isLValue = SEM_TYPE_RVALUE;
-							return SEM_MakeBinary(SEM_BINARY_SUBTRACT, leftOperand, rightOperand, typeCopy);
+							
+							if(leftBasicType == SEM_TYPE_BASIC_INT){
+								return SEM_MakeBinary(SEM_BINARY_SUBTRACT, SEM_OP_INT, leftOperand, rightOperand, typeCopy);
+							}else if(leftBasicType == SEM_TYPE_BASIC_FLOAT){
+								return SEM_MakeBinary(SEM_BINARY_SUBTRACT, SEM_OP_FLOAT, leftOperand, rightOperand, typeCopy);
+							}
 						}
 					}
 					printf("Semantic Analysis Error: Subtraction between non-numeric or non-identical types.\n");
@@ -542,11 +561,16 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						SEM_BasicTypeEnum leftBasicType, rightBasicType;
 						leftBasicType = leftOperand->type->basicType.typeEnum;
 						rightBasicType = rightOperand->type->basicType.typeEnum;
-						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
-							&& leftBasicType == rightBasicType){
+						
+						if(leftBasicType == rightBasicType){
 							SEM_Type * typeCopy = SEM_CopyType(leftOperand->type);
 							typeCopy->isLValue = SEM_TYPE_RVALUE;
-							return SEM_MakeBinary(SEM_BINARY_MULTIPLY, leftOperand, rightOperand, typeCopy);
+							
+							if(leftBasicType == SEM_TYPE_BASIC_INT){
+								return SEM_MakeBinary(SEM_BINARY_MULTIPLY, SEM_OP_INT, leftOperand, rightOperand, typeCopy);
+							}else if(leftBasicType == SEM_TYPE_BASIC_FLOAT){
+								return SEM_MakeBinary(SEM_BINARY_MULTIPLY, SEM_OP_FLOAT, leftOperand, rightOperand, typeCopy);
+							}
 						}
 					}
 					printf("Semantic Analysis Error: Multiplication between non-numeric or non-identical types.\n");
@@ -558,11 +582,16 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 						SEM_BasicTypeEnum leftBasicType, rightBasicType;
 						leftBasicType = leftOperand->type->basicType.typeEnum;
 						rightBasicType = rightOperand->type->basicType.typeEnum;
-						if((leftBasicType == SEM_TYPE_BASIC_INT || leftBasicType == SEM_TYPE_BASIC_FLOAT)
-							&& leftBasicType == rightBasicType){
+						
+						if(leftBasicType == rightBasicType){
 							SEM_Type * typeCopy = SEM_CopyType(leftOperand->type);
 							typeCopy->isLValue = SEM_TYPE_RVALUE;
-							return SEM_MakeBinary(SEM_BINARY_DIVIDE, leftOperand, rightOperand, typeCopy);
+							
+							if(leftBasicType == SEM_TYPE_BASIC_INT){
+								return SEM_MakeBinary(SEM_BINARY_DIVIDE, SEM_OP_INT, leftOperand, rightOperand, typeCopy);
+							}else if(leftBasicType == SEM_TYPE_BASIC_FLOAT){
+								return SEM_MakeBinary(SEM_BINARY_DIVIDE, SEM_OP_FLOAT, leftOperand, rightOperand, typeCopy);
+							}
 						}
 					}
 					printf("Semantic Analysis Error: Division between non-numeric or non-identical types.\n");

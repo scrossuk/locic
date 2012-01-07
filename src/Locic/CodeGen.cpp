@@ -176,7 +176,7 @@ class CodeGen{
 			
 			verifyFunction(*currentFunction_);
 			
-			fpm_.run(*currentFunction_);
+			//fpm_.run(*currentFunction_);
 			
 			paramVariables_.clear();
 			localVariables_.clear();
@@ -283,67 +283,72 @@ class CodeGen{
 					}
 					return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 				}
-				case SEM_VALUE_UNARY_BOOL:
+				case SEM_VALUE_UNARY:
 				{
-					switch(value->unaryBool.type){
-						case SEM_UNARY_BOOL_NOT:
-							return builder_.CreateNot(genValue(value->unaryBool.value));
-						default:
-							std::cout << "CodeGen error: Unknown unary bool operand." << std::endl;
-							return genValue(value->unaryBool.value);
-					}
-				}
-				case SEM_VALUE_UNARY_INT:
-				{
-					switch(value->unaryInt.type){
-						case SEM_UNARY_INT_PLUS:
-							return genValue(value->unaryInt.value);
-						case SEM_UNARY_INT_MINUS:
-							return builder_.CreateNeg(genValue(value->unaryInt.value));
-						default:
-							std::cout << "CodeGen error: Unknown unary int operand." << std::endl;
-							return genValue(value->unaryInt.value);
-					}
-				}
-				case SEM_VALUE_UNARY_FLOAT:
-				{
-					switch(value->unaryFloat.type){
-						case SEM_UNARY_FLOAT_PLUS:
-							return genValue(value->unaryFloat.value);
-						case SEM_UNARY_FLOAT_MINUS:
-							return builder_.CreateFNeg(genValue(value->unaryFloat.value));
-						default:
-							std::cout << "CodeGen error: Unknown unary float operand." << std::endl;
-							return genValue(value->unaryFloat.value);
-					}
-				}
-				case SEM_VALUE_UNARY_POINTER:
-				{
-					switch(value->unaryPointer.type){
-						case SEM_UNARY_POINTER_ADDRESSOF:
-							return genValue(value->unaryPointer.value, true);
-						case SEM_UNARY_POINTER_DEREF:
+					SEM_OpType opType = value->unary.opType;
+					switch(value->unary.type){
+						case SEM_UNARY_PLUS:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							return genValue(value->unary.value);
+						case SEM_UNARY_MINUS:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateNeg(genValue(value->unary.value));
+							}else if(opType == SEM_OP_FLOAT){
+								return builder_.CreateFNeg(genValue(value->unary.value));
+							}
+						case SEM_UNARY_NOT:
+							assert(opType == SEM_OP_BOOL);
+							return builder_.CreateNot(genValue(value->unary.value));
+						case SEM_UNARY_ADDRESSOF:
+							assert(opType == SEM_OP_PTR);
+							return genValue(value->unary.value, true);
+						case SEM_UNARY_DEREF:
+							assert(opType == SEM_OP_PTR);
 							if(genLValue){
-								return genValue(value->unaryPointer.value);
+								return genValue(value->unary.value);
 							}else{
-								return builder_.CreateLoad(genValue(value->unaryPointer.value));
+								return builder_.CreateLoad(genValue(value->unary.value));
 							}
 						default:
-							std::cout << "CodeGen error: Unknown unary pointer operand." << std::endl;
-							return genValue(value->unaryPointer.value);
+							std::cout << "CodeGen error: Unknown unary bool operand." << std::endl;
+							return genValue(value->unary.value);
 					}
 				}
 				case SEM_VALUE_BINARY:
 				{
+					SEM_OpType opType = value->binary.opType;
 					switch(value->binary.type){
 						case SEM_BINARY_ADD:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFAdd(genValue(value->binary.left), genValue(value->binary.right));
+							}
 							return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
 						case SEM_BINARY_SUBTRACT:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFSub(genValue(value->binary.left), genValue(value->binary.right));
+							}
 							return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
 						case SEM_BINARY_MULTIPLY:
-							return builder_.CreateMul(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateMul(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFMul(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						case SEM_BINARY_DIVIDE:
-							return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFDiv(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						case SEM_BINARY_ISEQUAL:
 							return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
 						case SEM_BINARY_NOTEQUAL:

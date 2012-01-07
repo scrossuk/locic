@@ -50,37 +50,11 @@ SEM_Value * SEM_MakeVarAccess(SEM_Var * var){
 
 /* SEM_Unary */
 
-SEM_Value * SEM_MakeUnaryBool(SEM_UnaryBoolType unaryType, SEM_Value * operand, SEM_Type * type){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_BOOL);
-	SEM_UnaryBool * unary = &(value->unaryBool);
+SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_OpType opType, SEM_Value * operand, SEM_Type * type){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY);
+	SEM_Unary * unary = &(value->unary);
 	unary->type = unaryType;
-	unary->value = operand;
-	value->type = type;
-	return value;
-}
-
-SEM_Value * SEM_MakeUnaryInt(SEM_UnaryIntType unaryType, SEM_Value * operand, SEM_Type * type){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_INT);
-	SEM_UnaryInt * unary = &(value->unaryInt);
-	unary->type = unaryType;
-	unary->value = operand;
-	value->type = type;
-	return value;
-}
-
-SEM_Value * SEM_MakeUnaryFloat(SEM_UnaryFloatType unaryType, SEM_Value * operand, SEM_Type * type){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_FLOAT);
-	SEM_UnaryFloat * unary = &(value->unaryFloat);
-	unary->type = unaryType;
-	unary->value = operand;
-	value->type = type;
-	return value;
-}
-
-SEM_Value * SEM_MakeUnaryPointer(SEM_UnaryPointerType unaryType, SEM_Value * operand, SEM_Type * type){
-	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_UNARY_POINTER);
-	SEM_UnaryPointer * unary = &(value->unaryPointer);
-	unary->type = unaryType;
+	unary->opType = opType;
 	unary->value = operand;
 	value->type = type;
 	return value;
@@ -88,10 +62,11 @@ SEM_Value * SEM_MakeUnaryPointer(SEM_UnaryPointerType unaryType, SEM_Value * ope
 
 /* SEM_Binary */
 
-SEM_Value * SEM_MakeBinary(SEM_BinaryType binaryType, SEM_Value * left, SEM_Value * right, SEM_Type * type){
+SEM_Value * SEM_MakeBinary(SEM_BinaryType binaryType, SEM_OpType opType, SEM_Value * left, SEM_Value * right, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_BINARY);
 	SEM_Binary * binary = &(value->binary);
 	binary->type = binaryType;
+	binary->opType = opType;
 	binary->left = left;
 	binary->right = right;
 	value->type = type;
