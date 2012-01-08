@@ -10,7 +10,7 @@
 #include <Locic/ParserContext.h>
 #include <Locic/Token.h>
 #include <Locic/CodeGen/CodeGen.h>
-#include <Locic/SemanticAnalysis/SemanticAnalysis.h>
+#include <Locic/SemanticAnalysis.h>
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 

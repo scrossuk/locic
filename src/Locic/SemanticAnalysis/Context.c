@@ -1,54 +1,92 @@
 #include <assert.h>
 #include <stdio.h>
-#include <Locic/SemanticAnalysis/SemanticContext.h>
+#include <Locic/SemanticAnalysis/Context.h>
+
+/* Functions for checking semantic analysis context invariants. */
+
+static void CheckFunctionDataCleared(Locic_SemanticContext * context){
+	// Check that the function data is cleared.
+	// (i.e. that EndFunction was called).
+	assert(context->functionDecl == NULL);
+	assert(context->functionContext.nextVarId == 0);
+	assert(Locic_StringMap_Size(context->functionContext.parameters) == 0);
+}
+
+static void CheckClassDataCleared(Locic_SemanticContext * context){
+	// Check that there are no scopes on the stack.
+	assert(Locic_Stack_Size(context->scopeStack) == 0);
+
+	// Check that the class data is cleared.
+	// (i.e. that EndClass was called).
+	assert(context->classDecl == NULL);
+	assert(context->functionContext.nextVarId == 0);
+	assert(Locic_StringMap_Size(context->functionContext.parameters) == 0);
+}
+
+/* Semantic Analysis Context implementation. */
 
 Locic_SemanticContext * Locic_SemanticContext_Alloc(){
 	Locic_SemanticContext * context = malloc(sizeof(Locic_SemanticContext));
+	context->classDecl = NULL;
+	context->functionDecl = NULL;
+	
 	context->functionDeclarations = Locic_StringMap_Alloc();
 	context->classDeclarations = Locic_StringMap_Alloc();
 	
-	context->classContext = malloc(sizeof(Locic_SemanticContext_Class));
-	context->classContext->memberVariables = Locic_StringMap_Alloc();
+	context->classContext.memberVariables = Locic_StringMap_Alloc();
 	
-	context->functionContext = malloc(sizeof(Locic_SemanticContext_Function));
-	context->functionContext->parameters = Locic_StringMap_Alloc();
-	context->functionContext->nextVarId = 0;
+	context->functionContext.parameters = Locic_StringMap_Alloc();
+	context->functionContext.nextVarId = 0;
 	
 	context->scopeStack = Locic_Stack_Alloc();
 }
 
 void Locic_SemanticContext_Free(Locic_SemanticContext * context){
+	// Check function and class data is cleared.
+	CheckFunctionDataCleared(context);
+	CheckClassDataCleared(context);
+	
 	Locic_StringMap_Free(context->functionDeclarations);
 	Locic_StringMap_Free(context->classDeclarations);
-	
-	Locic_StringMap_Free(context->classContext->memberVariables);
-	free(context->classContext);
-	Locic_StringMap_Free(context->functionContext->parameters);
-	free(context->functionContext);
+	Locic_StringMap_Free(context->classContext.memberVariables);
+	Locic_StringMap_Free(context->functionContext.parameters);
 	Locic_StringMap_Free(context->scopeStack);
 	free(context);
 }
 
-void Locic_SemanticContext_StartFunction(Locic_SemanticContext * context, SEM_ClassDecl * classDecl, SEM_FunctionDecl * functionDecl){
-	// Clear class data.
-	Locic_StringMap_Clear(context->classContext->memberVariables);
-	assert(Locic_Stack_Size(context->scopeStack) == 0);
+void Locic_SemanticContext_StartClass(Locic_SemanticContext * context, SEM_ClassDecl * classDecl){
+	// Check function and class data is cleared.
+	CheckFunctionDataCleared(context);
+	CheckClassDataCleared(context);
 	
-	// Clear function data.
-	context->functionContext->nextVarId = 0;
-	Locic_StringMap_Clear(context->functionContext->parameters);
-	assert(Locic_Stack_Size(context->scopeStack) == 0);
-	
-	// Set class and function declarations.
 	context->classDecl = classDecl;
+}
+
+void Locic_SemanticContext_EndClass(Locic_SemanticContext * context){
+	// Clear class data.
+	Locic_StringMap_Clear(context->classContext.memberVariables);
+	context->classDecl = NULL;
+	
+	// Check function and class data is cleared.
+	CheckFunctionDataCleared(context);
+	CheckClassDataCleared(context);
+}
+
+void Locic_SemanticContext_StartFunction(Locic_SemanticContext * context, SEM_FunctionDecl * functionDecl){
+	// Check function data is cleared.
+	CheckFunctionDataCleared(context);
+	
 	context->functionDecl = functionDecl;
 }
 
 void Locic_SemanticContext_EndFunction(Locic_SemanticContext * context){
 	// Clear function data.
-	context->functionContext->nextVarId = 0;
-	Locic_StringMap_Clear(context->functionContext->parameters);
-	assert(Locic_Stack_Size(context->scopeStack) == 0);
+	context->functionDecl = NULL;
+	context->functionContext.nextVarId = 0;
+	Locic_StringMap_Clear(context->functionContext.parameters);
+	
+	// Check function data is cleared.
+	CheckFunctionDataCleared(context);
 }
 
 void Locic_SemanticContext_PushScope(Locic_SemanticContext * context, SEM_Scope * scope){
@@ -71,7 +109,7 @@ Locic_SemanticContext_Scope * Locic_SemanticContext_TopScope(Locic_SemanticConte
 
 SEM_Var * Locic_SemanticContext_DefineLocalVar(Locic_SemanticContext * context, const char * varName, SEM_Type * varType){
 	Locic_SemanticContext_Scope * currentScope = Locic_SemanticContext_TopScope(context);
-	SEM_Var * semVar = SEM_MakeVar(SEM_VAR_LOCAL, context->functionContext->nextVarId++, varType);
+	SEM_Var * semVar = SEM_MakeVar(SEM_VAR_LOCAL, context->functionContext.nextVarId++, varType);
 	
 	// Add to local variable name map for this scope.
 	SEM_Var * existingVar = Locic_StringMap_Insert(currentScope->localVariables, varName, semVar);
@@ -98,7 +136,7 @@ SEM_Var * Locic_SemanticContext_FindLocalVar(Locic_SemanticContext * context, co
 	}
 	
 	// Variable not found in local variables => look in function parameters.
-	SEM_Var * varEntry = Locic_StringMap_Find(context->functionContext->parameters, varName);
+	SEM_Var * varEntry = Locic_StringMap_Find(context->functionContext.parameters, varName);
 	if(varEntry != NULL){
 		return varEntry;
 	}

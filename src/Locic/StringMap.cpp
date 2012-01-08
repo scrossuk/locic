@@ -65,5 +65,11 @@ extern "C" {
 		}
 	}
 	
+	size_t Locic_StringMap_Size(void * stringMap){
+		assert(stringMap != NULL);
+		MapType* map = reinterpret_cast<MapType*>(stringMap);
+		return map->size();
+	}
+	
 }
 

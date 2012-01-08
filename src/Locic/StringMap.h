@@ -20,6 +20,8 @@ void * Locic_StringMap_Insert(Locic_StringMap stringMap, const char * str, void 
 
 void * Locic_StringMap_Erase(Locic_StringMap stringMap, const char * str);
 
+size_t Locic_StringMap_Size(Locic_StringMap stringMap);
+
 #ifdef __cplusplus
 }
 #endif
