@@ -18,8 +18,8 @@
 #include <map>
 #include <string>
 
-#include <Locic/CodeGen.h>
 #include <Locic/SEM.h>
+#include <Locic/CodeGen/CodeGen.h>
 
 using namespace llvm;
 

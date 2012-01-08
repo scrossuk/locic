@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
-#include <Locic/SemanticContext.h>
+#include <Locic/SemanticAnalysis/SemanticContext.h>
 
 Locic_SemanticContext * Locic_SemanticContext_Alloc(){
 	Locic_SemanticContext * context = malloc(sizeof(Locic_SemanticContext));

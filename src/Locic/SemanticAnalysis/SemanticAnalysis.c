@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <Locic/SEM.h>
-#include <Locic/SemanticAnalysis.h>
-#include <Locic/SemanticContext.h>
+#include <Locic/SemanticAnalysis/SemanticAnalysis.h>
+#include <Locic/SemanticAnalysis/SemanticContext.h>
 
 SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup){
 	Locic_SemanticContext * context = Locic_SemanticContext_Alloc();

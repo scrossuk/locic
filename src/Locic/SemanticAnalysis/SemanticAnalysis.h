@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEMANTICANALYSIS_H
-#define LOCIC_SEMANTICANALYSIS_H
+#ifndef LOCIC_SEMANTICANALYSIS_SEMANTICANALYSIS_H
+#define LOCIC_SEMANTICANALYSIS_SEMANTICANALYSIS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,7 +7,7 @@ extern "C" {
 
 #include <Locic/AST.h>
 #include <Locic/SEM.h>
-#include <Locic/SemanticContext.h>
+#include <Locic/SemanticAnalysis/SemanticContext.h>
 
 SEM_ModuleGroup * Locic_SemanticAnalysis_Run(AST_ModuleGroup * moduleGroup);
 

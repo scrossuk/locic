@@ -3,14 +3,14 @@
 #include <string.h>
 
 #include <Locic/AST.h>
-#include <Locic/CodeGen.h>
 #include <Locic/Lexer.h>
 #include <Locic/LexerContext.h>
 #include <Locic/List.h>
 #include <Locic/Parser.h>
 #include <Locic/ParserContext.h>
-#include <Locic/SemanticAnalysis.h>
 #include <Locic/Token.h>
+#include <Locic/CodeGen/CodeGen.h>
+#include <Locic/SemanticAnalysis/SemanticAnalysis.h>
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 
