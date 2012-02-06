@@ -2,6 +2,7 @@
 #define LOCIC_AST_VALUE_H
 
 #include <Locic/List.h>
+#include <Locic/AST/Type.h>
 #include <Locic/AST/Var.h>
 
 typedef enum AST_ConstantType{
@@ -60,6 +61,11 @@ typedef struct AST_Ternary{
 	struct AST_Value * ifFalse;
 } AST_Ternary;
 
+typedef struct AST_Cast{
+	AST_Type * type;
+	struct AST_Value * value;
+} AST_Cast;
+
 typedef struct AST_Construct{
 	char * typeName;
 	char * constructorName; // NULL for default constructor.
@@ -82,6 +88,7 @@ typedef enum AST_ValueType{
 	AST_VALUE_UNARY,
 	AST_VALUE_BINARY,
 	AST_VALUE_TERNARY,
+	AST_VALUE_CAST,
 	AST_VALUE_CONSTRUCT,
 	AST_VALUE_MEMBERACCESS,
 	AST_VALUE_FUNCTIONCALL
@@ -96,6 +103,7 @@ typedef struct AST_Value{
 		AST_Unary unary;
 		AST_Binary binary;
 		AST_Ternary ternary;
+		AST_Cast cast;
 		AST_Construct construct;
 		AST_MemberAccess memberAccess;
 		AST_FunctionCall functionCall;
@@ -115,6 +123,8 @@ AST_Value * AST_MakeUnary(AST_UnaryType type, AST_Value * operand);
 AST_Value * AST_MakeBinary(AST_BinaryType type, AST_Value * left, AST_Value * right);
 
 AST_Value * AST_MakeTernary(AST_Value * cond, AST_Value * ifTrue, AST_Value * ifFalse);
+
+AST_Value * AST_MakeCast(AST_Type * type, AST_Value * value);
 
 AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters);
 

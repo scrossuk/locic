@@ -98,6 +98,16 @@ SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * if
 	return value;
 }
 
+/* SEM_Cast */
+
+SEM_Value * SEM_MakeCast(SEM_Type * type, SEM_Value * val){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_CAST);
+	value->type = type;
+	SEM_Cast * cast = &(value->cast);
+	cast->value = val;
+	return value;
+}
+
 /* SEM_Construct */
 
 SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type){

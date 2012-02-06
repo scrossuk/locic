@@ -145,14 +145,14 @@ class CodeGen{
 						case SEM_TYPE_BASIC_FLOAT:
 							return Type::getFloatTy(getGlobalContext());
 						default:
-							std::cout << "CodeGen error: Unknown basic type." << std::endl;
+							std::cerr << "CodeGen error: Unknown basic type." << std::endl;
 							return Type::getVoidTy(getGlobalContext());
 							
 					}
 				}
 				case SEM_TYPE_CLASS:
 				{
-					std::cout << "CodeGen error: Class type not implemented." << std::endl;
+					std::cerr << "CodeGen error: Class type not implemented." << std::endl;
 					return Type::getInt32Ty(getGlobalContext());
 				}
 				case SEM_TYPE_PTR:
@@ -171,7 +171,7 @@ class CodeGen{
 				}
 				default:
 				{
-					std::cout << "CodeGen error: Unknown type." << std::endl;
+					std::cerr << "CodeGen error: Unknown type." << std::endl;
 					return Type::getVoidTy(getGlobalContext());
 				}
 			}
@@ -246,7 +246,7 @@ class CodeGen{
 					genValue(statement->valueStmt.value);
 					break;
 				case SEM_STATEMENT_IF:
-					std::cout << "CodeGen error: Unimplemented IF statement." << std::endl;
+					std::cerr << "CodeGen error: Unimplemented IF statement." << std::endl;
 					break;
 				case SEM_STATEMENT_ASSIGN:
 				{
@@ -260,7 +260,7 @@ class CodeGen{
 					builder_.CreateRet(genValue(statement->returnStmt.value));
 					break;
 				default:
-					std::cout << "CodeGen error: Unknown statement." << std::endl;
+					std::cerr << "CodeGen error: Unknown statement." << std::endl;
 			}
 		}
 		
@@ -276,7 +276,7 @@ class CodeGen{
 						case SEM_CONSTANT_FLOAT:
 							return ConstantFP::get(getGlobalContext(), APFloat(value->constant.floatConstant));
 						default:
-							std::cout << "CodeGen error: Unknown constant." << std::endl;
+							std::cerr << "CodeGen error: Unknown constant." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
@@ -306,12 +306,12 @@ class CodeGen{
 						}
 						case SEM_VAR_THIS:
 						{
-							std::cout << "CodeGen error: Unimplemented member variable access." << std::endl;
+							std::cerr << "CodeGen error: Unimplemented member variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 						}
 						default:
 						{
-							std::cout << "CodeGen error: Unknown variable type in variable access." << std::endl;
+							std::cerr << "CodeGen error: Unknown variable type in variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 						}
 					}
@@ -344,7 +344,7 @@ class CodeGen{
 								return builder_.CreateLoad(genValue(value->unary.value));
 							}
 						default:
-							std::cout << "CodeGen error: Unknown unary bool operand." << std::endl;
+							std::cerr << "CodeGen error: Unknown unary bool operand." << std::endl;
 							return genValue(value->unary.value);
 					}
 				}
@@ -391,18 +391,56 @@ class CodeGen{
 						case SEM_BINARY_LESSOREQUAL:
 							return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
 						default:
-							std::cout << "CodeGen error: Unknown binary operand." << std::endl;
+							std::cerr << "CodeGen error: Unknown binary operand." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
 				case SEM_VALUE_TERNARY:
-					std::cout << "CodeGen error: Unimplemented ternary operation." << std::endl;
+					std::cerr << "CodeGen error: Unimplemented ternary operation." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				case SEM_VALUE_CAST:
+				{
+					Value * codeValue = genValue(value->cast.value);
+					SEM_Type * sourceType = value->cast.value->type;
+					SEM_Type * destType = value->type;
+					
+					assert(sourceType->typeEnum == destType->typeEnum);
+					
+					switch(sourceType->typeEnum){
+						case SEM_TYPE_BASIC:
+						{
+							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum){
+								return codeValue;
+							}
+			
+							// Int -> Float.
+							if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_INT && destType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT){
+								return builder_.CreateSIToFP(codeValue, genType(destType));
+							}
+			
+							// Float -> Int.
+							if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT && destType->basicType.typeEnum == SEM_TYPE_BASIC_INT){
+								return builder_.CreateFPToSI(codeValue, genType(destType));
+							}
+							
+							return codeValue;
+						}
+						case SEM_TYPE_CLASS:
+						case SEM_TYPE_PTR:
+						case SEM_TYPE_FUNC:
+						{
+							return codeValue;
+						}
+						default:
+							std::cerr << "CodeGen error: Unknown type in cast." << std::endl;
+							return 0;
+					}
+				}	
 				case SEM_VALUE_CONSTRUCT:
-					std::cout << "CodeGen error: Unimplemented constructor call." << std::endl;
+					std::cerr << "CodeGen error: Unimplemented constructor call." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 				case SEM_VALUE_MEMBERACCESS:
-					std::cout << "CodeGen error: Unimplemented member access." << std::endl;
+					std::cerr << "CodeGen error: Unimplemented member access." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 				case SEM_VALUE_FUNCTIONCALL:
 				{
@@ -423,7 +461,7 @@ class CodeGen{
 					return function;
 				}
 				default:
-					std::cout << "CodeGen error: Unknown value." << std::endl;
+					std::cerr << "CodeGen error: Unknown value." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 			}
 		}

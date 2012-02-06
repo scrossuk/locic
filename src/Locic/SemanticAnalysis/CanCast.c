@@ -92,3 +92,44 @@ int Locic_SemanticAnalysis_CanDoImplicitCopy(Locic_SemanticContext * context, SE
 	}
 }
 
+int Locic_SemanticAnalysis_CanDoExplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
+	if(sourceType->typeEnum != destType->typeEnum){
+		return 0;
+	}
+	
+	switch(sourceType->typeEnum){
+		case SEM_TYPE_BASIC:
+		{
+			if(sourceType->basicType.typeEnum == destType->basicType.typeEnum){
+				return 1;
+			}
+			
+			// Int -> Float.
+			if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_INT && destType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT){
+				return 1;
+			}
+			
+			// Float -> Int.
+			if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT && destType->basicType.typeEnum == SEM_TYPE_BASIC_INT){
+				return 1;
+			}
+			
+			return 0;
+		}
+		case SEM_TYPE_CLASS:
+		case SEM_TYPE_PTR:
+		case SEM_TYPE_FUNC:
+		{
+			return Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceType, destType);
+		}
+		default:
+			return 0;
+	}
+}
+
+
+
+
+
+
+

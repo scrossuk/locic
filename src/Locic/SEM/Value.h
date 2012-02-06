@@ -3,6 +3,7 @@
 
 #include <Locic/List.h>
 #include <Locic/SEM/Function.h>
+#include <Locic/SEM/Type.h>
 #include <Locic/SEM/Var.h>
 
 typedef enum SEM_OpType{
@@ -74,6 +75,10 @@ typedef struct SEM_Ternary{
 	struct SEM_Value * ifFalse;
 } SEM_Ternary;
 
+typedef struct SEM_Cast{
+	struct SEM_Value * value;
+} SEM_Cast;
+
 typedef struct SEM_Construct{
 	SEM_ClassDecl * classDecl;
 	size_t constructorId;
@@ -101,6 +106,7 @@ typedef enum SEM_ValueType{
 	SEM_VALUE_UNARY,
 	SEM_VALUE_BINARY,
 	SEM_VALUE_TERNARY,
+	SEM_VALUE_CAST,
 	SEM_VALUE_CONSTRUCT,
 	SEM_VALUE_MEMBERACCESS,
 	SEM_VALUE_FUNCTIONREF,
@@ -118,6 +124,7 @@ typedef struct SEM_Value{
 		SEM_Unary unary;
 		SEM_Binary binary;
 		SEM_Ternary ternary;
+		SEM_Cast cast;
 		SEM_Construct construct;
 		SEM_MemberAccess memberAccess;
 		SEM_FunctionRef functionRef;
@@ -140,6 +147,8 @@ SEM_Value * SEM_MakeUnary(SEM_UnaryType unaryType, SEM_OpType opType, SEM_Value 
 SEM_Value * SEM_MakeBinary(SEM_BinaryType binaryType, SEM_OpType opType, SEM_Value * left, SEM_Value * right, SEM_Type * type);
 
 SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * ifFalse, SEM_Type * type);
+
+SEM_Value * SEM_MakeCast(SEM_Type * type, SEM_Value * value);
 
 SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type);
 

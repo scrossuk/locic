@@ -75,6 +75,16 @@ AST_Value * AST_MakeTernary(AST_Value * cond, AST_Value * ifTrue, AST_Value * if
 	return value;
 }
 
+/* AST_Cast */
+
+AST_Value * AST_MakeCast(AST_Type * type, AST_Value * val){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_CAST);
+	AST_Cast * cast = &(value->cast);
+	cast->type = type;
+	cast->value = val;
+	return value;
+}
+
 /* AST_Construct */
 
 AST_Value * AST_MakeConstruct(char * typeName, char * constructorName, Locic_List * parameters){

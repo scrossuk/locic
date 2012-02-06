@@ -381,6 +381,11 @@ precision7(V) ::= ucName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUND
 	{
 		V = AST_MakeConstruct(TN, CN, VL);
 	}
+	
+precision7(V) ::= CAST LTRIBRACKET type(T) RTRIBRACKET LROUNDBRACKET value(VAL) RROUNDBRACKET.
+	{
+		V = AST_MakeCast(T, VAL);
+	}
 
 precision6(V) ::= precision7(VAL).
 	{

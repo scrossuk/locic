@@ -50,6 +50,7 @@ class                   { return LOCIC_TOKEN_CLASS; }
 interface               { return LOCIC_TOKEN_INTERFACE; }
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }
+cast                    { return LOCIC_TOKEN_CAST; }
 
 void                    { return LOCIC_TOKEN_VOIDNAME; }
 int                     { return LOCIC_TOKEN_INTNAME; }
@@ -89,6 +90,8 @@ false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLC
 "{"                     { return LOCIC_TOKEN_LCURLYBRACKET; }
 "}"                     { return LOCIC_TOKEN_RCURLYBRACKET; }
 "."                     { return LOCIC_TOKEN_DOT; }
+"<"                     { return LOCIC_TOKEN_LTRIBRACKET; }
+">"                     { return LOCIC_TOKEN_RTRIBRACKET; }
 \n                      { }
 [ \t\r]+                { }
 .                       { return LOCIC_TOKEN_ERROR; }

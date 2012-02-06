@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <Locic/AST.h>
 #include <Locic/SEM.h>
 #include <Locic/SemanticAnalysis/Context.h>
+#include <Locic/SemanticAnalysis/ConvertType.h>
 #include <Locic/SemanticAnalysis/ConvertValue.h>
 
 SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context, AST_Value * value){
@@ -257,6 +259,19 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 		{
 			printf("Internal Compiler Error: Unimplemented ternary operator.\n");
 			return NULL;
+		}
+		case AST_VALUE_CAST:
+		{
+			AST_Cast * cast = &(value->cast);
+			SEM_Type * type = Locic_SemanticAnalysis_ConvertType(context, cast->type, SEM_TYPE_RVALUE);
+			SEM_Value * val = Locic_SemanticAnalysis_ConvertValue(context, cast->value);
+			
+			if(Locic_SemanticAnalysis_CanDoExplicitCast(context, val->type, type) != 1){
+				printf("Semantic Analysis Error: Can't perform explicit cast.\n");
+				return NULL;
+			}
+			
+			return SEM_MakeCast(type, val);
 		}
 		case AST_VALUE_CONSTRUCT:
 		{
