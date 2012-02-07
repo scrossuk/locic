@@ -9,6 +9,8 @@ extern "C" {
 #include <Locic/SEM.h>
 #include <Locic/SemanticAnalysis/Context.h>
 
+int Locic_SemanticAnalysis_WillStatementReturn(SEM_Statement * statement);
+
 SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * context, AST_Statement * statement);
 
 #ifdef __cplusplus

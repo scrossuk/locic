@@ -60,3 +60,12 @@ SEM_Type * SEM_CopyType(SEM_Type * type){
 	return newType;
 }
 
+int SEM_IsVoidType(SEM_Type * type){
+	if(type == NULL) return 0;
+	if(type->typeEnum != SEM_TYPE_BASIC) return 0;
+	if(type->basicType.typeEnum != SEM_TYPE_BASIC_VOID) return 0;
+	return 1;
+}
+
+
+

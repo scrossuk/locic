@@ -68,4 +68,6 @@ SEM_Type * SEM_MakeFuncType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLVal
 
 SEM_Type * SEM_CopyType(SEM_Type * type);
 
+int SEM_IsVoidType(SEM_Type * type);
+
 #endif

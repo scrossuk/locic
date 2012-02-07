@@ -293,11 +293,18 @@ class CodeGen{
 					break;
 				}
 				case SEM_STATEMENT_RETURN:
-					builder_.CreateRet(genValue(statement->returnStmt.value));
+				{
+					if(statement->returnStmt.value != NULL){
+						builder_.CreateRet(genValue(statement->returnStmt.value));
+					}else{
+						builder_.CreateRetVoid();
+					}
 					
 					// Need a basic block after a return statement in case anything more is generated.
+					// This (and any following code) will be removed by dead code elimination.
 					builder_.SetInsertPoint(BasicBlock::Create(getGlobalContext(), "next", currentFunction_));
 					break;
+				}
 				default:
 					std::cerr << "CodeGen error: Unknown statement." << std::endl;
 			}

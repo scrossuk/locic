@@ -5,6 +5,15 @@
 #include <Locic/SemanticAnalysis/Context.h>
 #include <Locic/SemanticAnalysis/ConvertStatement.h>
 
+int Locic_SemanticAnalysis_WillScopeReturn(SEM_Scope * scope){
+	Locic_List * statements = scope->statementList;
+	Locic_ListElement * it;
+	for(it = Locic_List_Begin(statements); it != Locic_List_End(statements); it = it->next){
+		if(Locic_SemanticAnalysis_WillStatementReturn(it->data) == 1) return 1;
+	}
+	return 0;
+}
+
 SEM_Scope * Locic_SemanticAnalysis_ConvertScope(Locic_SemanticContext * context, AST_Scope * scope){
 	SEM_Scope * semScope = SEM_MakeScope();
 

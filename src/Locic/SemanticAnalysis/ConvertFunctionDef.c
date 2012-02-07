@@ -44,6 +44,16 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 	
 	Locic_SemanticContext_EndFunction(context);
 	
+	if(SEM_IsVoidType(semFunctionDecl->type->funcType.returnType) == 0){
+		if(Locic_SemanticAnalysis_WillScopeReturn(scope) != 1){
+			printf("Semantic Analysis Error: Control reaches end of function with non-void return type (i.e. need to add a return statement).\n");
+			return NULL;
+		}
+	}else{
+		// Need to add a void return statement in case the program didn't.
+		Locic_List_Append(scope->statementList, SEM_MakeReturn(NULL));
+	}
+	
 	// Build and return the function definition.
 	return SEM_MakeFunctionDef(semFunctionDecl, scope);
 }

@@ -337,6 +337,11 @@ statement(S) ::= value(V) SEMICOLON.
 		S = AST_MakeValueStmt(V);
 	}
 
+statement(S) ::= RETURN SEMICOLON.
+	{
+		S = AST_MakeReturn(NULL);
+	}
+
 statement(S) ::= RETURN value(V) SEMICOLON.
 	{
 		S = AST_MakeReturn(V);

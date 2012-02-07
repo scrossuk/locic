@@ -7,6 +7,37 @@
 #include <Locic/SemanticAnalysis/ConvertType.h>
 #include <Locic/SemanticAnalysis/ConvertValue.h>
 
+int Locic_SemanticAnalysis_WillStatementReturn(SEM_Statement * statement){
+	switch(statement->type){
+		case SEM_STATEMENT_VALUE:
+		{
+			return 0;
+		}
+		case SEM_STATEMENT_IF:
+		{
+			if(Locic_SemanticAnalysis_WillScopeReturn(statement->ifStmt.ifTrue) == 1 &&
+				Locic_SemanticAnalysis_WillScopeReturn(statement->ifStmt.ifFalse) == 1){
+				return 1;
+			}else{
+				return 0;
+			}
+		}
+		case SEM_STATEMENT_ASSIGN:
+		{
+			return 0;
+		}
+		case SEM_STATEMENT_RETURN:
+		{
+			return 1;
+		}
+		default:
+		{
+			printf("Internal Compiler Error: Unknown statement type in Locic_SemanticAnalysis_WillStatementReturn.\n");
+			return 0;
+		}
+	}
+}
+
 SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * context, AST_Statement * statement){
 	switch(statement->type){
 		case AST_STATEMENT_VALUE:
@@ -21,9 +52,9 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		{
 			SEM_Value * cond = Locic_SemanticAnalysis_ConvertValue(context, statement->ifStmt.cond);
 			SEM_Scope * ifTrue = Locic_SemanticAnalysis_ConvertScope(context, statement->ifStmt.ifTrue);
-			SEM_Scope * ifFalse = (statement->ifStmt.ifFalse != NULL ? Locic_SemanticAnalysis_ConvertScope(context, statement->ifStmt.ifFalse) : NULL);
+			SEM_Scope * ifFalse = (statement->ifStmt.ifFalse != NULL ? Locic_SemanticAnalysis_ConvertScope(context, statement->ifStmt.ifFalse) : SEM_MakeScope());
 			
-			if(cond == NULL || ifTrue == NULL || (statement->ifStmt.ifFalse != NULL && ifFalse == NULL)) return NULL;
+			if(cond == NULL || ifTrue == NULL || ifFalse == NULL) return NULL;
 			
 			SEM_Type * boolType = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
 			
@@ -125,21 +156,25 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		case AST_STATEMENT_RETURN:
 		{
 			if(statement->returnStmt.value == NULL){
-				printf("Internal compiler error: Cannot return NULL AST_Value.\n");
-				return NULL;
-			}
+				// Void return statement.
+				if(SEM_IsVoidType(context->functionDecl->type->funcType.returnType) == 0){
+					printf("Semantic Analysis Error: Cannot return void in function with non-void return type.\n");
+					return NULL;
+				}
+				return SEM_MakeReturn(NULL);
+			}else{
+				SEM_Value * semValue = Locic_SemanticAnalysis_ConvertValue(context, statement->returnStmt.value);
+				if(semValue == NULL){
+					return NULL;
+				}
 			
-			SEM_Value * semValue = Locic_SemanticAnalysis_ConvertValue(context, statement->returnStmt.value);
-			if(semValue == NULL){
-				return NULL;
-			}
+				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, context->functionDecl->type->funcType.returnType)){
+					printf("Semantic Analysis Error: Cannot cast value in return statement to function's return type.\n");
+					return NULL;
+				}
 			
-			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, context->functionDecl->type->funcType.returnType)){
-				printf("Semantic Analysis Error: Cannot cast value in return statement to function's return type.\n");
-				return NULL;
+				return SEM_MakeReturn(semValue);
 			}
-			
-			return SEM_MakeReturn(semValue);
 		}
 		default:
 			return NULL;
