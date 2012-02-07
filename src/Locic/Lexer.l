@@ -71,6 +71,11 @@ false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLC
 "<="                    { return LOCIC_TOKEN_LESSOREQUAL; }
 "->"                    { return LOCIC_TOKEN_PTRACCESS; }
 
+"+="                    { return LOCIC_TOKEN_ADDEQUAL; }
+"-="                    { return LOCIC_TOKEN_SUBEQUAL; }
+"*="                    { return LOCIC_TOKEN_MULEQUAL; }
+"/="                    { return LOCIC_TOKEN_DIVEQUAL; }
+
 \/\/(.*?)\n             { }
 
 "="                     { return LOCIC_TOKEN_SETEQUAL; }

@@ -331,6 +331,26 @@ statement(S) ::= value(LV) SETEQUAL value(RV) SEMICOLON.
 		S = AST_MakeAssign(LV, RV);
 	}
 
+statement(S) ::= value(LV) ADDEQUAL value(RV) SEMICOLON.
+	{
+		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_ADD, LV, RV));
+	}
+
+statement(S) ::= value(LV) SUBEQUAL value(RV) SEMICOLON.
+	{
+		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_SUBTRACT, LV, RV));
+	}
+
+statement(S) ::= value(LV) MULEQUAL value(RV) SEMICOLON.
+	{
+		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_MULTIPLY, LV, RV));
+	}
+
+statement(S) ::= value(LV) DIVEQUAL value(RV) SEMICOLON.
+	{
+		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_DIVIDE, LV, RV));
+	}
+
 statement(S) ::= value(V) SEMICOLON.
 	{
 		S = AST_MakeValueStmt(V);
