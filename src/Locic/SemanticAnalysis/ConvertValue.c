@@ -257,10 +257,19 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			SEM_Value * ifTrue = Locic_SemanticAnalysis_ConvertValue(context, value->ternary.ifTrue);
 			SEM_Value * ifFalse = Locic_SemanticAnalysis_ConvertValue(context, value->ternary.ifFalse);
 			
-			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifTrue->type, ifFalse->type) == 1){
-				return SEM_MakeTernary(cond, ifTrue, ifFalse, SEM_CopyType(ifFalse->type));
-			}else if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifFalse->type, ifTrue->type) == 1){
-				return SEM_MakeTernary(cond, ifTrue, ifFalse, SEM_CopyType(ifTrue->type));
+			SEM_Type * ifTrueType = SEM_CopyType(ifTrue->type);
+			SEM_Type * ifFalseType = SEM_CopyType(ifFalse->type);
+			
+			// Can only result in an lvalue if both possible results are lvalues.
+			if(ifTrueType->isLValue == SEM_TYPE_RVALUE || ifFalseType->isLValue == SEM_TYPE_RVALUE){
+				ifTrueType->isLValue = SEM_TYPE_RVALUE;
+				ifFalseType->isLValue = SEM_TYPE_RVALUE;
+			}
+			
+			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifTrueType, ifFalseType) == 1){
+				return SEM_MakeTernary(cond, ifTrue, ifFalse, ifFalseType);
+			}else if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifFalseType, ifTrueType) == 1){
+				return SEM_MakeTernary(cond, ifTrue, ifFalse, ifTrueType);
 			}else{
 				printf("Semantic Analysis Error: Can't cast result expressions to matching type in ternary operator.\n");
 				return NULL;
