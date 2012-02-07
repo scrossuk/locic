@@ -496,7 +496,7 @@ class CodeGen{
 				}
 				case SEM_VALUE_TERNARY:
 				{
-					return builder_.CreateSelect(genValue(value->ternary.condition), genValue(value->ternary.ifTrue), genValue(value->ternary.ifFalse));
+					return builder_.CreateSelect(genValue(value->ternary.condition), genValue(value->ternary.ifTrue, genLValue), genValue(value->ternary.ifFalse, genLValue));
 				}
 				case SEM_VALUE_CAST:
 				{
