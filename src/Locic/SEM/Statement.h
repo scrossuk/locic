@@ -16,6 +16,11 @@ typedef struct SEM_IfStmt{
 	SEM_Scope * ifFalse;
 } SEM_IfStmt;
 
+typedef struct SEM_WhileStmt{
+	SEM_Value * cond;
+	SEM_Scope * whileTrue;
+} SEM_WhileStmt;
+
 typedef struct SEM_AssignStmt{
 	SEM_Value * lValue, * rValue;
 } SEM_AssignStmt;
@@ -27,6 +32,7 @@ typedef struct SEM_ReturnStmt{
 typedef enum SEM_StatementType{
 	SEM_STATEMENT_VALUE,
 	SEM_STATEMENT_IF,
+	SEM_STATEMENT_WHILE,
 	SEM_STATEMENT_ASSIGN,
 	SEM_STATEMENT_RETURN
 } SEM_StatementType;
@@ -37,6 +43,7 @@ typedef struct SEM_Statement{
 	union{
 		SEM_ValueStmt valueStmt;
 		SEM_IfStmt ifStmt;
+		SEM_WhileStmt whileStmt;
 		SEM_AssignStmt assignStmt;
 		SEM_ReturnStmt returnStmt;
 	};
@@ -45,6 +52,8 @@ typedef struct SEM_Statement{
 SEM_Statement * SEM_MakeValueStmt(SEM_Value * value);
 
 SEM_Statement * SEM_MakeIf(SEM_Value * cond, SEM_Scope * ifTrue, SEM_Scope * ifFalse);
+
+SEM_Statement * SEM_MakeWhile(SEM_Value * cond, SEM_Scope * whileTrue);
 
 SEM_Statement * SEM_MakeAssign(SEM_Value * lValue, SEM_Value * rValue);
 

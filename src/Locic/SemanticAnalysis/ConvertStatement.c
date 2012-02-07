@@ -22,6 +22,10 @@ int Locic_SemanticAnalysis_WillStatementReturn(SEM_Statement * statement){
 				return 0;
 			}
 		}
+		case SEM_STATEMENT_WHILE:
+		{
+			return Locic_SemanticAnalysis_WillScopeReturn(statement->whileStmt.whileTrue);
+		}
 		case SEM_STATEMENT_ASSIGN:
 		{
 			return 0;
@@ -65,6 +69,22 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 		}
+		case AST_STATEMENT_WHILE:
+		{
+			SEM_Value * cond = Locic_SemanticAnalysis_ConvertValue(context, statement->whileStmt.cond);
+			SEM_Scope * whileTrue = Locic_SemanticAnalysis_ConvertScope(context, statement->whileStmt.whileTrue);
+			
+			if(cond == NULL || whileTrue == NULL) return NULL;
+			
+			SEM_Type * boolType = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
+			
+			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, cond->type, boolType) == 1){
+				return SEM_MakeWhile(cond, whileTrue);
+			}else{
+				printf("Semantic Analysis Error: Cannot convert condition expression to boolean type in WHILE statement.\n");
+				return NULL;
+			}
+		}
 		case AST_STATEMENT_VARDECL:
 		{
 			AST_Type * typeAnnotation = statement->varDecl.type;
@@ -91,7 +111,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 			if(typeAnnotation == NULL){
 				// Auto keyword - use type of initial value.
 				type = SEM_CopyType(semValue->type);
-				
+				type->isMutable = SEM_TYPE_MUTABLE;
 				type->isLValue = SEM_TYPE_LVALUE;
 			}else{
 				// Using type annotation - verify that it is compatible with the type of the initial value.
@@ -100,8 +120,12 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 					return NULL;
 				}
 				
-				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, type)){
-					printf("Semantic Analysis Error: Cannot cast variable's initial value type to annotated type in declaration.\n");
+				if(Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, type) == 0){
+					printf("Semantic Analysis Error: Cannot cast variable's initial value type (");
+					SEM_PrintType(semValue->type);
+					printf(") to annotated type in declaration (");
+					SEM_PrintType(type);
+					printf(").\n");
 					return NULL;
 				}
 			}
@@ -177,6 +201,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 			}
 		}
 		default:
+			printf("Internal Compiler Error: Unknown statement type in 'Locic_SemanticAnalysis_ConvertStatement'.\n");
 			return NULL;
 	}
 }

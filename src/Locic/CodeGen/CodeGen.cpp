@@ -284,6 +284,25 @@ class CodeGen{
 					builder_.SetInsertPoint(mergeBB);
 					break;
 				}
+				case SEM_STATEMENT_WHILE:
+				{
+					BasicBlock * insideLoopBB = BasicBlock::Create(getGlobalContext(), "insideLoop", currentFunction_);
+					BasicBlock * afterLoopBB = BasicBlock::Create(getGlobalContext(), "afterLoop");
+					
+					builder_.CreateCondBr(genValue(statement->whileStmt.cond), insideLoopBB, afterLoopBB);
+					
+					// Create loop contents.
+					builder_.SetInsertPoint(insideLoopBB);
+					
+					genScope(statement->whileStmt.whileTrue);
+					
+					builder_.CreateCondBr(genValue(statement->whileStmt.cond), insideLoopBB, afterLoopBB);
+					
+					// Create 'else'.
+					currentFunction_->getBasicBlockList().push_back(afterLoopBB);
+					builder_.SetInsertPoint(afterLoopBB);
+					break;
+				}
 				case SEM_STATEMENT_ASSIGN:
 				{
 					SEM_Value * lValue = statement->assignStmt.lValue;

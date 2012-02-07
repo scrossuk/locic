@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <Locic/List.h>
 #include <Locic/SEM/Type.h>
@@ -67,5 +68,68 @@ int SEM_IsVoidType(SEM_Type * type){
 	return 1;
 }
 
-
+void SEM_PrintType(SEM_Type * type){
+	if(type->isLValue == SEM_TYPE_LVALUE){
+		printf("lvalue ");
+	}
+	switch(type->typeEnum){
+		case SEM_TYPE_BASIC:
+		{
+			if(type->isMutable == SEM_TYPE_CONST){
+				printf("const ");
+			}
+			switch(type->basicType.typeEnum){
+				case SEM_TYPE_BASIC_VOID:
+					printf("void");
+					break;
+				case SEM_TYPE_BASIC_BOOL:
+					printf("bool");
+					break;
+				case SEM_TYPE_BASIC_INT:
+					printf("int");
+					break;
+				case SEM_TYPE_BASIC_FLOAT:
+					printf("float");
+					break;
+				default:
+					printf("[unknown basic]");
+					break;
+			}
+			break;
+		}
+		case SEM_TYPE_CLASS:
+			printf("[class type]");
+			break;
+		case SEM_TYPE_PTR:
+			SEM_PrintType(type->ptrType.ptrType);
+			printf("*");
+			if(type->isMutable == SEM_TYPE_CONST){
+				printf(" const");
+			}
+			break;
+		case SEM_TYPE_FUNC:
+		{
+			if(type->isMutable == SEM_TYPE_CONST){
+				printf("const ");
+			}
+			
+			printf("(");
+			SEM_PrintType(type->funcType.returnType);
+			printf(")(");
+			
+			Locic_ListElement * it;
+			for(it = Locic_List_Begin(type->funcType.parameterTypes); it != Locic_List_End(type->funcType.parameterTypes); it = it->next){
+				if(it != Locic_List_Begin(type->funcType.parameterTypes)){
+					printf(", ");
+				}
+				SEM_PrintType(it->data);
+			}
+			
+			printf(")");
+			break;
+		}
+		default:
+			break;
+	}
+}
 

@@ -12,6 +12,7 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 		case SEM_TYPE_BASIC:
 		{
 			if(sourceType->basicType.typeEnum != destType->basicType.typeEnum){
+				printf("Semantic Analysis Error: cannot implicitly convert between different basic types.\n");
 				return 0;
 			}
 			return 1;
@@ -52,6 +53,7 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 		case SEM_TYPE_FUNC:
 		{
 			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceType->funcType.returnType, destType->funcType.returnType)){
+				printf("Semantic Analysis Error: cannot cast return type in function type.\n");
 				return 0;
 			}
 			
@@ -59,6 +61,7 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 			Locic_List * destList = destType->funcType.parameterTypes;
 			
 			if(Locic_List_Size(sourceList) != Locic_List_Size(destList)){
+				printf("Semantic Analysis Error: number of parameters doesn't match in function type.\n");
 				return 0;
 			}
 			
@@ -67,6 +70,7 @@ int Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SE
 			
 			while(sourceIt != Locic_List_End(sourceList)){
 				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceIt->data, destIt->data)){
+					printf("Semantic Analysis Error: cannot cast parameter type in function type.\n");
 					return 0;
 				}
 				sourceIt = sourceIt->next;

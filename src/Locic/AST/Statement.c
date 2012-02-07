@@ -30,6 +30,16 @@ AST_Statement * AST_MakeIf(AST_Value * cond, AST_Scope * ifTrue, AST_Scope * ifF
 	return statement;
 }
 
+/* AST_WhileStmt */
+
+AST_Statement * AST_MakeWhile(AST_Value * cond, AST_Scope * whileTrue){
+	AST_Statement * statement = AST_AllocateStatement(AST_STATEMENT_WHILE);
+	AST_WhileStmt * whileStmt = &(statement->whileStmt);
+	whileStmt->cond = cond;
+	whileStmt->whileTrue = whileTrue;
+	return statement;
+}
+
 /* AST_VarDecl */
 
 AST_Statement * AST_MakeVarDecl(AST_Type * type, char * varName, AST_Value * value){

@@ -311,10 +311,9 @@ statement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scop
 		S = AST_MakeValueStmt(V);
 	}
 	
-statement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope.
+statement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
 	{
-		// TODO
-		S = AST_MakeValueStmt(V);
+		S = AST_MakeWhile(V, T);
 	}
 	
 statement(S) ::= AUTO lcName(N) SETEQUAL value(V) SEMICOLON.

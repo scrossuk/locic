@@ -8,6 +8,7 @@ Locic_List * Locic_List_Alloc(){
 	list->head.next = NULL;
 	list->head.data = NULL;
 	list->tail = &(list->head);
+	list->size = 0;
 	return list;
 }
 

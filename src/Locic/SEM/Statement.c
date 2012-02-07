@@ -30,6 +30,16 @@ SEM_Statement * SEM_MakeIf(SEM_Value * cond, SEM_Scope * ifTrue, SEM_Scope * ifF
 	return statement;
 }
 
+/* SEM_WhileStmt */
+
+SEM_Statement * SEM_MakeWhile(SEM_Value * cond, SEM_Scope * whileTrue){
+	SEM_Statement * statement = SEM_AllocateStatement(SEM_STATEMENT_WHILE);
+	SEM_WhileStmt * whileStmt = &(statement->whileStmt);
+	whileStmt->cond = cond;
+	whileStmt->whileTrue = whileTrue;
+	return statement;
+}
+
 /* SEM_AssignVar */
 
 SEM_Statement * SEM_MakeAssign(SEM_Value * lValue, SEM_Value * rValue){

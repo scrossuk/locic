@@ -70,4 +70,6 @@ SEM_Type * SEM_CopyType(SEM_Type * type);
 
 int SEM_IsVoidType(SEM_Type * type);
 
+void SEM_PrintType(SEM_Type * type);
+
 #endif
