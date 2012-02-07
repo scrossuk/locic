@@ -3,6 +3,7 @@
 #include <Locic/SEM.h>
 #include <Locic/SemanticAnalysis/CanCast.h>
 #include <Locic/SemanticAnalysis/Context.h>
+#include <Locic/SemanticAnalysis/ConvertScope.h>
 #include <Locic/SemanticAnalysis/ConvertType.h>
 #include <Locic/SemanticAnalysis/ConvertValue.h>
 
@@ -18,8 +19,20 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 		}
 		case AST_STATEMENT_IF:
 		{
-			printf("Internal Compiler Error: Unimplemented IF statement.\n");
-			return NULL;
+			SEM_Value * cond = Locic_SemanticAnalysis_ConvertValue(context, statement->ifStmt.cond);
+			SEM_Scope * ifTrue = Locic_SemanticAnalysis_ConvertScope(context, statement->ifStmt.ifTrue);
+			SEM_Scope * ifFalse = (statement->ifStmt.ifFalse != NULL ? Locic_SemanticAnalysis_ConvertScope(context, statement->ifStmt.ifFalse) : NULL);
+			
+			if(cond == NULL || ifTrue == NULL || (statement->ifStmt.ifFalse != NULL && ifFalse == NULL)) return NULL;
+			
+			SEM_Type * boolType = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
+			
+			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, cond->type, boolType) == 1){
+				return SEM_MakeIf(cond, ifTrue, ifFalse);
+			}else{
+				printf("Semantic Analysis Error: Cannot convert condition expression to boolean type in IF statement.\n");
+				return NULL;
+			}
 		}
 		case AST_STATEMENT_VARDECL:
 		{

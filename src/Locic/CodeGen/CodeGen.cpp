@@ -141,7 +141,7 @@ class CodeGen{
 						case SEM_TYPE_BASIC_INT:
 							return Type::getInt32Ty(getGlobalContext());
 						case SEM_TYPE_BASIC_BOOL:
-							return Type::getInt32Ty(getGlobalContext());
+							return Type::getInt1Ty(getGlobalContext());
 						case SEM_TYPE_BASIC_FLOAT:
 							return Type::getFloatTy(getGlobalContext());
 						default:
@@ -204,6 +204,15 @@ class CodeGen{
 			
 			genScope(functionDef->scope);
 			
+			// Need to terminate the final basic block.
+			// (just make it loop to itself - this will
+			// be removed by dead code elimination)
+			builder_.CreateBr(builder_.GetInsertBlock());
+			
+			std::cout << "---Before verification:" << std::endl;
+			
+			module_->dump();
+			
 			// Check the generated function is correct.
 			verifyFunction(*currentFunction_);
 			
@@ -246,8 +255,35 @@ class CodeGen{
 					genValue(statement->valueStmt.value);
 					break;
 				case SEM_STATEMENT_IF:
-					std::cerr << "CodeGen error: Unimplemented IF statement." << std::endl;
+				{
+					BasicBlock * thenBB = BasicBlock::Create(getGlobalContext(), "then", currentFunction_);
+					BasicBlock * elseBB = BasicBlock::Create(getGlobalContext(), "else");
+					BasicBlock * mergeBB = BasicBlock::Create(getGlobalContext(), "ifmerge");
+					
+					builder_.CreateCondBr(genValue(statement->ifStmt.cond), thenBB, elseBB);
+					
+					// Create 'then'.
+					builder_.SetInsertPoint(thenBB);
+					
+					genScope(statement->ifStmt.ifTrue);
+					
+					builder_.CreateBr(mergeBB);
+					
+					// Create 'else'.
+					currentFunction_->getBasicBlockList().push_back(elseBB);
+					builder_.SetInsertPoint(elseBB);
+					
+					if(statement->ifStmt.ifFalse != NULL){
+						genScope(statement->ifStmt.ifFalse);
+					}
+					
+					builder_.CreateBr(mergeBB);
+					
+					// Create merge.
+					currentFunction_->getBasicBlockList().push_back(mergeBB);
+					builder_.SetInsertPoint(mergeBB);
 					break;
+				}
 				case SEM_STATEMENT_ASSIGN:
 				{
 					SEM_Value * lValue = statement->assignStmt.lValue;
@@ -258,6 +294,9 @@ class CodeGen{
 				}
 				case SEM_STATEMENT_RETURN:
 					builder_.CreateRet(genValue(statement->returnStmt.value));
+					
+					// Need a basic block after a return statement in case anything more is generated.
+					builder_.SetInsertPoint(BasicBlock::Create(getGlobalContext(), "next", currentFunction_));
 					break;
 				default:
 					std::cerr << "CodeGen error: Unknown statement." << std::endl;
@@ -270,7 +309,7 @@ class CodeGen{
 				{
 					switch(value->constant.type){
 						case SEM_CONSTANT_BOOL:
-							return ConstantInt::get(getGlobalContext(), APInt(32, value->constant.boolConstant));
+							return ConstantInt::get(getGlobalContext(), APInt(1, value->constant.boolConstant));
 						case SEM_CONSTANT_INT:
 							return ConstantInt::get(getGlobalContext(), APInt(32, value->constant.intConstant));
 						case SEM_CONSTANT_FLOAT:
