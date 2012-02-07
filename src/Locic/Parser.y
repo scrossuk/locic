@@ -487,6 +487,16 @@ precision2(V) ::= precision3(L) NOTEQUAL precision3(R).
 		V = AST_MakeBinary(AST_BINARY_NOTEQUAL, L, R);
 	}
 	
+precision2(V) ::= precision3(L) LTRIBRACKET precision3(R).
+	{
+		V = AST_MakeBinary(AST_BINARY_LESSTHAN, L, R);
+	}
+	
+precision2(V) ::= precision3(L) RTRIBRACKET precision3(R).
+	{
+		V = AST_MakeBinary(AST_BINARY_GREATERTHAN, L, R);
+	}
+	
 precision2(V) ::= precision3(L) GREATEROREQUAL precision3(R).
 	{
 		V = AST_MakeBinary(AST_BINARY_GREATEROREQUAL, L, R);

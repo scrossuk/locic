@@ -429,21 +429,56 @@ class CodeGen{
 								return builder_.CreateFDiv(genValue(value->binary.left), genValue(value->binary.right));
 							}
 						case SEM_BINARY_ISEQUAL:
-							return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_BOOL || opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_BOOL || opType == SEM_OP_INT){
+								return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpOEQ(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						case SEM_BINARY_NOTEQUAL:
-							return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_BOOL || opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_BOOL || opType == SEM_OP_INT){
+								return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpONE(genValue(value->binary.left), genValue(value->binary.right));
+							}
+						case SEM_BINARY_LESSTHAN:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateICmpSLT(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpOLT(genValue(value->binary.left), genValue(value->binary.right));
+							}
+						case SEM_BINARY_GREATERTHAN:
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateICmpSGT(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpOGT(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						case SEM_BINARY_GREATEROREQUAL:
-							return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpOGE(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						case SEM_BINARY_LESSOREQUAL:
-							return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
+							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+							if(opType == SEM_OP_INT){
+								return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
+							}else{
+								return builder_.CreateFCmpOLE(genValue(value->binary.left), genValue(value->binary.right));
+							}
 						default:
 							std::cerr << "CodeGen error: Unknown binary operand." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
 				case SEM_VALUE_TERNARY:
-					std::cerr << "CodeGen error: Unimplemented ternary operation." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				{
+					return builder_.CreateSelect(genValue(value->ternary.condition), genValue(value->ternary.ifTrue), genValue(value->ternary.ifFalse));
+				}
 				case SEM_VALUE_CAST:
 				{
 					Value * codeValue = genValue(value->cast.value);
