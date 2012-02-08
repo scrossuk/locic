@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <Locic/AST.h>
 #include <Locic/SEM.h>
@@ -62,12 +63,16 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 			
 			SEM_Type * boolType = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
 			
-			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, cond->type, boolType) == 1){
-				return SEM_MakeIf(cond, ifTrue, ifFalse);
-			}else{
-				printf("Semantic Analysis Error: Cannot convert condition expression to boolean type in IF statement.\n");
+			SEM_Value * boolValue = Locic_SemanticAnalysis_CastValueToType(context, cond, boolType);
+			
+			if(boolValue == NULL){
+				printf("Semantic Analysis Error: Cannot cast or copy condition type (");
+				SEM_PrintType(cond->type);
+				printf(") to bool type in IF statement.\n");
 				return NULL;
 			}
+			
+			return SEM_MakeIf(boolValue, ifTrue, ifFalse);
 		}
 		case AST_STATEMENT_WHILE:
 		{
@@ -78,12 +83,16 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 			
 			SEM_Type * boolType = SEM_MakeBasicType(SEM_TYPE_CONST, SEM_TYPE_RVALUE, SEM_TYPE_BASIC_BOOL);
 			
-			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, cond->type, boolType) == 1){
-				return SEM_MakeWhile(cond, whileTrue);
-			}else{
-				printf("Semantic Analysis Error: Cannot convert condition expression to boolean type in WHILE statement.\n");
+			SEM_Value * boolValue = Locic_SemanticAnalysis_CastValueToType(context, cond, boolType);
+			
+			if(boolValue == NULL){
+				printf("Semantic Analysis Error: Cannot cast or copy condition type (");
+				SEM_PrintType(cond->type);
+				printf(") to bool type in WHILE statement.\n");
 				return NULL;
 			}
+			
+			return SEM_MakeWhile(boolValue, whileTrue);
 		}
 		case AST_STATEMENT_VARDECL:
 		{
@@ -96,15 +105,7 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			if(semValue->type->isLValue == SEM_TYPE_LVALUE){
-				if(Locic_SemanticAnalysis_CanDoImplicitCopy(context, semValue->type)){
-					// If possible, an implicit copy can create an r-value.
-					semValue = SEM_MakeCopyValue(semValue);
-				}else{
-					printf("Semantic Analysis Error: Cannot assign l-value in declaration (must be copied or emptied).\n");
-					return NULL;
-				}
-			}
+			int canCopyValue = Locic_SemanticAnalysis_CanDoImplicitCopy(context, semValue->type);
 			
 			SEM_Type * type;
 			
@@ -113,19 +114,15 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				type = SEM_CopyType(semValue->type);
 				type->isMutable = SEM_TYPE_MUTABLE;
 				type->isLValue = SEM_TYPE_LVALUE;
+				if(semValue->type->isMutable == SEM_TYPE_CONST){
+					if(canCopyValue == 0){
+						type->isMutable = SEM_TYPE_CONST;
+					}
+				}
 			}else{
 				// Using type annotation - verify that it is compatible with the type of the initial value.
 				type = Locic_SemanticAnalysis_ConvertType(context, typeAnnotation, SEM_TYPE_LVALUE);
 				if(type == NULL){
-					return NULL;
-				}
-				
-				if(Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, type) == 0){
-					printf("Semantic Analysis Error: Cannot cast variable's initial value type (");
-					SEM_PrintType(semValue->type);
-					printf(") to annotated type in declaration (");
-					SEM_PrintType(type);
-					printf(").\n");
 					return NULL;
 				}
 			}
@@ -136,7 +133,19 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			return SEM_MakeAssign(SEM_MakeVarValue(semVar), semValue);
+			SEM_Value * castValue = Locic_SemanticAnalysis_CastValueToType(context, semValue, type);
+			
+			if(castValue == NULL){
+				assert(typeAnnotation != NULL);
+				printf("Semantic Analysis Error: Cannot cast or copy value type (");
+				SEM_PrintType(semValue->type);
+				printf(") to annotated variable type (");
+				SEM_PrintType(type);
+				printf(") in declaration.\n");
+				return NULL;
+			}
+			
+			return SEM_MakeAssign(SEM_MakeVarValue(semVar), castValue);
 		}
 		case AST_STATEMENT_ASSIGN:
 		{
@@ -160,22 +169,17 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return NULL;
 			}
 			
-			if(rValue->type->isLValue == SEM_TYPE_LVALUE){
-				if(Locic_SemanticAnalysis_CanDoImplicitCopy(context, rValue->type)){
-					// If possible, an implicit copy can create an r-value.
-					rValue = SEM_MakeCopyValue(rValue);
-				}else{
-					printf("Semantic Analysis Error: Cannot assign l-value (must be copied or emptied).\n");
-					return NULL;
-				}
-			}
-			
-			if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, rValue->type, lValue->type)){
-				printf("Semantic Analysis Error: Cannot cast r-value to l-value's type in assignment statement.\n");
+			SEM_Value * castRValue = Locic_SemanticAnalysis_CastValueToType(context, rValue, lValue->type);
+			if(castRValue == NULL){
+				printf("Semantic Analysis Error: Cannot cast or copy rvalue type (");
+				SEM_PrintType(rValue->type);
+				printf(") to lvalue type (");
+				SEM_PrintType(lValue->type);
+				printf(") in assignment.\n");
 				return NULL;
 			}
 			
-			return SEM_MakeAssign(lValue, rValue);
+			return SEM_MakeAssign(lValue, castRValue);
 		}
 		case AST_STATEMENT_RETURN:
 		{
@@ -191,13 +195,19 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				if(semValue == NULL){
 					return NULL;
 				}
-			
-				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, semValue->type, context->functionDecl->type->funcType.returnType)){
-					printf("Semantic Analysis Error: Cannot cast value in return statement to function's return type.\n");
+				
+				SEM_Value * castValue = Locic_SemanticAnalysis_CastValueToType(context, semValue, context->functionDecl->type->funcType.returnType);
+				
+				if(castValue == NULL){
+					printf("Semantic Analysis Error: Cannot cast or copy value type (");
+					SEM_PrintType(semValue->type);
+					printf(") to function return type (");
+					SEM_PrintType(context->functionDecl->type->funcType.returnType);
+					printf(") in return statement.\n");
 					return NULL;
 				}
-			
-				return SEM_MakeReturn(semValue);
+				
+				return SEM_MakeReturn(castValue);
 			}
 		}
 		default:

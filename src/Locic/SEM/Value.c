@@ -48,6 +48,7 @@ SEM_Value * SEM_MakeCopyValue(SEM_Value * operand){
 	
 	SEM_Type * type = SEM_CopyType(operand->type);
 	type->isLValue = SEM_TYPE_RVALUE;
+	type->isMutable = SEM_TYPE_MUTABLE;
 	value->type = type;
 	return value;
 }

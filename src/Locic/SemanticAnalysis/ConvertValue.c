@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <Locic/AST.h>
 #include <Locic/SEM.h>
+#include <Locic/SemanticAnalysis/CanCast.h>
 #include <Locic/SemanticAnalysis/Context.h>
 #include <Locic/SemanticAnalysis/ConvertType.h>
 #include <Locic/SemanticAnalysis/ConvertValue.h>
@@ -249,8 +250,12 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			
 			SEM_Value * cond = Locic_SemanticAnalysis_ConvertValue(context, value->ternary.condition);
 			
-			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, cond->type, boolType) != 1){
-				printf("Semantic Analysis Error: Can't cast condition expression to boolean type in ternary operator.\n");
+			SEM_Value * boolValue = Locic_SemanticAnalysis_CastValueToType(context, cond, boolType);
+			
+			if(boolValue == NULL){
+				printf("Semantic Analysis Error: Cannot cast or copy condition type (");
+				SEM_PrintType(cond->type);
+				printf(") to bool type in ternary operator.\n");
 				return NULL;
 			}
 			
@@ -266,14 +271,18 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 				ifFalseType->isLValue = SEM_TYPE_RVALUE;
 			}
 			
-			if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifTrueType, ifFalseType) == 1){
-				return SEM_MakeTernary(cond, ifTrue, ifFalse, ifFalseType);
-			}else if(Locic_SemanticAnalysis_CanDoImplicitCast(context, ifFalseType, ifTrueType) == 1){
-				return SEM_MakeTernary(cond, ifTrue, ifFalse, ifTrueType);
-			}else{
-				printf("Semantic Analysis Error: Can't cast result expressions to matching type in ternary operator.\n");
-				return NULL;
+			SEM_Value * castIfTrue = Locic_SemanticAnalysis_CastValueToType(context, ifTrue, ifFalseType);
+			if(castIfTrue != NULL){
+				return SEM_MakeTernary(boolValue, castIfTrue, ifFalse, ifFalseType);
 			}
+			
+			SEM_Value * castIfFalse = Locic_SemanticAnalysis_CastValueToType(context, ifFalse, ifTrueType);
+			if(castIfFalse != NULL){
+				return SEM_MakeTernary(boolValue, ifTrue, castIfFalse, ifTrueType);
+			}
+			
+			printf("Semantic Analysis Error: Can't cast result expressions to matching type in ternary operator.\n");
+			return NULL;
 		}
 		case AST_VALUE_CAST:
 		{

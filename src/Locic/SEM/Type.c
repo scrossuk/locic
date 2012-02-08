@@ -71,13 +71,19 @@ int SEM_IsVoidType(SEM_Type * type){
 void SEM_PrintType(SEM_Type * type){
 	if(type->isLValue == SEM_TYPE_LVALUE){
 		printf("lvalue ");
+	}else{
+		printf("rvalue ");
 	}
+	
+	if(type->isMutable == SEM_TYPE_CONST){
+		printf("const ");
+	}else{
+		printf("mutable ");
+	}
+	
 	switch(type->typeEnum){
 		case SEM_TYPE_BASIC:
 		{
-			if(type->isMutable == SEM_TYPE_CONST){
-				printf("const ");
-			}
 			switch(type->basicType.typeEnum){
 				case SEM_TYPE_BASIC_VOID:
 					printf("void");
@@ -101,11 +107,9 @@ void SEM_PrintType(SEM_Type * type){
 			printf("[class type]");
 			break;
 		case SEM_TYPE_PTR:
+			printf("Ptr<");
 			SEM_PrintType(type->ptrType.ptrType);
-			printf("*");
-			if(type->isMutable == SEM_TYPE_CONST){
-				printf(" const");
-			}
+			printf(">");
 			break;
 		case SEM_TYPE_FUNC:
 		{
