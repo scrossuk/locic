@@ -12,6 +12,7 @@ extern "C" {
 #include <Locic/AST/ModuleGroup.h>
 #include <Locic/AST/Scope.h>
 #include <Locic/AST/Statement.h>
+#include <Locic/AST/Struct.h>
 #include <Locic/AST/Type.h>
 #include <Locic/AST/TypeVar.h>
 #include <Locic/AST/Value.h>

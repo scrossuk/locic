@@ -9,10 +9,16 @@
 AST_Module * AST_MakeModule(char * name){
 	AST_Module * module = malloc(sizeof(AST_Module));
 	module->name = name;
+	module->structs = Locic_List_Alloc();
 	module->functionDeclarations = Locic_List_Alloc();
 	module->functionDefinitions = Locic_List_Alloc();
 	module->classDeclarations = Locic_List_Alloc();
 	module->classDefinitions = Locic_List_Alloc();
+	return module;
+}
+
+AST_Module * AST_ModuleAddStruct(AST_Module * module, AST_Struct * astStruct){
+	module->structs = Locic_List_Append(module->structs, astStruct);
 	return module;
 }
 
@@ -38,15 +44,19 @@ AST_Module * AST_ModuleAddClassDef(AST_Module * module, AST_ClassDef * classDef)
 
 void AST_PrintModule(AST_Module * module){
 	Locic_ListElement * element;
+	printf("----Structs:\n");
+	for(element = Locic_List_Begin(module->structs); element != Locic_List_End(module->structs); element = element->next){
+		AST_PrintStruct((AST_Struct *) element->data);
+	}
+	
 	printf("----Class Declarations:\n");
 	for(element = Locic_List_Begin(module->classDeclarations); element != Locic_List_End(module->classDeclarations); element = element->next){
-		AST_ClassDecl * decl = (AST_ClassDecl *) element->data;
-		AST_PrintClassDecl(decl);
+		AST_PrintClassDecl((AST_ClassDecl *) element->data);
 	}
+	
 	printf("\n----Class Definitions:\n");
 	for(element = Locic_List_Begin(module->classDefinitions); element != Locic_List_End(module->classDefinitions); element = element->next){
-		AST_ClassDef * def = (AST_ClassDef *) element->data;
-		AST_PrintClassDef(def);
+		AST_PrintClassDef((AST_ClassDef *) element->data);
 	}
 }
 

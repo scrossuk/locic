@@ -46,8 +46,11 @@ else                    { return LOCIC_TOKEN_ELSE; }
 while                   { return LOCIC_TOKEN_WHILE; }
 for                     { return LOCIC_TOKEN_FOR; }
 return                  { return LOCIC_TOKEN_RETURN; }
+
 class                   { return LOCIC_TOKEN_CLASS; }
 interface               { return LOCIC_TOKEN_INTERFACE; }
+struct                  { return LOCIC_TOKEN_STRUCT; }
+
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }
 cast                    { return LOCIC_TOKEN_CAST; }

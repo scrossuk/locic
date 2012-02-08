@@ -5,9 +5,11 @@
 #include <Locic/AST/ClassDecl.h>
 #include <Locic/AST/ClassDef.h>
 #include <Locic/AST/Function.h>
+#include <Locic/AST/Struct.h>
 
 typedef struct AST_Module{
 	char * name;
+	Locic_List * structs;
 	Locic_List * functionDeclarations;
 	Locic_List * functionDefinitions;
 	Locic_List * classDeclarations;
@@ -15,6 +17,8 @@ typedef struct AST_Module{
 } AST_Module;
 
 AST_Module * AST_MakeModule(char * name);
+
+AST_Module * AST_ModuleAddStruct(AST_Module * module, AST_Struct * astStruct);
 
 AST_Module * AST_ModuleAddFunctionDecl(AST_Module * module, AST_FunctionDecl * functionDecl);
 

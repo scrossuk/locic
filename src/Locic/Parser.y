@@ -27,6 +27,9 @@
 
 %type module { AST_Module * }
 
+%type struct { AST_Struct * }
+%type structVarList { Locic_List * }
+
 %type classDecl { AST_ClassDecl * }
 %type classDef { AST_ClassDef * }
 
@@ -103,6 +106,36 @@ module(NM) ::= module(OM) classDecl(D).
 module(NM) ::= module(OM) classDef(D).
 	{
 		NM = AST_ModuleAddClassDef(OM, D);
+	}
+
+module(NM) ::= module(OM) struct(S).
+	{
+		NM = AST_ModuleAddStruct(OM, S);
+	}
+
+module(NM) ::= module(OM) SEMICOLON.
+	{
+		NM = OM;
+	}
+
+struct(S) ::= STRUCT ucName(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
+	{
+		S = AST_MakeStruct(N, VL);
+	}
+
+structVarList(VL) ::= .
+	{
+		VL = Locic_List_Alloc();
+	}
+
+structVarList(VL) ::= structVarList(OVL) typeVar(V) SEMICOLON.
+	{
+		VL = Locic_List_Append(OVL, V);
+	}
+
+structVarList(VL) ::= structVarList(OVL) SEMICOLON.
+	{
+		VL = OVL;
 	}
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
@@ -293,6 +326,11 @@ statementList(SL) ::= .
 statementList(SL) ::= statementList(L) statement(S).
 	{
 		SL = Locic_List_Append(L, S);
+	}
+	
+statementList(SL) ::= statementList(L) SEMICOLON.
+	{
+		SL = L;
 	}
 	
 statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
