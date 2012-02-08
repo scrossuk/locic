@@ -55,8 +55,10 @@ AST_Type * AST_MakeBasicType(AST_TypeIsMutable isMutable, AST_BasicTypeEnum type
 
 AST_Type * AST_MakeNamedType(AST_TypeIsMutable isMutable, char * name);
 
-AST_Type * AST_MakePtrType(AST_TypeIsMutable isMutable, AST_Type * ptrType);
+AST_Type * AST_MakePtrType(AST_Type * ptrType);
 
 AST_Type * AST_MakeFuncType(AST_TypeIsMutable isMutable, AST_Type * returnType, Locic_List * parameterTypes);
+
+AST_Type * AST_ApplyTransitiveConst(AST_Type * type);
 
 #endif
