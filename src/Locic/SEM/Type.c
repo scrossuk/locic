@@ -69,16 +69,16 @@ int SEM_IsVoidType(SEM_Type * type){
 }
 
 void SEM_PrintType(SEM_Type * type){
-	if(type->isLValue == SEM_TYPE_LVALUE){
-		printf("lvalue ");
-	}else{
-		printf("rvalue ");
+	int bracket = 0;
+	if(type->isMutable == SEM_TYPE_CONST){
+		printf("const (");
+		bracket = 1;
 	}
 	
-	if(type->isMutable == SEM_TYPE_CONST){
-		printf("const ");
-	}else{
-		printf("mutable ");
+	if(type->isLValue == SEM_TYPE_LVALUE){
+		if(!bracket) printf("(");
+		bracket = 1;
+		printf("lvalue ");
 	}
 	
 	switch(type->typeEnum){
@@ -107,16 +107,11 @@ void SEM_PrintType(SEM_Type * type){
 			printf("[class type]");
 			break;
 		case SEM_TYPE_PTR:
-			printf("Ptr<");
 			SEM_PrintType(type->ptrType.ptrType);
-			printf(">");
+			printf(" *");
 			break;
 		case SEM_TYPE_FUNC:
 		{
-			if(type->isMutable == SEM_TYPE_CONST){
-				printf("const ");
-			}
-			
 			printf("(");
 			SEM_PrintType(type->funcType.returnType);
 			printf(")(");
@@ -134,6 +129,10 @@ void SEM_PrintType(SEM_Type * type){
 		}
 		default:
 			break;
+	}
+	
+	if(bracket){
+		printf(")");
 	}
 }
 

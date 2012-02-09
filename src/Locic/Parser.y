@@ -23,6 +23,7 @@
 
 %syntax_error {
 	printf("Syntax error on line %d\n", (int) parserContext->lineNumber);
+	parserContext->parseFailed = 1;
 }
 
 %type module { AST_Module * }
@@ -40,6 +41,10 @@
 %type classMethodDefList { Locic_List * }
 
 %type basicType { AST_BasicTypeEnum }
+%type typePrecision2 { AST_Type * }
+%type typePrecision1 { AST_Type * }
+%type typePrecision0 { AST_Type * }
+%type nonVoidType { AST_Type * }
 %type type { AST_Type * }
 %type nonEmptyTypeList { Locic_List * }
 %type typeList { Locic_List * }
@@ -58,7 +63,8 @@
 
 %type scope { AST_Scope * }
 %type statementList { Locic_List * }
-%type statement { AST_Statement * }
+%type scopedStatement { AST_Statement * }
+%type normalStatement { AST_Statement * }
 
 %type precision0 { AST_Value * }
 %type precision1 { AST_Value * }
@@ -75,8 +81,8 @@ start ::= module(M) .
 		Locic_List_Append(parserContext->moduleGroup->modules, M);
 	}
 	
-// Nasty hack to create ERROR token and error non-terminal (UNKNOWN can never be sent by the lexer).
-start ::= UNKNOWN ERROR error.
+// Nasty hack to create ERROR token (UNKNOWN can never be sent by the lexer).
+start ::= UNKNOWN ERROR.
 
 module(M) ::= .
 	{
@@ -118,6 +124,12 @@ module(NM) ::= module(OM) SEMICOLON.
 		NM = OM;
 	}
 
+module(NM) ::= module(OM) error.
+	{
+		printf("Parser Error: Invalid struct, class, function or other.\n");
+		NM = OM;
+	}
+
 struct(S) ::= STRUCT ucName(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
 	{
 		S = AST_MakeStruct(N, VL);
@@ -140,6 +152,12 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
+		D = AST_MakeFunctionDecl(T, N, P);
+	}
+	
+functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
+	{
+		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
 		D = AST_MakeFunctionDecl(T, N, P);
 	}
 	
@@ -168,11 +186,6 @@ ucName(N) ::= UCNAME(NAME).
 		N = (NAME).str;
 	}
 	
-basicType(T) ::= VOIDNAME.
-	{
-		T = AST_TYPE_BASIC_VOID;
-	}
-	
 basicType(T) ::= BOOLNAME.
 	{
 		T = AST_TYPE_BASIC_BOOL;
@@ -188,52 +201,78 @@ basicType(T) ::= FLOATNAME.
 		T = AST_TYPE_BASIC_FLOAT;
 	}
 	
-type(T) ::= basicType(BT).
+typePrecision2(T) ::= basicType(BT).
 	{
 		T = AST_MakeBasicType(AST_TYPE_MUTABLE, BT);
 	}
-
-type(T) ::= CONST basicType(BT).
-	{
-		T = AST_MakeBasicType(AST_TYPE_CONST, BT);
-	}
 	
-type(T) ::= ucName(N).
+typePrecision2(T) ::= ucName(N).
 	{
 		T = AST_MakeNamedType(AST_TYPE_MUTABLE, N);
 	}
-
-type(T) ::= CONST ucName(N).
+	
+typePrecision2(NT) ::= LROUNDBRACKET nonVoidType(T) RROUNDBRACKET.
 	{
-		T = AST_MakeNamedType(AST_TYPE_CONST, N);
-	}
-
-type(NT) ::= type(OT) STAR.
-	{
-		NT = AST_MakePtrType(OT);
-	}
-
-type(NT) ::= CONST LROUNDBRACKET type(OT) RROUNDBRACKET.
-	{
-		NT = AST_ApplyTransitiveConst(OT);
+		NT = T;
 	}
 	
-type(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+typePrecision2(NT) ::= LROUNDBRACKET VOIDNAME RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+	{
+		NT = AST_MakeFuncType(AST_TYPE_MUTABLE, AST_MakeBasicType(AST_TYPE_MUTABLE, AST_TYPE_BASIC_VOID), PTL);
+	}
+	
+typePrecision2(NT) ::= LROUNDBRACKET nonVoidType(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
 	{
 		NT = AST_MakeFuncType(AST_TYPE_MUTABLE, RT, PTL);
 	}
 	
-type(NT) ::= CONST LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+typePrecision2(NT) ::= LROUNDBRACKET error RROUNDBRACKET.
 	{
-		NT = AST_MakeFuncType(AST_TYPE_CONST, RT, PTL);
+		printf("Parser Error: Invalid type.\n");
+		NT = NULL;
 	}
 	
-nonEmptyTypeList(TL) ::= type(T).
+typePrecision1(NT) ::= typePrecision2(T).
+	{
+		NT = T;
+	}
+	
+typePrecision1(NT) ::= CONST typePrecision2(T).
+	{
+		NT = AST_ApplyTransitiveConst(T);
+	}
+	
+typePrecision0(NT) ::= typePrecision1(T).
+	{
+		NT = T;
+	}
+	
+typePrecision0(NT) ::= typePrecision0(T) STAR.
+	{
+		NT = AST_MakePtrType(T);
+	}
+
+nonVoidType(NT) ::= typePrecision0(T).
+	{
+		NT = T;
+	}
+	
+type(NT) ::= VOIDNAME.
+	{
+		NT = AST_MakeBasicType(AST_TYPE_MUTABLE, AST_TYPE_BASIC_VOID);
+	}
+
+type(NT) ::= nonVoidType(T).
+	{
+		NT = T;
+	}
+	
+nonEmptyTypeList(TL) ::= nonVoidType(T).
 	{
 		TL = Locic_List_Append(Locic_List_Alloc(), T);
 	}
 	
-nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
+nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA nonVoidType(T).
 	{
 		TL = Locic_List_Append(OTL, T);
 	}
@@ -268,7 +307,7 @@ classMethodDefList(DL) ::= classMethodDefList(ODL) functionDef(D).
 		DL = Locic_List_Append(ODL, D);
 	}
 	
-typeVar(TV) ::= type(T) lcName(N).
+typeVar(TV) ::= nonVoidType(T) lcName(N).
 	{
 		TV = AST_MakeTypeVar(T, N);
 	}
@@ -323,8 +362,19 @@ statementList(SL) ::= .
 		SL = Locic_List_Alloc();
 	}
 	
-statementList(SL) ::= statementList(L) statement(S).
+statementList(SL) ::= statementList(L) scopedStatement(S).
 	{
+		SL = Locic_List_Append(L, S);
+	}
+	
+statementList(SL) ::= statementList(L) normalStatement(S) SEMICOLON.
+	{
+		SL = Locic_List_Append(L, S);
+	}
+	
+statementList(SL) ::= statementList(L) normalStatement(S) error.
+	{
+		printf("Parser Error: Statement must be terminated with semicolon.\n");
 		SL = Locic_List_Append(L, S);
 	}
 	
@@ -332,78 +382,84 @@ statementList(SL) ::= statementList(L) SEMICOLON.
 	{
 		SL = L;
 	}
+
+statementList(SL) ::= statementList(L) error.
+	{
+		printf("Parser Error: Invalid statement.\n");
+		SL = L;
+	}
 	
-statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
+scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
 	{
 		S = AST_MakeIf(V, T, NULL);
 	}
 	
-statement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE scope(F).
+scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE scope(F).
 	{
 		S = AST_MakeIf(V, T, F);
 	}
 	
-statement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scope.
+scopedStatement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scope.
 	{
 		// TODO
 		S = AST_MakeValueStmt(V);
 	}
 	
-statement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
+scopedStatement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
 	{
 		S = AST_MakeWhile(V, T);
 	}
 	
-statement(S) ::= AUTO lcName(N) SETEQUAL value(V) SEMICOLON.
+normalStatement(S) ::= AUTO lcName(N) SETEQUAL value(V).
 	{
 		S = AST_MakeAutoVarDecl(N, V);
 	}
 	
-statement(S) ::= type(T) lcName(N) SETEQUAL value(V) SEMICOLON.
+normalStatement(S) ::= nonVoidType(T) lcName(N) SETEQUAL value(V).
 	{
 		S = AST_MakeVarDecl(T, N, V);
 	}
 
-statement(S) ::= value(LV) SETEQUAL value(RV) SEMICOLON.
+normalStatement(S) ::= value(LV) SETEQUAL value(RV).
 	{
 		S = AST_MakeAssign(LV, RV);
 	}
 
-statement(S) ::= value(LV) ADDEQUAL value(RV) SEMICOLON.
+normalStatement(S) ::= value(LV) ADDEQUAL value(RV).
 	{
 		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_ADD, LV, RV));
 	}
 
-statement(S) ::= value(LV) SUBEQUAL value(RV) SEMICOLON.
+normalStatement(S) ::= value(LV) SUBEQUAL value(RV).
 	{
 		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_SUBTRACT, LV, RV));
 	}
 
-statement(S) ::= value(LV) MULEQUAL value(RV) SEMICOLON.
+normalStatement(S) ::= value(LV) MULEQUAL value(RV).
 	{
 		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_MULTIPLY, LV, RV));
 	}
 
-statement(S) ::= value(LV) DIVEQUAL value(RV) SEMICOLON.
+normalStatement(S) ::= value(LV) DIVEQUAL value(RV).
 	{
 		S = AST_MakeAssign(LV, AST_MakeBinary(AST_BINARY_DIVIDE, LV, RV));
 	}
 
-statement(S) ::= value(V) SEMICOLON.
+normalStatement(S) ::= value(V).
 	{
 		S = AST_MakeValueStmt(V);
 	}
 
-statement(S) ::= RETURN SEMICOLON.
+normalStatement(S) ::= RETURN.
 	{
 		S = AST_MakeReturn(NULL);
 	}
 
-statement(S) ::= RETURN value(V) SEMICOLON.
+normalStatement(S) ::= RETURN value(V).
 	{
 		S = AST_MakeReturn(V);
 	}
-
+	
 precision7(V) ::= LROUNDBRACKET precision0(BV) RROUNDBRACKET.
 	{
 		V = BV;

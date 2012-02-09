@@ -62,9 +62,9 @@ int main(int argc, char * argv[]){
 	//Locic_ParseTrace(stdout, "==> ");
 	
 	while(1){
-	        parserContext.lineNumber = lexerContext.lineNumber;
-	        
 	        int lexVal = Locic_Lex(lexer);
+	        
+	        parserContext.lineNumber = lexerContext.lineNumber;
 	        
 	        //printf("Found token at line %d\n", (int) lexerContext.lineNumber);
 		
