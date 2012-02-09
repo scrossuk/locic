@@ -9,6 +9,10 @@
 typedef struct AST_ValueStmt{
 	AST_Value * value;
 } AST_ValueStmt;
+
+typedef struct AST_ScopeStmt{
+	AST_Scope * scope;
+} AST_ScopeStmt;
 		
 typedef struct AST_IfStmt{
 	AST_Value * cond;
@@ -37,6 +41,7 @@ typedef struct AST_ReturnStmt{
 
 typedef enum AST_StatementType{
 	AST_STATEMENT_VALUE,
+	AST_STATEMENT_SCOPE,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_WHILE,
 	AST_STATEMENT_VARDECL,
@@ -49,6 +54,7 @@ typedef struct AST_Statement{
 			
 	union{
 		AST_ValueStmt valueStmt;
+		AST_ScopeStmt scopeStmt;
 		AST_IfStmt ifStmt;
 		AST_WhileStmt whileStmt;
 		AST_VarDecl varDecl;
@@ -58,6 +64,8 @@ typedef struct AST_Statement{
 } AST_Statement;
 
 AST_Statement * AST_MakeValueStmt(AST_Value * value);
+
+AST_Statement * AST_MakeScopeStmt(AST_Scope * scope);
 
 AST_Statement * AST_MakeIf(AST_Value * cond, AST_Scope * ifTrue, AST_Scope * ifFalse);
 

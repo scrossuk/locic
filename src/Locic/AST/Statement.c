@@ -19,6 +19,14 @@ AST_Statement * AST_MakeValueStmt(AST_Value * value){
 	return statement;
 }
 
+/* AST_ScopeStmt */
+
+AST_Statement * AST_MakeScopeStmt(AST_Scope * scope){
+	AST_Statement * statement = AST_AllocateStatement(AST_STATEMENT_SCOPE);
+	statement->scopeStmt.scope = scope;
+	return statement;
+}
+
 /* AST_IfStmt */
 
 AST_Statement * AST_MakeIf(AST_Value * cond, AST_Scope * ifTrue, AST_Scope * ifFalse){

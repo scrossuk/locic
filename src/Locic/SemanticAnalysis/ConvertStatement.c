@@ -14,6 +14,10 @@ int Locic_SemanticAnalysis_WillStatementReturn(SEM_Statement * statement){
 		{
 			return 0;
 		}
+		case SEM_STATEMENT_SCOPE:
+		{
+			return Locic_SemanticAnalysis_WillScopeReturn(statement->scopeStmt.scope);
+		}
 		case SEM_STATEMENT_IF:
 		{
 			if(Locic_SemanticAnalysis_WillScopeReturn(statement->ifStmt.ifTrue) == 1 &&
@@ -52,6 +56,13 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				return SEM_MakeValueStmt(value);
 			}
 			return NULL;
+		}
+		case AST_STATEMENT_SCOPE:
+		{
+			SEM_Scope * scope = Locic_SemanticAnalysis_ConvertScope(context, statement->scopeStmt.scope);
+			if(scope == NULL) return NULL;
+			
+			return SEM_MakeScopeStmt(scope);
 		}
 		case AST_STATEMENT_IF:
 		{

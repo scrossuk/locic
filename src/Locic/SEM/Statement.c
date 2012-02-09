@@ -19,6 +19,14 @@ SEM_Statement * SEM_MakeValueStmt(SEM_Value * value){
 	return statement;
 }
 
+/* SEM_ScopeStmt */
+
+SEM_Statement * SEM_MakeScopeStmt(SEM_Scope * scope){
+	SEM_Statement * statement = SEM_AllocateStatement(SEM_STATEMENT_SCOPE);
+	statement->scopeStmt.scope = scope;
+	return statement;
+}
+
 /* SEM_IfStmt */
 
 SEM_Statement * SEM_MakeIf(SEM_Value * cond, SEM_Scope * ifTrue, SEM_Scope * ifFalse){

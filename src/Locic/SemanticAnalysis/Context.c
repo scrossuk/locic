@@ -108,20 +108,25 @@ Locic_SemanticContext_Scope * Locic_SemanticContext_TopScope(Locic_SemanticConte
 }
 
 SEM_Var * Locic_SemanticContext_DefineLocalVar(Locic_SemanticContext * context, const char * varName, SEM_Type * varType){
-	Locic_SemanticContext_Scope * currentScope = Locic_SemanticContext_TopScope(context);
-	SEM_Var * semVar = SEM_MakeVar(SEM_VAR_LOCAL, context->functionContext.nextVarId++, varType);
-	
-	// Add to local variable name map for this scope.
-	SEM_Var * existingVar = Locic_StringMap_Insert(currentScope->localVariables, varName, semVar);
-	
-	if(existingVar == NULL){
-		// Add to SEM structure.
-		Locic_Array_PushBack(currentScope->scope->localVariables, semVar);
-		return semVar;
+	// Look in all current scopes, to prevent local variable shadowing.
+	if(Locic_SemanticContext_FindLocalVar(context, varName) != NULL){
+		// Variable already exists => define failed.
+		return NULL;
 	}
 	
-	// Variable already exists => define failed.
-	return NULL;
+	Locic_SemanticContext_Scope * currentScope = Locic_SemanticContext_TopScope(context);
+	
+	SEM_Var * semVar = SEM_MakeVar(SEM_VAR_LOCAL, context->functionContext.nextVarId++, varType);
+	
+	// Add to local variable name context for this scope.
+	SEM_Var * existingVar = Locic_StringMap_Insert(currentScope->localVariables, varName, semVar);
+	
+	assert(existingVar == NULL);
+	
+	// Add to SEM tree structure.
+	Locic_Array_PushBack(currentScope->scope->localVariables, semVar);
+	
+	return semVar;
 }
 
 SEM_Var * Locic_SemanticContext_FindLocalVar(Locic_SemanticContext * context, const char * varName){

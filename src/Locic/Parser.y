@@ -389,6 +389,11 @@ statementList(SL) ::= statementList(L) error.
 		SL = L;
 	}
 	
+scopedStatement(S) ::= scope(SCOPE).
+	{
+		S = AST_MakeScopeStmt(SCOPE);
+	}
+	
 scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
 	{
 		S = AST_MakeIf(V, T, NULL);

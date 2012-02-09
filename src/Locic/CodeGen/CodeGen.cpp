@@ -252,8 +252,15 @@ class CodeGen{
 		void genStatement(SEM_Statement * statement){
 			switch(statement->type){
 				case SEM_STATEMENT_VALUE:
+				{
 					genValue(statement->valueStmt.value);
 					break;
+				}
+				case SEM_STATEMENT_SCOPE:
+				{
+					genScope(statement->scopeStmt.scope);
+					break;
+				}
 				case SEM_STATEMENT_IF:
 				{
 					BasicBlock * thenBB = BasicBlock::Create(getGlobalContext(), "then", currentFunction_);
