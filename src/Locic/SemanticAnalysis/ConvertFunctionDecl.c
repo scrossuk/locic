@@ -38,7 +38,7 @@ SEM_FunctionDecl * Locic_SemanticAnalysis_ConvertFunctionDecl(Locic_SemanticCont
 	
 	SEM_Type * functionType = SEM_MakeFuncType(SEM_TYPE_MUTABLE, SEM_TYPE_RVALUE, semReturnType, parameterTypes);
 	
-	return SEM_MakeFunctionDecl(functionType, functionDecl->name, parameterVars);
+	return SEM_MakeFunctionDecl(NULL, functionType, functionDecl->name, parameterVars);
 }
 
 

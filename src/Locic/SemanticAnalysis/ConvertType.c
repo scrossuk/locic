@@ -12,13 +12,15 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 		}
 		case AST_TYPE_NAMED:
 		{
-			SEM_ClassDecl * classDecl = Locic_StringMap_Find(context->classDeclarations, type->namedType.name);
-			if(classDecl == NULL){
-				printf("Semantic Analysis Error: Unknown class type with name '%s'.\n", type->namedType.name);
-				return NULL;
+			const char * name = type->namedType.name;
+			SEM_TypeInstance * typeInstance = Locic_StringMap_Find(context->typeInstances, name);
+			if(typeInstance != NULL){
+				Locic_StringMap_Insert(context->module->typeInstances, name, typeInstance);
+				return SEM_MakeNamedType(type->isMutable, isLValue, typeInstance);
 			}
 			
-			return SEM_MakeClassType(type->isMutable, isLValue, classDecl);
+			printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name);
+			return NULL;
 		}
 		case AST_TYPE_PTR:
 		{

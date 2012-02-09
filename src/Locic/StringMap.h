@@ -6,12 +6,23 @@ extern "C" {
 #endif
 
 typedef void * Locic_StringMap;
+typedef void * Locic_StringMapIterator;
 
 Locic_StringMap Locic_StringMap_Alloc();
 
 void Locic_StringMap_Free(Locic_StringMap stringMap);
 
 void Locic_StringMap_Clear(Locic_StringMap stringMap);
+
+Locic_StringMapIterator Locic_StringMap_Begin(Locic_StringMap stringMap);
+
+void Locic_StringMap_Advance(Locic_StringMapIterator iterator);
+
+int Locic_StringMap_IsEnd(Locic_StringMap stringMap, Locic_StringMapIterator iterator);
+
+char * Locic_StringMap_GetStringKey(Locic_StringMapIterator iterator);
+
+void * Locic_StringMap_GetData(Locic_StringMapIterator iterator);
 
 void * Locic_StringMap_Find(Locic_StringMap stringMap, const char * str);
 

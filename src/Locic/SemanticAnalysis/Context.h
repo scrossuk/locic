@@ -34,9 +34,12 @@ typedef struct Locic_SemanticContext_Class{
 
 // Manages conversion from AST to SEM structure.
 typedef struct Locic_SemanticContext{
-	// The current class declaration.
-	// (NULL if current function is not a class method.)
-	SEM_ClassDecl * classDecl;
+	// The current module.
+	SEM_Module * module;
+
+	// The current type instance (e.g. class declaration).
+	// (NULL if current function does not have a parent type.)
+	SEM_TypeInstance * functionParentType;
 	
 	// The current function declaration.
 	SEM_FunctionDecl * functionDecl;
@@ -44,8 +47,8 @@ typedef struct Locic_SemanticContext{
 	// Map from function names to their declarations for all modules.
 	Locic_StringMap functionDeclarations;
 	
-	// Map from class names to their declarations for all modules.
-	Locic_StringMap classDeclarations;
+	// Map from types names to their type instances for all modules.
+	Locic_StringMap typeInstances;
 	
 	// Information about the class containing the current function.
 	// (e.g. member variables).
@@ -63,9 +66,13 @@ Locic_SemanticContext * Locic_SemanticContext_Alloc();
 
 void Locic_SemanticContext_Free(Locic_SemanticContext * context);
 
-void Locic_SemanticContext_StartClass(Locic_SemanticContext * context, SEM_ClassDecl * classDecl);
+void Locic_SemanticContext_StartModule(Locic_SemanticContext * context, SEM_Module * module);
 
-void Locic_SemanticContext_EndClass(Locic_SemanticContext * context);
+void Locic_SemanticContext_EndModule(Locic_SemanticContext * context);
+
+void Locic_SemanticContext_StartFunctionParentType(Locic_SemanticContext * context, SEM_TypeInstance * typeInstance);
+
+void Locic_SemanticContext_EndFunctionParentType(Locic_SemanticContext * context);
 
 void Locic_SemanticContext_StartFunction(Locic_SemanticContext * context, SEM_FunctionDecl * functionDecl);
 

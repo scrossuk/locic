@@ -10,7 +10,7 @@ extern "C" {
 #include <Locic/SEM.h>
 #include <Locic/SemanticAnalysis/Context.h>
 
-SEM_Module * Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, Locic_List * functionDeclarations, AST_Module * module);
+int Locic_SemanticAnalysis_ConvertModule(Locic_SemanticContext * context, Locic_List * functionDeclarations, AST_Module * module, SEM_Module * semModule);
 
 #ifdef __cplusplus
 }

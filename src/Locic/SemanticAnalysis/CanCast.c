@@ -48,10 +48,10 @@ const char * Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * co
 			}
 			return NULL;
 		}
-		case SEM_TYPE_CLASS:
+		case SEM_TYPE_NAMED:
 		{
-			if(sourceType->classType.classDecl != destType->classType.classDecl){
-				return "Semantic Analysis Error: Cannot convert between incompatible class types.\n";
+			if(sourceType->namedType.typeInstance != destType->namedType.typeInstance){
+				return "Semantic Analysis Error: Cannot convert between incompatible named types.\n";
 			}
 			return NULL;
 		}
@@ -136,7 +136,7 @@ int Locic_SemanticAnalysis_CanDoExplicitCast(Locic_SemanticContext * context, SE
 			
 			return 0;
 		}
-		case SEM_TYPE_CLASS:
+		case SEM_TYPE_NAMED:
 		case SEM_TYPE_PTR:
 		case SEM_TYPE_FUNC:
 		{

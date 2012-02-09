@@ -32,6 +32,7 @@ class CodeGen{
 		Function * currentFunction_;
 		BasicBlock * currentBasicBlock_;
 		FunctionPassManager fpm_;
+		std::map<SEM_TypeInstance *, StructType *> structs_;
 		std::map<SEM_FunctionDecl *, Function *> functions_;
 		std::map<std::size_t, AllocaInst *> localVariables_, paramVariables_;
 
@@ -101,9 +102,33 @@ class CodeGen{
 		void genFile(SEM_Module * module){
 			assert(module != NULL);
 			
-			Locic_List * functionDecls = module->functionDeclarations;
-			for(Locic_ListElement * declIt = Locic_List_Begin(functionDecls); declIt != Locic_List_End(functionDecls); declIt = declIt->next){
-				SEM_FunctionDecl * decl = reinterpret_cast<SEM_FunctionDecl *>(declIt->data);
+			Locic_StringMap typeInstances = module->typeInstances;
+			for(Locic_StringMapIterator typeIt = Locic_StringMap_Begin(typeInstances);
+				Locic_StringMap_IsEnd(typeInstances, typeIt) == 0; Locic_StringMap_Advance(typeIt)){
+				
+				SEM_TypeInstance * typeInstance = reinterpret_cast<SEM_TypeInstance *>(Locic_StringMap_GetData(typeIt));
+				assert(typeInstance != NULL);
+				
+				switch(typeInstance->typeEnum){
+					case SEM_TYPEINST_STRUCT:
+					{
+						std::vector<Type *> structMembers;
+						structMembers.push_back(Type::getInt1Ty(getGlobalContext()));
+						structs_[typeInstance] = StructType::create(structMembers, typeInstance->name);
+						break;
+					}
+					default:
+					{
+						std::cerr << "Unimplemented type with name '" << typeInstance->name << "'." << std::endl;
+					}
+				}
+			}
+			
+			Locic_StringMap functionDecls = module->functionDeclarations;
+			for(Locic_StringMapIterator declIt = Locic_StringMap_Begin(functionDecls);
+				Locic_StringMap_IsEnd(functionDecls, declIt) == 0; Locic_StringMap_Advance(declIt)){
+				
+				SEM_FunctionDecl * decl = reinterpret_cast<SEM_FunctionDecl *>(Locic_StringMap_GetData(declIt));
 				assert(decl != NULL);
 				functions_[decl] = Function::Create(genFunctionType(decl->type), Function::ExternalLinkage, decl->name, module_);
 			}
@@ -150,10 +175,17 @@ class CodeGen{
 							
 					}
 				}
-				case SEM_TYPE_CLASS:
+				case SEM_TYPE_NAMED:
 				{
-					std::cerr << "CodeGen error: Class type not implemented." << std::endl;
-					return Type::getInt32Ty(getGlobalContext());
+					SEM_TypeInstance * typeInstance = type->namedType.typeInstance;
+					if(typeInstance->typeEnum == SEM_TYPEINST_STRUCT){
+						StructType * structType = structs_[typeInstance];
+						assert(structType != NULL);
+						return structType;
+					}else{
+						std::cerr << "CodeGen error: Named type not implemented." << std::endl;
+						return Type::getInt32Ty(getGlobalContext());
+					}
 				}
 				case SEM_TYPE_PTR:
 				{
@@ -532,7 +564,7 @@ class CodeGen{
 							
 							return codeValue;
 						}
-						case SEM_TYPE_CLASS:
+						case SEM_TYPE_NAMED:
 						case SEM_TYPE_PTR:
 						case SEM_TYPE_FUNC:
 						{

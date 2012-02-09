@@ -1,4 +1,5 @@
-#include <assert.h>
+#include <cassert>
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -23,6 +24,43 @@ extern "C" {
 		assert(stringMap != NULL);
 		MapType* map = reinterpret_cast<MapType*>(stringMap);
 		map->clear();
+	}
+	
+	Locic_StringMapIterator Locic_StringMap_Begin(void * stringMap){
+		assert(stringMap != NULL);
+		MapType* map = reinterpret_cast<MapType*>(stringMap);
+		return new IteratorType(map->begin());
+	}
+
+	void Locic_StringMap_Advance(void * iterator){
+		assert(iterator != NULL);
+		IteratorType* it = reinterpret_cast<IteratorType*>(iterator);
+		(*it)++;
+	}
+
+	int Locic_StringMap_IsEnd(Locic_StringMap stringMap, Locic_StringMapIterator iterator){
+		assert(stringMap != NULL);
+		assert(iterator != NULL);
+		MapType* map = reinterpret_cast<MapType*>(stringMap);
+		IteratorType* it = reinterpret_cast<IteratorType*>(iterator);
+		return (*it == map->end()) ? 1 : 0;
+	}
+
+	char * Locic_StringMap_GetStringKey(void * iterator){
+		assert(iterator != NULL);
+		IteratorType* it = reinterpret_cast<IteratorType*>(iterator);
+		const std::string& str = (*it)->first;
+		const std::size_t size = str.size();
+		char * string = (char *) malloc(size + 1);
+		str.copy(string, size);
+		string[size] = '\0';
+		return string;
+	}
+
+	void * Locic_StringMap_GetData(void * iterator){
+		assert(iterator != NULL);
+		IteratorType* it = reinterpret_cast<IteratorType*>(iterator);
+		return (*it)->second;
 	}
 	
 	void* Locic_StringMap_Find(void* stringMap, const char* str) {

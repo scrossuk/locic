@@ -111,10 +111,10 @@ SEM_Value * SEM_MakeCast(SEM_Type * type, SEM_Value * val){
 
 /* SEM_Construct */
 
-SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type){
+SEM_Value * SEM_MakeConstruct(SEM_TypeInstance * typeInstance, size_t constructorId, Locic_List * parameters, SEM_Type * type){
 	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_CONSTRUCT);
 	SEM_Construct * construct = &(value->construct);
-	construct->classDecl = classDecl;
+	construct->typeInstance = typeInstance;
 	construct->constructorId = constructorId;
 	construct->parameters = parameters;
 	value->type = type;

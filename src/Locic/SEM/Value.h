@@ -4,6 +4,7 @@
 #include <Locic/List.h>
 #include <Locic/SEM/Function.h>
 #include <Locic/SEM/Type.h>
+#include <Locic/SEM/TypeInstance.h>
 #include <Locic/SEM/Var.h>
 
 typedef enum SEM_OpType{
@@ -82,7 +83,7 @@ typedef struct SEM_Cast{
 } SEM_Cast;
 
 typedef struct SEM_Construct{
-	SEM_ClassDecl * classDecl;
+	SEM_TypeInstance * typeInstance;
 	size_t constructorId;
 	Locic_List * parameters;
 } SEM_Construct;
@@ -152,7 +153,7 @@ SEM_Value * SEM_MakeTernary(SEM_Value * cond, SEM_Value * ifTrue, SEM_Value * if
 
 SEM_Value * SEM_MakeCast(SEM_Type * type, SEM_Value * value);
 
-SEM_Value * SEM_MakeConstruct(SEM_ClassDecl * classDecl, size_t constructorId, Locic_List * parameters, SEM_Type * type);
+SEM_Value * SEM_MakeConstruct(SEM_TypeInstance * typeInstance, size_t constructorId, Locic_List * parameters, SEM_Type * type);
 
 SEM_Value * SEM_MakeMemberAccess(SEM_Value * object, size_t memberId);
 

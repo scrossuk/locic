@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <Locic/AST.h>
 #include <Locic/SEM.h>
+#include <Locic/StringMap.h>
 #include <Locic/SemanticAnalysis/CanCast.h>
 #include <Locic/SemanticAnalysis/Context.h>
 #include <Locic/SemanticAnalysis/ConvertType.h>
@@ -80,6 +81,7 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 					SEM_FunctionDecl * decl = Locic_StringMap_Find(context->functionDeclarations, synVar->localVar.name);
 					
 					if(decl != NULL){
+						Locic_StringMap_Insert(context->module->functionDeclarations, synVar->localVar.name, decl);
 						return SEM_MakeFunctionRef(decl, decl->type);
 					}
 					

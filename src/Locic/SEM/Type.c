@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <Locic/List.h>
@@ -17,9 +18,10 @@ SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLVa
 	return type;
 }
 
-SEM_Type * SEM_MakeClassType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_ClassDecl * classDecl){
-	SEM_Type * type = SEM_AllocateType(SEM_TYPE_CLASS, isMutable, isLValue);
-	(type->classType).classDecl = classDecl;
+SEM_Type * SEM_MakeNamedType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_TypeInstance * typeInstance){
+	assert(typeInstance != NULL);
+	SEM_Type * type = SEM_AllocateType(SEM_TYPE_NAMED, isMutable, isLValue);
+	(type->namedType).typeInstance = typeInstance;
 	return type;
 }
 
@@ -46,8 +48,8 @@ SEM_Type * SEM_CopyType(SEM_Type * type){
 		case SEM_TYPE_BASIC:
 			newType->basicType = type->basicType;
 			break;
-		case SEM_TYPE_CLASS:
-			newType->classType = type->classType;
+		case SEM_TYPE_NAMED:
+			newType->namedType = type->namedType;
 			break;
 		case SEM_TYPE_PTR:
 			newType->ptrType = type->ptrType;
@@ -103,8 +105,8 @@ void SEM_PrintType(SEM_Type * type){
 			}
 			break;
 		}
-		case SEM_TYPE_CLASS:
-			printf("[class type]");
+		case SEM_TYPE_NAMED:
+			printf("[named type]");
 			break;
 		case SEM_TYPE_PTR:
 			SEM_PrintType(type->ptrType.ptrType);

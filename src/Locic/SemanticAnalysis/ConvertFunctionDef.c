@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <Locic/AST.h>
 #include <Locic/SEM.h>
@@ -6,12 +7,17 @@
 #include <Locic/SemanticAnalysis/ConvertScope.h>
 
 SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContext * context, AST_FunctionDef * functionDef){
+	const char * funcName = functionDef->declaration->name;
+
 	// Find the corresponding semantic function declaration.
-	SEM_FunctionDecl * semFunctionDecl = Locic_StringMap_Find(context->functionDeclarations, functionDef->declaration->name);
+	SEM_FunctionDecl * semFunctionDecl = Locic_StringMap_Find(context->functionDeclarations, funcName);
 	if(semFunctionDecl == NULL){
-		printf("Internal compiler error: semantic function declaration not found for definition '%s'.\n", functionDef->declaration->name);
+		printf("Internal compiler error: semantic function declaration not found for definition '%s'.\n", funcName);
 		return NULL;
 	}
+	
+	assert(context->module != NULL);
+	Locic_StringMap_Insert(context->module->functionDeclarations, funcName, semFunctionDecl);
 	
 	Locic_SemanticContext_StartFunction(context, semFunctionDecl);
 	
@@ -55,6 +61,6 @@ SEM_FunctionDef * Locic_SemanticAnalysis_ConvertFunctionDef(Locic_SemanticContex
 	}
 	
 	// Build and return the function definition.
-	return SEM_MakeFunctionDef(semFunctionDecl, scope);
+	return SEM_MakeFunctionDef(NULL, semFunctionDecl, scope);
 }
 
