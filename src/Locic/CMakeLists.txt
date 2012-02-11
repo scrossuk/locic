@@ -11,7 +11,7 @@ add_custom_command(OUTPUT Lexer.c COMMAND flex -o Lexer.c ${CMAKE_CURRENT_SOURCE
 find_package(LLVM REQUIRED)
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-include_directories(${LLVM_INCLUDE_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 SET(CMAKE_BUILD_TYPE Debug)
 
@@ -27,5 +27,5 @@ add_executable(locic main.c Array.cpp List.c Stack.cpp StringMap.cpp Lexer.c Par
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core native)
-target_link_libraries(locic locic-semanalysis locic-codegen ${REQ_LLVM_LIBRARIES})
+target_link_libraries(locic locic-semanalysis locic-codegen clangFrontend clangParse clangSema clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 
