@@ -292,7 +292,11 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			SEM_Type * type = Locic_SemanticAnalysis_ConvertType(context, cast->type, SEM_TYPE_RVALUE);
 			SEM_Value * val = Locic_SemanticAnalysis_ConvertValue(context, cast->value);
 			
-			if(Locic_SemanticAnalysis_CanDoExplicitCast(context, val->type, type) != 1){
+			if(type == NULL || val == NULL){
+				return NULL;
+			}
+			
+			if(Locic_SemanticAnalysis_CanDoExplicitCast(context, val->type, type) == 0){
 				printf("Semantic Analysis Error: Can't perform explicit cast.\n");
 				return NULL;
 			}

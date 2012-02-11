@@ -5,6 +5,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Target/TargetData.h>
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
@@ -16,6 +17,7 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 
 #include <Locic/SEM.h>
@@ -53,6 +55,8 @@ class CodeGen{
 			
 			std::cout << "Default target triple: " << sys::getHostTriple() << std::endl;
 			
+			
+			
 			std::string error;
 			const Target * target = TargetRegistry::lookupTarget(sys::getHostTriple(), error);
 			
@@ -72,6 +76,29 @@ class CodeGen{
 				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files." << std::endl;
 			}else{
 				std::cout << "Error when looking up default target: " << error << std::endl;
+			}
+			
+			if(target->hasTargetMachine()){
+				std::auto_ptr<TargetMachine> targetMachine(target->createTargetMachine(sys::getHostTriple(), "", ""));
+				const TargetData * targetData = targetMachine->getTargetData();
+				if(targetData != 0){
+					std::cout << "--Pointer size = " << targetData->getPointerSize() << std::endl;
+					std::cout << "--Pointer size (in bits) = " << targetData->getPointerSizeInBits() << std::endl;
+					std::cout << "--Little endian = " << (targetData->isLittleEndian() ? "true" : "false") << std::endl;
+					std::cout << "--Big endian = " << (targetData->isBigEndian() ? "true" : "false") << std::endl;
+					std::cout << "--Legal integer sizes = {";
+					
+					bool b = false;
+					for(unsigned int i = 0; i < 1000; i++){
+						if(targetData->isLegalInteger(i)){
+							if(b) std::cout << ", ";
+							std::cout << i;
+							b = true;
+						}
+					}
+					
+					std::cout << "}" << std::endl;
+				}
 			}
 	
 			// Set up the optimizer pipeline.
