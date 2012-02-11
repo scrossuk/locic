@@ -5,6 +5,7 @@
 #include <Locic/SEM/TypeInstance.h>
 
 typedef enum SEM_TypeEnum{
+	SEM_TYPE_VOID,
 	SEM_TYPE_BASIC,
 	SEM_TYPE_NAMED,
 	SEM_TYPE_PTR,
@@ -17,8 +18,7 @@ typedef enum SEM_TypeIsMutable{
 } SEM_TypeIsMutable;
 
 typedef enum SEM_BasicTypeEnum{
-	SEM_TYPE_BASIC_VOID = 0,
-	SEM_TYPE_BASIC_INT,
+	SEM_TYPE_BASIC_INT = 0,
 	SEM_TYPE_BASIC_BOOL,
 	SEM_TYPE_BASIC_FLOAT
 } SEM_BasicTypeEnum;
@@ -57,6 +57,8 @@ typedef struct SEM_Type{
 		SEM_FuncType funcType;
 	};
 } SEM_Type;
+
+SEM_Type * SEM_MakeVoidType(SEM_TypeIsMutable isMutable);
 
 SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_BasicTypeEnum typeEnum);
 

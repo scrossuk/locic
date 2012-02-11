@@ -138,6 +138,11 @@ SEM_Statement * Locic_SemanticAnalysis_ConvertStatement(Locic_SemanticContext * 
 				}
 			}
 			
+			if(type->typeEnum == SEM_TYPE_VOID){
+				printf("Semantic Analysis Error: Local variable cannot have void type.\n");
+				return NULL;
+			}
+			
 			SEM_Var * semVar = Locic_SemanticContext_DefineLocalVar(context, varName, type);
 			if(semVar == NULL){
 				printf("Semantic Analysis Error: Local variable name already exists.\n");

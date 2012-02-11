@@ -6,6 +6,10 @@
 
 SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, AST_Type * type, SEM_TypeIsLValue isLValue){
 	switch(type->typeEnum){
+		case AST_TYPE_VOID:
+		{
+			return SEM_MakeVoidType(type->isMutable);
+		}
 		case AST_TYPE_BASIC:
 		{
 			return SEM_MakeBasicType(type->isMutable, isLValue, type->basicType.typeEnum);
@@ -47,6 +51,12 @@ SEM_Type * Locic_SemanticAnalysis_ConvertType(Locic_SemanticContext * context, A
 				if(paramType == NULL){
 					return NULL;
 				}
+				
+				if(paramType->typeEnum == SEM_TYPE_VOID){
+					printf("Semantic Analysis Error: Parameter type (inside function type) cannot be void.\n");
+					return NULL;
+				}
+				
 				Locic_List_Append(parameterTypes, paramType);
 			}
 			return SEM_MakeFuncType(type->isMutable, isLValue, returnType, parameterTypes);

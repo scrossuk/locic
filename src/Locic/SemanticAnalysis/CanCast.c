@@ -6,7 +6,7 @@
 SEM_Value * Locic_SemanticAnalysis_CastValueToType(Locic_SemanticContext * context, SEM_Value * value, SEM_Type * type){
 	// Try a plain implicit cast.
 	if(Locic_SemanticAnalysis_CanDoImplicitCast(context, value->type, type) == NULL){
-		return value;
+		return SEM_MakeCast(type, value);
 	}
 			
 	// Can't just cast from one type to the other =>
@@ -17,7 +17,7 @@ SEM_Value * Locic_SemanticAnalysis_CastValueToType(Locic_SemanticContext * conte
 		const char * err = Locic_SemanticAnalysis_CanDoImplicitCast(context, copiedValue->type, type);
 		if(err == NULL){
 			// Copying worked.
-			return copiedValue;
+			return SEM_MakeCast(type, copiedValue);
 		}
 		printf("%s", err);
 	}
@@ -27,6 +27,11 @@ SEM_Value * Locic_SemanticAnalysis_CastValueToType(Locic_SemanticContext * conte
 }
 
 const char * Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
+	if(destType->typeEnum == SEM_TYPE_VOID){
+		// Everything can be cast to void.
+		return NULL;
+	}
+	
 	if(sourceType->typeEnum != destType->typeEnum){
 		return "Semantic Analysis Error: Types don't match.\n";
 	}
@@ -113,6 +118,11 @@ int Locic_SemanticAnalysis_CanDoImplicitCopy(Locic_SemanticContext * context, SE
 }
 
 int Locic_SemanticAnalysis_CanDoExplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
+	if(destType->typeEnum == SEM_TYPE_VOID){
+		// Everything can be cast to void.
+		return 1;
+	}
+	
 	if(sourceType->typeEnum != destType->typeEnum){
 		return 0;
 	}

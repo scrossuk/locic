@@ -44,14 +44,13 @@
 %type typePrecision2 { AST_Type * }
 %type typePrecision1 { AST_Type * }
 %type typePrecision0 { AST_Type * }
-%type nonVoidType { AST_Type * }
 %type type { AST_Type * }
 %type nonEmptyTypeList { Locic_List * }
 %type typeList { Locic_List * }
 
 %type lcName { char * }
 %type ucName { char * }
-%type typeName { char * }
+%type name { char * }
 
 %type typeVar { AST_TypeVar * }
 %type nonEmptyTypeVarList { Locic_List * }
@@ -130,7 +129,7 @@ module(NM) ::= module(OM) error.
 		NM = OM;
 	}
 
-struct(S) ::= STRUCT ucName(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
+struct(S) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
 	{
 		S = AST_MakeStruct(N, VL);
 	}
@@ -186,6 +185,16 @@ ucName(N) ::= UCNAME(NAME).
 		N = (NAME).str;
 	}
 	
+name(N) ::= lcName(NAME).
+	{
+		N = NAME;
+	}
+	
+name(N) ::= ucName(NAME).
+	{
+		N = NAME;
+	}
+	
 basicType(T) ::= BOOLNAME.
 	{
 		T = AST_TYPE_BASIC_BOOL;
@@ -201,6 +210,11 @@ basicType(T) ::= FLOATNAME.
 		T = AST_TYPE_BASIC_FLOAT;
 	}
 	
+typePrecision2(T) ::= VOIDNAME.
+	{
+		T = AST_MakeVoidType(AST_TYPE_MUTABLE);
+	}
+	
 typePrecision2(T) ::= basicType(BT).
 	{
 		T = AST_MakeBasicType(AST_TYPE_MUTABLE, BT);
@@ -211,17 +225,17 @@ typePrecision2(T) ::= ucName(N).
 		T = AST_MakeNamedType(AST_TYPE_MUTABLE, N);
 	}
 	
-typePrecision2(NT) ::= LROUNDBRACKET nonVoidType(T) RROUNDBRACKET.
+typePrecision2(T) ::= PERCENT lcName(N).
+	{
+		T = AST_MakeNamedType(AST_TYPE_MUTABLE, N);
+	}
+	
+typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
 	{
 		NT = T;
 	}
 	
-typePrecision2(NT) ::= LROUNDBRACKET VOIDNAME RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
-	{
-		NT = AST_MakeFuncType(AST_TYPE_MUTABLE, AST_MakeBasicType(AST_TYPE_MUTABLE, AST_TYPE_BASIC_VOID), PTL);
-	}
-	
-typePrecision2(NT) ::= LROUNDBRACKET nonVoidType(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
 	{
 		NT = AST_MakeFuncType(AST_TYPE_MUTABLE, RT, PTL);
 	}
@@ -252,27 +266,17 @@ typePrecision0(NT) ::= typePrecision0(T) STAR.
 		NT = AST_MakePtrType(T);
 	}
 
-nonVoidType(NT) ::= typePrecision0(T).
+type(NT) ::= typePrecision0(T).
 	{
 		NT = T;
 	}
 	
-type(NT) ::= VOIDNAME.
-	{
-		NT = AST_MakeBasicType(AST_TYPE_MUTABLE, AST_TYPE_BASIC_VOID);
-	}
-
-type(NT) ::= nonVoidType(T).
-	{
-		NT = T;
-	}
-	
-nonEmptyTypeList(TL) ::= nonVoidType(T).
+nonEmptyTypeList(TL) ::= type(T).
 	{
 		TL = Locic_List_Append(Locic_List_Alloc(), T);
 	}
 	
-nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA nonVoidType(T).
+nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
 	{
 		TL = Locic_List_Append(OTL, T);
 	}
@@ -307,7 +311,7 @@ classMethodDefList(DL) ::= classMethodDefList(ODL) functionDef(D).
 		DL = Locic_List_Append(ODL, D);
 	}
 	
-typeVar(TV) ::= nonVoidType(T) lcName(N).
+typeVar(TV) ::= type(T) lcName(N).
 	{
 		TV = AST_MakeTypeVar(T, N);
 	}
@@ -420,7 +424,7 @@ normalStatement(S) ::= AUTO lcName(N) SETEQUAL value(V).
 		S = AST_MakeAutoVarDecl(N, V);
 	}
 	
-normalStatement(S) ::= nonVoidType(T) lcName(N) SETEQUAL value(V).
+normalStatement(S) ::= type(T) lcName(N) SETEQUAL value(V).
 	{
 		S = AST_MakeVarDecl(T, N, V);
 	}

@@ -8,6 +8,10 @@ inline AST_Type * AST_AllocateType(AST_TypeEnum typeEnum, AST_TypeIsMutable isMu
 	return type;
 }
 
+AST_Type * AST_MakeVoidType(){
+	return AST_AllocateType(AST_TYPE_VOID, AST_TYPE_MUTABLE);
+}
+
 AST_Type * AST_MakeBasicType(AST_TypeIsMutable isMutable, AST_BasicTypeEnum typeEnum){
 	AST_Type * type = AST_AllocateType(AST_TYPE_BASIC, isMutable);
 	(type->basicType).typeEnum = typeEnum;

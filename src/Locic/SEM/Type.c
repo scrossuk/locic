@@ -12,6 +12,10 @@ inline SEM_Type * SEM_AllocateType(SEM_TypeEnum typeEnum, SEM_TypeIsMutable isMu
 	return type;
 }
 
+SEM_Type * SEM_MakeVoidType(SEM_TypeIsMutable isMutable){
+	return SEM_AllocateType(SEM_TYPE_VOID, isMutable, SEM_TYPE_RVALUE);
+}
+
 SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_BasicTypeEnum typeEnum){
 	SEM_Type * type = SEM_AllocateType(SEM_TYPE_BASIC, isMutable, isLValue);
 	(type->basicType).typeEnum = typeEnum;
@@ -65,8 +69,7 @@ SEM_Type * SEM_CopyType(SEM_Type * type){
 
 int SEM_IsVoidType(SEM_Type * type){
 	if(type == NULL) return 0;
-	if(type->typeEnum != SEM_TYPE_BASIC) return 0;
-	if(type->basicType.typeEnum != SEM_TYPE_BASIC_VOID) return 0;
+	if(type->typeEnum != SEM_TYPE_VOID) return 0;
 	return 1;
 }
 
@@ -84,12 +87,14 @@ void SEM_PrintType(SEM_Type * type){
 	}
 	
 	switch(type->typeEnum){
+		case SEM_TYPE_VOID:
+		{
+			printf("void");
+			break;
+		}
 		case SEM_TYPE_BASIC:
 		{
 			switch(type->basicType.typeEnum){
-				case SEM_TYPE_BASIC_VOID:
-					printf("void");
-					break;
 				case SEM_TYPE_BASIC_BOOL:
 					printf("bool");
 					break;

@@ -30,6 +30,11 @@ SEM_FunctionDecl * Locic_SemanticAnalysis_ConvertFunctionDecl(Locic_SemanticCont
 			return NULL;
 		}
 		
+		if(semParamType->typeEnum == SEM_TYPE_VOID){
+			printf("Semantic Analysis Error: Parameter variable cannot have void type.\n");
+			return NULL;
+		}
+		
 		SEM_Var * semParamVar = SEM_MakeVar(SEM_VAR_PARAM, id, semParamType);
 		
 		Locic_List_Append(parameterTypes, semParamType);

@@ -158,11 +158,13 @@ class CodeGen{
 
 		Type * genType(SEM_Type * type){
 			switch(type->typeEnum){
+				case SEM_TYPE_VOID:
+				{
+					return Type::getVoidTy(getGlobalContext());
+				}
 				case SEM_TYPE_BASIC:
 				{
 					switch(type->basicType.typeEnum){
-						case SEM_TYPE_BASIC_VOID:
-							return Type::getVoidTy(getGlobalContext());
 						case SEM_TYPE_BASIC_INT:
 							return Type::getInt32Ty(getGlobalContext());
 						case SEM_TYPE_BASIC_BOOL:
@@ -192,7 +194,7 @@ class CodeGen{
 					Type * ptrType = genType(type->ptrType.ptrType);
 					if(ptrType->isVoidTy()){
 						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-						return Type::getInt8Ty(getGlobalContext())->getPointerTo();
+						return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 					}else{
 						return ptrType->getPointerTo();
 					}
@@ -539,13 +541,17 @@ class CodeGen{
 				}
 				case SEM_VALUE_CAST:
 				{
-					Value * codeValue = genValue(value->cast.value);
+					Value * codeValue = genValue(value->cast.value, genLValue);
 					SEM_Type * sourceType = value->cast.value->type;
 					SEM_Type * destType = value->type;
 					
 					assert(sourceType->typeEnum == destType->typeEnum);
 					
 					switch(sourceType->typeEnum){
+						case SEM_TYPE_VOID:
+						{
+							return codeValue;
+						}
 						case SEM_TYPE_BASIC:
 						{
 							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum){
@@ -566,6 +572,13 @@ class CodeGen{
 						}
 						case SEM_TYPE_NAMED:
 						case SEM_TYPE_PTR:
+						{
+							if(genLValue){
+								return builder_.CreatePointerCast(codeValue, PointerType::getUnqual(genType(destType)));
+							}else{
+								return builder_.CreatePointerCast(codeValue, genType(destType));
+							}
+						}
 						case SEM_TYPE_FUNC:
 						{
 							return codeValue;
