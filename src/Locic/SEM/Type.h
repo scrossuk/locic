@@ -6,10 +6,11 @@
 
 typedef enum SEM_TypeEnum{
 	SEM_TYPE_VOID,
+	SEM_TYPE_NULL,
 	SEM_TYPE_BASIC,
 	SEM_TYPE_NAMED,
 	SEM_TYPE_PTR,
-	SEM_TYPE_FUNC
+	SEM_TYPE_FUNC,
 } SEM_TypeEnum;
 
 typedef enum SEM_TypeIsMutable{
@@ -59,6 +60,8 @@ typedef struct SEM_Type{
 } SEM_Type;
 
 SEM_Type * SEM_MakeVoidType(SEM_TypeIsMutable isMutable);
+
+SEM_Type * SEM_MakeNullType(SEM_TypeIsMutable isMutable);
 
 SEM_Type * SEM_MakeBasicType(SEM_TypeIsMutable isMutable, SEM_TypeIsLValue isLValue, SEM_BasicTypeEnum typeEnum);
 

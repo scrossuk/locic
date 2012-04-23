@@ -35,6 +35,13 @@ AST_Value * AST_MakeFloatConstant(float val){
 	return value;
 }
 
+AST_Value * AST_MakeNullConstant(){
+	AST_Value * value = AST_AllocateValue(AST_VALUE_CONSTANT);
+	AST_Constant * constant = &(value->constant);
+	constant->type = AST_CONSTANT_NULL;
+	return value;
+}
+
 /* AST_Var */
 
 AST_Value * AST_MakeVarValue(AST_Var * var){

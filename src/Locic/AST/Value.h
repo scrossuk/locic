@@ -8,7 +8,8 @@
 typedef enum AST_ConstantType{
 	AST_CONSTANT_BOOL,
 	AST_CONSTANT_INT,
-	AST_CONSTANT_FLOAT
+	AST_CONSTANT_FLOAT,
+	AST_CONSTANT_NULL
 } AST_ConstantType;
 
 typedef struct AST_Constant{
@@ -117,6 +118,8 @@ AST_Value * AST_MakeBoolConstant(int val);
 AST_Value * AST_MakeIntConstant(int val);
 
 AST_Value * AST_MakeFloatConstant(float val);
+
+AST_Value * AST_MakeNullConstant();
 
 AST_Value * AST_MakeVarValue(AST_Var * var);
 

@@ -211,6 +211,9 @@ class CodeGen {
 				case SEM_TYPE_VOID: {
 					return Type::getVoidTy(getGlobalContext());
 				}
+				case SEM_TYPE_NULL: {
+					return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
+				}
 				case SEM_TYPE_BASIC: {
 					switch(type->basicType.typeEnum) {
 						case SEM_TYPE_BASIC_INT:
@@ -421,6 +424,8 @@ class CodeGen {
 							return ConstantInt::get(getGlobalContext(), APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
 						case SEM_CONSTANT_FLOAT:
 							return ConstantFP::get(getGlobalContext(), APFloat(value->constant.floatConstant));
+						case SEM_CONSTANT_NULL:
+							return ConstantPointerNull::get(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
 						default:
 							std::cerr << "CodeGen error: Unknown constant." << std::endl;
 							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
@@ -602,11 +607,20 @@ class CodeGen {
 					SEM_Type* sourceType = value->cast.value->type;
 					SEM_Type* destType = value->type;
 					
-					assert(sourceType->typeEnum == destType->typeEnum);
+					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM_TYPE_NULL);
 					
 					switch(sourceType->typeEnum) {
 						case SEM_TYPE_VOID: {
 							return codeValue;
+						}
+						case SEM_TYPE_NULL: {
+							assert(destType->typeEnum == SEM_TYPE_NAMED || destType->typeEnum == SEM_TYPE_PTR || destType->typeEnum == SEM_TYPE_FUNC);
+							if(destType->typeEnum == SEM_TYPE_PTR || destType->typeEnum == SEM_TYPE_FUNC){
+								return builder_.CreatePointerCast(codeValue, genType(destType));
+							}
+							
+							std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
+							return 0;
 						}
 						case SEM_TYPE_BASIC: {
 							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {

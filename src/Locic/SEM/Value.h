@@ -17,7 +17,8 @@ typedef enum SEM_OpType{
 typedef enum SEM_ConstantType{
 	SEM_CONSTANT_BOOL,
 	SEM_CONSTANT_INT,
-	SEM_CONSTANT_FLOAT
+	SEM_CONSTANT_FLOAT,
+	SEM_CONSTANT_NULL
 } SEM_ConstantType;
 
 typedef struct SEM_Constant{
@@ -140,6 +141,8 @@ SEM_Value * SEM_MakeBoolConstant(int val);
 SEM_Value * SEM_MakeIntConstant(int val);
 
 SEM_Value * SEM_MakeFloatConstant(float val);
+
+SEM_Value * SEM_MakeNullConstant();
 
 SEM_Value * SEM_MakeCopyValue(SEM_Value * operand);
 

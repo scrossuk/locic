@@ -60,6 +60,7 @@ int                     { return LOCIC_TOKEN_INTNAME; }
 bool                    { return LOCIC_TOKEN_BOOLNAME; }
 float                   { return LOCIC_TOKEN_FLOATNAME; }
 
+null                    { return LOCIC_TOKEN_NULL; }
 true                    { yyextra->token.boolValue = 1; return LOCIC_TOKEN_BOOLCONSTANT; }
 false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLCONSTANT; }
 [0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }

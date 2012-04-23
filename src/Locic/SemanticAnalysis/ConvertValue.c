@@ -61,6 +61,8 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 					return SEM_MakeIntConstant(value->constant.intConstant);
 				case AST_CONSTANT_FLOAT:
 					return SEM_MakeFloatConstant(value->constant.floatConstant);
+				case AST_CONSTANT_NULL:
+					return SEM_MakeNullConstant();
 				default:
 					printf("Internal Compiler Error: Unknown constant type enum.\n");
 					return NULL;
@@ -340,14 +342,9 @@ SEM_Value * Locic_SemanticAnalysis_ConvertValue(Locic_SemanticContext * context,
 			Locic_ListElement * valueIt = Locic_List_Begin(synValueList);
 			
 			while(valueIt != Locic_List_End(synValueList)){
-				SEM_Value * param = Locic_SemanticAnalysis_ConvertValue(context, valueIt->data);
+				SEM_Value * param = Locic_SemanticAnalysis_CastValueToType(context, Locic_SemanticAnalysis_ConvertValue(context, valueIt->data), typeIt->data);
 				
 				if(param == NULL){
-					return NULL;
-				}
-			
-				if(!Locic_SemanticAnalysis_CanDoImplicitCast(context, param->type, typeIt->data)){
-					printf("Semantic Analysis Error: Cannot convert parameter value to type expected by function.\n");
 					return NULL;
 				}
 				

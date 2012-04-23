@@ -498,6 +498,11 @@ precision7(V) ::= FLOATCONSTANT(C).
 	{
 		V = AST_MakeFloatConstant((C).floatValue);
 	}
+	
+precision7(V) ::= NULL.
+	{
+		V = AST_MakeNullConstant();
+	}
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{

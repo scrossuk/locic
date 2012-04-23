@@ -40,6 +40,14 @@ SEM_Value * SEM_MakeFloatConstant(float val){
 	return value;
 }
 
+SEM_Value * SEM_MakeNullConstant(){
+	SEM_Value * value = SEM_AllocateValue(SEM_VALUE_CONSTANT);
+	SEM_Constant * constant = &(value->constant);
+	constant->type = SEM_CONSTANT_NULL;
+	value->type = SEM_MakeNullType(SEM_TYPE_MUTABLE);
+	return value;
+}
+
 /* SEM_CopyValue */
 
 SEM_Value * SEM_MakeCopyValue(SEM_Value * operand){

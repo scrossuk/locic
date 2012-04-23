@@ -32,7 +32,7 @@ const char * Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * co
 		return NULL;
 	}
 	
-	if(sourceType->typeEnum != destType->typeEnum){
+	if(sourceType->typeEnum != destType->typeEnum && sourceType->typeEnum != SEM_TYPE_NULL){
 		return "Semantic Analysis Error: Types don't match.\n";
 	}
 	
@@ -46,6 +46,20 @@ const char * Locic_SemanticAnalysis_CanDoImplicitCast(Locic_SemanticContext * co
 	}
 	
 	switch(sourceType->typeEnum){
+		case SEM_TYPE_NULL:
+		{
+			if(destType->typeEnum == SEM_TYPE_BASIC){
+				return "Semantic Analysis Error: Cannot cast null to basic type.";
+			}
+			
+			if(destType->typeEnum == SEM_TYPE_NAMED){
+				if(destType->namedType.typeInstance->typeEnum == SEM_TYPEINST_STRUCT){
+					return "Semantic Analysis Error: Cannot cast null to struct type.";
+				}
+			}
+			
+			return NULL;
+		}
 		case SEM_TYPE_BASIC:
 		{
 			if(sourceType->basicType.typeEnum != destType->basicType.typeEnum){
@@ -118,8 +132,8 @@ int Locic_SemanticAnalysis_CanDoImplicitCopy(Locic_SemanticContext * context, SE
 }
 
 int Locic_SemanticAnalysis_CanDoExplicitCast(Locic_SemanticContext * context, SEM_Type * sourceType, SEM_Type * destType){
-	if(destType->typeEnum == SEM_TYPE_VOID){
-		// Everything can be cast to void.
+	const char * err = Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceType, destType);
+	if(err == NULL){
 		return 1;
 	}
 	
@@ -150,13 +164,8 @@ int Locic_SemanticAnalysis_CanDoExplicitCast(Locic_SemanticContext * context, SE
 		case SEM_TYPE_PTR:
 		case SEM_TYPE_FUNC:
 		{
-			const char * err = Locic_SemanticAnalysis_CanDoImplicitCast(context, sourceType, destType);
-			if(err == NULL){
-				return 1;
-			}else{
-				printf("%s", err);
-				return 0;
-			}
+			printf("%s", err);
+			return 0;
 		}
 		default:
 			return 0;
