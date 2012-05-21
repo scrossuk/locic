@@ -1,23 +1,31 @@
 #ifndef LOCIC_AST_FUNCTION_H
 #define LOCIC_AST_FUNCTION_H
 
-#include <Locic/List.h>
-#include <Locic/AST/Scope.h>
-#include <Locic/AST/Type.h>
+#include <list>
+#include <string>
+#include <Locic/AST/Scope.hpp>
+#include <Locic/AST/Type.hpp>
+#include <Locic/AST/TypeVar.hpp>
 
-typedef struct AST_FunctionDecl{
-	AST_Type * returnType;
-	char * name;
-	Locic_List * parameters;
-} AST_FunctionDecl;
+namespace AST{
 
-AST_FunctionDecl * AST_MakeFunctionDecl(AST_Type * returnType, char * name, Locic_List * parameters);
+	struct FunctionDecl{
+		Type * returnType;
+		std::string name;
+		std::list<TypeVar *> parameters;
+		
+		inline FunctionDecl(Type * t, const std::string& n, const std::list<TypeVar *>& p)
+			: returnType(t), name(n), parameters(p){ }
+	};
+	
+	struct FunctionDef{
+		FunctionDecl * declaration;
+		Scope * scope;
+		
+		inline FunctionDef(FunctionDecl * d, Scope * s)
+			: declaration(d), scope(s){ }
+	};
 
-typedef struct AST_FunctionDef{
-	AST_FunctionDecl * declaration;
-	AST_Scope * scope;
-} AST_FunctionDef;
-
-AST_FunctionDef * AST_MakeFunctionDef(AST_FunctionDecl * declaration, AST_Scope * scope);
+}
 
 #endif

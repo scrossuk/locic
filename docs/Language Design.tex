@@ -1,49 +1,55 @@
-\documentclass{article}
+\documentclass[12pt,twoside,notitlepage]{report}
 
-\title{Loci Language Design}
+\title{Loci Programming Language}
 \author{Stephen Cross}
-\date{}
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\addtolength{\oddsidemargin}{6mm}       % adjust margins
+\addtolength{\evensidemargin}{-8mm}
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
 
 \begin{document}
-\maketitle
 
-\section{Introduction}
+%%%%%%%%%%%%% TITLE PAGE %%%%%%%%%%%%%
+\pagestyle{empty}
 
-\subsection{Purpose}
+\vspace*{60mm}
+\begin{center}
+\Huge
+{\bf Loci Programming Language} \\
+\vspace*{5mm}
+Stephen Cross \\
+\vspace*{5mm}
+\today  % today's date
+\end{center}
 
-\paragraph{}
-This document describes and rationalises the design of the Loci general programming language. Note that this is not a specification.
+\cleardoublepage
 
-\subsection{Name}
+%%%%%%%%%%%%% TABLE OF CONTENTS %%%%%%%%%%%%%
 
-\paragraph{}
-While it has been suggested that Loci could stand for `Loci: objects, classes and interfaces', this is not the intended understanding because the language is much more than just being object orientated. Instead, the name reflects the following definitions of its singular form:
+\setcounter{page}{1}
+\pagenumbering{roman}
+\pagestyle{plain}
 
-\begin{quotation}
-\emph{locus} - the set of all points or lines that satisfy or are determined by specific conditions
-\end{quotation}
-\begin{quotation}
-\emph{locus} - A place or locality, especially a centre of activity
-\end{quotation}
+\tableofcontents
 
-\subsection{Aims}
+\listoffigures
 
-\paragraph{}
-In general, Loci is designed to satisfy the following goals:
+\cleardoublepage
 
-\begin{itemize}
-\item Modular - The language must help to produce programs in which the basic problem is split into distinct components, which can be easily re-combined to solve other problems.
-\item Portable - The language should be independent of any specific machine architecture or operating system, such that programs can be ported easily.
-\item Compatible - The language must be compatible with existing languages/standards so that it can make use of existing services.
-\item Simple - The language must remove all unnecessary complexity and maximize developer efficiency so that time can be best spent solving the problem at hand. It is important to reduce the learning curve to remove any barriers preventing new developers from embracing the language.
-\item Clean - The language must help to produce clean and consistent applications which can be easily read and understood. It is important that when one developer sees code written by another developer it is easy for them to understand it, in order to aid collaboration.
-\item Small - The language must produce resulting code that is small and free of dependencies except those specified in the program and understood to the developer, such that distribution is simple and fast.
-\item Fast - The language must provide good performance, to maximise its utility.
-\end{itemize}
+%%%%%%%%%%%%% CONTENT %%%%%%%%%%%%%
 
-\section{Overview}
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{headings}
 
-\subsection{Use Case}
+\chapter{Introduction}
 
 \paragraph{}
 The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating interoperation of different programming languages with C as a `bridge'. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
@@ -57,22 +63,53 @@ The design of languages that are both simple and powerful is difficult, and popu
 \paragraph{}
 However, these languages also suffer significant problems: there are no deterministic destruction routines (which must be provided by the programmer through constructs such as try...finally), the languages have extensive dependencies on the large and complex environment that supports them and they lack direct access to lower level routines typically available in C. Furthermore, despite aims to remain simple, many of these languages have become increasingly complex as it is discovered the initial design was insufficiently powerful. Special cases (e.g. Java's + operator for strings) further serve to complicate the languages.
 
+\section{Aims}
+
 \paragraph{}
+This document therefore describes and rationalises the design of the Loci programming language, which aims to provide strong compatibility with C, while adding useful efficient high level abstractions, and without the complexities that arise in C++.
 
+\paragraph{}
+Loci should satisfy the following (quite vague) goals:
 
-\subsection{Specific Goals}
+\begin{itemize}
+\item Modular - The language must help to produce programs in which the basic problem is split into distinct components, which can be easily re-combined to solve other problems.
+\item Portable - The language should be independent of any specific machine architecture or operating system, such that programs can be ported easily.
+\item Compatible - The language must be compatible with existing languages/standards so that it can make use of existing services.
+\item Simple - The language must remove all unnecessary complexity and maximize developer efficiency so that time can be best spent solving the problem at hand. It is important to reduce the learning curve to remove any barriers preventing new developers from embracing the language.
+\item Clean - The language must help to produce clean and consistent applications which can be easily read and understood. It is important that when one developer sees code written by another developer it is easy for them to understand it, in order to aid collaboration.
+\item Small - The language must produce resulting code that is small and free of dependencies except those specified in the program and understood to the developer, such that distribution is simple and fast.
+\item Fast - The language must provide good performance, to maximise its utility.
+\end{itemize}
+
+\section{Name}
+
+\paragraph{}
+While it has been suggested that Loci could stand for `Loci: objects, classes and interfaces', this is not the intended understanding because the language is much more than just being object orientated\footnote{Like C++, Loci is a multi-paradigm language.}. Instead, the name reflects the following definitions of its singular form:
+
+\begin{quotation}
+\emph{locus} - the set of all points or lines that satisfy or are determined by specific conditions
+\end{quotation}
+\begin{quotation}
+\emph{locus} - A place or locality, especially a centre of activity
+\end{quotation}
+
+\section{Specific Goals}
 
 \paragraph{}
 Establishing this basis for Loci, it is possible to elaborate more specific goals for the language:
 
 \begin{itemize}
-\item Provide stable interfaces between modules without relying on C - a change in one module should not require the other module to be re-compiled. In particular, classes can change their internal structure without breaking API compatibility.
-\item Follow a standard binary interface for each platform - this means that modules compiled by different compilers must work together. Loci creates standard C functions with fixed naming rules and calling conventions.
-\item Fast compile times - this is vital to maximise productivity. Loci files are effectively isolated from each other, such that they can be tokenized and parsed in parallel, and then the resulting structures can be used to resolve and verify dependencies. Effectively parallelising builds for other languages is often significantly more complex.
-\item Minimal syntactic complexity. For example, header guards are required in C to prevent a header from being included twice. In Loci all files are equal and are only analyzed once, so there is no need to add any sort of guards. Furthermore the Loci compiler uses multiple passes so type declarations/definitions do not have to appear before their use - they simply have to be given somewhere in the source.
-\item Minimal semantic complexity. Loci avoids language features (or combinations of language features) that affect the readability and predictability of code. For example, Loci does not support function or method overloading, since these can easily increase the complexity of the language with little to no added benefit.
-\item Provide a powerful polymorphism mechanism. Loci provides interfaces, that are effectively equivalent to C++ pure virtual classes with a virtual destructor, or Java interfaces. Loci uses structural typing, so casts are allowed from classes to interfaces if the class provides all the methods required by the interface.
+\item \textbf{Provide stable interfaces between modules.} A change in one module should not require a module that depends on it to be re-compiled, unless there are changes that break the API. In particular, classes in libraries can change their internal structure (i.e. their member variables) without requiring re-compilation of clients of the library.
+\item \textbf{Follow a standard binary interface for each platform.} Modules compiled by different compilers must work together. Loci creates standard C functions with fixed naming rules and calling conventions.
+\item \textbf{Fast compile times.} This is vital to maximise productivity. Loci files are effectively isolated from each other, such that they can be tokenized and parsed in parallel, and then the resulting structures can be used to resolve and verify dependencies. Effectively parallelising builds for other languages is often significantly more complex.
+\item \textbf{Minimal syntactic complexity.} For example, header guards are required in C to prevent a header from being included twice. In Loci all files are equal and are only analyzed once, so there is no need to add any sort of guards. Furthermore the Loci compiler uses multiple passes so type declarations/definitions do not have to appear before their use.
+\item \textbf{Minimal semantic complexity.} Loci avoids language features (or combinations of language features) that affect the readability and predictability of code. For example, Loci does not support function or method overloading, since these can easily increase the complexity of the language with little to no added benefit.
+\item \textbf{Provide a powerful polymorphism mechanism.} Loci provides interfaces, that are effectively equivalent to C++ pure virtual classes with a virtual destructor, or Java interfaces. Loci uses structural typing, so casts are allowed from classes to interfaces if the class provides all the methods required by the interface.
 \end{itemize}
+
+\cleardoublepage
+
+\chapter{Design}
 
 \paragraph{}
 One of the defining aspects of Loci is that everything is an object and all objects are subject to the same rules (unlike Java, in which the string + operator is a special case). Loci places an emphasis on interfaces, to such an extent that they are the only way polymorphism can be achieved, and extends inheritance only contributes to code reuse. As a result of this, Loci is able to easily support multiple inheritance, however the units being inherited from are called ‘partial classes’. The relationship of interfaces, classes and partial classes is not complicated, however it needs to be (and will be) demonstrated in code.
@@ -102,10 +139,360 @@ The conceptual model of the language seeks to reject the notion that programming
 \item Cheaper moving
 \end{itemize}
 
-\subsection{Exceptions}
+\section{Type Syntax}
+
+\paragraph{}
+Loci strictly follows the following structure for all typed variables declarations:
+
+\begin{verbatim}
+[TYPE] [NAME]
+\end{verbatim}
+
+\paragraph{}
+This differs significantly from C. Here are some C and Loci function pointer types, for comparison:
+
+\begin{verbatim}
+void (*f)(); // C
+()() f; // Loci
+
+int (*f)(); // C
+(int)() f; // Loci
+
+int (*f)(int, int); // C
+(int)(int, int) f; // Loci
+\end{verbatim}
+
+\paragraph{}
+Loci also offers `alias' as an alternative to `typedef':
+
+\begin{verbatim}
+typedef OldType NewType; // C
+alias NewType = OldType; // Loci
+\end{verbatim}
+
+\section{L-values and R-values}
+
+\paragraph{}
+Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
+
+\small{
+\begin{verbatim}
+class SomeType(int * p){
+    ~SomeType(){
+        // This destructor is only run
+        // if the object is non-empty.
+    	delete @p;
+    }
+}
+
+SomeType f(){
+    // Return r-value.
+    return SomeType(new 1);
+}
+
+void function(){
+    // Constructor called, and value moved into stack.
+    // (This would be optimised to construction on the stack.)
+    SomeType a = SomeType(new 2);
+    
+    SomeType b = SomeType(new 3);
+    
+    // Existing value in 'a' destroyed (destructor called),
+    // value in 'b' moved into 'a', and 'b' is now left
+    // empty (i.e. b == null).
+    a = #(b);
+    
+    // Value returned from 'f' moved into 'b', which is now
+    // non-empty.
+    b := f();
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
+
+\small{
+\begin{verbatim}
+// This is C++ code!
+class SomeType{
+    public:
+        SomeType(int * p){
+        	p_ = p;
+        }
+        
+        SomeType& operator=(const SomeType& t){
+            // Avoid self-assignment.
+            if(&t != this){
+                // Destroy existing local state.
+                delete p_;
+                
+                // Copy state.
+                p_ = t.p_;
+                
+                // Zero state in 't'.
+                t.p_ = 0;
+            }
+            return *this;
+        }
+        
+        ~SomeType(){
+            // Check whether the object is empty.
+            if(p_ == 0){
+                delete p_;
+            }
+        }
+    
+    private:
+        int * p_;
+    
+};
+\end{verbatim}
+}
+
+\paragraph{}
+Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
+
+\section{References}
+
+\paragraph{}
+Along with pointers, Loci uses references as equivalent to a pointer type, except that they must not be null. For example:
+
+\small{
+\begin{verbatim}
+void function(int * pointer){
+    // Illegal - no implicit cast allowed.
+    int& ref0 = pointer;
+    
+    // Correct - triggers exception if
+    // pointer == null.
+    int& ref1 = cast<int&>(pointer);
+    
+    int data = 0;
+    
+    // Valid - typeof(&data) == typedata(int&).
+    // (and references can be changed in Loci)
+    ref1 = &data;
+    
+    // Valid - implicit cast from int&
+    // to int* is provided.
+    pointer = ref1;
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This is somewhat different to C++ references, which cannot be changed after they have been assigned, and which operate at the level of value types. However, this can lead to confusing behaviour, as in the following C++ code example:
+
+\small{
+\begin{verbatim}
+// This is C++ code!
+
+int f1(int r){
+    r = 1;
+    return r;
+}
+
+int f2(int& r){
+    r = 1;
+    return r;
+}
+
+int g(int * r){
+    *r = 1;
+    return *r;
+}
+
+void function(){
+    int a = 0, b = 0;
+    
+    // (a = 0, b = 0).
+    
+    b = f1(a);
+    
+    // (a = 0, b = 1) - Ok, this is expected.
+    
+    b = f2(a);
+    
+    // (a = 1, b = 1) - Surprise modification to a!
+    
+    a = 0;
+    b = 0;
+    
+    b = g(&a);
+    // Less surprising that f modifies a.
+}
+\end{verbatim}
+}
+
+\paragraph{}
+The behaviour of `f2' is unintuitive because the parameter passed to it is received by its address (since references are implemented as pointers), without the address-of operator being applied to the parameter. Furthermore, `f1' and `f2' differ by a single character, but their behaviour is significantly different: the code of `g' makes it clear that the parameter is being handled by its address.
+
+\paragraph{}
+There is, however, a good argument for allowing such behaviour for efficiency purposes, since copying a large parameter type may be undesirable. Loci therefore supports an implicit cast from an lvalue `T' to `const T\&', as demonstrated in the following code:
+
+\small{
+\begin{verbatim}
+struct HugeType{
+    int i0;
+    // etc...
+    int i99999;
+};
+
+int f(HugeType h){
+    return h.i31415;
+}
+
+int g(const HugeType& h){
+    return h->i31415;
+}
+
+void function(){
+    HugeType h = HugeType();
+    
+    // Potentially costly copy.
+    printf("%i\n", f(h));
+    
+    // No costly copy.
+    printf("%i\n", g(h));
+}
+\end{verbatim}
+}
+
+\section{Vector Types}
+
+\paragraph{}
+Loci supports SIMD operations directly through the use of vector types, allowing operations such as addition to be applied in parallel to a vector of integer or floating point values.
+
+\small{
+\begin{verbatim}
+void function(){
+    int[4] a = {0, 1, 2, 3};
+    int[4] b = {5, 6, 7, 8};
+    int[4] c = a + b;
+    
+    // The resulting values.
+    assert(c[0] == 5);
+    assert(c[1] == 7);
+    assert(c[2] == 9);
+    assert(c[3] == 11);
+}
+\end{verbatim}
+}
+
+\section{Algebraic Datatypes}
+
+\small{
+\begin{verbatim}
+data BinaryTree{
+    data Leaf(int v){
+        String toString(){
+            return "Leaf(" + v.toString() + ")";
+        }
+    }
+    
+    data Node(Leaf& left, Leaf& right){
+        String toString(){
+            return "Node(" + left->toString() +
+                ", " + right->toString() + ")";
+        }
+    }
+};
+\end{verbatim}
+}
+
+\section{Named Parameters}
+
+\small{
+\begin{verbatim}
+bool canFind(String needle, String haystack);
+
+void function(){
+    // Normal call.
+    bool found0 = canFind("world", "Hello world!");
+    
+    // Named parameter call.
+    bool found1 = canFind(haystack: "Hello world!", needle: "world");
+}
+\end{verbatim}
+}
+
+\section{Exceptions}
 
 \paragraph{}
 There has been (and is continuing to be) much debate on the relative merits of `checked' exceptions, `unchecked' exceptions and C-style error checking (along with other variants).
+
+\paragraph{}
+Based on the outcome of this debate, Loci uses unchecked exceptions as a standard method for functions to report some form of failure, since these trigger fewer architectural maintenance problems.
+
+\small{
+\begin{verbatim}
+exception A(String what);
+exception B(String what, int i) : A(what);
+
+void f(int i){
+    if(i < 0){
+        throw B("Function 'f' passed negative value.", i);
+    }
+}
+
+void caller(){
+    try{
+        f(-1);
+    }catch(A a){
+        printf("Something (bad) happened: %s\n", a.what);
+        throw;
+    }
+}
+\end{verbatim}
+}
+
+\paragraph{}
+A stack trace is also constructed while these exceptions are in flight, and in the case that the exception reaches the top level of the program (i.e. the main function), the stack trace is printed along with the contents of the exception type.
+
+\section{Faults}
+
+\paragraph{}
+Unlike C or C++, Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
+
+\small{
+\begin{verbatim}
+int f(int * i){
+    return *i;
+}
+
+int g(int[4] v, int i){
+    return v[i];
+}
+
+void h(int v){
+    assert(v >= 0);
+}
+
+void caller(){
+    try{
+        printf("%i\n", f(null));
+    }catch(NullPointerException e){
+        printf("Null pointer exception!\n");
+    }
+    
+    try{
+        int[4] v;
+        printf("%i\n", g(v, 100));
+    }catch(VectorIndexOutOfBoundsException e){
+        printf("Vector index out of bounds!\n");
+    }
+    
+    try{
+        h(-1);
+    }catch(AssertionFailedException e){
+        printf("Assertion failed!\n");
+    }
+}
+\end{verbatim}
+}
+
+\section{Templates}
 
 \end{document}
 

@@ -1,13 +1,19 @@
-#ifndef LOCIC_AST_TYPEVAR_H
-#define LOCIC_AST_TYPEVAR_H
+#ifndef LOCIC_AST_TYPEVAR_HPP
+#define LOCIC_AST_TYPEVAR_HPP
 
-#include <Locic/AST/Type.h>
+#include <string>
+#include <Locic/AST/Type.hpp>
 
-typedef struct AST_TypeVar{
-	AST_Type * type;
-	char * name;
-} AST_TypeVar;
+namespace AST{
 
-AST_TypeVar * AST_MakeTypeVar(AST_Type * type, char * name);
+	struct TypeVar{
+		Type * type;
+		std::string name;
+		
+		inline TypeVar(Type * t, const std::string& n)
+			: type(t), name(n){ }
+	};
+
+}
 
 #endif

@@ -5,6 +5,14 @@
 #include <Locic/AST/Type.h>
 #include <Locic/AST/Var.h>
 
+namespace AST{
+
+	struct Expression{
+		
+	};
+
+}
+
 typedef enum AST_ConstantType{
 	AST_CONSTANT_BOOL,
 	AST_CONSTANT_INT,

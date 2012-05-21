@@ -1,15 +1,26 @@
-#ifndef LOCIC_AST_CLASSDECL_H
-#define LOCIC_AST_CLASSDECL_H
+#ifndef LOCIC_AST_CLASSDECL_HPP
+#define LOCIC_AST_CLASSDECL_HPP
 
-#include <Locic/List.h>
+#include <cstdio>
+#include <list>
+#include <string>
+#include <Locic/AST/FunctionDecl.hpp>
 
-typedef struct AST_ClassDecl{
-	char * name;
-	Locic_List * methodDeclarations;
-} AST_ClassDecl;
+namespace AST{
 
-AST_ClassDecl * AST_MakeClassDecl(char * name, Locic_List * declarations);
-
-void AST_PrintClassDecl(AST_ClassDecl * decl);
+	struct ClassDecl{
+		std::string name;
+		std::list<FunctionDecl *> methodDeclarations;
+		
+		inline ClassDecl(const std::string& n, const std::list<FunctionDecl *>& d)
+			: name(n), methodDeclarations(d){ }
+		
+		inline void print(){
+			printf("class %s{\n...\n}\n", name.c_str());
+		}
+		
+	};
+	
+}
 
 #endif

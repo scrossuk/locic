@@ -1,16 +1,29 @@
-#ifndef LOCIC_AST_CLASSDEF_H
-#define LOCIC_AST_CLASSDEF_H
+#ifndef LOCIC_AST_CLASSDEF_HPP
+#define LOCIC_AST_CLASSDEF_HPP
 
-#include <Locic/List.h>
+#include <cstdio>
+#include <list>
+#include <string>
+#include <Locic/AST/FunctionDef.hpp>
+#include <Locic/AST/TypeVar.hpp>
 
-typedef struct AST_ClassDef{
-	char * name;
-	Locic_List * memberVariables;
-	Locic_List * methodDefinitions;
-} AST_ClassDef;
+namespace AST{
 
-AST_ClassDef * AST_MakeClassDef(char * name, Locic_List * members, Locic_List * definitions);
-
-void AST_PrintClassDef(AST_ClassDef * def);
+	struct ClassDef{
+		std::string name;
+		std::list<TypeVar *> memberVariables;
+		std::list<FunctionDef *> methodDefinitions;
+		
+		inline ClassDef(const std::string& n, const std::list<TypeVar *>& m, const std::list<FunctionDecl *>& d)
+			: name(n), memberVariables(m),
+			methodDefinitions(d){ }
+		
+		inline void print(){
+			printf("class %s(...){\n...\n}\n", name.c_str());
+		}
+		
+	};
+	
+}
 
 #endif

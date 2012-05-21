@@ -1,9 +1,14 @@
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Language\ Design.tex COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/Language\ Design.tex ${CMAKE_CURRENT_BINARY_DIR}/Language\ Design.tex MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/Language\ Design.tex)
+macro(add_latex name)
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}.tex"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${name}.tex" "${CMAKE_CURRENT_BINARY_DIR}/${name}.tex"
+		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${name}.tex")
+	add_custom_command(OUTPUT "${name}.pdf" "${name}.aux" "${name}.log" "${name}.lof" "${name}.toc" "${name}.bbl" "${name}.blg" "${name}.out" "${name}.nav" "${name}.snm" COMMAND rubber "-d" "${name}.tex"
+		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${name}.tex")
+endmacro(add_latex)
 
-add_custom_command(OUTPUT Language\ Design.pdf Language\ Design.aux Language\ Design.log COMMAND pdflatex Language\ Design.tex DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Language\ Design.tex)
+add_latex("Language Design")
+add_latex("Module Loading")
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Module\ Loading.tex COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/Module\ Loading.tex ${CMAKE_CURRENT_BINARY_DIR}/Module\ Loading.tex MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/Module\ Loading.tex)
-
-add_custom_command(OUTPUT Module\ Loading.pdf Module\ Loading.aux Module\ Loading.log COMMAND pdflatex Module\ Loading.tex DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Module\ Loading.tex)
-
-add_custom_target(Documentation ALL DEPENDS Language\ Design.pdf Module\ Loading.pdf)
+add_custom_target(Documentation ALL DEPENDS
+	"Language Design.pdf"
+	"Module Loading.pdf")
