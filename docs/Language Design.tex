@@ -123,23 +123,9 @@ Loci is focused on the goal of providing one effective method to solve problems,
 \paragraph{}
 The conceptual model of the language seeks to reject the notion that programming languages must be complicated, or that any particular paradigm should be used exclusively, using ideas from a variety of existing languages and integrating them effectively. The language aims to target general purpose software on various platforms, respecting the need for languages such as C++ at lower levels, or scripting languages at higher levels.
 
-\section{Design Decisions}
+\section{Language}
 
-\subsection{Stack Allocated vs Heap Allocated}
-
-\paragraph{Stack Allocated}
-\begin{itemize}
-\item Cheaper allocation/deallocation
-\item Extra work to identify locations of variable length data on the stack
-\end{itemize}
-
-\paragraph{Heap Allocated Data}
-\begin{itemize}
-\item Simpler to implement
-\item Cheaper moving
-\end{itemize}
-
-\section{Type Syntax}
+\subsection{Type Syntax}
 
 \paragraph{}
 Loci strictly follows the following structure for all typed variables declarations:
@@ -170,7 +156,7 @@ typedef OldType NewType; // C
 alias NewType = OldType; // Loci
 \end{verbatim}
 
-\section{References}
+\subsection{References}
 
 \paragraph{}
 Along with pointers, Loci uses references as equivalent to a pointer type, except that they must not be null. For example:
@@ -276,12 +262,12 @@ void function(){
 \end{verbatim}
 }
 
-\section{Classes}
+\subsection{Classes}
 
 \paragraph{}
 The ability to create and manipulate objects, which are instances of a class, provides a useful way to encapsulate a set of behaviour around a particular data type, and maintaining the necessary invariants needed by that type. Therefore Loci, like many other languages, includes support for object oriented programming.
 
-\subsection{Definitions}
+\subsubsection{Definitions}
 
 \paragraph{}
 Here's an example of a Loci class definition:
@@ -322,7 +308,7 @@ Another detail is that instance member variables are referred to using the @ sym
 \end{verbatim}
 }
 
-\subsection{Declarations}
+\subsubsection{Declarations}
 
 \paragraph{}
 Perhaps more interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase, because Loci can find the class definitions and produce their corresponding declarations automatically.
@@ -362,7 +348,7 @@ Therefore clients of a library do not need to be recompiled when a class in the 
 \paragraph{}
 The implementation of this feature is described in the next section.
 
-\section{Interfaces}
+\subsection{Interfaces}
 
 \paragraph{}
 Java provides the concept of interfaces as equivalent to a pure virtual class in C++. This means that interfaces declare the methods that an implementing class must support, without providing any implementation of those methods. As compared to inheritance of classes, this is an ideal way to model the API of a class.
@@ -422,7 +408,7 @@ String is a standard type, so is defined before the custom interface `LengthValu
 \paragraph{}
 The next section discusses how this feature is implemented, and which details how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls.
 
-\section{New Operator}
+\subsection{New Operator}
 
 \paragraph{}
 Like C++, Loci provides the new operator, although the syntax and semantics are slightly different.
@@ -460,7 +446,7 @@ In particular:
 \item The new operator accepts a parameter giving the allocation method (also called the memory management method), which in the case of the example is a raw allocation, as in C++.
 \end{enumerate}
 
-\subsection{Memory Management Methods}
+\subsubsection{Memory Management Methods}
 
 \paragraph{}
 The above shows `raw' allocations, in which allocation and construction of objects is performed as in C++. However, Loci supports other forms of allocation:
@@ -499,7 +485,7 @@ Clearly, the aim is to minimise the syntax required to instantiate an object on 
 \paragraph{}
 The lack of a default also forces the programmer to think about how objects are to be allocated. C++ chooses to use a raw allocation as the basis of the new operator, however this is possibly the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
 
-\subsection{Garbage Collection}
+\subsubsection{Garbage Collection}
 
 \paragraph{}
 Finally, Loci will disallow the allocation of an object via garbage collection if it has a destructor. Finalisers could've been used to trigger destructor execution, but they are \emph{not deterministic}, and therefore any actions within the destructor cannot be guaranteed to be executed at a reasonable time\footnote{Unless other methods, such as reference counting, are used, however this defeats the purpose of garbage collection.}.
@@ -529,7 +515,7 @@ void function(){
 \end{verbatim}
 }
 
-\section{L-values and R-values}
+\subsection{L-values and R-values}
 
 \paragraph{}
 Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
@@ -612,7 +598,7 @@ class SomeType{
 \paragraph{}
 Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
 
-\section{Vector Types}
+\subsection{Vector Types}
 
 \paragraph{}
 Loci supports SIMD operations directly through the use of vector types, allowing operations such as addition to be applied in parallel to a vector of integer or floating point values.
@@ -654,7 +640,7 @@ void function(){
 \end{verbatim}
 }
 
-\section{Primitive Syntactic Sugar}
+\subsection{Primitive Syntactic Sugar}
 
 \paragraph{}
 The C standard library provides some basic mathematical routines to perform simple operations:
@@ -691,7 +677,7 @@ void function(){
 \paragraph{}
 These modifications turn the primitive types into object types, although the implementation is identical to C. While these syntactic changes are fairly trivial, this is very helpful for expressing the capabilities of a type in templates (discussed later).
 
-\section{Algebraic Datatypes}
+\subsection{Algebraic Datatypes}
 
 \paragraph{}
 Functional languages such as ML and Haskell provide algebraic datatypes as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
@@ -748,7 +734,7 @@ This statement has some specific semantics:
 \item No `break' statement is required to exit the typeswitch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
 \end{enumerate}
 
-\section{Named Parameters}
+\subsection{Named Parameters}
 
 \paragraph{}
 There are often cases where it is difficult to ascertain the purpose of parameters passed to a function, or where it is difficult to remember the order of parameters to a function. For example:
@@ -814,7 +800,7 @@ void function(){
 \end{verbatim}
 }
 
-\section{Exceptions}
+\subsection{Exceptions}
 
 \paragraph{}
 There has been (and is continuing to be) much debate on the relative merits of `checked' exceptions, `unchecked' exceptions and C-style error checking (along with other variants).
@@ -847,7 +833,7 @@ void caller(){
 \paragraph{}
 A stack trace is also constructed while these exceptions are in flight, and in the case that the exception reaches the top level of the program (i.e. the main function), the stack trace is printed along with the contents of the exception type.
 
-\section{Faults}
+\subsection{Faults}
 
 \paragraph{}
 Unlike C or C++ (but a lot like Java), Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
@@ -889,7 +875,7 @@ void caller(){
 \end{verbatim}
 }
 
-\section{Templates}
+\subsection{Templates}
 
 \paragraph{}
 Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things).
@@ -900,8 +886,30 @@ class Class<type T>(T v){ }
 \end{verbatim}
 }
 
+\subsubsection{Type Properties}
+
 \paragraph{}
-This code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the object code produced by the compiler:
+Loci allows type properties to be expressed through the use of interfaces. For example:
+
+\small{
+\begin{verbatim}
+interface Comparable<type T>{
+    ConstructFromInt(int i);
+
+    bool operator<(const T& v);
+}
+
+class Class<type T: Comparable<T>>(T v){ }
+\end{verbatim}
+}
+
+\paragraph{}
+The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and less-than operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself.
+
+\subsubsection{Instances}
+
+\paragraph{}
+The above code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the object code produced by the compiler:
 
 \small{
 \begin{verbatim}
@@ -932,6 +940,16 @@ instance Class<StructType *>;
 
 \paragraph{}
 This then creates the generic version of the class by default, but if the type is int, float, T or T*, the corresponding specialised (and therefore presumably faster) type is used.
+
+\section{Standard Library}
+
+\paragraph{}
+In addition to the core language syntax and semantics, an important part of the overall system is the standard library, of which some parts are explained here.
+
+\subsection{Strings}
+
+\paragraph{}
+Strings are used in Loci as the default way to handle character sequences, mostly replacing the `char *' string type as used in C and C++.
 
 \cleardoublepage
 
