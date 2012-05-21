@@ -339,6 +339,8 @@ Here's a declaration of the Bucket class:
 \small{
 \begin{verbatim}
 class Bucket{
+    Bucket(int v);
+
     bool containsValue();
     
     void placeValue(int value);
@@ -359,6 +361,66 @@ Therefore clients of a library do not need to be recompiled when a class in the 
 
 \paragraph{}
 The implementation of this feature is described in the next section.
+
+\section{Interfaces}
+
+\paragraph{}
+Java provides the concept of interfaces as equivalent to a pure virtual class in C++. This means that interfaces declare the methods that an implementing class must support, without providing any implementation of those methods. As compared to inheritance of classes, this is an ideal way to model the API of a class.
+
+\paragraph{}
+Loci uses, and extends, this concept by using interfaces as the basis for structural typing. This means that classes don't need to explicitly specify that they implement an interface, but if they have all the methods specified in the interface with the correct types and names then references to the class can automatically be implicitly cast to references to the interface.
+
+\paragraph{}
+For example:
+
+\small{
+\begin{verbatim}
+class Bucket{
+    Bucket(int v);
+
+    bool containsValue();
+    
+    void placeValue(int value);
+    
+    int getValue();
+}
+
+interface ValueHolder{
+    bool containsValue();
+    
+    int getValue();
+}
+
+void function(){
+    Bucket bucket = Bucket(2);
+    ValueHolder& valueHolder = &bucket;
+    printf("Value: %i\n", valueHolder->getValue());
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This clearly diverges from the approach taken by many languages, which is to requires classes to specify the interfaces they implement. However, the increased flexibility of this method allows interfaces to be defined \emph{after} classes have been defined, which would allow code like the following:
+
+\small{
+\begin{verbatim}
+interface LengthValue{
+    size_t length();
+}
+
+void function(){
+    String string = "Hello world!";
+    LengthValue& lv = &string;
+    printf("Length: %lu\n", lv->length());
+}
+\end{verbatim}
+}
+
+\paragraph{}
+String is a standard type, so is defined before the custom interface `LengthValue', and therefore it would be necessary to foresee the need to implement that interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
+
+\paragraph{}
+The next section discusses how this feature is implemented, and which details how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls.
 
 \section{New Operator}
 
@@ -460,7 +522,8 @@ void function(){
     // Fails to compile - 'Type' has destructor.
     Type& gcPtr = new<gc> Type(0);
     
-    // Succeeds - but probably isn't wise.
+    // Succeeds - but probably isn't wise, since 
+    // the destructor will never be called.
     Type& gcPtr1 = new<forcegc> Type(0);
 }
 \end{verbatim}
@@ -687,16 +750,66 @@ This statement has some specific semantics:
 
 \section{Named Parameters}
 
+\paragraph{}
+There are often cases where it is difficult to ascertain the purpose of parameters passed to a function, or where it is difficult to remember the order of parameters to a function. For example:
+
 \small{
 \begin{verbatim}
-bool canFind(String needle, String haystack);
+void function1(Renderer& renderer, Circle& circle){
+    circle.draw(renderer, true);
+}
+\end{verbatim}
+}
+
+\paragraph{}
+In this case, the meaning of the second argument to the method, `true', is unclear. Similarly in the following case it is difficult to identify the order of parameters:
+
+\small{
+\begin{verbatim}
+void function2(){
+    String haystack = "Hello world!";
+    String needle = "world";
+    
+    // Is it...
+    bool found = canFindString(needle, haystack);
+    
+    // Or...
+    bool found = canFindString(haystack, needle);
+    
+    printf("%s\n", found ? "Found" : "Not found");
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Named parameters are a feature that aims to assist code documentation, as well as calling functions by the names of their parameters rather than the order, which in some cases is more meaningful. The two examples above can therefore be expressed clearly with this feature:
+
+\small{
+\begin{verbatim}
+void function1(Renderer& renderer, Circle& circle){
+    circle.draw(renderer: renderer, drawOutline: true);
+}
+
+void function2(){
+    bool found = canFindString(needle: "world", haystack: "Hello world!");
+    printf("%s\n", found ? "Found" : "Not found");
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This is facilitated by the ability to type named function pointers, which can be implicitly cast to ordered function pointers:
+
+\small{
+\begin{verbatim}
+void f(int first, int second);
 
 void function(){
-    // Normal call.
-    bool found0 = canFind("world", "Hello world!");
+    *(int)(int first, int second) namedFunctionPtr = f;
+    *(int)(int, int) functionPtr = namedFunctionPtr;
     
-    // Named parameter call.
-    bool found1 = canFind(haystack: "Hello world!", needle: "world");
+    namedFunctionPtr(second: 1, first: 0);
+    functionPtr(0, 1);
 }
 \end{verbatim}
 }
@@ -707,7 +820,7 @@ void function(){
 There has been (and is continuing to be) much debate on the relative merits of `checked' exceptions, `unchecked' exceptions and C-style error checking (along with other variants).
 
 \paragraph{}
-Based on the outcome of this debate, Loci uses unchecked exceptions as a standard method for functions to report some form of failure, since these trigger fewer architectural maintenance problems.
+Based on an assessment of the implementations of exceptions in languages such as Java (checked), and C++ and C\# (unchecked), Loci uses unchecked exceptions as a standard method for functions to report some form of failure, since these trigger fewer architectural maintenance problems\footnote{Also, greater compatibility with C, since no extra information must be added to functions.}.
 
 \small{
 \begin{verbatim}
@@ -788,37 +901,44 @@ class Class<type T>(T v){ }
 }
 
 \paragraph{}
-This code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the resulting code:
+This code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the object code produced by the compiler:
 
 \small{
 \begin{verbatim}
 Class<int> cInt;
 Class<float> cFloat;
 
-struct T{ int a; float b; };
-Class<T> cT;
+struct StructType{ int a; float b; };
+Class<StructType> cS;
 
-Class<T *> cTPtr;
+Class<StructType *> cSPtr;
 \end{verbatim}
 }
 
 \paragraph{}
-However, in Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to store such values on the heap.} for primitive types, which is potentially very slow, so its possible to instruct the compiler to create particular instances of a class, using code such as the following:
+In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to perform a heap allocation.} for primitive types, which is potentially very slow, so it's possible to instruct the compiler to create particular instances of a class, using code such as the following:
 
 \small{
 \begin{verbatim}
 instance Class<int>;
 instance Class<float>;
 
-struct T{ int a; float b; };
-instance Class<T>;
+struct StructType{ int a; float b; };
+instance Class<StructType>;
 
-instance Class<T *>;
+instance Class<StructType *>;
 \end{verbatim}
 }
 
 \paragraph{}
 This then creates the generic version of the class by default, but if the type is int, float, T or T*, the corresponding specialised (and therefore presumably faster) type is used.
+
+\cleardoublepage
+
+\chapter{Implementation}
+
+\paragraph{}
+This section discusses the implementations of the features explained above.
 
 \end{document}
 
