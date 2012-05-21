@@ -149,109 +149,26 @@ Loci strictly follows the following structure for all typed variables declaratio
 \end{verbatim}
 
 \paragraph{}
-This differs significantly from C. Here are some C and Loci function pointer types, for comparison:
+This differs significantly from C, in which types and names can overlap in confusing ways, such as in function pointer types:
 
 \begin{verbatim}
 void (*f)(); // C
-()() f; // Loci
+*()() f; // Loci
 
 int (*f)(); // C
-(int)() f; // Loci
+*(int)() f; // Loci
 
 int (*f)(int, int); // C
-(int)(int, int) f; // Loci
+*(int)(int, int) f; // Loci
 \end{verbatim}
 
 \paragraph{}
-Loci also offers `alias' as an alternative to `typedef':
+Loci also provides `alias' as a clearer alternative to `typedef':
 
 \begin{verbatim}
 typedef OldType NewType; // C
 alias NewType = OldType; // Loci
 \end{verbatim}
-
-\section{L-values and R-values}
-
-\paragraph{}
-Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
-
-\small{
-\begin{verbatim}
-class SomeType(int * p){
-    ~SomeType(){
-        // This destructor is only run
-        // if the object is non-empty.
-    	delete @p;
-    }
-}
-
-SomeType f(){
-    // Return r-value.
-    return SomeType(new 1);
-}
-
-void function(){
-    // Constructor called, and value moved into stack.
-    // (This would be optimised to construction on the stack.)
-    SomeType a = SomeType(new 2);
-    
-    SomeType b = SomeType(new 3);
-    
-    // Existing value in 'a' destroyed (destructor called),
-    // value in 'b' moved into 'a', and 'b' is now left
-    // empty (i.e. b == null).
-    a = #(b);
-    
-    // Value returned from 'f' moved into 'b', which is now
-    // non-empty.
-    b := f();
-}
-\end{verbatim}
-}
-
-\paragraph{}
-This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
-
-\small{
-\begin{verbatim}
-// This is C++ code!
-class SomeType{
-    public:
-        SomeType(int * p){
-        	p_ = p;
-        }
-        
-        SomeType& operator=(const SomeType& t){
-            // Avoid self-assignment.
-            if(&t != this){
-                // Destroy existing local state.
-                delete p_;
-                
-                // Copy state.
-                p_ = t.p_;
-                
-                // Zero state in 't'.
-                t.p_ = 0;
-            }
-            return *this;
-        }
-        
-        ~SomeType(){
-            // Check whether the object is empty.
-            if(p_ == 0){
-                delete p_;
-            }
-        }
-    
-    private:
-        int * p_;
-    
-};
-\end{verbatim}
-}
-
-\paragraph{}
-Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
 
 \section{References}
 
@@ -326,7 +243,7 @@ void function(){
 }
 
 \paragraph{}
-The behaviour of `f2' is unintuitive because the parameter passed to it is received by its address (since references are implemented as pointers), without the address-of operator being applied to the parameter. Furthermore, `f1' and `f2' differ by a single character, but their behaviour is significantly different: the code of `g' makes it clear that the parameter is being handled by its address.
+The behaviour of `f2' is unintuitive because the parameter passed to it is received by its address (since references are implemented as pointers), without the address-of operator being applied to the parameter. Furthermore, `f1' and `f2' differ by a single character, but their behaviour is significantly different; the code of `g' makes it clear that the parameter is being handled by its address.
 
 \paragraph{}
 There is, however, a good argument for allowing such behaviour for efficiency purposes, since copying a large parameter type may be undesirable. Loci therefore supports an implicit cast from an lvalue `T' to `const T\&', as demonstrated in the following code:
@@ -353,11 +270,284 @@ void function(){
     // Potentially costly copy.
     printf("%i\n", f(h));
     
-    // No costly copy.
+    // No copy.
     printf("%i\n", g(h));
 }
 \end{verbatim}
 }
+
+\section{Classes}
+
+\paragraph{}
+The ability to create and manipulate objects, which are instances of a class, provides a useful way to encapsulate a set of behaviour around a particular data type, and maintaining the necessary invariants needed by that type. Therefore Loci, like many other languages, includes support for object oriented programming.
+
+\subsection{Definitions}
+
+\paragraph{}
+Here's an example of a Loci class definition:
+
+\small{
+\begin{verbatim}
+class Bucket(bool b, int value){
+    bool containsValue(){
+        return @b;
+    }
+    
+    void placeValue(int value){
+        assert(!@b);
+        @value = value;
+    }
+    
+    int getValue(){
+        assert(@b);
+        return @value;
+    }
+}
+\end{verbatim}
+}
+
+\paragraph{}
+The organisation is somewhat different to many languages, and member variables are defined within the parentheses after the class name. The methods, constructors and destructors then appear within the braces that follow.
+
+\paragraph{}
+Another detail is that instance member variables are referred to using the @ symbol, which provides a clean alternative to the various C++ conventions for naming such variables\footnote{For example: `mValue' or `value\_'.}; such variables are also accessible through the use of the `this' reference:
+
+\small{
+\begin{verbatim}
+    //...
+    bool containsValue(){
+        return this->b;
+    }
+    //...
+\end{verbatim}
+}
+
+\subsection{Declarations}
+
+\paragraph{}
+Perhaps more interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase, because Loci can find the class definitions and produce their corresponding declarations automatically.
+
+\paragraph{}
+Additionally, Loci uses multiple passes so that there is no need to define types or functions before they are used, so there is no need to declare a class which is later defined in the same code base, something that is common in C and C++.
+
+\paragraph{}
+However, if a class is to be used across an API boundary\footnote{For example, the class is defined inside a static library, and a program uses the declaration to create instances of the class and call its methods.} then declarations should be used.
+
+\paragraph{}
+Here's a declaration of the Bucket class:
+
+\small{
+\begin{verbatim}
+class Bucket{
+    bool containsValue();
+    
+    void placeValue(int value);
+    
+    int getValue();
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Clearly, the class method implementations have been removed, however the member variables have also been removed. This is because, unlike C++, class declarations in Loci do \emph{not} need to include the types (or names) of the member variables.
+
+\paragraph{}
+From a design perspective, this prevents the need to use forward struct declarations (or similar) and heap allocations that are needed in C and C++, and is part of fulfilling Loci's goal to be an excellent language for defining, implementing and using APIs.
+
+\paragraph{}
+Therefore clients of a library do not need to be recompiled when a class in the library changes its member variables, since this is private information.
+
+\paragraph{}
+The implementation of this feature is described in the next section.
+
+\section{New Operator}
+
+\paragraph{}
+Like C++, Loci provides the new operator, although the syntax and semantics are slightly different.
+
+\small{
+\begin{verbatim}
+class Type(int a){ }
+
+Type f(){
+    return Type(5);
+}
+
+void function(){
+    // Stack and heap allocations, like in C++.
+    Type stackAllocated = Type(0);
+    Type& heapAllocated = new<raw> Type(0);
+    
+    // Allocates space on heap, and moves from
+    // stack to heap.
+    Type& heapMoved = new<raw> f();
+    
+    // Raw allocations must be deallocated.
+    delete heapAllocated;
+    delete heapMoved;
+}
+\end{verbatim}
+}
+
+\paragraph{}
+In particular:
+
+\begin{enumerate}
+\item The new operator can be applied to any R-value (the details of which are described later) of the desired type, and will move that value onto the heap.
+\item The new operator returns a reference.
+\item The new operator accepts a parameter giving the allocation method (also called the memory management method), which in the case of the example is a raw allocation, as in C++.
+\end{enumerate}
+
+\subsection{Memory Management Methods}
+
+\paragraph{}
+The above shows `raw' allocations, in which allocation and construction of objects is performed as in C++. However, Loci supports other forms of allocation:
+
+\small{
+\begin{verbatim}
+void function(){
+    // Automatically freed when leaving scope,
+    // but only one instance can exist.
+    UPtr<Type> uniquePtr = new<unique> Type(0);
+    
+    // Above is just syntactic sugar for...
+    UPtr<Type> uniquePtr1 = UPtr<Type>(new<raw> Type(0));
+    
+    // Invalid - cannot copy unique pointers.
+    UPtr<Type> uniquePtr2 = uniquePtr;
+    
+    // Allocated via garbage collection.
+    Type& gcPtr = new<gc> Type(0);
+    
+    // Reference counted.
+    SPtr<Type> sharedPtr = new<shared> Type(0);
+    
+    // Can be copied, increasing ref count.
+    SPtr<Type> sharedPtr1 = sharedPtr;
+    
+    // Invalid - there is no default.
+    auto defaultPtr = new Type(0);
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Clearly, the aim is to minimise the syntax required to instantiate an object on the heap, while maximising the available options for how to manage the memory. Garbage collection is also available, using a conservative collector\footnote{Meaning that it doesn't need to move memory, which would be difficult to do at the level of C.}, and this is generally a good choice for allocating POD\footnote{Plain Old Data} types such as vectors, strings, trees etc.
+
+\paragraph{}
+The lack of a default also forces the programmer to think about how objects are to be allocated. C++ chooses to use a raw allocation as the basis of the new operator, however this is possibly the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
+
+\subsection{Garbage Collection}
+
+\paragraph{}
+Finally, Loci will disallow the allocation of an object via garbage collection if it has a destructor. Finalisers could've been used to trigger destructor execution, but they are \emph{not deterministic}, and therefore any actions within the destructor cannot be guaranteed to be executed at a reasonable time\footnote{Unless other methods, such as reference counting, are used, however this defeats the purpose of garbage collection.}.
+
+\paragraph{}
+Normally, anyway, types which might be garbage collected should not require a destructor, since most destructors are simply required for managing memory of the type's member variables. Note also that if the member variables have destructors, then the type itself must also have an auto-generated destructor which will call them.
+
+\paragraph{}
+However, as with all rules, there may be reasonable exceptions, so a `forcegc' option is provided:
+
+\small{
+\begin{verbatim}
+class Type(int v){
+    ~Type(){
+        printf("Destructor.\n");
+    }
+};
+
+void function(){
+    // Fails to compile - 'Type' has destructor.
+    Type& gcPtr = new<gc> Type(0);
+    
+    // Succeeds - but probably isn't wise.
+    Type& gcPtr1 = new<forcegc> Type(0);
+}
+\end{verbatim}
+}
+
+\section{L-values and R-values}
+
+\paragraph{}
+Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
+
+\small{
+\begin{verbatim}
+class SomeType(int * p){
+    ~SomeType(){
+        // This destructor is only run
+        // if the object is non-empty.
+        delete @p;
+    }
+}
+
+SomeType f(){
+    // Return r-value.
+    return SomeType(new 1);
+}
+
+void function(){
+    // Constructor called, and value moved into stack.
+    // (This would be optimised to construction on the stack.)
+    SomeType a = SomeType(new 2);
+    
+    SomeType b = SomeType(new 3);
+    
+    // Existing value in 'a' destroyed (destructor called),
+    // value in 'b' moved into 'a', and 'b' is now left
+    // empty (i.e. b == null).
+    a = #(b);
+    
+    // Value returned from 'f' moved into 'b', which is now
+    // non-empty.
+    b := f();
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
+
+\small{
+\begin{verbatim}
+// This is C++ code!
+class SomeType{
+    public:
+        SomeType(int * p){
+            p_ = p;
+        }
+        
+        SomeType& operator=(const SomeType& t){
+            // Avoid self-assignment.
+            if(&t != this){
+                // Destroy existing local state.
+                delete p_;
+                
+                // Copy state.
+                p_ = t.p_;
+                
+                // Zero state in 't'.
+                t.p_ = 0;
+            }
+            return *this;
+        }
+        
+        ~SomeType(){
+            // Check whether the object is empty.
+            if(p_ == 0){
+                delete p_;
+            }
+        }
+    
+    private:
+        int * p_;
+    
+};
+\end{verbatim}
+}
+
+\paragraph{}
+Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
 
 \section{Vector Types}
 
@@ -380,26 +570,120 @@ void function(){
 \end{verbatim}
 }
 
+\paragraph{}
+The ternary operator also provides some interesting behaviour for vectorised types:
+
+\small{
+\begin{verbatim}
+void function(){
+    int[4] a = {0, 1, 2, 3};
+    int[4] b = {4, 5, 6, 7};
+    bool[4] c = {true, false, true, false}
+    
+    int[4] d = c ? a : b;
+    
+    // The resulting values.
+    assert(d[0] == 0);
+    assert(d[1] == 5);
+    assert(d[2] == 2);
+    assert(d[3] == 7);
+}
+\end{verbatim}
+}
+
+\section{Primitive Syntactic Sugar}
+
+\paragraph{}
+The C standard library provides some basic mathematical routines to perform simple operations:
+
+\small{
+\begin{verbatim}
+void function(){
+    float a = -1.5;
+    float b = fabs(a);
+    float c = floor(b);
+    float d = sqrt(c);
+    printf("%f\n", d);
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Through the compatibility with C, these routines clearly remain available in Loci, however some syntactic sugar is provided to make it slightly cleaner to express these operations:
+
+\small{
+\begin{verbatim}
+void function(){
+    float a = -1.5;
+    float b = a.abs();
+    float c = b.floor();
+    float d = c.sqrt();
+    
+    String s = d.toString();
+    printf("%s\n", s.c_str());
+}
+\end{verbatim}
+}
+
+\paragraph{}
+These modifications turn the primitive types into object types, although the implementation is identical to C. While these syntactic changes are fairly trivial, this is very helpful for expressing the capabilities of a type in templates (discussed later).
+
 \section{Algebraic Datatypes}
+
+\paragraph{}
+Functional languages such as ML and Haskell provide algebraic datatypes as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
 
 \small{
 \begin{verbatim}
 data BinaryTree{
     data Leaf(int v){
         String toString(){
-            return "Leaf(" + v.toString() + ")";
+            return "Leaf(" + @v.toString() + ")";
         }
     }
     
-    data Node(Leaf& left, Leaf& right){
+    data Node(BinaryTree& left, BinaryTree& right){
         String toString(){
-            return "Node(" + left->toString() +
-                ", " + right->toString() + ")";
+            return "Node(" + @left->toString() +
+                ", " + @right->toString() + ")";
         }
     }
 };
 \end{verbatim}
 }
+
+\paragraph{}
+In this case, a binary tree element is either a Leaf which contains only an integer value, or a Node that contains two trees as its left and right children.
+
+\paragraph{}
+It is common to need to describe such types when handling lots of data (for example, building ASTs in a compiler), and also in general programming. Expressing similar structures in C or C++ requires the combination of enums, unions and structs, and furthermore unions and class types interact poorly in C++.
+
+\paragraph{}
+Defining the structure isn't useful alone, so Loci introduces the `typeswitch' statement:
+
+\small{
+\begin{verbatim}
+void function(BinaryTree tree){
+    typeswitch(tree){
+        case BinaryTree:Leaf(int v){
+            printf("It's a leaf of value %i.\n", v);
+        }
+        case BinaryTree:Node{
+            printf("It's a node.\n");
+        }
+    }
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This statement has some specific semantics:
+
+\begin{enumerate}
+\item The sub-types (in this case, `Leaf' and 'Node') in the switch statement must be the complete set of sub-types within the parent type (`BinaryTree'); if any types are missed, compilation fails. However unspecified sub-types can be handled using a `default' entry.
+\item Case statements can capture values within the data types. In the example the value in the leaf is captured so it can be printed to the command line.
+\item No `break' statement is required to exit the typeswitch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
+\end{enumerate}
 
 \section{Named Parameters}
 
@@ -453,7 +737,7 @@ A stack trace is also constructed while these exceptions are in flight, and in t
 \section{Faults}
 
 \paragraph{}
-Unlike C or C++, Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
+Unlike C or C++ (but a lot like Java), Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
 
 \small{
 \begin{verbatim}
@@ -493,6 +777,48 @@ void caller(){
 }
 
 \section{Templates}
+
+\paragraph{}
+Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things).
+
+\small{
+\begin{verbatim}
+class Class<type T>(T v){ }
+\end{verbatim}
+}
+
+\paragraph{}
+This code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the resulting code:
+
+\small{
+\begin{verbatim}
+Class<int> cInt;
+Class<float> cFloat;
+
+struct T{ int a; float b; };
+Class<T> cT;
+
+Class<T *> cTPtr;
+\end{verbatim}
+}
+
+\paragraph{}
+However, in Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to store such values on the heap.} for primitive types, which is potentially very slow, so its possible to instruct the compiler to create particular instances of a class, using code such as the following:
+
+\small{
+\begin{verbatim}
+instance Class<int>;
+instance Class<float>;
+
+struct T{ int a; float b; };
+instance Class<T>;
+
+instance Class<T *>;
+\end{verbatim}
+}
+
+\paragraph{}
+This then creates the generic version of the class by default, but if the type is int, float, T or T*, the corresponding specialised (and therefore presumably faster) type is used.
 
 \end{document}
 
