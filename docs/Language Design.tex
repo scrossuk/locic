@@ -404,10 +404,84 @@ Another detail is that instance member variables are referred to using the @ sym
 \end{verbatim}
 }
 
+\subsubsection{Constructors}
+
+\paragraph{}
+The above example shows a class with no constructor, however there is an automatically generated constructor named `Default', so that the above is equivalent to:
+
+\small{
+\begin{verbatim}
+class Bucket(bool b, int value){
+    Default(bool b, int value){
+        return @(b, value);
+    }
+
+    ...
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Here the @ symbol being called indicates the construction of the class type, which is intended as a superior alternative to initialization lists in C++ and Java. Here's an example of a C++ initialization list:
+
+\small{
+\begin{verbatim}
+// This is C++ code.
+class Bucket{
+    public:
+        Bucket(bool b, int value)
+            : b_(b), value_(value){ }
+};
+\end{verbatim}
+}
+
+\paragraph{}
+Avoiding initialization lists makes it easy to express complex logic in constructors, such as loops:
+
+\small{
+\begin{verbatim}
+class SomeClass(int value0, int value1){
+    Factorial(int n){
+        int r = 1;
+        for(int i = 2; i < n; i++){
+            r *= i;
+        }
+        return @(r, r * r);
+    }
+};
+\end{verbatim}
+}
+
+\paragraph{}
+Other named constructors can also be created:
+
+\small{
+\begin{verbatim}
+class Bucket(bool b, int value){
+    ...
+    
+    WithNoValue(){
+        return @(false, 0);
+    }
+    
+    WithZeroValue(){
+        return @(true, 0);
+    }
+
+    ...
+}
+
+void function(){
+    Bucket emptyBucket = Bucket:WithNoValue();
+    Bucket zeroBucket = Bucket:WithZeroValue();
+}
+\end{verbatim}
+}
+
 \subsubsection{Declarations}
 
 \paragraph{}
-Perhaps more interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase, because Loci can find the class definitions and produce their corresponding declarations automatically.
+Perhaps most interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase, because Loci can find the class definitions and produce their corresponding declarations automatically.
 
 \paragraph{}
 Additionally, Loci uses multiple passes so that there is no need to define types or functions before they are used, so there is no need to declare a class which is later defined in the same code base, something that is common in C and C++.
@@ -421,7 +495,7 @@ Here's a declaration of the Bucket class:
 \small{
 \begin{verbatim}
 class Bucket{
-    Bucket(int v);
+    Default(int v);
 
     bool containsValue();
     
@@ -436,13 +510,44 @@ class Bucket{
 Clearly, the class method implementations have been removed, however the member variables have also been removed. This is because, unlike C++, class declarations in Loci do \emph{not} need to include the types (or names) of the member variables.
 
 \paragraph{}
-From a design perspective, this prevents the need to use forward struct declarations (or similar) and heap allocations that are needed in C and C++, and is part of fulfilling Loci's goal to be an excellent language for defining, implementing and using APIs.
+From a design perspective, this prevents the need to use forward struct declarations (or similar) and heap allocations that are needed in C and C++, and is part of fulfilling Loci's goal to be an excellent language for defining, implementing and using APIs. Therefore clients of a library do not need to be recompiled when a class in the library changes its member variables, since this is private information.
 
 \paragraph{}
-Therefore clients of a library do not need to be recompiled when a class in the library changes its member variables, since this is private information.
+Also note that the auto-generated default constructor has to be specified explicitly here, since users of the class declaration have no knowledge of the types (or number, or order) of the member variables and therefore cannot know the type of the constructor.
+
+\subsection{Null}
 
 \paragraph{}
-The implementation of this feature is described in the next section.
+C expresses the concept of null through the use of the NULL constant, which is of type `void *'. C++ expresses null through an implicit cast from the integer value 0 to a null pointer, or in the latest version through a specially defined constant of a special type.
+
+\paragraph{}
+Loci adds null in a similar way to the latest version of C++, where there is a universal constant `null' of type `null\_t', which has an implicit cast to any pointer type:
+
+\small{
+\begin{verbatim}
+void function(){
+    // All valid.
+    null_t n = null;
+    int * i = n;
+    int * j = null;
+    float * f = null;
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Loci also supports defining empty objects through an implicit cast from `null\_t' to any class type. Hence it is possible to do:
+
+\small{
+\begin{verbatim}
+void function(){
+    Bucket bucket = null;
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Note that the Bucket type is not a pointer type, but is indeed a value type. The syntax and semantics for handling empty objects is explained in the `L-values and R-values' section.
 
 \subsection{Interfaces}
 
@@ -450,7 +555,7 @@ The implementation of this feature is described in the next section.
 Java provides the concept of interfaces as equivalent to a pure virtual class in C++. This means that interfaces declare the methods that an implementing class must support, without providing any implementation of those methods. As compared to inheritance of classes, this is an ideal way to model the API of a class.
 
 \paragraph{}
-Loci uses, and extends, this concept by using interfaces as the basis for structural typing. This means that classes don't need to explicitly specify that they implement an interface, but if they have all the methods specified in the interface with the correct types and names then references to the class can automatically be implicitly cast to references to the interface.
+Loci uses, and extends, this concept by using interfaces as the basis for structural typing. This means that classes don't need to explicitly specify that they implement an interface, but if they have all the methods specified in the interface with the correct types and names then references to the class can be implicitly cast to references to the interface.
 
 \paragraph{}
 For example:
@@ -459,17 +564,13 @@ For example:
 \begin{verbatim}
 class Bucket{
     Bucket(int v);
-
     bool containsValue();
-    
     void placeValue(int value);
-    
     int getValue();
 }
 
 interface ValueHolder{
     bool containsValue();
-    
     int getValue();
 }
 
@@ -649,6 +750,33 @@ void function(){
 }
 \end{verbatim}
 }
+
+\paragraph{}
+Firstly, it is important to explain that, as mentioned above, a variable (L-value) `v' of a class type can be empty, in which case the comparison `v == null' is true (and otherwise it is false; the comparison is always valid to perform). Calling any methods on an empty object will throw an exception, and no destructor is called on an empty object.
+
+\paragraph{}
+The example shows the assignment statement of the form `v = expr;', in which the current value in `v' is destroyed, so `v' cannot be empty, and the R-value `expr' is moved into `v'. It also shows the move statement `v := expr;', which is equivalent to assignment but does not destroy the current value in `v' and therefore requires that it is currently empty.
+
+\paragraph{}
+Finally, the extraction operator \# causes an L-value to be extracted, turning it into an R-value, and making the L-value empty. The extraction operator can therefore be seen as the opposite of the move statement, and the assignment statement is a combination of both:
+
+\small{
+\begin{verbatim}
+void function(){
+    SomeType a = SomeType(new 2);
+    
+    // Can do...
+    a = SomeType(new 3);
+    
+    // Which is actually equivalent to...
+    #(a); // Destroy value in 'a'.
+    a := SomeType(new 3); // Insert value into 'a'.
+}
+\end{verbatim}
+}
+
+\paragraph{}
+Note that if an R-value is not captured into an L-value then it will be destroyed at the end of the statement.
 
 \paragraph{}
 This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
