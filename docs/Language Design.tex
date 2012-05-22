@@ -112,18 +112,105 @@ Establishing this basis for Loci, it is possible to elaborate more specific goal
 \chapter{Design}
 
 \paragraph{}
-One of the defining aspects of Loci is that everything is an object and all objects are subject to the same rules (unlike Java, in which the string + operator is a special case). Loci places an emphasis on interfaces, to such an extent that they are the only way polymorphism can be achieved, and extends inheritance only contributes to code reuse. As a result of this, Loci is able to easily support multiple inheritance, however the units being inherited from are called ‘partial classes’. The relationship of interfaces, classes and partial classes is not complicated, however it needs to be (and will be) demonstrated in code.
+Loci is very closely related to C in both syntax and semantics, with the ability to call C functions (and be called from C) easily and to handle C types. Numerous ideas from languages such as C++, Java, Objective C and ML are also used to develop the features and abstractions that Loci provides on top of the basic functionality of C.
 
 \paragraph{}
-Further defining aspects of Loci include the elimination of global and static variables, no downcasting, no null, no switch statements, no break or continue, a for-each loop, clear naming rules, easy to read import statements and no static methods. Each of the 'features' left out are considered at least unnecessary and potentially harmful. However, Loci shares many things in common with other languages: namespaces, operator overloading, generics (unlike Java these do not suffer type erasure) and an immutable string type (like Java strings, except implemented as ropes). Furthermore, the language adds constructs and functionality that represent a more effective replacement for some of these features.
+Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is algebraic datatypes, which are well suited to expressing data such as ASTs\footnote{Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code.}.
 
 \paragraph{}
-Loci is focused on the goal of providing one effective method to solve problems, rather than providing multiple (and potentially poor) solutions. As a result, the design of the language is focused on removing unnecessary features and maintaining conceptual consistency. The language can help the developer to avoid common pitfalls and eliminate the additional complexity that arises with the existence of null, global data, manual memory allocation, checked exceptions etc.. Furthermore Loci enforces some important design decisions, to alleviate groups of programmers from having to define code design specifications and provide useful assumptions to developers reading code. For example, capitalised names must be type names or type constructors, whereas names that start with a lower case letter must be variables or method/function names. The only exceptions to this rule are the built-in types, which are named starting with lowercase (e.g. int), since this is familiar to programmers from Java and C++.
+However, as well as using ideas from many languages, Loci also specifically rejects some features, such as method/function overloading, class inheritance and weak typing\footnote{Specifically, a large set of legal implicit casts. For example, in C, it is valid to implicitly cast from `void *' to `int *'.} Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
 
 \paragraph{}
-The conceptual model of the language seeks to reject the notion that programming languages must be complicated, or that any particular paradigm should be used exclusively, using ideas from a variety of existing languages and integrating them effectively. The language aims to target general purpose software on various platforms, respecting the need for languages such as C++ at lower levels, or scripting languages at higher levels.
+In addition, Loci modifies well known features to make them easier to use, to help the programmer avoid common pitfalls and as an attempt to fix the flaws in some programming languages that are now evident in hindsight. The language also attempts to help programmers verify code correctness and to make code reasonably self-documenting.
+
+\paragraph{}
+This section explains and justifies some of the design decisions made within the language; the following section then shows how these features are implemented. Each design decision was made with a good understanding of how it would be implemented, in particular to minimise the compiler complexity\footnote{And correspondingly, the time and space use of the compiler.}, code dependencies and code size, and to maximise the performance.
 
 \section{Language}
+
+\subsection{C}
+
+\paragraph{}
+As mentioned previously, Loci is highly related and compatible with C. It therefore supports:
+
+\begin{itemize}
+\item Primitive types (e.g. `int').
+\item Pointer types.
+\item Struct types.
+\item Enum types.
+\item Union types.
+\item Function pointer types.
+\item C's calling convention, so it can call and be called from C functions.
+\end{itemize}
+
+\subsubsection{Syntax}
+
+\paragraph{}
+There are however, some minor syntactic changes. For example, like C++, struct type names do not need need to be prefixed with the struct name except when they are defined:
+
+\small{
+\begin{verbatim}
+struct A{
+    int v;
+};
+
+void function(){
+    // Valid, but `struct' keyword is unnecessary.
+    struct A a;
+    
+    // Valid, and same as above.
+    A a;
+}
+\end{verbatim}
+}
+
+\paragraph{}
+This syntactic change applies similarly for enum and union types. The intention, clearly, is to reduce the verbosity of the code and therefore the burden on the programmer to write it.
+
+\paragraph{}
+Casts also use a different syntax:
+
+\small{
+\begin{verbatim}
+void function(){
+    float pi = 3.141592654;
+    
+    // Invalid.
+    int intPi = (int) pi;
+    
+    // Valid.
+    int intPi = cast<int>(pi);
+}
+\end{verbatim}
+}
+
+\subsubsection{Semantics}
+
+\paragraph{}
+There are also some minor semantic changes, in particular to the available implicit casts:
+
+\small{
+\begin{verbatim}
+void function(){
+    float pi = 3.141592654f;
+    
+    // Invalid - no implicit cast.
+    int intPi = pi;
+    
+    // Valid - explicit cast is allowed.
+    int intPi = cast<int>(pi);
+    
+    // Invalid - no implicit cast from 'void *' to 'int *'.
+    int * intPtr = malloc(sizeof(int));
+    
+    // Valid.
+    int * intPtr = pointer_cast<int *>(malloc(sizeof(int)));
+}
+\end{verbatim}
+}
+
+\paragraph{}
+In this case, the intention is to make it clear to a reader when values are being cast to fundamentally different types (such as an integer and a floating point value). The `cast' operator supports legal implicit and explicit casts, whereas the `pointer\_cast' operator allows casts between pointers whose target types (i.e. the type being pointed-to) are different.
 
 \subsection{Type Syntax}
 
@@ -165,21 +252,27 @@ Along with pointers, Loci uses references as equivalent to a pointer type, excep
 \begin{verbatim}
 void function(int * pointer){
     // Illegal - no implicit cast allowed.
-    int& ref0 = pointer;
+    int& reference = pointer;
     
     // Correct - triggers exception if
     // pointer == null.
-    int& ref1 = cast<int&>(pointer);
+    int& reference = cast<int&>(pointer);
     
     int data = 0;
     
     // Valid - typeof(&data) == typedata(int&).
     // (and references can be changed in Loci)
-    ref1 = &data;
+    reference = &data;
     
     // Valid - implicit cast from int&
     // to int* is provided.
-    pointer = ref1;
+    pointer = reference;
+    
+    // Pointers must be dereferenced.
+    data = *pointer;
+    
+    // Like C++, references do not need to be dereferenced.
+    data = reference;
 }
 \end{verbatim}
 }
@@ -247,7 +340,7 @@ int f(HugeType h){
 }
 
 int g(const HugeType& h){
-    return h->i31415;
+    return h.i31415;
 }
 
 void function(){
@@ -261,6 +354,9 @@ void function(){
 }
 \end{verbatim}
 }
+
+\paragraph{}
+The semantics of references is therefore very similar to C++, except that references can be modified like pointers, and a non-const reference can only be obtained through the use of the address-of operator (\&).
 
 \subsection{Classes}
 
@@ -302,7 +398,7 @@ Another detail is that instance member variables are referred to using the @ sym
 \begin{verbatim}
     //...
     bool containsValue(){
-        return this->b;
+        return this.b;
     }
     //...
 \end{verbatim}
@@ -380,7 +476,7 @@ interface ValueHolder{
 void function(){
     Bucket bucket = Bucket(2);
     ValueHolder& valueHolder = &bucket;
-    printf("Value: %i\n", valueHolder->getValue());
+    printf("Value: %i\n", valueHolder.getValue());
 }
 \end{verbatim}
 }
@@ -397,7 +493,7 @@ interface LengthValue{
 void function(){
     String string = "Hello world!";
     LengthValue& lv = &string;
-    printf("Length: %lu\n", lv->length());
+    printf("Length: %lu\n", lv.length());
 }
 \end{verbatim}
 }
@@ -693,8 +789,8 @@ data BinaryTree{
     
     data Node(BinaryTree& left, BinaryTree& right){
         String toString(){
-            return "Node(" + @left->toString() +
-                ", " + @right->toString() + ")";
+            return "Node(" + @left.toString() +
+                ", " + @right.toString() + ")";
         }
     }
 };
@@ -733,6 +829,44 @@ This statement has some specific semantics:
 \item Case statements can capture values within the data types. In the example the value in the leaf is captured so it can be printed to the command line.
 \item No `break' statement is required to exit the typeswitch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
 \end{enumerate}
+
+\subsection{Operator Overloading}
+
+\paragraph{}
+Loci supports operator overloading as a useful way to provide a clean syntax for manipulating standard library or user defined types such as strings, vectors, matrices and arrays. Unlike C++, Loci uses normal function names to define methods that can be used in operator overloading:
+
+\small{
+\begin{verbatim}
+class A{
+    bool lessThan(const A&) const;
+    A opPlus(const A&) const;
+    A opMinus(const A&) const;
+};
+
+class IntArray{
+    int indexGet(size_t index);
+    void indexSet(size_t index, int value);
+};
+
+void function(const A& a0, const A& a1, IntArray& array){
+    // All following pairs are equivalent...
+    bool compare = a0.lessThan(a1);
+    bool compare = a0 < a1;
+    
+    A a2 = a0.opPlus(a1);
+    A a2 = a0 + a1;
+    
+    A a3 = a0.opMinus(a1);
+    A a3 = a0 - a1;
+    
+    array.indexSet(0, 5);
+    array[0] = 5;
+    
+    int i = array.indexGet(0);
+    int i = array[0];
+}
+\end{verbatim}
+}
 
 \subsection{Named Parameters}
 
@@ -896,15 +1030,31 @@ Loci allows type properties to be expressed through the use of interfaces. For e
 interface Comparable<type T>{
     ConstructFromInt(int i);
 
-    bool operator<(const T& v);
+    bool lessThan(const T& v) const;
 }
 
-class Class<type T: Comparable<T>>(T v){ }
+class Class<type T: Comparable<T>>(T v0, T v1){
+    bool compare(){
+        return v0 < v1;
+    }
+};
 \end{verbatim}
 }
 
 \paragraph{}
 The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and less-than operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself.
+
+\paragraph{}
+Since primitive types are modelled as objects, even if their implementation is identical to C, they can also be used in templated types:
+
+\small{
+\begin{verbatim}
+void function(){
+    Class<int> cInt(1, 2);
+    assert(cInt.compare());
+}
+\end{verbatim}
+}
 
 \subsubsection{Instances}
 
