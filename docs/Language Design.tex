@@ -1,19 +1,26 @@
 \documentclass[12pt,twoside,notitlepage]{report}
 
+\usepackage{caption}
 \usepackage{color}
+\usepackage{graphicx}
 \usepackage{listings}
-\lstset{language=C++,
+\usepackage{subfig}
+
+\lstset{basicstyle=\ttfamily\scriptsize,
+	language=C++,
 	keywordstyle=\textbf,
 	frame=single,
 	breaklines=true,
 	tabsize=2,
-	showstringspaces=false}
+	showstringspaces=false,
+	float=t}
 
 \lstloadlanguages{
          C,
          C++,
          Java
  }
+
 
 \title{Loci Programming Language}
 \author{Stephen Cross}
@@ -133,7 +140,7 @@ Loci is very closely related to C in both syntax and semantics, with the ability
 Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is algebraic datatypes, which are well suited to expressing data such as ASTs\footnote{Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code.}.
 
 \paragraph{}
-However, as well as using ideas from many languages, Loci also specifically rejects some features, such as method/function overloading, class inheritance and weak typing\footnote{Specifically, a large set of legal implicit casts. For example, in C, it is valid to implicitly cast from `void *' to `int *'.} Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
+However, as well as using ideas from many languages, Loci also specifically rejects some features, such as method/function overloading, class inheritance and weak typing\footnote{Specifically, a large set of legal implicit casts. For example, in C, it is valid to implicitly cast from `void *' to `int *'.}. Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
 
 \paragraph{}
 In addition, Loci modifies well known features to make them easier to use, to help the programmer avoid common pitfalls and as an attempt to fix the flaws in some programming languages that are now evident in hindsight. The language also attempts to help programmers verify code correctness and to make code reasonably self-documenting.
@@ -183,6 +190,7 @@ This syntactic change applies similarly for enum and union types. The intention,
 \paragraph{}
 Casts also use a different syntax:
 
+
 \begin{lstlisting}
 void function(){
 	float pi = 3.141592654;
@@ -195,10 +203,12 @@ void function(){
 }
 \end{lstlisting}
 
+
 \subsubsection{Semantics}
 
 \paragraph{}
 There are also some minor semantic changes, in particular to the available implicit casts:
+
 
 \begin{lstlisting}
 void function(){
@@ -218,20 +228,26 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 In this case, the intention is to make it clear to a reader when values are being cast to fundamentally different types (such as an integer and a floating point value). The `cast' operator supports legal implicit and explicit casts, whereas the `pointer\_cast' operator allows casts between pointers whose target types (i.e. the type being pointed-to) are different.
+
+\clearpage
 
 \subsection{Type Syntax}
 
 \paragraph{}
 Loci strictly follows the following structure for all typed variables declarations:
 
+
 \begin{lstlisting}
 [TYPE] [NAME]
 \end{lstlisting}
 
+
 \paragraph{}
 This differs significantly from C, in which types and names can overlap in confusing ways, such as in function pointer types:
+
 
 \begin{lstlisting}
 void (*f)(); // C
@@ -244,18 +260,24 @@ int (*f)(int, int); // C
 *(int)(int, int) f; // Loci
 \end{lstlisting}
 
+
 \paragraph{}
 Loci also provides `alias' as a clearer alternative to `typedef':
+
 
 \begin{lstlisting}
 typedef OldType NewType; // C
 alias NewType = OldType; // Loci
 \end{lstlisting}
 
+
+\clearpage
+
 \subsection{References}
 
 \paragraph{}
 Along with pointers, Loci uses references as equivalent to a pointer type, except that they must not be null. For example:
+
 
 \begin{lstlisting}
 void function(int * pointer){
@@ -284,8 +306,10 @@ void function(int * pointer){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 This is somewhat different to C++ references, which cannot be changed after they have been assigned, and which operate at the level of value types. However, this can lead to confusing behaviour, as in the following C++ code example:
+
 
 \begin{lstlisting}
 // This is C++ code!
@@ -326,11 +350,13 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 The behaviour of `f2' is unintuitive because the parameter passed to it is received by its address (since references are implemented as pointers), without the address-of operator being applied to the parameter. Furthermore, `f1' and `f2' differ by a single character, but their behaviour is significantly different; the code of `g' makes it clear that the parameter is being handled by its address.
 
 \paragraph{}
 There is, however, a good argument for allowing such behaviour for efficiency purposes, since copying a large parameter type may be undesirable. Loci therefore supports an implicit cast from an lvalue `T' to `const T\&', as demonstrated in the following code:
+
 
 \begin{lstlisting}
 struct HugeType{
@@ -351,15 +377,18 @@ void function(){
 	HugeType h = HugeType();
 	
 	// Potentially costly copy.
-	StdOut().writeLine("%i", f(h));
+	int i = f(h);
 	
 	// No copy.
-	StdOut().writeLine("%i", g(h));
+	int j = g(h);
 }
 \end{lstlisting}
 
+
 \paragraph{}
 The semantics of references is therefore very similar to C++, except that references can be modified like pointers, and a non-const reference can only be obtained through the use of the address-of operator (\&).
+
+\clearpage
 
 \subsection{Classes}
 
@@ -371,9 +400,10 @@ The ability to create and manipulate objects, which are instances of a class, pr
 \paragraph{}
 Here's an example of a Loci class definition:
 
+
 \begin{lstlisting}
 class Bucket(bool b, int value){
-	bool containsValue(){
+	bool containsValue() const{
 		return @b;
 	}
 	
@@ -382,12 +412,13 @@ class Bucket(bool b, int value){
 		@value = value;
 	}
 	
-	int getValue(){
+	int getValue() const{
 		assert(@b);
 		return @value;
 	}
 }
 \end{lstlisting}
+
 
 \paragraph{}
 The organisation is somewhat different to many languages, and member variables are defined within the parentheses after the class name. The methods, constructors and destructors then appear within the braces that follow.
@@ -395,18 +426,21 @@ The organisation is somewhat different to many languages, and member variables a
 \paragraph{}
 Another detail is that instance member variables are referred to using the @ symbol, which provides a clean alternative to the various C++ conventions for naming such variables\footnote{For example: `mValue' or `value\_'.}; such variables are also accessible through the use of the `this' reference:
 
+
 \begin{lstlisting}
 	//...
-	bool containsValue(){
+	bool containsValue() const{
 		return this.b;
 	}
 	//...
 \end{lstlisting}
 
+
 \subsubsection{Constructors}
 
 \paragraph{}
 The above example shows a class with no constructor, however there is an automatically generated constructor named `Default', so that the above is equivalent to:
+
 
 \begin{lstlisting}
 class Bucket(bool b, int value){
@@ -424,8 +458,10 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Here the @ symbol being called indicates the construction of the class type, which is intended as a superior alternative to initialization lists in C++ and Java. Here's an example of a C++ initialization list:
+
 
 \begin{lstlisting}
 // This is C++ code.
@@ -436,8 +472,10 @@ class Bucket{
 };
 \end{lstlisting}
 
+
 \paragraph{}
 Avoiding initialization lists makes it easy to express complex logic in constructors, such as loops:
+
 
 \begin{lstlisting}
 class SomeClass(int value0, int value1){
@@ -455,8 +493,10 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Other named constructors can also be created:
+
 
 \begin{lstlisting}
 class Bucket(bool b, int value){
@@ -479,6 +519,7 @@ void function(){
 }
 \end{lstlisting}
 
+
 \subsubsection{Declarations}
 
 \paragraph{}
@@ -493,17 +534,19 @@ However, if a class is to be used across an API boundary\footnote{For example, t
 \paragraph{}
 Here's a declaration of the Bucket class:
 
+
 \begin{lstlisting}
 class Bucket{
 	Default(int v);
 
-	bool containsValue();
+	bool containsValue() const;
 	
 	void placeValue(int value);
 	
-	int getValue();
+	int getValue() const;
 }
 \end{lstlisting}
+
 
 \paragraph{}
 Clearly, the class method implementations have been removed, however the member variables have also been removed. This is because, unlike C++, class declarations in Loci do \emph{not} need to include the types (or names) of the member variables.
@@ -514,6 +557,8 @@ From a design perspective, this prevents the need to use forward struct declarat
 \paragraph{}
 Also note that the auto-generated default constructor has to be specified explicitly here, since users of the class declaration have no knowledge of the types (or number, or order) of the member variables and therefore cannot know the type of the constructor.
 
+\clearpage
+
 \subsection{Null}
 
 \paragraph{}
@@ -521,6 +566,7 @@ C expresses the concept of null through the use of the NULL constant, which is o
 
 \paragraph{}
 Loci adds null in a similar way to the latest version of C++, where there is a universal constant `null' of type `null\_t', which has an implicit cast to any pointer type:
+
 
 \begin{lstlisting}
 void function(){
@@ -532,8 +578,10 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Loci also supports defining empty objects through an implicit cast from `null\_t' to any class type. Hence it is possible to do:
+
 
 \begin{lstlisting}
 void function(){
@@ -541,8 +589,11 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Note that the Bucket type is not a pointer type, but is indeed a value type. The syntax and semantics for handling empty objects is explained in the `L-values and R-values' section.
+
+\clearpage
 
 \subsection{Interfaces}
 
@@ -555,40 +606,50 @@ Loci uses, and extends, this concept by using interfaces as the basis for struct
 \paragraph{}
 For example:
 
+
 \begin{lstlisting}
 class Bucket{
 	Bucket(int v);
-	bool containsValue();
+	bool containsValue() const;
 	void placeValue(int value);
-	int getValue();
+	int getValue() const;
 }
 
 interface ValueHolder{
-	bool containsValue();
-	int getValue();
+	bool containsValue() const;
+	int getValue() const;
+}
+
+int f(const ValueHolder& valueHolder){
+	return valueHolder.getValue();
 }
 
 void function(){
 	Bucket bucket = Bucket(2);
-	ValueHolder& valueHolder = &bucket;
-	StdOut().writeLine("Value: %i", valueHolder.getValue());
+	int value = f(bucket);
 }
 \end{lstlisting}
+
 
 \paragraph{}
 This clearly diverges from the approach taken by many languages, which is to requires classes to specify the interfaces they implement. However, the increased flexibility of this method allows interfaces to be defined \emph{after} classes have been defined, which would allow code like the following:
 
+
 \begin{lstlisting}
 interface LengthValue{
-	size_t length();
+	size_t length() const;
+}
+
+size_t f(const LengthValue& lv){
+	return lv.length();
 }
 
 void function(){
 	String string = "Hello world!";
-	LengthValue& lv = &string;
-	StdOut().writeLine("Length: %lu", lv.length());
+	size_t length = f(string);
 }
 \end{lstlisting}
+
 
 \paragraph{}
 String is a standard type, so is defined before the custom interface `LengthValue', and therefore it would be necessary to foresee the need to implement that interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
@@ -596,10 +657,13 @@ String is a standard type, so is defined before the custom interface `LengthValu
 \paragraph{}
 The next section discusses how this feature is implemented, and which details how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls.
 
+\clearpage
+
 \subsection{New Operator}
 
 \paragraph{}
 Like C++, Loci provides the new operator, although the syntax and semantics are slightly different.
+
 
 \begin{lstlisting}
 class Type(int a){ }
@@ -613,8 +677,8 @@ void function(){
 	Type stackAllocated = Type(0);
 	Type& heapAllocated = new<raw> Type(0);
 	
-	// Allocates space on heap, and moves from
-	// stack to heap.
+	// Allocates space on heap, and moves return
+	// value of function 'f' from stack to heap.
 	Type& heapMoved = new<raw> f();
 	
 	// Raw allocations must be deallocated.
@@ -622,6 +686,7 @@ void function(){
 	delete heapMoved;
 }
 \end{lstlisting}
+
 
 \paragraph{}
 In particular:
@@ -632,10 +697,13 @@ In particular:
 \item The new operator accepts a parameter giving the allocation method (also called the memory management method), which in the case of the example is a raw allocation, as in C++.
 \end{enumerate}
 
+\clearpage
+
 \subsubsection{Memory Management Methods}
 
 \paragraph{}
 The above shows `raw' allocations, in which allocation and construction of objects is performed as in C++. However, Loci supports other forms of allocation:
+
 
 \begin{lstlisting}
 void function(){
@@ -663,11 +731,14 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Clearly, the aim is to minimise the syntax required to instantiate an object on the heap, while maximising the available options for how to manage the memory. Garbage collection is also available, using a conservative collector\footnote{Meaning that it doesn't need to move memory, which would be difficult to do at the level of C.}, and this is generally a good choice for allocating POD\footnote{Plain Old Data} types such as vectors, strings, trees etc.
 
 \paragraph{}
 The lack of a default also forces the programmer to think about how objects are to be allocated. C++ chooses to use a raw allocation as the basis of the new operator, however this is possibly the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
+
+\clearpage
 
 \subsubsection{Garbage Collection}
 
@@ -680,10 +751,11 @@ Normally, anyway, types which might be garbage collected should not require a de
 \paragraph{}
 However, as with all rules, there may be reasonable exceptions, so a `forcegc' option is provided:
 
+
 \begin{lstlisting}
 class Type(int v){
 	~Type(){
-		StdOut().writeLine("Destructor.");
+		//...
 	}
 };
 
@@ -697,13 +769,25 @@ void function(){
 }
 \end{lstlisting}
 
+
+\clearpage
+
 \subsection{L-values and R-values}
 
 \paragraph{}
 Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
 
+\paragraph{}
+What this means for the programmer is that it is possible to easily prevent copies of class-types, because they are not copyable by default. There are many examples where such behaviour is desirable, including unique smart pointer types, socket types, mutex types, stream types etc.
+
+\paragraph{}
+L-values can be considered as actual storage locations, on either the heap or the stack. On the other hand, R-values are values `in-transit' and can be captured into an L-value. For example some variable `v' is an L-value, whereas the expression `v + 1' is an R-value.
+
+\paragraph{}
+Here's an example of the move semantics in Loci:
+
 \begin{lstlisting}
-class SomeType(int * p){
+class SomeType(int& p){
 	~SomeType(){
 		// This destructor is only run
 		// if the object is non-empty.
@@ -718,21 +802,22 @@ SomeType f(){
 
 void function(){
 	// Constructor called, and value moved into stack.
-	// (This would be optimised to construction on the stack.)
-	SomeType a = SomeType(new 2);
+	// (Would be optimised to in-place construction on the stack.)
+	SomeType a = SomeType(new<raw> 2);
 	
-	SomeType b = SomeType(new 3);
+	SomeType b = SomeType(new<raw> 3);
 	
 	// Existing value in 'a' destroyed (destructor called),
 	// value in 'b' moved into 'a', and 'b' is now left
 	// empty (i.e. b == null).
 	a = #(b);
 	
-	// Value returned from 'f' moved into 'b', which is now
+	// R-Value returned from 'f' moved into 'b', which is now
 	// non-empty.
 	b := f();
 }
 \end{lstlisting}
+
 
 \paragraph{}
 Firstly, it is important to explain that, as mentioned above, a variable (L-value) `v' of a class type can be empty, in which case the comparison `v == null' is true (and otherwise it is false; the comparison is always valid to perform). Calling any methods on an empty object will throw an exception, and no destructor is called on an empty object.
@@ -741,20 +826,22 @@ Firstly, it is important to explain that, as mentioned above, a variable (L-valu
 The example shows the assignment statement of the form `v = expr;', in which the current value in `v' is destroyed, so `v' cannot be empty, and the R-value `expr' is moved into `v'. It also shows the move statement `v := expr;', which is equivalent to assignment but does not destroy the current value in `v' and therefore requires that it is currently empty.
 
 \paragraph{}
-Finally, the extraction operator \# causes an L-value to be extracted, turning it into an R-value, and making the L-value empty. The extraction operator can therefore be seen as the opposite of the move statement, and the assignment statement is a combination of both:
+Finally, the extraction operator \# causes the value within an L-value to be extracted, turning it into an R-value, and making the L-value empty. The extraction operator can therefore be seen as the opposite of the move statement, and the assignment statement is a combination of both:
+
 
 \begin{lstlisting}
 void function(){
-	SomeType a = SomeType(new 2);
+	SomeType a = SomeType(new<raw> 2);
 	
 	// Can do...
-	a = SomeType(new 3);
+	a = SomeType(new<raw> 3);
 	
 	// Which is actually equivalent to...
 	#(a); // Destroy value in 'a'.
-	a := SomeType(new 3); // Insert value into 'a'.
+	a := SomeType(new<raw> 3); // Insert value into 'a'.
 }
 \end{lstlisting}
+
 
 \paragraph{}
 Note that if an R-value is not captured into an L-value then it will be destroyed at the end of the statement.
@@ -762,12 +849,20 @@ Note that if an R-value is not captured into an L-value then it will be destroye
 \paragraph{}
 This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
 
+
 \begin{lstlisting}
 // This is C++ code!
 class SomeType{
 	public:
 		SomeType(int * p){
 			p_ = p;
+		}
+		
+		SomeType(SomeType& t){
+			p_ = t.p_;
+			
+			// Need to zero out state in previous copy.
+			t.p_ = 0;
 		}
 		
 		SomeType& operator=(const SomeType& t){
@@ -798,13 +893,17 @@ class SomeType{
 };
 \end{lstlisting}
 
+
 \paragraph{}
 Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
+
+\clearpage
 
 \subsection{Vector Types}
 
 \paragraph{}
 Loci supports SIMD operations directly through the use of vector types, allowing operations such as addition to be applied in parallel to a vector of integer or floating point values.
+
 
 \begin{lstlisting}
 void function(){
@@ -820,8 +919,10 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 The ternary operator also provides some interesting behaviour for vectorised types:
+
 
 \begin{lstlisting}
 void function(){
@@ -839,10 +940,14 @@ void function(){
 }
 \end{lstlisting}
 
+
+\clearpage
+
 \subsection{Primitive Syntactic Sugar}
 
 \paragraph{}
 The C standard library provides some basic mathematical routines to perform simple operations:
+
 
 \begin{lstlisting}
 void function(){
@@ -850,12 +955,13 @@ void function(){
 	float b = fabs(a);
 	float c = floor(b);
 	float d = sqrt(c);
-	StdOut().writeLine("%f", d);
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Through the compatibility with C, these routines clearly remain available in Loci, however some syntactic sugar is provided to make it slightly cleaner to express these operations:
+
 
 \begin{lstlisting}
 void function(){
@@ -863,19 +969,20 @@ void function(){
 	float b = a.abs();
 	float c = b.floor();
 	float d = c.sqrt();
-	
-	String s = d.toString();
-	StdOut().writeLine("%s", s.c_str());
 }
 \end{lstlisting}
 
+
 \paragraph{}
 These modifications turn the primitive types into object types, although the implementation is identical to C. While these syntactic changes are fairly trivial, this is very helpful for expressing the capabilities of a type in templates (discussed later).
+
+\clearpage
 
 \subsection{Algebraic Datatypes}
 
 \paragraph{}
 Functional languages such as ML and Haskell provide algebraic datatypes as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
+
 
 \begin{lstlisting}
 data BinaryTree{
@@ -894,6 +1001,7 @@ data BinaryTree{
 };
 \end{lstlisting}
 
+
 \paragraph{}
 In this case, a binary tree element is either a Leaf which contains only an integer value, or a Node that contains two trees as its left and right children.
 
@@ -903,32 +1011,40 @@ It is common to need to describe such types when handling lots of data (for exam
 \paragraph{}
 Defining the structure isn't useful alone, so Loci introduces the `typeswitch' statement:
 
+
 \begin{lstlisting}
-void function(BinaryTree tree){
+int getLeftMostValue(const BinaryTree& tree){
 	typeswitch(tree){
 		case BinaryTree:Leaf(int v){
-			StdOut().writeLine("It's a leaf of value {%0}.".format(v));
+			return v;
 		}
-		case BinaryTree:Node{
-			StdOut().writeLine("It's a node.");
+		case BinaryTree:Node(BinaryTree& left, _){
+			return getLeftMostValue(left);
 		}
 	}
 }
 \end{lstlisting}
 
+
+\paragraph{}
+The underscore character indicates an unused field of the data type.
+
 \paragraph{}
 This statement has some specific semantics:
 
 \begin{enumerate}
-\item The sub-types (in this case, `Leaf' and 'Node') in the switch statement must be the complete set of sub-types within the parent type (`BinaryTree'); if any types are missed, compilation fails. However unspecified sub-types can be handled using a `default' entry.
+\item The sub-types (in this case, `Leaf' and `Node') in the switch statement must be the complete set of sub-types within the parent type (`BinaryTree'); if any types are missed, compilation fails. However unspecified sub-types can be handled using a `default' entry.
 \item Case statements can capture values within the data types. In the example the value in the leaf is captured so it can be printed to the command line.
 \item No `break' statement is required to exit the typeswitch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
 \end{enumerate}
+
+\clearpage
 
 \subsection{Operator Overloading}
 
 \paragraph{}
 Loci supports operator overloading as a useful way to provide a clean syntax for manipulating standard library or user defined types such as strings, vectors, matrices and arrays. Unlike C++, Loci uses normal function names to define methods that can be used in operator overloading:
+
 
 \begin{lstlisting}
 class A{
@@ -961,10 +1077,14 @@ void function(const A& a0, const A& a1, IntArray& array){
 }
 \end{lstlisting}
 
+
+\clearpage
+
 \subsection{Named Parameters}
 
 \paragraph{}
 There are often cases where it is difficult to ascertain the purpose of parameters passed to a function, or where it is difficult to remember the order of parameters to a function. For example:
+
 
 \begin{lstlisting}
 void function1(Renderer& renderer, Circle& circle){
@@ -972,8 +1092,10 @@ void function1(Renderer& renderer, Circle& circle){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 In this case, the meaning of the second argument to the method, `true', is unclear. Similarly in the following case it is difficult to identify the order of parameters:
+
 
 \begin{lstlisting}
 void function2(){
@@ -985,13 +1107,13 @@ void function2(){
 	
 	// Or...
 	bool found = canFindString(haystack, needle);
-	
-	StdOut().writeLine(found ? "Found" : "Not found");
 }
 \end{lstlisting}
 
+
 \paragraph{}
 Named parameters are a feature that aims to assist code documentation, as well as calling functions by the names of their parameters rather than the order, which in some cases is more meaningful. The two examples above can therefore be expressed clearly with this feature:
+
 
 \begin{lstlisting}
 void function1(Renderer& renderer, Circle& circle){
@@ -1000,12 +1122,13 @@ void function1(Renderer& renderer, Circle& circle){
 
 void function2(){
 	bool found = canFindString(needle: "world", haystack: "Hello world!");
-	StdOut().writeLine(found ? "Found" : "Not found");
 }
 \end{lstlisting}
 
+
 \paragraph{}
 This is facilitated by the ability to type named function pointers, which can be implicitly cast to ordered function pointers:
+
 
 \begin{lstlisting}
 void f(int first, int second);
@@ -1019,6 +1142,9 @@ void function(){
 }
 \end{lstlisting}
 
+
+\clearpage
+
 \subsection{Exceptions}
 
 \paragraph{}
@@ -1026,6 +1152,7 @@ There has been (and is continuing to be) much debate on the relative merits of `
 
 \paragraph{}
 Based on an assessment of the implementations of exceptions in languages such as Java (checked), and C++ and C\# (unchecked), Loci uses unchecked exceptions as a standard method for functions to report some form of failure, since these trigger fewer architectural maintenance problems\footnote{Also, greater compatibility with C, since no extra information must be added to functions.}.
+
 
 \begin{lstlisting}
 exception A(String what);
@@ -1037,23 +1164,27 @@ void f(int i){
 	}
 }
 
-void caller(){
+String caller(){
 	try{
 		f(-1);
 	}catch(A a){
-		StdOut().writeLine("Something (bad) happened: {%0}".format(a.what));
-		throw;
+		String reason = a.what;
+		//...
 	}
 }
 \end{lstlisting}
 
+
 \paragraph{}
 A stack trace is also constructed while these exceptions are in flight, and in the case that the exception reaches the top level of the program (i.e. the main function), the stack trace is printed along with the contents of the exception type.
+
+\clearpage
 
 \subsection{Faults}
 
 \paragraph{}
 Unlike C or C++ (but a lot like Java), Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
+
 
 \begin{lstlisting}
 int f(int * i){
@@ -1070,39 +1201,45 @@ void h(int v){
 
 void caller(){
 	try{
-		StdOut().writeLine(f(null).toString());
+		int i = f(null);
 	}catch(NullPointerException e){
-		StdOut().writeLine("Null pointer exception!");
+		//...
 	}
 	
 	try{
 		int[4] v = int[]{0, 1, 2, 3};
-		StdOut().writeLine(g(v, 100).toString());
+		int i = g(v, 100);
 	}catch(VectorIndexOutOfBoundsException e){
-		StdOut().writeLine("Vector index out of bounds!");
+		//...
 	}
 	
 	try{
 		h(-1);
 	}catch(AssertionFailedException e){
-		StdOut().writeLine("Assertion failed!");
+		//...
 	}
 }
 \end{lstlisting}
+
+
+\clearpage
 
 \subsection{Templates}
 
 \paragraph{}
 Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things).
 
+
 \begin{lstlisting}
 class Class<type T>(T v){ }
 \end{lstlisting}
+
 
 \subsubsection{Type Properties}
 
 \paragraph{}
 Loci allows type properties to be expressed through the use of interfaces. For example:
+
 
 \begin{lstlisting}
 interface Comparable<type T>{
@@ -1118,11 +1255,13 @@ class Class<type T: Comparable<T>>(T v0, T v1){
 };
 \end{lstlisting}
 
+
 \paragraph{}
 The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and less-than operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself.
 
 \paragraph{}
 Since primitive types are modelled as objects, even if their implementation is identical to C, they can also be used in templated types:
+
 
 \begin{lstlisting}
 void function(){
@@ -1131,10 +1270,12 @@ void function(){
 }
 \end{lstlisting}
 
+
 \subsubsection{Instances}
 
 \paragraph{}
 The above code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the object code produced by the compiler:
+
 
 \begin{lstlisting}
 Class<int> cInt;
@@ -1146,8 +1287,10 @@ Class<StructType> cS;
 Class<StructType *> cSPtr;
 \end{lstlisting}
 
+
 \paragraph{}
 In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to perform a heap allocation.} for primitive types, which is potentially very slow, so it's possible to instruct the compiler to create particular instances of a class, using code such as the following:
+
 
 \begin{lstlisting}
 instance Class<int>;
@@ -1159,18 +1302,22 @@ instance Class<StructType>;
 instance Class<StructType *>;
 \end{lstlisting}
 
+
 \paragraph{}
 This then creates the generic version of the class by default, but if the type is int, float, T or T*, the corresponding specialised (and therefore presumably faster) type is used.
+
+\clearpage
 
 \subsection{VarArgs}
 
 \paragraph{}
 Loci supports functions and methods taking a variable number of arguments, where those arguments are of a fixed type, as in the following example:
 
+
 \begin{lstlisting}
-void varArgFunction(const StringConvertible& s[...]){
-	for(auto i: s){
-		StdOut().writeLine("Got arg: {%0}", i);
+void varArgFunction(int s[...]){
+	for(int i: s){
+		//...
 	}
 }
 
@@ -1179,16 +1326,18 @@ void function(){
 }
 \end{lstlisting}
 
+
 \paragraph{}
 In this case the syntax `...' indicates to the compiler that zero or more arguments may appear at calls to the function, and that the compiler should package them into a fixed size array type and pass it to the function.
 
 \paragraph{}
 Therefore, variable length arguments are a compile-time feature, since the above code just gets converted to:
 
+
 \begin{lstlisting}
-void varArgFunction(const Array<StringConvertible>& s){
-	for(auto i: s){
-		StdOut().writeLine("Got arg: {%0}", i);
+void varArgFunction(const Array<int>& s){
+	for(int i: s){
+		//...
 	}
 }
 
@@ -1196,6 +1345,9 @@ void function(){
 	varArgFunction({1, 2, 3});
 }
 \end{lstlisting}
+
+
+\clearpage
 
 \section{Standard Library}
 
@@ -1212,6 +1364,7 @@ Strings are used in Loci as the default way to handle character sequences, mostl
 \paragraph{}
 Loci breaks away from C by making string literals be of type String, rather than type `const char *'. However there is an implicit cast from String to const char *:
 
+
 \begin{lstlisting}
 void f(const char * cString){
 	printf("%s", cString);
@@ -1225,6 +1378,7 @@ void function(){
 	f(C"Hello world!");
 }
 \end{lstlisting}
+
 
 \subsubsection{I/O}
 
@@ -1250,12 +1404,39 @@ This prints:
 1.0, str, TwoInts(1, 2)
 \end{verbatim}
 
+\subsection{Tuples}
+
+\paragraph{}
+Tuples are a useful way of passing around multiple values of different types together, particularly in the case of returning multiple values.
+
+\begin{lstlisting}
+(int, int, int) f(){
+	return (1, 2, 3);
+}
+
+void function(){
+	(a, b, c) = f();
+	//...
+}
+\end{lstlisting}
+
+\paragraph{}
+This example shows the creation of a 3-tuple, returning it from a function, and then retrieving the values within it by pattern matching on the type, so that variables `a', `b' and `c' are bound to the values in the tuple.
+
 \cleardoublepage
 
 \chapter{Implementation}
 
 \paragraph{}
 This section discusses the implementations of the features explained above.
+
+\section{Empty Objects}
+
+\paragraph{}
+Empty objects have a very simple implementation: the vtable pointer at the beginning of the object is null (= 0). Code is autogenerated at the caller side of method calls to check that the pointer is not null, and throws an exception otherwise.
+
+\paragraph{}
+Creating these checks on the caller side rather than the callee side allows such checks to be optimised out if the object can be guaranteed to be non-empty. Caller-side checks are also required in the case of virtual function calls.
 
 \end{document}
 
