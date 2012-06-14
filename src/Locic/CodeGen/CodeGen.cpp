@@ -23,7 +23,7 @@
 #include <memory>
 #include <string>
 
-#include <Locic/SEM.h>
+#include <Locic/SEM.hpp>
 #include <Locic/CodeGen/CodeGen.h>
 
 using namespace llvm;
@@ -147,12 +147,13 @@ class CodeGen {
 			module_->dump();
 		}
 		
-		void genFile(SEM_Module* module) {
+		void genFile(SEM::Module* module) {
 			assert(module != NULL);
+			
 			
 			Locic_StringMap typeInstances = module->typeInstances;
 			
-			for(Locic_StringMapIterator typeIt = Locic_StringMap_Begin(typeInstances);
+			for(std::map<std::string, SEM:: typeIt = module->typeInstances.begin();
 			        Locic_StringMap_IsEnd(typeInstances, typeIt) == 0; Locic_StringMap_Advance(typeIt)) {
 			        
 				SEM_TypeInstance* typeInstance = reinterpret_cast<SEM_TypeInstance*>(Locic_StringMap_GetData(typeIt));
@@ -206,21 +207,21 @@ class CodeGen {
 			return FunctionType::get(returnType, paramTypes, isVarArg);
 		}
 		
-		Type* genType(SEM_Type* type) {
+		Type* genType(SEM::Type* type) {
 			switch(type->typeEnum) {
-				case SEM_TYPE_VOID: {
+				case SEM::Type::VOID: {
 					return Type::getVoidTy(getGlobalContext());
 				}
-				case SEM_TYPE_NULL: {
+				case SEM::Type::NULLT: {
 					return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 				}
-				case SEM_TYPE_BASIC: {
-					switch(type->basicType.typeEnum) {
-						case SEM_TYPE_BASIC_INT:
+				case SEM::Type::BASIC: {
+					switch(type->basicType) {
+						case SEM::Type::BasicType::INTEGER:
 							return IntegerType::get(getGlobalContext(), targetInfo_->getLongWidth());
-						case SEM_TYPE_BASIC_BOOL:
+						case SEM::Type::BasicType::BOOLEAN:
 							return Type::getInt1Ty(getGlobalContext());
-						case SEM_TYPE_BASIC_FLOAT:
+						case SEM::Type::BasicType::FLOAT:
 							return Type::getFloatTy(getGlobalContext());
 						default:
 							std::cerr << "CodeGen error: Unknown basic type." << std::endl;
@@ -228,8 +229,8 @@ class CodeGen {
 							
 					}
 				}
-				case SEM_TYPE_NAMED: {
-					SEM_TypeInstance* typeInstance = type->namedType.typeInstance;
+				case SEM::Type::NAMED: {
+					SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
 					
 					if(typeInstance->typeEnum == SEM_TYPEINST_STRUCT) {
 						StructType* structType = structs_[typeInstance];
@@ -240,7 +241,7 @@ class CodeGen {
 						return Type::getVoidTy(getGlobalContext());
 					}
 				}
-				case SEM_TYPE_PTR: {
+				case SEM::Type::PTR: {
 					Type* ptrType = genType(type->ptrType.ptrType);
 					
 					if(ptrType->isVoidTy()) {
@@ -250,7 +251,7 @@ class CodeGen {
 						return ptrType->getPointerTo();
 					}
 				}
-				case SEM_TYPE_FUNC: {
+				case SEM::Type::FUNC: {
 					return genFunctionType(type)->getPointerTo();
 				}
 				default: {

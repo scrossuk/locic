@@ -1,2 +1,2 @@
-add_library(locic-semanalysis Analysis.c CanCast.c Context.c ConvertFunctionDecl.c ConvertFunctionDef.c ConvertModule.c ConvertScope.c ConvertStatement.c ConvertType.c ConvertValue.c)
+add_library(locic-semanalysis Analysis.cpp CanCast.cpp Context.cpp ConvertFunctionDecl.cpp ConvertFunctionDef.cpp ConvertModule.cpp ConvertScope.cpp ConvertStatement.cpp ConvertType.cpp ConvertValue.cpp)
 

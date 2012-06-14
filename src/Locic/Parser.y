@@ -1,16 +1,16 @@
-%include {#include <assert.h>}
-%include {#include <stdio.h>}
-%include {#include <string.h>}
-%include {#include <Locic/AST.h>}
-%include {#include <Locic/List.h>}
-%include {#include <Locic/ParserContext.h>}
-%include {#include <Locic/Token.h>}
+%include {#include <cassert>}
+%include {#include <cstdio>}
+%include {#include <list>}
+%include {#include <string>}
+%include {#include <Locic/AST.hpp>}
+%include {#include <Locic/ParserContext.hpp>}
+%include {#include <Locic/Token.hpp>}
 
 %name Locic_Parse
-%extra_argument { Locic_ParserContext * parserContext }
+%extra_argument { Locic::ParserContext * parserContext }
 %start_symbol start
 %token_prefix LOCIC_TOKEN_
-%token_type { Locic_Token }
+%token_type { Locic::Token }
 
 %parse_accept {
 	//printf("Success!\n");
@@ -18,66 +18,66 @@
 
 %parse_failure {
 	//printf("Failure!\n");
-	parserContext->parseFailed = 1;
+	parserContext->parseFailed = true;
 }
 
 %syntax_error {
 	printf("Syntax error on line %d\n", (int) parserContext->lineNumber);
-	parserContext->parseFailed = 1;
+	parserContext->parseFailed = true;
 }
 
-%type module { AST_Module * }
+%type module { AST::Module * }
 
-%type struct { AST_Struct * }
-%type structVarList { Locic_List * }
+%type struct { AST::Struct * }
+%type structVarList { std::list<AST::TypeVar *> * }
 
-%type classDecl { AST_ClassDecl * }
-%type classDef { AST_ClassDef * }
+%type classDecl { AST::ClassDecl * }
+%type classDef { AST::ClassDef * }
 
-%type functionDecl { AST_FunctionDecl * }
-%type functionDef { AST_FunctionDef * }
+%type functionDecl { AST::FunctionDecl * }
+%type functionDef { AST::FunctionDef * }
 
-%type classMethodDeclList { Locic_List * }
-%type classMethodDefList { Locic_List * }
+%type classMethodDeclList { std::list<AST::FunctionDecl *> * }
+%type classMethodDefList { std::list<AST::FunctionDef *> * }
 
-%type basicType { AST_BasicTypeEnum }
-%type typePrecision2 { AST_Type * }
-%type typePrecision1 { AST_Type * }
-%type typePrecision0 { AST_Type * }
-%type type { AST_Type * }
-%type nonEmptyTypeList { Locic_List * }
-%type typeList { Locic_List * }
+%type basicType { AST::BasicTypeEnum }
+%type typePrecision2 { AST::Type * }
+%type typePrecision1 { AST::Type * }
+%type typePrecision0 { AST::Type * }
+%type type { AST::Type * }
+%type nonEmptyTypeList { std::list<AST::Type *> * }
+%type typeList { std::list<AST::Type *> * }
 
 %type lcName { char * }
 %type ucName { char * }
 %type name { char * }
 
-%type typeVar { AST_TypeVar * }
-%type nonEmptyTypeVarList { Locic_List * }
-%type typeVarList { Locic_List * }
+%type typeVar { AST::TypeVar * }
+%type nonEmptyTypeVarList { std::list<AST::TypeVar *> * }
+%type typeVarList { std::list<AST::TypeVar *> * }
 
-%type value { AST_Value * }
-%type nonEmptyValueList { Locic_List * }
-%type valueList { Locic_List * }
+%type value { AST::Value * }
+%type nonEmptyValueList { std::list<AST::Value *> * }
+%type valueList { std::list<AST::Value *> * }
 
-%type scope { AST_Scope * }
-%type statementList { Locic_List * }
-%type scopedStatement { AST_Statement * }
-%type normalStatement { AST_Statement * }
+%type scope { AST::Scope * }
+%type statementList { std::list<AST::Statement *> * }
+%type scopedStatement { AST::Statement * }
+%type normalStatement { AST::Statement * }
 
-%type precision0 { AST_Value * }
-%type precision1 { AST_Value * }
-%type precision2 { AST_Value * }
-%type precision3 { AST_Value * }
-%type precision4 { AST_Value * }
-%type precision5 { AST_Value * }
-%type precision6 { AST_Value * }
-%type precision7 { AST_Value * }
+%type precision0 { AST::Value * }
+%type precision1 { AST::Value * }
+%type precision2 { AST::Value * }
+%type precision3 { AST::Value * }
+%type precision4 { AST::Value * }
+%type precision5 { AST::Value * }
+%type precision6 { AST::Value * }
+%type precision7 { AST::Value * }
 	
 start ::= module(M) .
 	{
 		printf("Completed parsing\n");
-		Locic_List_Append(parserContext->moduleGroup->modules, M);
+		parserContext->modules.push_back(M);
 	}
 	
 // Nasty hack to create ERROR token (UNKNOWN can never be sent by the lexer).
@@ -85,37 +85,42 @@ start ::= UNKNOWN ERROR.
 
 module(M) ::= .
 	{
-		M = AST_MakeModule(strcpy(malloc(strlen(parserContext->currentFileName) + 1), parserContext->currentFileName));
+		M = new AST::Module(parserContext->currentFileName);
 	}
 	
 module(M) ::= INTERFACE.
 	{
-		M = AST_MakeModule(strcpy(malloc(strlen(parserContext->currentFileName) + 1), parserContext->currentFileName));
+		M = new AST::Module(parserContext->currentFileName);
 	}
 	
 module(NM) ::= module(OM) functionDecl(D).
 	{
-		NM = AST_ModuleAddFunctionDecl(OM, D);
+		(OM)->functionDeclarations.push_back(D);
+		NM = OM;
 	}
 
 module(NM) ::= module(OM) functionDef(D).
 	{
-		NM = AST_ModuleAddFunctionDef(OM, D);
+		(OM)->functionDefinitions.push_back(D);
+		NM = OM;
 	}
 
 module(NM) ::= module(OM) classDecl(D).
 	{
-		NM = AST_ModuleAddClassDecl(OM, D);
+		(OM)->classDeclarations.push_back(D);
+		NM = OM;
 	}
 
 module(NM) ::= module(OM) classDef(D).
 	{
-		NM = AST_ModuleAddClassDef(OM, D);
+		(OM)->classDefinitions.push_back(D);
+		NM = OM;
 	}
 
 module(NM) ::= module(OM) struct(S).
 	{
-		NM = AST_ModuleAddStruct(OM, S);
+		(OM)->structs.push_back(S);
+		NM = OM;
 	}
 
 module(NM) ::= module(OM) SEMICOLON.
@@ -131,17 +136,17 @@ module(NM) ::= module(OM) error.
 
 struct(S) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
 	{
-		S = AST_MakeStruct(N, VL);
+		S = new AST::Struct(*(N), *(VL));
 	}
 
 structVarList(VL) ::= .
 	{
-		VL = Locic_List_Alloc();
+		VL = new std::list<AST::TypeVar *>();
 	}
 
 structVarList(VL) ::= structVarList(OVL) typeVar(V) SEMICOLON.
 	{
-		VL = Locic_List_Append(OVL, V);
+		VL = (OVL)->push_back(V);
 	}
 
 structVarList(VL) ::= structVarList(OVL) SEMICOLON.
@@ -151,18 +156,18 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
-		D = AST_MakeFunctionDecl(T, N, P);
+		D = new AST::FunctionDecl(T, N, P);
 	}
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
 	{
 		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
-		D = AST_MakeFunctionDecl(T, N, P);
+		D = new AST::FunctionDecl(T, N, P);
 	}
 	
 functionDef(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
-		D = new AST::FunctionDef(AST_MakeFunctionDecl(T, N, P), S);
+		D = new AST::FunctionDef(new AST::FunctionDecl(T, N, P), S);
 	}
 	
 classDecl(D) ::= CLASS ucName(N) LCURLYBRACKET classMethodDeclList(DL) RCURLYBRACKET.
@@ -177,12 +182,12 @@ classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCUR
 	
 lcName(N) ::= LCNAME(NAME).
 	{
-		N = new std::string((NAME).str);
+		N = (NAME).str;
 	}
 	
 ucName(N) ::= UCNAME(NAME).
 	{
-		N = new std::string((NAME).str);
+		N = (NAME).str;
 	}
 	
 name(N) ::= lcName(NAME).
@@ -197,17 +202,17 @@ name(N) ::= ucName(NAME).
 	
 basicType(T) ::= BOOLNAME.
 	{
-		T = AST::Type::BOOLEAN;
+		T = AST::Type::BasicType::BOOLEAN;
 	}
 	
 basicType(T) ::= INTNAME.
 	{
-		T = AST::Type::INTEGER;
+		T = AST::Type::BasicType::INTEGER;
 	}
 	
 basicType(T) ::= FLOATNAME.
 	{
-		T = AST::Type::FLOAT;
+		T = AST::Type::BasicType::FLOAT;
 	}
 	
 typePrecision2(T) ::= VOIDNAME.
@@ -217,17 +222,20 @@ typePrecision2(T) ::= VOIDNAME.
 	
 typePrecision2(T) ::= basicType(BT).
 	{
-		T = AST::Type::BasicType(AST::Type::MUTABLE, BT);
+		const bool isMutable = true;
+		T = AST::Type::BasicType(isMutable, BT);
 	}
 	
 typePrecision2(T) ::= ucName(N).
 	{
-		T = AST::Type::NamedType(AST::Type::MUTABLE, *(N));
+		const bool isMutable = true;
+		T = AST::Type::NamedType(isMutable, *(N));
 	}
 	
 typePrecision2(T) ::= PERCENT lcName(N).
 	{
-		T = AST::Type::BasicType(AST::Type::MUTABLE, *(N));
+		const bool isMutable = true;
+		T = AST::Type::BasicType(isMutable, *(N));
 	}
 	
 typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
@@ -237,7 +245,8 @@ typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
 	
 typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
 	{
-		NT = AST::Type::FunctionType(AST::Type::MUTABLE, RT, *(PTL));
+		const bool isMutable = true;
+		NT = AST::Type::FunctionType(isMutable, RT, *(PTL));
 	}
 	
 typePrecision2(NT) ::= LROUNDBRACKET error RROUNDBRACKET.
@@ -444,22 +453,22 @@ normalStatement(S) ::= value(LV) SETEQUAL value(RV).
 
 normalStatement(S) ::= value(LV) ADDEQUAL value(RV).
 	{
-		S = AST::Statement::Assign(LV, AST::Expression::Binary(AST::Expression::ADD, LV, RV));
+		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::ADD, LV, RV));
 	}
 
 normalStatement(S) ::= value(LV) SUBEQUAL value(RV).
 	{
-		S = AST::Statement::Assign(LV, AST::Expression::Binary(AST::Expression::SUBTRACT, LV, RV));
+		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, LV, RV));
 	}
 
 normalStatement(S) ::= value(LV) MULEQUAL value(RV).
 	{
-		S = AST::Statement::Assign(LV, AST::Expression::Binary(AST::Expression::MULTIPLY, LV, RV));
+		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, LV, RV));
 	}
 
 normalStatement(S) ::= value(LV) DIVEQUAL value(RV).
 	{
-		S = AST::Statement::Assign(LV, AST::Expression::Binary(AST::Expression::DIVIDE, LV, RV));
+		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, LV, RV));
 	}
 
 normalStatement(S) ::= value(V).
@@ -484,47 +493,47 @@ precision7(V) ::= LROUNDBRACKET precision0(BV) RROUNDBRACKET.
 
 precision7(V) ::= lcName(N).
 	{
-		V = AST::Expression::Var(AST::Var::Local(N));
+		V = AST::Value::Var(AST::Var::Local(N));
 	}
 
 precision7(V) ::= AT lcName(N).
 	{
-		V = AST::Expression::Var(AST::Var::LocalMember(N));
+		V = AST::Value::Var(AST::Var::LocalMember(N));
 	}
 
 precision7(V) ::= BOOLCONSTANT(C).
 	{
-		V = AST::Expression::BoolConstant((C).boolValue);
+		V = AST::Value::BoolConstant((C).boolValue);
 	}
 	
 precision7(V) ::= INTCONSTANT(C).
 	{
-		V = AST::Expression::IntConstant((C).intValue);
+		V = AST::Value::IntConstant((C).intValue);
 	}
 	
 precision7(V) ::= FLOATCONSTANT(C).
 	{
-		V = AST::Expression::FloatConstant((C).floatValue);
+		V = AST::Value::FloatConstant((C).floatValue);
 	}
 	
 precision7(V) ::= NULL.
 	{
-		V = AST::Expression::NullConstant();
+		V = AST::Value::NullConstant();
 	}
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Expression::Construct(*(N), "", VL);
+		V = AST::Value::Construct(*(N), "Default", VL);
 	}
 
 precision7(V) ::= ucName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Expression::Construct(TN, CN, VL);
+		V = AST::Value::Construct(TN, CN, VL);
 	}
 	
 precision7(V) ::= CAST LTRIBRACKET type(T) RTRIBRACKET LROUNDBRACKET value(VAL) RROUNDBRACKET.
 	{
-		V = AST::Expression::Cast(T, VAL);
+		V = AST::Value::Cast(T, VAL);
 	}
 
 precision6(V) ::= precision7(VAL).
@@ -534,17 +543,17 @@ precision6(V) ::= precision7(VAL).
 
 precision6(V) ::= precision6(S) DOT lcName(N).
 	{
-		V = AST::Expression::MemberAccess(S, N);
+		V = AST::Value::MemberAccess(S, N);
 	}
 
 precision6(V) ::= precision6(SP) PTRACCESS lcName(N).
 	{
-		V = AST::Expression::MemberAccess(AST::Expression::Unary(AST::Expression::DEREF, SP), N);
+		V = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Binary::DEREF, SP), N);
 	}
 
 precision6(V) ::= precision6(F) LROUNDBRACKET valueList(P) RROUNDBRACKET.
 	{
-		V = AST::Expression::FunctionCall(F, P);
+		V = AST::Value::FunctionCall(F, P);
 	}
 	
 precision5(V) ::= precision6(VAL).
@@ -554,27 +563,27 @@ precision5(V) ::= precision6(VAL).
 
 precision5(V) ::= PLUS precision5(VAL).
 	{
-		V = AST::Expression::Unary(AST::Expression::PLUS, VAL);
+		V = AST::Value::UnaryOp(AST::Value::Unary::PLUS, VAL);
 	}
 
 precision5(V) ::= MINUS precision5(VAL).
 	{
-		V = AST::Expression::Unary(AST::Expression::MINUS, VAL);
+		V = AST::Value::UnaryOp(AST::Value::Unary::MINUS, VAL);
 	}
 
 precision5(V) ::= EXCLAIMMARK precision5(VAL).
 	{
-		V = AST::Expression::Unary(AST::Expression::NOT, VAL);
+		V = AST::Value::UnaryOp(AST::Value::Unary::NOT, VAL);
 	}
 
 precision5(V) ::= AMPERSAND precision5(VAL).
 	{
-		V = AST::Expression::Unary(AST::Expression::ADDRESSOF, VAL);
+		V = AST::Value::UnaryOp(AST::Value::Unary::ADDRESSOF, VAL);
 	}
 
 precision5(V) ::= STAR precision5(VAL).
 	{
-		V = AST::Expression::Unary(AST::Expression::DEREF, VAL);
+		V = AST::Value::UnaryOp(AST::Value::Unary::DEREF, VAL);
 	}
 
 precision4(V) ::= precision5(VAL).
@@ -584,12 +593,12 @@ precision4(V) ::= precision5(VAL).
 
 precision4(V) ::= precision4(L) STAR precision5(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::MULTIPLY, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, L, R);
 	}
 
 precision4(V) ::= precision4(L) FORWARDSLASH precision5(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::DIVIDE, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, L, R);
 	}
 
 precision3(V) ::= precision4(VAL).
@@ -599,12 +608,12 @@ precision3(V) ::= precision4(VAL).
 
 precision3(V) ::= precision3(L) PLUS precision4(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::ADD, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::ADD, L, R);
 	}
 
 precision3(V) ::= precision3(L) MINUS precision4(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::SUBTRACT, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, L, R);
 	}
 
 precision2(V) ::= precision3(VAL).
@@ -614,32 +623,32 @@ precision2(V) ::= precision3(VAL).
 
 precision2(V) ::= precision3(L) ISEQUAL precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::ISEQUAL, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::ISEQUAL, L, R);
 	}
 	
 precision2(V) ::= precision3(L) NOTEQUAL precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::NOTEQUAL, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::NOTEQUAL, L, R);
 	}
 	
 precision2(V) ::= precision3(L) LTRIBRACKET precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::LESSTHAN, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::LESSTHAN, L, R);
 	}
 	
 precision2(V) ::= precision3(L) RTRIBRACKET precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::GREATERTHAN, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::GREATERTHAN, L, R);
 	}
 	
 precision2(V) ::= precision3(L) GREATEROREQUAL precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::GREATEROREQUAL, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::GREATEROREQUAL, L, R);
 	}
 	
 precision2(V) ::= precision3(L) LESSOREQUAL precision3(R).
 	{
-		V = AST::Expression::Binary(AST::Expression::LESSOREQUAL, L, R);
+		V = AST::Value::BinaryOp(AST::Value::Binary::LESSOREQUAL, L, R);
 	}
 
 precision1(V) ::= precision2(VAL).
@@ -649,7 +658,7 @@ precision1(V) ::= precision2(VAL).
 
 precision1(V) ::= precision2(C) QUESTIONMARK precision1(T) COLON precision1(F).
 	{
-		V = AST::Expression::Ternary(C, T, F);
+		V = AST::Value::Ternary(C, T, F);
 	}
 
 precision0(V) ::= precision1(VAL).

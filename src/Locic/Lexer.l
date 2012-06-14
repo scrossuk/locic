@@ -1,12 +1,12 @@
 %{
 
 #include <string.h>
-#include <Locic/AST.h>
-#include <Locic/LexerContext.h>
+#include <Locic/AST.hpp>
+#include <Locic/LexerContext.hpp>
 #include <Locic/Parser.h>
-#include <Locic/Token.h>
+#include <Locic/Token.hpp>
 
-#define YY_EXTRA_TYPE Locic_LexerContext *
+#define YY_EXTRA_TYPE Locic::LexerContext *
 #define YY_USER_ACTION yyextra->lineNumber = yylineno;
 
 /*
@@ -66,8 +66,8 @@ false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLC
 [0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
 [0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9_]*       { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_UCNAME; }
-[a-z][A-Za-z0-9_]*       { yyextra->token.str = strcpy(malloc(strlen(yytext) + 1), yytext); return LOCIC_TOKEN_LCNAME; }
+[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_UCNAME; }
+[a-z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_LCNAME; }
 
 "=="                    { return LOCIC_TOKEN_ISEQUAL; }
 "!="                    { return LOCIC_TOKEN_NOTEQUAL; }
@@ -108,7 +108,7 @@ false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLC
 
 %%
 
-void * Locic_LexAlloc(FILE * file, Locic_LexerContext * context){
+void * Locic_LexAlloc(FILE * file, Locic::LexerContext * context){
 	void * lexer;
 	Locic_GeneratedLexer_lex_init(&lexer);
 	Locic_GeneratedLexer_set_in(file, lexer);

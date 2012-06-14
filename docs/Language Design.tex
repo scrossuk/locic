@@ -1040,6 +1040,29 @@ This statement has some specific semantics:
 
 \clearpage
 
+\subsection{Pattern Matching}
+
+\paragraph{}
+Algebraic datatypes are clearly a concept that has been adopted from functional languages such as ML and Haskell. Additionally, Loci supports extracting the members of these data types by binding them through pattern matching:
+
+\begin{lstlisting}
+data Pair(int l, int r);
+
+Pair f(){
+	return Pair(1, 2);
+}
+
+void g(){
+	Pair(a, b) = f();
+	//...
+}
+\end{lstlisting}
+
+\paragraph{}
+In this example, the types of binding variables `a' and `b' are not required, and are internally set to `auto' by the compiler, so it will then infer them.
+
+\clearpage
+
 \subsection{Operator Overloading}
 
 \paragraph{}
@@ -1392,8 +1415,8 @@ Hence printing data is simple:
 data TwoInts(int a, int b);
 
 void function(){
-	TwoInts t = TwoInts(1, 2);
-	StdOut().writeLine("{%0}, {%1}, {%2}".format(1.0, "str", t));
+	auto t = TwoInts(1, 2);
+	StdOut().writeLine("{%0}, {%1}, {%2}".format({1.0, "str", t}));
 }
 \end{lstlisting}
 
@@ -1410,8 +1433,8 @@ This prints:
 Tuples are a useful way of passing around multiple values of different types together, particularly in the case of returning multiple values.
 
 \begin{lstlisting}
-(int, int, int) f(){
-	return (1, 2, 3);
+(bool, int, float) f(){
+	return (true, 1, 1.5);
 }
 
 void function(){
@@ -1423,12 +1446,17 @@ void function(){
 \paragraph{}
 This example shows the creation of a 3-tuple, returning it from a function, and then retrieving the values within it by pattern matching on the type, so that variables `a', `b' and `c' are bound to the values in the tuple.
 
+\subsection{Initializer Lists}
+
+\paragraph{}
+
+
 \cleardoublepage
 
 \chapter{Implementation}
 
 \paragraph{}
-This section discusses the implementations of the features explained above.
+This section discusses the implementations of the features explained above; each feature was designed and considered on the basis on the ease and efficiency of its implementation.
 
 \section{Empty Objects}
 
@@ -1437,6 +1465,42 @@ Empty objects have a very simple implementation: the vtable pointer at the begin
 
 \paragraph{}
 Creating these checks on the caller side rather than the callee side allows such checks to be optimised out if the object can be guaranteed to be non-empty. Caller-side checks are also required in the case of virtual function calls.
+
+\section{Class Parameters}
+
+\paragraph{}
+
+
+\section{Virtual Method Calls}
+
+\cleardoublepage
+
+\chapter{Additional Topics}
+
+\section{Concurrency and Parallelism}
+
+\paragraph{}
+Recently there have been many discussions about taking advantage of the increasing amounts of parallelism that is becoming possible through improvements to hardware. Much focus is directed towards programming languages and how they might facilitate taking advantage of these improvements.
+
+\paragraph{}
+In particular, a compiler can struggle to optimise normal code in a language such as in C into machine code that can be effectively parallelised by the hardware. Vector types and operations, supported in Loci and explained above, are a good method to achieve performance benefits from new architectures within the context of a single processor.
+
+\paragraph{}
+However, there is of course no silver bullet to achieving multi-processor performance benefits; developers must still be responsible for profiling their own code and restructuring it so that it can be run in parallel.
+
+\paragraph{}
+Typically, gains are made either in low-level routines (e.g. image processing) via parallelising instructions, or via high-level restructuring. In the former case, the language provides vector operations that need to be used correctly; in the latter it is up to the developer to implement their high-level design.
+
+\paragraph{}
+Some forms of parallelism, such as threads, can be dangerous since it is difficult for the programmer to analyse how parallel threads might interact. Processes, on the other hand, are an excellent way to achieve parallelism since memory is no longer shared, but may suffer from a lack of system support or high IPC overhead.
+
+\paragraph{}
+Again, it is up to the developer to make and implement these decisions, so like any other language Loci cannot provide significant `automatic' parallelisation of code without substantial cooperation from the developer of the code.
+
+\section{Classes vs Algebraic Datatypes}
+
+\paragraph{}
+
 
 \end{document}
 

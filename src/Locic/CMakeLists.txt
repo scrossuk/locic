@@ -22,7 +22,7 @@ add_subdirectory(SemanticAnalysis)
 add_subdirectory(CodeGen)
 
 # Compile
-add_executable(locic main.cpp Array.cpp List.cpp Stack.cpp StringMap.cpp Lexer.c Parser.c AST/ClassDecl.c AST/ClassDef.c AST/Function.c AST/Module.c AST/ModuleGroup.c AST/Scope.c AST/Statement.c AST/Struct.c AST/Type.c AST/TypeVar.c AST/Value.c AST/Var.c SEM/Function.c SEM/Module.c SEM/ModuleGroup.c SEM/Scope.c SEM/Statement.c SEM/Type.c SEM/TypeInstance.c SEM/Value.c SEM/Var.c)
+add_executable(locic main.cpp Lexer.c Parser.c)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

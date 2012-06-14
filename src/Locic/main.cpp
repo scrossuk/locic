@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Locic/AST.h>
+#include <Locic/AST.hpp>
 #include <Locic/Lexer.h>
 #include <Locic/LexerContext.h>
 #include <Locic/List.h>
@@ -34,21 +34,19 @@ int main(int argc, char * argv[]){
 		return 0;
 	}
 	
-	char * filename = argv[1];
+	std::string filename(argv[1]);
 
-	FILE * file = fopen(filename, "rb");
+	FILE * file = fopen(filename.c_str(), "rb");
 	
 	if(file == 0){
 		printf("Failed to open file\n");
 		return 1;
 	}
 	
-	Locic_LexerContext lexerContext;
+	Locic::LexerContext lexerContext;
 	lexerContext.lineNumber = 0;
 	
-	Locic_ParserContext parserContext;
-	parserContext.lineNumber = 0;
-	parserContext.parseFailed = 0;
+	Locic::ParserContext parserContext;
 	
 	AST_ModuleGroup * synModuleGroup = AST_MakeModuleGroup();
 	parserContext.moduleGroup = synModuleGroup;
