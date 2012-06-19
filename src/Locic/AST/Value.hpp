@@ -139,7 +139,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * BinaryOp(Unary::Type type, Value * leftOperand, Value * rightOperand){
+		inline static Value * BinaryOp(Binary::Type type, Value * leftOperand, Value * rightOperand){
 			Value* value = new Value(BINARY);
 			value->binary.type = type;
 			value->binary.left = leftOperand;

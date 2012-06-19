@@ -24,7 +24,7 @@
 #include <string>
 
 #include <Locic/SEM.hpp>
-#include <Locic/CodeGen/CodeGen.h>
+#include <Locic/CodeGen/CodeGen.hpp>
 
 using namespace llvm;
 
@@ -37,13 +37,13 @@ class CodeGen {
 		Function* currentFunction_;
 		BasicBlock* currentBasicBlock_;
 		FunctionPassManager fpm_;
-		std::map<SEM_TypeInstance*, StructType*> structs_;
-		std::map<SEM_FunctionDecl*, Function*> functions_;
+		std::map<SEM::TypeInstance*, StructType*> structs_;
+		std::map<SEM::FunctionDecl*, Function*> functions_;
 		std::map<std::size_t, AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		
 	public:
-		CodeGen(const char* moduleName)
+		CodeGen(const std::string& moduleName)
 			: name_(moduleName),
 			  module_(new Module(name_.c_str(), getGlobalContext())),
 			  builder_(getGlobalContext()),
@@ -150,17 +150,13 @@ class CodeGen {
 		void genFile(SEM::Module* module) {
 			assert(module != NULL);
 			
-			
-			Locic_StringMap typeInstances = module->typeInstances;
-			
-			for(std::map<std::string, SEM:: typeIt = module->typeInstances.begin();
-			        Locic_StringMap_IsEnd(typeInstances, typeIt) == 0; Locic_StringMap_Advance(typeIt)) {
-			        
-				SEM_TypeInstance* typeInstance = reinterpret_cast<SEM_TypeInstance*>(Locic_StringMap_GetData(typeIt));
+			std::map<std::string, SEM::TypeInstance *>::const_iterator typeIt;
+			for(typeIt = module->typeInstances.begin(); typeIt != module->typeInstances.end(); ++typeIt){
+				SEM::TypeInstance* typeInstance = typeIt->second;
 				assert(typeInstance != NULL);
 				
 				switch(typeInstance->typeEnum) {
-					case SEM_TYPEINST_STRUCT: {
+					case SEM::TypeInstance::STRUCT: {
 						std::vector<Type*> structMembers;
 						structMembers.push_back(Type::getInt1Ty(getGlobalContext()));
 						structs_[typeInstance] = StructType::create(structMembers, typeInstance->name);
@@ -172,35 +168,32 @@ class CodeGen {
 				}
 			}
 			
-			Locic_StringMap functionDecls = module->functionDeclarations;
-			
-			for(Locic_StringMapIterator declIt = Locic_StringMap_Begin(functionDecls);
-			        Locic_StringMap_IsEnd(functionDecls, declIt) == 0; Locic_StringMap_Advance(declIt)) {
-			        
-				SEM_FunctionDecl* decl = reinterpret_cast<SEM_FunctionDecl*>(Locic_StringMap_GetData(declIt));
+			std::map<std::string, SEM::FunctionDecl *>::const_iterator declIt;
+			for(declIt = module->functionDeclarations.begin(); declIt != module->functionDeclarations.end(); ++declIt){
+				SEM::FunctionDecl* decl = declIt->second;
 				assert(decl != NULL);
 				functions_[decl] = Function::Create(genFunctionType(decl->type), Function::ExternalLinkage, decl->name, module_);
 			}
 			
-			Locic_List* functionDefs = module->functionDefinitions;
-			
-			for(Locic_ListElement* defIt = Locic_List_Begin(functionDefs); defIt != Locic_List_End(functionDefs); defIt = defIt->next) {
-				genFunctionDef(reinterpret_cast<SEM_FunctionDef*>(defIt->data));
+			std::list<SEM::FunctionDef *>::const_iterator defIt;
+			for(defIt = module->functionDefinitions.begin(); defIt != module->functionDefinitions.end(); ++defIt){
+				genFunctionDef(*defIt);
 			}
 		}
 		
-		FunctionType* genFunctionType(SEM_Type* type) {
+		FunctionType* genFunctionType(SEM::Type* type) {
 			assert(type != NULL);
-			assert(type->typeEnum == SEM_TYPE_FUNC);
+			assert(type->typeEnum == SEM::Type::FUNCTION);
 			
-			Type* returnType = genType(type->funcType.returnType);
+			Type* returnType = genType(type->functionType.returnType);
 			
 			std::vector<Type*> paramTypes;
-			Locic_ListElement* it;
-			Locic_List* params = type->funcType.parameterTypes;
 			
-			for(it = Locic_List_Begin(params); it != Locic_List_End(params); it = it->next) {
-				paramTypes.push_back(genType(reinterpret_cast<SEM_Type*>(it->data)));
+			const std::list<SEM::Type *>& params = type->functionType.parameterTypes;
+			std::list<SEM::Type *>::const_iterator it;
+			
+			for(it = params.begin(); it != params.end(); ++it) {
+				paramTypes.push_back(genType(*it));
 			}
 			
 			bool isVarArg = false;
@@ -216,7 +209,7 @@ class CodeGen {
 					return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 				}
 				case SEM::Type::BASIC: {
-					switch(type->basicType) {
+					switch(type->basicType.typeEnum) {
 						case SEM::Type::BasicType::INTEGER:
 							return IntegerType::get(getGlobalContext(), targetInfo_->getLongWidth());
 						case SEM::Type::BasicType::BOOLEAN:
@@ -232,7 +225,7 @@ class CodeGen {
 				case SEM::Type::NAMED: {
 					SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
 					
-					if(typeInstance->typeEnum == SEM_TYPEINST_STRUCT) {
+					if(typeInstance->typeEnum == SEM::TypeInstance::STRUCT) {
 						StructType* structType = structs_[typeInstance];
 						assert(structType != NULL);
 						return structType;
@@ -241,17 +234,17 @@ class CodeGen {
 						return Type::getVoidTy(getGlobalContext());
 					}
 				}
-				case SEM::Type::PTR: {
-					Type* ptrType = genType(type->ptrType.ptrType);
+				case SEM::Type::POINTER: {
+					Type* pointerType = genType(type->pointerType.targetType);
 					
-					if(ptrType->isVoidTy()) {
+					if(pointerType->isVoidTy()) {
 						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
 						return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 					} else {
-						return ptrType->getPointerTo();
+						return pointerType->getPointerTo();
 					}
 				}
-				case SEM::Type::FUNC: {
+				case SEM::Type::FUNCTION: {
 					return genFunctionType(type)->getPointerTo();
 				}
 				default: {
@@ -261,7 +254,7 @@ class CodeGen {
 			}
 		}
 		
-		void genFunctionDef(SEM_FunctionDef* functionDef) {
+		void genFunctionDef(SEM::FunctionDef* functionDef) {
 			// Create function.
 			currentFunction_ = functions_[functionDef->declaration];
 			assert(currentFunction_ != NULL);
@@ -272,16 +265,16 @@ class CodeGen {
 			// Store arguments onto stack.
 			Function::arg_iterator arg;
 			
-			Locic_List* param = functionDef->declaration->parameterVars;
-			Locic_ListElement* it;
+			const std::list<SEM::Var *>& parameterVars = functionDef->declaration->parameters;
+			std::list<SEM::Var *>::const_iterator it;
 			
-			for(it = Locic_List_Begin(param), arg = currentFunction_->arg_begin(); it != Locic_List_End(param); ++arg, it = it->next) {
-				SEM_Var* paramVar = reinterpret_cast<SEM_Var*>(it->data);
+			for(it = parameterVars.begin(), arg = currentFunction_->arg_begin(); it != parameterVars.end(); ++arg, ++it) {
+				SEM::Var* paramVar = *it;
 				
 				// Create an alloca for this variable.
 				AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
 				
-				paramVariables_[paramVar->varId] = stackObject;
+				paramVariables_[paramVar->id] = stackObject;
 				
 				// Store the initial value into the alloca.
 				builder_.CreateStore(arg, stackObject);
@@ -314,42 +307,38 @@ class CodeGen {
 			localVariables_.clear();
 		}
 		
-		void genScope(SEM_Scope* scope) {
-			Locic_Array array = scope->localVariables;
-			
-			for(std::size_t i = 0; i < Locic_Array_Size(array); i++) {
-				SEM_Var* localVar = reinterpret_cast<SEM_Var*>(Locic_Array_Get(array, i));
+		void genScope(SEM::Scope* scope) {
+			for(std::size_t i = 0; i < scope->localVariables.size(); i++) {
+				SEM::Var* localVar = scope->localVariables.at(i);
 				
 				// Create an alloca for this variable.
 				AllocaInst* stackObject = builder_.CreateAlloca(genType(localVar->type));
 				
-				localVariables_[localVar->varId] = stackObject;
+				localVariables_[localVar->id] = stackObject;
 			}
 			
-			Locic_List* list = scope->statementList;
-			
-			for(Locic_ListElement* it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next) {
-				SEM_Statement* statement = reinterpret_cast<SEM_Statement*>(it->data);
-				genStatement(statement);
+			std::list<SEM::Statement *>::const_iterator it;			
+			for(it = scope->statementList.begin(); it != scope->statementList.end(); ++it) {
+				genStatement(*it);
 			}
 		}
 		
-		void genStatement(SEM_Statement* statement) {
-			switch(statement->type) {
-				case SEM_STATEMENT_VALUE: {
+		void genStatement(SEM::Statement* statement) {
+			switch(statement->typeEnum) {
+				case SEM::Statement::VALUE: {
 					genValue(statement->valueStmt.value);
 					break;
 				}
-				case SEM_STATEMENT_SCOPE: {
+				case SEM::Statement::SCOPE: {
 					genScope(statement->scopeStmt.scope);
 					break;
 				}
-				case SEM_STATEMENT_IF: {
+				case SEM::Statement::IF: {
 					BasicBlock* thenBB = BasicBlock::Create(getGlobalContext(), "then", currentFunction_);
 					BasicBlock* elseBB = BasicBlock::Create(getGlobalContext(), "else");
 					BasicBlock* mergeBB = BasicBlock::Create(getGlobalContext(), "ifmerge");
 					
-					builder_.CreateCondBr(genValue(statement->ifStmt.cond), thenBB, elseBB);
+					builder_.CreateCondBr(genValue(statement->ifStmt.condition), thenBB, elseBB);
 					
 					// Create 'then'.
 					builder_.SetInsertPoint(thenBB);
@@ -373,32 +362,32 @@ class CodeGen {
 					builder_.SetInsertPoint(mergeBB);
 					break;
 				}
-				case SEM_STATEMENT_WHILE: {
+				case SEM::Statement::WHILE: {
 					BasicBlock* insideLoopBB = BasicBlock::Create(getGlobalContext(), "insideLoop", currentFunction_);
 					BasicBlock* afterLoopBB = BasicBlock::Create(getGlobalContext(), "afterLoop");
 					
-					builder_.CreateCondBr(genValue(statement->whileStmt.cond), insideLoopBB, afterLoopBB);
+					builder_.CreateCondBr(genValue(statement->whileStmt.condition), insideLoopBB, afterLoopBB);
 					
 					// Create loop contents.
 					builder_.SetInsertPoint(insideLoopBB);
 					
 					genScope(statement->whileStmt.whileTrue);
 					
-					builder_.CreateCondBr(genValue(statement->whileStmt.cond), insideLoopBB, afterLoopBB);
+					builder_.CreateCondBr(genValue(statement->whileStmt.condition), insideLoopBB, afterLoopBB);
 					
 					// Create 'else'.
 					currentFunction_->getBasicBlockList().push_back(afterLoopBB);
 					builder_.SetInsertPoint(afterLoopBB);
 					break;
 				}
-				case SEM_STATEMENT_ASSIGN: {
-					SEM_Value* lValue = statement->assignStmt.lValue;
-					SEM_Value* rValue = statement->assignStmt.rValue;
+				case SEM::Statement::ASSIGN: {
+					SEM::Value* lValue = statement->assignStmt.lValue;
+					SEM::Value* rValue = statement->assignStmt.rValue;
 					
 					builder_.CreateStore(genValue(rValue), genValue(lValue, true));
 					break;
 				}
-				case SEM_STATEMENT_RETURN: {
+				case SEM::Statement::RETURN: {
 					if(statement->returnStmt.value != NULL) {
 						builder_.CreateRet(genValue(statement->returnStmt.value));
 					} else {
@@ -415,45 +404,45 @@ class CodeGen {
 			}
 		}
 		
-		Value* genValue(SEM_Value* value, bool genLValue = false) {
-			switch(value->valueType) {
-				case SEM_VALUE_CONSTANT: {
-					switch(value->constant.type) {
-						case SEM_CONSTANT_BOOL:
+		Value* genValue(SEM::Value* value, bool genLValue = false) {
+			switch(value->typeEnum) {
+				case SEM::Value::CONSTANT: {
+					switch(value->constant.typeEnum) {
+						case SEM::Value::Constant::BOOLEAN:
 							return ConstantInt::get(getGlobalContext(), APInt(1, value->constant.boolConstant));
-						case SEM_CONSTANT_INT:
+						case SEM::Value::Constant::INTEGER:
 							return ConstantInt::get(getGlobalContext(), APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
-						case SEM_CONSTANT_FLOAT:
+						case SEM::Value::Constant::FLOAT:
 							return ConstantFP::get(getGlobalContext(), APFloat(value->constant.floatConstant));
-						case SEM_CONSTANT_NULL:
+						case SEM::Value::Constant::NULLVAL:
 							return ConstantPointerNull::get(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
 						default:
 							std::cerr << "CodeGen error: Unknown constant." << std::endl;
 							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
 					}
 				}
-				case SEM_VALUE_COPY: {
+				case SEM::Value::COPY: {
 					return genValue(value->copyValue.value);
 				}
-				case SEM_VALUE_VAR: {
-					SEM_Var* var = value->varValue.var;
+				case SEM::Value::VAR: {
+					SEM::Var* var = value->varValue.var;
 					
-					switch(var->varType) {
-						case SEM_VAR_PARAM: {
+					switch(var->typeEnum) {
+						case SEM::Var::PARAM: {
 							if(genLValue) {
-								return paramVariables_[var->varId];
+								return paramVariables_[var->id];
 							} else {
-								return builder_.CreateLoad(paramVariables_[var->varId]);
+								return builder_.CreateLoad(paramVariables_[var->id]);
 							}
 						}
-						case SEM_VAR_LOCAL: {
+						case SEM::Var::LOCAL: {
 							if(genLValue) {
-								return localVariables_[var->varId];
+								return localVariables_[var->id];
 							} else {
-								return builder_.CreateLoad(localVariables_[var->varId]);
+								return builder_.CreateLoad(localVariables_[var->id]);
 							}
 						}
-						case SEM_VAR_THIS: {
+						case SEM::Var::THIS: {
 							std::cerr << "CodeGen error: Unimplemented member variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 						}
@@ -463,30 +452,30 @@ class CodeGen {
 						}
 					}
 				}
-				case SEM_VALUE_UNARY: {
-					SEM_OpType opType = value->unary.opType;
+				case SEM::Value::UNARY: {
+					SEM::Value::Op::TypeEnum opType = value->unary.opType;
 					
-					switch(value->unary.type) {
-						case SEM_UNARY_PLUS:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+					switch(value->unary.typeEnum) {
+						case SEM::Value::Unary::PLUS:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							return genValue(value->unary.value);
-						case SEM_UNARY_MINUS:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Unary::MINUS:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateNeg(genValue(value->unary.value));
-							} else if(opType == SEM_OP_FLOAT) {
+							} else if(opType == SEM::Value::Op::FLOAT) {
 								return builder_.CreateFNeg(genValue(value->unary.value));
 							}
 							
-						case SEM_UNARY_NOT:
-							assert(opType == SEM_OP_BOOL);
+						case SEM::Value::Unary::NOT:
+							assert(opType == SEM::Value::Op::BOOLEAN);
 							return builder_.CreateNot(genValue(value->unary.value));
-						case SEM_UNARY_ADDRESSOF:
-							assert(opType == SEM_OP_PTR);
+						case SEM::Value::Unary::ADDRESSOF:
+							assert(opType == SEM::Value::Op::POINTER);
 							return genValue(value->unary.value, true);
-						case SEM_UNARY_DEREF:
-							assert(opType == SEM_OP_PTR);
+						case SEM::Value::Unary::DEREF:
+							assert(opType == SEM::Value::Op::POINTER);
 							
 							if(genLValue) {
 								return genValue(value->unary.value);
@@ -499,97 +488,97 @@ class CodeGen {
 							return genValue(value->unary.value);
 					}
 				}
-				case SEM_VALUE_BINARY: {
-					SEM_OpType opType = value->binary.opType;
+				case SEM::Value::BINARY: {
+					SEM::Value::Op::TypeEnum opType = value->binary.opType;
 					
-					switch(value->binary.type) {
-						case SEM_BINARY_ADD:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+					switch(value->binary.typeEnum) {
+						case SEM::Value::Binary::ADD:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFAdd(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 							return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
-						case SEM_BINARY_SUBTRACT:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::SUBTRACT:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFSub(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 							return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
-						case SEM_BINARY_MULTIPLY:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::MULTIPLY:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateMul(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFMul(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_DIVIDE:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::DIVIDE:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFDiv(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_ISEQUAL:
-							assert(opType == SEM_OP_BOOL || opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::ISEQUAL:
+							assert(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_BOOL || opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOEQ(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_NOTEQUAL:
-							assert(opType == SEM_OP_BOOL || opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::NOTEQUAL:
+							assert(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_BOOL || opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpONE(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_LESSTHAN:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::LESSTHAN:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSLT(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOLT(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_GREATERTHAN:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::GREATERTHAN:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSGT(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOGT(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_GREATEROREQUAL:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::GREATEROREQUAL:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOGE(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
-						case SEM_BINARY_LESSOREQUAL:
-							assert(opType == SEM_OP_INT || opType == SEM_OP_FLOAT);
+						case SEM::Value::Binary::LESSOREQUAL:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
 							
-							if(opType == SEM_OP_INT) {
+							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOLE(genValue(value->binary.left), genValue(value->binary.right));
@@ -600,55 +589,55 @@ class CodeGen {
 							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
 					}
 				}
-				case SEM_VALUE_TERNARY: {
+				case SEM::Value::TERNARY: {
 					return builder_.CreateSelect(genValue(value->ternary.condition), genValue(value->ternary.ifTrue, genLValue), genValue(value->ternary.ifFalse, genLValue));
 				}
-				case SEM_VALUE_CAST: {
+				case SEM::Value::CAST: {
 					Value* codeValue = genValue(value->cast.value, genLValue);
-					SEM_Type* sourceType = value->cast.value->type;
-					SEM_Type* destType = value->type;
+					SEM::Type* sourceType = value->cast.value->type;
+					SEM::Type* destType = value->type;
 					
-					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM_TYPE_NULL);
+					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM::Type::NULLT);
 					
 					switch(sourceType->typeEnum) {
-						case SEM_TYPE_VOID: {
+						case SEM::Type::VOID: {
 							return codeValue;
 						}
-						case SEM_TYPE_NULL: {
-							assert(destType->typeEnum == SEM_TYPE_NAMED || destType->typeEnum == SEM_TYPE_PTR || destType->typeEnum == SEM_TYPE_FUNC);
-							if(destType->typeEnum == SEM_TYPE_PTR || destType->typeEnum == SEM_TYPE_FUNC){
+						case SEM::Type::NULLT: {
+							assert(destType->typeEnum == SEM::Type::NAMED || destType->typeEnum == SEM::Type::POINTER || destType->typeEnum == SEM::Type::FUNCTION);
+							if(destType->typeEnum == SEM::Type::POINTER || destType->typeEnum == SEM::Type::FUNCTION){
 								return builder_.CreatePointerCast(codeValue, genType(destType));
 							}
 							
 							std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
 							return 0;
 						}
-						case SEM_TYPE_BASIC: {
+						case SEM::Type::BASIC: {
 							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {
 								return codeValue;
 							}
 							
 							// Int -> Float.
-							if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_INT && destType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT) {
+							if(sourceType->basicType.typeEnum == SEM::Type::BasicType::INTEGER && destType->basicType.typeEnum == SEM::Type::BasicType::FLOAT) {
 								return builder_.CreateSIToFP(codeValue, genType(destType));
 							}
 							
 							// Float -> Int.
-							if(sourceType->basicType.typeEnum == SEM_TYPE_BASIC_FLOAT && destType->basicType.typeEnum == SEM_TYPE_BASIC_INT) {
+							if(sourceType->basicType.typeEnum == SEM::Type::BasicType::FLOAT && destType->basicType.typeEnum == SEM::Type::BasicType::INTEGER) {
 								return builder_.CreateFPToSI(codeValue, genType(destType));
 							}
 							
 							return codeValue;
 						}
-						case SEM_TYPE_NAMED:
-						case SEM_TYPE_PTR: {
+						case SEM::Type::NAMED:
+						case SEM::Type::POINTER: {
 							if(genLValue) {
 								return builder_.CreatePointerCast(codeValue, PointerType::getUnqual(genType(destType)));
 							} else {
 								return builder_.CreatePointerCast(codeValue, genType(destType));
 							}
 						}
-						case SEM_TYPE_FUNC: {
+						case SEM::Type::FUNCTION: {
 							return codeValue;
 						}
 						default:
@@ -656,25 +645,24 @@ class CodeGen {
 							return 0;
 					}
 				}
-				case SEM_VALUE_CONSTRUCT:
+				case SEM::Value::CONSTRUCT:
 					std::cerr << "CodeGen error: Unimplemented constructor call." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
-				case SEM_VALUE_MEMBERACCESS:
+				case SEM::Value::MEMBERACCESS:
 					std::cerr << "CodeGen error: Unimplemented member access." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
-				case SEM_VALUE_FUNCTIONCALL: {
+				case SEM::Value::FUNCTIONCALL: {
 					std::vector<Value*> parameters;
 					
-					Locic_List* list = value->functionCall.parameters;
-					
-					for(Locic_ListElement* it = Locic_List_Begin(list); it != Locic_List_End(list); it = it->next) {
-						SEM_Value* paramValue = reinterpret_cast<SEM_Value*>(it->data);
-						parameters.push_back(genValue(paramValue));
+					const std::list<SEM::Value *>& list = value->functionCall.parameters;
+					std::list<SEM::Value *>::const_iterator it;
+					for(it = list.begin(); it != list.end(); ++it) {
+						parameters.push_back(genValue(*it));
 					}
 					
 					return builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
 				}
-				case SEM_VALUE_FUNCTIONREF: {
+				case SEM::Value::FUNCTIONREF: {
 					Function* function = functions_[value->functionRef.functionDecl];
 					assert(function != NULL);
 					return function;
@@ -687,23 +675,19 @@ class CodeGen {
 		
 };
 
-extern "C" {
+void* Locic_CodeGenAlloc(const std::string& moduleName) {
+	return new CodeGen(moduleName);
+}
 
-	void* Locic_CodeGenAlloc(const char* moduleName) {
-		return new CodeGen(moduleName);
-	}
+void Locic_CodeGenFree(void* context) {
+	delete reinterpret_cast<CodeGen*>(context);
+}
 	
-	void Locic_CodeGenFree(void* context) {
-		delete reinterpret_cast<CodeGen*>(context);
-	}
+void Locic_CodeGen(void* context, SEM::Module* module) {
+	reinterpret_cast<CodeGen*>(context)->genFile(module);
+}
 	
-	void Locic_CodeGen(void* context, SEM_Module* module) {
-		reinterpret_cast<CodeGen*>(context)->genFile(module);
-	}
-	
-	void Locic_CodeGenDump(void* context) {
-		reinterpret_cast<CodeGen*>(context)->dump();
-	}
-	
+void Locic_CodeGenDump(void* context) {
+	reinterpret_cast<CodeGen*>(context)->dump();
 }
 

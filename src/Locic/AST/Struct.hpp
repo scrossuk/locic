@@ -3,15 +3,15 @@
 
 #include <list>
 #include <string>
-#include <Locic/Var.h>
+#include <Locic/AST/Var.hpp>
 
 namespace AST {
 
 	struct Struct {
 		std::string name;
-		std::list<Var> variables;
+		std::list<Var *> variables;
 		
-		inline Struct(const std::string& n, const std::list<Var>& v)
+		inline Struct(const std::string& n, const std::list<Var *>& v)
 			: name(n), variables(v) { }
 	};
 	

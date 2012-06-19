@@ -3,21 +3,21 @@
 
 #include <list>
 #include <string>
-#include <Locic/SEM/Scope.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
-#include <Locic/SEM/TypeVar.hpp>
 
 namespace SEM {
 
+	struct Scope;
+
 	struct FunctionDecl {
 		TypeInstance * parentType;
-		Type* returnType;
+		Type* type;
 		std::string name;
 		std::list<Var*> parameters;
 		
-		inline FunctionDecl(TypeInstance * p, Type* t, const std::string& n, const std::list<TypeVar*>& p)
-			: parentType(p), returnType(t), name(n), parameters(p) { }
+		inline FunctionDecl(TypeInstance * p, Type* t, const std::string& n, const std::list<Var*>& param)
+			: parentType(p), type(t), name(n), parameters(param) { }
 	};
 	
 	struct FunctionDef {

@@ -4,8 +4,7 @@
 #include <cstdio>
 #include <list>
 #include <string>
-#include <Locic/AST/FunctionDecl.hpp>
-#include <Locic/AST/FunctionDef.hpp>
+#include <Locic/AST/Function.hpp>
 #include <Locic/AST/TypeVar.hpp>
 
 namespace AST {
