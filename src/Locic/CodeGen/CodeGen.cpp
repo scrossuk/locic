@@ -429,17 +429,21 @@ class CodeGen {
 					
 					switch(var->typeEnum) {
 						case SEM::Var::PARAM: {
+							Value * val = paramVariables_[var->id];
+							assert(val != NULL);
 							if(genLValue) {
-								return paramVariables_[var->id];
+								return val;
 							} else {
-								return builder_.CreateLoad(paramVariables_[var->id]);
+								return builder_.CreateLoad(val);
 							}
 						}
 						case SEM::Var::LOCAL: {
+							Value * val = localVariables_[var->id];
+							assert(val != NULL);
 							if(genLValue) {
-								return localVariables_[var->id];
+								return val;
 							} else {
-								return builder_.CreateLoad(localVariables_[var->id]);
+								return builder_.CreateLoad(val);
 							}
 						}
 						case SEM::Var::THIS: {
@@ -531,18 +535,14 @@ class CodeGen {
 							}
 							
 						case SEM::Value::Binary::ISEQUAL:
-							assert(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER) {
+							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::POINTER) {
 								return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOEQ(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 						case SEM::Value::Binary::NOTEQUAL:
-							assert(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER) {
+							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::POINTER) {
 								return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpONE(genValue(value->binary.left), genValue(value->binary.right));
@@ -610,7 +610,7 @@ class CodeGen {
 							}
 							
 							std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
-							return 0;
+							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
 						}
 						case SEM::Type::BASIC: {
 							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {
@@ -642,7 +642,7 @@ class CodeGen {
 						}
 						default:
 							std::cerr << "CodeGen error: Unknown type in cast." << std::endl;
-							return 0;
+							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
 					}
 				}
 				case SEM::Value::CONSTRUCT:

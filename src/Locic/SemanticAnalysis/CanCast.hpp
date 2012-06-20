@@ -8,13 +8,15 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* CastValueToType(TypeInfoContext& context, SEM::Value* value, SEM::Type* type);
+		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type);
 		
-		const char* CanDoImplicitCast(TypeInfoContext& context, SEM::Type* sourceType, SEM::Type* destType);
+		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second);
 		
-		bool CanDoImplicitCopy(TypeInfoContext& context, SEM::Type* type);
+		const char* CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
-		bool CanDoExplicitCast(TypeInfoContext& context, SEM::Type* sourceType, SEM::Type* destType);
+		bool CanDoImplicitCopy(SEM::Type* type);
+		
+		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
 	}
 	

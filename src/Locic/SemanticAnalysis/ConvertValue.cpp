@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdio>
 #include <list>
 #include <map>
@@ -14,27 +15,32 @@ namespace Locic {
 	namespace SemanticAnalysis {
 
 SEM::Value* ConvertGeneralBinaryOperator(SEM::Value::Binary::TypeEnum opType, SEM::Type* type, SEM::Value* leftOperand, SEM::Value* rightOperand) {
-	if(leftOperand->type->typeEnum == SEM::Type::BASIC && rightOperand->type->typeEnum == SEM::Type::BASIC) {
-		SEM::Type::BasicType::TypeEnum leftBasicType, rightBasicType;
-		leftBasicType = leftOperand->type->basicType.typeEnum;
-		rightBasicType = rightOperand->type->basicType.typeEnum;
-		
-		if(leftBasicType == rightBasicType) {
-			if(leftBasicType == SEM::Type::BasicType::BOOLEAN) {
-				return SEM::Value::BinaryOp(opType, SEM::Value::Op::BOOLEAN, leftOperand, rightOperand, type);
-			} else if(leftBasicType == SEM::Type::BasicType::INTEGER) {
-				return SEM::Value::BinaryOp(opType, SEM::Value::Op::INTEGER, leftOperand, rightOperand, type);
-			} else if(leftBasicType == SEM::Type::BasicType::FLOAT) {
-				return SEM::Value::BinaryOp(opType, SEM::Value::Op::FLOAT, leftOperand, rightOperand, type);
+	SEM::Type * unitedType = UniteTypes(leftOperand->type, rightOperand->type);
+	
+	if(unitedType != NULL){
+		SEM::Value * left = CastValueToType(leftOperand, unitedType);
+		SEM::Value * right = CastValueToType(rightOperand, unitedType);
+
+		if(unitedType->typeEnum == SEM::Type::BASIC) {
+			switch(unitedType->basicType.typeEnum){
+				case SEM::Type::BasicType::BOOLEAN:
+					return SEM::Value::BinaryOp(opType, SEM::Value::Op::BOOLEAN, left, right, type);
+				case SEM::Type::BasicType::INTEGER:
+					return SEM::Value::BinaryOp(opType, SEM::Value::Op::INTEGER, left, right, type);
+				case SEM::Type::BasicType::FLOAT:
+					return SEM::Value::BinaryOp(opType, SEM::Value::Op::FLOAT, left, right, type);
+				default:
+					return NULL;
 			}
+		}
+		
+		if(unitedType->typeEnum == SEM::Type::POINTER){
+			return SEM::Value::BinaryOp(opType, SEM::Value::Op::POINTER, left, right, type);
 		}
 	}
 	
-	if(leftOperand->type->typeEnum == SEM::Type::POINTER && rightOperand->type->typeEnum == SEM::Type::POINTER) {
-		
-	}
-	
-	printf("Semantic Analysis Error: Comparison between non-identical types.\n");
+	printf("Semantic Analysis Error: Comparison between non-identical types '%s' and '%s'.\n",
+		leftOperand->type->toString().c_str(), rightOperand->type->toString().c_str());
 	return NULL;
 }
 
@@ -258,7 +264,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			SEM::Value* cond = ConvertValue(context, value->ternary.condition);
 			
-			SEM::Value* boolValue = CastValueToType(context, cond, boolType);
+			SEM::Value* boolValue = CastValueToType(cond, boolType);
 			
 			if(boolValue == NULL) {
 				printf("Semantic Analysis Error: Cannot cast or copy condition type (%s) to bool type in ternary operator.\n",
@@ -278,13 +284,13 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				ifFalseType->isLValue = SEM::Type::RVALUE;
 			}
 			
-			SEM::Value* castIfTrue = CastValueToType(context, ifTrue, ifFalseType);
+			SEM::Value* castIfTrue = CastValueToType(ifTrue, ifFalseType);
 				
 			if(castIfTrue != NULL) {
 				return SEM::Value::Ternary(boolValue, castIfTrue, ifFalse, ifFalseType);
 			}
 			
-			SEM::Value* castIfFalse = CastValueToType(context, ifFalse, ifTrueType);
+			SEM::Value* castIfFalse = CastValueToType(ifFalse, ifTrueType);
 				
 			if(castIfFalse != NULL) {
 				return SEM::Value::Ternary(boolValue, ifTrue, castIfFalse, ifTrueType);
@@ -301,7 +307,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				return NULL;
 			}
 			
-			if(CanDoExplicitCast(context, val->type, type) == 0) {
+			if(CanDoExplicitCast(val->type, type) == 0) {
 				printf("Semantic Analysis Error: Can't perform explicit cast.\n");
 				return NULL;
 			}
@@ -342,7 +348,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			std::list<AST::Value*>::const_iterator valueIt = astValueList.begin();
 			
 			while(valueIt != astValueList.end()) {
-				SEM::Value* param = CastValueToType(context, ConvertValue(context, *valueIt), *typeIt);
+				SEM::Value* param = CastValueToType(ConvertValue(context, *valueIt), *typeIt);
 				
 				if(param == NULL) {
 					return NULL;

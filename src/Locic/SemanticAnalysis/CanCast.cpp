@@ -7,18 +7,18 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* CastValueToType(TypeInfoContext& context, SEM::Value* value, SEM::Type* type) {
+		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type) {
 			// Try a plain implicit cast.
-			if(CanDoImplicitCast(context, value->type, type) == NULL) {
+			if(CanDoImplicitCast(value->type, type) == NULL) {
 				return SEM::Value::Cast(type, value);
 			}
 			
 			// Can't just cast from one type to the other =>
 			// must attempt copying (to remove lvalue/const).
-			if(CanDoImplicitCopy(context, value->type)) {
+			if(CanDoImplicitCopy(value->type)) {
 				// If possible, create a copy.
 				SEM::Value* copiedValue = SEM::Value::CopyValue(value);
-				const char* err = CanDoImplicitCast(context, copiedValue->type, type);
+				const char* err = CanDoImplicitCast(copiedValue->type, type);
 				
 				if(err == NULL) {
 					// Copying worked.
@@ -32,7 +32,32 @@ namespace Locic {
 			return NULL;
 		}
 		
-		const char* CanDoImplicitCast(TypeInfoContext& context, SEM::Type* sourceType, SEM::Type* destType) {
+		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second){
+			if(CanDoImplicitCast(first, second) == NULL) return second;
+			if(CanDoImplicitCast(second, first) == NULL) return first;
+			
+			if(CanDoImplicitCopy(first)){
+				SEM::Type * firstCopy = new SEM::Type(*(first));
+				firstCopy->isMutable = true;
+				firstCopy->isLValue = false;
+				if(CanDoImplicitCast(firstCopy, second) == NULL){
+					return second;
+				}
+			}
+			
+			if(CanDoImplicitCopy(second)){
+				SEM::Type * secondCopy = new SEM::Type(*(second));
+				secondCopy->isMutable = true;
+				secondCopy->isLValue = false;
+				if(CanDoImplicitCast(secondCopy, first) == NULL){
+					return first;
+				}
+			}
+			
+			return NULL;
+		}
+		
+		const char* CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
 			if(destType->typeEnum == SEM::Type::VOID) {
 				// Everything can be cast to void.
 				return NULL;
@@ -95,10 +120,10 @@ namespace Locic {
 						}
 					}
 					
-					return CanDoImplicitCast(context, sourcePtr, destPtr);
+					return CanDoImplicitCast(sourcePtr, destPtr);
 				}
 				case SEM::Type::FUNCTION: {
-					const char* err = CanDoImplicitCast(context, sourceType->functionType.returnType, destType->functionType.returnType);
+					const char* err = CanDoImplicitCast(sourceType->functionType.returnType, destType->functionType.returnType);
 						
 					if(err != NULL) {
 						return err;
@@ -116,7 +141,7 @@ namespace Locic {
 					                                      destIt = destList.begin();
 					                                      
 					while(sourceIt != sourceList.end()) {
-						if(CanDoImplicitCast(context, *sourceIt, *destIt) != NULL) {
+						if(CanDoImplicitCast(*sourceIt, *destIt) != NULL) {
 							return "Semantic Analysis Error: Cannot cast parameter type in function type.\n";
 						}
 							
@@ -131,7 +156,7 @@ namespace Locic {
 			}
 		}
 		
-		bool CanDoImplicitCopy(TypeInfoContext& context, SEM::Type* type) {
+		bool CanDoImplicitCopy(SEM::Type* type) {
 			switch(type->typeEnum) {
 				case SEM::Type::BASIC:
 				case SEM::Type::POINTER:
@@ -143,8 +168,8 @@ namespace Locic {
 			}
 		}
 		
-		bool CanDoExplicitCast(TypeInfoContext& context, SEM::Type* sourceType, SEM::Type* destType) {
-			const char* err = CanDoImplicitCast(context, sourceType, destType);
+		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
+			const char* err = CanDoImplicitCast(sourceType, destType);
 			
 			if(err == NULL) {
 				return true;

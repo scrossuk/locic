@@ -138,6 +138,8 @@ namespace Locic {
 					
 					std::pair<std::map<std::string, SEM::Var*>::iterator, bool> s =
 					    localVarStack_.back().insert(std::make_pair(varName, var));
+					
+					if(s.second) scopeStack_.back()->localVariables.push_back(var);
 					    
 					return s.second ? var : NULL;
 				}

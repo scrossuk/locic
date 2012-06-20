@@ -72,7 +72,7 @@ namespace Locic {
 					
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
 					
-					SEM::Value* boolValue = CastValueToType(context, condition, boolType);
+					SEM::Value* boolValue = CastValueToType(condition, boolType);
 					
 					if(boolValue == NULL) {
 						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in IF statement.\n",
@@ -92,7 +92,7 @@ namespace Locic {
 					
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
 					
-					SEM::Value* boolValue = CastValueToType(context, condition, boolType);
+					SEM::Value* boolValue = CastValueToType(condition, boolType);
 					
 					if(boolValue == NULL) {
 						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in WHILE statement.\n",
@@ -113,7 +113,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					const bool canCopyValue = CanDoImplicitCopy(context, semValue->type);
+					const bool canCopyValue = CanDoImplicitCopy(semValue->type);
 					
 					SEM::Type* type;
 					
@@ -149,7 +149,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Value* castValue = CastValueToType(context, semValue, type);
+					SEM::Value* castValue = CastValueToType(semValue, type);
 					
 					if(castValue == NULL) {
 						// 'Auto' type annotations shouldn't cause problems like this.
@@ -186,7 +186,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Value* castRValue = CastValueToType(context, rValue, lValue->type);
+					SEM::Value* castRValue = CastValueToType(rValue, lValue->type);
 						
 					if(castRValue == NULL) {
 						printf("Semantic Analysis Error: Cannot cast or copy rvalue type '%s' to lvalue type '%s' in assignment.\n",
@@ -213,7 +213,7 @@ namespace Locic {
 							return NULL;
 						}
 						
-						SEM::Value* castValue = CastValueToType(context, semValue, context.getReturnType());
+						SEM::Value* castValue = CastValueToType(semValue, context.getReturnType());
 						
 						if(castValue == NULL) {
 							printf("Semantic Analysis Error: Cannot cast or copy value type '%s' to function return type '%s' in return statement.\n",
