@@ -1331,47 +1331,6 @@ This then creates the generic version of the class by default, but if the type i
 
 \clearpage
 
-\subsection{VarArgs}
-
-\paragraph{}
-Loci supports functions and methods taking a variable number of arguments, where those arguments are of a fixed type, as in the following example:
-
-
-\begin{lstlisting}
-void varArgFunction(int s[...]){
-	for(int i: s){
-		//...
-	}
-}
-
-void function(){
-	varArgFunction(1, 2, 3);
-}
-\end{lstlisting}
-
-
-\paragraph{}
-In this case the syntax `...' indicates to the compiler that zero or more arguments may appear at calls to the function, and that the compiler should package them into a fixed size array type and pass it to the function.
-
-\paragraph{}
-Therefore, variable length arguments are a compile-time feature, since the above code just gets converted to:
-
-
-\begin{lstlisting}
-void varArgFunction(const Array<int>& s){
-	for(int i: s){
-		//...
-	}
-}
-
-void function(){
-	varArgFunction({1, 2, 3});
-}
-\end{lstlisting}
-
-
-\clearpage
-
 \section{Standard Library}
 
 \paragraph{}

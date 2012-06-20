@@ -84,7 +84,7 @@ class C(A a){}
 \end{lstlisting}
 
 \paragraph{}
-Here there is a cycle of dependencies that should result in an error\footnote{It would seem that the best thing to do in case of a cycle would be to terminate the program and print the error, so the developer can fix it, since normal execution is very unlikely to proceed correctly in this case.}. Proper cycle detection can establish this, but a run-time execution cannot take the time to do so, and so must assume no such problems exist; if they do, termination is not guaranteed.
+Here there is a cycle of dependencies that should result in an error\footnote{It would seem that the best thing to do in the event of a cycle would be to terminate the program and print the error, so the developer can fix it, since normal execution is very unlikely to proceed correctly in this case.}. Proper cycle detection can establish this, but a run-time execution cannot take the time to do so, and so must assume no such problems exist; if they do, termination is not guaranteed.
 
 \paragraph{}
 Fortunately, there is a better solution available. Due to the need to support C++'s static constructors and destructors, it is possible to have a function run when a module is first loaded. LLVM provides this, for example, via `\emph{llvm.global\_ctors}' and `\emph{llvm.global\_dtors}'. Unfortunately, testing proves it is not possible to rely on the priority values to correctly order running the functions within a single module, but this doesn't present a significant difficulty in this case, since modules may be loaded in an undesirable order anyway.
