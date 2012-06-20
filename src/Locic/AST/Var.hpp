@@ -6,15 +6,15 @@
 namespace AST{
 
 	struct Var{
-		enum Type{
+		enum TypeEnum{
 			LOCAL,
 			MEMBER
-		} type;
+		} typeEnum;
 		
 		std::string name;
 		
-		inline Var(Type t, const std::string& n)
-			: type(t), name(n){ }
+		inline Var(TypeEnum e, const std::string& n)
+			: typeEnum(e), name(n){ }
 		
 		inline static Var * Local(const std::string& name){
 			return new Var(LOCAL, name);

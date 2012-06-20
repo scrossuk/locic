@@ -7,9 +7,11 @@
 namespace AST {
 
 	struct Scope {
-		std::list<Statement> statements;
+		std::list<Statement *> statements;
 		
-		inline Scope(const std::list<Statement>& s)
+		inline Scope(){ }
+		
+		inline Scope(const std::list<Statement *>& s)
 			: statements(s){ }
 	};
 	

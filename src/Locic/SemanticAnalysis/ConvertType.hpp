@@ -5,15 +5,15 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 
-namespace Locic{
+namespace Locic {
 
-	namespace SemanticAnalysis{
-
-// Convert a type annotation to a semantic type definition.
-SEM::Type * ConvertType(LocalContext& context, AST::Type * type, bool isLValue);
-
-}
-
+	namespace SemanticAnalysis {
+	
+		// Convert a type annotation to a semantic type definition.
+		SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue);
+		
+	}
+	
 }
 
 #endif

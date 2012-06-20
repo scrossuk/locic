@@ -16,10 +16,10 @@ namespace AST {
 			FUNCTION
 		} typeEnum;
 		
-		enum IsMutable {
-			MUTABLE,
-			CONST
-		} isMutable;
+		static const bool MUTABLE = true;
+		static const bool CONST = false;
+		
+		bool isMutable;
 		
 		struct BasicType{
 			enum TypeEnum {
@@ -47,7 +47,7 @@ namespace AST {
 			: typeEnum(VOID),
 			  isMutable(MUTABLE) { }
 			  
-		inline Type(TypeEnum e, IsMutable m)
+		inline Type(TypeEnum e, bool m)
 			: typeEnum(e),
 			  isMutable(m) { }
 			  
@@ -55,25 +55,25 @@ namespace AST {
 			return new Type(VOID, MUTABLE);
 		}
 		
-		inline static Type* BasicType(IsMutable isMutable, BasicType::TypeEnum basicType) {
+		inline static Type* Basic(bool isMutable, BasicType::TypeEnum typeEnum) {
 			Type* type = new Type(BASIC, isMutable);
-			type->basicType = basicType;
+			type->basicType.typeEnum = typeEnum;
 			return type;
 		}
 		
-		inline static Type* NamedType(IsMutable isMutable, const std::string& name) {
+		inline static Type* Named(bool isMutable, const std::string& name) {
 			Type* type = new Type(NAMED, isMutable);
 			type->namedType.name = name;
 			return type;
 		}
 		
-		inline static Type* PointerType(Type* targetType) {
+		inline static Type* Pointer(Type* targetType) {
 			Type* type = new Type(POINTER, MUTABLE);
 			type->pointerType.targetType = targetType;
 			return type;
 		}
 		
-		inline static Type* FunctionType(IsMutable isMutable, Type* returnType, const std::list<Type*>& parameterTypes) {
+		inline static Type* Function(bool isMutable, Type* returnType, const std::list<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable);
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
@@ -87,7 +87,7 @@ namespace AST {
 				t->isMutable = false;
 				
 				if(t->typeEnum == POINTER) {
-					t = t->ptrType;
+					t = t->pointerType.targetType;
 				} else {
 					break;
 				}

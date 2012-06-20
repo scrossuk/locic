@@ -10,7 +10,7 @@
 namespace AST {
 
 	struct Value {
-		enum Type {
+		enum TypeEnum {
 			NONE,
 			CONSTANT,
 			VAR,
@@ -21,15 +21,15 @@ namespace AST {
 			CONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL
-		} type;
+		} typeEnum;
 		
 		struct Constant {
-			enum Type {
+			enum TypeEnum {
 				BOOLEAN,
-				INT,
+				INTEGER,
 				FLOAT,
 				NULLVAL
-			} type;
+			} typeEnum;
 			
 			union {
 				bool boolConstant;
@@ -43,19 +43,19 @@ namespace AST {
 		} varValue;
 		
 		struct Unary {
-			enum Type {
+			enum TypeEnum {
 				PLUS,
 				MINUS,
 				ADDRESSOF,
 				DEREF,
 				NOT
-			} type;
+			} typeEnum;
 			
 			Value* value;
 		} unary;
 		
 		struct Binary {
-			enum Type {
+			enum TypeEnum {
 				ADD,
 				SUBTRACT,
 				MULTIPLY,
@@ -66,7 +66,7 @@ namespace AST {
 				GREATERTHAN,
 				GREATEROREQUAL,
 				LESSOREQUAL,
-			} type;
+			} typeEnum;
 			
 			Value* left, * right;
 		} binary;
@@ -95,53 +95,53 @@ namespace AST {
 			std::list<Value*> parameters;
 		} functionCall;
 		
-		inline Value() : type(NONE) { }
+		inline Value() : typeEnum(NONE) { }
 		
-		inline Value(Type t) : type(t) { }
+		inline Value(TypeEnum e) : typeEnum(e) { }
 		
-		inline static Value* BoolConstant(bool value) {
+		inline static Value* BoolConstant(bool val) {
 			Value* value = new Value(CONSTANT);
-			value->constant.type = Constant::BOOLEAN;
-			value->constant.boolConstant = value;
+			value->constant.typeEnum = Constant::BOOLEAN;
+			value->constant.boolConstant = val;
 			return value;
 		}
 		
-		inline static Value* IntConstant(int value) {
+		inline static Value* IntConstant(int val) {
 			Value* value = new Value(CONSTANT);
-			value->constant.type = Constant::INT;
-			value->constant.intConstant = value;
+			value->constant.typeEnum = Constant::INTEGER;
+			value->constant.intConstant = val;
 			return value;
 		}
 		
-		inline static Value* FloatConstant(float value) {
+		inline static Value* FloatConstant(float val) {
 			Value* value = new Value(CONSTANT);
-			value->constant.type = Constant::FLOAT;
-			value->constant.floatConstant = value;
+			value->constant.typeEnum = Constant::FLOAT;
+			value->constant.floatConstant = val;
 			return value;
 		}
 		
 		inline static Value* NullConstant() {
 			Value* value = new Value(CONSTANT);
-			value->constant.type = Constant::NULLVAL;
+			value->constant.typeEnum = Constant::NULLVAL;
 			return value;
 		}
 		
 		inline static Value * VarValue(Var * var){
-			Value* value = new Value(VARVALUE);
+			Value* value = new Value(VAR);
 			value->varValue.var = var;
 			return value;
 		}
 		
-		inline static Value * UnaryOp(Unary::Type type, Value * operand){
+		inline static Value * UnaryOp(Unary::TypeEnum typeEnum, Value * operand){
 			Value* value = new Value(UNARY);
-			value->unary.type = type;
+			value->unary.typeEnum = typeEnum;
 			value->unary.value = operand;
 			return value;
 		}
 		
-		inline static Value * BinaryOp(Binary::Type type, Value * leftOperand, Value * rightOperand){
+		inline static Value * BinaryOp(Binary::TypeEnum typeEnum, Value * leftOperand, Value * rightOperand){
 			Value* value = new Value(BINARY);
-			value->binary.type = type;
+			value->binary.typeEnum = typeEnum;
 			value->binary.left = leftOperand;
 			value->binary.right = rightOperand;
 			return value;
@@ -157,7 +157,7 @@ namespace AST {
 		
 		inline static Value * Cast(Type * targetType, Value * operand){
 			Value* value = new Value(CAST);
-			value->cast.targetType = type;
+			value->cast.targetType = targetType;
 			value->cast.value = operand;
 			return value;
 		}

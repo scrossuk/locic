@@ -9,9 +9,9 @@ namespace AST {
 
 	struct Struct {
 		std::string name;
-		std::list<Var *> variables;
+		std::list<TypeVar *> variables;
 		
-		inline Struct(const std::string& n, const std::list<Var *>& v)
+		inline Struct(const std::string& n, const std::list<TypeVar *>& v)
 			: name(n), variables(v) { }
 	};
 	

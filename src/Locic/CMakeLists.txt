@@ -1,11 +1,13 @@
 # Copy Parser.y from source directory to build directory
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Parser.y COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/Parser.y MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/Parser.y)
 
+set_source_files_properties(Parser.c PROPERTIES LANGUAGE CXX )
+
 # Generate Parser
 add_custom_command(OUTPUT Parser.c Parser.h Parser.out COMMAND lemon Parser.y MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/Parser.y)
 
 # Generate Lexer (depends on Parser.h for symbols)
-add_custom_command(OUTPUT Lexer.c COMMAND flex -o Lexer.c ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.l MAIN_DEPENDENCY Lexer.l DEPENDS Parser.h)
+add_custom_command(OUTPUT Lexer.cpp COMMAND flex -o Lexer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.l MAIN_DEPENDENCY Lexer.l DEPENDS Parser.h)
 
 # Find LLVM (for code generation)
 find_package(LLVM REQUIRED)
@@ -22,7 +24,7 @@ add_subdirectory(SemanticAnalysis)
 add_subdirectory(CodeGen)
 
 # Compile
-add_executable(locic main.cpp Lexer.c Parser.c)
+add_executable(locic main.cpp Lexer.cpp Parser.c)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

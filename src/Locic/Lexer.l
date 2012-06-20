@@ -1,6 +1,6 @@
 %{
 
-#include <string.h>
+#include <string>
 #include <Locic/AST.hpp>
 #include <Locic/LexerContext.hpp>
 #include <Locic/Parser.h>

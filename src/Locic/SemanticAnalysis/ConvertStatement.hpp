@@ -5,16 +5,16 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 
-namespace Locic{
+namespace Locic {
 
-	namespace SemanticAnalysis{
-
-bool WillStatementReturn(SEM::Statement * statement);
-
-SEM::Statement * ConvertStatement(LocalContext& context, AST::Statement * statement);
-
-}
-
+	namespace SemanticAnalysis {
+	
+		bool WillStatementReturn(SEM::Statement* statement);
+		
+		SEM::Statement* ConvertStatement(LocalContext& context, AST::Statement* statement);
+		
+	}
+	
 }
 
 #endif

@@ -40,7 +40,7 @@
 %type classMethodDeclList { std::list<AST::FunctionDecl *> * }
 %type classMethodDefList { std::list<AST::FunctionDef *> * }
 
-%type basicType { AST::BasicTypeEnum }
+%type basicType { AST::Type::BasicType::TypeEnum }
 %type typePrecision2 { AST::Type * }
 %type typePrecision1 { AST::Type * }
 %type typePrecision0 { AST::Type * }
@@ -48,9 +48,9 @@
 %type nonEmptyTypeList { std::list<AST::Type *> * }
 %type typeList { std::list<AST::Type *> * }
 
-%type lcName { char * }
-%type ucName { char * }
-%type name { char * }
+%type lcName { std::string * }
+%type ucName { std::string * }
+%type name { std::string * }
 
 %type typeVar { AST::TypeVar * }
 %type nonEmptyTypeVarList { std::list<AST::TypeVar *> * }
@@ -146,7 +146,8 @@ structVarList(VL) ::= .
 
 structVarList(VL) ::= structVarList(OVL) typeVar(V) SEMICOLON.
 	{
-		VL = (OVL)->push_back(V);
+		(OVL)->push_back(V);
+		VL = OVL;
 	}
 
 structVarList(VL) ::= structVarList(OVL) SEMICOLON.
@@ -156,28 +157,28 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
-		D = new AST::FunctionDecl(T, N, P);
+		D = new AST::FunctionDecl(T, *(N), *(P));
 	}
 	
 functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
 	{
 		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
-		D = new AST::FunctionDecl(T, N, P);
+		D = new AST::FunctionDecl(T, *(N), *(P));
 	}
 	
 functionDef(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
-		D = new AST::FunctionDef(new AST::FunctionDecl(T, N, P), S);
+		D = new AST::FunctionDef(new AST::FunctionDecl(T, *(N), *(P)), S);
 	}
 	
 classDecl(D) ::= CLASS ucName(N) LCURLYBRACKET classMethodDeclList(DL) RCURLYBRACKET.
 	{
-		D = new AST::ClassDecl(N, DL);
+		D = new AST::ClassDecl(*(N), *(DL));
 	}
 	
 classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET classMethodDefList(DL) RCURLYBRACKET.
 	{
-		D = new AST::ClassDef(N, VL, DL);
+		D = new AST::ClassDef(*(N), *(VL), *(DL));
 	}
 	
 lcName(N) ::= LCNAME(NAME).
@@ -223,19 +224,18 @@ typePrecision2(T) ::= VOIDNAME.
 typePrecision2(T) ::= basicType(BT).
 	{
 		const bool isMutable = true;
-		T = AST::Type::BasicType(isMutable, BT);
+		T = AST::Type::Basic(isMutable, BT);
 	}
 	
 typePrecision2(T) ::= ucName(N).
 	{
 		const bool isMutable = true;
-		T = AST::Type::NamedType(isMutable, *(N));
+		T = AST::Type::Named(isMutable, *(N));
 	}
 	
 typePrecision2(T) ::= PERCENT lcName(N).
 	{
-		const bool isMutable = true;
-		T = AST::Type::BasicType(isMutable, *(N));
+		T = AST::Type::Named(AST::Type::MUTABLE, *(N));
 	}
 	
 typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
@@ -246,7 +246,7 @@ typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
 typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
 	{
 		const bool isMutable = true;
-		NT = AST::Type::FunctionType(isMutable, RT, *(PTL));
+		NT = AST::Type::Function(isMutable, RT, *(PTL));
 	}
 	
 typePrecision2(NT) ::= LROUNDBRACKET error RROUNDBRACKET.
@@ -272,7 +272,7 @@ typePrecision0(NT) ::= typePrecision1(T).
 	
 typePrecision0(NT) ::= typePrecision0(T) STAR.
 	{
-		NT = AST::Type::PointerType(T);
+		NT = AST::Type::Pointer(T);
 	}
 
 type(NT) ::= typePrecision0(T).
@@ -346,7 +346,7 @@ nonEmptyTypeVarList(TVL) ::= typeVar(TV).
 nonEmptyTypeVarList(TVL) ::= nonEmptyTypeVarList(L) COMMA typeVar(TV).
 	{
 		(L)->push_back(TV);
-		TVL = TV;
+		TVL = L;
 	}
 	
 valueList(VL) ::= .
@@ -372,7 +372,7 @@ nonEmptyValueList(VL) ::= nonEmptyValueList(L) COMMA value(V).
 	
 scope(S) ::= LCURLYBRACKET statementList(SL) RCURLYBRACKET.
 	{
-		S = new AST::Scope(SL);
+		S = new AST::Scope(*(SL));
 	}
 	
 statementList(SL) ::= .
@@ -412,7 +412,7 @@ statementList(SL) ::= statementList(L) error.
 	
 scopedStatement(S) ::= scope(SCOPE).
 	{
-		S = AST::Statement::Scope(SCOPE);
+		S = AST::Statement::ScopeStmt(SCOPE);
 	}
 	
 scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
@@ -428,7 +428,7 @@ scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE sco
 scopedStatement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scope.
 	{
 		// TODO
-		S = AST::Statement::Value(V);
+		S = AST::Statement::ValueStmt(V);
 	}
 	
 scopedStatement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
@@ -473,12 +473,12 @@ normalStatement(S) ::= value(LV) DIVEQUAL value(RV).
 
 normalStatement(S) ::= value(V).
 	{
-		S = AST::Statement::Value(V);
+		S = AST::Statement::ValueStmt(V);
 	}
 
 normalStatement(S) ::= RETURN.
 	{
-		S = AST::Statement::Return(NULL);
+		S = AST::Statement::ReturnVoid();
 	}
 
 normalStatement(S) ::= RETURN value(V).
@@ -493,12 +493,12 @@ precision7(V) ::= LROUNDBRACKET precision0(BV) RROUNDBRACKET.
 
 precision7(V) ::= lcName(N).
 	{
-		V = AST::Value::Var(AST::Var::Local(N));
+		V = AST::Value::VarValue(AST::Var::Local(*(N)));
 	}
 
 precision7(V) ::= AT lcName(N).
 	{
-		V = AST::Value::Var(AST::Var::LocalMember(N));
+		V = AST::Value::VarValue(AST::Var::Member(*(N)));
 	}
 
 precision7(V) ::= BOOLCONSTANT(C).
@@ -523,12 +523,12 @@ precision7(V) ::= NULL.
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Value::Construct(*(N), "Default", VL);
+		V = AST::Value::Construct(*(N), "Default", *(VL));
 	}
 
 precision7(V) ::= ucName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Value::Construct(TN, CN, VL);
+		V = AST::Value::Construct(*(TN), *(CN), *(VL));
 	}
 	
 precision7(V) ::= CAST LTRIBRACKET type(T) RTRIBRACKET LROUNDBRACKET value(VAL) RROUNDBRACKET.
@@ -543,17 +543,17 @@ precision6(V) ::= precision7(VAL).
 
 precision6(V) ::= precision6(S) DOT lcName(N).
 	{
-		V = AST::Value::MemberAccess(S, N);
+		V = AST::Value::MemberAccess(S, *(N));
 	}
 
 precision6(V) ::= precision6(SP) PTRACCESS lcName(N).
 	{
-		V = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Binary::DEREF, SP), N);
+		V = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Unary::DEREF, SP), *(N));
 	}
 
 precision6(V) ::= precision6(F) LROUNDBRACKET valueList(P) RROUNDBRACKET.
 	{
-		V = AST::Value::FunctionCall(F, P);
+		V = AST::Value::FunctionCall(F, *(P));
 	}
 	
 precision5(V) ::= precision6(VAL).

@@ -86,6 +86,12 @@ namespace SEM{
 			return statement;
 		}
 		
+		inline static Statement* ReturnVoid() {
+			Statement* statement = new Statement(RETURN);
+			statement->returnStmt.value = NULL;
+			return statement;
+		}
+		
 		inline static Statement* Return(Value* value) {
 			Statement* statement = new Statement(RETURN);
 			statement->returnStmt.value = value;

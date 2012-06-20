@@ -1,22 +1,28 @@
-#include <stdio.h>
-#include <Locic/AST.h>
-#include <Locic/List.h>
-#include <Locic/SEM.h>
+#include <cstddef>
+#include <cstdio>
+#include <list>
+#include <Locic/AST.hpp>
+#include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <Locic/SemanticAnalysis/ConvertModule.hpp>
 
-bool ConvertModule(GlobalContext& globalContext, AST::Module * module, SEM::Module * semModule){
+namespace Locic{
+
+namespace SemanticAnalysis{
+
+bool ConvertModule(GlobalContext& globalContext, AST::Module* module, SEM::Module* semModule) {
 	ModuleContext moduleContext(globalContext, semModule);
 	
 	// Build each function definition.
-	std::list<AST::FunctionDef *>::const_iterator it;
-	for(it = module->functionDefinitions.begin(); it != module->functionDefinitions.end(); ++it){
-		AST::FunctionDef * synFunctionDef = *it;
+	std::list<AST::FunctionDef*>::const_iterator it;
+	
+	for(it = module->functionDefinitions.begin(); it != module->functionDefinitions.end(); ++it) {
+		AST::FunctionDef* synFunctionDef = *it;
 		
-		SEM::FunctionDef * semFunctionDef = ConvertFunctionDef(moduleContext, synFunctionDef);
+		SEM::FunctionDef* semFunctionDef = ConvertFunctionDef(moduleContext, synFunctionDef);
 		
-		if(semFunctionDef == NULL){
+		if(semFunctionDef == NULL) {
 			return false;
 		}
 		
@@ -24,5 +30,9 @@ bool ConvertModule(GlobalContext& globalContext, AST::Module * module, SEM::Modu
 	}
 	
 	return true;
+}
+
+}
+
 }
 

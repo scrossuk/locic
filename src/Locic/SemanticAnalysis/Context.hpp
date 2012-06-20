@@ -1,154 +1,172 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
-#include <list>
+#include <cassert>
+#include <cstddef>
 #include <map>
 #include <string>
+#include <vector>
 #include <Locic/SEM.hpp>
 
-// Holds information about a scope during its conversion.
-typedef struct Locic_SemanticContext_Scope{
-	// The resulting semantic scope that will be generated.
-	SEM_Scope * scope;
-	
-	// Map from local variable names to their semantic variables.
-	Locic_StringMap localVariables;
-} Locic_SemanticContext_Scope;
+namespace Locic {
 
-// Holds information about a function during its conversion.
-typedef struct Locic_SemanticContext_Function{
-	// Map from parameter variable names to their semantic variables.
-	Locic_StringMap * parameters;
+	namespace SemanticAnalysis {
 	
-	// The id to be assigned to the next local variable.
-	size_t nextVarId;
-} Locic_SemanticContext_Function;
-
-// Holds information about a class during its conversion.
-typedef struct Locic_SemanticContext_Class{
-	std::map<std::string, SEM::Var *> memberVariables;
-} Locic_SemanticContext_Class;
-
-// Manages conversion from AST to SEM structure.
-typedef struct Locic_SemanticContext{
-	// The current module.
-	SEM_Module * module;
-
-	// The current type instance (e.g. class declaration).
-	// (NULL if current function does not have a parent type.)
-	SEM_TypeInstance * functionParentType;
-	
-	// The current function declaration.
-	SEM_FunctionDecl * functionDecl;
-	
-	// Map from function names to their declarations for all modules.
-	Locic_StringMap functionDeclarations;
-	
-	// Map from types names to their type instances for all modules.
-	Locic_StringMap typeInstances;
-	
-	// Information about the class containing the current function.
-	// (e.g. member variables).
-	Locic_SemanticContext_Class classContext;
-	
-	// Information about the current function.
-	// (e.g. parameters).
-	Locic_SemanticContext_Function functionContext;
-	
-	// A stack of scope contexts.
-	Locic_Stack * scopeStack;
-} Locic_SemanticContext;
-
-namespace Locic{
-
-	namespace SemanticAnalysis{
-	
-		class TypeInfoContext{
+		class FunctionInfoContext {
 			public:
-				virtual SEM::TypeInstance * getTypeInstance(const std::string& name) = 0;
-			
-		};
-	
-		class GlobalContext: public TypeInfoContext{
-			public:
-				GlobalContext();
+				virtual SEM::FunctionDecl* getFunctionDecl(const std::string& name) = 0;
 				
-				bool addTypeInstance(const std::string& name, SEM::TypeInstance * typeInstance);
-				
-				SEM::TypeInstance * getTypeInstance(const std::string& name);
-			
 		};
 		
-		class ModuleContext: public TypeInfoContext{
+		class TypeInfoContext {
 			public:
-				ModuleContext(GlobalContext& globalContext);
+				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
-				SEM::FunctionDecl * getFunction(const std::string& name);
-				
-				SEM::TypeInstance * getTypeInstance(const std::string& name);
-			
 		};
 		
-		class LocalContext: public TypeInfoContext{
+		class GlobalContext: public FunctionInfoContext, public TypeInfoContext {
 			public:
-				LocalContext(ModuleContext& moduleContext);
+				inline GlobalContext() { }
 				
-				SEM::FunctionDecl * getFunction(const std::string& name);
+				inline bool addFunctionDecl(const std::string& name, SEM::FunctionDecl* decl) {
+					std::pair<std::map<std::string, SEM::FunctionDecl*>::iterator, bool> s =
+					    functionDeclarations_.insert(std::make_pair(name, decl));
+					return s.second;
+				}
 				
-				SEM::TypeInstance * getTypeInstance(const std::string& name);
+				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
+					std::map<std::string, SEM::FunctionDecl*>::iterator it =
+					    functionDeclarations_.find(name);
+					return (it != functionDeclarations_.end()) ? it->second : NULL;
+				}
 				
-				void pushScope(SEM::Scope * scope);
+				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
+					std::pair<std::map<std::string, SEM::TypeInstance*>::iterator, bool> s =
+					    typeInstances_.insert(std::make_pair(name, typeInstance));
+					return s.second;
+				}
 				
-				void popScope();
-				
-				bool defineFunctionParameter(const std::string& paramName, SEM::Var * paramVar);
-				
-				SEM::Var * defineLocalVar(const std::string& varName, SEM::Type * type);
-				
-				SEM::Var * findLocalVar(const std::string& varName);
+				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+					std::map<std::string, SEM::TypeInstance*>::iterator it =
+					    typeInstances_.find(name);
+					return (it != typeInstances_.end()) ? it->second : NULL;
+				}
 				
 			private:
+				std::map<std::string, SEM::FunctionDecl*> functionDeclarations_;
+				std::map<std::string, SEM::TypeInstance*> typeInstances_;
+				
+		};
+		
+		class ModuleContext: public FunctionInfoContext, public TypeInfoContext {
+			public:
+				inline ModuleContext(GlobalContext& globalContext, SEM::Module* module)
+					: globalContext_(globalContext), module_(module) { }
+					
+				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
+					SEM::FunctionDecl* decl = globalContext_.getFunctionDecl(name);
+					
+					if(decl != NULL) {
+						module_->functionDeclarations.insert(std::make_pair(name, decl));
+					}
+					
+					return decl;
+				}
+				
+				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+					SEM::TypeInstance* typeInstance = globalContext_.getTypeInstance(name);
+					
+					if(typeInstance != NULL) {
+						module_->typeInstances.insert(std::make_pair(name, typeInstance));
+					}
+					
+					return typeInstance;
+				}
+				
+			private:
+				GlobalContext& globalContext_;
+				SEM::Module* module_;
+				
+		};
+		
+		class LocalContext: public FunctionInfoContext, public TypeInfoContext {
+			public:
+				inline LocalContext(ModuleContext& moduleContext, SEM::FunctionDecl * decl)
+					: nextVarId_(0), moduleContext_(moduleContext), decl_(decl) {
+					// Lowest stack entry holds parameter variables.
+					localVarStack_.push_back(std::map<std::string, SEM::Var*>());
+				}
+				
+				inline ~LocalContext() {
+					assert(localVarStack_.size() == 1);
+					assert(scopeStack_.size() == 0);
+				}
+				
+				inline SEM::Type * getReturnType() {
+					return decl_->type->functionType.returnType;
+				}
+				
+				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
+					return moduleContext_.getFunctionDecl(name);
+				}
+				
+				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+					return moduleContext_.getTypeInstance(name);
+				}
+				
+				inline void pushScope(SEM::Scope* scope) {
+					assert(localVarStack_.size() == (scopeStack_.size() + 1));
+					localVarStack_.push_back(std::map<std::string, SEM::Var*>());
+					scopeStack_.push_back(scope);
+				}
+				
+				inline void popScope() {
+					assert(localVarStack_.size() == (scopeStack_.size() + 1));
+					localVarStack_.pop_back();
+					scopeStack_.pop_back();
+				}
+				
+				inline bool defineFunctionParameter(const std::string& paramName, SEM::Var* paramVar) {
+					std::pair<std::map<std::string, SEM::Var*>::iterator, bool> s =
+					    localVarStack_.front().insert(std::make_pair(paramName, paramVar));
+					return s.second;
+				}
+				
+				inline SEM::Var* defineLocalVar(const std::string& varName, SEM::Type* type) {
+					assert(localVarStack_.size() >= 2);
+					SEM::Var* var = new SEM::Var(SEM::Var::LOCAL, nextVarId_++, type);
+					
+					std::pair<std::map<std::string, SEM::Var*>::iterator, bool> s =
+					    localVarStack_.back().insert(std::make_pair(varName, var));
+					    
+					return s.second ? var : NULL;
+				}
+				
+				inline SEM::Var* findLocalVar(const std::string& varName) {
+					std::vector< std::map<std::string, SEM::Var*> >::reverse_iterator it;
+					
+					for(it = localVarStack_.rbegin(); it != localVarStack_.rend(); ++it) {
+						std::map<std::string, SEM::Var*>::iterator mapIt = it->find(varName);
+						
+						if(mapIt != it->end()) {
+							return mapIt->second;
+						}
+					}
+					
+					return NULL;
+				}
+				
+			private:
+				std::size_t nextVarId_;
 				ModuleContext& moduleContext_;
-				std::stack< std::map<std::string, SEM::Var *> > localVarStack;
-				std::stack<SEM::Scope *> scopeStack_;
-			
+				SEM::FunctionDecl * decl_;
+				std::vector< std::map<std::string, SEM::Var*> > localVarStack_;
+				std::vector<SEM::Scope*> scopeStack_;
+				
 		};
-		
-		class SemanticContext{
-			public:
-				SemanticContext();
-				
-				bool addTypeInstance(const std::string& name, SEM::TypeInstance * typeInstance);
-				
-				SEM::TypeInstance * getTypeInstance(const std::string& name);
-				
-				void setModule(SEM::Module * module);
-				
-				void startFunctionParentType(SEM::TypeInstance * typeInstance);
-				
-				void endFunctionParentType();
-				
-				void startFunction(SEM::FunctionDecl * functionDecl);
-				
-				void endFunction();
-				
-				void pushScope(SEM::Scope * scope);
-				
-				void popScope();
-				
-				SEM::Scope * topScope();
-				
-				SEM::Var * defineLocalVar(const std::string& varName, SEM::Type * type);
-				
-				SEM::Var * findLocalVar(const std::string& varName);
-			
-			private:
-				
-				
-		};	
 		
 	}
-
+	
 }
 
 #endif

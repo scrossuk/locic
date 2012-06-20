@@ -21,15 +21,15 @@ namespace SEM{
 		inline TypeInstance(TypeEnum e, const std::string& n, TypeInstance * d)
 			: typeEnum(e), name(n), declaration(d){ }
 		
-		TypeInstance * ClassDecl(const std::string& name){
+		inline static TypeInstance * ClassDecl(const std::string& name){
 			return new TypeInstance(CLASSDECL, name, 0);
 		}
 		
-		TypeInstance * ClassDef(TypeInstance * decl){
+		inline static TypeInstance * ClassDef(TypeInstance * decl){
 			return new TypeInstance(CLASSDEF, decl->name, decl);
 		}
 		
-		TypeInstance * Struct(const std::string& name){
+		inline static TypeInstance * Struct(const std::string& name){
 			return new TypeInstance(STRUCT, name, 0);
 		}
 	};

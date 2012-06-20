@@ -3,15 +3,16 @@
 
 #include <string>
 
-#include <Locic/AST/Scope.hpp>
 #include <Locic/AST/Type.hpp>
 #include <Locic/AST/Value.hpp>
 #include <Locic/AST/Var.hpp>
 
 namespace AST {
 
+	struct Scope;
+
 	struct Statement {
-		enum Type {
+		enum TypeEnum {
 			NONE,
 			VALUE,
 			SCOPE,
@@ -20,55 +21,53 @@ namespace AST {
 			VARDECL,
 			ASSIGN,
 			RETURN
-		} type;
+		} typeEnum;
 		
 		struct {
-			struct {
-				Value* value;
-			} valueStmt;
-			
-			struct {
-				Scope* scope;
-			} scopeStmt;
-			
-			struct {
-				Value* condition;
-				Scope* ifTrue, * ifFalse;
-			} ifStmt;
-			
-			struct {
-				Value* condition;
-				Scope* whileTrue;
-			} whileStmt;
-			
-			struct {
-				Type* type;  // NULL when the keyword 'auto' is used.
-				std::string varName;
-				Value* value;
-			} varDecl;
-			
-			struct {
-				Value* lValue, * rValue;
-			} assignStmt;
-			
-			struct {
-				Value* value;
-			} returnStmt;
-		};
+			Value* value;
+		} valueStmt;
+		
+		struct {
+			Scope* scope;
+		} scopeStmt;
+		
+		struct {
+			Value* condition;
+			Scope* ifTrue, * ifFalse;
+		} ifStmt;
+		
+		struct {
+			Value* condition;
+			Scope* whileTrue;
+		} whileStmt;
+		
+		struct {
+			Type* type;  // NULL when the keyword 'auto' is used.
+			std::string varName;
+			Value* value;
+		} varDecl;
+		
+		struct {
+			Value* lValue, * rValue;
+		} assignStmt;
+		
+		struct {
+			Value* value;
+		} returnStmt;
 		
 		inline Statement()
-			: type(NONE) { }
+			: typeEnum(NONE) { }
 			
-		inline Statement(Type t)
-			: type(t) { }
+		inline Statement(TypeEnum e)
+			: typeEnum(e) { }
 			
-		inline static Statement* Value(Value* value) {
+		inline static Statement* ValueStmt(Value* value) {
 			Statement* statement = new Statement(VALUE);
 			statement->valueStmt.value = value;
 			return statement;
 		}
 		
-		inline static Statement* Scope(Scope* scope) {
+		inline static Statement* ScopeStmt(Scope* scope) {
 			Statement* statement = new Statement(SCOPE);
 			statement->scopeStmt.scope = scope;
 			return statement;
@@ -109,6 +108,12 @@ namespace AST {
 			Statement* statement = new Statement(ASSIGN);
 			statement->assignStmt.lValue = lValue;
 			statement->assignStmt.rValue = rValue;
+			return statement;
+		}
+		
+		inline static Statement* ReturnVoid() {
+			Statement* statement = new Statement(RETURN);
+			statement->returnStmt.value = NULL;
 			return statement;
 		}
 		

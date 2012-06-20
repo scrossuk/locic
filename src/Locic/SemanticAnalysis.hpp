@@ -1,15 +1,15 @@
-#ifndef LOCIC_SEMANTICANALYSIS_H
-#define LOCIC_SEMANTICANALYSIS_H
+#ifndef LOCIC_SEMANTICANALYSIS_HPP
+#define LOCIC_SEMANTICANALYSIS_HPP
 
-#include <Locic/SemanticAnalysis/Analysis.h>
-#include <Locic/SemanticAnalysis/CanCast.h>
-#include <Locic/SemanticAnalysis/Context.h>
-#include <Locic/SemanticAnalysis/ConvertFunctionDecl.h>
-#include <Locic/SemanticAnalysis/ConvertFunctionDef.h>
-#include <Locic/SemanticAnalysis/ConvertModule.h>
-#include <Locic/SemanticAnalysis/ConvertScope.h>
-#include <Locic/SemanticAnalysis/ConvertStatement.h>
-#include <Locic/SemanticAnalysis/ConvertType.h>
-#include <Locic/SemanticAnalysis/ConvertValue.h>
+#include <Locic/SemanticAnalysis/Analysis.hpp>
+#include <Locic/SemanticAnalysis/CanCast.hpp>
+#include <Locic/SemanticAnalysis/Context.hpp>
+#include <Locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
+#include <Locic/SemanticAnalysis/ConvertFunctionDef.hpp>
+#include <Locic/SemanticAnalysis/ConvertModule.hpp>
+#include <Locic/SemanticAnalysis/ConvertScope.hpp>
+#include <Locic/SemanticAnalysis/ConvertStatement.hpp>
+#include <Locic/SemanticAnalysis/ConvertType.hpp>
+#include <Locic/SemanticAnalysis/ConvertValue.hpp>
 
 #endif

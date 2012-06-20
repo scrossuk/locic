@@ -5,14 +5,14 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 
-namespace Locic{
+namespace Locic {
 
-	namespace SemanticAnalysis{
-
-bool ConvertModule(GlobalContext& context, AST::Module * module, SEM::Module * semModule);
-
-}
-
+	namespace SemanticAnalysis {
+	
+		bool ConvertModule(GlobalContext& context, AST::Module* module, SEM::Module* semModule);
+		
+	}
+	
 }
 
 #endif

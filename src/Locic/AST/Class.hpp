@@ -27,7 +27,7 @@ namespace AST {
 		std::list<TypeVar*> memberVariables;
 		std::list<FunctionDef*> methodDefinitions;
 		
-		inline ClassDef(const std::string& n, const std::list<TypeVar*>& m, const std::list<FunctionDecl*>& d)
+		inline ClassDef(const std::string& n, const std::list<TypeVar*>& m, const std::list<FunctionDef*>& d)
 			: name(n), memberVariables(m),
 			  methodDefinitions(d) { }
 			  

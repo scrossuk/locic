@@ -3,18 +3,17 @@
 #include <string.h>
 
 #include <Locic/AST.hpp>
-#include <Locic/Lexer.h>
-#include <Locic/LexerContext.h>
-#include <Locic/List.h>
+#include <Locic/Lexer.hpp>
+#include <Locic/LexerContext.hpp>
 #include <Locic/Parser.h>
-#include <Locic/ParserContext.h>
-#include <Locic/Token.h>
-#include <Locic/CodeGen/CodeGen.h>
-#include <Locic/SemanticAnalysis.h>
+#include <Locic/ParserContext.hpp>
+#include <Locic/Token.hpp>
+#include <Locic/CodeGen/CodeGen.hpp>
+#include <Locic/SemanticAnalysis.hpp>
 
 void * Locic_ParseAlloc(void * (*allocFunc)(size_t));
 
-void Locic_Parse(void * parser, int id, Locic_Token token, Locic_ParserContext * parserContext);
+void Locic_Parse(void * parser, int id, Locic::Token token, Locic::ParserContext * parserContext);
 
 void Locic_ParseFree(void * parser, void (*freeFunc)(void *));
 
@@ -43,14 +42,8 @@ int main(int argc, char * argv[]){
 		return 1;
 	}
 	
-	Locic::LexerContext lexerContext;
-	lexerContext.lineNumber = 0;
-	
-	Locic::ParserContext parserContext;
-	
-	AST_ModuleGroup * synModuleGroup = AST_MakeModuleGroup();
-	parserContext.moduleGroup = synModuleGroup;
-	parserContext.currentFileName = filename;
+	Locic::LexerContext lexerContext;	
+	Locic::ParserContext parserContext(filename);
 	
 	void * lexer = Locic_LexAlloc(file, &lexerContext);
 	void * parser = Locic_ParseAlloc(Locic_alloc);
@@ -75,24 +68,21 @@ int main(int argc, char * argv[]){
 		numTokens++;
 	}
 	
-	if(parserContext.parseFailed != 1){
+	if(!parserContext.parseFailed){
 		printf("Performing semantic analysis...\n");
 
 		// Try to do semantic analysis...
-		SEM_ModuleGroup * semModuleGroup = Locic_SemanticAnalysis_Run(synModuleGroup);
-		if(semModuleGroup != NULL){
+		std::list<SEM::Module *> semModules = Locic::SemanticAnalysis::Run(parserContext.modules);
+		
+		if(!semModules.empty()){
 			printf("Successfully performed semantic analysis.\n");
 			
 			printf("Generating code...\n");
-		
-			size_t moduleNameLen = strlen(argv[1]);
-			char * moduleName = strcpy(malloc(moduleNameLen + 3), argv[1]);
-			moduleName[moduleNameLen] = '.';
-			moduleName[moduleNameLen + 1] = 'o';
-			moduleName[moduleNameLen + 2] = 0;
+			
+			std::string moduleName = std::string(argv[1]) + ".o";
 		
 			void * codeGenContext = Locic_CodeGenAlloc(moduleName);
-			Locic_CodeGen(codeGenContext, Locic_List_Begin(semModuleGroup->modules)->data);
+			Locic_CodeGen(codeGenContext, semModules.front());
 			Locic_CodeGenDump(codeGenContext);
 			Locic_CodeGenFree(codeGenContext);
 		}else{

@@ -2,6 +2,7 @@
 #define LOCIC_PARSERCONTEXT_HPP
 
 #include <cstddef>
+#include <string>
 #include <Locic/AST.hpp>
 
 namespace Locic{
@@ -9,11 +10,12 @@ namespace Locic{
 	struct ParserContext{
 		std::list<AST::Module *> modules;
 		std::string currentFileName;
-		size_t lineNumber;
+		std::size_t lineNumber;
 		bool parseFailed;
 		
-		inline ParserContext()
-			: lineNumber(0), parseFailed(false){ }
+		inline ParserContext(const std::string& filename)
+			: currentFileName(filename),
+			lineNumber(0), parseFailed(false){ }
 	};
 
 }

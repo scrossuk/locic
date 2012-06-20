@@ -5,13 +5,13 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 
-namespace Locic{
+namespace Locic {
 
-	namespace SemanticAnalysis{
-
-		bool WillScopeReturn(SEM_Scope * scope);
-
-		SEM::Scope * ConvertScope(LocalContext& context, AST_Scope * scope);
+	namespace SemanticAnalysis {
+	
+		bool WillScopeReturn(SEM::Scope* scope);
+		
+		SEM::Scope* ConvertScope(LocalContext& context, AST::Scope* scope);
 		
 	}
 	

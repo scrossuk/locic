@@ -112,78 +112,81 @@ namespace SEM{
 			return typeEnum == VOID;
 		}
 		
-		inline void print() const {
+		inline std::string toString() const {
+			std::string str;
+		
 			bool bracket = false;
 			if(!isMutable){
-				printf("const (");
+				str += "const (";
 				bracket = true;
 			}
 	
 			if(isLValue){
-				if(!bracket) printf("(");
+				if(!bracket) str += "(";
 				bracket = true;
-				printf("lvalue ");
+				str += "lvalue ";
 			}
 	
 			switch(typeEnum){
 				case VOID:
 				{
-					printf("void");
+					str += "void";
 					break;
 				}
 				case NULLT:
 				{
-					printf("null");
+					str += "null";
 					break;
 				}
 				case BASIC:
 				{
 					switch(basicType.typeEnum){
 						case BasicType::BOOLEAN:
-							printf("bool");
+							str += "bool";
 							break;
 						case BasicType::INTEGER:
-							printf("int");
+							str += "int";
 							break;
 						case BasicType::FLOAT:
-							printf("float");
+							str += "float";
 							break;
 						default:
-							printf("[unknown basic]");
+							str += "[unknown basic]";
 							break;
 					}
 					break;
 				}
 				case NAMED:
-					printf("[named type]");
+					str += "[named type]";
 					break;
 				case POINTER:
-					pointerType.targetType->print();
-					printf(" *");
+					str += pointerType.targetType->toString();
+					str += " *";
 					break;
 				case FUNCTION:
 				{
-					printf("(");
-					functionType.returnType->print();
-					printf(")(");
+					str += "(";
+					str += functionType.returnType->toString();
+					str += ")(";
 			
 					std::list<Type *>::const_iterator it;
 					
 					for(it = functionType.parameterTypes.begin(); it != functionType.parameterTypes.end(); ++it){
 						if(it != functionType.parameterTypes.begin()){
-							printf(", ");
+							str += ", ";
 						}
-						(*it)->print();
+						str += (*it)->toString();
 					}
 					
-					printf(")");
+					str += ")";
 					break;
 				}
 				default:
 					break;
 			}
 	
-			if(bracket) printf(")");
+			if(bracket) str += ")";
+			return str;
 		}
 		
 	};

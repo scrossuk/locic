@@ -7,8 +7,11 @@
 namespace Locic{
 
 struct LexerContext{
-	Locic_Token token;
+	Token token;
 	size_t lineNumber;
+	
+	inline LexerContext()
+		: lineNumber(0){ }
 };
 
 }
