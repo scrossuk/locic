@@ -1,5 +1,26 @@
 \documentclass{article}
 
+\usepackage{caption}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{subfig}
+
+\lstset{basicstyle=\ttfamily\scriptsize,
+	language=C,
+	keywordstyle=\textbf,
+	frame=single,
+	breaklines=true,
+	tabsize=2,
+	showstringspaces=false,
+	float=t}
+
+\lstloadlanguages{
+		 C,
+		 C++,
+		 Java
+ }
+
 \title{Loci Module Loading}
 \author{Stephen Cross}
 \date{}
@@ -10,12 +31,12 @@
 \section{Introduction}
 
 \paragraph{}
-Loci provides the ability for external classes to be used without knowledge of their size at compile-time (or even link-time), since they can be loaded in at run-time through shared libraries. Instances of these classes can be stored on the stack, which is more efficient than existing cross-API-boundary solutions that require placing instances of unknown classes on the heap. However, it makes the computation of sizes and offsets within objects more complex.
+Loci provides the ability for external classes to be used without knowledge of their size at compile-time (or even link-time), since they can be loaded in at run-time through shared libraries. Instances of these classes can be stored on the stack\footnote{Using variable-size stack allocations, such as supported by LLVM's alloca instruction.}, which is more efficient than existing cross-API-boundary solutions that require placing instances of unknown classes on the heap. However, it makes the computation of sizes and offsets within objects more complex.
 
 \paragraph{}
 For example, consider the following example:
 
-\begin{verbatim}
+\begin{lstlisting}
 class A(B b, C c){}
 
 class B(D d){}
@@ -23,24 +44,47 @@ class B(D d){}
 class C(int i){}
 
 class D(int i){}
-\end{verbatim}
+\end{lstlisting}
 
 \paragraph{}
-Given that these classes are all in separate modules that are not defined until run-time, their sizes can only be determined at run-time. The problem is that A cannot access its member C without knowledge of the size of B, since that determines the offset. Furthermore, when A is allocated it determines its size by querying B, which then queries D, and then by querying D. With enough levels, this can become inefficient.
+Given that these classes are all in separate modules that are not defined until run-time, their sizes can only be determined at run-time. They might then be directly calculated before an allocation is to be made, in a similar way to this C code:
+
+\begin{lstlisting}
+size_t calculateSize(struct ClassInfo * info){
+	size_t size = info->basicSize;
+	for(size_t i = 0; i < info->numChildren; i++){
+		size += calculateSize(info->children[i]);
+	}
+	return size;
+}
+\end{lstlisting}
 
 \paragraph{}
-Hence a possible solution is to cache values via a conditional that checks if the value has already been computed and therefore doesn't re-compute it. This is better, but evaluating the conditionals themselves is expensive considering that it will be performed so often. There are also some problematic cases to consider:
+The problem is that A cannot access its member C without knowledge of the size of B, since that determines the offset. Furthermore, when A is allocated it determines its size by querying B, which then queries D, and then A also queries D directly. With enough levels, this can become inefficient.
 
-\begin{verbatim}
+\paragraph{}
+Hence a possible solution is to cache values via a conditional that checks if the value has already been computed and therefore doesn't re-compute it. It might look like the following:
+
+\begin{lstlisting}
+size_t getSize(struct ClassInfo * info){
+	if(info->size == 0) info->size = calculateSize(info);
+	return info->size;
+}
+\end{lstlisting}
+
+\paragraph{}
+This is better, but evaluating the conditionals themselves is expensive considering that it will be performed so often. There are also some problematic cases to consider:
+
+\begin{lstlisting}
 class A(B b){}
 
 class B(C d){}
 
 class C(A a){}
-\end{verbatim}
+\end{lstlisting}
 
 \paragraph{}
-Here there is a cycle of dependencies that should result in an error.
+Here there is a cycle of dependencies that should result in an error. Proper cycle detection can establish this, but a run-time execution cannot take the time to do so, and so must assume no such problems exist; if they do, termination is not guaranteed.
 
 \paragraph{}
 Fortunately, there is a better solution available. Due to the need to support C++'s static constructors and destructors, it is possible to have a function run when a module is first loaded. LLVM provides this, for example, via `\emph{llvm.global\_ctors}' and `\emph{llvm.global\_dtors}'. Unfortunately, testing proves it is not possible to rely on the priority values to correctly order running the functions within a single module, but this doesn't present a significant difficulty in this case, since modules may be loaded in an undesirable order anyway.
@@ -51,80 +95,92 @@ The solution is therefore to have a function run when each compiled Loci module 
 \section{Class Record}
 
 \paragraph{}
-In order to facilitate this solution, a structure called the 'class record' must be defined for representing the current state of the process of determining the sizes and offsets. Consider this example:
+In order to facilitate this solution, a structure called the `class record' must be defined for representing the current state of the process of determining the sizes and offsets. Consider this example:
 
-\begin{verbatim}
+\begin{lstlisting}
 class A(B b){}
 
 class B(C d){}
 
 class C(int i){}
-\end{verbatim}
+\end{lstlisting}
 
 \paragraph{}
 A problem is that the modules holding these classes can be loaded in any order. In the ordering C, B, A, each simply does one step to calculate its own size. However, in the ordering A, B, C, no work is done until C is loaded, at which point the sizes of A and B must be determined. Whichever order the modules are loaded, an equivalent amount of computation is performed, but how it is spread may vary.
 
-\paragraph{}
-The class record holds the following information in its `header':
-
-\begin{itemize}
-\item The total size of the class, of if not yet determined, its known minimum size (i.e. based on primitive members such as integers).
-\item The size of the class record, in terms of the number of entries.
-\item A pointer to another class record, which must be updated once the size of this class has been determined.
-\item The offset of the entry of the 
-\end{itemize}
+\subsection{Size Information}
 
 \paragraph{}
-Hence, in C code, the header looks like the following:
+The size information structure holds both the total size\footnote{Or, if not yet determined, its known minimum size, which is the sum of the sizes of its known children and the pointer to its vtable.} of the class and the offsets of each of the children which have an unknown size at compile-time. This is the structure which is queried by run-time code, and is the `output' of the resolution procedure.
 
-\begin{verbatim}
+\paragraph{}
+In C code, it looks like the following:
+
+\begin{lstlisting}
 struct ClassSizeInfo{
-    size_t classSize;
-    size_t offsets[];
+	size_t classSize;
+	size_t offsets[];
 };
-\end{verbatim}
+\end{lstlisting}
+
+\subsection{Entries}
 
 \paragraph{}
-It also holds information in each entry, which corresponds to a member of the class that has an unknown size at compile-time. This is simply the offset of the member class within its parent and a pointer to its class record:
+The class record has an entry for each child, which points to the class record of the child and stores its size\footnote{The size, when available, could also be accessed through the child record pointer. However, since this value is checked often, it is more efficient (and concise) to copy it and avoid the extra dereference.}
 
-\begin{verbatim}
+\paragraph{}
+Class record entries also contain a pointer to another class record and an offset within that record. This facilitates the creation of a linked list by which parents can `register' to their children that they will need to be updated when the childrens' sizes become known.
+
+\paragraph{}
+The list starts at the child class record, and then passes through each of the entries within the parents of that child. The offset value is needed because the child class record will be in different positions in different parents.
+
+\begin{lstlisting}
 struct ClassRecordEntryPointer{
-    struct ClassRecord * nextRecord;
-    size_t nextOffset;
+	struct ClassRecord * nextRecord;
+	size_t nextOffset;
 };
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}
 struct ClassRecordEntry{
-    struct ClassRecord * memberRecord;
-    size_t memberClassSize;
-    struct ClassRecordEntryPointer nextPtr;
+	struct ClassRecord * memberRecord;
+	size_t memberClassSize;
+	struct ClassRecordEntryPointer nextPtr;
 };
-\end{verbatim}
+\end{lstlisting}
+
+\subsection{Complete Structure}
 
 \paragraph{}
-This leads to the definition of `ClassRecord':
+The above collectively leads to the definition of a ClassRecord:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct ClassRecord{
-    struct ClassSizeInfo * sizeInfo;
-    size_t emptySlotCount, numEntries;
-    struct ClassRecordEntryPointer parentList;
-    struct ClassRecordEntry entries[];
+	struct ClassSizeInfo * sizeInfo;
+	size_t emptySlotCount, numEntries;
+	struct ClassRecordEntryPointer parentList;
+	struct ClassRecordEntry entries[];
 };
-\end{verbatim}
+\end{lstlisting}
+
+\paragraph{}
+`emptySlotCount' provides a way to determine how close the class record is to being complete (decremented when a child's size becomes known), and numEntries is simply used for looping through the entries.
+
+\subsection{Initial Values}
 
 \paragraph{}
 The intial values are specified similar to the following:
 
-\begin{verbatim}
+\begin{lstlisting}
+extern struct ClassRecord memberAClassRecord, memberBClassRecord;
+
 struct ClassSizeInfo classSizeInfo = {CLASS_MIN_SIZE, {0, 0}};
 
 struct ClassRecord classRecord = {&classSizeInfo, 2, 2,
-                                  {NULL, 0},
-                                  {{&memberAClassRecord, NULL, 0},
-                                   {&memberBClassRecord, NULL, 0}}};
-\end{verbatim}
+				{NULL, 0},
+				{{&memberAClassRecord, 0, {NULL, 0}},
+				{&memberBClassRecord, 0, {NULL, 0}}}};
+\end{lstlisting}
 
 \paragraph{}
 Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size of the members of the class that had a known size at compile-time (and hence are its minimum size). This value must be at least sizeof(void *), since it includes a pointer to the vtable.
@@ -132,76 +188,136 @@ Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size 
 \section{Resolution}
 
 \paragraph{}
-The resolution procedure uses the following algorithm:
+The resolution procedure uses three functions.
 
-\begin{verbatim}
+\paragraph{}
+Firstly, `completeRecord' fills in the offset and size information of the class record when all the sizes of its children have been determined. This function also calls `fillParents' so that parents of the current class are updated now that its size is known.
+
+\begin{lstlisting}
+void completeRecord(struct ClassRecord * classRecord){
+	assert(classRecord->emptySlotCount == 0);
+
+	// All member sizes now known => calculate offsets.
+	size_t offset = classRecord->sizeInfo->classSize;
+	for(size_t i = 0; i < classRecord->numEntries; i++){
+		classRecord->sizeInfo->offsets[i] = offset;
+		offset += classRecord->entries[i].memberClassSize;
+	}
+	classRecord->sizeInfo->classSize = offset;
+	
+	fillParents(classRecord);
+}
+\end{lstlisting}
+
+\paragraph{}
+The function `fillParents' traverses the linked list formed by the class record entry pointers, updating each parent of the class record with its size. If, as a result of this, the parent's size becomes known, it is then updated and its parents notified, via what is clearly a recursive process.
+
+\begin{lstlisting}
 // Fill parents in with this class' size, now that it has been computed.
 void fillParents(struct ClassRecord * classRecord){
-    struct ClassRecord * nextRecord = classRecord->parentList.nextRecord;
-    size_t nextOffset = classRecord->parentList.nextOffset;
-    while(nextRecord != NULL){
-    	nextParentClassRecord->entries[nextOffset].memberClassSize = classRecord->sizeInfo->classSize;
-        nextParentClassRecord->emptySlotCount--;
-        
-        if(nextParentClassRecord->emptySlotCount == 0){
-            // All member sizes now known => calculate offsets.
-            size_t offset = nextRecord->sizeInfo->classSize;
-            for(size_t i = 0; i < nextRecord->numEntries; i++){
-                nextRecord->sizeInfo->offsets[i] = offset;
-                offset += nextRecord->entries[i].memberClassSize;
-            }
-            nextRecord->sizeInfo->classSize = offset;
-            
-            fillParents(nextRecord);
-        }
-        
-        struct ClassRecordPointer * nextPtr = &(nextRecord->entries[nextOffset].nextPtr);
-        nextRecord = nextPtr->nextRecord;
-        nextOffset = nextPtr->nextOffset;
-    }
+	assert(classRecord->emptySlotCount == 0);
+
+	// Traverses linked list, starting at child class record.
+	struct ClassRecord * nextRecord = classRecord->parentList.nextRecord;
+	size_t nextOffset = classRecord->parentList.nextOffset;
+	while(nextRecord != NULL){
+		nextRecord->entries[nextOffset].memberClassSize
+			= classRecord->sizeInfo->classSize;
+		nextRecord->emptySlotCount--;
+		
+		if(nextRecord->emptySlotCount == 0){
+			completeRecord(nextRecord);
+		}
+		
+		struct ClassRecordPointer * nextPtr =
+			&(nextRecord->entries[nextOffset].nextPtr);
+		nextRecord = nextPtr->nextRecord;
+		nextOffset = nextPtr->nextOffset;
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+Finally, the main `resolve' function is run on every class record at load time. First, it goes through the record getting the size of the child classes if they are available. If all sizes happen to be available, then it completes the record.
+
+\paragraph{}
+Otherwise, it goes through each child class where the size is unknown and adds itself to the linked list that starts at the child's record. Hence, when the child's size becomes known, it will update the current (parent) record.
+
+\begin{lstlisting}
+void resolve(struct ClassRecord * classRecord){
+	for(size_t i = 0; i < classRecord->numEntries; i++){
+		struct ClassRecordEntry * entry = &(classRecord->entries[i]);
+		if(entry->memberRecord->emptySlotCount == 0){
+			entry->memberClassSize = entry->memberRecord->sizeInfo->classSize;
+			classRecord->emptySlotCount--;
+		}
+	}
+	
+	if(classRecord->emptySlotCount == 0){
+		completeRecord(classRecord);
+	}else{
+		for(size_t i = 0; i < classRecord->numEntries; i++){
+			struct ClassRecordEntry * entry = &(classRecord->entries[i]);
+			
+			if(entry->memberClassSize == 0ul){
+				// If child class size is currently undetermined, add this
+				// class record to the linked list starting at the record
+				// corresponding to the child class.
+				entry->nextPtr = entry->memberRecord->parentList;
+				entry->memberRecord->parentList.nextPtr = {classRecord, i};
+			}
+		}
+	}
+}
+\end{lstlisting}
+
+\section{Cycle Detection}
+
+\paragraph{}
+Additionally, cycle detection can be implemented easily:
+
+\begin{lstlisting}
+int checkCycles(struct ClassRecord * classRecord, struct ClassRecord * currentRecord){
+	// Completed records cannot be part of a cycle.
+	if(currentRecord->emptySlotCount == 0){
+		return 0;
+	}
+
+	for(size_t i = 0; i < currentRecord->numEntries; i++){
+		struct ClassRecordEntry * entry = &(classRecord->entries[i]);
+		
+		if(checkCycles(classRecord, classRecord->entries[i].memberRecord) != 0){
+			return 1;
+		}
+	}
+	
+	return 0;
 }
 
-void resolve(struct ClassRecord * classRecord){
-    for(size_t i = 0; i < classRecord->numEntries; i++){
-        if(classRecord->entries[i].memberRecord->emptySlotCount == 0){
-            classRecord->entries[i].memberClassSize = classRecord->entries[i].memberRecord->sizeInfo->classSize;
-            classRecord->emptySlotCount--;
-        }
-    }
-    
-    if(classRecord->emptySlotCount == 0){
-        fillParents(classRecord);
-    }else{
-        for(size_t i = 0; i < classRecord->numEntries; i++){
-            if(classRecord->entries[i].memberClassSize == 0){
-            	classRecord->entries[i].nextPtr.nextRecord = classRecord->entries[i].memberRecord->
-                classRecord->entries[i].memberClassSize = classRecord->entries[i].memberRecord->sizeInfo->classSize;
-                classRecord->emptySlotCount--;
-            }
-        }
-    }
-    ClassRecordEntry * entry = &(classRecord->entries[0]);
-    while(true){
-    	struct ClassRecordEntry * entry = &(classRecord->entries[i]);
-        struct ClassRecord * memberClassRecord = entry->memberClassRecord;
-        if(memberClassRecord->){
-            offset += memberClassRecord->header.classSize;
-        }
-        
-        entry->memberClassOffset = offset;
-        
-        if(entry->memberClassRecord == NULL){
-            break;
-        }else{
-            entry++;
-        }
-    }
-    
-    if(isComplete(classRecord)){
-        fillRecords(classRecord);
-    }
+int detectCycles(struct ClassRecord * classRecord){
+	return checkCycles(classRecord, classRecord);
 }
-\end{verbatim}
+\end{lstlisting}
+
+\paragraph{}
+There is however obviously a potential performance cost to doing this, so compilers should provide a setting for disabling this. It is best for compilers to attempt to prioritise the resolution procedures to occur before cycle detection if possible, since then all the non-cyclic class records will be completed, and ignored by the cycle detection algorithm.
+
+\section{Performance}
+
+\paragraph{}
+This implementation is clearly more efficient than determining sizes and offsets repeatedly at run-time. However, it does still incur a performance cost at load-time since the resolve function has to be called on each class record\footnote{Although class records that have a known size at compile-time (which will be most classes) could just call fillParents directly, since they only need to update any parents they might have.}.
+
+\paragraph{}
+It's worth noting that the performance cost is generally proportional to the number of cross-module class uses, since if there are no such uses then all the linked lists will remain empty and hence the calls to the resolve function will terminate trivially.
+
+\paragraph{}
+Where the feature of cross-module classes is used, it's worth considering the alternative. Typically applications use a C-based API with an opaque handle for managing state, in which the handle is almost always a pointer to some data that is heap-allocated.
+
+\paragraph{}
+However, using the feature implemented above the developer can use stack allocations instead, which are almost always much cheaper\footnote{An exception is allocation in a copying garbage collector, however cleanup overhead, particularly in terms of latency, is obviously greater than stack allocations.}.
+
+\paragraph{}
+Hence the trade-off is the fixed cost of the load-time fixup method described here, against the variable cost of heap allocations. Of course, since Loci also supports the handle-based method, the developer is free to choose.
 
 \end{document}
 
