@@ -14,7 +14,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 
-SEM::Value* ConvertGeneralBinaryOperator(SEM::Value::Binary::TypeEnum opType, SEM::Type* type, SEM::Value* leftOperand, SEM::Value* rightOperand) {
+SEM::Value* ConvertComparisonBinaryOperator(SEM::Value::Binary::TypeEnum opType, SEM::Type* type, SEM::Value* leftOperand, SEM::Value* rightOperand) {
 	SEM::Type * unitedType = UniteTypes(leftOperand->type, rightOperand->type);
 	
 	if(unitedType != NULL){
@@ -229,27 +229,27 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				}
 				case AST::Value::Binary::ISEQUAL: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertGeneralBinaryOperator(SEM::Value::Binary::ISEQUAL, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::ISEQUAL, boolType, leftOperand, rightOperand);
 				}
 				case AST::Value::Binary::NOTEQUAL: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertGeneralBinaryOperator(SEM::Value::Binary::NOTEQUAL, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::NOTEQUAL, boolType, leftOperand, rightOperand);
 				}
 				case AST::Value::Binary::LESSTHAN: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::LESSTHAN, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::LESSTHAN, boolType, leftOperand, rightOperand);
 				}
 				case AST::Value::Binary::GREATERTHAN: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::GREATERTHAN, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::GREATERTHAN, boolType, leftOperand, rightOperand);
 				}
 				case AST::Value::Binary::GREATEROREQUAL: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::GREATEROREQUAL, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::GREATEROREQUAL, boolType, leftOperand, rightOperand);
 				}
 				case AST::Value::Binary::LESSOREQUAL: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::LESSOREQUAL, boolType, leftOperand, rightOperand);
+					return ConvertComparisonBinaryOperator(SEM::Value::Binary::LESSOREQUAL, boolType, leftOperand, rightOperand);
 				}
 				default:
 					printf("Internal Compiler Error: Unknown binary value type enum.\n");

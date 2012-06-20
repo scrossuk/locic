@@ -549,37 +549,45 @@ class CodeGen {
 							}
 							
 						case SEM::Value::Binary::LESSTHAN:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
 							
 							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSLT(genValue(value->binary.left), genValue(value->binary.right));
+							} else if(opType == SEM::Value::Op::POINTER) {
+								return builder_.CreateICmpULT(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOLT(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 						case SEM::Value::Binary::GREATERTHAN:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
 							
 							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSGT(genValue(value->binary.left), genValue(value->binary.right));
+							} else if(opType == SEM::Value::Op::POINTER) {
+								return builder_.CreateICmpUGT(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOGT(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 						case SEM::Value::Binary::GREATEROREQUAL:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
 							
 							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
+							} else if(opType == SEM::Value::Op::POINTER) {
+								return builder_.CreateICmpUGE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOGE(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 						case SEM::Value::Binary::LESSOREQUAL:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
 							
 							if(opType == SEM::Value::Op::INTEGER) {
 								return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
+							} else if(opType == SEM::Value::Op::POINTER) {
+								return builder_.CreateICmpULE(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFCmpOLE(genValue(value->binary.left), genValue(value->binary.right));
 							}
@@ -604,13 +612,23 @@ class CodeGen {
 							return codeValue;
 						}
 						case SEM::Type::NULLT: {
-							assert(destType->typeEnum == SEM::Type::NAMED || destType->typeEnum == SEM::Type::POINTER || destType->typeEnum == SEM::Type::FUNCTION);
-							if(destType->typeEnum == SEM::Type::POINTER || destType->typeEnum == SEM::Type::FUNCTION){
-								return builder_.CreatePointerCast(codeValue, genType(destType));
+							switch(destType->typeEnum){
+								case SEM::Type::NULLT:
+									return codeValue;
+								case SEM::Type::POINTER:
+								case SEM::Type::FUNCTION:
+									return builder_.CreatePointerCast(codeValue, genType(destType));
+								case SEM::Type::NAMED:
+								{
+									std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
+									return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+								}
+								default:
+								{
+									std::cerr << "Internal compiler error: Invalid cast from null." << std::endl;
+									return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+								}
 							}
-							
-							std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
-							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
 						}
 						case SEM::Type::BASIC: {
 							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {
