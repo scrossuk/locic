@@ -151,6 +151,24 @@ class CodeGen {
 			assert(module != NULL);
 			
 			std::map<std::string, SEM::TypeInstance *>::const_iterator typeIt;
+			
+			// Create structures.
+			for(typeIt = module->typeInstances.begin(); typeIt != module->typeInstances.end(); ++typeIt){
+				SEM::TypeInstance* typeInstance = typeIt->second;
+				assert(typeInstance != NULL);
+				
+				switch(typeInstance->typeEnum) {
+					case SEM::TypeInstance::STRUCT: {
+						structs_[typeInstance] = StructType::create(getGlobalContext(), typeInstance->name);
+						break;
+					}
+					default: {
+						std::cerr << "Unimplemented type with name '" << typeInstance->name << "'." << std::endl;
+					}
+				}
+			}
+			
+			// Fill data contents of structures.
 			for(typeIt = module->typeInstances.begin(); typeIt != module->typeInstances.end(); ++typeIt){
 				SEM::TypeInstance* typeInstance = typeIt->second;
 				assert(typeInstance != NULL);
@@ -158,8 +176,12 @@ class CodeGen {
 				switch(typeInstance->typeEnum) {
 					case SEM::TypeInstance::STRUCT: {
 						std::vector<Type*> structMembers;
-						structMembers.push_back(Type::getInt1Ty(getGlobalContext()));
-						structs_[typeInstance] = StructType::create(structMembers, typeInstance->name);
+						std::list<SEM::Var *>::const_iterator it;
+						for(it = typeInstance->variables.begin(); it != typeInstance->variables.end(); ++it){
+							structMembers.push_back(genType((*it)->type));
+						}
+						
+						structs_[typeInstance]->setBody(structMembers);
 						break;
 					}
 					default: {

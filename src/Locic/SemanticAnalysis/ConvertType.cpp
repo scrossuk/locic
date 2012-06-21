@@ -34,12 +34,12 @@ SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue)
 			const std::string& name = type->namedType.name;
 			SEM::TypeInstance* typeInstance = context.getTypeInstance(name);
 				
-			if(typeInstance != 0) {
-				return SEM::Type::Named(type->isMutable, isLValue, typeInstance);
+			if(typeInstance == NULL) {
+				printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.c_str());
+				return NULL;
 			}
 			
-			printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.c_str());
-			return NULL;
+			return SEM::Type::Named(type->isMutable, isLValue, typeInstance);
 		}
 		case AST::Type::POINTER: {
 			// Pointed-to types are always l-values (otherwise they couldn't have their address taken).
@@ -83,6 +83,48 @@ SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue)
 		default:
 			printf("Internal Compiler Error: Unknown AST::Type type enum.\n");
 			return NULL;
+	}
+}
+
+void QueryTypeDependencies(TypeInfoContext& context, SEM::Type* type){
+	switch(type->typeEnum) {
+		case SEM::Type::VOID:
+		case SEM::Type::NULLT:
+		case SEM::Type::BASIC:
+			return;
+		case SEM::Type::NAMED: {
+			SEM::TypeInstance * typeInstance = type->namedType.typeInstance;
+			
+			assert(typeInstance != NULL);
+			if(context.referTypeInstance(typeInstance)){
+				std::list<SEM::Var *>::const_iterator it;
+				for(it = typeInstance->variables.begin(); it != typeInstance->variables.end(); ++it){
+					SEM::Type * varType = (*it)->type;
+					assert(varType != NULL);
+					QueryTypeDependencies(context, varType);
+				}
+			}
+			
+			return;
+		}
+		case SEM::Type::POINTER:
+			QueryTypeDependencies(context, type->pointerType.targetType);
+			return;
+		case SEM::Type::FUNCTION: {
+			QueryTypeDependencies(context, type->functionType.returnType);
+			
+			const std::list<SEM::Type*>& parameterTypes = type->functionType.parameterTypes;
+			std::list<SEM::Type*>::const_iterator it;
+				
+			for(it = parameterTypes.begin(); it != parameterTypes.end(); ++it) {
+				QueryTypeDependencies(context, *it);
+			}
+			
+			return;
+		}
+		default:
+			printf("Internal Compiler Error: Unknown SEM::Type type enum.\n");
+			return;
 	}
 }
 

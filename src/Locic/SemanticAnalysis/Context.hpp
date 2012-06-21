@@ -22,6 +22,9 @@ namespace Locic {
 			public:
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
+				// Returns true if type instance wasn't already referenced.
+				virtual bool referTypeInstance(SEM::TypeInstance* typeInstance) = 0;
+				
 		};
 		
 		class GlobalContext: public FunctionInfoContext, public TypeInfoContext {
@@ -52,6 +55,10 @@ namespace Locic {
 					return (it != typeInstances_.end()) ? it->second : NULL;
 				}
 				
+				inline bool referTypeInstance(SEM::TypeInstance* typeInstance) {
+					return false;
+				}
+				
 			private:
 				std::map<std::string, SEM::FunctionDecl*> functionDeclarations_;
 				std::map<std::string, SEM::TypeInstance*> typeInstances_;
@@ -77,10 +84,16 @@ namespace Locic {
 					SEM::TypeInstance* typeInstance = globalContext_.getTypeInstance(name);
 					
 					if(typeInstance != NULL) {
-						module_->typeInstances.insert(std::make_pair(name, typeInstance));
+						referTypeInstance(typeInstance);
 					}
 					
 					return typeInstance;
+				}
+				
+				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
+					std::pair<std::map<std::string, SEM::TypeInstance *>::iterator, bool> s;
+					s = module_->typeInstances.insert(std::make_pair(typeInstance->name, typeInstance));
+					return s.second;
 				}
 				
 			private:
@@ -112,6 +125,10 @@ namespace Locic {
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
 					return moduleContext_.getTypeInstance(name);
+				}
+				
+				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
+					return moduleContext_.referTypeInstance(typeInstance);
 				}
 				
 				inline void pushScope(SEM::Scope* scope) {

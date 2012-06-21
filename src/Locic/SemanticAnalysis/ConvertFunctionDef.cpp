@@ -5,6 +5,7 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertScope.hpp>
+#include <Locic/SemanticAnalysis/ConvertType.hpp>
 
 namespace Locic{
 
@@ -38,6 +39,10 @@ SEM::FunctionDef* ConvertFunctionDef(ModuleContext& moduleContext, AST::Function
 	        
 		AST::TypeVar* typeVar = *astIterator;
 		SEM::Var* paramVar = *semIterator;
+		
+		// Ensure that any dependencies (e.g. structs) of the parameter
+		// types are included in the module by querying them.
+		QueryTypeDependencies(moduleContext, paramVar->type);
 		
 		// Create a mapping from the parameter's name to its variable information.
 		if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {

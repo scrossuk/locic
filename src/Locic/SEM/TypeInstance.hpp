@@ -22,7 +22,7 @@ namespace SEM{
 			: typeEnum(e), name(n), declaration(d){ }
 		
 		inline static TypeInstance * ClassDecl(const std::string& name){
-			return new TypeInstance(CLASSDECL, name, 0);
+			return new TypeInstance(CLASSDECL, name, NULL);
 		}
 		
 		inline static TypeInstance * ClassDef(TypeInstance * decl){
@@ -30,7 +30,7 @@ namespace SEM{
 		}
 		
 		inline static TypeInstance * Struct(const std::string& name){
-			return new TypeInstance(STRUCT, name, 0);
+			return new TypeInstance(STRUCT, name, NULL);
 		}
 	};
 
