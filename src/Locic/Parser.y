@@ -238,9 +238,9 @@ typePrecision2(T) ::= PERCENT lcName(N).
 		T = AST::Type::Named(AST::Type::MUTABLE, *(N));
 	}
 	
-typePrecision2(NT) ::= LROUNDBRACKET type(T) RROUNDBRACKET.
+typePrecision2(NT) ::= CONST LROUNDBRACKET type(T) RROUNDBRACKET.
 	{
-		NT = T;
+		NT = (T)->applyTransitiveConst();
 	}
 	
 typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
@@ -249,20 +249,20 @@ typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeLi
 		NT = AST::Type::Function(isMutable, RT, *(PTL));
 	}
 	
-typePrecision2(NT) ::= LROUNDBRACKET error RROUNDBRACKET.
+typePrecision2(NT) ::= CONST LROUNDBRACKET error RROUNDBRACKET.
 	{
 		printf("Parser Error: Invalid type.\n");
 		NT = NULL;
 	}
-	
+
 typePrecision1(NT) ::= typePrecision2(T).
 	{
 		NT = T;
 	}
 	
-typePrecision1(NT) ::= CONST typePrecision2(T).
+typePrecision1(NT) ::= typePrecision1(T) STAR.
 	{
-		NT = (T)->applyTransitiveConst();
+		NT = AST::Type::Pointer(T);
 	}
 	
 typePrecision0(NT) ::= typePrecision1(T).
@@ -270,9 +270,9 @@ typePrecision0(NT) ::= typePrecision1(T).
 		NT = T;
 	}
 	
-typePrecision0(NT) ::= typePrecision0(T) STAR.
+typePrecision0(NT) ::= CONST typePrecision1(T).
 	{
-		NT = AST::Type::Pointer(T);
+		NT = (T)->applyTransitiveConst();
 	}
 
 type(NT) ::= typePrecision0(T).

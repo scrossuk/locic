@@ -95,6 +95,82 @@ namespace AST {
 			
 			return this;
 		}
+		
+		inline std::string toString() const {
+			std::string str;
+		
+			bool bracket = false;
+			if(!isMutable){
+				str += "const ";
+				bracket = true;
+			}
+			
+			if(bracket){
+				str += "(";
+			}
+	
+			switch(typeEnum){
+				case VOID:
+				{
+					str += "void";
+					break;
+				}
+				case NULLT:
+				{
+					str += "null";
+					break;
+				}
+				case BASIC:
+				{
+					switch(basicType.typeEnum){
+						case BasicType::BOOLEAN:
+							str += "bool";
+							break;
+						case BasicType::INTEGER:
+							str += "int";
+							break;
+						case BasicType::FLOAT:
+							str += "float";
+							break;
+						default:
+							str += "[unknown basic]";
+							break;
+					}
+					break;
+				}
+				case NAMED:
+					str += "[named type: " + namedType.name + "]";
+					break;
+				case POINTER:
+					str += pointerType.targetType->toString();
+					str += " *";
+					break;
+				case FUNCTION:
+				{
+					str += "(";
+					str += functionType.returnType->toString();
+					str += ")(";
+			
+					std::list<Type *>::const_iterator it;
+					
+					for(it = functionType.parameterTypes.begin(); it != functionType.parameterTypes.end(); ++it){
+						if(it != functionType.parameterTypes.begin()){
+							str += ", ";
+						}
+						str += (*it)->toString();
+					}
+					
+					str += ")";
+					break;
+				}
+				default:
+					break;
+			}
+	
+			if(bracket) str += ")";
+			return str;
+		}
+		
 	};
 	
 }

@@ -80,7 +80,7 @@ namespace SEM{
 		}
 		
 		inline static Type* Pointer(bool isMutable, bool isLValue, Type* targetType) {
-			Type* type = new Type(POINTER, MUTABLE, isLValue);
+			Type* type = new Type(POINTER, isMutable, isLValue);
 			type->pointerType.targetType = targetType;
 			return type;
 		}
@@ -117,14 +117,17 @@ namespace SEM{
 		
 			bool bracket = false;
 			if(!isMutable){
-				str += "const (";
+				str += "const ";
 				bracket = true;
 			}
 	
 			if(isLValue){
-				if(!bracket) str += "(";
-				bracket = true;
 				str += "lvalue ";
+				bracket = true;
+			}
+			
+			if(bracket){
+				str += "(";
 			}
 	
 			switch(typeEnum){
