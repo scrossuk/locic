@@ -157,6 +157,7 @@ The above collectively leads to the definition of a ClassRecord:
 \begin{lstlisting}
 struct ClassRecord{
 	struct ClassSizeInfo * sizeInfo;
+	struct ClassRecord * cycleCheckSource;
 	size_t emptySlotCount, numEntries;
 	struct ClassRecordEntryPointer parentList;
 	struct ClassRecordEntry entries[];
@@ -164,7 +165,7 @@ struct ClassRecord{
 \end{lstlisting}
 
 \paragraph{}
-`emptySlotCount' provides a way to determine how close the class record is to being complete (decremented when a child's size becomes known), and numEntries is simply used for looping through the entries.
+`cycleCheckSource' is used for cycle checking, `emptySlotCount' provides a way to determine how close the class record is to being complete (decremented when a child's size becomes known), and `numEntries' is simply used for looping through the entries.
 
 \subsection{Initial Values}
 
@@ -176,7 +177,7 @@ extern struct ClassRecord memberAClassRecord, memberBClassRecord;
 
 struct ClassSizeInfo classSizeInfo = {CLASS_MIN_SIZE, {0, 0}};
 
-struct ClassRecord classRecord = {&classSizeInfo, 2, 2,
+struct ClassRecord classRecord = {&classSizeInfo, NULL, 2, 2,
 				{NULL, 0},
 				{{&memberAClassRecord, 0, {NULL, 0}},
 				{&memberBClassRecord, 0, {NULL, 0}}}};
@@ -274,19 +275,28 @@ void resolve(struct ClassRecord * classRecord){
 \section{Cycle Detection}
 
 \paragraph{}
-Additionally, cycle detection can be implemented easily:
+Additionally, cycle detection can be implemented easily, using the `cycleCheckSource' field in the ClassRecord structure:
 
 \begin{lstlisting}
-int checkCycles(struct ClassRecord * classRecord, struct ClassRecord * currentRecord){
+int checkCycles(struct ClassRecord * cycleCheckSource, struct ClassRecord * currentRecord){
 	// Completed records cannot be part of a cycle.
 	if(currentRecord->emptySlotCount == 0){
 		return 0;
 	}
+	
+	if(currentRecord->cycleCheckSource == cycleCheckSource){
+		// Found a cycle.
+		return 1;
+	}
+	
+	// Set the cycleCheckSource, so that if we return
+	// to this class record again, we'll find a cycle.
+	currentRecord->cycleCheckSource = cycleCheckSource;
 
 	for(size_t i = 0; i < currentRecord->numEntries; i++){
 		struct ClassRecordEntry * entry = &(classRecord->entries[i]);
 		
-		if(checkCycles(classRecord, classRecord->entries[i].memberRecord) != 0){
+		if(checkCycles(cycleCheckSource, classRecord->entries[i].memberRecord) != 0){
 			return 1;
 		}
 	}
@@ -294,13 +304,13 @@ int checkCycles(struct ClassRecord * classRecord, struct ClassRecord * currentRe
 	return 0;
 }
 
-int detectCycles(struct ClassRecord * classRecord){
-	return checkCycles(classRecord, classRecord);
+int detectCycles(struct ClassRecord * cycleCheckSource){
+	return checkCycles(cycleCheckSource, cycleCheckSource);
 }
 \end{lstlisting}
 
 \paragraph{}
-There is however obviously a potential performance cost to doing this, so compilers should provide a setting for disabling this. It is best for compilers to attempt to prioritise the resolution procedures to occur before cycle detection if possible, since then all the non-cyclic class records will be completed, and ignored by the cycle detection algorithm.
+There is however obviously a potential performance cost to doing this, so compilers should provide a setting for disabling this. It is best for compilers to attempt to prioritise the resolution procedures to occur before cycle detection if possible, since then all the non-cyclic class records will be completed (i.e. satisfying `emptySlotCount == 0'), and ignored by the cycle detection algorithm.
 
 \section{Performance}
 
