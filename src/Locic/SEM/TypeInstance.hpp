@@ -1,8 +1,8 @@
 #ifndef LOCIC_SEM_TYPEINSTANCE_HPP
 #define LOCIC_SEM_TYPEINSTANCE_HPP
 
-#include <list>
 #include <string>
+#include <vector>
 #include <Locic/SEM/Var.hpp>
 
 namespace SEM{
@@ -16,7 +16,8 @@ namespace SEM{
 		
 		std::string name;
 		TypeInstance * declaration;
-		std::list<Var *> variables;
+		std::vector<std::string> variableNames;
+		std::vector<Var *> variables;
 		
 		inline TypeInstance(TypeEnum e, const std::string& n, TypeInstance * d)
 			: typeEnum(e), name(n), declaration(d){ }

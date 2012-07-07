@@ -51,6 +51,7 @@ namespace Locic {
 						return std::list<SEM::Module*>();
 					}
 					
+					semStruct->variableNames.push_back(typeVar->name);
 					SEM::Var * var = new SEM::Var(SEM::Var::STRUCTMEMBER, id++, semType, semStruct);
 					semStruct->variables.push_back(var);
 				}

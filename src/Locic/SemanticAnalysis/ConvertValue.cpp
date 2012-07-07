@@ -319,7 +319,36 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			return NULL;
 		}
 		case AST::Value::MEMBERACCESS: {
-			printf("Internal Compiler Error: Unimplemented member access.\n");
+			SEM::Value * object = ConvertValue(context, value->memberAccess.object);
+			if(object == NULL) return NULL;
+			
+			SEM::Type * objectType = object->type;
+			if(objectType->typeEnum != SEM::Type::NAMED){
+				printf("Semantic Analysis Error: Can't access member of non-object type.\n");
+				return NULL;
+			}
+		
+			SEM::TypeInstance * typeInstance = objectType->namedType.typeInstance;
+			if(typeInstance->typeEnum != SEM::TypeInstance::STRUCT){
+				printf("Semantic Analysis Error: Can't access member of non-struct type.\n");
+				return NULL;
+			}
+			
+			for(std::size_t i = 0; i < typeInstance->variableNames.size(); i++){
+				if(typeInstance->variableNames.at(i) == value->memberAccess.memberName){
+					if(objectType->isLValue){
+						return SEM::Value::MemberAccess(object, i, typeInstance->variables.at(i)->type);
+					}else{
+						// If the struct type is an R-value, then the member must
+						// also be (preventing assignments to R-value members).
+						SEM::Type * memberType = new SEM::Type(*(typeInstance->variables.at(i)->type));
+						memberType->isLValue = false;
+						return SEM::Value::MemberAccess(object, i, memberType);
+					}
+				}
+			}
+		
+			printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", value->memberAccess.memberName.c_str());
 			return NULL;
 		}
 		case AST::Value::FUNCTIONCALL: {

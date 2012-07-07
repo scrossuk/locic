@@ -176,9 +176,8 @@ class CodeGen {
 				switch(typeInstance->typeEnum) {
 					case SEM::TypeInstance::STRUCT: {
 						std::vector<Type*> structMembers;
-						std::list<SEM::Var *>::const_iterator it;
-						for(it = typeInstance->variables.begin(); it != typeInstance->variables.end(); ++it){
-							structMembers.push_back(genType((*it)->type));
+						for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
+							structMembers.push_back(genType(typeInstance->variables.at(i)->type));
 						}
 						
 						structs_[typeInstance]->setBody(structMembers);
@@ -689,8 +688,13 @@ class CodeGen {
 					std::cerr << "CodeGen error: Unimplemented constructor call." << std::endl;
 					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 				case SEM::Value::MEMBERACCESS:
-					std::cerr << "CodeGen error: Unimplemented member access." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
+				{
+					if(genLValue){
+						return builder_.CreateConstInBoundsGEP2_32(genValue(value->memberAccess.object, true), 0, value->memberAccess.memberId);
+					}else{
+						return builder_.CreateExtractValue(genValue(value->memberAccess.object), std::vector<unsigned>(1, value->memberAccess.memberId));
+					}
+				}
 				case SEM::Value::FUNCTIONCALL: {
 					std::vector<Value*> parameters;
 					

@@ -97,9 +97,8 @@ void QueryTypeDependencies(TypeInfoContext& context, SEM::Type* type){
 			
 			assert(typeInstance != NULL);
 			if(context.referTypeInstance(typeInstance)){
-				std::list<SEM::Var *>::const_iterator it;
-				for(it = typeInstance->variables.begin(); it != typeInstance->variables.end(); ++it){
-					SEM::Type * varType = (*it)->type;
+				for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
+					SEM::Type * varType = typeInstance->variables.at(i)->type;
 					assert(varType != NULL);
 					QueryTypeDependencies(context, varType);
 				}
