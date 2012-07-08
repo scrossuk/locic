@@ -66,8 +66,8 @@ false                   { yyextra->token.boolValue = 0; return LOCIC_TOKEN_BOOLC
 [0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_TOKEN_INTCONSTANT; }
 [0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return LOCIC_TOKEN_FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_UCNAME; }
-[a-z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_LCNAME; }
+[A-Z]((_[A-Za-z0-9])|[A-Za-z0-9])*       { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_UCNAME; }
+[a-z]((_[A-Za-z0-9])|[A-Za-z0-9])*      { yyextra->token.str = new std::string(yytext); return LOCIC_TOKEN_LCNAME; }
 
 "=="                    { return LOCIC_TOKEN_ISEQUAL; }
 "!="                    { return LOCIC_TOKEN_NOTEQUAL; }

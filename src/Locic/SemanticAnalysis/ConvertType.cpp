@@ -22,7 +22,7 @@ SEM::Type::BasicType::TypeEnum ConvertBasicTypeEnum(AST::Type::BasicType::TypeEn
 	}
 }
 
-SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue) {
+SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 	switch(type->typeEnum) {
 		case AST::Type::VOID: {
 			return SEM::Type::Void(type->isMutable);
@@ -86,7 +86,7 @@ SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue)
 	}
 }
 
-void QueryTypeDependencies(TypeInfoContext& context, SEM::Type* type){
+void QueryTypeDependencies(Context& context, SEM::Type* type){
 	switch(type->typeEnum) {
 		case SEM::Type::VOID:
 		case SEM::Type::NULLT:

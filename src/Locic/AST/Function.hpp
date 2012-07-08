@@ -1,29 +1,42 @@
 #ifndef LOCIC_AST_FUNCTION_HPP
 #define LOCIC_AST_FUNCTION_HPP
 
-#include <list>
 #include <string>
+#include <vector>
 #include <Locic/AST/Scope.hpp>
 #include <Locic/AST/Type.hpp>
 #include <Locic/AST/TypeVar.hpp>
 
 namespace AST {
 
-	struct FunctionDecl {
-		Type* returnType;
+	struct TypeInstance;
+
+	struct Function{
+		enum TypeEnum{
+			DEFINITION,
+			DECLARATION
+		} typeEnum;
+		
+		TypeInstance * parentType;
+		Type * returnType;
 		std::string name;
-		std::list<TypeVar*> parameters;
+		std::vector<TypeVar *> parameters;
 		
-		inline FunctionDecl(Type* t, const std::string& n, const std::list<TypeVar*>& p)
-			: returnType(t), name(n), parameters(p) { }
-	};
-	
-	struct FunctionDef {
-		FunctionDecl* declaration;
-		Scope* scope;
+		// NULL for declarations.
+		Scope * scope;
 		
-		inline FunctionDef(FunctionDecl* d, Scope* s)
-			: declaration(d), scope(s) { }
+		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<TypeVar*>& p, Scope * s)
+			: parentType(NULL), typeEnum(e),
+			returnType(t), name(n),
+			parameters(p), scope(s) { }
+			
+		inline static Function * Decl(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters){
+			return new Function(DECLARATION, returnType, name, parameters, NULL);
+		}
+		
+		inline static Function * Def(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters, Scope * scope){
+			return new Function(DEFINITION, returnType, name, parameters, scope);
+		}
 	};
 	
 }

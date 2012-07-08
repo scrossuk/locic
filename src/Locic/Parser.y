@@ -28,40 +28,35 @@
 
 %type module { AST::Module * }
 
-%type struct { AST::Struct * }
-%type structVarList { std::list<AST::TypeVar *> * }
+%type structVarList { std::vector<AST::TypeVar *> * }
 
-%type classDecl { AST::ClassDecl * }
-%type classDef { AST::ClassDef * }
+%type typeInstance { AST::TypeInstance * }
 
-%type functionDecl { AST::FunctionDecl * }
-%type functionDef { AST::FunctionDef * }
-
-%type classMethodDeclList { std::list<AST::FunctionDecl *> * }
-%type classMethodDefList { std::list<AST::FunctionDef *> * }
+%type function { AST::Function * }
+%type functionList { std::vector<AST::Function *> * }
 
 %type basicType { AST::Type::BasicType::TypeEnum }
 %type typePrecision2 { AST::Type * }
 %type typePrecision1 { AST::Type * }
 %type typePrecision0 { AST::Type * }
 %type type { AST::Type * }
-%type nonEmptyTypeList { std::list<AST::Type *> * }
-%type typeList { std::list<AST::Type *> * }
+%type nonEmptyTypeList { std::vector<AST::Type *> * }
+%type typeList { std::vector<AST::Type *> * }
 
 %type lcName { std::string * }
 %type ucName { std::string * }
 %type name { std::string * }
 
 %type typeVar { AST::TypeVar * }
-%type nonEmptyTypeVarList { std::list<AST::TypeVar *> * }
-%type typeVarList { std::list<AST::TypeVar *> * }
+%type nonEmptyTypeVarList { std::vector<AST::TypeVar *> * }
+%type typeVarList { std::vector<AST::TypeVar *> * }
 
 %type value { AST::Value * }
-%type nonEmptyValueList { std::list<AST::Value *> * }
-%type valueList { std::list<AST::Value *> * }
+%type nonEmptyValueList { std::vector<AST::Value *> * }
+%type valueList { std::vector<AST::Value *> * }
 
 %type scope { AST::Scope * }
-%type statementList { std::list<AST::Statement *> * }
+%type statementList { std::vector<AST::Statement *> * }
 %type scopedStatement { AST::Statement * }
 %type normalStatement { AST::Statement * }
 
@@ -93,33 +88,15 @@ module(M) ::= INTERFACE.
 		M = new AST::Module(parserContext->currentFileName);
 	}
 	
-module(NM) ::= module(OM) functionDecl(D).
+module(NM) ::= module(OM) function(F).
 	{
-		(OM)->functionDeclarations.push_back(D);
+		(OM)->functions.push_back(F);
 		NM = OM;
 	}
 
-module(NM) ::= module(OM) functionDef(D).
+module(NM) ::= module(OM) typeInstance(T).
 	{
-		(OM)->functionDefinitions.push_back(D);
-		NM = OM;
-	}
-
-module(NM) ::= module(OM) classDecl(D).
-	{
-		(OM)->classDeclarations.push_back(D);
-		NM = OM;
-	}
-
-module(NM) ::= module(OM) classDef(D).
-	{
-		(OM)->classDefinitions.push_back(D);
-		NM = OM;
-	}
-
-module(NM) ::= module(OM) struct(S).
-	{
-		(OM)->structs.push_back(S);
+		(OM)->addTypeInstance(T);
 		NM = OM;
 	}
 
@@ -134,14 +111,9 @@ module(NM) ::= module(OM) error.
 		NM = OM;
 	}
 
-struct(S) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
-	{
-		S = new AST::Struct(*(N), *(VL));
-	}
-
 structVarList(VL) ::= .
 	{
-		VL = new std::list<AST::TypeVar *>();
+		VL = new std::vector<AST::TypeVar *>();
 	}
 
 structVarList(VL) ::= structVarList(OVL) typeVar(V) SEMICOLON.
@@ -155,30 +127,35 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 		VL = OVL;
 	}
 	
-functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
-		D = new AST::FunctionDecl(T, *(N), *(P));
+		D = AST::Function::Decl(T, *(N), *(P));
 	}
 	
-functionDecl(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
+function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
 	{
 		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
-		D = new AST::FunctionDecl(T, *(N), *(P));
+		F = AST::Function::Decl(T, *(N), *(P));
 	}
 	
-functionDef(D) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
-		D = new AST::FunctionDef(new AST::FunctionDecl(T, *(N), *(P)), S);
+		F = AST::Function::Def(T, *(N), *(P), S);
+	}
+
+typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
+	{
+		T = AST::TypeInstance::Struct(*(N), *(VL));
 	}
 	
-classDecl(D) ::= CLASS ucName(N) LCURLYBRACKET classMethodDeclList(DL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET functionDeclList(DL) RCURLYBRACKET.
 	{
-		D = new AST::ClassDecl(*(N), *(DL));
+		T = AST::TypeInstance::ClassDecl(*(N), *(DL));
 	}
 	
-classDef(D) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET classMethodDefList(DL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET functionDefList(DL) RCURLYBRACKET.
 	{
-		D = new AST::ClassDef(*(N), *(VL), *(DL));
+		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(DL));
 	}
 	
 lcName(N) ::= LCNAME(NAME).
@@ -282,7 +259,7 @@ type(NT) ::= typePrecision0(T).
 	
 nonEmptyTypeList(TL) ::= type(T).
 	{
-		TL = new std::list<AST::Type *>(1, T);
+		TL = new std::vector<AST::Type *>(1, T);
 	}
 	
 nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
@@ -293,7 +270,7 @@ nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
 	
 typeList(TL) ::= .
 	{
-		TL = new std::list<AST::Type *>();
+		TL = new std::vector<AST::Type *>();
 	}
 	
 typeList(TL) ::= nonEmptyTypeList(NETL).
@@ -301,26 +278,15 @@ typeList(TL) ::= nonEmptyTypeList(NETL).
 		TL = NETL;
 	}
 	
-classMethodDeclList(DL) ::= .
+functionList(DL) ::= .
 	{
-		DL = new std::list<AST::FunctionDecl *>();
+		DL = new std::vector<AST::Function *>();
 	}
 	
-classMethodDeclList(DL) ::= classMethodDeclList(ODL) functionDecl(D).
+functionList(L) ::= functionList(OL) function(F).
 	{
-		(ODL)->push_back(D);
-		DL = ODL;
-	}
-	
-classMethodDefList(DL) ::= .
-	{
-		DL = new std::list<AST::FunctionDef *>();
-	}
-	
-classMethodDefList(DL) ::= classMethodDefList(ODL) functionDef(D).
-	{
-		(ODL)->push_back(D);
-		DL = ODL;
+		(OL)->push_back(F);
+		L = OL;
 	}
 	
 typeVar(TV) ::= type(T) lcName(N).
@@ -330,7 +296,7 @@ typeVar(TV) ::= type(T) lcName(N).
 	
 typeVarList(TVL) ::= .
 	{
-		TVL = new std::list<AST::TypeVar *>();
+		TVL = new std::vector<AST::TypeVar *>();
 	}
 	
 typeVarList(TVL) ::= nonEmptyTypeVarList(L).
@@ -340,7 +306,7 @@ typeVarList(TVL) ::= nonEmptyTypeVarList(L).
 	
 nonEmptyTypeVarList(TVL) ::= typeVar(TV).
 	{
-		TVL = new std::list<AST::TypeVar *>(1, TV);
+		TVL = new std::vector<AST::TypeVar *>(1, TV);
 	}
 	
 nonEmptyTypeVarList(TVL) ::= nonEmptyTypeVarList(L) COMMA typeVar(TV).
@@ -351,7 +317,7 @@ nonEmptyTypeVarList(TVL) ::= nonEmptyTypeVarList(L) COMMA typeVar(TV).
 	
 valueList(VL) ::= .
 	{
-		VL = new std::list<AST::Value *>();
+		VL = new std::vector<AST::Value *>();
 	}
 	
 valueList(VL) ::= nonEmptyValueList(L).
@@ -361,7 +327,7 @@ valueList(VL) ::= nonEmptyValueList(L).
 	
 nonEmptyValueList(VL) ::= value(V).
 	{
-		VL = new std::list<AST::Value *>(1, V);
+		VL = new std::vector<AST::Value *>(1, V);
 	}
 	
 nonEmptyValueList(VL) ::= nonEmptyValueList(L) COMMA value(V).
@@ -377,7 +343,7 @@ scope(S) ::= LCURLYBRACKET statementList(SL) RCURLYBRACKET.
 	
 statementList(SL) ::= .
 	{
-		SL = new std::list<AST::Statement *>();
+		SL = new std::vector<AST::Statement *>();
 	}
 	
 statementList(SL) ::= statementList(L) scopedStatement(S).

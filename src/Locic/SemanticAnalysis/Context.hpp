@@ -12,22 +12,20 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		class FunctionInfoContext {
+		class Context {
 			public:
 				virtual SEM::FunctionDecl* getFunctionDecl(const std::string& name) = 0;
 				
-		};
-		
-		class TypeInfoContext {
-			public:
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
 				// Returns true if type instance wasn't already referenced.
 				virtual bool referTypeInstance(SEM::TypeInstance* typeInstance) = 0;
 				
+				virtual SEM::Var * getThisVar(const std::string& name) = 0;
+				
 		};
 		
-		class GlobalContext: public FunctionInfoContext, public TypeInfoContext {
+		class GlobalContext: public Context {
 			public:
 				inline GlobalContext() { }
 				
@@ -59,19 +57,23 @@ namespace Locic {
 					return false;
 				}
 				
+				inline SEM::Var * getThisVar(const std::string& name){
+					return NULL;
+				}
+				
 			private:
 				std::map<std::string, SEM::FunctionDecl*> functionDeclarations_;
 				std::map<std::string, SEM::TypeInstance*> typeInstances_;
 				
 		};
 		
-		class ModuleContext: public FunctionInfoContext, public TypeInfoContext {
+		class ModuleContext: public Context {
 			public:
-				inline ModuleContext(GlobalContext& globalContext, SEM::Module* module)
-					: globalContext_(globalContext), module_(module) { }
+				inline ModuleContext(Context& parentContext, SEM::Module* module)
+					: parentContext_(parentContext), module_(module) { }
 					
 				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					SEM::FunctionDecl* decl = globalContext_.getFunctionDecl(name);
+					SEM::FunctionDecl* decl = parentContext_.getFunctionDecl(name);
 					
 					if(decl != NULL) {
 						module_->functionDeclarations.insert(std::make_pair(name, decl));
@@ -81,7 +83,7 @@ namespace Locic {
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					SEM::TypeInstance* typeInstance = globalContext_.getTypeInstance(name);
+					SEM::TypeInstance* typeInstance = parentContext_.getTypeInstance(name);
 					
 					if(typeInstance != NULL) {
 						referTypeInstance(typeInstance);
@@ -96,16 +98,54 @@ namespace Locic {
 					return s.second;
 				}
 				
+				inline SEM::Var * getThisVar(const std::string& name){
+					return NULL;
+				}
+				
 			private:
-				GlobalContext& globalContext_;
+				Context& parentContext_;
 				SEM::Module* module_;
 				
 		};
 		
-		class LocalContext: public FunctionInfoContext, public TypeInfoContext {
+		class TypeInstanceContext: public Context {
 			public:
-				inline LocalContext(ModuleContext& moduleContext, SEM::FunctionDecl * decl)
-					: nextVarId_(0), moduleContext_(moduleContext), decl_(decl) {
+				inline TypeInstanceContext(Context& parentContext, SEM::TypeInstance * typeInstance)
+					: parentContext_(parentContext), typeInstance_(typeInstance) {
+					assert(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF);	
+				}
+				
+				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
+					return parentContext_.getFunctionDecl(name);
+				}
+				
+				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+					return parentContext_.getTypeInstance(name);
+				}
+				
+				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
+					return parentContext_.referTypeInstance(typeInstance);
+				}
+				
+				inline SEM::Var * getThisVar(const std::string& name){
+					for(std::size_t i = 0; i < typeInstance_->variableNames.size(); i++){
+						if(name == typeInstance_->variableNames.at(i)){
+							return typeInstance_->variables.at(i);
+						}
+					}
+					return parentContext_.getThisVar(name);
+				}
+				
+			private:
+				Context& parentContext_;
+				SEM::TypeInstance * typeInstance_;
+				
+		};
+		
+		class LocalContext: public Context {
+			public:
+				inline LocalContext(Context& parentContext, SEM::FunctionDecl * decl)
+					: nextVarId_(0), parentContext_(parentContext), decl_(decl) {
 					// Lowest stack entry holds parameter variables.
 					localVarStack_.push_back(std::map<std::string, SEM::Var*>());
 				}
@@ -120,15 +160,15 @@ namespace Locic {
 				}
 				
 				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					return moduleContext_.getFunctionDecl(name);
+					return parentContext_.getFunctionDecl(name);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					return moduleContext_.getTypeInstance(name);
+					return parentContext_.getTypeInstance(name);
 				}
 				
 				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
-					return moduleContext_.referTypeInstance(typeInstance);
+					return parentContext_.referTypeInstance(typeInstance);
 				}
 				
 				inline void pushScope(SEM::Scope* scope) {
@@ -175,9 +215,13 @@ namespace Locic {
 					return NULL;
 				}
 				
+				inline SEM::Var * getThisVar(const std::string& name){
+					return parentContext_.getThisVar(name);
+				}
+				
 			private:
 				std::size_t nextVarId_;
-				ModuleContext& moduleContext_;
+				Context& parentContext_;
 				SEM::FunctionDecl * decl_;
 				std::vector< std::map<std::string, SEM::Var*> > localVarStack_;
 				std::vector<SEM::Scope*> scopeStack_;

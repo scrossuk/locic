@@ -10,10 +10,10 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		// Convert a type annotation to a semantic type definition.
-		SEM::Type* ConvertType(TypeInfoContext& context, AST::Type* type, bool isLValue);
+		SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue);
 		
 		// Query all the named types without converting the type.
-		void QueryTypeDependencies(TypeInfoContext& context, SEM::Type* type);
+		void QueryTypeDependencies(Context& context, SEM::Type* type);
 		
 	}
 	

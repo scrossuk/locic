@@ -12,8 +12,7 @@ namespace SEM{
 		enum TypeEnum{
 			LOCAL,
 			PARAM,
-			STRUCTMEMBER,
-			THIS
+			MEMBER
 		} typeEnum;
 		
 		std::size_t id;
