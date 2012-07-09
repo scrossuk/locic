@@ -1,8 +1,8 @@
 #ifndef LOCIC_SEM_TYPE_HPP
 #define LOCIC_SEM_TYPE_HPP
 
-#include <list>
 #include <string>
+#include <vector>
 #include <Locic/SEM/TypeInstance.hpp>
 
 namespace SEM{
@@ -46,7 +46,7 @@ namespace SEM{
 		
 		struct {
 			Type* returnType;
-			std::list<Type*> parameterTypes;
+			std::vector<Type*> parameterTypes;
 		} functionType;
 		
 		inline Type()
@@ -85,7 +85,7 @@ namespace SEM{
 			return type;
 		}
 		
-		inline static Type* Function(bool isMutable, bool isLValue, Type* returnType, const std::list<Type*>& parameterTypes) {
+		inline static Type* Function(bool isMutable, bool isLValue, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable, isLValue);
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
@@ -172,13 +172,11 @@ namespace SEM{
 					str += functionType.returnType->toString();
 					str += ")(";
 			
-					std::list<Type *>::const_iterator it;
-					
-					for(it = functionType.parameterTypes.begin(); it != functionType.parameterTypes.end(); ++it){
-						if(it != functionType.parameterTypes.begin()){
+					for(std::size_t i = 0; i < functionType.parameterTypes.size(); i++){
+						if(i != 0){
 							str += ", ";
 						}
-						str += (*it)->toString();
+						str += functionType.parameterTypes.at(i)->toString();
 					}
 					
 					str += ")";

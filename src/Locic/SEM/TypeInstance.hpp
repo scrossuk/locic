@@ -20,6 +20,10 @@ namespace SEM{
 		
 		inline TypeInstance(TypeEnum e, const std::string& n)
 			: typeEnum(e), name(n){ }
+		
+		inline std::string getFullName() const{
+			return name;
+		}
 	};
 
 }

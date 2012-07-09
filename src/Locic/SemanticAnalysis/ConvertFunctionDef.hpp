@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::FunctionDef* ConvertFunctionDef(ModuleContext& moduleContext, AST::FunctionDef* functionDef);
+		bool ConvertFunctionDef(ModuleContext& moduleContext, AST::Function* function);
 		
 	}
 	

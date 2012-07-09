@@ -1,8 +1,8 @@
 #ifndef LOCIC_AST_VALUE_HPP
 #define LOCIC_AST_VALUE_HPP
 
-#include <list>
 #include <string>
+#include <vector>
 
 #include <Locic/AST/Type.hpp>
 #include <Locic/AST/Var.hpp>
@@ -82,7 +82,7 @@ namespace AST {
 		
 		struct {
 			std::string typeName, constructorName;
-			std::list<Value*> parameters;
+			std::vector<Value*> parameters;
 		} construct;
 		
 		struct {
@@ -92,7 +92,7 @@ namespace AST {
 		
 		struct {
 			Value* functionValue;
-			std::list<Value*> parameters;
+			std::vector<Value*> parameters;
 		} functionCall;
 		
 		inline Value() : typeEnum(NONE) { }
@@ -162,7 +162,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * Construct(const std::string& typeName, const std::string& constructorName, const std::list<Value *>& parameters){
+		inline static Value * Construct(const std::string& typeName, const std::string& constructorName, const std::vector<Value *>& parameters){
 			Value* value = new Value(CONSTRUCT);
 			value->construct.typeName = typeName;
 			value->construct.constructorName = constructorName;
@@ -177,7 +177,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * FunctionCall(Value * functionValue, const std::list<Value *>& parameters){
+		inline static Value * FunctionCall(Value * functionValue, const std::vector<Value *>& parameters){
 			Value* value = new Value(FUNCTIONCALL);
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;

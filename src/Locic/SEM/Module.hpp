@@ -12,8 +12,7 @@ namespace SEM{
 	struct Module{
 		std::string name;
 		std::map<std::string, TypeInstance *> typeInstances;
-		std::map<std::string, FunctionDecl *> functionDeclarations;
-		std::list<FunctionDef *> functionDefinitions;
+		std::map<std::string, Function *> functions;
 		
 		inline Module(const std::string& n)
 			: name(n){ }

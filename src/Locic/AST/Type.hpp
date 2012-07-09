@@ -1,8 +1,8 @@
 #ifndef LOCIC_AST_TYPE_HPP
 #define LOCIC_AST_TYPE_HPP
 
-#include <list>
 #include <string>
+#include <vector>
 
 namespace AST {
 
@@ -40,7 +40,7 @@ namespace AST {
 		
 		struct {
 			Type* returnType;
-			std::list<Type*> parameterTypes;
+			std::vector<Type*> parameterTypes;
 		} functionType;
 		
 		inline Type()
@@ -73,7 +73,7 @@ namespace AST {
 			return type;
 		}
 		
-		inline static Type* Function(bool isMutable, Type* returnType, const std::list<Type*>& parameterTypes) {
+		inline static Type* Function(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable);
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
@@ -151,13 +151,11 @@ namespace AST {
 					str += functionType.returnType->toString();
 					str += ")(";
 			
-					std::list<Type *>::const_iterator it;
-					
-					for(it = functionType.parameterTypes.begin(); it != functionType.parameterTypes.end(); ++it){
-						if(it != functionType.parameterTypes.begin()){
+					for(std::size_t i = 0; i < functionType.parameterTypes.size(); i++){
+						if(i != 0){
 							str += ", ";
 						}
-						str += (*it)->toString();
+						str += functionType.parameterTypes.at(i)->toString();
 					}
 					
 					str += ")";

@@ -3,10 +3,11 @@
 
 #include <string>
 #include <vector>
-#include <Locic/AST/Function.hpp>
 #include <Locic/AST/TypeVar.hpp>
 
 namespace AST{
+
+	struct Function;
 	
 	struct TypeInstance{
 		enum TypeEnum{
@@ -21,12 +22,7 @@ namespace AST{
 		
 		inline TypeInstance(TypeEnum e, const std::string& n,
 			const std::vector<TypeVar *>& v, const std::vector<Function*>& f)
-			: typeEnum(e), name(n), variables(v), functions(f){
-			
-			for(std::size_t i = 0; i < functions.size(); i++){
-				functions.at(i).parentType = this;
-			}	
-		}
+			: typeEnum(e), name(n), variables(v), functions(f){ }
 		
 		inline static TypeInstance * ClassDecl(const std::string& name, const std::vector<Function*>& functions){
 			return new TypeInstance(CLASSDECL, name, std::vector<TypeVar *>(), functions);
@@ -38,6 +34,10 @@ namespace AST{
 		
 		inline static TypeInstance * Struct(const std::string& name, const std::vector<TypeVar *>& variables){
 			return new TypeInstance(STRUCT, name, variables, std::vector<Function *>());
+		}
+		
+		inline std::string getFullName() const{
+			return name;
 		}
 	};
 

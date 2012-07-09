@@ -58,13 +58,12 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 				return NULL;
 			}
 			
-			std::list<SEM::Type*> parameterTypes;
+			std::vector<SEM::Type*> parameterTypes;
 			
-			const std::list<AST::Type*>& astParameterTypes = type->functionType.parameterTypes;
-			std::list<AST::Type*>::const_iterator it;
-				
-			for(it = astParameterTypes.begin(); it != astParameterTypes.end(); ++it) {
-				SEM::Type* paramType = ConvertType(context, *it, SEM::Type::LVALUE);
+			const std::vector<AST::Type*>& astParameterTypes = type->functionType.parameterTypes;
+			
+			for(std::size_t i = 0; i < astParameterTypes.size(); i++){
+				SEM::Type* paramType = ConvertType(context, astParameterTypes.at(i), SEM::Type::LVALUE);
 					
 				if(paramType == NULL) {
 					return NULL;
@@ -112,11 +111,10 @@ void QueryTypeDependencies(Context& context, SEM::Type* type){
 		case SEM::Type::FUNCTION: {
 			QueryTypeDependencies(context, type->functionType.returnType);
 			
-			const std::list<SEM::Type*>& parameterTypes = type->functionType.parameterTypes;
-			std::list<SEM::Type*>::const_iterator it;
-				
-			for(it = parameterTypes.begin(); it != parameterTypes.end(); ++it) {
-				QueryTypeDependencies(context, *it);
+			const std::vector<SEM::Type*>& parameterTypes = type->functionType.parameterTypes;
+			
+			for(std::size_t i = 0; i < parameterTypes.size(); i++){
+				QueryTypeDependencies(context, parameterTypes.at(i));
 			}
 			
 			return;

@@ -10,23 +10,36 @@ namespace SEM {
 
 	struct Scope;
 
-	struct FunctionDecl {
+	struct Function{
+		enum TypeEnum{
+			DEFINITION,
+			DECLARATION
+		} typeEnum;
+		
 		TypeInstance * parentType;
-		Type* type;
+		Type * type;
 		std::string name;
-		std::list<Var*> parameters;
+		std::vector<Var *> parameters;
 		
-		inline FunctionDecl(TypeInstance * p, Type* t, const std::string& n, const std::list<Var*>& param)
-			: parentType(p), type(t), name(n), parameters(param) { }
-	};
-	
-	struct FunctionDef {
-		TypeInstance * parentType;
-		FunctionDecl* declaration;
-		Scope* scope;
+		// NULL for declarations.
+		Scope * scope;
 		
-		inline FunctionDef(TypeInstance * p, FunctionDecl* d, Scope* s)
-			: parentType(p), declaration(d), scope(s) { }
+		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<Var*>& p, Scope * s, TypeInstance * pT)
+			: parentType(pT), typeEnum(e),
+			type(t), name(n),
+			parameters(p), scope(s) { }
+			
+		inline static Function * Decl(TypeInstance * parentType, Type * type, const std::string& name, const std::vector<Var*>& parameters){
+			return new Function(DECLARATION, type, name, parameters, NULL, parentType);
+		}
+		
+		inline static Function * Def(TypeInstance * parentType, Type * type, const std::string& name, const std::vector<Var*>& parameters, Scope * scope){
+			return new Function(DEFINITION, type, name, parameters, scope, parentType);
+		}
+		
+		inline std::string getFullName() const{
+			return parentType != NULL ? (parentType->getFullName() + "__" + name) : name;
+		}
 	};
 	
 }

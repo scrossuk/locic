@@ -7,76 +7,70 @@
 #include <Locic/SemanticAnalysis/ConvertScope.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 
-namespace Locic{
+namespace Locic {
 
-namespace SemanticAnalysis{
-
-SEM::FunctionDef* ConvertFunctionDef(ModuleContext& moduleContext, AST::FunctionDef* functionDef) {
-	const std::string& functionName = functionDef->declaration->name;
+	namespace SemanticAnalysis {
 	
-	// Find the corresponding semantic function declaration.
-	SEM::FunctionDecl* semFunctionDecl = moduleContext.getFunctionDecl(functionName);
-	
-	if(semFunctionDecl == NULL) {
-		printf("Internal compiler error: semantic function declaration not found for definition '%s'.\n", functionName.c_str());
-		return NULL;
-	}
-	
-	LocalContext localContext(moduleContext, semFunctionDecl);
-	
-	// AST information gives parameter names; SEM information gives parameter variable information.
-	const std::list<AST::TypeVar*>& astParameters = functionDef->declaration->parameters;
-	const std::list<SEM::Var*>& semParameters = semFunctionDecl->parameters;
-	
-	assert(astParameters.size() == semParameters.size());
-	
-	std::list<AST::TypeVar*>::const_iterator astIterator;
-	std::list<SEM::Var*>::const_iterator semIterator;
-	
-	for(astIterator = astParameters.begin(), semIterator = semParameters.begin();
-	        astIterator != astParameters.end();
-	        ++astIterator, ++semIterator) {
-	        
-		AST::TypeVar* typeVar = *astIterator;
-		SEM::Var* paramVar = *semIterator;
-		
-		// Ensure that any dependencies (e.g. structs) of the parameter
-		// types are included in the module by querying them.
-		QueryTypeDependencies(moduleContext, paramVar->type);
-		
-		// Create a mapping from the parameter's name to its variable information.
-		if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
-			printf("Semantic Analysis Error: cannot share names between function parameters.\n");
-			return NULL;
+		bool ConvertFunctionDef(ModuleContext& moduleContext, AST::Function* function) {
+			const std::string functionName = function->getFullName();
+			
+			// Find the corresponding semantic function
+			// (which MUST have been created previously).
+			SEM::Function* semFunction = moduleContext.getFunction(functionName);
+			
+			assert(semFunction != NULL);
+			assert(semFunction->typeEnum == SEM::Function::DEFINITION);
+			assert(semFunction->scope == NULL);
+			
+			LocalContext localContext(moduleContext, semFunction);
+			
+			// AST information gives parameter names; SEM information gives parameter variable information.
+			const std::vector<AST::TypeVar*>& astParameters = function->parameters;
+			const std::vector<SEM::Var*>& semParameters = semFunction->parameters;
+			
+			assert(astParameters.size() == semParameters.size());
+			
+			for(std::size_t i = 0; i < astParameters.size(); i++){
+				AST::TypeVar* typeVar = astParameters.at(i);
+				SEM::Var* paramVar = semParameters.at(i);
+				
+				// Ensure that any dependencies (e.g. structs) of the parameter
+				// types are included in the module by querying them.
+				QueryTypeDependencies(moduleContext, paramVar->type);
+				
+				// Create a mapping from the parameter's name to its variable information.
+				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
+					printf("Semantic Analysis Error: cannot share names between function parameters.\n");
+					return false;
+				}
+			}
+			
+			// Generate the outer function scope.
+			// (which will then generate its contents etc.)
+			SEM::Scope* scope = ConvertScope(localContext, function->scope);
+			
+			if(scope == NULL) {
+				return false;
+			}
+			
+			SEM::Type* returnType = semFunction->type->functionType.returnType;
+			
+			if(!returnType->isVoid()) {
+				// Functions with non-void return types must return a value.
+				if(!WillScopeReturn(scope)) {
+					printf("Semantic Analysis Error: Control reaches end of function with non-void return type (i.e. need to add a return statement).\n");
+					return false;
+				}
+			} else {
+				// Need to add a void return statement in case the program didn't.
+				scope->statementList.push_back(SEM::Statement::ReturnVoid());
+			}
+			
+			semFunction->scope = scope;
+			return true;
 		}
+		
 	}
 	
-	// Generate the outer function scope.
-	// (which will then generate its contents etc.)
-	SEM::Scope* scope = ConvertScope(localContext, functionDef->scope);
-	
-	if(scope == NULL) {
-		return NULL;
-	}
-	
-	SEM::Type* returnType = semFunctionDecl->type->functionType.returnType;
-	
-	if(!returnType->isVoid()) {
-		// Functions with non-void return types must return a value.
-		if(!WillScopeReturn(scope)) {
-			printf("Semantic Analysis Error: Control reaches end of function with non-void return type (i.e. need to add a return statement).\n");
-			return NULL;
-		}
-	} else {
-		// Need to add a void return statement in case the program didn't.
-		scope->statementList.push_back(SEM::Statement::ReturnVoid());
-	}
-	
-	// Build and return the function definition.
-	return new SEM::FunctionDef(NULL, semFunctionDecl, scope);
-}
-
-}
-
 }
 

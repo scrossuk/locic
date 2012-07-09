@@ -38,7 +38,7 @@ class CodeGen {
 		BasicBlock* currentBasicBlock_;
 		FunctionPassManager fpm_;
 		std::map<SEM::TypeInstance*, StructType*> structs_;
-		std::map<SEM::FunctionDecl*, Function*> functions_;
+		std::map<SEM::Function*, Function*> functions_;
 		std::map<std::size_t, AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		
@@ -189,16 +189,20 @@ class CodeGen {
 				}
 			}
 			
-			std::map<std::string, SEM::FunctionDecl *>::const_iterator declIt;
-			for(declIt = module->functionDeclarations.begin(); declIt != module->functionDeclarations.end(); ++declIt){
-				SEM::FunctionDecl* decl = declIt->second;
-				assert(decl != NULL);
-				functions_[decl] = Function::Create(genFunctionType(decl->type), Function::ExternalLinkage, decl->name, module_);
+			std::map<std::string, SEM::Function *>::const_iterator functionIt;
+			
+			// Create all function declarations.
+			for(functionIt = module->functions.begin(); functionIt != module->functions.end(); ++functionIt){
+				SEM::Function* function = functionIt->second;
+				assert(function != NULL);
+				functions_[function] = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->getFullName(), module_);
 			}
 			
-			std::list<SEM::FunctionDef *>::const_iterator defIt;
-			for(defIt = module->functionDefinitions.begin(); defIt != module->functionDefinitions.end(); ++defIt){
-				genFunctionDef(*defIt);
+			// Fill in the implementation of definitions.
+			for(functionIt = module->functions.begin(); functionIt != module->functions.end(); ++functionIt){
+				if(functionIt->second->typeEnum == SEM::Function::DEFINITION){
+					genFunctionDef(functionIt->second);
+				}
 			}
 		}
 		
@@ -210,11 +214,10 @@ class CodeGen {
 			
 			std::vector<Type*> paramTypes;
 			
-			const std::list<SEM::Type *>& params = type->functionType.parameterTypes;
-			std::list<SEM::Type *>::const_iterator it;
+			const std::vector<SEM::Type *>& params = type->functionType.parameterTypes;
 			
-			for(it = params.begin(); it != params.end(); ++it) {
-				paramTypes.push_back(genType(*it));
+			for(std::size_t i = 0; i < params.size(); i++){
+				paramTypes.push_back(genType(params.at(i)));
 			}
 			
 			bool isVarArg = false;
@@ -275,22 +278,23 @@ class CodeGen {
 			}
 		}
 		
-		void genFunctionDef(SEM::FunctionDef* functionDef) {
-			// Create function.
-			currentFunction_ = functions_[functionDef->declaration];
+		void genFunctionDef(SEM::Function* function) {
+			assert(function != NULL);
+			assert(function->typeEnum == SEM::Function::DEFINITION);
+		
+			currentFunction_ = functions_[function];
 			assert(currentFunction_ != NULL);
 			
 			currentBasicBlock_ = BasicBlock::Create(getGlobalContext(), "entry", currentFunction_);
 			builder_.SetInsertPoint(currentBasicBlock_);
 			
 			// Store arguments onto stack.
-			Function::arg_iterator arg;
+			Function::arg_iterator arg = currentFunction_->arg_begin();
 			
-			const std::list<SEM::Var *>& parameterVars = functionDef->declaration->parameters;
-			std::list<SEM::Var *>::const_iterator it;
+			const std::vector<SEM::Var *>& parameterVars = function->parameters;
 			
-			for(it = parameterVars.begin(), arg = currentFunction_->arg_begin(); it != parameterVars.end(); ++arg, ++it) {
-				SEM::Var* paramVar = *it;
+			for(std::size_t i = 0; i < parameterVars.size(); ++arg, i++){
+				SEM::Var* paramVar = parameterVars.at(i);
 				
 				// Create an alloca for this variable.
 				AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
@@ -301,7 +305,7 @@ class CodeGen {
 				builder_.CreateStore(arg, stackObject);
 			}
 			
-			genScope(functionDef->scope);
+			genScope(function->scope);
 			
 			// Need to terminate the final basic block.
 			// (just make it loop to itself - this will
@@ -338,9 +342,8 @@ class CodeGen {
 				localVariables_[localVar->id] = stackObject;
 			}
 			
-			std::list<SEM::Statement *>::const_iterator it;			
-			for(it = scope->statementList.begin(); it != scope->statementList.end(); ++it) {
-				genStatement(*it);
+			for(std::size_t i = 0; i < scope->statementList.size(); i++){		
+				genStatement(scope->statementList.at(i));
 			}
 		}
 		
@@ -467,7 +470,7 @@ class CodeGen {
 								return builder_.CreateLoad(val);
 							}
 						}
-						case SEM::Var::THIS: {
+						case SEM::Var::MEMBER: {
 							std::cerr << "CodeGen error: Unimplemented member variable access." << std::endl;
 							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
 						}
@@ -698,16 +701,15 @@ class CodeGen {
 				case SEM::Value::FUNCTIONCALL: {
 					std::vector<Value*> parameters;
 					
-					const std::list<SEM::Value *>& list = value->functionCall.parameters;
-					std::list<SEM::Value *>::const_iterator it;
-					for(it = list.begin(); it != list.end(); ++it) {
-						parameters.push_back(genValue(*it));
+					const std::vector<SEM::Value *>& paramList = value->functionCall.parameters;
+					for(std::size_t i = 0; i < paramList.size(); i++){
+						parameters.push_back(genValue(paramList.at(i)));
 					}
 					
 					return builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
 				}
 				case SEM::Value::FUNCTIONREF: {
-					Function* function = functions_[value->functionRef.functionDecl];
+					Function* function = functions_[value->functionRef.function];
 					assert(function != NULL);
 					return function;
 				}

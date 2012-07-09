@@ -129,7 +129,7 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 	
 function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
-		D = AST::Function::Decl(T, *(N), *(P));
+		F = AST::Function::Decl(T, *(N), *(P));
 	}
 	
 function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
@@ -148,14 +148,22 @@ typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET
 		T = AST::TypeInstance::Struct(*(N), *(VL));
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET functionDeclList(DL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET functionList(FL) RCURLYBRACKET.
 	{
-		T = AST::TypeInstance::ClassDecl(*(N), *(DL));
+		T = AST::TypeInstance::ClassDecl(*(N), *(FL));
+		
+		for(std::size_t i = 0; i < (T)->functions.size(); i++){
+			(T)->functions.at(i)->parentType = T;
+		}
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET functionDefList(DL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET functionList(FL) RCURLYBRACKET.
 	{
-		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(DL));
+		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(FL));
+		
+		for(std::size_t i = 0; i < (T)->functions.size(); i++){
+			(T)->functions.at(i)->parentType = T;
+		}
 	}
 	
 lcName(N) ::= LCNAME(NAME).

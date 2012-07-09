@@ -7,32 +7,27 @@
 #include <Locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <Locic/SemanticAnalysis/ConvertModule.hpp>
 
-namespace Locic{
+namespace Locic {
 
-namespace SemanticAnalysis{
-
-bool ConvertModule(GlobalContext& globalContext, AST::Module* module, SEM::Module* semModule) {
-	ModuleContext moduleContext(globalContext, semModule);
+	namespace SemanticAnalysis {
 	
-	// Build each function definition.
-	std::list<AST::FunctionDef*>::const_iterator it;
-	
-	for(it = module->functionDefinitions.begin(); it != module->functionDefinitions.end(); ++it) {
-		AST::FunctionDef* synFunctionDef = *it;
-		
-		SEM::FunctionDef* semFunctionDef = ConvertFunctionDef(moduleContext, synFunctionDef);
-		
-		if(semFunctionDef == NULL) {
-			return false;
+		bool ConvertModule(GlobalContext& globalContext, AST::Module* module, SEM::Module* semModule) {
+			ModuleContext moduleContext(globalContext, semModule);
+			
+			for(std::size_t i = 0; i < module->functions.size(); i++) {
+				AST::Function* astFunction = module->functions.at(i);
+				
+				if(astFunction->typeEnum == AST::Function::DEFINITION){
+					if(!ConvertFunctionDef(moduleContext, astFunction)) {
+						return false;
+					}
+				}
+			}
+			
+			return true;
 		}
 		
-		semModule->functionDefinitions.push_back(semFunctionDef);
 	}
 	
-	return true;
-}
-
-}
-
 }
 

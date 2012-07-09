@@ -1,60 +1,70 @@
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
-#include <list>
+#include <vector>
 #include <Locic/AST.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 
-namespace Locic{
+namespace Locic {
 
-namespace SemanticAnalysis{
-
-SEM::FunctionDecl* ConvertFunctionDecl(GlobalContext& context, AST::FunctionDecl* functionDecl) {
-	AST::Type* returnType = functionDecl->returnType;
+	namespace SemanticAnalysis {
 	
-	// Return types are always rvalues.
-	SEM::Type* semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
-	
-	if(semReturnType == NULL) {
-		return NULL;
-	}
-	
-	std::size_t id = 0;
-	std::list<SEM::Var*> parameterVars;
-	std::list<SEM::Type*> parameterTypes;
-	
-	std::list<AST::TypeVar*>::const_iterator it;
-	
-	for(it = functionDecl->parameters.begin(); it != functionDecl->parameters.end(); ++it, id++) {
-		AST::TypeVar* typeVar = *it;
-		AST::Type* paramType = typeVar->type;
-		
-		// Parameter types are always lvalues.
-		SEM::Type* semParamType = ConvertType(context, paramType, SEM::Type::LVALUE);
-		
-		if(semParamType == NULL) {
-			return NULL;
+		SEM::Function* ConvertFunctionDecl(GlobalContext& context, AST::Function* function) {
+			AST::Type* returnType = function->returnType;
+			
+			// Return types are always rvalues.
+			SEM::Type* semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
+			
+			if(semReturnType == NULL) {
+				return NULL;
+			}
+			
+			std::vector<SEM::Var*> parameterVars;
+			std::vector<SEM::Type*> parameterTypes;
+			
+			std::vector<AST::TypeVar*>::const_iterator it;
+			
+			for(std::size_t i = 0; i < function->parameters.size(); i++) {
+				AST::TypeVar* typeVar = function->parameters.at(i);
+				AST::Type* paramType = typeVar->type;
+				
+				// Parameter types are always lvalues.
+				SEM::Type* semParamType = ConvertType(context, paramType, SEM::Type::LVALUE);
+				
+				if(semParamType == NULL) {
+					return NULL;
+				}
+				
+				if(semParamType->typeEnum == SEM::Type::VOID) {
+					printf("Semantic Analysis Error: Parameter variable cannot have void type.\n");
+					return NULL;
+				}
+				
+				SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, i, semParamType);
+				
+				parameterTypes.push_back(semParamType);
+				parameterVars.push_back(semParamVar);
+			}
+			
+			SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, semReturnType, parameterTypes);
+			SEM::TypeInstance* parentTypeInstance = NULL;
+			
+			if(function->parentType != NULL) {
+				parentTypeInstance = context.getTypeInstance(function->parentType->name);
+				assert(parentTypeInstance != NULL);
+			}
+			
+			if(function->typeEnum == AST::Function::DECLARATION) {
+				return SEM::Function::Decl(parentTypeInstance, functionType, function->name, parameterVars);
+			} else {
+				return SEM::Function::Def(parentTypeInstance, functionType, function->name, parameterVars, NULL);
+			}
 		}
 		
-		if(semParamType->typeEnum == SEM::Type::VOID) {
-			printf("Semantic Analysis Error: Parameter variable cannot have void type.\n");
-			return NULL;
-		}
-		
-		SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, id, semParamType);
-		
-		parameterTypes.push_back(semParamType);
-		parameterVars.push_back(semParamVar);
 	}
 	
-	SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, semReturnType, parameterTypes);
-	
-	return new SEM::FunctionDecl(NULL, functionType, functionDecl->name, parameterVars);
-}
-
-}
-
 }
 
 

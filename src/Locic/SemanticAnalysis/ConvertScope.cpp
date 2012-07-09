@@ -10,10 +10,8 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		bool WillScopeReturn(SEM::Scope* scope) {
-			std::list<SEM::Statement*>::const_iterator it;
-			
-			for(it = scope->statementList.begin(); it != scope->statementList.end(); ++it) {
-				if(WillStatementReturn(*it)) {
+			for(std::size_t i = 0; i < scope->statementList.size(); i++){
+				if(WillStatementReturn(scope->statementList.at(i))) {
 					return true;
 				}
 			}
@@ -28,10 +26,8 @@ namespace Locic {
 			context.pushScope(semScope);
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
-			std::list<AST::Statement*>::const_iterator it;
-			
-			for(it = scope->statements.begin(); it != scope->statements.end(); ++it) {
-				SEM::Statement* statement = ConvertStatement(context, *it);
+			for(std::size_t i = 0; i < scope->statements.size(); i++){
+				SEM::Statement* statement = ConvertStatement(context, scope->statements.at(i));
 				
 				if(statement == NULL) {
 					context.popScope();

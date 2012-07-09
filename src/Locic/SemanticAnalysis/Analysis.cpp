@@ -24,10 +24,11 @@ namespace Locic {
 				for(std::size_t i = 0; i < astModule->typeInstances.size(); i++){
 					AST::TypeInstance* astTypeInstance = astModule->typeInstances.at(i);
 					SEM::TypeInstance * semTypeInstance =
-						new SEM::TypeInstance(astTypeInstance->typeEnum, astTypeInstance->name);
+						new SEM::TypeInstance((SEM::TypeInstance::TypeEnum) astTypeInstance->typeEnum,
+							astTypeInstance->name);
 					
 					if(!globalContext.addTypeInstance(astTypeInstance->name, semTypeInstance)) {
-						printf("Semantic Analysis Error: type already defined with name '%s'.\n", astStruct->name.c_str());
+						printf("Semantic Analysis Error: type already defined with name '%s'.\n", astTypeInstance->name.c_str());
 						return std::list<SEM::Module*>();
 					}
 					
@@ -62,7 +63,7 @@ namespace Locic {
 				for(std::size_t i = 0; i < astModule->functions.size(); i++){
 					AST::Function * astFunction = astModule->functions.at(i);
 					
-					if(!globalContext.addFunction(astFunction->name, ConvertFunction(globalContext, astFunction))) {
+					if(!globalContext.addFunction(astFunction->getFullName(), ConvertFunctionDecl(globalContext, astFunction))) {
 						printf("Semantic Analysis Error: function already defined with name '%s'.\n", astFunction->name.c_str());
 						return std::list<SEM::Module*>();
 					}

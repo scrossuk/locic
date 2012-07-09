@@ -97,10 +97,10 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					}
 					
 					// Not a variable - try looking for functions.
-					SEM::FunctionDecl* decl = context.getFunctionDecl(astVar->name);
+					SEM::Function* function = context.getFunction(astVar->name);
 					
-					if(decl != NULL) {
-						return SEM::Value::FunctionRef(decl, decl->type);
+					if(function != NULL) {
+						return SEM::Value::FunctionRef(function, function->type);
 					}
 					
 					printf("Semantic Analysis Error: Local variable '%s' was not found\n", astVar->name.c_str());
@@ -363,30 +363,26 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				return NULL;
 			}
 			
-			std::list<SEM::Type*>& typeList = functionValue->type->functionType.parameterTypes;
-			std::list<AST::Value*>& astValueList = value->functionCall.parameters;
+			const std::vector<SEM::Type*>& typeList = functionValue->type->functionType.parameterTypes;
+			const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
 			
 			if(typeList.size() != astValueList.size()) {
 				printf("Semantic Analysis Error: Function called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
 				return NULL;
 			}
 			
-			std::list<SEM::Value*> semValueList;
+			std::vector<SEM::Value*> semValueList;
 			
-			std::list<SEM::Type*>::const_iterator typeIt = typeList.begin();
-			std::list<AST::Value*>::const_iterator valueIt = astValueList.begin();
-			
-			while(valueIt != astValueList.end()) {
-				SEM::Value* param = CastValueToType(ConvertValue(context, *valueIt), *typeIt);
+			for(std::size_t i = 0; i < astValueList.size(); i++){
+				SEM::Value* value = ConvertValue(context, astValueList.at(i));
 				
-				if(param == NULL) {
-					return NULL;
-				}
+				if(value == NULL) return NULL;
+				
+				SEM::Value* param = CastValueToType(value, typeList.at(i));
+				
+				if(param == NULL) return NULL;
 				
 				semValueList.push_back(param);
-				
-				++typeIt;
-				++valueIt;
 			}
 			
 			return SEM::Value::FunctionCall(functionValue, semValueList, functionValue->type->functionType.returnType);

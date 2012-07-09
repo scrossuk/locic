@@ -5,11 +5,10 @@
 #include <vector>
 #include <Locic/AST/Scope.hpp>
 #include <Locic/AST/Type.hpp>
+#include <Locic/AST/TypeInstance.hpp>
 #include <Locic/AST/TypeVar.hpp>
 
 namespace AST {
-
-	struct TypeInstance;
 
 	struct Function{
 		enum TypeEnum{
@@ -36,6 +35,10 @@ namespace AST {
 		
 		inline static Function * Def(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters, Scope * scope){
 			return new Function(DEFINITION, returnType, name, parameters, scope);
+		}
+		
+		inline std::string getFullName() const{
+			return parentType != NULL ? (parentType->getFullName() + "__" + name) : name;
 		}
 	};
 	

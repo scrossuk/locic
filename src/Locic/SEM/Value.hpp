@@ -1,7 +1,7 @@
 #ifndef LOCIC_SEM_VALUE_HPP
 #define LOCIC_SEM_VALUE_HPP
 
-#include <list>
+#include <vector>
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
@@ -104,7 +104,7 @@ namespace SEM{
 		struct {
 			TypeInstance * typeInstance;
 			std::size_t constructorId;
-			std::list<Value*> parameters;
+			std::vector<Value*> parameters;
 		} construct;
 		
 		struct {
@@ -114,11 +114,11 @@ namespace SEM{
 		
 		struct {
 			Value* functionValue;
-			std::list<Value*> parameters;
+			std::vector<Value*> parameters;
 		} functionCall;
 		
 		struct {
-			FunctionDecl * functionDecl;
+			Function * function;
 		} functionRef;
 		
 		inline Value() : typeEnum(NONE), type(Type::Void(Type::MUTABLE)) { }
@@ -199,7 +199,7 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value * Construct(TypeInstance * typeInstance, std::size_t constructorId, const std::list<Value *>& parameters, Type * type){
+		inline static Value * Construct(TypeInstance * typeInstance, std::size_t constructorId, const std::vector<Value *>& parameters, Type * type){
 			Value* value = new Value(CONSTRUCT, type);
 			value->construct.typeInstance = typeInstance;
 			value->construct.constructorId = constructorId;
@@ -214,16 +214,16 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value * FunctionCall(Value * functionValue, const std::list<Value *>& parameters, Type * type){
+		inline static Value * FunctionCall(Value * functionValue, const std::vector<Value *>& parameters, Type * type){
 			Value* value = new Value(FUNCTIONCALL, type);
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;
 			return value;
 		}
 		
-		inline static Value * FunctionRef(FunctionDecl * functionDecl, Type * type){
+		inline static Value * FunctionRef(Function * function, Type * type){
 			Value* value = new Value(FUNCTIONREF, type);
-			value->functionRef.functionDecl = functionDecl;
+			value->functionRef.function = function;
 			return value;
 		}
 	};

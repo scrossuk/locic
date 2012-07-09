@@ -14,7 +14,7 @@ namespace Locic {
 	
 		class Context {
 			public:
-				virtual SEM::FunctionDecl* getFunctionDecl(const std::string& name) = 0;
+				virtual SEM::Function* getFunction(const std::string& name) = 0;
 				
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
@@ -29,16 +29,16 @@ namespace Locic {
 			public:
 				inline GlobalContext() { }
 				
-				inline bool addFunctionDecl(const std::string& name, SEM::FunctionDecl* decl) {
-					std::pair<std::map<std::string, SEM::FunctionDecl*>::iterator, bool> s =
-					    functionDeclarations_.insert(std::make_pair(name, decl));
+				inline bool addFunction(const std::string& name, SEM::Function* function) {
+					std::pair<std::map<std::string, SEM::Function*>::iterator, bool> s =
+					    functions_.insert(std::make_pair(name, function));
 					return s.second;
 				}
 				
-				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					std::map<std::string, SEM::FunctionDecl*>::iterator it =
-					    functionDeclarations_.find(name);
-					return (it != functionDeclarations_.end()) ? it->second : NULL;
+				inline SEM::Function* getFunction(const std::string& name) {
+					std::map<std::string, SEM::Function*>::iterator it =
+					    functions_.find(name);
+					return (it != functions_.end()) ? it->second : NULL;
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
@@ -62,7 +62,7 @@ namespace Locic {
 				}
 				
 			private:
-				std::map<std::string, SEM::FunctionDecl*> functionDeclarations_;
+				std::map<std::string, SEM::Function*> functions_;
 				std::map<std::string, SEM::TypeInstance*> typeInstances_;
 				
 		};
@@ -72,14 +72,15 @@ namespace Locic {
 				inline ModuleContext(Context& parentContext, SEM::Module* module)
 					: parentContext_(parentContext), module_(module) { }
 					
-				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					SEM::FunctionDecl* decl = parentContext_.getFunctionDecl(name);
+				inline SEM::Function* getFunction(const std::string& name) {
+					SEM::Function* function = parentContext_.getFunction(name);
 					
-					if(decl != NULL) {
-						module_->functionDeclarations.insert(std::make_pair(name, decl));
+					if(function != NULL) {
+						// Modules need to know what functions they use.
+						module_->functions.insert(std::make_pair(name, function));
 					}
 					
-					return decl;
+					return function;
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
@@ -115,8 +116,8 @@ namespace Locic {
 					assert(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF);	
 				}
 				
-				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					return parentContext_.getFunctionDecl(name);
+				inline SEM::Function* getFunction(const std::string& name) {
+					return parentContext_.getFunction(name);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
@@ -144,8 +145,8 @@ namespace Locic {
 		
 		class LocalContext: public Context {
 			public:
-				inline LocalContext(Context& parentContext, SEM::FunctionDecl * decl)
-					: nextVarId_(0), parentContext_(parentContext), decl_(decl) {
+				inline LocalContext(Context& parentContext, SEM::Function * function)
+					: nextVarId_(0), parentContext_(parentContext), function_(function) {
 					// Lowest stack entry holds parameter variables.
 					localVarStack_.push_back(std::map<std::string, SEM::Var*>());
 				}
@@ -156,11 +157,11 @@ namespace Locic {
 				}
 				
 				inline SEM::Type * getReturnType() {
-					return decl_->type->functionType.returnType;
+					return function_->type->functionType.returnType;
 				}
 				
-				inline SEM::FunctionDecl* getFunctionDecl(const std::string& name) {
-					return parentContext_.getFunctionDecl(name);
+				inline SEM::Function* getFunction(const std::string& name) {
+					return parentContext_.getFunction(name);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
@@ -222,7 +223,7 @@ namespace Locic {
 			private:
 				std::size_t nextVarId_;
 				Context& parentContext_;
-				SEM::FunctionDecl * decl_;
+				SEM::Function * function_;
 				std::vector< std::map<std::string, SEM::Var*> > localVarStack_;
 				std::vector<SEM::Scope*> scopeStack_;
 				

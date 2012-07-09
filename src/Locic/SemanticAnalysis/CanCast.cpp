@@ -129,24 +129,18 @@ namespace Locic {
 						return err;
 					}
 					
-					const std::list<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
+					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
 						
-					const std::list<SEM::Type*>& destList = destType->functionType.parameterTypes;
+					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
 					
 					if(sourceList.size() != destList.size()) {
 						return "Semantic Analysis Error: Number of parameters doesn't match in function type.\n";
 					}
 					
-					std::list<SEM::Type*>::const_iterator sourceIt = sourceList.begin(),
-					                                      destIt = destList.begin();
-					                                      
-					while(sourceIt != sourceList.end()) {
-						if(CanDoImplicitCast(*sourceIt, *destIt) != NULL) {
+					for(std::size_t i = 0; i < sourceList.size(); i++){
+						if(CanDoImplicitCast(sourceList.at(i), destList.at(i)) != NULL) {
 							return "Semantic Analysis Error: Cannot cast parameter type in function type.\n";
 						}
-							
-						++sourceIt;
-						++destIt;
 					}
 					
 					return NULL;
