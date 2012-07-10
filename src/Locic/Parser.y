@@ -96,7 +96,7 @@ module(NM) ::= module(OM) function(F).
 
 module(NM) ::= module(OM) typeInstance(T).
 	{
-		(OM)->addTypeInstance(T);
+		(OM)->typeInstances.push_back(T);
 		NM = OM;
 	}
 

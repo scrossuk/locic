@@ -26,6 +26,22 @@ namespace Locic {
 			
 			std::vector<AST::TypeVar*>::const_iterator it;
 			
+			std::size_t varId = 0;
+			
+			if(function->parentType != NULL){
+				SEM::TypeInstance * thisTypeInstance = context.getTypeInstance(function->parentType->getFullName());
+				
+				assert(thisTypeInstance != NULL);
+				
+				SEM::Type * thisType =
+					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE,
+						SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, thisTypeInstance));
+				SEM::Var * thisVar = new SEM::Var(SEM::Var::PARAM, varId++, thisType);
+				
+				parameterTypes.push_back(thisType);
+				parameterVars.push_back(thisVar);
+			}
+			
 			for(std::size_t i = 0; i < function->parameters.size(); i++) {
 				AST::TypeVar* typeVar = function->parameters.at(i);
 				AST::Type* paramType = typeVar->type;
@@ -42,7 +58,7 @@ namespace Locic {
 					return NULL;
 				}
 				
-				SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, i, semParamType);
+				SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, varId++, semParamType);
 				
 				parameterTypes.push_back(semParamType);
 				parameterVars.push_back(semParamVar);

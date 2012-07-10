@@ -103,12 +103,18 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						return SEM::Value::FunctionRef(function, function->type);
 					}
 					
-					printf("Semantic Analysis Error: Local variable '%s' was not found\n", astVar->name.c_str());
+					printf("Semantic Analysis Error: local variable '%s' not found\n", astVar->name.c_str());
 					return NULL;
 				}
 				case AST::Var::MEMBER: {
-					printf("Semantic Analysis Error: Member variables not implemented.\n");
-					return NULL;
+					SEM::Var* semVar = context.getThisVar(astVar->name);
+					
+					if(semVar == NULL){
+						printf("Semantic Analysis Error: member variable '@%s' not found\n", astVar->name.c_str());
+						return NULL;
+					}
+				
+					return SEM::Value::VarValue(semVar);
 				}
 				default:
 					printf("Internal Compiler Error: Unknown AST::Var type enum.\n");

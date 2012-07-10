@@ -12,9 +12,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		std::list<SEM::Module*> Run(const std::list<AST::Module*>& modules) {
-			GlobalContext globalContext;
-			
+		bool AddTypeInstances(GlobalContext& globalContext, const std::list<AST::Module*>& modules){
 			std::vector< std::pair<AST::TypeInstance *, SEM::TypeInstance *> > typeInstancePairs;
 			
 			//-- Initial phase: get all type names.
@@ -29,7 +27,7 @@ namespace Locic {
 					
 					if(!globalContext.addTypeInstance(astTypeInstance->name, semTypeInstance)) {
 						printf("Semantic Analysis Error: type already defined with name '%s'.\n", astTypeInstance->name.c_str());
-						return std::list<SEM::Module*>();
+						return false;
 					}
 					
 					typeInstancePairs.push_back(std::make_pair(astTypeInstance, semTypeInstance));
@@ -47,7 +45,7 @@ namespace Locic {
 					
 					if(semType == NULL){
 						printf("Semantic Analysis Error: invalid type for type instance member '%s'.\n", typeVar->name.c_str());
-						return std::list<SEM::Module*>();
+						return false;
 					}
 					
 					semTypeInstance->variableNames.push_back(typeVar->name);
@@ -56,7 +54,11 @@ namespace Locic {
 				}
 			}
 			
-			//-- Declaration phase: scan for functions and class methods (so they can be referenced by the final phase).
+			return true;
+		}
+		
+		bool AddFunctionDecls(GlobalContext& globalContext, const std::list<AST::Module*>& modules){
+			//-- Scan for functions and class methods (so they can be referenced by the final phase).
 			for(std::list<AST::Module*>::const_iterator it = modules.begin(); it != modules.end(); ++it) {
 				AST::Module* astModule = *it;
 				
@@ -64,13 +66,42 @@ namespace Locic {
 					AST::Function * astFunction = astModule->functions.at(i);
 					
 					if(!globalContext.addFunction(astFunction->getFullName(), ConvertFunctionDecl(globalContext, astFunction))) {
-						printf("Semantic Analysis Error: function already defined with name '%s'.\n", astFunction->name.c_str());
-						return std::list<SEM::Module*>();
+						printf("Semantic Analysis Error: function already defined with name '%s'.\n", astFunction->getFullName().c_str());
+						return false;
+					}
+				}
+				
+				for(std::size_t i = 0; i < astModule->typeInstances.size(); i++){
+					AST::TypeInstance * astTypeInstance = astModule->typeInstances.at(i);
+					
+					for(std::size_t j = 0; j < astTypeInstance->functions.size(); j++){
+						AST::Function * astFunction = astTypeInstance->functions.at(j);
+						
+						if(!globalContext.addFunction(astFunction->getFullName(), ConvertFunctionDecl(globalContext, astFunction))) {
+							printf("Semantic Analysis Error: function already defined with name '%s'.\n", astFunction->getFullName().c_str());
+							return false;
+						}
 					}
 				}
 			}
 			
-			//-- Definition phase: extend the semantic structure with the definitions of functions and class methods.
+			return true;
+		}
+	
+		std::list<SEM::Module*> Run(const std::list<AST::Module*>& modules) {
+			GlobalContext globalContext;
+			
+			// Convert type instance information.
+			if(!AddTypeInstances(globalContext, modules)){
+				return std::list<SEM::Module*>();
+			}
+			
+			// Convert function declaration information.
+			if(!AddFunctionDecls(globalContext, modules)){
+				return std::list<SEM::Module*>();
+			}
+			
+			// Convert the definitions of functions and class methods.
 			std::list<SEM::Module*> semModules;
 			
 			for(std::list<AST::Module*>::const_iterator it = modules.begin(); it != modules.end(); ++it) {

@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
@@ -37,9 +38,9 @@ class CodeGen {
 		Function* currentFunction_;
 		BasicBlock* currentBasicBlock_;
 		FunctionPassManager fpm_;
-		std::map<SEM::TypeInstance*, StructType*> structs_;
+		std::map<SEM::TypeInstance*, StructType*> typeInstances_;
 		std::map<SEM::Function*, Function*> functions_;
-		std::map<std::size_t, AllocaInst*> localVariables_, paramVariables_;
+		std::vector<AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		
 	public:
@@ -157,14 +158,8 @@ class CodeGen {
 				SEM::TypeInstance* typeInstance = typeIt->second;
 				assert(typeInstance != NULL);
 				
-				switch(typeInstance->typeEnum) {
-					case SEM::TypeInstance::STRUCT: {
-						structs_[typeInstance] = StructType::create(getGlobalContext(), typeInstance->name);
-						break;
-					}
-					default: {
-						std::cerr << "Unimplemented type with name '" << typeInstance->name << "'." << std::endl;
-					}
+				if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL){
+					typeInstances_[typeInstance] = StructType::create(getGlobalContext(), typeInstance->getFullName());
 				}
 			}
 			
@@ -173,19 +168,19 @@ class CodeGen {
 				SEM::TypeInstance* typeInstance = typeIt->second;
 				assert(typeInstance != NULL);
 				
-				switch(typeInstance->typeEnum) {
-					case SEM::TypeInstance::STRUCT: {
-						std::vector<Type*> structMembers;
-						for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
-							structMembers.push_back(genType(typeInstance->variables.at(i)->type));
-						}
-						
-						structs_[typeInstance]->setBody(structMembers);
-						break;
+				if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL){
+					std::vector<Type*> memberVariables;
+					
+					if(typeInstance->typeEnum != SEM::TypeInstance::STRUCT){
+						// Add vtable pointer.
+						memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
 					}
-					default: {
-						std::cerr << "Unimplemented type with name '" << typeInstance->name << "'." << std::endl;
+					
+					for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
+						memberVariables.push_back(genType(typeInstance->variables.at(i)->type));
 					}
+					
+					typeInstances_[typeInstance]->setBody(memberVariables);
 				}
 			}
 			
@@ -243,18 +238,17 @@ class CodeGen {
 						default:
 							std::cerr << "CodeGen error: Unknown basic type." << std::endl;
 							return Type::getVoidTy(getGlobalContext());
-							
 					}
 				}
 				case SEM::Type::NAMED: {
 					SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
 					
-					if(typeInstance->typeEnum == SEM::TypeInstance::STRUCT) {
-						StructType* structType = structs_[typeInstance];
+					if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL) {
+						StructType* structType = typeInstances_[typeInstance];
 						assert(structType != NULL);
 						return structType;
 					} else {
-						std::cerr << "CodeGen error: Named type not implemented." << std::endl;
+						std::cerr << "CodeGen error: Referring declarations not implemented." << std::endl;
 						return Type::getVoidTy(getGlobalContext());
 					}
 				}
@@ -299,7 +293,8 @@ class CodeGen {
 				// Create an alloca for this variable.
 				AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
 				
-				paramVariables_[paramVar->id] = stackObject;
+				assert(paramVar->id == paramVariables_.size());
+				paramVariables_.push_back(stackObject);
 				
 				// Store the initial value into the alloca.
 				builder_.CreateStore(arg, stackObject);
@@ -339,7 +334,8 @@ class CodeGen {
 				// Create an alloca for this variable.
 				AllocaInst* stackObject = builder_.CreateAlloca(genType(localVar->type));
 				
-				localVariables_[localVar->id] = stackObject;
+				assert(localVar->id == localVariables_.size());
+				localVariables_.push_back(stackObject);
 			}
 			
 			for(std::size_t i = 0; i < scope->statementList.size(); i++){		
@@ -453,7 +449,7 @@ class CodeGen {
 					
 					switch(var->typeEnum) {
 						case SEM::Var::PARAM: {
-							Value * val = paramVariables_[var->id];
+							Value * val = paramVariables_.at(var->id);
 							assert(val != NULL);
 							if(genLValue) {
 								return val;
@@ -462,7 +458,7 @@ class CodeGen {
 							}
 						}
 						case SEM::Var::LOCAL: {
-							Value * val = localVariables_[var->id];
+							Value * val = localVariables_.at(var->id);
 							assert(val != NULL);
 							if(genLValue) {
 								return val;
@@ -471,8 +467,19 @@ class CodeGen {
 							}
 						}
 						case SEM::Var::MEMBER: {
-							std::cerr << "CodeGen error: Unimplemented member variable access." << std::endl;
-							return ConstantInt::get(getGlobalContext(), APInt(32, 1));
+							assert(!paramVariables_.empty());
+							Value * object = paramVariables_.front();
+							object->dump();
+							
+							std::cout << "MEMBER: " << var->id << std::endl;
+							
+							Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
+							
+							if(genLValue){
+								return memberPtr;
+							}else{
+								return builder_.CreateLoad(memberPtr);
+							}
 						}
 						default: {
 							std::cerr << "CodeGen error: Unknown variable type in variable access." << std::endl;

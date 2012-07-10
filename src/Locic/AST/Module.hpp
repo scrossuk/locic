@@ -16,14 +16,6 @@ namespace AST {
 		
 		inline Module(const std::string& n)
 			: name(n) { }
-		
-		inline void addTypeInstance(TypeInstance * typeInstance){
-			typeInstances.push_back(typeInstance);
-			
-			for(std::size_t i = 0; i < typeInstance->functions.size(); i++){
-				functions.push_back(typeInstance->functions.at(i));
-			}
-		}
 			
 		inline void print() {
 			// TODO

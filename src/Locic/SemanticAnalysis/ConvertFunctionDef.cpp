@@ -11,32 +11,36 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertFunctionDef(ModuleContext& moduleContext, AST::Function* function) {
+		bool ConvertFunctionDef(Context& context, AST::Function* function) {
 			const std::string functionName = function->getFullName();
 			
 			// Find the corresponding semantic function
 			// (which MUST have been created previously).
-			SEM::Function* semFunction = moduleContext.getFunction(functionName);
+			SEM::Function* semFunction = context.getFunction(functionName);
 			
 			assert(semFunction != NULL);
 			assert(semFunction->typeEnum == SEM::Function::DEFINITION);
 			assert(semFunction->scope == NULL);
 			
-			LocalContext localContext(moduleContext, semFunction);
+			LocalContext localContext(context, semFunction);
 			
 			// AST information gives parameter names; SEM information gives parameter variable information.
 			const std::vector<AST::TypeVar*>& astParameters = function->parameters;
 			const std::vector<SEM::Var*>& semParameters = semFunction->parameters;
 			
-			assert(astParameters.size() == semParameters.size());
+			const std::size_t paramOffset = function->parentType != NULL ? 1 : 0;
+			
+			assert(astParameters.size() + paramOffset == semParameters.size());
+			
+			if(paramOffset == 1) QueryTypeDependencies(context, semParameters.front()->type);
 			
 			for(std::size_t i = 0; i < astParameters.size(); i++){
 				AST::TypeVar* typeVar = astParameters.at(i);
-				SEM::Var* paramVar = semParameters.at(i);
+				SEM::Var* paramVar = semParameters.at(paramOffset + i);
 				
 				// Ensure that any dependencies (e.g. structs) of the parameter
 				// types are included in the module by querying them.
-				QueryTypeDependencies(moduleContext, paramVar->type);
+				QueryTypeDependencies(context, paramVar->type);
 				
 				// Create a mapping from the parameter's name to its variable information.
 				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
