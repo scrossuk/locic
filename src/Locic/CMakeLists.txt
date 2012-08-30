@@ -29,5 +29,5 @@ add_executable(locic main.cpp Lexer.cpp Parser.c)
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core native)
-target_link_libraries(locic locic-semanalysis locic-codegen clangFrontend clangParse clangSema clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
+target_link_libraries(locic locic-semanalysis locic-codegen clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 

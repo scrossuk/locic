@@ -53,12 +53,12 @@ class CodeGen {
 			  
 			InitializeNativeTarget();
 			
-			std::cout << "Default target triple: " << sys::getHostTriple() << std::endl;
+			std::cout << "Default target triple: " << sys::getDefaultTargetTriple() << std::endl;
 			
-			module_->setTargetTriple(sys::getHostTriple());
+			module_->setTargetTriple(sys::getDefaultTargetTriple());
 			
 			std::string error;
-			const Target* target = TargetRegistry::lookupTarget(sys::getHostTriple(), error);
+			const Target* target = TargetRegistry::lookupTarget(sys::getDefaultTargetTriple(), error);
 			
 			if(target != NULL) {
 				std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
@@ -76,7 +76,7 @@ class CodeGen {
 				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files." << std::endl;
 				
 				if(target->hasTargetMachine()) {
-					std::auto_ptr<TargetMachine> targetMachine(target->createTargetMachine(sys::getHostTriple(), "", ""));
+					std::auto_ptr<TargetMachine> targetMachine(target->createTargetMachine(sys::getDefaultTargetTriple(), "", "", TargetOptions()));
 					const TargetData* targetData = targetMachine->getTargetData();
 					
 					if(targetData != 0) {
@@ -106,16 +106,16 @@ class CodeGen {
 						ci.createDiagnostics(0, NULL);
 						
 						clang::TargetOptions to;
-						to.Triple = sys::getHostTriple();
+						to.Triple = sys::getDefaultTargetTriple();
 						targetInfo_ = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 						
 						std::cout << "Information from Clang:" << std::endl;
-						std::cout << "--Short width: " << targetInfo_->getShortWidth() << std::endl;
-						std::cout << "--Int width: " << targetInfo_->getIntWidth() << std::endl;
-						std::cout << "--Long width: " << targetInfo_->getLongWidth() << std::endl;
-						std::cout << "--Long long width: " << targetInfo_->getLongLongWidth() << std::endl;
-						std::cout << "--Float width: " << targetInfo_->getFloatWidth() << std::endl;
-						std::cout << "--Double width: " << targetInfo_->getDoubleWidth() << std::endl;
+						std::cout << "--Short width: " << targetInfo_->getShortWidth() << ", " << (sizeof(short) * 8) << std::endl;
+						std::cout << "--Int width: " << targetInfo_->getIntWidth() << ", " << (sizeof(int) * 8) << std::endl;
+						std::cout << "--Long width: " << targetInfo_->getLongWidth() << ", " << (sizeof(long) * 8) << std::endl;
+						std::cout << "--Long long width: " << targetInfo_->getLongLongWidth() << ", " << (sizeof(long long) * 8) << std::endl;
+						std::cout << "--Float width: " << targetInfo_->getFloatWidth() << ", " << (sizeof(float) * 8) << std::endl;
+						std::cout << "--Double width: " << targetInfo_->getDoubleWidth() << ", " << (sizeof(double) * 8) << std::endl;
 						std::cout << std::endl;
 					}
 				}
