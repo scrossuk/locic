@@ -85,46 +85,6 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 	}
 }
 
-void QueryTypeDependencies(Context& context, SEM::Type* type){
-	switch(type->typeEnum) {
-		case SEM::Type::VOID:
-		case SEM::Type::NULLT:
-		case SEM::Type::BASIC:
-			return;
-		case SEM::Type::NAMED: {
-			SEM::TypeInstance * typeInstance = type->namedType.typeInstance;
-			
-			assert(typeInstance != NULL);
-			if(context.referTypeInstance(typeInstance)){
-				for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
-					SEM::Type * varType = typeInstance->variables.at(i)->type;
-					assert(varType != NULL);
-					QueryTypeDependencies(context, varType);
-				}
-			}
-			
-			return;
-		}
-		case SEM::Type::POINTER:
-			QueryTypeDependencies(context, type->pointerType.targetType);
-			return;
-		case SEM::Type::FUNCTION: {
-			QueryTypeDependencies(context, type->functionType.returnType);
-			
-			const std::vector<SEM::Type*>& parameterTypes = type->functionType.parameterTypes;
-			
-			for(std::size_t i = 0; i < parameterTypes.size(); i++){
-				QueryTypeDependencies(context, parameterTypes.at(i));
-			}
-			
-			return;
-		}
-		default:
-			printf("Internal Compiler Error: Unknown SEM::Type type enum.\n");
-			return;
-	}
-}
-
 }
 
 }

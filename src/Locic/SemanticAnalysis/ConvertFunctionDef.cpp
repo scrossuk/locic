@@ -32,15 +32,9 @@ namespace Locic {
 			
 			assert(astParameters.size() + paramOffset == semParameters.size());
 			
-			if(paramOffset == 1) QueryTypeDependencies(context, semParameters.front()->type);
-			
 			for(std::size_t i = 0; i < astParameters.size(); i++){
 				AST::TypeVar* typeVar = astParameters.at(i);
 				SEM::Var* paramVar = semParameters.at(paramOffset + i);
-				
-				// Ensure that any dependencies (e.g. structs) of the parameter
-				// types are included in the module by querying them.
-				QueryTypeDependencies(context, paramVar->type);
 				
 				// Create a mapping from the parameter's name to its variable information.
 				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {

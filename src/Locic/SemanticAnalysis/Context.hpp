@@ -18,9 +18,6 @@ namespace Locic {
 				
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
-				// Returns true if type instance wasn't already referenced.
-				virtual bool referTypeInstance(SEM::TypeInstance* typeInstance) = 0;
-				
 				virtual SEM::Var * getThisVar(const std::string& name) = 0;
 				
 		};
@@ -53,10 +50,6 @@ namespace Locic {
 					return (it != typeInstances_.end()) ? it->second : NULL;
 				}
 				
-				inline bool referTypeInstance(SEM::TypeInstance* typeInstance) {
-					return false;
-				}
-				
 				inline SEM::Var * getThisVar(const std::string& name){
 					return NULL;
 				}
@@ -84,19 +77,7 @@ namespace Locic {
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					SEM::TypeInstance* typeInstance = parentContext_.getTypeInstance(name);
-					
-					if(typeInstance != NULL) {
-						referTypeInstance(typeInstance);
-					}
-					
-					return typeInstance;
-				}
-				
-				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
-					std::pair<std::map<std::string, SEM::TypeInstance *>::iterator, bool> s;
-					s = module_->typeInstances.insert(std::make_pair(typeInstance->name, typeInstance));
-					return s.second;
+					return parentContext_.getTypeInstance(name);
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
@@ -122,10 +103,6 @@ namespace Locic {
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
 					return parentContext_.getTypeInstance(name);
-				}
-				
-				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
-					return parentContext_.referTypeInstance(typeInstance);
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
@@ -166,10 +143,6 @@ namespace Locic {
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
 					return parentContext_.getTypeInstance(name);
-				}
-				
-				inline bool referTypeInstance(SEM::TypeInstance * typeInstance){
-					return parentContext_.referTypeInstance(typeInstance);
 				}
 				
 				inline void pushScope(SEM::Scope* scope) {

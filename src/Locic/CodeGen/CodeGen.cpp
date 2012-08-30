@@ -151,54 +151,60 @@ class CodeGen {
 		void genFile(SEM::Module* module) {
 			assert(module != NULL);
 			
-			std::map<std::string, SEM::TypeInstance *>::const_iterator typeIt;
-			
-			// Create structures.
-			for(typeIt = module->typeInstances.begin(); typeIt != module->typeInstances.end(); ++typeIt){
-				SEM::TypeInstance* typeInstance = typeIt->second;
-				assert(typeInstance != NULL);
-				
-				if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL){
-					typeInstances_[typeInstance] = StructType::create(getGlobalContext(), typeInstance->getFullName());
-				}
-			}
-			
-			// Fill data contents of structures.
-			for(typeIt = module->typeInstances.begin(); typeIt != module->typeInstances.end(); ++typeIt){
-				SEM::TypeInstance* typeInstance = typeIt->second;
-				assert(typeInstance != NULL);
-				
-				if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL){
-					std::vector<Type*> memberVariables;
-					
-					if(typeInstance->typeEnum != SEM::TypeInstance::STRUCT){
-						// Add vtable pointer.
-						memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
-					}
-					
-					for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
-						memberVariables.push_back(genType(typeInstance->variables.at(i)->type));
-					}
-					
-					typeInstances_[typeInstance]->setBody(memberVariables);
-				}
-			}
-			
 			std::map<std::string, SEM::Function *>::const_iterator functionIt;
 			
-			// Create all function declarations.
-			for(functionIt = module->functions.begin(); functionIt != module->functions.end(); ++functionIt){
-				SEM::Function* function = functionIt->second;
-				assert(function != NULL);
-				functions_[function] = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->getFullName(), module_);
-			}
-			
-			// Fill in the implementation of definitions.
 			for(functionIt = module->functions.begin(); functionIt != module->functions.end(); ++functionIt){
 				if(functionIt->second->typeEnum == SEM::Function::DEFINITION){
 					genFunctionDef(functionIt->second);
 				}
 			}
+		}
+		
+		// Lazy generation - function declarations are only
+		// generated when they are first used by code.
+		Function * genFunctionDecl(SEM::Function * function){
+			assert(function != NULL);
+			
+			std::map<SEM::Function *, Function *>::iterator it = functions_.find(function);
+			if(it != functions_.end()) return it->second;
+			
+			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->getFullName(), module_);
+			functions_.insert(std::make_pair(function, functionDecl));
+			return functionDecl;
+		}
+		
+		// Lazy generation - struct types are only
+		// generated when they are first used by code.
+		StructType* genStructType(SEM::TypeInstance * typeInstance){
+			assert(typeInstance != NULL);
+			
+			std::map<SEM::TypeInstance *, StructType *>::iterator it = typeInstances_.find(typeInstance);
+			if(it != typeInstances_.end()) return it->second;
+			
+			StructType * structType = StructType::create(getGlobalContext(), typeInstance->getFullName());
+			
+			// Add the struct type before setting its body, since the struct can contain
+			// variables that have a type that contains this struct (e.g. struct contains
+			// a pointer to itself, such as in a linked list).
+			typeInstances_.insert(std::make_pair(typeInstance, structType));
+			
+			if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF || typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
+				std::vector<Type*> memberVariables;
+				
+				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
+					// Add vtable pointer.
+					memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+				}
+				
+				for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
+					SEM::Var * var = typeInstance->variables.at(i);
+					memberVariables.push_back(genType(var->type));
+				}
+				
+				structType->setBody(memberVariables);
+			}
+			
+			return structType;
 		}
 		
 		FunctionType* genFunctionType(SEM::Type* type) {
@@ -244,12 +250,13 @@ class CodeGen {
 					SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
 					
 					if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL) {
-						StructType* structType = typeInstances_[typeInstance];
-						assert(structType != NULL);
-						return structType;
+						return genStructType(typeInstance);
 					} else {
-						std::cerr << "CodeGen error: Referring declarations not implemented." << std::endl;
-						return Type::getVoidTy(getGlobalContext());
+						// Class declarations are referred to by void pointers,
+						// since their size is unknown. However it seems LLVM
+						// only supports int8_t *, so int8_t is used as the
+						// type for class declarations.
+						return Type::getInt8Ty(getGlobalContext());
 					}
 				}
 				case SEM::Type::POINTER: {
@@ -276,7 +283,7 @@ class CodeGen {
 			assert(function != NULL);
 			assert(function->typeEnum == SEM::Function::DEFINITION);
 		
-			currentFunction_ = functions_[function];
+			currentFunction_ = genFunctionDecl(function);
 			assert(currentFunction_ != NULL);
 			
 			currentBasicBlock_ = BasicBlock::Create(getGlobalContext(), "entry", currentFunction_);
@@ -716,7 +723,7 @@ class CodeGen {
 					return builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
 				}
 				case SEM::Value::FUNCTIONREF: {
-					Function* function = functions_[value->functionRef.function];
+					Function* function = genFunctionDecl(value->functionRef.function);
 					assert(function != NULL);
 					return function;
 				}
