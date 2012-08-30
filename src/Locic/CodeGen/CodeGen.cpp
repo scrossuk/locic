@@ -476,9 +476,6 @@ class CodeGen {
 						case SEM::Var::MEMBER: {
 							assert(!paramVariables_.empty());
 							Value * object = paramVariables_.front();
-							object->dump();
-							
-							std::cout << "MEMBER: " << var->id << std::endl;
 							
 							Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
 							
