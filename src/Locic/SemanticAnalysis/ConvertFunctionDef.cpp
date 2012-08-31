@@ -11,7 +11,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertFunctionDef(Context& context, AST::Function* function) {
+		SEM::Function * ConvertFunctionDef(Context& context, AST::Function* function) {
 			const std::string functionName = function->getFullName();
 			
 			// Find the corresponding semantic function
@@ -39,7 +39,7 @@ namespace Locic {
 				// Create a mapping from the parameter's name to its variable information.
 				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
 					printf("Semantic Analysis Error: cannot share names between function parameters.\n");
-					return false;
+					return NULL;
 				}
 			}
 			
@@ -48,7 +48,7 @@ namespace Locic {
 			SEM::Scope* scope = ConvertScope(localContext, function->scope);
 			
 			if(scope == NULL) {
-				return false;
+				return NULL;
 			}
 			
 			SEM::Type* returnType = semFunction->type->functionType.returnType;
@@ -57,7 +57,7 @@ namespace Locic {
 				// Functions with non-void return types must return a value.
 				if(!WillScopeReturn(scope)) {
 					printf("Semantic Analysis Error: Control reaches end of function with non-void return type (i.e. need to add a return statement).\n");
-					return false;
+					return NULL;
 				}
 			} else {
 				// Need to add a void return statement in case the program didn't.
@@ -65,7 +65,7 @@ namespace Locic {
 			}
 			
 			semFunction->scope = scope;
-			return true;
+			return semFunction;
 		}
 		
 	}

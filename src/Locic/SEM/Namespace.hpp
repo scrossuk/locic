@@ -1,8 +1,8 @@
 #ifndef LOCIC_SEM_NAMESPACE_HPP
 #define LOCIC_SEM_NAMESPACE_HPP
 
-#include <map>
 #include <string>
+#include <Locic/Map.hpp>
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
@@ -47,7 +47,7 @@ namespace SEM{
 	
 	struct Namespace{
 		std::string name;
-		std::map<std::string, NamespaceNode *> children;
+		Locic::StringMap<NamespaceNode *> children;
 	};
 
 }

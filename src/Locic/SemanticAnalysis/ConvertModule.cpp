@@ -19,9 +19,11 @@ namespace Locic {
 				AST::Function* astFunction = module->functions.at(i);
 				
 				if(astFunction->typeEnum == AST::Function::DEFINITION){
-					if(!ConvertFunctionDef(moduleContext, astFunction)) {
-						return false;
-					}
+					SEM::Function * semFunction = ConvertFunctionDef(moduleContext, astFunction);
+					
+					if(semFunction == NULL) return false;
+					
+					semModule->functions.insert(std::make_pair(semFunction->name, semFunction));
 				}
 			}
 			
@@ -29,9 +31,11 @@ namespace Locic {
 				AST::TypeInstance * astTypeInstance = module->typeInstances.at(i);
 				
 				if(astTypeInstance->typeEnum == AST::TypeInstance::CLASSDEF){
-					if(!ConvertClassDef(moduleContext, astTypeInstance)){
-						return false;
-					}
+					SEM::TypeInstance * semTypeInstance = ConvertClassDef(moduleContext, astTypeInstance);
+					
+					if(semTypeInstance == NULL) return false;
+					
+					semModule->typeInstances.insert(std::make_pair(semTypeInstance->name, semTypeInstance));
 				}
 			}
 			

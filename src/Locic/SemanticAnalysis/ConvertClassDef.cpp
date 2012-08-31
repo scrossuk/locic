@@ -8,7 +8,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertClassDef(Context& context, AST::TypeInstance* typeInstance) {
+		SEM::TypeInstance * ConvertClassDef(Context& context, AST::TypeInstance* typeInstance) {
 			const std::string typeName = typeInstance->getFullName();
 			
 			SEM::TypeInstance * semTypeInstance = context.getTypeInstance(typeName);
@@ -20,11 +20,11 @@ namespace Locic {
 			
 			for(std::size_t i = 0; i < typeInstance->functions.size(); i++){
 				if(!ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i))){
-					return false;
+					return NULL;
 				}
 			}
 			
-			return true;
+			return semTypeInstance;
 		}
 		
 	}

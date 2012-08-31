@@ -3,9 +3,9 @@
 
 #include <cassert>
 #include <cstddef>
-#include <map>
 #include <string>
 #include <vector>
+#include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
 
 namespace Locic {
@@ -27,27 +27,21 @@ namespace Locic {
 				inline GlobalContext() { }
 				
 				inline bool addFunction(const std::string& name, SEM::Function* function) {
-					std::pair<std::map<std::string, SEM::Function*>::iterator, bool> s =
-					    functions_.insert(std::make_pair(name, function));
-					return s.second;
+					return functions_.tryInsert(name, function);
 				}
 				
 				inline SEM::Function* getFunction(const std::string& name) {
-					std::map<std::string, SEM::Function*>::iterator it =
-					    functions_.find(name);
-					return (it != functions_.end()) ? it->second : NULL;
+					Optional<SEM::Function *> function = functions_.tryGet(name);
+					return function.hasValue() ? function.getValue() : NULL;
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
-					std::pair<std::map<std::string, SEM::TypeInstance*>::iterator, bool> s =
-					    typeInstances_.insert(std::make_pair(name, typeInstance));
-					return s.second;
+					return typeInstances_.tryInsert(name, typeInstance);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					std::map<std::string, SEM::TypeInstance*>::iterator it =
-					    typeInstances_.find(name);
-					return (it != typeInstances_.end()) ? it->second : NULL;
+					Optional<SEM::TypeInstance *> typeInstance = typeInstances_.tryGet(name);
+					return typeInstance.hasValue() ? typeInstance.getValue() : NULL;
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
@@ -55,8 +49,8 @@ namespace Locic {
 				}
 				
 			private:
-				std::map<std::string, SEM::Function*> functions_;
-				std::map<std::string, SEM::TypeInstance*> typeInstances_;
+				StringMap<SEM::Function*> functions_;
+				StringMap<SEM::TypeInstance*> typeInstances_;
 				
 		};
 		
@@ -66,14 +60,7 @@ namespace Locic {
 					: parentContext_(parentContext), module_(module) { }
 					
 				inline SEM::Function* getFunction(const std::string& name) {
-					SEM::Function* function = parentContext_.getFunction(name);
-					
-					if(function != NULL) {
-						// Modules need to know what functions they use.
-						module_->functions.insert(std::make_pair(name, function));
-					}
-					
-					return function;
+					return parentContext_.getFunction(name);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
