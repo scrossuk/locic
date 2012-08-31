@@ -3,6 +3,7 @@
 
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/Module.hpp>
+#include <Locic/SEM/Namespace.hpp>
 #include <Locic/SEM/Scope.hpp>
 #include <Locic/SEM/Statement.hpp>
 #include <Locic/SEM/Type.hpp>

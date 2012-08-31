@@ -90,6 +90,15 @@ namespace Locic {
 				
 		};
 		
+		/*class NamespaceContext: public Context {
+			public:
+				inline NamespaceContext(Context& parentContext, SEM::Namespace * nameSpace)
+					: parentContext_(parentContext), nameSpace_(nameSpace){ }
+				
+				
+			
+		};*/
+		
 		class TypeInstanceContext: public Context {
 			public:
 				inline TypeInstanceContext(Context& parentContext, SEM::TypeInstance * typeInstance)
