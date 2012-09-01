@@ -340,22 +340,22 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				return NULL;
 			}
 			
-			for(std::size_t i = 0; i < typeInstance->variableNames.size(); i++){
-				if(typeInstance->variableNames.at(i) == value->memberAccess.memberName){
-					if(objectType->isLValue){
-						return SEM::Value::MemberAccess(object, i, typeInstance->variables.at(i)->type);
-					}else{
-						// If the struct type is an R-value, then the member must
-						// also be (preventing assignments to R-value members).
-						SEM::Type * memberType = new SEM::Type(*(typeInstance->variables.at(i)->type));
-						memberType->isLValue = false;
-						return SEM::Value::MemberAccess(object, i, memberType);
-					}
+			Optional<SEM::Var *> varResult = typeInstance->variables.tryGet(value->memberAccess.memberName);
+			if(varResult.hasValue()){
+				SEM::Var * var = varResult.getValue();
+				if(objectType->isLValue){
+					return SEM::Value::MemberAccess(object, var->id, var->type);
+				}else{
+					// If the struct type is an R-value, then the member must
+					// also be (preventing assignments to R-value members).
+					SEM::Type * memberType = new SEM::Type(*(var->type));
+					memberType->isLValue = false;
+					return SEM::Value::MemberAccess(object, var->id, memberType);
 				}
+			}else{
+				printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", value->memberAccess.memberName.c_str());
+				return NULL;
 			}
-		
-			printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", value->memberAccess.memberName.c_str());
-			return NULL;
 		}
 		case AST::Value::FUNCTIONCALL: {
 			SEM::Value* functionValue = ConvertValue(context, value->functionCall.functionValue);

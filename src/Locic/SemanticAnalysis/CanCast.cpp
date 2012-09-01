@@ -32,6 +32,55 @@ namespace Locic {
 			return NULL;
 		}
 		
+		bool AreTypesEqual(SEM::Type * firstType, SEM::Type * secondType){
+			if(firstType->typeEnum != secondType->typeEnum
+				|| firstType->isMutable != secondType->isMutable
+				|| firstType->isLValue != secondType->isLValue) {
+				return false;
+			}
+			
+			switch(firstType->typeEnum) {
+				case SEM::Type::NULLT: {
+					return true;
+				}
+				case SEM::Type::BASIC: {
+					return firstType->basicType.typeEnum == secondType->basicType.typeEnum;
+				}
+				case SEM::Type::NAMED: {
+					return firstType->namedType.typeInstance == secondType->namedType.typeInstance;
+				}
+				case SEM::Type::POINTER: {
+					SEM::Type* firstPtr = firstType->pointerType.targetType;
+					SEM::Type* secondPtr = secondType->pointerType.targetType;
+					
+					return AreTypesEqual(firstPtr, secondPtr);
+				}
+				case SEM::Type::FUNCTION: {
+					if(!AreTypesEqual(firstType->functionType.returnType, secondType->functionType.returnType)){
+						return false;
+					}
+				
+					const std::vector<SEM::Type*>& firstList = firstType->functionType.parameterTypes;
+						
+					const std::vector<SEM::Type*>& secondList = secondType->functionType.parameterTypes;
+					
+					if(firstList.size() != secondList.size()) {
+						return false;
+					}
+					
+					for(std::size_t i = 0; i < firstList.size(); i++){
+						if(!AreTypesEqual(firstList.at(i), secondList.at(i))) {
+							return false;
+						}
+					}
+					
+					return true;
+				}
+				default:
+					return false;
+			}
+		}
+		
 		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second){
 			if(CanDoImplicitCast(first, second) == NULL) return second;
 			if(CanDoImplicitCast(second, first) == NULL) return first;

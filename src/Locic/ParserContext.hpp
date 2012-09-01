@@ -3,12 +3,13 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 #include <Locic/AST.hpp>
 
 namespace Locic{
 
 	struct ParserContext{
-		std::list<AST::Module *> modules;
+		std::vector<AST::Module *> modules;
 		std::string currentFileName;
 		std::size_t lineNumber;
 		bool parseFailed;

@@ -2,7 +2,7 @@
 #define LOCIC_SEM_TYPEINSTANCE_HPP
 
 #include <string>
-#include <vector>
+#include <Locic/Map.hpp>
 #include <Locic/SEM/Var.hpp>
 
 namespace SEM{
@@ -17,9 +17,8 @@ namespace SEM{
 		} typeEnum;
 		
 		std::string name;
-		std::vector<std::string> variableNames;
-		std::vector<Var *> variables;
-		std::vector<Function *> methods;
+		Locic::StringMap<Var *> variables;
+		Locic::StringMap<Function *> methods;
 		
 		inline TypeInstance(TypeEnum e, const std::string& n)
 			: typeEnum(e), name(n){ }

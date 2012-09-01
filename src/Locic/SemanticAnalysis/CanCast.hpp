@@ -10,6 +10,8 @@ namespace Locic {
 	
 		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type);
 		
+		bool AreTypesEqual(SEM::Type * first, SEM::Type * second);
+		
 		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second);
 		
 		const char* CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType);

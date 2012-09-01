@@ -72,7 +72,7 @@ int main(int argc, char * argv[]){
 		printf("Performing semantic analysis...\n");
 
 		// Try to do semantic analysis...
-		std::list<SEM::Module *> semModules = Locic::SemanticAnalysis::Run(parserContext.modules);
+		std::vector<SEM::Module *> semModules = Locic::SemanticAnalysis::Run(parserContext.modules);
 		
 		if(!semModules.empty()){
 			printf("Successfully performed semantic analysis.\n");

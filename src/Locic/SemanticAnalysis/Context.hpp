@@ -14,7 +14,7 @@ namespace Locic {
 	
 		class Context {
 			public:
-				virtual SEM::Function* getFunction(const std::string& name) = 0;
+				virtual SEM::Function* getFunction(const std::string& name, bool searchParent = true) = 0;
 				
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
@@ -39,7 +39,7 @@ namespace Locic {
 					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name) {
+				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
 					Optional<SEM::NamespaceNode *> node = rootNamespace_->children.tryGet(name);
 					return node.hasValue() ? (node.getValue()->getFunction()) : NULL;
 				}
@@ -62,13 +62,21 @@ namespace Locic {
 				
 		};
 		
-		class ModuleContext: public Context {
+		class ModuleContext: public StructuralContext {
 			public:
-				inline ModuleContext(Context& parentContext, SEM::Module* module)
+				inline ModuleContext(StructuralContext& parentContext, SEM::Module* module)
 					: parentContext_(parentContext), module_(module) { }
 					
-				inline SEM::Function* getFunction(const std::string& name) {
+				inline bool addFunction(const std::string& name, SEM::Function* function) {
+					return parentContext_.addFunction(name, function);
+				}
+				
+				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
 					return parentContext_.getFunction(name);
+				}
+				
+				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
+					return parentContext_.addTypeInstance(name, typeInstance);
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
@@ -80,7 +88,7 @@ namespace Locic {
 				}
 				
 			private:
-				Context& parentContext_;
+				StructuralContext& parentContext_;
 				SEM::Module* module_;
 				
 		};
@@ -94,15 +102,24 @@ namespace Locic {
 			
 		};*/
 		
-		class TypeInstanceContext: public Context {
+		class TypeInstanceContext: public StructuralContext {
 			public:
-				inline TypeInstanceContext(Context& parentContext, SEM::TypeInstance * typeInstance)
-					: parentContext_(parentContext), typeInstance_(typeInstance) {
-					assert(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF);	
+				inline TypeInstanceContext(StructuralContext& parentContext, SEM::TypeInstance * typeInstance)
+					: parentContext_(parentContext), typeInstance_(typeInstance) { }
+				
+				inline bool addFunction(const std::string& name, SEM::Function* function) {
+					return typeInstance_->methods.tryInsert(name, function);
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name) {
-					return parentContext_.getFunction(name);
+				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
+					Optional<SEM::Function *> function = typeInstance_->methods.tryGet(name);
+					return function.hasValue() ? function.getValue() :
+						(searchParent ? parentContext_.getFunction(name) : NULL);
+				}
+				
+				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
+					// No nested type instances.
+					return false;
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
@@ -110,16 +127,12 @@ namespace Locic {
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
-					for(std::size_t i = 0; i < typeInstance_->variableNames.size(); i++){
-						if(name == typeInstance_->variableNames.at(i)){
-							return typeInstance_->variables.at(i);
-						}
-					}
-					return parentContext_.getThisVar(name);
+					Optional<SEM::Var *> varResult = typeInstance_->variables.tryGet(name);
+					return varResult.hasValue() ? varResult.getValue() : parentContext_.getThisVar(name);
 				}
 				
 			private:
-				Context& parentContext_;
+				StructuralContext& parentContext_;
 				SEM::TypeInstance * typeInstance_;
 				
 		};
@@ -141,7 +154,7 @@ namespace Locic {
 					return function_->type->functionType.returnType;
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name) {
+				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
 					return parentContext_.getFunction(name);
 				}
 				

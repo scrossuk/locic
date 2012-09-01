@@ -16,11 +16,14 @@ namespace Locic {
 			
 			// Find the corresponding semantic function
 			// (which MUST have been created previously).
-			SEM::Function* semFunction = context.getFunction(functionName);
+			SEM::Function* semFunction = context.getFunction(function->name);
 			
 			assert(semFunction != NULL);
-			assert(semFunction->typeEnum == SEM::Function::DEFINITION);
-			assert(semFunction->scope == NULL);
+			
+			if(semFunction->scope != NULL){
+				printf("Semantic Analysis Error: function '%s' was defined more than once.\n", functionName.c_str());
+				return NULL;
+			}
 			
 			LocalContext localContext(context, semFunction);
 			

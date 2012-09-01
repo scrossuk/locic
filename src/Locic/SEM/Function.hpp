@@ -11,11 +11,6 @@ namespace SEM {
 	struct Scope;
 
 	struct Function{
-		enum TypeEnum{
-			DEFINITION,
-			DECLARATION
-		} typeEnum;
-		
 		TypeInstance * parentType;
 		Type * type;
 		std::string name;
@@ -24,17 +19,17 @@ namespace SEM {
 		// NULL for declarations.
 		Scope * scope;
 		
-		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<Var*>& p, Scope * s, TypeInstance * pT)
-			: parentType(pT), typeEnum(e),
+		inline Function(Type * t, const std::string& n, const std::vector<Var*>& p, Scope * s, TypeInstance * pT)
+			: parentType(pT),
 			type(t), name(n),
 			parameters(p), scope(s) { }
 			
 		inline static Function * Decl(TypeInstance * parentType, Type * type, const std::string& name, const std::vector<Var*>& parameters){
-			return new Function(DECLARATION, type, name, parameters, NULL, parentType);
+			return new Function(type, name, parameters, NULL, parentType);
 		}
 		
 		inline static Function * Def(TypeInstance * parentType, Type * type, const std::string& name, const std::vector<Var*>& parameters, Scope * scope){
-			return new Function(DEFINITION, type, name, parameters, scope, parentType);
+			return new Function(type, name, parameters, scope, parentType);
 		}
 		
 		inline std::string getFullName() const{

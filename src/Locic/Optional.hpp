@@ -12,7 +12,7 @@ namespace Locic{
 			Optional()
 				: optional_(){ }
 			
-			Optional(const Value& value)
+			explicit Optional(const Value& value)
 				: optional_(value){ }
 			
 			bool hasValue() const{

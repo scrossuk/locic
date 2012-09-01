@@ -157,8 +157,10 @@ class CodeGen {
 			
 			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
 				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
-				for(std::size_t j = 0; j < typeInstance->methods.size(); j++){
-					genFunctionDef(typeInstance->methods.at(j));
+				
+				Locic::StringMap<SEM::Function *>::Range range = typeInstance->methods.range();
+				for(; !range.empty(); range.popFront()){
+					genFunctionDef(range.front().value());
 				}
 			}
 		}
@@ -193,16 +195,20 @@ class CodeGen {
 			typeInstances_.insert(typeInstance, structType);
 			
 			if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF || typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
-				std::vector<Type*> memberVariables;
+				const std::size_t paramOffset = (typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF) ? 1 : 0;
+			
+				std::vector<Type*> memberVariables(paramOffset + typeInstance->variables.size(), NULL);
 				
 				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
 					// Add vtable pointer.
-					memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+					memberVariables.front() = PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 				}
 				
-				for(std::size_t i = 0; i < typeInstance->variables.size(); i++){
-					SEM::Var * var = typeInstance->variables.at(i);
-					memberVariables.push_back(genType(var->type));
+				Locic::StringMap<SEM::Var *>::Range range = typeInstance->variables.range();
+				for(; !range.empty(); range.popFront()){
+					SEM::Var * var = range.front().value();
+					assert(memberVariables.at(paramOffset + var->id) == NULL);
+					memberVariables.at(paramOffset + var->id) = genType(var->type);
 				}
 				
 				structType->setBody(memberVariables);
@@ -286,7 +292,7 @@ class CodeGen {
 		void genFunctionDef(SEM::Function* function) {
 			assert(function != NULL);
 			
-			if(function->typeEnum != SEM::Function::DEFINITION) return;
+			if(function->scope == NULL) return;
 		
 			currentFunction_ = genFunctionDecl(function);
 			assert(currentFunction_ != NULL);

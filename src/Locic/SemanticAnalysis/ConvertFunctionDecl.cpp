@@ -72,11 +72,7 @@ namespace Locic {
 				assert(parentTypeInstance != NULL);
 			}
 			
-			if(function->typeEnum == AST::Function::DECLARATION) {
-				return SEM::Function::Decl(parentTypeInstance, functionType, function->name, parameterVars);
-			} else {
-				return SEM::Function::Def(parentTypeInstance, functionType, function->name, parameterVars, NULL);
-			}
+			return SEM::Function::Decl(parentTypeInstance, functionType, function->name, parameterVars);
 		}
 		
 	}
