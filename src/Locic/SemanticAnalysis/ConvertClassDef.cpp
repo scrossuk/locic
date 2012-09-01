@@ -19,9 +19,11 @@ namespace Locic {
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
 			
 			for(std::size_t i = 0; i < typeInstance->functions.size(); i++){
-				if(!ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i))){
-					return NULL;
-				}
+				SEM::Function * function = ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i));
+				
+				if(function == NULL) return NULL;
+				
+				semTypeInstance->methods.push_back(function);
 			}
 			
 			return semTypeInstance;

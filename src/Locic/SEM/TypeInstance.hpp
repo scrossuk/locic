@@ -7,6 +7,8 @@
 
 namespace SEM{
 
+	struct Function;
+
 	struct TypeInstance{
 		enum TypeEnum{
 			CLASSDECL = 0,
@@ -17,6 +19,7 @@ namespace SEM{
 		std::string name;
 		std::vector<std::string> variableNames;
 		std::vector<Var *> variables;
+		std::vector<Function *> methods;
 		
 		inline TypeInstance(TypeEnum e, const std::string& n)
 			: typeEnum(e), name(n){ }

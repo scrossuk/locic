@@ -11,7 +11,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(GlobalContext& context, AST::Function* function) {
+		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function) {
 			AST::Type* returnType = function->returnType;
 			
 			// Return types are always rvalues.

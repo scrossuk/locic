@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertModule(GlobalContext& context, AST::Module* module, SEM::Module* semModule);
+		bool ConvertModule(Context& context, AST::Module* module, SEM::Module* semModule);
 		
 	}
 	

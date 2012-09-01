@@ -12,8 +12,8 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertModule(GlobalContext& globalContext, AST::Module* module, SEM::Module* semModule) {
-			ModuleContext moduleContext(globalContext, semModule);
+		bool ConvertModule(Context& context, AST::Module* module, SEM::Module* semModule) {
+			ModuleContext moduleContext(context, semModule);
 			
 			for(std::size_t i = 0; i < module->functions.size(); i++) {
 				AST::Function* astFunction = module->functions.at(i);

@@ -22,26 +22,35 @@ namespace Locic {
 				
 		};
 		
-		class GlobalContext: public Context {
+		class StructuralContext: public Context{
 			public:
-				inline GlobalContext() { }
+				virtual bool addFunction(const std::string& name, SEM::Function* function) = 0;
+				
+				virtual bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) = 0;
+			
+		};
+		
+		class GlobalContext: public StructuralContext {
+			public:
+				inline GlobalContext(SEM::Namespace * rootNamespace)
+					: rootNamespace_(rootNamespace){ }
 				
 				inline bool addFunction(const std::string& name, SEM::Function* function) {
-					return functions_.tryInsert(name, function);
+					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
 				}
 				
 				inline SEM::Function* getFunction(const std::string& name) {
-					Optional<SEM::Function *> function = functions_.tryGet(name);
-					return function.hasValue() ? function.getValue() : NULL;
+					Optional<SEM::NamespaceNode *> node = rootNamespace_->children.tryGet(name);
+					return node.hasValue() ? (node.getValue()->getFunction()) : NULL;
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
-					return typeInstances_.tryInsert(name, typeInstance);
+					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::TypeInstance(typeInstance));
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					Optional<SEM::TypeInstance *> typeInstance = typeInstances_.tryGet(name);
-					return typeInstance.hasValue() ? typeInstance.getValue() : NULL;
+					Optional<SEM::NamespaceNode *> node = rootNamespace_->children.tryGet(name);
+					return node.hasValue() ? (node.getValue()->getTypeInstance()) : NULL;
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
@@ -49,8 +58,7 @@ namespace Locic {
 				}
 				
 			private:
-				StringMap<SEM::Function*> functions_;
-				StringMap<SEM::TypeInstance*> typeInstances_;
+				SEM::Namespace * rootNamespace_;
 				
 		};
 		

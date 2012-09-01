@@ -43,11 +43,26 @@ namespace SEM{
 			node->typeInstance = typeInstance;
 			return node;
 		}
+		
+		inline struct Function * getFunction(){
+			return (typeEnum == FUNCTION) ? function : NULL;
+		}
+		
+		inline struct Namespace * getNamespace(){
+			return (typeEnum == NAMESPACE) ? nameSpace : NULL;
+		}
+		
+		inline struct TypeInstance * getTypeInstance(){
+			return (typeEnum == TYPEINSTANCE) ? typeInstance : NULL;
+		}
 	};
 	
 	struct Namespace{
 		std::string name;
 		Locic::StringMap<NamespaceNode *> children;
+		
+		inline Namespace(const std::string& n)
+			: name(n){ }
 	};
 
 }

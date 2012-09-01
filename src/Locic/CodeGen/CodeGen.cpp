@@ -158,6 +158,17 @@ class CodeGen {
 					genFunctionDef(functionIt->second);
 				}
 			}
+			
+			std::map<std::string, SEM::TypeInstance *>::const_iterator typeInstanceIt;
+			
+			for(typeInstanceIt = module->typeInstances.begin(); typeInstanceIt != module->typeInstances.end(); ++typeInstanceIt){
+				SEM::TypeInstance * typeInstance = typeInstanceIt->second;
+				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
+					for(std::size_t i = 0; i < typeInstance->methods.size(); i++){
+						genFunctionDef(typeInstance->methods.at(i));
+					}
+				}
+			}
 		}
 		
 		// Lazy generation - function declarations are only
