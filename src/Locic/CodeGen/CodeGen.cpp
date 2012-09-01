@@ -19,11 +19,11 @@
 #include <assert.h>
 #include <cstdio>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
 
@@ -38,8 +38,8 @@ class CodeGen {
 		Function* currentFunction_;
 		BasicBlock* currentBasicBlock_;
 		FunctionPassManager fpm_;
-		std::map<SEM::TypeInstance*, StructType*> typeInstances_;
-		std::map<SEM::Function*, Function*> functions_;
+		Locic::Map<SEM::TypeInstance*, StructType*> typeInstances_;
+		Locic::Map<SEM::Function*, Function*> functions_;
 		std::vector<AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		
@@ -176,11 +176,12 @@ class CodeGen {
 		Function * genFunctionDecl(SEM::Function * function){
 			assert(function != NULL);
 			
-			std::map<SEM::Function *, Function *>::iterator it = functions_.find(function);
-			if(it != functions_.end()) return it->second;
+			Locic::Optional<Function *> optionalFunction = functions_.tryGet(function);
+			if(optionalFunction.hasValue()) return optionalFunction.getValue();
 			
 			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->getFullName(), module_);
-			functions_.insert(std::make_pair(function, functionDecl));
+			
+			functions_.insert(function, functionDecl);
 			return functionDecl;
 		}
 		
@@ -189,15 +190,15 @@ class CodeGen {
 		StructType* genStructType(SEM::TypeInstance * typeInstance){
 			assert(typeInstance != NULL);
 			
-			std::map<SEM::TypeInstance *, StructType *>::iterator it = typeInstances_.find(typeInstance);
-			if(it != typeInstances_.end()) return it->second;
+			Locic::Optional<StructType *> optionalStruct = typeInstances_.tryGet(typeInstance);
+			if(optionalStruct.hasValue()) return optionalStruct.getValue();
 			
 			StructType * structType = StructType::create(getGlobalContext(), typeInstance->getFullName());
 			
 			// Add the struct type before setting its body, since the struct can contain
 			// variables that have a type that contains this struct (e.g. struct contains
 			// a pointer to itself, such as in a linked list).
-			typeInstances_.insert(std::make_pair(typeInstance, structType));
+			typeInstances_.insert(typeInstance, structType);
 			
 			if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF || typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
 				std::vector<Type*> memberVariables;
