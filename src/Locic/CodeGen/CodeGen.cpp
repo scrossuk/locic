@@ -151,22 +151,14 @@ class CodeGen {
 		void genFile(SEM::Module* module) {
 			assert(module != NULL);
 			
-			std::map<std::string, SEM::Function *>::const_iterator functionIt;
-			
-			for(functionIt = module->functions.begin(); functionIt != module->functions.end(); ++functionIt){
-				if(functionIt->second->typeEnum == SEM::Function::DEFINITION){
-					genFunctionDef(functionIt->second);
-				}
+			for(std::size_t i = 0; i < module->functions.size(); i++){
+				genFunctionDef(module->functions.at(i));
 			}
 			
-			std::map<std::string, SEM::TypeInstance *>::const_iterator typeInstanceIt;
-			
-			for(typeInstanceIt = module->typeInstances.begin(); typeInstanceIt != module->typeInstances.end(); ++typeInstanceIt){
-				SEM::TypeInstance * typeInstance = typeInstanceIt->second;
-				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
-					for(std::size_t i = 0; i < typeInstance->methods.size(); i++){
-						genFunctionDef(typeInstance->methods.at(i));
-					}
+			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
+				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
+				for(std::size_t j = 0; j < typeInstance->methods.size(); j++){
+					genFunctionDef(typeInstance->methods.at(j));
 				}
 			}
 		}
@@ -293,7 +285,8 @@ class CodeGen {
 		
 		void genFunctionDef(SEM::Function* function) {
 			assert(function != NULL);
-			assert(function->typeEnum == SEM::Function::DEFINITION);
+			
+			if(function->typeEnum != SEM::Function::DEFINITION) return;
 		
 			currentFunction_ = genFunctionDecl(function);
 			assert(currentFunction_ != NULL);

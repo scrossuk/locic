@@ -23,7 +23,7 @@ namespace Locic {
 					
 					if(semFunction == NULL) return false;
 					
-					semModule->functions.insert(std::make_pair(semFunction->name, semFunction));
+					semModule->functions.push_back(semFunction);
 				}
 			}
 			
@@ -35,7 +35,7 @@ namespace Locic {
 					
 					if(semTypeInstance == NULL) return false;
 					
-					semModule->typeInstances.insert(std::make_pair(semTypeInstance->name, semTypeInstance));
+					semModule->typeInstances.push_back(semTypeInstance);
 				}
 			}
 			
