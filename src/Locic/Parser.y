@@ -32,9 +32,12 @@
 
 %type typeInstance { AST::TypeInstance * }
 
-%type constructor { AST::Function * }
-%type function { AST::Function * }
-%type methodList { std::vector<AST::Function *> * }
+%type constructorDecl { AST::Function * }
+%type constructorDef { AST::Function * }
+%type functionDecl { AST::Function * }
+%type functionDef { AST::Function * }
+%type methodDeclList { std::vector<AST::Function *> * }
+%type methodDefList { std::vector<AST::Function *> * }
 
 %type basicType { AST::Type::BasicType::TypeEnum }
 %type typePrecision2 { AST::Type * }
@@ -89,7 +92,13 @@ module(M) ::= INTERFACE.
 		M = new AST::Module(parserContext->currentFileName);
 	}
 	
-module(NM) ::= module(OM) function(F).
+module(NM) ::= module(OM) functionDecl(F).
+	{
+		(OM)->functions.push_back(F);
+		NM = OM;
+	}
+
+module(NM) ::= module(OM) functionDef(F).
 	{
 		(OM)->functions.push_back(F);
 		NM = OM;
@@ -128,28 +137,28 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 		VL = OVL;
 	}
 
-constructor(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+constructorDecl(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
 		C = AST::Function::Decl(AST::Type::UndefinedType(), *(N), *(P));
 	}
 
-constructor(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+constructorDef(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
 		C = AST::Function::Def(AST::Type::UndefinedType(), *(N), *(P), S);
 	}
 	
-function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+functionDecl(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
 		F = AST::Function::Decl(T, *(N), *(P));
 	}
 	
-function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
+functionDecl(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
 	{
 		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
 		F = AST::Function::Decl(T, *(N), *(P));
 	}
 	
-function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+functionDef(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
 		F = AST::Function::Def(T, *(N), *(P), S);
 	}
@@ -159,7 +168,7 @@ typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET
 		T = AST::TypeInstance::Struct(*(N), *(VL));
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET methodList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET methodDeclList(FL) RCURLYBRACKET.
 	{
 		T = AST::TypeInstance::ClassDecl(*(N), *(FL));
 		
@@ -168,7 +177,7 @@ typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET methodList(FL) RCURLYBRACKET.
 		}
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET methodList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET methodDefList(FL) RCURLYBRACKET.
 	{
 		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(FL));
 		
@@ -297,18 +306,35 @@ typeList(TL) ::= nonEmptyTypeList(NETL).
 		TL = NETL;
 	}
 	
-methodList(DL) ::= .
+methodDeclList(DL) ::= .
 	{
 		DL = new std::vector<AST::Function *>();
 	}
 
-methodList(L) ::= methodList(OL) constructor(C).
+methodDeclList(L) ::= methodDeclList(OL) constructorDecl(C).
 	{
 		(OL)->push_back(C);
 		L = OL;
 	}
 	
-methodList(L) ::= methodList(OL) function(F).
+methodDeclList(L) ::= methodDeclList(OL) functionDecl(F).
+	{
+		(OL)->push_back(F);
+		L = OL;
+	}
+	
+methodDefList(DL) ::= .
+	{
+		DL = new std::vector<AST::Function *>();
+	}
+
+methodDefList(L) ::= methodDefList(OL) constructorDef(C).
+	{
+		(OL)->push_back(C);
+		L = OL;
+	}
+	
+methodDefList(L) ::= methodDefList(OL) functionDef(F).
 	{
 		(OL)->push_back(F);
 		L = OL;
