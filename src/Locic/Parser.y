@@ -32,8 +32,9 @@
 
 %type typeInstance { AST::TypeInstance * }
 
+%type constructor { AST::Function * }
 %type function { AST::Function * }
-%type functionList { std::vector<AST::Function *> * }
+%type methodList { std::vector<AST::Function *> * }
 
 %type basicType { AST::Type::BasicType::TypeEnum }
 %type typePrecision2 { AST::Type * }
@@ -126,6 +127,16 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 	{
 		VL = OVL;
 	}
+
+constructor(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+	{
+		C = AST::Function::Decl(AST::Type::UndefinedType(), *(N), *(P));
+	}
+
+constructor(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+	{
+		C = AST::Function::Def(AST::Type::UndefinedType(), *(N), *(P), S);
+	}
 	
 function(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
@@ -148,7 +159,7 @@ typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET
 		T = AST::TypeInstance::Struct(*(N), *(VL));
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET functionList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET methodList(FL) RCURLYBRACKET.
 	{
 		T = AST::TypeInstance::ClassDecl(*(N), *(FL));
 		
@@ -157,7 +168,7 @@ typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET functionList(FL) RCURLYBRACKET
 		}
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET functionList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET methodList(FL) RCURLYBRACKET.
 	{
 		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(FL));
 		
@@ -286,12 +297,18 @@ typeList(TL) ::= nonEmptyTypeList(NETL).
 		TL = NETL;
 	}
 	
-functionList(DL) ::= .
+methodList(DL) ::= .
 	{
 		DL = new std::vector<AST::Function *>();
 	}
+
+methodList(L) ::= methodList(OL) constructor(C).
+	{
+		(OL)->push_back(C);
+		L = OL;
+	}
 	
-functionList(L) ::= functionList(OL) function(F).
+methodList(L) ::= methodList(OL) function(F).
 	{
 		(OL)->push_back(F);
 		L = OL;

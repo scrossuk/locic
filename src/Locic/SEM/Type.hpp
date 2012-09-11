@@ -160,7 +160,7 @@ namespace SEM{
 					break;
 				}
 				case NAMED:
-					str += "[named type]";
+					str += namedType.typeInstance->getFullName();
 					break;
 				case POINTER:
 					str += pointerType.targetType->toString();

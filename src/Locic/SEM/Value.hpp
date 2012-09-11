@@ -103,7 +103,7 @@ namespace SEM{
 		
 		struct {
 			TypeInstance * typeInstance;
-			std::size_t constructorId;
+			Function * constructor;
 			std::vector<Value*> parameters;
 		} construct;
 		
@@ -199,10 +199,10 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value * Construct(TypeInstance * typeInstance, std::size_t constructorId, const std::vector<Value *>& parameters, Type * type){
+		inline static Value * Construct(TypeInstance * typeInstance, Function * constructor, const std::vector<Value *>& parameters, Type * type){
 			Value* value = new Value(CONSTRUCT, type);
 			value->construct.typeInstance = typeInstance;
-			value->construct.constructorId = constructorId;
+			value->construct.constructor = constructor;
 			value->construct.parameters = parameters;
 			return value;
 		}

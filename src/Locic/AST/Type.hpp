@@ -8,6 +8,7 @@ namespace AST {
 
 	struct Type {
 		enum TypeEnum {
+			UNDEFINED,
 			VOID,
 			NULLT,
 			BASIC,
@@ -50,6 +51,10 @@ namespace AST {
 		inline Type(TypeEnum e, bool m)
 			: typeEnum(e),
 			  isMutable(m) { }
+		
+		inline static Type* UndefinedType() {
+			return new Type(UNDEFINED, MUTABLE);
+		}
 			  
 		inline static Type* VoidType() {
 			return new Type(VOID, MUTABLE);
@@ -110,6 +115,11 @@ namespace AST {
 			}
 	
 			switch(typeEnum){
+				case UNDEFINED:
+				{
+					str += "[undefined]";
+					break;
+				}
 				case VOID:
 				{
 					str += "void";

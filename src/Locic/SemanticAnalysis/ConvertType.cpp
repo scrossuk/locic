@@ -24,6 +24,10 @@ SEM::Type::BasicType::TypeEnum ConvertBasicTypeEnum(AST::Type::BasicType::TypeEn
 
 SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 	switch(type->typeEnum) {
+		case AST::Type::UNDEFINED: {
+			printf("Internal Compiler Error: Cannot convert undefined type.\n");
+			return NULL;
+		}
 		case AST::Type::VOID: {
 			return SEM::Type::Void(type->isMutable);
 		}

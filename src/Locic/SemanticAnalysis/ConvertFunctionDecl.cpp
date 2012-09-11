@@ -13,9 +13,31 @@ namespace Locic {
 	
 		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function) {
 			AST::Type* returnType = function->returnType;
+			SEM::Type* semReturnType = NULL;
 			
-			// Return types are always rvalues.
-			SEM::Type* semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
+			SEM::TypeInstance * thisTypeInstance =
+				(function->parentType != NULL) ?
+					context.getTypeInstance(function->parentType->getFullName()) :
+					NULL;
+			
+			assert(function->parentType == NULL || thisTypeInstance != NULL);
+			
+			if(returnType->typeEnum == AST::Type::UNDEFINED){
+				if(thisTypeInstance == NULL){
+					printf("Internal Compiler Error: Non-method function with undefined return type.\n");
+					return NULL;
+				}
+				
+				const bool isMutable = true;
+				
+				// Return types are always rvalues.
+				const bool isLValue = false;
+				
+				semReturnType = SEM::Type::Named(isMutable, isLValue, thisTypeInstance);
+			}else{
+				// Return types are always rvalues.
+				semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
+			}
 			
 			if(semReturnType == NULL) {
 				return NULL;
@@ -28,11 +50,7 @@ namespace Locic {
 			
 			std::size_t varId = 0;
 			
-			if(function->parentType != NULL){
-				SEM::TypeInstance * thisTypeInstance = context.getTypeInstance(function->parentType->getFullName());
-				
-				assert(thisTypeInstance != NULL);
-				
+			if(thisTypeInstance != NULL){
 				SEM::Type * thisType =
 					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE,
 						SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, thisTypeInstance));
@@ -65,14 +83,8 @@ namespace Locic {
 			}
 			
 			SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, semReturnType, parameterTypes);
-			SEM::TypeInstance* parentTypeInstance = NULL;
 			
-			if(function->parentType != NULL) {
-				parentTypeInstance = context.getTypeInstance(function->parentType->name);
-				assert(parentTypeInstance != NULL);
-			}
-			
-			return SEM::Function::Decl(parentTypeInstance, functionType, function->name, parameterVars);
+			return SEM::Function::Decl(thisTypeInstance, functionType, function->name, parameterVars);
 		}
 		
 	}
