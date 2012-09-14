@@ -18,8 +18,13 @@ namespace Locic {
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
 			
+			for(std::size_t i = 0; i < typeInstance->constructors.size(); i++){
+				SEM::Function * function = ConvertFunctionDef(typeInstanceContext, typeInstance->constructors.at(i));
+				if(function == NULL) return NULL;
+			}
+			
 			for(std::size_t i = 0; i < typeInstance->functions.size(); i++){
-				SEM::Function * function = ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i));
+				SEM::Function * function = ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i), true);
 				if(function == NULL) return NULL;
 			}
 			

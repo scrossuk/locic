@@ -65,8 +65,8 @@ namespace Locic {
 			return true;
 		}
 		
-		bool AddFunctionDecls(StructuralContext& context, AST::Function* astFunction){
-			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction);
+		bool AddFunctionDecls(StructuralContext& context, AST::Function* astFunction, bool isMethod = false){
+			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction, isMethod);
 			assert(semFunction != NULL);
 			
 			SEM::Function * existingFunction = context.getFunction(astFunction->name, false);
@@ -91,10 +91,15 @@ namespace Locic {
 			assert(semTypeInstance != NULL);
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
+			
+			for(std::size_t i = 0; i < astTypeInstance->constructors.size(); i++){
+				AST::Function * astFunction = astTypeInstance->constructors.at(i);
+				if(!AddFunctionDecls(typeInstanceContext, astFunction)) return false;
+			}
 		
 			for(std::size_t i = 0; i < astTypeInstance->functions.size(); i++){
 				AST::Function * astFunction = astTypeInstance->functions.at(i);
-				if(!AddFunctionDecls(typeInstanceContext, astFunction)) return false;
+				if(!AddFunctionDecls(typeInstanceContext, astFunction, true)) return false;
 			}
 			
 			return true;

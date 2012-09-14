@@ -38,6 +38,8 @@
 %type functionDef { AST::Function * }
 %type methodDeclList { std::vector<AST::Function *> * }
 %type methodDefList { std::vector<AST::Function *> * }
+%type constructorDeclList { std::vector<AST::Function *> * }
+%type constructorDefList { std::vector<AST::Function *> * }
 
 %type basicType { AST::Type::BasicType::TypeEnum }
 %type typePrecision2 { AST::Type * }
@@ -137,12 +139,12 @@ structVarList(VL) ::= structVarList(OVL) SEMICOLON.
 		VL = OVL;
 	}
 
-constructorDecl(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+constructorDecl(C) ::= AUTO ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
 	{
 		C = AST::Function::Decl(AST::Type::UndefinedType(), *(N), *(P));
 	}
 
-constructorDef(C) ::= ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+constructorDef(C) ::= AUTO ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
 	{
 		C = AST::Function::Def(AST::Type::UndefinedType(), *(N), *(P), S);
 	}
@@ -168,22 +170,14 @@ typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET
 		T = AST::TypeInstance::Struct(*(N), *(VL));
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET methodDeclList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET constructorDeclList(CL) methodDeclList(FL) RCURLYBRACKET.
 	{
-		T = AST::TypeInstance::ClassDecl(*(N), *(FL));
-		
-		for(std::size_t i = 0; i < (T)->functions.size(); i++){
-			(T)->functions.at(i)->parentType = T;
-		}
+		T = AST::TypeInstance::ClassDecl(*(N), *(CL), *(FL));
 	}
 	
-typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET methodDefList(FL) RCURLYBRACKET.
+typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET constructorDefList(CL) methodDefList(FL) RCURLYBRACKET.
 	{
-		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(FL));
-		
-		for(std::size_t i = 0; i < (T)->functions.size(); i++){
-			(T)->functions.at(i)->parentType = T;
-		}
+		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(CL), *(FL));
 	}
 	
 lcName(N) ::= LCNAME(NAME).
@@ -310,12 +304,6 @@ methodDeclList(DL) ::= .
 	{
 		DL = new std::vector<AST::Function *>();
 	}
-
-methodDeclList(L) ::= methodDeclList(OL) constructorDecl(C).
-	{
-		(OL)->push_back(C);
-		L = OL;
-	}
 	
 methodDeclList(L) ::= methodDeclList(OL) functionDecl(F).
 	{
@@ -327,16 +315,32 @@ methodDefList(DL) ::= .
 	{
 		DL = new std::vector<AST::Function *>();
 	}
+	
+methodDefList(L) ::= methodDefList(OL) functionDef(F).
+	{
+		(OL)->push_back(F);
+		L = OL;
+	}
 
-methodDefList(L) ::= methodDefList(OL) constructorDef(C).
+constructorDeclList(DL) ::= .
+	{
+		DL = new std::vector<AST::Function *>();
+	}
+
+constructorDeclList(L) ::= constructorDeclList(OL) constructorDecl(C).
 	{
 		(OL)->push_back(C);
 		L = OL;
 	}
 	
-methodDefList(L) ::= methodDefList(OL) functionDef(F).
+constructorDefList(DL) ::= .
 	{
-		(OL)->push_back(F);
+		DL = new std::vector<AST::Function *>();
+	}
+
+constructorDefList(L) ::= constructorDefList(OL) constructorDef(C).
+	{
+		(OL)->push_back(C);
 		L = OL;
 	}
 	

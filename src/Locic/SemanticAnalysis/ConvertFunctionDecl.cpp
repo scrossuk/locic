@@ -11,22 +11,14 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function) {
+		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function, bool isMethod) {
 			AST::Type* returnType = function->returnType;
 			SEM::Type* semReturnType = NULL;
 			
-			SEM::TypeInstance * thisTypeInstance =
-				(function->parentType != NULL) ?
-					context.getTypeInstance(function->parentType->getFullName()) :
-					NULL;
-			
-			assert(function->parentType == NULL || thisTypeInstance != NULL);
+			SEM::TypeInstance * thisTypeInstance = context.getThisTypeInstance();
 			
 			if(returnType->typeEnum == AST::Type::UNDEFINED){
-				if(thisTypeInstance == NULL){
-					printf("Internal Compiler Error: Non-method function with undefined return type.\n");
-					return NULL;
-				}
+				assert(thisTypeInstance != NULL);
 				
 				const bool isMutable = true;
 				
@@ -50,7 +42,9 @@ namespace Locic {
 			
 			std::size_t varId = 0;
 			
-			if(thisTypeInstance != NULL){
+			if(isMethod){
+				assert(thisTypeInstance != NULL);
+				
 				SEM::Type * thisType =
 					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE,
 						SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, thisTypeInstance));

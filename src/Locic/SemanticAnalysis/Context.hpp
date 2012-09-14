@@ -18,6 +18,8 @@ namespace Locic {
 				
 				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
 				
+				virtual SEM::TypeInstance* getThisTypeInstance() = 0;
+				
 				virtual SEM::Var * getThisVar(const std::string& name) = 0;
 				
 		};
@@ -53,6 +55,10 @@ namespace Locic {
 					return node.hasValue() ? (node.getValue()->getTypeInstance()) : NULL;
 				}
 				
+				inline SEM::TypeInstance* getThisTypeInstance(){
+					return NULL;
+				}
+				
 				inline SEM::Var * getThisVar(const std::string& name){
 					return NULL;
 				}
@@ -81,6 +87,10 @@ namespace Locic {
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
 					return parentContext_.getTypeInstance(name);
+				}
+				
+				inline SEM::TypeInstance* getThisTypeInstance(){
+					return NULL;
 				}
 				
 				inline SEM::Var * getThisVar(const std::string& name){
@@ -126,6 +136,10 @@ namespace Locic {
 					return parentContext_.getTypeInstance(name);
 				}
 				
+				inline SEM::TypeInstance* getThisTypeInstance(){
+					return typeInstance_;
+				}
+				
 				inline SEM::Var * getThisVar(const std::string& name){
 					Optional<SEM::Var *> varResult = typeInstance_->variables.tryGet(name);
 					return varResult.hasValue() ? varResult.getValue() : parentContext_.getThisVar(name);
@@ -156,6 +170,10 @@ namespace Locic {
 				
 				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
 					return parentContext_.getFunction(name);
+				}
+				
+				inline SEM::TypeInstance* getThisTypeInstance(){
+					return parentContext_.getThisTypeInstance();
 				}
 				
 				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {

@@ -11,7 +11,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function * ConvertFunctionDef(Context& context, AST::Function* function) {
+		SEM::Function * ConvertFunctionDef(Context& context, AST::Function* function, bool isMethod) {
 			const std::string functionName = function->getFullName();
 			
 			// Find the corresponding semantic function
@@ -31,7 +31,7 @@ namespace Locic {
 			const std::vector<AST::TypeVar*>& astParameters = function->parameters;
 			const std::vector<SEM::Var*>& semParameters = semFunction->parameters;
 			
-			const std::size_t paramOffset = function->parentType != NULL ? 1 : 0;
+			const std::size_t paramOffset = isMethod ? 1 : 0;
 			
 			assert(astParameters.size() + paramOffset == semParameters.size());
 			

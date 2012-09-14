@@ -16,7 +16,6 @@ namespace AST {
 			DECLARATION
 		} typeEnum;
 		
-		TypeInstance * parentType;
 		Type * returnType;
 		std::string name;
 		std::vector<TypeVar *> parameters;
@@ -25,7 +24,7 @@ namespace AST {
 		Scope * scope;
 		
 		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<TypeVar*>& p, Scope * s)
-			: parentType(NULL), typeEnum(e),
+			: typeEnum(e),
 			returnType(t), name(n),
 			parameters(p), scope(s) { }
 			
@@ -38,7 +37,7 @@ namespace AST {
 		}
 		
 		inline std::string getFullName() const{
-			return parentType != NULL ? (parentType->getFullName() + "__" + name) : name;
+			return name;
 		}
 	};
 	
