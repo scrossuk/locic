@@ -22,7 +22,8 @@ namespace SEM{
 			MEMBERACCESS,
 			FUNCTIONCALL,
 			FUNCTIONREF,
-			METHODOBJECT
+			METHODOBJECT,
+			METHODCALL
 		} typeEnum;
 		
 		Type * type;
@@ -119,6 +120,11 @@ namespace SEM{
 			Function * method;
 			Value * methodOwner;
 		} methodObject;
+		
+		struct {
+			Value* methodValue;
+			std::vector<Value*> parameters;
+		} methodCall;
 		
 		inline Value() : typeEnum(NONE), type(Type::Void(Type::MUTABLE)) { }
 		
@@ -222,6 +228,13 @@ namespace SEM{
 			Value* value = new Value(METHODOBJECT, type);
 			value->methodObject.method = method;
 			value->methodObject.methodOwner = methodOwner;
+			return value;
+		}
+		
+		inline static Value * MethodCall(Value * methodValue, const std::vector<Value *>& parameters, Type * type){
+			Value* value = new Value(METHODCALL, type);
+			value->methodCall.methodValue = methodValue;
+			value->methodCall.parameters = parameters;
 			return value;
 		}
 	};

@@ -371,7 +371,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						return SEM::Value::MemberAccess(object, var->id, memberType);
 					}
 				}else{
-					printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", memberName.c_str());
+					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.c_str());
 					return NULL;
 				}
 			}else{
@@ -379,10 +379,13 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				Optional<SEM::Function *> methodResult = typeInstance->methods.tryGet(memberName);
 				
 				if(methodResult.hasValue()){
-					SEM::Function * method = methodResult.getValue();
-					return SEM::Value::MethodObject(method, object, method->type);
+					SEM::Function * methodFunction = methodResult.getValue();
+					
+					SEM::Type * methodType = SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, typeInstance, methodFunction->type);
+					
+					return SEM::Value::MethodObject(methodFunction, object, methodType);
 				}else{
-					printf("Semantic Analysis Error: Can't find non-existent class method '%s'.\n", memberName.c_str());
+					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.c_str());
 					return NULL;
 				}
 			}
@@ -394,34 +397,70 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				return NULL;
 			}
 			
-			if(functionValue->type->typeEnum != SEM::Type::FUNCTION) {
-				printf("Semantic Analysis Error: Can't call non-function type.\n");
-				return NULL;
+			switch(functionValue->type->typeEnum){
+				case SEM::Type::FUNCTION:
+				{
+					const std::vector<SEM::Type*>& typeList = functionValue->type->functionType.parameterTypes;
+					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+			
+					if(typeList.size() != astValueList.size()) {
+						printf("Semantic Analysis Error: Function called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
+						return NULL;
+					}
+					
+					std::vector<SEM::Value*> semValueList;
+					
+					for(std::size_t i = 0; i < astValueList.size(); i++){
+						SEM::Value* value = ConvertValue(context, astValueList.at(i));
+						
+						if(value == NULL) return NULL;
+						
+						SEM::Value* param = CastValueToType(value, typeList.at(i));
+						
+						if(param == NULL) return NULL;
+						
+						semValueList.push_back(param);
+					}
+					
+					return SEM::Value::FunctionCall(functionValue, semValueList, functionValue->type->functionType.returnType);
+				}
+				case SEM::Type::METHOD:
+				{
+					SEM::Type * functionType = functionValue->type->methodType.functionType;
+					
+					const std::vector<SEM::Type*>& typeList = functionType->functionType.parameterTypes;
+					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+					
+					// First type must be the object type.
+					assert(!typeList.empty());
+					
+					if(typeList.size() != (astValueList.size() + 1)) {
+						printf("Semantic Analysis Error: Method called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
+						return NULL;
+					}
+					
+					std::vector<SEM::Value*> semValueList;
+					
+					for(std::size_t i = 0; i < astValueList.size(); i++){
+						SEM::Value* value = ConvertValue(context, astValueList.at(i));
+						
+						if(value == NULL) return NULL;
+						
+						SEM::Value* param = CastValueToType(value, typeList.at(i + 1));
+						
+						if(param == NULL) return NULL;
+						
+						semValueList.push_back(param);
+					}
+					
+					return SEM::Value::MethodCall(functionValue, semValueList, functionType->functionType.returnType);
+				}
+				default:
+				{
+					printf("Semantic Analysis Error: Can't call type that isn't a function or a method.\n");
+					return NULL;
+				}
 			}
-			
-			const std::vector<SEM::Type*>& typeList = functionValue->type->functionType.parameterTypes;
-			const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
-			
-			if(typeList.size() != astValueList.size()) {
-				printf("Semantic Analysis Error: Function called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
-				return NULL;
-			}
-			
-			std::vector<SEM::Value*> semValueList;
-			
-			for(std::size_t i = 0; i < astValueList.size(); i++){
-				SEM::Value* value = ConvertValue(context, astValueList.at(i));
-				
-				if(value == NULL) return NULL;
-				
-				SEM::Value* param = CastValueToType(value, typeList.at(i));
-				
-				if(param == NULL) return NULL;
-				
-				semValueList.push_back(param);
-			}
-			
-			return SEM::Value::FunctionCall(functionValue, semValueList, functionValue->type->functionType.returnType);
 		}
 		default:
 			printf("Internal Compiler Error: Unknown AST::Value type enum.\n");

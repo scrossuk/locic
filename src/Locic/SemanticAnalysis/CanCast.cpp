@@ -61,7 +61,6 @@ namespace Locic {
 					}
 				
 					const std::vector<SEM::Type*>& firstList = firstType->functionType.parameterTypes;
-						
 					const std::vector<SEM::Type*>& secondList = secondType->functionType.parameterTypes;
 					
 					if(firstList.size() != secondList.size()) {
@@ -72,6 +71,17 @@ namespace Locic {
 						if(!AreTypesEqual(firstList.at(i), secondList.at(i))) {
 							return false;
 						}
+					}
+					
+					return true;
+				}
+				case SEM::Type::METHOD: {
+					if(firstType->methodType.objectType != secondType->methodType.objectType){
+						return false;
+					}
+				
+					if(!AreTypesEqual(firstType->methodType.functionType, secondType->methodType.functionType)){
+						return false;
 					}
 					
 					return true;
@@ -179,7 +189,6 @@ namespace Locic {
 					}
 					
 					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
-						
 					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
 					
 					if(sourceList.size() != destList.size()) {
@@ -194,6 +203,13 @@ namespace Locic {
 					
 					return NULL;
 				}
+				case SEM::Type::METHOD: {
+					if(sourceType->methodType.objectType != destType->methodType.objectType){
+						return "Semantic Analysis Error: Cannot cast between methods on different objects.\n";
+					}
+				
+					return CanDoImplicitCast(sourceType->methodType.functionType, destType->methodType.functionType);
+				}
 				default:
 					return "Internal Compiler Error: Unknown type enum value.";
 			}
@@ -204,7 +220,8 @@ namespace Locic {
 				case SEM::Type::BASIC:
 				case SEM::Type::POINTER:
 				case SEM::Type::FUNCTION:
-					// Basic, pointer and function types can be copied implicitly.
+				case SEM::Type::METHOD:
+					// Basic, pointer, function and method types can be copied implicitly.
 					return true;
 				default:
 					return false;
@@ -242,7 +259,8 @@ namespace Locic {
 				}
 				case SEM::Type::NAMED:
 				case SEM::Type::POINTER:
-				case SEM::Type::FUNCTION: {
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD: {
 					printf("%s", err);
 					return false;
 				}

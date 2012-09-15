@@ -14,7 +14,8 @@ namespace SEM{
 			BASIC,
 			NAMED,
 			POINTER,
-			FUNCTION
+			FUNCTION,
+			METHOD
 		} typeEnum;
 		
 		bool isMutable;
@@ -51,8 +52,7 @@ namespace SEM{
 		
 		struct {
 			TypeInstance * objectType;
-			Type * returnType;
-			std::vector<Type*> parameterTypes;
+			Type * functionType;
 		} methodType;
 		
 		inline Type()
@@ -98,11 +98,10 @@ namespace SEM{
 			return type;
 		}
 		
-		inline static Type* Method(bool isMutable, bool isLValue, TypeInstance * objectType, Type* returnType, const std::vector<Type*>& parameterTypes) {
-			Type* type = new Type(FUNCTION, isMutable, isLValue);
+		inline static Type* Method(bool isMutable, bool isLValue, TypeInstance * objectType, Type* functionType) {
+			Type* type = new Type(METHOD, isMutable, isLValue);
 			type->methodType.objectType = objectType;
-			type->methodType.returnType = returnType;
-			type->methodType.parameterTypes = parameterTypes;
+			type->methodType.functionType = functionType;
 			return type;
 		}
 		
@@ -182,7 +181,7 @@ namespace SEM{
 					break;
 				case FUNCTION:
 				{
-					str += "(";
+					str += "(*)(";
 					str += functionType.returnType->toString();
 					str += ")(";
 			
@@ -191,6 +190,24 @@ namespace SEM{
 							str += ", ";
 						}
 						str += functionType.parameterTypes.at(i)->toString();
+					}
+					
+					str += ")";
+					break;
+				}
+				case METHOD:
+				{
+					str += "(";
+					str += methodType.objectType->name;
+					str += "::*)(";
+					str += methodType.functionType->functionType.returnType->toString();
+					str += ")(";
+			
+					for(std::size_t i = 1; i < methodType.functionType->functionType.parameterTypes.size(); i++){
+						if(i != 0){
+							str += ", ";
+						}
+						str += methodType.functionType->functionType.parameterTypes.at(i)->toString();
 					}
 					
 					str += ")";

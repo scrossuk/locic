@@ -240,7 +240,7 @@ class CodeGen {
 				paramTypes.push_back(genType(params.at(i)));
 			}
 			
-			bool isVarArg = false;
+			const bool isVarArg = false;
 			return FunctionType::get(returnType, paramTypes, isVarArg);
 		}
 		
@@ -290,6 +290,15 @@ class CodeGen {
 				}
 				case SEM::Type::FUNCTION: {
 					return genFunctionType(type)->getPointerTo();
+				}
+				case SEM::Type::METHOD: {
+					SEM::Type * objectType = SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, type->methodType.objectType);
+					SEM::Type * pointerToObjectType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE, objectType);
+					
+					std::vector<Type*> types;
+					types.push_back(genFunctionType(type->methodType.functionType)->getPointerTo());
+					types.push_back(genType(pointerToObjectType));
+					return StructType::get(getGlobalContext(), types);
 				}
 				default: {
 					std::cerr << "CodeGen error: Unknown type." << std::endl;
@@ -713,6 +722,9 @@ class CodeGen {
 						case SEM::Type::FUNCTION: {
 							return codeValue;
 						}
+						case SEM::Type::METHOD: {
+							return codeValue;
+						}
 						default:
 							std::cerr << "CodeGen error: Unknown type in cast." << std::endl;
 							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
@@ -745,18 +757,44 @@ class CodeGen {
 					Function* function = genFunctionDecl(value->methodObject.method);
 					assert(function != NULL);
 					
-					Value* dataPointer = genValue(value->methodObject.methodOwner);
+					SEM::Value * methodOwner = value->methodObject.methodOwner;
 					
-					std::vector<Type*> types;
-					types.push_back(function->getType());
-					types.push_back(dataPointer->getType());
-					StructType * structType = StructType::get(getGlobalContext(), types);
+					const bool isLValue = methodOwner->type->isLValue;
 					
-					Value * structValue = UndefValue::get(structType);
-					structValue = builder_.CreateInsertValue(structValue, function, std::vector<unsigned>(1, 0));
-					structValue = builder_.CreateInsertValue(structValue, dataPointer, std::vector<unsigned>(1, 1));
+					Value* dataPointer = NULL;
 					
-					return structValue;
+					if(isLValue){
+						dataPointer = genValue(value->methodObject.methodOwner, true);
+					}else{
+						// If the object is an rvalue, it needs to be stored
+						// to the stack frame so we can take a pointer.
+						Value* data = genValue(value->methodObject.methodOwner);
+						dataPointer = builder_.CreateAlloca(data->getType());
+						builder_.CreateStore(data, dataPointer);
+					}
+					
+					assert(dataPointer != NULL);
+					
+					Value * methodValue = UndefValue::get(genType(value->type));
+					methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
+					methodValue = builder_.CreateInsertValue(methodValue, dataPointer, std::vector<unsigned>(1, 1));
+					return methodValue;
+				}
+				case SEM::Value::METHODCALL: {
+					Value * method = genValue(value->methodCall.methodValue);
+					
+					Value * function = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 0));
+					Value * dataPointer = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 1));
+					
+					std::vector<Value*> parameters;
+					parameters.push_back(dataPointer);
+					
+					const std::vector<SEM::Value *>& paramList = value->methodCall.parameters;
+					for(std::size_t i = 0; i < paramList.size(); i++){
+						parameters.push_back(genValue(paramList.at(i)));
+					}
+					
+					return builder_.CreateCall(function, parameters);
 				}
 				default:
 					std::cerr << "CodeGen error: Unknown value." << std::endl;
