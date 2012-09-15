@@ -38,10 +38,11 @@ class CodeGen {
 		Function* currentFunction_;
 		BasicBlock* currentBasicBlock_;
 		FunctionPassManager fpm_;
-		Locic::Map<SEM::TypeInstance*, StructType*> typeInstances_;
+		Locic::Map<SEM::TypeInstance*, Type*> typeInstances_;
 		Locic::Map<SEM::Function*, Function*> functions_;
 		std::vector<AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
+		Value * returnVar_;
 		
 	public:
 		CodeGen(const std::string& moduleName)
@@ -49,7 +50,8 @@ class CodeGen {
 			  module_(new Module(name_.c_str(), getGlobalContext())),
 			  builder_(getGlobalContext()),
 			  fpm_(module_),
-			  targetInfo_(0){
+			  targetInfo_(0),
+			  returnVar_(NULL){
 			  
 			InitializeNativeTarget();
 			
@@ -190,10 +192,10 @@ class CodeGen {
 		
 		// Lazy generation - struct types are only
 		// generated when they are first used by code.
-		StructType* genStructType(SEM::TypeInstance * typeInstance){
+		Type* genStructType(SEM::TypeInstance * typeInstance){
 			assert(typeInstance != NULL);
 			
-			Locic::Optional<StructType *> optionalStruct = typeInstances_.tryGet(typeInstance);
+			Locic::Optional<Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
 			if(optionalStruct.hasValue()) return optionalStruct.getValue();
 			
 			StructType * structType = StructType::create(getGlobalContext(), typeInstance->getFullName());
@@ -204,12 +206,17 @@ class CodeGen {
 			typeInstances_.insert(typeInstance, structType);
 			
 			if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF || typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
+				// Generating the type for a class definition or struct, so
+				// the size and contents of the type instance is known.
+				
+				// Classes have a record pointer (holding things like virtual functions)
+				// which is the first member; structs have no such pointer.
 				const std::size_t paramOffset = (typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF) ? 1 : 0;
 			
 				std::vector<Type*> memberVariables(paramOffset + typeInstance->variables.size(), NULL);
 				
 				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
-					// Add vtable pointer.
+					// Add class record pointer.
 					memberVariables.front() = PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
 				}
 				
@@ -221,6 +228,18 @@ class CodeGen {
 				}
 				
 				structType->setBody(memberVariables);
+			}else{
+				// Generating the type for a class declaration, so the size is
+				// currently unknown (and will be known at load-time/run-time).
+				std::vector<Type *> memberVariables;
+				
+				// Pointer to class record.
+				memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+				
+				// Zero length array indicates this structure is variable length,
+				// or in other words, currently unknown for this code.
+				memberVariables.push_back(ArrayType::get(Type::getInt8Ty(getGlobalContext()), 0));
+				structType->setBody(memberVariables);
 			}
 			
 			return structType;
@@ -230,9 +249,15 @@ class CodeGen {
 			assert(type != NULL);
 			assert(type->typeEnum == SEM::Type::FUNCTION);
 			
-			Type* returnType = genType(type->functionType.returnType);
+			SEM::Type * semReturnType = type->functionType.returnType;
+			Type* returnType = genType(semReturnType);
 			
 			std::vector<Type*> paramTypes;
+			
+			if(semReturnType->typeEnum == SEM::Type::NAMED){
+				paramTypes.push_back(returnType->getPointerTo());
+				returnType = Type::getVoidTy(getGlobalContext());
+			}
 			
 			const std::vector<SEM::Type *>& params = type->functionType.parameterTypes;
 			
@@ -266,17 +291,7 @@ class CodeGen {
 					}
 				}
 				case SEM::Type::NAMED: {
-					SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
-					
-					if(typeInstance->typeEnum != SEM::TypeInstance::CLASSDECL) {
-						return genStructType(typeInstance);
-					} else {
-						// Class declarations are referred to by void pointers,
-						// since their size is unknown. However it seems LLVM
-						// only supports int8_t *, so int8_t is used as the
-						// type for class declarations.
-						return Type::getInt8Ty(getGlobalContext());
-					}
+					return genStructType(type->namedType.typeInstance);
 				}
 				case SEM::Type::POINTER: {
 					Type* pointerType = genType(type->pointerType.targetType);
@@ -320,6 +335,14 @@ class CodeGen {
 			
 			// Store arguments onto stack.
 			Function::arg_iterator arg = currentFunction_->arg_begin();
+			
+			SEM::Type * returnType = function->type->functionType.returnType;
+			
+			if(returnType->typeEnum == SEM::Type::NAMED){
+				returnVar_ = arg++;
+			}else{
+				returnVar_ = NULL;
+			}
 			
 			const std::vector<SEM::Var *>& parameterVars = function->parameters;
 			
@@ -445,7 +468,15 @@ class CodeGen {
 				}
 				case SEM::Statement::RETURN: {
 					if(statement->returnStmt.value != NULL) {
-						builder_.CreateRet(genValue(statement->returnStmt.value));
+						Value * returnValue = genValue(statement->returnStmt.value);
+						if(returnVar_ != NULL){
+							returnValue->dump();
+							returnVar_->dump();
+							builder_.CreateStore(returnValue, returnVar_);
+							builder_.CreateRetVoid();
+						}else{
+							builder_.CreateRet(returnValue);
+						}
 					} else {
 						builder_.CreateRetVoid();
 					}
@@ -457,6 +488,17 @@ class CodeGen {
 				}
 				default:
 					std::cerr << "CodeGen error: Unknown statement." << std::endl;
+			}
+		}
+		
+		Value * generateLValue(SEM::Value * value){
+			if(value->type->isLValue){
+				return genValue(value, true);
+			}else{
+				Value * lValue = builder_.CreateAlloca(genType(value->type));
+				Value * rValue = genValue(value);
+				builder_.CreateStore(rValue, lValue);
+				return lValue;
 			}
 		}
 		
@@ -684,8 +726,20 @@ class CodeGen {
 									return builder_.CreatePointerCast(codeValue, genType(destType));
 								case SEM::Type::NAMED:
 								{
-									std::cerr << "CodeGen error: Unimplemented cast from null to class type." << std::endl;
-									return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+									SEM::TypeInstance * typeInstance = destType->namedType.typeInstance;
+									assert(typeInstance->typeEnum != SEM::TypeInstance::STRUCT);
+									
+									Type * structType = genStructType(typeInstance);
+									Value * structValue = UndefValue::get(structType);
+									
+									// Set class record pointer to NULL.
+									Value * nullRecordPointer = ConstantPointerNull::get(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+									
+									structType->dump();
+									nullRecordPointer->dump();
+									structValue = builder_.CreateInsertValue(structValue, nullRecordPointer, std::vector<unsigned>(1, 0));
+									
+									return structValue;
 								}
 								default:
 								{
@@ -742,11 +796,27 @@ class CodeGen {
 					std::vector<Value*> parameters;
 					
 					const std::vector<SEM::Value *>& paramList = value->functionCall.parameters;
+					
+					SEM::Type * returnType = value->type;
+					Value * returnValue = NULL;
+					
+					if(returnType->typeEnum == SEM::Type::NAMED){
+						returnValue = builder_.CreateAlloca(genType(returnType));
+						assert(returnValue != NULL);
+						parameters.push_back(returnValue);
+					}
+					
 					for(std::size_t i = 0; i < paramList.size(); i++){
 						parameters.push_back(genValue(paramList.at(i)));
 					}
 					
-					return builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
+					Value * callReturnValue = builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
+					
+					if(returnValue != NULL){
+						return builder_.CreateLoad(returnValue);
+					}else{
+						return callReturnValue;
+					}
 				}
 				case SEM::Value::FUNCTIONREF: {
 					Function* function = genFunctionDecl(value->functionRef.function);
@@ -757,22 +827,7 @@ class CodeGen {
 					Function* function = genFunctionDecl(value->methodObject.method);
 					assert(function != NULL);
 					
-					SEM::Value * methodOwner = value->methodObject.methodOwner;
-					
-					const bool isLValue = methodOwner->type->isLValue;
-					
-					Value* dataPointer = NULL;
-					
-					if(isLValue){
-						dataPointer = genValue(value->methodObject.methodOwner, true);
-					}else{
-						// If the object is an rvalue, it needs to be stored
-						// to the stack frame so we can take a pointer.
-						Value* data = genValue(value->methodObject.methodOwner);
-						dataPointer = builder_.CreateAlloca(data->getType());
-						builder_.CreateStore(data, dataPointer);
-					}
-					
+					Value* dataPointer = generateLValue(value->methodObject.methodOwner);
 					assert(dataPointer != NULL);
 					
 					Value * methodValue = UndefValue::get(genType(value->type));
