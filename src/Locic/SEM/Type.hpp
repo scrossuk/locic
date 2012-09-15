@@ -49,6 +49,12 @@ namespace SEM{
 			std::vector<Type*> parameterTypes;
 		} functionType;
 		
+		struct {
+			TypeInstance * objectType;
+			Type * returnType;
+			std::vector<Type*> parameterTypes;
+		} methodType;
+		
 		inline Type()
 			: typeEnum(VOID),
 			  isMutable(MUTABLE),
@@ -89,6 +95,14 @@ namespace SEM{
 			Type* type = new Type(FUNCTION, isMutable, isLValue);
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
+			return type;
+		}
+		
+		inline static Type* Method(bool isMutable, bool isLValue, TypeInstance * objectType, Type* returnType, const std::vector<Type*>& parameterTypes) {
+			Type* type = new Type(FUNCTION, isMutable, isLValue);
+			type->methodType.objectType = objectType;
+			type->methodType.returnType = returnType;
+			type->methodType.parameterTypes = parameterTypes;
 			return type;
 		}
 		

@@ -158,9 +158,18 @@ class CodeGen {
 			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
 				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
 				
-				Locic::StringMap<SEM::Function *>::Range range = typeInstance->methods.range();
-				for(; !range.empty(); range.popFront()){
-					genFunctionDef(range.front().value());
+				{
+					Locic::StringMap<SEM::Function *>::Range range = typeInstance->constructors.range();
+					for(; !range.empty(); range.popFront()){
+						genFunctionDef(range.front().value());
+					}
+				}
+				
+				{
+					Locic::StringMap<SEM::Function *>::Range range = typeInstance->methods.range();
+					for(; !range.empty(); range.popFront()){
+						genFunctionDef(range.front().value());
+					}
 				}
 			}
 		}
@@ -709,9 +718,6 @@ class CodeGen {
 							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
 					}
 				}
-				case SEM::Value::CONSTRUCT:
-					std::cerr << "CodeGen error: Unimplemented constructor call." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 42));
 				case SEM::Value::MEMBERACCESS:
 				{
 					if(genLValue){
@@ -734,6 +740,23 @@ class CodeGen {
 					Function* function = genFunctionDecl(value->functionRef.function);
 					assert(function != NULL);
 					return function;
+				}
+				case SEM::Value::METHODOBJECT: {
+					Function* function = genFunctionDecl(value->methodObject.method);
+					assert(function != NULL);
+					
+					Value* dataPointer = genValue(value->methodObject.methodOwner);
+					
+					std::vector<Type*> types;
+					types.push_back(function->getType());
+					types.push_back(dataPointer->getType());
+					StructType * structType = StructType::get(getGlobalContext(), types);
+					
+					Value * structValue = UndefValue::get(structType);
+					structValue = builder_.CreateInsertValue(structValue, function, std::vector<unsigned>(1, 0));
+					structValue = builder_.CreateInsertValue(structValue, dataPointer, std::vector<unsigned>(1, 1));
+					
+					return structValue;
 				}
 				default:
 					std::cerr << "CodeGen error: Unknown value." << std::endl;

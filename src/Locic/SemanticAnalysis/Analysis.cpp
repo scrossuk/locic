@@ -78,7 +78,7 @@ namespace Locic {
 				return true;
 			}
 				
-			if(!context.addFunction(astFunction->name, semFunction)) {
+			if(!context.addFunction(astFunction->name, semFunction, isMethod)) {
 				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
 				return false;
 			}

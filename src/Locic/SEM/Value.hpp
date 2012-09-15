@@ -19,10 +19,10 @@ namespace SEM{
 			BINARY,
 			TERNARY,
 			CAST,
-			CONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL,
-			FUNCTIONREF
+			FUNCTIONREF,
+			METHODOBJECT
 		} typeEnum;
 		
 		Type * type;
@@ -102,12 +102,6 @@ namespace SEM{
 		} cast;
 		
 		struct {
-			TypeInstance * typeInstance;
-			Function * constructor;
-			std::vector<Value*> parameters;
-		} construct;
-		
-		struct {
 			Value* object;
 			std::size_t memberId;
 		} memberAccess;
@@ -120,6 +114,11 @@ namespace SEM{
 		struct {
 			Function * function;
 		} functionRef;
+		
+		struct {
+			Function * method;
+			Value * methodOwner;
+		} methodObject;
 		
 		inline Value() : typeEnum(NONE), type(Type::Void(Type::MUTABLE)) { }
 		
@@ -199,14 +198,6 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value * Construct(TypeInstance * typeInstance, Function * constructor, const std::vector<Value *>& parameters, Type * type){
-			Value* value = new Value(CONSTRUCT, type);
-			value->construct.typeInstance = typeInstance;
-			value->construct.constructor = constructor;
-			value->construct.parameters = parameters;
-			return value;
-		}
-		
 		inline static Value * MemberAccess(Value * object, std::size_t memberId, Type * type){
 			Value* value = new Value(MEMBERACCESS, type);
 			value->memberAccess.object = object;
@@ -224,6 +215,13 @@ namespace SEM{
 		inline static Value * FunctionRef(Function * function, Type * type){
 			Value* value = new Value(FUNCTIONREF, type);
 			value->functionRef.function = function;
+			return value;
+		}
+		
+		inline static Value * MethodObject(Function * method, Value * methodOwner, Type * type){
+			Value* value = new Value(METHODOBJECT, type);
+			value->methodObject.method = method;
+			value->methodObject.methodOwner = methodOwner;
 			return value;
 		}
 	};

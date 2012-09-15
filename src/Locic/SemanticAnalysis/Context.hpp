@@ -26,7 +26,7 @@ namespace Locic {
 		
 		class StructuralContext: public Context{
 			public:
-				virtual bool addFunction(const std::string& name, SEM::Function* function) = 0;
+				virtual bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) = 0;
 				
 				virtual bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) = 0;
 			
@@ -37,7 +37,8 @@ namespace Locic {
 				inline GlobalContext(SEM::Namespace * rootNamespace)
 					: rootNamespace_(rootNamespace){ }
 				
-				inline bool addFunction(const std::string& name, SEM::Function* function) {
+				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
+					assert(!isMethod);
 					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
 				}
 				
@@ -73,7 +74,8 @@ namespace Locic {
 				inline ModuleContext(StructuralContext& parentContext, SEM::Module* module)
 					: parentContext_(parentContext), module_(module) { }
 					
-				inline bool addFunction(const std::string& name, SEM::Function* function) {
+				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
+					assert(!isMethod);
 					return parentContext_.addFunction(name, function);
 				}
 				
@@ -117,13 +119,20 @@ namespace Locic {
 				inline TypeInstanceContext(StructuralContext& parentContext, SEM::TypeInstance * typeInstance)
 					: parentContext_(parentContext), typeInstance_(typeInstance) { }
 				
-				inline bool addFunction(const std::string& name, SEM::Function* function) {
-					return typeInstance_->methods.tryInsert(name, function);
+				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
+					if(!isMethod){
+						return typeInstance_->constructors.tryInsert(name, function);
+					}else{
+						return typeInstance_->methods.tryInsert(name, function);
+					}
 				}
 				
 				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
-					Optional<SEM::Function *> function = typeInstance_->methods.tryGet(name);
-					return function.hasValue() ? function.getValue() :
+					Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(name);
+					if(constructor.hasValue()) return constructor.getValue();
+					
+					Optional<SEM::Function *> method = typeInstance_->methods.tryGet(name);
+					return method.hasValue() ? method.getValue() :
 						(searchParent ? parentContext_.getFunction(name) : NULL);
 				}
 				

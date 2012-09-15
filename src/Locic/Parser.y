@@ -544,12 +544,12 @@ precision7(V) ::= NULL.
 
 precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Value::Construct(*(N), "Default", *(VL));
+		V = AST::Value::FunctionCall(AST::Value::Construct(*(N), "Default"), *(VL));
 	}
 
 precision7(V) ::= ucName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
-		V = AST::Value::Construct(*(TN), *(CN), *(VL));
+		V = AST::Value::FunctionCall(AST::Value::Construct(*(TN), *(CN)), *(VL));
 	}
 	
 precision7(V) ::= CAST LTRIBRACKET type(T) RTRIBRACKET LROUNDBRACKET value(VAL) RROUNDBRACKET.

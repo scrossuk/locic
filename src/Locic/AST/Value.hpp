@@ -82,7 +82,6 @@ namespace AST {
 		
 		struct {
 			std::string typeName, constructorName;
-			std::vector<Value*> parameters;
 		} construct;
 		
 		struct {
@@ -162,11 +161,10 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * Construct(const std::string& typeName, const std::string& constructorName, const std::vector<Value *>& parameters){
+		inline static Value * Construct(const std::string& typeName, const std::string& constructorName){
 			Value* value = new Value(CONSTRUCT);
 			value->construct.typeName = typeName;
 			value->construct.constructorName = constructorName;
-			value->construct.parameters = parameters;
 			return value;
 		}
 		

@@ -18,6 +18,7 @@ namespace SEM{
 		
 		std::string name;
 		Locic::StringMap<Var *> variables;
+		Locic::StringMap<Function *> constructors;
 		Locic::StringMap<Function *> methods;
 		
 		inline TypeInstance(TypeEnum e, const std::string& n)

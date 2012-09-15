@@ -321,10 +321,29 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			return SEM::Value::Cast(type, val);
 		}
 		case AST::Value::CONSTRUCT: {
-			printf("Internal Compiler Error: Unimplemented constructor call.\n");
-			return NULL;
+			const std::string typeName = value->construct.typeName;
+			const std::string constructorName = value->construct.constructorName;
+			
+			SEM::TypeInstance * typeInstance = context.getTypeInstance(typeName);
+			if(typeInstance == NULL){
+				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.c_str());
+				return NULL;
+			}
+			
+			Optional<SEM::Function *> result = typeInstance->constructors.tryGet(constructorName);
+			
+			if(!result.hasValue()){
+				printf("Semantic Analysis Error: Cannot find constructor '%s' in type '%s'.\n", constructorName.c_str(), typeName.c_str());
+				return NULL;
+			}
+			
+			SEM::Function * constructor = result.getValue();
+			
+			return SEM::Value::FunctionRef(constructor, constructor->type);
 		}
 		case AST::Value::MEMBERACCESS: {
+			const std::string memberName = value->memberAccess.memberName;
+		
 			SEM::Value * object = ConvertValue(context, value->memberAccess.object);
 			if(object == NULL) return NULL;
 			
@@ -335,26 +354,37 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			}
 		
 			SEM::TypeInstance * typeInstance = objectType->namedType.typeInstance;
-			if(typeInstance->typeEnum != SEM::TypeInstance::STRUCT){
-				printf("Semantic Analysis Error: Can't access member of non-struct type.\n");
-				return NULL;
-			}
+			assert(typeInstance != NULL);
 			
-			Optional<SEM::Var *> varResult = typeInstance->variables.tryGet(value->memberAccess.memberName);
-			if(varResult.hasValue()){
-				SEM::Var * var = varResult.getValue();
-				if(objectType->isLValue){
-					return SEM::Value::MemberAccess(object, var->id, var->type);
+			if(typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
+				// Look for struct variables.
+				Optional<SEM::Var *> varResult = typeInstance->variables.tryGet(memberName);
+				if(varResult.hasValue()){
+					SEM::Var * var = varResult.getValue();
+					if(objectType->isLValue){
+						return SEM::Value::MemberAccess(object, var->id, var->type);
+					}else{
+						// If the struct type is an R-value, then the member must
+						// also be (preventing assignments to R-value members).
+						SEM::Type * memberType = new SEM::Type(*(var->type));
+						memberType->isLValue = false;
+						return SEM::Value::MemberAccess(object, var->id, memberType);
+					}
 				}else{
-					// If the struct type is an R-value, then the member must
-					// also be (preventing assignments to R-value members).
-					SEM::Type * memberType = new SEM::Type(*(var->type));
-					memberType->isLValue = false;
-					return SEM::Value::MemberAccess(object, var->id, memberType);
+					printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", memberName.c_str());
+					return NULL;
 				}
 			}else{
-				printf("Semantic Analysis Error: Can't access non-existent struct member '%s'.\n", value->memberAccess.memberName.c_str());
-				return NULL;
+				// Look for class methods.
+				Optional<SEM::Function *> methodResult = typeInstance->methods.tryGet(memberName);
+				
+				if(methodResult.hasValue()){
+					SEM::Function * method = methodResult.getValue();
+					return SEM::Value::MethodObject(method, object, method->type);
+				}else{
+					printf("Semantic Analysis Error: Can't find non-existent class method '%s'.\n", memberName.c_str());
+					return NULL;
+				}
 			}
 		}
 		case AST::Value::FUNCTIONCALL: {
