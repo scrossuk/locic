@@ -97,7 +97,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					}
 					
 					// Not a variable - try looking for functions.
-					SEM::Function* function = context.getFunction(astVar->name);
+					SEM::Function* function = context.getFunction(Name::Relative(astVar->name));
 					
 					if(function != NULL) {
 						return SEM::Value::FunctionRef(function, function->type);
@@ -324,7 +324,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			const std::string typeName = value->construct.typeName;
 			const std::string constructorName = value->construct.constructorName;
 			
-			SEM::TypeInstance * typeInstance = context.getTypeInstance(typeName);
+			SEM::TypeInstance * typeInstance = context.getTypeInstance(Name::Relative(typeName));
 			if(typeInstance == NULL){
 				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.c_str());
 				return NULL;
@@ -371,7 +371,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						return SEM::Value::MemberAccess(object, var->id, memberType);
 					}
 				}else{
-					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.c_str());
+					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
 			}else{
@@ -385,7 +385,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					
 					return SEM::Value::MethodObject(methodFunction, object, methodType);
 				}else{
-					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.c_str());
+					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
 			}

@@ -184,7 +184,7 @@ class CodeGen {
 			Locic::Optional<Function *> optionalFunction = functions_.tryGet(function);
 			if(optionalFunction.hasValue()) return optionalFunction.getValue();
 			
-			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->getFullName(), module_);
+			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->name.genString(), module_);
 			
 			functions_.insert(function, functionDecl);
 			return functionDecl;
@@ -198,7 +198,7 @@ class CodeGen {
 			Locic::Optional<Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
 			if(optionalStruct.hasValue()) return optionalStruct.getValue();
 			
-			StructType * structType = StructType::create(getGlobalContext(), typeInstance->getFullName());
+			StructType * structType = StructType::create(getGlobalContext(), typeInstance->name.genString());
 			
 			// Add the struct type before setting its body, since the struct can contain
 			// variables that have a type that contains this struct (e.g. struct contains

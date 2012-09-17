@@ -20,7 +20,7 @@ namespace Locic {
 				AST::TypeInstance* astTypeInstance = astModule->typeInstances.at(i);
 				SEM::TypeInstance * semTypeInstance =
 					new SEM::TypeInstance((SEM::TypeInstance::TypeEnum) astTypeInstance->typeEnum,
-						astTypeInstance->name);
+						context.getName() + astTypeInstance->name);
 				
 				if(!context.addTypeInstance(astTypeInstance->name, semTypeInstance)){
 					printf("Semantic Analysis Error: type already defined with name '%s'.\n", astTypeInstance->name.c_str());
@@ -32,7 +32,7 @@ namespace Locic {
 		
 		// Fill in type instance structures with member variable information.
 		bool AddTypeMemberVariables(StructuralContext& context, AST::TypeInstance * astTypeInstance){
-			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(astTypeInstance->name);
+			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(context.getName() + astTypeInstance->name);
 			assert(semTypeInstance != NULL);
 			
 			for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++){
@@ -69,7 +69,7 @@ namespace Locic {
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction, isMethod);
 			assert(semFunction != NULL);
 			
-			SEM::Function * existingFunction = context.getFunction(astFunction->name, false);
+			SEM::Function * existingFunction = context.getFunction(context.getName() + astFunction->name, false);
 			if(existingFunction != NULL){
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
 					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", astFunction->getFullName().c_str());
@@ -87,7 +87,7 @@ namespace Locic {
 		}
 		
 		bool AddFunctionDecls(StructuralContext& context, AST::TypeInstance* astTypeInstance){
-			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(astTypeInstance->name);
+			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(context.getName() + astTypeInstance->name);
 			assert(semTypeInstance != NULL);
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
@@ -122,7 +122,7 @@ namespace Locic {
 		}
 	
 		std::vector<SEM::Module*> Run(const std::vector<AST::Module*>& modules) {
-			SEM::Namespace * rootNamespace = new SEM::Namespace("");
+			SEM::Namespace * rootNamespace = new SEM::Namespace(Name());
 			GlobalContext globalContext(rootNamespace);
 			
 			std::vector<SEM::Module *> semModules;

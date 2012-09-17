@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <Locic/Map.hpp>
+#include <Locic/Name.hpp>
 #include <Locic/SEM.hpp>
 
 namespace Locic {
@@ -14,9 +15,11 @@ namespace Locic {
 	
 		class Context {
 			public:
-				virtual SEM::Function* getFunction(const std::string& name, bool searchParent = true) = 0;
+				virtual Name getName() = 0;
 				
-				virtual SEM::TypeInstance* getTypeInstance(const std::string& name) = 0;
+				virtual SEM::Function* getFunction(const Name& name, bool searchParent = true) = 0;
+				
+				virtual SEM::TypeInstance* getTypeInstance(const Name& name) = 0;
 				
 				virtual SEM::TypeInstance* getThisTypeInstance() = 0;
 				
@@ -36,24 +39,30 @@ namespace Locic {
 			public:
 				inline GlobalContext(SEM::Namespace * rootNamespace)
 					: rootNamespace_(rootNamespace){ }
+					
+				inline Name getName(){
+					return Name();
+				}
 				
 				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
 					assert(!isMethod);
 					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
-					Optional<SEM::NamespaceNode *> node = rootNamespace_->children.tryGet(name);
-					return node.hasValue() ? (node.getValue()->getFunction()) : NULL;
+				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
+					SEM::NamespaceNode * node = rootNamespace_->lookup(name);
+					if(node != NULL) return node->getFunction();
+					return NULL;
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
 					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::TypeInstance(typeInstance));
 				}
 				
-				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
-					Optional<SEM::NamespaceNode *> node = rootNamespace_->children.tryGet(name);
-					return node.hasValue() ? (node.getValue()->getTypeInstance()) : NULL;
+				inline SEM::TypeInstance* getTypeInstance(const Name& name){
+					SEM::NamespaceNode * node = rootNamespace_->lookup(name);
+					if(node != NULL) return node->getTypeInstance();
+					return NULL;
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
@@ -73,13 +82,17 @@ namespace Locic {
 			public:
 				inline ModuleContext(StructuralContext& parentContext, SEM::Module* module)
 					: parentContext_(parentContext), module_(module) { }
+				
+				inline Name getName(){
+					return parentContext_.getName();
+				}
 					
 				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
 					assert(!isMethod);
 					return parentContext_.addFunction(name, function);
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
+				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
 					return parentContext_.getFunction(name);
 				}
 				
@@ -87,7 +100,7 @@ namespace Locic {
 					return parentContext_.addTypeInstance(name, typeInstance);
 				}
 				
-				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
 					return parentContext_.getTypeInstance(name);
 				}
 				
@@ -119,6 +132,10 @@ namespace Locic {
 				inline TypeInstanceContext(StructuralContext& parentContext, SEM::TypeInstance * typeInstance)
 					: parentContext_(parentContext), typeInstance_(typeInstance) { }
 				
+				inline Name getName(){
+					return typeInstance_->name;
+				}
+				
 				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
 					if(!isMethod){
 						return typeInstance_->constructors.tryInsert(name, function);
@@ -127,13 +144,24 @@ namespace Locic {
 					}
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
-					Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(name);
-					if(constructor.hasValue()) return constructor.getValue();
+				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
+					if(typeInstance_->name.isPrefixOf(name)){
+						assert((typeInstance_->name.size() + 1) == name.size());
+						
+						const std::string nameEnd = name.last();
+						Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(nameEnd);
+						if(constructor.hasValue()) return constructor.getValue();
+						
+						Optional<SEM::Function *> method = typeInstance_->methods.tryGet(nameEnd);
+						if(method.hasValue()) return method.getValue();
+						
+						// No need to search parent, because this type instance's name is
+						// the prefix of the target name, so the function must be in it.
+						return NULL;
+					}
 					
-					Optional<SEM::Function *> method = typeInstance_->methods.tryGet(name);
-					return method.hasValue() ? method.getValue() :
-						(searchParent ? parentContext_.getFunction(name) : NULL);
+					if(searchParent) return parentContext_.getFunction(name);
+					return NULL;
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
@@ -141,7 +169,8 @@ namespace Locic {
 					return false;
 				}
 				
-				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
+					if(name == typeInstance_->name) return typeInstance_;
 					return parentContext_.getTypeInstance(name);
 				}
 				
@@ -173,11 +202,15 @@ namespace Locic {
 					assert(scopeStack_.size() == 0);
 				}
 				
+				inline Name getName(){
+					return function_->name;
+				}
+				
 				inline SEM::Type * getReturnType() {
 					return function_->type->functionType.returnType;
 				}
 				
-				inline SEM::Function* getFunction(const std::string& name, bool searchParent = true) {
+				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
 					return parentContext_.getFunction(name);
 				}
 				
@@ -185,7 +218,7 @@ namespace Locic {
 					return parentContext_.getThisTypeInstance();
 				}
 				
-				inline SEM::TypeInstance* getTypeInstance(const std::string& name) {
+				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
 					return parentContext_.getTypeInstance(name);
 				}
 				

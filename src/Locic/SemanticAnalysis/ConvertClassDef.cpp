@@ -9,9 +9,9 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		SEM::TypeInstance * ConvertClassDef(StructuralContext& context, AST::TypeInstance* typeInstance) {
-			const std::string typeName = typeInstance->getFullName();
+			const std::string typeName = typeInstance->name;
 			
-			SEM::TypeInstance * semTypeInstance = context.getTypeInstance(typeName);
+			SEM::TypeInstance * semTypeInstance = context.getTypeInstance(context.getName() + typeName);
 			
 			assert(semTypeInstance != NULL);
 			assert(semTypeInstance->typeEnum == SEM::TypeInstance::CLASSDEF);

@@ -16,7 +16,7 @@ namespace Locic {
 			
 			// Find the corresponding semantic function
 			// (which MUST have been created previously).
-			SEM::Function* semFunction = context.getFunction(function->name);
+			SEM::Function* semFunction = context.getFunction(context.getName() + function->name);
 			
 			assert(semFunction != NULL);
 			

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <Locic/Map.hpp>
+#include <Locic/Name.hpp>
 #include <Locic/SEM/Var.hpp>
 
 namespace SEM{
@@ -16,17 +17,13 @@ namespace SEM{
 			STRUCT
 		} typeEnum;
 		
-		std::string name;
+		Locic::Name name;
 		Locic::StringMap<Var *> variables;
 		Locic::StringMap<Function *> constructors;
 		Locic::StringMap<Function *> methods;
 		
-		inline TypeInstance(TypeEnum e, const std::string& n)
+		inline TypeInstance(TypeEnum e, const Locic::Name& n)
 			: typeEnum(e), name(n){ }
-		
-		inline std::string getFullName() const{
-			return name;
-		}
 	};
 
 }

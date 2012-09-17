@@ -173,7 +173,7 @@ namespace SEM{
 					break;
 				}
 				case NAMED:
-					str += namedType.typeInstance->getFullName();
+					str += namedType.typeInstance->name.toString();
 					break;
 				case POINTER:
 					str += pointerType.targetType->toString();
@@ -198,7 +198,7 @@ namespace SEM{
 				case METHOD:
 				{
 					str += "(";
-					str += methodType.objectType->name;
+					str += methodType.objectType->name.toString();
 					str += "::*)(";
 					str += methodType.functionType->functionType.returnType->toString();
 					str += ")(";

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <Locic/Map.hpp>
+#include <Locic/Name.hpp>
+#include <Locic/Optional.hpp>
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
@@ -58,11 +60,33 @@ namespace SEM{
 	};
 	
 	struct Namespace{
-		std::string name;
+		Locic::Name name;
 		Locic::StringMap<NamespaceNode *> children;
 		
-		inline Namespace(const std::string& n)
+		inline Namespace(const Locic::Name& n)
 			: name(n){ }
+		
+		inline NamespaceNode * lookup(const Locic::Name& targetName) const{
+			// If the target name matches this namespace, we still don't have the
+			// namespace node to return (our parent namespace has that, or if we're
+			// root, it doesn't exist).
+			if(name.isPrefixOf(targetName)){
+				// Get the part of the name that's of interest.
+				const std::string namePart = targetName.at(name.size());
+				
+				Locic::Optional<NamespaceNode*> nodeResult = children.tryGet(namePart);
+				if(nodeResult.hasValue()){
+					NamespaceNode * node = nodeResult.getValue();
+					if(node->typeEnum == NamespaceNode::NAMESPACE){
+						// For namespaces, keep searching.
+						return node->nameSpace->lookup(targetName);
+					}else{
+						return node;
+					}
+				}
+			}
+			return NULL;
+		}
 	};
 
 }
