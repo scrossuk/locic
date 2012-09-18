@@ -97,7 +97,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					}
 					
 					// Not a variable - try looking for functions.
-					SEM::Function* function = context.getFunction(Name::Relative(astVar->name));
+					SEM::Function* function = context.getFunction(Name::Relative() + astVar->name);
 					
 					if(function != NULL) {
 						return SEM::Value::FunctionRef(function, function->type);
@@ -324,7 +324,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			const std::string typeName = value->construct.typeName;
 			const std::string constructorName = value->construct.constructorName;
 			
-			SEM::TypeInstance * typeInstance = context.getTypeInstance(Name::Relative(typeName));
+			SEM::TypeInstance * typeInstance = context.getTypeInstance(Name::Relative() + typeName);
 			if(typeInstance == NULL){
 				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.c_str());
 				return NULL;
@@ -404,7 +404,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
 			
 					if(typeList.size() != astValueList.size()) {
-						printf("Semantic Analysis Error: Function called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
+						printf("Semantic Analysis Error: Function [%s] called with %lu number of parameters; expected %lu.\n", functionValue->toString().c_str(), astValueList.size(), typeList.size());
 						return NULL;
 					}
 					

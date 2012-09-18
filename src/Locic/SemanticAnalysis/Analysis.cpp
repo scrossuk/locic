@@ -122,7 +122,7 @@ namespace Locic {
 		}
 	
 		std::vector<SEM::Module*> Run(const std::vector<AST::Module*>& modules) {
-			SEM::Namespace * rootNamespace = new SEM::Namespace(Name());
+			SEM::Namespace * rootNamespace = new SEM::Namespace(Name::Absolute());
 			GlobalContext globalContext(rootNamespace);
 			
 			std::vector<SEM::Module *> semModules;

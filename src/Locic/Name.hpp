@@ -12,22 +12,43 @@ namespace Locic{
 		typedef ListType::const_iterator CItType;
 	
 		public:
-			inline Name(){ }
+			inline explicit Name(bool isAbsolute)
+				: isAbsolute_(isAbsolute){ }
 			
-			inline explicit Name(const std::string& str){
-				list_.push_back(str);
+			inline Name(const Name& name, std::size_t substrSize)
+				: isAbsolute_(name.isAbsolute()){
+				
+				assert(substrSize <= size());
+				
+				for(std::size_t i = 0; i < substrSize; i++){
+					list_.push_back(name.at(substrSize));
+				}	
 			}
 			
-			inline Name(const Name& prefix, const std::string& suffix){
+			inline Name(const Name& prefix, const std::string& suffix)
+				: isAbsolute_(prefix.isAbsolute()){
 				for(std::size_t i = 0; i < prefix.size(); i++){
 					list_.push_back(prefix.at(i));
 				}
 				list_.push_back(suffix);
 			}
 			
-			inline static Name Relative(const std::string& name){
-				// TODO!
-				return Name(name);
+			inline Name(const Name& prefix, const Name& suffix)
+				: isAbsolute_(prefix.isAbsolute()){
+				for(std::size_t i = 0; i < prefix.size(); i++){
+					list_.push_back(prefix.at(i));
+				}
+				for(std::size_t i = 0; i < suffix.size(); i++){
+					list_.push_back(suffix.at(i));
+				}
+			}
+			
+			inline static Name Absolute(){
+				return Name(true);
+			}
+			
+			inline static Name Relative(){
+				return Name(false);
 			}
 			
 			inline bool operator==(const Name& name) const{
@@ -42,6 +63,20 @@ namespace Locic{
 			
 			inline Name operator+(const std::string& name) const{
 				return Name(*this, name);
+			}
+			
+			inline Name makeAbsolute(const Name& name) const{
+				assert(isAbsolute());
+				assert(!name.empty());
+				if(name.isAbsolute()){
+					return name;
+				}else{
+					return concat(name);
+				}
+			}
+			
+			inline bool isAbsolute() const{
+				return isAbsolute_;
 			}
 			
 			inline bool isPrefixOf(const Name& name) const{
@@ -93,7 +128,25 @@ namespace Locic{
 				return list_.at(i);
 			}
 			
+			inline std::string revAt(std::size_t i) const{
+				assert(i < list_.size());
+				return list_.at(list_.size() - i - 1);
+			}
+			
+			inline Name substr(std::size_t size) const{
+				return Name(*this, size);
+			}
+			
+			inline Name concat(const Name& suffix) const{
+				return Name(*this, suffix);
+			}
+			
+			inline Name append(const std::string& suffix) const{
+				return Name(*this, suffix);
+			}
+			
 		private:
+			bool isAbsolute_;
 			ListType list_;
 			
 	};

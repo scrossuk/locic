@@ -41,7 +41,7 @@ namespace Locic {
 					: rootNamespace_(rootNamespace){ }
 					
 				inline Name getName(){
-					return Name();
+					return Name::Absolute();
 				}
 				
 				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
@@ -144,23 +144,21 @@ namespace Locic {
 					}
 				}
 				
-				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
-					if(typeInstance_->name.isPrefixOf(name)){
-						assert((typeInstance_->name.size() + 1) == name.size());
+				inline SEM::Function* getFunction(const Name& relativeName, bool searchParent = true) {
+					Name absoluteName = typeInstance_->name.makeAbsolute(relativeName);
+				
+					if(typeInstance_->name.isPrefixOf(absoluteName)
+						&& absoluteName.size() == (typeInstance_->name.size() + 1)){
 						
-						const std::string nameEnd = name.last();
+						const std::string nameEnd = absoluteName.last();
 						Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(nameEnd);
 						if(constructor.hasValue()) return constructor.getValue();
 						
 						Optional<SEM::Function *> method = typeInstance_->methods.tryGet(nameEnd);
 						if(method.hasValue()) return method.getValue();
-						
-						// No need to search parent, because this type instance's name is
-						// the prefix of the target name, so the function must be in it.
-						return NULL;
 					}
 					
-					if(searchParent) return parentContext_.getFunction(name);
+					if(searchParent) return parentContext_.getFunction(relativeName);
 					return NULL;
 				}
 				

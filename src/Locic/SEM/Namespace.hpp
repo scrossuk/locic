@@ -66,20 +66,22 @@ namespace SEM{
 		inline Namespace(const Locic::Name& n)
 			: name(n){ }
 		
-		inline NamespaceNode * lookup(const Locic::Name& targetName) const{
+		inline NamespaceNode * lookup(const Locic::Name& relativeName) const{
+			Locic::Name absoluteName = name.makeAbsolute(relativeName);
+		
 			// If the target name matches this namespace, we still don't have the
 			// namespace node to return (our parent namespace has that, or if we're
 			// root, it doesn't exist).
-			if(name.isPrefixOf(targetName)){
+			if(name.isPrefixOf(absoluteName)){
 				// Get the part of the name that's of interest.
-				const std::string namePart = targetName.at(name.size());
+				const std::string namePart = absoluteName.at(name.size());
 				
 				Locic::Optional<NamespaceNode*> nodeResult = children.tryGet(namePart);
 				if(nodeResult.hasValue()){
 					NamespaceNode * node = nodeResult.getValue();
 					if(node->typeEnum == NamespaceNode::NAMESPACE){
 						// For namespaces, keep searching.
-						return node->nameSpace->lookup(targetName);
+						return node->nameSpace->lookup(absoluteName);
 					}else{
 						return node;
 					}

@@ -237,6 +237,63 @@ namespace SEM{
 			value->methodCall.parameters = parameters;
 			return value;
 		}
+		
+		inline std::string toString() const{
+			switch(typeEnum){
+				case CONSTANT:
+				{
+					return "CONSTANT";
+				}
+				case COPY:
+				{
+					return "copy(" + copyValue.value->toString() + ")";
+				}
+				case VAR:
+				{
+					return "VAR";
+				}
+				case UNARY:
+				{
+					return "UNARY";
+				}
+				case BINARY:
+				{
+					return "BINARY";
+				}
+				case TERNARY:
+				{
+					return "TERNARY";
+				}
+				case CAST:
+				{
+					return "CAST";
+				}
+				case MEMBERACCESS:
+				{
+					return "MEMBERACCESS";
+				}
+				case FUNCTIONCALL:
+				{
+					return "FUNCTION CALL";
+				}
+				case FUNCTIONREF:
+				{
+					return "functionref(" + functionRef.function->name.toString() + ")";
+				}
+				case METHODOBJECT:
+				{
+					return "METHODOBJECT";
+				}
+				case METHODCALL:
+				{
+					return "METHODCALL";
+				}
+				default:
+				{
+					return "(unknown)";
+				}
+			}
+		}
 	};
 
 }
