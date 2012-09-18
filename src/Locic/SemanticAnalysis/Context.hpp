@@ -17,7 +17,7 @@ namespace Locic {
 			public:
 				virtual Name getName() = 0;
 				
-				virtual SEM::Function* getFunction(const Name& name, bool searchParent = true) = 0;
+				virtual SEM::Function* getFunction(const Name& name) = 0;
 				
 				virtual SEM::TypeInstance* getTypeInstance(const Name& name) = 0;
 				
@@ -49,7 +49,7 @@ namespace Locic {
 					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
 				}
 				
-				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
+				inline SEM::Function* getFunction(const Name& name) {
 					SEM::NamespaceNode * node = rootNamespace_->lookup(name);
 					if(node != NULL) return node->getFunction();
 					return NULL;
@@ -92,7 +92,7 @@ namespace Locic {
 					return parentContext_.addFunction(name, function);
 				}
 				
-				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
+				inline SEM::Function* getFunction(const Name& name) {
 					return parentContext_.getFunction(name);
 				}
 				
@@ -144,13 +144,13 @@ namespace Locic {
 					}
 				}
 				
-				inline SEM::Function* getFunction(const Name& relativeName, bool searchParent = true) {
-					Name absoluteName = typeInstance_->name.makeAbsolute(relativeName);
-				
-					if(typeInstance_->name.isPrefixOf(absoluteName)
-						&& absoluteName.size() == (typeInstance_->name.size() + 1)){
+				inline SEM::Function* getFunction(const Name& name) {
+					// Don't look for relative names in this type instance.
+					if(name.isAbsolute() &&
+						typeInstance_->name.isPrefixOf(name) &&
+						name.size() == (typeInstance_->name.size() + 1)){
 						
-						const std::string nameEnd = absoluteName.last();
+						const std::string nameEnd = name.last();
 						Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(nameEnd);
 						if(constructor.hasValue()) return constructor.getValue();
 						
@@ -158,8 +158,7 @@ namespace Locic {
 						if(method.hasValue()) return method.getValue();
 					}
 					
-					if(searchParent) return parentContext_.getFunction(relativeName);
-					return NULL;
+					return parentContext_.getFunction(name);
 				}
 				
 				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
@@ -208,7 +207,7 @@ namespace Locic {
 					return function_->type->functionType.returnType;
 				}
 				
-				inline SEM::Function* getFunction(const Name& name, bool searchParent = true) {
+				inline SEM::Function* getFunction(const Name& name) {
 					return parentContext_.getFunction(name);
 				}
 				

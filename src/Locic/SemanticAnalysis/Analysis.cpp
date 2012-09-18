@@ -69,7 +69,7 @@ namespace Locic {
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction, isMethod);
 			assert(semFunction != NULL);
 			
-			SEM::Function * existingFunction = context.getFunction(context.getName() + astFunction->name, false);
+			SEM::Function * existingFunction = context.getFunction(context.getName() + astFunction->name);
 			if(existingFunction != NULL){
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
 					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", astFunction->getFullName().c_str());
