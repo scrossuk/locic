@@ -10,7 +10,29 @@
 
 namespace SEM{
 
-	struct Namespace;
+	struct NamespaceNode;
+
+	struct Namespace{
+		Locic::Name name;
+		Locic::StringMap<NamespaceNode *> children;
+		
+		inline Namespace(const Locic::Name& n)
+			: name(n){ }
+		
+		inline NamespaceNode * lookup(const Locic::Name& targetName) const{
+			assert(targetName.isAbsolute() && !targetName.empty());
+			if(name.isPrefixOf(targetName)){
+				// Get the part of the name that's of interest.
+				const std::string namePart = targetName.at(name.size());
+				
+				Locic::Optional<NamespaceNode*> nodeResult = children.tryGet(namePart);
+				if(nodeResult.hasValue()){
+					return nodeResult.getValue();
+				}
+			}
+			return NULL;
+		}
+	};
 
 	struct NamespaceNode{
 		enum TypeEnum{
@@ -46,6 +68,20 @@ namespace SEM{
 			return node;
 		}
 		
+		inline Locic::Name getName() const{
+			switch(typeEnum){
+				case FUNCTION:
+					return function->name;
+				case NAMESPACE:
+					return nameSpace->name;
+				case TYPEINSTANCE:
+					return typeInstance->name;
+				default:
+					assert(false);
+					return Locic::Name::Absolute();
+			}
+		}
+		
 		inline struct Function * getFunction(){
 			return (typeEnum == FUNCTION) ? function : NULL;
 		}
@@ -56,38 +92,6 @@ namespace SEM{
 		
 		inline struct TypeInstance * getTypeInstance(){
 			return (typeEnum == TYPEINSTANCE) ? typeInstance : NULL;
-		}
-	};
-	
-	struct Namespace{
-		Locic::Name name;
-		Locic::StringMap<NamespaceNode *> children;
-		
-		inline Namespace(const Locic::Name& n)
-			: name(n){ }
-		
-		inline NamespaceNode * lookup(const Locic::Name& relativeName) const{
-			Locic::Name absoluteName = name.makeAbsolute(relativeName);
-		
-			// If the target name matches this namespace, we still don't have the
-			// namespace node to return (our parent namespace has that, or if we're
-			// root, it doesn't exist).
-			if(name.isPrefixOf(absoluteName)){
-				// Get the part of the name that's of interest.
-				const std::string namePart = absoluteName.at(name.size());
-				
-				Locic::Optional<NamespaceNode*> nodeResult = children.tryGet(namePart);
-				if(nodeResult.hasValue()){
-					NamespaceNode * node = nodeResult.getValue();
-					if(node->typeEnum == NamespaceNode::NAMESPACE){
-						// For namespaces, keep searching.
-						return node->nameSpace->lookup(absoluteName);
-					}else{
-						return node;
-					}
-				}
-			}
-			return NULL;
 		}
 	};
 

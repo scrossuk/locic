@@ -2,8 +2,9 @@
 #define LOCIC_NAME_HPP
 
 #include <cassert>
-#include <list>
+#include <cstddef>
 #include <string>
+#include <vector>
 
 namespace Locic{
 

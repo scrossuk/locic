@@ -9,6 +9,7 @@
 namespace SEM{
 
 	struct Function;
+	struct NamespaceNode;
 
 	struct TypeInstance{
 		enum TypeEnum{
@@ -24,6 +25,9 @@ namespace SEM{
 		
 		inline TypeInstance(TypeEnum e, const Locic::Name& n)
 			: typeEnum(e), name(n){ }
+		
+		NamespaceNode * lookup(const Locic::Name& targetName);
+		
 	};
 
 }
