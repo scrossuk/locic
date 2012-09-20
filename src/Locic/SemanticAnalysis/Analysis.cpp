@@ -14,25 +14,36 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		// Get all type names, and build initial type instance structures.
-		bool AddTypeInstances(StructuralContext& context, AST::Module* astModule){
+		bool AddTypeInstances(Context& context, AST::Namespace* astNamespace){
+			SEM::Namespace* semNamespace = context.getNode(context.getName() + astNamespace->name).getNamespace();
+			assert(semNamespace != NULL);
+			
+			NamespaceContext namespaceContext(context, semNamespace);
+		
 			//-- Initial phase: get all type names.
-			for(std::size_t i = 0; i < astModule->typeInstances.size(); i++){
-				AST::TypeInstance* astTypeInstance = astModule->typeInstances.at(i);
+			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
+				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
 				SEM::TypeInstance * semTypeInstance =
 					new SEM::TypeInstance((SEM::TypeInstance::TypeEnum) astTypeInstance->typeEnum,
-						context.getName() + astTypeInstance->name);
+						namespaceContext.getName() + astTypeInstance->name);
 				
-				if(!context.addTypeInstance(astTypeInstance->name, semTypeInstance)){
-					printf("Semantic Analysis Error: type already defined with name '%s'.\n", astTypeInstance->name.c_str());
+				if(!namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance)){
+					printf("Semantic Analysis Error: type already defined with name '%s'.\n", semTypeInstance->name.toString().c_str());
 					return false;
 				}
 			}
 			return true;
 		}
 		
+		bool AddTypeInstances(Context& context, AST::Module* astModule, SEM::Module * semModule){
+			ModuleContext moduleContext(context, semModule);
+			
+			return AddTypeInstances(moduleContext, astModule->nameSpace);
+		}
+		
 		// Fill in type instance structures with member variable information.
-		bool AddTypeMemberVariables(StructuralContext& context, AST::TypeInstance * astTypeInstance){
-			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(context.getName() + astTypeInstance->name);
+		bool AddTypeMemberVariables(Context& context, AST::TypeInstance * astTypeInstance){
+			SEM::TypeInstance* semTypeInstance = context.getNode(context.getName() + astTypeInstance->name).getTypeInstance();
 			assert(semTypeInstance != NULL);
 			
 			for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++){
@@ -54,22 +65,31 @@ namespace Locic {
 			return true;
 		}
 		
-		bool AddTypeMemberVariables(StructuralContext& context, AST::Module * astModule, SEM::Module * semModule){
-			ModuleContext moduleContext(context, semModule);
+		bool AddTypeMemberVariables(Context& context, AST::Namespace * astNamespace){
+			SEM::Namespace * semNamespace = context.getNode(context.getName() + astNamespace->name).getNamespace();
+			assert(semNamespace != NULL);
 		
-			for(std::size_t i = 0; i < astModule->typeInstances.size(); i++){
-				AST::TypeInstance* astTypeInstance = astModule->typeInstances.at(i);
-				if(!AddTypeMemberVariables(moduleContext, astTypeInstance)) return false;
+			NamespaceContext namespaceContext(context, semNamespace);
+			
+			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
+				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
+				if(!AddTypeMemberVariables(namespaceContext, astTypeInstance)) return false;
 			}
 			
 			return true;
 		}
 		
-		bool AddFunctionDecls(StructuralContext& context, AST::Function* astFunction, bool isMethod = false){
+		bool AddTypeMemberVariables(Context& context, AST::Module * astModule, SEM::Module * semModule){
+			ModuleContext moduleContext(context, semModule);
+			
+			return AddTypeMemberVariables(moduleContext, astModule->nameSpace);
+		}
+		
+		bool AddFunctionDecls(Context& context, AST::Function* astFunction, bool isMethod = false){
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction, isMethod);
 			assert(semFunction != NULL);
 			
-			SEM::Function * existingFunction = context.getFunction(context.getName() + astFunction->name);
+			SEM::Function * existingFunction = context.getNode(context.getName() + astFunction->name).getFunction();
 			if(existingFunction != NULL){
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
 					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", astFunction->getFullName().c_str());
@@ -78,7 +98,7 @@ namespace Locic {
 				return true;
 			}
 				
-			if(!context.addFunction(astFunction->name, semFunction, isMethod)) {
+			if(!context.addFunction(context.getName() + astFunction->name, semFunction, isMethod)) {
 				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
 				return false;
 			}
@@ -86,8 +106,8 @@ namespace Locic {
 			return true;
 		}
 		
-		bool AddFunctionDecls(StructuralContext& context, AST::TypeInstance* astTypeInstance){
-			SEM::TypeInstance* semTypeInstance = context.getTypeInstance(context.getName() + astTypeInstance->name);
+		bool AddFunctionDecls(Context& context, AST::TypeInstance* astTypeInstance){
+			SEM::TypeInstance* semTypeInstance = context.getNode(context.getName() + astTypeInstance->name).getTypeInstance();
 			assert(semTypeInstance != NULL);
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
@@ -105,25 +125,33 @@ namespace Locic {
 			return true;
 		}
 		
-		bool AddFunctionDecls(StructuralContext& context, AST::Module* astModule, SEM::Module* semModule){
-			ModuleContext moduleContext(context, semModule);
+		bool AddFunctionDecls(Context& context, AST::Namespace * astNamespace){
+			SEM::Namespace * semNamespace = context.getNode(context.getName() + astNamespace->name).getNamespace();
+			assert(semNamespace != NULL);
 			
-			for(std::size_t i = 0; i < astModule->functions.size(); i++){
-				AST::Function * astFunction = astModule->functions.at(i);
-				if(!AddFunctionDecls(moduleContext, astFunction)) return false;
+			NamespaceContext namespaceContext(context, semNamespace);
+		
+			for(std::size_t i = 0; i < astNamespace->functions.size(); i++){
+				AST::Function * astFunction = astNamespace->functions.at(i);
+				if(!AddFunctionDecls(namespaceContext, astFunction)) return false;
 			}
 			
-			for(std::size_t i = 0; i < astModule->typeInstances.size(); i++){
-				AST::TypeInstance * astTypeInstance = astModule->typeInstances.at(i);
-				if(!AddFunctionDecls(moduleContext, astTypeInstance)) return false;
+			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
+				AST::TypeInstance * astTypeInstance = astNamespace->typeInstances.at(i);
+				if(!AddFunctionDecls(namespaceContext, astTypeInstance)) return false;
 			}
 			
 			return true;
 		}
+		
+		bool AddFunctionDecls(Context& context, AST::Module* astModule, SEM::Module* semModule){
+			ModuleContext moduleContext(context, semModule);
+			return AddFunctionDecls(moduleContext, astModule->nameSpace);
+		}
 	
 		std::vector<SEM::Module*> Run(const std::vector<AST::Module*>& modules) {
 			SEM::Namespace * rootNamespace = new SEM::Namespace(Name::Absolute());
-			GlobalContext globalContext(rootNamespace);
+			RootContext rootContext(rootNamespace);
 			
 			std::vector<SEM::Module *> semModules;
 			for(std::size_t i = 0; i < modules.size(); i++){
@@ -133,7 +161,8 @@ namespace Locic {
 			// Build type instances.
 			for(std::size_t i = 0; i < modules.size(); i++){
 				AST::Module* astModule = modules.at(i);
-				if(!AddTypeInstances(globalContext, astModule)){
+				SEM::Module* semModule = semModules.at(i);
+				if(!AddTypeInstances(rootContext, astModule, semModule)){
 					return std::vector<SEM::Module*>();
 				}
 			}
@@ -142,7 +171,7 @@ namespace Locic {
 			for(std::size_t i = 0; i < modules.size(); i++){
 				AST::Module* astModule = modules.at(i);
 				SEM::Module* semModule = semModules.at(i);
-				if(!AddTypeMemberVariables(globalContext, astModule, semModule)){
+				if(!AddTypeMemberVariables(rootContext, astModule, semModule)){
 					return std::vector<SEM::Module*>();
 				}
 			}
@@ -151,7 +180,7 @@ namespace Locic {
 			for(std::size_t i = 0; i < modules.size(); i++){
 				AST::Module* astModule = modules.at(i);
 				SEM::Module* semModule = semModules.at(i);
-				if(!AddFunctionDecls(globalContext, astModule, semModule)){
+				if(!AddFunctionDecls(rootContext, astModule, semModule)){
 					return std::vector<SEM::Module*>();
 				}
 			}
@@ -161,7 +190,7 @@ namespace Locic {
 				AST::Module* astModule = modules.at(i);
 				SEM::Module* semModule = semModules.at(i);
 				
-				if(!ConvertModule(globalContext, astModule, semModule)) {
+				if(!ConvertModule(rootContext, astModule, semModule)) {
 					return std::vector<SEM::Module*>();
 				}
 			}

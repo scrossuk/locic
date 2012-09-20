@@ -4,18 +4,16 @@
 #include <string>
 #include <vector>
 
-#include <Locic/AST/Function.hpp>
-#include <Locic/AST/TypeInstance.hpp>
+#include <Locic/AST/Namespace.hpp>
 
 namespace AST {
 
 	struct Module {
 		std::string name;
-		std::vector<Function *> functions;
-		std::vector<TypeInstance *> typeInstances;
+		AST::Namespace * nameSpace;
 		
-		inline Module(const std::string& n)
-			: name(n) { }
+		inline Module(const std::string& n, AST::Namespace * ns)
+			: name(n), nameSpace(ns) { }
 			
 		inline void print() {
 			// TODO

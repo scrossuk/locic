@@ -36,7 +36,7 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 		}
 		case AST::Type::NAMED: {
 			const std::string& name = type->namedType.name;
-			SEM::TypeInstance* typeInstance = context.getTypeInstance(Name::Relative() + name);
+			SEM::TypeInstance* typeInstance = context.getNode(Name::Relative() + name).getTypeInstance();
 				
 			if(typeInstance == NULL) {
 				printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.c_str());

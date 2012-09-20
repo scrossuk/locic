@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <Locic/Map.hpp>
@@ -13,89 +14,79 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		inline SEM::NamespaceNode * PerformLookup(SEM::Namespace * nameSpace, const Name& name){
+		inline SEM::NamespaceNode PerformLookup(SEM::Namespace * nameSpace, const Name& name){
 			Name absoluteName = nameSpace->name.makeAbsolute(name);
 			
-			SEM::NamespaceNode * node = SEM::NamespaceNode::Namespace(nameSpace);
+			SEM::NamespaceNode node = SEM::NamespaceNode::Namespace(nameSpace);
 			
-			while(node != NULL){
-				if(node->getName() == absoluteName){
+			while(!node.isNone()){
+				if(node.getName() == absoluteName){
 					return node;
 				}
-				switch(node->typeEnum){
+				switch(node.typeEnum){
 					case SEM::NamespaceNode::NAMESPACE:
 					{
-						node = node->getNamespace()->lookup(absoluteName);
+						node = node.getNamespace()->lookup(absoluteName);
 						break;
 					}
 					case SEM::NamespaceNode::TYPEINSTANCE:
 					{
-						node = node->getTypeInstance()->lookup(absoluteName);
+						node = node.getTypeInstance()->lookup(absoluteName);
 						break;
 					}
 					case SEM::NamespaceNode::FUNCTION:
 					{
-						return NULL;
+						// Functions have no children.
+						return SEM::NamespaceNode::None();
 					}
 					default:
 					{
 						assert(false);
-						return NULL;
+						return SEM::NamespaceNode::None();
 					}
 				}
 			}
 			
-			return NULL;
+			return SEM::NamespaceNode::None();
 		}
 	
 		class Context {
 			public:
 				virtual Name getName() = 0;
 				
-				virtual SEM::Function* getFunction(const Name& name) = 0;
-				
-				virtual SEM::TypeInstance* getTypeInstance(const Name& name) = 0;
+				virtual SEM::NamespaceNode getNode(const Name& name) = 0;
 				
 				virtual SEM::TypeInstance* getThisTypeInstance() = 0;
 				
 				virtual SEM::Var * getThisVar(const std::string& name) = 0;
 				
-		};
-		
-		class StructuralContext: public Context{
-			public:
-				virtual bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) = 0;
+				virtual bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) = 0;
 				
-				virtual bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) = 0;
-			
+				virtual bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) = 0;
+				
 		};
 		
-		class GlobalContext: public StructuralContext {
+		class RootContext: public Context {
 			public:
-				inline GlobalContext(SEM::Namespace * rootNamespace)
+				inline RootContext(SEM::Namespace * rootNamespace)
 					: rootNamespace_(rootNamespace){ }
+				
+				inline bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) {
+					assert(name.isAbsolute());
+					return false;
+				}
+				
+				inline bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
+					assert(name.isAbsolute());
+					return false;
+				}
 					
 				inline Name getName(){
 					return Name::Absolute();
 				}
 				
-				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
-					assert(!isMethod);
-					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
-				}
-				
-				inline SEM::Function* getFunction(const Name& name) {
-					SEM::NamespaceNode * resultNode = PerformLookup(rootNamespace_, name);
-					return (resultNode != NULL) ? resultNode->getFunction() : NULL;
-				}
-				
-				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
-					return rootNamespace_->children.tryInsert(name, SEM::NamespaceNode::TypeInstance(typeInstance));
-				}
-				
-				inline SEM::TypeInstance* getTypeInstance(const Name& name){
-					SEM::NamespaceNode * resultNode = PerformLookup(rootNamespace_, name);
-					return (resultNode != NULL) ? resultNode->getTypeInstance() : NULL;
+				inline SEM::NamespaceNode getNode(const Name& name){
+					return (name.empty() && name.isAbsolute()) ? SEM::NamespaceNode::Namespace(rootNamespace_) : SEM::NamespaceNode::None();
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
@@ -111,30 +102,31 @@ namespace Locic {
 				
 		};
 		
-		class ModuleContext: public StructuralContext {
+		class ModuleContext: public Context {
 			public:
-				inline ModuleContext(StructuralContext& parentContext, SEM::Module* module)
+				inline ModuleContext(Context& parentContext, SEM::Module* module)
 					: parentContext_(parentContext), module_(module) { }
 				
 				inline Name getName(){
 					return parentContext_.getName();
 				}
+				
+				inline SEM::NamespaceNode getNode(const Name& name){
+					return parentContext_.getNode(name);
+				}
+				
+				inline bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) {
+					assert(name.isAbsolute());
 					
-				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
-					assert(!isMethod);
-					return parentContext_.addFunction(name, function);
+					module_->functions.push_back(function);
+					return parentContext_.addFunction(name, function, isMethod);
 				}
 				
-				inline SEM::Function* getFunction(const Name& name) {
-					return parentContext_.getFunction(name);
-				}
-				
-				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
+				inline bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
+					assert(name.isAbsolute());
+					
+					module_->typeInstances.push_back(typeInstance);
 					return parentContext_.addTypeInstance(name, typeInstance);
-				}
-				
-				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
-					return parentContext_.getTypeInstance(name);
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
@@ -146,12 +138,12 @@ namespace Locic {
 				}
 				
 			private:
-				StructuralContext& parentContext_;
+				Context& parentContext_;
 				SEM::Module* module_;
 				
 		};
 		
-		class NamespaceContext: public StructuralContext {
+		class NamespaceContext: public Context {
 			public:
 				inline NamespaceContext(Context& parentContext, SEM::Namespace * nameSpace)
 					: parentContext_(parentContext), nameSpace_(nameSpace){ }
@@ -160,31 +152,32 @@ namespace Locic {
 					return nameSpace_->name;
 				}
 				
-				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
-					assert(!isMethod);
-					return nameSpace_->children.tryInsert(name, SEM::NamespaceNode::Function(function));
+				inline SEM::NamespaceNode getNode(const Name& name){
+					SEM::NamespaceNode resultNode = PerformLookup(nameSpace_, name);
+					return resultNode.isNotNone() ? resultNode : parentContext_.getNode(name);
 				}
 				
-				inline SEM::Function* getFunction(const Name& name) {
-					SEM::NamespaceNode * resultNode = PerformLookup(nameSpace_, name);
-					if(resultNode != NULL){
-						SEM::Function * function = resultNode->getFunction();
-						if(function != NULL) return function;
+				inline bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) {
+					assert(name.isAbsolute());
+					
+					bool inserted = false;
+					if(nameSpace_->name.isExactPrefixOf(name)){
+						assert(!isMethod);
+						inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::Function(function));
 					}
-					return parentContext_.getFunction(name);
+					inserted |= parentContext_.addFunction(name, function, isMethod);
+					return inserted;
 				}
 				
-				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
-					return nameSpace_->children.tryInsert(name, SEM::NamespaceNode::TypeInstance(typeInstance));
-				}
-				
-				inline SEM::TypeInstance* getTypeInstance(const Name& name){
-					SEM::NamespaceNode * resultNode = PerformLookup(nameSpace_, name);
-					if(resultNode != NULL){
-						SEM::TypeInstance * typeInstance = resultNode->getTypeInstance();
-						if(typeInstance != NULL) return typeInstance;
+				inline bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
+					assert(name.isAbsolute());
+					
+					bool inserted = false;
+					if(nameSpace_->name.isExactPrefixOf(name)){
+						inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::TypeInstance(typeInstance));
 					}
-					return parentContext_.getTypeInstance(name);
+					inserted |= parentContext_.addTypeInstance(name, typeInstance);
+					return inserted;
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
@@ -201,48 +194,37 @@ namespace Locic {
 				
 		};
 		
-		class TypeInstanceContext: public StructuralContext {
+		class TypeInstanceContext: public Context {
 			public:
-				inline TypeInstanceContext(StructuralContext& parentContext, SEM::TypeInstance * typeInstance)
+				inline TypeInstanceContext(Context& parentContext, SEM::TypeInstance * typeInstance)
 					: parentContext_(parentContext), typeInstance_(typeInstance) { }
 				
 				inline Name getName(){
 					return typeInstance_->name;
 				}
 				
-				inline bool addFunction(const std::string& name, SEM::Function* function, bool isMethod = false) {
-					if(!isMethod){
-						return typeInstance_->constructors.tryInsert(name, function);
-					}else{
-						return typeInstance_->methods.tryInsert(name, function);
-					}
-				}
-				
-				inline SEM::Function* getFunction(const Name& name) {
-					// Don't look for relative names in this type instance.
-					if(name.isAbsolute() &&
-						typeInstance_->name.isPrefixOf(name) &&
-						name.size() == (typeInstance_->name.size() + 1)){
-						
-						const std::string nameEnd = name.last();
-						Optional<SEM::Function *> constructor = typeInstance_->constructors.tryGet(nameEnd);
-						if(constructor.hasValue()) return constructor.getValue();
-						
-						Optional<SEM::Function *> method = typeInstance_->methods.tryGet(nameEnd);
-						if(method.hasValue()) return method.getValue();
-					}
+				inline bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) {
+					assert(name.isAbsolute());
 					
-					return parentContext_.getFunction(name);
+					bool inserted = false;
+					if(typeInstance_->name.isExactPrefixOf(name)){
+						if(!isMethod){
+							inserted |= typeInstance_->constructors.tryInsert(name.last(), function);
+						}else{
+							inserted |= typeInstance_->methods.tryInsert(name.last(), function);
+						}
+					}
+					inserted |= parentContext_.addFunction(name, function, isMethod);
+					return inserted;
 				}
 				
-				inline bool addTypeInstance(const std::string& name, SEM::TypeInstance* typeInstance) {
-					// No nested type instances.
-					return false;
+				inline bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
+					assert(name.isAbsolute());
+					return parentContext_.addTypeInstance(name, typeInstance);
 				}
 				
-				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
-					if(name == typeInstance_->name) return typeInstance_;
-					return parentContext_.getTypeInstance(name);
+				inline SEM::NamespaceNode getNode(const Name& name){
+					return parentContext_.getNode(name);
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
@@ -255,7 +237,7 @@ namespace Locic {
 				}
 				
 			private:
-				StructuralContext& parentContext_;
+				Context& parentContext_;
 				SEM::TypeInstance * typeInstance_;
 				
 		};
@@ -273,6 +255,16 @@ namespace Locic {
 					assert(scopeStack_.size() == 0);
 				}
 				
+				inline bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) {
+					assert(name.isAbsolute());
+					return parentContext_.addFunction(name, function, isMethod);
+				}
+				
+				inline bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
+					assert(name.isAbsolute());
+					return parentContext_.addTypeInstance(name, typeInstance);
+				}
+				
 				inline Name getName(){
 					return function_->name;
 				}
@@ -281,16 +273,12 @@ namespace Locic {
 					return function_->type->functionType.returnType;
 				}
 				
-				inline SEM::Function* getFunction(const Name& name) {
-					return parentContext_.getFunction(name);
+				inline SEM::NamespaceNode getNode(const Name& name){
+					return parentContext_.getNode(name);
 				}
 				
 				inline SEM::TypeInstance* getThisTypeInstance(){
 					return parentContext_.getThisTypeInstance();
-				}
-				
-				inline SEM::TypeInstance* getTypeInstance(const Name& name) {
-					return parentContext_.getTypeInstance(name);
 				}
 				
 				inline void pushScope(SEM::Scope* scope) {

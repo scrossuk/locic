@@ -14,29 +14,19 @@ namespace SEM{
 
 	struct Namespace{
 		Locic::Name name;
-		Locic::StringMap<NamespaceNode *> children;
+		Locic::StringMap<NamespaceNode> children;
 		
 		inline Namespace(const Locic::Name& n)
 			: name(n){ }
 		
-		inline NamespaceNode * lookup(const Locic::Name& targetName) const{
-			assert(targetName.isAbsolute() && !targetName.empty());
-			if(name.isPrefixOf(targetName)){
-				// Get the part of the name that's of interest.
-				const std::string namePart = targetName.at(name.size());
-				
-				Locic::Optional<NamespaceNode*> nodeResult = children.tryGet(namePart);
-				if(nodeResult.hasValue()){
-					return nodeResult.getValue();
-				}
-			}
-			return NULL;
-		}
+		NamespaceNode lookup(const Locic::Name& targetName);
+		
 	};
 
 	struct NamespaceNode{
 		enum TypeEnum{
-			FUNCTION = 0,
+			NONE = 0,
+			FUNCTION,
 			NAMESPACE,
 			TYPEINSTANCE
 		} typeEnum;
@@ -50,21 +40,25 @@ namespace SEM{
 		inline NamespaceNode(TypeEnum e)
 			: typeEnum(e){ }
 		
-		inline static NamespaceNode * Function(Function * function){
-			NamespaceNode * node = new NamespaceNode(FUNCTION);
-			node->function = function;
+		inline static NamespaceNode None(){
+			return NamespaceNode(NONE);
+		}
+		
+		inline static NamespaceNode Function(Function * function){
+			NamespaceNode node(FUNCTION);
+			node.function = function;
 			return node;
 		}
 		
-		inline static NamespaceNode * Namespace(Namespace * nameSpace){
-			NamespaceNode * node = new NamespaceNode(NAMESPACE);
-			node->nameSpace = nameSpace;
+		inline static NamespaceNode Namespace(Namespace * nameSpace){
+			NamespaceNode node(NAMESPACE);
+			node.nameSpace = nameSpace;
 			return node;
 		}
 		
-		inline static NamespaceNode * TypeInstance(TypeInstance * typeInstance){
-			NamespaceNode * node = new NamespaceNode(TYPEINSTANCE);
-			node->typeInstance = typeInstance;
+		inline static NamespaceNode TypeInstance(TypeInstance * typeInstance){
+			NamespaceNode node(TYPEINSTANCE);
+			node.typeInstance = typeInstance;
 			return node;
 		}
 		
@@ -80,6 +74,26 @@ namespace SEM{
 					assert(false);
 					return Locic::Name::Absolute();
 			}
+		}
+		
+		inline bool isNone() const{
+			return typeEnum == NONE;
+		}
+		
+		inline bool isNotNone() const{
+			return typeEnum != NONE;
+		}
+		
+		inline bool isFunction() const{
+			return typeEnum == FUNCTION;
+		}
+		
+		inline bool isNamespace() const{
+			return typeEnum == NAMESPACE;
+		}
+		
+		inline bool isTypeInstance() const{
+			return typeEnum == TYPEINSTANCE;
 		}
 		
 		inline struct Function * getFunction(){

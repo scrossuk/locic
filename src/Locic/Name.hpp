@@ -31,7 +31,11 @@ namespace Locic{
 				for(std::size_t i = 0; i < prefix.size(); i++){
 					list_.push_back(prefix.at(i));
 				}
-				list_.push_back(suffix);
+				
+				// No member of a name can be an empty string.
+				if(suffix.size() > 0){
+					list_.push_back(suffix);
+				}
 			}
 			
 			inline Name(const Name& prefix, const Name& suffix)
@@ -90,6 +94,10 @@ namespace Locic{
 				return true;
 			}
 			
+			inline bool isExactPrefixOf(const Name& name) const{
+				return (size() + 1 == name.size()) && isPrefixOf(name);
+			}
+			
 			inline std::string toString() const{
 				std::string str;
 				for(CItType it = list_.begin(); it != list_.end(); ++it){
@@ -113,6 +121,7 @@ namespace Locic{
 			}
 			
 			inline std::string last() const{
+				assert(list_.back() == revAt(0));
 				return list_.back();
 			}
 			

@@ -11,18 +11,16 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function * ConvertFunctionDef(Context& context, AST::Function* function, bool isMethod) {
-			const std::string functionName = function->getFullName();
-			
+		bool ConvertFunctionDef(Context& context, AST::Function* function, bool isMethod) {
 			// Find the corresponding semantic function
 			// (which MUST have been created previously).
-			SEM::Function* semFunction = context.getFunction(context.getName() + function->name);
+			SEM::Function* semFunction = context.getNode(context.getName() + function->name).getFunction();
 			
 			assert(semFunction != NULL);
 			
 			if(semFunction->scope != NULL){
-				printf("Semantic Analysis Error: function '%s' was defined more than once.\n", functionName.c_str());
-				return NULL;
+				printf("Semantic Analysis Error: function '%s' was defined more than once.\n", semFunction->name.toString().c_str());
+				return false;
 			}
 			
 			LocalContext localContext(context, semFunction);
@@ -42,7 +40,7 @@ namespace Locic {
 				// Create a mapping from the parameter's name to its variable information.
 				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
 					printf("Semantic Analysis Error: cannot share names between function parameters.\n");
-					return NULL;
+					return false;
 				}
 			}
 			
@@ -51,7 +49,7 @@ namespace Locic {
 			SEM::Scope* scope = ConvertScope(localContext, function->scope);
 			
 			if(scope == NULL) {
-				return NULL;
+				return false;
 			}
 			
 			SEM::Type* returnType = semFunction->type->functionType.returnType;
@@ -60,7 +58,7 @@ namespace Locic {
 				// Functions with non-void return types must return a value.
 				if(!WillScopeReturn(scope)) {
 					printf("Semantic Analysis Error: Control reaches end of function with non-void return type (i.e. need to add a return statement).\n");
-					return NULL;
+					return false;
 				}
 			} else {
 				// Need to add a void return statement in case the program didn't.
@@ -68,7 +66,7 @@ namespace Locic {
 			}
 			
 			semFunction->scope = scope;
-			return semFunction;
+			return true;
 		}
 		
 	}

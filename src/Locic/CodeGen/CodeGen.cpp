@@ -160,19 +160,8 @@ class CodeGen {
 			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
 				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
 				
-				{
-					Locic::StringMap<SEM::Function *>::Range range = typeInstance->constructors.range();
-					for(; !range.empty(); range.popFront()){
-						genFunctionDef(range.front().value());
-					}
-				}
-				
-				{
-					Locic::StringMap<SEM::Function *>::Range range = typeInstance->methods.range();
-					for(; !range.empty(); range.popFront()){
-						genFunctionDef(range.front().value());
-					}
-				}
+				// TODO: generate class records.
+				(void) typeInstance;
 			}
 		}
 		

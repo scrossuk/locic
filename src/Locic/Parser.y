@@ -28,6 +28,8 @@
 
 %type module { AST::Module * }
 
+%type namespace { AST::Namespace * }
+
 %type structVarList { std::vector<AST::TypeVar *> * }
 
 %type typeInstance { AST::TypeInstance * }
@@ -84,43 +86,48 @@ start ::= module(M) .
 // Nasty hack to create ERROR token (UNKNOWN can never be sent by the lexer).
 start ::= UNKNOWN ERROR.
 
-module(M) ::= .
+module(M) ::= namespace(N).
 	{
-		M = new AST::Module(parserContext->currentFileName);
+		M = new AST::Module(parserContext->currentFileName, N);
+	}
+
+namespace(N) ::= .
+	{
+		N = new AST::Namespace("");
 	}
 	
-module(M) ::= INTERFACE.
+namespace(N) ::= INTERFACE.
 	{
-		M = new AST::Module(parserContext->currentFileName);
+		N = new AST::Namespace("");
 	}
 	
-module(NM) ::= module(OM) functionDecl(F).
+namespace(NN) ::= namespace(ON) functionDecl(F).
 	{
-		(OM)->functions.push_back(F);
-		NM = OM;
+		(ON)->functions.push_back(F);
+		NN = ON;
 	}
 
-module(NM) ::= module(OM) functionDef(F).
+namespace(NN) ::= namespace(ON) functionDef(F).
 	{
-		(OM)->functions.push_back(F);
-		NM = OM;
+		(ON)->functions.push_back(F);
+		NN = ON;
 	}
 
-module(NM) ::= module(OM) typeInstance(T).
+namespace(NN) ::= namespace(ON) typeInstance(T).
 	{
-		(OM)->typeInstances.push_back(T);
-		NM = OM;
+		(ON)->typeInstances.push_back(T);
+		NN = ON;
 	}
 
-module(NM) ::= module(OM) SEMICOLON.
+namespace(NN) ::= namespace(ON) SEMICOLON.
 	{
-		NM = OM;
+		NN = ON;
 	}
 
-module(NM) ::= module(OM) error.
+namespace(NN) ::= namespace(ON) error.
 	{
 		printf("Parser Error: Invalid struct, class, function or other.\n");
-		NM = OM;
+		NN = ON;
 	}
 
 structVarList(VL) ::= .

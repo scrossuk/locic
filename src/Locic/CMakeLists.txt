@@ -24,7 +24,7 @@ add_subdirectory(SemanticAnalysis)
 add_subdirectory(CodeGen)
 
 # Compile
-add_executable(locic main.cpp Lexer.cpp Parser.c SEM/TypeInstance.cpp)
+add_executable(locic main.cpp Lexer.cpp Parser.c SEM/Namespace.cpp SEM/TypeInstance.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

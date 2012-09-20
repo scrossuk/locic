@@ -12,34 +12,35 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool ConvertModule(StructuralContext& context, AST::Module* module, SEM::Module* semModule) {
-			ModuleContext moduleContext(context, semModule);
+		bool ConvertNamespace(Context& context, AST::Namespace* nameSpace){
+			SEM::Namespace * semNamespace = context.getNode(context.getName() + nameSpace->name).getNamespace();
+			assert(semNamespace != NULL);
 			
-			for(std::size_t i = 0; i < module->functions.size(); i++) {
-				AST::Function* astFunction = module->functions.at(i);
+			NamespaceContext namespaceContext(context, semNamespace);
+			
+			for(std::size_t i = 0; i < nameSpace->functions.size(); i++) {
+				AST::Function* astFunction = nameSpace->functions.at(i);
 				
 				if(astFunction->typeEnum == AST::Function::DEFINITION){
-					SEM::Function * semFunction = ConvertFunctionDef(moduleContext, astFunction);
-					
-					if(semFunction == NULL) return false;
-					
-					semModule->functions.push_back(semFunction);
+					if(!ConvertFunctionDef(namespaceContext, astFunction)) return false;
 				}
 			}
 			
-			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
-				AST::TypeInstance * astTypeInstance = module->typeInstances.at(i);
+			for(std::size_t i = 0; i < nameSpace->typeInstances.size(); i++){
+				AST::TypeInstance * astTypeInstance = nameSpace->typeInstances.at(i);
 				
 				if(astTypeInstance->typeEnum == AST::TypeInstance::CLASSDEF){
-					SEM::TypeInstance * semTypeInstance = ConvertClassDef(moduleContext, astTypeInstance);
-					
-					if(semTypeInstance == NULL) return false;
-					
-					semModule->typeInstances.push_back(semTypeInstance);
+					if(!ConvertClassDef(namespaceContext, astTypeInstance)) return false;
 				}
 			}
 			
 			return true;
+		}
+	
+		bool ConvertModule(Context& context, AST::Module* module, SEM::Module* semModule) {
+			ModuleContext moduleContext(context, semModule);
+			
+			return ConvertNamespace(moduleContext, module->nameSpace);
 		}
 		
 	}

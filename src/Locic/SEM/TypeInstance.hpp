@@ -26,7 +26,7 @@ namespace SEM{
 		inline TypeInstance(TypeEnum e, const Locic::Name& n)
 			: typeEnum(e), name(n){ }
 		
-		NamespaceNode * lookup(const Locic::Name& targetName);
+		NamespaceNode lookup(const Locic::Name& targetName);
 		
 	};
 
