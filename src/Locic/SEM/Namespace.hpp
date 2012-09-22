@@ -107,6 +107,44 @@ namespace SEM{
 		inline struct TypeInstance * getTypeInstance(){
 			return (typeEnum == TYPEINSTANCE) ? typeInstance : NULL;
 		}
+		
+		inline NamespaceNode lookup(const Locic::Name& name){
+			if(typeEnum == NONE) return NamespaceNode::None();
+			
+			Locic::Name absoluteName = getName().makeAbsolute(name);
+			
+			NamespaceNode node = *this;
+			
+			while(!node.isNone()){
+				if(node.getName() == absoluteName){
+					return node;
+				}
+				switch(node.typeEnum){
+					case NAMESPACE:
+					{
+						node = node.getNamespace()->lookup(absoluteName);
+						break;
+					}
+					case TYPEINSTANCE:
+					{
+						node = node.getTypeInstance()->lookup(absoluteName);
+						break;
+					}
+					case FUNCTION:
+					{
+						// Functions have no children.
+						return NamespaceNode::None();
+					}
+					default:
+					{
+						assert(false);
+						return NamespaceNode::None();
+					}
+				}
+			}
+			
+			return NamespaceNode::None();
+		}
 	};
 
 }
