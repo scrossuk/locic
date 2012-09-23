@@ -175,6 +175,10 @@ class CodeGen {
 			
 			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->name.genString(), module_);
 			
+			if(function->type->functionType.returnType->typeEnum == SEM::Type::NAMED){
+				functionDecl->addAttribute(1, Attribute::StructRet);
+			}
+			
 			functions_.insert(function, functionDecl);
 			return functionDecl;
 		}
