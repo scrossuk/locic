@@ -36,6 +36,17 @@ namespace Locic {
 					return inserted;
 				}
 				
+				bool NamespaceContext::addNamespace(const Name& name, SEM::Namespace* nameSpace){
+					assert(name.isAbsolute());
+					
+					bool inserted = false;
+					if(nameSpace_->name.isExactPrefixOf(name)){
+						inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::Namespace(nameSpace));
+					}
+					inserted |= parentContext_.addNamespace(name, nameSpace);
+					return inserted;
+				}
+				
 				bool NamespaceContext::addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
 					assert(name.isAbsolute());
 					

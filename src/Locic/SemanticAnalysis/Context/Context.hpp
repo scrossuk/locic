@@ -21,6 +21,8 @@ namespace Locic {
 				
 				virtual bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) = 0;
 				
+				virtual bool addNamespace(const Name& name, SEM::Namespace* nameSpace) = 0;
+				
 				virtual bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) = 0;
 				
 		};

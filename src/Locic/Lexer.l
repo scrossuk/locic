@@ -49,7 +49,8 @@ return                  { return LOCIC_TOKEN_RETURN; }
 
 class                   { return LOCIC_TOKEN_CLASS; }
 interface               { return LOCIC_TOKEN_INTERFACE; }
-struct                  { return LOCIC_TOKEN_STRUCT; }
+struct                 { return LOCIC_TOKEN_STRUCT; }
+namespace               { return LOCIC_TOKEN_NAMESPACE; }
 
 auto                    { return LOCIC_TOKEN_AUTO; }
 const                   { return LOCIC_TOKEN_CONST; }

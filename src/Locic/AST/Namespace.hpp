@@ -12,6 +12,7 @@ namespace AST {
 	struct Namespace {
 		std::string name;
 		std::vector<Function *> functions;
+		std::vector<Namespace *> namespaces;
 		std::vector<TypeInstance *> typeInstances;
 		
 		inline Namespace(const std::string& n)

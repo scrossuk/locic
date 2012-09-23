@@ -26,6 +26,11 @@ namespace Locic {
 				}
 			}
 			
+			for(std::size_t i = 0; i < nameSpace->namespaces.size(); i++) {
+				AST::Namespace* astChildNamespace = nameSpace->namespaces.at(i);
+				if(!ConvertNamespace(namespaceContext, astChildNamespace)) return false;
+			}
+			
 			for(std::size_t i = 0; i < nameSpace->typeInstances.size(); i++){
 				AST::TypeInstance * astTypeInstance = nameSpace->typeInstances.at(i);
 				

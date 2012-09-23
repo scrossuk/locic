@@ -28,6 +28,11 @@ namespace Locic {
 					return parentContext_.addFunction(name, function, isMethod);
 				}
 				
+				bool LocalContext::addNamespace(const Name& name, SEM::Namespace* nameSpace){
+					assert(name.isAbsolute());
+					return parentContext_.addNamespace(name, nameSpace);
+				}
+				
 				bool LocalContext::addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
 					assert(name.isAbsolute());
 					return parentContext_.addTypeInstance(name, typeInstance);

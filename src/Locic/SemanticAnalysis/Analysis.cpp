@@ -20,7 +20,21 @@ namespace Locic {
 			
 			NamespaceContext namespaceContext(context, semNamespace);
 		
-			//-- Initial phase: get all type names.
+			//-- Get all namespaces.
+			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++){
+				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
+				SEM::Namespace * semChildNamespace =
+					new SEM::Namespace(namespaceContext.getName() + astChildNamespace->name);
+				
+				if(!namespaceContext.addNamespace(semChildNamespace->name, semChildNamespace)){
+					printf("Semantic Analysis Error: namespace already defined with name '%s'.\n", semChildNamespace->name.toString().c_str());
+					return false;
+				}
+				
+				if(!AddTypeInstances(namespaceContext, astChildNamespace)) return false;
+			}
+			
+			//-- Get all type names.
 			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
 				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
 				SEM::TypeInstance * semTypeInstance =
@@ -70,6 +84,11 @@ namespace Locic {
 			assert(semNamespace != NULL);
 		
 			NamespaceContext namespaceContext(context, semNamespace);
+			
+			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++){
+				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
+				if(!AddTypeMemberVariables(namespaceContext, astChildNamespace)) return false;
+			}
 			
 			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
 				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
@@ -134,6 +153,11 @@ namespace Locic {
 			for(std::size_t i = 0; i < astNamespace->functions.size(); i++){
 				AST::Function * astFunction = astNamespace->functions.at(i);
 				if(!AddFunctionDecls(namespaceContext, astFunction)) return false;
+			}
+			
+			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++){
+				AST::Namespace * astChildNamespace = astNamespace->namespaces.at(i);
+				if(!AddFunctionDecls(namespaceContext, astChildNamespace)) return false;
 			}
 			
 			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){

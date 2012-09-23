@@ -25,6 +25,8 @@ namespace Locic {
 				
 				bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false);
 				
+				bool addNamespace(const Name& name, SEM::Namespace* nameSpace);
+				
 				bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance);
 				
 				SEM::TypeInstance* getThisTypeInstance();

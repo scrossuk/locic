@@ -30,6 +30,8 @@
 
 %type namespace { AST::Namespace * }
 
+%type namedNamespace { AST::Namespace * }
+
 %type structVarList { std::vector<AST::TypeVar *> * }
 
 %type typeInstance { AST::TypeInstance * }
@@ -119,6 +121,12 @@ namespace(NN) ::= namespace(ON) typeInstance(T).
 		NN = ON;
 	}
 
+namespace(NN) ::= namespace(ON) namedNamespace(NSPACE).
+	{
+		(ON)->namespaces.push_back(NSPACE);
+		NN = ON;
+	}
+
 namespace(NN) ::= namespace(ON) SEMICOLON.
 	{
 		NN = ON;
@@ -128,6 +136,12 @@ namespace(NN) ::= namespace(ON) error.
 	{
 		printf("Parser Error: Invalid struct, class, function or other.\n");
 		NN = ON;
+	}
+
+namedNamespace(N) ::= NAMESPACE ucName(NAME) LCURLYBRACKET namespace(NSPACE) RCURLYBRACKET.
+	{
+		(NSPACE)->name = *(NAME);
+		N = NSPACE;
 	}
 
 structVarList(VL) ::= .

@@ -20,6 +20,11 @@ namespace Locic {
 					return false;
 				}
 				
+				bool RootContext::addNamespace(const Name& name, SEM::Namespace* nameSpace){
+					assert(name.isAbsolute());
+					return false;
+				}
+				
 				bool RootContext::addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance) {
 					assert(name.isAbsolute());
 					return false;
