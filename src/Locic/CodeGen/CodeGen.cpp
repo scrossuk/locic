@@ -456,7 +456,7 @@ class CodeGen {
 					break;
 				}
 				case SEM::Statement::RETURN: {
-					if(statement->returnStmt.value != NULL) {
+					if(statement->returnStmt.value != NULL && statement->returnStmt.value->type->typeEnum != SEM::Type::VOID) {
 						llvm::Value * returnValue = genValue(statement->returnStmt.value);
 						if(returnVar_ != NULL){
 							builder_.CreateStore(returnValue, returnVar_);
@@ -545,7 +545,7 @@ class CodeGen {
 						}
 						default: {
 							std::cerr << "CodeGen error: Unknown variable type in variable access." << std::endl;
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
+							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 						}
 					}
 				}
@@ -582,7 +582,7 @@ class CodeGen {
 							
 						default:
 							std::cerr << "CodeGen error: Unknown unary bool operand." << std::endl;
-							return genValue(value->unary.value);
+							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
 				case SEM::Value::BINARY: {
@@ -687,7 +687,7 @@ class CodeGen {
 							
 						default:
 							std::cerr << "CodeGen error: Unknown binary operand." << std::endl;
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
+							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
 				case SEM::Value::TERNARY: {
@@ -698,7 +698,12 @@ class CodeGen {
 					SEM::Type* sourceType = value->cast.value->type;
 					SEM::Type* destType = value->type;
 					
-					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM::Type::NULLT);
+					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM::Type::NULLT || destType->typeEnum == SEM::Type::VOID);
+					
+					if(destType->typeEnum == SEM::Type::VOID){
+						// All casts to void have the same outcome.
+						return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
+					}
 					
 					switch(sourceType->typeEnum) {
 						case SEM::Type::VOID: {
@@ -838,7 +843,7 @@ class CodeGen {
 				}
 				default:
 					std::cerr << "CodeGen error: Unknown value." << std::endl;
-					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
+					return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 			}
 		}
 		
