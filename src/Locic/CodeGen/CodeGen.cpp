@@ -9,6 +9,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
+#include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 
@@ -18,6 +19,7 @@
 
 #include <assert.h>
 #include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -27,40 +29,38 @@
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
 
-using namespace llvm;
-
 class CodeGen {
 	private:
 		std::string name_;
-		Module* module_;
-		IRBuilder<> builder_;
-		FunctionType* currentFunctionType_;
-		Function* currentFunction_;
-		BasicBlock* currentBasicBlock_;
-		FunctionPassManager fpm_;
-		Locic::Map<SEM::TypeInstance*, Type*> typeInstances_;
-		Locic::Map<SEM::Function*, Function*> functions_;
-		std::vector<AllocaInst*> localVariables_, paramVariables_;
+		llvm::Module* module_;
+		llvm::IRBuilder<> builder_;
+		llvm::FunctionType* currentFunctionType_;
+		llvm::Function* currentFunction_;
+		llvm::BasicBlock* currentBasicBlock_;
+		llvm::FunctionPassManager fpm_;
+		Locic::Map<SEM::TypeInstance*, llvm::Type*> typeInstances_;
+		Locic::Map<SEM::Function*, llvm::Function*> functions_;
+		std::vector<llvm::AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
-		Value * returnVar_;
+		llvm::Value * returnVar_;
 		
 	public:
 		CodeGen(const std::string& moduleName)
 			: name_(moduleName),
-			  module_(new Module(name_.c_str(), getGlobalContext())),
-			  builder_(getGlobalContext()),
+			  module_(new llvm::Module(name_.c_str(), llvm::getGlobalContext())),
+			  builder_(llvm::getGlobalContext()),
 			  fpm_(module_),
 			  targetInfo_(0),
 			  returnVar_(NULL){
 			  
-			InitializeNativeTarget();
+			llvm::InitializeNativeTarget();
+			  
+			std::cout << "Default target triple: " << llvm::sys::getDefaultTargetTriple() << std::endl;
 			
-			std::cout << "Default target triple: " << sys::getDefaultTargetTriple() << std::endl;
-			
-			module_->setTargetTriple(sys::getDefaultTargetTriple());
+			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 			
 			std::string error;
-			const Target* target = TargetRegistry::lookupTarget(sys::getDefaultTargetTriple(), error);
+			const llvm::Target* target = llvm::TargetRegistry::lookupTarget(llvm::sys::getDefaultTargetTriple(), error);
 			
 			if(target != NULL) {
 				std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
@@ -78,8 +78,8 @@ class CodeGen {
 				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files." << std::endl;
 				
 				if(target->hasTargetMachine()) {
-					std::auto_ptr<TargetMachine> targetMachine(target->createTargetMachine(sys::getDefaultTargetTriple(), "", "", TargetOptions()));
-					const TargetData* targetData = targetMachine->getTargetData();
+					std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(llvm::sys::getDefaultTargetTriple(), "", "", llvm::TargetOptions()));
+					const llvm::TargetData* targetData = targetMachine->getTargetData();
 					
 					if(targetData != 0) {
 						std::cout << "--Pointer size = " << targetData->getPointerSize() << std::endl;
@@ -108,7 +108,7 @@ class CodeGen {
 						ci.createDiagnostics(0, NULL);
 						
 						clang::TargetOptions to;
-						to.Triple = sys::getDefaultTargetTriple();
+						to.Triple = llvm::sys::getDefaultTargetTriple();
 						targetInfo_ = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 						
 						std::cout << "Information from Clang:" << std::endl;
@@ -127,17 +127,17 @@ class CodeGen {
 			
 			// Set up the optimizer pipeline.
 			// Provide basic AliasAnalysis support for GVN.
-			fpm_.add(createBasicAliasAnalysisPass());
+			fpm_.add(llvm::createBasicAliasAnalysisPass());
 			// Promote allocas to registers.
-			fpm_.add(createPromoteMemoryToRegisterPass());
+			fpm_.add(llvm::createPromoteMemoryToRegisterPass());
 			// Do simple "peephole" optimizations and bit-twiddling optzns.
-			fpm_.add(createInstructionCombiningPass());
+			fpm_.add(llvm::createInstructionCombiningPass());
 			// Reassociate expressions.
-			fpm_.add(createReassociatePass());
+			fpm_.add(llvm::createReassociatePass());
 			// Eliminate Common SubExpressions.
-			fpm_.add(createGVNPass());
+			fpm_.add(llvm::createGVNPass());
 			// Simplify the control flow graph (deleting unreachable blocks, etc).
-			fpm_.add(createCFGSimplificationPass());
+			fpm_.add(llvm::createCFGSimplificationPass());
 			
 			fpm_.doInitialization();
 		}
@@ -148,6 +148,12 @@ class CodeGen {
 		
 		void dump() {
 			module_->dump();
+		}
+		
+		void writeToFile(const std::string& fileName){
+			std::ofstream file(fileName.c_str());
+			llvm::raw_os_ostream ostream(file);
+			ostream << *(module_);
 		}
 		
 		void genFile(SEM::Module* module) {
@@ -167,16 +173,16 @@ class CodeGen {
 		
 		// Lazy generation - function declarations are only
 		// generated when they are first used by code.
-		Function * genFunctionDecl(SEM::Function * function){
+		llvm::Function * genFunctionDecl(SEM::Function * function){
 			assert(function != NULL);
 			
-			Locic::Optional<Function *> optionalFunction = functions_.tryGet(function);
+			Locic::Optional<llvm::Function *> optionalFunction = functions_.tryGet(function);
 			if(optionalFunction.hasValue()) return optionalFunction.getValue();
 			
-			Function * functionDecl = Function::Create(genFunctionType(function->type), Function::ExternalLinkage, function->name.genString(), module_);
+			llvm::Function * functionDecl = llvm::Function::Create(genFunctionType(function->type), llvm::Function::ExternalLinkage, function->name.genString(), module_);
 			
 			if(function->type->functionType.returnType->typeEnum == SEM::Type::NAMED){
-				functionDecl->addAttribute(1, Attribute::StructRet);
+				functionDecl->addAttribute(1, llvm::Attribute::StructRet);
 			}
 			
 			functions_.insert(function, functionDecl);
@@ -185,13 +191,13 @@ class CodeGen {
 		
 		// Lazy generation - struct types are only
 		// generated when they are first used by code.
-		Type* genStructType(SEM::TypeInstance * typeInstance){
+		llvm::Type* genStructType(SEM::TypeInstance * typeInstance){
 			assert(typeInstance != NULL);
 			
-			Locic::Optional<Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
+			Locic::Optional<llvm::Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
 			if(optionalStruct.hasValue()) return optionalStruct.getValue();
 			
-			StructType * structType = StructType::create(getGlobalContext(), typeInstance->name.genString());
+			llvm::StructType * structType = llvm::StructType::create(llvm::getGlobalContext(), typeInstance->name.genString());
 			
 			// Add the struct type before setting its body, since the struct can contain
 			// variables that have a type that contains this struct (e.g. struct contains
@@ -206,11 +212,11 @@ class CodeGen {
 				// which is the first member; structs have no such pointer.
 				const std::size_t paramOffset = (typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF) ? 1 : 0;
 			
-				std::vector<Type*> memberVariables(paramOffset + typeInstance->variables.size(), NULL);
+				std::vector<llvm::Type*> memberVariables(paramOffset + typeInstance->variables.size(), NULL);
 				
 				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
 					// Add class record pointer.
-					memberVariables.front() = PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
+					memberVariables.front() = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
 				}
 				
 				Locic::StringMap<SEM::Var *>::Range range = typeInstance->variables.range();
@@ -224,32 +230,32 @@ class CodeGen {
 			}else{
 				// Generating the type for a class declaration, so the size is
 				// currently unknown (and will be known at load-time/run-time).
-				std::vector<Type *> memberVariables;
+				std::vector<llvm::Type *> memberVariables;
 				
 				// Pointer to class record.
-				memberVariables.push_back(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+				memberVariables.push_back(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 				
 				// Zero length array indicates this structure is variable length,
 				// or in other words, currently unknown for this code.
-				memberVariables.push_back(ArrayType::get(Type::getInt8Ty(getGlobalContext()), 0));
+				memberVariables.push_back(llvm::ArrayType::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), 0));
 				structType->setBody(memberVariables);
 			}
 			
 			return structType;
 		}
 		
-		FunctionType* genFunctionType(SEM::Type* type) {
+		llvm::FunctionType* genFunctionType(SEM::Type* type) {
 			assert(type != NULL);
 			assert(type->typeEnum == SEM::Type::FUNCTION);
 			
 			SEM::Type * semReturnType = type->functionType.returnType;
-			Type* returnType = genType(semReturnType);
+			llvm::Type* returnType = genType(semReturnType);
 			
-			std::vector<Type*> paramTypes;
+			std::vector<llvm::Type*> paramTypes;
 			
 			if(semReturnType->typeEnum == SEM::Type::NAMED){
 				paramTypes.push_back(returnType->getPointerTo());
-				returnType = Type::getVoidTy(getGlobalContext());
+				returnType = llvm::Type::getVoidTy(llvm::getGlobalContext());
 			}
 			
 			const std::vector<SEM::Type *>& params = type->functionType.parameterTypes;
@@ -259,39 +265,39 @@ class CodeGen {
 			}
 			
 			const bool isVarArg = false;
-			return FunctionType::get(returnType, paramTypes, isVarArg);
+			return llvm::FunctionType::get(returnType, paramTypes, isVarArg);
 		}
 		
-		Type* genType(SEM::Type* type) {
+		llvm::Type* genType(SEM::Type* type) {
 			switch(type->typeEnum) {
 				case SEM::Type::VOID: {
-					return Type::getVoidTy(getGlobalContext());
+					return llvm::Type::getVoidTy(llvm::getGlobalContext());
 				}
 				case SEM::Type::NULLT: {
-					return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
+					return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
 				}
 				case SEM::Type::BASIC: {
 					switch(type->basicType.typeEnum) {
 						case SEM::Type::BasicType::INTEGER:
-							return IntegerType::get(getGlobalContext(), targetInfo_->getLongWidth());
+							return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongWidth());
 						case SEM::Type::BasicType::BOOLEAN:
-							return Type::getInt1Ty(getGlobalContext());
+							return llvm::Type::getInt1Ty(llvm::getGlobalContext());
 						case SEM::Type::BasicType::FLOAT:
-							return Type::getFloatTy(getGlobalContext());
+							return llvm::Type::getFloatTy(llvm::getGlobalContext());
 						default:
 							std::cerr << "CodeGen error: Unknown basic type." << std::endl;
-							return Type::getVoidTy(getGlobalContext());
+							return llvm::Type::getVoidTy(llvm::getGlobalContext());
 					}
 				}
 				case SEM::Type::NAMED: {
 					return genStructType(type->namedType.typeInstance);
 				}
 				case SEM::Type::POINTER: {
-					Type* pointerType = genType(type->pointerType.targetType);
+					llvm::Type* pointerType = genType(type->pointerType.targetType);
 					
 					if(pointerType->isVoidTy()) {
 						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-						return PointerType::getUnqual(Type::getInt8Ty(getGlobalContext()));
+						return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
 					} else {
 						return pointerType->getPointerTo();
 					}
@@ -303,14 +309,14 @@ class CodeGen {
 					SEM::Type * objectType = SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, type->methodType.objectType);
 					SEM::Type * pointerToObjectType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE, objectType);
 					
-					std::vector<Type*> types;
+					std::vector<llvm::Type*> types;
 					types.push_back(genFunctionType(type->methodType.functionType)->getPointerTo());
 					types.push_back(genType(pointerToObjectType));
-					return StructType::get(getGlobalContext(), types);
+					return llvm::StructType::get(llvm::getGlobalContext(), types);
 				}
 				default: {
 					std::cerr << "CodeGen error: Unknown type." << std::endl;
-					return Type::getVoidTy(getGlobalContext());
+					return llvm::Type::getVoidTy(llvm::getGlobalContext());
 				}
 			}
 		}
@@ -323,11 +329,11 @@ class CodeGen {
 			currentFunction_ = genFunctionDecl(function);
 			assert(currentFunction_ != NULL);
 			
-			currentBasicBlock_ = BasicBlock::Create(getGlobalContext(), "entry", currentFunction_);
+			currentBasicBlock_ = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", currentFunction_);
 			builder_.SetInsertPoint(currentBasicBlock_);
 			
 			// Store arguments onto stack.
-			Function::arg_iterator arg = currentFunction_->arg_begin();
+			llvm::Function::arg_iterator arg = currentFunction_->arg_begin();
 			
 			SEM::Type * returnType = function->type->functionType.returnType;
 			
@@ -343,7 +349,7 @@ class CodeGen {
 				SEM::Var* paramVar = parameterVars.at(i);
 				
 				// Create an alloca for this variable.
-				AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
+				llvm::AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
 				
 				assert(paramVar->id == paramVariables_.size());
 				paramVariables_.push_back(stackObject);
@@ -359,18 +365,8 @@ class CodeGen {
 			// be removed by dead code elimination)
 			builder_.CreateBr(builder_.GetInsertBlock());
 			
-			std::cout << "---Before verification:" << std::endl;
-			
-			module_->dump();
-			
 			// Check the generated function is correct.
 			verifyFunction(*currentFunction_);
-			
-			std::cout << "---Before optimisation:" << std::endl;
-			
-			module_->dump();
-			
-			std::cout << "---Running optimisations..." << std::endl;
 			
 			// Run optimisations.
 			fpm_.run(*currentFunction_);
@@ -384,7 +380,7 @@ class CodeGen {
 				SEM::Var* localVar = scope->localVariables.at(i);
 				
 				// Create an alloca for this variable.
-				AllocaInst* stackObject = builder_.CreateAlloca(genType(localVar->type));
+				llvm::AllocaInst* stackObject = builder_.CreateAlloca(genType(localVar->type));
 				
 				assert(localVar->id == localVariables_.size());
 				localVariables_.push_back(stackObject);
@@ -406,9 +402,9 @@ class CodeGen {
 					break;
 				}
 				case SEM::Statement::IF: {
-					BasicBlock* thenBB = BasicBlock::Create(getGlobalContext(), "then", currentFunction_);
-					BasicBlock* elseBB = BasicBlock::Create(getGlobalContext(), "else");
-					BasicBlock* mergeBB = BasicBlock::Create(getGlobalContext(), "ifmerge");
+					llvm::BasicBlock* thenBB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "then", currentFunction_);
+					llvm::BasicBlock* elseBB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "else");
+					llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "ifmerge");
 					
 					builder_.CreateCondBr(genValue(statement->ifStmt.condition), thenBB, elseBB);
 					
@@ -435,8 +431,8 @@ class CodeGen {
 					break;
 				}
 				case SEM::Statement::WHILE: {
-					BasicBlock* insideLoopBB = BasicBlock::Create(getGlobalContext(), "insideLoop", currentFunction_);
-					BasicBlock* afterLoopBB = BasicBlock::Create(getGlobalContext(), "afterLoop");
+					llvm::BasicBlock* insideLoopBB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "insideLoop", currentFunction_);
+					llvm::BasicBlock* afterLoopBB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "afterLoop");
 					
 					builder_.CreateCondBr(genValue(statement->whileStmt.condition), insideLoopBB, afterLoopBB);
 					
@@ -461,10 +457,8 @@ class CodeGen {
 				}
 				case SEM::Statement::RETURN: {
 					if(statement->returnStmt.value != NULL) {
-						Value * returnValue = genValue(statement->returnStmt.value);
+						llvm::Value * returnValue = genValue(statement->returnStmt.value);
 						if(returnVar_ != NULL){
-							returnValue->dump();
-							returnVar_->dump();
 							builder_.CreateStore(returnValue, returnVar_);
 							builder_.CreateRetVoid();
 						}else{
@@ -476,7 +470,7 @@ class CodeGen {
 					
 					// Need a basic block after a return statement in case anything more is generated.
 					// This (and any following code) will be removed by dead code elimination.
-					builder_.SetInsertPoint(BasicBlock::Create(getGlobalContext(), "next", currentFunction_));
+					builder_.SetInsertPoint(llvm::BasicBlock::Create(llvm::getGlobalContext(), "next", currentFunction_));
 					break;
 				}
 				default:
@@ -484,32 +478,32 @@ class CodeGen {
 			}
 		}
 		
-		Value * generateLValue(SEM::Value * value){
+		llvm::Value * generateLValue(SEM::Value * value){
 			if(value->type->isLValue){
 				return genValue(value, true);
 			}else{
-				Value * lValue = builder_.CreateAlloca(genType(value->type));
-				Value * rValue = genValue(value);
+				llvm::Value * lValue = builder_.CreateAlloca(genType(value->type));
+				llvm::Value * rValue = genValue(value);
 				builder_.CreateStore(rValue, lValue);
 				return lValue;
 			}
 		}
 		
-		Value* genValue(SEM::Value* value, bool genLValue = false) {
+		llvm::Value* genValue(SEM::Value* value, bool genLValue = false) {
 			switch(value->typeEnum) {
 				case SEM::Value::CONSTANT: {
 					switch(value->constant.typeEnum) {
 						case SEM::Value::Constant::BOOLEAN:
-							return ConstantInt::get(getGlobalContext(), APInt(1, value->constant.boolConstant));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, value->constant.boolConstant));
 						case SEM::Value::Constant::INTEGER:
-							return ConstantInt::get(getGlobalContext(), APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
 						case SEM::Value::Constant::FLOAT:
-							return ConstantFP::get(getGlobalContext(), APFloat(value->constant.floatConstant));
+							return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(value->constant.floatConstant));
 						case SEM::Value::Constant::NULLVAL:
-							return ConstantPointerNull::get(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 						default:
 							std::cerr << "CodeGen error: Unknown constant." << std::endl;
-							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
 				case SEM::Value::COPY: {
@@ -520,7 +514,7 @@ class CodeGen {
 					
 					switch(var->typeEnum) {
 						case SEM::Var::PARAM: {
-							Value * val = paramVariables_.at(var->id);
+							llvm::Value * val = paramVariables_.at(var->id);
 							assert(val != NULL);
 							if(genLValue) {
 								return val;
@@ -529,7 +523,7 @@ class CodeGen {
 							}
 						}
 						case SEM::Var::LOCAL: {
-							Value * val = localVariables_.at(var->id);
+							llvm::Value * val = localVariables_.at(var->id);
 							assert(val != NULL);
 							if(genLValue) {
 								return val;
@@ -539,9 +533,9 @@ class CodeGen {
 						}
 						case SEM::Var::MEMBER: {
 							assert(!paramVariables_.empty());
-							Value * object = paramVariables_.front();
+							llvm::Value * object = paramVariables_.front();
 							
-							Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
+							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
 							
 							if(genLValue){
 								return memberPtr;
@@ -551,7 +545,7 @@ class CodeGen {
 						}
 						default: {
 							std::cerr << "CodeGen error: Unknown variable type in variable access." << std::endl;
-							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
 						}
 					}
 				}
@@ -693,14 +687,14 @@ class CodeGen {
 							
 						default:
 							std::cerr << "CodeGen error: Unknown binary operand." << std::endl;
-							return ConstantInt::get(getGlobalContext(), APInt(32, 0));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
 					}
 				}
 				case SEM::Value::TERNARY: {
 					return builder_.CreateSelect(genValue(value->ternary.condition), genValue(value->ternary.ifTrue, genLValue), genValue(value->ternary.ifFalse, genLValue));
 				}
 				case SEM::Value::CAST: {
-					Value* codeValue = genValue(value->cast.value, genLValue);
+					llvm::Value* codeValue = genValue(value->cast.value, genLValue);
 					SEM::Type* sourceType = value->cast.value->type;
 					SEM::Type* destType = value->type;
 					
@@ -722,14 +716,12 @@ class CodeGen {
 									SEM::TypeInstance * typeInstance = destType->namedType.typeInstance;
 									assert(typeInstance->typeEnum != SEM::TypeInstance::STRUCT);
 									
-									Type * structType = genStructType(typeInstance);
-									Value * structValue = UndefValue::get(structType);
+									llvm::Type * structType = genStructType(typeInstance);
+									llvm::Value * structValue = llvm::UndefValue::get(structType);
 									
 									// Set class record pointer to NULL.
-									Value * nullRecordPointer = ConstantPointerNull::get(PointerType::getUnqual(Type::getInt8Ty(getGlobalContext())));
+									llvm::Value * nullRecordPointer = llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 									
-									structType->dump();
-									nullRecordPointer->dump();
 									structValue = builder_.CreateInsertValue(structValue, nullRecordPointer, std::vector<unsigned>(1, 0));
 									
 									return structValue;
@@ -737,7 +729,7 @@ class CodeGen {
 								default:
 								{
 									std::cerr << "Internal compiler error: Invalid cast from null." << std::endl;
-									return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+									return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 								}
 							}
 						}
@@ -761,7 +753,7 @@ class CodeGen {
 						case SEM::Type::NAMED:
 						case SEM::Type::POINTER: {
 							if(genLValue) {
-								return builder_.CreatePointerCast(codeValue, PointerType::getUnqual(genType(destType)));
+								return builder_.CreatePointerCast(codeValue, llvm::PointerType::getUnqual(genType(destType)));
 							} else {
 								return builder_.CreatePointerCast(codeValue, genType(destType));
 							}
@@ -774,7 +766,7 @@ class CodeGen {
 						}
 						default:
 							std::cerr << "CodeGen error: Unknown type in cast." << std::endl;
-							return UndefValue::get(Type::getVoidTy(getGlobalContext()));
+							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
 				case SEM::Value::MEMBERACCESS:
@@ -786,12 +778,12 @@ class CodeGen {
 					}
 				}
 				case SEM::Value::FUNCTIONCALL: {
-					std::vector<Value*> parameters;
+					std::vector<llvm::Value*> parameters;
 					
 					const std::vector<SEM::Value *>& paramList = value->functionCall.parameters;
 					
 					SEM::Type * returnType = value->type;
-					Value * returnValue = NULL;
+					llvm::Value * returnValue = NULL;
 					
 					if(returnType->typeEnum == SEM::Type::NAMED){
 						returnValue = builder_.CreateAlloca(genType(returnType));
@@ -803,7 +795,7 @@ class CodeGen {
 						parameters.push_back(genValue(paramList.at(i)));
 					}
 					
-					Value * callReturnValue = builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
+					llvm::Value * callReturnValue = builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
 					
 					if(returnValue != NULL){
 						return builder_.CreateLoad(returnValue);
@@ -812,29 +804,29 @@ class CodeGen {
 					}
 				}
 				case SEM::Value::FUNCTIONREF: {
-					Function* function = genFunctionDecl(value->functionRef.function);
+					llvm::Function* function = genFunctionDecl(value->functionRef.function);
 					assert(function != NULL);
 					return function;
 				}
 				case SEM::Value::METHODOBJECT: {
-					Function* function = genFunctionDecl(value->methodObject.method);
+					llvm::Function* function = genFunctionDecl(value->methodObject.method);
 					assert(function != NULL);
 					
-					Value* dataPointer = generateLValue(value->methodObject.methodOwner);
+					llvm::Value* dataPointer = generateLValue(value->methodObject.methodOwner);
 					assert(dataPointer != NULL);
 					
-					Value * methodValue = UndefValue::get(genType(value->type));
+					llvm::Value * methodValue = llvm::UndefValue::get(genType(value->type));
 					methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
 					methodValue = builder_.CreateInsertValue(methodValue, dataPointer, std::vector<unsigned>(1, 1));
 					return methodValue;
 				}
 				case SEM::Value::METHODCALL: {
-					Value * method = genValue(value->methodCall.methodValue);
+					llvm::Value * method = genValue(value->methodCall.methodValue);
 					
-					Value * function = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 0));
-					Value * dataPointer = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 1));
+					llvm::Value * function = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 0));
+					llvm::Value * dataPointer = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 1));
 					
-					std::vector<Value*> parameters;
+					std::vector<llvm::Value*> parameters;
 					parameters.push_back(dataPointer);
 					
 					const std::vector<SEM::Value *>& paramList = value->methodCall.parameters;
@@ -846,7 +838,7 @@ class CodeGen {
 				}
 				default:
 					std::cerr << "CodeGen error: Unknown value." << std::endl;
-					return ConstantInt::get(getGlobalContext(), APInt(32, 0));
+					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0));
 			}
 		}
 		
@@ -866,5 +858,9 @@ void Locic_CodeGen(void* context, SEM::Module* module) {
 	
 void Locic_CodeGenDump(void* context) {
 	reinterpret_cast<CodeGen*>(context)->dump();
+}
+
+void Locic_CodeGenWriteToFile(void * context, const std::string& fileName){
+	reinterpret_cast<CodeGen*>(context)->writeToFile(fileName);
 }
 

@@ -3,14 +3,14 @@
 %include {#include <list>}
 %include {#include <string>}
 %include {#include <Locic/AST.hpp>}
-%include {#include <Locic/ParserContext.hpp>}
-%include {#include <Locic/Token.hpp>}
+%include {#include <Locic/Parser/Context.hpp>}
+%include {#include <Locic/Parser/Token.hpp>}
 
-%name Locic_Parse
-%extra_argument { Locic::ParserContext * parserContext }
+%name Locic_Parser_Parse
+%extra_argument { Locic::Parser::Context * parserContext }
 %start_symbol start
-%token_prefix LOCIC_TOKEN_
-%token_type { Locic::Token }
+%token_prefix LOCIC_PARSER_TOKEN_
+%token_type { Locic::Parser::Token }
 
 %parse_accept {
 	//printf("Success!\n");
@@ -81,8 +81,7 @@
 	
 start ::= module(M) .
 	{
-		printf("Completed parsing\n");
-		parserContext->modules.push_back(M);
+		parserContext->module = M;
 	}
 	
 // Nasty hack to create ERROR token (UNKNOWN can never be sent by the lexer).
@@ -90,7 +89,7 @@ start ::= UNKNOWN ERROR.
 
 module(M) ::= namespace(N).
 	{
-		M = new AST::Module(parserContext->currentFileName, N);
+		M = new AST::Module(parserContext->moduleName, N);
 	}
 
 namespace(N) ::= .
