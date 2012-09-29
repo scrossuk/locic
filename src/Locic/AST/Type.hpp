@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <Locic/Name.hpp>
 
 namespace AST {
 
@@ -31,7 +32,7 @@ namespace AST {
 		} basicType;
 		
 		struct {
-			std::string name;
+			Locic::Name name;
 		} namedType;
 		
 		struct {
@@ -66,7 +67,7 @@ namespace AST {
 			return type;
 		}
 		
-		inline static Type* Named(bool isMutable, const std::string& name) {
+		inline static Type* Named(bool isMutable, const Locic::Name& name) {
 			Type* type = new Type(NAMED, isMutable);
 			type->namedType.name = name;
 			return type;
@@ -149,7 +150,7 @@ namespace AST {
 					break;
 				}
 				case NAMED:
-					str += "[named type: " + namedType.name + "]";
+					str += std::string("[named type: ") + namedType.name.toString() + std::string("]");
 					break;
 				case POINTER:
 					str += pointerType.targetType->toString();

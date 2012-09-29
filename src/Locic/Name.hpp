@@ -13,6 +13,9 @@ namespace Locic{
 		typedef ListType::const_iterator CItType;
 	
 		public:
+			inline Name()
+				: isAbsolute_(true){ }
+			
 			inline explicit Name(bool isAbsolute)
 				: isAbsolute_(isAbsolute){ }
 			
@@ -100,6 +103,8 @@ namespace Locic{
 			
 			inline std::string toString() const{
 				std::string str;
+				if(isAbsolute_) str += "::";
+				
 				for(CItType it = list_.begin(); it != list_.end(); ++it){
 					if(it != list_.begin()) str += "::";
 					str += *it;

@@ -6,6 +6,7 @@
 
 #include <Locic/AST/Type.hpp>
 #include <Locic/AST/Var.hpp>
+#include <Locic/Name.hpp>
 
 namespace AST {
 
@@ -14,6 +15,7 @@ namespace AST {
 			NONE,
 			CONSTANT,
 			VAR,
+			FUNCTION,
 			UNARY,
 			BINARY,
 			TERNARY,
@@ -42,6 +44,10 @@ namespace AST {
 			Var* var;
 		} varValue;
 		
+		struct {
+			Locic::Name name;
+		} functionValue;
+		
 		struct Unary {
 			enum TypeEnum {
 				PLUS,
@@ -60,6 +66,7 @@ namespace AST {
 				SUBTRACT,
 				MULTIPLY,
 				DIVIDE,
+				REMAINDER,
 				ISEQUAL,
 				NOTEQUAL,
 				LESSTHAN,
@@ -81,7 +88,8 @@ namespace AST {
 		} cast;
 		
 		struct {
-			std::string typeName, constructorName;
+			Locic::Name typeName;
+			std::string constructorName;
 		} construct;
 		
 		struct {
@@ -131,6 +139,12 @@ namespace AST {
 			return value;
 		}
 		
+		inline static Value * FunctionValue(const Locic::Name& name){
+			Value* value = new Value(FUNCTION);
+			value->functionValue.name = name;
+			return value;
+		}
+		
 		inline static Value * UnaryOp(Unary::TypeEnum typeEnum, Value * operand){
 			Value* value = new Value(UNARY);
 			value->unary.typeEnum = typeEnum;
@@ -161,7 +175,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * Construct(const std::string& typeName, const std::string& constructorName){
+		inline static Value * Construct(const Locic::Name& typeName, const std::string& constructorName){
 			Value* value = new Value(CONSTRUCT);
 			value->construct.typeName = typeName;
 			value->construct.constructorName = constructorName;

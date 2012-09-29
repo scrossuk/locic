@@ -35,11 +35,11 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 			return SEM::Type::Basic(type->isMutable, isLValue, ConvertBasicTypeEnum(type->basicType.typeEnum));
 		}
 		case AST::Type::NAMED: {
-			const std::string& name = type->namedType.name;
-			SEM::TypeInstance* typeInstance = context.getNode(Name::Relative() + name).getTypeInstance();
+			const Name& name = type->namedType.name;
+			SEM::TypeInstance* typeInstance = context.getNode(name).getTypeInstance();
 				
 			if(typeInstance == NULL) {
-				printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.c_str());
+				printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.toString().c_str());
 				return NULL;
 			}
 			

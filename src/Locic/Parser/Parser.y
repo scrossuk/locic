@@ -3,6 +3,7 @@
 %include {#include <list>}
 %include {#include <string>}
 %include {#include <Locic/AST.hpp>}
+%include {#include <Locic/Name.hpp>}
 %include {#include <Locic/Parser/Context.hpp>}
 %include {#include <Locic/Parser/Token.hpp>}
 
@@ -52,6 +53,9 @@
 %type type { AST::Type * }
 %type nonEmptyTypeList { std::vector<AST::Type *> * }
 %type typeList { std::vector<AST::Type *> * }
+
+%type typeName { Locic::Name * }
+%type functionName { Locic::Name * }
 
 %type lcName { std::string * }
 %type ucName { std::string * }
@@ -200,6 +204,31 @@ typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET 
 		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(CL), *(FL));
 	}
 	
+typeName(N) ::= ucName(NAME).
+	{
+		N = new Locic::Name(Locic::Name::Relative() + *(NAME));
+	}
+	
+typeName(N) ::= COLON COLON ucName(NAME).
+	{
+		N = new Locic::Name(Locic::Name::Absolute() + *(NAME));
+	}
+	
+typeName(N) ::= typeName(ON) COLON COLON ucName(NAME).
+	{
+		N = new Locic::Name(*(ON) + *(NAME));
+	}
+	
+functionName(N) ::= COLON COLON lcName(NAME).
+	{
+		N = new Locic::Name(Locic::Name::Absolute() + *(NAME));
+	}
+	
+functionName(N) ::= typeName(TN) COLON COLON lcName(NAME).
+	{
+		N = new Locic::Name(*(TN) + *(NAME));
+	}
+	
 lcName(N) ::= LCNAME(NAME).
 	{
 		N = (NAME).str;
@@ -246,15 +275,10 @@ typePrecision2(T) ::= basicType(BT).
 		T = AST::Type::Basic(isMutable, BT);
 	}
 	
-typePrecision2(T) ::= ucName(N).
+typePrecision2(T) ::= typeName(N).
 	{
 		const bool isMutable = true;
 		T = AST::Type::Named(isMutable, *(N));
-	}
-	
-typePrecision2(T) ::= PERCENT lcName(N).
-	{
-		T = AST::Type::Named(AST::Type::MUTABLE, *(N));
 	}
 	
 typePrecision2(NT) ::= CONST LROUNDBRACKET type(T) RROUNDBRACKET.
@@ -536,6 +560,11 @@ precision7(V) ::= lcName(N).
 	{
 		V = AST::Value::VarValue(AST::Var::Local(*(N)));
 	}
+	
+precision7(V) ::= functionName(N).
+	{
+		V = AST::Value::FunctionValue(*(N));
+	}
 
 precision7(V) ::= AT lcName(N).
 	{
@@ -562,12 +591,12 @@ precision7(V) ::= NULL.
 		V = AST::Value::NullConstant();
 	}
 
-precision7(V) ::= ucName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
+precision7(V) ::= typeName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
 		V = AST::Value::FunctionCall(AST::Value::Construct(*(N), "Default"), *(VL));
 	}
 
-precision7(V) ::= ucName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
+precision7(V) ::= typeName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
 	{
 		V = AST::Value::FunctionCall(AST::Value::Construct(*(TN), *(CN)), *(VL));
 	}
@@ -640,6 +669,11 @@ precision4(V) ::= precision4(L) STAR precision5(R).
 precision4(V) ::= precision4(L) FORWARDSLASH precision5(R).
 	{
 		V = AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, L, R);
+	}
+	
+precision4(V) ::= precision4(L) PERCENT precision5(R).
+	{
+		V = AST::Value::BinaryOp(AST::Value::Binary::REMAINDER, L, R);
 	}
 
 precision3(V) ::= precision4(VAL).

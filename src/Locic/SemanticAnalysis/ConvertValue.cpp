@@ -59,7 +59,8 @@ SEM::Value* ConvertNumericBinaryOperator(SEM::Value::Binary::TypeEnum opType, SE
 		}
 	}
 	
-	printf("Semantic Analysis Error: Comparison between non-numeric or non-identical types.\n");
+	printf("Semantic Analysis Error: Binary numeric operation between non-identical types '%s' and '%s'.\n",
+		leftOperand->type->toString().c_str(), rightOperand->type->toString().c_str());
 	return NULL;
 }
 
@@ -103,14 +104,14 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						return SEM::Value::FunctionRef(function, function->type);
 					}
 					
-					printf("Semantic Analysis Error: local variable '%s' not found\n", astVar->name.c_str());
+					printf("Semantic Analysis Error: local variable or function '%s' not found.\n", astVar->name.c_str());
 					return NULL;
 				}
 				case AST::Var::MEMBER: {
 					SEM::Var* semVar = context.getThisVar(astVar->name);
 					
 					if(semVar == NULL){
-						printf("Semantic Analysis Error: member variable '@%s' not found\n", astVar->name.c_str());
+						printf("Semantic Analysis Error: member variable '@%s' not found.\n", astVar->name.c_str());
 						return NULL;
 					}
 				
@@ -120,6 +121,18 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					printf("Internal Compiler Error: Unknown AST::Var type enum.\n");
 					return NULL;
 			}
+		}
+		case AST::Value::FUNCTION: {
+			const Locic::Name& name = value->functionValue.name;
+			
+			SEM::Function* function = context.getNode(name).getFunction();
+					
+			if(function != NULL) {
+				return SEM::Value::FunctionRef(function, function->type);
+			}
+					
+			printf("Semantic Analysis Error: function '%s' not found.\n", name.toString().c_str());
+			return NULL;
 		}
 		case AST::Value::UNARY: {
 			SEM::Value* operand = ConvertValue(context, value->unary.value);
@@ -233,6 +246,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					typeCopy->isLValue = false;
 					return ConvertNumericBinaryOperator(SEM::Value::Binary::DIVIDE, typeCopy, leftOperand, rightOperand);
 				}
+				case AST::Value::Binary::REMAINDER: {
+					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
+					typeCopy->isLValue = false;
+					return ConvertNumericBinaryOperator(SEM::Value::Binary::REMAINDER, typeCopy, leftOperand, rightOperand);
+				}
 				case AST::Value::Binary::ISEQUAL: {
 					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
 					return ConvertComparisonBinaryOperator(SEM::Value::Binary::ISEQUAL, boolType, leftOperand, rightOperand);
@@ -321,19 +339,19 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			return SEM::Value::Cast(type, val);
 		}
 		case AST::Value::CONSTRUCT: {
-			const std::string typeName = value->construct.typeName;
-			const std::string constructorName = value->construct.constructorName;
+			const Name& typeName = value->construct.typeName;
+			const std::string& constructorName = value->construct.constructorName;
 			
-			SEM::TypeInstance * typeInstance = context.getNode(Name::Relative() + typeName).getTypeInstance();
+			SEM::TypeInstance * typeInstance = context.getNode(typeName).getTypeInstance();
 			if(typeInstance == NULL){
-				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.c_str());
+				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.toString().c_str());
 				return NULL;
 			}
 			
 			Optional<SEM::Function *> result = typeInstance->constructors.tryGet(constructorName);
 			
 			if(!result.hasValue()){
-				printf("Semantic Analysis Error: Cannot find constructor '%s' in type '%s'.\n", constructorName.c_str(), typeName.c_str());
+				printf("Semantic Analysis Error: Cannot find constructor '%s' in type '%s'.\n", constructorName.c_str(), typeName.toString().c_str());
 				return NULL;
 			}
 			

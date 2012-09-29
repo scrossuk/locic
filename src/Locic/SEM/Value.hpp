@@ -80,6 +80,7 @@ namespace SEM{
 				SUBTRACT,
 				MULTIPLY,
 				DIVIDE,
+				REMAINDER,
 				ISEQUAL,
 				NOTEQUAL,
 				LESSTHAN,
