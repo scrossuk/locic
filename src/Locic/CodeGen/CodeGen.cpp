@@ -65,17 +65,17 @@ class CodeGen {
 			if(target != NULL) {
 				std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
 				
-				std::cout << "--Does " << (target->hasJIT() ? "" : "not ") << "support just-in-time compilation." << std::endl;
-				std::cout << "--Does " << (target->hasTargetMachine() ? "" : "not ") << "support code generation." << std::endl;
-				std::cout << "--Does " << (target->hasMCAsmBackend() ? "" : "not ") << "support .o generation." << std::endl;
-				std::cout << "--Does " << (target->hasMCAsmLexer() ? "" : "not ") << "support .s lexing." << std::endl;
-				std::cout << "--Does " << (target->hasMCAsmParser() ? "" : "not ") << "support .s parsing." << std::endl;
-				std::cout << "--Does " << (target->hasAsmPrinter() ? "" : "not ") << "support .s printing." << std::endl;
-				std::cout << "--Does " << (target->hasMCDisassembler() ? "" : "not ") << "support disassembling." << std::endl;
-				std::cout << "--Does " << (target->hasMCInstPrinter() ? "" : "not ") << "support printing instructions." << std::endl;
-				std::cout << "--Does " << (target->hasMCCodeEmitter() ? "" : "not ") << "support instruction encoding." << std::endl;
-				std::cout << "--Does " << (target->hasMCObjectStreamer() ? "" : "not ") << "support streaming to files." << std::endl;
-				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files." << std::endl;
+				std::cout << "--Does " << (target->hasJIT() ? "" : "not ") << "support just-in-time compilation" << std::endl;
+				std::cout << "--Does " << (target->hasTargetMachine() ? "" : "not ") << "support code generation" << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmBackend() ? "" : "not ") << "support .o generation" << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmLexer() ? "" : "not ") << "support .s lexing" << std::endl;
+				std::cout << "--Does " << (target->hasMCAsmParser() ? "" : "not ") << "support .s parsing" << std::endl;
+				std::cout << "--Does " << (target->hasAsmPrinter() ? "" : "not ") << "support .s printing" << std::endl;
+				std::cout << "--Does " << (target->hasMCDisassembler() ? "" : "not ") << "support disassembling" << std::endl;
+				std::cout << "--Does " << (target->hasMCInstPrinter() ? "" : "not ") << "support printing instructions" << std::endl;
+				std::cout << "--Does " << (target->hasMCCodeEmitter() ? "" : "not ") << "support instruction encoding" << std::endl;
+				std::cout << "--Does " << (target->hasMCObjectStreamer() ? "" : "not ") << "support streaming to files" << std::endl;
+				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files" << std::endl;
 				
 				if(target->hasTargetMachine()) {
 					std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(llvm::sys::getDefaultTargetTriple(), "", "", llvm::TargetOptions()));
@@ -157,7 +157,7 @@ class CodeGen {
 		}
 		
 		void genFile(SEM::Module* module) {
-			assert(module != NULL);
+			assert(module != NULL && "Generating a module requires a non-NULL SEM module object");
 			
 			for(std::size_t i = 0; i < module->functions.size(); i++){
 				genFunctionDef(module->functions.at(i));
@@ -174,7 +174,7 @@ class CodeGen {
 		// Lazy generation - function declarations are only
 		// generated when they are first used by code.
 		llvm::Function * genFunctionDecl(SEM::Function * function){
-			assert(function != NULL);
+			assert(function != NULL && "Generating a function declaration requires a non-NULL SEM function object");
 			
 			Locic::Optional<llvm::Function *> optionalFunction = functions_.tryGet(function);
 			if(optionalFunction.hasValue()) return optionalFunction.getValue();
@@ -192,7 +192,7 @@ class CodeGen {
 		// Lazy generation - struct types are only
 		// generated when they are first used by code.
 		llvm::Type* genStructType(SEM::TypeInstance * typeInstance){
-			assert(typeInstance != NULL);
+			assert(typeInstance != NULL && "Generating a struct type requires a non-NULL SEM TypeInstance object");
 			
 			Locic::Optional<llvm::Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
 			if(optionalStruct.hasValue()) return optionalStruct.getValue();
@@ -222,7 +222,7 @@ class CodeGen {
 				Locic::StringMap<SEM::Var *>::Range range = typeInstance->variables.range();
 				for(; !range.empty(); range.popFront()){
 					SEM::Var * var = range.front().value();
-					assert(memberVariables.at(paramOffset + var->id) == NULL);
+					assert(memberVariables.at(paramOffset + var->id) == NULL && "Member variables must not share ids");
 					memberVariables.at(paramOffset + var->id) = genType(var->type);
 				}
 				
@@ -245,8 +245,8 @@ class CodeGen {
 		}
 		
 		llvm::FunctionType* genFunctionType(SEM::Type* type) {
-			assert(type != NULL);
-			assert(type->typeEnum == SEM::Type::FUNCTION);
+			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
+			assert(type->typeEnum == SEM::Type::FUNCTION && "Type must be a function type for it to be generated as such");
 			
 			SEM::Type * semReturnType = type->functionType.returnType;
 			llvm::Type* returnType = genType(semReturnType);
@@ -285,7 +285,7 @@ class CodeGen {
 						case SEM::Type::BasicType::FLOAT:
 							return llvm::Type::getFloatTy(llvm::getGlobalContext());
 						default:
-							std::cerr << "CodeGen error: Unknown basic type." << std::endl;
+							assert(false && "Unknown basic type");
 							return llvm::Type::getVoidTy(llvm::getGlobalContext());
 					}
 				}
@@ -315,19 +315,19 @@ class CodeGen {
 					return llvm::StructType::get(llvm::getGlobalContext(), types);
 				}
 				default: {
-					std::cerr << "CodeGen error: Unknown type." << std::endl;
+					assert(false && "Unknown type enum for generating type");
 					return llvm::Type::getVoidTy(llvm::getGlobalContext());
 				}
 			}
 		}
 		
 		void genFunctionDef(SEM::Function* function) {
-			assert(function != NULL);
+			assert(function != NULL && "Generating a function definition requires a non-NULL SEM Function object");
 			
 			if(function->scope == NULL) return;
 		
 			currentFunction_ = genFunctionDecl(function);
-			assert(currentFunction_ != NULL);
+			assert(currentFunction_ != NULL && "Generating a function definition requires a valid declaration");
 			
 			currentBasicBlock_ = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", currentFunction_);
 			builder_.SetInsertPoint(currentBasicBlock_);
@@ -351,7 +351,8 @@ class CodeGen {
 				// Create an alloca for this variable.
 				llvm::AllocaInst* stackObject = builder_.CreateAlloca(genType(paramVar->type));
 				
-				assert(paramVar->id == paramVariables_.size());
+				assert(paramVar->id == paramVariables_.size()
+					&& "Parameter variables' ids should match their position in the parameter variable array");
 				paramVariables_.push_back(stackObject);
 				
 				// Store the initial value into the alloca.
@@ -382,7 +383,8 @@ class CodeGen {
 				// Create an alloca for this variable.
 				llvm::AllocaInst* stackObject = builder_.CreateAlloca(genType(localVar->type));
 				
-				assert(localVar->id == localVariables_.size());
+				assert(localVar->id == localVariables_.size()
+					&& "Local variables' ids should match their position in the local variable array");
 				localVariables_.push_back(stackObject);
 			}
 			
@@ -474,7 +476,8 @@ class CodeGen {
 					break;
 				}
 				default:
-					std::cerr << "CodeGen error: Unknown statement." << std::endl;
+					assert(false && "Unknown statement type");
+					break;
 			}
 		}
 		
@@ -502,7 +505,7 @@ class CodeGen {
 						case SEM::Value::Constant::NULLVAL:
 							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 						default:
-							std::cerr << "CodeGen error: Unknown constant." << std::endl;
+							assert(false && "Unknown constant type");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
@@ -515,7 +518,7 @@ class CodeGen {
 					switch(var->typeEnum) {
 						case SEM::Var::PARAM: {
 							llvm::Value * val = paramVariables_.at(var->id);
-							assert(val != NULL);
+							assert(val != NULL && "Parameter variable must exist to be referenced");
 							if(genLValue) {
 								return val;
 							} else {
@@ -524,7 +527,7 @@ class CodeGen {
 						}
 						case SEM::Var::LOCAL: {
 							llvm::Value * val = localVariables_.at(var->id);
-							assert(val != NULL);
+							assert(val != NULL && "Local variable must exist to be referenced");
 							if(genLValue) {
 								return val;
 							} else {
@@ -532,7 +535,7 @@ class CodeGen {
 							}
 						}
 						case SEM::Var::MEMBER: {
-							assert(!paramVariables_.empty());
+							assert(!paramVariables_.empty() && "There must be at least one parameter variable (which should contain the 'this' pointer)");
 							llvm::Value * object = paramVariables_.front();
 							
 							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
@@ -544,7 +547,7 @@ class CodeGen {
 							}
 						}
 						default: {
-							std::cerr << "CodeGen error: Unknown variable type in variable access." << std::endl;
+							assert(false && "Unknown variable type in variable access");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 						}
 					}
@@ -581,7 +584,7 @@ class CodeGen {
 							}
 							
 						default:
-							std::cerr << "CodeGen error: Unknown unary bool operand." << std::endl;
+							assert(false && "Unknown unary bool operand");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
@@ -625,6 +628,15 @@ class CodeGen {
 								return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
 							} else {
 								return builder_.CreateFDiv(genValue(value->binary.left), genValue(value->binary.right));
+							}
+							
+						case SEM::Value::Binary::REMAINDER:
+							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
+							
+							if(opType == SEM::Value::Op::INTEGER) {
+								return builder_.CreateSRem(genValue(value->binary.left), genValue(value->binary.right));
+							} else {
+								return builder_.CreateFRem(genValue(value->binary.left), genValue(value->binary.right));
 							}
 							
 						case SEM::Value::Binary::ISEQUAL:
@@ -686,7 +698,7 @@ class CodeGen {
 							}
 							
 						default:
-							std::cerr << "CodeGen error: Unknown binary operand." << std::endl;
+							assert(false && "Unknown binary operand");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
@@ -698,7 +710,8 @@ class CodeGen {
 					SEM::Type* sourceType = value->cast.value->type;
 					SEM::Type* destType = value->type;
 					
-					assert(sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM::Type::NULLT || destType->typeEnum == SEM::Type::VOID);
+					assert((sourceType->typeEnum == destType->typeEnum || sourceType->typeEnum == SEM::Type::NULLT ||
+						destType->typeEnum == SEM::Type::VOID) && "Types must be in the same group for cast, or it should be a cast from null, or a cast to void");
 					
 					if(destType->typeEnum == SEM::Type::VOID){
 						// All casts to void have the same outcome.
@@ -733,7 +746,7 @@ class CodeGen {
 								}
 								default:
 								{
-									std::cerr << "Internal compiler error: Invalid cast from null." << std::endl;
+									assert(false && "Invalid cast from null");
 									return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 								}
 							}
@@ -770,7 +783,7 @@ class CodeGen {
 							return codeValue;
 						}
 						default:
-							std::cerr << "CodeGen error: Unknown type in cast." << std::endl;
+							assert(false && "Unknown type in cast");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
 				}
@@ -792,7 +805,7 @@ class CodeGen {
 					
 					if(returnType->typeEnum == SEM::Type::NAMED){
 						returnValue = builder_.CreateAlloca(genType(returnType));
-						assert(returnValue != NULL);
+						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference");
 						parameters.push_back(returnValue);
 					}
 					
@@ -810,15 +823,15 @@ class CodeGen {
 				}
 				case SEM::Value::FUNCTIONREF: {
 					llvm::Function* function = genFunctionDecl(value->functionRef.function);
-					assert(function != NULL);
+					assert(function != NULL && "FunctionRef requires a valid function");
 					return function;
 				}
 				case SEM::Value::METHODOBJECT: {
 					llvm::Function* function = genFunctionDecl(value->methodObject.method);
-					assert(function != NULL);
+					assert(function != NULL && "MethodObject requires a valid function");
 					
 					llvm::Value* dataPointer = generateLValue(value->methodObject.methodOwner);
-					assert(dataPointer != NULL);
+					assert(dataPointer != NULL && "MethodObject requires a valid data pointer");
 					
 					llvm::Value * methodValue = llvm::UndefValue::get(genType(value->type));
 					methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
@@ -842,7 +855,7 @@ class CodeGen {
 					return builder_.CreateCall(function, parameters);
 				}
 				default:
-					std::cerr << "CodeGen error: Unknown value." << std::endl;
+					assert(false && "Unknown value enum");
 					return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 			}
 		}
