@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <string>
+#include <Locic/Parser/BisonParser.hpp>
 #include <Locic/Parser/Context.hpp>
 
 void * Locic_Parser_ParseAlloc(void * (*allocFunc)(size_t));

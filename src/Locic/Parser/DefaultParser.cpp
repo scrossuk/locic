@@ -25,16 +25,16 @@ namespace Locic{
 		DefaultParser::DefaultParser(FILE * file, const std::string& moduleName)
 			: file_(file), context_(moduleName){
 			lexer_ = LexAlloc(file, &context_);
-			parser_ = Locic_Parser_ParseAlloc(allocWrapper);
+			//parser_ = Locic_Parser_ParseAlloc(allocWrapper);
 		}
 		
 		DefaultParser::~DefaultParser(){
-			Locic_Parser_ParseFree(parser_, freeWrapper);
+			//Locic_Parser_ParseFree(parser_, freeWrapper);
 			LexFree(lexer_);
 		}
 			
 		bool DefaultParser::parseModule(){
-			while(true){
+			/*while(true){
 	        		int lexVal = LexGetToken(lexer_);
 	        		
 	        		//printf("Found token at line %d\n", (int) lexerContext.lineNumber);
@@ -44,9 +44,11 @@ namespace Locic{
 				if(lexVal == 0){
 					break;
 				}
-			}
+			}*/
+			
+			int result = Locic_Parser_GeneratedParser_parse(lexer_, &context_);
 		
-			return !context_.parseFailed;
+			return result == 0;
 		}
 	
 		AST::Module * DefaultParser::getModule(){

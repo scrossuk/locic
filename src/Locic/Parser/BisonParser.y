@@ -12,8 +12,9 @@
 #include <Locic/Parser/Context.hpp>
 #include <Locic/Parser/Token.hpp>
 
-int yyerror(const char *s);
-int yylex(void);
+int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s);
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext);
+int Locic_Parser_GeneratedLexer_lex(void * lexer);
 
 %}
 
@@ -22,7 +23,14 @@ int yylex(void);
 
 // Parser must be reentrant.
 %define api.pure
-%define api.prefix Locic_Parser_Parse
+
+// Prefix generated symbols.
+%define api.prefix Locic_Parser_GeneratedParser_
+
+%lex-param {void * scanner}
+%lex-param {Locic::Parser::Context * parserContext}
+%parse-param {void * scanner}
+%parse-param {Locic::Parser::Context * parserContext}
 
 %union{
 	// Names.
@@ -55,7 +63,7 @@ int yylex(void);
 	
 	// Values.
 	AST::Value * value;
-	
+	std::vector<AST::Value *> * valueArray;
 }
 
 // ================ Terminals ================
@@ -96,7 +104,7 @@ int yylex(void);
 %token DIVEQUAL
 %token RETURN
 %token AT
-%token NULL
+%token NULLVAL
 %token CAST
 %token LTRIBRACKET
 %token RTRIBRACKET
@@ -116,8 +124,8 @@ int yylex(void);
 
 // ================ Non-Terminals ================
 %type <module> module
-%type <namespace> namespace
-%type <namespace> namedNamespace
+%type <nameSpace> nameSpace
+%type <nameSpace> namedNamespace
 
 %type <typeInstance> typeInstance
 
@@ -173,50 +181,50 @@ start:
 	;
 
 module:
-	namespace
+	nameSpace
 	{
 		$$ = new AST::Module(parserContext->moduleName, $1);
 	}
 	;
 
-namespace:
+nameSpace:
 	// empty
 	{
 		$$ = new AST::Namespace("");
 	}
-	| namespace functionDecl
+	| nameSpace functionDecl
 	{
 		($1)->functions.push_back($2);
 		$$ = $1;
 	}
-	| namespace functionDef
+	| nameSpace functionDef
 	{
 		($1)->functions.push_back($2);
 		$$ = $1;
 	}
-	| namespace typeInstance
+	| nameSpace typeInstance
 	{
 		($1)->typeInstances.push_back($2);
 		$$ = $1;
 	}
-	| namespace namedNamespace
+	| nameSpace namedNamespace
 	{
 		($1)->namespaces.push_back($2);
 		$$ = $1;
 	}
-	| namespace SEMICOLON
+	| nameSpace SEMICOLON
 	{
 		$$ = $1;
 	}
-	| namespace error
+	| nameSpace error
 	{
 		printf("Parser Error: Invalid struct, class, function or other.\n");
-		$$ = ON;
+		$$ = $1;
 	}
 	;
 
 namedNamespace:
-	NAMESPACE UCNAME LCURLYBRACKET namespace RCURLYBRACKET
+	NAMESPACE UCNAME LCURLYBRACKET nameSpace RCURLYBRACKET
 	{
 		($4)->name = *($2);
 		$$ = $4;
@@ -653,17 +661,17 @@ precision7:
 	}
 	| BOOLCONSTANT
 	{
-		$$ = AST::Value::BoolConstant(($1).boolValue);
+		$$ = AST::Value::BoolConstant($1);
 	}
 	| INTCONSTANT
 	{
-		$$ = AST::Value::IntConstant(($1).intValue);
+		$$ = AST::Value::IntConstant($1);
 	}
 	| FLOATCONSTANT
 	{
-		$$ = AST::Value::FloatConstant(($1).floatValue);
+		$$ = AST::Value::FloatConstant($1);
 	}
-	| NULL
+	| NULLVAL
 	{
 		$$ = AST::Value::NullConstant();
 	}
@@ -819,7 +827,13 @@ value:
 	
 %%
 
-int yyerror(const char * s){
-	printf("Error: %s on line %i\n", s, linenum);
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext){
+	const int result = Locic_Parser_GeneratedLexer_lex(lexer);
+	*token = parserContext->token;
+	return result;
+}
+
+int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s){
+	printf("Error: %s on line %lu\n", s, parserContext->lineNumber);
 }
 

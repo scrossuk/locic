@@ -42,71 +42,71 @@
 <COMMENT_STATE>\n             { }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
 
-if                      { return LOCIC_PARSER_TOKEN_IF; }
-else                    { return LOCIC_PARSER_TOKEN_ELSE; }
-while                   { return LOCIC_PARSER_TOKEN_WHILE; }
-for                     { return LOCIC_PARSER_TOKEN_FOR; }
-return                  { return LOCIC_PARSER_TOKEN_RETURN; }
+if                      { return IF; }
+else                    { return ELSE; }
+while                   { return WHILE; }
+for                     { return FOR; }
+return                  { return RETURN; }
 
-class                   { return LOCIC_PARSER_TOKEN_CLASS; }
-interface               { return LOCIC_PARSER_TOKEN_INTERFACE; }
-struct                 { return LOCIC_PARSER_TOKEN_STRUCT; }
-namespace               { return LOCIC_PARSER_TOKEN_NAMESPACE; }
+class                   { return CLASS; }
+interface               { return INTERFACE; }
+struct                 { return STRUCT; }
+namespace               { return NAMESPACE; }
 
-auto                    { return LOCIC_PARSER_TOKEN_AUTO; }
-const                   { return LOCIC_PARSER_TOKEN_CONST; }
-cast                    { return LOCIC_PARSER_TOKEN_CAST; }
+auto                    { return AUTO; }
+const                   { return CONST; }
+cast                    { return CAST; }
 
-void                    { return LOCIC_PARSER_TOKEN_VOIDNAME; }
-int                     { return LOCIC_PARSER_TOKEN_INTNAME; }
-bool                    { return LOCIC_PARSER_TOKEN_BOOLNAME; }
-float                   { return LOCIC_PARSER_TOKEN_FLOATNAME; }
+void                    { return VOIDNAME; }
+int                     { return INTNAME; }
+bool                    { return BOOLNAME; }
+float                   { return FLOATNAME; }
 
-null                    { return LOCIC_PARSER_TOKEN_NULL; }
-true                    { yyextra->token.boolValue = true; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
-false                   { yyextra->token.boolValue = false; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
-[0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_PARSER_TOKEN_INTCONSTANT; }
-[0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return LOCIC_PARSER_TOKEN_FLOATCONSTANT; }
+null                    { return NULLVAL; }
+true                    { yyextra->token.boolValue = true; return BOOLCONSTANT; }
+false                   { yyextra->token.boolValue = false; return BOOLCONSTANT; }
+[0-9]+                  { yyextra->token.intValue = atoi(yytext); return INTCONSTANT; }
+[0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_UCNAME; }
-[a-z_][A-Za-z0-9_]*      { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_LCNAME; }
+[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return UCNAME; }
+[a-z_][A-Za-z0-9_]*      { yyextra->token.str = new std::string(yytext); return LCNAME; }
 
-"=="                    { return LOCIC_PARSER_TOKEN_ISEQUAL; }
-"!="                    { return LOCIC_PARSER_TOKEN_NOTEQUAL; }
-">="                    { return LOCIC_PARSER_TOKEN_GREATEROREQUAL; }
-"<="                    { return LOCIC_PARSER_TOKEN_LESSOREQUAL; }
-"->"                    { return LOCIC_PARSER_TOKEN_PTRACCESS; }
+"=="                    { return ISEQUAL; }
+"!="                    { return NOTEQUAL; }
+">="                    { return GREATEROREQUAL; }
+"<="                    { return LESSOREQUAL; }
+"->"                    { return PTRACCESS; }
 
-"+="                    { return LOCIC_PARSER_TOKEN_ADDEQUAL; }
-"-="                    { return LOCIC_PARSER_TOKEN_SUBEQUAL; }
-"*="                    { return LOCIC_PARSER_TOKEN_MULEQUAL; }
-"/="                    { return LOCIC_PARSER_TOKEN_DIVEQUAL; }
+"+="                    { return ADDEQUAL; }
+"-="                    { return SUBEQUAL; }
+"*="                    { return MULEQUAL; }
+"/="                    { return DIVEQUAL; }
 
 \/\/(.*?)\n             { }
 
-"%"                     { return LOCIC_PARSER_TOKEN_PERCENT; }
-"="                     { return LOCIC_PARSER_TOKEN_SETEQUAL; }
-"+"                     { return LOCIC_PARSER_TOKEN_PLUS; }
-"-"                     { return LOCIC_PARSER_TOKEN_MINUS; }
-"*"                     { return LOCIC_PARSER_TOKEN_STAR; }
-"/"                     { return LOCIC_PARSER_TOKEN_FORWARDSLASH; }
-"!"                     { return LOCIC_PARSER_TOKEN_EXCLAIMMARK; }
-"&"                     { return LOCIC_PARSER_TOKEN_AMPERSAND; }
-"?"                     { return LOCIC_PARSER_TOKEN_QUESTIONMARK; }
-"@"                     { return LOCIC_PARSER_TOKEN_AT; }
-","                     { return LOCIC_PARSER_TOKEN_COMMA; }
-":"                     { return LOCIC_PARSER_TOKEN_COLON; }
-";"                     { return LOCIC_PARSER_TOKEN_SEMICOLON; }
-"("                     { return LOCIC_PARSER_TOKEN_LROUNDBRACKET; }
-")"                     { return LOCIC_PARSER_TOKEN_RROUNDBRACKET; }
-"{"                     { return LOCIC_PARSER_TOKEN_LCURLYBRACKET; }
-"}"                     { return LOCIC_PARSER_TOKEN_RCURLYBRACKET; }
-"."                     { return LOCIC_PARSER_TOKEN_DOT; }
-"<"                     { return LOCIC_PARSER_TOKEN_LTRIBRACKET; }
-">"                     { return LOCIC_PARSER_TOKEN_RTRIBRACKET; }
+"%"                     { return PERCENT; }
+"="                     { return SETEQUAL; }
+"+"                     { return PLUS; }
+"-"                     { return MINUS; }
+"*"                     { return STAR; }
+"/"                     { return FORWARDSLASH; }
+"!"                     { return EXCLAIMMARK; }
+"&"                     { return AMPERSAND; }
+"?"                     { return QUESTIONMARK; }
+"@"                     { return AT; }
+","                     { return COMMA; }
+":"                     { return COLON; }
+";"                     { return SEMICOLON; }
+"("                     { return LROUNDBRACKET; }
+")"                     { return RROUNDBRACKET; }
+"{"                     { return LCURLYBRACKET; }
+"}"                     { return RCURLYBRACKET; }
+"."                     { return DOT; }
+"<"                     { return LTRIBRACKET; }
+">"                     { return RTRIBRACKET; }
 \n                      { }
 [ \t\r]+                { }
-.                       { return LOCIC_PARSER_TOKEN_ERROR; }
+.                       { return ERROR; }
 
 %%
 

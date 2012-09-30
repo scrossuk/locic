@@ -4,15 +4,23 @@
 #include <string>
 
 namespace Locic{
+	
+	namespace Parser{
+		
+		// Resolve circular reference.
+		struct Context;
+		
+	}
+	
+}
+
+#include <Locic/Parser/BisonParser.hpp>
+
+namespace Locic{
 
 	namespace Parser{
 		
-		union Token{
-			std::string * str;
-			bool boolValue;
-			int intValue;
-			float floatValue;
-		};
+		typedef LOCIC_PARSER_GENERATEDPARSER_STYPE Token;
 		
 	}
 
