@@ -14,7 +14,7 @@ namespace Locic{
 	
 }
 
-#include <Locic/Parser/BisonParser.hpp>
+#include <Locic/Parser/GeneratedParser.hpp>
 
 namespace Locic{
 
