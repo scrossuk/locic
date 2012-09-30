@@ -63,13 +63,13 @@ bool                    { return LOCIC_PARSER_TOKEN_BOOLNAME; }
 float                   { return LOCIC_PARSER_TOKEN_FLOATNAME; }
 
 null                    { return LOCIC_PARSER_TOKEN_NULL; }
-true                    { yyextra->token.boolValue = 1; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
-false                   { yyextra->token.boolValue = 0; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
+true                    { yyextra->token.boolValue = true; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
+false                   { yyextra->token.boolValue = false; return LOCIC_PARSER_TOKEN_BOOLCONSTANT; }
 [0-9]+                  { yyextra->token.intValue = atoi(yytext); return LOCIC_PARSER_TOKEN_INTCONSTANT; }
 [0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return LOCIC_PARSER_TOKEN_FLOATCONSTANT; }
 
-[A-Z]((_[A-Za-z0-9])|[A-Za-z0-9])*       { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_UCNAME; }
-[a-z]((_[A-Za-z0-9])|[A-Za-z0-9])*      { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_LCNAME; }
+[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_UCNAME; }
+[a-z_][A-Za-z0-9_]*      { yyextra->token.str = new std::string(yytext); return LOCIC_PARSER_TOKEN_LCNAME; }
 
 "=="                    { return LOCIC_PARSER_TOKEN_ISEQUAL; }
 "!="                    { return LOCIC_PARSER_TOKEN_NOTEQUAL; }

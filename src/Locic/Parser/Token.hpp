@@ -9,7 +9,7 @@ namespace Locic{
 		
 		union Token{
 			std::string * str;
-			int boolValue;
+			bool boolValue;
 			int intValue;
 			float floatValue;
 		};
