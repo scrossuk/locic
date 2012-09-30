@@ -24,7 +24,6 @@ namespace Locic{
 			private:
 				FILE * file_;
 				void * lexer_;
-				void * parser_;
 				Context context_;
 				
 		};

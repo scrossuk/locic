@@ -1,749 +1,839 @@
-%include {#include <cassert>}
-%include {#include <cstdio>}
-%include {#include <list>}
-%include {#include <string>}
-%include {#include <Locic/AST.hpp>}
-%include {#include <Locic/Name.hpp>}
-%include {#include <Locic/Parser/Context.hpp>}
-%include {#include <Locic/Parser/Token.hpp>}
+/* Parser */
 
-%name Locic_Parser_Parse
-%extra_argument { Locic::Parser::Context * parserContext }
-%start_symbol start
-%token_prefix LOCIC_PARSER_TOKEN_
-%token_type { Locic::Parser::Token }
+%{
 
-%parse_accept {
-	//printf("Success!\n");
+#include <cassert>
+#include <cstdio>
+#include <list>
+#include <string>
+#include <vector>
+#include <Locic/AST.hpp>
+#include <Locic/Name.hpp>
+#include <Locic/Parser/Context.hpp>
+#include <Locic/Parser/Lexer.hpp>
+#include <Locic/Parser/Token.hpp>
+
+int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s);
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext);
+
+%}
+
+// ================ Options ================
+%start start
+
+// Parser must be reentrant.
+%define api.pure
+
+// Prefix generated symbols.
+%define api.prefix Locic_Parser_GeneratedParser_
+
+%lex-param {void * scanner}
+%lex-param {Locic::Parser::Context * parserContext}
+%parse-param {void * scanner}
+%parse-param {Locic::Parser::Context * parserContext}
+
+%union{
+	// Names.
+	std::string * str;
+	Locic::Name * name;
+	
+	// Constants.
+	bool boolValue;
+	int intValue;
+	float floatValue;
+	
+	// Structures.
+	AST::Module * module;
+	AST::Namespace * nameSpace;
+	AST::TypeInstance * typeInstance;
+	AST::Function * function;
+	std::vector<AST::Function *> * functionArray;
+	
+	// Type information.
+	AST::Type * type;
+	AST::Type::BasicType::TypeEnum basicTypeEnum;
+	std::vector<AST::Type *> * typeArray;
+	AST::TypeVar * typeVar;
+	std::vector<AST::TypeVar *> * typeVarArray;
+	
+	// Program code.
+	AST::Scope * scope;
+	AST::Statement * statement;
+	std::vector<AST::Statement *> * statementArray;
+	
+	// Values.
+	AST::Value * value;
+	std::vector<AST::Value *> * valueArray;
 }
 
-%parse_failure {
-	//printf("Failure!\n");
-	parserContext->parseFailed = true;
-}
+// ================ Terminals ================
+%token <str> LCNAME
+%token <str> UCNAME
+%token <boolValue> BOOLCONSTANT
+%token <intValue> INTCONSTANT
+%token <floatValue> FLOATCONSTANT
 
-%syntax_error {
-	printf("Syntax error on line %d\n", (int) parserContext->lineNumber);
-	parserContext->parseFailed = true;
-}
+%token UNKNOWN
+%token ERROR
+%token INTERFACE
+%token SEMICOLON
+%token NAMESPACE
+%token LCURLYBRACKET
+%token RCURLYBRACKET
+%token AUTO
+%token LROUNDBRACKET
+%token RROUNDBRACKET
+%token STRUCT
+%token CLASS
+%token COLON
+%token BOOLNAME
+%token INTNAME
+%token FLOATNAME
+%token VOIDNAME
+%token CONST
+%token STAR
+%token COMMA
+%token IF
+%token ELSE
+%token FOR
+%token WHILE
+%token SETEQUAL
+%token ADDEQUAL
+%token SUBEQUAL
+%token MULEQUAL
+%token DIVEQUAL
+%token RETURN
+%token AT
+%token NULLVAL
+%token CAST
+%token LTRIBRACKET
+%token RTRIBRACKET
+%token DOT
+%token PTRACCESS
+%token PLUS
+%token MINUS
+%token EXCLAIMMARK
+%token AMPERSAND
+%token FORWARDSLASH
+%token PERCENT
+%token ISEQUAL
+%token NOTEQUAL
+%token GREATEROREQUAL
+%token LESSOREQUAL
+%token QUESTIONMARK
 
-%type module { AST::Module * }
+// ================ Non-Terminals ================
+%type <module> module
+%type <nameSpace> nameSpace
+%type <nameSpace> namedNamespace
 
-%type namespace { AST::Namespace * }
+%type <typeInstance> typeInstance
 
-%type namedNamespace { AST::Namespace * }
+%type <function> constructorDecl
+%type <function> constructorDef
+%type <function> functionDecl
+%type <function> functionDef
+%type <functionArray> methodDeclList
+%type <functionArray> methodDefList
+%type <functionArray> constructorDeclList
+%type <functionArray> constructorDefList
 
-%type structVarList { std::vector<AST::TypeVar *> * }
+%type <basicTypeEnum> basicType
+%type <type> typePrecision2
+%type <type> typePrecision1
+%type <type> typePrecision0
+%type <type> type
+%type <typeArray> nonEmptyTypeList
+%type <typeArray> typeList
+%type <typeVar> typeVar
+%type <typeVarArray> nonEmptyTypeVarList
+%type <typeVarArray> typeVarList
+%type <typeVarArray> structVarList
 
-%type typeInstance { AST::TypeInstance * }
+%type <str> name
+%type <name> typeName
+%type <name> functionName
 
-%type constructorDecl { AST::Function * }
-%type constructorDef { AST::Function * }
-%type functionDecl { AST::Function * }
-%type functionDef { AST::Function * }
-%type methodDeclList { std::vector<AST::Function *> * }
-%type methodDefList { std::vector<AST::Function *> * }
-%type constructorDeclList { std::vector<AST::Function *> * }
-%type constructorDefList { std::vector<AST::Function *> * }
+%type <scope> scope
+%type <statementArray> statementList
+%type <statement> scopedStatement
+%type <statement> normalStatement
 
-%type basicType { AST::Type::BasicType::TypeEnum }
-%type typePrecision2 { AST::Type * }
-%type typePrecision1 { AST::Type * }
-%type typePrecision0 { AST::Type * }
-%type type { AST::Type * }
-%type nonEmptyTypeList { std::vector<AST::Type *> * }
-%type typeList { std::vector<AST::Type *> * }
+%type <value> value
+%type <valueArray> nonEmptyValueList
+%type <valueArray> valueList
+%type <value> precision0
+%type <value> precision1
+%type <value> precision2
+%type <value> precision3
+%type <value> precision4
+%type <value> precision5
+%type <value> precision6
+%type <value> precision7
 
-%type typeName { Locic::Name * }
-%type functionName { Locic::Name * }
-
-%type lcName { std::string * }
-%type ucName { std::string * }
-%type name { std::string * }
-
-%type typeVar { AST::TypeVar * }
-%type nonEmptyTypeVarList { std::vector<AST::TypeVar *> * }
-%type typeVarList { std::vector<AST::TypeVar *> * }
-
-%type value { AST::Value * }
-%type nonEmptyValueList { std::vector<AST::Value *> * }
-%type valueList { std::vector<AST::Value *> * }
-
-%type scope { AST::Scope * }
-%type statementList { std::vector<AST::Statement *> * }
-%type scopedStatement { AST::Statement * }
-%type normalStatement { AST::Statement * }
-
-%type precision0 { AST::Value * }
-%type precision1 { AST::Value * }
-%type precision2 { AST::Value * }
-%type precision3 { AST::Value * }
-%type precision4 { AST::Value * }
-%type precision5 { AST::Value * }
-%type precision6 { AST::Value * }
-%type precision7 { AST::Value * }
-	
-start ::= module(M) .
+// ================ Rules ================
+%%
+start:
+	module
 	{
-		parserContext->module = M;
+		parserContext->module = $1;
 	}
-	
-// Nasty hack to create ERROR token (UNKNOWN can never be sent by the lexer).
-start ::= UNKNOWN ERROR.
+	;
 
-module(M) ::= namespace(N).
+module:
+	nameSpace
 	{
-		M = new AST::Module(parserContext->moduleName, N);
+		$$ = new AST::Module(parserContext->moduleName, $1);
 	}
+	;
 
-namespace(N) ::= .
+nameSpace:
+	// empty
 	{
-		N = new AST::Namespace("");
+		$$ = new AST::Namespace("");
 	}
-	
-namespace(N) ::= INTERFACE.
+	| nameSpace functionDecl
 	{
-		N = new AST::Namespace("");
+		($1)->functions.push_back($2);
+		$$ = $1;
 	}
-	
-namespace(NN) ::= namespace(ON) functionDecl(F).
+	| nameSpace functionDef
 	{
-		(ON)->functions.push_back(F);
-		NN = ON;
+		($1)->functions.push_back($2);
+		$$ = $1;
 	}
-
-namespace(NN) ::= namespace(ON) functionDef(F).
+	| nameSpace typeInstance
 	{
-		(ON)->functions.push_back(F);
-		NN = ON;
+		($1)->typeInstances.push_back($2);
+		$$ = $1;
 	}
-
-namespace(NN) ::= namespace(ON) typeInstance(T).
+	| nameSpace namedNamespace
 	{
-		(ON)->typeInstances.push_back(T);
-		NN = ON;
+		($1)->namespaces.push_back($2);
+		$$ = $1;
 	}
-
-namespace(NN) ::= namespace(ON) namedNamespace(NSPACE).
+	| nameSpace SEMICOLON
 	{
-		(ON)->namespaces.push_back(NSPACE);
-		NN = ON;
+		$$ = $1;
 	}
-
-namespace(NN) ::= namespace(ON) SEMICOLON.
-	{
-		NN = ON;
-	}
-
-namespace(NN) ::= namespace(ON) error.
+	| nameSpace error
 	{
 		printf("Parser Error: Invalid struct, class, function or other.\n");
-		NN = ON;
+		$$ = $1;
 	}
+	;
 
-namedNamespace(N) ::= NAMESPACE ucName(NAME) LCURLYBRACKET namespace(NSPACE) RCURLYBRACKET.
+namedNamespace:
+	NAMESPACE UCNAME LCURLYBRACKET nameSpace RCURLYBRACKET
 	{
-		(NSPACE)->name = *(NAME);
-		N = NSPACE;
+		($4)->name = *($2);
+		$$ = $4;
 	}
+	;
 
-structVarList(VL) ::= .
+structVarList:
+	// empty
 	{
-		VL = new std::vector<AST::TypeVar *>();
+		$$ = new std::vector<AST::TypeVar *>();
 	}
+	;
 
-structVarList(VL) ::= structVarList(OVL) typeVar(V) SEMICOLON.
+structVarList:
+	structVarList typeVar SEMICOLON
 	{
-		(OVL)->push_back(V);
-		VL = OVL;
+		($1)->push_back($2);
+		$$ = $1;
 	}
+	| structVarList SEMICOLON
+	{
+		$$ = $1;
+	}
+	;
 
-structVarList(VL) ::= structVarList(OVL) SEMICOLON.
+constructorDecl:
+	AUTO UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		VL = OVL;
+		$$ = AST::Function::Decl(AST::Type::UndefinedType(), *($2), *($4));
 	}
+	;
 
-constructorDecl(C) ::= AUTO ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+constructorDef:
+	AUTO UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		C = AST::Function::Decl(AST::Type::UndefinedType(), *(N), *(P));
+		$$ = AST::Function::Def(AST::Type::UndefinedType(), *($2), *($4), $6);
 	}
-
-constructorDef(C) ::= AUTO ucName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
-	{
-		C = AST::Function::Def(AST::Type::UndefinedType(), *(N), *(P), S);
-	}
+	;
 	
-functionDecl(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET SEMICOLON.
+functionDecl:
+	type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		F = AST::Function::Decl(T, *(N), *(P));
+		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
-	
-functionDecl(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET error.
+	| type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
 		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
-		F = AST::Function::Decl(T, *(N), *(P));
+		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
+	;
 	
-functionDef(F) ::= type(T) lcName(N) LROUNDBRACKET typeVarList(P) RROUNDBRACKET scope(S).
+functionDef:
+	type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		F = AST::Function::Def(T, *(N), *(P), S);
+		$$ = AST::Function::Def($1, *($2), *($4), $6);
 	}
+	;
 
-typeInstance(T) ::= STRUCT name(N) LCURLYBRACKET structVarList(VL) RCURLYBRACKET.
+typeInstance:
+	STRUCT name LCURLYBRACKET structVarList RCURLYBRACKET
 	{
-		T = AST::TypeInstance::Struct(*(N), *(VL));
+		$$ = AST::TypeInstance::Struct(*($2), *($4));
 	}
-	
-typeInstance(T) ::= CLASS ucName(N) LCURLYBRACKET constructorDeclList(CL) methodDeclList(FL) RCURLYBRACKET.
+	| CLASS UCNAME LCURLYBRACKET constructorDeclList methodDeclList RCURLYBRACKET
 	{
-		T = AST::TypeInstance::ClassDecl(*(N), *(CL), *(FL));
+		$$ = AST::TypeInstance::ClassDecl(*($2), *($4), *($5));
 	}
-	
-typeInstance(T) ::= CLASS ucName(N) LROUNDBRACKET typeVarList(VL) RROUNDBRACKET LCURLYBRACKET constructorDefList(CL) methodDefList(FL) RCURLYBRACKET.
+	| CLASS UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET constructorDefList methodDefList RCURLYBRACKET
 	{
-		T = AST::TypeInstance::ClassDef(*(N), *(VL), *(CL), *(FL));
+		$$ = AST::TypeInstance::ClassDef(*($2), *($4), *($7), *($8));
 	}
+	;
 	
-typeName(N) ::= ucName(NAME).
+typeName:
+	UCNAME
 	{
-		N = new Locic::Name(Locic::Name::Relative() + *(NAME));
+		$$ = new Locic::Name(Locic::Name::Relative() + *($1));
 	}
-	
-typeName(N) ::= COLON COLON ucName(NAME).
+	| COLON COLON UCNAME
 	{
-		N = new Locic::Name(Locic::Name::Absolute() + *(NAME));
+		$$ = new Locic::Name(Locic::Name::Absolute() + *($3));
 	}
-	
-typeName(N) ::= typeName(ON) COLON COLON ucName(NAME).
+	| typeName COLON COLON UCNAME
 	{
-		N = new Locic::Name(*(ON) + *(NAME));
+		$$ = new Locic::Name(*($1) + *($4));
 	}
+	;
 	
-functionName(N) ::= COLON COLON lcName(NAME).
+functionName:
+	COLON COLON LCNAME
 	{
-		N = new Locic::Name(Locic::Name::Absolute() + *(NAME));
+		$$ = new Locic::Name(Locic::Name::Absolute() + *($3));
 	}
-	
-functionName(N) ::= typeName(TN) COLON COLON lcName(NAME).
+	| typeName COLON COLON LCNAME
 	{
-		N = new Locic::Name(*(TN) + *(NAME));
+		$$ = new Locic::Name(*($1) + *($4));
 	}
+	;
 	
-lcName(N) ::= LCNAME(NAME).
+name:
+	LCNAME
 	{
-		N = (NAME).str;
+		$$ = $1;
 	}
-	
-ucName(N) ::= UCNAME(NAME).
+	| UCNAME
 	{
-		N = (NAME).str;
+		$$ = $1;
 	}
+	;
 	
-name(N) ::= lcName(NAME).
+basicType:
+	BOOLNAME
 	{
-		N = NAME;
+		$$ = AST::Type::BasicType::BOOLEAN;
 	}
-	
-name(N) ::= ucName(NAME).
+	| INTNAME
 	{
-		N = NAME;
+		$$ = AST::Type::BasicType::INTEGER;
 	}
-	
-basicType(T) ::= BOOLNAME.
+	| FLOATNAME
 	{
-		T = AST::Type::BasicType::BOOLEAN;
+		$$ = AST::Type::BasicType::FLOAT;
 	}
+	;
 	
-basicType(T) ::= INTNAME.
+typePrecision2:
+	VOIDNAME
 	{
-		T = AST::Type::BasicType::INTEGER;
+		$$ = AST::Type::VoidType();
 	}
-	
-basicType(T) ::= FLOATNAME.
-	{
-		T = AST::Type::BasicType::FLOAT;
-	}
-	
-typePrecision2(T) ::= VOIDNAME.
-	{
-		T = AST::Type::VoidType();
-	}
-	
-typePrecision2(T) ::= basicType(BT).
+	| basicType
 	{
 		const bool isMutable = true;
-		T = AST::Type::Basic(isMutable, BT);
+		$$ = AST::Type::Basic(isMutable, $1);
 	}
-	
-typePrecision2(T) ::= typeName(N).
+	| typeName
 	{
 		const bool isMutable = true;
-		T = AST::Type::Named(isMutable, *(N));
+		$$ = AST::Type::Named(isMutable, *($1));
 	}
-	
-typePrecision2(NT) ::= CONST LROUNDBRACKET type(T) RROUNDBRACKET.
+	| CONST LROUNDBRACKET type RROUNDBRACKET
 	{
-		NT = (T)->applyTransitiveConst();
+		$$ = ($3)->applyTransitiveConst();
 	}
-	
-typePrecision2(NT) ::= LROUNDBRACKET type(RT) RROUNDBRACKET LROUNDBRACKET typeList(PTL) RROUNDBRACKET.
+	| LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
 		const bool isMutable = true;
-		NT = AST::Type::Function(isMutable, RT, *(PTL));
+		$$ = AST::Type::Function(isMutable, $2, *($5));
 	}
-	
-typePrecision2(NT) ::= CONST LROUNDBRACKET error RROUNDBRACKET.
+	| CONST LROUNDBRACKET error RROUNDBRACKET
 	{
 		printf("Parser Error: Invalid type.\n");
-		NT = NULL;
+		$$ = NULL;
 	}
+	;
 
-typePrecision1(NT) ::= typePrecision2(T).
+typePrecision1:
+	typePrecision2
 	{
-		NT = T;
+		$$ = $1;
 	}
+	| typePrecision1 STAR
+	{
+		$$ = AST::Type::Pointer($1);
+	}
+	;
 	
-typePrecision1(NT) ::= typePrecision1(T) STAR.
+typePrecision0:
+	typePrecision1
 	{
-		NT = AST::Type::Pointer(T);
+		$$ = $1;
 	}
-	
-typePrecision0(NT) ::= typePrecision1(T).
+	| CONST typePrecision1
 	{
-		NT = T;
+		$$ = ($2)->applyTransitiveConst();
 	}
-	
-typePrecision0(NT) ::= CONST typePrecision1(T).
-	{
-		NT = (T)->applyTransitiveConst();
-	}
+	;
 
-type(NT) ::= typePrecision0(T).
+type:
+	typePrecision0
 	{
-		NT = T;
+		$$ = $1;
 	}
+	;
 	
-nonEmptyTypeList(TL) ::= type(T).
+nonEmptyTypeList:
+	type
 	{
-		TL = new std::vector<AST::Type *>(1, T);
+		$$ = new std::vector<AST::Type *>(1, $1);
 	}
+	| nonEmptyTypeList COMMA type
+	{
+		($1)->push_back($3);
+		$$ = $1;
+	}
+	;
 	
-nonEmptyTypeList(TL) ::= nonEmptyTypeList(OTL) COMMA type(T).
+typeList:
+	// empty
 	{
-		(OTL)->push_back(T);
-		TL = OTL;
+		$$ = new std::vector<AST::Type *>();
 	}
+	| nonEmptyTypeList
+	{
+		$$ = $1;
+	}
+	;
 	
-typeList(TL) ::= .
+methodDeclList:
+	// empty
 	{
-		TL = new std::vector<AST::Type *>();
+		$$ = new std::vector<AST::Function *>();
 	}
+	| methodDeclList functionDecl
+	{
+		($1)->push_back($2);
+		$$ = $1;
+	}
+	;
 	
-typeList(TL) ::= nonEmptyTypeList(NETL).
+methodDefList:
+	// empty
 	{
-		TL = NETL;
+		$$ = new std::vector<AST::Function *>();
 	}
-	
-methodDeclList(DL) ::= .
+	| methodDefList functionDef
 	{
-		DL = new std::vector<AST::Function *>();
+		($1)->push_back($2);
+		$$ = $1;
 	}
-	
-methodDeclList(L) ::= methodDeclList(OL) functionDecl(F).
-	{
-		(OL)->push_back(F);
-		L = OL;
-	}
-	
-methodDefList(DL) ::= .
-	{
-		DL = new std::vector<AST::Function *>();
-	}
-	
-methodDefList(L) ::= methodDefList(OL) functionDef(F).
-	{
-		(OL)->push_back(F);
-		L = OL;
-	}
+	;
 
-constructorDeclList(DL) ::= .
+constructorDeclList:
+	// empty
 	{
-		DL = new std::vector<AST::Function *>();
+		$$ = new std::vector<AST::Function *>();
 	}
-
-constructorDeclList(L) ::= constructorDeclList(OL) constructorDecl(C).
+	| constructorDeclList constructorDecl
 	{
-		(OL)->push_back(C);
-		L = OL;
+		($1)->push_back($2);
+		$$ = $1;
 	}
+	;
 	
-constructorDefList(DL) ::= .
+constructorDefList:
+	// empty
 	{
-		DL = new std::vector<AST::Function *>();
+		$$ = new std::vector<AST::Function *>();
 	}
-
-constructorDefList(L) ::= constructorDefList(OL) constructorDef(C).
+	| constructorDefList constructorDef
 	{
-		(OL)->push_back(C);
-		L = OL;
+		($1)->push_back($2);
+		$$ = $1;
 	}
+	;
 	
-typeVar(TV) ::= type(T) lcName(N).
+typeVar:
+	type LCNAME
 	{
-		TV = new AST::TypeVar(T, *(N));
+		$$ = new AST::TypeVar($1, *($2));
 	}
+	;
 	
-typeVarList(TVL) ::= .
+typeVarList:
+	// empty
 	{
-		TVL = new std::vector<AST::TypeVar *>();
+		$$ = new std::vector<AST::TypeVar *>();
 	}
-	
-typeVarList(TVL) ::= nonEmptyTypeVarList(L).
+	| nonEmptyTypeVarList
 	{
-		TVL = L;
+		$$ = $1;
 	}
+	;
 	
-nonEmptyTypeVarList(TVL) ::= typeVar(TV).
+nonEmptyTypeVarList:
+	typeVar
 	{
-		TVL = new std::vector<AST::TypeVar *>(1, TV);
+		$$ = new std::vector<AST::TypeVar *>(1, $1);
 	}
-	
-nonEmptyTypeVarList(TVL) ::= nonEmptyTypeVarList(L) COMMA typeVar(TV).
+	| nonEmptyTypeVarList COMMA typeVar
 	{
-		(L)->push_back(TV);
-		TVL = L;
+		($1)->push_back($3);
+		$$ = $1;
 	}
+	;
 	
-valueList(VL) ::= .
+valueList:
+	// empty
 	{
-		VL = new std::vector<AST::Value *>();
+		$$ = new std::vector<AST::Value *>();
 	}
-	
-valueList(VL) ::= nonEmptyValueList(L).
+	| nonEmptyValueList
 	{
-		VL = L;
+		$$ = $1;
 	}
+	;
 	
-nonEmptyValueList(VL) ::= value(V).
+nonEmptyValueList:
+	value
 	{
-		VL = new std::vector<AST::Value *>(1, V);
+		$$ = new std::vector<AST::Value *>(1, $1);
 	}
-	
-nonEmptyValueList(VL) ::= nonEmptyValueList(L) COMMA value(V).
+	| nonEmptyValueList COMMA value
 	{
-		(L)->push_back(V);
-		VL = L;
+		($1)->push_back($3);
+		$$ = $1;
 	}
+	;
 	
-scope(S) ::= LCURLYBRACKET statementList(SL) RCURLYBRACKET.
+scope:
+	LCURLYBRACKET statementList RCURLYBRACKET
 	{
-		S = new AST::Scope(*(SL));
+		$$ = new AST::Scope(*($2));
 	}
+	;
 	
-statementList(SL) ::= .
+statementList:
+	// empty
 	{
-		SL = new std::vector<AST::Statement *>();
+		$$ = new std::vector<AST::Statement *>();
 	}
-	
-statementList(SL) ::= statementList(L) scopedStatement(S).
+	| statementList scopedStatement
 	{
-		(L)->push_back(S);
-		SL = L;
+		($1)->push_back($2);
+		$$ = $1;
 	}
-	
-statementList(SL) ::= statementList(L) normalStatement(S) SEMICOLON.
+	| statementList normalStatement SEMICOLON
 	{
-		(L)->push_back(S);
-		SL = L;
+		($1)->push_back($2);
+		$$ = $1;
 	}
-	
-statementList(SL) ::= statementList(L) normalStatement(S) error.
+	| statementList normalStatement error
 	{
 		printf("Parser Error: Statement must be terminated with semicolon.\n");
-		(L)->push_back(S);
-		SL = L;
+		($1)->push_back($2);
+		$$ = $1;
 	}
-	
-statementList(SL) ::= statementList(L) SEMICOLON.
+	| statementList SEMICOLON
 	{
-		SL = L;
+		$$ = $1;
 	}
-
-statementList(SL) ::= statementList(L) error.
+	| statementList error
 	{
 		printf("Parser Error: Invalid statement.\n");
-		SL = L;
+		$$ = $1;
 	}
+	;
 	
-scopedStatement(S) ::= scope(SCOPE).
+scopedStatement:
+	scope
 	{
-		S = AST::Statement::ScopeStmt(SCOPE);
+		$$ = AST::Statement::ScopeStmt($1);
 	}
-	
-scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
+	| IF LROUNDBRACKET value RROUNDBRACKET scope
 	{
-		S = AST::Statement::If(V, T, new AST::Scope());
+		// One sided if statement (i.e. nothing happens in 'else' case).
+		$$ = AST::Statement::If($3, $5, new AST::Scope());
 	}
-	
-scopedStatement(S) ::= IF LROUNDBRACKET value(V) RROUNDBRACKET scope(T) ELSE scope(F).
+	| IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope
 	{
-		S = AST::Statement::If(V, T, F);
+		$$ = AST::Statement::If($3, $5, $7);
 	}
-	
-scopedStatement(S) ::= FOR LROUNDBRACKET type lcName COLON value(V) RROUNDBRACKET scope.
+	| FOR LROUNDBRACKET type LCNAME COLON value RROUNDBRACKET scope
 	{
 		// TODO
-		S = AST::Statement::ValueStmt(V);
+		assert(false && "For loops not implemented yet");
+		$$ = NULL;
 	}
+	| WHILE LROUNDBRACKET value RROUNDBRACKET scope
+	{
+		$$ = AST::Statement::While($3, $5);
+	}
+	;
 	
-scopedStatement(S) ::= WHILE LROUNDBRACKET value(V) RROUNDBRACKET scope(T).
+normalStatement:
+	AUTO LCNAME SETEQUAL value
 	{
-		S = AST::Statement::While(V, T);
+		$$ = AST::Statement::AutoVarDecl(*($2), $4);
 	}
+	| type LCNAME SETEQUAL value
+	{
+		$$ = AST::Statement::VarDecl($1, *($2), $4);
+	}
+	| value SETEQUAL value
+	{
+		$$ = AST::Statement::Assign($1, $3);
+	}
+	| value ADDEQUAL value
+	{
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::ADD, $1, $3));
+	}
+	| value SUBEQUAL value
+	{
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, $1, $3));
+	}
+	| value MULEQUAL value
+	{
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, $1, $3));
+	}
+	| value DIVEQUAL value
+	{
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, $1, $3));
+	}
+	| value
+	{
+		$$ = AST::Statement::ValueStmt($1);
+	}
+	| RETURN
+	{
+		$$ = AST::Statement::ReturnVoid();
+	}
+	| RETURN value
+	{
+		$$ = AST::Statement::Return($2);
+	}
+	;
 	
-normalStatement(S) ::= AUTO lcName(N) SETEQUAL value(V).
+precision7:
+	LROUNDBRACKET precision0 RROUNDBRACKET
 	{
-		S = AST::Statement::AutoVarDecl(*(N), V);
+		$$ = $2;
 	}
+	| LCNAME
+	{
+		$$ = AST::Value::VarValue(AST::Var::Local(*($1)));
+	}
+	| functionName
+	{
+		$$ = AST::Value::FunctionValue(*($1));
+	}
+	| AT LCNAME
+	{
+		$$ = AST::Value::VarValue(AST::Var::Member(*($2)));
+	}
+	| BOOLCONSTANT
+	{
+		$$ = AST::Value::BoolConstant($1);
+	}
+	| INTCONSTANT
+	{
+		$$ = AST::Value::IntConstant($1);
+	}
+	| FLOATCONSTANT
+	{
+		$$ = AST::Value::FloatConstant($1);
+	}
+	| NULLVAL
+	{
+		$$ = AST::Value::NullConstant();
+	}
+	| typeName LROUNDBRACKET valueList RROUNDBRACKET
+	{
+		$$ = AST::Value::FunctionCall(AST::Value::Construct(*($1), "Default"), *($3));
+	}
+	| typeName COLON UCNAME LROUNDBRACKET valueList RROUNDBRACKET
+	{
+		$$ = AST::Value::FunctionCall(AST::Value::Construct(*($1), *($3)), *($5));
+	}
+	| CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = AST::Value::Cast($3, $6);
+	}
+	;
 	
-normalStatement(S) ::= type(T) lcName(N) SETEQUAL value(V).
+precision6:
+	precision7
 	{
-		S = AST::Statement::VarDecl(T, *(N), V);
+		$$ = $1;
 	}
-
-normalStatement(S) ::= value(LV) SETEQUAL value(RV).
+	| precision6 DOT LCNAME
 	{
-		S = AST::Statement::Assign(LV, RV);
+		$$ = AST::Value::MemberAccess($1, *($3));
 	}
-
-normalStatement(S) ::= value(LV) ADDEQUAL value(RV).
+	| precision6 PTRACCESS LCNAME
 	{
-		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::ADD, LV, RV));
+		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Unary::DEREF, $1), *($3));
 	}
-
-normalStatement(S) ::= value(LV) SUBEQUAL value(RV).
+	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
-		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, LV, RV));
+		$$ = AST::Value::FunctionCall($1, *($3));
 	}
-
-normalStatement(S) ::= value(LV) MULEQUAL value(RV).
-	{
-		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, LV, RV));
-	}
-
-normalStatement(S) ::= value(LV) DIVEQUAL value(RV).
-	{
-		S = AST::Statement::Assign(LV, AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, LV, RV));
-	}
-
-normalStatement(S) ::= value(V).
-	{
-		S = AST::Statement::ValueStmt(V);
-	}
-
-normalStatement(S) ::= RETURN.
-	{
-		S = AST::Statement::ReturnVoid();
-	}
-
-normalStatement(S) ::= RETURN value(V).
-	{
-		S = AST::Statement::Return(V);
-	}
+	;
 	
-precision7(V) ::= LROUNDBRACKET precision0(BV) RROUNDBRACKET.
+precision5:
+	precision6
 	{
-		V = BV;
+		$$ = $1;
 	}
-
-precision7(V) ::= lcName(N).
+	| PLUS precision5
 	{
-		V = AST::Value::VarValue(AST::Var::Local(*(N)));
+		$$ = AST::Value::UnaryOp(AST::Value::Unary::PLUS, $2);
 	}
+	| MINUS precision5
+	{
+		$$ = AST::Value::UnaryOp(AST::Value::Unary::MINUS, $2);
+	}
+	| EXCLAIMMARK precision5
+	{
+		$$ = AST::Value::UnaryOp(AST::Value::Unary::NOT, $2);
+	}
+	| AMPERSAND precision5
+	{
+		$$ = AST::Value::UnaryOp(AST::Value::Unary::ADDRESSOF, $2);
+	}
+	| STAR precision5
+	{
+		$$ = AST::Value::UnaryOp(AST::Value::Unary::DEREF, $2);
+	}
+	;
 	
-precision7(V) ::= functionName(N).
+precision4:
+	precision5
 	{
-		V = AST::Value::FunctionValue(*(N));
+		$$ = $1;
 	}
-
-precision7(V) ::= AT lcName(N).
+	| precision4 STAR precision5
 	{
-		V = AST::Value::VarValue(AST::Var::Member(*(N)));
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, $1, $3);
 	}
-
-precision7(V) ::= BOOLCONSTANT(C).
+	| precision4 FORWARDSLASH precision5
 	{
-		V = AST::Value::BoolConstant((C).boolValue);
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, $1, $3);
 	}
+	| precision4 PERCENT precision5
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::REMAINDER, $1, $3);
+	}
+	;
 	
-precision7(V) ::= INTCONSTANT(C).
+precision3:
+	precision4
 	{
-		V = AST::Value::IntConstant((C).intValue);
+		$$ = $1;
 	}
+	| precision3 PLUS precision4
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::ADD, $1, $3);
+	}
+	| precision3 MINUS precision4
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, $1, $3);
+	}
+	;
 	
-precision7(V) ::= FLOATCONSTANT(C).
+precision2:
+	precision3
 	{
-		V = AST::Value::FloatConstant((C).floatValue);
+		$$ = $1;
 	}
+	| precision3 ISEQUAL precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::ISEQUAL, $1, $3);
+	}
+	| precision3 NOTEQUAL precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::NOTEQUAL, $1, $3);
+	}
+	| precision3 LTRIBRACKET precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::LESSTHAN, $1, $3);
+	}
+	| precision3 RTRIBRACKET precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::GREATERTHAN, $1, $3);
+	}
+	| precision3 GREATEROREQUAL precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::GREATEROREQUAL, $1, $3);
+	}
+	| precision3 LESSOREQUAL precision3
+	{
+		$$ = AST::Value::BinaryOp(AST::Value::Binary::LESSOREQUAL, $1, $3);
+	}
+	;
 	
-precision7(V) ::= NULL.
+precision1:
+	precision2
 	{
-		V = AST::Value::NullConstant();
+		$$ = $1;
 	}
-
-precision7(V) ::= typeName(N) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
+	| precision2 QUESTIONMARK precision1 COLON precision1
 	{
-		V = AST::Value::FunctionCall(AST::Value::Construct(*(N), "Default"), *(VL));
+		$$ = AST::Value::Ternary($1, $3, $5);
 	}
-
-precision7(V) ::= typeName(TN) COLON ucName(CN) LROUNDBRACKET valueList(VL) RROUNDBRACKET.
-	{
-		V = AST::Value::FunctionCall(AST::Value::Construct(*(TN), *(CN)), *(VL));
-	}
+	;
 	
-precision7(V) ::= CAST LTRIBRACKET type(T) RTRIBRACKET LROUNDBRACKET value(VAL) RROUNDBRACKET.
+precision0:
+	precision1
 	{
-		V = AST::Value::Cast(T, VAL);
+		$$ = $1;
 	}
-
-precision6(V) ::= precision7(VAL).
-	{
-		V = VAL;
-	}
-
-precision6(V) ::= precision6(S) DOT lcName(N).
-	{
-		V = AST::Value::MemberAccess(S, *(N));
-	}
-
-precision6(V) ::= precision6(SP) PTRACCESS lcName(N).
-	{
-		V = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Unary::DEREF, SP), *(N));
-	}
-
-precision6(V) ::= precision6(F) LROUNDBRACKET valueList(P) RROUNDBRACKET.
-	{
-		V = AST::Value::FunctionCall(F, *(P));
-	}
+	;
 	
-precision5(V) ::= precision6(VAL).
+value:
+	precision0
 	{
-		V = VAL;
+		$$ = $1;
 	}
-
-precision5(V) ::= PLUS precision5(VAL).
-	{
-		V = AST::Value::UnaryOp(AST::Value::Unary::PLUS, VAL);
-	}
-
-precision5(V) ::= MINUS precision5(VAL).
-	{
-		V = AST::Value::UnaryOp(AST::Value::Unary::MINUS, VAL);
-	}
-
-precision5(V) ::= EXCLAIMMARK precision5(VAL).
-	{
-		V = AST::Value::UnaryOp(AST::Value::Unary::NOT, VAL);
-	}
-
-precision5(V) ::= AMPERSAND precision5(VAL).
-	{
-		V = AST::Value::UnaryOp(AST::Value::Unary::ADDRESSOF, VAL);
-	}
-
-precision5(V) ::= STAR precision5(VAL).
-	{
-		V = AST::Value::UnaryOp(AST::Value::Unary::DEREF, VAL);
-	}
-
-precision4(V) ::= precision5(VAL).
-	{
-		V = VAL;
-	}
-
-precision4(V) ::= precision4(L) STAR precision5(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, L, R);
-	}
-
-precision4(V) ::= precision4(L) FORWARDSLASH precision5(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, L, R);
-	}
+	;
 	
-precision4(V) ::= precision4(L) PERCENT precision5(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::REMAINDER, L, R);
-	}
+%%
 
-precision3(V) ::= precision4(VAL).
-	{
-		V = VAL;
-	}
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext){
+	const int result = Locic::Parser::LexGetToken(lexer);
+	*token = parserContext->token;
+	return result;
+}
 
-precision3(V) ::= precision3(L) PLUS precision4(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::ADD, L, R);
-	}
-
-precision3(V) ::= precision3(L) MINUS precision4(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, L, R);
-	}
-
-precision2(V) ::= precision3(VAL).
-	{
-		V = VAL;
-	}
-
-precision2(V) ::= precision3(L) ISEQUAL precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::ISEQUAL, L, R);
-	}
-	
-precision2(V) ::= precision3(L) NOTEQUAL precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::NOTEQUAL, L, R);
-	}
-	
-precision2(V) ::= precision3(L) LTRIBRACKET precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::LESSTHAN, L, R);
-	}
-	
-precision2(V) ::= precision3(L) RTRIBRACKET precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::GREATERTHAN, L, R);
-	}
-	
-precision2(V) ::= precision3(L) GREATEROREQUAL precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::GREATEROREQUAL, L, R);
-	}
-	
-precision2(V) ::= precision3(L) LESSOREQUAL precision3(R).
-	{
-		V = AST::Value::BinaryOp(AST::Value::Binary::LESSOREQUAL, L, R);
-	}
-
-precision1(V) ::= precision2(VAL).
-	{
-		V = VAL;
-	}
-
-precision1(V) ::= precision2(C) QUESTIONMARK precision1(T) COLON precision1(F).
-	{
-		V = AST::Value::Ternary(C, T, F);
-	}
-
-precision0(V) ::= precision1(VAL).
-	{
-		V = VAL;
-	}
-
-value(V) ::= precision0(VAL).
-	{
-		V = VAL;
-	}
-
+int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s){
+	printf("Error: %s on line %lu\n", s, parserContext->lineNumber);
+}
 

@@ -5,7 +5,6 @@
 #include <Locic/Parser/Context.hpp>
 #include <Locic/Parser/Lexer.hpp>
 #include <Locic/Parser/Token.hpp>
-#include <Locic/Parser/TokenValues.hpp>
 
 #define YY_EXTRA_TYPE Locic::Parser::Context *
 #define YY_USER_ACTION yyextra->lineNumber = yylineno;
