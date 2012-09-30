@@ -5,7 +5,6 @@
 
 #include <Locic/AST/Type.hpp>
 #include <Locic/AST/Value.hpp>
-#include <Locic/AST/Var.hpp>
 
 namespace AST {
 

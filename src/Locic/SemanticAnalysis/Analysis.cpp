@@ -104,8 +104,8 @@ namespace Locic {
 			return AddTypeMemberVariables(moduleContext, astModule->nameSpace);
 		}
 		
-		bool AddFunctionDecls(Context& context, AST::Function* astFunction, bool isMethod = false){
-			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction, isMethod);
+		bool AddFunctionDecls(Context& context, AST::Function* astFunction){
+			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction);
 			assert(semFunction != NULL);
 			
 			SEM::Function * existingFunction = context.getNode(context.getName() + astFunction->name).getFunction();
@@ -117,7 +117,7 @@ namespace Locic {
 				return true;
 			}
 				
-			if(!context.addFunction(context.getName() + astFunction->name, semFunction, isMethod)) {
+			if(!context.addFunction(context.getName() + astFunction->name, semFunction, astFunction->isMethod)) {
 				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
 				return false;
 			}
@@ -131,14 +131,9 @@ namespace Locic {
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
 			
-			for(std::size_t i = 0; i < astTypeInstance->constructors.size(); i++){
-				AST::Function * astFunction = astTypeInstance->constructors.at(i);
-				if(!AddFunctionDecls(typeInstanceContext, astFunction)) return false;
-			}
-		
 			for(std::size_t i = 0; i < astTypeInstance->functions.size(); i++){
 				AST::Function * astFunction = astTypeInstance->functions.at(i);
-				if(!AddFunctionDecls(typeInstanceContext, astFunction, true)) return false;
+				if(!AddFunctionDecls(typeInstanceContext, astFunction)) return false;
 			}
 			
 			return true;

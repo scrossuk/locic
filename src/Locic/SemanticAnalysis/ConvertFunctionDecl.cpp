@@ -11,7 +11,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function, bool isMethod) {
+		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function) {
 			AST::Type* returnType = function->returnType;
 			SEM::Type* semReturnType = NULL;
 			
@@ -42,7 +42,7 @@ namespace Locic {
 			
 			std::size_t varId = 0;
 			
-			if(isMethod){
+			if(function->isMethod){
 				assert(thisTypeInstance != NULL);
 				
 				SEM::Type * thisType =
@@ -78,7 +78,7 @@ namespace Locic {
 			
 			SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, semReturnType, parameterTypes);
 			
-			return SEM::Function::Decl(thisTypeInstance, functionType, context.getName() + function->name, parameterVars);
+			return SEM::Function::Decl(function->isMethod, thisTypeInstance, functionType, context.getName() + function->name, parameterVars);
 		}
 		
 	}

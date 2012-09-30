@@ -16,12 +16,8 @@ namespace Locic {
 			
 			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
 			
-			for(std::size_t i = 0; i < typeInstance->constructors.size(); i++){
-				if(!ConvertFunctionDef(typeInstanceContext, typeInstance->constructors.at(i))) return false;
-			}
-			
 			for(std::size_t i = 0; i < typeInstance->functions.size(); i++){
-				if(!ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i), true)) return false;
+				if(!ConvertFunctionDef(typeInstanceContext, typeInstance->functions.at(i))) return false;
 			}
 			
 			return true;

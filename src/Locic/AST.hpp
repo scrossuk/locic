@@ -9,6 +9,5 @@
 #include <Locic/AST/TypeInstance.hpp>
 #include <Locic/AST/TypeVar.hpp>
 #include <Locic/AST/Value.hpp>
-#include <Locic/AST/Var.hpp>
 
 #endif

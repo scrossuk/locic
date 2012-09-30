@@ -24,11 +24,7 @@ namespace Locic {
 					
 					bool inserted = false;
 					if(typeInstance_->name.isExactPrefixOf(name)){
-						if(!isMethod){
-							inserted |= typeInstance_->constructors.tryInsert(name.last(), function);
-						}else{
-							inserted |= typeInstance_->methods.tryInsert(name.last(), function);
-						}
+						inserted |= typeInstance_->functions.tryInsert(name.last(), function);
 					}
 					inserted |= parentContext_.addFunction(name, function, isMethod);
 					return inserted;

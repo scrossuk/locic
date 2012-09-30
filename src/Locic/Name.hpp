@@ -83,6 +83,10 @@ namespace Locic{
 				}
 			}
 			
+			inline bool isRelative() const{
+				return !isAbsolute_;
+			}
+			
 			inline bool isAbsolute() const{
 				return isAbsolute_;
 			}

@@ -20,8 +20,7 @@ namespace SEM{
 		
 		Locic::Name name;
 		Locic::StringMap<Var *> variables;
-		Locic::StringMap<Function *> constructors;
-		Locic::StringMap<Function *> methods;
+		Locic::StringMap<Function *> functions;
 		
 		inline TypeInstance(TypeEnum e, const Locic::Name& n)
 			: typeEnum(e), name(n){ }

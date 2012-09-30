@@ -55,6 +55,7 @@ namespace               { return NAMESPACE; }
 auto                    { return AUTO; }
 const                   { return CONST; }
 cast                    { return CAST; }
+static                 { return STATIC; }
 
 void                    { return VOIDNAME; }
 int                     { return INTNAME; }
@@ -67,8 +68,7 @@ false                   { yyextra->token.boolValue = false; return BOOLCONSTANT;
 [0-9]+                  { yyextra->token.intValue = atoi(yytext); return INTCONSTANT; }
 [0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return FLOATCONSTANT; }
 
-[A-Z][A-Za-z0-9_]*       { yyextra->token.str = new std::string(yytext); return UCNAME; }
-[a-z_][A-Za-z0-9_]*      { yyextra->token.str = new std::string(yytext); return LCNAME; }
+[A-Za-z_][A-Za-z0-9_]* { yyextra->token.str = new std::string(yytext); return NAME; }
 
 "=="                    { return ISEQUAL; }
 "!="                    { return NOTEQUAL; }

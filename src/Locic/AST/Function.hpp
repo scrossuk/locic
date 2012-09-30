@@ -16,6 +16,7 @@ namespace AST {
 			DECLARATION
 		} typeEnum;
 		
+		bool isMethod;
 		Type * returnType;
 		std::string name;
 		std::vector<TypeVar *> parameters;
@@ -24,7 +25,7 @@ namespace AST {
 		Scope * scope;
 		
 		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<TypeVar*>& p, Scope * s)
-			: typeEnum(e),
+			: typeEnum(e), isMethod(false),
 			returnType(t), name(n),
 			parameters(p), scope(s) { }
 			

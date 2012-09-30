@@ -16,11 +16,8 @@ namespace SEM{
 			
 			const std::string nameEnd = targetName.last();
 			
-			Locic::Optional<Function *> constructor = constructors.tryGet(nameEnd);
-			if(constructor.hasValue()) return NamespaceNode::Function(constructor.getValue());
-			
-			Locic::Optional<Function *> method = methods.tryGet(nameEnd);
-			if(method.hasValue()) return NamespaceNode::Function(method.getValue());
+			Locic::Optional<Function *> function = functions.tryGet(nameEnd);
+			if(function.hasValue()) return NamespaceNode::Function(function.getValue());
 		}
 			
 		return NamespaceNode::None();

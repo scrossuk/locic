@@ -65,10 +65,7 @@ SEM::Value* ConvertNumericBinaryOperator(SEM::Value::Binary::TypeEnum opType, SE
 }
 
 SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
-	if(value == NULL) {
-		printf("Internal compiler error: Cannot convert NULL AST::Value.\n");
-		return NULL;
-	}
+	assert(value != NULL && "Cannot convert NULL AST::Value");
 	
 	switch(value->typeEnum) {
 		case AST::Value::CONSTANT: {
@@ -82,57 +79,74 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				case AST::Value::Constant::NULLVAL:
 					return SEM::Value::NullConstant();
 				default:
-					printf("Internal Compiler Error: Unknown constant type enum.\n");
+					assert(false && "Unknown constant type enum.");
 					return NULL;
 			}
+			
+			assert(false && "Invalid switch fallthrough in ConvertValue for constant");
+			return NULL;
 		}
-		case AST::Value::VAR: {
-			AST::Var* astVar = value->varValue.var;
+		case AST::Value::NAMEREF: {
+			const Locic::Name& name = value->nameRef.name;
+			
+			// Check if it could be a local variable.
+			// Local variables must just be a single plain string,
+			// and be a relative name (so no precending '::').
+			if(name.size() == 1 && name.isRelative()){
+				SEM::Var* semVar = context.findLocalVar(name.first());
 				
-			switch(astVar->typeEnum) {
-				case AST::Var::LOCAL: {
-					SEM::Var* semVar = context.findLocalVar(astVar->name);
-							
-					if(semVar != NULL) {
-						return SEM::Value::VarValue(semVar);
-					}
-					
-					// Not a variable - try looking for functions.
-					SEM::Function* function = context.getNode(Name::Relative() + astVar->name).getFunction();
-					
-					if(function != NULL) {
-						return SEM::Value::FunctionRef(function, function->type);
-					}
-					
-					printf("Semantic Analysis Error: local variable or function '%s' not found.\n", astVar->name.c_str());
-					return NULL;
-				}
-				case AST::Var::MEMBER: {
-					SEM::Var* semVar = context.getThisVar(astVar->name);
-					
-					if(semVar == NULL){
-						printf("Semantic Analysis Error: member variable '@%s' not found.\n", astVar->name.c_str());
-						return NULL;
-					}
-				
+				if(semVar != NULL) {
 					return SEM::Value::VarValue(semVar);
 				}
-				default:
-					printf("Internal Compiler Error: Unknown AST::Var type enum.\n");
-					return NULL;
 			}
-		}
-		case AST::Value::FUNCTION: {
-			const Locic::Name& name = value->functionValue.name;
 			
-			SEM::Function* function = context.getNode(name).getFunction();
-					
-			if(function != NULL) {
-				return SEM::Value::FunctionRef(function, function->type);
+			// Not a local variable => do a symbol lookup.
+			SEM::NamespaceNode node = context.getNode(name);
+			
+			if(node.isNone()){
+				printf("Semantic Analysis Error: Couldn't find symbol or value '%s'.\n", name.toString().c_str());
+				return NULL;
 			}
-					
-			printf("Semantic Analysis Error: function '%s' not found.\n", name.toString().c_str());
+			
+			if(node.isNamespace()){
+				printf("Semantic Analysis Error: Namespace '%s' is not a valid value.\n", name.toString().c_str());
+				return NULL;
+			}
+			
+			if(node.isFunction()){
+				SEM::Function * function = node.getFunction();
+				assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
+				return SEM::Value::FunctionRef(function, function->type);
+			}else if(node.isTypeInstance()){
+				SEM::TypeInstance * typeInstance = node.getTypeInstance();
+				assert(typeInstance != NULL && "Type instance pointer must not be NULL (as indicated by isTypeInstance() being true)");
+				
+				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Default").getFunction();
+				if(function == NULL){
+					printf("Semantic Analysis Error: Couldn't find default constructor for type '%s' (full name: %s).\n",
+						name.toString().c_str(), typeInstance->name.toString().c_str());
+					return NULL;
+				}
+				
+				return SEM::Value::FunctionRef(function, function->type);
+			}else{
+				assert(false && "Unknown node for name reference");
+				return NULL;
+			}
+			
+			assert(false && "Invalid if-statement fallthrough in ConvertValue for name reference");
 			return NULL;
+		}
+		case AST::Value::MEMBERREF: {
+			const std::string& memberName = value->memberRef.name;
+			SEM::Var* semVar = context.getThisVar(memberName);
+			
+			if(semVar == NULL){
+				printf("Semantic Analysis Error: member variable '@%s' not found.\n", memberName.c_str());
+				return NULL;
+			}
+			
+			return SEM::Value::VarValue(semVar);
 		}
 		case AST::Value::UNARY: {
 			SEM::Value* operand = ConvertValue(context, value->unary.value);
@@ -207,9 +221,12 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					return NULL;
 				}
 				default:
-					printf("Internal Compiler Error: Unknown unary value type enum.\n");
+					assert(false && "Unknown unary value type enum");
 					return NULL;
 			}
+			
+			assert(false && "Invalid switch fallthrough in ConvertValue for unary operation");
+			return NULL;
 		}
 		case AST::Value::BINARY: {
 			SEM::Value* leftOperand, * rightOperand;
@@ -276,11 +293,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					return ConvertComparisonBinaryOperator(SEM::Value::Binary::LESSOREQUAL, boolType, leftOperand, rightOperand);
 				}
 				default:
-					printf("Internal Compiler Error: Unknown binary value type enum.\n");
+					assert(false && "Unknown binary value type enum.");
 					return NULL;
 			}
 				
-			printf("Internal Compiler Error: Unimplemented binary operator.\n");
+			assert(false && "Unimplemented binary operator");
 			return NULL;
 		}
 		case AST::Value::TERNARY: {
@@ -338,27 +355,6 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			return SEM::Value::Cast(type, val);
 		}
-		case AST::Value::CONSTRUCT: {
-			const Name& typeName = value->construct.typeName;
-			const std::string& constructorName = value->construct.constructorName;
-			
-			SEM::TypeInstance * typeInstance = context.getNode(typeName).getTypeInstance();
-			if(typeInstance == NULL){
-				printf("Semantic Analysis Error: Cannot construct unknown type '%s'.\n", typeName.toString().c_str());
-				return NULL;
-			}
-			
-			Optional<SEM::Function *> result = typeInstance->constructors.tryGet(constructorName);
-			
-			if(!result.hasValue()){
-				printf("Semantic Analysis Error: Cannot find constructor '%s' in type '%s'.\n", constructorName.c_str(), typeName.toString().c_str());
-				return NULL;
-			}
-			
-			SEM::Function * constructor = result.getValue();
-			
-			return SEM::Value::FunctionRef(constructor, constructor->type);
-		}
 		case AST::Value::MEMBERACCESS: {
 			const std::string memberName = value->memberAccess.memberName;
 		
@@ -394,21 +390,31 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				}
 			}else{
 				// Look for class methods.
-				Optional<SEM::Function *> methodResult = typeInstance->methods.tryGet(memberName);
+				Optional<SEM::Function *> functionResult = typeInstance->functions.tryGet(memberName);
 				
-				if(methodResult.hasValue()){
-					SEM::Function * methodFunction = methodResult.getValue();
+				if(functionResult.hasValue()){
+					SEM::Function * function = functionResult.getValue();
 					
-					SEM::Type * methodType = SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, typeInstance, methodFunction->type);
+					if(!function->isMethod){
+						printf("Semantic Analysis Error: Cannot call static function '%s' in type '%s'.\n",
+							function->name.last().c_str(), typeInstance->name.toString().c_str());
+						return NULL;
+					}
 					
-					return SEM::Value::MethodObject(methodFunction, object, methodType);
+					SEM::Type * methodType = SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, typeInstance, function->type);
+					
+					return SEM::Value::MethodObject(function, object, methodType);
 				}else{
 					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
 			}
+			
+			assert(false && "Invalid switch fallthrough in ConvertValue for member access");
+			return NULL;
 		}
 		case AST::Value::FUNCTIONCALL: {
+			assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");
 			SEM::Value* functionValue = ConvertValue(context, value->functionCall.functionValue);
 			
 			if(functionValue == NULL) {

@@ -27,6 +27,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 // Prefix generated symbols.
 %define api.prefix Locic_Parser_GeneratedParser_
 
+%glr-parser
+
 %lex-param {void * scanner}
 %lex-param {Locic::Parser::Context * parserContext}
 %parse-param {void * scanner}
@@ -67,8 +69,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 }
 
 // ================ Terminals ================
-%token <str> LCNAME
-%token <str> UCNAME
+%token <str> NAME
 %token <boolValue> BOOLCONSTANT
 %token <intValue> INTCONSTANT
 %token <floatValue> FLOATCONSTANT
@@ -81,6 +82,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token LCURLYBRACKET
 %token RCURLYBRACKET
 %token AUTO
+%token STATIC
 %token LROUNDBRACKET
 %token RROUNDBRACKET
 %token STRUCT
@@ -129,14 +131,15 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 
 %type <typeInstance> typeInstance
 
-%type <function> constructorDecl
-%type <function> constructorDef
 %type <function> functionDecl
 %type <function> functionDef
-%type <functionArray> methodDeclList
-%type <functionArray> methodDefList
-%type <functionArray> constructorDeclList
-%type <functionArray> constructorDefList
+
+%type <function> staticFunctionDecl
+%type <function> staticFunctionDef
+%type <function> classFunctionDecl
+%type <function> classFunctionDef
+%type <functionArray> classFunctionDeclList
+%type <functionArray> classFunctionDefList
 
 %type <basicTypeEnum> basicType
 %type <type> typePrecision2
@@ -150,9 +153,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <typeVarArray> typeVarList
 %type <typeVarArray> structVarList
 
-%type <str> name
-%type <name> typeName
-%type <name> functionName
+%type <name> fullName
 
 %type <scope> scope
 %type <statementArray> statementList
@@ -224,7 +225,7 @@ nameSpace:
 	;
 
 namedNamespace:
-	NAMESPACE UCNAME LCURLYBRACKET nameSpace RCURLYBRACKET
+	NAMESPACE NAME LCURLYBRACKET nameSpace RCURLYBRACKET
 	{
 		($4)->name = *($2);
 		$$ = $4;
@@ -250,26 +251,42 @@ structVarList:
 	}
 	;
 
-constructorDecl:
-	AUTO UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+staticFunctionDecl:
+	STATIC AUTO NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	{
+		$$ = AST::Function::Decl(AST::Type::UndefinedType(), *($3), *($5));
+	}
+	| STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
 		$$ = AST::Function::Decl(AST::Type::UndefinedType(), *($2), *($4));
 	}
+	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	{
+		$$ = AST::Function::Decl($2, *($3), *($5));
+	}
 	;
 
-constructorDef:
-	AUTO UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+staticFunctionDef:
+	STATIC AUTO NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	{
+		$$ = AST::Function::Def(AST::Type::UndefinedType(), *($3), *($5), $7);
+	}
+	| STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
 		$$ = AST::Function::Def(AST::Type::UndefinedType(), *($2), *($4), $6);
+	}
+	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	{
+		$$ = AST::Function::Def($2, *($3), *($5), $7);
 	}
 	;
 	
 functionDecl:
-	type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
 		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
-	| type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET error
+	| type NAME LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.");
 		$$ = AST::Function::Decl($1, *($2), *($4));
@@ -277,61 +294,87 @@ functionDecl:
 	;
 	
 functionDef:
-	type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
 		$$ = AST::Function::Def($1, *($2), *($4), $6);
 	}
 	;
+	
+classFunctionDecl:
+	staticFunctionDecl
+	{
+		$$ = $1;
+	}
+	| functionDecl
+	{
+		($1)->isMethod = true;
+		$$ = $1;
+	}
+	;
+	
+classFunctionDef:
+	staticFunctionDef
+	{
+		$$ = $1;
+	}
+	| functionDef
+	{
+		($1)->isMethod = true;
+		$$ = $1;
+	}
+	;
+
+classFunctionDeclList:
+	// empty
+	{
+		$$ = new std::vector<AST::Function *>();
+	}
+	| classFunctionDeclList classFunctionDecl
+	{
+		($1)->push_back($2);
+		$$ = $1;
+	}
+	;
+	
+classFunctionDefList:
+	// empty
+	{
+		$$ = new std::vector<AST::Function *>();
+	}
+	| classFunctionDefList classFunctionDef
+	{
+		($1)->push_back($2);
+		$$ = $1;
+	}
+	;
 
 typeInstance:
-	STRUCT name LCURLYBRACKET structVarList RCURLYBRACKET
+	STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
 	{
 		$$ = AST::TypeInstance::Struct(*($2), *($4));
 	}
-	| CLASS UCNAME LCURLYBRACKET constructorDeclList methodDeclList RCURLYBRACKET
+	| CLASS NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
 	{
-		$$ = AST::TypeInstance::ClassDecl(*($2), *($4), *($5));
+		$$ = AST::TypeInstance::ClassDecl(*($2), *($4));
 	}
-	| CLASS UCNAME LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET constructorDefList methodDefList RCURLYBRACKET
+	| CLASS NAME LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classFunctionDefList RCURLYBRACKET
 	{
-		$$ = AST::TypeInstance::ClassDef(*($2), *($4), *($7), *($8));
+		$$ = AST::TypeInstance::ClassDef(*($2), *($4), *($7));
 	}
 	;
 	
-typeName:
-	UCNAME
+fullName:
+	NAME
 	{
 		$$ = new Locic::Name(Locic::Name::Relative() + *($1));
 	}
-	| COLON COLON UCNAME
+	| COLON COLON NAME
 	{
 		$$ = new Locic::Name(Locic::Name::Absolute() + *($3));
 	}
-	| typeName COLON COLON UCNAME
+	| fullName COLON COLON NAME
 	{
 		$$ = new Locic::Name(*($1) + *($4));
-	}
-	;
-	
-functionName:
-	COLON COLON LCNAME
-	{
-		$$ = new Locic::Name(Locic::Name::Absolute() + *($3));
-	}
-	| typeName COLON COLON LCNAME
-	{
-		$$ = new Locic::Name(*($1) + *($4));
-	}
-	;
-	
-name:
-	LCNAME
-	{
-		$$ = $1;
-	}
-	| UCNAME
-	{
-		$$ = $1;
 	}
 	;
 	
@@ -360,7 +403,7 @@ typePrecision2:
 		const bool isMutable = true;
 		$$ = AST::Type::Basic(isMutable, $1);
 	}
-	| typeName
+	| fullName
 	{
 		const bool isMutable = true;
 		$$ = AST::Type::Named(isMutable, *($1));
@@ -433,56 +476,8 @@ typeList:
 	}
 	;
 	
-methodDeclList:
-	// empty
-	{
-		$$ = new std::vector<AST::Function *>();
-	}
-	| methodDeclList functionDecl
-	{
-		($1)->push_back($2);
-		$$ = $1;
-	}
-	;
-	
-methodDefList:
-	// empty
-	{
-		$$ = new std::vector<AST::Function *>();
-	}
-	| methodDefList functionDef
-	{
-		($1)->push_back($2);
-		$$ = $1;
-	}
-	;
-
-constructorDeclList:
-	// empty
-	{
-		$$ = new std::vector<AST::Function *>();
-	}
-	| constructorDeclList constructorDecl
-	{
-		($1)->push_back($2);
-		$$ = $1;
-	}
-	;
-	
-constructorDefList:
-	// empty
-	{
-		$$ = new std::vector<AST::Function *>();
-	}
-	| constructorDefList constructorDef
-	{
-		($1)->push_back($2);
-		$$ = $1;
-	}
-	;
-	
 typeVar:
-	type LCNAME
+	type NAME
 	{
 		$$ = new AST::TypeVar($1, *($2));
 	}
@@ -587,7 +582,7 @@ scopedStatement:
 	{
 		$$ = AST::Statement::If($3, $5, $7);
 	}
-	| FOR LROUNDBRACKET type LCNAME COLON value RROUNDBRACKET scope
+	| FOR LROUNDBRACKET type NAME COLON value RROUNDBRACKET scope
 	{
 		// TODO
 		assert(false && "For loops not implemented yet");
@@ -600,11 +595,11 @@ scopedStatement:
 	;
 	
 normalStatement:
-	AUTO LCNAME SETEQUAL value
+	AUTO NAME SETEQUAL value
 	{
 		$$ = AST::Statement::AutoVarDecl(*($2), $4);
 	}
-	| type LCNAME SETEQUAL value
+	| type NAME SETEQUAL value
 	{
 		$$ = AST::Statement::VarDecl($1, *($2), $4);
 	}
@@ -647,17 +642,13 @@ precision7:
 	{
 		$$ = $2;
 	}
-	| LCNAME
+	| fullName
 	{
-		$$ = AST::Value::VarValue(AST::Var::Local(*($1)));
+		$$ = AST::Value::NameRef(*($1));
 	}
-	| functionName
+	| AT NAME
 	{
-		$$ = AST::Value::FunctionValue(*($1));
-	}
-	| AT LCNAME
-	{
-		$$ = AST::Value::VarValue(AST::Var::Member(*($2)));
+		$$ = AST::Value::MemberRef(*($2));
 	}
 	| BOOLCONSTANT
 	{
@@ -675,14 +666,6 @@ precision7:
 	{
 		$$ = AST::Value::NullConstant();
 	}
-	| typeName LROUNDBRACKET valueList RROUNDBRACKET
-	{
-		$$ = AST::Value::FunctionCall(AST::Value::Construct(*($1), "Default"), *($3));
-	}
-	| typeName COLON UCNAME LROUNDBRACKET valueList RROUNDBRACKET
-	{
-		$$ = AST::Value::FunctionCall(AST::Value::Construct(*($1), *($3)), *($5));
-	}
 	| CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
 		$$ = AST::Value::Cast($3, $6);
@@ -694,11 +677,11 @@ precision6:
 	{
 		$$ = $1;
 	}
-	| precision6 DOT LCNAME
+	| precision6 DOT NAME
 	{
 		$$ = AST::Value::MemberAccess($1, *($3));
 	}
-	| precision6 PTRACCESS LCNAME
+	| precision6 PTRACCESS NAME
 	{
 		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Unary::DEREF, $1), *($3));
 	}

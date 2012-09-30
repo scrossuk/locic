@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <Locic/AST/Type.hpp>
-#include <Locic/AST/Var.hpp>
 #include <Locic/Name.hpp>
 
 namespace AST {
@@ -14,13 +13,12 @@ namespace AST {
 		enum TypeEnum {
 			NONE,
 			CONSTANT,
-			VAR,
-			FUNCTION,
+			NAMEREF,
+			MEMBERREF,
 			UNARY,
 			BINARY,
 			TERNARY,
 			CAST,
-			CONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL
 		} typeEnum;
@@ -41,12 +39,12 @@ namespace AST {
 		} constant;
 		
 		struct {
-			Var* var;
-		} varValue;
+			Locic::Name name;
+		} nameRef;
 		
 		struct {
-			Locic::Name name;
-		} functionValue;
+			std::string name;
+		} memberRef;
 		
 		struct Unary {
 			enum TypeEnum {
@@ -86,11 +84,6 @@ namespace AST {
 			Type* targetType;
 			Value* value;
 		} cast;
-		
-		struct {
-			Locic::Name typeName;
-			std::string constructorName;
-		} construct;
 		
 		struct {
 			Value* object;
@@ -133,15 +126,15 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * VarValue(Var * var){
-			Value* value = new Value(VAR);
-			value->varValue.var = var;
+		inline static Value * NameRef(const Locic::Name& name){
+			Value* value = new Value(NAMEREF);
+			value->nameRef.name = name;
 			return value;
 		}
 		
-		inline static Value * FunctionValue(const Locic::Name& name){
-			Value* value = new Value(FUNCTION);
-			value->functionValue.name = name;
+		inline static Value * MemberRef(const std::string& name){
+			Value* value = new Value(MEMBERREF);
+			value->memberRef.name = name;
 			return value;
 		}
 		
@@ -172,13 +165,6 @@ namespace AST {
 			Value* value = new Value(CAST);
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
-			return value;
-		}
-		
-		inline static Value * Construct(const Locic::Name& typeName, const std::string& constructorName){
-			Value* value = new Value(CONSTRUCT);
-			value->construct.typeName = typeName;
-			value->construct.constructorName = constructorName;
 			return value;
 		}
 		
