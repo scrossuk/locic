@@ -106,7 +106,7 @@ namespace Locic {
 		
 		bool AddFunctionDecls(Context& context, AST::Function* astFunction){
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction);
-			assert(semFunction != NULL);
+			if(semFunction == NULL) return false;
 			
 			SEM::Function * existingFunction = context.getNode(context.getName() + astFunction->name).getFunction();
 			if(existingFunction != NULL){

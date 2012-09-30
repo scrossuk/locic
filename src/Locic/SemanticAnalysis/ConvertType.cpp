@@ -81,7 +81,7 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 				parameterTypes.push_back(paramType);
 			}
 			
-			return SEM::Type::Function(type->isMutable, isLValue, returnType, parameterTypes);
+			return SEM::Type::Function(type->isMutable, isLValue, type->functionType.isVarArg, returnType, parameterTypes);
 		}
 		default:
 			printf("Internal Compiler Error: Unknown AST::Type type enum.\n");

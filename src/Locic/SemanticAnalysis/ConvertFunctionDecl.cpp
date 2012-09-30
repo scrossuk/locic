@@ -76,7 +76,7 @@ namespace Locic {
 				parameterVars.push_back(semParamVar);
 			}
 			
-			SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, semReturnType, parameterTypes);
+			SEM::Type* functionType = SEM::Type::Function(SEM::Type::MUTABLE, SEM::Type::RVALUE, function->isVarArg, semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(function->isMethod, thisTypeInstance, functionType, context.getName() + function->name, parameterVars);
 		}

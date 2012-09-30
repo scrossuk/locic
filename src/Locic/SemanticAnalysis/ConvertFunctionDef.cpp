@@ -16,7 +16,7 @@ namespace Locic {
 			// (which MUST have been created previously).
 			SEM::Function* semFunction = context.getNode(context.getName() + function->name).getFunction();
 			
-			assert(semFunction != NULL);
+			assert(semFunction != NULL && "Convert function definition requires an already-converted corresponding function declaration");
 			
 			if(semFunction->scope != NULL){
 				printf("Semantic Analysis Error: function '%s' was defined more than once.\n", semFunction->name.toString().c_str());

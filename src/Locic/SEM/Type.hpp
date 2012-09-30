@@ -46,6 +46,7 @@ namespace SEM{
 		} pointerType;
 		
 		struct {
+			bool isVarArg;
 			Type* returnType;
 			std::vector<Type*> parameterTypes;
 		} functionType;
@@ -91,8 +92,9 @@ namespace SEM{
 			return type;
 		}
 		
-		inline static Type* Function(bool isMutable, bool isLValue, Type* returnType, const std::vector<Type*>& parameterTypes) {
+		inline static Type* Function(bool isMutable, bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable, isLValue);
+			type->functionType.isVarArg = isVarArg;
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
 			return type;
@@ -190,6 +192,11 @@ namespace SEM{
 							str += ", ";
 						}
 						str += functionType.parameterTypes.at(i)->toString();
+					}
+					
+					if(functionType.isVarArg){
+						assert(!functionType.parameterTypes.empty() && "VarArgs functions must have at least one parameter");
+						str += ", ...";
 					}
 					
 					str += ")";

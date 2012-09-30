@@ -41,6 +41,7 @@ namespace AST {
 		} pointerType;
 		
 		struct {
+			bool isVarArg;
 			Type* returnType;
 			std::vector<Type*> parameterTypes;
 		} functionType;
@@ -81,6 +82,15 @@ namespace AST {
 		
 		inline static Type* Function(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable);
+			type->functionType.isVarArg = false;
+			type->functionType.returnType = returnType;
+			type->functionType.parameterTypes = parameterTypes;
+			return type;
+		}
+		
+		inline static Type* VarArgFunction(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
+			Type* type = new Type(FUNCTION, isMutable);
+			type->functionType.isVarArg = true;
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
 			return type;

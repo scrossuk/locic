@@ -16,7 +16,7 @@ namespace AST {
 			DECLARATION
 		} typeEnum;
 		
-		bool isMethod;
+		bool isMethod, isVarArg;
 		Type * returnType;
 		std::string name;
 		std::vector<TypeVar *> parameters;
@@ -24,17 +24,21 @@ namespace AST {
 		// NULL for declarations.
 		Scope * scope;
 		
-		inline Function(TypeEnum e, Type * t, const std::string& n, const std::vector<TypeVar*>& p, Scope * s)
+		inline Function(TypeEnum e, bool vA, Type * t, const std::string& n, const std::vector<TypeVar*>& p, Scope * s)
 			: typeEnum(e), isMethod(false),
-			returnType(t), name(n),
+			isVarArg(vA), returnType(t), name(n),
 			parameters(p), scope(s) { }
-			
+		
 		inline static Function * Decl(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters){
-			return new Function(DECLARATION, returnType, name, parameters, NULL);
+			return new Function(DECLARATION, false, returnType, name, parameters, NULL);
+		}
+		
+		inline static Function * VarArgDecl(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters){
+			return new Function(DECLARATION, true, returnType, name, parameters, NULL);
 		}
 		
 		inline static Function * Def(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters, Scope * scope){
-			return new Function(DEFINITION, returnType, name, parameters, scope);
+			return new Function(DEFINITION, false, returnType, name, parameters, scope);
 		}
 		
 		inline std::string getFullName() const{

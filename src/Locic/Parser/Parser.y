@@ -286,10 +286,19 @@ functionDecl:
 	{
 		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
+	| type NAME LROUNDBRACKET nonEmptyTypeVarList COMMA DOT DOT DOT RROUNDBRACKET SEMICOLON
+	{
+		$$ = AST::Function::VarArgDecl($1, *($2), *($4));
+	}
 	| type NAME LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.");
-		$$ = AST::Function::Decl($1, *($2), *($4));
+		$$ = NULL;
+	}
+	| type NAME LROUNDBRACKET typeVarList COMMA DOT DOT DOT RROUNDBRACKET error
+	{
+		parserContext->error("Function declaration must be terminated with a semicolon.");
+		$$ = NULL;
 	}
 	;
 	
@@ -416,6 +425,11 @@ typePrecision2:
 	{
 		const bool isMutable = true;
 		$$ = AST::Type::Function(isMutable, $2, *($5));
+	}
+	| LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
+	{
+		const bool isMutable = true;
+		$$ = AST::Type::VarArgFunction(isMutable, $2, *($5));
 	}
 	| CONST LROUNDBRACKET error RROUNDBRACKET
 	{

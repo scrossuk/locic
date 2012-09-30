@@ -249,6 +249,8 @@ class CodeGen {
 			assert(type->typeEnum == SEM::Type::FUNCTION && "Type must be a function type for it to be generated as such");
 			
 			SEM::Type * semReturnType = type->functionType.returnType;
+			assert(semReturnType != NULL && "Generating function return type requires a non-NULL SEM return type");
+			
 			llvm::Type* returnType = genType(semReturnType);
 			
 			std::vector<llvm::Type*> paramTypes;
@@ -264,8 +266,7 @@ class CodeGen {
 				paramTypes.push_back(genType(params.at(i)));
 			}
 			
-			const bool isVarArg = false;
-			return llvm::FunctionType::get(returnType, paramTypes, isVarArg);
+			return llvm::FunctionType::get(returnType, paramTypes, type->functionType.isVarArg);
 		}
 		
 		llvm::Type* genType(SEM::Type* type) {

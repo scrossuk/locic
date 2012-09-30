@@ -426,15 +426,24 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				{
 					const std::vector<SEM::Type*>& typeList = functionValue->type->functionType.parameterTypes;
 					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
-			
-					if(typeList.size() != astValueList.size()) {
-						printf("Semantic Analysis Error: Function [%s] called with %lu number of parameters; expected %lu.\n", functionValue->toString().c_str(), astValueList.size(), typeList.size());
-						return NULL;
+					
+					if(functionValue->type->functionType.isVarArg){
+						if(astValueList.size() < typeList.size()) {
+							printf("Semantic Analysis Error: Var Arg Function [%s] called with %lu number of parameters; expected at least %lu.\n",
+								functionValue->toString().c_str(), astValueList.size(), typeList.size());
+							return NULL;
+						}
+					}else{
+						if(astValueList.size() != typeList.size()) {
+							printf("Semantic Analysis Error: Function [%s] called with %lu number of parameters; expected %lu.\n",
+								functionValue->toString().c_str(), astValueList.size(), typeList.size());
+							return NULL;
+						}
 					}
 					
 					std::vector<SEM::Value*> semValueList;
 					
-					for(std::size_t i = 0; i < astValueList.size(); i++){
+					for(std::size_t i = 0; i < typeList.size(); i++){
 						SEM::Value* value = ConvertValue(context, astValueList.at(i));
 						
 						if(value == NULL) return NULL;
@@ -456,7 +465,9 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
 					
 					// First type must be the object type.
-					assert(!typeList.empty());
+					assert(!typeList.empty() && "Method functions must have at least one argument for the 'this' pointer");
+					
+					assert(!functionType->functionType.isVarArg && "Methods cannot be var args");
 					
 					if(typeList.size() != (astValueList.size() + 1)) {
 						printf("Semantic Analysis Error: Method called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
