@@ -218,7 +218,7 @@ nameSpace:
 	}
 	| nameSpace error
 	{
-		printf("Parser Error: Invalid struct, class, function or other.\n");
+		parserContext->error("Invalid struct, class, function or other.");
 		$$ = $1;
 	}
 	;
@@ -271,7 +271,7 @@ functionDecl:
 	}
 	| type LCNAME LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
-		printf("Parser Error: Function declaration must be terminated with a semicolon.\n");
+		parserContext->error("Function declaration must be terminated with a semicolon.");
 		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
 	;
@@ -376,7 +376,7 @@ typePrecision2:
 	}
 	| CONST LROUNDBRACKET error RROUNDBRACKET
 	{
-		printf("Parser Error: Invalid type.\n");
+		parserContext->error("Invalid type.");
 		$$ = NULL;
 	}
 	;
@@ -558,7 +558,7 @@ statementList:
 	}
 	| statementList normalStatement error
 	{
-		printf("Parser Error: Statement must be terminated with semicolon.\n");
+		parserContext->error("Statement must be terminated with semicolon.");
 		($1)->push_back($2);
 		$$ = $1;
 	}
@@ -568,7 +568,7 @@ statementList:
 	}
 	| statementList error
 	{
-		printf("Parser Error: Invalid statement.\n");
+		parserContext->error("Invalid statement.");
 		$$ = $1;
 	}
 	;
@@ -834,6 +834,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 }
 
 int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s){
-	printf("Error: %s on line %lu\n", s, parserContext->lineNumber);
+	parserContext->error(s);
+	return 0;
 }
 

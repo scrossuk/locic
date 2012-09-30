@@ -34,7 +34,16 @@ int main(int argc, char * argv[]){
 			astModules.push_back(parser.getModule());
 			fclose(file);
 		}else{
-			printf("Parser Error: Failed to parse file '%s' with error '%s'.\n", filename.c_str(), parser.getErrorString().c_str());
+			std::vector<Locic::Parser::Error> errors = parser.getErrors();
+			assert(!errors.empty());
+		
+			printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
+			
+			for(std::size_t i = 0; i < errors.size(); i++){
+				const Locic::Parser::Error& error = errors.at(i);
+				printf("Parser Error (line %lu): %s\n", error.lineNumber, error.message.c_str());
+			}
+			
 			return 1;
 		}
 	}

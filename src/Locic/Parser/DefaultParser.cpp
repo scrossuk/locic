@@ -31,18 +31,18 @@ namespace Locic{
 		}
 			
 		bool DefaultParser::parseModule(){
-			const int result = Locic_Parser_GeneratedParser_parse(lexer_, &context_);
-			return result == 0;
+			(void) Locic_Parser_GeneratedParser_parse(lexer_, &context_);
+			return context_.errors.empty();
 		}
 	
 		AST::Module * DefaultParser::getModule(){
-			assert(!context_.parseFailed);
+			assert(context_.errors.empty());
 			assert(context_.module != NULL);
 			return context_.module;
 		}
 		
-		std::string DefaultParser::getErrorString(){
-			return "<Generic Error String>";
+		std::vector<Error> DefaultParser::getErrors(){
+			return context_.errors;
 		}
 		
 	}

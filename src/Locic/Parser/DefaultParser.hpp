@@ -19,7 +19,7 @@ namespace Locic{
 				
 				AST::Module * getModule();
 				
-				std::string getErrorString();
+				std::vector<Error> getErrors();
 				
 			private:
 				FILE * file_;
