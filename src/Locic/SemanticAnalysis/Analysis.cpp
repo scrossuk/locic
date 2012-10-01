@@ -108,21 +108,33 @@ namespace Locic {
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction);
 			if(semFunction == NULL) return false;
 			
-			SEM::Function * existingFunction = context.getNode(context.getName() + astFunction->name).getFunction();
-			if(existingFunction != NULL){
+			SEM::NamespaceNode node = context.getNode(context.getName() + astFunction->name);
+			
+			if(node.isNamespace()){
+				printf("Semantic Analysis Error: function name '%s' clashes with existing namespace name.\n", astFunction->getFullName().c_str());
+				return false;
+			}else if(node.isTypeInstance()){
+				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
+				return false;
+			}else if(node.isFunction()){
+				SEM::Function * existingFunction = node.getFunction();
+				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
 					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", astFunction->getFullName().c_str());
 					return false;
 				}
+				
+				// Can unify function declarations.
+				return true;
+			}else{
+				assert(node.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
+				const bool addResult = context.addFunction(context.getName() + astFunction->name, semFunction, astFunction->isMethod);
+				assert(addResult && "Adding function must succeed, since name has already been looked up and found to be 'none'");
 				return true;
 			}
-				
-			if(!context.addFunction(context.getName() + astFunction->name, semFunction, astFunction->isMethod)) {
-				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
-				return false;
-			}
 			
-			return true;
+			assert(false && "Invalid fallthrough in if stmt of AddFunctionsDecl for function decl");
+			return false;
 		}
 		
 		bool AddFunctionDecls(Context& context, AST::TypeInstance* astTypeInstance){
