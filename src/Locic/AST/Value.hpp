@@ -28,14 +28,14 @@ namespace AST {
 				BOOLEAN,
 				INTEGER,
 				FLOAT,
+				CSTRING,
 				NULLVAL
 			} typeEnum;
 			
-			union {
-				bool boolConstant;
-				int intConstant;
-				float floatConstant;
-			};
+			bool boolConstant;
+			int intConstant;
+			float floatConstant;
+			std::string stringConstant;
 		} constant;
 		
 		struct {
@@ -117,6 +117,13 @@ namespace AST {
 			Value* value = new Value(CONSTANT);
 			value->constant.typeEnum = Constant::FLOAT;
 			value->constant.floatConstant = val;
+			return value;
+		}
+		
+		inline static Value* CStringConstant(const std::string& val) {
+			Value* value = new Value(CONSTANT);
+			value->constant.typeEnum = Constant::CSTRING;
+			value->constant.stringConstant = val;
 			return value;
 		}
 		

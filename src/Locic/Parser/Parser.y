@@ -73,6 +73,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token <boolValue> BOOLCONSTANT
 %token <intValue> INTCONSTANT
 %token <floatValue> FLOATCONSTANT
+%token <str> STRINGCONSTANT
+%token <str> CSTRINGCONSTANT
 
 %token UNKNOWN
 %token ERROR
@@ -675,6 +677,10 @@ precision7:
 	| FLOATCONSTANT
 	{
 		$$ = AST::Value::FloatConstant($1);
+	}
+	| CSTRINGCONSTANT
+	{
+		$$ = AST::Value::CStringConstant(*($1));
 	}
 	| NULLVAL
 	{

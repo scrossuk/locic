@@ -42,14 +42,14 @@ namespace SEM{
 				BOOLEAN,
 				INTEGER,
 				FLOAT,
+				CSTRING,
 				NULLVAL
 			} typeEnum;
 			
-			union {
-				bool boolConstant;
-				int intConstant;
-				float floatConstant;
-			};
+			bool boolConstant;
+			int intConstant;
+			float floatConstant;
+			std::string stringConstant;
 		} constant;
 		
 		struct{
@@ -149,6 +149,13 @@ namespace SEM{
 			Value* value = new Value(CONSTANT, Type::Basic(Type::MUTABLE, Type::RVALUE, Type::BasicType::FLOAT));
 			value->constant.typeEnum = Constant::FLOAT;
 			value->constant.floatConstant = val;
+			return value;
+		}
+		
+		inline static Value* CStringConstant(const std::string& val) {
+			Value* value = new Value(CONSTANT, Type::Pointer(Type::MUTABLE, Type::RVALUE, Type::Basic(Type::CONST, Type::LVALUE, Type::BasicType::INTEGER)));
+			value->constant.typeEnum = Constant::CSTRING;
+			value->constant.stringConstant = val;
 			return value;
 		}
 		

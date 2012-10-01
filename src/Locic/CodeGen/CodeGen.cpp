@@ -503,6 +503,9 @@ class CodeGen {
 							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
 						case SEM::Value::Constant::FLOAT:
 							return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(value->constant.floatConstant));
+						case SEM::Value::Constant::CSTRING:
+							assert(false && "Code generation for C strings not implemented yet");
+							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 						case SEM::Value::Constant::NULLVAL:
 							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 						default:

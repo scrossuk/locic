@@ -25,6 +25,7 @@ namespace Locic{
 			std::string moduleName;
 			std::size_t lineNumber;
 			std::vector<Error> errors;
+			std::string stringConstant;
 			
 			inline Context(const std::string& n)
 				: module(NULL), moduleName(n),

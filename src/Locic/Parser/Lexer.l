@@ -9,21 +9,6 @@
 #define YY_EXTRA_TYPE Locic::Parser::Context *
 #define YY_USER_ACTION yyextra->lineNumber = yylineno;
 
-/*
-"\""                    { strText = ""; BEGIN(STRING_STATE); }
-
-<STRING_STATE>"\\\""          { strText += "\""; }
-<STRING_STATE>"\\\\"          { strText += "\\"; }
-<STRING_STATE>"\\n"           { strText += "\n"; }
-<STRING_STATE>"\\t"           { strText += "\t"; }
-<STRING_STATE>"\""            { token.value = new String(strText);
-				BEGIN(INITIAL);
-				return STRING; }
-<STRING_STATE>.               { strText += yytext; }
-*/
-
-//%x STRING_STATE
-
 %}
 
 %option prefix="Locic_Parser_GeneratedLexer_"
@@ -32,14 +17,28 @@
 %option yylineno
 
 %x COMMENT_STATE
+%x STRING_STATE
 
 %%
 
-"/*"                    { BEGIN(COMMENT_STATE); }
-<COMMENT_STATE>[^*\n]*        { }
-<COMMENT_STATE>"*"+[^*/\n]*   { }
+"/*"                          { BEGIN(COMMENT_STATE); }
+<COMMENT_STATE>[^*\n]*       { }
+<COMMENT_STATE>"*"+[^*/\n]*  { }
 <COMMENT_STATE>\n             { }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
+
+"\""                           { yyextra->stringConstant = ""; BEGIN(STRING_STATE); }
+<STRING_STATE>"\\\""          { yyextra->stringConstant += "\""; }
+<STRING_STATE>"\\\\"          { yyextra->stringConstant += "\\"; }
+<STRING_STATE>"\\n"           { yyextra->stringConstant += "\n"; }
+<STRING_STATE>"\\t"           { yyextra->stringConstant += "\t"; }
+<STRING_STATE>"\"C"            { yyextra->token.str = new std::string(yyextra->stringConstant);
+				BEGIN(INITIAL);
+				return CSTRINGCONSTANT; }
+<STRING_STATE>"\""            { yyextra->token.str = new std::string(yyextra->stringConstant);
+				BEGIN(INITIAL);
+				return STRINGCONSTANT; }
+<STRING_STATE>.               { yyextra->stringConstant += yytext; }
 
 if                      { return IF; }
 else                    { return ELSE; }

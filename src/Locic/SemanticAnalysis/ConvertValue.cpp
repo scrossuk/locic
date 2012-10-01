@@ -76,6 +76,8 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					return SEM::Value::IntConstant(value->constant.intConstant);
 				case AST::Value::Constant::FLOAT:
 					return SEM::Value::FloatConstant(value->constant.floatConstant);
+				case AST::Value::Constant::CSTRING:
+					return SEM::Value::CStringConstant(value->constant.stringConstant);
 				case AST::Value::Constant::NULLVAL:
 					return SEM::Value::NullConstant();
 				default:
