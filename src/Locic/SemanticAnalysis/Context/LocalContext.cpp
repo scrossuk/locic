@@ -23,9 +23,9 @@ namespace Locic {
 			assert(scopeStack_.size() == 0);
 		}
 				
-				bool LocalContext::addFunction(const Name& name, SEM::Function* function, bool isMethod) {
+				bool LocalContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
-					return parentContext_.addFunction(name, function, isMethod);
+					return parentContext_.addFunction(name, function);
 				}
 				
 				bool LocalContext::addNamespace(const Name& name, SEM::Namespace* nameSpace){

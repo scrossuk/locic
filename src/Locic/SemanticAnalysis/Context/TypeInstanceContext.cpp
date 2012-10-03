@@ -19,14 +19,13 @@ namespace Locic {
 					return typeInstance_->name;
 				}
 				
-				bool TypeInstanceContext::addFunction(const Name& name, SEM::Function* function, bool isMethod) {
+				bool TypeInstanceContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
-					
 					bool inserted = false;
 					if(typeInstance_->name.isExactPrefixOf(name)){
 						inserted |= typeInstance_->functions.tryInsert(name.last(), function);
 					}
-					inserted |= parentContext_.addFunction(name, function, isMethod);
+					inserted |= parentContext_.addFunction(name, function);
 					return inserted;
 				}
 				

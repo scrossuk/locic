@@ -152,8 +152,8 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value* CStringConstant(const std::string& val) {
-			Value* value = new Value(CONSTANT, Type::Pointer(Type::MUTABLE, Type::RVALUE, Type::Basic(Type::CONST, Type::LVALUE, Type::BasicType::INTEGER)));
+		inline static Value* CStringConstant(const std::string& val, SEM::Type * type) {
+			Value* value = new Value(CONSTANT, type);
 			value->constant.typeEnum = Constant::CSTRING;
 			value->constant.stringConstant = val;
 			return value;

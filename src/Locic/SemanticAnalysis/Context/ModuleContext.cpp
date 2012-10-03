@@ -23,11 +23,11 @@ namespace Locic {
 					return parentContext_.getNode(name);
 				}
 				
-				bool ModuleContext::addFunction(const Name& name, SEM::Function* function, bool isMethod) {
+				bool ModuleContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
 					
 					module_->functions.push_back(function);
-					return parentContext_.addFunction(name, function, isMethod);
+					return parentContext_.addFunction(name, function);
 				}
 				
 				bool ModuleContext::addNamespace(const Name& name, SEM::Namespace* nameSpace){

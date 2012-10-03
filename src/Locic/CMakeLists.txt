@@ -18,11 +18,27 @@ add_subdirectory(SemanticAnalysis)
 # Build code generator.
 add_subdirectory(CodeGen)
 
-# Compile
+# Build compiler.
 add_executable(locic main.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES core native)
 target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
+
+macro(copy_loci_source name)
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}.loci"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci" "${CMAKE_CURRENT_BINARY_DIR}/${name}.loci"
+		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci")
+endmacro(copy_loci_source)
+
+copy_loci_source(BuiltInTypes)
+copy_loci_source(Example1)
+copy_loci_source(Example2)
+
+add_custom_command(OUTPUT exampleProgram
+		COMMAND ./locic Example1.loci Example2.loci && llvm-as Example2.loci.ll && llvm-as BuiltInTypes.loci.ll && clang -o exampleProgram Example1.loci.bc Example2.loci.bc BuiltInTypes.loci.bc
+		DEPENDS locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
+		
+add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)
 

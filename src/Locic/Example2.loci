@@ -1,0 +1,9 @@
+
+namespace Some{
+	namespace Amazing{
+		int function(int p){
+			return p + 1;
+		}
+	}
+}
+

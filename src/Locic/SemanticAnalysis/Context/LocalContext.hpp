@@ -21,7 +21,7 @@ namespace Locic {
 				
 				~LocalContext();
 				
-				bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false);
+				bool addFunction(const Name& name, SEM::Function* function);
 				
 				bool addNamespace(const Name& name, SEM::Namespace* nameSpace);
 				

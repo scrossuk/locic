@@ -77,7 +77,13 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				case AST::Value::Constant::FLOAT:
 					return SEM::Value::FloatConstant(value->constant.floatConstant);
 				case AST::Value::Constant::CSTRING:
-					return SEM::Value::CStringConstant(value->constant.stringConstant);
+				{
+					SEM::TypeInstance * charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
+					assert(charType != NULL && "Couldn't find char type");
+					SEM::Type * constCharPtrType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
+						SEM::Type::Named(SEM::Type::CONST, SEM::Type::LVALUE, charType));
+					return SEM::Value::CStringConstant(value->constant.stringConstant, constCharPtrType);
+				}
 				case AST::Value::Constant::NULLVAL:
 					return SEM::Value::NullConstant();
 				default:
@@ -443,14 +449,16 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						}
 					}
 					
+					assert(astValueList.size() >= typeList.size());
+					
 					std::vector<SEM::Value*> semValueList;
 					
-					for(std::size_t i = 0; i < typeList.size(); i++){
+					for(std::size_t i = 0; i < astValueList.size(); i++){
 						SEM::Value* value = ConvertValue(context, astValueList.at(i));
 						
 						if(value == NULL) return NULL;
 						
-						SEM::Value* param = CastValueToType(value, typeList.at(i));
+						SEM::Value* param = (i < typeList.size()) ? CastValueToType(value, typeList.at(i)) : value;
 						
 						if(param == NULL) return NULL;
 						

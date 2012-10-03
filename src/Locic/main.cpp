@@ -12,16 +12,19 @@ int main(int argc, char * argv[]){
 		printf("Locic: No files provided.\n");
 		return 1;
 	}
-	
 	assert(argc >= 1);
-	const std::size_t numFiles = argc - 1;
-	assert(numFiles > 0);
+	
+	std::vector<std::string> fileNames;
+	fileNames.push_back("BuiltInTypes.loci");
+	for(std::size_t i = 1; i < argc; i++){
+		fileNames.push_back(argv[i]);
+	}
 	
 	std::vector<AST::Module *> astModules;
 	
 	// Parse all source files.
-	for(std::size_t i = 0; i < numFiles; i++){
-		const std::string filename(argv[1 + i]);
+	for(std::size_t i = 0; i < fileNames.size(); i++){
+		const std::string filename = fileNames.at(i);
 		FILE * file = fopen(filename.c_str(), "rb");
 		
 		if(file == NULL){
@@ -56,10 +59,10 @@ int main(int argc, char * argv[]){
 		return 1;
 	}
 	
-	assert(semModules.size() == numFiles);
+	assert(semModules.size() == fileNames.size());
 	
-	for(std::size_t i = 0; i < numFiles; i++){
-		const std::string moduleName(argv[1 + i]);
+	for(std::size_t i = 0; i < fileNames.size(); i++){
+		const std::string moduleName(fileNames.at(i));
 		
 		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
 		Locic_CodeGen(codeGenContext, semModules.at(i));

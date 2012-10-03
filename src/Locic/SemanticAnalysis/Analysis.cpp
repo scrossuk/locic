@@ -13,6 +13,20 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
+		SEM::TypeInstance::TypeEnum ConvertTypeInstanceEnum(AST::TypeInstance::TypeEnum typeEnum){
+			switch(typeEnum){
+				case AST::TypeInstance::CLASSDECL:
+					return SEM::TypeInstance::CLASSDECL;
+				case AST::TypeInstance::CLASSDEF:
+					return SEM::TypeInstance::CLASSDEF;
+				case AST::TypeInstance::STRUCT:
+					return SEM::TypeInstance::STRUCT;
+				default:
+					assert(false && "Unknown type instance type enum");
+					return SEM::TypeInstance::CLASSDECL;
+			}
+		}
+	
 		// Get all type names, and build initial type instance structures.
 		bool AddTypeInstances(Context& context, AST::Namespace* astNamespace){
 			SEM::Namespace* semNamespace = context.getNode(context.getName() + astNamespace->name).getNamespace();
@@ -38,7 +52,7 @@ namespace Locic {
 			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
 				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
 				SEM::TypeInstance * semTypeInstance =
-					new SEM::TypeInstance((SEM::TypeInstance::TypeEnum) astTypeInstance->typeEnum,
+					new SEM::TypeInstance(ConvertTypeInstanceEnum(astTypeInstance->typeEnum),
 						namespaceContext.getName() + astTypeInstance->name);
 				
 				if(!namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance)){
@@ -128,7 +142,7 @@ namespace Locic {
 				return true;
 			}else{
 				assert(node.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
-				const bool addResult = context.addFunction(context.getName() + astFunction->name, semFunction, astFunction->isMethod);
+				const bool addResult = context.addFunction(context.getName() + astFunction->name, semFunction);
 				assert(addResult && "Adding function must succeed, since name has already been looked up and found to be 'none'");
 				return true;
 			}

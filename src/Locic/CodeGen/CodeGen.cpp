@@ -55,7 +55,7 @@ class CodeGen {
 			  
 			llvm::InitializeNativeTarget();
 			  
-			std::cout << "Default target triple: " << llvm::sys::getDefaultTargetTriple() << std::endl;
+			//std::cout << "Default target triple: " << llvm::sys::getDefaultTargetTriple() << std::endl;
 			
 			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 			
@@ -63,7 +63,7 @@ class CodeGen {
 			const llvm::Target* target = llvm::TargetRegistry::lookupTarget(llvm::sys::getDefaultTargetTriple(), error);
 			
 			if(target != NULL) {
-				std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
+				/*std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
 				
 				std::cout << "--Does " << (target->hasJIT() ? "" : "not ") << "support just-in-time compilation" << std::endl;
 				std::cout << "--Does " << (target->hasTargetMachine() ? "" : "not ") << "support code generation" << std::endl;
@@ -75,14 +75,14 @@ class CodeGen {
 				std::cout << "--Does " << (target->hasMCInstPrinter() ? "" : "not ") << "support printing instructions" << std::endl;
 				std::cout << "--Does " << (target->hasMCCodeEmitter() ? "" : "not ") << "support instruction encoding" << std::endl;
 				std::cout << "--Does " << (target->hasMCObjectStreamer() ? "" : "not ") << "support streaming to files" << std::endl;
-				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files" << std::endl;
+				std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files" << std::endl;*/
 				
 				if(target->hasTargetMachine()) {
 					std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(llvm::sys::getDefaultTargetTriple(), "", "", llvm::TargetOptions()));
 					const llvm::TargetData* targetData = targetMachine->getTargetData();
 					
 					if(targetData != 0) {
-						std::cout << "--Pointer size = " << targetData->getPointerSize() << std::endl;
+						/*std::cout << "--Pointer size = " << targetData->getPointerSize() << std::endl;
 						std::cout << "--Pointer size (in bits) = " << targetData->getPointerSizeInBits() << std::endl;
 						std::cout << "--Little endian = " << (targetData->isLittleEndian() ? "true" : "false") << std::endl;
 						std::cout << "--Big endian = " << (targetData->isBigEndian() ? "true" : "false") << std::endl;
@@ -102,7 +102,7 @@ class CodeGen {
 						}
 						
 						std::cout << "}" << std::endl;
-						std::cout << std::endl;
+						std::cout << std::endl;*/
 						
 						clang::CompilerInstance ci;
 						ci.createDiagnostics(0, NULL);
@@ -111,14 +111,14 @@ class CodeGen {
 						to.Triple = llvm::sys::getDefaultTargetTriple();
 						targetInfo_ = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 						
-						std::cout << "Information from Clang:" << std::endl;
+						/*std::cout << "Information from Clang:" << std::endl;
 						std::cout << "--Short width: " << targetInfo_->getShortWidth() << ", " << (sizeof(short) * 8) << std::endl;
 						std::cout << "--Int width: " << targetInfo_->getIntWidth() << ", " << (sizeof(int) * 8) << std::endl;
 						std::cout << "--Long width: " << targetInfo_->getLongWidth() << ", " << (sizeof(long) * 8) << std::endl;
 						std::cout << "--Long long width: " << targetInfo_->getLongLongWidth() << ", " << (sizeof(long long) * 8) << std::endl;
 						std::cout << "--Float width: " << targetInfo_->getFloatWidth() << ", " << (sizeof(float) * 8) << std::endl;
 						std::cout << "--Double width: " << targetInfo_->getDoubleWidth() << ", " << (sizeof(double) * 8) << std::endl;
-						std::cout << std::endl;
+						std::cout << std::endl;*/
 					}
 				}
 			} else {
@@ -291,6 +291,10 @@ class CodeGen {
 					}
 				}
 				case SEM::Type::NAMED: {
+					Locic::Name name = type->namedType.typeInstance->name;
+					if(name.size() == 1 && name.first() == "char"){
+						return llvm::Type::getInt8Ty(llvm::getGlobalContext());
+					}
 					return genStructType(type->namedType.typeInstance);
 				}
 				case SEM::Type::POINTER: {
@@ -371,7 +375,7 @@ class CodeGen {
 			verifyFunction(*currentFunction_);
 			
 			// Run optimisations.
-			fpm_.run(*currentFunction_);
+			//fpm_.run(*currentFunction_);
 			
 			paramVariables_.clear();
 			localVariables_.clear();
@@ -504,8 +508,17 @@ class CodeGen {
 						case SEM::Value::Constant::FLOAT:
 							return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(value->constant.floatConstant));
 						case SEM::Value::Constant::CSTRING:
-							assert(false && "Code generation for C strings not implemented yet");
-							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
+						{
+							const std::string& stringValue = value->constant.stringConstant;
+							const bool isConstant = true;
+							llvm::ArrayType * arrayType = llvm::ArrayType::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), stringValue.size() + 1);
+							llvm::Constant * constArray = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), stringValue.c_str());
+							llvm::GlobalVariable* globalArray = new llvm::GlobalVariable(*module_, arrayType, isConstant, llvm::GlobalValue::PrivateLinkage, constArray, "");
+							globalArray->setAlignment(1);
+							
+							// Convert array to a pointer.
+							return builder_.CreateConstGEP2_32(globalArray, 0, 0);
+						}
 						case SEM::Value::Constant::NULLVAL:
 							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
 						default:

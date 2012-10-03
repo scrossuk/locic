@@ -15,7 +15,7 @@ namespace Locic {
 		RootContext::RootContext(SEM::Namespace * rootNamespace)
 					: rootNamespace_(rootNamespace){ }
 				
-				bool RootContext::addFunction(const Name& name, SEM::Function* function, bool isMethod) {
+				bool RootContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
 					return false;
 				}

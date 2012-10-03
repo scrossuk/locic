@@ -13,7 +13,8 @@ namespace SEM{
 
 	struct TypeInstance{
 		enum TypeEnum{
-			CLASSDECL = 0,
+			BUILTIN,
+			CLASSDECL,
 			CLASSDEF,
 			STRUCT
 		} typeEnum;

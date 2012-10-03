@@ -24,15 +24,13 @@ namespace Locic {
 					return resultNode.isNotNone() ? resultNode : parentContext_.getNode(name);
 				}
 				
-				bool NamespaceContext::addFunction(const Name& name, SEM::Function* function, bool isMethod) {
+				bool NamespaceContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
-					
 					bool inserted = false;
 					if(nameSpace_->name.isExactPrefixOf(name)){
-						assert(!isMethod);
 						inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::Function(function));
 					}
-					inserted |= parentContext_.addFunction(name, function, isMethod);
+					inserted |= parentContext_.addFunction(name, function);
 					return inserted;
 				}
 				

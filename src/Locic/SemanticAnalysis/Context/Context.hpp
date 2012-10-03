@@ -19,7 +19,7 @@ namespace Locic {
 				
 				virtual SEM::Var * getThisVar(const std::string& name) = 0;
 				
-				virtual bool addFunction(const Name& name, SEM::Function* function, bool isMethod = false) = 0;
+				virtual bool addFunction(const Name& name, SEM::Function* function) = 0;
 				
 				virtual bool addNamespace(const Name& name, SEM::Namespace* nameSpace) = 0;
 				
