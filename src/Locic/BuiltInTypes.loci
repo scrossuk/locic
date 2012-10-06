@@ -1,7 +1,24 @@
 
-class char{ };
+__primitive char{ };
 
-/*class int{
-	int operatorPlus(int v);
-};*/
+__primitive int{
+	int implicitCopy();
+
+	int operatorAdd(int v);
+	int operatorSubtract(int v);
+	int operatorMultiply(int v);
+	int operatorDivide(int v);
+	int operatorModulo(int v);
+	
+	bool operatorIsLess(int v);
+	bool operatorIsGreater(int v);
+};
+
+__primitive bool{ }
+
+__primitive float{
+	float implicitCopy();
+
+	float operatorPlus(float v);
+};
 

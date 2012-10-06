@@ -13,10 +13,10 @@ namespace SEM{
 
 	struct TypeInstance{
 		enum TypeEnum{
-			BUILTIN,
+			PRIMITIVE,
+			STRUCT,
 			CLASSDECL,
-			CLASSDEF,
-			STRUCT
+			CLASSDEF
 		} typeEnum;
 		
 		Locic::Name name;
@@ -27,6 +27,10 @@ namespace SEM{
 			: typeEnum(e), name(n){ }
 		
 		NamespaceNode lookup(const Locic::Name& targetName);
+		
+		bool supportsImplicitCopy() const;
+		
+		bool isClass() const;
 		
 	};
 

@@ -14,56 +14,6 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 
-SEM::Value* ConvertComparisonBinaryOperator(SEM::Value::Binary::TypeEnum opType, SEM::Type* type, SEM::Value* leftOperand, SEM::Value* rightOperand) {
-	SEM::Type * unitedType = UniteTypes(leftOperand->type, rightOperand->type);
-	
-	if(unitedType != NULL){
-		SEM::Value * left = CastValueToType(leftOperand, unitedType);
-		SEM::Value * right = CastValueToType(rightOperand, unitedType);
-
-		if(unitedType->typeEnum == SEM::Type::BASIC) {
-			switch(unitedType->basicType.typeEnum){
-				case SEM::Type::BasicType::BOOLEAN:
-					return SEM::Value::BinaryOp(opType, SEM::Value::Op::BOOLEAN, left, right, type);
-				case SEM::Type::BasicType::INTEGER:
-					return SEM::Value::BinaryOp(opType, SEM::Value::Op::INTEGER, left, right, type);
-				case SEM::Type::BasicType::FLOAT:
-					return SEM::Value::BinaryOp(opType, SEM::Value::Op::FLOAT, left, right, type);
-				default:
-					return NULL;
-			}
-		}
-		
-		if(unitedType->typeEnum == SEM::Type::POINTER){
-			return SEM::Value::BinaryOp(opType, SEM::Value::Op::POINTER, left, right, type);
-		}
-	}
-	
-	printf("Semantic Analysis Error: Comparison between non-identical types '%s' and '%s'.\n",
-		leftOperand->type->toString().c_str(), rightOperand->type->toString().c_str());
-	return NULL;
-}
-
-SEM::Value* ConvertNumericBinaryOperator(SEM::Value::Binary::TypeEnum opType, SEM::Type* type, SEM::Value* leftOperand, SEM::Value* rightOperand) {
-	if(leftOperand->type->typeEnum == SEM::Type::BASIC && rightOperand->type->typeEnum == SEM::Type::BASIC) {
-		SEM::Type::BasicType::TypeEnum leftBasicType, rightBasicType;
-		leftBasicType = leftOperand->type->basicType.typeEnum;
-		rightBasicType = rightOperand->type->basicType.typeEnum;
-		
-		if(leftBasicType == rightBasicType) {
-			if(leftBasicType == SEM::Type::BasicType::INTEGER) {
-				return SEM::Value::BinaryOp(opType, SEM::Value::Op::INTEGER, leftOperand, rightOperand, type);
-			} else if(leftBasicType == SEM::Type::BasicType::FLOAT) {
-				return SEM::Value::BinaryOp(opType, SEM::Value::Op::FLOAT, leftOperand, rightOperand, type);
-			}
-		}
-	}
-	
-	printf("Semantic Analysis Error: Binary numeric operation between non-identical types '%s' and '%s'.\n",
-		leftOperand->type->toString().c_str(), rightOperand->type->toString().c_str());
-	return NULL;
-}
-
 SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 	assert(value != NULL && "Cannot convert NULL AST::Value");
 	
@@ -71,11 +21,23 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 		case AST::Value::CONSTANT: {
 			switch(value->constant.typeEnum) {
 				case AST::Value::Constant::BOOLEAN:
-					return SEM::Value::BoolConstant(value->constant.boolConstant);
+				{
+					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
+					assert(boolType != NULL && "Couldn't find bool type");
+					return SEM::Value::BoolConstant(value->constant.boolConstant, boolType);
+				}
 				case AST::Value::Constant::INTEGER:
-					return SEM::Value::IntConstant(value->constant.intConstant);
+				{
+					SEM::TypeInstance * intType = context.getNode(Name::Absolute() + "int").getTypeInstance();
+					assert(intType != NULL && "Couldn't find int type");
+					return SEM::Value::IntConstant(value->constant.intConstant, intType);
+				}
 				case AST::Value::Constant::FLOAT:
-					return SEM::Value::FloatConstant(value->constant.floatConstant);
+				{
+					SEM::TypeInstance * floatType = context.getNode(Name::Absolute() + "float").getTypeInstance();
+					assert(floatType != NULL && "Couldn't find float type");
+					return SEM::Value::FloatConstant(value->constant.floatConstant, floatType);
+				}
 				case AST::Value::Constant::CSTRING:
 				{
 					SEM::TypeInstance * charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
@@ -156,164 +118,32 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			return SEM::Value::VarValue(semVar);
 		}
-		case AST::Value::UNARY: {
-			SEM::Value* operand = ConvertValue(context, value->unary.value);
-				
-			if(operand == NULL) {
-				return NULL;
+		case AST::Value::ADDRESSOF: {
+			SEM::Value* operand = ConvertValue(context, value->addressOf.value);
+		
+			if(operand->type->isLValue) {
+				return SEM::Value::AddressOf(operand, SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
 			}
 			
-			switch(value->unary.typeEnum) {
-				case AST::Value::Unary::PLUS: {
-					if(operand->type->typeEnum == SEM::Type::BASIC) {
-						SEM::Type* typeCopy = new SEM::Type(*(operand->type));
-						typeCopy->isMutable = SEM::Type::MUTABLE;
-						typeCopy->isLValue = SEM::Type::RVALUE;
-						SEM::Type::BasicType::TypeEnum basicType = typeCopy->basicType.typeEnum;
-								
-						if(basicType == SEM::Type::BasicType::INTEGER) {
-							return SEM::Value::UnaryOp(SEM::Value::Unary::PLUS, SEM::Value::Op::INTEGER, operand, typeCopy);
-						} else if(basicType == SEM::Type::BasicType::FLOAT) {
-							return SEM::Value::UnaryOp(SEM::Value::Unary::PLUS, SEM::Value::Op::FLOAT, operand, typeCopy);
-						}
-					}
-							
-					printf("Semantic Analysis Error: Unary plus on non-numeric type.\n");
-					return NULL;
-				}
-				case AST::Value::Unary::MINUS: {
-					if(operand->type->typeEnum == SEM::Type::BASIC) {
-						SEM::Type* typeCopy = new SEM::Type(*(operand->type));
-						typeCopy->isMutable = SEM::Type::MUTABLE;
-						typeCopy->isLValue = SEM::Type::RVALUE;
-						SEM::Type::BasicType::TypeEnum basicType = typeCopy->basicType.typeEnum;
-								
-						if(basicType == SEM::Type::BasicType::INTEGER) {
-							return SEM::Value::UnaryOp(SEM::Value::Unary::MINUS, SEM::Value::Op::INTEGER, operand, typeCopy);
-						} else if(basicType == SEM::Type::BasicType::FLOAT) {
-							return SEM::Value::UnaryOp(SEM::Value::Unary::MINUS, SEM::Value::Op::FLOAT, operand, typeCopy);
-						}
-					}
-							
-					printf("Semantic Analysis Error: Unary minus on non-numeric type.\n");
-					return NULL;
-				}
-				case AST::Value::Unary::ADDRESSOF: {
-					if(operand->type->isLValue) {
-						return SEM::Value::UnaryOp(SEM::Value::Unary::ADDRESSOF, SEM::Value::Op::POINTER, operand, SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
-					}
-					
-					printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
-					return NULL;
-				}
-				case AST::Value::Unary::DEREF: {
-					if(operand->type->typeEnum == SEM::Type::POINTER) {
-						return SEM::Value::UnaryOp(SEM::Value::Unary::DEREF, SEM::Value::Op::POINTER, operand, operand->type->pointerType.targetType);
-					}
-					
-					printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
-					return NULL;
-				}
-				case AST::Value::Unary::NOT: {
-					if(operand->type->typeEnum == SEM::Type::BASIC) {
-						SEM::Type* typeCopy = new SEM::Type(*(operand->type));
-						typeCopy->isMutable = true;
-						typeCopy->isLValue = false;
-								
-						if(typeCopy->basicType.typeEnum == SEM::Type::BasicType::BOOLEAN) {
-							return SEM::Value::UnaryOp(SEM::Value::Unary::NOT, SEM::Value::Op::BOOLEAN, operand, typeCopy);
-						}
-					}
-					
-					printf("Semantic Analysis Error: Unary NOT on non-bool type.\n");
-					return NULL;
-				}
-				default:
-					assert(false && "Unknown unary value type enum");
-					return NULL;
-			}
-			
-			assert(false && "Invalid switch fallthrough in ConvertValue for unary operation");
+			printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
 			return NULL;
 		}
-		case AST::Value::BINARY: {
-			SEM::Value* leftOperand, * rightOperand;
-			leftOperand = ConvertValue(context, value->binary.left);
-				
-			if(leftOperand == NULL) {
-				return NULL;
+		case AST::Value::DEREFERENCE: {
+			SEM::Value* operand = ConvertValue(context, value->dereference.value);
+		
+			if(operand->type->typeEnum == SEM::Type::POINTER) {
+				return SEM::Value::Deref(operand, operand->type->pointerType.targetType);
 			}
 			
-			rightOperand = ConvertValue(context, value->binary.right);
-				
-			if(rightOperand == NULL) {
-				return NULL;
-			}
-			
-			switch(value->binary.typeEnum) {
-				case AST::Value::Binary::ADD: {
-					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
-					typeCopy->isLValue = false;
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::ADD, typeCopy, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::SUBTRACT: {
-					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
-					typeCopy->isLValue = false;
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::SUBTRACT, typeCopy, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::MULTIPLY: {
-					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
-					typeCopy->isLValue = false;
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::MULTIPLY, typeCopy, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::DIVIDE: {
-					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
-					typeCopy->isLValue = false;
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::DIVIDE, typeCopy, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::REMAINDER: {
-					SEM::Type* typeCopy = new SEM::Type(*(leftOperand->type));
-					typeCopy->isLValue = false;
-					return ConvertNumericBinaryOperator(SEM::Value::Binary::REMAINDER, typeCopy, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::ISEQUAL: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::ISEQUAL, boolType, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::NOTEQUAL: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::NOTEQUAL, boolType, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::LESSTHAN: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::LESSTHAN, boolType, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::GREATERTHAN: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::GREATERTHAN, boolType, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::GREATEROREQUAL: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::GREATEROREQUAL, boolType, leftOperand, rightOperand);
-				}
-				case AST::Value::Binary::LESSOREQUAL: {
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					return ConvertComparisonBinaryOperator(SEM::Value::Binary::LESSOREQUAL, boolType, leftOperand, rightOperand);
-				}
-				default:
-					assert(false && "Unknown binary value type enum.");
-					return NULL;
-			}
-				
-			assert(false && "Unimplemented binary operator");
+			printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
 			return NULL;
 		}
 		case AST::Value::TERNARY: {
-			SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-			
 			SEM::Value* cond = ConvertValue(context, value->ternary.condition);
 			
-			SEM::Value* boolValue = CastValueToType(cond, boolType);
+			SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
+			assert(boolType != NULL && "Couldn't find bool type");
+			SEM::Value* boolValue = CastValueToType(cond, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 			
 			if(boolValue == NULL) {
 				printf("Semantic Analysis Error: Cannot cast or copy condition type (%s) to bool type in ternary operator.\n",

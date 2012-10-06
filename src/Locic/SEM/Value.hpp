@@ -15,8 +15,8 @@ namespace SEM{
 			CONSTANT,
 			COPY,
 			VAR,
-			UNARY,
-			BINARY,
+			ADDRESSOF,
+			DEREF,
 			TERNARY,
 			CAST,
 			MEMBERACCESS,
@@ -27,15 +27,6 @@ namespace SEM{
 		} typeEnum;
 		
 		Type * type;
-		
-		struct Op{
-			enum TypeEnum{
-				BOOLEAN,
-				INTEGER,
-				FLOAT,
-				POINTER
-			};
-		};
 		
 		struct Constant {
 			enum TypeEnum {
@@ -60,39 +51,13 @@ namespace SEM{
 			Var* var;
 		} varValue;
 		
-		struct Unary {
-			enum TypeEnum {
-				PLUS,
-				MINUS,
-				ADDRESSOF,
-				DEREF,
-				NOT
-			} typeEnum;
-			
-			Op::TypeEnum opType;
-			
-			Value* value;
-		} unary;
+		struct {
+			Value * value;
+		} addressOf;
 		
-		struct Binary {
-			enum TypeEnum {
-				ADD,
-				SUBTRACT,
-				MULTIPLY,
-				DIVIDE,
-				REMAINDER,
-				ISEQUAL,
-				NOTEQUAL,
-				LESSTHAN,
-				GREATERTHAN,
-				GREATEROREQUAL,
-				LESSOREQUAL,
-			} typeEnum;
-			
-			Op::TypeEnum opType;
-			
-			Value* left, * right;
-		} binary;
+		struct {
+			Value * value;
+		} deref;
 		
 		struct {
 			Value* condition, * ifTrue, * ifFalse;
@@ -131,22 +96,22 @@ namespace SEM{
 		
 		inline Value(TypeEnum e, Type * t) : typeEnum(e), type(t) { }
 		
-		inline static Value* BoolConstant(bool val) {
-			Value* value = new Value(CONSTANT, Type::Basic(Type::MUTABLE, Type::RVALUE, Type::BasicType::BOOLEAN));
+		inline static Value* BoolConstant(bool val, SEM::TypeInstance * boolType) {
+			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 			value->constant.typeEnum = Constant::BOOLEAN;
 			value->constant.boolConstant = val;
 			return value;
 		}
 		
-		inline static Value* IntConstant(int val) {
-			Value* value = new Value(CONSTANT, Type::Basic(Type::MUTABLE, Type::RVALUE, Type::BasicType::INTEGER));
+		inline static Value* IntConstant(int val, SEM::TypeInstance * intType) {
+			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, intType));
 			value->constant.typeEnum = Constant::INTEGER;
 			value->constant.intConstant = val;
 			return value;
 		}
 		
-		inline static Value* FloatConstant(float val) {
-			Value* value = new Value(CONSTANT, Type::Basic(Type::MUTABLE, Type::RVALUE, Type::BasicType::FLOAT));
+		inline static Value* FloatConstant(float val, SEM::TypeInstance * floatType) {
+			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, floatType));
 			value->constant.typeEnum = Constant::FLOAT;
 			value->constant.floatConstant = val;
 			return value;
@@ -180,20 +145,15 @@ namespace SEM{
 			return value;
 		}
 		
-		inline static Value * UnaryOp(Unary::TypeEnum typeEnum, Op::TypeEnum opType, Value * operand, Type * type){
-			Value* value = new Value(UNARY, type);
-			value->unary.typeEnum = typeEnum;
-			value->unary.opType = opType;
-			value->unary.value = operand;
+		inline static Value * AddressOf(Value * operand, Type * type){
+			Value * value = new Value(ADDRESSOF, type);
+			value->addressOf.value = operand;
 			return value;
 		}
 		
-		inline static Value * BinaryOp(Binary::TypeEnum typeEnum, Op::TypeEnum opType, Value * leftOperand, Value * rightOperand, Type * type){
-			Value* value = new Value(BINARY, type);
-			value->binary.typeEnum = typeEnum;
-			value->binary.opType = opType;
-			value->binary.left = leftOperand;
-			value->binary.right = rightOperand;
+		inline static Value * Deref(Value * operand, Type * type){
+			Value * value = new Value(DEREF, type);
+			value->deref.value = operand;
 			return value;
 		}
 		
@@ -259,14 +219,6 @@ namespace SEM{
 				case VAR:
 				{
 					return "VAR";
-				}
-				case UNARY:
-				{
-					return "UNARY";
-				}
-				case BINARY:
-				{
-					return "BINARY";
 				}
 				case TERNARY:
 				{

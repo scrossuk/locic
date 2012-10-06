@@ -17,7 +17,7 @@ namespace Locic {
 			
 			// Can't just cast from one type to the other =>
 			// must attempt copying (to remove lvalue/const).
-			if(CanDoImplicitCopy(value->type)) {
+			if(value->type->supportsImplicitCopy()) {
 				// If possible, create a copy.
 				SEM::Value* copiedValue = SEM::Value::CopyValue(value);
 				
@@ -25,9 +25,9 @@ namespace Locic {
 					// Copying worked.
 					return SEM::Value::Cast(type, copiedValue);
 				}
-				
-				printf("%s", errorString.c_str());
 			}
+			
+			printf("%s", errorString.c_str());
 			
 			// Copying also failed.
 			return NULL;
@@ -43,9 +43,6 @@ namespace Locic {
 			switch(firstType->typeEnum) {
 				case SEM::Type::NULLT: {
 					return true;
-				}
-				case SEM::Type::BASIC: {
-					return firstType->basicType.typeEnum == secondType->basicType.typeEnum;
 				}
 				case SEM::Type::NAMED: {
 					return firstType->namedType.typeInstance == secondType->namedType.typeInstance;
@@ -74,7 +71,7 @@ namespace Locic {
 						}
 					}
 					
-					return true;
+					return firstType->functionType.isVarArg == secondType->functionType.isVarArg;
 				}
 				case SEM::Type::METHOD: {
 					if(firstType->methodType.objectType != secondType->methodType.objectType){
@@ -97,7 +94,7 @@ namespace Locic {
 			if(CanDoImplicitCast(first, second, errorString)) return second;
 			if(CanDoImplicitCast(second, first, errorString)) return first;
 			
-			if(CanDoImplicitCopy(first)){
+			if(first->supportsImplicitCopy()){
 				SEM::Type * firstCopy = new SEM::Type(*(first));
 				firstCopy->isMutable = true;
 				firstCopy->isLValue = false;
@@ -106,7 +103,7 @@ namespace Locic {
 				}
 			}
 			
-			if(CanDoImplicitCopy(second)){
+			if(second->supportsImplicitCopy()){
 				SEM::Type * secondCopy = new SEM::Type(*(second));
 				secondCopy->isMutable = true;
 				secondCopy->isLValue = false;
@@ -148,29 +145,18 @@ namespace Locic {
 			
 			switch(sourceType->typeEnum) {
 				case SEM::Type::NULLT: {
-					if(destType->typeEnum == SEM::Type::BASIC) {
-						errorString = std::string("Semantic Analysis Error: Null cannot be converted to a basic type in cast from ")
-							+ castString + std::string(".\n");
-						return false;
-					}
-					
 					if(destType->typeEnum == SEM::Type::NAMED) {
-						if(destType->namedType.typeInstance->typeEnum == SEM::TypeInstance::STRUCT) {
+						if(destType->namedType.typeInstance->typeEnum == SEM::TypeInstance::PRIMITIVE){
+							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a primitive type in cast from ")
+								+ castString + std::string(".\n");
+							return false;
+						}else if(destType->namedType.typeInstance->typeEnum == SEM::TypeInstance::STRUCT) {
 							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a struct type in cast from ")
 								+ castString + std::string(".\n");
 							return false;
 						}
 					}
 					
-					return true;
-				}
-				case SEM::Type::BASIC: {
-					if(sourceType->basicType.typeEnum != destType->basicType.typeEnum) {
-						errorString = std::string("Semantic Analysis Error: Cannot (implicitly) convert between different basic type in cast from ")
-							+ castString + std::string(".\n");
-						return false;
-					}
-						
 					return true;
 				}
 				case SEM::Type::NAMED: {
@@ -226,7 +212,7 @@ namespace Locic {
 						}
 					}
 					
-					return true;
+					return sourceType->functionType.isVarArg == destType->functionType.isVarArg;
 				}
 				case SEM::Type::METHOD: {
 					if(sourceType->methodType.objectType != destType->methodType.objectType){
@@ -245,19 +231,6 @@ namespace Locic {
 			}
 		}
 		
-		bool CanDoImplicitCopy(SEM::Type* type) {
-			switch(type->typeEnum) {
-				case SEM::Type::BASIC:
-				case SEM::Type::POINTER:
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-					// Basic, pointer, function and method types can be copied implicitly.
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
 			std::string errorString;
 			if(CanDoImplicitCast(sourceType, destType, errorString)){
@@ -269,23 +242,6 @@ namespace Locic {
 			}
 			
 			switch(sourceType->typeEnum) {
-				case SEM::Type::BASIC: {
-					if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {
-						return true;
-					}
-					
-					// Int -> Float.
-					if(sourceType->basicType.typeEnum == SEM::Type::BasicType::INTEGER && destType->basicType.typeEnum == SEM::Type::BasicType::FLOAT) {
-						return true;
-					}
-					
-					// Float -> Int.
-					if(sourceType->basicType.typeEnum == SEM::Type::BasicType::FLOAT && destType->basicType.typeEnum == SEM::Type::BasicType::INTEGER) {
-						return true;
-					}
-					
-					return false;
-				}
 				case SEM::Type::NAMED:
 				case SEM::Type::POINTER:
 				case SEM::Type::FUNCTION:

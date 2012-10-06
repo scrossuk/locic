@@ -39,7 +39,8 @@ class CodeGen {
 		llvm::BasicBlock* currentBasicBlock_;
 		llvm::FunctionPassManager fpm_;
 		Locic::Map<SEM::TypeInstance*, llvm::Type*> typeInstances_;
-		Locic::Map<SEM::Function*, llvm::Function*> functions_;
+		Locic::Map<std::string, llvm::Function*> functions_;
+		Locic::Map<std::string, std::size_t> primitiveSizes_;
 		std::vector<llvm::AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		llvm::Value * returnVar_;
@@ -119,6 +120,11 @@ class CodeGen {
 						std::cout << "--Float width: " << targetInfo_->getFloatWidth() << ", " << (sizeof(float) * 8) << std::endl;
 						std::cout << "--Double width: " << targetInfo_->getDoubleWidth() << ", " << (sizeof(double) * 8) << std::endl;
 						std::cout << std::endl;*/
+						
+						primitiveSizes_.insert("short", targetInfo_->getShortWidth());
+						primitiveSizes_.insert("int", targetInfo_->getIntWidth());
+						primitiveSizes_.insert("long", targetInfo_->getLongWidth());
+						primitiveSizes_.insert("longlong", targetInfo_->getLongLongWidth());
 					}
 				}
 			} else {
@@ -156,8 +162,128 @@ class CodeGen {
 			ostream << *(module_);
 		}
 		
+		void genBuiltInTypes(){
+			std::vector< std::pair<std::string, std::size_t> > sizes;
+			sizes.push_back(std::make_pair("short", targetInfo_->getShortWidth()));
+			sizes.push_back(std::make_pair("int", targetInfo_->getIntWidth()));
+			sizes.push_back(std::make_pair("long", targetInfo_->getLongWidth()));
+			sizes.push_back(std::make_pair("longlong", targetInfo_->getLongLongWidth()));
+			
+			// Generate integer methods.
+			for(std::size_t i = 0; i < sizes.size(); i++){
+				const std::string name = sizes.at(i).first;
+				const std::size_t size = sizes.at(i).second;
+				
+				llvm::Type * intType = llvm::IntegerType::get(llvm::getGlobalContext(), size);
+				llvm::Type * ptrType = intType->getPointerTo();
+				
+				{
+					const std::string functionName = name + "__implicitCopy";
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type *>(1, ptrType), false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					builder_.CreateRet(builder_.CreateLoad(function->arg_begin()));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorAdd";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateAdd(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorSubtract";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateSub(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorMultiply";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateMul(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorDivide";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateSDiv(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorModulo";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateSRem(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+			}
+		}
+		
 		void genFile(SEM::Module* module) {
 			assert(module != NULL && "Generating a module requires a non-NULL SEM module object");
+			
+			genBuiltInTypes();
 			
 			for(std::size_t i = 0; i < module->functions.size(); i++){
 				genFunctionDef(module->functions.at(i));
@@ -176,23 +302,25 @@ class CodeGen {
 		llvm::Function * genFunctionDecl(SEM::Function * function){
 			assert(function != NULL && "Generating a function declaration requires a non-NULL SEM function object");
 			
-			Locic::Optional<llvm::Function *> optionalFunction = functions_.tryGet(function);
+			const std::string functionName = function->name.genString();
+			Locic::Optional<llvm::Function *> optionalFunction = functions_.tryGet(functionName);
 			if(optionalFunction.hasValue()) return optionalFunction.getValue();
 			
-			llvm::Function * functionDecl = llvm::Function::Create(genFunctionType(function->type), llvm::Function::ExternalLinkage, function->name.genString(), module_);
+			llvm::Function * functionDecl = llvm::Function::Create(genFunctionType(function->type), llvm::Function::ExternalLinkage, functionName, module_);
 			
-			if(function->type->functionType.returnType->typeEnum == SEM::Type::NAMED){
+			if(function->type->functionType.returnType->isClass()){
 				functionDecl->addAttribute(1, llvm::Attribute::StructRet);
 			}
 			
-			functions_.insert(function, functionDecl);
+			functions_.insert(functionName, functionDecl);
 			return functionDecl;
 		}
 		
 		// Lazy generation - struct types are only
 		// generated when they are first used by code.
 		llvm::Type* genStructType(SEM::TypeInstance * typeInstance){
-			assert(typeInstance != NULL && "Generating a struct type requires a non-NULL SEM TypeInstance object");
+			assert(typeInstance != NULL && "Generating struct type requires non-NULL SEM TypeInstance object");
+			assert(typeInstance->typeEnum != SEM::TypeInstance::PRIMITIVE && "Generating struct type requires non-primitive type");
 			
 			Locic::Optional<llvm::Type *> optionalStruct = typeInstances_.tryGet(typeInstance);
 			if(optionalStruct.hasValue()) return optionalStruct.getValue();
@@ -255,7 +383,7 @@ class CodeGen {
 			
 			std::vector<llvm::Type*> paramTypes;
 			
-			if(semReturnType->typeEnum == SEM::Type::NAMED){
+			if(semReturnType->isClass()){
 				paramTypes.push_back(returnType->getPointerTo());
 				returnType = llvm::Type::getVoidTy(llvm::getGlobalContext());
 			}
@@ -269,6 +397,19 @@ class CodeGen {
 			return llvm::FunctionType::get(returnType, paramTypes, type->functionType.isVarArg);
 		}
 		
+		llvm::Type * genPrimitiveType(SEM::TypeInstance * type){
+			const std::string name = type->name.toString();
+			if(name == "::bool") return llvm::Type::getInt1Ty(llvm::getGlobalContext());
+			if(name == "::char") return llvm::Type::getInt8Ty(llvm::getGlobalContext());
+			if(name == "::int") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getIntWidth());
+			if(name == "::long") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongWidth());
+			if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongLongWidth());
+			if(name == "::float") return llvm::Type::getFloatTy(llvm::getGlobalContext());
+			if(name == "::double") return llvm::Type::getDoubleTy(llvm::getGlobalContext());
+			assert(false && "Unrecognised primitive type");
+			return NULL;
+		}
+		
 		llvm::Type* genType(SEM::Type* type) {
 			switch(type->typeEnum) {
 				case SEM::Type::VOID: {
@@ -277,25 +418,14 @@ class CodeGen {
 				case SEM::Type::NULLT: {
 					return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
 				}
-				case SEM::Type::BASIC: {
-					switch(type->basicType.typeEnum) {
-						case SEM::Type::BasicType::INTEGER:
-							return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongWidth());
-						case SEM::Type::BasicType::BOOLEAN:
-							return llvm::Type::getInt1Ty(llvm::getGlobalContext());
-						case SEM::Type::BasicType::FLOAT:
-							return llvm::Type::getFloatTy(llvm::getGlobalContext());
-						default:
-							assert(false && "Unknown basic type");
-							return llvm::Type::getVoidTy(llvm::getGlobalContext());
-					}
-				}
 				case SEM::Type::NAMED: {
 					Locic::Name name = type->namedType.typeInstance->name;
-					if(name.size() == 1 && name.first() == "char"){
-						return llvm::Type::getInt8Ty(llvm::getGlobalContext());
+					
+					if(type->namedType.typeInstance->typeEnum == SEM::TypeInstance::PRIMITIVE){
+						return genPrimitiveType(type->namedType.typeInstance);
+					}else{
+						return genStructType(type->namedType.typeInstance);
 					}
-					return genStructType(type->namedType.typeInstance);
 				}
 				case SEM::Type::POINTER: {
 					llvm::Type* pointerType = genType(type->pointerType.targetType);
@@ -342,7 +472,7 @@ class CodeGen {
 			
 			SEM::Type * returnType = function->type->functionType.returnType;
 			
-			if(returnType->typeEnum == SEM::Type::NAMED){
+			if(returnType->isClass()){
 				returnVar_ = arg++;
 			}else{
 				returnVar_ = NULL;
@@ -375,7 +505,7 @@ class CodeGen {
 			verifyFunction(*currentFunction_);
 			
 			// Run optimisations.
-			//fpm_.run(*currentFunction_);
+			fpm_.run(*currentFunction_);
 			
 			paramVariables_.clear();
 			localVariables_.clear();
@@ -504,7 +634,7 @@ class CodeGen {
 						case SEM::Value::Constant::BOOLEAN:
 							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, value->constant.boolConstant));
 						case SEM::Value::Constant::INTEGER:
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(targetInfo_->getLongWidth(), value->constant.intConstant));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(targetInfo_->getIntWidth(), value->constant.intConstant));
 						case SEM::Value::Constant::FLOAT:
 							return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(value->constant.floatConstant));
 						case SEM::Value::Constant::CSTRING:
@@ -569,154 +699,14 @@ class CodeGen {
 						}
 					}
 				}
-				case SEM::Value::UNARY: {
-					SEM::Value::Op::TypeEnum opType = value->unary.opType;
-					
-					switch(value->unary.typeEnum) {
-						case SEM::Value::Unary::PLUS:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							return genValue(value->unary.value);
-						case SEM::Value::Unary::MINUS:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateNeg(genValue(value->unary.value));
-							} else if(opType == SEM::Value::Op::FLOAT) {
-								return builder_.CreateFNeg(genValue(value->unary.value));
-							}
-							
-						case SEM::Value::Unary::NOT:
-							assert(opType == SEM::Value::Op::BOOLEAN);
-							return builder_.CreateNot(genValue(value->unary.value));
-						case SEM::Value::Unary::ADDRESSOF:
-							assert(opType == SEM::Value::Op::POINTER);
-							return genValue(value->unary.value, true);
-						case SEM::Value::Unary::DEREF:
-							assert(opType == SEM::Value::Op::POINTER);
-							
-							if(genLValue) {
-								return genValue(value->unary.value);
-							} else {
-								return builder_.CreateLoad(genValue(value->unary.value));
-							}
-							
-						default:
-							assert(false && "Unknown unary bool operand");
-							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
-					}
+				case SEM::Value::ADDRESSOF: {
+					return genValue(value->addressOf.value, true);
 				}
-				case SEM::Value::BINARY: {
-					SEM::Value::Op::TypeEnum opType = value->binary.opType;
-					
-					switch(value->binary.typeEnum) {
-						case SEM::Value::Binary::ADD:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFAdd(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-							return builder_.CreateAdd(genValue(value->binary.left), genValue(value->binary.right));
-						case SEM::Value::Binary::SUBTRACT:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFSub(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-							return builder_.CreateSub(genValue(value->binary.left), genValue(value->binary.right));
-						case SEM::Value::Binary::MULTIPLY:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateMul(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFMul(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::DIVIDE:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateSDiv(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFDiv(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::REMAINDER:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateSRem(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFRem(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::ISEQUAL:
-							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpEQ(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpOEQ(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::NOTEQUAL:
-							if(opType == SEM::Value::Op::BOOLEAN || opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpNE(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpONE(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::LESSTHAN:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateICmpSLT(genValue(value->binary.left), genValue(value->binary.right));
-							} else if(opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpULT(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpOLT(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::GREATERTHAN:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateICmpSGT(genValue(value->binary.left), genValue(value->binary.right));
-							} else if(opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpUGT(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpOGT(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::GREATEROREQUAL:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateICmpSGE(genValue(value->binary.left), genValue(value->binary.right));
-							} else if(opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpUGE(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpOGE(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						case SEM::Value::Binary::LESSOREQUAL:
-							assert(opType == SEM::Value::Op::INTEGER || opType == SEM::Value::Op::FLOAT || opType == SEM::Value::Op::POINTER);
-							
-							if(opType == SEM::Value::Op::INTEGER) {
-								return builder_.CreateICmpSLE(genValue(value->binary.left), genValue(value->binary.right));
-							} else if(opType == SEM::Value::Op::POINTER) {
-								return builder_.CreateICmpULE(genValue(value->binary.left), genValue(value->binary.right));
-							} else {
-								return builder_.CreateFCmpOLE(genValue(value->binary.left), genValue(value->binary.right));
-							}
-							
-						default:
-							assert(false && "Unknown binary operand");
-							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
+				case SEM::Value::DEREF: {
+					if(genLValue) {
+						return genValue(value->deref.value);
+					} else {
+						return builder_.CreateLoad(genValue(value->deref.value));
 					}
 				}
 				case SEM::Value::TERNARY: {
@@ -749,7 +739,7 @@ class CodeGen {
 								case SEM::Type::NAMED:
 								{
 									SEM::TypeInstance * typeInstance = destType->namedType.typeInstance;
-									assert(typeInstance->typeEnum != SEM::TypeInstance::STRUCT);
+									assert(typeInstance->isClass());
 									
 									llvm::Type * structType = genStructType(typeInstance);
 									llvm::Value * structValue = llvm::UndefValue::get(structType);
@@ -768,24 +758,15 @@ class CodeGen {
 								}
 							}
 						}
-						case SEM::Type::BASIC: {
-							if(sourceType->basicType.typeEnum == destType->basicType.typeEnum) {
+						case SEM::Type::NAMED:
+						{
+							if(sourceType->namedType.typeInstance == destType->namedType.typeInstance){
 								return codeValue;
 							}
 							
-							// Int -> Float.
-							if(sourceType->basicType.typeEnum == SEM::Type::BasicType::INTEGER && destType->basicType.typeEnum == SEM::Type::BasicType::FLOAT) {
-								return builder_.CreateSIToFP(codeValue, genType(destType));
-							}
-							
-							// Float -> Int.
-							if(sourceType->basicType.typeEnum == SEM::Type::BasicType::FLOAT && destType->basicType.typeEnum == SEM::Type::BasicType::INTEGER) {
-								return builder_.CreateFPToSI(codeValue, genType(destType));
-							}
-							
-							return codeValue;
+							assert(false && "Casts between named types not implemented");
+							return NULL;
 						}
-						case SEM::Type::NAMED:
 						case SEM::Type::POINTER: {
 							if(genLValue) {
 								return builder_.CreatePointerCast(codeValue, llvm::PointerType::getUnqual(genType(destType)));
@@ -820,7 +801,7 @@ class CodeGen {
 					SEM::Type * returnType = value->type;
 					llvm::Value * returnValue = NULL;
 					
-					if(returnType->typeEnum == SEM::Type::NAMED){
+					if(returnType->isClass()){
 						returnValue = builder_.CreateAlloca(genType(returnType));
 						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference");
 						parameters.push_back(returnValue);
@@ -830,7 +811,8 @@ class CodeGen {
 						parameters.push_back(genValue(paramList.at(i)));
 					}
 					
-					llvm::Value * callReturnValue = builder_.CreateCall(genValue(value->functionCall.functionValue), parameters);
+					llvm::Value * function = genValue(value->functionCall.functionValue);
+					llvm::Value * callReturnValue = builder_.CreateCall(function, parameters);
 					
 					if(returnValue != NULL){
 						return builder_.CreateLoad(returnValue);

@@ -50,6 +50,7 @@ class                   { return CLASS; }
 interface               { return INTERFACE; }
 struct                 { return STRUCT; }
 namespace               { return NAMESPACE; }
+__primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
@@ -57,9 +58,6 @@ cast                    { return CAST; }
 static                 { return STATIC; }
 
 void                    { return VOIDNAME; }
-int                     { return INTNAME; }
-bool                    { return BOOLNAME; }
-float                   { return FLOATNAME; }
 
 null                    { return NULLVAL; }
 true                    { yyextra->token.boolValue = true; return BOOLCONSTANT; }

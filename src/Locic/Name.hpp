@@ -130,8 +130,15 @@ namespace Locic{
 			}
 			
 			inline std::string last() const{
-				assert(list_.back() == revAt(0));
+				assert(list_.back() == revAt(0)
+					&& "The last element must be the first element when the list is in reverse order");
 				return list_.back();
+			}
+			
+			inline std::string onlyElement() const{
+				assert(list_.size() == 1
+					&& "Getting the only element of a name means there must be exactly one element");
+				return list_.front();
 			}
 			
 			inline bool empty() const{

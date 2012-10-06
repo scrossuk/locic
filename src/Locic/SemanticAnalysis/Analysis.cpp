@@ -15,6 +15,8 @@ namespace Locic {
 	
 		SEM::TypeInstance::TypeEnum ConvertTypeInstanceEnum(AST::TypeInstance::TypeEnum typeEnum){
 			switch(typeEnum){
+				case AST::TypeInstance::PRIMITIVE:
+					return SEM::TypeInstance::PRIMITIVE;
 				case AST::TypeInstance::CLASSDECL:
 					return SEM::TypeInstance::CLASSDECL;
 				case AST::TypeInstance::CLASSDEF:

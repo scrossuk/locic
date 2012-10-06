@@ -70,9 +70,9 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					
-					SEM::Value* boolValue = CastValueToType(condition, boolType);
+					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
+					assert(boolType != NULL && "Couldn't find bool type");
+					SEM::Value* boolValue = CastValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					if(boolValue == NULL) {
 						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in IF statement.\n",
@@ -90,9 +90,9 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Type* boolType = SEM::Type::Basic(SEM::Type::CONST, SEM::Type::RVALUE, SEM::Type::BasicType::BOOLEAN);
-					
-					SEM::Value* boolValue = CastValueToType(condition, boolType);
+					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
+					assert(boolType != NULL && "Couldn't find bool type");
+					SEM::Value* boolValue = CastValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					if(boolValue == NULL) {
 						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in WHILE statement.\n",
@@ -113,7 +113,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					const bool canCopyValue = CanDoImplicitCopy(semValue->type);
+					const bool canCopyValue = semValue->type->supportsImplicitCopy();
 					
 					SEM::Type* type;
 					

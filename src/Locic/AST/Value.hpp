@@ -15,8 +15,8 @@ namespace AST {
 			CONSTANT,
 			NAMEREF,
 			MEMBERREF,
-			UNARY,
-			BINARY,
+			ADDRESSOF,
+			DEREFERENCE,
 			TERNARY,
 			CAST,
 			MEMBERACCESS,
@@ -46,35 +46,13 @@ namespace AST {
 			std::string name;
 		} memberRef;
 		
-		struct Unary {
-			enum TypeEnum {
-				PLUS,
-				MINUS,
-				ADDRESSOF,
-				DEREF,
-				NOT
-			} typeEnum;
-			
-			Value* value;
-		} unary;
+		struct AddressOf{
+			Value * value;
+		} addressOf;
 		
-		struct Binary {
-			enum TypeEnum {
-				ADD,
-				SUBTRACT,
-				MULTIPLY,
-				DIVIDE,
-				REMAINDER,
-				ISEQUAL,
-				NOTEQUAL,
-				LESSTHAN,
-				GREATERTHAN,
-				GREATEROREQUAL,
-				LESSOREQUAL,
-			} typeEnum;
-			
-			Value* left, * right;
-		} binary;
+		struct Dereference{
+			Value * value;
+		} dereference;
 		
 		struct {
 			Value* condition, * ifTrue, * ifFalse;
@@ -145,19 +123,24 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * UnaryOp(Unary::TypeEnum typeEnum, Value * operand){
-			Value* value = new Value(UNARY);
-			value->unary.typeEnum = typeEnum;
-			value->unary.value = operand;
+		inline static Value * AddressOf(Value * operand){
+			Value* value = new Value(ADDRESSOF);
+			value->addressOf.value = operand;
 			return value;
 		}
 		
-		inline static Value * BinaryOp(Binary::TypeEnum typeEnum, Value * leftOperand, Value * rightOperand){
-			Value* value = new Value(BINARY);
-			value->binary.typeEnum = typeEnum;
-			value->binary.left = leftOperand;
-			value->binary.right = rightOperand;
+		inline static Value * Dereference(Value * operand){
+			Value* value = new Value(DEREFERENCE);
+			value->dereference.value = operand;
 			return value;
+		}
+		
+		inline static Value * UnaryOp(const std::string& name, Value * operand){
+			return Value::FunctionCall(Value::MemberAccess(operand, name), std::vector<Value *>());
+		}
+		
+		inline static Value * BinaryOp(const std::string& name, Value * leftOperand, Value * rightOperand){
+			return Value::FunctionCall(Value::MemberAccess(leftOperand, name), std::vector<Value *>(1, rightOperand));
 		}
 		
 		inline static Value * Ternary(Value * condition, Value * ifTrue, Value * ifFalse){

@@ -16,8 +16,6 @@ namespace Locic {
 		
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, std::string& errorString);
 		
-		bool CanDoImplicitCopy(SEM::Type* type);
-		
 		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
 	}

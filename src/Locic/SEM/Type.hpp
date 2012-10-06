@@ -11,7 +11,6 @@ namespace SEM{
 		enum TypeEnum {
 			VOID,
 			NULLT,
-			BASIC,
 			NAMED,
 			POINTER,
 			FUNCTION,
@@ -28,14 +27,6 @@ namespace SEM{
 		static const bool LVALUE = true;
 		static const bool RVALUE = false;
 		
-		struct BasicType{
-			enum TypeEnum {
-				INTEGER,
-				BOOLEAN,
-				FLOAT
-			} typeEnum;
-		} basicType;
-		
 		struct {
 			TypeInstance * typeInstance;
 		} namedType;
@@ -45,7 +36,7 @@ namespace SEM{
 			Type* targetType;
 		} pointerType;
 		
-		struct {
+		struct FunctionType{
 			bool isVarArg;
 			Type* returnType;
 			std::vector<Type*> parameterTypes;
@@ -72,12 +63,6 @@ namespace SEM{
 
 		inline static Type* Null(bool isMutable) {
 			return new Type(NULLT, isMutable, RVALUE);
-		}
-		
-		inline static Type* Basic(bool isMutable, bool isLValue, BasicType::TypeEnum basicType) {
-			Type* type = new Type(BASIC, isMutable, isLValue);
-			type->basicType.typeEnum = basicType;
-			return type;
 		}
 		
 		inline static Type* Named(bool isMutable, bool isLValue, TypeInstance * typeInstance) {
@@ -127,6 +112,34 @@ namespace SEM{
 			return typeEnum == VOID;
 		}
 		
+		inline bool isTypeInstance(const TypeInstance * typeInstance) const{
+			if(typeEnum != NAMED) return false;
+			return namedType.typeInstance == typeInstance;
+		}
+		
+		inline bool isClass() const{
+			if(typeEnum != NAMED) return false;
+			return namedType.typeInstance->isClass();
+		}
+		
+		inline bool supportsImplicitCopy() const{
+			switch(typeEnum) {
+				case Type::VOID:
+				case Type::NULLT:
+				case Type::POINTER:
+				case Type::FUNCTION:
+				case Type::METHOD:
+					// Pointer, function and method types can be copied implicitly.
+					return true;
+				case Type::NAMED:
+					// Named types must have a method for implicit copying.
+					return namedType.typeInstance->supportsImplicitCopy();
+				default:
+					assert(false && "Unknown SEM type enum");
+					return false;
+			}
+		}
+		
 		inline std::string toString() const {
 			std::string str;
 		
@@ -154,24 +167,6 @@ namespace SEM{
 				case NULLT:
 				{
 					str += "null";
-					break;
-				}
-				case BASIC:
-				{
-					switch(basicType.typeEnum){
-						case BasicType::BOOLEAN:
-							str += "bool";
-							break;
-						case BasicType::INTEGER:
-							str += "int";
-							break;
-						case BasicType::FLOAT:
-							str += "float";
-							break;
-						default:
-							str += "[unknown basic]";
-							break;
-					}
 					break;
 				}
 				case NAMED:

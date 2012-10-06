@@ -12,7 +12,6 @@ namespace AST {
 			UNDEFINED,
 			VOID,
 			NULLT,
-			BASIC,
 			NAMED,
 			POINTER,
 			FUNCTION
@@ -22,14 +21,6 @@ namespace AST {
 		static const bool CONST = false;
 		
 		bool isMutable;
-		
-		struct BasicType{
-			enum TypeEnum {
-				INTEGER,
-				BOOLEAN,
-				FLOAT
-			} typeEnum;
-		} basicType;
 		
 		struct {
 			Locic::Name name;
@@ -60,12 +51,6 @@ namespace AST {
 			  
 		inline static Type* VoidType() {
 			return new Type(VOID, MUTABLE);
-		}
-		
-		inline static Type* Basic(bool isMutable, BasicType::TypeEnum typeEnum) {
-			Type* type = new Type(BASIC, isMutable);
-			type->basicType.typeEnum = typeEnum;
-			return type;
 		}
 		
 		inline static Type* Named(bool isMutable, const Locic::Name& name) {
@@ -139,24 +124,6 @@ namespace AST {
 				case NULLT:
 				{
 					str += "null";
-					break;
-				}
-				case BASIC:
-				{
-					switch(basicType.typeEnum){
-						case BasicType::BOOLEAN:
-							str += "bool";
-							break;
-						case BasicType::INTEGER:
-							str += "int";
-							break;
-						case BasicType::FLOAT:
-							str += "float";
-							break;
-						default:
-							str += "[unknown basic]";
-							break;
-					}
 					break;
 				}
 				case NAMED:

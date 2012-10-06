@@ -8,20 +8,6 @@ namespace Locic{
 
 namespace SemanticAnalysis{
 
-SEM::Type::BasicType::TypeEnum ConvertBasicTypeEnum(AST::Type::BasicType::TypeEnum e){
-	switch(e){
-		case AST::Type::BasicType::BOOLEAN:
-			return SEM::Type::BasicType::BOOLEAN;
-		case AST::Type::BasicType::INTEGER:
-			return SEM::Type::BasicType::INTEGER;
-		case AST::Type::BasicType::FLOAT:
-			return SEM::Type::BasicType::FLOAT;
-		default:
-			printf("Internal compiler error: AST basic type enum is invalid.\n");
-			return SEM::Type::BasicType::BOOLEAN;
-	}
-}
-
 SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 	switch(type->typeEnum) {
 		case AST::Type::UNDEFINED: {
@@ -30,9 +16,6 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 		}
 		case AST::Type::VOID: {
 			return SEM::Type::Void(type->isMutable);
-		}
-		case AST::Type::BASIC: {
-			return SEM::Type::Basic(type->isMutable, isLValue, ConvertBasicTypeEnum(type->basicType.typeEnum));
 		}
 		case AST::Type::NAMED: {
 			const Name& name = type->namedType.name;

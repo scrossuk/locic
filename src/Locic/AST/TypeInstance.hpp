@@ -11,7 +11,8 @@ namespace AST{
 	
 	struct TypeInstance{
 		enum TypeEnum{
-			CLASSDECL = 0,
+			PRIMITIVE,
+			CLASSDECL,
 			CLASSDEF,
 			STRUCT
 		} typeEnum;
@@ -24,6 +25,10 @@ namespace AST{
 			const std::vector<TypeVar *>& v, const std::vector<Function*>& f)
 			: typeEnum(e), name(n),
 			variables(v), functions(f){ }
+		
+		inline static TypeInstance * Primitive(const std::string& name, const std::vector<Function*>& functions){
+			return new TypeInstance(PRIMITIVE, name, std::vector<TypeVar *>(), functions);
+		}
 		
 		inline static TypeInstance * ClassDecl(const std::string& name, const std::vector<Function*>& functions){
 			return new TypeInstance(CLASSDECL, name, std::vector<TypeVar *>(), functions);

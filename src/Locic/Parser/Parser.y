@@ -53,7 +53,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 	
 	// Type information.
 	AST::Type * type;
-	AST::Type::BasicType::TypeEnum basicTypeEnum;
 	std::vector<AST::Type *> * typeArray;
 	AST::TypeVar * typeVar;
 	std::vector<AST::TypeVar *> * typeVarArray;
@@ -87,12 +86,10 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token STATIC
 %token LROUNDBRACKET
 %token RROUNDBRACKET
+%token PRIMITIVE
 %token STRUCT
 %token CLASS
 %token COLON
-%token BOOLNAME
-%token INTNAME
-%token FLOATNAME
 %token VOIDNAME
 %token CONST
 %token STAR
@@ -143,7 +140,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <functionArray> classFunctionDeclList
 %type <functionArray> classFunctionDefList
 
-%type <basicTypeEnum> basicType
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
@@ -372,6 +368,10 @@ typeInstance:
 	{
 		$$ = AST::TypeInstance::ClassDef(*($2), *($4), *($7));
 	}
+	| PRIMITIVE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
+	{
+		$$ = AST::TypeInstance::Primitive(*($2), *($4));
+	}
 	;
 	
 fullName:
@@ -389,30 +389,10 @@ fullName:
 	}
 	;
 	
-basicType:
-	BOOLNAME
-	{
-		$$ = AST::Type::BasicType::BOOLEAN;
-	}
-	| INTNAME
-	{
-		$$ = AST::Type::BasicType::INTEGER;
-	}
-	| FLOATNAME
-	{
-		$$ = AST::Type::BasicType::FLOAT;
-	}
-	;
-	
 typePrecision2:
 	VOIDNAME
 	{
 		$$ = AST::Type::VoidType();
-	}
-	| basicType
-	{
-		const bool isMutable = true;
-		$$ = AST::Type::Basic(isMutable, $1);
 	}
 	| fullName
 	{
@@ -625,19 +605,19 @@ normalStatement:
 	}
 	| value ADDEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::ADD, $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorAdd", $1, $3));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorSubtract", $1, $3));
 	}
 	| value MULEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorMultiply", $1, $3));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorDivide", $1, $3));
 	}
 	| value
 	{
@@ -703,7 +683,7 @@ precision6:
 	}
 	| precision6 PTRACCESS NAME
 	{
-		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp(AST::Value::Unary::DEREF, $1), *($3));
+		$$ = AST::Value::MemberAccess(AST::Value::Dereference($1), *($3));
 	}
 	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
@@ -718,23 +698,23 @@ precision5:
 	}
 	| PLUS precision5
 	{
-		$$ = AST::Value::UnaryOp(AST::Value::Unary::PLUS, $2);
+		$$ = AST::Value::UnaryOp("operatorPlus", $2);
 	}
 	| MINUS precision5
 	{
-		$$ = AST::Value::UnaryOp(AST::Value::Unary::MINUS, $2);
+		$$ = AST::Value::UnaryOp("operatorMinus", $2);
 	}
 	| EXCLAIMMARK precision5
 	{
-		$$ = AST::Value::UnaryOp(AST::Value::Unary::NOT, $2);
+		$$ = AST::Value::UnaryOp("operatorNot", $2);
 	}
 	| AMPERSAND precision5
 	{
-		$$ = AST::Value::UnaryOp(AST::Value::Unary::ADDRESSOF, $2);
+		$$ = AST::Value::AddressOf($2);
 	}
 	| STAR precision5
 	{
-		$$ = AST::Value::UnaryOp(AST::Value::Unary::DEREF, $2);
+		$$ = AST::Value::Dereference($2);
 	}
 	;
 	
@@ -745,15 +725,15 @@ precision4:
 	}
 	| precision4 STAR precision5
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::MULTIPLY, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorMultiply", $1, $3);
 	}
 	| precision4 FORWARDSLASH precision5
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::DIVIDE, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorDivide", $1, $3);
 	}
 	| precision4 PERCENT precision5
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::REMAINDER, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorModulo", $1, $3);
 	}
 	;
 	
@@ -764,11 +744,11 @@ precision3:
 	}
 	| precision3 PLUS precision4
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::ADD, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorAdd", $1, $3);
 	}
 	| precision3 MINUS precision4
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::SUBTRACT, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorSubtract", $1, $3);
 	}
 	;
 	
@@ -779,27 +759,27 @@ precision2:
 	}
 	| precision3 ISEQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::ISEQUAL, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorIsEqual", $1, $3);
 	}
 	| precision3 NOTEQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::NOTEQUAL, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorNotEqual", $1, $3);
 	}
 	| precision3 LTRIBRACKET precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::LESSTHAN, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorIsLess", $1, $3);
 	}
 	| precision3 RTRIBRACKET precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::GREATERTHAN, $1, $3);
+		$$ = AST::Value::BinaryOp("operatorIsGreater", $1, $3);
 	}
 	| precision3 GREATEROREQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::GREATEROREQUAL, $1, $3);
+		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsLess", $1, $3));
 	}
 	| precision3 LESSOREQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp(AST::Value::Binary::LESSOREQUAL, $1, $3);
+		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsGreater", $1, $3));
 	}
 	;
 	
