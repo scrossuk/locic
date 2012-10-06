@@ -74,22 +74,17 @@ int function(int p1, int p2){
 	return (p1 + p2) * v;
 }
 
-void printNumber(int n);
-
 int main(int argc, char ** argv){
-	if(argc < 1){
-		printf("...?"C);
+	if(argc < 2){
+		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
-
-	if(argc > 1){
-		//printNumber(1);
+	
+	int i = 0;
+	while(i < argc){
+		printf("i = %d\n"C, i);
+		i += 1;
 	}
-	
-	//printNumber(argc * 2);
-	
-	//printNumber(function(1, 2));
-	//printNumber(42);
 	
 	printf("Hello world!\n"C);
 	printf("This is Loci!\n"C);

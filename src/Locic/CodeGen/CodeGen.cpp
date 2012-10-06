@@ -1,3 +1,4 @@
+#include "llvm/Bitcode/ReaderWriter.h"
 #include <llvm/DerivedTypes.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
@@ -6,7 +7,8 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetMachine.h>
-#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/raw_os_ostream.h>
@@ -37,7 +39,6 @@ class CodeGen {
 		llvm::FunctionType* currentFunctionType_;
 		llvm::Function* currentFunction_;
 		llvm::BasicBlock* currentBasicBlock_;
-		llvm::FunctionPassManager fpm_;
 		Locic::Map<SEM::TypeInstance*, llvm::Type*> typeInstances_;
 		Locic::Map<std::string, llvm::Function*> functions_;
 		Locic::Map<std::string, std::size_t> primitiveSizes_;
@@ -50,7 +51,6 @@ class CodeGen {
 			: name_(moduleName),
 			  module_(new llvm::Module(name_.c_str(), llvm::getGlobalContext())),
 			  builder_(llvm::getGlobalContext()),
-			  fpm_(module_),
 			  targetInfo_(0),
 			  returnVar_(NULL){
 			  
@@ -130,22 +130,6 @@ class CodeGen {
 			} else {
 				std::cout << "Error when looking up default target: " << error << std::endl;
 			}
-			
-			// Set up the optimizer pipeline.
-			// Provide basic AliasAnalysis support for GVN.
-			fpm_.add(llvm::createBasicAliasAnalysisPass());
-			// Promote allocas to registers.
-			fpm_.add(llvm::createPromoteMemoryToRegisterPass());
-			// Do simple "peephole" optimizations and bit-twiddling optzns.
-			fpm_.add(llvm::createInstructionCombiningPass());
-			// Reassociate expressions.
-			fpm_.add(llvm::createReassociatePass());
-			// Eliminate Common SubExpressions.
-			fpm_.add(llvm::createGVNPass());
-			// Simplify the control flow graph (deleting unreachable blocks, etc).
-			fpm_.add(llvm::createCFGSimplificationPass());
-			
-			fpm_.doInitialization();
 		}
 		
 		~CodeGen() {
@@ -156,10 +140,16 @@ class CodeGen {
 			module_->dump();
 		}
 		
-		void writeToFile(const std::string& fileName){
+		void dumpToFile(const std::string& fileName){
 			std::ofstream file(fileName.c_str());
 			llvm::raw_os_ostream ostream(file);
 			ostream << *(module_);
+		}
+		
+		void writeToFile(const std::string& fileName){
+			std::ofstream file(fileName.c_str());
+			llvm::raw_os_ostream ostream(file);
+			llvm::WriteBitcodeToFile(module_, ostream);
 		}
 		
 		void genBuiltInTypes(){
@@ -168,6 +158,8 @@ class CodeGen {
 			sizes.push_back(std::make_pair("int", targetInfo_->getIntWidth()));
 			sizes.push_back(std::make_pair("long", targetInfo_->getLongWidth()));
 			sizes.push_back(std::make_pair("longlong", targetInfo_->getLongLongWidth()));
+			
+			llvm::Type * boolType = llvm::Type::getInt1Ty(llvm::getGlobalContext());
 			
 			// Generate integer methods.
 			for(std::size_t i = 0; i < sizes.size(); i++){
@@ -277,16 +269,83 @@ class CodeGen {
 					builder_.CreateRet(builder_.CreateSRem(firstArg, secondArg));
 					functions_.insert(functionName, function);
 				}
+				
+				{
+					const std::string functionName = name + "__operatorIsLess";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateICmpSLT(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__operatorIsGreater";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					argumentTypes.push_back(intType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					llvm::Value * secondArg = arg;
+					
+					builder_.CreateRet(builder_.CreateICmpSGT(firstArg, secondArg));
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__abs";
+					llvm::FunctionType * functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type *>(1, ptrType), false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					llvm::Function::arg_iterator arg = function->arg_begin();
+					llvm::Value * firstArg = builder_.CreateLoad(arg++);
+					
+					// Generates: (value < 0) ? -value : value
+					llvm::Value * lessThanZero = builder_.CreateICmpSLT(firstArg, llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0)));
+					builder_.CreateRet(builder_.CreateSelect(lessThanZero, builder_.CreateNeg(firstArg), firstArg));
+					functions_.insert(functionName, function);
+				}
 			}
 		}
 		
 		void genFile(SEM::Module* module) {
 			assert(module != NULL && "Generating a module requires a non-NULL SEM module object");
 			
+			llvm::FunctionPassManager functionPassManager(module_);
+			llvm::PassManager modulePassManager;
+			
+			llvm::PassManagerBuilder passManagerBuilder;
+			passManagerBuilder.OptLevel = 2;
+			passManagerBuilder.Inliner = llvm::createFunctionInliningPass();
+			
+			passManagerBuilder.populateFunctionPassManager(functionPassManager);
+			passManagerBuilder.populateModulePassManager(modulePassManager);
+			
+			functionPassManager.doInitialization();
+			
 			genBuiltInTypes();
 			
 			for(std::size_t i = 0; i < module->functions.size(); i++){
-				genFunctionDef(module->functions.at(i));
+				llvm::Function * function = genFunctionDef(module->functions.at(i));
+				if(function != NULL){
+					functionPassManager.run(*function);
+				}
 			}
 			
 			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
@@ -295,6 +354,8 @@ class CodeGen {
 				// TODO: generate class records.
 				(void) typeInstance;
 			}
+			
+			modulePassManager.run(*module_);
 		}
 		
 		// Lazy generation - function declarations are only
@@ -401,6 +462,7 @@ class CodeGen {
 			const std::string name = type->name.toString();
 			if(name == "::bool") return llvm::Type::getInt1Ty(llvm::getGlobalContext());
 			if(name == "::char") return llvm::Type::getInt8Ty(llvm::getGlobalContext());
+			if(name == "::short") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getShortWidth());
 			if(name == "::int") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getIntWidth());
 			if(name == "::long") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongWidth());
 			if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongLongWidth());
@@ -456,10 +518,9 @@ class CodeGen {
 			}
 		}
 		
-		void genFunctionDef(SEM::Function* function) {
+		llvm::Function * genFunctionDef(SEM::Function* function) {
 			assert(function != NULL && "Generating a function definition requires a non-NULL SEM Function object");
-			
-			if(function->scope == NULL) return;
+			if(function->scope == NULL) return NULL;
 		
 			currentFunction_ = genFunctionDecl(function);
 			assert(currentFunction_ != NULL && "Generating a function definition requires a valid declaration");
@@ -504,11 +565,10 @@ class CodeGen {
 			// Check the generated function is correct.
 			verifyFunction(*currentFunction_);
 			
-			// Run optimisations.
-			fpm_.run(*currentFunction_);
-			
 			paramVariables_.clear();
 			localVariables_.clear();
+			
+			return currentFunction_;
 		}
 		
 		void genScope(SEM::Scope* scope) {
@@ -879,5 +939,9 @@ void Locic_CodeGenDump(void* context) {
 
 void Locic_CodeGenWriteToFile(void * context, const std::string& fileName){
 	reinterpret_cast<CodeGen*>(context)->writeToFile(fileName);
+}
+
+void Locic_CodeGenDumpToFile(void * context, const std::string& fileName){
+	reinterpret_cast<CodeGen*>(context)->dumpToFile(fileName);
 }
 

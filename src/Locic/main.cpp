@@ -66,7 +66,8 @@ int main(int argc, char * argv[]){
 		
 		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
 		Locic_CodeGen(codeGenContext, semModules.at(i));
-		Locic_CodeGenWriteToFile(codeGenContext, moduleName + ".ll");
+		Locic_CodeGenDumpToFile(codeGenContext, moduleName + ".ll");
+		Locic_CodeGenWriteToFile(codeGenContext, moduleName + ".bc");
 		Locic_CodeGenFree(codeGenContext);
 	}
 	

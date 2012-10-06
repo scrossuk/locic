@@ -1,8 +1,26 @@
+__primitive bool{ }
 
 __primitive char{ };
 
+__primitive short{
+	short implicitCopy();
+	
+	short abs();
+
+	short operatorAdd(short v);
+	short operatorSubtract(short v);
+	short operatorMultiply(short v);
+	short operatorDivide(short v);
+	short operatorModulo(short v);
+	
+	bool operatorIsLess(short v);
+	bool operatorIsGreater(short v);
+};
+
 __primitive int{
 	int implicitCopy();
+	
+	int abs();
 
 	int operatorAdd(int v);
 	int operatorSubtract(int v);
@@ -13,8 +31,6 @@ __primitive int{
 	bool operatorIsLess(int v);
 	bool operatorIsGreater(int v);
 };
-
-__primitive bool{ }
 
 __primitive float{
 	float implicitCopy();
