@@ -595,14 +595,31 @@ normalStatement:
 	{
 		$$ = AST::Statement::AutoVarDecl(*($2), $4);
 	}
-	| type NAME SETEQUAL value
+	
+	/*
+	 * 'dprec 2' ensures that variable name definitions
+	 * are preferred over assignments when there is an
+	 * ambiguity.
+	 *
+	 * For example, 'T * p = null' is actually ambiguous,
+	 * since it could mean defining a variable p as a (null)
+	 * pointer to type 'T', or it could mean assigning
+	 * null to the lvalue result of 'T * p', where 'T' and 'p'
+	 * are both values of some kind.
+	 * 
+	 * In future this should be fixed to create an 'ambiguous
+	 * statement' object in the AST tree that is resolved by
+	 * semantic analysis.
+	 */
+	| type NAME SETEQUAL value %dprec 2
 	{
 		$$ = AST::Statement::VarDecl($1, *($2), $4);
 	}
-	| value SETEQUAL value
+	| value SETEQUAL value %dprec 1
 	{
 		$$ = AST::Statement::Assign($1, $3);
 	}
+	
 	| value ADDEQUAL value
 	{
 		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorAdd", $1, $3));
@@ -773,13 +790,20 @@ precision2:
 	{
 		$$ = AST::Value::BinaryOp("operatorIsGreater", $1, $3);
 	}
-	| precision3 GREATEROREQUAL precision3
-	{
-		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsLess", $1, $3));
-	}
+	
+	/*
+	 * In an attempt to reduce the number of necessary
+	 * methods to implement, we use the (assumed) identities
+	 * that 'i <= j' is identical to '!(i > j)', and that
+	 * 'i >= j' is identical to '!(i < j)'.
+	 */
 	| precision3 LESSOREQUAL precision3
 	{
 		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsGreater", $1, $3));
+	}
+	| precision3 GREATEROREQUAL precision3
+	{
+		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsLess", $1, $3));
 	}
 	;
 	

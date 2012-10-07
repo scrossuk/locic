@@ -32,6 +32,21 @@ __primitive int{
 	bool operatorIsGreater(int v);
 };
 
+__primitive long{
+	long implicitCopy();
+	
+	long abs();
+
+	long operatorAdd(long v);
+	long operatorSubtract(long v);
+	long operatorMultiply(long v);
+	long operatorDivide(long v);
+	long operatorModulo(long v);
+	
+	bool operatorIsLess(long v);
+	bool operatorIsGreater(long v);
+};
+
 __primitive float{
 	float implicitCopy();
 
