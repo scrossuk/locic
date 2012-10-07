@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <Locic/AST/Type.hpp>
+#include <Locic/Constant.hpp>
 #include <Locic/Name.hpp>
 
 namespace AST {
@@ -23,20 +24,7 @@ namespace AST {
 			FUNCTIONCALL
 		} typeEnum;
 		
-		struct Constant {
-			enum TypeEnum {
-				BOOLEAN,
-				INTEGER,
-				FLOAT,
-				CSTRING,
-				NULLVAL
-			} typeEnum;
-			
-			bool boolConstant;
-			int intConstant;
-			float floatConstant;
-			std::string stringConstant;
-		} constant;
+		Locic::Constant * constant;
 		
 		struct {
 			Locic::Name name;
@@ -77,37 +65,9 @@ namespace AST {
 		
 		inline Value(TypeEnum e) : typeEnum(e) { }
 		
-		inline static Value* BoolConstant(bool val) {
+		inline static Value* Constant(Locic::Constant * constant) {
 			Value* value = new Value(CONSTANT);
-			value->constant.typeEnum = Constant::BOOLEAN;
-			value->constant.boolConstant = val;
-			return value;
-		}
-		
-		inline static Value* IntConstant(int val) {
-			Value* value = new Value(CONSTANT);
-			value->constant.typeEnum = Constant::INTEGER;
-			value->constant.intConstant = val;
-			return value;
-		}
-		
-		inline static Value* FloatConstant(float val) {
-			Value* value = new Value(CONSTANT);
-			value->constant.typeEnum = Constant::FLOAT;
-			value->constant.floatConstant = val;
-			return value;
-		}
-		
-		inline static Value* CStringConstant(const std::string& val) {
-			Value* value = new Value(CONSTANT);
-			value->constant.typeEnum = Constant::CSTRING;
-			value->constant.stringConstant = val;
-			return value;
-		}
-		
-		inline static Value* NullConstant() {
-			Value* value = new Value(CONSTANT);
-			value->constant.typeEnum = Constant::NULLVAL;
+			value->constant = constant;
 			return value;
 		}
 		

@@ -1,3 +1,5 @@
+__primitive null_t{ };
+
 __primitive bool{ }
 
 __primitive char{ };
@@ -52,4 +54,11 @@ __primitive float{
 
 	float operatorPlus(float v);
 };
+
+__primitive double{
+	double implicitCopy();
+	
+	double operatorPlus(double v);
+};
+
 

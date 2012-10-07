@@ -32,12 +32,12 @@
 <STRING_STATE>"\\\\"          { yyextra->stringConstant += "\\"; }
 <STRING_STATE>"\\n"           { yyextra->stringConstant += "\n"; }
 <STRING_STATE>"\\t"           { yyextra->stringConstant += "\t"; }
-<STRING_STATE>"\"C"            { yyextra->token.str = new std::string(yyextra->stringConstant);
+<STRING_STATE>"\"C"            { yyextra->token.constant = Locic::Constant::String(Locic::Constant::CSTRING, yyextra->stringConstant);
 				BEGIN(INITIAL);
-				return CSTRINGCONSTANT; }
-<STRING_STATE>"\""            { yyextra->token.str = new std::string(yyextra->stringConstant);
+				return CONSTANT; }
+<STRING_STATE>"\""            { yyextra->token.constant = Locic::Constant::String(Locic::Constant::LOCISTRING, yyextra->stringConstant);
 				BEGIN(INITIAL);
-				return STRINGCONSTANT; }
+				return CONSTANT; }
 <STRING_STATE>.               { yyextra->stringConstant += yytext; }
 
 if                      { return IF; }
@@ -59,11 +59,16 @@ static                 { return STATIC; }
 
 void                    { return VOIDNAME; }
 
-null                    { return NULLVAL; }
-true                    { yyextra->token.boolValue = true; return BOOLCONSTANT; }
-false                   { yyextra->token.boolValue = false; return BOOLCONSTANT; }
-[0-9]+                  { yyextra->token.intValue = atoi(yytext); return INTCONSTANT; }
-[0-9]+\.[0-9]+          { yyextra->token.floatValue = atof(yytext); return FLOATCONSTANT; }
+null                    { yyextra->token.constant = Locic::Constant::Null(); return CONSTANT; }
+true                    { yyextra->token.constant = Locic::Constant::True(); return CONSTANT; }
+false                   { yyextra->token.constant = Locic::Constant::False(); return CONSTANT; }
+[0-9]+                  { yyextra->token.constant = Locic::Constant::SignedInt(Locic::Constant::INT, atol(yytext)); return CONSTANT; }
+[0-9]+l                 { yyextra->token.constant = Locic::Constant::SignedInt(Locic::Constant::LONG, atol(yytext)); return CONSTANT; }
+[0-9]+u                 { yyextra->token.constant = Locic::Constant::UnsignedInt(Locic::Constant::UINT, atol(yytext)); return CONSTANT; }
+[0-9]+ul                { yyextra->token.constant = Locic::Constant::UnsignedInt(Locic::Constant::ULONG, atol(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+f         { yyextra->token.constant = Locic::Constant::Float(Locic::Constant::FLOAT, atof(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+          { yyextra->token.constant = Locic::Constant::Float(Locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+L         { yyextra->token.constant = Locic::Constant::Float(Locic::Constant::LONGDOUBLE, atof(yytext)); return CONSTANT; }
 
 [A-Za-z_][A-Za-z0-9_]* { yyextra->token.str = new std::string(yytext); return NAME; }
 

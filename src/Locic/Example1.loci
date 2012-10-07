@@ -87,6 +87,10 @@ int main(int argc, char ** argv){
 		*j += 1;
 	}
 	
+	float f = 3.141592653f;
+	double d = 3.141592653;
+	printf("Float f = %f, Double d = %f\n"C, f, d);
+	
 	printf("Hello world!\n"C);
 	printf("This is Loci!\n"C);
 	printf("You gave me %d arguments\n"C, argc - 1);

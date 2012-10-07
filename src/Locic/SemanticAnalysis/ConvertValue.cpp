@@ -19,41 +19,27 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 	
 	switch(value->typeEnum) {
 		case AST::Value::CONSTANT: {
-			switch(value->constant.typeEnum) {
-				case AST::Value::Constant::BOOLEAN:
-				{
-					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
-					assert(boolType != NULL && "Couldn't find bool type");
-					return SEM::Value::BoolConstant(value->constant.boolConstant, boolType);
+			if(value->constant->getType() == Locic::Constant::NULLVAL){
+				return SEM::Value::Constant(value->constant, SEM::Type::Null(SEM::Type::CONST));
+			}else if(value->constant->getType() == Locic::Constant::STRING && value->constant->getStringType() == Locic::Constant::CSTRING){
+				// C strings have the type 'const char *', as opposed to just a
+				// type name, so their type needs to be generated specially.
+				SEM::TypeInstance * charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
+				assert(charType != NULL && "Couldn't find char constant type");
+				SEM::Type * constCharPtrType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
+					SEM::Type::Named(SEM::Type::CONST, SEM::Type::LVALUE, charType));
+				return SEM::Value::Constant(value->constant, constCharPtrType);
+			}else{
+				const std::string typeName = value->constant->getTypeName();
+				SEM::TypeInstance * typeInstance = context.getNode(Name::Absolute() + typeName).getTypeInstance();
+				if(typeInstance == NULL){
+					printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
 				}
-				case AST::Value::Constant::INTEGER:
-				{
-					SEM::TypeInstance * intType = context.getNode(Name::Absolute() + "int").getTypeInstance();
-					assert(intType != NULL && "Couldn't find int type");
-					return SEM::Value::IntConstant(value->constant.intConstant, intType);
-				}
-				case AST::Value::Constant::FLOAT:
-				{
-					SEM::TypeInstance * floatType = context.getNode(Name::Absolute() + "float").getTypeInstance();
-					assert(floatType != NULL && "Couldn't find float type");
-					return SEM::Value::FloatConstant(value->constant.floatConstant, floatType);
-				}
-				case AST::Value::Constant::CSTRING:
-				{
-					SEM::TypeInstance * charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
-					assert(charType != NULL && "Couldn't find char type");
-					SEM::Type * constCharPtrType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
-						SEM::Type::Named(SEM::Type::CONST, SEM::Type::LVALUE, charType));
-					return SEM::Value::CStringConstant(value->constant.stringConstant, constCharPtrType);
-				}
-				case AST::Value::Constant::NULLVAL:
-					return SEM::Value::NullConstant();
-				default:
-					assert(false && "Unknown constant type enum.");
-					return NULL;
+				assert(typeInstance != NULL && "Couldn't find constant type");
+				return SEM::Value::Constant(value->constant, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, typeInstance));
 			}
 			
-			assert(false && "Invalid switch fallthrough in ConvertValue for constant");
+			assert(false && "Invalid if fallthrough in ConvertValue for constant");
 			return NULL;
 		}
 		case AST::Value::NAMEREF: {

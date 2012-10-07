@@ -45,14 +45,16 @@ class CodeGen {
 		std::vector<llvm::AllocaInst*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		llvm::Value * returnVar_;
+		std::size_t optLevel_;
 		
 	public:
-		CodeGen(const std::string& moduleName)
+		CodeGen(const std::string& moduleName, std::size_t optLevel)
 			: name_(moduleName),
 			  module_(new llvm::Module(name_.c_str(), llvm::getGlobalContext())),
 			  builder_(llvm::getGlobalContext()),
 			  targetInfo_(0),
-			  returnVar_(NULL){
+			  returnVar_(NULL),
+			  optLevel_(optLevel){
 			  
 			llvm::InitializeNativeTarget();
 			  
@@ -331,7 +333,7 @@ class CodeGen {
 			llvm::PassManager modulePassManager;
 			
 			llvm::PassManagerBuilder passManagerBuilder;
-			passManagerBuilder.OptLevel = 2;
+			passManagerBuilder.OptLevel = optLevel_;
 			passManagerBuilder.Inliner = llvm::createFunctionInliningPass();
 			
 			passManagerBuilder.populateFunctionPassManager(functionPassManager);
@@ -468,6 +470,7 @@ class CodeGen {
 			if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongLongWidth());
 			if(name == "::float") return llvm::Type::getFloatTy(llvm::getGlobalContext());
 			if(name == "::double") return llvm::Type::getDoubleTy(llvm::getGlobalContext());
+			if(name == "::longdouble") return llvm::Type::getFP128Ty(llvm::getGlobalContext());
 			assert(false && "Unrecognised primitive type");
 			return NULL;
 		}
@@ -690,27 +693,61 @@ class CodeGen {
 		llvm::Value* genValue(SEM::Value* value, bool genLValue = false) {
 			switch(value->typeEnum) {
 				case SEM::Value::CONSTANT: {
-					switch(value->constant.typeEnum) {
-						case SEM::Value::Constant::BOOLEAN:
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, value->constant.boolConstant));
-						case SEM::Value::Constant::INTEGER:
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(targetInfo_->getIntWidth(), value->constant.intConstant));
-						case SEM::Value::Constant::FLOAT:
-							return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(value->constant.floatConstant));
-						case SEM::Value::Constant::CSTRING:
-						{
-							const std::string& stringValue = value->constant.stringConstant;
-							const bool isConstant = true;
-							llvm::ArrayType * arrayType = llvm::ArrayType::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), stringValue.size() + 1);
-							llvm::Constant * constArray = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), stringValue.c_str());
-							llvm::GlobalVariable* globalArray = new llvm::GlobalVariable(*module_, arrayType, isConstant, llvm::GlobalValue::PrivateLinkage, constArray, "");
-							globalArray->setAlignment(1);
-							
-							// Convert array to a pointer.
-							return builder_.CreateConstGEP2_32(globalArray, 0, 0);
-						}
-						case SEM::Value::Constant::NULLVAL:
+					switch(value->constant->getType()) {
+						case Locic::Constant::NULLVAL:
 							return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
+						case Locic::Constant::BOOLEAN:
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, value->constant->getBool()));
+						case Locic::Constant::SIGNEDINT:
+						{
+							const std::size_t primitiveSize = primitiveSizes_.get(value->constant->getTypeName());
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(primitiveSize, value->constant->getInt()));
+						}
+						case Locic::Constant::UNSIGNEDINT:
+						{
+							const std::size_t primitiveSize = primitiveSizes_.get(value->constant->getTypeName());
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(primitiveSize, value->constant->getUint()));
+						}
+						case Locic::Constant::FLOATINGPOINT:
+						{
+							switch(value->constant->getFloatType()){
+								case Locic::Constant::FLOAT:
+									return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat((float) value->constant->getFloat()));
+								case Locic::Constant::DOUBLE:
+									return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat((double) value->constant->getFloat()));
+								case Locic::Constant::LONGDOUBLE:
+									assert(false && "Long double not implemented yet");
+									return NULL;
+								default:
+									assert(false && "Unknown float constant type");
+									return NULL;
+							}
+						}
+						case Locic::Constant::STRING:
+						{
+							const std::string stringValue = value->constant->getString();
+							switch(value->constant->getStringType()){
+								case Locic::Constant::CSTRING:
+								{
+									const bool isConstant = true;
+									llvm::ArrayType * arrayType = llvm::ArrayType::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), stringValue.size() + 1);
+									llvm::Constant * constArray = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), stringValue.c_str());
+									llvm::GlobalVariable* globalArray = new llvm::GlobalVariable(*module_, arrayType, isConstant, llvm::GlobalValue::PrivateLinkage, constArray, "");
+									globalArray->setAlignment(1);
+									
+									// Convert array to a pointer.
+									return builder_.CreateConstGEP2_32(globalArray, 0, 0);
+								}
+								case Locic::Constant::LOCISTRING:
+								{
+									assert(false && "Loci string constants not yet implemented");
+									return NULL;
+								}
+								default:
+									assert(false && "Unknown string constant type");
+									return NULL;
+							}
+						}
 						default:
 							assert(false && "Unknown constant type");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
@@ -854,6 +891,11 @@ class CodeGen {
 					}
 				}
 				case SEM::Value::FUNCTIONCALL: {
+					llvm::Value * function = genValue(value->functionCall.functionValue);
+					assert(function->getType()->isPointerTy());
+					llvm::Type * functionType = function->getType()->getPointerElementType();
+					assert(functionType->isFunctionTy());
+				
 					std::vector<llvm::Value*> parameters;
 					
 					const std::vector<SEM::Value *>& paramList = value->functionCall.parameters;
@@ -868,10 +910,28 @@ class CodeGen {
 					}
 					
 					for(std::size_t i = 0; i < paramList.size(); i++){
-						parameters.push_back(genValue(paramList.at(i)));
+						llvm::Value * argValue = genValue(paramList.at(i));
+						
+						// When calling var-args functions, all 'char' and
+						// 'short' values must be extended to 'int' values,
+						// and all 'float' values must be converted to 'double'
+						// values.
+						if(functionType->isFunctionVarArg()){
+							llvm::Type * argType = argValue->getType();
+							const unsigned sizeInBits = argType->getPrimitiveSizeInBits();
+							if(argType->isIntegerTy() && sizeInBits < targetInfo_->getIntWidth()){
+								// Need to extend to int.
+								// TODO: this doesn't handle unsigned types; perhaps
+								// this code should be moved to semantic analysis.
+								argValue = builder_.CreateSExt(argValue, llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getIntWidth()));
+							}else if(argType->isFloatingPointTy() && sizeInBits < 64){
+								// Need to extend to double.
+								argValue = builder_.CreateFPExt(argValue, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+							}
+						}
+						parameters.push_back(argValue);
 					}
 					
-					llvm::Value * function = genValue(value->functionCall.functionValue);
 					llvm::Value * callReturnValue = builder_.CreateCall(function, parameters);
 					
 					if(returnValue != NULL){
@@ -921,8 +981,8 @@ class CodeGen {
 		
 };
 
-void* Locic_CodeGenAlloc(const std::string& moduleName) {
-	return new CodeGen(moduleName);
+void* Locic_CodeGenAlloc(const std::string& moduleName, std::size_t optLevel) {
+	return new CodeGen(moduleName, optLevel);
 }
 
 void Locic_CodeGenFree(void* context) {

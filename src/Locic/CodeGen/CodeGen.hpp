@@ -1,10 +1,11 @@
 #ifndef LOCIC_CODEGEN_HPP
 #define LOCIC_CODEGEN_HPP
 
+#include <cstddef>
 #include <string>
 #include <Locic/SEM.hpp>
 
-void * Locic_CodeGenAlloc(const std::string& moduleName);
+void * Locic_CodeGenAlloc(const std::string& moduleName, std::size_t optLevel);
 	
 void Locic_CodeGenFree(void * context);
 	

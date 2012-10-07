@@ -14,10 +14,50 @@ int main(int argc, char * argv[]){
 	}
 	assert(argc >= 1);
 	
+	std::size_t optLevel = 0;
+	
 	std::vector<std::string> fileNames;
 	fileNames.push_back("BuiltInTypes.loci");
+	
 	for(std::size_t i = 1; i < argc; i++){
-		fileNames.push_back(argv[i]);
+		const std::string argument(argv[i]);
+		
+		assert(!argument.empty());
+	
+		if(argument.at(0) == '-'){
+			if(argument.size() == 1){
+				printf("Locic: Invalid option specifier.\n");
+				return -1;
+			}
+			if(argument.at(1) == 'O'){
+				if(argument.size() != 3){
+					printf("Locic: Invalid option '%s'.\n", argument.c_str());
+					return -1;
+				}
+				switch(argument.at(2)){
+					case '0':
+						optLevel = 0;
+						break;
+					case '1':
+						optLevel = 1;
+						break;
+					case '2':
+						optLevel = 2;
+						break;
+					case '3':
+						optLevel = 3;
+						break;
+					default:
+						printf("Locic: Invalid optimisation level '%c'.\n", argument.at(2));
+						return -1;
+				}
+			}else{
+				printf("Locic: Unknown option '%s'.\n", argument.c_str());
+				return -1;
+			}
+		}else{
+			fileNames.push_back(argument);
+		}
 	}
 	
 	std::vector<AST::Module *> astModules;
@@ -64,7 +104,7 @@ int main(int argc, char * argv[]){
 	for(std::size_t i = 0; i < fileNames.size(); i++){
 		const std::string moduleName(fileNames.at(i));
 		
-		void * codeGenContext = Locic_CodeGenAlloc(moduleName);
+		void * codeGenContext = Locic_CodeGenAlloc(moduleName, optLevel);
 		Locic_CodeGen(codeGenContext, semModules.at(i));
 		Locic_CodeGenDumpToFile(codeGenContext, moduleName + ".ll");
 		Locic_CodeGenWriteToFile(codeGenContext, moduleName + ".bc");

@@ -40,9 +40,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 	Locic::Name * name;
 	
 	// Constants.
-	bool boolValue;
-	int intValue;
-	float floatValue;
+	Locic::Constant * constant;
 	
 	// Structures.
 	AST::Module * module;
@@ -69,11 +67,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 
 // ================ Terminals ================
 %token <str> NAME
-%token <boolValue> BOOLCONSTANT
-%token <intValue> INTCONSTANT
-%token <floatValue> FLOATCONSTANT
-%token <str> STRINGCONSTANT
-%token <str> CSTRINGCONSTANT
+%token <constant> CONSTANT
 
 %token UNKNOWN
 %token ERROR
@@ -663,25 +657,9 @@ precision7:
 	{
 		$$ = AST::Value::MemberRef(*($2));
 	}
-	| BOOLCONSTANT
+	| CONSTANT
 	{
-		$$ = AST::Value::BoolConstant($1);
-	}
-	| INTCONSTANT
-	{
-		$$ = AST::Value::IntConstant($1);
-	}
-	| FLOATCONSTANT
-	{
-		$$ = AST::Value::FloatConstant($1);
-	}
-	| CSTRINGCONSTANT
-	{
-		$$ = AST::Value::CStringConstant(*($1));
-	}
-	| NULLVAL
-	{
-		$$ = AST::Value::NullConstant();
+		$$ = AST::Value::Constant($1);
 	}
 	| CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{

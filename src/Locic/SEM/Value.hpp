@@ -2,6 +2,7 @@
 #define LOCIC_SEM_VALUE_HPP
 
 #include <vector>
+#include <Locic/Constant.hpp>
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
@@ -28,20 +29,7 @@ namespace SEM{
 		
 		Type * type;
 		
-		struct Constant {
-			enum TypeEnum {
-				BOOLEAN,
-				INTEGER,
-				FLOAT,
-				CSTRING,
-				NULLVAL
-			} typeEnum;
-			
-			bool boolConstant;
-			int intConstant;
-			float floatConstant;
-			std::string stringConstant;
-		} constant;
+		Locic::Constant * constant;
 		
 		struct{
 			Value * value;
@@ -96,37 +84,9 @@ namespace SEM{
 		
 		inline Value(TypeEnum e, Type * t) : typeEnum(e), type(t) { }
 		
-		inline static Value* BoolConstant(bool val, SEM::TypeInstance * boolType) {
-			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
-			value->constant.typeEnum = Constant::BOOLEAN;
-			value->constant.boolConstant = val;
-			return value;
-		}
-		
-		inline static Value* IntConstant(int val, SEM::TypeInstance * intType) {
-			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, intType));
-			value->constant.typeEnum = Constant::INTEGER;
-			value->constant.intConstant = val;
-			return value;
-		}
-		
-		inline static Value* FloatConstant(float val, SEM::TypeInstance * floatType) {
-			Value* value = new Value(CONSTANT, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, floatType));
-			value->constant.typeEnum = Constant::FLOAT;
-			value->constant.floatConstant = val;
-			return value;
-		}
-		
-		inline static Value* CStringConstant(const std::string& val, SEM::Type * type) {
+		inline static Value* Constant(Locic::Constant * constant, SEM::Type * type) {
 			Value* value = new Value(CONSTANT, type);
-			value->constant.typeEnum = Constant::CSTRING;
-			value->constant.stringConstant = val;
-			return value;
-		}
-		
-		inline static Value* NullConstant() {
-			Value* value = new Value(CONSTANT, Type::Null(Type::MUTABLE));
-			value->constant.typeEnum = Constant::NULLVAL;
+			value->constant = constant;
 			return value;
 		}
 		
