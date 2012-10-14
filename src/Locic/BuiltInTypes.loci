@@ -1,6 +1,8 @@
 __primitive null_t{ };
 
-__primitive bool{ }
+__primitive bool{
+	bool not();
+};
 
 __primitive char{ };
 
@@ -9,14 +11,13 @@ __primitive short{
 	
 	short abs();
 
-	short operatorAdd(short v);
-	short operatorSubtract(short v);
-	short operatorMultiply(short v);
-	short operatorDivide(short v);
-	short operatorModulo(short v);
+	short add(short v);
+	short subtract(short v);
+	short multiply(short v);
+	short divide(short v);
+	short modulo(short v);
 	
-	bool operatorIsLess(short v);
-	bool operatorIsGreater(short v);
+	int compare(short v);
 };
 
 __primitive int{
@@ -24,14 +25,16 @@ __primitive int{
 	
 	int abs();
 
-	int operatorAdd(int v);
-	int operatorSubtract(int v);
-	int operatorMultiply(int v);
-	int operatorDivide(int v);
-	int operatorModulo(int v);
+	int add(int v);
+	int subtract(int v);
+	int multiply(int v);
+	int divide(int v);
+	int modulo(int v);
 	
-	bool operatorIsLess(int v);
-	bool operatorIsGreater(int v);
+	int compare(int v);
+	bool isZero();
+	bool isPositive();
+	bool isNegative();
 };
 
 __primitive long{
@@ -39,26 +42,25 @@ __primitive long{
 	
 	long abs();
 
-	long operatorAdd(long v);
-	long operatorSubtract(long v);
-	long operatorMultiply(long v);
-	long operatorDivide(long v);
-	long operatorModulo(long v);
+	long add(long v);
+	long subtract(long v);
+	long multiply(long v);
+	long divide(long v);
+	long modulo(long v);
 	
-	bool operatorIsLess(long v);
-	bool operatorIsGreater(long v);
+	int compare(long v);
 };
 
 __primitive float{
 	float implicitCopy();
 
-	float operatorPlus(float v);
+	float plus(float v);
 };
 
 __primitive double{
 	double implicitCopy();
 	
-	double operatorPlus(double v);
+	double plus(double v);
 };
 
 

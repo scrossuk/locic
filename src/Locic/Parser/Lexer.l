@@ -44,18 +44,48 @@ if                      { return IF; }
 else                    { return ELSE; }
 while                   { return WHILE; }
 for                     { return FOR; }
-return                  { return RETURN; }
+return                 { return RETURN; }
+switch                 { return SWITCH; }
+case                    { return CASE; }
+default                 { return DEFAULT; }
+continue               { return CONTINUE; }
+break                   { return BREAK; }
 
+throw                   { return THROW; }
+try                     { return TRY; }
+catch                  { return CATCH; }
+
+template                { return TEMPLATE; }
+generic                 { return GENERIC; }
+
+struct                 { return STRUCT; }
+enum                    { return ENUM; }
+union                   { return UNION; }
 class                   { return CLASS; }
 interface               { return INTERFACE; }
-struct                 { return STRUCT; }
 namespace               { return NAMESPACE; }
+datatype                { return DATATYPE; }
 __primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
-cast                    { return CAST; }
+constexpr               { return CONSTEXPR; }
+
+using                   { return USING; }
 static                 { return STATIC; }
+import                  { return IMPORT; }
+export                  { return EXPORT; }
+
+new                     { return NEW; }
+delete                  { return DELETE; }
+extract                 { return EXTRACT; }
+sizeof                  { return SIZEOF; }
+typeid                  { return TYPEID; }
+
+cast                    { return CAST; }
+const_cast              { return CONST_CAST; }
+static_cast             { return STATIC_CAST; }
+dynamic_cast            { return DYNAMIC_CAST; }
 
 void                    { return VOIDNAME; }
 
@@ -82,6 +112,7 @@ false                   { yyextra->token.constant = Locic::Constant::False(); re
 "-="                    { return SUBEQUAL; }
 "*="                    { return MULEQUAL; }
 "/="                    { return DIVEQUAL; }
+"%="                    { return PERCENTEQUAL; }
 
 \/\/(.*?)\n             { }
 
@@ -92,7 +123,10 @@ false                   { yyextra->token.constant = Locic::Constant::False(); re
 "*"                     { return STAR; }
 "/"                     { return FORWARDSLASH; }
 "!"                     { return EXCLAIMMARK; }
+"&&"                    { return DOUBLE_AMPERSAND; }
 "&"                     { return AMPERSAND; }
+"||"                    { return DOUBLE_VERTICAL_BAR; }
+"|"                     { return VERTICAL_BAR; }
 "?"                     { return QUESTIONMARK; }
 "@"                     { return AT; }
 ","                     { return COMMA; }
@@ -103,6 +137,8 @@ false                   { yyextra->token.constant = Locic::Constant::False(); re
 "{"                     { return LCURLYBRACKET; }
 "}"                     { return RCURLYBRACKET; }
 "."                     { return DOT; }
+"<<"                    { return DOUBLE_LTRIBRACKET; }
+">>"                    { return DOUBLE_RTRIBRACKET; }
 "<"                     { return LTRIBRACKET; }
 ">"                     { return RTRIBRACKET; }
 \n                      { }

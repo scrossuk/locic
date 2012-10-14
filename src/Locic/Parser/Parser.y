@@ -78,14 +78,36 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token RCURLYBRACKET
 %token AUTO
 %token STATIC
+%token IMPORT
+%token EXPORT
+%token NEW
+%token DELETE
+%token EXTRACT
+%token TEMPLATE
+%token GENERIC
+%token USING
+%token ENUM
+%token UNION
+%token CASE
+%token SWITCH
+%token DEFAULT
+%token CONTINUE
+%token BREAK
+%token THROW
+%token TRY
+%token CATCH
+%token SIZEOF
+%token TYPEID
 %token LROUNDBRACKET
 %token RROUNDBRACKET
 %token PRIMITIVE
 %token STRUCT
 %token CLASS
+%token DATATYPE
 %token COLON
 %token VOIDNAME
 %token CONST
+%token CONSTEXPR
 %token STAR
 %token COMMA
 %token IF
@@ -97,18 +119,27 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token SUBEQUAL
 %token MULEQUAL
 %token DIVEQUAL
+%token PERCENTEQUAL
 %token RETURN
 %token AT
 %token NULLVAL
 %token CAST
+%token CONST_CAST
+%token STATIC_CAST
+%token DYNAMIC_CAST
 %token LTRIBRACKET
 %token RTRIBRACKET
+%token DOUBLE_LTRIBRACKET
+%token DOUBLE_RTRIBRACKET
 %token DOT
 %token PTRACCESS
 %token PLUS
 %token MINUS
 %token EXCLAIMMARK
 %token AMPERSAND
+%token DOUBLE_AMPERSAND
+%token VERTICAL_BAR
+%token DOUBLE_VERTICAL_BAR
 %token FORWARDSLASH
 %token PERCENT
 %token ISEQUAL
@@ -601,9 +632,9 @@ normalStatement:
 	 * null to the lvalue result of 'T * p', where 'T' and 'p'
 	 * are both values of some kind.
 	 * 
-	 * In future this should be fixed to create an 'ambiguous
-	 * statement' object in the AST tree that is resolved by
-	 * semantic analysis.
+	 * In Loci, operators should never return lvalues, so
+	 * 'a * b' should never be an lvalue, and hence variable
+	 * definitions always take precedence in this case.
 	 */
 	| type NAME SETEQUAL value %dprec 2
 	{
@@ -616,19 +647,23 @@ normalStatement:
 	
 	| value ADDEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorAdd", $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("add", $1, $3));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorSubtract", $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("subtract", $1, $3));
 	}
 	| value MULEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorMultiply", $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("multiply", $1, $3));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("operatorDivide", $1, $3));
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("divide", $1, $3));
+	}
+	| precision4 PERCENTEQUAL precision5
+	{
+		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("modulo", $1, $3));
 	}
 	| value
 	{
@@ -693,15 +728,15 @@ precision5:
 	}
 	| PLUS precision5
 	{
-		$$ = AST::Value::UnaryOp("operatorPlus", $2);
+		$$ = AST::Value::UnaryOp("plus", $2);
 	}
 	| MINUS precision5
 	{
-		$$ = AST::Value::UnaryOp("operatorMinus", $2);
+		$$ = AST::Value::UnaryOp("minus", $2);
 	}
 	| EXCLAIMMARK precision5
 	{
-		$$ = AST::Value::UnaryOp("operatorNot", $2);
+		$$ = AST::Value::UnaryOp("not", $2);
 	}
 	| AMPERSAND precision5
 	{
@@ -720,15 +755,15 @@ precision4:
 	}
 	| precision4 STAR precision5
 	{
-		$$ = AST::Value::BinaryOp("operatorMultiply", $1, $3);
+		$$ = AST::Value::BinaryOp("multiply", $1, $3);
 	}
 	| precision4 FORWARDSLASH precision5
 	{
-		$$ = AST::Value::BinaryOp("operatorDivide", $1, $3);
+		$$ = AST::Value::BinaryOp("divide", $1, $3);
 	}
 	| precision4 PERCENT precision5
 	{
-		$$ = AST::Value::BinaryOp("operatorModulo", $1, $3);
+		$$ = AST::Value::BinaryOp("modulo", $1, $3);
 	}
 	;
 	
@@ -739,11 +774,11 @@ precision3:
 	}
 	| precision3 PLUS precision4
 	{
-		$$ = AST::Value::BinaryOp("operatorAdd", $1, $3);
+		$$ = AST::Value::BinaryOp("add", $1, $3);
 	}
 	| precision3 MINUS precision4
 	{
-		$$ = AST::Value::BinaryOp("operatorSubtract", $1, $3);
+		$$ = AST::Value::BinaryOp("subtract", $1, $3);
 	}
 	;
 	
@@ -752,36 +787,36 @@ precision2:
 	{
 		$$ = $1;
 	}
+	/*
+	 * All comparison operators use the 'compare' method, albeit
+	 * with a bit of 
+	 */
 	| precision3 ISEQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp("operatorIsEqual", $1, $3);
+		$$ = AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3));
 	}
 	| precision3 NOTEQUAL precision3
 	{
-		$$ = AST::Value::BinaryOp("operatorNotEqual", $1, $3);
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	| precision3 LTRIBRACKET precision3
 	{
-		$$ = AST::Value::BinaryOp("operatorIsLess", $1, $3);
+		$$ = AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3));
 	}
 	| precision3 RTRIBRACKET precision3
 	{
-		$$ = AST::Value::BinaryOp("operatorIsGreater", $1, $3);
+		$$ = AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3));
 	}
-	
-	/*
-	 * In an attempt to reduce the number of necessary
-	 * methods to implement, we use the (assumed) identities
-	 * that 'i <= j' is identical to '!(i > j)', and that
-	 * 'i >= j' is identical to '!(i < j)'.
-	 */
 	| precision3 LESSOREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsGreater", $1, $3));
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	| precision3 GREATEROREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("operatorNot", AST::Value::BinaryOp("operatorIsLess", $1, $3));
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	;
 	

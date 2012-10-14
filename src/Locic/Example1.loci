@@ -87,6 +87,10 @@ int main(int argc, char ** argv){
 		*j += 1;
 	}
 	
+	if(i != (*j + 1)){
+		printf("%d != %d\n"C, i, *j + 1);
+	}
+	
 	float f = 3.141592653f;
 	double d = 3.141592653;
 	printf("Float f = %f, Double d = %f\n"C, f, d);

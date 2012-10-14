@@ -74,10 +74,10 @@ Stephen Cross \\
 \chapter{Introduction}
 
 \paragraph{}
-The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating interoperation of different programming languages with C as a `bridge'. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
+The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating inter-operation of different programming languages with C as a `bridge'. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
 
 \paragraph{}
-Unfortunately, these languages have significant problems. For example, C++ and D place undue attention to compile-time funtionality that serves to complicate the source code. Interestingly, Objective-C shifts the vast majority of the burden to run-time, and hence uses weak typing. Preference of programming languages is certainly based on the opinion of individual programmers, however languages also face general criticism. In particular, C++ attracts criticism due to its large set of features and rules that ultimately combine to produce complex semantics. Equally, however, programmers support the combination of powerful features as found in a multi-paradigm language such as C++.
+Unfortunately, these languages have significant problems. For example, C++ and D place undue attention to compile-time functionality that serves to complicate the source code. Interestingly, Objective-C shifts the vast majority of the burden to run-time, and hence uses weak typing. Preference of programming languages is certainly based on the opinion of individual programmers, however languages also face general criticism. In particular, C++ attracts criticism due to its large set of features and rules that ultimately combine to produce complex semantics. Equally, however, programmers support the combination of powerful features as found in a multi-paradigm language such as C++.
 
 \paragraph{}
 The design of languages that are both simple and powerful is difficult, and popular existing programming languages represent a variety of reasonable solutions. A number of newer languages have emerged that operate at a `higher level' than languages such as C and C++, of which examples are Java and C\#. Typically, these languages use primitives and pointers as fundamental types, deploy some form of garbage collection, use classes as their fundamental data structures and provide the means to construct inheritance hierarchies. There is a disputed performance cost to using these languages over lower level languages, which is generally found to be small and hence arguably insignificant.
@@ -134,10 +134,13 @@ Establishing this basis for Loci, it is possible to elaborate more specific goal
 \chapter{Design}
 
 \paragraph{}
-Loci is very closely related to C in both syntax and semantics, with the ability to call C functions (and be called from C) easily and to handle C types. Numerous ideas from languages such as C++, Java, Objective C and ML are also used to develop the features and abstractions that Loci provides on top of the basic functionality of C.
+Loci is very closely related to C in both syntax and semantics, with the ability to call C functions (and be called from C) easily and to handle C types. Numerous ideas from languages such as C++, Java, Objective C, ML and Python are also used\footnote{Although in varying amounts; the language certainly pulls more ideas from C++ than any other language.} to develop the features and abstractions that Loci provides on top of the basic functionality of C.
 
 \paragraph{}
-Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is algebraic datatypes, which are well suited to expressing data such as ASTs\footnote{Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code.}.
+A primary concern for the language design is closely resembling the `look and feel' of languages such as C and C++, with the intention that developers familiar with those languages should be able to easily get started in Loci. Syntactic or semantic divergences from existing languages are justified in this document.
+
+\paragraph{}
+Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is algebraic data types, which are well suited to expressing data such as ASTs\footnote{Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code.}.
 
 \paragraph{}
 However, as well as using ideas from many languages, Loci also specifically rejects some features, such as method/function overloading, class inheritance and weak typing\footnote{Specifically, a large set of legal implicit casts. For example, in C, it is valid to implicitly cast from `void *' to `int *'.}. Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
@@ -190,7 +193,6 @@ This syntactic change applies similarly for enum and union types. The intention,
 \paragraph{}
 Casts also use a different syntax:
 
-
 \begin{lstlisting}
 void function(){
 	float pi = 3.141592654;
@@ -203,6 +205,33 @@ void function(){
 }
 \end{lstlisting}
 
+\paragraph{}
+The new syntax is much clearer, helping readers to understand exactly what value is being cast, since the precedence of the type cast may not be obvious\footnote{Few programmers remember all (or close to all) of their language's operator precedences.} Consider this example:
+
+\begin{lstlisting}
+void function(Type * ptr, Type::*function()){
+	// As one expects...
+	int i = (int) ptr->member;
+	
+	// ...is equivalent to this.
+	int i = ((int) ptr->member);
+	
+	// But this...
+	int i = (int) ptr->member + 1;
+	
+	// ...is equivalent to this.
+	int i = ((int) ptr->member) + 1;
+	
+	// And this (C++ code)...
+	int i = (int) ptr->*function();
+	
+	// ...would be equivalent to this.
+	int i = ((int) ptr)->*function();
+	
+	// (Which is of course broken.)
+	
+}
+\end{lstlisting}
 
 \subsubsection{Semantics}
 
@@ -225,6 +254,8 @@ void function(){
 	
 	// Valid.
 	int * intPtr = pointer_cast<int *>(malloc(sizeof(int)));
+	
+	
 }
 \end{lstlisting}
 
@@ -276,117 +307,66 @@ alias NewType = OldType; // Loci
 \subsection{References}
 
 \paragraph{}
-Along with pointers, Loci uses references as equivalent to a pointer type, except that they must not be null. For example:
-
-
-\begin{lstlisting}
-void function(int * pointer){
-	// Illegal - no implicit cast allowed.
-	int& reference = pointer;
-	
-	// Correct - triggers exception if
-	// pointer == null.
-	int& reference = cast<int&>(pointer);
-	
-	int data = 0;
-	
-	// Valid - typeof(&data) == typedata(int&).
-	// (and references can be changed in Loci)
-	reference = &data;
-	
-	// Valid - implicit cast from int&
-	// to int* is provided.
-	pointer = reference;
-	
-	// Pointers must be dereferenced.
-	data = *pointer;
-	
-	// Like C++, references do not need to be dereferenced.
-	data = reference;
-}
-\end{lstlisting}
-
-
-\paragraph{}
-This is somewhat different to C++ references, which cannot be changed after they have been assigned, and which operate at the level of value types. However, this can lead to confusing behaviour, as in the following C++ code example:
-
+Loci references are in almost all ways identical to C++ references. The example below shows the syntax and semantics if the reader is unfamiliar:
 
 \begin{lstlisting}
-// This is C++ code!
-
-int f1(int r){
-	r = 1;
-	return r;
-}
-
-int f2(int& r){
-	r = 1;
-	return r;
-}
-
-int g(int * r){
-	*r = 1;
-	return *r;
-}
-
-void function(){
-	int a = 0, b = 0;
+void function(int data, int * pointer){
+	{
+		// Invalid - no implicit cast from
+		// pointer type to reference type.
+		int& reference = pointer;
+	}
 	
-	// (a = 0, b = 0).
+	{
+		// Valid - using dereference operator
+		// to cast from pointer to reference.
+		int& reference = *pointer;
+	}
 	
-	b = f1(a);
+	{
+		// Invalid - again, no implicit cast
+		// from pointer type to reference type.
+		int& reference = &data;
+	}
 	
-	// (a = 0, b = 1) - Ok, this is expected.
+	{
+		// Valid - making reference of 'data'.
+		int& reference = data;
 	
-	b = f2(a);
+		// Valid - updating lvalue referred to
+		// by 'reference', which in this case
+		// would be 'data'...
+		reference = 1;
+		
+		// ...so this is equivalent.
+		data = 1;
+		
+		// Invalid - type 'int' has no overload for
+		// the dereference operator.
+		*reference = 2;
+		
+		// Valid - copying reference lvalue to rvalue,
+		// adding 5, and placing it into lvalue 'newData'.
+		int newData = reference + 5;
+	}
 	
-	// (a = 1, b = 1) - Surprise modification to a!
+	{
+		// Invalid - can't convert rvalue to non-const
+		// lvalue reference.
+		int& reference = 1;
+	}
 	
-	a = 0;
-	b = 0;
-	
-	b = g(&a);
-	// Less surprising that f modifies a.
-}
-\end{lstlisting}
-
-
-\paragraph{}
-The behaviour of `f2' is unintuitive because the parameter passed to it is received by its address (since references are implemented as pointers), without the address-of operator being applied to the parameter. Furthermore, `f1' and `f2' differ by a single character, but their behaviour is significantly different; the code of `g' makes it clear that the parameter is being handled by its address.
-
-\paragraph{}
-There is, however, a good argument for allowing such behaviour for efficiency purposes, since copying a large parameter type may be undesirable. Loci therefore supports an implicit cast from an lvalue `T' to `const T\&', as demonstrated in the following code:
-
-
-\begin{lstlisting}
-struct HugeType{
-	int i0;
-	// etc...
-	int i99999;
-};
-
-int f(HugeType h){
-	return h.i31415;
-}
-
-int g(const HugeType& h){
-	return h.i31415;
-}
-
-void function(){
-	HugeType h = HugeType();
-	
-	// Potentially costly copy.
-	int i = f(h);
-	
-	// No copy.
-	int j = g(h);
+	{	
+		// Valid - uses a special cast from rvalue to const
+		// lvalue reference...
+		const int& reference = 5;
+		
+		// ...which is basically equivalent to this.
+		const int __unnamed_value = 5;
+		const int& reference = __unamed_value;
+	}
 }
 \end{lstlisting}
-
-
-\paragraph{}
-The semantics of references is therefore very similar to C++, except that references can be modified like pointers, and a non-const reference can only be obtained through the use of the address-of operator (\&).
 
 \clearpage
 
@@ -424,13 +404,13 @@ class Bucket(bool b, int value){
 The organisation is somewhat different to many languages, and member variables are defined within the parentheses after the class name. The methods, constructors and destructors then appear within the braces that follow.
 
 \paragraph{}
-Another detail is that instance member variables are referred to using the @ symbol, which provides a clean alternative to the various C++ conventions for naming such variables\footnote{For example: `mValue' or `value\_'.}; such variables are also accessible through the use of the `this' reference:
+Another detail is that instance member variables are referred to using the @ symbol, which provides a clean alternative to the various C++ conventions for naming such variables\footnote{For example: `mValue' or `value\_'.}; such variables are also accessible through the use of the `this' pointer:
 
 
 \begin{lstlisting}
 	//...
 	bool containsValue() const{
-		return this.b;
+		return this->b;
 	}
 	//...
 \end{lstlisting}
@@ -444,7 +424,7 @@ The above example shows a class with no constructor, however there is an automat
 
 \begin{lstlisting}
 class Bucket(bool b, int value){
-	Default(bool b, int value){
+	static Default(bool b, int value){
 		return @(b, value);
 	}
 
@@ -454,13 +434,13 @@ class Bucket(bool b, int value){
 void function(){
 	// Equivalent ways to call the default constructor.
 	Bucket bucket = Bucket(true, 1);
-	Bucket bucket = Bucket:Default(true, 1);
+	Bucket bucket = Bucket::Default(true, 1);
 }
 \end{lstlisting}
 
 
 \paragraph{}
-Here the @ symbol being called indicates the construction of the class type, which is intended as a superior alternative to initialization lists in C++ and Java. Here's an example of a C++ initialization list:
+Here the @ symbol being called is the `internal constructor', and performs the actual construction of the class type\footnote{Which means, the process of filling the fields of the struct underlying the class with the values given to it.}. This system is intended as a superior alternative to initialization lists in C++ and Java. Here's an example of a C++ initialization list:
 
 
 \begin{lstlisting}
@@ -479,7 +459,7 @@ Avoiding initialization lists makes it easy to express complex logic in construc
 
 \begin{lstlisting}
 class SomeClass(int value0, int value1){
-	Factorial(int n){
+	static Factorial(int n){
 		int r = 1;
 		for(int i = 2; i < n; i++){
 			r *= i;
@@ -489,7 +469,7 @@ class SomeClass(int value0, int value1){
 };
 
 void function(){
-	SomeClass c = SomeClass:Factorial(10);
+	SomeClass c = SomeClass::Factorial(10);
 }
 \end{lstlisting}
 
@@ -502,11 +482,11 @@ Other named constructors can also be created:
 class Bucket(bool b, int value){
 	...
 	
-	WithNoValue(){
+	static WithNoValue(){
 		return @(false, 0);
 	}
 	
-	WithZeroValue(){
+	static WithZeroValue(){
 		return @(true, 0);
 	}
 
@@ -514,8 +494,8 @@ class Bucket(bool b, int value){
 }
 
 void function(){
-	Bucket emptyBucket = Bucket:WithNoValue();
-	Bucket zeroBucket = Bucket:WithZeroValue();
+	Bucket emptyBucket = Bucket::WithNoValue();
+	Bucket zeroBucket = Bucket::WithZeroValue();
 }
 \end{lstlisting}
 
@@ -537,7 +517,7 @@ Here's a declaration of the Bucket class:
 
 \begin{lstlisting}
 class Bucket{
-	Default(int v);
+	static Default(int v);
 
 	bool containsValue() const;
 	
@@ -609,7 +589,7 @@ For example:
 
 \begin{lstlisting}
 class Bucket{
-	Bucket(int v);
+	static Default(int v);
 	bool containsValue() const;
 	void placeValue(int value);
 	int getValue() const;
@@ -652,7 +632,7 @@ void function(){
 
 
 \paragraph{}
-String is a standard type, so is defined before the custom interface `LengthValue', and therefore it would be necessary to foresee the need to implement that interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
+String is a standard type, so is designed and implemented prior to the definition of the custom interface `LengthValue', and therefore it would be unlikely that standard library developers would foresee the need to implement that (or a similar) interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
 
 \paragraph{}
 The next section discusses how this feature is implemented, and which details how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls.
@@ -981,7 +961,7 @@ These modifications turn the primitive types into object types, although the imp
 \subsection{Algebraic Datatypes}
 
 \paragraph{}
-Functional languages such as ML and Haskell provide algebraic datatypes as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
+Functional languages such as ML and Haskell provide algebraic data types as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
 
 
 \begin{lstlisting}
@@ -1203,6 +1183,86 @@ A stack trace is also constructed while these exceptions are in flight, and in t
 
 \clearpage
 
+\subsection{RTTI}
+
+\paragraph{}
+Loci provides far more comprehensive run-time type information than C++, giving extra functionality as well as efficiency to developers.
+
+\subsubsection{is\_a}
+
+\paragraph{}
+This supports checking whether the actual type (which is known only at run-time, unless A is a class type) of a reference or pointer conforms to a given target type (B in this example).
+
+\begin{lstlisting}
+void f(A& object){
+	if(is_a<B&>(object)){
+		//...
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+The performance for each case (depending on types of A and B) is:
+
+\begin{itemize}
+\item If A is a class type, and B is a class type, then the `is\_a' statement is resolved at compile-time (hence no run-time overhead).
+\item If A is a class type, and B is an interface type, then the compiler can again resolve it at compile-time.
+\item If A is an interface type, but B is a class type, the implementation for this is just a single comparison, so this is a very efficient way to check the type of an interface reference/pointer.
+\item If A is an interface type, and B is an interface type, then this call involves a number of comparisons proportional to the number of methods in the larger interface, unless it can be determined at compile-time that there is a valid static cast from A to B.
+\end{itemize}
+
+\subsubsection{dynamic\_cast}
+
+\paragraph{}
+This operates just like C++:
+
+\begin{lstlisting}
+int f(A& object){
+	B& castObject = dynamic_cast<B&>(object);
+	return castObject.method();
+}
+\end{lstlisting}
+
+\paragraph{}
+This is effectively just the equivalent of calling is\_a to check the types are compatible, and then either allowing the reference/pointer to A to be treated as a reference/pointer to B, or throwing an exception in the case of a reference type, or returning NULL if it's a pointer.
+
+\subsubsection{typeid}
+
+\paragraph{}
+This allows access to information about a type from a reference or pointer to an instance of it:
+
+\begin{lstlisting}
+void f(T& a, T& b){
+	rtti::type_info typeInfo = typeid(a);
+	
+	// type_info structures can be compared,
+	// but is_a is likely to be more efficient.
+	if(typeInfo == typeid(b)){
+		//...
+	}
+	
+	// Get the type's name.
+	string typeName = typeInfo.name;
+	
+	// Get the type's virtual table.
+	void * vtable = typeInfo.vtable;
+	
+	// Get the type's size.
+	size_t typeSize = typeInfo.size;
+	
+	for(size_t i = 0; i < typeInfo.methods.size(); i++){
+		rtti::method_info methodInfo = typeInfo.methods[i];
+		
+		// Get method name.
+		string methodName = methodInfo.name;
+		
+		// etc.
+	}
+}
+\end{lstlisting}
+
+\clearpage
+
 \subsection{Faults}
 
 \paragraph{}
@@ -1344,7 +1404,7 @@ Strings are used in Loci as the default way to handle character sequences, mostl
 \subsubsection{Literals}
 
 \paragraph{}
-Loci breaks away from C by making string literals be of type String, rather than type `const char *'. However there is an implicit cast from String to const char *:
+Loci breaks away from C by making string literals be of type `string', rather than type `const char *'. However C string literals can be declared by simply prefixing the double quotes with `C':
 
 
 \begin{lstlisting}

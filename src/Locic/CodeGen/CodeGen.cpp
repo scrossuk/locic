@@ -161,7 +161,21 @@ class CodeGen {
 			sizes.push_back(std::make_pair("long", targetInfo_->getLongWidth()));
 			sizes.push_back(std::make_pair("longlong", targetInfo_->getLongLongWidth()));
 			
+			const size_t integerWidth = targetInfo_->getIntWidth();
 			llvm::Type * boolType = llvm::Type::getInt1Ty(llvm::getGlobalContext());
+			llvm::Type * integerType = llvm::IntegerType::get(llvm::getGlobalContext(), integerWidth);
+			
+			{
+				const std::string functionName = "bool__not";
+				llvm::Type * ptrType = boolType->getPointerTo();
+				llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, std::vector<llvm::Type *>(1, ptrType), false);
+				llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+				
+				llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+				builder_.SetInsertPoint(basicBlock);
+				builder_.CreateRet(builder_.CreateNot(builder_.CreateLoad(function->arg_begin())));
+				functions_.insert(functionName, function);
+			}
 			
 			// Generate integer methods.
 			for(std::size_t i = 0; i < sizes.size(); i++){
@@ -183,7 +197,7 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorAdd";
+					const std::string functionName = name + "__add";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
@@ -201,7 +215,7 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorSubtract";
+					const std::string functionName = name + "__subtract";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
@@ -219,7 +233,7 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorMultiply";
+					const std::string functionName = name + "__multiply";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
@@ -237,7 +251,7 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorDivide";
+					const std::string functionName = name + "__divide";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
@@ -255,7 +269,7 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorModulo";
+					const std::string functionName = name + "__modulo";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
@@ -273,11 +287,11 @@ class CodeGen {
 				}
 				
 				{
-					const std::string functionName = name + "__operatorIsLess";
+					const std::string functionName = name + "__compare";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
 					argumentTypes.push_back(intType);
-					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(integerType, argumentTypes, false);
 					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
 					
 					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
@@ -286,25 +300,69 @@ class CodeGen {
 					llvm::Value * firstArg = builder_.CreateLoad(arg++);
 					llvm::Value * secondArg = arg;
 					
-					builder_.CreateRet(builder_.CreateICmpSLT(firstArg, secondArg));
+					llvm::Value * isLessThan = builder_.CreateICmpSLT(firstArg, secondArg);
+					llvm::Value * isGreaterThan = builder_.CreateICmpSGT(firstArg, secondArg);
+					
+					llvm::Value * minusOne = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, -1));
+					llvm::Value * zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, 0));
+					llvm::Value * plusOne = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, 1));
+					
+					llvm::Value * returnValue =
+						builder_.CreateSelect(isLessThan, minusOne,
+							builder_.CreateSelect(isGreaterThan, plusOne, zero));
+					
+					builder_.CreateRet(returnValue);
 					functions_.insert(functionName, function);
 				}
 				
 				{
-					const std::string functionName = name + "__operatorIsGreater";
+					const std::string functionName = name + "__isZero";
 					std::vector<llvm::Type *> argumentTypes;
 					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
 					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
 					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
 					
 					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
 					builder_.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value * firstArg = builder_.CreateLoad(arg++);
-					llvm::Value * secondArg = arg;
 					
-					builder_.CreateRet(builder_.CreateICmpSGT(firstArg, secondArg));
+					llvm::Value * arg = builder_.CreateLoad(function->arg_begin());
+					llvm::Value * zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
+					builder_.CreateRet(builder_.CreateICmpEQ(arg, zero));
+					
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__isPositive";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					
+					llvm::Value * arg = builder_.CreateLoad(function->arg_begin());
+					llvm::Value * zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
+					builder_.CreateRet(builder_.CreateICmpSGT(arg, zero));
+					
+					functions_.insert(functionName, function);
+				}
+				
+				{
+					const std::string functionName = name + "__isNegative";
+					std::vector<llvm::Type *> argumentTypes;
+					argumentTypes.push_back(ptrType);
+					llvm::FunctionType * functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
+					llvm::Function * function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
+					
+					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+					builder_.SetInsertPoint(basicBlock);
+					
+					llvm::Value * arg = builder_.CreateLoad(function->arg_begin());
+					llvm::Value * zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
+					builder_.CreateRet(builder_.CreateICmpSLT(arg, zero));
+					
 					functions_.insert(functionName, function);
 				}
 				
