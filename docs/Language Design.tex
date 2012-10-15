@@ -282,23 +282,23 @@ This differs significantly from C, in which types and names can overlap in confu
 
 \begin{lstlisting}
 void (*f)(); // C
-*()() f; // Loci
+void (*)() f; // Loci
 
 int (*f)(); // C
-*(int)() f; // Loci
+int (*)() f; // Loci
 
 int (*f)(int, int); // C
-*(int)(int, int) f; // Loci
+int (*)(int, int) f; // Loci
 \end{lstlisting}
 
 
 \paragraph{}
-Loci also provides `alias' as a clearer alternative to `typedef':
+Similarly, typedefs are much clearer in Loci:
 
 
 \begin{lstlisting}
-typedef OldType NewType; // C
-alias NewType = OldType; // Loci
+typedef A (*B)(C c); // C
+typedef A (*)(C) B; // Loci
 \end{lstlisting}
 
 
@@ -560,18 +560,62 @@ void function(){
 
 
 \paragraph{}
-Loci also supports defining empty objects through an implicit cast from `null\_t' to any class type. Hence it is possible to do:
+Loci also supports defining empty objects through an implicit cast from `null\_t' to any `nullable' object type. Hence it is possible to do:
 
 
 \begin{lstlisting}
 void function(){
-	Bucket bucket = null;
+	ObjectType? object = null;
+	
+	// This will throw an exception.
+	object.method();
+	
+	// Also supports primitive types.
+	int? i = null;
 }
 \end{lstlisting}
 
 
 \paragraph{}
 Note that the Bucket type is not a pointer type, but is indeed a value type. The syntax and semantics for handling empty objects is explained in the `L-values and R-values' section.
+
+\clearpage
+
+\subsection{Primitive Objects}
+
+\paragraph{}
+The C standard library provides some basic mathematical routines to perform simple operations:
+
+
+\begin{lstlisting}
+void function(){
+	float a = -1.5;
+	float b = fabs(a);
+	float c = floor(b);
+	float d = sqrt(c);
+}
+\end{lstlisting}
+
+
+\paragraph{}
+Through the compatibility with C, these routines clearly remain available in Loci. However, Loci `revamps' the primitive types to be object types:
+
+
+\begin{lstlisting}
+void function(){
+	float a = -1.5;
+	float b = a.abs();
+	float c = b.floor();
+	float d = c.sqrt();
+}
+\end{lstlisting}
+
+
+\paragraph{}
+These modifications turn the primitive types into object types from the developer's perspective, even though the implementation is identical to C and there is therefore no performance penalty.
+
+\paragraph{}
+Syntactically, the change is quite significant, but there is also a considerable semantic difference since primitive references can be interface types, and primitives can satisfy template requirements that are based on their methods. Unlike C++, and surprisingly even Java, Loci provides a neat way to integrate primitives with other object types.
 
 \clearpage
 
@@ -635,7 +679,27 @@ void function(){
 String is a standard type, so is designed and implemented prior to the definition of the custom interface `LengthValue', and therefore it would be unlikely that standard library developers would foresee the need to implement that (or a similar) interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
 
 \paragraph{}
-The next section discusses how this feature is implemented, and which details how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls.
+As mentioned briefly previously, this functionality works equivalently well with primitive types:
+
+\begin{lstlisting}
+interface AbsInteger{
+	int abs() const;
+}
+
+void f(const AbsInteger& value){
+	if(value.abs() > 0){
+		//...
+	}
+}
+
+void function(){
+	int value = 42;
+	f(value);
+}
+\end{lstlisting}
+
+\paragraph{}
+The Implementation section discusses how this feature is implemented efficiently, in particular detailing how the performance of calling interface methods has a negligible overhead compared to existing virtual method calls in languages such as C++.
 
 \clearpage
 
@@ -655,34 +719,31 @@ Type f(){
 void function(){
 	// Stack and heap allocations, like in C++.
 	Type stackAllocated = Type(0);
-	Type& heapAllocated = new<raw> Type(0);
+	Type * heapAllocated = new<raw> Type(0);
 	
 	// Allocates space on heap, and moves return
 	// value of function 'f' from stack to heap.
-	Type& heapMoved = new<raw> f();
+	Type * heapMoved = new<raw> f();
 	
 	// Raw allocations must be deallocated.
-	delete heapAllocated;
-	delete heapMoved;
+	delete<raw> heapAllocated;
+	delete<raw> heapMoved;
 }
 \end{lstlisting}
 
 
 \paragraph{}
-In particular:
+In particular, C++ forces the new operator to call a type constructor, so that stack objects are moved to the heap by a copy constructor. Loci, however, makes it easy to move objects without running any code (other than memcpy), and therefore the new operator was redesigned to be applied to any R-value (the details of which are described later) of the desired type, and will move that value onto the heap.
 
-\begin{enumerate}
-\item The new operator can be applied to any R-value (the details of which are described later) of the desired type, and will move that value onto the heap.
-\item The new operator returns a reference.
-\item The new operator accepts a parameter giving the allocation method (also called the memory management method), which in the case of the example is a raw allocation, as in C++.
-\end{enumerate}
+\paragraph{}
+The new operator also requires the name of the memory management method to be used, which in the sample code above is `raw', meaning that the developer is responsible for calling delete on the pointers when finished with them (i.e. exactly like C++).
 
 \clearpage
 
 \subsubsection{Memory Management Methods}
 
 \paragraph{}
-The above shows `raw' allocations, in which allocation and construction of objects is performed as in C++. However, Loci supports other forms of allocation:
+The previous sample code showed `raw' allocations, in which allocation and construction of objects is performed as in C++. However, Loci supports other forms of allocation\footnote{And it is recommended for developers to avoid raw allocations as much as possible.}:
 
 
 \begin{lstlisting}
@@ -698,12 +759,18 @@ void function(){
 	UPtr<Type> uniquePtr2 = uniquePtr;
 	
 	// Allocated via garbage collection.
-	Type& gcPtr = new<gc> Type(0);
+	Type * gcPtr = new<gc> Type(0);
 	
 	// Reference counted.
-	SPtr<Type> sharedPtr = new<shared> Type(0);
+	RCPtr<Type> refCountedPtr = new<refcount> Type(0);
 	
 	// Can be copied, increasing ref count.
+	RCPtr<Type> refCountedPtr1 = refCountedPtr;
+	
+	// Shared; could be GC or referencing counting.
+	SPtr<Type> sharedPtr = new<shared> Type(0);
+	
+	// Can be copied.
 	SPtr<Type> sharedPtr1 = sharedPtr;
 	
 	// Invalid - there is no default.
@@ -713,20 +780,54 @@ void function(){
 
 
 \paragraph{}
-Clearly, the aim is to minimise the syntax required to instantiate an object on the heap, while maximising the available options for how to manage the memory. Garbage collection is also available, using a conservative collector\footnote{Meaning that it doesn't need to move memory, which would be difficult to do at the level of C.}, and this is generally a good choice for allocating POD\footnote{Plain Old Data} types such as vectors, strings, trees etc.
+Design decisions for new memory management methods were made in consideration of the fundamental aim to minimise the syntax required to instantiate an object on the heap, while maximising the available options for how to manage the memory. As the sample code shows, there is no default allocation method. The design perspective is that the lack of a default forces the programmer to consider how objects are to be allocated.
 
 \paragraph{}
-The lack of a default also forces the programmer to think about how objects are to be allocated. C++ chooses to use a raw allocation as the basis of the new operator, however this is possibly the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
+In contract, C++ chooses to use a raw allocation as the basis of the new operator, however this is generally the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
 
-\clearpage
+\paragraph{}
+Different memory management methods return different types that are responsible for managing the constraints of that allocation method. `UPtr', `RCPtr' and `SPtr' are types declared in the root namespace that are provided in the standard library.
+
+\subsubsection{Unique Allocation}
+
+\paragraph{}
+While the other allocation methods are relatively complex, the `unique' method is trivial, and returns an object of type `UPtr', that is very similar to C++'s std::auto\_ptr. The key difference is that Loci provides much stronger rules relating to moving objects, so there are no problems with copying or assigning.
+
+\paragraph{}
+The details of moving vs copying is explained in great detail in the `LValues and RValues' section, however the short form description is that while auto\_ptrs have problems when they are copied or assigned\footnote{Since one auto\_ptr must take ownership of the pointer while another loses it, leading to potentially surprising results.}, Loci prevents the problem by disallowing copying (for these cases) and providing moving as a superior alternative.
+
+\paragraph{}
+Unique allocation should generally be used as much as possible as long as it doesn't restrict the developer, since it offers no overhead against a `raw' allocation, and yet will reliably recollect the memory and call the destructor.
+
+\subsubsection{Reference Counting}
+
+\paragraph{}
+Reference counting provides a simple and deterministic way to release memory and call destructors when there are no remaining references to an object on the heap. Unlike garbage collection, which cannot ensure destructors are called, reference counting means destructors are called as soon as the last referring `RCPtr' instance is destroyed.
+
+\paragraph{}
+It does however restrict the developer to passing around `RCPtr' instances that are responsible for incrementing and decrementing the count. Another key limitation of reference counting is the failure to collect cycles; `RCWeakPtr' is provided with the usual `weak' semantics.
+
+\subsubsection{Shared Allocation}
+
+\paragraph{}
+`SPtr' is provided to allow code\footnote{The imagined use case here is libraries, that are often dependent on the choices of the program that links them.} to take advantage of GC where it is available, but falls back to reference counting otherwise. This is typically best for immutable structures such as trees, and performance is usually better when using garbage collection.
+
+\paragraph{}
+This method of allocation is slightly more limited than using `gc' and does not expose a raw pointer that can be freely copied around the program, since this obviously wouldn't work with reference counting. Another restriction is that types must not have destructors, since GC cannot provide any sort of deterministic destruction. Finally, developers must be careful to avoid cycles.
+
+\paragraph{}
+In many ways, therefore, shared allocation suffers from the combined weaknesses of both GC and reference counting. It does, however, allow code that would hope to use garbage collection fall back to reference counting when necessary.
 
 \subsubsection{Garbage Collection}
 
 \paragraph{}
-Finally, Loci will disallow the allocation of an object via garbage collection if it has a destructor. Finalisers could've been used to trigger destructor execution, but they are \emph{not deterministic}, and therefore any actions within the destructor cannot be guaranteed to be executed at a reasonable time\footnote{Unless other methods, such as reference counting, are used, however this defeats the purpose of garbage collection.}.
+Garbage collection may also be available, using a conservative collector\footnote{Meaning that it doesn't need to move memory, which would be difficult to do at the level of C.}, and this is generally a good choice for allocating POD\footnote{Plain Old Data} types such as vectors, strings, trees etc. The availability of garbage collection depends on the standard library build type, so that some applications can choose to not use garbage collection; in such a case the developer will experience linker errors that will make the problem clear.
 
 \paragraph{}
-Normally, anyway, types which might be garbage collected should not require a destructor, since most destructors are simply required for managing memory of the type's member variables. Note also that if the member variables have destructors, then the type itself must also have an auto-generated destructor which will call them.
+As with shared allocation, Loci will disallow the allocation of an object via garbage collection if it has a destructor. Finalisers could've been used to trigger destructor execution, but they are \emph{not deterministic}, and therefore any actions within the destructor cannot be guaranteed to be executed at a reasonable time\footnote{Unless other methods such as reference counting are used as well, however this defeats the purpose of garbage collection.}.
+
+\paragraph{}
+Typically types which might be garbage collected should not require a destructor, since most destructors are required for managing memory of the type's member variables, something that usually becomes unnecessary in the the presence of garbage collection.\footnote{Note that if a type's member variables have destructors, then the type itself will also have an auto-generated destructor which will call them, prohibiting its use with garbage collection.}
 
 \paragraph{}
 However, as with all rules, there may be reasonable exceptions, so a `forcegc' option is provided:
@@ -741,11 +842,11 @@ class Type(int v){
 
 void function(){
 	// Fails to compile - 'Type' has destructor.
-	Type& gcPtr = new<gc> Type(0);
+	Type * gcPtr = new<gc> Type(0);
 	
 	// Succeeds - but probably isn't wise, since 
 	// the destructor will never be called.
-	Type& gcPtr1 = new<forcegc> Type(0);
+	Type * gcPtr1 = new<forcegc> Type(0);
 }
 \end{lstlisting}
 
@@ -764,71 +865,109 @@ What this means for the programmer is that it is possible to easily prevent copi
 L-values can be considered as actual storage locations, on either the heap or the stack. On the other hand, R-values are values `in-transit' and can be captured into an L-value. For example some variable `v' is an L-value, whereas the expression `v + 1' is an R-value.
 
 \paragraph{}
+This section also discusses `nullable objects', which have particularly expressive move semantics.
+
+\paragraph{}
 Here's an example of the move semantics in Loci:
 
 \begin{lstlisting}
-class SomeType(int& p){
+class SomeType(int * p){
 	~SomeType(){
 		// This destructor is only run
 		// if the object is non-empty.
-		delete @p;
+		delete<raw> @p;
 	}
 }
 
 SomeType f(){
 	// Return r-value.
-	return SomeType(new 1);
+	return SomeType(new<raw> 1);
 }
 
-void function(){
+SomeType function(){
 	// Constructor called, and value moved into stack.
 	// (Would be optimised to in-place construction on the stack.)
 	SomeType a = SomeType(new<raw> 2);
 	
-	SomeType b = SomeType(new<raw> 3);
+	// Nullable type.
+	SomeType? b = SomeType(new<raw> 3);
 	
 	// Existing value in 'a' destroyed (destructor called),
-	// value in 'b' moved into 'a', and 'b' is now left
-	// empty (i.e. b == null).
-	a = #(b);
+	// value in 'b' moved into 'a', and 'b' is now left empty.
+	a = extract b;
 	
-	// R-Value returned from 'f' moved into 'b', which is now
-	// non-empty.
-	b := f();
+	// Again, the value in 'a' is destroyed, and replaced
+	// with the r-value result of calling function 'f'.
+	a = f();
+	
+	// Invalid - 'a' does not have a nullable type.
+	cast<void>(extract a);
+	
+	// This will (typically) trigger an exception,
+	// since the variable 'b' is empty.
+	b.method();
+	
+	// R-Value returned from 'f' moved into empty lvalue 'b',
+	// which then becomes non-empty.
+	b = f();
+	
+	// This is only allowed if the compiler can statically
+	// determine that the lvalue 'a' is being destroyed as
+	// this point, and therefore can legitimately be cast
+	// to an rvalue and returned instead.
+	return a;
 }
 \end{lstlisting}
 
 
-\paragraph{}
-Firstly, it is important to explain that, as mentioned above, a variable (L-value) `v' of a class type can be empty, in which case the comparison `v == null' is true (and otherwise it is false; the comparison is always valid to perform). Calling any methods on an empty object will throw an exception, and no destructor is called on an empty object.
+\subsubsection{Nullable Types}
 
 \paragraph{}
-The example shows the assignment statement of the form `v = expr;', in which the current value in `v' is destroyed, so `v' cannot be empty, and the R-value `expr' is moved into `v'. It also shows the move statement `v := expr;', which is equivalent to assignment but does not destroy the current value in `v' and therefore requires that it is currently empty.
+Loci has built-in support for `nullable' types, denoted by a question mark following the type name, which can be set to null, or compared with null, and also filled with non-null values of that type. Null objects can also be obtained by giving a nullable L-value a non-null value, and then extracting that value (with `extract').
 
 \paragraph{}
-Finally, the extraction operator \# causes the value within an L-value to be extracted, turning it into an R-value, and making the L-value empty. The extraction operator can therefore be seen as the opposite of the move statement, and the assignment statement is a combination of both:
+The results of calling a method on a null object or casting it to a non-nullable type are defined to be throwing an exception of type `EmptyObjectException', but compilers are also allowed (and encouraged) to detect errors of this kind statically if possible and hence produce compile-time errors.
 
+\paragraph{}
+`extract' is the extraction operator, which causes the value within a nullable L-value to be extracted, turning it into a (nullable) R-value, and making the L-value empty. Extracting a nullable L-value that already has a null value is valid, and simply produces a null R-value\footnote{Therefore, extracted R-values are of `nullable' type themselves.}. For example:
 
 \begin{lstlisting}
-void function(){
-	SomeType a = SomeType(new<raw> 2);
+void f(){
+	ObjectType? a = null;
+	ObjectType? b = extract a;
 	
-	// Can do...
-	a = SomeType(new<raw> 3);
-	
-	// Which is actually equivalent to...
-	#(a); // Destroy value in 'a'.
-	a := SomeType(new<raw> 3); // Insert value into 'a'.
+	assert(a == null);
+	assert(b == null);
 }
 \end{lstlisting}
 
+\paragraph{}
+Note that if an R-value is not captured into an L-value then it will be destroyed at the end of the statement, so extract can be used to destroy the value in a nullable L-value.
 
 \paragraph{}
-Note that if an R-value is not captured into an L-value then it will be destroyed at the end of the statement.
+There is also the assignment statement of the form `v = expr;', in which the current value in L-value `v' is destroyed, and the R-value `expr' is moved into `v'. However, if there is no value currently in the lvalue prior to the assignment, then the destructor will not be called, as developers would expect.
 
 \paragraph{}
-This code shows the move semantics applied to a type `SomeType', for which the user has specified no special methods. In C++, such code would require defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
+Nullable types are built-in for a number of reasons, but most significantly because they depend on providing special behaviour the assignment statement. Unlike C++, Loci does not provide operator overloading for assignment, since the assignment operation behaviour is auto-generated outside of the object, and developers should find this behaviour much easier to handle.
 
+\subsubsection{Non-nullable Types}
+
+\paragraph{}
+Without resorting to unsafe operators, non-nullable objects are considerably more limited than nullable objects. One limitation is that the extraction operator cannot be applied to non-nullable types, since doing so would put the objects in a undefined state and `extract' is a safe operator (unsafe operators are described later). Furthermore, non-nullable objects cannot be set or compared with null.
+
+\paragraph{}
+For this loss of functionality there is, however, a gain in speed since all checks are eliminated, and a reduction in size since nullable objects must have an extra field indicating whether they are null. Also, assignment is valid for non-nullable objects, and will always call the destructor of the L-value (since it cannot be null) and move the R-value into the L-value.
+
+\subsubsection{Compared to C++}
+
+\paragraph{}
+This previous code showed the move semantics applied to a type `SomeType', for which the user has specified no special methods. In fact, `SomeType' is almost the complete implementation of `UPtr'\footnote{It is missing a trivial `Default' constructor implementation.}.
+
+\paragraph{}
+Additionally, the developer writing the class doesn't need to worry to about objects having a null state, since nullable types provide this, reliably and automatically producing the correct code for assignment and extraction.
+
+\paragraph{}
+In contract, the equivalent code in C++ would require manually defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
 
 \begin{lstlisting}
 // This is C++ code!
@@ -879,6 +1018,16 @@ Clearly, C++ requires a large amount of code to produce similar semantics; Loci 
 
 \clearpage
 
+\subsection{Unsafe Move Operators}
+
+\paragraph{}
+The previous section discusses how to safely move objects.
+
+\paragraph{}
+TODO
+
+\clearpage
+
 \subsection{Vector Types}
 
 \paragraph{}
@@ -887,9 +1036,9 @@ Loci supports SIMD operations directly through the use of vector types, allowing
 
 \begin{lstlisting}
 void function(){
-	int[4] a = {0, 1, 2, 3};
-	int[4] b = {5, 6, 7, 8};
-	int[4] c = a + b;
+	int!4 a = {0, 1, 2, 3};
+	int!4 b = {5, 6, 7, 8};
+	int!4 c = a + b;
 	
 	// The resulting values.
 	assert(c[0] == 5);
@@ -906,11 +1055,11 @@ The ternary operator also provides some interesting behaviour for vectorised typ
 
 \begin{lstlisting}
 void function(){
-	int[4] a = {0, 1, 2, 3};
-	int[4] b = {4, 5, 6, 7};
-	bool[4] c = {true, false, true, false}
+	int!4 a = {0, 1, 2, 3};
+	int!4 b = {4, 5, 6, 7};
+	bool!4 c = {true, false, true, false}
 	
-	int[4] d = c ? a : b;
+	int!4 d = c ? a : b;
 	
 	// The resulting values.
 	assert(d[0] == 0);
@@ -919,42 +1068,6 @@ void function(){
 	assert(d[3] == 7);
 }
 \end{lstlisting}
-
-
-\clearpage
-
-\subsection{Primitive Syntactic Sugar}
-
-\paragraph{}
-The C standard library provides some basic mathematical routines to perform simple operations:
-
-
-\begin{lstlisting}
-void function(){
-	float a = -1.5;
-	float b = fabs(a);
-	float c = floor(b);
-	float d = sqrt(c);
-}
-\end{lstlisting}
-
-
-\paragraph{}
-Through the compatibility with C, these routines clearly remain available in Loci, however some syntactic sugar is provided to make it slightly cleaner to express these operations:
-
-
-\begin{lstlisting}
-void function(){
-	float a = -1.5;
-	float b = a.abs();
-	float c = b.floor();
-	float d = c.sqrt();
-}
-\end{lstlisting}
-
-
-\paragraph{}
-These modifications turn the primitive types into object types, although the implementation is identical to C. While these syntactic changes are fairly trivial, this is very helpful for expressing the capabilities of a type in templates (discussed later).
 
 \clearpage
 
@@ -965,14 +1078,14 @@ Functional languages such as ML and Haskell provide algebraic data types as a me
 
 
 \begin{lstlisting}
-data BinaryTree{
-	data Leaf(int v){
+datatype BinaryTree{
+	Leaf(int v){
 		String toString(){
 			return "Leaf(" + @v.toString() + ")";
 		}
 	}
 	
-	data Node(BinaryTree& left, BinaryTree& right){
+	Node(BinaryTree& left, BinaryTree& right){
 		String toString(){
 			return "Node(" + @left.toString() +
 				", " + @right.toString() + ")";
@@ -986,36 +1099,48 @@ data BinaryTree{
 In this case, a binary tree element is either a Leaf which contains only an integer value, or a Node that contains two trees as its left and right children.
 
 \paragraph{}
-It is common to need to describe such types when handling lots of data (for example, building ASTs in a compiler), and also in general programming. Expressing similar structures in C or C++ requires the combination of enums, unions and structs, and furthermore unions and class types interact poorly in C++.
+It is common to need to describe such types when handling lots of data (for example, building ASTs in a compiler), and also in general programming. Expressing similar structures in C or C++ requires the combination of enums, unions and structs, and furthermore unions and class types interact poorly in C++, as they do in Loci:
+
+\begin{lstlisting}
+// This is C++ code.
+
+// Invalid - compiler can't know whether
+// to call destructor for std::string.
+// In Loci the problem is exactly the
+// same, so objects cannot be in unions.
+union UnionType{
+	int i;
+	std::string s;
+};
+\end{lstlisting}
 
 \paragraph{}
-Defining the structure isn't useful alone, so Loci introduces the `typeswitch' statement:
+Defining the structure isn't useful alone, and Loci expands on the existing `switch' statement to allow accessing and handling the contents of a data type.
 
 
 \begin{lstlisting}
 int getLeftMostValue(const BinaryTree& tree){
-	typeswitch(tree){
-		case BinaryTree:Leaf(int v){
+	switch(tree){
+		case Leaf(int v){
 			return v;
 		}
-		case BinaryTree:Node(BinaryTree& left, _){
+		case Node(BinaryTree& left, _){
 			return getLeftMostValue(left);
 		}
 	}
 }
 \end{lstlisting}
 
-
 \paragraph{}
-The underscore character indicates an unused field of the data type.
+Note that the underscore character indicates an unused field of the data type.
 
 \paragraph{}
 This statement has some specific semantics:
 
 \begin{enumerate}
 \item The sub-types (in this case, `Leaf' and `Node') in the switch statement must be the complete set of sub-types within the parent type (`BinaryTree'); if any types are missed, compilation fails. However unspecified sub-types can be handled using a `default' entry.
-\item Case statements can capture values within the data types. In the example the value in the leaf is captured so it can be printed to the command line.
-\item No `break' statement is required to exit the typeswitch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
+\item Case statements can capture L-values within the data types. In the example the value in the leaf is captured so it can be printed to the command line.
+\item No `break' statement is required to exit the switch, since this is almost always the desired behaviour and therefore requiring it is tedious for the programmer\footnote{Also, the behaviour is unintuitive for developers who are new to C-style languages.}. However, `continue' can be used to provide the behaviour of moving to the next case if desired.
 \end{enumerate}
 
 \clearpage
@@ -1050,20 +1175,20 @@ Loci supports operator overloading as a useful way to provide a clean syntax for
 
 
 \begin{lstlisting}
-class A{
-	bool lessThan(const A&) const;
-	A opPlus(const A&) const;
-	A opMinus(const A&) const;
+interface A{
+	int compare(const A&) const;
+	A add(const A&) const;
+	A substract(const A&) const;
 };
 
-class IntArray{
+interface IntArray{
 	int indexGet(size_t index);
 	void indexSet(size_t index, int value);
 };
 
 void function(const A& a0, const A& a1, IntArray& array){
 	// All following pairs are equivalent...
-	bool compare = a0.lessThan(a1);
+	bool compare = a0.compare(a1) < 0;
 	bool compare = a0 < a1;
 	
 	A a2 = a0.opPlus(a1);
@@ -1080,6 +1205,11 @@ void function(const A& a0, const A& a1, IntArray& array){
 }
 \end{lstlisting}
 
+\paragraph{}
+Of particular interest is the `compare' method, which is an alternative to defining each of the comparison operators individually. Instead, developers just implement this single method which uses a negative, zero or positive integer to indicate (respectively) whether the left value is less than, equal to, or greater than the right value.
+
+\paragraph{}
+This functionality can avoid double comparisons (i.e. two applications of the less-than operator with left and right values swapped) inside container types (and other relevant functions/types), which is particularly beneficial for objects that may be expensive to compare, such as strings.
 
 \clearpage
 
@@ -1158,20 +1288,31 @@ Based on an assessment of the implementations of exceptions in languages such as
 
 
 \begin{lstlisting}
-exception A(String what);
-exception B(String what, int i) : A(what);
+interface AbstractException{
+	std::string what() const;
+}
+
+class RealException(std::string what, int i){
+	static Default(std::string what, int i){
+		return @(what, i);
+	}
+
+	std::string what() const{
+		return @what;
+	}
+}
 
 void f(int i){
 	if(i < 0){
-		throw B("Function 'f' passed negative value.", i);
+		throw RealException("Function 'f' passed negative value.", i);
 	}
 }
 
 String caller(){
 	try{
 		f(-1);
-	}catch(A a){
-		String reason = a.what;
+	}catch(const AbstractException& exception){
+		std::string reason = exception.what();
 		//...
 	}
 }
@@ -1310,11 +1451,11 @@ void caller(){
 \subsection{Templates}
 
 \paragraph{}
-Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things).
-
+Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things). The syntax is slightly simpler than C++:
 
 \begin{lstlisting}
-class Class<type T>(T v){ }
+template <T>
+class Class(T v){ }
 \end{lstlisting}
 
 
@@ -1325,31 +1466,37 @@ Loci allows type properties to be expressed through the use of interfaces. For e
 
 
 \begin{lstlisting}
-interface Comparable<type T>{
+template <T>
+interface Comparable{
 	ConstructFromInt(int i);
 
-	bool lessThan(const T& v) const;
+	int compare(const T& v) const;
 }
 
-class Class<type T: Comparable<T>>(T v0, T v1){
-	bool compare(){
-		return v0 < v1;
+template <T: Comparable<T>>
+class Class(T v0, T v1){
+	static Default(T v0, T v1){
+		return @(v0, v1);
+	}
+
+	bool lessThan() const{
+		return @v0 < @v1;
 	}
 };
 \end{lstlisting}
 
 
 \paragraph{}
-The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and less-than operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself.
+The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and comparison operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself outside of a template.
 
 \paragraph{}
-Since primitive types are modelled as objects, even if their implementation is identical to C, they can also be used in templated types:
+Since primitive types are modelled as objects, even with their implementation being identical to C, they can also be used as template parameters:
 
 
 \begin{lstlisting}
 void function(){
 	Class<int> cInt(1, 2);
-	assert(cInt.compare());
+	assert(cInt.lessThan());
 }
 \end{lstlisting}
 
@@ -1372,22 +1519,89 @@ Class<StructType *> cSPtr;
 
 
 \paragraph{}
-In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to perform a heap allocation.} for primitive types, which is potentially very slow, so it's possible to instruct the compiler to create particular instances of a class, using code such as the following:
+In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to perform a heap allocation.} for primitive types, which is potentially slow, so it's possible to instruct the compiler to create particular instances of a templated class or function, using code such as the following\footnote{Which is essentially identical to the C++ syntax for explicit instantiation.}:
 
 
 \begin{lstlisting}
-instance Class<int>;
-instance Class<float>;
+template class Class<int>;
+template class Class<float>;
 
 struct StructType{ int a; float b; };
-instance Class<StructType>;
+template class Class<StructType>;
 
-instance Class<StructType *>;
+template class Class<StructType *>;
 \end{lstlisting}
 
 
 \paragraph{}
-This then creates the generic version of the class by default, but if the type is int, float, T or T*, the corresponding specialised (and therefore presumably faster) type is used.
+This then creates the generic version of the class by default, but if the type is int, float, StructType or StructType*, the corresponding specialised (and therefore presumably faster) type is used. There's also a lot of capacity implementation-wise for compilers to improve the performance without breaking the functionality.
+
+\clearpage
+
+\subsection{Namespace Versions}
+
+\paragraph{}
+One of the primary goals of Loci is to be an excellent language for providing and using APIs, by ensuring that generated code is compatible across platforms and compilers (or if it is not compatible, fails with a clear error as early as possible).
+
+\paragraph{}
+Namespace versions are a fairly novel feature in Loci that aim to make it easy for developers to release multiple versions of their API, and to eliminate old versions and produce clear error messages for code that is still using now unavailable APIs.
+
+\paragraph{}
+For example, a library may change its method names, which would give errors indicating to the user of the library that they are calling a non-existent method. Ideally, though, the compiler (or linker) could produce an error indicating that the user of the library is using a non-existent API version, or even better, an outdated version.
+
+\paragraph{}
+Furthermore, there are other issues with contending versions of libraries, such as changes to internal implementations. Consider, for example, that a program `P' depends on a library `L'. Both P and L also depend on a library `S'.
+
+\paragraph{}
+If P and L use different versions of S (most likely in different shared libraries), they must not pass instances of classes from S between each other, in case the wrong methods are run on a particular instance. Even worse, one version of S may override the other in the dynamic symbol table.
+
+\paragraph{}
+Namespace versions offer a solution to these problems:
+
+\begin{lstlisting}
+namespace Library{
+	class ObjectType{ };
+}
+
+namespace Library[a_version_string_100]{
+	class ObjectType{ };
+}
+\end{lstlisting}
+
+\paragraph{}
+The first namespace declaration has an implicit version of the empty string, whereas the second has the explicit version ``a\_version\_string\_100". Client code can then use specific versions like so:
+
+\begin{lstlisting}
+Library::ObjectType f();
+
+Library[a_version_string_100]::ObjectType g();
+\end{lstlisting}
+
+\paragraph{}
+But this is slightly awkward, so a version other than the empty string can be selected to be default within a single module for a particular namespace:
+
+\begin{lstlisting}
+using Library[a_version_string_100]
+
+// Now the empty string version has to be explicit.
+Library[]::ObjectType f();
+
+// Now equivalent to 'Library[a_version_string_100]::ObjectType g();'.
+Library::ObjectType g();
+\end{lstlisting}
+
+\paragraph{}
+The names of symbols within namespaces with different versions are clearly transformed/mangled to differ from each other, ensuring that multiple versions can co-exist.
+
+\paragraph{}
+Versions can also be removed:
+
+\begin{lstlisting}
+namespace Library[old_version] = null;
+\end{lstlisting}
+
+\paragraph{}
+In this case, clients of the library will be informed that the version ``old\_version" has been removed.
 
 \clearpage
 
