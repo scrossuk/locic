@@ -1018,13 +1018,97 @@ Clearly, C++ requires a large amount of code to produce similar semantics; Loci 
 
 \clearpage
 
-\subsection{Unsafe Move Operators}
+\subsection{Unsafe Move Operations}
 
 \paragraph{}
-The previous section discusses how to safely move objects.
+The previous section discusses how to safely move objects, but there are cases where it's necessary to use unsafe operations. A good example is an array class in which, from the point of view of the client of the class, objects are never empty and safe move semantics are followed strictly.
 
 \paragraph{}
-TODO
+However, internally an array class will allocate memory to store the objects, and after the initial allocation the objects within the array are in an `undefined state'\footnote{The Loci standard library memory allocator `std::alloc' initialises all allocated memory to zero by default, but objects are only in a defined state if their constructors have been run.}. This means that running a method on an object before it has been initialised properly can lead to undefined results that depend on the structure of the class and the method called.
+
+\paragraph{}
+After allocating the memory, the array will move R-values given to it into the memory allocated using an unsafe operator. Here's an example:
+
+\begin{lstlisting}
+// Admittedly this implementation is of low quality, but it is simple.
+class ObjectArray(size_t size, ObjectType * memory){
+	static Default(){
+		return @(0, NULL);
+	}
+	
+	void push_back(ObjectType object){
+		@size++;
+		const size_t lastIndex = @size - 1;
+		@memory = reinterpret_cast<ObjectType *>(std::realloc(@memory, @size));
+		
+		// Note that the compiler must be able to
+		// conclude that the L-value 'object' can
+		// be safely automatically extracted.
+		new<unsafe>(@memory[lastIndex]) object;
+	}
+	
+	void pop_back(){
+		const size_t lastIndex = @size - 1;
+		@size--;
+		delete<unsafe>(@memory[@lastIndex]);
+	}
+	
+	// A non-standard method to demonstrate.
+	ObjectType pop_back_and_return(){
+		const size_t lastIndex = @size - 1;
+		@size--;
+		return extract<unsafe>(@memory[lastIndex]);
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+As you can see, the `new', `delete' and `extract' operations all have unsafe forms.
+
+\subsubsection{new}
+
+\paragraph{}
+The unsafe form of `new' moves the R-value given to it into the L-value reference given to it, but never calls the destructor on the reference, unlike the safe assignment operation `v = expr;'. It therefore has some similarity to a memcpy:
+
+\begin{lstlisting}
+void f(ObjectType object, ObjectType * memory){
+	// This...
+	new<unsafe>(@memory[0]) object;
+	
+	// ...would be equivalent to this...
+	memcpy(&@memory[0], &object, sizeof(ObjectType));
+	
+	// ...except that the destructor for 'object'
+	// will be run at the end of this function.
+}
+\end{lstlisting}
+
+\paragraph{}
+This example shows that using memcpy will fail to prevent local variables being destroyed; it would work correctly if copying between two allocated blocks of memory, assuming that objects owning those memory blocks knew to not call their destructors.
+
+\subsubsection{delete}
+
+\paragraph{}
+The unsafe form of `delete' calls the destructor, providing the reference given to it as the `this' pointer that the destructor is intended to destroy. After the destructor has run, the memory is written to zeroes\footnote{Although it should be possible to disable this behaviour via compiler options if needed.}.
+
+\paragraph{}
+This operation returns no value (i.e. `void'), since the value at the reference given is now destroyed.
+
+\subsubsection{extract}
+
+\paragraph{}
+`extract', in this case, is again very closely related to a memcpy in the opposite direction (from the heap to the stack), but memcpy would effectively have the opposite problem as with `new'; any stack objects used would have to be constructed, and copying into them would erase that previous instance without properly destroying it.
+
+\paragraph{}
+The behaviour is very simply: unsafe `extract' copies the data from the reference given to the stack as an R-value, and then writes zeroes to the memory block\footnote{Again, this behaviour can be disabled.}.
+
+\subsubsection{Debugging}
+
+\paragraph{}
+Clearly code isn't written perfectly the first time, so it's likely that errors are made when using the unsafe operations. If the errors are not detected, they could lead to surprisingly results in the program or visible problems long after the actual error occurred.
+
+\paragraph{}
+Hence if a compiler is compiling in debug mode it should add an internal field to each object, that indicates whether that object contains a value (a zero value indicating it is empty); this enables the compiler to generate run-time checks to ensure that the unsafe operations are used correctly.
 
 \clearpage
 
