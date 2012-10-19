@@ -253,7 +253,7 @@ void function(){
 	int * intPtr = malloc(sizeof(int));
 	
 	// Valid.
-	int * intPtr = pointer_cast<int *>(malloc(sizeof(int)));
+	int * intPtr = reinterpret_cast<int *>(malloc(sizeof(int)));
 	
 	
 }
@@ -261,7 +261,7 @@ void function(){
 
 
 \paragraph{}
-In this case, the intention is to make it clear to a reader when values are being cast to fundamentally different types (such as an integer and a floating point value). The `cast' operator supports legal implicit and explicit casts, whereas the `pointer\_cast' operator allows casts between pointers whose target types (i.e. the type being pointed-to) are different.
+In this case, the intention is to make it clear to a reader when values are being cast to fundamentally different types (such as an integer and a floating point value). The `cast' operator supports legal implicit and explicit casts, whereas the `reinterpret\_cast' operator allows casts between pointers whose target types (i.e. the type being pointed-to) are different.
 
 \clearpage
 
@@ -288,17 +288,16 @@ int (*f)(); // C
 int (*)() f; // Loci
 
 int (*f)(int, int); // C
-int (*)(int, int) f; // Loci
+*(int)(int, int) f; // Loci
 \end{lstlisting}
 
 
 \paragraph{}
 Similarly, typedefs are much clearer in Loci:
 
-
 \begin{lstlisting}
-typedef A (*B)(C c); // C
-typedef A (*)(C) B; // Loci
+typedef ReturnType (*NewName)(ParamType param); // C
+typedef *(ReturnType)(ParamType) NewName; // Loci
 \end{lstlisting}
 
 
@@ -517,7 +516,7 @@ Here's a declaration of the Bucket class:
 
 \begin{lstlisting}
 class Bucket{
-	static Default(int v);
+	static Default(bool b, int v);
 
 	bool containsValue() const;
 	
@@ -560,24 +559,226 @@ void function(){
 
 
 \paragraph{}
-Loci also supports defining empty objects through an implicit cast from `null\_t' to any `nullable' object type. Hence it is possible to do:
-
+Custom types can also define a `null' constructor that essentially forms an implicit cast from `null\_t':
 
 \begin{lstlisting}
+class NullableCustomType{
+	static Null();
+}
+
+class NonNullableCustomType{ }
+
 void function(){
-	ObjectType? object = null;
+	// Implicitly calls 'NullableCustomType::Null()'.
+	NullableCustomType nullableValue = null;
 	
-	// This will throw an exception.
-	object.method();
-	
-	// Also supports primitive types.
-	int? i = null;
+	// Invalid - compiler can't find the function
+	// 'NonNullableCustomType::Null()'.
+	NonNullableCustomType nonNullableValue = null;
 }
 \end{lstlisting}
 
+\clearpage
+
+\subsection{Const}
 
 \paragraph{}
-Note that the Bucket type is not a pointer type, but is indeed a value type. The syntax and semantics for handling empty objects is explained in the `L-values and R-values' section.
+The `const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides `const', but with syntactic and semantic changes.
+
+\subsubsection{Transitivity}
+
+\paragraph{}
+`const' is transitive in Loci, meaning that marking pointers or references as const also requires that the data they point to is marked const. This is embodied in a much cleaner and simpler syntax for denoting `const':
+
+\begin{lstlisting}
+// Valid.
+const int ** pointerToPointerToConstInt;
+const(int) ** pointerToPointerToConstInt;
+const(int *) * pointerToConstPointerToConstInt;
+const(int **) constPointerToConstPointerToConstInt;
+
+// Invalid.
+int const ** p;
+int * const * p;
+int ** const p;
+\end{lstlisting}
+
+\subsubsection{Logical Const}
+
+\paragraph{}
+Loci provides `const' to mark data as logically constant, which means that the fundamental memory contents of `const' objects may vary, as long as there is no change to the external behaviour of the object. ``No change to the external behaviour" means the following two functions `function' should be equivalent, and any transformation between them is valid:
+
+\begin{lstlisting}
+void f(const Type& value);
+void g(const Type& value);
+
+void function(){
+	const Type var = SOME_EXPR;
+	f(var;
+	g(var);
+}
+
+void function(){
+	const Type var = SOME_EXPR;
+	const Type tmpVar = _copy_of_var_;
+	f(var);
+	g(tmpVar);
+}
+\end{lstlisting}
+
+\paragraph{}
+Here `\_copy\_of\_var\_' means a simple byte-for-byte copy of variable `var' that does not involve invoking a `copy' method, and furthermore that the destructor for `tmpVar' is not run. Therefore, this effectively means that the second function does not have to reload the value of the variable from memory, since it can assume that it has not changed.
+
+\paragraph{}
+Compilers are allowed to optimise\footnote{Note also that optimisations can only be performed where the compiler can prove that it has the only (const) reference to an object, otherwise other parts of the program may have non-const references to the object and thereby modify it in parallel, or as part of, the execution of the function with the const reference.} based on the validity of this transformation. This optimisation requires that `f' and `g' operate within type rules and don't use `const\_cast', and this is a requirement that the developer must follow. Consider, for example:
+
+\begin{lstlisting}
+void unknownStringOperation(const(char *) string);
+void printSize(size_t size);
+void printStringLength(const(char *) string){
+	size_t length = 0;
+	const char * ptr = string;
+	while(*ptr != 0x00){
+		length++;
+		ptr++;
+	}
+	printSize(length);
+}
+
+void function(){
+	// Prefix 'C' means 'C string'; this is explained later.
+	const(char *) string = C"This is a string";
+	unknownStringOperation(string);
+	printStringLength(string);
+}
+\end{lstlisting}
+
+\paragraph{}
+By the above equivalence, the compiler can assume this is equivalent to:
+
+\begin{lstlisting}
+// ... as above ...
+
+void function(){
+	unknownStringOperation(C"This is a string");
+	printStringLength(C"This is a string");
+}
+\end{lstlisting}
+
+\paragraph{}
+Which, in combination with other transformations (such as inlining), leads to the optimised code:
+
+\begin{lstlisting}
+void unknownStringOperation(const(char *) string);
+void printSize(size_t size);
+
+void function(){
+	unknownStringOperation(C"This is a string");
+	printSize(cast<size_t>(16));
+}
+\end{lstlisting}
+
+\subsubsection{Mutable}
+
+\paragraph{}
+As part of `logical const', Loci provides the `mutable' keyword, which allows developers to explicitly ignore const markers if needed:
+
+\begin{lstlisting}
+struct Struct{
+	int normalField;
+	mutable int mutableField;
+};
+
+void function(const Struct& ref){
+	// Invalid - 'normalField' is now const.
+	ref.normalField = 1;
+	
+	// Valid - mutable keyword overrides const.
+	ref.mutableField = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+Following the rules of logical const, `mutable' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations occur based on const, it is important that developers only use `mutable' when absolutely necessary and ensure correctness when it is used.
+
+\paragraph{}
+Of course this means the example given for `mutable' (involving the mutable field of a struct) is an incorrect use, since the field marked as `mutable' is directly accessible to functions `f' and `g'\footnote{Consider the case where `f' modifies the mutable field, and `g' reads it.}.
+
+\paragraph{}
+A good example of its correct use would be in a reference counting smart pointer class, in which the reference count field can (and should) be marked as `mutable'. Considering the transformation above once again, it doesn't matter whether `f' modifies the reference count\footnote{It could, for example, create a copy of the smart pointer and store it somewhere, increasing the reference count.}, because `g' only depends on a count greater than 0 (and the reference counting invariant is intended to ensure that is always true until the last smart pointer object is destroyed).
+
+\paragraph{}
+Marking class member variable mutexes as `mutable' is another example of a good use of the keyword, since `lock' and `unlock' methods modify the external behaviour of the mutex\footnote{Consider calling `lock' twice in a row, without calling `unlock'.} and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
+
+\begin{lstlisting}
+class Mutex{
+	void lock();
+	void unlock();
+}
+
+class Lock(Mutex& mutex){
+	static Default(Mutex& mutex){
+		mutex.lock();
+		return @(mutex);
+	}
+	
+	~{
+		@mutex.unlock();
+	}
+}
+
+class CustomType(mutable Mutex mutex, Type value){
+	void setValue(Type value){
+		auto lock = Lock(@mutex);
+		@value = value;
+	}
+
+	int getValue() const{
+		// 'Lock' object will call 'lock'
+		// and 'unlock' on the mutex.
+		auto lock = Lock(@mutex);
+		return @value;
+	}
+}
+\end{lstlisting}
+
+\subsubsection{Methods}
+
+\paragraph{}
+Methods can be marked as `const' to indicate they do not modify their owning object, as used above. Here's another example:
+
+\begin{lstlisting}
+class ClassObject{
+	void normalMethod();
+	void constMethod() const;
+}
+
+void f(const ClassObject& object){
+	// Invalid - non-const method cannot
+	// be called on const object.
+	object.normalMethod();
+	
+	// Valid.
+	object.constMethod();
+}
+\end{lstlisting}
+
+\subsubsection{Casting Const Away}
+
+\paragraph{}
+Const can be cast away if needed with `const\_cast', but doing so could be very dangerous, since the compiler may be performing transformations as above. This means that the only valid use for const\_cast is to modify the type of a pointer to support an API that fails to use `const', but it is guaranteed that the API does not modify the object:
+
+\begin{lstlisting}
+void doSomething(int i);
+
+void oldAPI(int * i){
+	doSomething(*i);
+}
+
+void f(const int * i){
+	oldAPI(const_cast<int *>(i));
+}
+\end{lstlisting}
 
 \clearpage
 
@@ -669,14 +870,14 @@ size_t f(const LengthValue& lv){
 }
 
 void function(){
-	String string = "Hello world!";
+	std::string string = "Hello world!";
 	size_t length = f(string);
 }
 \end{lstlisting}
 
 
 \paragraph{}
-String is a standard type, so is designed and implemented prior to the definition of the custom interface `LengthValue', and therefore it would be unlikely that standard library developers would foresee the need to implement that (or a similar) interface. However, structural typing allows the cast from `String\&' to `LengthValue\&' to be made because the types are in fact compatible.
+`std::string' is a standard type, so is designed and implemented prior to the definition of the custom interface `LengthValue', and therefore it would be unlikely that standard library developers would foresee the need to implement that (or a similar) interface. However, structural typing allows the cast from `std::string\&' to `LengthValue\&' to be made because the types are in fact compatible.
 
 \paragraph{}
 As mentioned briefly previously, this functionality works equivalently well with primitive types:
@@ -890,22 +1091,19 @@ SomeType function(){
 	SomeType a = SomeType(new<raw> 2);
 	
 	// Nullable type.
-	SomeType? b = SomeType(new<raw> 3);
+	SomeType? b = ?(SomeType(new<raw> 3));
 	
 	// Existing value in 'a' destroyed (destructor called),
 	// value in 'b' moved into 'a', and 'b' is now left empty.
-	a = extract b;
+	a = b.extract();
 	
 	// Again, the value in 'a' is destroyed, and replaced
 	// with the r-value result of calling function 'f'.
 	a = f();
 	
-	// Invalid - 'a' does not have a nullable type.
-	cast<void>(extract a);
-	
 	// This will (typically) trigger an exception,
 	// since the variable 'b' is empty.
-	b.method();
+	b->method();
 	
 	// R-Value returned from 'f' moved into empty lvalue 'b',
 	// which then becomes non-empty.
@@ -918,6 +1116,11 @@ SomeType function(){
 	return a;
 }
 \end{lstlisting}
+
+
+\subsubsection{Extracting L-Values}
+
+\paragraph{}
 
 
 \subsubsection{Nullable Types}
@@ -1293,7 +1496,7 @@ void function(const A& a0, const A& a1, IntArray& array){
 Of particular interest is the `compare' method, which is an alternative to defining each of the comparison operators individually. Instead, developers just implement this single method which uses a negative, zero or positive integer to indicate (respectively) whether the left value is less than, equal to, or greater than the right value.
 
 \paragraph{}
-This functionality can avoid double comparisons (i.e. two applications of the less-than operator with left and right values swapped) inside container types (and other relevant functions/types), which is particularly beneficial for objects that may be expensive to compare, such as strings.
+This functionality can avoid double comparisons (i.e. two applications of the less-than operator with left and right values swapped) inside container types (and other relevant functions/types). This is particularly beneficial for objects that may be expensive to compare, such as strings and memory blocks, but for which a single comparison can identify whether a value is less than, equal to, or greater than another value.
 
 \clearpage
 
@@ -1773,7 +1976,43 @@ This example shows the creation of a 3-tuple, returning it from a function, and 
 \chapter{Implementation}
 
 \paragraph{}
-This section discusses the implementations of the features explained above; each feature was designed and considered on the basis on the ease and efficiency of its implementation.
+This section discusses the implementations of the features explained above; each feature was designed and considered on the basis on the ease and efficiency of its implementation. It is important that all compilers (and other implementation-related tools) behave exactly as specified in this section, except where it is noted otherwise, since this is vital to maintain compatibility.
+
+\section{Name Mangling}
+
+\paragraph{}
+For the majority of functions and methods, Loci employs a very limited name mangling scheme, making Loci functions easy to call from C or other C-compatible languages. Here's a simple example:
+
+\begin{lstlisting}
+void outerFunction();
+
+namespace OuterNamespace{
+	void middleFunction();
+	
+	namespace InnerNamespace{
+		void innerFunction();
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+This code is exactly to the following C code \footnote{Which is also valid Loci code, again expressing exactly the same thing.}:
+
+\begin{lstlisting}
+void outerFunction();
+
+void OuterNamespace__middleFunction();
+
+void OuterNamespace__InnerNamespace__innerFunction();
+\end{lstlisting}
+
+\paragraph{}
+Hence the mangling scheme for functions/methods within namespaces/classes, is to concatenate their names with the separator `\_\_'.
+
+\section{Primitive Objects}
+
+\paragraph{}
+As described in detail in the design section, Loci provides functionality allowing 
 
 \section{Empty Objects}
 
@@ -1819,6 +2058,23 @@ The decision not to include inheritance was not made based on whether developers
 
 \paragraph{}
 Any feature added must be integrated into the language, so that it is defined how it interacts with other parts of the language, and may imply a significant amount of effort on the part of the implementor(s).
+
+\cleardoublepage
+
+\chapter{Other Languages}
+
+\paragraph{}
+While the rest of this document briefly compares Loci to other programming languages, this section goes into much more detail. Some languages are named and considered individually, since they are closely related to the target area of Loci, while more `distant' languages are considered in groups.
+
+\section{C}
+
+\paragraph{}
+
+
+\section{C++}
+
+\paragraph{}
+
 
 \cleardoublepage
 

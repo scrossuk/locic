@@ -1,84 +1,19 @@
+int printf(const char * str, ...);
 
-ClassExample buildExample(){
-	return ClassExample();
-}
-
-/*class SomeClass{
-	auto Make();
-
-	int doSomething();
-};*/
-
-class ClassExample(int a, int b){
-	static Default(){
-		return ClassExample::Blah();
-	}
-
-	static Blah(){ return buildExample(); }
-
-	static Constructor(){
-		return buildExample();
-	}
-
-	int function(){
-		//Object obj = Object();
-		buildExample();
-		return f(@a, @b);
-	}
-}
-
-int printf(const char * n, ...);
-
-namespace Namespace{
-	namespace NS2{
-		class ClassExample(){
-			int function(){
-				return f(1, 2);
-			}
-		}
-	}
+class TestClass{
+	static Default();
 	
-	namespace Some{ namespace Amazing{ int function(){ return 0; } } }
-	
-	void g(ClassExample * e){
-		ClassExample::function(e);
-		e->function();
-	}
-	
-	int f(int a, int b){
-		return a + b + ::Some::Amazing::function(a % b);
-	}
-}
-
-struct Blah{
-	int a;
-	int b;
+	int getValue();
 };
-
-int f(int p1, int p2){
-	//auto str = "str"C;
-	auto a = ClassExample::Blah();
-	auto b = buildExample().function;
-	while(b() > 0){
-		
-	}
-	return a.function();
-}
-
-int function(int p1, int p2);
-
-int function(int p1, int p2){
-	//auto b = Blah();
-	//b.a = 4;
-	int v = p1 * (p2 + 2);
-	return (p1 + p2) * v;
-}
 
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
+	
+	auto testObject = TestClass();
+	printf("Value: %d\n"C, testObject.getValue());
 	
 	int i = 0;
 	int * j = &i;

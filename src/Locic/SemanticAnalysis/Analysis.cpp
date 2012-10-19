@@ -57,9 +57,27 @@ namespace Locic {
 					new SEM::TypeInstance(ConvertTypeInstanceEnum(astTypeInstance->typeEnum),
 						namespaceContext.getName() + astTypeInstance->name);
 				
-				if(!namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance)){
-					printf("Semantic Analysis Error: type already defined with name '%s'.\n", semTypeInstance->name.toString().c_str());
+				SEM::NamespaceNode node = namespaceContext.getNode(namespaceContext.getName() + astTypeInstance->name);
+				if(node.isNamespace()){
+					printf("Semantic Analysis Error: type name '%s' clashes with existing namespace name.\n", semTypeInstance->name.toString().c_str());
 					return false;
+				}else if(node.isTypeInstance()){
+					// Types can be unified by name at this point.
+					// Later stages will identify whether the types actually match.
+					SEM::TypeInstance * semExistingType = node.getTypeInstance();
+					assert(semExistingType != NULL);
+					if((semExistingType->typeEnum == SEM::TypeInstance::CLASSDECL && semTypeInstance->typeEnum == SEM::TypeInstance::CLASSDEF)
+						|| (semExistingType->typeEnum == SEM::TypeInstance::CLASSDEF && semTypeInstance->typeEnum == SEM::TypeInstance::CLASSDECL)){
+						// Classes decls and definitions can be unified.
+						semExistingType->typeEnum = SEM::TypeInstance::CLASSDEF;
+					}else if(semExistingType->typeEnum != semTypeInstance->typeEnum){
+						printf("Semantic Analysis Error: non-unifiable types share name '%s'.\n", semTypeInstance->name.toString().c_str());
+						return false;
+					}
+				}else{
+					assert(node.isNone() && "Functions shouldn't be added at this point, so anything that isn't a namespace or a type instance should be 'none'");
+					const bool addResult = namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance);
+					assert(addResult && "getNode() returned 'none', so adding type instance must succeed");
 				}
 			}
 			return true;
@@ -74,6 +92,7 @@ namespace Locic {
 		// Fill in type instance structures with member variable information.
 		bool AddTypeMemberVariables(Context& context, AST::TypeInstance * astTypeInstance){
 			SEM::TypeInstance* semTypeInstance = context.getNode(context.getName() + astTypeInstance->name).getTypeInstance();
+			if(semTypeInstance == NULL) printf("error name: %s\n", (context.getName() + astTypeInstance->name).toString().c_str());
 			assert(semTypeInstance != NULL);
 			
 			for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++){

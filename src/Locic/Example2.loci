@@ -1,9 +1,12 @@
 
-namespace Some{
-	namespace Amazing{
-		int function(int p){
-			return p + 1;
-		}
+
+class TestClass(int i){
+	static Default(){
+		return @(1);
+	}
+
+	int getValue(){
+		return @i + 5;
 	}
 }
 

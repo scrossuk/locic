@@ -20,6 +20,7 @@ namespace AST {
 			DEREFERENCE,
 			TERNARY,
 			CAST,
+			INTERNALCONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL
 		} typeEnum;
@@ -50,6 +51,10 @@ namespace AST {
 			Type* targetType;
 			Value* value;
 		} cast;
+		
+		struct {
+			std::vector<Value*> parameters;
+		} internalConstruct;
 		
 		struct {
 			Value* object;
@@ -115,6 +120,12 @@ namespace AST {
 			Value* value = new Value(CAST);
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
+			return value;
+		}
+		
+		inline static Value * InternalConstruct(const std::vector<Value *>& parameters){
+			Value* value = new Value(INTERNALCONSTRUCT);
+			value->internalConstruct.parameters = parameters;
 			return value;
 		}
 		

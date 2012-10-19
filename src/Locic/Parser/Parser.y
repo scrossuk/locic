@@ -29,6 +29,10 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 
 %glr-parser
 
+// Expecting to get two shift/reduce and two reduce/reduce.
+%expect 2
+%expect-rr 2
+
 %lex-param {void * scanner}
 %lex-param {Locic::Parser::Context * parserContext}
 %parse-param {void * scanner}
@@ -428,15 +432,15 @@ typePrecision2:
 	{
 		$$ = ($3)->applyTransitiveConst();
 	}
-	| LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
+	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
 		const bool isMutable = true;
-		$$ = AST::Type::Function(isMutable, $2, *($5));
+		$$ = AST::Type::Function(isMutable, $3, *($6));
 	}
-	| LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
+	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
 	{
 		const bool isMutable = true;
-		$$ = AST::Type::VarArgFunction(isMutable, $2, *($5));
+		$$ = AST::Type::VarArgFunction(isMutable, $3, *($6));
 	}
 	| CONST LROUNDBRACKET error RROUNDBRACKET
 	{
@@ -691,6 +695,10 @@ precision7:
 	| AT NAME
 	{
 		$$ = AST::Value::MemberRef(*($2));
+	}
+	| AT LROUNDBRACKET valueList RROUNDBRACKET
+	{
+		$$ = AST::Value::InternalConstruct(*($3));
 	}
 	| CONSTANT
 	{

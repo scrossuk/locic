@@ -179,6 +179,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			return SEM::Value::Cast(type, val);
 		}
+		case AST::Value::INTERNALCONSTRUCT: {
+			SEM::TypeInstance * thisTypeInstance = context.getThisTypeInstance();
+			assert(false && "Not yet implemented");
+			return NULL;
+		}
 		case AST::Value::MEMBERACCESS: {
 			const std::string memberName = value->memberAccess.memberName;
 		
@@ -324,7 +329,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			}
 		}
 		default:
-			printf("Internal Compiler Error: Unknown AST::Value type enum.\n");
+			assert(false && "Unknown AST::Value type enum");
 			return NULL;
 	}
 }
