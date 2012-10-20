@@ -180,9 +180,39 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			return SEM::Value::Cast(type, val);
 		}
 		case AST::Value::INTERNALCONSTRUCT: {
+			const std::vector<AST::Value *>& astValues = value->internalConstruct.parameters;
+		
 			SEM::TypeInstance * thisTypeInstance = context.getThisTypeInstance();
-			assert(false && "Not yet implemented");
-			return NULL;
+			
+			if(astValues.size() != thisTypeInstance->variables.size()){
+				printf("Semantic Analysis Error: Internal constructor called with wrong number of arguments; received %lu, expected %lu.\n",
+					(unsigned long) astValues.size(), (unsigned long) thisTypeInstance->variables.size());
+				return NULL;
+			}
+			
+			std::vector<SEM::Value *> semValues(astValues.size(), NULL);
+			
+			StringMap<SEM::Var *>::Range range = thisTypeInstance->variables.range();
+			for(; !range.empty(); range.popFront()){
+				SEM::Var * var = range.front().value();
+				const size_t id = var->id;
+				
+				assert(semValues.at(id) == NULL);
+				
+				SEM::Value * semValue = ConvertValue(context, astValues.at(id));
+				if(semValue == NULL) return NULL;
+				
+				SEM::Value * semParam = CastValueToType(semValue, var->type);
+				if(semParam == NULL) return NULL;
+				
+				semValues.at(id) = semParam;
+			}
+			
+			for(size_t i = 0; i < semValues.size(); i++){
+				assert(semValues.at(i) != NULL);
+			}
+			
+			return SEM::Value::InternalConstruct(thisTypeInstance, semValues);
 		}
 		case AST::Value::MEMBERACCESS: {
 			const std::string memberName = value->memberAccess.memberName;

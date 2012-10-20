@@ -15,11 +15,11 @@ namespace SEM{
 			MEMBER
 		} typeEnum;
 		
-		std::size_t id;
+		size_t id;
 		Type * type;
 		TypeInstance * parent;
 		
-		inline Var(TypeEnum e, std::size_t i, Type * t, TypeInstance * p = NULL)
+		inline Var(TypeEnum e, size_t i, Type * t, TypeInstance * p = NULL)
 			: typeEnum(e), id(i), type(t), parent(p){ }
 	};
 

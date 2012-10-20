@@ -459,34 +459,15 @@ class CodeGen {
 				
 				// Classes have a record pointer (holding things like virtual functions)
 				// which is the first member; structs have no such pointer.
-				const std::size_t paramOffset = (typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF) ? 1 : 0;
-			
-				std::vector<llvm::Type*> memberVariables(paramOffset + typeInstance->variables.size(), NULL);
-				
-				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
-					// Add class record pointer.
-					memberVariables.front() = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
-				}
+				std::vector<llvm::Type*> memberVariables(typeInstance->variables.size(), NULL);
 				
 				Locic::StringMap<SEM::Var *>::Range range = typeInstance->variables.range();
 				for(; !range.empty(); range.popFront()){
 					SEM::Var * var = range.front().value();
-					assert(memberVariables.at(paramOffset + var->id) == NULL && "Member variables must not share ids");
-					memberVariables.at(paramOffset + var->id) = genType(var->type);
+					assert(memberVariables.at(var->id) == NULL && "Member variables must not share ids");
+					memberVariables.at(var->id) = genType(var->type);
 				}
 				
-				structType->setBody(memberVariables);
-			}else{
-				// Generating the type for a class declaration, so the size is
-				// currently unknown (and will be known at load-time/run-time).
-				std::vector<llvm::Type *> memberVariables;
-				
-				// Pointer to class record.
-				memberVariables.push_back(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
-				
-				// Zero length array indicates this structure is variable length,
-				// or in other words, currently unknown for this code.
-				memberVariables.push_back(llvm::ArrayType::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), 0));
 				structType->setBody(memberVariables);
 			}
 			
@@ -840,7 +821,7 @@ class CodeGen {
 							assert(!paramVariables_.empty() && "There must be at least one parameter variable (which should contain the 'this' pointer)");
 							llvm::Value * object = paramVariables_.front();
 							
-							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id + 1);
+							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id);
 							
 							if(genLValue){
 								return memberPtr;
@@ -939,6 +920,17 @@ class CodeGen {
 							assert(false && "Unknown type in cast");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
 					}
+				}
+				case SEM::Value::INTERNALCONSTRUCT:
+				{
+					const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
+					
+					llvm::Value * objectValue = llvm::UndefValue::get(genType(value->type));
+					for(size_t i = 0; i < parameters.size(); i++){
+						objectValue = builder_.CreateInsertValue(objectValue, genValue(parameters.at(i)), std::vector<unsigned>(1, i));
+					}
+					
+					return objectValue;
 				}
 				case SEM::Value::MEMBERACCESS:
 				{

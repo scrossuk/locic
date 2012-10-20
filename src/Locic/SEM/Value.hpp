@@ -20,6 +20,7 @@ namespace SEM{
 			DEREF,
 			TERNARY,
 			CAST,
+			INTERNALCONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL,
 			FUNCTIONREF,
@@ -55,6 +56,10 @@ namespace SEM{
 			Type* targetType;
 			Value* value;
 		} cast;
+		
+		struct {
+			std::vector<Value*> parameters;
+		} internalConstruct;
 		
 		struct {
 			Value* object;
@@ -129,6 +134,13 @@ namespace SEM{
 			Value* value = new Value(CAST, targetType);
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
+			return value;
+		}
+		
+		inline static Value * InternalConstruct(TypeInstance * typeInstance, const std::vector<Value *>& parameters){
+			Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance);
+			Value* value = new Value(INTERNALCONSTRUCT, type);
+			value->internalConstruct.parameters = parameters;
 			return value;
 		}
 		

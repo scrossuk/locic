@@ -40,10 +40,6 @@ namespace AST {
 		inline static Function * Def(Type * returnType, const std::string& name, const std::vector<TypeVar*>& parameters, Scope * scope){
 			return new Function(DEFINITION, false, returnType, name, parameters, scope);
 		}
-		
-		inline std::string getFullName() const{
-			return name;
-		}
 	};
 	
 }

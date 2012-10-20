@@ -1,12 +1,12 @@
 
 
-class TestClass(int i){
-	static Default(){
-		return @(1);
+class TestClass(int i, int j){
+	static Default(int v){
+		return @(v, v + 1);
 	}
 
 	int getValue(){
-		return @i + 5;
+		return (@i + 5) * (@j + 2);
 	}
 }
 

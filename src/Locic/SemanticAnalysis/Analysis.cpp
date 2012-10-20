@@ -143,19 +143,21 @@ namespace Locic {
 			SEM::Function * semFunction = ConvertFunctionDecl(context, astFunction);
 			if(semFunction == NULL) return false;
 			
-			SEM::NamespaceNode node = context.getNode(context.getName() + astFunction->name);
+			Name functionName = context.getName() + astFunction->name;
+			
+			SEM::NamespaceNode node = context.getNode(functionName);
 			
 			if(node.isNamespace()){
-				printf("Semantic Analysis Error: function name '%s' clashes with existing namespace name.\n", astFunction->getFullName().c_str());
+				printf("Semantic Analysis Error: function name '%s' clashes with existing namespace name.\n", functionName.toString().c_str());
 				return false;
 			}else if(node.isTypeInstance()){
-				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", astFunction->getFullName().c_str());
+				printf("Semantic Analysis Error: function name '%s' clashes with existing type name.\n", functionName.toString().c_str());
 				return false;
 			}else if(node.isFunction()){
 				SEM::Function * existingFunction = node.getFunction();
 				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
-					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", astFunction->getFullName().c_str());
+					printf("Semantic Analysis Error: declarations of function '%s' don't match.\n", functionName.toString().c_str());
 					return false;
 				}
 				
@@ -163,7 +165,7 @@ namespace Locic {
 				return true;
 			}else{
 				assert(node.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
-				const bool addResult = context.addFunction(context.getName() + astFunction->name, semFunction);
+				const bool addResult = context.addFunction(functionName, semFunction);
 				assert(addResult && "Adding function must succeed, since name has already been looked up and found to be 'none'");
 				return true;
 			}

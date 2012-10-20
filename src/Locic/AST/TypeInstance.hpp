@@ -41,10 +41,6 @@ namespace AST{
 		inline static TypeInstance * Struct(const std::string& name, const std::vector<TypeVar *>& variables){
 			return new TypeInstance(STRUCT, name, variables, std::vector<Function *>());
 		}
-		
-		inline std::string getFullName() const{
-			return name;
-		}
 	};
 
 }
