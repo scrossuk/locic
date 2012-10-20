@@ -6,6 +6,12 @@ class TestClass{
 	int getValue();
 };
 
+interface an_interface{
+	int getValue();
+}
+
+an_interface * getPtr();
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
@@ -14,6 +20,9 @@ int main(int argc, char ** argv){
 	
 	auto testObject = TestClass(argc * 2);
 	printf("Value: %d\n"C, testObject.getValue());
+	
+	an_interface * ptr = getPtr();
+	int value = ptr->getValue();
 	
 	int i = 0;
 	int * j = &i;

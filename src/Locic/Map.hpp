@@ -108,6 +108,10 @@ namespace Locic{
 				return map_.size();
 			}
 			
+			bool empty() const{
+				return map_.empty();
+			}
+			
 			void insertRange(const Range& range){
 				map_.insert(range.begin_, range.end_);
 			}

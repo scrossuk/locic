@@ -77,9 +77,15 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				SEM::TypeInstance * typeInstance = node.getTypeInstance();
 				assert(typeInstance != NULL && "Type instance pointer must not be NULL (as indicated by isTypeInstance() being true)");
 				
+				if(typeInstance->typeEnum == SEM::TypeInstance::INTERFACE){
+					printf("Semantic Analysis Error: Can't construct interface type '%s' (full name: '%s').\n",
+						name.toString().c_str(), typeInstance->name.toString().c_str());
+					return NULL;
+				}
+				
 				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Default").getFunction();
 				if(function == NULL){
-					printf("Semantic Analysis Error: Couldn't find default constructor for type '%s' (full name: %s).\n",
+					printf("Semantic Analysis Error: Couldn't find default constructor for type '%s' (full name: '%s').\n",
 						name.toString().c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}

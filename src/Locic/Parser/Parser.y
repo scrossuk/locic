@@ -401,6 +401,10 @@ typeInstance:
 	{
 		$$ = AST::TypeInstance::Primitive(*($2), *($4));
 	}
+	| INTERFACE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
+	{
+		$$ = AST::TypeInstance::Interface(*($2), *($4));
+	}
 	;
 	
 fullName:

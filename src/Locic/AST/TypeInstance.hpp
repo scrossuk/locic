@@ -12,9 +12,10 @@ namespace AST{
 	struct TypeInstance{
 		enum TypeEnum{
 			PRIMITIVE,
+			STRUCT,
 			CLASSDECL,
 			CLASSDEF,
-			STRUCT
+			INTERFACE
 		} typeEnum;
 		
 		std::string name;
@@ -36,6 +37,10 @@ namespace AST{
 		
 		inline static TypeInstance * ClassDef(const std::string& name, const std::vector<TypeVar *>& variables, const std::vector<Function*>& functions){
 			return new TypeInstance(CLASSDEF, name, variables, functions);
+		}
+		
+		inline static TypeInstance * Interface(const std::string& name, const std::vector<Function*>& functions){
+			return new TypeInstance(INTERFACE, name, std::vector<TypeVar *>(), functions);
 		}
 		
 		inline static TypeInstance * Struct(const std::string& name, const std::vector<TypeVar *>& variables){

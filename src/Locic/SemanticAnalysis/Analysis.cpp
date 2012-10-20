@@ -17,12 +17,14 @@ namespace Locic {
 			switch(typeEnum){
 				case AST::TypeInstance::PRIMITIVE:
 					return SEM::TypeInstance::PRIMITIVE;
+				case AST::TypeInstance::STRUCT:
+					return SEM::TypeInstance::STRUCT;
 				case AST::TypeInstance::CLASSDECL:
 					return SEM::TypeInstance::CLASSDECL;
 				case AST::TypeInstance::CLASSDEF:
 					return SEM::TypeInstance::CLASSDEF;
-				case AST::TypeInstance::STRUCT:
-					return SEM::TypeInstance::STRUCT;
+				case AST::TypeInstance::INTERFACE:
+					return SEM::TypeInstance::INTERFACE;
 				default:
 					assert(false && "Unknown type instance type enum");
 					return SEM::TypeInstance::CLASSDECL;
@@ -92,8 +94,18 @@ namespace Locic {
 		// Fill in type instance structures with member variable information.
 		bool AddTypeMemberVariables(Context& context, AST::TypeInstance * astTypeInstance){
 			SEM::TypeInstance* semTypeInstance = context.getNode(context.getName() + astTypeInstance->name).getTypeInstance();
-			if(semTypeInstance == NULL) printf("error name: %s\n", (context.getName() + astTypeInstance->name).toString().c_str());
 			assert(semTypeInstance != NULL);
+			
+			if(!semTypeInstance->variables.empty()){
+				assert(astTypeInstance->typeEnum == AST::TypeInstance::STRUCT
+					&& "Only structs can be defined with visible member variables twice (and be successfully unified)");
+				return true;
+			}
+			
+			if(astTypeInstance->variables.empty()) return true;
+			
+			assert(astTypeInstance->typeEnum != AST::TypeInstance::PRIMITIVE && astTypeInstance->typeEnum != AST::TypeInstance::INTERFACE
+				&& "Primitives and interfaces cannot have member variables");
 			
 			for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++){
 				AST::TypeVar * typeVar = astTypeInstance->variables.at(i);

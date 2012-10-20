@@ -16,7 +16,8 @@ namespace SEM{
 			PRIMITIVE,
 			STRUCT,
 			CLASSDECL,
-			CLASSDEF
+			CLASSDEF,
+			INTERFACE
 		} typeEnum;
 		
 		Locic::Name name;
