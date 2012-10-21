@@ -235,7 +235,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			SEM::TypeInstance * typeInstance = objectType->namedType.typeInstance;
 			assert(typeInstance != NULL);
 			
-			if(typeInstance->typeEnum == SEM::TypeInstance::STRUCT){
+			if(typeInstance->isStructDef()){
 				// Look for struct variables.
 				Optional<SEM::Var *> varResult = typeInstance->variables.tryGet(memberName);
 				if(varResult.hasValue()){
@@ -253,7 +253,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
-			}else{
+			}else if(typeInstance->isClass() || typeInstance->isPrimitive()){
 				// Look for class methods.
 				Optional<SEM::Function *> functionResult = typeInstance->functions.tryGet(memberName);
 				
@@ -273,6 +273,12 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
+			}else if(typeInstance->isStructDecl()){
+				printf("Semantic Analysis Error: Can't access member '%s' in unspecified struct type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
+				return NULL;
+			}else if(typeInstance->isInterface()){
+				assert(false && "TODO");
+				return NULL;
 			}
 			
 			assert(false && "Invalid switch fallthrough in ConvertValue for member access");

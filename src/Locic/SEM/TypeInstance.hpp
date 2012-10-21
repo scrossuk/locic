@@ -14,7 +14,8 @@ namespace SEM{
 	struct TypeInstance{
 		enum TypeEnum{
 			PRIMITIVE,
-			STRUCT,
+			STRUCTDECL,
+			STRUCTDEF,
 			CLASSDECL,
 			CLASSDEF,
 			INTERFACE
@@ -27,11 +28,49 @@ namespace SEM{
 		inline TypeInstance(TypeEnum e, const Locic::Name& n)
 			: typeEnum(e), name(n){ }
 		
+		inline bool isPrimitive() const{
+			return typeEnum == PRIMITIVE;
+		}
+		
+		inline bool isStructDecl() const{
+			return typeEnum == STRUCTDECL;
+		}
+		
+		inline bool isStructDef() const{
+			return typeEnum == STRUCTDEF;
+		}
+		
+		inline bool isStruct() const{
+			return isStructDecl() || isStructDef();
+		}
+		
+		inline bool isClassDecl() const{
+			return typeEnum == CLASSDECL;
+		}
+		
+		inline bool isClassDef() const{
+			return typeEnum == CLASSDEF;
+		}
+		
+		inline bool isClass() const{
+			return isClassDecl() || isClassDef();
+		}
+		
+		inline bool isInterface() const{
+			return typeEnum == INTERFACE;
+		}
+		
+		inline bool isDeclaration() const{
+			return isStructDecl() || isClassDecl();
+		}
+		
+		inline bool isDefinition() const{
+			return isStructDef() || isClassDef();
+		}
+		
 		NamespaceNode lookup(const Locic::Name& targetName);
 		
 		bool supportsImplicitCopy() const;
-		
-		bool isClass() const;
 		
 	};
 

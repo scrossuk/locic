@@ -146,11 +146,11 @@ namespace Locic {
 			switch(sourceType->typeEnum) {
 				case SEM::Type::NULLT: {
 					if(destType->typeEnum == SEM::Type::NAMED) {
-						if(destType->namedType.typeInstance->typeEnum == SEM::TypeInstance::PRIMITIVE){
+						if(destType->namedType.typeInstance->isPrimitive()){
 							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a primitive type in cast from ")
 								+ castString + std::string(".\n");
 							return false;
-						}else if(destType->namedType.typeInstance->typeEnum == SEM::TypeInstance::STRUCT) {
+						}else if(destType->namedType.typeInstance->isStruct()) {
 							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a struct type in cast from ")
 								+ castString + std::string(".\n");
 							return false;

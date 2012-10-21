@@ -44,10 +44,6 @@ namespace SEM{
 		
 		return type->functionType.returnType->isTypeInstance(this);
 	}
-	
-	bool TypeInstance::isClass() const{
-		return typeEnum == TypeInstance::CLASSDECL || typeEnum == TypeInstance::CLASSDEF;
-	}
 
 }
 

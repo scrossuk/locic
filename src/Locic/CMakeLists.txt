@@ -37,7 +37,7 @@ copy_loci_source(Example1)
 copy_loci_source(Example2)
 
 add_custom_command(OUTPUT exampleProgram
-		COMMAND ./locic -O3 Example1.loci Example2.loci && clang -o exampleProgram Example1.loci.bc Example2.loci.bc BuiltInTypes.loci.bc
+		COMMAND ./locic -O3 Example1.loci && ./locic -O3 Example2.loci && clang -o exampleProgram Example1.loci.bc Example2.loci.bc BuiltInTypes.loci.bc
 		DEPENDS locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
 		
 add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)

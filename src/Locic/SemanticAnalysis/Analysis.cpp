@@ -18,7 +18,7 @@ namespace Locic {
 				case AST::TypeInstance::PRIMITIVE:
 					return SEM::TypeInstance::PRIMITIVE;
 				case AST::TypeInstance::STRUCT:
-					return SEM::TypeInstance::STRUCT;
+					return SEM::TypeInstance::STRUCTDEF;
 				case AST::TypeInstance::CLASSDECL:
 					return SEM::TypeInstance::CLASSDECL;
 				case AST::TypeInstance::CLASSDEF:
