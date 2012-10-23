@@ -6,13 +6,23 @@ class TestClass{
 	int getValue();
 };
 
+class TestClass2(int i){
+	static Default(int v){
+		return @(v);
+	}
+	
+	int getValue(){
+		return @i;
+	}
+};
+
 interface an_interface{
 	int getValue();
 }
 
 an_interface * getPtr();
 
-void function(TestClass object){
+void function(TestClass2 object){
 	printf("Value: %d\n"C, object.getValue());
 }
 
@@ -22,13 +32,15 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	auto testObject = TestClass(argc * 2);
+	auto testObject = TestClass2(argc * 2);
 	
 	auto a = testObject;
+	auto b = a;
+	auto c = b;
 	
-	function(a);
+	function(c);
 	
-	printf("Value: %d\n"C, testObject.getValue());
+	printf("Value: %d\n"C, c.getValue());
 	
 	int i = 0;
 	int * j = &i;

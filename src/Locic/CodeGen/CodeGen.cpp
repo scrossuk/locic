@@ -9,6 +9,7 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/raw_os_ostream.h>
@@ -55,8 +56,7 @@ class CodeGen {
 			  builder_(llvm::getGlobalContext()),
 			  targetInfo_(0),
 			  returnVar_(NULL),
-			  optLevel_(optLevel),
-			  memcpy_(NULL){
+			  optLevel_(optLevel){
 			  
 			llvm::InitializeNativeTarget();
 			  
@@ -134,17 +134,6 @@ class CodeGen {
 			} else {
 				std::cout << "Error when looking up default target: " << error << std::endl;
 			}
-			
-			llvm::Type * i8PtrType = llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
-			std::vector<llvm::Type*> memcpyTypeArgs;
-			memcpyTypeArgs.push_back(i8PtrType);
-			memcpyTypeArgs.push_back(i8PtrType);
-			memcpyTypeArgs.push_back(llvm::IntegerType::get(llvm::getGlobalContext(), 64));
-			memcpyTypeArgs.push_back(llvm::IntegerType::get(llvm::getGlobalContext(), 32));
-			memcpyTypeArgs.push_back(llvm::IntegerType::get(llvm::getGlobalContext(), 1));
-			llvm::FunctionType* memcpyType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), memcpyTypeArgs, false);
-			
-			memcpy_ = llvm::Function::Create(memcpyType, llvm::Function::ExternalLinkage, "llvm.memcpy.p0i8.p0i8.i64", module_);
 		}
 		
 		~CodeGen() {
@@ -405,7 +394,7 @@ class CodeGen {
 					
 					llvm::BasicBlock * basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
 					builder_.SetInsertPoint(basicBlock);
-					builder_.CreateRet(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, size)));
+					builder_.CreateRet(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, size / 8)));
 					
 					functions_.insert(functionName, function);
 				}
@@ -429,13 +418,6 @@ class CodeGen {
 			
 			genBuiltInTypes();
 			
-			for(std::size_t i = 0; i < module->functions.size(); i++){
-				llvm::Function * function = genFunctionDef(module->functions.at(i));
-				if(function != NULL){
-					functionPassManager.run(*function);
-				}
-			}
-			
 			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
 				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
 				
@@ -446,6 +428,13 @@ class CodeGen {
 				}
 				
 				// TODO: generate vtables.
+			}
+			
+			for(std::size_t i = 0; i < module->functions.size(); i++){
+				llvm::Function * function = genFunctionDef(module->functions.at(i));
+				if(function != NULL){
+					functionPassManager.run(*function);
+				}
 			}
 			
 			modulePassManager.run(*module_);
@@ -474,6 +463,7 @@ class CodeGen {
 					: llvm::Function::LinkOnceODRLinkage;
 			
 			llvm::Function * function = llvm::Function::Create(functionType, linkage, functionName, module_);
+			function->setDoesNotAccessMemory();
 			
 			functions_.insert(functionName, function);
 			
@@ -579,7 +569,17 @@ class CodeGen {
 			const std::vector<SEM::Type *>& params = type->functionType.parameterTypes;
 			
 			for(std::size_t i = 0; i < params.size(); i++){
-				paramTypes.push_back(genType(params.at(i)));
+				SEM::Type * paramType = params.at(i);
+				llvm::Type * rawType = genType(paramType);
+				
+				if(paramType->typeEnum == SEM::Type::NAMED){
+					SEM::TypeInstance * typeInstance = paramType->namedType.typeInstance;
+					if(typeInstance->isClass() || typeInstance->isInterface()){
+						rawType = rawType->getPointerTo();
+					}
+				}
+			
+				paramTypes.push_back(rawType);
 			}
 			
 			return llvm::FunctionType::get(returnType, paramTypes, type->functionType.isVarArg);
@@ -610,11 +610,16 @@ class CodeGen {
 				}
 				case SEM::Type::NAMED: {
 					Locic::Name name = type->namedType.typeInstance->name;
+					SEM::TypeInstance * typeInstance = type->namedType.typeInstance;
 					
-					if(type->namedType.typeInstance->isPrimitive()){
+					if(typeInstance->isPrimitive()){
 						return genPrimitiveType(type->namedType.typeInstance);
 					}else{
-						return genStructType(type->namedType.typeInstance);
+						if(typeInstance->isDefinition()){
+							return genStructType(type->namedType.typeInstance);
+						}else{
+							return llvm::Type::getInt8Ty(llvm::getGlobalContext());
+						}
 					}
 				}
 				case SEM::Type::POINTER: {
@@ -660,10 +665,10 @@ class CodeGen {
 				}
 				case SEM::Type::POINTER:
 				case SEM::Type::FUNCTION: {
-					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, targetInfo_->getPointerWidth(0)));
+					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, targetInfo_->getPointerWidth(0) / 8));
 				}
 				case SEM::Type::METHOD: {
-					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 2 * targetInfo_->getPointerWidth(0)));
+					return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 2 * targetInfo_->getPointerWidth(0) / 8));
 				}
 				default: {
 					assert(false && "Unknown type enum for generating sizeof");
@@ -688,12 +693,11 @@ class CodeGen {
 					if(typeInstance->isPrimitive() || typeInstance->isDefinition()){
 						return builder_.CreateAlloca(rawType);
 					}else{
-						llvm::Value * alloca = builder_.CreateAlloca(llvm::Type::getInt8Ty(llvm::getGlobalContext()), genSizeOf(type));
-						return builder_.CreatePointerCast(alloca, rawType->getPointerTo());
+						return builder_.CreateAlloca(llvm::Type::getInt8Ty(llvm::getGlobalContext()), genSizeOf(type));
 					}
 				}
 				default: {
-					assert(false && "Unknown type enum for generating sizeof");
+					assert(false && "Unknown type enum for generating alloca");
 					return NULL;
 				}
 			}
@@ -710,25 +714,10 @@ class CodeGen {
 				}
 				case SEM::Type::NAMED: {
 					SEM::TypeInstance * typeInstance = type->namedType.typeInstance;
-					if(typeInstance->isPrimitive() || typeInstance->isDefinition()){
+					if(typeInstance->isPrimitive() || typeInstance->isStruct()){
 						return builder_.CreateStore(value, var);
 					}else{
-						llvm::Type * i8PtrType = llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
-						
-						var = builder_.CreatePointerCast(var, i8PtrType);
-						value = builder_.CreatePointerCast(value, i8PtrType);
-						std::vector<llvm::Value*> memcpyParams;
-						memcpyParams.push_back(var);
-						memcpyParams.push_back(value);
-						
-						llvm::Value * size = genSizeOf(type);
-						llvm::Value * size64 = builder_.CreateIntCast(size, llvm::IntegerType::get(llvm::getGlobalContext(), 64), false);
-						
-						memcpyParams.push_back(size64);
-						memcpyParams.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 1)));
-						memcpyParams.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, 0)));
-						
-						return builder_.CreateCall(memcpy_, memcpyParams);
+						return builder_.CreateMemCpy(var, value, genSizeOf(type), 1);
 					}
 				}
 				default: {
@@ -749,7 +738,7 @@ class CodeGen {
 				}
 				case SEM::Type::NAMED: {
 					SEM::TypeInstance * typeInstance = type->namedType.typeInstance;
-					if(typeInstance->isPrimitive() || typeInstance->isDefinition()){
+					if(typeInstance->isPrimitive() || typeInstance->isStruct()){
 						return builder_.CreateLoad(var);
 					}else{
 						return var;
@@ -1127,9 +1116,11 @@ class CodeGen {
 				{
 					const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
 					
-					llvm::Value * objectValue = llvm::UndefValue::get(genType(value->type));
+					llvm::Value * objectValue = genAlloca(value->type);
+					
 					for(size_t i = 0; i < parameters.size(); i++){
-						objectValue = builder_.CreateInsertValue(objectValue, genValue(parameters.at(i)), std::vector<unsigned>(1, i));
+						SEM::Value * paramValue = parameters.at(i);
+						genStore(genValue(paramValue), builder_.CreateConstInBoundsGEP2_32(objectValue, 0, i), paramValue->type);
 					}
 					
 					return objectValue;
