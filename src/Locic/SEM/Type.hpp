@@ -112,6 +112,28 @@ namespace SEM{
 			return typeEnum == VOID;
 		}
 		
+		inline bool isNull() const {
+			return typeEnum == NULLT;
+		}
+		
+		inline bool isPointer() const {
+			return typeEnum == POINTER;
+		}
+		
+		inline SEM::Type * getPointerTarget() const{
+			assert(isPointer() && "Cannot get target type of non-pointer type");
+			return pointerType.targetType;
+		}
+		
+		inline bool isObjectType() const{
+			return typeEnum == NAMED;
+		}
+		
+		inline SEM::TypeInstance * getObjectType(){
+			assert(isObjectType() && "Cannot get object type, since type is not an object type");
+			return namedType.typeInstance;
+		}
+		
 		inline bool isTypeInstance(const TypeInstance * typeInstance) const{
 			if(typeEnum != NAMED) return false;
 			return namedType.typeInstance == typeInstance;
@@ -122,16 +144,21 @@ namespace SEM{
 			return namedType.typeInstance->isClass();
 		}
 		
+		inline bool isInterface() const{
+			if(typeEnum != NAMED) return false;
+			return namedType.typeInstance->isInterface();
+		}
+		
 		inline bool supportsImplicitCopy() const{
 			switch(typeEnum) {
-				case Type::VOID:
-				case Type::NULLT:
-				case Type::POINTER:
-				case Type::FUNCTION:
-				case Type::METHOD:
+				case VOID:
+				case NULLT:
+				case POINTER:
+				case FUNCTION:
+				case METHOD:
 					// Pointer, function and method types can be copied implicitly.
 					return true;
-				case Type::NAMED:
+				case NAMED:
 					// Named types must have a method for implicit copying.
 					return namedType.typeInstance->supportsImplicitCopy();
 				default:
@@ -178,7 +205,7 @@ namespace SEM{
 					break;
 				case FUNCTION:
 				{
-					str += "(*)(";
+					str += "*(";
 					str += functionType.returnType->toString();
 					str += ")(";
 			

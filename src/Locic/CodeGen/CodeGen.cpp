@@ -46,6 +46,7 @@ class CodeGen {
 		std::vector<llvm::Value*> localVariables_, paramVariables_;
 		clang::TargetInfo* targetInfo_;
 		llvm::Value * returnVar_;
+		llvm::Value * thisPointer_;
 		std::size_t optLevel_;
 		llvm::Function * memcpy_;
 		
@@ -56,6 +57,7 @@ class CodeGen {
 			  builder_(llvm::getGlobalContext()),
 			  targetInfo_(0),
 			  returnVar_(NULL),
+			  thisPointer_(NULL),
 			  optLevel_(optLevel){
 			  
 			llvm::InitializeNativeTarget();
@@ -503,10 +505,25 @@ class CodeGen {
 			Locic::Optional<llvm::Function *> optionalFunction = functions_.tryGet(functionName);
 			if(optionalFunction.hasValue()) return optionalFunction.getValue();
 			
-			llvm::Function * functionDecl = llvm::Function::Create(genFunctionType(function->type), llvm::Function::ExternalLinkage, functionName, module_);
+			SEM::TypeInstance * thisTypeInstance = function->isMethod ? function->parentType : NULL;
+			
+			llvm::Function * functionDecl = llvm::Function::Create(genFunctionType(function->type, thisTypeInstance), llvm::Function::ExternalLinkage, functionName, module_);
 			
 			if(function->type->functionType.returnType->isClass()){
+				// Class return values are allocated by the caller,
+				// which passes a pointer to the callee. The caller
+				// and callee must, for the sake of optimisation,
+				// ensure that the following attributes hold...
+				
+				// Caller must ensure pointer is always valid.
 				functionDecl->addAttribute(1, llvm::Attribute::StructRet);
+				
+				// Caller must ensure pointer does not alias with
+				// any other arguments.
+				functionDecl->addAttribute(1, llvm::Attribute::NoAlias);
+				
+				// Callee must not capture the pointer.
+				functionDecl->addAttribute(1, llvm::Attribute::NoCapture);
 			}
 			
 			functions_.insert(functionName, functionDecl);
@@ -531,10 +548,8 @@ class CodeGen {
 			
 			if(typeInstance->isClassDef() || typeInstance->isStructDef()){
 				// Generating the type for a class or struct definition, so
-				// the size and contents of the type instance is known.
-				
-				// Classes have a record pointer (holding things like virtual functions)
-				// which is the first member; structs have no such pointer.
+				// the size and contents of the type instance is known and
+				// hence the contents can be specified.
 				std::vector<llvm::Type*> memberVariables(typeInstance->variables.size(), NULL);
 				
 				Locic::StringMap<SEM::Var *>::Range range = typeInstance->variables.range();
@@ -550,7 +565,7 @@ class CodeGen {
 			return structType;
 		}
 		
-		llvm::FunctionType* genFunctionType(SEM::Type* type) {
+		llvm::FunctionType* genFunctionType(SEM::Type* type, SEM::TypeInstance * thisTypeInstance = NULL) {
 			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->typeEnum == SEM::Type::FUNCTION && "Type must be a function type for it to be generated as such");
 			
@@ -562,8 +577,18 @@ class CodeGen {
 			std::vector<llvm::Type*> paramTypes;
 			
 			if(semReturnType->isClass()){
+				// Class return values are constructed on the caller's
+				// stack, and given to the callee as a pointer.
 				paramTypes.push_back(returnType->getPointerTo());
 				returnType = llvm::Type::getVoidTy(llvm::getGlobalContext());
+			}
+			
+			if(thisTypeInstance != NULL){
+				// Generating a method, so add the 'this' pointer.
+				SEM::Type * thisPointerType =
+					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE,
+						SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, thisTypeInstance));
+				paramTypes.push_back(genType(thisPointerType));
 			}
 			
 			const std::vector<SEM::Type *>& params = type->functionType.parameterTypes;
@@ -572,9 +597,9 @@ class CodeGen {
 				SEM::Type * paramType = params.at(i);
 				llvm::Type * rawType = genType(paramType);
 				
-				if(paramType->typeEnum == SEM::Type::NAMED){
-					SEM::TypeInstance * typeInstance = paramType->namedType.typeInstance;
-					if(typeInstance->isClass() || typeInstance->isInterface()){
+				if(paramType->isObjectType()){
+					SEM::TypeInstance * typeInstance = paramType->getObjectType();
+					if(typeInstance->isClass()){
 						rawType = rawType->getPointerTo();
 					}
 				}
@@ -615,15 +640,28 @@ class CodeGen {
 					if(typeInstance->isPrimitive()){
 						return genPrimitiveType(type->namedType.typeInstance);
 					}else{
-						if(typeInstance->isDefinition()){
-							return genStructType(type->namedType.typeInstance);
-						}else{
-							return llvm::Type::getInt8Ty(llvm::getGlobalContext());
-						}
+						assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
+						return genStructType(type->namedType.typeInstance);
 					}
 				}
 				case SEM::Type::POINTER: {
-					llvm::Type* pointerType = genType(type->pointerType.targetType);
+					SEM::Type * targetType = type->pointerType.targetType;
+					
+					// Interface pointers are actually two pointers: one
+					// to the class, and one to the class vtable.
+					if(targetType->isInterface()){
+						std::vector<llvm::Type*> types;
+						
+						// Class pointer.
+						types.push_back(genStructType(targetType->getObjectType())->getPointerTo());
+						
+						// Vtable pointer.
+						types.push_back(llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo());
+						
+						return llvm::StructType::get(llvm::getGlobalContext(), types);
+					}
+				
+					llvm::Type* pointerType = genType(targetType);
 					
 					if(pointerType->isVoidTy()) {
 						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
@@ -640,7 +678,7 @@ class CodeGen {
 					SEM::Type * pointerToObjectType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE, objectType);
 					
 					std::vector<llvm::Type*> types;
-					types.push_back(genFunctionType(type->methodType.functionType)->getPointerTo());
+					types.push_back(genFunctionType(type->methodType.functionType, type->methodType.objectType)->getPointerTo());
 					types.push_back(genType(pointerToObjectType));
 					return llvm::StructType::get(llvm::getGlobalContext(), types);
 				}
@@ -693,7 +731,8 @@ class CodeGen {
 					if(typeInstance->isPrimitive() || typeInstance->isDefinition()){
 						return builder_.CreateAlloca(rawType);
 					}else{
-						return builder_.CreateAlloca(llvm::Type::getInt8Ty(llvm::getGlobalContext()), genSizeOf(type));
+						llvm::Value * alloca = builder_.CreateAlloca(llvm::Type::getInt8Ty(llvm::getGlobalContext()), genSizeOf(type));
+						return builder_.CreatePointerCast(alloca, genStructType(typeInstance)->getPointerTo());
 					}
 				}
 				default: {
@@ -717,7 +756,11 @@ class CodeGen {
 					if(typeInstance->isPrimitive() || typeInstance->isStruct()){
 						return builder_.CreateStore(value, var);
 					}else{
-						return builder_.CreateMemCpy(var, value, genSizeOf(type), 1);
+						if(typeInstance->isDefinition()){
+							return builder_.CreateStore(builder_.CreateLoad(value), var);
+						}else{
+							return builder_.CreateMemCpy(var, value, genSizeOf(type), 1);
+						}
 					}
 				}
 				default: {
@@ -772,6 +815,11 @@ class CodeGen {
 				returnVar_ = NULL;
 			}
 			
+			if(function->isMethod){
+				// Generating a method, so capture the 'this' pointer.
+				thisPointer_ = arg++;
+			}
+			
 			const std::vector<SEM::Var *>& parameterVars = function->parameters;
 			
 			for(std::size_t i = 0; i < parameterVars.size(); ++arg, i++){
@@ -800,6 +848,8 @@ class CodeGen {
 			
 			paramVariables_.clear();
 			localVariables_.clear();
+			returnVar_ = NULL;
+			thisPointer_ = NULL;
 			
 			return currentFunction_;
 		}
@@ -921,6 +971,7 @@ class CodeGen {
 		}
 		
 		llvm::Value* genValue(SEM::Value* value, bool genLValue = false) {
+			assert(value != NULL && "Cannot generate NULL value");
 			switch(value->typeEnum) {
 				case SEM::Value::CONSTANT: {
 					switch(value->constant->getType()) {
@@ -1009,10 +1060,9 @@ class CodeGen {
 							}
 						}
 						case SEM::Var::MEMBER: {
-							assert(!paramVariables_.empty() && "There must be at least one parameter variable (which should contain the 'this' pointer)");
-							llvm::Value * object = paramVariables_.front();
+							assert(thisPointer_ != NULL && "The 'this' pointer cannot be null when accessing member variables");
 							
-							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(builder_.CreateLoad(object), 0, var->id);
+							llvm::Value * memberPtr = builder_.CreateConstInBoundsGEP2_32(thisPointer_, 0, var->id);
 							
 							if(genLValue){
 								return memberPtr;
@@ -1065,18 +1115,8 @@ class CodeGen {
 									return builder_.CreatePointerCast(codeValue, genType(destType));
 								case SEM::Type::NAMED:
 								{
-									SEM::TypeInstance * typeInstance = destType->namedType.typeInstance;
-									assert(typeInstance->isClass());
-									
-									llvm::Type * structType = genStructType(typeInstance);
-									llvm::Value * structValue = llvm::UndefValue::get(structType);
-									
-									// Set class record pointer to NULL.
-									llvm::Value * nullRecordPointer = llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(llvm::getGlobalContext())));
-									
-									structValue = builder_.CreateInsertValue(structValue, nullRecordPointer, std::vector<unsigned>(1, 0));
-									
-									return structValue;
+									assert(false && "TODO");
+									return NULL;
 								}
 								default:
 								{
@@ -1096,7 +1136,7 @@ class CodeGen {
 						}
 						case SEM::Type::POINTER: {
 							if(genLValue) {
-								return builder_.CreatePointerCast(codeValue, llvm::PointerType::getUnqual(genType(destType)));
+								return builder_.CreatePointerCast(codeValue, genType(destType)->getPointerTo());
 							} else {
 								return builder_.CreatePointerCast(codeValue, genType(destType));
 							}
@@ -1110,6 +1150,58 @@ class CodeGen {
 						default:
 							assert(false && "Unknown type in cast");
 							return llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext()));
+					}
+				}
+				case SEM::Value::POLYCAST:
+				{
+					assert(!genLValue && "Cannot generate interfaces as lvalues in polycast");
+					
+					llvm::Value* rawValue = genValue(value->polyCast.value);
+					SEM::Type* sourceType = value->polyCast.value->type;
+					SEM::Type* destType = value->type;
+					
+					assert(sourceType->isPointer() && "Polycast source type must be pointer");
+					assert(destType->isPointer() && "Polycast dest type must be pointer");
+					
+					SEM::Type* sourceTarget = sourceType->getPointerTarget();
+					SEM::Type* destTarget = destType->getPointerTarget();
+					
+					assert(destTarget->isInterface() && "Polycast dest target type must be interface");
+					
+					if(sourceTarget->isInterface()){
+						// Get the object pointer.
+						llvm::Value * objectPointerValue = builder_.CreateExtractValue(rawValue, std::vector<unsigned>(1, 0));
+						
+						// Cast it as a pointer to the opaque struct representing
+						// destination interface type.
+						llvm::Value * objectPointer = builder_.CreatePointerCast(objectPointerValue,
+							genStructType(destTarget->getObjectType())->getPointerTo());
+							
+						// Get the vtable pointer.
+						llvm::Value * vtablePointer = builder_.CreateExtractValue(rawValue, std::vector<unsigned>(1, 1));
+						
+						// Build the new interface pointer struct with these values.
+						llvm::Value * interfaceValue = llvm::UndefValue::get(genType(destType));
+						interfaceValue = builder_.CreateInsertValue(interfaceValue, objectPointer, std::vector<unsigned>(1, 0));
+						interfaceValue = builder_.CreateInsertValue(interfaceValue, vtablePointer, std::vector<unsigned>(1, 1));
+						return interfaceValue;
+					}else if(sourceTarget->isClass()){
+						// Cast class pointer to pointer to the opaque struct
+						// representing destination interface type.
+						llvm::Value * objectPointer = builder_.CreatePointerCast(rawValue,
+							genStructType(destTarget->getObjectType())->getPointerTo());
+							
+						// Get the vtable pointer.
+						llvm::Value * vtablePointer = llvm::ConstantPointerNull::get(llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo());
+						
+						// Build the new interface pointer struct with these values.
+						llvm::Value * interfaceValue = llvm::UndefValue::get(genType(destType));
+						interfaceValue = builder_.CreateInsertValue(interfaceValue, objectPointer, std::vector<unsigned>(1, 0));
+						interfaceValue = builder_.CreateInsertValue(interfaceValue, vtablePointer, std::vector<unsigned>(1, 1));
+						return interfaceValue;
+					}else{
+						assert(false && "Polycast source target type must be class or interface");
+						return NULL;
 					}
 				}
 				case SEM::Value::INTERNALCONSTRUCT:

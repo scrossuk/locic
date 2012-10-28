@@ -9,6 +9,32 @@ namespace Locic {
 	
 		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type) {
 			std::string errorString;
+			
+			// Casting null to object type invokes the null constructor,
+			// assuming that one exists.
+			if(value->type->isNull() && type->isObjectType()
+				&& type->getObjectType()->supportsNullConstruction()){
+				
+				SEM::TypeInstance * typeInstance = type->getObjectType();
+				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
+				assert(function != NULL);
+		
+				return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
+					std::vector<SEM::Value *>(), function->type->functionType.returnType);
+			}
+			
+			// Polymorphic cast (i.e. from a class/interface pointer to
+			// an interface pointer).
+			if(value->type->isPointer() && type->isPointer()
+				&& value->type->getPointerTarget()->isObjectType()
+				&& type->getPointerTarget()->isInterface()){
+				
+				if(CanDoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget())){
+					return SEM::Value::PolyCast(type, value);
+				}else{
+					return NULL;
+				}
+			}
 		
 			// Try a plain implicit cast.
 			if(CanDoImplicitCast(value->type, type, errorString)) {
@@ -39,6 +65,8 @@ namespace Locic {
 				|| firstType->isLValue != secondType->isLValue) {
 				return false;
 			}
+			
+			if(firstType == secondType) return true;
 			
 			switch(firstType->typeEnum) {
 				case SEM::Type::NULLT: {
@@ -115,6 +143,47 @@ namespace Locic {
 			return NULL;
 		}
 		
+		bool CanDoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType) {
+			assert(sourceType->isObjectType());
+			assert(destType->isInterface());
+			
+			if(AreTypesEqual(sourceType, destType)) return true;
+			
+			SEM::TypeInstance * sourceInstance = sourceType->getObjectType();
+			SEM::TypeInstance * destInstance = destType->getObjectType();
+			
+			StringMap<SEM::Function *>::Range range = destInstance->functions.range();
+			for(; !range.empty(); range.popFront()){
+				SEM::Function * destFunction = range.front().value();
+				
+				Optional<SEM::Function *> result = sourceInstance->functions.tryGet(destFunction->name.last());
+				if(!result.hasValue()){
+					printf("Semantic Analysis Error: Couldn't find method '%s' when attempting polymorphic cast from type '%s' to interface type '%s'.\n",
+						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str());
+					return false;
+				}
+				
+				SEM::Function * sourceFunction = result.getValue();
+				assert(sourceFunction != NULL);
+				if(!AreTypesEqual(sourceFunction->type, destFunction->type)){
+					printf("Semantic Analysis Error: Method function types ['%s' vs '%s'] for function '%s' don't match in polymorphic cast from type '%s' to interface type '%s'.\n",
+						sourceFunction->type->toString().c_str(), destFunction->type->toString().c_str(),
+						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str());
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
+		/** 
+		 * Test whether an implicit cast is possible from one type to another.
+		 *
+		 * Note that implicit casts can only be different ways of looking at
+		 * the same data (e.g. non-const pointer to const pointer); explicit
+		 * casts, copying and null construction are forms of conversion that
+		 * do allow data format modifications.
+		 */
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, std::string& errorString) {
 			if(destType->typeEnum == SEM::Type::VOID) {
 				// Everything can be cast to void.
@@ -124,8 +193,8 @@ namespace Locic {
 			const std::string castString = std::string("'") + sourceType->toString()
 				+ std::string("' to '") + destType->toString() + std::string("'");
 			
-			if(sourceType->typeEnum != destType->typeEnum && sourceType->typeEnum != SEM::Type::NULLT) {
-				errorString = std::string("Semantic Analysis Error: Types in cast from ")
+			if(sourceType->typeEnum != destType->typeEnum) {
+				errorString = std::string("Semantic Analysis Error: Types in implicit cast from ")
 					+ castString + std::string(" don't match.\n");
 				return false;
 			}
@@ -145,18 +214,7 @@ namespace Locic {
 			
 			switch(sourceType->typeEnum) {
 				case SEM::Type::NULLT: {
-					if(destType->typeEnum == SEM::Type::NAMED) {
-						if(destType->namedType.typeInstance->isPrimitive()){
-							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a primitive type in cast from ")
-								+ castString + std::string(".\n");
-							return false;
-						}else if(destType->namedType.typeInstance->isStruct()) {
-							errorString = std::string("Semantic Analysis Error: Null cannot be converted to a struct type in cast from ")
-								+ castString + std::string(".\n");
-							return false;
-						}
-					}
-					
+					// Only one type, which can clearly be cast to itself (assuming const and lvalue rules are followed).
 					return true;
 				}
 				case SEM::Type::NAMED: {
@@ -169,16 +227,17 @@ namespace Locic {
 					return true;
 				}
 				case SEM::Type::POINTER: {
-					SEM::Type* sourcePtr = sourceType->pointerType.targetType;
-					SEM::Type* destPtr = destType->pointerType.targetType;
+					SEM::Type* sourceTarget = sourceType->getPointerTarget();
+					SEM::Type* destTarget = destType->getPointerTarget();
 					
-					// Check for const-correctness inside pointers (e.g. to prevent T** being cast to const T**).
-					if(sourcePtr->typeEnum == SEM::Type::POINTER && destPtr->typeEnum == SEM::Type::POINTER) {
-						SEM::Type* sourcePtrType = sourcePtr->pointerType.targetType;
-						SEM::Type* destPtrType = destPtr->pointerType.targetType;
+					if(sourceTarget->isPointer() && destTarget->isPointer()) {
+						// Check for const-correctness inside pointers (e.g.
+						// to prevent T** being cast to const T**).
+						SEM::Type* sourceTargetTarget = sourceTarget->getPointerTarget();
+						SEM::Type* destTargetTarget = destTarget->getPointerTarget();
 							
-						if(sourcePtrType->isMutable == true && destPtrType->isMutable == false) {
-							if(sourcePtr->isMutable == true && destPtr->isMutable == true) {
+						if(sourceTargetTarget->isMutable && destTargetTarget->isMutable) {
+							if(sourceTarget->isMutable && destTarget->isMutable) {
 								errorString = std::string("Semantic Analysis Error: Const-correctness violation on pointer type in cast from ")
 									+ castString + std::string(".\n");
 								return false;
@@ -186,7 +245,7 @@ namespace Locic {
 						}
 					}
 					
-					return CanDoImplicitCast(sourcePtr, destPtr, errorString);
+					return CanDoImplicitCast(sourceTarget, destTarget, errorString);
 				}
 				case SEM::Type::FUNCTION: {
 					if(!CanDoImplicitCast(sourceType->functionType.returnType, destType->functionType.returnType, errorString)){

@@ -14,6 +14,8 @@ namespace Locic {
 		
 		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second);
 		
+		bool CanDoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType);
+		
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, std::string& errorString);
 		
 		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType);

@@ -70,6 +70,8 @@ namespace SEM{
 		
 		NamespaceNode lookup(const Locic::Name& targetName);
 		
+		bool supportsNullConstruction() const;
+		
 		bool supportsImplicitCopy() const;
 		
 	};

@@ -72,12 +72,14 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			if(node.isFunction()){
 				SEM::Function * function = node.getFunction();
 				assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
+				assert(!function->isMethod && "TODO");
+				
 				return SEM::Value::FunctionRef(function, function->type);
 			}else if(node.isTypeInstance()){
 				SEM::TypeInstance * typeInstance = node.getTypeInstance();
 				assert(typeInstance != NULL && "Type instance pointer must not be NULL (as indicated by isTypeInstance() being true)");
 				
-				if(typeInstance->typeEnum == SEM::TypeInstance::INTERFACE){
+				if(typeInstance->isInterface()){
 					printf("Semantic Analysis Error: Can't construct interface type '%s' (full name: '%s').\n",
 						name.toString().c_str(), typeInstance->name.toString().c_str());
 					return NULL;
@@ -112,6 +114,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 		}
 		case AST::Value::ADDRESSOF: {
 			SEM::Value* operand = ConvertValue(context, value->addressOf.value);
+			if(operand == NULL) return NULL;
 		
 			if(operand->type->isLValue) {
 				return SEM::Value::AddressOf(operand, SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
@@ -122,8 +125,9 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 		}
 		case AST::Value::DEREFERENCE: {
 			SEM::Value* operand = ConvertValue(context, value->dereference.value);
+			if(operand == NULL) return NULL;
 		
-			if(operand->type->typeEnum == SEM::Type::POINTER) {
+			if(operand->type->isPointer()) {
 				return SEM::Value::Deref(operand, operand->type->pointerType.targetType);
 			}
 			
@@ -132,6 +136,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 		}
 		case AST::Value::TERNARY: {
 			SEM::Value* cond = ConvertValue(context, value->ternary.condition);
+			if(cond == NULL) return NULL;
 			
 			SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 			assert(boolType != NULL && "Couldn't find bool type");
@@ -253,7 +258,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
-			}else if(typeInstance->isClass() || typeInstance->isPrimitive()){
+			}else if(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isInterface()){
 				// Look for class methods.
 				Optional<SEM::Function *> functionResult = typeInstance->functions.tryGet(memberName);
 				
@@ -270,14 +275,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					
 					return SEM::Value::MethodObject(function, object, methodType);
 				}else{
-					printf("Semantic Analysis Error: Can't find class method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
+					printf("Semantic Analysis Error: Can't find method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
 				}
 			}else if(typeInstance->isStructDecl()){
 				printf("Semantic Analysis Error: Can't access member '%s' in unspecified struct type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
-				return NULL;
-			}else if(typeInstance->isInterface()){
-				assert(false && "TODO");
 				return NULL;
 			}
 			
@@ -337,12 +339,9 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					const std::vector<SEM::Type*>& typeList = functionType->functionType.parameterTypes;
 					const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
 					
-					// First type must be the object type.
-					assert(!typeList.empty() && "Method functions must have at least one argument for the 'this' pointer");
-					
 					assert(!functionType->functionType.isVarArg && "Methods cannot be var args");
 					
-					if(typeList.size() != (astValueList.size() + 1)) {
+					if(typeList.size() != astValueList.size()) {
 						printf("Semantic Analysis Error: Method called with %lu number of parameters; expected %lu.\n", astValueList.size(), typeList.size());
 						return NULL;
 					}
@@ -354,7 +353,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						
 						if(value == NULL) return NULL;
 						
-						SEM::Value* param = CastValueToType(value, typeList.at(i + 1));
+						SEM::Value* param = CastValueToType(value, typeList.at(i));
 						
 						if(param == NULL) return NULL;
 						

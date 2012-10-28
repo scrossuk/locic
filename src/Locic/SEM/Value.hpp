@@ -20,6 +20,7 @@ namespace SEM{
 			DEREF,
 			TERNARY,
 			CAST,
+			POLYCAST,
 			INTERNALCONSTRUCT,
 			MEMBERACCESS,
 			FUNCTIONCALL,
@@ -56,6 +57,11 @@ namespace SEM{
 			Type* targetType;
 			Value* value;
 		} cast;
+		
+		struct {
+			Type* targetType;
+			Value* value;
+		} polyCast;
 		
 		struct {
 			std::vector<Value*> parameters;
@@ -137,6 +143,13 @@ namespace SEM{
 			return value;
 		}
 		
+		inline static Value * PolyCast(Type * targetType, Value * operand){
+			Value* value = new Value(POLYCAST, targetType);
+			value->polyCast.targetType = targetType;
+			value->polyCast.value = operand;
+			return value;
+		}
+		
 		inline static Value * InternalConstruct(TypeInstance * typeInstance, const std::vector<Value *>& parameters){
 			Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance);
 			Value* value = new Value(INTERNALCONSTRUCT, type);
@@ -199,6 +212,10 @@ namespace SEM{
 				case CAST:
 				{
 					return "CAST";
+				}
+				case POLYCAST:
+				{
+					return "POLYCAST";
 				}
 				case MEMBERACCESS:
 				{

@@ -23,9 +23,30 @@ namespace SEM{
 		return NamespaceNode::None();
 	}
 	
+	bool TypeInstance::supportsNullConstruction() const{
+		const std::string functionName = "Null";
+		Locic::Optional<Function *> result = functions.tryGet(functionName);
+		if(!result.hasValue()) return false;
+		
+		Function * function = result.getValue();
+		assert(function != NULL);
+		
+		// Looking for static method.
+		if(function->isMethod) return false;
+		
+		Type * type = function->type;
+		assert(type->typeEnum == Type::FUNCTION);
+		if(type->functionType.isVarArg) return false;
+		
+		// One argument for the 'this' pointer.
+		if(type->functionType.parameterTypes.size() != 1) return false;
+		
+		return type->functionType.returnType->isTypeInstance(this);
+	}
+	
 	bool TypeInstance::supportsImplicitCopy() const{
 		// All primitives can be implicitly copied.
-		if(typeEnum == TypeInstance::PRIMITIVE) return true;
+		if(isPrimitive()) return true;
 	
 		const std::string functionName = "implicitCopy";
 		Locic::Optional<Function *> result = functions.tryGet(functionName);
@@ -33,6 +54,8 @@ namespace SEM{
 		
 		Function * function = result.getValue();
 		assert(function != NULL);
+		
+		// Looking for non-static method.
 		if(!function->isMethod) return false;
 		
 		Type * type = function->type;

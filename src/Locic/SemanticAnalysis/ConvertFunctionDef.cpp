@@ -29,13 +29,11 @@ namespace Locic {
 			const std::vector<AST::TypeVar*>& astParameters = function->parameters;
 			const std::vector<SEM::Var*>& semParameters = semFunction->parameters;
 			
-			const std::size_t paramOffset = function->isMethod ? 1 : 0;
-			
-			assert(astParameters.size() + paramOffset == semParameters.size());
+			assert(astParameters.size() == semParameters.size());
 			
 			for(std::size_t i = 0; i < astParameters.size(); i++){
 				AST::TypeVar* typeVar = astParameters.at(i);
-				SEM::Var* paramVar = semParameters.at(paramOffset + i);
+				SEM::Var* paramVar = semParameters.at(i);
 				
 				// Create a mapping from the parameter's name to its variable information.
 				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
