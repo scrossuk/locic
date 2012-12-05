@@ -303,6 +303,183 @@ typedef *(ReturnType)(ParamType) NewName; // Loci
 
 \clearpage
 
+\subsection{Modules}
+
+\subsubsection{Header Files}
+
+\paragraph{}
+In C and C++, no source file can access the structs or functions implemented by another file unless it has its own declarations. Here's an example in C++:
+
+\begin{lstlisting}
+// Source file 'A.cxx'.
+
+struct SomeStruct{ int i; };
+
+SomeStruct function(){
+	SomeStruct s;
+	s.i = 42;
+	return s;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+// Source file 'B.cxx'.
+
+struct SomeStruct{ int i; };
+SomeStruct function();
+
+int main(){
+	SomeStruct s = function();
+	printf("Number is %d.\n", s.i);
+	return 0;
+}
+\end{lstlisting}
+
+\paragraph{}
+In this case, file `B.cxx' must provide declarations for the implementations in file `A.cxx', since the compiler compiles each source file separately and therefore without reference to other source files.
+
+\paragraph{}
+This is of course problematic if the structures and functions defined in one source file need to be used in many source files, particularly if there are many functions, in which case re-writing the declarations for each source file wastes development time. The solution is to use header files:
+
+\begin{lstlisting}
+// Header 'Header.hpp'.
+
+struct SomeStruct{ int i; };
+SomeStruct function();
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'A'.
+#include "Header.hpp"
+
+SomeStruct function(){
+	SomeStruct s;
+	s.i = 42;
+	return s;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'B'.
+#include "Header.hpp"
+
+int main(){
+	SomeStruct s = function();
+	printf("Number is %d.\n", s.i);
+	return 0;
+}
+\end{lstlisting}
+
+\paragraph{}
+Header files take advantage of the preprocessor, via an \#include, to copy the text from a header file directly into a number of source files.
+
+\subsubsection{Header Guards}
+
+\paragraph{}
+Headers may also need to include each other, but unfortunately this can create problems:
+
+\begin{lstlisting}
+// Header 'Header1.hpp'.
+
+struct SomeStruct{ int i; };
+\end{lstlisting}
+
+\begin{lstlisting}
+// Header 'Header2.hpp'.
+#include "Header1.hpp"
+
+SomeStruct function();
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'A'.
+#include "Header1.hpp"
+#include "Header2.hpp"
+
+SomeStruct function(){
+	SomeStruct s;
+	s.i = 42;
+	return s;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'B'.
+#include "Header2.hpp"
+
+int main(){
+	SomeStruct s = function();
+	printf("Number is %d.\n", s.i);
+	return 0;
+}
+\end{lstlisting}
+
+\paragraph{}
+This will cause an error in `A.cxx' since the header `Header1.hpp' is included twice, and therefore the struct definition appears twice in its code, which is not allowed in C or C++. The solution to this problem is header guards:
+
+\begin{lstlisting}
+// Header 'Header1.hpp'.
+
+#ifndef HEADER1_HPP
+#define HEADER1_HPP
+
+struct SomeStruct{ int i; };
+
+#endif
+\end{lstlisting}
+
+\begin{lstlisting}
+// Header 'Header2.hpp'.
+
+#ifndef HEADER2_HPP
+#define HEADER2_HPP
+
+#include "Header1.hpp"
+
+SomeStruct function();
+
+#endif
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'A'.
+#include "Header1.hpp"
+#include "Header2.hpp"
+
+SomeStruct function(){
+	SomeStruct s;
+	s.i = 42;
+	return s;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+// File 'B'.
+#include "Header2.hpp"
+
+int main(){
+	SomeStruct s = function();
+	printf("Number is %d.\n", s.i);
+	return 0;
+}
+\end{lstlisting}
+
+\subsubsection{Loci Modules}
+
+\paragraph{}
+The C++ code above does manage to finally solve this problem, but at the expense of the creation of extra files and writing macros to protect headers. Most importantly, the above code duplicates information; all the information is available in the source files, so if the compiler were to analyse multiple source files together, the programmer need never write header files.
+
+\paragraph{}
+Put simply, this is exactly what happens in Loci. When you compile source files, you pass a group of files to the compiler which will then analyse them together and `extract' the appropriate declarations from definitions in the code. These groups will typically be all the files that produce a single static or shared library, or even an executable.
+
+\paragraph{}
+Note that this solution isn't complete, since libraries and executables do need to handle shared data structures and functions. For example, a library may define a specific API for use by the executable, but the library code should be compiled separately to the executable code.
+
+\paragraph{}
+Some sort of header files are needed for this case, which in Loci are simply normal `.loci' files that contain declarations as opposed to definitions. The particularly helpful aspect, in contrast to C or C++, is that Loci will generate these `header files' for the developer.
+
+\clearpage
+
 \subsection{References}
 
 \paragraph{}
@@ -984,7 +1161,7 @@ void function(){
 Design decisions for new memory management methods were made in consideration of the fundamental aim to minimise the syntax required to instantiate an object on the heap, while maximising the available options for how to manage the memory. As the sample code shows, there is no default allocation method. The design perspective is that the lack of a default forces the programmer to consider how objects are to be allocated.
 
 \paragraph{}
-In contract, C++ chooses to use a raw allocation as the basis of the new operator, however this is generally the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
+In contrast, C++ chooses to use a raw allocation as the basis of the new operator, however this is generally the most dangerous choice because exceptions can cause a delete statement to be missed and therefore memory is leaked; the other memory management methods are much safer.
 
 \paragraph{}
 Different memory management methods return different types that are responsible for managing the constraints of that allocation method. `UPtr', `RCPtr' and `SPtr' are types declared in the root namespace that are provided in the standard library.
