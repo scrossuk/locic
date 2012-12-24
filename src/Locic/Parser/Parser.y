@@ -153,7 +153,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token QUESTIONMARK
 
 // ================ Non-Terminals ================
-%type <module> module
 %type <nameSpace> nameSpace
 %type <nameSpace> namedNamespace
 
@@ -202,16 +201,9 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 // ================ Rules ================
 %%
 start:
-	module
-	{
-		parserContext->module = $1;
-	}
-	;
-
-module:
 	nameSpace
 	{
-		$$ = new AST::Module(parserContext->moduleName, $1);
+		parserContext->nameSpace = $1;
 	}
 	;
 

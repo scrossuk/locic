@@ -21,8 +21,8 @@ namespace Locic{
 			free(ptr);
 		}
 
-		DefaultParser::DefaultParser(FILE * file, const std::string& moduleName)
-			: file_(file), context_(moduleName){
+		DefaultParser::DefaultParser(FILE * file, const std::string& fileName)
+			: file_(file), context_(fileName){
 			lexer_ = LexAlloc(file, &context_);
 		}
 		
@@ -30,15 +30,15 @@ namespace Locic{
 			LexFree(lexer_);
 		}
 			
-		bool DefaultParser::parseModule(){
+		bool DefaultParser::parseFile(){
 			(void) Locic_Parser_GeneratedParser_parse(lexer_, &context_);
 			return context_.errors.empty();
 		}
 	
-		AST::Module * DefaultParser::getModule(){
+		AST::Namespace * DefaultParser::getNamespace(){
 			assert(context_.errors.empty());
-			assert(context_.module != NULL);
-			return context_.module;
+			assert(context_.nameSpace != NULL);
+			return context_.nameSpace;
 		}
 		
 		std::vector<Error> DefaultParser::getErrors(){

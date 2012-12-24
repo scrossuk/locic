@@ -19,7 +19,7 @@ add_subdirectory(SemanticAnalysis)
 add_subdirectory(CodeGen)
 
 # Build compiler.
-add_executable(locic main.cpp)
+add_executable(locic main.cpp String.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

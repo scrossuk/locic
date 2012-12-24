@@ -17,7 +17,7 @@ namespace Locic {
 		
 		class RootContext: public Context {
 			public:
-				RootContext(SEM::Namespace * rootNamespace);
+				RootContext();
 				
 				bool addFunction(const Name& name, SEM::Function* function);
 				
@@ -32,9 +32,6 @@ namespace Locic {
 				SEM::TypeInstance* getThisTypeInstance();
 				
 				SEM::Var * getThisVar(const std::string& name);
-				
-			private:
-				SEM::Namespace * rootNamespace_;
 				
 		};
 		

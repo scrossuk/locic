@@ -6,6 +6,51 @@ class TestClass{
 	int getValue();
 };
 
+class A{
+	public:
+		A();
+	
+};
+
+class B{
+	public:
+		B(A& a);
+	
+};
+
+template <typename T, size_t Size>
+class Array(unsafe T[Size] data){
+	static Default(){
+		return @(data: null);
+	}
+	
+	void move(Array<T, Size>& array){
+		
+	}
+}
+
+class Movable(A a, B b){
+	public:
+		Movable()
+			: a_(), b_(a){ }
+			
+		Default(){
+			return @(a: A(), b: B(a));
+		}
+	
+		Movable(Movable& m)
+			: a_(m.a_), b_(a_){ }
+		
+		Move(Movable& m){
+			return @(a: m.a, B(a));
+		}
+		
+		void move(const Movable& m){
+			parent_->removeConsumer(&m);
+			parent_->addConsumer(&m);
+		}
+};
+
 class TestClass2(int i){
 	static Default(int v){
 		return @(v);
@@ -40,7 +85,7 @@ int main(int argc, char ** argv){
 	
 	printf("Value: %d\n"C, testObject.getValue());
 	
-	printf("Interface value: %d\n"C, getPtr(testObject)->getValue());
+	printf("Interface value: %d\n"C, getPtr(&testObject)->getValue());
 	
 	int i = 0;
 	int * j = &i;

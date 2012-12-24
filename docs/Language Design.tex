@@ -2207,7 +2207,89 @@ Creating these checks on the caller side rather than the callee side allows such
 \section{Virtual Method Calls}
 
 \paragraph{}
-The class vtable contains 8 function pointers to 
+The class vtable contains 16 function pointers to its methods. The compiler will create a hash (via SHA-256) for each mangled method name, and truncate that hash to the first 16 hex digits (i.e. first 16 4-bit sequences). As each class vtable is generated, the compiler generates these hashes for all the methods in the class. It then advances through the hash for all the methods simultaneously, looking at corresponding hex digits.
+
+\paragraph{}
+The aim is to identify an offset where the hex digits all have different values (i.e. there are no clashes), or at least where the number of clashes is minimised. This offset is then stored in the vtable, and pointers to the method functions are stored in offsets in the vtable according to their value at the chosen offset in the hash.
+
+\paragraph{}
+Dynamic dispatch then involves loading the offset, loading the hex digit at that offset within the desired method name hash, and indexing the vtable by that value to get the method function pointer. After that, if the method function pointer is not null, then it is dereferenced and called.
+
+\paragraph{}
+That roughly corresponds to the following C code:
+
+\begin{lstlisting}
+struct VTable{
+	size_t offset;
+	void * functionPointers[16];
+};
+
+struct InterfacePtr{
+	VTable * vtable;
+	T * object;
+};
+
+VTable * getVTable(T * object);
+
+void callFunc(InterfacePtr object){
+	const char funcNameHash[] = { 0x05, 0x09, /* etc. */ };
+	VTable * vtable = object.vtable;
+	
+	// Load 1: Get offset.
+	const size_t offset = vtable->offset;
+	
+	// Load 2: Get hash value.
+	const char hashValue = funcNameHash[offset];
+	
+	typedef void (*Func)(T *, /* args */);
+	
+	// Load 3: Get function pointer.
+	Func functionPtr = (Func) vtable->functionPointers[hashValue];
+	
+	if(functionPtr != NULL){
+		functionPtr(object, /* args */);
+	}else{
+		// More complex...
+	}
+}
+\end{lstlisting}
+
+\subsection{Performance}
+
+\paragraph{}
+So this uses three loads and a jump (to register value), but it's worth noting a few things:
+
+\begin{enumerate}
+\item The vtable pointer is passed around with the object pointer as part of a 2-element struct. This means that the vtable pointer may be placed in a register, if efficient to do so, or placed on the stack otherwise. Either way, the object itself may be on the heap (or older parts of the stack), so accessing the vtable pointer is expected to be very fast.
+\item Loading the offset need only be done once in a function if it is repeatedly calling functions on the same object (or many objects of the same type).
+\item Similarly, loaded hash data values can be cached on the stack.
+\item And of course, function pointers only need to be loaded when they are first needed, and can also be cached.
+\item All the loaded data is in the data segment, and is related to the class, rather than the object. This means that there are no accesses to the object itself, which might be in the heap, and outside of the caches; if there are regular virtual calls to any objects of a specific type, that type's vtable will be well cached, but accessing an object's data doesn't improve the performance of accessing the data of other objects, even if they share its type.
+\item On modern machines, the jump is the most expensive operation, generally due to the need to flush the instruction pipeline. This is of course unavoidable in dynamic dispatch (i.e. where optimisations fail to convert calls to static dispatch), so applies to typical dynamic dispatch mechanisms.
+\end{enumerate}
+
+\paragraph{}
+Following from these points, while the process of loading the function pointer is slightly more lengthy than loading a similar pointer in languages like C++, this is unlikely to have a significant effect on performance. The fact that Loci avoids the access to the object data itself may in fact improve performance.
+
+\subsection{Birthday Problem}
+
+\paragraph{}
+Assessing the value of this dynamic dispatch scheme is best achieved by relating it to the birthday problem (familiarity is assumed for this document).
+
+\paragraph{}
+If there is a set of $n$ individuals, with birthdays that are distributed with an independent and uniform probabability through a year of 365 days, the probability $P_{u}$ that they all have unique birthdays is, approximately:
+
+$$P = (\frac{364}{365})^{\frac{n(n - 1){{2}}$$
+
+\paragraph{}
+So, the probability $P_{c}$ that there is at least one birthday clash is $1 - P_{u}$:
+
+$$P_{c} = 1 - (\frac{364}{365})^{\frac{n(n - 1){{2}}$$
+
+\paragraph{}
+The essence of this `problem' is that relatively small values of $n$ can have a surprisingly high probability $P_{c}$ of clashes. Relating this to the hash table dynamic dispatch, performance is improved by minimising clashes between the indexes of the vtable function pointers in the tables.
+
+1−((1−((15÷16)^((7 × (7 − 1))÷2)))^(16))
 
 \cleardoublepage
 

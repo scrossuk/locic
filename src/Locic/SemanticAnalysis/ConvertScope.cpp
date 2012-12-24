@@ -19,26 +19,32 @@ namespace Locic {
 			return false;
 		}
 		
+		struct PushScope{
+			LocalContext& context;
+			
+			inline PushScope(LocalContext& c, SEM::Scope * scope)
+				: context(c){
+					context.pushScope(scope);
+				}
+				
+			inline ~PushScope(){
+				context.popScope();
+			}
+		};
+		
 		SEM::Scope* ConvertScope(LocalContext& context, AST::Scope* scope) {
 			SEM::Scope* semScope = new SEM::Scope();
 			
 			// Add this scope to the context, so that variables can be added to it.
-			context.pushScope(semScope);
+			PushScope pushScope(context, semScope);
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
 			for(std::size_t i = 0; i < scope->statements.size(); i++){
 				SEM::Statement* statement = ConvertStatement(context, scope->statements.at(i));
-				
-				if(statement == NULL) {
-					context.popScope();
-					return NULL;
-				}
+				assert(statement != NULL);
 				
 				semScope->statementList.push_back(statement);
 			}
-			
-			// Remove this scope from the context.
-			context.popScope();
 			
 			return semScope;
 		}

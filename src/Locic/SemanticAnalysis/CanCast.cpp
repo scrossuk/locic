@@ -1,7 +1,9 @@
 #include <cstdio>
 #include <Locic/SEM.hpp>
+#include <Locic/String.hpp>
 #include <Locic/SemanticAnalysis/CanCast.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
+#include <Locic/SemanticAnalysis/Exception.hpp>
 
 namespace Locic {
 
@@ -29,11 +31,8 @@ namespace Locic {
 				&& value->type->getPointerTarget()->isObjectType()
 				&& type->getPointerTarget()->isInterface()){
 				
-				if(CanDoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget())){
-					return SEM::Value::PolyCast(type, value);
-				}else{
-					return NULL;
-				}
+				DoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget());
+				return SEM::Value::PolyCast(type, value);
 			}
 		
 			// Try a plain implicit cast.
@@ -53,10 +52,8 @@ namespace Locic {
 				}
 			}
 			
-			printf("%s", errorString.c_str());
-			
 			// Copying also failed.
-			return NULL;
+			throw TodoException(makeString("No valid cast possible from value '%s' to type '%s': %s.", value->toString().c_str(), type->toString().c_str(), errorString.c_str()));
 		}
 		
 		bool AreTypesEqual(SEM::Type * firstType, SEM::Type * secondType){
@@ -143,11 +140,11 @@ namespace Locic {
 			return NULL;
 		}
 		
-		bool CanDoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType) {
+		void DoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType) {
 			assert(sourceType->isObjectType());
 			assert(destType->isInterface());
 			
-			if(AreTypesEqual(sourceType, destType)) return true;
+			if(AreTypesEqual(sourceType, destType)) return;
 			
 			SEM::TypeInstance * sourceInstance = sourceType->getObjectType();
 			SEM::TypeInstance * destInstance = destType->getObjectType();
@@ -158,22 +155,18 @@ namespace Locic {
 				
 				Optional<SEM::Function *> result = sourceInstance->functions.tryGet(destFunction->name.last());
 				if(!result.hasValue()){
-					printf("Semantic Analysis Error: Couldn't find method '%s' when attempting polymorphic cast from type '%s' to interface type '%s'.\n",
-						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str());
-					return false;
+					throw TodoException(makeString("Couldn't find method '%s' when attempting polymorphic cast from type '%s' to interface type '%s'.",
+						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str()));
 				}
 				
 				SEM::Function * sourceFunction = result.getValue();
 				assert(sourceFunction != NULL);
 				if(!AreTypesEqual(sourceFunction->type, destFunction->type)){
-					printf("Semantic Analysis Error: Method function types ['%s' vs '%s'] for function '%s' don't match in polymorphic cast from type '%s' to interface type '%s'.\n",
+					throw TodoException(makeString("Method function types ['%s' vs '%s'] for function '%s' don't match in polymorphic cast from type '%s' to interface type '%s'.",
 						sourceFunction->type->toString().c_str(), destFunction->type->toString().c_str(),
-						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str());
-					return false;
+						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str()));
 				}
 			}
-			
-			return true;
 		}
 		
 		/** 

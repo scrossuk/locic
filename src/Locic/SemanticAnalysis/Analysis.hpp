@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		std::vector<SEM::Module*> Run(const std::vector<AST::Module*>& modules);
+		SEM::Namespace * Run(const std::vector<AST::Namespace*>& namespaces);
 		
 	}
 	

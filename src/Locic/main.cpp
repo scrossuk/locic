@@ -14,7 +14,7 @@ int main(int argc, char * argv[]){
 	}
 	assert(argc >= 1);
 	
-	std::size_t optLevel = 0;
+	size_t optLevel = 0;
 	
 	std::vector<std::string> fileNames;
 	fileNames.push_back("BuiltInTypes.loci");
@@ -60,7 +60,7 @@ int main(int argc, char * argv[]){
 		}
 	}
 	
-	std::vector<AST::Module *> astModules;
+	std::vector<AST::Namespace *> astNamespaces;
 	
 	// Parse all source files.
 	for(std::size_t i = 0; i < fileNames.size(); i++){
@@ -73,8 +73,8 @@ int main(int argc, char * argv[]){
 		}
 		
 		Locic::Parser::DefaultParser parser(file, filename);
-		if(parser.parseModule()){
-			astModules.push_back(parser.getModule());
+		if(parser.parseFile()){
+			astNamespaces.push_back(parser.getNamespace());
 			fclose(file);
 		}else{
 			std::vector<Locic::Parser::Error> errors = parser.getErrors();
@@ -92,24 +92,16 @@ int main(int argc, char * argv[]){
 	}
 	
 	// Perform semantic analysis.
-	std::vector<SEM::Module *> semModules = Locic::SemanticAnalysis::Run(astModules);
+	SEM::Namespace * semNamespace = Locic::SemanticAnalysis::Run(astNamespaces);
+	assert(semNamespace != NULL);
 	
-	if(semModules.empty()){
-		printf("Semantic Analysis Failed.\n");
-		return 1;
-	}
+	const std::string outputName = "output";
 	
-	assert(semModules.size() == fileNames.size());
-	
-	for(std::size_t i = 0; i < fileNames.size(); i++){
-		const std::string moduleName(fileNames.at(i));
-		
-		void * codeGenContext = Locic_CodeGenAlloc(moduleName, optLevel);
-		Locic_CodeGen(codeGenContext, semModules.at(i));
-		Locic_CodeGenDumpToFile(codeGenContext, moduleName + ".ll");
-		Locic_CodeGenWriteToFile(codeGenContext, moduleName + ".bc");
-		Locic_CodeGenFree(codeGenContext);
-	}
+	Locic::CodeGenerator codeGenerator(outputName);
+	codeGenerator.genNamespace(semNamespace);
+	codeGenerator.applyOptimisations(optLevel);
+	codeGenerator.dumpToFile(outputName + ".ll");
+	codeGenerator.writeToFile(outputName + ".bc");
 	
 	return 0;
 }

@@ -47,18 +47,16 @@ class CodeGen {
 		clang::TargetInfo* targetInfo_;
 		llvm::Value * returnVar_;
 		llvm::Value * thisPointer_;
-		std::size_t optLevel_;
 		llvm::Function * memcpy_;
 		
 	public:
-		CodeGen(const std::string& moduleName, std::size_t optLevel)
+		CodeGen(const std::string& moduleName)
 			: name_(moduleName),
 			  module_(new llvm::Module(name_.c_str(), llvm::getGlobalContext())),
 			  builder_(llvm::getGlobalContext()),
 			  targetInfo_(0),
 			  returnVar_(NULL),
-			  thisPointer_(NULL),
-			  optLevel_(optLevel){
+			  thisPointer_(NULL){
 			  
 			llvm::InitializeNativeTarget();
 			  
@@ -136,6 +134,8 @@ class CodeGen {
 			} else {
 				std::cout << "Error when looking up default target: " << error << std::endl;
 			}
+			
+			genBuiltInTypes();
 		}
 		
 		~CodeGen() {
@@ -403,14 +403,12 @@ class CodeGen {
 			}
 		}
 		
-		void genFile(SEM::Module* module) {
-			assert(module != NULL && "Generating a module requires a non-NULL SEM module object");
-			
+		void applyOptimisations(size_t optLevel) {
 			llvm::FunctionPassManager functionPassManager(module_);
 			llvm::PassManager modulePassManager;
 			
 			llvm::PassManagerBuilder passManagerBuilder;
-			passManagerBuilder.OptLevel = optLevel_;
+			passManagerBuilder.OptLevel = optLevel;
 			passManagerBuilder.Inliner = llvm::createFunctionInliningPass();
 			
 			passManagerBuilder.populateFunctionPassManager(functionPassManager);
@@ -418,28 +416,47 @@ class CodeGen {
 			
 			functionPassManager.doInitialization();
 			
-			genBuiltInTypes();
-			
-			for(std::size_t i = 0; i < module->typeInstances.size(); i++){
-				SEM::TypeInstance * typeInstance = module->typeInstances.at(i);
-				
-				if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
-					// Make sure the 'sizeof' method is generated
-					// for class definitions.
-					(void) genSizeOfMethod(typeInstance);
-				}
-				
-				// TODO: generate vtables.
-			}
-			
-			for(std::size_t i = 0; i < module->functions.size(); i++){
-				llvm::Function * function = genFunctionDef(module->functions.at(i));
-				if(function != NULL){
-					functionPassManager.run(*function);
-				}
+			llvm::Module::iterator i;
+			for(i = module_->begin(); i != module_->end(); ++i){
+				functionPassManager.run(*i);
 			}
 			
 			modulePassManager.run(*module_);
+		}
+		
+		void genNamespace(SEM::Namespace* nameSpace){
+			Locic::StringMap<SEM::NamespaceNode>::Range range = nameSpace->children.range();
+			for(; !range.empty(); range.popFront()){
+				SEM::NamespaceNode node = range.front().value();
+				
+				switch(node.typeEnum){
+					case SEM::NamespaceNode::FUNCTION:
+					{
+						genFunctionDef(node.getFunction());
+						break;
+					}
+					case SEM::NamespaceNode::NAMESPACE:
+					{
+						genNamespace(node.getNamespace());
+						break;
+					}
+					case SEM::NamespaceNode::TYPEINSTANCE:
+					{
+						genTypeInstance(node.getTypeInstance());
+						break;
+					}
+				}
+			}
+		}
+		
+		void genTypeInstance(SEM::TypeInstance * typeInstance){
+			if(typeInstance->typeEnum == SEM::TypeInstance::CLASSDEF){
+				// Make sure the 'sizeof' method is generated
+				// for class definitions.
+				(void) genSizeOfMethod(typeInstance);
+			}
+			
+			// TODO: generate vtables.
 		}
 		
 		// Generate 'sizeof()' method.
@@ -1316,27 +1333,35 @@ class CodeGen {
 		
 };
 
-void* Locic_CodeGenAlloc(const std::string& moduleName, std::size_t optLevel) {
-	return new CodeGen(moduleName, optLevel);
-}
+namespace Locic{
 
-void Locic_CodeGenFree(void* context) {
-	delete reinterpret_cast<CodeGen*>(context);
-}
+	CodeGenerator::CodeGenerator(const std::string& moduleName){
+		codeGen_ = new CodeGen(moduleName);
+	}
 	
-void Locic_CodeGen(void* context, SEM::Module* module) {
-	reinterpret_cast<CodeGen*>(context)->genFile(module);
-}
+	CodeGenerator::~CodeGenerator(){
+		delete codeGen_;
+	}
 	
-void Locic_CodeGenDump(void* context) {
-	reinterpret_cast<CodeGen*>(context)->dump();
-}
+	void CodeGenerator::applyOptimisations(size_t optLevel){
+		codeGen_->applyOptimisations(optLevel);
+	}
+	
+	void CodeGenerator::genNamespace(SEM::Namespace * nameSpace){
+		codeGen_->genNamespace(nameSpace);
+	}
+	
+	void CodeGenerator::writeToFile(const std::string& fileName){
+		codeGen_->writeToFile(fileName);
+	}
+	
+	void CodeGenerator::dumpToFile(const std::string& fileName){
+		codeGen_->dumpToFile(fileName);
+	}
+	
+	void CodeGenerator::dump(){
+		codeGen_->dump();
+	}
 
-void Locic_CodeGenWriteToFile(void * context, const std::string& fileName){
-	reinterpret_cast<CodeGen*>(context)->writeToFile(fileName);
-}
-
-void Locic_CodeGenDumpToFile(void * context, const std::string& fileName){
-	reinterpret_cast<CodeGen*>(context)->dumpToFile(fileName);
 }
 

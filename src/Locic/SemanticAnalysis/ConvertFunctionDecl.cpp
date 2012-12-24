@@ -6,6 +6,7 @@
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
+#include <Locic/SemanticAnalysis/Exception.hpp>
 
 namespace Locic {
 
@@ -17,7 +18,12 @@ namespace Locic {
 			
 			SEM::TypeInstance * thisTypeInstance = context.getThisTypeInstance();
 			
+			const Name functionName = context.getName() + function->name;
+			
 			if(returnType->typeEnum == AST::Type::UNDEFINED){
+				// Undefined return type means this must be a class
+				// constructor, with no return type specified (i.e.
+				// the return type will be the parent class type).
 				assert(thisTypeInstance != NULL);
 				
 				const bool isMutable = true;
@@ -29,10 +35,6 @@ namespace Locic {
 			}else{
 				// Return types are always rvalues.
 				semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
-			}
-			
-			if(semReturnType == NULL) {
-				return NULL;
 			}
 			
 			std::vector<SEM::Var*> parameterVars;
@@ -47,13 +49,8 @@ namespace Locic {
 				// Parameter types are always lvalues.
 				SEM::Type* semParamType = ConvertType(context, paramType, SEM::Type::LVALUE);
 				
-				if(semParamType == NULL) {
-					return NULL;
-				}
-				
 				if(semParamType->typeEnum == SEM::Type::VOID) {
-					printf("Semantic Analysis Error: Parameter variable cannot have void type.\n");
-					return NULL;
+					throw ParamVoidTypeException(functionName, typeVar->name);
 				}
 				
 				SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, i, semParamType);

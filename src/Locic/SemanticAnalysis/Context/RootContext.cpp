@@ -12,8 +12,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 		
-		RootContext::RootContext(SEM::Namespace * rootNamespace)
-					: rootNamespace_(rootNamespace){ }
+		RootContext::RootContext(){ }
 				
 				bool RootContext::addFunction(const Name& name, SEM::Function* function) {
 					assert(name.isAbsolute());
@@ -35,7 +34,7 @@ namespace Locic {
 				}
 				
 				SEM::NamespaceNode RootContext::getNode(const Name& name){
-					return (name.empty() && name.isAbsolute()) ? SEM::NamespaceNode::Namespace(rootNamespace_) : SEM::NamespaceNode::None();
+					return SEM::NamespaceNode::None();
 				}
 				
 				SEM::TypeInstance* RootContext::getThisTypeInstance(){
