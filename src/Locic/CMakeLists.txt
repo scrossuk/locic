@@ -18,6 +18,10 @@ add_subdirectory(SemanticAnalysis)
 # Build code generator.
 add_subdirectory(CodeGen)
 
+# Build vtable generator.
+add_executable(calculateVTable calculateVTable.cpp String.cpp)
+target_link_libraries(calculateVTable locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
+
 # Build compiler.
 add_executable(locic main.cpp String.cpp)
 
@@ -37,8 +41,8 @@ copy_loci_source(Example1)
 copy_loci_source(Example2)
 
 add_custom_command(OUTPUT exampleProgram
-		COMMAND ./locic Example1.loci && ./locic -O3 Example2.loci && clang -o exampleProgram Example1.loci.bc Example2.loci.bc BuiltInTypes.loci.bc
-		DEPENDS locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
+		COMMAND ./locic -O3 Example1.loci Example2.loci && clang -o exampleProgram output.bc
+		DEPENDS calculateVTable locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
 		
 add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)
 

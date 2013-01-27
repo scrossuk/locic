@@ -144,7 +144,7 @@ namespace Locic {
 				SEM::Function * existingFunction = node.getFunction();
 				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
 				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
-					throw NonUnifiableFunctionsException(functionName);
+					throw NonUnifiableFunctionsException(functionName, semFunction->type->toString(), existingFunction->type->toString());
 				}
 			}else{
 				assert(node.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");

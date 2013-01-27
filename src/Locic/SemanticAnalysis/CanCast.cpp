@@ -66,6 +66,9 @@ namespace Locic {
 			if(firstType == secondType) return true;
 			
 			switch(firstType->typeEnum) {
+				case SEM::Type::VOID: {
+					return true;
+				}
 				case SEM::Type::NULLT: {
 					return true;
 				}

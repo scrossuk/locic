@@ -95,15 +95,21 @@ namespace Locic {
 		
 		class NonUnifiableFunctionsException: public Exception{
 			public:
-				inline NonUnifiableFunctionsException(const Name& name)
-					: name_(name){ }
+				inline NonUnifiableFunctionsException(const Name& name, const std::string& newType, const std::string& existingType)
+					: name_(name), newType_(newType),
+					existingType_(existingType){ }
 				
 				inline std::string toString() const{
-					return makeString("Declarations of function '%s' don't match.", name_.toString().c_str());
+					return makeString("Declarations of function '%s' don't match: %s and %s.",
+						name_.toString().c_str(),
+						newType_.c_str(),
+						existingType_.c_str());
 				}
 				
 			private:
 				Name name_;
+				std::string newType_;
+				std::string existingType_;
 			
 		};
 		

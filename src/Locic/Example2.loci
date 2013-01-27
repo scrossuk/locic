@@ -8,5 +8,7 @@ class TestClass(int i, int j){
 	int getValue(){
 		return 42;
 	}
+	
+	void doSomething(){ }
 }
 

@@ -2279,17 +2279,17 @@ Assessing the value of this dynamic dispatch scheme is best achieved by relating
 \paragraph{}
 If there is a set of $n$ individuals, with birthdays that are distributed with an independent and uniform probabability through a year of 365 days, the probability $P_{u}$ that they all have unique birthdays is, approximately:
 
-$$P = (\frac{364}{365})^{\frac{n(n - 1){{2}}$$
+$$P = (\frac{364}{365})^{\frac{n(n - 1)}{2}}$$
 
 \paragraph{}
 So, the probability $P_{c}$ that there is at least one birthday clash is $1 - P_{u}$:
 
-$$P_{c} = 1 - (\frac{364}{365})^{\frac{n(n - 1){{2}}$$
+$$P_{c} = 1 - (\frac{364}{365})^{\frac{n(n - 1)}{2}}$$
 
 \paragraph{}
 The essence of this `problem' is that relatively small values of $n$ can have a surprisingly high probability $P_{c}$ of clashes. Relating this to the hash table dynamic dispatch, performance is improved by minimising clashes between the indexes of the vtable function pointers in the tables.
 
-1−((1−((15÷16)^((7 × (7 − 1))÷2)))^(16))
+$$1−((1−((\frac{15}{16})^((7 × (7 − 1))÷2)))^(16))$$
 
 \cleardoublepage
 

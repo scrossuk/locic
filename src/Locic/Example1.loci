@@ -4,51 +4,8 @@ class TestClass{
 	static Default(int v);
 	
 	int getValue();
-};
-
-class A{
-	public:
-		A();
 	
-};
-
-class B{
-	public:
-		B(A& a);
-	
-};
-
-template <typename T, size_t Size>
-class Array(unsafe T[Size] data){
-	static Default(){
-		return @(data: null);
-	}
-	
-	void move(Array<T, Size>& array){
-		
-	}
-}
-
-class Movable(A a, B b){
-	public:
-		Movable()
-			: a_(), b_(a){ }
-			
-		Default(){
-			return @(a: A(), b: B(a));
-		}
-	
-		Movable(Movable& m)
-			: a_(m.a_), b_(a_){ }
-		
-		Move(Movable& m){
-			return @(a: m.a, B(a));
-		}
-		
-		void move(const Movable& m){
-			parent_->removeConsumer(&m);
-			parent_->addConsumer(&m);
-		}
+	void doSomething();
 };
 
 class TestClass2(int i){
@@ -59,10 +16,14 @@ class TestClass2(int i){
 	int getValue(){
 		return @i;
 	}
+	
+	void doSomething(){ }
 };
 
 interface an_interface{
 	int getValue();
+	
+	void doSomething();
 }
 
 an_interface * getPtr(TestClass2 * ptr){
@@ -78,6 +39,8 @@ int main(int argc, char ** argv){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
+	
+	auto firstTestClass = TestClass(1);
 	
 	auto testObject = TestClass2(argc * 2);
 	

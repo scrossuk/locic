@@ -97,7 +97,7 @@ int main(int argc, char * argv[]){
 	
 	const std::string outputName = "output";
 	
-	Locic::CodeGenerator codeGenerator(outputName);
+	Locic::CodeGen::CodeGenerator codeGenerator(outputName);
 	codeGenerator.genNamespace(semNamespace);
 	codeGenerator.applyOptimisations(optLevel);
 	codeGenerator.dumpToFile(outputName + ".ll");
