@@ -22,53 +22,15 @@ namespace Locic{
 			return getMethodHash(md5Hash);
 		}
 		
-		static bool doesClash(const std::vector<MethodHash>& methods, const MethodHashShift shift, const MethodHash mask){
-			std::set<MethodHash> values;
+		VirtualTable VirtualTable::CalculateFromHashes(const std::vector<MethodHash>& methods){
+			VirtualTable table;
+			table.table_.resize(VTABLE_SIZE);
 			
 			for(size_t i = 0; i < methods.size(); i++){
 				const MethodHash method = methods.at(i);
-				const MethodHash transformedMethod = (method >> shift) & mask;
-				if(values.find(transformedMethod) != values.end()){
-					return true;
-				}
-				values.insert(transformedMethod);
+				std::list<MethodHash>& slotList = table.table_.at(method % VTABLE_SIZE);
+				slotList.push_back(method);
 			}
-				
-			return false;
-		}
-		
-		static bool getBestValues(const std::vector<MethodHash>& methods, MethodHashShift& bestShift, MethodHash& bestMask){
-			for(MethodHashShift power = 0; power <= 32; power++){
-				const MethodHash powerValue = static_cast<MethodHash>(1) << static_cast<MethodHash>(power);
-				const MethodHash mask = powerValue - 1;
-				for(MethodHashShift shift = 0; shift < 32; shift++){
-					if(!doesClash(methods, shift, mask)){
-						bestShift = shift;
-						bestMask = mask;
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-		
-		VirtualTable VirtualTable::CalculateFromHashes(const std::vector<MethodHash>& methods){
-			MethodHashShift shift = 0;
-			MethodHash mask = 0;
-			
-			if(!getBestValues(methods, shift, mask)){
-				assert(false && "Clash in method hashes");
-			}
-			
-			VirtualTable table;
-			table.table_.resize(mask + 1, 0);
-			
-			for(size_t i = 0; i < methods.size(); i++){
-				table.table_.at((methods.at(i) >> shift) & mask) = methods.at(i);
-			}
-			
-			table.shift_ = shift;
-			table.mask_ = mask;
 			
 			return table;
 		}
@@ -83,29 +45,40 @@ namespace Locic{
 			return VirtualTable::CalculateFromHashes(hashes);
 		}
 		
-		const std::vector<MethodHash>& VirtualTable::table() const {
+		const std::vector< std::list<MethodHash> >& VirtualTable::table() const {
 			return table_;
 		}
 		
-		MethodHash VirtualTable::mask() const {
-			return mask_;
-		}
-		
-		MethodHashShift VirtualTable::shift() const {
-			return shift_;
-		}
-		
 		std::string VirtualTable::toString() const {
-			std::string s = makeString(
-				"VirtualTable[shift = %llu, mask = %llu]{",
-				(unsigned long long) shift_,
-				(unsigned long long) mask_);
+			std::string s = "VirtualTable{";
 			
-			for(size_t i = 0; i < table_.size(); i++){
-				if(i != 0) s += ", ";
-				s += makeString("%llu: %llu",
-					(unsigned long long) i,
-					(unsigned long long) table_.at(i));
+			for(size_t i = 0; i < VTABLE_SIZE; i++){
+				if(i > 0) s += ", ";
+				
+				s += makeString("%llu: ",
+					(unsigned long long) i);
+				
+				const std::list<MethodHash>& slotList = table_.at(i);
+				if(slotList.empty()){
+					s += "empty";
+					continue;
+				}else if(slotList.size() == 1){
+					s += makeString("%llu",
+						(unsigned long long) slotList.front());
+					continue;
+				}
+				
+				s += "clash[";
+				
+				for(std::list<MethodHash>::const_iterator i = slotList.begin();
+					i != slotList.end(); ++i){
+					
+					if(i != slotList.begin()) s += ", ";
+					s += makeString("%llu",
+						(unsigned long long) *i);
+				}
+				
+				s += "]";
 			}
 			
 			s += "}";
@@ -113,8 +86,7 @@ namespace Locic{
 			return s;
 		}
 			
-		VirtualTable::VirtualTable()
-			: mask_(0), shift_(0){ }
+		VirtualTable::VirtualTable(){ }
 	
 	}
 	

@@ -2,7 +2,7 @@
 find_package(LLVM REQUIRED)
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -Wall")
 
 SET(CMAKE_BUILD_TYPE Debug)
 

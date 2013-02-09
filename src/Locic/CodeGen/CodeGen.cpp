@@ -1,5 +1,6 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include <llvm/DerivedTypes.h>
+#include <llvm/InlineAsm.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 #include <llvm/PassManager.h>
@@ -30,12 +31,43 @@
 
 #include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
+#include <Locic/String.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
+		
+		Map<MethodHash, SEM::Function *> CreateFunctionHashMap(SEM::TypeInstance * typeInstance){
+			Map<MethodHash, SEM::Function *> hashMap;
+			
+			StringMap<SEM::Function*>::Range range = typeInstance->functions.range();
+			
+			for(; !range.empty(); range.popFront()) {
+				SEM::Function* function = range.front().value();
+				const std::string& name = function->name.last();
+				hashMap.insert(CreateMethodNameHash(name), function);
+			}
+			
+			assert(hashMap.size() == typeInstance->functions.size());
+			
+			return hashMap;
+		}
+		
+		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, SEM::Function *>& hashMap){
+			std::vector<MethodHash> hashArray;
+			
+			Map<MethodHash, SEM::Function*>::Range range = hashMap.range();
+			
+			for(; !range.empty(); range.popFront()) {
+				hashArray.push_back(range.front().key());
+			}
+			
+			assert(hashMap.size() == hashArray.size());
+			
+			return hashArray;
+		}
 	
 		class InternalCodeGen {
 			private:
@@ -53,7 +85,7 @@ namespace Locic {
 				llvm::Value* returnVar_;
 				llvm::Value* thisPointer_;
 				llvm::Function* memcpy_;
-				llvm::Type* vtableType_;
+				llvm::StructType* vtableType_;
 				
 			public:
 				InternalCodeGen(const std::string& moduleName)
@@ -393,6 +425,8 @@ namespace Locic {
 								genTypeInstance(node.getTypeInstance());
 								break;
 							}
+							default:
+								break;
 						}
 					}
 				}
@@ -405,32 +439,82 @@ namespace Locic {
 					return llvm::Type::getInt8Ty(llvm::getGlobalContext());
 				}
 				
-				llvm::Type* i8PtrType() {
+				llvm::Type* i32Type() {
+					return llvm::Type::getInt32Ty(llvm::getGlobalContext());
+				}
+				
+				llvm::PointerType* i8PtrType() {
 					return i8Type()->getPointerTo();
 				}
 				
-				llvm::Type* getVTableType() {
+				llvm::StructType* getVTableType() {
 					if(vtableType_ != NULL) return vtableType_;
 					
 					std::vector<llvm::Type*> structElements;
-					// Shift.
-					structElements.push_back(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
-					// Mask.
-					structElements.push_back(llvm::Type::getInt32Ty(llvm::getGlobalContext()));
 					// Destructor.
 					const bool isVarArg = false;
-					structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), isVarArg)
+					structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
 											 ->getPointerTo());
-					// The vtable; 0 sized array means variable length.
-					structElements.push_back(llvm::ArrayType::get(i8PtrType(), 0));
+					structElements.push_back(llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE));
 					vtableType_ = llvm::StructType::create(llvm::getGlobalContext(), structElements, "__vtable_type");
 					return vtableType_;
 				}
 				
 				llvm::Value* genVTable(SEM::TypeInstance* typeInstance) {
 					assert(typeInstance->isClass() && "Can only generate method vtable for class types");
-					// TODO...
-					return llvm::ConstantPointerNull::get(getVTableType()->getPointerTo());
+					const std::string vtableName = makeString("__VTABLE__%s", typeInstance->name.genString().c_str());
+					
+					llvm::GlobalVariable * existingGlobalVariable = module_->getGlobalVariable(vtableName);
+					if(existingGlobalVariable != NULL) return existingGlobalVariable;
+					
+					const bool isConstant = true;
+					llvm::GlobalVariable * globalVariable = new llvm::GlobalVariable(*module_, getVTableType(),
+						isConstant, llvm::GlobalValue::ExternalLinkage, NULL, vtableName);
+					
+					if(typeInstance->isClassDecl()) return globalVariable;
+					
+					// Generate the vtable.
+					const Map<MethodHash, SEM::Function *> functionHashMap = CreateFunctionHashMap(typeInstance);
+					std::vector<MethodHash> hashArray = CreateHashArray(functionHashMap);
+					
+					const VirtualTable virtualTable = VirtualTable::CalculateFromHashes(hashArray);
+					
+					std::vector<llvm::Constant *> vtableStructElements;
+					
+					// Destructor.
+					const bool isVarArg = false;
+					llvm::PointerType * destructorType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
+						->getPointerTo();
+					vtableStructElements.push_back(llvm::ConstantPointerNull::get(destructorType));
+					
+					// Method slots.
+					std::vector<llvm::Constant *> methodSlotElements;
+					for(size_t i = 0; i < VTABLE_SIZE; i++){
+						const std::list<MethodHash>& slotList = virtualTable.table().at(i);
+						if(slotList.empty()){
+							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
+						}else if(slotList.size() > 1){
+							printf("COLLISION at %llu.\n",
+								(unsigned long long) i);
+							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
+						}else{
+							assert(slotList.size() == 1);
+							SEM::Function * semFunction = functionHashMap.get(slotList.front());
+							llvm::Function * function = genFunctionDecl(semFunction);
+							methodSlotElements.push_back(llvm::ConstantExpr::getPointerCast(function, i8PtrType()));
+						}
+					}
+					
+					llvm::Constant * methodSlotTable = llvm::ConstantArray::get(
+						llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE), methodSlotElements);
+					vtableStructElements.push_back(methodSlotTable);
+					
+					llvm::Constant * vtableStruct =
+						llvm::ConstantStruct::get(getVTableType(), vtableStructElements);
+					
+					globalVariable->setInitializer(vtableStruct);
+					
+					return globalVariable;
 				}
 				
 				llvm::Function* genInterfaceMethod(SEM::Function* function) {
@@ -456,19 +540,13 @@ namespace Locic {
 					// Get the vtable pointer.
 					llvm::Value* vtablePointer = builder_.CreateExtractValue(thisRecord, std::vector<unsigned>(1, 1), "vtablePointer");
 					
-					llvm::Value* shift = builder_.CreateLoad(builder_.CreateConstInBoundsGEP2_32(vtablePointer, 0, 0, "shiftPointer"), "shift");
-					llvm::Value* shift32 = builder_.CreateZExt(shift, llvm::Type::getInt32Ty(llvm::getGlobalContext()), "shift32");
-					llvm::Value* mask = builder_.CreateLoad(builder_.CreateConstInBoundsGEP2_32(vtablePointer, 0, 1, "maskPointer"), "mask");
-					
 					const Locic::CodeGen::MethodHash methodHash = Locic::CodeGen::CreateMethodNameHash(function->name.last());
-					llvm::Value* hashValue = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), methodHash, false);
-					llvm::Value* shiftedHashValue = builder_.CreateLShr(hashValue, shift32, "shiftedHashValue");
-					llvm::Value* maskedShiftedHashValue = builder_.CreateAnd(shiftedHashValue, mask, "maskedShiftedHashValue");
+					const size_t offset = methodHash % VTABLE_SIZE;
 					
 					std::vector<llvm::Value*> vtableEntryGEP;
 					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0)));
-					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 3)));
-					vtableEntryGEP.push_back(maskedShiftedHashValue);
+					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 1)));
+					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, offset)));
 					
 					llvm::Value* vtableEntryPointer = builder_.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 					llvm::Value* methodFunctionPointer = builder_.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
@@ -482,6 +560,13 @@ namespace Locic {
 					arguments.push_back(thisPointer);
 					
 					while(arg != generatedFunction->arg_end()) arguments.push_back(arg++);
+					
+					llvm::FunctionType * asmFunctionType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), false);
+					std::string assembly = makeString("movl $$%llu, %%eax",
+						(unsigned long long) methodHash);
+					
+					llvm::InlineAsm * setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
+					builder_.CreateCall(setEax);
 					
 					llvm::Value* methodCallValue = builder_.CreateCall(castedMethodFunctionPointer,
 												   arguments, returnType->isVoid() ? "" : "methodCallValue");

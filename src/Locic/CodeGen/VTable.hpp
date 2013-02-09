@@ -2,12 +2,16 @@
 #define LOCIC_CODEGEN_HASH_HPP
 
 #include <stdint.h>
+
+#include <list>
 #include <string>
 #include <vector>
 
 namespace Locic{
 
 	namespace CodeGen{
+		
+		const size_t VTABLE_SIZE = 20;
 		
 		/**
 		 * All method names are 'hashed' to a 32 bit
@@ -18,28 +22,20 @@ namespace Locic{
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName);
 		
-		typedef uint8_t MethodHashShift;
-		
 		class VirtualTable{
 			public:
 				static VirtualTable CalculateFromHashes(const std::vector<MethodHash>& methods);
 				
 				static VirtualTable CalculateFromNames(const std::vector<std::string>& methods);
 				
-				const std::vector<MethodHash>& table() const;
-				
-				MethodHash mask() const;
-				
-				MethodHashShift shift() const;
+				const std::vector< std::list<MethodHash> >& table() const;
 				
 				std::string toString() const;
 				
 			private:
 				VirtualTable();
 				
-				std::vector<MethodHash> table_;
-				MethodHash mask_;
-				MethodHashShift shift_;
+				std::vector< std::list<MethodHash> > table_;
 				
 		};
 	

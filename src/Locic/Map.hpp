@@ -10,7 +10,7 @@
 namespace Locic{
 
 	template <typename Key, typename Value>
-	class Map: boost::noncopyable{
+	class Map{
 		private:
 			typedef std::map<Key, Value> MapType;
 			typedef typename MapType::const_iterator CItType;
