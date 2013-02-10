@@ -51,12 +51,12 @@ default                 { return DEFAULT; }
 continue               { return CONTINUE; }
 break                   { return BREAK; }
 
+exception               { return EXCEPTION; }
 throw                   { return THROW; }
 try                     { return TRY; }
 catch                  { return CATCH; }
 
 template                { return TEMPLATE; }
-generic                 { return GENERIC; }
 
 struct                 { return STRUCT; }
 enum                    { return ENUM; }
@@ -80,11 +80,14 @@ new                     { return NEW; }
 delete                  { return DELETE; }
 extract                 { return EXTRACT; }
 sizeof                  { return SIZEOF; }
-typeid                  { return TYPEID; }
 
 cast                    { return CAST; }
 const_cast              { return CONST_CAST; }
 static_cast             { return STATIC_CAST; }
+reinterpret_cast        { return REINTERPRET_CAST; }
+
+is_a                    { return IS_A; }
+typeid                  { return TYPEID; }
 dynamic_cast            { return DYNAMIC_CAST; }
 
 void                    { return VOIDNAME; }

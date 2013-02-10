@@ -1,2 +1,2 @@
-add_library(locic-sem Namespace.cpp TypeInstance.cpp)
+add_library(locic-sem Namespace.cpp TypeInstance.cpp Value.cpp Var.cpp)
 

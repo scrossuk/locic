@@ -19,8 +19,8 @@ namespace Locic{
 		public:
 			class Pair{
 				public:
-					Pair(const Key& key, const Value& value)
-						: key_(key), value_(value){ }
+					Pair(const Key& k, const Value& v)
+						: key_(k), value_(v){ }
 					
 					Key key() const{
 						return key_;
@@ -112,8 +112,8 @@ namespace Locic{
 				return map_.empty();
 			}
 			
-			void insertRange(const Range& range){
-				map_.insert(range.begin_, range.end_);
+			void insertRange(const Range& rangeToInsert){
+				map_.insert(rangeToInsert.begin_, rangeToInsert.end_);
 			}
 			
 		private:

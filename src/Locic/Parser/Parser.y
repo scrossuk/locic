@@ -88,7 +88,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token DELETE
 %token EXTRACT
 %token TEMPLATE
-%token GENERIC
 %token USING
 %token ENUM
 %token UNION
@@ -97,6 +96,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token DEFAULT
 %token CONTINUE
 %token BREAK
+%token EXCEPTION
 %token THROW
 %token TRY
 %token CATCH
@@ -131,6 +131,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token CONST_CAST
 %token STATIC_CAST
 %token DYNAMIC_CAST
+%token REINTERPRET_CAST
+%token IS_A
 %token LTRIBRACKET
 %token RTRIBRACKET
 %token DOUBLE_LTRIBRACKET

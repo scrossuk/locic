@@ -2,7 +2,7 @@
 find_package(LLVM REQUIRED)
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -Wall -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
 
 SET(CMAKE_BUILD_TYPE Debug)
 
@@ -23,7 +23,7 @@ add_executable(calculateVTable calculateVTable.cpp String.cpp)
 target_link_libraries(calculateVTable locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 
 # Build compiler.
-add_executable(locic main.cpp String.cpp)
+add_executable(locic main.cpp Log.cpp String.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})

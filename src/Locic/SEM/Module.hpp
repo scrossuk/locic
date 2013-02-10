@@ -6,16 +6,20 @@
 #include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
-namespace SEM{
+namespace Locic {
 
-	struct Module{
-		std::string name;
-		std::vector<TypeInstance *> typeInstances;
-		std::vector<Function *> functions;
+	namespace SEM {
+	
+		struct Module {
+			std::string name;
+			std::vector<TypeInstance*> typeInstances;
+			std::vector<Function*> functions;
+			
+			inline Module(const std::string& n)
+				: name(n) { }
+		};
 		
-		inline Module(const std::string& n)
-			: name(n){ }
-	};
+	}
 	
 }
 

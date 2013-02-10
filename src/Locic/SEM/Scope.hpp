@@ -5,13 +5,17 @@
 #include <Locic/SEM/Statement.hpp>
 #include <Locic/SEM/Var.hpp>
 
-namespace SEM{
+namespace Locic {
 
-	struct Scope{
-		std::vector<Var *> localVariables;
-		std::vector<Statement *> statementList;
-	};
-
+	namespace SEM {
+	
+		struct Scope {
+			std::vector<Var*> localVariables;
+			std::vector<Statement*> statementList;
+		};
+		
+	}
+	
 }
 
 #endif

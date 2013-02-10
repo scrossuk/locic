@@ -5,6 +5,8 @@
 #include <cassert>
 #include <boost/optional.hpp>
 
+#include <Locic/String.hpp>
+
 namespace Locic{
 
 	class Constant{
@@ -223,8 +225,40 @@ namespace Locic{
 				}
 			}
 			
+			std::string toString() const {
+				switch(type_){
+					case NULLVAL:
+						return "NullConstant()";
+					case BOOLEAN:
+						return makeString("BoolConstant(%s)",
+							bool_ ? "true" : "false");
+					case SIGNEDINT:
+						return makeString("SignedIntConstant(%lld)",
+							int_);
+					case UNSIGNEDINT:
+						return makeString("UnsignedIntConstant(%llu)",
+							uint_);
+					case FLOATINGPOINT:
+						return makeString("FloatConstant(%Lf)",
+							float_);
+					case STRING:
+						switch(floatType_){
+							case CSTRING:
+								return makeString("CStringConstant(\"%s\")",
+									escapeString(string_).c_str());
+							case LOCISTRING:
+								return makeString("StringConstant(\"%s\")",
+									escapeString(string_).c_str());
+							default:
+								return "[UNKNOWN STRING CONSTANT]";
+						}
+					default:
+						return "[UNKNOWN CONSTANT]";
+				}
+			}
+			
 		private:
-			Constant(Type type)
+			inline Constant(Type type)
 				: type_(type){ }
 			
 			Type type_;

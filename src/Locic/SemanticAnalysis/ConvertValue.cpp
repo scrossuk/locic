@@ -319,11 +319,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					std::vector<SEM::Value*> semValueList;
 					
 					for(std::size_t i = 0; i < astValueList.size(); i++){
-						SEM::Value* value = ConvertValue(context, astValueList.at(i));
+						SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
 						
-						if(value == NULL) return NULL;
+						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = (i < typeList.size()) ? CastValueToType(value, typeList.at(i)) : value;
+						SEM::Value* param = (i < typeList.size()) ? CastValueToType(semArgValue, typeList.at(i)) : semArgValue;
 						
 						if(param == NULL) return NULL;
 						
@@ -349,11 +349,11 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					std::vector<SEM::Value*> semValueList;
 					
 					for(std::size_t i = 0; i < astValueList.size(); i++){
-						SEM::Value* value = ConvertValue(context, astValueList.at(i));
+						SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
 						
-						if(value == NULL) return NULL;
+						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = CastValueToType(value, typeList.at(i));
+						SEM::Value* param = CastValueToType(semArgValue, typeList.at(i));
 						
 						if(param == NULL) return NULL;
 						

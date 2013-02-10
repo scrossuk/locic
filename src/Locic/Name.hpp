@@ -16,10 +16,10 @@ namespace Locic{
 			inline Name()
 				: isAbsolute_(true){ }
 			
-			inline explicit Name(bool isAbsolute)
-				: isAbsolute_(isAbsolute){ }
+			inline explicit Name(bool isNameAbsolute)
+				: isAbsolute_(isNameAbsolute){ }
 			
-			inline Name(const Name& name, std::size_t substrSize)
+			inline Name(const Name& name, size_t substrSize)
 				: isAbsolute_(name.isAbsolute()){
 				
 				assert(substrSize <= size());
@@ -159,8 +159,8 @@ namespace Locic{
 				return list_.at(list_.size() - i - 1);
 			}
 			
-			inline Name substr(std::size_t size) const{
-				return Name(*this, size);
+			inline Name substr(std::size_t substrSize) const{
+				return Name(*this, substrSize);
 			}
 			
 			inline Name concat(const Name& suffix) const{

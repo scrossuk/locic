@@ -19,7 +19,7 @@ int main(int argc, char * argv[]){
 	std::vector<std::string> fileNames;
 	fileNames.push_back("BuiltInTypes.loci");
 	
-	for(std::size_t i = 1; i < argc; i++){
+	for(size_t i = 1; i < static_cast<size_t>(argc); i++){
 		const std::string argument(argv[i]);
 		
 		assert(!argument.empty());
@@ -82,8 +82,8 @@ int main(int argc, char * argv[]){
 		
 			printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
 			
-			for(std::size_t i = 0; i < errors.size(); i++){
-				const Locic::Parser::Error& error = errors.at(i);
+			for(size_t j = 0; j < errors.size(); j++){
+				const Locic::Parser::Error& error = errors.at(j);
 				printf("Parser Error (line %lu): %s\n", error.lineNumber, error.message.c_str());
 			}
 			
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]){
 	}
 	
 	// Perform semantic analysis.
-	SEM::Namespace * semNamespace = Locic::SemanticAnalysis::Run(astNamespaces);
+	Locic::SEM::Namespace * semNamespace = Locic::SemanticAnalysis::Run(astNamespaces);
 	assert(semNamespace != NULL);
 	
 	const std::string outputName = "output";

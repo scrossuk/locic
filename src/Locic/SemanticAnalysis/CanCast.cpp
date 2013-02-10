@@ -281,7 +281,7 @@ namespace Locic {
 				default:
 				{
 					assert(false && "Unknown SEM type enum value");
-					break;
+					return false;
 				}
 			}
 		}

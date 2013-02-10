@@ -4,7 +4,13 @@ __primitive bool{
 	bool not();
 };
 
-__primitive char{ };
+__primitive char{
+	char implicitCopy();
+	
+	int compare(char v);
+	
+	bool isZero();
+};
 
 __primitive short{
 	short implicitCopy();

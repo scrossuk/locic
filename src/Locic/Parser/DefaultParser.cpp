@@ -13,14 +13,6 @@ namespace Locic{
 
 	namespace Parser{
 	
-		static void * allocWrapper(size_t size){
-			return malloc(size);
-		}
-
-		static void freeWrapper(void * ptr){
-			free(ptr);
-		}
-
 		DefaultParser::DefaultParser(FILE * file, const std::string& fileName)
 			: file_(file), context_(fileName){
 			lexer_ = LexAlloc(file, &context_);

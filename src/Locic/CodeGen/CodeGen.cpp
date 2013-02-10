@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include <Locic/Log.hpp>
 #include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/String.hpp>
@@ -1116,6 +1117,9 @@ namespace Locic {
 				llvm::Value* genValue(SEM::Value* value, bool genLValue = false) {
 					assert(value != NULL && "Cannot generate NULL value");
 					
+					LOG(LOG_INFO, "Generating value %s.",
+						value->toString().c_str());
+					
 					switch(value->typeEnum) {
 						case SEM::Value::CONSTANT: {
 							switch(value->constant->getType()) {
@@ -1348,6 +1352,9 @@ namespace Locic {
 							}
 						}
 						case SEM::Value::FUNCTIONCALL: {
+							LOG(LOG_EXCESSIVE, "Generating function call value %s.",
+								value->functionCall.functionValue->toString().c_str());
+							
 							llvm::Value* function = genValue(value->functionCall.functionValue);
 							assert(function->getType()->isPointerTy());
 							llvm::Type* functionType = function->getType()->getPointerElementType();
@@ -1412,18 +1419,42 @@ namespace Locic {
 							return methodValue;
 						}
 						case SEM::Value::METHODCALL: {
+							LOG(LOG_EXCESSIVE, "Generating method call value %s.",
+								value->methodCall.methodValue->toString().c_str());
+							
 							llvm::Value* method = genValue(value->methodCall.methodValue);
 							llvm::Value* function = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 0));
 							llvm::Value* dataPointer = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 1));
+							
 							std::vector<llvm::Value*> parameters;
+							
+							SEM::Type* returnType = value->type;
+							llvm::Value* returnValue = NULL;
+							
+							if(returnType->isClass()) {
+								returnValue = genAlloca(returnType);
+								assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference");
+								parameters.push_back(returnValue);
+							}
+							
 							parameters.push_back(dataPointer);
 							const std::vector<SEM::Value*>& paramList = value->methodCall.parameters;
 							
 							for(std::size_t i = 0; i < paramList.size(); i++) {
+								LOG(LOG_EXCESSIVE, "Generating method call argument %s.",
+									paramList.at(i)->toString().c_str());
 								parameters.push_back(genValue(paramList.at(i)));
 							}
 							
-							return builder_.CreateCall(function, parameters);
+							LOG(LOG_EXCESSIVE, "Creating call.");
+							
+							llvm::Value* callReturnValue = builder_.CreateCall(function, parameters);
+							
+							if(returnValue != NULL) {
+								return genLoad(returnValue, returnType);
+							} else {
+								return callReturnValue;
+							}
 						}
 						default:
 							assert(false && "Unknown value enum");

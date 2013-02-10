@@ -70,12 +70,12 @@ namespace Locic{
 				
 				s += "clash[";
 				
-				for(std::list<MethodHash>::const_iterator i = slotList.begin();
-					i != slotList.end(); ++i){
+				for(std::list<MethodHash>::const_iterator it = slotList.begin();
+					it != slotList.end(); ++it){
 					
-					if(i != slotList.begin()) s += ", ";
+					if(it != slotList.begin()) s += ", ";
 					s += makeString("%llu",
-						(unsigned long long) *i);
+						(unsigned long long) *it);
 				}
 				
 				s += "]";
