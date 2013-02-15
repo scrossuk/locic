@@ -8,7 +8,11 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type);
+		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* type);
+		
+		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* type);
+		
+		SEM::Value* ExplicitCastValueToType(SEM::Value* value, SEM::Type* type);
 		
 		bool AreTypesEqual(SEM::Type * first, SEM::Type * second);
 		
@@ -16,7 +20,7 @@ namespace Locic {
 		
 		void DoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType);
 		
-		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, std::string& errorString);
+		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
 		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		

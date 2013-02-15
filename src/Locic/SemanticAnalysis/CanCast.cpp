@@ -9,8 +9,12 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* CastValueToType(SEM::Value* value, SEM::Type* type) {
-			std::string errorString;
+		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* type) {
+			try{
+				return ImplicitCastValueToType(value, type);
+			}catch(const CastException& e){
+				// Swallow failure to implicit cast.
+			}
 			
 			// Casting null to object type invokes the null constructor,
 			// assuming that one exists.
@@ -36,8 +40,58 @@ namespace Locic {
 			}
 		
 			// Try a plain implicit cast.
+			try{
+				return ImplicitCastValueToType(value, type);
+			}
 			if(CanDoImplicitCast(value->type, type, errorString)) {
 				return SEM::Value::Cast(type, value);
+			}
+			
+			// Can't just cast from one type to the other =>
+			// must attempt copying (to remove lvalue/const).
+			if(value->type->supportsImplicitCopy()) {
+				// If possible, create a copy.
+				SEM::Value* copiedValue = SEM::Value::CopyValue(value);
+				
+				if(CanDoImplicitCast(copiedValue->type, type, errorString)){
+					// Copying worked.
+					return SEM::Value::Cast(type, copiedValue);
+				}
+			}
+			
+			// Copying also failed.
+			throw TodoException(makeString("No valid cast possible from value '%s' to type '%s': %s.", value->toString().c_str(), type->toString().c_str(), errorString.c_str()));
+		}
+		
+		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* type) {
+			// Try a plain implicit cast.
+			try{
+				return ImplicitCastValueToType(value, type);
+			}catch(const CastException& e){
+				// Swallow failure to implicit cast.
+			}
+			
+			// Casting null to object type invokes the null constructor,
+			// assuming that one exists.
+			if(value->type->isNull() && type->isObjectType()
+				&& type->getObjectType()->supportsNullConstruction()){
+				
+				SEM::TypeInstance * typeInstance = type->getObjectType();
+				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
+				assert(function != NULL);
+		
+				return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
+					std::vector<SEM::Value *>(), function->type->functionType.returnType);
+			}
+			
+			// Polymorphic cast (i.e. from a class/interface pointer to
+			// an interface pointer).
+			if(value->type->isPointer() && type->isPointer()
+				&& value->type->getPointerTarget()->isObjectType()
+				&& type->getPointerTarget()->isInterface()){
+				
+				DoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget());
+				return SEM::Value::PolyCast(type, value);
 			}
 			
 			// Can't just cast from one type to the other =>
@@ -284,6 +338,10 @@ namespace Locic {
 					return false;
 				}
 			}
+		}
+		
+		SEM::Value* ExplicitCastValueToType(SEM::Value* value, SEM::Type* type) {
+			
 		}
 		
 		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
