@@ -22,6 +22,12 @@ namespace Locic {
 				case VAR:
 					return makeString("Var(%s)",
 									  varValue.var->toString().c_str());
+				case ADDRESSOF:
+					return makeString("AddressOf(%s)",
+									  addressOf.value->toString().c_str());
+				case DEREF:
+					return makeString("Deref(%s)",
+									  deref.value->toString().c_str());
 				case TERNARY:
 					return makeString("Ternary(cond: %s, ifTrue: %s, ifFalse: %s)",
 									  ternary.condition->toString().c_str(),
@@ -57,6 +63,10 @@ namespace Locic {
 					return makeString("MethodCall(methodObject: %s, args: %s)",
 									  methodCall.methodValue->toString().c_str(),
 									  makeArrayString(methodCall.parameters).c_str());
+				case CASTDUMMYOBJECT:
+					return "[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)]";
+				case NONE:
+					return "[NONE]";
 				default:
 					return "[UNKNOWN VALUE]";
 			}

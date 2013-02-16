@@ -18,20 +18,6 @@ namespace Locic {
 		
 		class CastException: public Exception{ };
 		
-		class GeneralCastException: public CastException{
-			public:
-				inline TodoCastException(const std::string& message)
-					: message_(message){ }
-					
-				inline std::string toString() const{
-					return makeString("General cast exception: %s", message_.c_str());
-				}
-				
-			private:
-				std::string message_;
-			
-		};
-		
 		class NameClashException: public Exception{
 			public:
 				enum Kind{

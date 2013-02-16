@@ -72,13 +72,7 @@ namespace Locic {
 					
 					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 					assert(boolType != NULL && "Couldn't find bool type");
-					SEM::Value* boolValue = CastValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
-					
-					if(boolValue == NULL) {
-						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in IF statement.\n",
-						       condition->type->toString().c_str());
-						return NULL;
-					}
+					SEM::Value* boolValue = ImplicitConvertValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
@@ -92,13 +86,7 @@ namespace Locic {
 					
 					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 					assert(boolType != NULL && "Couldn't find bool type");
-					SEM::Value* boolValue = CastValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
-					
-					if(boolValue == NULL) {
-						printf("Semantic Analysis Error: Cannot cast or copy conditionition type '%s' to bool type in WHILE statement.\n",
-						       condition->type->toString().c_str());
-						return NULL;
-					}
+					SEM::Value* boolValue = ImplicitConvertValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
@@ -149,17 +137,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Value* castValue = CastValueToType(semValue, type);
-					
-					if(castValue == NULL) {
-						// 'Auto' type annotations shouldn't cause problems like this.
-						assert(typeAnnotation != NULL);
-						
-						printf("Semantic Analysis Error: Cannot cast or copy value type '%s' to annotated variable type '%s' in declaration.\n",
-						       semValue->type->toString().c_str(),
-						       type->toString().c_str());
-						return NULL;
-					}
+					SEM::Value* castValue = ImplicitConvertValueToType(semValue, type);
 					
 					return SEM::Statement::Assign(SEM::Value::VarValue(semVar), castValue);
 				}
@@ -186,14 +164,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Value* castRValue = CastValueToType(rValue, lValue->type);
-						
-					if(castRValue == NULL) {
-						printf("Semantic Analysis Error: Cannot cast or copy rvalue type '%s' to lvalue type '%s' in assignment.\n",
-						       rValue->type->toString().c_str(),
-						       lValue->type->toString().c_str());
-						return NULL;
-					}
+					SEM::Value* castRValue = ImplicitConvertValueToType(rValue, lValue->type);
 					
 					return SEM::Statement::Assign(lValue, castRValue);
 				}
@@ -213,14 +184,7 @@ namespace Locic {
 							return NULL;
 						}
 						
-						SEM::Value* castValue = CastValueToType(semValue, context.getReturnType());
-						
-						if(castValue == NULL) {
-							printf("Semantic Analysis Error: Cannot cast or copy value type '%s' to function return type '%s' in return statement.\n",
-							       semValue->type->toString().c_str(),
-							       context.getReturnType()->toString().c_str());
-							return NULL;
-						}
+						SEM::Value* castValue = ImplicitConvertValueToType(semValue, context.getReturnType());
 						
 						return SEM::Statement::Return(castValue);
 					}

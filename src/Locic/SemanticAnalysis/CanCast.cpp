@@ -9,202 +9,19 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* type) {
-			try{
-				return ImplicitCastValueToType(value, type);
-			}catch(const CastException& e){
-				// Swallow failure to implicit cast.
-			}
+		SEM::Value * PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
+			assert(sourceType->isPointer() && destType->isPointer());
 			
-			// Casting null to object type invokes the null constructor,
-			// assuming that one exists.
-			if(value->type->isNull() && type->isObjectType()
-				&& type->getObjectType()->supportsNullConstruction()){
-				
-				SEM::TypeInstance * typeInstance = type->getObjectType();
-				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
-				assert(function != NULL);
-		
-				return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
-					std::vector<SEM::Value *>(), function->type->functionType.returnType);
-			}
+			SEM::Type * sourceTargetType = sourceType->getPointerTarget();
+			SEM::Type * destTargetType = destType->getPointerTarget();
 			
-			// Polymorphic cast (i.e. from a class/interface pointer to
-			// an interface pointer).
-			if(value->type->isPointer() && type->isPointer()
-				&& value->type->getPointerTarget()->isObjectType()
-				&& type->getPointerTarget()->isInterface()){
-				
-				DoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget());
-				return SEM::Value::PolyCast(type, value);
-			}
-		
-			// Try a plain implicit cast.
-			try{
-				return ImplicitCastValueToType(value, type);
-			}
-			if(CanDoImplicitCast(value->type, type, errorString)) {
-				return SEM::Value::Cast(type, value);
-			}
+			assert(sourceTargetType->isObjectType());
+			assert(destTargetType->isInterface());
 			
-			// Can't just cast from one type to the other =>
-			// must attempt copying (to remove lvalue/const).
-			if(value->type->supportsImplicitCopy()) {
-				// If possible, create a copy.
-				SEM::Value* copiedValue = SEM::Value::CopyValue(value);
-				
-				if(CanDoImplicitCast(copiedValue->type, type, errorString)){
-					// Copying worked.
-					return SEM::Value::Cast(type, copiedValue);
-				}
-			}
-			
-			// Copying also failed.
-			throw TodoException(makeString("No valid cast possible from value '%s' to type '%s': %s.", value->toString().c_str(), type->toString().c_str(), errorString.c_str()));
-		}
-		
-		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* type) {
-			// Try a plain implicit cast.
-			try{
-				return ImplicitCastValueToType(value, type);
-			}catch(const CastException& e){
-				// Swallow failure to implicit cast.
-			}
-			
-			// Casting null to object type invokes the null constructor,
-			// assuming that one exists.
-			if(value->type->isNull() && type->isObjectType()
-				&& type->getObjectType()->supportsNullConstruction()){
-				
-				SEM::TypeInstance * typeInstance = type->getObjectType();
-				SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
-				assert(function != NULL);
-		
-				return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
-					std::vector<SEM::Value *>(), function->type->functionType.returnType);
-			}
-			
-			// Polymorphic cast (i.e. from a class/interface pointer to
-			// an interface pointer).
-			if(value->type->isPointer() && type->isPointer()
-				&& value->type->getPointerTarget()->isObjectType()
-				&& type->getPointerTarget()->isInterface()){
-				
-				DoPolymorphicCast(value->type->getPointerTarget(), type->getPointerTarget());
-				return SEM::Value::PolyCast(type, value);
-			}
-			
-			// Can't just cast from one type to the other =>
-			// must attempt copying (to remove lvalue/const).
-			if(value->type->supportsImplicitCopy()) {
-				// If possible, create a copy.
-				SEM::Value* copiedValue = SEM::Value::CopyValue(value);
-				
-				if(CanDoImplicitCast(copiedValue->type, type, errorString)){
-					// Copying worked.
-					return SEM::Value::Cast(type, copiedValue);
-				}
-			}
-			
-			// Copying also failed.
-			throw TodoException(makeString("No valid cast possible from value '%s' to type '%s': %s.", value->toString().c_str(), type->toString().c_str(), errorString.c_str()));
-		}
-		
-		bool AreTypesEqual(SEM::Type * firstType, SEM::Type * secondType){
-			if(firstType->typeEnum != secondType->typeEnum
-				|| firstType->isMutable != secondType->isMutable
-				|| firstType->isLValue != secondType->isLValue) {
-				return false;
-			}
-			
-			if(firstType == secondType) return true;
-			
-			switch(firstType->typeEnum) {
-				case SEM::Type::VOID: {
-					return true;
-				}
-				case SEM::Type::NULLT: {
-					return true;
-				}
-				case SEM::Type::NAMED: {
-					return firstType->namedType.typeInstance == secondType->namedType.typeInstance;
-				}
-				case SEM::Type::POINTER: {
-					SEM::Type* firstPtr = firstType->pointerType.targetType;
-					SEM::Type* secondPtr = secondType->pointerType.targetType;
-					
-					return AreTypesEqual(firstPtr, secondPtr);
-				}
-				case SEM::Type::FUNCTION: {
-					if(!AreTypesEqual(firstType->functionType.returnType, secondType->functionType.returnType)){
-						return false;
-					}
-				
-					const std::vector<SEM::Type*>& firstList = firstType->functionType.parameterTypes;
-					const std::vector<SEM::Type*>& secondList = secondType->functionType.parameterTypes;
-					
-					if(firstList.size() != secondList.size()) {
-						return false;
-					}
-					
-					for(std::size_t i = 0; i < firstList.size(); i++){
-						if(!AreTypesEqual(firstList.at(i), secondList.at(i))) {
-							return false;
-						}
-					}
-					
-					return firstType->functionType.isVarArg == secondType->functionType.isVarArg;
-				}
-				case SEM::Type::METHOD: {
-					if(firstType->methodType.objectType != secondType->methodType.objectType){
-						return false;
-					}
-				
-					if(!AreTypesEqual(firstType->methodType.functionType, secondType->methodType.functionType)){
-						return false;
-					}
-					
-					return true;
-				}
-				default:
-					return false;
-			}
-		}
-		
-		SEM::Type * UniteTypes(SEM::Type * first, SEM::Type * second){
-			std::string errorString;
-			if(CanDoImplicitCast(first, second, errorString)) return second;
-			if(CanDoImplicitCast(second, first, errorString)) return first;
-			
-			if(first->supportsImplicitCopy()){
-				SEM::Type * firstCopy = new SEM::Type(*(first));
-				firstCopy->isMutable = true;
-				firstCopy->isLValue = false;
-				if(CanDoImplicitCast(firstCopy, second, errorString)){
-					return second;
-				}
-			}
-			
-			if(second->supportsImplicitCopy()){
-				SEM::Type * secondCopy = new SEM::Type(*(second));
-				secondCopy->isMutable = true;
-				secondCopy->isLValue = false;
-				if(CanDoImplicitCast(secondCopy, first, errorString)){
-					return first;
-				}
-			}
-			
-			return NULL;
-		}
-		
-		void DoPolymorphicCast(SEM::Type* sourceType, SEM::Type* destType) {
-			assert(sourceType->isObjectType());
-			assert(destType->isInterface());
-			
-			if(AreTypesEqual(sourceType, destType)) return;
-			
-			SEM::TypeInstance * sourceInstance = sourceType->getObjectType();
-			SEM::TypeInstance * destInstance = destType->getObjectType();
+			SEM::TypeInstance * sourceInstance = sourceTargetType->getObjectType();
+			SEM::TypeInstance * destInstance = destTargetType->getObjectType();
+			assert(sourceInstance != destInstance);
 			
 			StringMap<SEM::Function *>::Range range = destInstance->functions.range();
 			for(; !range.empty(); range.popFront()){
@@ -212,69 +29,62 @@ namespace Locic {
 				
 				Optional<SEM::Function *> result = sourceInstance->functions.tryGet(destFunction->name.last());
 				if(!result.hasValue()){
-					throw TodoException(makeString("Couldn't find method '%s' when attempting polymorphic cast from type '%s' to interface type '%s'.",
-						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str()));
+					throw PolyCastMissingMethodException(sourceType, destType, destFunction);
 				}
 				
 				SEM::Function * sourceFunction = result.getValue();
 				assert(sourceFunction != NULL);
-				if(!AreTypesEqual(sourceFunction->type, destFunction->type)){
-					throw TodoException(makeString("Method function types ['%s' vs '%s'] for function '%s' don't match in polymorphic cast from type '%s' to interface type '%s'.",
-						sourceFunction->type->toString().c_str(), destFunction->type->toString().c_str(),
-						destFunction->name.last().c_str(), sourceType->toString().c_str(), destType->toString().c_str()));
+				if(*(sourceFunction->type) != *(destFunction->type)){
+					throw PolyCastMethodMismatchException(sourceType, destType, sourceFunction, destFunction);
 				}
 			}
+			
+			return SEM::Value::PolyCast(destType, value);
 		}
 		
+		
 		/** 
-		 * Test whether an implicit cast is possible from one type to another.
+		 * Perform an implicit cast of a value to a type.
 		 *
 		 * Note that implicit casts can only be different ways of looking at
 		 * the same data (e.g. non-const pointer to const pointer); explicit
 		 * casts, copying and null construction are forms of conversion that
 		 * do allow data format modifications.
 		 */
-		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, std::string& errorString) {
-			if(destType->typeEnum == SEM::Type::VOID) {
-				// Everything can be cast to void.
-				return true;
-			}
-			
-			const std::string castString = std::string("'") + sourceType->toString()
-				+ std::string("' to '") + destType->toString() + std::string("'");
+		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
 			
 			if(sourceType->typeEnum != destType->typeEnum) {
-				errorString = std::string("Semantic Analysis Error: Types in implicit cast from ")
-					+ castString + std::string(" don't match.\n");
-				return false;
+				throw CastTypeMismatchException(sourceType, destType);
 			}
 			
 			// Check for const-correctness.
 			if(sourceType->isMutable == false && destType->isMutable == true) {
-				errorString = std::string("Semantic Analysis Error: Const-correctness violation in cast from ")
-					+ castString + std::string(".\n");
-				return false;
+				throw CastConstCorrectnessViolationException(sourceType, destType);
 			}
 			
+			// Can't implicitly cast lvalues to rvalues.
 			if(sourceType->isLValue == true && destType->isLValue == false) {
-				errorString = std::string("Semantic Analysis Error: Cannot convert lvalue to rvalue in cast from ")
-					+ castString + std::string(".\n");
-				return false;
+				throw CastLValueToRValueException(sourceType, destType);
 			}
 			
 			switch(sourceType->typeEnum) {
+				case SEM::Type::VOID:
 				case SEM::Type::NULLT: {
 					// Only one type, which can clearly be cast to itself (assuming const and lvalue rules are followed).
-					return true;
+					return value;
 				}
 				case SEM::Type::NAMED: {
-					if(sourceType->namedType.typeInstance != destType->namedType.typeInstance) {
-						errorString = std::string("Semantic Analysis Error: Named types are incompatible in cast from ")
-							+ castString + std::string(".\n");
-						return false;
+					if(sourceType->getObjectType() == destType->getObjectType()) {
+						// The same type instance can be cast to itself.
+						return value;
 					}
-						
-					return true;
+					
+					if(!destType->isInterface()){
+						throw CastObjectTypeMismatchException(sourceType, destType);
+					}
+					
+					return PolyCastValueToType(value, destType);
 				}
 				case SEM::Type::POINTER: {
 					SEM::Type* sourceTarget = sourceType->getPointerTarget();
@@ -287,83 +97,196 @@ namespace Locic {
 						SEM::Type* destTargetTarget = destTarget->getPointerTarget();
 							
 						if(sourceTargetTarget->isMutable && destTargetTarget->isMutable) {
-							if(sourceTarget->isMutable && destTarget->isMutable) {
-								errorString = std::string("Semantic Analysis Error: Const-correctness violation on pointer type in cast from ")
-									+ castString + std::string(".\n");
-								return false;
-							}
+							throw CastPointerConstCorrectnessViolationException(sourceType, destType);
 						}
 					}
 					
-					return CanDoImplicitCast(sourceTarget, destTarget, errorString);
+					if(sourceTarget->isObjectType() && destTarget->isInterface()){
+						return PolyCastValueToType(value, destType);
+					}else{
+						(void) ImplicitCastValueToType(SEM::Value::Deref(value), destTarget);
+						return SEM::Value::Cast(destType, value);
+					}
 				}
 				case SEM::Type::FUNCTION: {
-					if(!CanDoImplicitCast(sourceType->functionType.returnType, destType->functionType.returnType, errorString)){
-						errorString += std::string("\nSemantic Analysis Error: Cannot cast return value type (in function type) in cast from ")
-							+ castString + std::string(".\n");
-						return false;
-					}
+					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->functionType.returnType), destType->functionType.returnType);
 					
 					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
 					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
 					
 					if(sourceList.size() != destList.size()) {
-						errorString = std::string("Semantic Analysis Error: Number of parameters doesn't match in cast from ")
-							+ castString + std::string(".\n");
-						return false;
+						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
 					}
 					
 					for(std::size_t i = 0; i < sourceList.size(); i++){
-						if(!CanDoImplicitCast(sourceList.at(i), destList.at(i), errorString)) {
-							errorString += std::string("\nSemantic Analysis Error: Cannot cast parameter type (in function type) in cast from ")
-								+ castString + std::string(".\n");
-							return false;
-						}
+						(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
 					}
 					
-					return sourceType->functionType.isVarArg == destType->functionType.isVarArg;
+					if(sourceType->functionType.isVarArg != destType->functionType.isVarArg){
+						throw CastFunctionVarArgsMismatchException(sourceType, destType);
+					}
+					
+					return SEM::Value::Cast(destType, value);
 				}
 				case SEM::Type::METHOD: {
 					if(sourceType->methodType.objectType != destType->methodType.objectType){
-						errorString = std::string("\nSemantic Analysis Error: Cannot cast between methods on different objects in cast from ")
-							+ castString + std::string(".\n");
-						return false;
+						throw CastMethodObjectTypeMismatchException(sourceType, destType);
 					}
-				
-					return CanDoImplicitCast(sourceType->methodType.functionType, destType->methodType.functionType, errorString);
+					
+					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->methodType.functionType),
+						destType->methodType.functionType);
+					
+					return SEM::Value::Cast(destType, value);
 				}
 				default:
 				{
 					assert(false && "Unknown SEM type enum value");
-					return false;
+					return NULL;
 				}
 			}
 		}
 		
-		SEM::Value* ExplicitCastValueToType(SEM::Value* value, SEM::Type* type) {
+		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
 			
-		}
-		
-		bool CanDoExplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
-			std::string errorString;
-			if(CanDoImplicitCast(sourceType, destType, errorString)){
-				return true;
+			// Const values must be copied to become mutable values,
+			// and lvalues must be copied to become rvalues.
+			if((!sourceType->isMutable && destType->isMutable)
+				|| (sourceType->isLValue && !destType->isLValue)) {
+				if(value->type->supportsImplicitCopy()) {
+					// If possible, create a copy.
+					SEM::Value* copiedValue = SEM::Value::CopyValue(value);
+					
+					assert(!copiedValue->type->isLValue);
+					return ImplicitConvertValueToType(copiedValue, destType);
+				}else{
+					throw CastImplicitCopyUnavailableException(sourceType, destType);
+				}
 			}
 			
-			if(sourceType->typeEnum != destType->typeEnum) {
-				return false;
-			}
-			
-			switch(sourceType->typeEnum) {
-				case SEM::Type::NAMED:
-				case SEM::Type::POINTER:
-				case SEM::Type::FUNCTION:
+			switch(destType->typeEnum) {
+				case SEM::Type::VOID: {
+					// Everything can be converted to void.
+					if(!sourceType->isVoid()){
+						return SEM::Value::Cast(destType, value);
+					}else{
+						return value;
+					}
+				}
+				case SEM::Type::NULLT: {
+					if(sourceType->isNull()){
+						return value;
+					}else{
+						throw CastTypeMismatchException(sourceType, destType);
+					}
+				}
+				case SEM::Type::NAMED: {
+					if(sourceType->isNull() && destType->getObjectType()->supportsNullConstruction()){
+						// Casting null to object type invokes the null constructor,
+						// assuming that one exists.
+						SEM::TypeInstance * typeInstance = destType->getObjectType();
+						SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
+						assert(function != NULL);
+						
+						return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
+							std::vector<SEM::Value *>(), function->type->functionType.returnType);
+					}else if(sourceType->isObjectType()){
+						if(sourceType->getObjectType() == destType->getObjectType()) {
+							// The same type instance can be cast to itself.
+							return value;
+						}
+						
+						if(!destType->isInterface()){
+							throw CastObjectTypeMismatchException(sourceType, destType);
+						}
+						
+						return PolyCastValueToType(value, destType);
+					}else{
+						throw CastTypeMismatchException(sourceType, destType);
+					}
+				}
+				case SEM::Type::POINTER: {
+					if(!sourceType->isPointer()){
+						throw CastTypeMismatchException(sourceType, destType);
+					}
+					
+					SEM::Type* sourceTarget = sourceType->getPointerTarget();
+					SEM::Type* destTarget = destType->getPointerTarget();
+					
+					if(sourceTarget->isPointer() && destTarget->isPointer()) {
+						// Check for const-correctness inside pointers (e.g.
+						// to prevent T** being cast to const T**).
+						SEM::Type* sourceTargetTarget = sourceTarget->getPointerTarget();
+						SEM::Type* destTargetTarget = destTarget->getPointerTarget();
+							
+						if(sourceTargetTarget->isMutable && destTargetTarget->isMutable) {
+							throw CastPointerConstCorrectnessViolationException(sourceType, destType);
+						}
+					}
+					
+					if(sourceTarget->isObjectType() && destTarget->isInterface()){
+						return PolyCastValueToType(value, destType);
+					}else{
+						(void) ImplicitCastValueToType(SEM::Value::Deref(value), destTarget);
+						return SEM::Value::Cast(destType, value);
+					}
+				}
+				case SEM::Type::FUNCTION: {
+					if(!sourceType->isFunction()){
+						throw CastTypeMismatchException(sourceType, destType);
+					}
+					
+					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->functionType.returnType), destType->functionType.returnType);
+					
+					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
+					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
+					
+					if(sourceList.size() != destList.size()) {
+						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
+					}
+					
+					for(std::size_t i = 0; i < sourceList.size(); i++){
+						(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
+					}
+					
+					if(sourceType->functionType.isVarArg != destType->functionType.isVarArg){
+						throw CastFunctionVarArgsMismatchException(sourceType, destType);
+					}
+					
+					return SEM::Value::Cast(destType, value);
+				}
 				case SEM::Type::METHOD: {
-					printf("%s", errorString.c_str());
-					return false;
+					if(!sourceType->isMethod()){
+						throw CastTypeMismatchException(sourceType, destType);
+					}
+					
+					if(sourceType->methodType.objectType != destType->methodType.objectType){
+						throw CastMethodObjectTypeMismatchException(sourceType, destType);
+					}
+					
+					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->methodType.functionType),
+						destType->methodType.functionType);
+					
+					return SEM::Value::Cast(destType, value);
 				}
 				default:
-					return false;
+				{
+					assert(false && "Unknown SEM type enum value");
+					return NULL;
+				}
+			}
+		}
+		
+		SEM::Type * UnifyTypes(SEM::Type * first, SEM::Type * second){
+			// A little simplistic, give that this assumes types
+			// can only be unified by one type being converted to
+			// another (and ignores the possibility of both types
+			// being converted to a separate third type).
+			if(CanDoImplicitConvert(first, second)){
+				return second;
+			}else{
+				(void) ImplicitConvertValueToType(SEM::Value::CastDummy(second), first);
+				return first;
 			}
 		}
 		

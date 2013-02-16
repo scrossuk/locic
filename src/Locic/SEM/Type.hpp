@@ -76,6 +76,7 @@ namespace Locic {
 			}
 			
 			inline static Type* Pointer(bool isMutable, bool isLValue, Type* targetType) {
+				assert(targetType->isLValue);
 				Type* type = new Type(POINTER, isMutable, isLValue);
 				type->pointerType.targetType = targetType;
 				return type;
@@ -124,6 +125,14 @@ namespace Locic {
 				return typeEnum == POINTER;
 			}
 			
+			inline bool isFunction() const {
+				return typeEnum == FUNCTION;
+			}
+			
+			inline bool isMethod() const {
+				return typeEnum == METHOD;
+			}
+			
 			inline SEM::Type* getPointerTarget() const {
 				assert(isPointer() && "Cannot get target type of non-pointer type");
 				return pointerType.targetType;
@@ -133,7 +142,7 @@ namespace Locic {
 				return typeEnum == NAMED;
 			}
 			
-			inline SEM::TypeInstance* getObjectType() {
+			inline SEM::TypeInstance* getObjectType() const {
 				assert(isObjectType() && "Cannot get object type, since type is not an object type");
 				return namedType.typeInstance;
 			}
@@ -183,7 +192,7 @@ namespace Locic {
 						return "NullType()";
 					}
 					case NAMED:
-						return makeString("NamedType(%s)",
+						return makeString("ObjectType(%s)",
 										  namedType.typeInstance->name.toString().c_str());
 					case POINTER:
 						return makeString("PointerType(%s)",
@@ -218,6 +227,58 @@ namespace Locic {
 				} else {
 					return constToString();
 				}
+			}
+			
+			inline bool operator==(const Type& type) const{
+				if(this == &type){
+					return true;
+				}
+				
+				if(typeEnum != type.typeEnum
+					|| isMutable != type.isMutable
+					|| isLValue != type.isLValue) {
+					return false;
+				}
+			
+				switch(typeEnum) {
+					case SEM::Type::VOID:
+					case SEM::Type::NULLT: {
+						return true;
+					}
+					case SEM::Type::NAMED: {
+						return getObjectType() == type.getObjectType();
+					}
+					case SEM::Type::POINTER: {
+						return *(pointerType.targetType) == *(type.pointerType.targetType);
+					}
+					case SEM::Type::FUNCTION: {
+						const std::vector<SEM::Type*>& firstList = functionType.parameterTypes;
+						const std::vector<SEM::Type*>& secondList = type.functionType.parameterTypes;
+						
+						if(firstList.size() != secondList.size()) {
+							return false;
+						}
+						
+						for(std::size_t i = 0; i < firstList.size(); i++){
+							if(*(firstList.at(i)) != *(secondList.at(i))) {
+								return false;
+							}
+						}
+						
+						return *(functionType.returnType) == *(type.functionType.returnType)
+							&& functionType.isVarArg == type.functionType.isVarArg;
+					}
+					case SEM::Type::METHOD: {
+						return methodType.objectType != type.methodType.objectType 
+							&& *(methodType.functionType) == *(type.methodType.functionType);
+					}
+					default:
+						return false;
+				}
+			}
+			
+			inline bool operator!=(const Type& type) const {
+				return !(*this == type);
 			}
 			
 		};

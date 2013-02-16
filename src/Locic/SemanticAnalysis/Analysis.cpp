@@ -143,7 +143,7 @@ namespace Locic {
 			}else if(node.isFunction()){
 				SEM::Function * existingFunction = node.getFunction();
 				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
-				if(!AreTypesEqual(semFunction->type, existingFunction->type)){
+				if(*(semFunction->type) != *(existingFunction->type)){
 					throw NonUnifiableFunctionsException(functionName, semFunction->type->toString(), existingFunction->type->toString());
 				}
 			}else{
@@ -215,7 +215,7 @@ namespace Locic {
 				
 				return rootNamespace;
 			}catch(const Exception& e){
-				printf("Semantic Analysis Error: %s.", e.toString().c_str());
+				printf("Semantic Analysis Error: %s\n", e.toString().c_str());
 				throw;
 			}
 		}

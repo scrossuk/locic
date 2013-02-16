@@ -117,7 +117,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			if(operand == NULL) return NULL;
 		
 			if(operand->type->isLValue) {
-				return SEM::Value::AddressOf(operand, SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
+				return SEM::Value::AddressOf(operand);
 			}
 			
 			printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
@@ -128,7 +128,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			if(operand == NULL) return NULL;
 		
 			if(operand->type->isPointer()) {
-				return SEM::Value::Deref(operand, operand->type->pointerType.targetType);
+				return SEM::Value::Deref(operand);
 			}
 			
 			printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
@@ -140,40 +140,22 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 			assert(boolType != NULL && "Couldn't find bool type");
-			SEM::Value* boolValue = CastValueToType(cond, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
-			
-			if(boolValue == NULL) {
-				printf("Semantic Analysis Error: Cannot cast or copy condition type (%s) to bool type in ternary operator.\n",
-				       cond->type->toString().c_str());
-				return NULL;
-			}
+			SEM::Value* boolValue = ImplicitConvertValueToType(cond, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 			
 			SEM::Value* ifTrue = ConvertValue(context, value->ternary.ifTrue);
 			SEM::Value* ifFalse = ConvertValue(context, value->ternary.ifFalse);
 			
-			SEM::Type* ifTrueType = new SEM::Type(*(ifTrue->type));
-			SEM::Type* ifFalseType = new SEM::Type(*(ifFalse->type));
+			SEM::Type* targetType = new SEM::Type(*(UnifyTypes(ifTrue->type, ifFalse->type)));
 			
 			// Can only result in an lvalue if both possible results are lvalues.
-			if(ifTrueType->isLValue == SEM::Type::RVALUE || ifFalseType->isLValue == SEM::Type::RVALUE) {
-				ifTrueType->isLValue = SEM::Type::RVALUE;
-				ifFalseType->isLValue = SEM::Type::RVALUE;
+			if(ifTrue->type->isLValue == SEM::Type::RVALUE || ifFalse->type->isLValue == SEM::Type::RVALUE) {
+				targetType->isLValue = SEM::Type::RVALUE;
 			}
 			
-			SEM::Value* castIfTrue = CastValueToType(ifTrue, ifFalseType);
-				
-			if(castIfTrue != NULL) {
-				return SEM::Value::Ternary(boolValue, castIfTrue, ifFalse, ifFalseType);
-			}
+			SEM::Value* castIfTrue = ImplicitConvertValueToType(ifTrue, targetType);
+			SEM::Value* castIfFalse = ImplicitConvertValueToType(ifFalse, targetType);
 			
-			SEM::Value* castIfFalse = CastValueToType(ifFalse, ifTrueType);
-				
-			if(castIfFalse != NULL) {
-				return SEM::Value::Ternary(boolValue, ifTrue, castIfFalse, ifTrueType);
-			}
-			
-			printf("Semantic Analysis Error: Can't cast result expressions to matching type in ternary operator.\n");
-			return NULL;
+			return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 		}
 		case AST::Value::CAST: {
 			SEM::Type* type = ConvertType(context, value->cast.targetType, SEM::Type::RVALUE);
@@ -183,12 +165,28 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				return NULL;
 			}
 			
-			if(CanDoExplicitCast(val->type, type) == 0) {
-				printf("Semantic Analysis Error: Can't perform explicit cast.\n");
-				return NULL;
+			std::string s;
+			switch(value->cast.castKind){
+				case AST::Value::CAST_STATIC:
+					s = "STATIC";
+					break;
+				case AST::Value::CAST_CONST:
+					s = "CONST";
+					break;
+				case AST::Value::CAST_DYNAMIC:
+					s = "DYNAMIC";
+					break;
+				case AST::Value::CAST_REINTERPRET:
+					s = "REINTERPRET";
+					break;
+				default:
+					assert(false && "Unknown cast kind");
+					return NULL;
 			}
 			
-			return SEM::Value::Cast(type, val);
+			printf("Internal Compiler Error: Casts of kind '%s' not yet implemented.\n",
+				s.c_str());
+			return NULL;
 		}
 		case AST::Value::INTERNALCONSTRUCT: {
 			const std::vector<AST::Value *>& astValues = value->internalConstruct.parameters;
@@ -213,9 +211,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				SEM::Value * semValue = ConvertValue(context, astValues.at(id));
 				if(semValue == NULL) return NULL;
 				
-				SEM::Value * semParam = CastValueToType(semValue, var->type);
-				if(semParam == NULL) return NULL;
-				
+				SEM::Value * semParam = ImplicitConvertValueToType(semValue, var->type);
 				semValues.at(id) = semParam;
 			}
 			
@@ -323,9 +319,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						
 						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = (i < typeList.size()) ? CastValueToType(semArgValue, typeList.at(i)) : semArgValue;
-						
-						if(param == NULL) return NULL;
+						SEM::Value* param = (i < typeList.size()) ? ImplicitConvertValueToType(semArgValue, typeList.at(i)) : semArgValue;
 						
 						semValueList.push_back(param);
 					}
@@ -353,9 +347,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						
 						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = CastValueToType(semArgValue, typeList.at(i));
-						
-						if(param == NULL) return NULL;
+						SEM::Value* param = ImplicitConvertValueToType(semArgValue, typeList.at(i));
 						
 						semValueList.push_back(param);
 					}

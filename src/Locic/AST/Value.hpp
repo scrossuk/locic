@@ -47,7 +47,15 @@ namespace AST {
 			Value* condition, * ifTrue, * ifFalse;
 		} ternary;
 		
+		enum CastKind{
+			CAST_STATIC,
+			CAST_CONST,
+			CAST_REINTERPRET,
+			CAST_DYNAMIC
+		};
+		
 		struct {
+			CastKind castKind;
 			Type* targetType;
 			Value* value;
 		} cast;
@@ -116,8 +124,9 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * Cast(Type * targetType, Value * operand){
+		inline static Value * Cast(CastKind castKind, Type * targetType, Value * operand){
 			Value* value = new Value(CAST);
+			value->cast.castKind = castKind;
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
 			return value;

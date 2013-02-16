@@ -28,7 +28,11 @@ namespace Locic {
 				FUNCTIONCALL,
 				FUNCTIONREF,
 				METHODOBJECT,
-				METHODCALL
+				METHODCALL,
+				
+				// Used by Semantic Analysis to create a 'dummy'
+				// value to test if types can be cast.
+				CASTDUMMYOBJECT
 			} typeEnum;
 			
 			Type* type;
@@ -113,25 +117,29 @@ namespace Locic {
 			}
 			
 			inline static Value* VarValue(Var* var) {
+				assert(var->type->isLValue);
 				Value* value = new Value(VAR, var->type);
 				value->varValue.var = var;
 				return value;
 			}
 			
-			inline static Value* AddressOf(Value* operand, Type* type) {
-				Value* value = new Value(ADDRESSOF, type);
+			inline static Value* AddressOf(Value* operand) {
+				assert(operand->type->isLValue);
+				Value* value = new Value(ADDRESSOF,
+					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
 				value->addressOf.value = operand;
 				return value;
 			}
 			
-			inline static Value* Deref(Value* operand, Type* type) {
-				Value* value = new Value(DEREF, type);
+			inline static Value* Deref(Value* operand) {
+				Value* value = new Value(DEREF, operand->type->getPointerTarget());
 				value->deref.value = operand;
 				return value;
 			}
 			
-			inline static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse, Type* type) {
-				Value* value = new Value(TERNARY, type);
+			inline static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse) {
+				assert(*(ifTrue->type) == *(ifFalse->type));
+				Value* value = new Value(TERNARY, ifTrue->type);
 				value->ternary.condition = condition;
 				value->ternary.ifTrue = ifTrue;
 				value->ternary.ifFalse = ifFalse;
@@ -191,6 +199,10 @@ namespace Locic {
 				value->methodCall.methodValue = methodValue;
 				value->methodCall.parameters = parameters;
 				return value;
+			}
+			
+			inline static Value* CastDummy(Type* type){
+				return new Value(CASTDUMMYOBJECT, type);
 			}
 			
 			std::string toString() const;

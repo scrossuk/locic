@@ -127,7 +127,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token RETURN
 %token AT
 %token NULLVAL
-%token CAST
 %token CONST_CAST
 %token STATIC_CAST
 %token DYNAMIC_CAST
@@ -702,9 +701,21 @@ precision7:
 	{
 		$$ = AST::Value::Constant($1);
 	}
-	| CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	| STATIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
-		$$ = AST::Value::Cast($3, $6);
+		$$ = AST::Value::Cast(AST::Value::CAST_STATIC, $3, $6);
+	}
+	| CONST_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = AST::Value::Cast(AST::Value::CAST_CONST, $3, $6);
+	}
+	| DYNAMIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = AST::Value::Cast(AST::Value::CAST_DYNAMIC, $3, $6);
+	}
+	| REINTERPRET_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = AST::Value::Cast(AST::Value::CAST_REINTERPRET, $3, $6);
 	}
 	;
 	
