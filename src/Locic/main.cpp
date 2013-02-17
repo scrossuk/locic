@@ -7,6 +7,8 @@
 #include <Locic/CodeGen/CodeGen.hpp>
 #include <Locic/SemanticAnalysis.hpp>
 
+using namespace Locic;
+
 int main(int argc, char * argv[]){
 	if(argc < 2){
 		printf("Locic: No files provided.\n");
@@ -72,18 +74,18 @@ int main(int argc, char * argv[]){
 			return 1;
 		}
 		
-		Locic::Parser::DefaultParser parser(file, filename);
+		Parser::DefaultParser parser(file, filename);
 		if(parser.parseFile()){
 			astNamespaces.push_back(parser.getNamespace());
 			fclose(file);
 		}else{
-			std::vector<Locic::Parser::Error> errors = parser.getErrors();
+			std::vector<Parser::Error> errors = parser.getErrors();
 			assert(!errors.empty());
 		
 			printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
 			
 			for(size_t j = 0; j < errors.size(); j++){
-				const Locic::Parser::Error& error = errors.at(j);
+				const Parser::Error& error = errors.at(j);
 				printf("Parser Error (line %lu): %s\n", error.lineNumber, error.message.c_str());
 			}
 			
@@ -92,12 +94,13 @@ int main(int argc, char * argv[]){
 	}
 	
 	// Perform semantic analysis.
-	Locic::SEM::Namespace * semNamespace = Locic::SemanticAnalysis::Run(astNamespaces);
+	SEM::Namespace * semNamespace = SemanticAnalysis::Run(astNamespaces);
 	assert(semNamespace != NULL);
 	
 	const std::string outputName = "output";
 	
-	Locic::CodeGen::CodeGenerator codeGenerator(outputName);
+	CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
+	CodeGen::CodeGenerator codeGenerator(targetInfo, outputName);
 	codeGenerator.genNamespace(semNamespace);
 	codeGenerator.applyOptimisations(optLevel);
 	codeGenerator.dumpToFile(outputName + ".ll");

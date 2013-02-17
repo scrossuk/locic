@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <string>
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/TargetInfo.hpp>
 
 namespace Locic{
 	
@@ -13,7 +14,7 @@ namespace Locic{
 	
 		class CodeGenerator{
 			public:
-				CodeGenerator(const std::string& moduleName);
+				CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName);
 				~CodeGenerator();
 				
 				void applyOptimisations(size_t optLevel);

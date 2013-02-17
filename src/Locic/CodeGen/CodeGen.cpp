@@ -6,20 +6,12 @@
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Analysis/Passes.h>
-#include <llvm/Target/TargetData.h>
-#include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
-
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Basic/TargetOptions.h>
-#include <clang/Basic/TargetInfo.h>
 
 #include <assert.h>
 #include <cstdio>
@@ -34,6 +26,7 @@
 #include <Locic/SEM.hpp>
 #include <Locic/String.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
+#include <Locic/CodeGen/TargetInfo.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
@@ -73,6 +66,7 @@ namespace Locic {
 		class InternalCodeGen {
 			private:
 				std::string name_;
+				TargetInfo targetInfo_;
 				llvm::Module* module_;
 				llvm::IRBuilder<> builder_;
 				llvm::FunctionType* currentFunctionType_;
@@ -80,93 +74,23 @@ namespace Locic {
 				llvm::BasicBlock* currentBasicBlock_;
 				Locic::Map<SEM::TypeInstance*, llvm::Type*> typeInstances_;
 				Locic::Map<std::string, llvm::Function*> functions_;
-				Locic::Map<std::string, std::size_t> primitiveSizes_;
 				std::vector<llvm::Value*> localVariables_, paramVariables_;
-				clang::TargetInfo* targetInfo_;
 				llvm::Value* returnVar_;
 				llvm::Value* thisPointer_;
 				llvm::Function* memcpy_;
 				llvm::StructType* vtableType_;
 				
 			public:
-				InternalCodeGen(const std::string& moduleName)
+				InternalCodeGen(const TargetInfo& targetInfo, const std::string& moduleName)
 					: name_(moduleName),
+					  targetInfo_(targetInfo),
 					  module_(new llvm::Module(name_.c_str(), llvm::getGlobalContext())),
 					  builder_(llvm::getGlobalContext()),
-					  targetInfo_(0),
 					  returnVar_(NULL),
 					  thisPointer_(NULL),
 					  memcpy_(NULL),
 					  vtableType_(NULL) {
-					llvm::InitializeNativeTarget();
-					//std::cout << "Default target triple: " << llvm::sys::getDefaultTargetTriple() << std::endl;
-					module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-					std::string error;
-					const llvm::Target* target = llvm::TargetRegistry::lookupTarget(llvm::sys::getDefaultTargetTriple(), error);
-					
-					if(target != NULL) {
-						/*std::cout << "Target: name=" << target->getName() << ", description=" << target->getShortDescription() << std::endl;
-						
-						std::cout << "--Does " << (target->hasJIT() ? "" : "not ") << "support just-in-time compilation" << std::endl;
-						std::cout << "--Does " << (target->hasTargetMachine() ? "" : "not ") << "support code generation" << std::endl;
-						std::cout << "--Does " << (target->hasMCAsmBackend() ? "" : "not ") << "support .o generation" << std::endl;
-						std::cout << "--Does " << (target->hasMCAsmLexer() ? "" : "not ") << "support .s lexing" << std::endl;
-						std::cout << "--Does " << (target->hasMCAsmParser() ? "" : "not ") << "support .s parsing" << std::endl;
-						std::cout << "--Does " << (target->hasAsmPrinter() ? "" : "not ") << "support .s printing" << std::endl;
-						std::cout << "--Does " << (target->hasMCDisassembler() ? "" : "not ") << "support disassembling" << std::endl;
-						std::cout << "--Does " << (target->hasMCInstPrinter() ? "" : "not ") << "support printing instructions" << std::endl;
-						std::cout << "--Does " << (target->hasMCCodeEmitter() ? "" : "not ") << "support instruction encoding" << std::endl;
-						std::cout << "--Does " << (target->hasMCObjectStreamer() ? "" : "not ") << "support streaming to files" << std::endl;
-						std::cout << "--Does " << (target->hasAsmStreamer() ? "" : "not ") << "support streaming ASM to files" << std::endl;*/
-						if(target->hasTargetMachine()) {
-							std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(llvm::sys::getDefaultTargetTriple(), "", "", llvm::TargetOptions()));
-							const llvm::TargetData* targetData = targetMachine->getTargetData();
-							
-							if(targetData != 0) {
-								/*std::cout << "--Pointer size = " << targetData->getPointerSize() << std::endl;
-								std::cout << "--Pointer size (in bits) = " << targetData->getPointerSizeInBits() << std::endl;
-								std::cout << "--Little endian = " << (targetData->isLittleEndian() ? "true" : "false") << std::endl;
-								std::cout << "--Big endian = " << (targetData->isBigEndian() ? "true" : "false") << std::endl;
-								std::cout << "--Legal integer sizes = {";
-								
-								bool b = false;
-								
-								for(unsigned int i = 0; i < 1000; i++) {
-									if(targetData->isLegalInteger(i)) {
-										if(b) {
-											std::cout << ", ";
-										}
-								
-										std::cout << i;
-										b = true;
-									}
-								}
-								
-								std::cout << "}" << std::endl;
-								std::cout << std::endl;*/
-								clang::CompilerInstance ci;
-								ci.createDiagnostics(0, NULL);
-								clang::TargetOptions to;
-								to.Triple = llvm::sys::getDefaultTargetTriple();
-								targetInfo_ = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
-								/*std::cout << "Information from Clang:" << std::endl;
-								std::cout << "--Short width: " << targetInfo_->getShortWidth() << ", " << (sizeof(short) * 8) << std::endl;
-								std::cout << "--Int width: " << targetInfo_->getIntWidth() << ", " << (sizeof(int) * 8) << std::endl;
-								std::cout << "--Long width: " << targetInfo_->getLongWidth() << ", " << (sizeof(long) * 8) << std::endl;
-								std::cout << "--Long long width: " << targetInfo_->getLongLongWidth() << ", " << (sizeof(long long) * 8) << std::endl;
-								std::cout << "--Float width: " << targetInfo_->getFloatWidth() << ", " << (sizeof(float) * 8) << std::endl;
-								std::cout << "--Double width: " << targetInfo_->getDoubleWidth() << ", " << (sizeof(double) * 8) << std::endl;
-								std::cout << std::endl;*/
-								primitiveSizes_.insert("short", targetInfo_->getShortWidth());
-								primitiveSizes_.insert("int", targetInfo_->getIntWidth());
-								primitiveSizes_.insert("long", targetInfo_->getLongWidth());
-								primitiveSizes_.insert("longlong", targetInfo_->getLongLongWidth());
-							}
-						}
-					} else {
-						std::cout << "Error when looking up default target: " << error << std::endl;
-					}
-					
+					module_->setTargetTriple(targetInfo_.getTargetTriple());
 					genBuiltInTypes();
 				}
 				
@@ -192,11 +116,11 @@ namespace Locic {
 				
 				void genBuiltInTypes() {
 					std::vector< std::pair<std::string, std::size_t> > sizes;
-					sizes.push_back(std::make_pair("short", targetInfo_->getShortWidth()));
-					sizes.push_back(std::make_pair("int", targetInfo_->getIntWidth()));
-					sizes.push_back(std::make_pair("long", targetInfo_->getLongWidth()));
-					sizes.push_back(std::make_pair("longlong", targetInfo_->getLongLongWidth()));
-					const size_t integerWidth = targetInfo_->getIntWidth();
+					sizes.push_back(std::make_pair("short", targetInfo_.getPrimitiveSize("short")));
+					sizes.push_back(std::make_pair("int", targetInfo_.getPrimitiveSize("int")));
+					sizes.push_back(std::make_pair("long", targetInfo_.getPrimitiveSize("long")));
+					sizes.push_back(std::make_pair("longlong", targetInfo_.getPrimitiveSize("longlong")));
+					const size_t integerWidth = targetInfo_.getPrimitiveSize("int");
 					llvm::Type* boolType = llvm::Type::getInt1Ty(llvm::getGlobalContext());
 					llvm::Type* integerType = llvm::IntegerType::get(llvm::getGlobalContext(), integerWidth);
 					{
@@ -376,7 +300,7 @@ namespace Locic {
 							functions_.insert(functionName, function);
 						}
 						{
-							const size_t sizeTypeWidth = targetInfo_->getTypeWidth(targetInfo_->getSizeType());
+							const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 							llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
 							const std::string functionName = std::string("__BUILTIN__") + name + "__sizeof";
 							llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
@@ -615,7 +539,7 @@ namespace Locic {
 					if(result.hasValue()) return result.getValue();
 					
 					assert(!typeInstance->isPrimitive() && "Primitive types must have already defined a sizeof() function");
-					const size_t sizeTypeWidth = targetInfo_->getTypeWidth(targetInfo_->getSizeType());
+					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 					llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
 					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
 					// Struct definitions use 'LinkOnce' because they may
@@ -774,13 +698,13 @@ namespace Locic {
 					
 					if(name == "::char") return llvm::Type::getInt8Ty(llvm::getGlobalContext());
 					
-					if(name == "::short") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getShortWidth());
+					if(name == "::short") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("short"));
 					
-					if(name == "::int") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getIntWidth());
+					if(name == "::int") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("int"));
 					
-					if(name == "::long") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongWidth());
+					if(name == "::long") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("long"));
 					
-					if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getLongLongWidth());
+					if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("longlong"));
 					
 					if(name == "::float") return llvm::Type::getFloatTy(llvm::getGlobalContext());
 					
@@ -853,7 +777,7 @@ namespace Locic {
 				}
 				
 				llvm::Value* genSizeOf(SEM::Type* type) {
-					const size_t sizeTypeWidth = targetInfo_->getTypeWidth(targetInfo_->getSizeType());
+					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 					
 					switch(type->typeEnum) {
 						case SEM::Type::VOID:
@@ -866,10 +790,10 @@ namespace Locic {
 						}
 						case SEM::Type::POINTER:
 						case SEM::Type::FUNCTION: {
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, targetInfo_->getPointerWidth(0) / 8));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, targetInfo_.getPointerSize() / 8));
 						}
 						case SEM::Type::METHOD: {
-							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 2 * targetInfo_->getPointerWidth(0) / 8));
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 2 * targetInfo_.getPointerSize() / 8));
 						}
 						default: {
 							assert(false && "Unknown type enum for generating sizeof");
@@ -1128,11 +1052,11 @@ namespace Locic {
 								case Locic::Constant::BOOLEAN:
 									return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(1, value->constant->getBool()));
 								case Locic::Constant::SIGNEDINT: {
-									const std::size_t primitiveSize = primitiveSizes_.get(value->constant->getTypeName());
+									const std::size_t primitiveSize = targetInfo_.getPrimitiveSize(value->constant->getTypeName());
 									return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(primitiveSize, value->constant->getInt()));
 								}
 								case Locic::Constant::UNSIGNEDINT: {
-									const std::size_t primitiveSize = primitiveSizes_.get(value->constant->getTypeName());
+									const std::size_t primitiveSize = targetInfo_.getPrimitiveSize(value->constant->getTypeName());
 									return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(primitiveSize, value->constant->getUint()));
 								}
 								case Locic::Constant::FLOATINGPOINT: {
@@ -1381,11 +1305,11 @@ namespace Locic {
 									llvm::Type* argType = argValue->getType();
 									const unsigned sizeInBits = argType->getPrimitiveSizeInBits();
 									
-									if(argType->isIntegerTy() && sizeInBits < targetInfo_->getIntWidth()) {
+									if(argType->isIntegerTy() && sizeInBits < targetInfo_.getPrimitiveSize("int")) {
 										// Need to extend to int.
 										// TODO: this doesn't handle unsigned types; perhaps
 										// this code should be moved to semantic analysis.
-										argValue = builder_.CreateSExt(argValue, llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_->getIntWidth()));
+										argValue = builder_.CreateSExt(argValue, llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("int")));
 									} else if(argType->isFloatingPointTy() && sizeInBits < 64) {
 										// Need to extend to double.
 										argValue = builder_.CreateFPExt(argValue, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
@@ -1464,8 +1388,8 @@ namespace Locic {
 				
 		};
 		
-		CodeGenerator::CodeGenerator(const std::string& moduleName) {
-			codeGen_ = new InternalCodeGen(moduleName);
+		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName) {
+			codeGen_ = new InternalCodeGen(targetInfo, moduleName);
 		}
 		
 		CodeGenerator::~CodeGenerator() {
