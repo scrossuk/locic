@@ -26,15 +26,16 @@
 #include <Locic/SEM.hpp>
 #include <Locic/String.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
+#include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
-		
-		Map<MethodHash, SEM::Function *> CreateFunctionHashMap(SEM::TypeInstance * typeInstance){
-			Map<MethodHash, SEM::Function *> hashMap;
+	
+		Map<MethodHash, SEM::Function*> CreateFunctionHashMap(SEM::TypeInstance* typeInstance) {
+			Map<MethodHash, SEM::Function*> hashMap;
 			
 			StringMap<SEM::Function*>::Range range = typeInstance->functions.range();
 			
@@ -49,7 +50,7 @@ namespace Locic {
 			return hashMap;
 		}
 		
-		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, SEM::Function *>& hashMap){
+		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, SEM::Function*>& hashMap) {
 			std::vector<MethodHash> hashArray;
 			
 			Map<MethodHash, SEM::Function*>::Range range = hashMap.range();
@@ -62,7 +63,7 @@ namespace Locic {
 			
 			return hashArray;
 		}
-	
+		
 		class InternalCodeGen {
 			private:
 				std::string name_;
@@ -73,11 +74,9 @@ namespace Locic {
 				llvm::Function* currentFunction_;
 				llvm::BasicBlock* currentBasicBlock_;
 				Locic::Map<SEM::TypeInstance*, llvm::Type*> typeInstances_;
-				Locic::Map<std::string, llvm::Function*> functions_;
 				std::vector<llvm::Value*> localVariables_, paramVariables_;
 				llvm::Value* returnVar_;
 				llvm::Value* thisPointer_;
-				llvm::Function* memcpy_;
 				llvm::StructType* vtableType_;
 				
 			public:
@@ -88,10 +87,9 @@ namespace Locic {
 					  builder_(llvm::getGlobalContext()),
 					  returnVar_(NULL),
 					  thisPointer_(NULL),
-					  memcpy_(NULL),
 					  vtableType_(NULL) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
-					genBuiltInTypes();
+					createPrimitiveMethods(*module_);
 				}
 				
 				~InternalCodeGen() {
@@ -112,205 +110,6 @@ namespace Locic {
 					std::ofstream file(fileName.c_str());
 					llvm::raw_os_ostream ostream(file);
 					llvm::WriteBitcodeToFile(module_, ostream);
-				}
-				
-				void genBuiltInTypes() {
-					std::vector< std::pair<std::string, std::size_t> > sizes;
-					sizes.push_back(std::make_pair("short", targetInfo_.getPrimitiveSize("short")));
-					sizes.push_back(std::make_pair("int", targetInfo_.getPrimitiveSize("int")));
-					sizes.push_back(std::make_pair("long", targetInfo_.getPrimitiveSize("long")));
-					sizes.push_back(std::make_pair("longlong", targetInfo_.getPrimitiveSize("longlong")));
-					const size_t integerWidth = targetInfo_.getPrimitiveSize("int");
-					llvm::Type* boolType = llvm::Type::getInt1Ty(llvm::getGlobalContext());
-					llvm::Type* integerType = llvm::IntegerType::get(llvm::getGlobalContext(), integerWidth);
-					{
-						const std::string functionName = "bool__not";
-						llvm::Type* ptrType = boolType->getPointerTo();
-						llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, std::vector<llvm::Type*>(1, ptrType), false);
-						llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-						llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-						builder_.SetInsertPoint(basicBlock);
-						builder_.CreateRet(builder_.CreateNot(builder_.CreateLoad(function->arg_begin())));
-						functions_.insert(functionName, function);
-					}
-					
-					// Generate integer methods.
-					for(std::size_t i = 0; i < sizes.size(); i++) {
-						const std::string name = sizes.at(i).first;
-						const std::size_t size = sizes.at(i).second;
-						llvm::Type* intType = llvm::IntegerType::get(llvm::getGlobalContext(), size);
-						llvm::Type* ptrType = intType->getPointerTo();
-						{
-							const std::string functionName = name + "__implicitCopy";
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type*>(1, ptrType), false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							builder_.CreateRet(builder_.CreateLoad(function->arg_begin()));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__add";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							builder_.CreateRet(builder_.CreateAdd(firstArg, secondArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__subtract";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							builder_.CreateRet(builder_.CreateSub(firstArg, secondArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__multiply";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							builder_.CreateRet(builder_.CreateMul(firstArg, secondArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__divide";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							builder_.CreateRet(builder_.CreateSDiv(firstArg, secondArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__modulo";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							builder_.CreateRet(builder_.CreateSRem(firstArg, secondArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__compare";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							argumentTypes.push_back(intType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(integerType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							llvm::Value* secondArg = arg;
-							llvm::Value* isLessThan = builder_.CreateICmpSLT(firstArg, secondArg);
-							llvm::Value* isGreaterThan = builder_.CreateICmpSGT(firstArg, secondArg);
-							llvm::Value* minusOne = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, -1));
-							llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, 0));
-							llvm::Value* plusOne = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(integerWidth, 1));
-							llvm::Value* returnValue =
-								builder_.CreateSelect(isLessThan, minusOne,
-													  builder_.CreateSelect(isGreaterThan, plusOne, zero));
-							builder_.CreateRet(returnValue);
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__isZero";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Value* arg = builder_.CreateLoad(function->arg_begin());
-							llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
-							builder_.CreateRet(builder_.CreateICmpEQ(arg, zero));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__isPositive";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Value* arg = builder_.CreateLoad(function->arg_begin());
-							llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
-							builder_.CreateRet(builder_.CreateICmpSGT(arg, zero));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__isNegative";
-							std::vector<llvm::Type*> argumentTypes;
-							argumentTypes.push_back(ptrType);
-							llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Value* arg = builder_.CreateLoad(function->arg_begin());
-							llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0));
-							builder_.CreateRet(builder_.CreateICmpSLT(arg, zero));
-							functions_.insert(functionName, function);
-						}
-						{
-							const std::string functionName = name + "__abs";
-							llvm::FunctionType* functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type*>(1, ptrType), false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							llvm::Function::arg_iterator arg = function->arg_begin();
-							llvm::Value* firstArg = builder_.CreateLoad(arg++);
-							// Generates: (value < 0) ? -value : value
-							llvm::Value* lessThanZero = builder_.CreateICmpSLT(firstArg, llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(size, 0)));
-							builder_.CreateRet(builder_.CreateSelect(lessThanZero, builder_.CreateNeg(firstArg), firstArg));
-							functions_.insert(functionName, function);
-						}
-						{
-							const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
-							llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
-							const std::string functionName = std::string("__BUILTIN__") + name + "__sizeof";
-							llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
-							llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, module_);
-							llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-							builder_.SetInsertPoint(basicBlock);
-							builder_.CreateRet(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, size / 8)));
-							functions_.insert(functionName, function);
-						}
-					}
 				}
 				
 				void applyOptimisations(size_t optLevel) {
@@ -389,54 +188,57 @@ namespace Locic {
 					assert(typeInstance->isClass() && "Can only generate method vtable for class types");
 					const std::string vtableName = makeString("__VTABLE__%s", typeInstance->name.genString().c_str());
 					
-					llvm::GlobalVariable * existingGlobalVariable = module_->getGlobalVariable(vtableName);
+					llvm::GlobalVariable* existingGlobalVariable = module_->getGlobalVariable(vtableName);
+					
 					if(existingGlobalVariable != NULL) return existingGlobalVariable;
 					
 					const bool isConstant = true;
-					llvm::GlobalVariable * globalVariable = new llvm::GlobalVariable(*module_, getVTableType(),
-						isConstant, llvm::GlobalValue::ExternalLinkage, NULL, vtableName);
-					
+					llvm::GlobalVariable* globalVariable = new llvm::GlobalVariable(*module_, getVTableType(),
+							isConstant, llvm::GlobalValue::ExternalLinkage, NULL, vtableName);
+							
 					if(typeInstance->isClassDecl()) return globalVariable;
 					
 					// Generate the vtable.
-					const Map<MethodHash, SEM::Function *> functionHashMap = CreateFunctionHashMap(typeInstance);
+					const Map<MethodHash, SEM::Function*> functionHashMap = CreateFunctionHashMap(typeInstance);
 					std::vector<MethodHash> hashArray = CreateHashArray(functionHashMap);
 					
 					const VirtualTable virtualTable = VirtualTable::CalculateFromHashes(hashArray);
 					
-					std::vector<llvm::Constant *> vtableStructElements;
+					std::vector<llvm::Constant*> vtableStructElements;
 					
 					// Destructor.
 					const bool isVarArg = false;
-					llvm::PointerType * destructorType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
-						->getPointerTo();
+					llvm::PointerType* destructorType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
+														->getPointerTo();
 					vtableStructElements.push_back(llvm::ConstantPointerNull::get(destructorType));
 					
 					// Method slots.
-					std::vector<llvm::Constant *> methodSlotElements;
-					for(size_t i = 0; i < VTABLE_SIZE; i++){
+					std::vector<llvm::Constant*> methodSlotElements;
+					
+					for(size_t i = 0; i < VTABLE_SIZE; i++) {
 						const std::list<MethodHash>& slotList = virtualTable.table().at(i);
-						if(slotList.empty()){
+						
+						if(slotList.empty()) {
 							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
-						}else if(slotList.size() > 1){
+						} else if(slotList.size() > 1) {
 							printf("COLLISION at %llu.\n",
-								(unsigned long long) i);
+								   (unsigned long long) i);
 							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
-						}else{
+						} else {
 							assert(slotList.size() == 1);
-							SEM::Function * semFunction = functionHashMap.get(slotList.front());
-							llvm::Function * function = genFunctionDecl(semFunction);
+							SEM::Function* semFunction = functionHashMap.get(slotList.front());
+							llvm::Function* function = genFunctionDecl(semFunction);
 							methodSlotElements.push_back(llvm::ConstantExpr::getPointerCast(function, i8PtrType()));
 						}
 					}
 					
-					llvm::Constant * methodSlotTable = llvm::ConstantArray::get(
-						llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE), methodSlotElements);
+					llvm::Constant* methodSlotTable = llvm::ConstantArray::get(
+														  llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE), methodSlotElements);
 					vtableStructElements.push_back(methodSlotTable);
 					
-					llvm::Constant * vtableStruct =
+					llvm::Constant* vtableStruct =
 						llvm::ConstantStruct::get(getVTableType(), vtableStructElements);
-					
+						
 					globalVariable->setInitializer(vtableStruct);
 					
 					return globalVariable;
@@ -486,19 +288,19 @@ namespace Locic {
 					
 					while(arg != generatedFunction->arg_end()) arguments.push_back(arg++);
 					
-					llvm::FunctionType * asmFunctionType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), false);
+					llvm::FunctionType* asmFunctionType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), false);
 					std::string assembly = makeString("movl $$%llu, %%eax",
-						(unsigned long long) methodHash);
-					
-					llvm::InlineAsm * setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
+													  (unsigned long long) methodHash);
+													  
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
 					builder_.CreateCall(setEax);
 					
 					llvm::Value* methodCallValue = builder_.CreateCall(castedMethodFunctionPointer,
 												   arguments, returnType->isVoid() ? "" : "methodCallValue");
-					
-					if(returnType->isVoid()){
+												   
+					if(returnType->isVoid()) {
 						builder_.CreateRetVoid();
-					}else{
+					} else {
 						builder_.CreateRet(methodCallValue);
 					}
 					
@@ -534,9 +336,9 @@ namespace Locic {
 				// Generate 'sizeof()' method.
 				llvm::Function* genSizeOfMethod(SEM::TypeInstance* typeInstance) {
 					const std::string functionName = std::string("__BUILTIN__") + typeInstance->name.genString() + "__sizeof";
-					Locic::Optional<llvm::Function*> result = functions_.tryGet(functionName);
 					
-					if(result.hasValue()) return result.getValue();
+					llvm::Function * existingFunction = module_->getFunction(functionName);
+					if(existingFunction != NULL) return existingFunction;
 					
 					assert(!typeInstance->isPrimitive() && "Primitive types must have already defined a sizeof() function");
 					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
@@ -551,7 +353,6 @@ namespace Locic {
 						: llvm::Function::LinkOnceODRLinkage;
 					llvm::Function* function = llvm::Function::Create(functionType, linkage, functionName, module_);
 					function->setDoesNotAccessMemory();
-					functions_.insert(functionName, function);
 					
 					if(typeInstance->isDeclaration()) {
 						return function;
@@ -582,9 +383,9 @@ namespace Locic {
 				llvm::Function* genFunctionDecl(SEM::Function* function) {
 					assert(function != NULL && "Generating a function declaration requires a non-NULL SEM function object");
 					const std::string functionName = function->name.genString();
-					Locic::Optional<llvm::Function*> optionalFunction = functions_.tryGet(functionName);
 					
-					if(optionalFunction.hasValue()) return optionalFunction.getValue();
+					llvm::Function * existingFunction = module_->getFunction(functionName);
+					if(existingFunction != NULL) return existingFunction;
 					
 					SEM::TypeInstance* thisTypeInstance = function->isMethod ? function->parentType : NULL;
 					
@@ -605,7 +406,6 @@ namespace Locic {
 						functionDecl->addAttribute(1, llvm::Attribute::NoCapture);
 					}
 					
-					functions_.insert(functionName, functionDecl);
 					return functionDecl;
 				}
 				
@@ -645,6 +445,7 @@ namespace Locic {
 				
 				llvm::Type* getTypeInstancePointer(SEM::TypeInstance* typeInstance) {
 					if(typeInstance == NULL) return NULL;
+					
 					SEM::Type* pointerType =
 						SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
 										   SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, typeInstance));
@@ -691,31 +492,6 @@ namespace Locic {
 					return llvm::FunctionType::get(returnType, paramTypes, type->functionType.isVarArg);
 				}
 				
-				llvm::Type* genPrimitiveType(SEM::TypeInstance* type) {
-					const std::string name = type->name.toString();
-					
-					if(name == "::bool") return llvm::Type::getInt1Ty(llvm::getGlobalContext());
-					
-					if(name == "::char") return llvm::Type::getInt8Ty(llvm::getGlobalContext());
-					
-					if(name == "::short") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("short"));
-					
-					if(name == "::int") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("int"));
-					
-					if(name == "::long") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("long"));
-					
-					if(name == "::longlong") return llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("longlong"));
-					
-					if(name == "::float") return llvm::Type::getFloatTy(llvm::getGlobalContext());
-					
-					if(name == "::double") return llvm::Type::getDoubleTy(llvm::getGlobalContext());
-					
-					if(name == "::longdouble") return llvm::Type::getFP128Ty(llvm::getGlobalContext());
-					
-					assert(false && "Unrecognised primitive type");
-					return NULL;
-				}
-				
 				llvm::Type* genType(SEM::Type* type) {
 					switch(type->typeEnum) {
 						case SEM::Type::VOID: {
@@ -729,7 +505,7 @@ namespace Locic {
 							SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
 							
 							if(typeInstance->isPrimitive()) {
-								return genPrimitiveType(type->namedType.typeInstance);
+								return createPrimitiveType(*module_, type->namedType.typeInstance);
 							} else {
 								assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
 								return genStructType(type->namedType.typeInstance);
@@ -1043,7 +819,7 @@ namespace Locic {
 					
 					LOG(LOG_INFO, "Generating value %s.",
 						value->toString().c_str());
-					
+						
 					switch(value->typeEnum) {
 						case SEM::Value::CONSTANT: {
 							switch(value->constant->getType()) {
@@ -1278,7 +1054,7 @@ namespace Locic {
 						case SEM::Value::FUNCTIONCALL: {
 							LOG(LOG_EXCESSIVE, "Generating function call value %s.",
 								value->functionCall.functionValue->toString().c_str());
-							
+								
 							llvm::Value* function = genValue(value->functionCall.functionValue);
 							assert(function->getType()->isPointerTy());
 							llvm::Type* functionType = function->getType()->getPointerElementType();
@@ -1345,7 +1121,7 @@ namespace Locic {
 						case SEM::Value::METHODCALL: {
 							LOG(LOG_EXCESSIVE, "Generating method call value %s.",
 								value->methodCall.methodValue->toString().c_str());
-							
+								
 							llvm::Value* method = genValue(value->methodCall.methodValue);
 							llvm::Value* function = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 0));
 							llvm::Value* dataPointer = builder_.CreateExtractValue(method, std::vector<unsigned>(1, 1));

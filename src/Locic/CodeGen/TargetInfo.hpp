@@ -13,6 +13,8 @@ namespace Locic{
 		class TargetInfo{
 			public:
 				static TargetInfo DefaultTarget();
+				
+				TargetInfo(const std::string& triple);
 				~TargetInfo();
 				
 				bool isBigEndian() const;
@@ -24,8 +26,6 @@ namespace Locic{
 				size_t getPrimitiveSize(const std::string& name) const;
 				
 			private:
-				TargetInfo();
-				
 				Map<std::string, size_t> primitiveSizes_;
 				std::string triple_;
 				bool isBigEndian_;

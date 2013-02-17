@@ -17,65 +17,62 @@
 namespace Locic {
 
 	namespace CodeGen {
-		
-		TargetInfo TargetInfo::DefaultTarget(){
-			TargetInfo targetInfo;
-			
+	
+		TargetInfo TargetInfo::DefaultTarget() {
 			llvm::InitializeNativeTarget();
-			
-			targetInfo.triple_ = llvm::sys::getDefaultTargetTriple();
+			return TargetInfo(llvm::sys::getDefaultTargetTriple());
+		}
+		
+		TargetInfo::TargetInfo(const std::string& triple)
+			: triple_(triple) {
 			
 			std::string error;
-			const llvm::Target* target = llvm::TargetRegistry::lookupTarget(targetInfo.getTargetTriple(), error);
+			const llvm::Target* target = llvm::TargetRegistry::lookupTarget(triple, error);
 			
-			assert(target != NULL && "Must find default target.");
-					
+			assert(target != NULL && "Must find target.");
+			
 			assert(target->hasTargetMachine());
 			
-			std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(targetInfo.getTargetTriple(), "", "", llvm::TargetOptions()));
+			std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(triple, "", "", llvm::TargetOptions()));
 			const llvm::TargetData* targetData = targetMachine->getTargetData();
 			
 			assert(targetData != NULL);
 			
-			targetInfo.isBigEndian_ = targetData->isBigEndian();
-			targetInfo.pointerSize_ = targetData->getPointerSize();
+			isBigEndian_ = targetData->isBigEndian();
+			pointerSize_ = targetData->getPointerSize();
 			
 			clang::CompilerInstance ci;
 			ci.createDiagnostics(0, NULL);
 			clang::TargetOptions to;
-			to.Triple = targetInfo.getTargetTriple();
+			to.Triple = triple;
 			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 			
-			targetInfo.primitiveSizes_.insert("size_t",
-				clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
-			targetInfo.primitiveSizes_.insert("char", clangTargetInfo->getCharWidth());
-			targetInfo.primitiveSizes_.insert("short", clangTargetInfo->getShortWidth());
-			targetInfo.primitiveSizes_.insert("int", clangTargetInfo->getIntWidth());
-			targetInfo.primitiveSizes_.insert("long", clangTargetInfo->getLongWidth());
-			targetInfo.primitiveSizes_.insert("longlong", clangTargetInfo->getLongLongWidth());
-			targetInfo.primitiveSizes_.insert("float", clangTargetInfo->getFloatWidth());
-			targetInfo.primitiveSizes_.insert("double", clangTargetInfo->getDoubleWidth());
-			
-			return targetInfo;
+			primitiveSizes_.insert("size_t",
+								   clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
+			primitiveSizes_.insert("char", clangTargetInfo->getCharWidth());
+			primitiveSizes_.insert("short", clangTargetInfo->getShortWidth());
+			primitiveSizes_.insert("int", clangTargetInfo->getIntWidth());
+			primitiveSizes_.insert("long", clangTargetInfo->getLongWidth());
+			primitiveSizes_.insert("longlong", clangTargetInfo->getLongLongWidth());
+			primitiveSizes_.insert("float", clangTargetInfo->getFloatWidth());
+			primitiveSizes_.insert("double", clangTargetInfo->getDoubleWidth());
 		}
 		
-		TargetInfo::TargetInfo(){ }
+		TargetInfo::~TargetInfo() { }
 		
-		TargetInfo::~TargetInfo(){ }
-		
-		bool TargetInfo::isBigEndian() const{
+		bool TargetInfo::isBigEndian() const {
 			return isBigEndian_;
 		}
-				
-		std::string TargetInfo::getTargetTriple() const{
+		
+		std::string TargetInfo::getTargetTriple() const {
 			return triple_;
 		}
 		
-		size_t TargetInfo::getPointerSize() const{
+		size_t TargetInfo::getPointerSize() const {
 			return pointerSize_;
 		}
-				
-		size_t TargetInfo::getPrimitiveSize(const std::string& name) const{
+		
+		size_t TargetInfo::getPrimitiveSize(const std::string& name) const {
 			return primitiveSizes_.get(name);
 		}
 		
