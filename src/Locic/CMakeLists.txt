@@ -23,7 +23,7 @@ add_executable(calculateVTable calculateVTable.cpp String.cpp)
 target_link_libraries(calculateVTable locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 
 # Build compiler.
-add_executable(locic main.cpp Log.cpp String.cpp)
+add_executable(locic locic.cpp Log.cpp String.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
