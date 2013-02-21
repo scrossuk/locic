@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <Locic/AST/TemplateTypeVar.hpp>
 #include <Locic/AST/TypeVar.hpp>
 
 namespace AST{
@@ -19,12 +20,13 @@ namespace AST{
 		} typeEnum;
 		
 		std::string name;
+		std::vector<TemplateTypeVar *> templateVariables;
 		std::vector<TypeVar *> variables;
 		std::vector<Function*> functions;
 		
 		inline TypeInstance(TypeEnum e, const std::string& n,
 			const std::vector<TypeVar *>& v, const std::vector<Function*>& f)
-			: typeEnum(e), name(n),
+			: typeEnum(e), name(n), templateVariables(),
 			variables(v), functions(f){ }
 		
 		inline static TypeInstance * Primitive(const std::string& name, const std::vector<Function*>& functions){

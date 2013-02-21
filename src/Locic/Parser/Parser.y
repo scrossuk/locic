@@ -377,7 +377,42 @@ classFunctionDefList:
 	}
 	;
 
+templateTypeVar:
+	TYPENAME NAME
+	{
+		$$ = AST::TemplateTypeVar::Create($2, std::vector<AST::Type *>());
+	}
+	| TYPENAME NAME COLON nonEmptyTypeList
+	{
+		$$ = AST::TemplateTypeVar::Create($2, *($4));
+	}
+	;
+
+templateTypeVarList:
+	templateTypeVar
+	{
+		$$ = new std::vector<AST::TemplateTypeVar *>(1, $1);
+	}
+	| templateTypeVarList COMMA templateTypeVar
+	{
+		($1)->push_back($3);
+		$$ = $1;
+	}
+	;
+
 typeInstance:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedTypeInstance
+	{
+		($5)->templateVariables = *($3);
+		$$ = $5;
+	}
+	| nonTemplatedTypeInstance
+	{
+		$$ = $1;
+	}
+	;
+
+nonTemplatedTypeInstance:
 	STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
 	{
 		$$ = AST::TypeInstance::Struct(*($2), *($4));
