@@ -58,6 +58,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 	std::vector<AST::Type *> * typeArray;
 	AST::TypeVar * typeVar;
 	std::vector<AST::TypeVar *> * typeVarArray;
+	AST::TemplateTypeVar * templateTypeVar;
+	std::vector<AST::TemplateTypeVar *> * templateTypeVarArray;
 	
 	// Program code.
 	AST::Scope * scope;
@@ -88,6 +90,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token DELETE
 %token EXTRACT
 %token TEMPLATE
+%token TYPENAME
 %token USING
 %token ENUM
 %token UNION
@@ -158,6 +161,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <nameSpace> namedNamespace
 
 %type <typeInstance> typeInstance
+%type <typeInstance> nonTemplatedTypeInstance
 
 %type <function> functionDecl
 %type <function> functionDef
@@ -179,6 +183,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <typeVarArray> nonEmptyTypeVarList
 %type <typeVarArray> typeVarList
 %type <typeVarArray> structVarList
+%type <templateTypeVar> templateTypeVar
+%type <templateTypeVarArray> templateTypeVarList
 
 %type <name> fullName
 
@@ -380,11 +386,11 @@ classFunctionDefList:
 templateTypeVar:
 	TYPENAME NAME
 	{
-		$$ = AST::TemplateTypeVar::Create($2, std::vector<AST::Type *>());
+		$$ = AST::TemplateTypeVar::WithoutSpecType(*($2));
 	}
-	| TYPENAME NAME COLON nonEmptyTypeList
+	| TYPENAME NAME COLON type
 	{
-		$$ = AST::TemplateTypeVar::Create($2, *($4));
+		$$ = AST::TemplateTypeVar::WithSpecType(*($2), $4);
 	}
 	;
 

@@ -57,6 +57,7 @@ try                     { return TRY; }
 catch                  { return CATCH; }
 
 template                { return TEMPLATE; }
+typename                { return TYPENAME; }
 
 struct                 { return STRUCT; }
 enum                    { return ENUM; }

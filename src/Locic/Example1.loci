@@ -26,6 +26,12 @@ interface an_interface{
 	void doSomething();
 }
 
+template <typename T>
+class ExampleTemplatedClass0{ }
+
+template <typename T: an_interface>
+class ExampleTemplatedClass1{ }
+
 an_interface * getPtr(TestClass2 * ptr){
 	return ptr;
 }
