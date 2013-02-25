@@ -17,7 +17,7 @@ namespace Locic {
 	
 		class TypeInstanceContext: public Context {
 			public:
-				TypeInstanceContext(Context& parentContext, SEM::TypeInstance * typeInstance);
+				TypeInstanceContext(Context& parentContext, SEM::TypeInstance* typeInstance);
 				
 				Name getName();
 				
@@ -31,11 +31,11 @@ namespace Locic {
 				
 				SEM::TypeInstance* getThisTypeInstance();
 				
-				SEM::Var * getThisVar(const std::string& name);
+				SEM::Var* getThisVar(const std::string& name);
 				
 			private:
 				Context& parentContext_;
-				SEM::TypeInstance * typeInstance_;
+				SEM::TypeInstance* typeInstance_;
 				
 		};
 		

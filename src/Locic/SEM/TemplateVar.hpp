@@ -24,19 +24,19 @@ namespace Locic {
 			
 			inline Var(TypeEnum e, size_t i, Type* t, TypeInstance* p = NULL)
 				: typeEnum(e), id(i), type(t), parent(p) { }
-			
+				
 			std::string toString() const;
 		};
 		
-		enum TemplateVarType{
+		enum TemplateVarType {
 			TEMPLATEVAR_TYPENAME,
 			TEMPLATEVAR_ANY
 		};
 		
-		class TemplateVar{
+		class TemplateVar {
 			public:
-				inline static TemplateVar * Create(TemplateVarType type, const std::string& name
-			
+				inline static TemplateVar* Create(TemplateVarType type, const std::string& name
+				
 		};
 		
 	}

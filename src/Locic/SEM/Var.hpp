@@ -24,7 +24,7 @@ namespace Locic {
 			
 			inline Var(TypeEnum e, size_t i, Type* t, TypeInstance* p = NULL)
 				: typeEnum(e), id(i), type(t), parent(p) { }
-			
+				
 			std::string toString() const;
 		};
 		

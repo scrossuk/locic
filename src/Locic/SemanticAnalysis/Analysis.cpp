@@ -98,7 +98,7 @@ namespace Locic {
 				}*/
 				
 				SEM::Var * var = new SEM::Var(SEM::Var::MEMBER, i, semType, semTypeInstance);
-				if(!semTypeInstance->variables.tryInsert(typeVar->name, var)){
+				if(!semTypeInstance->variables().tryInsert(typeVar->name, var)){
 					/*printf("Semantic Analysis Error: more than one member variable shares name '%s'.\n", typeVar->name.c_str());
 					return false;*/
 					throw MemberVariableClashException(semTypeInstance->name, typeVar->name);

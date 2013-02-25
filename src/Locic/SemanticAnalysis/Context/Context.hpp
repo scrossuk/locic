@@ -17,7 +17,7 @@ namespace Locic {
 				
 				virtual SEM::TypeInstance* getThisTypeInstance() = 0;
 				
-				virtual SEM::Var * getThisVar(const std::string& name) = 0;
+				virtual SEM::Var* getThisVar(const std::string& name) = 0;
 				
 				virtual bool addFunction(const Name& name, SEM::Function* function) = 0;
 				

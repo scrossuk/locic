@@ -17,7 +17,7 @@ namespace Locic {
 	
 		class LocalContext: public Context {
 			public:
-				LocalContext(Context& parentContext, SEM::Function * function);
+				LocalContext(Context& parentContext, SEM::Function* function);
 				
 				~LocalContext();
 				
@@ -29,7 +29,7 @@ namespace Locic {
 				
 				Name getName();
 				
-				SEM::Type * getReturnType();
+				SEM::Type* getReturnType();
 				
 				SEM::NamespaceNode getNode(const Name& name);
 				
@@ -45,12 +45,12 @@ namespace Locic {
 				
 				SEM::Var* findLocalVar(const std::string& varName);
 				
-				SEM::Var * getThisVar(const std::string& name);
+				SEM::Var* getThisVar(const std::string& name);
 				
 			private:
 				std::size_t nextVarId_;
 				Context& parentContext_;
-				SEM::Function * function_;
+				SEM::Function* function_;
 				std::vector< std::map<std::string, SEM::Var*> > localVarStack_;
 				std::vector<SEM::Scope*> scopeStack_;
 				

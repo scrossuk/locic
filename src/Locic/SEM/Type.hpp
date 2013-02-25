@@ -8,20 +8,20 @@
 #include <Locic/SEM/TypeInstance.hpp>
 
 namespace Locic {
-	
+
 	namespace SEM {
-		
-		class ObjectType{
-			public:
-				inline 
-			
-		};
 	
+		class ObjectType {
+			public:
+				inline
+				
+		};
+		
 		struct Type {
 			enum TypeEnum {
 				VOID,
 				NULLT,
-				NAMED,
+				OBJECT,
 				POINTER,
 				REFERENCE,
 				FUNCTION,
@@ -40,8 +40,8 @@ namespace Locic {
 			
 			struct {
 				TypeInstance* typeInstance;
-				std::vector<Type *> templateArguments;
-			} namedType;
+				std::vector<Type*> templateArguments;
+			} objectType;
 			
 			struct {
 				// Type that is being pointed to.
@@ -84,9 +84,10 @@ namespace Locic {
 				return new Type(NULLT, CONST, RVALUE);
 			}
 			
-			inline static Type* Named(bool isMutable, bool isLValue, TypeInstance* typeInstance, const std::vector<Type *>& templateArgs) {
-				Type* type = new Type(NAMED, isMutable, isLValue);
-				type->namedType.typeInstance = typeInstance;
+			inline static Type* Object(bool isMutable, bool isLValue, TypeInstance* typeInstance, const std::vector<Type*>& templateArguments) {
+				Type* type = new Type(OBJECT, isMutable, isLValue);
+				type->objectType.typeInstance = typeInstance;
+				type->objectType.templateArguments = templateArguments;
 				return type;
 			}
 			
@@ -97,7 +98,7 @@ namespace Locic {
 				return type;
 			}
 			
-			inline static Type* Reference(bool isLValue, Type* targetType){
+			inline static Type* Reference(bool isLValue, Type* targetType) {
 				assert(targetType->isLValue);
 				// References are a 'const type', meaning they are always const.
 				Type* type = new Type(REFERENCE, CONST, isLValue);
@@ -131,7 +132,7 @@ namespace Locic {
 					
 					if(t->isPointer()) {
 						t = t->pointerType.targetType;
-					}else if(t->isReference()){
+					} else if(t->isReference()) {
 						t = t->referenceType.targetType;
 					} else {
 						break;
@@ -161,7 +162,7 @@ namespace Locic {
 				return typeEnum == FUNCTION;
 			}
 			
-			inline SEM::Type * getFunctionReturnType(){
+			inline SEM::Type* getFunctionReturnType() {
 				assert(isFunction());
 				return functionType.returnType;
 			}
@@ -207,14 +208,14 @@ namespace Locic {
 				return namedType.typeInstance->isInterface();
 			}
 			
-			inline Type * lvalueType() const {
-				Type * type = new Type(*this);
+			inline Type* lvalueType() const {
+				Type* type = new Type(*this);
 				type->isLValue = true;
 				return type;
 			}
 			
-			inline Type * rvalueType() const {
-				Type * type = new Type(*this);
+			inline Type* rvalueType() const {
+				Type* type = new Type(*this);
 				type->isLValue = false;
 				return type;
 			}
@@ -238,15 +239,14 @@ namespace Locic {
 				}
 			}
 			
-			inline Type * getImplicitCopyType() const {
+			inline Type* getImplicitCopyType() const {
 				switch(typeEnum) {
 					case VOID:
 					case NULLT:
 					case POINTER:
 					case REFERENCE:
 					case FUNCTION:
-					case METHOD:
-					{
+					case METHOD: {
 						// Built in types retain their 'constness' in copying.
 						// However, all except pointers are const types
 						// anyway, so this essentially has no effect for them.
@@ -273,22 +273,22 @@ namespace Locic {
 					}
 					case NAMED:
 						return makeString("ObjectType(%s)",
-										  namedType.typeInstance->name.toString().c_str());
+								namedType.typeInstance->name.toString().c_str());
 					case POINTER:
 						return makeString("PointerType(%s)",
-										  pointerType.targetType->toString().c_str());
+								pointerType.targetType->toString().c_str());
 					case REFERENCE:
 						return makeString("ReferenceType(%s)",
-										  referenceType.targetType->toString().c_str());
+								referenceType.targetType->toString().c_str());
 					case FUNCTION:
 						return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
-										  functionType.returnType->toString().c_str(),
-										  makeArrayString(functionType.parameterTypes).c_str(),
-										  functionType.isVarArg ? "Yes" : "No");
+								functionType.returnType->toString().c_str(),
+								makeArrayString(functionType.parameterTypes).c_str(),
+								functionType.isVarArg ? "Yes" : "No");
 					case METHOD:
 						return makeString("MethodType(object: %s, function: %s)",
-									  methodType.objectType->toString().c_str(),
-									  methodType.functionType->toString().c_str());
+								methodType.objectType->toString().c_str(),
+								methodType.functionType->toString().c_str());
 					default:
 						return "[UNKNOWN TYPE]";
 				}
@@ -299,30 +299,30 @@ namespace Locic {
 					return basicToString();
 				} else {
 					return makeString("Const(%s)",
-									  basicToString().c_str());
+							basicToString().c_str());
 				}
 			}
 			
 			inline std::string toString() const {
 				if(isLValue) {
 					return makeString("LValue(%s)",
-									  constToString().c_str());
+							constToString().c_str());
 				} else {
 					return constToString();
 				}
 			}
 			
-			inline bool operator==(const Type& type) const{
-				if(this == &type){
+			inline bool operator==(const Type& type) const {
+				if(this == &type) {
 					return true;
 				}
 				
 				if(typeEnum != type.typeEnum
-					|| isMutable != type.isMutable
-					|| isLValue != type.isLValue) {
+						|| isMutable != type.isMutable
+						|| isLValue != type.isLValue) {
 					return false;
 				}
-			
+				
 				switch(typeEnum) {
 					case SEM::Type::VOID:
 					case SEM::Type::NULLT: {
@@ -345,18 +345,18 @@ namespace Locic {
 							return false;
 						}
 						
-						for(std::size_t i = 0; i < firstList.size(); i++){
+						for(std::size_t i = 0; i < firstList.size(); i++) {
 							if(*(firstList.at(i)) != *(secondList.at(i))) {
 								return false;
 							}
 						}
 						
 						return *(functionType.returnType) == *(type.functionType.returnType)
-							&& functionType.isVarArg == type.functionType.isVarArg;
+							   && functionType.isVarArg == type.functionType.isVarArg;
 					}
 					case SEM::Type::METHOD: {
-						return methodType.objectType != type.methodType.objectType 
-							&& *(methodType.functionType) == *(type.methodType.functionType);
+						return methodType.objectType != type.methodType.objectType
+							   && *(methodType.functionType) == *(type.methodType.functionType);
 					}
 					default:
 						return false;

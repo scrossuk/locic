@@ -34,10 +34,10 @@ namespace Locic {
 			
 			inline std::string toString() const {
 				return makeString("Function(name: %s, isMethod: %s, parent: %s, type: %s)",
-					name.toString().c_str(),
-					isMethod ? "Yes" : "No",
-					parentType != NULL ? parentType->toString().c_str() : "[NONE]",
-					type->toString().c_str());
+						name.toString().c_str(),
+						isMethod ? "Yes" : "No",
+						parentType != NULL ? parentType->toString().c_str() : "[NONE]",
+						type->toString().c_str());
 			}
 		};
 		

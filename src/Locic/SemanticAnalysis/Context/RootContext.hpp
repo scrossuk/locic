@@ -14,7 +14,7 @@
 namespace Locic {
 
 	namespace SemanticAnalysis {
-		
+	
 		class RootContext: public Context {
 			public:
 				RootContext();
@@ -24,14 +24,14 @@ namespace Locic {
 				bool addNamespace(const Name& name, SEM::Namespace* nameSpace);
 				
 				bool addTypeInstance(const Name& name, SEM::TypeInstance* typeInstance);
-					
+				
 				Name getName();
 				
 				SEM::NamespaceNode getNode(const Name& name);
 				
 				SEM::TypeInstance* getThisTypeInstance();
 				
-				SEM::Var * getThisVar(const std::string& name);
+				SEM::Var* getThisVar(const std::string& name);
 				
 		};
 		

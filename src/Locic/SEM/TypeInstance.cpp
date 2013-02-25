@@ -73,7 +73,7 @@ namespace Locic {
 			return type->functionType.returnType->isTypeInstance(this);
 		}
 		
-		Type * TypeInstance::getFunctionReturnType(const std::string& functionName){
+		Type* TypeInstance::getFunctionReturnType(const std::string& functionName) {
 			Locic::Optional<Function*> result = functions.tryGet(functionName);
 			assert(result.hasValue() && "Function must exist to get its return type");
 			
@@ -86,31 +86,31 @@ namespace Locic {
 			return type->functionType.returnType;
 		}
 		
-		Type * TypeInstance::getImplicitCopyType(){
+		Type* TypeInstance::getImplicitCopyType() {
 			assert(supportsImplicitCopy());
 			return getFunctionReturnType("implicitCopy");
 		}
 		
 		std::string TypeInstance::toString() const {
-			switch(typeEnum){
+			switch(typeEnum) {
 				case PRIMITIVE:
 					return makeString("PrimitiveType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				case STRUCTDECL:
 					return makeString("StructDeclType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				case STRUCTDEF:
 					return makeString("StructDefType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				case CLASSDECL:
 					return makeString("ClassDeclType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				case CLASSDEF:
 					return makeString("ClassDefType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				case INTERFACE:
 					return makeString("InterfaceType(%s)",
-						name.toString().c_str());
+							name.toString().c_str());
 				default:
 					return "[UNKNOWN TYPE INSTANCE]";
 			}

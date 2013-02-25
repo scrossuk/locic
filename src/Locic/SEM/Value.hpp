@@ -133,7 +133,7 @@ namespace Locic {
 			inline static Value* AddressOf(Value* operand) {
 				assert(operand->type->isLValue);
 				Value* value = new Value(ADDRESSOF,
-					SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
+						SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type));
 				value->addressOf.value = operand;
 				return value;
 			}
@@ -147,7 +147,7 @@ namespace Locic {
 			inline static Value* ReferenceOf(Value* operand) {
 				assert(operand->type->isLValue);
 				Value* value = new Value(REFERENCEOF,
-					SEM::Type::Reference(SEM::Type::RVALUE, operand->type));
+						SEM::Type::Reference(SEM::Type::RVALUE, operand->type));
 				value->referenceOf.value = operand;
 				return value;
 			}
@@ -184,7 +184,7 @@ namespace Locic {
 			inline static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters) {
 				// Internal construction always operates on the 'generic type'
 				// (i.e. the type with no template arguments supplied).
-				Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance, std::vector<Type *>());
+				Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance, std::vector<Type*>());
 				Value* value = new Value(INTERNALCONSTRUCT, type);
 				value->internalConstruct.parameters = parameters;
 				return value;
@@ -214,7 +214,7 @@ namespace Locic {
 			inline static Value* MethodObject(Function* method, Value* methodOwner) {
 				assert(methodOwner->type->isObjectType());
 				Value* value = new Value(METHODOBJECT,
-					SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, methodOwner->type, method->type));
+						SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, methodOwner->type, method->type));
 				value->methodObject.method = method;
 				value->methodObject.methodOwner = methodOwner;
 				return value;
@@ -227,7 +227,7 @@ namespace Locic {
 				return value;
 			}
 			
-			inline static Value* CastDummy(Type* type){
+			inline static Value* CastDummy(Type* type) {
 				return new Value(CASTDUMMYOBJECT, type);
 			}
 			

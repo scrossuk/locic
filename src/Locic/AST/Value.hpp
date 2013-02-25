@@ -4,9 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <Locic/AST/Type.hpp>
 #include <Locic/Constant.hpp>
 #include <Locic/Name.hpp>
+
+#include <Locic/AST/Type.hpp>
 
 namespace AST {
 
@@ -15,6 +16,7 @@ namespace AST {
 			NONE,
 			CONSTANT,
 			NAMEREF,
+			TEMPLATENAMEREF,
 			MEMBERREF,
 			ADDRESSOF,
 			DEREFERENCE,
@@ -30,6 +32,11 @@ namespace AST {
 		struct {
 			Locic::Name name;
 		} nameRef;
+		
+		struct {
+			Locic::Name name;
+			std::vector<Type*> arguments;
+		} templateNameRef;
 		
 		struct {
 			std::string name;
@@ -87,6 +94,13 @@ namespace AST {
 		inline static Value * NameRef(const Locic::Name& name){
 			Value* value = new Value(NAMEREF);
 			value->nameRef.name = name;
+			return value;
+		}
+		
+		inline static Value * TemplateNameRef(const Locic::Name& name, const std::vector<Type*>& arguments){
+			Value* value = new Value(TEMPLATENAMEREF);
+			value->templateNameRef.name = name;
+			value->templateNameRef.arguments = arguments;
 			return value;
 		}
 		

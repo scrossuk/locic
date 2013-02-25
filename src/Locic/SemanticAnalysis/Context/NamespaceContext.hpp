@@ -17,8 +17,8 @@ namespace Locic {
 	
 		class NamespaceContext: public Context {
 			public:
-				NamespaceContext(Context& parentContext, SEM::Namespace * nameSpace);
-					
+				NamespaceContext(Context& parentContext, SEM::Namespace* nameSpace);
+				
 				Name getName();
 				
 				SEM::NamespaceNode getNode(const Name& name);
@@ -31,11 +31,11 @@ namespace Locic {
 				
 				SEM::TypeInstance* getThisTypeInstance();
 				
-				SEM::Var * getThisVar(const std::string& name);
+				SEM::Var* getThisVar(const std::string& name);
 				
 			private:
 				Context& parentContext_;
-				SEM::Namespace * nameSpace_;
+				SEM::Namespace* nameSpace_;
 				
 		};
 		
