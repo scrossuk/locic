@@ -26,7 +26,8 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 				return NULL;
 			}
 			
-			return SEM::Type::Named(type->isMutable, isLValue, typeInstance);
+			// TODO: Handle template arguments.
+			return SEM::Type::Named(type->isMutable, isLValue, typeInstance, std::vector<SEM::Type *>());
 		}
 		case AST::Type::POINTER: {
 			// Pointed-to types are always l-values (otherwise they couldn't have their address taken).

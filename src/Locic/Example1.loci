@@ -46,6 +46,7 @@ an_interface * getPtr(TestClass2 * ptr){
 
 void function(TestClass2 * object){
 	const TestClass2& ptr = *object;
+	const TestClass2& ptr2 = ptr;
 	printf("Value from fn: %d\n"C, ptr.getValue());
 }
 

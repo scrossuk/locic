@@ -10,6 +10,12 @@
 namespace Locic {
 	
 	namespace SEM {
+		
+		class ObjectType{
+			public:
+				inline 
+			
+		};
 	
 		struct Type {
 			enum TypeEnum {
@@ -34,6 +40,7 @@ namespace Locic {
 			
 			struct {
 				TypeInstance* typeInstance;
+				std::vector<Type *> templateArguments;
 			} namedType;
 			
 			struct {
@@ -77,7 +84,7 @@ namespace Locic {
 				return new Type(NULLT, CONST, RVALUE);
 			}
 			
-			inline static Type* Named(bool isMutable, bool isLValue, TypeInstance* typeInstance) {
+			inline static Type* Named(bool isMutable, bool isLValue, TypeInstance* typeInstance, const std::vector<Type *>& templateArgs) {
 				Type* type = new Type(NAMED, isMutable, isLValue);
 				type->namedType.typeInstance = typeInstance;
 				return type;

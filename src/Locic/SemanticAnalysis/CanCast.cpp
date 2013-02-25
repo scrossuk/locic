@@ -51,7 +51,15 @@ namespace Locic {
 				throw CastTypeMismatchException(sourceType, destType);
 			}
 			
-			assert(sourceType->isMutable || !destType->isMutable);
+			if(!sourceType->isMutable && destType->isMutable){
+				// No copying can be done now, so this is just an error.
+				throw CastConstCorrectnessViolationException(sourceType, destType);
+			}
+			
+			if(sourceType->isMutable && !destType->isMutable){
+				assert(hasParentConstChain && "Must be a const chain for mutable-to-const cast to succeed.");
+			}
+			
 			assert(!sourceType->isLValue || destType->isLValue);
 			
 			// There is a chain of const if all parents of the destination type are const,
@@ -152,7 +160,7 @@ namespace Locic {
 				}
 				default:
 				{
-					assert(false && "Unknown SEM type enum value");
+					assert(false && "Unknown SEM type enum value.");
 					return NULL;
 				}
 			}

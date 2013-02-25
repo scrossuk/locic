@@ -182,7 +182,9 @@ namespace Locic {
 			}
 			
 			inline static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters) {
-				Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance);
+				// Internal construction always operates on the 'generic type'
+				// (i.e. the type with no template arguments supplied).
+				Type* type = Type::Named(Type::MUTABLE, Type::RVALUE, typeInstance, std::vector<Type *>());
 				Value* value = new Value(INTERNALCONSTRUCT, type);
 				value->internalConstruct.parameters = parameters;
 				return value;
