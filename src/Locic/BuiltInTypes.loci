@@ -1,6 +1,121 @@
+/*template <any T>
+__primitive ptr{
+	static Null();
+	
+	ptr<T> implicitCopy();
+	const ptr<T> implicitCopy() const;
+	
+	T& derefGet() const;
+	
+	void derefSet(T value);
+};
+
+template <any T>
+__primitive ref{
+	
+};
+
+template <typename T>
+class A(T * p){
+	
+};
+
+template <any T>
+interface array{
+	T& indexGet(size_t index) const;
+	const T& indexGet(size_t index) const <const T>;
+	void indexSet(size_t index, T value);
+};
+
+void fn(){
+	ref<variable_array<Class>> v = ...;
+	const ref<const array<Interface>> a = v;
+	
+	vararray<Interface> v = ...;
+	v[2] = 
+	
+	ptr<Interface> p = ...;
+	ptrarray<Interface> v = ...;
+	array<Interface *> v = ...;
+	
+	uptr<Interface> p = ...;
+	
+	uptr<Class> q = ...;
+	const uptr<Interface> r = q;
+	
+	final Type value = ...;
+	typeof(&value) == Type * const;
+	Type * ptr = ...;
+	
+	std::vector<int> array = ...;
+	std::vector<int> * const arrayPtr = &array;
+	
+	const std::vector<int> array2 = array;
+	const std::vector<int> * array2Ptr = &array2;
+	*array2Ptr = ;
+	
+	int i = 0;
+	int * j = &i;
+	int ** k = &j;
+	const int ** l = k;
+	
+	const int * m = ...;
+	*l = m;
+	j
+	
+	int i = 0;
+	int * j = &i;
+	int ** k = &j;
+	
+	int i = 0;
+	const int * 
+	const int j = i;
+	const int * k = &j;
+	*k = 
+	
+	const (int **)
+	
+	const (mutable(int *) *) f = 
+	
+	int ** const f;
+	
+	//-----------------
+	int * i = ...;
+	int * const j = ...;
+	
+	int * const * i = ...;
+	const int * const * j = i;
+	
+	//-----------------
+	Class * c = ...;
+	Interface * const i = c;
+	
+	ptr<Class> c = ...;
+	const ptr<Interface> i = c;
+	
+	Class& c = ...;
+	Interface& i = c;
+	
+	ref<Class> c = ...;
+	ref<Interface> i = c;
+	
+	//-----------------
+	int ** i = ...;
+	int ** const j = i;
+	Interface * const * const k = j;
+	Interface * const l = j;
+	
+	ptr<ptr<int>> i = ...;
+	const ptr<ptr<int>> j = i;
+	const ptr<const ptr<Interface>> k = j;
+	const ptr<Interface> l = j;
+}*/
+
 __primitive null_t{ };
 
 __primitive bool{
+	bool implicitCopy();
+	
 	bool not();
 };
 

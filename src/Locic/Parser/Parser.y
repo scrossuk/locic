@@ -29,9 +29,9 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 
 %glr-parser
 
-// Expecting to get two shift/reduce and two reduce/reduce.
-%expect 2
-%expect-rr 2
+// Expecting to get four shift/reduce and four reduce/reduce.
+%expect 4
+%expect-rr 4
 
 %lex-param {void * scanner}
 %lex-param {Locic::Parser::Context * parserContext}
@@ -173,6 +173,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <functionArray> classFunctionDeclList
 %type <functionArray> classFunctionDefList
 
+%type <type> typeName
+%type <type> typePrecision3
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
@@ -342,7 +344,9 @@ classFunctionDecl:
 	}
 	| functionDecl
 	{
-		($1)->isMethod = true;
+		if(($1) != NULL){
+			($1)->isMethod = true;
+		}
 		$$ = $1;
 	}
 	;
@@ -354,7 +358,9 @@ classFunctionDef:
 	}
 	| functionDef
 	{
-		($1)->isMethod = true;
+		if(($1) != NULL){
+			($1)->isMethod = true;
+		}
 		$$ = $1;
 	}
 	;
@@ -455,20 +461,32 @@ fullName:
 		$$ = new Locic::Name(*($1) + *($4));
 	}
 	;
-	
-typePrecision2:
-	VOIDNAME
-	{
-		$$ = AST::Type::VoidType();
-	}
-	| fullName
+
+typeName:
+	fullName
 	{
 		const bool isMutable = true;
 		$$ = AST::Type::Named(isMutable, *($1));
 	}
-	| CONST LROUNDBRACKET type RROUNDBRACKET
+	| fullName LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
-		$$ = ($3)->applyTransitiveConst();
+		const bool isMutable = true;
+		$$ = AST::Type::Named(isMutable, *($1));
+	}
+	;
+	
+typePrecision3:
+	VOIDNAME
+	{
+		$$ = AST::Type::VoidType();
+	}
+	| typeName
+	{
+		$$ = $1;
+	}
+	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
+	{
+		$$ = $2;
 	}
 	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
@@ -480,10 +498,24 @@ typePrecision2:
 		const bool isMutable = true;
 		$$ = AST::Type::VarArgFunction(isMutable, $3, *($6));
 	}
-	| CONST LROUNDBRACKET error RROUNDBRACKET
+	| LROUNDBRACKET error RROUNDBRACKET
 	{
 		parserContext->error("Invalid type.");
 		$$ = NULL;
+	}
+	;
+
+typePrecision2:
+	typePrecision3
+	{
+		$$ = $1;
+	}
+	| CONST typePrecision3
+	{
+		if(($2) != NULL){
+			($2)->applyTransitiveConst();
+		}
+		$$ = $2;
 	}
 	;
 
@@ -497,15 +529,15 @@ typePrecision1:
 		$$ = AST::Type::Pointer($1);
 	}
 	;
-	
+
 typePrecision0:
 	typePrecision1
 	{
 		$$ = $1;
 	}
-	| CONST typePrecision1
+	| typePrecision1 AMPERSAND
 	{
-		$$ = ($2)->applyTransitiveConst();
+		$$ = AST::Type::Reference($1);
 	}
 	;
 
@@ -727,6 +759,10 @@ precision7:
 		$$ = $2;
 	}
 	| fullName
+	{
+		$$ = AST::Value::NameRef(*($1));
+	}
+	| fullName LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
 		$$ = AST::Value::NameRef(*($1));
 	}

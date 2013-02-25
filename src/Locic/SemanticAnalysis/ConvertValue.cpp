@@ -20,7 +20,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 	switch(value->typeEnum) {
 		case AST::Value::CONSTANT: {
 			if(value->constant->getType() == Locic::Constant::NULLVAL){
-				return SEM::Value::Constant(value->constant, SEM::Type::Null(SEM::Type::CONST));
+				return SEM::Value::Constant(value->constant, SEM::Type::Null());
 			}else if(value->constant->getType() == Locic::Constant::STRING && value->constant->getStringType() == Locic::Constant::CSTRING){
 				// C strings have the type 'const char *', as opposed to just a
 				// type name, so their type needs to be generated specially.
@@ -74,7 +74,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 				assert(!function->isMethod && "TODO");
 				
-				return SEM::Value::FunctionRef(function, function->type);
+				return SEM::Value::FunctionRef(function);
 			}else if(node.isTypeInstance()){
 				SEM::TypeInstance * typeInstance = node.getTypeInstance();
 				assert(typeInstance != NULL && "Type instance pointer must not be NULL (as indicated by isTypeInstance() being true)");
@@ -92,7 +92,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 					return NULL;
 				}
 				
-				return SEM::Value::FunctionRef(function, function->type);
+				return SEM::Value::FunctionRef(function);
 			}else{
 				assert(false && "Unknown node for name reference");
 				return NULL;
@@ -128,7 +128,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			if(operand == NULL) return NULL;
 		
 			if(operand->type->isPointer()) {
-				return SEM::Value::Deref(operand);
+				return SEM::Value::DerefPointer(operand);
 			}
 			
 			printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
@@ -140,7 +140,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			
 			SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 			assert(boolType != NULL && "Couldn't find bool type");
-			SEM::Value* boolValue = ImplicitConvertValueToType(cond, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
+			SEM::Value* boolValue = ImplicitCast(cond, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 			
 			SEM::Value* ifTrue = ConvertValue(context, value->ternary.ifTrue);
 			SEM::Value* ifFalse = ConvertValue(context, value->ternary.ifFalse);
@@ -152,8 +152,8 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				targetType->isLValue = SEM::Type::RVALUE;
 			}
 			
-			SEM::Value* castIfTrue = ImplicitConvertValueToType(ifTrue, targetType);
-			SEM::Value* castIfFalse = ImplicitConvertValueToType(ifFalse, targetType);
+			SEM::Value* castIfTrue = ImplicitCast(ifTrue, targetType);
+			SEM::Value* castIfFalse = ImplicitCast(ifFalse, targetType);
 			
 			return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 		}
@@ -211,7 +211,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				SEM::Value * semValue = ConvertValue(context, astValues.at(id));
 				if(semValue == NULL) return NULL;
 				
-				SEM::Value * semParam = ImplicitConvertValueToType(semValue, var->type);
+				SEM::Value * semParam = ImplicitCast(semValue, var->type);
 				semValues.at(id) = semParam;
 			}
 			
@@ -227,13 +227,17 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 			SEM::Value * object = ConvertValue(context, value->memberAccess.object);
 			if(object == NULL) return NULL;
 			
-			SEM::Type * objectType = object->type;
-			if(objectType->typeEnum != SEM::Type::NAMED){
+			// Any number of levels of references are automatically dereferenced.
+			while(object->type->isReference()){
+				object = SEM::Value::DerefReference(object);
+			}
+			
+			if(!object->type->isObjectType()){
 				printf("Semantic Analysis Error: Can't access member of non-object type.\n");
 				return NULL;
 			}
 		
-			SEM::TypeInstance * typeInstance = objectType->namedType.typeInstance;
+			SEM::TypeInstance * typeInstance = object->type->getObjectType();
 			assert(typeInstance != NULL);
 			
 			if(typeInstance->isStructDef()){
@@ -241,15 +245,21 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 				Optional<SEM::Var *> varResult = typeInstance->variables.tryGet(memberName);
 				if(varResult.hasValue()){
 					SEM::Var * var = varResult.getValue();
-					if(objectType->isLValue){
-						return SEM::Value::MemberAccess(object, var->id, var->type);
-					}else{
+					SEM::Type * memberType = new SEM::Type(*(var->type));
+					
+					if(!object->type->isMutable){
+						// If the struct type is const, then the members must
+						// also be.
+						memberType->isMutable = false;
+					}
+					
+					if(!object->type->isLValue){
 						// If the struct type is an R-value, then the member must
 						// also be (preventing assignments to R-value members).
-						SEM::Type * memberType = new SEM::Type(*(var->type));
 						memberType->isLValue = false;
-						return SEM::Value::MemberAccess(object, var->id, memberType);
 					}
+					
+					return SEM::Value::MemberAccess(object, var->id, memberType);
 				}else{
 					printf("Semantic Analysis Error: Can't access struct member '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
@@ -267,9 +277,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						return NULL;
 					}
 					
-					SEM::Type * methodType = SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, typeInstance, function->type);
-					
-					return SEM::Value::MethodObject(function, object, methodType);
+					return SEM::Value::MethodObject(function, object);
 				}else{
 					printf("Semantic Analysis Error: Can't find method '%s' in type '%s'.\n", memberName.c_str(), typeInstance->name.toString().c_str());
 					return NULL;
@@ -319,12 +327,12 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						
 						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = (i < typeList.size()) ? ImplicitConvertValueToType(semArgValue, typeList.at(i)) : semArgValue;
+						SEM::Value* param = (i < typeList.size()) ? ImplicitCast(semArgValue, typeList.at(i)->rvalueType()) : semArgValue;
 						
 						semValueList.push_back(param);
 					}
 					
-					return SEM::Value::FunctionCall(functionValue, semValueList, functionValue->type->functionType.returnType);
+					return SEM::Value::FunctionCall(functionValue, semValueList);
 				}
 				case SEM::Type::METHOD:
 				{
@@ -347,7 +355,7 @@ SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
 						
 						if(semArgValue == NULL) return NULL;
 						
-						SEM::Value* param = ImplicitConvertValueToType(semArgValue, typeList.at(i));
+						SEM::Value* param = ImplicitCast(semArgValue, typeList.at(i));
 						
 						semValueList.push_back(param);
 					}

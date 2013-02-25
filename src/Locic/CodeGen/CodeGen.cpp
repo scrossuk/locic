@@ -387,10 +387,9 @@ namespace Locic {
 					llvm::Function * existingFunction = module_->getFunction(functionName);
 					if(existingFunction != NULL) return existingFunction;
 					
-					SEM::TypeInstance* thisTypeInstance = function->isMethod ? function->parentType : NULL;
+					llvm::Type* thisType = function->isMethod ? getTypeInstancePointer(function->parentType) : NULL;
 					
-					llvm::Function* functionDecl = llvm::Function::Create(genFunctionType(function->type,
-												   getTypeInstancePointer(thisTypeInstance)), llvm::Function::ExternalLinkage, functionName, module_);
+					llvm::Function* functionDecl = llvm::Function::Create(genFunctionType(function->type, thisType), llvm::Function::ExternalLinkage, functionName, module_);
 												   
 					if(function->type->functionType.returnType->isClass()) {
 						// Class return values are allocated by the caller,
@@ -443,15 +442,6 @@ namespace Locic {
 					return structType;
 				}
 				
-				llvm::Type* getTypeInstancePointer(SEM::TypeInstance* typeInstance) {
-					if(typeInstance == NULL) return NULL;
-					
-					SEM::Type* pointerType =
-						SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
-										   SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, typeInstance));
-					return genType(pointerType);
-				}
-				
 				llvm::FunctionType* genFunctionType(SEM::Type* type, llvm::Type* thisPointerType = NULL) {
 					assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 					assert(type->typeEnum == SEM::Type::FUNCTION && "Type must be a function type for it to be generated as such");
@@ -492,6 +482,47 @@ namespace Locic {
 					return llvm::FunctionType::get(returnType, paramTypes, type->functionType.isVarArg);
 				}
 				
+				llvm::Type* genObjectType(SEM::Type* type){
+					assert(type->isObjectType());
+					SEM::TypeInstance* typeInstance = type->getObjectType();
+					Locic::Name name = typeInstance->name;
+					
+					if(typeInstance->isPrimitive()) {
+						return createPrimitiveType(*module_, typeInstance);
+					} else {
+						assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
+						return genStructType(typeInstance);
+					}
+				}
+				
+				llvm::Type* genPointerType(SEM::Type* targetType){
+					// Interface pointers/references are actually two pointers:
+					// one to the class, and one to the class vtable.
+					if(targetType->isInterface()) {
+						std::vector<llvm::Type*> types;
+						// Class pointer.
+						types.push_back(genStructType(targetType->getObjectType())->getPointerTo());
+						// Vtable pointer.
+						types.push_back(getVTableType()->getPointerTo());
+						return llvm::StructType::get(llvm::getGlobalContext(), types);
+					}
+					
+					llvm::Type* pointerType = genType(targetType);
+					
+					if(pointerType->isVoidTy()) {
+						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
+						return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
+					} else {
+						return pointerType->getPointerTo();
+					}
+				}
+				
+				llvm::Type* getTypeInstancePointer(SEM::TypeInstance* typeInstance) {
+					assert(typeInstance != NULL);
+					//if(typeInstance == NULL) return NULL;
+					return genPointerType(SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, typeInstance));
+				}
+				
 				llvm::Type* genType(SEM::Type* type) {
 					switch(type->typeEnum) {
 						case SEM::Type::VOID: {
@@ -501,48 +532,22 @@ namespace Locic {
 							return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
 						}
 						case SEM::Type::NAMED: {
-							Locic::Name name = type->namedType.typeInstance->name;
-							SEM::TypeInstance* typeInstance = type->namedType.typeInstance;
-							
-							if(typeInstance->isPrimitive()) {
-								return createPrimitiveType(*module_, type->namedType.typeInstance);
-							} else {
-								assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
-								return genStructType(type->namedType.typeInstance);
-							}
+							return genObjectType(type);
 						}
 						case SEM::Type::POINTER: {
-							SEM::Type* targetType = type->pointerType.targetType;
-							
-							// Interface pointers are actually two pointers: one
-							// to the class, and one to the class vtable.
-							if(targetType->isInterface()) {
-								std::vector<llvm::Type*> types;
-								// Class pointer.
-								types.push_back(genStructType(targetType->getObjectType())->getPointerTo());
-								// Vtable pointer.
-								types.push_back(getVTableType()->getPointerTo());
-								return llvm::StructType::get(llvm::getGlobalContext(), types);
-							}
-							
-							llvm::Type* pointerType = genType(targetType);
-							
-							if(pointerType->isVoidTy()) {
-								// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-								return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
-							} else {
-								return pointerType->getPointerTo();
-							}
+							return genPointerType(type->getPointerTarget());
+						}
+						case SEM::Type::REFERENCE: {
+							return genPointerType(type->getReferenceTarget());
 						}
 						case SEM::Type::FUNCTION: {
 							return genFunctionType(type)->getPointerTo();
 						}
 						case SEM::Type::METHOD: {
-							SEM::Type* objectType = SEM::Type::Named(SEM::Type::MUTABLE, SEM::Type::LVALUE, type->methodType.objectType);
-							SEM::Type* pointerToObjectType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::LVALUE, objectType);
+							SEM::Type* objectType = type->methodType.objectType;
 							std::vector<llvm::Type*> types;
-							types.push_back(genFunctionType(type->methodType.functionType, getTypeInstancePointer(type->methodType.objectType))->getPointerTo());
-							types.push_back(genType(pointerToObjectType));
+							types.push_back(genFunctionType(type->methodType.functionType, getTypeInstancePointer(objectType->getObjectType()))->getPointerTo());
+							types.push_back(genPointerType(objectType));
 							return llvm::StructType::get(llvm::getGlobalContext(), types);
 						}
 						default: {
@@ -564,7 +569,16 @@ namespace Locic {
 						case SEM::Type::NAMED: {
 							return builder_.CreateCall(genSizeOfMethod(type->namedType.typeInstance));
 						}
-						case SEM::Type::POINTER:
+						case SEM::Type::POINTER: {
+							const size_t multiplier = type->getPointerTarget()->isInterface() ? 2 : 1;
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth,
+								multiplier * targetInfo_.getPointerSize() / 8));
+						}
+						case SEM::Type::REFERENCE: {
+							const size_t multiplier = type->getReferenceTarget()->isInterface() ? 2 : 1;
+							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth,
+								multiplier * targetInfo_.getPointerSize() / 8));
+						}
 						case SEM::Type::FUNCTION: {
 							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, targetInfo_.getPointerSize() / 8));
 						}
@@ -585,6 +599,7 @@ namespace Locic {
 						case SEM::Type::VOID:
 						case SEM::Type::NULLT:
 						case SEM::Type::POINTER:
+						case SEM::Type::REFERENCE:
 						case SEM::Type::FUNCTION:
 						case SEM::Type::METHOD: {
 							return builder_.CreateAlloca(rawType);
@@ -611,6 +626,7 @@ namespace Locic {
 						case SEM::Type::VOID:
 						case SEM::Type::NULLT:
 						case SEM::Type::POINTER:
+						case SEM::Type::REFERENCE:
 						case SEM::Type::FUNCTION:
 						case SEM::Type::METHOD: {
 							return builder_.CreateStore(value, var);
@@ -640,6 +656,7 @@ namespace Locic {
 						case SEM::Type::VOID:
 						case SEM::Type::NULLT:
 						case SEM::Type::POINTER:
+						case SEM::Type::REFERENCE:
 						case SEM::Type::FUNCTION:
 						case SEM::Type::METHOD: {
 							return builder_.CreateLoad(var);
@@ -877,6 +894,7 @@ namespace Locic {
 							}
 						}
 						case SEM::Value::COPY: {
+							// TODO!
 							return genValue(value->copyValue.value);
 						}
 						case SEM::Value::VAR: {
@@ -922,11 +940,21 @@ namespace Locic {
 						case SEM::Value::ADDRESSOF: {
 							return genValue(value->addressOf.value, true);
 						}
-						case SEM::Value::DEREF: {
+						case SEM::Value::DEREF_POINTER: {
 							if(genLValue) {
-								return genValue(value->deref.value);
+								return genValue(value->derefPointer.value);
 							} else {
-								return genLoad(genValue(value->deref.value), value->type);
+								return genLoad(genValue(value->derefPointer.value), value->type);
+							}
+						}
+						case SEM::Value::REFERENCEOF: {
+							return genValue(value->referenceOf.value, true);
+						}
+						case SEM::Value::DEREF_REFERENCE: {
+							if(genLValue) {
+								return genValue(value->derefReference.value);
+							} else {
+								return genLoad(genValue(value->derefReference.value), value->type);
 							}
 						}
 						case SEM::Value::TERNARY: {
@@ -972,6 +1000,13 @@ namespace Locic {
 									
 									assert(false && "Casts between named types not implemented");
 									return NULL;
+								}
+								case SEM::Type::REFERENCE: {
+									if(genLValue) {
+										return builder_.CreatePointerCast(codeValue, genType(destType)->getPointerTo());
+									} else {
+										return builder_.CreatePointerCast(codeValue, genType(destType));
+									}
 								}
 								case SEM::Type::POINTER: {
 									if(genLValue) {

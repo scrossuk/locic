@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <string>
+#include <Locic/Log.hpp>
 #include <Locic/Map.hpp>
 #include <Locic/Name.hpp>
 #include <Locic/SEM/Namespace.hpp>
@@ -50,9 +51,6 @@ namespace Locic {
 		}
 		
 		bool TypeInstance::supportsImplicitCopy() const {
-			// All primitives can be implicitly copied.
-			if(isPrimitive()) return true;
-			
 			const std::string functionName = "implicitCopy";
 			Locic::Optional<Function*> result = functions.tryGet(functionName);
 			
@@ -70,9 +68,27 @@ namespace Locic {
 			if(type->functionType.isVarArg) return false;
 			
 			// One argument for the 'this' pointer.
-			if(type->functionType.parameterTypes.size() != 1) return false;
+			if(type->functionType.parameterTypes.size() != 0) return false;
 			
 			return type->functionType.returnType->isTypeInstance(this);
+		}
+		
+		Type * TypeInstance::getFunctionReturnType(const std::string& functionName){
+			Locic::Optional<Function*> result = functions.tryGet(functionName);
+			assert(result.hasValue() && "Function must exist to get its return type");
+			
+			Function* function = result.getValue();
+			assert(function != NULL);
+			
+			Type* type = function->type;
+			assert(type->typeEnum == Type::FUNCTION);
+			
+			return type->functionType.returnType;
+		}
+		
+		Type * TypeInstance::getImplicitCopyType(){
+			assert(supportsImplicitCopy());
+			return getFunctionReturnType("implicitCopy");
 		}
 		
 		std::string TypeInstance::toString() const {

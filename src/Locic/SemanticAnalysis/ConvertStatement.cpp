@@ -72,7 +72,7 @@ namespace Locic {
 					
 					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 					assert(boolType != NULL && "Couldn't find bool type");
-					SEM::Value* boolValue = ImplicitConvertValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
+					SEM::Value* boolValue = ImplicitCast(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
@@ -86,7 +86,7 @@ namespace Locic {
 					
 					SEM::TypeInstance * boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
 					assert(boolType != NULL && "Couldn't find bool type");
-					SEM::Value* boolValue = ImplicitConvertValueToType(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
+					SEM::Value* boolValue = ImplicitCast(condition, SEM::Type::Named(SEM::Type::CONST, SEM::Type::RVALUE, boolType));
 					
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
@@ -101,55 +101,43 @@ namespace Locic {
 						return NULL;
 					}
 					
-					const bool canCopyValue = semValue->type->supportsImplicitCopy();
-					
-					SEM::Type* type;
+					SEM::Type* varType = NULL;
 					
 					if(typeAnnotation == NULL) {
 						// Auto keyword - use type of initial value.
-						type = new SEM::Type(*(semValue->type));
-						type->isMutable = true;
-						type->isLValue = true;
-						
-						// If the value is const, and it can't be copied,
-						// the variable must also be const.
-						if(!semValue->type->isMutable && !canCopyValue) {
-							type->isMutable = false;
-						}
+						varType = semValue->type->lvalueType();
 					} else {
 						// Using type annotation - verify that it is compatible with the type of the initial value.
-						type = ConvertType(context, typeAnnotation, SEM::Type::LVALUE);
+						varType = ConvertType(context, typeAnnotation, SEM::Type::LVALUE);
 							
-						if(type == NULL) {
+						if(varType == NULL) {
 							return NULL;
 						}
 					}
 					
-					if(type->typeEnum == SEM::Type::VOID) {
+					assert(varType != NULL);
+					assert(varType->isLValue);
+					
+					if(varType->isVoid()) {
 						printf("Semantic Analysis Error: Local variable cannot have void type.\n");
 						return NULL;
 					}
 					
-					SEM::Var* semVar = context.defineLocalVar(varName, type);
+					SEM::Var* semVar = context.defineLocalVar(varName, varType);
 						
 					if(semVar == NULL) {
 						printf("Semantic Analysis Error: Local variable name already exists.\n");
 						return NULL;
 					}
 					
-					SEM::Value* castValue = ImplicitConvertValueToType(semValue, type);
-					
-					return SEM::Statement::Assign(SEM::Value::VarValue(semVar), castValue);
+					return SEM::Statement::Assign(SEM::Value::VarValue(semVar),
+						// The value being assigned must be an R-value.
+						ImplicitCast(semValue, varType->rvalueType()));
 				}
 				case AST::Statement::ASSIGN: {
 					SEM::Value* lValue = ConvertValue(context, statement->assignStmt.lValue);
 						
 					if(lValue == NULL) {
-						return NULL;
-					}
-					
-					if(!lValue->type->isMutable) {
-						printf("Semantic Analysis Error: Cannot assign to const value.\n");
 						return NULL;
 					}
 					
@@ -164,9 +152,8 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Value* castRValue = ImplicitConvertValueToType(rValue, lValue->type);
-					
-					return SEM::Statement::Assign(lValue, castRValue);
+					return SEM::Statement::Assign(lValue,
+						ImplicitCast(rValue, lValue->type->rvalueType()));
 				}
 				case AST::Statement::RETURN: {
 					if(statement->returnStmt.value == NULL) {
@@ -184,7 +171,7 @@ namespace Locic {
 							return NULL;
 						}
 						
-						SEM::Value* castValue = ImplicitConvertValueToType(semValue, context.getReturnType());
+						SEM::Value* castValue = ImplicitCast(semValue, context.getReturnType());
 						
 						return SEM::Statement::Return(castValue);
 					}

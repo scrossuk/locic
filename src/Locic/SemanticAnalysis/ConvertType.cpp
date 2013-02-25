@@ -15,7 +15,7 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 			return NULL;
 		}
 		case AST::Type::VOID: {
-			return SEM::Type::Void(type->isMutable);
+			return SEM::Type::Void();
 		}
 		case AST::Type::NAMED: {
 			const Name& name = type->namedType.name;
@@ -30,13 +30,23 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 		}
 		case AST::Type::POINTER: {
 			// Pointed-to types are always l-values (otherwise they couldn't have their address taken).
-			SEM::Type* pointerType = ConvertType(context, type->pointerType.targetType, SEM::Type::LVALUE);
+			SEM::Type* pointerType = ConvertType(context, type->getPointerTarget(), SEM::Type::LVALUE);
 			
 			if(pointerType == NULL) {
 				return NULL;
 			}
 			
 			return SEM::Type::Pointer(type->isMutable, isLValue, pointerType);
+		}
+		case AST::Type::REFERENCE: {
+			// Referred-to types are always l-values.
+			SEM::Type* refType = ConvertType(context, type->getReferenceTarget(), SEM::Type::LVALUE);
+			
+			if(refType == NULL) {
+				return NULL;
+			}
+			
+			return SEM::Type::Reference(isLValue, refType);
 		}
 		case AST::Type::FUNCTION: {
 			SEM::Type* returnType = ConvertType(context, type->functionType.returnType, SEM::Type::RVALUE);
@@ -64,7 +74,7 @@ SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 				parameterTypes.push_back(paramType);
 			}
 			
-			return SEM::Type::Function(type->isMutable, isLValue, type->functionType.isVarArg, returnType, parameterTypes);
+			return SEM::Type::Function(isLValue, type->functionType.isVarArg, returnType, parameterTypes);
 		}
 		default:
 			printf("Internal Compiler Error: Unknown AST::Type type enum.\n");

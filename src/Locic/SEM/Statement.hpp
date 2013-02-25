@@ -82,6 +82,10 @@ namespace Locic {
 			}
 			
 			inline static Statement* Assign(Value* lValue, Value* rValue) {
+				assert(lValue->type->isLValue);
+				assert(!rValue->type->isLValue);
+				assert(*(lValue->type) == *(rValue->type->lvalueType()));
+				
 				Statement* statement = new Statement(ASSIGN);
 				statement->assignStmt.lValue = lValue;
 				statement->assignStmt.rValue = rValue;

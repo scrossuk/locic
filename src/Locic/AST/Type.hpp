@@ -14,6 +14,7 @@ namespace AST {
 			NULLT,
 			NAMED,
 			POINTER,
+			REFERENCE,
 			FUNCTION
 		} typeEnum;
 		
@@ -30,6 +31,11 @@ namespace AST {
 			// Type that is being pointed to.
 			Type* targetType;
 		} pointerType;
+		
+		struct {
+			// Type that is being referred to.
+			Type* targetType;
+		} referenceType;
 		
 		struct {
 			bool isVarArg;
@@ -65,6 +71,12 @@ namespace AST {
 			return type;
 		}
 		
+		inline static Type* Reference(Type* targetType) {
+			Type* type = new Type(REFERENCE, CONST);
+			type->referenceType.targetType = targetType;
+			return type;
+		}
+		
 		inline static Type* Function(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION, isMutable);
 			type->functionType.isVarArg = false;
@@ -81,20 +93,54 @@ namespace AST {
 			return type;
 		}
 		
-		inline Type* applyTransitiveConst() {
+		inline bool isVoid() const {
+			return typeEnum == VOID;
+		}
+		
+		inline bool isNull() const {
+			return typeEnum == NULLT;
+		}
+		
+		inline bool isPointer() const {
+			return typeEnum == POINTER;
+		}
+		
+		inline bool isReference() const {
+			return typeEnum == REFERENCE;
+		}
+		
+		inline bool isFunction() const {
+			return typeEnum == FUNCTION;
+		}
+		
+		inline AST::Type* getPointerTarget() const {
+			assert(isPointer() && "Cannot get target type of non-pointer type");
+			return pointerType.targetType;
+		}
+		
+		inline AST::Type* getReferenceTarget() const {
+			assert(isReference() && "Cannot get target type of non-reference type");
+			return referenceType.targetType;
+		}
+		
+		inline bool isObjectType() const {
+			return typeEnum == NAMED;
+		}
+		
+		inline void applyTransitiveConst() {
 			Type* t = this;
 			
 			while(true) {
 				t->isMutable = false;
 				
 				if(t->typeEnum == POINTER) {
-					t = t->pointerType.targetType;
+					t = t->getPointerTarget();
+				}else if(t->typeEnum == REFERENCE) {
+					t = t->getReferenceTarget();
 				} else {
 					break;
 				}
 			}
-			
-			return this;
 		}
 		
 		inline std::string toString() const {
@@ -131,7 +177,11 @@ namespace AST {
 					break;
 				case POINTER:
 					str += pointerType.targetType->toString();
-					str += " *";
+					str += "*";
+					break;
+				case REFERENCE:
+					str += pointerType.targetType->toString();
+					str += "&";
 					break;
 				case FUNCTION:
 				{

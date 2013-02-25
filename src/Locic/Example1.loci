@@ -18,6 +18,10 @@ class TestClass2(int i){
 	}
 	
 	void doSomething(){ }
+	
+	/*TestClass2 implicitCopy(){
+		return TestClass2(@i);
+	}*/
 };
 
 interface an_interface{
@@ -27,7 +31,11 @@ interface an_interface{
 }
 
 template <typename T>
-class ExampleTemplatedClass0{ }
+class ExampleTemplatedClass0(){
+	static Default(){
+		return @();
+	}
+}
 
 template <typename T: an_interface>
 class ExampleTemplatedClass1{ }
@@ -36,8 +44,9 @@ an_interface * getPtr(TestClass2 * ptr){
 	return ptr;
 }
 
-void function(TestClass2 object){
-	printf("Value: %d\n"C, object.getValue());
+void function(TestClass2 * object){
+	const TestClass2& ptr = *object;
+	printf("Value from fn: %d\n"C, ptr.getValue());
 }
 
 int main(int argc, char ** argv){
@@ -46,11 +55,15 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
+	auto templatedInstance = ExampleTemplatedClass0<int>();
+	
 	auto firstTestClass = TestClass(1);
 	
 	auto testObject = TestClass2(argc * 2);
 	
-	function(testObject);
+	//auto testObjectCopy = testObject;
+	
+	function(&testObject);
 	
 	printf("Value: %d\n"C, testObject.getValue());
 	

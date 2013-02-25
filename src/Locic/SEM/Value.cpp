@@ -10,7 +10,7 @@
 namespace Locic {
 
 	namespace SEM {
-	
+		
 		std::string Value::toString() const {
 			switch(typeEnum) {
 				case CONSTANT:
@@ -20,14 +20,20 @@ namespace Locic {
 					return makeString("Copy(%s)",
 									  copyValue.value->toString().c_str());
 				case VAR:
-					return makeString("Var(%s)",
+					return makeString("VarValue(%s)",
 									  varValue.var->toString().c_str());
 				case ADDRESSOF:
 					return makeString("AddressOf(%s)",
 									  addressOf.value->toString().c_str());
-				case DEREF:
-					return makeString("Deref(%s)",
-									  deref.value->toString().c_str());
+				case DEREF_POINTER:
+					return makeString("DerefPointer(%s)",
+									  derefPointer.value->toString().c_str());
+				case REFERENCEOF:
+					return makeString("ReferenceOf(%s)",
+						referenceOf.value->toString().c_str());
+				case DEREF_REFERENCE:
+					return makeString("DerefReference(%s)",
+									  derefReference.value->toString().c_str());
 				case TERNARY:
 					return makeString("Ternary(cond: %s, ifTrue: %s, ifFalse: %s)",
 									  ternary.condition->toString().c_str(),

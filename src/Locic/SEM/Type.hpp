@@ -17,6 +17,7 @@ namespace Locic {
 				NULLT,
 				NAMED,
 				POINTER,
+				REFERENCE,
 				FUNCTION,
 				METHOD
 			} typeEnum;
@@ -40,6 +41,11 @@ namespace Locic {
 				Type* targetType;
 			} pointerType;
 			
+			struct {
+				// Type that is being referred to.
+				Type* targetType;
+			} referenceType;
+			
 			struct FunctionType {
 				bool isVarArg;
 				Type* returnType;
@@ -47,7 +53,7 @@ namespace Locic {
 			} functionType;
 			
 			struct {
-				TypeInstance* objectType;
+				Type* objectType;
 				Type* functionType;
 			} methodType;
 			
@@ -61,12 +67,14 @@ namespace Locic {
 				  isMutable(m),
 				  isLValue(l) { }
 				  
-			inline static Type* Void(bool isMutable) {
-				return new Type(VOID, isMutable, RVALUE);
+			inline static Type* Void() {
+				// Void is a 'const type', meaning it is always const.
+				return new Type(VOID, CONST, RVALUE);
 			}
 			
-			inline static Type* Null(bool isMutable) {
-				return new Type(NULLT, isMutable, RVALUE);
+			inline static Type* Null() {
+				// Null is a 'const type', meaning it is always const.
+				return new Type(NULLT, CONST, RVALUE);
 			}
 			
 			inline static Type* Named(bool isMutable, bool isLValue, TypeInstance* typeInstance) {
@@ -82,16 +90,27 @@ namespace Locic {
 				return type;
 			}
 			
-			inline static Type* Function(bool isMutable, bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
-				Type* type = new Type(FUNCTION, isMutable, isLValue);
+			inline static Type* Reference(bool isLValue, Type* targetType){
+				assert(targetType->isLValue);
+				// References are a 'const type', meaning they are always const.
+				Type* type = new Type(REFERENCE, CONST, isLValue);
+				type->referenceType.targetType = targetType;
+				return type;
+			}
+			
+			inline static Type* Function(bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
+				// Functions are a 'const type', meaning they are always const.
+				Type* type = new Type(FUNCTION, CONST, isLValue);
 				type->functionType.isVarArg = isVarArg;
 				type->functionType.returnType = returnType;
 				type->functionType.parameterTypes = parameterTypes;
 				return type;
 			}
 			
-			inline static Type* Method(bool isMutable, bool isLValue, TypeInstance* objectType, Type* functionType) {
-				Type* type = new Type(METHOD, isMutable, isLValue);
+			inline static Type* Method(bool isMutable, bool isLValue, Type* objectType, Type* functionType) {
+				assert(objectType->isObjectType());
+				// Methods are a 'const type', meaning they are always const.
+				Type* type = new Type(METHOD, CONST, isLValue);
 				type->methodType.objectType = objectType;
 				type->methodType.functionType = functionType;
 				return type;
@@ -103,8 +122,10 @@ namespace Locic {
 				while(true) {
 					t->isMutable = false;
 					
-					if(t->typeEnum == POINTER) {
+					if(t->isPointer()) {
 						t = t->pointerType.targetType;
+					}else if(t->isReference()){
+						t = t->referenceType.targetType;
 					} else {
 						break;
 					}
@@ -125,8 +146,17 @@ namespace Locic {
 				return typeEnum == POINTER;
 			}
 			
+			inline bool isReference() const {
+				return typeEnum == REFERENCE;
+			}
+			
 			inline bool isFunction() const {
 				return typeEnum == FUNCTION;
+			}
+			
+			inline SEM::Type * getFunctionReturnType(){
+				assert(isFunction());
+				return functionType.returnType;
 			}
 			
 			inline bool isMethod() const {
@@ -136,6 +166,11 @@ namespace Locic {
 			inline SEM::Type* getPointerTarget() const {
 				assert(isPointer() && "Cannot get target type of non-pointer type");
 				return pointerType.targetType;
+			}
+			
+			inline SEM::Type* getReferenceTarget() const {
+				assert(isReference() && "Cannot get target type of non-reference type");
+				return referenceType.targetType;
 			}
 			
 			inline bool isObjectType() const {
@@ -165,11 +200,24 @@ namespace Locic {
 				return namedType.typeInstance->isInterface();
 			}
 			
+			inline Type * lvalueType() const {
+				Type * type = new Type(*this);
+				type->isLValue = true;
+				return type;
+			}
+			
+			inline Type * rvalueType() const {
+				Type * type = new Type(*this);
+				type->isLValue = false;
+				return type;
+			}
+			
 			inline bool supportsImplicitCopy() const {
 				switch(typeEnum) {
 					case VOID:
 					case NULLT:
 					case POINTER:
+					case REFERENCE:
 					case FUNCTION:
 					case METHOD:
 						// Pointer, function and method types can be copied implicitly.
@@ -177,6 +225,31 @@ namespace Locic {
 					case NAMED:
 						// Named types must have a method for implicit copying.
 						return namedType.typeInstance->supportsImplicitCopy();
+					default:
+						assert(false && "Unknown SEM type enum");
+						return false;
+				}
+			}
+			
+			inline Type * getImplicitCopyType() const {
+				switch(typeEnum) {
+					case VOID:
+					case NULLT:
+					case POINTER:
+					case REFERENCE:
+					case FUNCTION:
+					case METHOD:
+					{
+						// Built in types retain their 'constness' in copying.
+						// However, all except pointers are const types
+						// anyway, so this essentially has no effect for them.
+						Type* copyType = new Type(*this);
+						copyType->isLValue = false;
+						return copyType;
+					}
+					case NAMED:
+						// Object types may or may not retain 'constness'.
+						return namedType.typeInstance->getImplicitCopyType();
 					default:
 						assert(false && "Unknown SEM type enum");
 						return false;
@@ -197,6 +270,9 @@ namespace Locic {
 					case POINTER:
 						return makeString("PointerType(%s)",
 										  pointerType.targetType->toString().c_str());
+					case REFERENCE:
+						return makeString("ReferenceType(%s)",
+										  referenceType.targetType->toString().c_str());
 					case FUNCTION:
 						return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
 										  functionType.returnType->toString().c_str(),
@@ -250,6 +326,9 @@ namespace Locic {
 					}
 					case SEM::Type::POINTER: {
 						return *(pointerType.targetType) == *(type.pointerType.targetType);
+					}
+					case SEM::Type::REFERENCE: {
+						return *(referenceType.targetType) == *(type.referenceType.targetType);
 					}
 					case SEM::Type::FUNCTION: {
 						const std::vector<SEM::Type*>& firstList = functionType.parameterTypes;

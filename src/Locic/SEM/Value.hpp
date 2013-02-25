@@ -19,7 +19,9 @@ namespace Locic {
 				COPY,
 				VAR,
 				ADDRESSOF,
-				DEREF,
+				DEREF_POINTER,
+				REFERENCEOF,
+				DEREF_REFERENCE,
 				TERNARY,
 				CAST,
 				POLYCAST,
@@ -53,7 +55,15 @@ namespace Locic {
 			
 			struct {
 				Value* value;
-			} deref;
+			} derefPointer;
+			
+			struct {
+				Value* value;
+			} referenceOf;
+			
+			struct {
+				Value* value;
+			} derefReference;
 			
 			struct {
 				Value* condition, * ifTrue, * ifFalse;
@@ -97,7 +107,7 @@ namespace Locic {
 				std::vector<Value*> parameters;
 			} methodCall;
 			
-			inline Value() : typeEnum(NONE), type(Type::Void(Type::MUTABLE)) { }
+			inline Value() : typeEnum(NONE), type(Type::Void()) { }
 			
 			inline Value(TypeEnum e, Type* t) : typeEnum(e), type(t) { }
 			
@@ -108,10 +118,7 @@ namespace Locic {
 			}
 			
 			inline static Value* CopyValue(Value* value) {
-				Type* typeCopy = new Type(*(value->type));
-				typeCopy->isLValue = Type::RVALUE;
-				typeCopy->isMutable = Type::MUTABLE;
-				Value* valueCopy = new Value(COPY, typeCopy);
+				Value* valueCopy = new Value(COPY, value->type->getImplicitCopyType());
 				valueCopy->copyValue.value = value;
 				return valueCopy;
 			}
@@ -131,9 +138,23 @@ namespace Locic {
 				return value;
 			}
 			
-			inline static Value* Deref(Value* operand) {
-				Value* value = new Value(DEREF, operand->type->getPointerTarget());
-				value->deref.value = operand;
+			inline static Value* DerefPointer(Value* operand) {
+				Value* value = new Value(DEREF_POINTER, operand->type->getPointerTarget());
+				value->derefPointer.value = operand;
+				return value;
+			}
+			
+			inline static Value* ReferenceOf(Value* operand) {
+				assert(operand->type->isLValue);
+				Value* value = new Value(REFERENCEOF,
+					SEM::Type::Reference(SEM::Type::RVALUE, operand->type));
+				value->referenceOf.value = operand;
+				return value;
+			}
+			
+			inline static Value* DerefReference(Value* operand) {
+				Value* value = new Value(DEREF_REFERENCE, operand->type->getReferenceTarget());
+				value->derefReference.value = operand;
 				return value;
 			}
 			
@@ -174,21 +195,24 @@ namespace Locic {
 				return value;
 			}
 			
-			inline static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters, Type* type) {
-				Value* value = new Value(FUNCTIONCALL, type);
+			inline static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
+				assert(functionValue->type->isFunction());
+				Value* value = new Value(FUNCTIONCALL, functionValue->type->getFunctionReturnType());
 				value->functionCall.functionValue = functionValue;
 				value->functionCall.parameters = parameters;
 				return value;
 			}
 			
-			inline static Value* FunctionRef(Function* function, Type* type) {
-				Value* value = new Value(FUNCTIONREF, type);
+			inline static Value* FunctionRef(Function* function) {
+				Value* value = new Value(FUNCTIONREF, function->type);
 				value->functionRef.function = function;
 				return value;
 			}
 			
-			inline static Value* MethodObject(Function* method, Value* methodOwner, Type* type) {
-				Value* value = new Value(METHODOBJECT, type);
+			inline static Value* MethodObject(Function* method, Value* methodOwner) {
+				assert(methodOwner->type->isObjectType());
+				Value* value = new Value(METHODOBJECT,
+					SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE, methodOwner->type, method->type));
 				value->methodObject.method = method;
 				value->methodObject.methodOwner = methodOwner;
 				return value;

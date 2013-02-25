@@ -11,40 +11,29 @@ namespace Locic {
 		
 		/**
 		 * Types of value casting/converting:
-		 *    1. Implicit cast - value must be able to be cast to target
-		 *                       type without any computation necessary
-		 *                       (e.g. adding const qualifier to pointer).
-		 *    2. Implicit 'conversion' - allows copying, casting to void
-		 *                               and null construction on top of
-		 *                               implicit cast.
+		 *    1. Implicit cast - allows implicit copying, casting to void,
+		 *                       null construction, const qualification,
+		 *                       polymorphic casts and co-variant/
+		 *                       contra-variant function casts.
+		 *    2. Explicit cast - allows using 'cast' constructor on top of
+		 *                       implicit cast.
 		 *    3. Static cast - allows potentially-valid pointer casts
 		 *                     to occur at compile-time (e.g. cast from
 		 *                     'void *' to an object-type pointer).
 		 *    4. Const cast - for adding/removing const.
 		 *    5. Dynamic cast - cast up/down class-interface hierarchy.
-		 *    5. Reinterpret cast - to 'reinterpret' the byte contents of a value.
+		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
-		
-		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* type);
 		
 		SEM::Value * PolyCastValueToType(SEM::Value* value, SEM::Type* type);
 		
-		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* type);
+		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* type);
 		
 		SEM::Type * UnifyTypes(SEM::Type * first, SEM::Type * second);
 		
 		inline bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType){
 			try{
-				(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType), destType);
-				return true;
-			}catch(const CastException& e){
-				return false;
-			}
-		}
-		
-		inline bool CanDoImplicitConvert(SEM::Type* sourceType, SEM::Type* destType){
-			try{
-				(void) ImplicitConvertValueToType(SEM::Value::CastDummy(sourceType), destType);
+				(void) ImplicitCast(SEM::Value::CastDummy(sourceType), destType);
 				return true;
 			}catch(const CastException& e){
 				return false;
@@ -102,13 +91,13 @@ namespace Locic {
 			
 		};
 		
-		class CastImplicitCopyUnavailableException: public CastException{
+		class CastRValueToReferenceException: public CastException{
 			public:
-				inline CastImplicitCopyUnavailableException(SEM::Type * sourceType, SEM::Type * destType)
+				inline CastRValueToReferenceException(SEM::Type * sourceType, SEM::Type * destType)
 					: sourceType_(sourceType), destType_(destType){ }
 					
 				inline std::string toString() const{
-					return makeString("Implicit copy is unavailable in source type, so cast error cannot be resolved in cast from type '%s' to type '%s'.",
+					return makeString("Unable to convert rvalue to reference in cast from type '%s' to type '%s'.",
 						sourceType_->toString().c_str(),
 						destType_->toString().c_str());
 				}
@@ -136,13 +125,14 @@ namespace Locic {
 			
 		};
 		
-		class CastPointerConstCorrectnessViolationException: public CastException{
+		class CastConstChainingViolationException: public CastException{
 			public:
-				inline CastPointerConstCorrectnessViolationException(SEM::Type * sourceType, SEM::Type * destType)
+				inline CastConstChainingViolationException(SEM::Type * sourceType, SEM::Type * destType)
 					: sourceType_(sourceType), destType_(destType){ }
 					
 				inline std::string toString() const{
-					return makeString("Pointer const-correctness violation in cast from type '%s' to type '%s'.",
+					return makeString("Const chaining violation in cast from type '%s' to type '%s'; "
+						"a template argument target type can only be cast to const if ALL of its parent types are also const.",
 						sourceType_->toString().c_str(),
 						destType_->toString().c_str());
 				}

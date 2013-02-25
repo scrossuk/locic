@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <boost/utility.hpp>
+#include <Locic/Log.hpp>
 #include <Locic/Optional.hpp>
 
 namespace Locic{

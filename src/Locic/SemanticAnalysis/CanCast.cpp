@@ -1,6 +1,7 @@
 #include <cstdio>
-#include <Locic/SEM.hpp>
+#include <Locic/Log.hpp>
 #include <Locic/String.hpp>
+#include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/CanCast.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/Exception.hpp>
@@ -42,74 +43,84 @@ namespace Locic {
 			return SEM::Value::PolyCast(destType, value);
 		}
 		
-		
-		/** 
-		 * Perform an implicit cast of a value to a type.
-		 *
-		 * Note that implicit casts can only be different ways of looking at
-		 * the same data (e.g. non-const pointer to const pointer); explicit
-		 * casts, copying and null construction are forms of conversion that
-		 * do allow data format modifications.
-		 */
-		SEM::Value* ImplicitCastValueToType(SEM::Value* value, SEM::Type* destType) {
+		static inline SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, bool hasParentConstChain) {
 			SEM::Type * sourceType = value->type;
 			
-			if(sourceType->typeEnum != destType->typeEnum) {
+			if(sourceType->typeEnum != destType->typeEnum && destType->typeEnum != SEM::Type::VOID){
+				// At this point, types need to be in the same group.
 				throw CastTypeMismatchException(sourceType, destType);
 			}
 			
-			// Check for const-correctness.
-			if(sourceType->isMutable == false && destType->isMutable == true) {
-				throw CastConstCorrectnessViolationException(sourceType, destType);
-			}
+			assert(sourceType->isMutable || !destType->isMutable);
+			assert(!sourceType->isLValue || destType->isLValue);
 			
-			// Can't implicitly cast lvalues to rvalues.
-			if(sourceType->isLValue == true && destType->isLValue == false) {
-				throw CastLValueToRValueException(sourceType, destType);
-			}
+			// There is a chain of const if all parents of the destination type are const,
+			// and the destination type itself is const.
+			const bool hasConstChain = hasParentConstChain && !destType->isMutable;
 			
-			switch(sourceType->typeEnum) {
-				case SEM::Type::VOID:
+			switch(destType->typeEnum) {
+				case SEM::Type::VOID: {
+					// Everything can be cast to void.
+					// In this case, it's a 'format only' change, so
+					// no need for any actual cast operation.
+					return value;
+				}
 				case SEM::Type::NULLT: {
-					// Only one type, which can clearly be cast to itself (assuming const and lvalue rules are followed).
 					return value;
 				}
 				case SEM::Type::NAMED: {
 					if(sourceType->getObjectType() == destType->getObjectType()) {
 						// The same type instance can be cast to itself.
 						return value;
-					}
-					
-					if(!destType->isInterface()){
+					}else{
 						throw CastObjectTypeMismatchException(sourceType, destType);
 					}
-					
-					return PolyCastValueToType(value, destType);
 				}
 				case SEM::Type::POINTER: {
 					SEM::Type* sourceTarget = sourceType->getPointerTarget();
 					SEM::Type* destTarget = destType->getPointerTarget();
 					
-					if(sourceTarget->isPointer() && destTarget->isPointer()) {
-						// Check for const-correctness inside pointers (e.g.
-						// to prevent T** being cast to const T**).
-						SEM::Type* sourceTargetTarget = sourceTarget->getPointerTarget();
-						SEM::Type* destTargetTarget = destTarget->getPointerTarget();
-							
-						if(sourceTargetTarget->isMutable && destTargetTarget->isMutable) {
-							throw CastPointerConstCorrectnessViolationException(sourceType, destType);
-						}
+					if(!hasConstChain && sourceTarget->isMutable && !destTarget->isMutable){
+						// Check for const-correctness inside pointers,
+						// ensuring that the const chaining rule rule is followed.
+						// For example, the following cast is invalid:
+						//         T * -> const T *
+						// It can be made valid by changing it to:
+						//         T * const -> const T * const
+						throw CastConstChainingViolationException(sourceType, destType);
 					}
 					
 					if(sourceTarget->isObjectType() && destTarget->isInterface()){
 						return PolyCastValueToType(value, destType);
 					}else{
-						(void) ImplicitCastValueToType(SEM::Value::Deref(value), destTarget);
-						return SEM::Value::Cast(destType, value);
+						(void) ImplicitCastFormatOnly(SEM::Value::CastDummy(sourceTarget), destTarget, hasConstChain);
+						return value;
+					}
+				}
+				case SEM::Type::REFERENCE: {
+					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
+					SEM::Type* destTarget = destType->getReferenceTarget();
+					
+					if(!hasConstChain && sourceTarget->isMutable && !destTarget->isMutable){
+						// Check for const-correctness inside references,
+						// ensuring that the const chaining rule rule is followed.
+						// For example, the following cast is invalid:
+						//         T * -> const T *
+						// It can be made valid by changing it to:
+						//         T * const -> const T * const
+						throw CastConstChainingViolationException(sourceType, destType);
+					}
+					
+					if(sourceTarget->isObjectType() && destTarget->isInterface()){
+						return PolyCastValueToType(value, destType);
+					}else{
+						(void) ImplicitCastFormatOnly(SEM::Value::CastDummy(sourceTarget), destTarget, hasConstChain);
+						return value;
 					}
 				}
 				case SEM::Type::FUNCTION: {
-					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->functionType.returnType), destType->functionType.returnType);
+					// Check co-variance for return type.
+					(void) ImplicitCast(SEM::Value::CastDummy(sourceType->functionType.returnType), destType->functionType.returnType);
 					
 					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
 					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
@@ -118,25 +129,26 @@ namespace Locic {
 						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
 					}
 					
+					// Check contra-variance for argument types.
 					for(std::size_t i = 0; i < sourceList.size(); i++){
-						(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
+						(void) ImplicitCast(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
 					}
 					
 					if(sourceType->functionType.isVarArg != destType->functionType.isVarArg){
 						throw CastFunctionVarArgsMismatchException(sourceType, destType);
 					}
 					
-					return SEM::Value::Cast(destType, value);
+					return value;
 				}
 				case SEM::Type::METHOD: {
 					if(sourceType->methodType.objectType != destType->methodType.objectType){
 						throw CastMethodObjectTypeMismatchException(sourceType, destType);
 					}
 					
-					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->methodType.functionType),
+					(void) ImplicitCast(SEM::Value::CastDummy(sourceType->methodType.functionType),
 						destType->methodType.functionType);
 					
-					return SEM::Value::Cast(destType, value);
+					return value;
 				}
 				default:
 				{
@@ -146,135 +158,113 @@ namespace Locic {
 			}
 		}
 		
-		SEM::Value* ImplicitConvertValueToType(SEM::Value* value, SEM::Type* destType) {
+		static inline SEM::Value* ImplicitCastFormatOnlyTop(SEM::Value* value, SEM::Type* destType) {
+			// Needed for the main implicit cast function to ensure the
+			// const chaining rule from root is followed; since this
+			// is root there is a valid chain of (zero) const parent types.
+			const bool hasParentConstChain = true;
+			SEM::Value * resultValue = ImplicitCastFormatOnly(value, destType, hasParentConstChain);
+			//assert(value == resultValue && "'Format only' casts shouldn't involve any casting operations");
+			
+			// The value's type needs to reflect the successful cast, however
+			// this shouldn't be added unless necessary.
+			if(*(resultValue->type) != *destType){
+				return SEM::Value::Cast(destType, resultValue);
+			}else{
+				return resultValue;
+			}
+		}
+		
+		static inline SEM::Value* ImplicitCastAllToVoid(SEM::Value* value, SEM::Type* destType) {
+			if(destType->isVoid()){
+				// Everything can be cast to void.
+				return SEM::Value::Cast(destType, value);
+			}
+			
+			return ImplicitCastFormatOnlyTop(value, destType);
+		}
+		
+		static inline SEM::Value* ImplicitCastHandleConstToMutable(SEM::Value* value, SEM::Type* destType) {
 			SEM::Type * sourceType = value->type;
 			
-			// Const values must be copied to become mutable values,
-			// and lvalues must be copied to become rvalues.
-			if((!sourceType->isMutable && destType->isMutable)
-				|| (sourceType->isLValue && !destType->isLValue)) {
+			// Const values must be copied to become mutable values, but
+			// implicit copying may not necessarily produce a mutable value.
+			if(!sourceType->isMutable && destType->isMutable){
+				if(value->type->supportsImplicitCopy()){
+					SEM::Type * copyType = sourceType->getImplicitCopyType();
+					
+					if(copyType->isMutable){
+						return ImplicitCastAllToVoid(SEM::Value::CopyValue(value), destType);
+					}
+				}else{
+					LOG(LOG_INFO, "Type '%s' doesn't support implicit copying.",
+						value->type->toString().c_str());
+				}
+				
+				throw CastConstCorrectnessViolationException(sourceType, destType);
+			}
+			
+			return ImplicitCastAllToVoid(value, destType);
+		}
+		
+		static inline SEM::Value* ImplicitCastHandleLValueToRValue(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
+			
+			if(sourceType->isLValue && !destType->isLValue){
+				// L-values must be copied to become R-values.
 				if(value->type->supportsImplicitCopy()) {
 					// If possible, create a copy.
 					SEM::Value* copiedValue = SEM::Value::CopyValue(value);
 					
+					// Copying must always produce an R-value.
 					assert(!copiedValue->type->isLValue);
-					return ImplicitConvertValueToType(copiedValue, destType);
+					return ImplicitCastHandleConstToMutable(copiedValue, destType);
 				}else{
-					throw CastImplicitCopyUnavailableException(sourceType, destType);
+					throw CastLValueToRValueException(sourceType, destType);
 				}
 			}
 			
-			switch(destType->typeEnum) {
-				case SEM::Type::VOID: {
-					// Everything can be converted to void.
-					if(!sourceType->isVoid()){
-						return SEM::Value::Cast(destType, value);
-					}else{
-						return value;
-					}
+			return ImplicitCastHandleConstToMutable(value, destType);
+		}
+		
+		static inline SEM::Value* ImplicitCastToReference(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
+			if(!sourceType->isReference() && destType->isReference()){
+				if(!sourceType->isLValue){
+					throw CastRValueToReferenceException(sourceType, destType);
 				}
-				case SEM::Type::NULLT: {
-					if(sourceType->isNull()){
-						return value;
-					}else{
-						throw CastTypeMismatchException(sourceType, destType);
-					}
-				}
-				case SEM::Type::NAMED: {
-					if(sourceType->isNull() && destType->getObjectType()->supportsNullConstruction()){
-						// Casting null to object type invokes the null constructor,
-						// assuming that one exists.
-						SEM::TypeInstance * typeInstance = destType->getObjectType();
-						SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
-						assert(function != NULL);
-						
-						return SEM::Value::FunctionCall(SEM::Value::FunctionRef(function, function->type),
-							std::vector<SEM::Value *>(), function->type->functionType.returnType);
-					}else if(sourceType->isObjectType()){
-						if(sourceType->getObjectType() == destType->getObjectType()) {
-							// The same type instance can be cast to itself.
-							return value;
-						}
-						
-						if(!destType->isInterface()){
-							throw CastObjectTypeMismatchException(sourceType, destType);
-						}
-						
-						return PolyCastValueToType(value, destType);
-					}else{
-						throw CastTypeMismatchException(sourceType, destType);
-					}
-				}
-				case SEM::Type::POINTER: {
-					if(!sourceType->isPointer()){
-						throw CastTypeMismatchException(sourceType, destType);
-					}
+				
+				return ImplicitCastHandleLValueToRValue(SEM::Value::ReferenceOf(value), destType);
+			}
+			
+			return ImplicitCastHandleLValueToRValue(value, destType);
+		}
+		
+		static inline SEM::Value* ImplicitCastNullConstruction(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type * sourceType = value->type;
+			
+			if(sourceType->isNull() && destType->isObjectType()){
+				SEM::TypeInstance * typeInstance = destType->getObjectType();
+				if(typeInstance->supportsNullConstruction()){
+					// Casting null to object type invokes the null constructor,
+					// assuming that one exists.
+					SEM::Function * function = typeInstance->lookup(typeInstance->name + "Null").getFunction();
+					assert(function != NULL);
 					
-					SEM::Type* sourceTarget = sourceType->getPointerTarget();
-					SEM::Type* destTarget = destType->getPointerTarget();
+					SEM::Value * nullConstructedValue = SEM::Value::FunctionCall(
+						SEM::Value::FunctionRef(function),
+						std::vector<SEM::Value *>());
 					
-					if(sourceTarget->isPointer() && destTarget->isPointer()) {
-						// Check for const-correctness inside pointers (e.g.
-						// to prevent T** being cast to const T**).
-						SEM::Type* sourceTargetTarget = sourceTarget->getPointerTarget();
-						SEM::Type* destTargetTarget = destTarget->getPointerTarget();
-							
-						if(sourceTargetTarget->isMutable && destTargetTarget->isMutable) {
-							throw CastPointerConstCorrectnessViolationException(sourceType, destType);
-						}
-					}
-					
-					if(sourceTarget->isObjectType() && destTarget->isInterface()){
-						return PolyCastValueToType(value, destType);
-					}else{
-						(void) ImplicitCastValueToType(SEM::Value::Deref(value), destTarget);
-						return SEM::Value::Cast(destType, value);
-					}
-				}
-				case SEM::Type::FUNCTION: {
-					if(!sourceType->isFunction()){
-						throw CastTypeMismatchException(sourceType, destType);
-					}
-					
-					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->functionType.returnType), destType->functionType.returnType);
-					
-					const std::vector<SEM::Type*>& sourceList = sourceType->functionType.parameterTypes;
-					const std::vector<SEM::Type*>& destList = destType->functionType.parameterTypes;
-					
-					if(sourceList.size() != destList.size()) {
-						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
-					}
-					
-					for(std::size_t i = 0; i < sourceList.size(); i++){
-						(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
-					}
-					
-					if(sourceType->functionType.isVarArg != destType->functionType.isVarArg){
-						throw CastFunctionVarArgsMismatchException(sourceType, destType);
-					}
-					
-					return SEM::Value::Cast(destType, value);
-				}
-				case SEM::Type::METHOD: {
-					if(!sourceType->isMethod()){
-						throw CastTypeMismatchException(sourceType, destType);
-					}
-					
-					if(sourceType->methodType.objectType != destType->methodType.objectType){
-						throw CastMethodObjectTypeMismatchException(sourceType, destType);
-					}
-					
-					(void) ImplicitCastValueToType(SEM::Value::CastDummy(sourceType->methodType.functionType),
-						destType->methodType.functionType);
-					
-					return SEM::Value::Cast(destType, value);
-				}
-				default:
-				{
-					assert(false && "Unknown SEM type enum value");
-					return NULL;
+					// There still might be some aspects to cast with the null constructed type.
+					return ImplicitCastToReference(nullConstructedValue, destType);
 				}
 			}
+			
+			return ImplicitCastToReference(value, destType);
+		}
+		
+		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {
+			return ImplicitCastNullConstruction(value, destType);
 		}
 		
 		SEM::Type * UnifyTypes(SEM::Type * first, SEM::Type * second){
@@ -282,10 +272,10 @@ namespace Locic {
 			// can only be unified by one type being converted to
 			// another (and ignores the possibility of both types
 			// being converted to a separate third type).
-			if(CanDoImplicitConvert(first, second)){
+			if(CanDoImplicitCast(first, second)){
 				return second;
 			}else{
-				(void) ImplicitConvertValueToType(SEM::Value::CastDummy(second), first);
+				(void) ImplicitCast(SEM::Value::CastDummy(second), first);
 				return first;
 			}
 		}

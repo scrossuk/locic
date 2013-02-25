@@ -76,6 +76,10 @@ namespace Locic {
 			
 			bool supportsImplicitCopy() const;
 			
+			Type * getFunctionReturnType(const std::string& name);
+			
+			Type * getImplicitCopyType();
+			
 			std::string toString() const;
 			
 		};
