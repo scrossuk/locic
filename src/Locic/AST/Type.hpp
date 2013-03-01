@@ -25,6 +25,7 @@ namespace AST {
 		
 		struct {
 			Locic::Name name;
+			std::vector<Type*> templateArguments;
 		} namedType;
 		
 		struct {

@@ -764,7 +764,7 @@ precision7:
 	}
 	| fullName LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
-		$$ = AST::Value::TemplatedNameRef(*($1), *($3));
+		$$ = AST::Value::TemplateNameRef(*($1), *($3));
 	}
 	| AT NAME
 	{

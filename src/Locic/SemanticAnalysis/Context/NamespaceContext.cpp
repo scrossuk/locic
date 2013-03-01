@@ -16,7 +16,7 @@ namespace Locic {
 			: parentContext_(parentContext), nameSpace_(nameSpace) { }
 			
 		Name NamespaceContext::getName() {
-			return nameSpace_->name;
+			return nameSpace_->name();
 		}
 		
 		SEM::NamespaceNode NamespaceContext::getNode(const Name& name) {
@@ -28,8 +28,8 @@ namespace Locic {
 			assert(name.isAbsolute());
 			bool inserted = false;
 			
-			if(nameSpace_->name.isExactPrefixOf(name)) {
-				inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::Function(function));
+			if(nameSpace_->name().isExactPrefixOf(name)) {
+				inserted |= nameSpace_->children().tryInsert(name.last(), SEM::NamespaceNode::Function(function));
 			}
 			
 			inserted |= parentContext_.addFunction(name, function);
@@ -41,8 +41,8 @@ namespace Locic {
 			
 			bool inserted = false;
 			
-			if(nameSpace_->name.isExactPrefixOf(name)) {
-				inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::Namespace(nameSpace));
+			if(nameSpace_->name().isExactPrefixOf(name)) {
+				inserted |= nameSpace_->children().tryInsert(name.last(), SEM::NamespaceNode::Namespace(nameSpace));
 			}
 			
 			inserted |= parentContext_.addNamespace(name, nameSpace);
@@ -54,8 +54,8 @@ namespace Locic {
 			
 			bool inserted = false;
 			
-			if(nameSpace_->name.isExactPrefixOf(name)) {
-				inserted |= nameSpace_->children.tryInsert(name.last(), SEM::NamespaceNode::TypeInstance(typeInstance));
+			if(nameSpace_->name().isExactPrefixOf(name)) {
+				inserted |= nameSpace_->children().tryInsert(name.last(), SEM::NamespaceNode::TypeInstance(typeInstance));
 			}
 			
 			inserted |= parentContext_.addTypeInstance(name, typeInstance);

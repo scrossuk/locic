@@ -213,7 +213,7 @@ namespace Locic {
 			
 			llvm::LLVMContext& context = module.getContext();
 			
-			const std::string name = type->name.toString();
+			const std::string name = type->name().toString();
 			
 			if(name == "::bool") return llvm::Type::getInt1Ty(context);
 			

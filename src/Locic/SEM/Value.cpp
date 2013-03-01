@@ -12,7 +12,7 @@ namespace Locic {
 	namespace SEM {
 	
 		std::string Value::toString() const {
-			switch(typeEnum) {
+			switch(kind()) {
 				case CONSTANT:
 					return makeString("Constant(%s)",
 							constant->toString().c_str());
@@ -60,7 +60,7 @@ namespace Locic {
 							makeArrayString(functionCall.parameters).c_str());
 				case FUNCTIONREF:
 					return makeString("FunctionRef(%s)",
-							functionRef.function->name.toString().c_str());
+							functionRef.function->name().toString().c_str());
 				case METHODOBJECT:
 					return makeString("MethodObject(object: %s, method: %s)",
 							methodObject.methodOwner->toString().c_str(),

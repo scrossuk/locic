@@ -14,20 +14,20 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		// Get all type names, and build initial type instance structures.
-		bool AddTypeInstances(Context& context, AST::Namespace* astNamespace){
+		bool AddTypeInstances(Context& context, AST::Namespace* astNamespace) {
 			SEM::Namespace* semNamespace = context.getNode(context.getName() + astNamespace->name).getNamespace();
 			assert(semNamespace != NULL);
 			
 			NamespaceContext namespaceContext(context, semNamespace);
-		
+			
 			//-- Initial phase: get all type names.
-			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++){
+			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++) {
 				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
-				SEM::TypeInstance * semTypeInstance =
+				SEM::TypeInstance* semTypeInstance =
 					new SEM::TypeInstance((SEM::TypeInstance::TypeEnum) astTypeInstance->typeEnum,
-						namespaceContext.getName() + astTypeInstance->name);
-				
-				if(!namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance)){
+							namespaceContext.getName() + astTypeInstance->name);
+							
+				if(!namespaceContext.addTypeInstance(namespaceContext.getName() + astTypeInstance->name, semTypeInstance)) {
 					printf("Semantic Analysis Error: type already defined with name '%s'.\n", semTypeInstance->name.toString().c_str());
 					return false;
 				}
@@ -35,7 +35,7 @@ namespace Locic {
 			return true;
 		}
 		
-		bool AddTypeInstances(Context& context, AST::Module* astModule, SEM::Module * semModule){
+		bool AddTypeInstances(Context& context, AST::Module* astModule, SEM::Module* semModule) {
 			ModuleContext moduleContext(context, semModule);
 			
 			return AddTypeInstances(moduleContext, astModule->nameSpace);

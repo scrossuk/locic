@@ -1,41 +1,42 @@
-#ifndef LOCIC_SEM_VAR_HPP
-#define LOCIC_SEM_VAR_HPP
+#ifndef LOCIC_SEM_TEMPLATEVAR_HPP
+#define LOCIC_SEM_TEMPLATEVAR_HPP
 
-#include <cstddef>
-#include <Locic/String.hpp>
+#include <string>
+#include <vector>
 
 namespace Locic {
 
 	namespace SEM {
 	
-		struct Type;
-		struct TypeInstance;
-		
-		struct Var {
-			enum TypeEnum {
-				LOCAL,
-				PARAM,
-				MEMBER
-			} typeEnum;
-			
-			size_t id;
-			Type* type;
-			TypeInstance* parent;
-			
-			inline Var(TypeEnum e, size_t i, Type* t, TypeInstance* p = NULL)
-				: typeEnum(e), id(i), type(t), parent(p) { }
-				
-			std::string toString() const;
-		};
-		
 		enum TemplateVarType {
 			TEMPLATEVAR_TYPENAME,
 			TEMPLATEVAR_ANY
 		};
 		
+		class Type;
+		
 		class TemplateVar {
 			public:
-				inline static TemplateVar* Create(TemplateVarType type, const std::string& name
+				inline TemplateVar(TemplateVarType t,
+						const std::string& n, const std::vector<Type*>& r)
+					: type_(t), name_(n), requirements_(r) { }
+					
+				inline TemplateVarType type() const {
+					return type_;
+				}
+				
+				inline const std::string& name() const {
+					return name_;
+				}
+				
+				inline const std::vector<Type*>& requirements() const {
+					return requirements_;
+				}
+				
+			private:
+				TemplateVarType type_;
+				const std::string& name_;
+				const std::vector<Type*>& requirements_;
 				
 		};
 		

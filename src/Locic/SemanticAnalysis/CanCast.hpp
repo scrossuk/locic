@@ -8,7 +8,7 @@
 namespace Locic {
 
 	namespace SemanticAnalysis {
-		
+	
 		/**
 		 * Types of value casting/converting:
 		 *    1. Implicit cast - allows implicit copying, casting to void,
@@ -25,218 +25,218 @@ namespace Locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value * PolyCastValueToType(SEM::Value* value, SEM::Type* type);
+		SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* type);
 		
 		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* type);
 		
-		SEM::Type * UnifyTypes(SEM::Type * first, SEM::Type * second);
+		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second);
 		
-		inline bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType){
-			try{
+		inline bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
+			try {
 				(void) ImplicitCast(SEM::Value::CastDummy(sourceType), destType);
 				return true;
-			}catch(const CastException& e){
+			} catch(const CastException& e) {
 				return false;
 			}
 		}
 		
-		class CastTypeMismatchException: public CastException{
+		class CastTypeMismatchException: public CastException {
 			public:
-				inline CastTypeMismatchException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Fundamental type mismatch in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastConstCorrectnessViolationException: public CastException{
+		class CastConstCorrectnessViolationException: public CastException {
 			public:
-				inline CastConstCorrectnessViolationException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastConstCorrectnessViolationException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Const-correctness violation in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastLValueToRValueException: public CastException{
+		class CastLValueToRValueException: public CastException {
 			public:
-				inline CastLValueToRValueException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastLValueToRValueException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Unable to convert lvalue to rvalue in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastRValueToReferenceException: public CastException{
+		class CastRValueToReferenceException: public CastException {
 			public:
-				inline CastRValueToReferenceException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastRValueToReferenceException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Unable to convert rvalue to reference in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastObjectTypeMismatchException: public CastException{
+		class CastObjectTypeMismatchException: public CastException {
 			public:
-				inline CastObjectTypeMismatchException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastObjectTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Object types don't match in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastConstChainingViolationException: public CastException{
+		class CastConstChainingViolationException: public CastException {
 			public:
-				inline CastConstChainingViolationException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastConstChainingViolationException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Const chaining violation in cast from type '%s' to type '%s'; "
-						"a template argument target type can only be cast to const if ALL of its parent types are also const.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							"a template argument target type can only be cast to const if ALL of its parent types are also const.",
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastFunctionParameterNumberMismatchException: public CastException{
+		class CastFunctionParameterNumberMismatchException: public CastException {
 			public:
-				inline CastFunctionParameterNumberMismatchException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastFunctionParameterNumberMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Function parameter counts don't match in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastFunctionVarArgsMismatchException: public CastException{
+		class CastFunctionVarArgsMismatchException: public CastException {
 			public:
-				inline CastFunctionVarArgsMismatchException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastFunctionVarArgsMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Function 'varargs' property doesn't match in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class CastMethodObjectTypeMismatchException: public CastException{
+		class CastMethodObjectTypeMismatchException: public CastException {
 			public:
-				inline CastMethodObjectTypeMismatchException(SEM::Type * sourceType, SEM::Type * destType)
-					: sourceType_(sourceType), destType_(destType){ }
+				inline CastMethodObjectTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const{
+				inline std::string toString() const {
 					return makeString("Method object type doesn't match in cast from type '%s' to type '%s'.",
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				
 		};
 		
-		class PolyCastMissingMethodException: public CastException{
+		class PolyCastMissingMethodException: public CastException {
 			public:
-				inline PolyCastMissingMethodException(SEM::Type * sourceType, SEM::Type * destType,
-					SEM::Function * methodFunction)
+				inline PolyCastMissingMethodException(SEM::Type* sourceType, SEM::Type* destType,
+						SEM::Function* methodFunction)
 					: sourceType_(sourceType), destType_(destType),
-					methodFunction_(methodFunction){ }
-					
-				inline std::string toString() const{
+					  methodFunction_(methodFunction) { }
+					  
+				inline std::string toString() const {
 					return makeString("Method '%s' missing in source type of polymorphic cast (from type '%s' to type '%s').",
-						methodFunction_->name.last().c_str(),
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							methodFunction_->name().last().c_str(),
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-				SEM::Function * methodFunction_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				SEM::Function* methodFunction_;
+				
 		};
 		
-		class PolyCastMethodMismatchException: public CastException{
+		class PolyCastMethodMismatchException: public CastException {
 			public:
-				inline PolyCastMethodMismatchException(SEM::Type * sourceType, SEM::Type * destType,
-					SEM::Function * sourceMethod, SEM::Function * destMethod)
+				inline PolyCastMethodMismatchException(SEM::Type* sourceType, SEM::Type* destType,
+						SEM::Function* sourceMethod, SEM::Function* destMethod)
 					: sourceType_(sourceType), destType_(destType),
-					sourceMethod_(sourceMethod), destMethod_(destMethod){ }
-					
-				inline std::string toString() const{
+					  sourceMethod_(sourceMethod), destMethod_(destMethod) { }
+					  
+				inline std::string toString() const {
 					return makeString("Method '%s' doesn't have matching types ('%s' vs '%s') in polymorphic cast (from type '%s' to type '%s').",
-						sourceMethod_->name.last().c_str(),
-						sourceMethod_->type->toString().c_str(),
-						destMethod_->type->toString().c_str(),
-						sourceType_->toString().c_str(),
-						destType_->toString().c_str());
+							sourceMethod_->name().last().c_str(),
+							sourceMethod_->type()->toString().c_str(),
+							destMethod_->type()->toString().c_str(),
+							sourceType_->toString().c_str(),
+							destType_->toString().c_str());
 				}
 				
 			private:
-				SEM::Type * sourceType_;
-				SEM::Type * destType_;
-				SEM::Function * sourceMethod_;
-				SEM::Function * destMethod_;
-			
+				SEM::Type* sourceType_;
+				SEM::Type* destType_;
+				SEM::Function* sourceMethod_;
+				SEM::Function* destMethod_;
+				
 		};
 		
 	}

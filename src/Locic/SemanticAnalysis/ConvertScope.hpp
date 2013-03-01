@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool WillScopeReturn(SEM::Scope* scope);
+		bool WillScopeReturn(const SEM::Scope& scope);
 		
 		SEM::Scope* ConvertScope(LocalContext& context, AST::Scope* scope);
 		

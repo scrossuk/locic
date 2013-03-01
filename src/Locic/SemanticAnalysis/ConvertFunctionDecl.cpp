@@ -16,11 +16,11 @@ namespace Locic {
 			AST::Type* returnType = function->returnType;
 			SEM::Type* semReturnType = NULL;
 			
-			SEM::TypeInstance * thisTypeInstance = context.getThisTypeInstance();
+			SEM::TypeInstance* thisTypeInstance = context.getThisTypeInstance();
 			
 			const Name functionName = context.getName() + function->name;
 			
-			if(returnType->typeEnum == AST::Type::UNDEFINED){
+			if(returnType->typeEnum == AST::Type::UNDEFINED) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
@@ -31,8 +31,16 @@ namespace Locic {
 				// Return types are always rvalues.
 				const bool isLValue = false;
 				
-				semReturnType = SEM::Type::Named(isMutable, isLValue, thisTypeInstance);
-			}else{
+				std::vector<SEM::Type*> templateVars;
+				for(size_t i = 0; i < thisTypeInstance->templateVariables().size(); i++) {
+					templateVars.push_back(SEM::Type::TemplateVarRef(
+							SEM::Type::MUTABLE, SEM::Type::LVALUE,
+							thisTypeInstance->templateVariables().at(i)));
+				}
+				
+				semReturnType = SEM::Type::Object(isMutable, isLValue, thisTypeInstance,
+						templateVars);
+			} else {
 				// Return types are always rvalues.
 				semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
 			}
@@ -49,7 +57,7 @@ namespace Locic {
 				// Parameter types are always lvalues.
 				SEM::Type* semParamType = ConvertType(context, paramType, SEM::Type::LVALUE);
 				
-				if(semParamType->typeEnum == SEM::Type::VOID) {
+				if(semParamType->isVoid()) {
 					throw ParamVoidTypeException(functionName, typeVar->name);
 				}
 				

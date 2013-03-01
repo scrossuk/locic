@@ -9,9 +9,9 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		bool WillScopeReturn(SEM::Scope* scope) {
-			for(std::size_t i = 0; i < scope->statementList.size(); i++){
-				if(WillStatementReturn(scope->statementList.at(i))) {
+		bool WillScopeReturn(const SEM::Scope& scope) {
+			for(std::size_t i = 0; i < scope.statements().size(); i++) {
+				if(WillStatementReturn(scope.statements().at(i))) {
 					return true;
 				}
 			}
@@ -19,15 +19,15 @@ namespace Locic {
 			return false;
 		}
 		
-		struct PushScope{
+		struct PushScope {
 			LocalContext& context;
 			
-			inline PushScope(LocalContext& c, SEM::Scope * scope)
-				: context(c){
-					context.pushScope(scope);
-				}
-				
-			inline ~PushScope(){
+			inline PushScope(LocalContext& c, SEM::Scope* scope)
+				: context(c) {
+				context.pushScope(scope);
+			}
+			
+			inline ~PushScope() {
 				context.popScope();
 			}
 		};
@@ -39,11 +39,11 @@ namespace Locic {
 			PushScope pushScope(context, semScope);
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
-			for(std::size_t i = 0; i < scope->statements.size(); i++){
+			for(std::size_t i = 0; i < scope->statements.size(); i++) {
 				SEM::Statement* statement = ConvertStatement(context, scope->statements.at(i));
 				assert(statement != NULL);
 				
-				semScope->statementList.push_back(statement);
+				semScope->statements().push_back(statement);
 			}
 			
 			return semScope;

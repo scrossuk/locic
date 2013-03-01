@@ -56,7 +56,7 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	auto templatedInstance = ExampleTemplatedClass0<int>();
+	auto templatedInstance = ExampleTemplatedClass0();
 	
 	auto firstTestClass = TestClass(1);
 	

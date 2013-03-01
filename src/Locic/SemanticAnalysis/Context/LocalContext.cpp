@@ -39,11 +39,11 @@ namespace Locic {
 		}
 		
 		Name LocalContext::getName() {
-			return function_->name;
+			return function_->name();
 		}
 		
 		SEM::Type* LocalContext::getReturnType() {
-			return function_->type->functionType.returnType;
+			return function_->type()->getFunctionReturnType();
 		}
 		
 		SEM::NamespaceNode LocalContext::getNode(const Name& name) {
@@ -79,7 +79,7 @@ namespace Locic {
 			std::pair<std::map<std::string, SEM::Var*>::iterator, bool> s =
 				localVarStack_.back().insert(std::make_pair(varName, var));
 				
-			if(s.second) scopeStack_.back()->localVariables.push_back(var);
+			if(s.second) scopeStack_.back()->localVariables().push_back(var);
 			
 			return s.second ? var : NULL;
 		}

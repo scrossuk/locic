@@ -4,6 +4,7 @@
 #include <string>
 #include <Locic/Map.hpp>
 #include <Locic/Name.hpp>
+#include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Var.hpp>
 
 namespace Locic {
@@ -24,18 +25,18 @@ namespace Locic {
 					INTERFACE
 				};
 				
-				inline TypeInstance(Kind kind, const Locic::Name& name)
-					: kind_(kind), name_(name) { }
-				
-				inline const Locic::Name& getName() const{
+				inline TypeInstance(Kind k, const Locic::Name& n)
+					: kind_(k), name_(n) { }
+					
+				inline const Locic::Name& name() const {
 					return name_;
 				}
 				
-				inline Kind getKind() const {
+				inline Kind kind() const {
 					return kind_;
 				}
 				
-				inline std::vector<TemplateVar*>& templateVariables(){
+				inline std::vector<TemplateVar*>& templateVariables() {
 					return templateVariables_;
 				}
 				
@@ -43,7 +44,7 @@ namespace Locic {
 					return templateVariables_;
 				}
 				
-				inline Locic::StringMap<Var*>& variables(){
+				inline Locic::StringMap<Var*>& variables() {
 					return variables_;
 				}
 				
@@ -51,24 +52,24 @@ namespace Locic {
 					return variables_;
 				}
 				
-				inline Locic::StringMap<Function*>& functions(){
+				inline Locic::StringMap<Function*>& functions() {
 					return functions_;
 				}
 				
 				inline const Locic::StringMap<Function*>& functions() const {
 					return functions_;
 				}
-					
+				
 				inline bool isPrimitive() const {
-					return typeEnum == PRIMITIVE;
+					return kind() == PRIMITIVE;
 				}
 				
 				inline bool isStructDecl() const {
-					return typeEnum == STRUCTDECL;
+					return kind() == STRUCTDECL;
 				}
 				
 				inline bool isStructDef() const {
-					return typeEnum == STRUCTDEF;
+					return kind() == STRUCTDEF;
 				}
 				
 				inline bool isStruct() const {
@@ -76,11 +77,11 @@ namespace Locic {
 				}
 				
 				inline bool isClassDecl() const {
-					return typeEnum == CLASSDECL;
+					return kind() == CLASSDECL;
 				}
 				
 				inline bool isClassDef() const {
-					return typeEnum == CLASSDEF;
+					return kind() == CLASSDEF;
 				}
 				
 				inline bool isClass() const {
@@ -88,7 +89,7 @@ namespace Locic {
 				}
 				
 				inline bool isInterface() const {
-					return typeEnum == INTERFACE;
+					return kind() == INTERFACE;
 				}
 				
 				inline bool isDeclaration() const {
@@ -97,6 +98,25 @@ namespace Locic {
 				
 				inline bool isDefinition() const {
 					return isStructDef() || isClassDef();
+				}
+				
+				void unifyToKind(Kind newKind) {
+					if(newKind == kind()) return;
+					switch(newKind) {
+						case STRUCTDEF: {
+							assert(kind() == STRUCTDECL);
+							kind_ = newKind;
+							return;
+						}
+						case CLASSDEF: {
+							assert(kind() == CLASSDECL);
+							kind_ = newKind;
+							return;
+						}
+						default:
+							assert(false && "Cannot unify type instance kinds.");
+							return;
+					}
 				}
 				
 				NamespaceNode lookup(const Locic::Name& targetName);

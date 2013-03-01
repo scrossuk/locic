@@ -8,7 +8,26 @@ __primitive ptr{
 	T& derefGet() const;
 	
 	void derefSet(T value);
+	
+	template <any S>
+	ptr<S> castPolymorphic();
 };
+
+template <any T>
+class uptr(T * p){
+	static Null();
+	
+	static Default(T * p);
+	
+	T& derefGet() const{
+		return *p;
+	}
+};
+
+template <abstract T>
+class dptr(T& p0, T& p1){
+	
+}
 
 template <any T>
 __primitive ref{
@@ -30,6 +49,18 @@ interface array{
 void fn(){
 	ref<variable_array<Class>> v = ...;
 	const ref<const array<Interface>> a = v;
+	
+	T ** p = ...;
+	Interface * const * const i = p;
+	
+	uptr<T> p = ...;
+	uptr<? : Interface> i = p;
+	
+	uptr<uptr<T>> p = ...;
+	const uptr<const uptr<Interface>> i = p;
+	
+	dptr<dptr<T>> p = ...;
+	const dptr<const dptr<Interface>> i = p;
 	
 	vararray<Interface> v = ...;
 	v[2] = 

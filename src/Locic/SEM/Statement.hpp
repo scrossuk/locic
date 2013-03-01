@@ -9,100 +9,186 @@ namespace Locic {
 
 	namespace SEM {
 	
-		struct Scope;
+		class Scope;
 		
-		struct Statement {
-			enum TypeEnum {
-				NONE,
-				VALUE,
-				SCOPE,
-				IF,
-				WHILE,
-				ASSIGN,
-				RETURN
-			} typeEnum;
-			
-			struct {
-				Value* value;
-			} valueStmt;
-			
-			struct {
-				Scope* scope;
-			} scopeStmt;
-			
-			struct {
-				Value* condition;
-				Scope* ifTrue, * ifFalse;
-			} ifStmt;
-			
-			struct {
-				Value* condition;
-				Scope* whileTrue;
-			} whileStmt;
-			
-			struct {
-				Value* lValue, * rValue;
-			} assignStmt;
-			
-			struct {
-				Value* value;
-			} returnStmt;
-			
-			inline Statement()
-				: typeEnum(NONE) { }
+		class Statement {
+			public:
+				enum Kind {
+					VALUE,
+					SCOPE,
+					IF,
+					WHILE,
+					ASSIGN,
+					RETURN
+				};
 				
-			inline Statement(TypeEnum e)
-				: typeEnum(e) { }
+				inline static Statement* ValueStmt(Value* value) {
+					Statement* statement = new Statement(VALUE);
+					statement->valueStmt_.value = value;
+					return statement;
+				}
 				
-			inline static Statement* ValueStmt(Value* value) {
-				Statement* statement = new Statement(VALUE);
-				statement->valueStmt.value = value;
-				return statement;
-			}
-			
-			inline static Statement* ScopeStmt(Scope* scope) {
-				Statement* statement = new Statement(SCOPE);
-				statement->scopeStmt.scope = scope;
-				return statement;
-			}
-			
-			inline static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
-				Statement* statement = new Statement(IF);
-				statement->ifStmt.condition = condition;
-				statement->ifStmt.ifTrue = ifTrue;
-				statement->ifStmt.ifFalse = ifFalse;
-				return statement;
-			}
-			
-			inline static Statement* While(Value* condition, Scope* whileTrue) {
-				Statement* statement = new Statement(WHILE);
-				statement->whileStmt.condition = condition;
-				statement->whileStmt.whileTrue = whileTrue;
-				return statement;
-			}
-			
-			inline static Statement* Assign(Value* lValue, Value* rValue) {
-				assert(lValue->type->isLValue);
-				assert(!rValue->type->isLValue);
-				assert(*(lValue->type) == *(rValue->type->lvalueType()));
+				inline static Statement* ScopeStmt(Scope* scope) {
+					Statement* statement = new Statement(SCOPE);
+					statement->scopeStmt_.scope = scope;
+					return statement;
+				}
 				
-				Statement* statement = new Statement(ASSIGN);
-				statement->assignStmt.lValue = lValue;
-				statement->assignStmt.rValue = rValue;
-				return statement;
-			}
-			
-			inline static Statement* ReturnVoid() {
-				Statement* statement = new Statement(RETURN);
-				statement->returnStmt.value = NULL;
-				return statement;
-			}
-			
-			inline static Statement* Return(Value* value) {
-				Statement* statement = new Statement(RETURN);
-				statement->returnStmt.value = value;
-				return statement;
-			}
+				inline static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
+					Statement* statement = new Statement(IF);
+					statement->ifStmt_.condition = condition;
+					statement->ifStmt_.ifTrue = ifTrue;
+					statement->ifStmt_.ifFalse = ifFalse;
+					return statement;
+				}
+				
+				inline static Statement* While(Value* condition, Scope* whileTrue) {
+					Statement* statement = new Statement(WHILE);
+					statement->whileStmt_.condition = condition;
+					statement->whileStmt_.whileTrue = whileTrue;
+					return statement;
+				}
+				
+				inline static Statement* Assign(Value* lValue, Value* rValue) {
+					assert(lValue->type()->isLValue());
+					assert(!rValue->type()->isLValue());
+					assert(*(lValue->type()) == *(rValue->type()->createLValueType()));
+					
+					Statement* statement = new Statement(ASSIGN);
+					statement->assignStmt_.lValue = lValue;
+					statement->assignStmt_.rValue = rValue;
+					return statement;
+				}
+				
+				inline static Statement* ReturnVoid() {
+					Statement* statement = new Statement(RETURN);
+					statement->returnStmt_.value = NULL;
+					return statement;
+				}
+				
+				inline static Statement* Return(Value* value) {
+					Statement* statement = new Statement(RETURN);
+					statement->returnStmt_.value = value;
+					return statement;
+				}
+				
+				inline Kind kind() const {
+					return kind_;
+				}
+				
+				inline bool isValueStatement() const {
+					return kind() == VALUE;
+				}
+				
+				inline Value* getValue() const {
+					assert(isValueStatement());
+					return valueStmt_.value;
+				}
+				
+				inline bool isScope() const {
+					return kind() == SCOPE;
+				}
+				
+				inline Scope& getScope() const {
+					assert(isScope());
+					return *(scopeStmt_.scope);
+				}
+				
+				inline bool isIfStatement() const {
+					return kind() == IF;
+				}
+				
+				inline Value* getIfCondition() const {
+					assert(isIfStatement());
+					return ifStmt_.condition;
+				}
+				
+				inline Scope& getIfTrueScope() const {
+					assert(isIfStatement());
+					assert(ifStmt_.ifTrue != NULL);
+					return *(ifStmt_.ifTrue);
+				}
+				
+				inline bool hasIfFalseScope() const {
+					assert(isIfStatement());
+					return ifStmt_.ifFalse != NULL;
+				}
+				
+				inline Scope& getIfFalseScope() const {
+					assert(isIfStatement());
+					assert(hasIfFalseScope());
+					return *(ifStmt_.ifFalse);
+				}
+				
+				inline bool isWhileStatement() const {
+					return kind() == WHILE;
+				}
+				
+				inline Value* getWhileCondition() const {
+					assert(isWhileStatement());
+					return whileStmt_.condition;
+				}
+				
+				inline Scope& getWhileScope() const {
+					assert(isWhileStatement());
+					return *(whileStmt_.whileTrue);
+				}
+				
+				inline bool isAssignStatement() const {
+					return kind() == ASSIGN;
+				}
+				
+				inline Value* getAssignLValue() const {
+					assert(isAssignStatement());
+					return assignStmt_.lValue;
+				}
+				
+				inline Value* getAssignRValue() const {
+					assert(isAssignStatement());
+					return assignStmt_.rValue;
+				}
+				
+				inline bool isReturnStatement() const {
+					return kind() == RETURN;
+				}
+				
+				inline Value* getReturnValue() const {
+					assert(isReturnStatement());
+					return returnStmt_.value;
+				}
+				
+			private:
+				inline Statement(Kind k)
+					: kind_(k) { }
+					
+				Kind kind_;
+				
+				struct {
+					Value* value;
+				} valueStmt_;
+				
+				struct {
+					Scope* scope;
+				} scopeStmt_;
+				
+				struct {
+					Value* condition;
+					Scope* ifTrue, * ifFalse;
+				} ifStmt_;
+				
+				struct {
+					Value* condition;
+					Scope* whileTrue;
+				} whileStmt_;
+				
+				struct {
+					Value* lValue, * rValue;
+				} assignStmt_;
+				
+				struct {
+					Value* value;
+				} returnStmt_;
+				
 		};
 		
 	}

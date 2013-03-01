@@ -9,9 +9,30 @@ namespace Locic {
 
 	namespace SEM {
 	
-		struct Scope {
-			std::vector<Var*> localVariables;
-			std::vector<Statement*> statementList;
+		class Scope {
+			public:
+				inline Scope() { }
+				
+				inline std::vector<Var*>& localVariables() {
+					return localVariables_;
+				}
+				
+				inline const std::vector<Var*>& localVariables() const {
+					return localVariables_;
+				}
+				
+				inline std::vector<Statement*>& statements() {
+					return statementList_;
+				}
+				
+				inline const std::vector<Statement*>& statements() const {
+					return statementList_;
+				}
+				
+			private:
+				std::vector<Var*> localVariables_;
+				std::vector<Statement*> statementList_;
+				
 		};
 		
 	}

@@ -10,9 +10,9 @@ namespace Locic {
 	
 		std::string Var::toString() const {
 			return makeString("Var(id: %llu, type: %s, parent: %s)",
-					(unsigned long long) id,
-					type->toString().c_str(),
-					parent != NULL ? parent->toString().c_str() : "[NONE]");
+					(unsigned long long) id(),
+					type()->toString().c_str(),
+					hasParentType() ? getParentType()->toString().c_str() : "[NONE]");
 		}
 		
 	}

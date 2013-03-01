@@ -10,14 +10,14 @@ namespace Locic {
 
 	namespace SEM {
 	
-		NamespaceNode Namespace::lookup(const Locic::Name& targetName) {
+		NamespaceNode Namespace::lookup(const Locic::Name& targetName) const {
 			assert(targetName.isAbsolute() && !targetName.empty());
 			
-			if(name.isPrefixOf(targetName)) {
+			if(name().isPrefixOf(targetName)) {
 				// Get the part of the name that's of interest.
-				const std::string namePart = targetName.at(name.size());
+				const std::string namePart = targetName.at(name().size());
 				
-				Locic::Optional<NamespaceNode> nodeResult = children.tryGet(namePart);
+				Locic::Optional<NamespaceNode> nodeResult = children_.tryGet(namePart);
 				
 				if(nodeResult.hasValue()) {
 					assert(!nodeResult.getValue().isNone());

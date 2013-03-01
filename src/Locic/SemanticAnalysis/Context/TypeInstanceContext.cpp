@@ -16,14 +16,14 @@ namespace Locic {
 			: parentContext_(parentContext), typeInstance_(typeInstance) { }
 			
 		Name TypeInstanceContext::getName() {
-			return typeInstance_->name;
+			return typeInstance_->name();
 		}
 		
 		bool TypeInstanceContext::addFunction(const Name& name, SEM::Function* function) {
 			assert(name.isAbsolute());
 			bool inserted = false;
 			
-			if(typeInstance_->getName().isExactPrefixOf(name)) {
+			if(typeInstance_->name().isExactPrefixOf(name)) {
 				inserted |= typeInstance_->functions().tryInsert(name.last(), function);
 			}
 			
@@ -50,7 +50,7 @@ namespace Locic {
 		}
 		
 		SEM::Var* TypeInstanceContext::getThisVar(const std::string& name) {
-			Optional<SEM::Var*> varResult = typeInstance_->variables.tryGet(name);
+			Optional<SEM::Var*> varResult = typeInstance_->variables().tryGet(name);
 			return varResult.hasValue() ? varResult.getValue() : parentContext_.getThisVar(name);
 		}
 		
