@@ -57,6 +57,7 @@ try                     { return TRY; }
 catch                  { return CATCH; }
 
 template                { return TEMPLATE; }
+polymorphic             { return POLYMORPHIC; }
 typename                { return TYPENAME; }
 
 struct                 { return STRUCT; }

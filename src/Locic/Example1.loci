@@ -1,4 +1,4 @@
-int printf(const char * str, ...);
+int printf(const(char *) str, ...);
 
 class TestClass{
 	static Default(int v);
@@ -40,6 +40,11 @@ class ExampleTemplatedClass0(){
 template <typename T: an_interface>
 class ExampleTemplatedClass1{ }
 
+template <polymorphic T>
+class PolyClass{
+	static Default();
+};
+
 an_interface * getPtr(TestClass2 * ptr){
 	return ptr;
 }
@@ -56,7 +61,13 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
+	//PolyClass<an_interface> polyInst = PolyClass<TestClass>();
+	
 	auto templatedInstance = ExampleTemplatedClass0();
+	
+	{
+		auto templatedInstancee = ExampleTemplatedClass0();
+	}
 	
 	auto firstTestClass = TestClass(1);
 	

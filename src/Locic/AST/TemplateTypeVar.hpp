@@ -7,26 +7,37 @@
 namespace AST {
 
 	struct TemplateTypeVar {
+		enum Kind{
+			TYPENAME,
+			POLYMORPHIC
+		} kind;
 		std::string name;
 		Type * specType;
 		
-		inline static TemplateTypeVar * WithoutSpecType(const std::string& name){
-			TemplateTypeVar * typeVar = new TemplateTypeVar();
+		inline static TemplateTypeVar * Typename(const std::string& name){
+			TemplateTypeVar * typeVar = new TemplateTypeVar(TYPENAME);
 			typeVar->name = name;
 			typeVar->specType = NULL;
 			return typeVar;
 		}
 		
-		inline static TemplateTypeVar * WithSpecType(const std::string& name, Type* specType){
+		inline static TemplateTypeVar * TypenameSpec(const std::string& name, Type* specType){
 			assert(specType != NULL);
-			TemplateTypeVar * typeVar = new TemplateTypeVar();
+			TemplateTypeVar * typeVar = new TemplateTypeVar(TYPENAME);
 			typeVar->name = name;
 			typeVar->specType = specType;
 			return typeVar;
 		}
 		
-		inline TemplateTypeVar()
-			: name(), specType(NULL){ }
+		inline static TemplateTypeVar * Polymorphic(const std::string& name){
+			TemplateTypeVar * typeVar = new TemplateTypeVar(POLYMORPHIC);
+			typeVar->name = name;
+			typeVar->specType = NULL;
+			return typeVar;
+		}
+		
+		inline TemplateTypeVar(Kind k)
+			: kind(k), name(), specType(NULL){ }
 	};
 	
 }

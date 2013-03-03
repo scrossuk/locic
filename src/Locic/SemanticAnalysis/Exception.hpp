@@ -184,6 +184,20 @@ namespace Locic {
 				
 		};
 		
+		class LocalVariableShadowingException: public Exception {
+			public:
+				inline LocalVariableShadowingException(const std::string& varName)
+					: varName_(varName) { }
+					
+				inline std::string toString() const {
+					return makeString("Local variable '%s' shadows existing local variable of the same name.", varName_.c_str());
+				}
+				
+			private:
+				std::string varName_;
+				
+		};
+		
 		class TodoException: public Exception {
 			public:
 				inline TodoException(const std::string& message)

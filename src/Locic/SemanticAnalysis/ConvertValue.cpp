@@ -22,12 +22,12 @@ namespace Locic {
 					if(value->constant->getType() == Locic::Constant::NULLVAL) {
 						return SEM::Value::Constant(value->constant, SEM::Type::Null());
 					} else if(value->constant->getType() == Locic::Constant::STRING && value->constant->getStringType() == Locic::Constant::CSTRING) {
-						// C strings have the type 'const char *', as opposed to just a
+						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
 						SEM::TypeInstance* charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
 						assert(charType != NULL && "Couldn't find char constant type");
 						
-						SEM::Type* constCharPtrType = SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE,
+						SEM::Type* constCharPtrType = SEM::Type::Pointer(SEM::Type::CONST, SEM::Type::RVALUE,
 								SEM::Type::Object(SEM::Type::CONST, SEM::Type::LVALUE, charType, SEM::Type::NO_TEMPLATE_ARGS));
 						return SEM::Value::Constant(value->constant, constCharPtrType);
 					} else {

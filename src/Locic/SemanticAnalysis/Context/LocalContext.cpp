@@ -6,6 +6,8 @@
 #include <Locic/Map.hpp>
 #include <Locic/Name.hpp>
 #include <Locic/SEM.hpp>
+
+#include <Locic/SemanticAnalysis/Exception.hpp>
 #include <Locic/SemanticAnalysis/Context/LocalContext.hpp>
 
 namespace Locic {
@@ -74,14 +76,22 @@ namespace Locic {
 		
 		SEM::Var* LocalContext::defineLocalVar(const std::string& varName, SEM::Type* type) {
 			assert(localVarStack_.size() >= 2);
+			
+			// Variable shadowing is not allowed.
+			if(findLocalVar(varName) != NULL){
+				throw LocalVariableShadowingException(varName);
+			}
+			
 			SEM::Var* var = new SEM::Var(SEM::Var::LOCAL, nextVarId_++, type);
 			
 			std::pair<std::map<std::string, SEM::Var*>::iterator, bool> s =
 				localVarStack_.back().insert(std::make_pair(varName, var));
-				
-			if(s.second) scopeStack_.back()->localVariables().push_back(var);
 			
-			return s.second ? var : NULL;
+			assert(s.second && "Local variable map insertion must succeed.");
+			
+			scopeStack_.back()->localVariables().push_back(var);
+			
+			return var;
 		}
 		
 		SEM::Var* LocalContext::findLocalVar(const std::string& varName) {

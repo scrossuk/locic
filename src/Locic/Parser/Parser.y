@@ -91,6 +91,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token EXTRACT
 %token TEMPLATE
 %token TYPENAME
+%token POLYMORPHIC
 %token USING
 %token ENUM
 %token UNION
@@ -392,11 +393,15 @@ classFunctionDefList:
 templateTypeVar:
 	TYPENAME NAME
 	{
-		$$ = AST::TemplateTypeVar::WithoutSpecType(*($2));
+		$$ = AST::TemplateTypeVar::Typename(*($2));
 	}
 	| TYPENAME NAME COLON type
 	{
-		$$ = AST::TemplateTypeVar::WithSpecType(*($2), $4);
+		$$ = AST::TemplateTypeVar::TypenameSpec(*($2), $4);
+	}
+	| POLYMORPHIC NAME
+	{
+		$$ = AST::TemplateTypeVar::Polymorphic(*($2));
 	}
 	;
 
@@ -446,19 +451,30 @@ nonTemplatedTypeInstance:
 		$$ = AST::TypeInstance::Interface(*($2), *($4));
 	}
 	;
-	
-fullName:
+
+symbolElement:
 	NAME
 	{
-		$$ = new Locic::Name(Locic::Name::Relative() + *($1));
+		$$ = new AST::SymbolElement(*($1), std::vector<AST::Type *>());
 	}
-	| COLON COLON NAME
+	| NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
-		$$ = new Locic::Name(Locic::Name::Absolute() + *($3));
+		$$ = new AST::SymbolElement(*($1), *($3));
 	}
-	| fullName COLON COLON NAME
+	;
+	
+symbol:
+	symbolElement
 	{
-		$$ = new Locic::Name(*($1) + *($4));
+		$$ = new AST::Symbol(AST::Symbol::Relative() + *($1));
+	}
+	| COLON COLON symbolElement
+	{
+		$$ = new AST::Symbol(AST::Symbol::Absolute() + *($3));
+	}
+	| symbol COLON COLON symbolElement
+	{
+		$$ = new AST::Symbol(*($1) + *($4));
 	}
 	;
 

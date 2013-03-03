@@ -736,11 +736,11 @@ namespace Locic {
 				void genScope(const SEM::Scope& scope) {
 					for(std::size_t i = 0; i < scope.localVariables().size(); i++) {
 						SEM::Var* localVar = scope.localVariables().at(i);
+						localVariables_.resize(std::max<size_t>(localVariables_.size(), localVar->id() + 1), NULL);
+						
 						// Create an alloca for this variable.
 						llvm::Value* stackObject = genAlloca(localVar->type());
-						assert(localVar->id() == localVariables_.size()
-							   && "Local variables' ids should match their position in the local variable array");
-						localVariables_.push_back(stackObject);
+						localVariables_.at(localVar->id()) = stackObject;
 					}
 					
 					for(std::size_t i = 0; i < scope.statements().size(); i++) {
