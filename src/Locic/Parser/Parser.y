@@ -41,7 +41,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %union{
 	// Names.
 	std::string * str;
-	Locic::Name * name;
 	
 	// Constants.
 	Locic::Constant * constant;
@@ -52,6 +51,10 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 	AST::TypeInstance * typeInstance;
 	AST::Function * function;
 	std::vector<AST::Function *> * functionArray;
+	
+	// Symbol names.
+	AST::SymbolElement * symbolElement;
+	AST::Symbol * symbol;
 	
 	// Type information.
 	AST::Type * type;
@@ -189,7 +192,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarArray> templateTypeVarList
 
-%type <name> fullName
+%type <symbolElement> symbolElement
+%type <symbol> symbol
 
 %type <scope> scope
 %type <statementArray> statementList
@@ -477,28 +481,15 @@ symbol:
 		$$ = new AST::Symbol(*($1) + *($4));
 	}
 	;
-
-typeName:
-	fullName
-	{
-		const bool isMutable = true;
-		$$ = AST::Type::Named(isMutable, *($1));
-	}
-	| fullName LTRIBRACKET nonEmptyTypeList RTRIBRACKET
-	{
-		const bool isMutable = true;
-		$$ = AST::Type::Named(isMutable, *($1));
-	}
-	;
 	
 typePrecision3:
 	VOIDNAME
 	{
-		$$ = AST::Type::VoidType();
+		$$ = AST::Type::Void();
 	}
 	| typeName
 	{
-		$$ = $1;
+		$$ = AST::Type::Object($1);
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
@@ -506,13 +497,11 @@ typePrecision3:
 	}
 	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
-		const bool isMutable = true;
-		$$ = AST::Type::Function(isMutable, $3, *($6));
+		$$ = AST::Type::Function($3, *($6));
 	}
 	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
 	{
-		const bool isMutable = true;
-		$$ = AST::Type::VarArgFunction(isMutable, $3, *($6));
+		$$ = AST::Type::VarArgFunction($3, *($6));
 	}
 	| LROUNDBRACKET error RROUNDBRACKET
 	{

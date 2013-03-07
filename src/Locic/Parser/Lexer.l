@@ -59,6 +59,7 @@ catch                  { return CATCH; }
 template                { return TEMPLATE; }
 polymorphic             { return POLYMORPHIC; }
 typename                { return TYPENAME; }
+move                    { return MOVE; }
 
 struct                 { return STRUCT; }
 enum                    { return ENUM; }

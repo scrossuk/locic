@@ -9,6 +9,16 @@ __primitive ptr{
 	
 	void derefSet(T value);
 	
+	T derefMove();
+	
+	T& indexGet(size_t index) const;
+	
+	void indexSet(size_t index, T value);
+	
+	T indexMove(size_t index);
+	
+	T * indexPtr(size_t index);
+	
 	template <any S>
 	ptr<S> castPolymorphic();
 };

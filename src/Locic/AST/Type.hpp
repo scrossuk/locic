@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <Locic/Name.hpp>
+#include <Locic/AST/Symbol.hpp>
 
 namespace AST {
 
@@ -12,7 +12,7 @@ namespace AST {
 			UNDEFINED,
 			VOID,
 			NULLT,
-			NAMED,
+			OBJECT,
 			POINTER,
 			REFERENCE,
 			FUNCTION
@@ -24,9 +24,8 @@ namespace AST {
 		bool isMutable;
 		
 		struct {
-			Locic::Name name;
-			std::vector<Type*> templateArguments;
-		} namedType;
+			Symbol symbol;
+		} objectType;
 		
 		struct {
 			// Type that is being pointed to.
@@ -52,17 +51,17 @@ namespace AST {
 			: typeEnum(e),
 			  isMutable(m) { }
 		
-		inline static Type* UndefinedType() {
+		inline static Type* Undefined() {
 			return new Type(UNDEFINED, MUTABLE);
 		}
 			  
-		inline static Type* VoidType() {
+		inline static Type* Void() {
 			return new Type(VOID, MUTABLE);
 		}
 		
-		inline static Type* Named(bool isMutable, const Locic::Name& name) {
-			Type* type = new Type(NAMED, isMutable);
-			type->namedType.name = name;
+		inline static Type* Object(const Symbol& symbol){
+			Type* type = new Type(OBJECT, MUTABLE);
+			type->objectType.symbol = symbol;
 			return type;
 		}
 		
@@ -78,16 +77,16 @@ namespace AST {
 			return type;
 		}
 		
-		inline static Type* Function(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
-			Type* type = new Type(FUNCTION, isMutable);
+		inline static Type* Function(Type* returnType, const std::vector<Type*>& parameterTypes) {
+			Type* type = new Type(FUNCTION, MUTABLE);
 			type->functionType.isVarArg = false;
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
 			return type;
 		}
 		
-		inline static Type* VarArgFunction(bool isMutable, Type* returnType, const std::vector<Type*>& parameterTypes) {
-			Type* type = new Type(FUNCTION, isMutable);
+		inline static Type* VarArgFunction(Type* returnType, const std::vector<Type*>& parameterTypes) {
+			Type* type = new Type(FUNCTION, MUTABLE);
 			type->functionType.isVarArg = true;
 			type->functionType.returnType = returnType;
 			type->functionType.parameterTypes = parameterTypes;
@@ -125,7 +124,7 @@ namespace AST {
 		}
 		
 		inline bool isObjectType() const {
-			return typeEnum == NAMED;
+			return typeEnum == OBJECT;
 		}
 		
 		inline void applyTransitiveConst() {
@@ -173,8 +172,8 @@ namespace AST {
 					str += "null";
 					break;
 				}
-				case NAMED:
-					str += std::string("[named type: ") + namedType.name.toString() + std::string("]");
+				case OBJECT:
+					str += std::string("[object type: ") + objectType.symbol.toString() + std::string("]");
 					break;
 				case POINTER:
 					str += pointerType.targetType->toString();
