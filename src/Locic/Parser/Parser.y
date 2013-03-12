@@ -30,8 +30,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %glr-parser
 
 // Expecting to get four shift/reduce and four reduce/reduce.
-%expect 4
-%expect-rr 4
+%expect 3
+%expect-rr 2
 
 %lex-param {void * scanner}
 %lex-param {Locic::Parser::Context * parserContext}
@@ -91,6 +91,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token EXPORT
 %token NEW
 %token DELETE
+%token MOVE
 %token EXTRACT
 %token TEMPLATE
 %token TYPENAME
@@ -177,7 +178,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <functionArray> classFunctionDeclList
 %type <functionArray> classFunctionDefList
 
-%type <type> typeName
 %type <type> typePrecision3
 %type <type> typePrecision2
 %type <type> typePrecision1
@@ -287,11 +287,11 @@ structVarList:
 staticFunctionDecl:
 	STATIC AUTO NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		$$ = AST::Function::Decl(AST::Type::UndefinedType(), *($3), *($5));
+		$$ = AST::Function::Decl(AST::Type::Undefined(), *($3), *($5));
 	}
 	| STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		$$ = AST::Function::Decl(AST::Type::UndefinedType(), *($2), *($4));
+		$$ = AST::Function::Decl(AST::Type::Undefined(), *($2), *($4));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
@@ -302,11 +302,11 @@ staticFunctionDecl:
 staticFunctionDef:
 	STATIC AUTO NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		$$ = AST::Function::Def(AST::Type::UndefinedType(), *($3), *($5), $7);
+		$$ = AST::Function::Def(AST::Type::Undefined(), *($3), *($5), $7);
 	}
 	| STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		$$ = AST::Function::Def(AST::Type::UndefinedType(), *($2), *($4), $6);
+		$$ = AST::Function::Def(AST::Type::Undefined(), *($2), *($4), $6);
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
@@ -487,9 +487,9 @@ typePrecision3:
 	{
 		$$ = AST::Type::Void();
 	}
-	| typeName
+	| symbol
 	{
-		$$ = AST::Type::Object($1);
+		$$ = AST::Type::Object(*($1));
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
@@ -763,13 +763,9 @@ precision7:
 	{
 		$$ = $2;
 	}
-	| fullName
+	| symbol
 	{
-		$$ = AST::Value::NameRef(*($1));
-	}
-	| fullName LTRIBRACKET nonEmptyTypeList RTRIBRACKET
-	{
-		$$ = AST::Value::TemplateNameRef(*($1), *($3));
+		$$ = AST::Value::SymbolRef(*($1));
 	}
 	| AT NAME
 	{

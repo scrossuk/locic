@@ -10,9 +10,9 @@ namespace AST {
 
 	struct Module {
 		std::string name;
-		AST::Namespace * nameSpace;
+		AST::Namespace* nameSpace;
 		
-		inline Module(const std::string& n, AST::Namespace * ns)
+		inline Module(const std::string& n, AST::Namespace* ns)
 			: name(n), nameSpace(ns) { }
 			
 		inline void print() {

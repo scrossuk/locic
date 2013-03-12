@@ -9,6 +9,9 @@ SET(CMAKE_BUILD_TYPE Debug)
 # Build parser.
 add_subdirectory(Parser)
 
+# Build abstract syntax tree structures.
+add_subdirectory(AST)
+
 # Build semantic tree structures.
 add_subdirectory(SEM)
 
@@ -28,7 +31,7 @@ add_executable(locic locic.cpp Log.cpp String.cpp)
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES bitwriter core native ipo)
-target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
+target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem locic-ast clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 
 macro(copy_loci_source name)
 	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}.loci"

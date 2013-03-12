@@ -7,12 +7,12 @@
 namespace AST {
 
 	struct Scope {
-		std::vector<Statement *> statements;
+		std::vector<Statement*> statements;
 		
-		inline Scope(){ }
+		inline Scope() { }
 		
-		inline Scope(const std::vector<Statement *>& s)
-			: statements(s){ }
+		inline Scope(const std::vector<Statement*>& s)
+			: statements(s) { }
 	};
 	
 }

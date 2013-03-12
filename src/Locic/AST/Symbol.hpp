@@ -4,17 +4,17 @@
 #include <string>
 #include <vector>
 
-#include <Locic/Constant.hpp>
-
-#include <Locic/AST/Type.hpp>
+#include <Locic/Name.hpp>
 
 namespace AST {
+
+	struct Type;
 	
-	class SymbolElement{
+	class SymbolElement {
 		public:
-			inline SymbolElement(const std::string& name, const std::vector<Type*> templateArguments)
-				: name_(name), templateArguments_(templateArguments){ }
-			
+			inline SymbolElement(const std::string& n, const std::vector<Type*> t)
+				: name_(n), templateArguments_(t) { }
+				
 			inline const std::string& name() const {
 				return name_;
 			}
@@ -22,22 +22,25 @@ namespace AST {
 			inline const std::vector<Type*>& templateArguments() const {
 				return templateArguments_;
 			}
-		
+			
 		private:
 			std::string name_;
 			std::vector<Type*> templateArguments_;
 			
 	};
-
-	class Symbol{
+	
+	class Symbol {
 		public:
-			inline Symbol Absolute(){
+			static inline Symbol Absolute() {
 				return Symbol(true);
 			}
 			
-			inline Symbol Relative(){
+			static inline Symbol Relative() {
 				return Symbol(false);
 			}
+			
+			inline Symbol()
+				: isAbsolute_(false){ }
 			
 			inline Symbol operator+(const SymbolElement& symbolElement) const {
 				return Symbol(*this, symbolElement);
@@ -56,11 +59,11 @@ namespace AST {
 			}
 			
 			inline const SymbolElement& first() const {
-				return list_.first();
+				return list_.front();
 			}
 			
 			inline const SymbolElement& last() const {
-				return list_.last();
+				return list_.back();
 			}
 			
 			inline bool isAbsolute() const {
@@ -71,47 +74,19 @@ namespace AST {
 				return !isAbsolute_;
 			}
 			
-			inline std::string toString() const {
-				std::string str;
-				
-				if(isAbsolute()){
-					str += "::";
-				}
-				
-				for(size_t i = 0; i < symbol.size(); i++){
-					if(i > 0){
-						str += "::";
-					}
-					
-					str += list_.at(i).name();
-					
-					const std::vector<Type*>& templateArgs = list_.at(i).templateArguments();
-					
-					if(!templateArgs.empty()){
-						str += "<";
-						for(size_t j = 0; j < templateArgs.size(); j++){
-							str += templateArgs.at(j)->toString();
-						}
-						str += ">";
-					}
-				}
-			}
+			std::string toString() const;
+			
+			Locic::Name createName() const;
 			
 		private:
-			inline explicit Symbol(bool isAbsolute)
-				: isAbsolute_(isAbsolute){ }
-			
-			inline Symbol(const Symbol& symbol, const SymbolElement& symbolElement)
-				: isAbsolute_(symbol.isAbsolute()){
-					for(size_t i = 0; i < symbol.size(); i++){
-						list_.push_back(symbol.at(i));
-					}
-					list_.push_back(symbolElement);
-				}
+			inline explicit Symbol(bool isAbs)
+				: isAbsolute_(isAbs) { }
+				
+			Symbol(const Symbol& symbol, const SymbolElement& symbolElement);
 			
 			bool isAbsolute_;
 			std::vector<SymbolElement> list_;
-		
+			
 	};
 	
 }

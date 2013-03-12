@@ -9,7 +9,7 @@
 namespace AST {
 
 	struct Scope;
-
+	
 	struct Statement {
 		enum TypeEnum {
 			NONE,

@@ -44,19 +44,21 @@ namespace Locic {
 					assert(false && "Invalid if fallthrough in ConvertValue for constant");
 					return NULL;
 				}
-				case AST::Value::NAMEREF: {
-					const Locic::Name& name = value->nameRef.name;
+				case AST::Value::SYMBOLREF: {
+					const AST::Symbol& symbol = value->symbolRef.symbol;
 					
 					// Check if it could be a local variable.
 					// Local variables must just be a single plain string,
 					// and be a relative name (so no precending '::').
-					if(name.size() == 1 && name.isRelative()) {
-						SEM::Var* semVar = context.findLocalVar(name.first());
+					if(symbol.size() == 1 && symbol.isRelative() && symbol.first().templateArguments().empty()) {
+						SEM::Var* semVar = context.findLocalVar(symbol.first().name());
 						
 						if(semVar != NULL) {
 							return SEM::Value::VarValue(semVar);
 						}
 					}
+					
+					const Name name = symbol.createName();
 					
 					// Not a local variable => do a symbol lookup.
 					SEM::NamespaceNode node = context.getNode(name);

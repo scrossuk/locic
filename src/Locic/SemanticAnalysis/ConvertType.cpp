@@ -17,8 +17,11 @@ namespace Locic {
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
 				}
-				case AST::Type::NAMED: {
-					const Name& name = type->namedType.name;
+				case AST::Type::OBJECT: {
+					const AST::Symbol& symbol = type->objectType.symbol;
+					assert(!symbol.empty());
+					
+					const Name name = symbol.createName();
 					SEM::NamespaceNode objectNode = context.getNode(name);
 					
 					if(!objectNode.isTypeInstance()) {
@@ -30,7 +33,7 @@ namespace Locic {
 					
 					// TODO: Handle template arguments.
 					std::vector<SEM::Type*> templateArguments;
-					const std::vector<AST::Type*>& astTemplateArgs = type->namedType.templateArguments;
+					const std::vector<AST::Type*>& astTemplateArgs = symbol.last().templateArguments();
 					for(size_t i = 0; i < astTemplateArgs.size(); i++) {
 						templateArguments.push_back(ConvertType(context, astTemplateArgs.at(i), SEM::Type::LVALUE));
 					}

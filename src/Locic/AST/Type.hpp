@@ -50,16 +50,16 @@ namespace AST {
 		inline Type(TypeEnum e, bool m)
 			: typeEnum(e),
 			  isMutable(m) { }
-		
+			  
 		inline static Type* Undefined() {
 			return new Type(UNDEFINED, MUTABLE);
 		}
-			  
+		
 		inline static Type* Void() {
 			return new Type(VOID, MUTABLE);
 		}
 		
-		inline static Type* Object(const Symbol& symbol){
+		inline static Type* Object(const Symbol& symbol) {
 			Type* type = new Type(OBJECT, MUTABLE);
 			type->objectType.symbol = symbol;
 			return type;
@@ -135,7 +135,7 @@ namespace AST {
 				
 				if(t->typeEnum == POINTER) {
 					t = t->getPointerTarget();
-				}else if(t->typeEnum == REFERENCE) {
+				} else if(t->typeEnum == REFERENCE) {
 					t = t->getReferenceTarget();
 				} else {
 					break;
@@ -145,30 +145,28 @@ namespace AST {
 		
 		inline std::string toString() const {
 			std::string str;
-		
+			
 			bool bracket = false;
-			if(!isMutable){
+			
+			if(!isMutable) {
 				str += "const ";
 				bracket = true;
 			}
 			
-			if(bracket){
+			if(bracket) {
 				str += "(";
 			}
-	
-			switch(typeEnum){
-				case UNDEFINED:
-				{
+			
+			switch(typeEnum) {
+				case UNDEFINED: {
 					str += "[undefined]";
 					break;
 				}
-				case VOID:
-				{
+				case VOID: {
 					str += "void";
 					break;
 				}
-				case NULLT:
-				{
+				case NULLT: {
 					str += "null";
 					break;
 				}
@@ -183,16 +181,16 @@ namespace AST {
 					str += pointerType.targetType->toString();
 					str += "&";
 					break;
-				case FUNCTION:
-				{
+				case FUNCTION: {
 					str += "(";
 					str += functionType.returnType->toString();
 					str += ")(";
-			
-					for(std::size_t i = 0; i < functionType.parameterTypes.size(); i++){
-						if(i != 0){
+					
+					for(std::size_t i = 0; i < functionType.parameterTypes.size(); i++) {
+						if(i != 0) {
 							str += ", ";
 						}
+						
 						str += functionType.parameterTypes.at(i)->toString();
 					}
 					
@@ -202,8 +200,9 @@ namespace AST {
 				default:
 					break;
 			}
-	
+			
 			if(bracket) str += ")";
+			
 			return str;
 		}
 		

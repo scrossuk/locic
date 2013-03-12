@@ -7,6 +7,7 @@
 #include <Locic/Constant.hpp>
 #include <Locic/Name.hpp>
 
+#include <Locic/AST/Symbol.hpp>
 #include <Locic/AST/Type.hpp>
 
 namespace AST {
@@ -15,8 +16,7 @@ namespace AST {
 		enum TypeEnum {
 			NONE,
 			CONSTANT,
-			NAMEREF,
-			TEMPLATENAMEREF,
+			SYMBOLREF,
 			MEMBERREF,
 			ADDRESSOF,
 			DEREFERENCE,
@@ -27,34 +27,29 @@ namespace AST {
 			FUNCTIONCALL
 		} typeEnum;
 		
-		Locic::Constant * constant;
+		Locic::Constant* constant;
 		
 		struct {
-			Locic::Name name;
-		} nameRef;
-		
-		struct {
-			Locic::Name name;
-			std::vector<Type*> arguments;
-		} templateNameRef;
+			Symbol symbol;
+		} symbolRef;
 		
 		struct {
 			std::string name;
 		} memberRef;
 		
-		struct AddressOf{
-			Value * value;
+		struct AddressOf {
+			Value* value;
 		} addressOf;
 		
-		struct Dereference{
-			Value * value;
+		struct Dereference {
+			Value* value;
 		} dereference;
 		
 		struct {
 			Value* condition, * ifTrue, * ifFalse;
 		} ternary;
 		
-		enum CastKind{
+		enum CastKind {
 			CAST_STATIC,
 			CAST_CONST,
 			CAST_REINTERPRET,
@@ -85,52 +80,45 @@ namespace AST {
 		
 		inline Value(TypeEnum e) : typeEnum(e) { }
 		
-		inline static Value* Constant(Locic::Constant * constant) {
+		inline static Value* Constant(Locic::Constant* constant) {
 			Value* value = new Value(CONSTANT);
 			value->constant = constant;
 			return value;
 		}
 		
-		inline static Value * NameRef(const Locic::Name& name){
-			Value* value = new Value(NAMEREF);
-			value->nameRef.name = name;
+		inline static Value* SymbolRef(const Symbol& symbol) {
+			Value* value = new Value(SYMBOLREF);
+			value->symbolRef.symbol = symbol;
 			return value;
 		}
 		
-		inline static Value * TemplateNameRef(const Locic::Name& name, const std::vector<Type*>& arguments){
-			Value* value = new Value(TEMPLATENAMEREF);
-			value->templateNameRef.name = name;
-			value->templateNameRef.arguments = arguments;
-			return value;
-		}
-		
-		inline static Value * MemberRef(const std::string& name){
+		inline static Value* MemberRef(const std::string& name) {
 			Value* value = new Value(MEMBERREF);
 			value->memberRef.name = name;
 			return value;
 		}
 		
-		inline static Value * AddressOf(Value * operand){
+		inline static Value* AddressOf(Value* operand) {
 			Value* value = new Value(ADDRESSOF);
 			value->addressOf.value = operand;
 			return value;
 		}
 		
-		inline static Value * Dereference(Value * operand){
+		inline static Value* Dereference(Value* operand) {
 			Value* value = new Value(DEREFERENCE);
 			value->dereference.value = operand;
 			return value;
 		}
 		
-		inline static Value * UnaryOp(const std::string& name, Value * operand){
-			return Value::FunctionCall(Value::MemberAccess(operand, name), std::vector<Value *>());
+		inline static Value* UnaryOp(const std::string& name, Value* operand) {
+			return Value::FunctionCall(Value::MemberAccess(operand, name), std::vector<Value*>());
 		}
 		
-		inline static Value * BinaryOp(const std::string& name, Value * leftOperand, Value * rightOperand){
-			return Value::FunctionCall(Value::MemberAccess(leftOperand, name), std::vector<Value *>(1, rightOperand));
+		inline static Value* BinaryOp(const std::string& name, Value* leftOperand, Value* rightOperand) {
+			return Value::FunctionCall(Value::MemberAccess(leftOperand, name), std::vector<Value*>(1, rightOperand));
 		}
 		
-		inline static Value * Ternary(Value * condition, Value * ifTrue, Value * ifFalse){
+		inline static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse) {
 			Value* value = new Value(TERNARY);
 			value->ternary.condition = condition;
 			value->ternary.ifTrue = ifTrue;
@@ -138,7 +126,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * Cast(CastKind castKind, Type * targetType, Value * operand){
+		inline static Value* Cast(CastKind castKind, Type* targetType, Value* operand) {
 			Value* value = new Value(CAST);
 			value->cast.castKind = castKind;
 			value->cast.targetType = targetType;
@@ -146,20 +134,20 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value * InternalConstruct(const std::vector<Value *>& parameters){
+		inline static Value* InternalConstruct(const std::vector<Value*>& parameters) {
 			Value* value = new Value(INTERNALCONSTRUCT);
 			value->internalConstruct.parameters = parameters;
 			return value;
 		}
 		
-		inline static Value * MemberAccess(Value * object, const std::string& memberName){
+		inline static Value* MemberAccess(Value* object, const std::string& memberName) {
 			Value* value = new Value(MEMBERACCESS);
 			value->memberAccess.object = object;
 			value->memberAccess.memberName = memberName;
 			return value;
 		}
 		
-		inline static Value * FunctionCall(Value * functionValue, const std::vector<Value *>& parameters){
+		inline static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
 			Value* value = new Value(FUNCTIONCALL);
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;
