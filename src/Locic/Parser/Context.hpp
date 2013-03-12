@@ -21,14 +21,14 @@ namespace Locic{
 		
 		struct Context{
 			Token token;
-			AST::Namespace * nameSpace;
+			AST::Namespace * rootNamespace;
 			std::string fileName;
 			std::size_t lineNumber;
 			std::vector<Error> errors;
 			std::string stringConstant;
 			
-			inline Context(const std::string& n)
-				: nameSpace(NULL), fileName(n),
+			inline Context(AST::Namespace * root, const std::string& n)
+				: rootNamespace(root), fileName(n),
 				lineNumber(0){ }
 			
 			inline void error(const std::string& message){

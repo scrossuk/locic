@@ -36,11 +36,11 @@ namespace Locic {
 					return kind_;
 				}
 				
-				inline std::vector<TemplateVar*>& templateVariables() {
+				inline Locic::StringMap<TemplateVar*>& templateVariables() {
 					return templateVariables_;
 				}
 				
-				inline const std::vector<TemplateVar*>& templateVariables() const {
+				inline const Locic::StringMap<TemplateVar*>& templateVariables() const {
 					return templateVariables_;
 				}
 				
@@ -119,8 +119,6 @@ namespace Locic {
 					}
 				}
 				
-				NamespaceNode lookup(const Locic::Name& targetName);
-				
 				bool supportsNullConstruction() const;
 				
 				bool supportsImplicitCopy() const;
@@ -134,7 +132,7 @@ namespace Locic {
 			private:
 				Kind kind_;
 				Locic::Name name_;
-				std::vector<TemplateVar*> templateVariables_;
+				Locic::StringMap<TemplateVar*> templateVariables_;
 				Locic::StringMap<Var*> variables_;
 				Locic::StringMap<Function*> functions_;
 				

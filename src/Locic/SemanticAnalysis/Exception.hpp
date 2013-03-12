@@ -62,6 +62,21 @@ namespace Locic {
 				
 		};
 		
+		class TemplateVariableClashException: public Exception {
+			public:
+				inline TemplateVariableClashException(const Name& typeName, const std::string& varName)
+					: typeName_(typeName), varName_(varName) { }
+					
+				inline std::string toString() const {
+					return makeString("More than one template variable shares name '%s' in type '%s'.", varName_.c_str(), typeName_.toString().c_str());
+				}
+				
+			private:
+				Name typeName_;
+				std::string varName_;
+				
+		};
+		
 		class MemberVariableClashException: public Exception {
 			public:
 				inline MemberVariableClashException(const Name& typeName, const std::string& varName)

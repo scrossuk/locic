@@ -22,7 +22,7 @@ namespace Locic {
 					assert(!symbol.empty());
 					
 					const Name name = symbol.createName();
-					SEM::NamespaceNode objectNode = context.getNode(name);
+					SEM::NamespaceNode objectNode = context.lookupName(name);
 					
 					if(!objectNode.isTypeInstance()) {
 						printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.toString().c_str());
@@ -89,7 +89,7 @@ namespace Locic {
 					return SEM::Type::Function(isLValue, type->functionType.isVarArg, returnType, parameterTypes);
 				}
 				default:
-					printf("Internal Compiler Error: Unknown AST::Type type enum.\n");
+					assert(false && "Unknown AST::Type type enum.");
 					return NULL;
 			}
 		}

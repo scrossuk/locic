@@ -62,7 +62,7 @@ int main(int argc, char * argv[]){
 		}
 	}
 	
-	std::vector<AST::Namespace *> astNamespaces;
+	AST::Namespace * rootASTNamespace = new AST::Namespace("");
 	
 	// Parse all source files.
 	for(std::size_t i = 0; i < fileNames.size(); i++){
@@ -74,11 +74,8 @@ int main(int argc, char * argv[]){
 			return 1;
 		}
 		
-		Parser::DefaultParser parser(file, filename);
-		if(parser.parseFile()){
-			astNamespaces.push_back(parser.getNamespace());
-			fclose(file);
-		}else{
+		Parser::DefaultParser parser(rootASTNamespace, file, filename);
+		if(!parser.parseFile()){
 			std::vector<Parser::Error> errors = parser.getErrors();
 			assert(!errors.empty());
 		
@@ -94,14 +91,14 @@ int main(int argc, char * argv[]){
 	}
 	
 	// Perform semantic analysis.
-	SEM::Namespace * semNamespace = SemanticAnalysis::Run(astNamespaces);
-	assert(semNamespace != NULL);
+	SEM::Namespace * rootSEMNamespace = SemanticAnalysis::Run(rootASTNamespace);
+	assert(rootSEMNamespace != NULL);
 	
 	const std::string outputName = "output";
 	
 	CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 	CodeGen::CodeGenerator codeGenerator(targetInfo, outputName);
-	codeGenerator.genNamespace(semNamespace);
+	codeGenerator.genNamespace(rootSEMNamespace);
 	codeGenerator.applyOptimisations(optLevel);
 	codeGenerator.dumpToFile(outputName + ".ll");
 	codeGenerator.writeToFile(outputName + ".bc");

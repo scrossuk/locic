@@ -215,9 +215,32 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 // ================ Rules ================
 %%
 start:
-	nameSpace
+	rootNameSpace
+	;
+
+rootNameSpace:
+	// empty
+	| rootNameSpace SEMICOLON
+	| rootNameSpace functionDecl
 	{
-		parserContext->nameSpace = $1;
+		parserContext->rootNamespace->functions.push_back($2);
+	}
+	| rootNameSpace functionDef
+	{
+		parserContext->rootNamespace->functions.push_back($2);
+	}
+	| rootNameSpace typeInstance
+	{
+		parserContext->rootNamespace->typeInstances.push_back($2);
+	}
+	| rootNameSpace namedNamespace
+	{
+		parserContext->rootNamespace->namespaces.push_back($2);
+	}
+	| rootNameSpace SEMICOLON
+	| rootNameSpace error
+	{
+		parserContext->error("Invalid struct, class, function or other.");
 	}
 	;
 
@@ -225,6 +248,10 @@ nameSpace:
 	// empty
 	{
 		$$ = new AST::Namespace("");
+	}
+	| nameSpace SEMICOLON
+	{
+		$$ = $1;
 	}
 	| nameSpace functionDecl
 	{
@@ -244,10 +271,6 @@ nameSpace:
 	| nameSpace namedNamespace
 	{
 		($1)->namespaces.push_back($2);
-		$$ = $1;
-	}
-	| nameSpace SEMICOLON
-	{
 		$$ = $1;
 	}
 	| nameSpace error
@@ -270,10 +293,7 @@ structVarList:
 	{
 		$$ = new std::vector<AST::TypeVar *>();
 	}
-	;
-
-structVarList:
-	structVarList typeVar SEMICOLON
+	| structVarList typeVar SEMICOLON
 	{
 		($1)->push_back($2);
 		$$ = $1;

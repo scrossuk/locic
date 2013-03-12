@@ -19,8 +19,8 @@ namespace Locic {
 					
 				const std::string nameEnd = targetName.last();
 				
+				// Look for functions...
 				Locic::Optional<Function*> function = functions().tryGet(nameEnd);
-				
 				if(function.hasValue()) return NamespaceNode::Function(function.getValue());
 			}
 			

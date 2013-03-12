@@ -10,7 +10,7 @@ namespace Locic {
 	
 		enum TemplateVarType {
 			TEMPLATEVAR_TYPENAME,
-			TEMPLATEVAR_ANY
+			TEMPLATEVAR_POLYMORPHIC
 		};
 		
 		class Type;
@@ -18,25 +18,31 @@ namespace Locic {
 		class TemplateVar {
 			public:
 				inline TemplateVar(TemplateVarType t,
-						const std::string& n, const std::vector<Type*>& r)
-					: type_(t), name_(n), requirements_(r) { }
+						size_t i)
+					: type_(t), id_(i), specType_(NULL) { }
 					
 				inline TemplateVarType type() const {
 					return type_;
 				}
 				
-				inline const std::string& name() const {
-					return name_;
+				inline size_t id() const {
+					return id_;
 				}
 				
-				inline const std::vector<Type*>& requirements() const {
-					return requirements_;
+				inline void setSpecType(Type * spec){
+					assert(specType_ == NULL);
+					assert(spec != NULL);
+					specType_ = spec;
+				}
+				
+				inline Type * specType() const {
+					return specType_;
 				}
 				
 			private:
 				TemplateVarType type_;
-				const std::string& name_;
-				const std::vector<Type*>& requirements_;
+				size_t id_;
+				Type * specType_;
 				
 		};
 		

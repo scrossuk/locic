@@ -33,38 +33,65 @@ namespace Locic {
 		}
 		
 		// Get all type names, and build initial type instance structures.
-		void AddTypeInstances(Context& context, AST::Namespace* astNamespace, SEM::Namespace* semNamespace) {
-			NamespaceContext namespaceContext(context, semNamespace);
+		void AddNamespaces(Context& context) {
+			Node& node = context.node();
+			
+			assert(node.isNamespace());
 			
 			//-- Get all namespaces.
-			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++) {
-				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
+			for(std::size_t i = 0; i < node.getASTNamespace()->namespaces.size(); i++) {
+				AST::Namespace* astChildNamespace = node.getASTNamespace()->namespaces.at(i);
+				
+				const std::string& nsName = astChildNamespace->name;
+				
 				SEM::Namespace* semChildNamespace =
-					new SEM::Namespace(namespaceContext.getName() + astChildNamespace->name);
-					
-				if(!namespaceContext.addNamespace(semChildNamespace->name(), semChildNamespace)) {
+					new SEM::Namespace(context.name() + nsName);
+				
+				Node nsNode = Node::Namespace(astChildNamespace, semChildNamespace);
+				
+				if(!node.tryAttach(nsName, nsNode)){
 					throw NameClashException(NameClashException::NAMESPACE_WITH_NAMESPACE,
-							semChildNamespace->name());
+						semChildNamespace->name());
 				}
 				
-				AddTypeInstances(namespaceContext, astChildNamespace, semChildNamespace);
+				node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
+				
+				Context namespaceContext(context, nsName, nsNode);
+					
+				AddNamespaces(namespaceContext);
+			}
+		}
+		
+		// Get all type names, and build initial type instance structures.
+		void AddTypeInstances(Context& context) {
+			Node& node = context.node();
+			
+			if(!node.isNamespace()) return;
+			
+			//-- Look through child namespaces for type instances.
+			for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 	Context nsContext(context, range.front().key(), range.front().value());
+				AddTypeInstances(nsContext);
 			}
 			
 			//-- Get all type names.
-			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++) {
-				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
+			for(std::size_t i = 0; i < node.getASTNamespace()->typeInstances.size(); i++) {
+				AST::TypeInstance* astTypeInstance = node.getASTNamespace()->typeInstances.at(i);
+				
+				const std::string& typeName = astTypeInstance->name;
+				
 				SEM::TypeInstance* semTypeInstance =
 					new SEM::TypeInstance(ConvertTypeInstanceKind(astTypeInstance->typeEnum),
-							namespaceContext.getName() + astTypeInstance->name);
-							
-				SEM::NamespaceNode node = namespaceContext.getNode(namespaceContext.getName() + astTypeInstance->name);
-				if(node.isNamespace()) {
+							context.name() + typeName);
+				
+				const Node existingNode = node.getChild(typeName);
+				if(existingNode.isNamespace()) {
 					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE,
 							semTypeInstance->name());
-				} else if(node.isTypeInstance()) {
+				} else if(existingNode.isTypeInstance()) {
 					// Types can be unified by name at this point.
 					// Later stages will identify whether the types actually match.
-					SEM::TypeInstance* semExistingType = node.getTypeInstance();
+					SEM::TypeInstance* semExistingType = existingNode.getSEMTypeInstance();
 					if((semExistingType->kind() == SEM::TypeInstance::CLASSDECL
 							&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDEF)
 							|| (semExistingType->kind() == SEM::TypeInstance::CLASSDEF
@@ -75,76 +102,133 @@ namespace Locic {
 						throw NonUnifiableTypeClashException(semTypeInstance->name());
 					}
 				} else {
-					assert(node.isNone() &&
+					assert(existingNode.isNone() &&
 						   "Functions shouldn't be added at this point, so anything "
 						   "that isn't a namespace or a type instance should be 'none'");
-					const bool addResult = namespaceContext.addTypeInstance(
-							namespaceContext.getName() + astTypeInstance->name, semTypeInstance);
-					assert(addResult && "getNode() returned 'none', so adding type instance must succeed");
+					
+					Node newNode = Node::TypeInstance(astTypeInstance, semTypeInstance);
+					
+					node.attach(typeName, newNode);
+					node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
+				}
+			}
+		}
+		
+		SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
+			switch(kind){
+				case AST::TemplateTypeVar::TYPENAME:
+					return SEM::TEMPLATEVAR_TYPENAME;
+				case AST::TemplateTypeVar::POLYMORPHIC:
+					return SEM::TEMPLATEVAR_POLYMORPHIC;
+				default:
+					assert(false && "Unknown template var kind.");
+					return SEM::TEMPLATEVAR_TYPENAME;
+			}
+		}
+		
+		void AddTemplateVariables(Context& context){
+			Node& node = context.node();
+			
+			if(node.isTypeInstance()){
+				for(size_t i = 0; i < astTypeInstance->templateVariables.size(); i++){
+					AST::TemplateTypeVar * astTemplateVar = astTypeInstance->templateVariables.at(i);
+					
+					const std::string& varName = astTemplateVar->name;
+					
+					SEM::TemplateVar * semTemplateVar = new SEM::TemplateVar(
+						ConvertTemplateVarType(templateTypeVar->kind), i);
+					
+					const Node templateNode = Node::TemplateVar(astTemplateVar, semTemplateVar);
+					
+					if(!node.tryAttach(varName, templateNode))
+						throw TemplateVariableClashException(semTypeInstance->name(), varName);
+					}
+					
+					node.getSEMTypeInstance()->templateVariables().push_back(semTemplateVar);
+				}
+			}else{
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Context newContext(context, range.front().key(), range.front().value());
+					AddTemplateVariables(newContext);
+				}
+			}
+		}
+		
+		void AddTemplateVariableRequirements(Context& context){
+			Node& node = context.node();
+			
+			if(node.isTypeInstance()){
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Node& childNode = range.front().value();
+			 		if(childNode.isTemplateVar()){
+			 			AST::Type * specType = childNode.getASTTemplateVar();
+			 			if(specType != NULL){
+							childNode.getSEMTemplateVar()->setSpecType(ConvertType(context,
+								specType, SEM::Type::LVALUE));
+						}
+			 		}
+				}
+			}else{
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Context newContext(context, range.front().key(), range.front().value());
+					AddTemplateVariableRequirements(newContext);
 				}
 			}
 		}
 		
 		// Fill in type instance structures with member variable information.
-		void AddTypeMemberVariables(Context& context, AST::TypeInstance* astTypeInstance, SEM::TypeInstance* semTypeInstance) {
-			if(astTypeInstance->variables.empty()) return;
+		void AddTypeMemberVariables(Context& context) {
+			Node& node = context.node();
 			
-			assert(astTypeInstance->typeEnum != AST::TypeInstance::PRIMITIVE
-				   && astTypeInstance->typeEnum != AST::TypeInstance::INTERFACE
-				   && "Primitives and interfaces cannot have member variables");
-				   
-			for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++) {
-				AST::TypeVar* typeVar = astTypeInstance->variables.at(i);
-				SEM::Type* semType = ConvertType(context, typeVar->type, SEM::Type::LVALUE);
+			if(node.isTypeInstance()){
+				AST::TypeInstance * astTypeInstance = node.getASTTypeInstance();
+				if(astTypeInstance->variables.empty()) return;
 				
-				/*if(semType == NULL){
-					printf("Semantic Analysis Error: invalid type for type instance member '%s'.\n", typeVar->name.c_str());
-					return false;
-				}*/
+				assert(astTypeInstance->typeEnum != AST::TypeInstance::PRIMITIVE
+					&& astTypeInstance->typeEnum != AST::TypeInstance::INTERFACE
+					&& "Primitives and interfaces cannot have member variables");
 				
-				SEM::Var* var = new SEM::Var(SEM::Var::MEMBER, i, semType, semTypeInstance);
-				if(!semTypeInstance->variables().tryInsert(typeVar->name, var)) {
-					throw MemberVariableClashException(semTypeInstance->name(), typeVar->name);
+				SEM::TypeInstance * semTypeInstance = node.getSEMTypeInstance();
+				
+				for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++) {
+					AST::TypeVar* typeVar = astTypeInstance->variables.at(i);
+					SEM::Type* semType = ConvertType(context, typeVar->type, SEM::Type::LVALUE);
+					
+					SEM::Var* var = new SEM::Var(SEM::Var::MEMBER, i, semType, semTypeInstance);
+					
+					const Node memberNode = Node::MemberVariable(typeVar, var);
+					
+					if(!node.tryAttach(memberNode)){
+						throw MemberVariableClashException(semTypeInstance->name(), typeVar->name);
+					}
+					
+					semTypeInstance->variables().push_back(var);
+				}
+			}else{
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Context newContext(context, range.front().key(), range.front().value());
+					AddTypeMemberVariables(newContext);
 				}
 			}
 		}
 		
-		void AddTypeMemberVariables(Context& context, AST::Namespace* astNamespace, SEM::Namespace* semNamespace) {
-			NamespaceContext namespaceContext(context, semNamespace);
+		void AddFunctionDecl(Context& context, AST::Function * astFunction) {
+			Node& node = context.node();
 			
-			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++) {
-				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
-				SEM::Namespace* semChildNamespace =
-					namespaceContext.getNode(namespaceContext.getName()
-							+ astChildNamespace->name).getNamespace();
-				assert(semChildNamespace != NULL);
-				AddTypeMemberVariables(namespaceContext, astChildNamespace, semChildNamespace);
-			}
+			assert(node.isNamespace() || node.isTypeInstance());
 			
-			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++) {
-				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
-				SEM::TypeInstance* semTypeInstance =
-					namespaceContext.getNode(namespaceContext.getName()
-							+ astTypeInstance->name).getTypeInstance();
-				assert(semTypeInstance != NULL);
-				AddTypeMemberVariables(namespaceContext, astTypeInstance, semTypeInstance);
-			}
-		}
-		
-		void AddFunctionDecls(Context& context, AST::Function* astFunction) {
 			SEM::Function* semFunction = ConvertFunctionDecl(context, astFunction);
 			assert(semFunction != NULL);
 			
-			Name functionName = context.getName() + astFunction->name;
+			const Name functionName = context.name() + astFunction->name;
+			const Node existingNode = node.getChild(functionName);
 			
-			SEM::NamespaceNode node = context.getNode(functionName);
-			
-			if(node.isNamespace()) {
+			if(existingNode.isNamespace()) {
 				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, functionName);
-			} else if(node.isTypeInstance()) {
+			} else if(existingNode.isTypeInstance()) {
 				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, functionName);
-			} else if(node.isFunction()) {
-				SEM::Function* existingFunction = node.getFunction();
+			} else if(existingNode.isFunction()) {
+				SEM::Function* existingFunction = existingNode.getSEMFunction();
 				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
 				if(*(semFunction->type()) != *(existingFunction->type())) {
 					throw NonUnifiableFunctionsException(functionName,
@@ -152,73 +236,76 @@ namespace Locic {
 							existingFunction->type()->toString());
 				}
 			} else {
-				assert(node.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
-				const bool addResult = context.addFunction(functionName, semFunction);
-				assert(addResult && "Adding function must succeed, since name has already been looked up and found to be 'none'");
+				assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
+				
+				const Node functionNode = Node::Function(astFunction, semFunction);
+				
+				node.attach(functionNode);
+				
+				if(node.isNamespace()){
+					node.getSEMNamespace()->functions().push_back(semFunction);
+				}else{
+					node.getSEMTypeInstance()->functions().push_back(semFunction);
+				}
 			}
 		}
 		
-		void AddFunctionDecls(Context& context, AST::TypeInstance* astTypeInstance, SEM::TypeInstance* semTypeInstance) {
-			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
+		void AddFunctionDecls(Context& context) {
+			Node& node = context.node();
 			
-			for(std::size_t i = 0; i < astTypeInstance->functions.size(); i++) {
-				AST::Function* astFunction = astTypeInstance->functions.at(i);
-				AddFunctionDecls(typeInstanceContext, astFunction);
+			if(node.isNamespace()){
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Context newContext(context, range.front().key(), range.front().value());
+					AddFunctionDecls(newContext);
+				}
+				
+				AST::Namespace * astNamespace = node.getASTNamespace();
+				for(std::size_t i = 0; i < astNamespace->functions.size(); i++) {
+					AST::Function* astFunction = astNamespace->functions.at(i);
+					AddFunctionDecl(context, astFunction);
+				}
+			}else if(node.isTypeInstance()){
+				AST::TypeInstance * astTypeInstance = node.getASTTypeInstance();
+				for(std::size_t i = 0; i < astTypeInstance->functions.size(); i++) {
+					AST::Function* astFunction = astTypeInstance->functions.at(i);
+					AddFunctionDecl(context, astFunction);
+				}
 			}
 		}
 		
-		void AddFunctionDecls(Context& context, AST::Namespace* astNamespace, SEM::Namespace* semNamespace) {
-			NamespaceContext namespaceContext(context, semNamespace);
-			
-			for(std::size_t i = 0; i < astNamespace->functions.size(); i++) {
-				AST::Function* astFunction = astNamespace->functions.at(i);
-				AddFunctionDecls(namespaceContext, astFunction);
-			}
-			
-			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++) {
-				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
-				SEM::Namespace* semChildNamespace = namespaceContext.getNode(namespaceContext.getName() + astChildNamespace->name).getNamespace();
-				assert(semChildNamespace != NULL);
-				AddFunctionDecls(namespaceContext, astChildNamespace, semChildNamespace);
-			}
-			
-			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++) {
-				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
-				SEM::TypeInstance* semTypeInstance = namespaceContext.getNode(namespaceContext.getName() + astTypeInstance->name).getTypeInstance();
-				assert(semTypeInstance != NULL);
-				AddFunctionDecls(namespaceContext, astTypeInstance, semTypeInstance);
-			}
-		}
-		
-		SEM::Namespace* Run(const std::vector<AST::Namespace*>& namespaces) {
+		SEM::Namespace* Run(AST::Namespace * rootASTNamespace) {
 			try {
 				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
-				SEM::Namespace* rootNamespace = new SEM::Namespace(Name::Absolute());
+				SEM::Namespace* rootSEMNamespace = new SEM::Namespace(Name::Absolute());
+				
+				// Create the root namespace node.
+				Node rootNode = Node::Namespace(rootASTNamespace, rootSEMNamespace);
 				
 				// Root context is the 'top of the stack', and its methods are all effectively null.
-				RootContext rootContext;
+				Context rootContext(rootNode);
 				
-				// ---- Pass 1: Create types (with their names).
-				for(std::size_t i = 0; i < namespaces.size(); i++) {
-					AddTypeInstances(rootContext, namespaces.at(i), rootNamespace);
-				}
+				// ---- Pass 1: Create namespaces.
+				AddNamespaces(rootContext);
 				
-				// ---- Pass 2: Add type member variables.
-				for(std::size_t i = 0; i < namespaces.size(); i++) {
-					AddTypeMemberVariables(rootContext, namespaces.at(i), rootNamespace);
-				}
+				// ---- Pass 2: Create types (with their names).
+				AddTypeInstances(rootContext);
 				
-				// ---- Pass 3: Create function declarations.
-				for(std::size_t i = 0; i < namespaces.size(); i++) {
-					AddFunctionDecls(rootContext, namespaces.at(i), rootNamespace);
-				}
+				// ---- Pass 3: Add template type variables.
+				AddTemplateVariables(rootContext);
 				
-				// ---- Pass 4: Fill in function code.
-				for(std::size_t i = 0; i < namespaces.size(); i++) {
-					ConvertNamespace(rootContext, namespaces.at(i), rootNamespace);
-				}
+				// ---- Pass 4: Add template type variable requirements.
+				AddTemplateVariableRequirements(rootContext);
 				
-				return rootNamespace;
+				// ---- Pass 5: Add type member variables.
+				AddTypeMemberVariables(rootContext);
+				
+				// ---- Pass 6: Create function declarations.
+				AddFunctionDecls(rootContext);
+				
+				// ---- Pass 7: Fill in function code.
+				ConvertNamespace(rootContext);
+				
+				return rootSEMNamespace;
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", e.toString().c_str());
 				throw;

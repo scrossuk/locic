@@ -24,7 +24,7 @@ namespace Locic {
 					} else if(value->constant->getType() == Locic::Constant::STRING && value->constant->getStringType() == Locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						SEM::TypeInstance* charType = context.getNode(Name::Absolute() + "char").getTypeInstance();
+						SEM::TypeInstance* charType = context.lookupName(Name::Absolute() + "char").getTypeInstance();
 						assert(charType != NULL && "Couldn't find char constant type");
 						
 						SEM::Type* constCharPtrType = SEM::Type::Pointer(SEM::Type::CONST, SEM::Type::RVALUE,
@@ -32,7 +32,7 @@ namespace Locic {
 						return SEM::Value::Constant(value->constant, constCharPtrType);
 					} else {
 						const std::string typeName = value->constant->getTypeName();
-						SEM::TypeInstance* typeInstance = context.getNode(Name::Absolute() + typeName).getTypeInstance();
+						SEM::TypeInstance* typeInstance = context.lookupName(Name::Absolute() + typeName).getTypeInstance();
 						if(typeInstance == NULL) {
 							printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
 						}
@@ -46,34 +46,18 @@ namespace Locic {
 				}
 				case AST::Value::SYMBOLREF: {
 					const AST::Symbol& symbol = value->symbolRef.symbol;
-					
-					// Check if it could be a local variable.
-					// Local variables must just be a single plain string,
-					// and be a relative name (so no precending '::').
-					if(symbol.size() == 1 && symbol.isRelative() && symbol.first().templateArguments().empty()) {
-						SEM::Var* semVar = context.findLocalVar(symbol.first().name());
-						
-						if(semVar != NULL) {
-							return SEM::Value::VarValue(semVar);
-						}
-					}
-					
 					const Name name = symbol.createName();
 					
 					// Not a local variable => do a symbol lookup.
-					SEM::NamespaceNode node = context.getNode(name);
+					const Node node = context.lookupName(name);
 					
 					if(node.isNone()) {
 						printf("Semantic Analysis Error: Couldn't find symbol or value '%s'.\n", name.toString().c_str());
 						return NULL;
-					}
-					
-					if(node.isNamespace()) {
+					} else if(node.isNamespace()) {
 						printf("Semantic Analysis Error: Namespace '%s' is not a valid value.\n", name.toString().c_str());
 						return NULL;
-					}
-					
-					if(node.isFunction()) {
+					} else if(node.isFunction()) {
 						SEM::Function* function = node.getFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						assert(!function->isMethod() && "TODO: class method references not implemented yet.");
@@ -89,14 +73,22 @@ namespace Locic {
 							return NULL;
 						}
 						
-						SEM::Function* function = typeInstance->lookup(typeInstance->name() + "Default").getFunction();
-						if(function == NULL) {
+						const Node defaultConstructorNode = node.getChild("Default");
+						if(!defaultConstructorNode.isFunction()) {
 							printf("Semantic Analysis Error: Couldn't find default constructor for type '%s' (full name: '%s').\n",
 								   name.toString().c_str(), typeInstance->name().toString().c_str());
 							return NULL;
 						}
 						
-						return SEM::Value::FunctionRef(function);
+						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction());
+					} else if(node.isLocalVar()) {
+						// Local variables must just be a single plain string,
+						// and be a relative name (so no precending '::').
+						// TODO: make these throw exceptions.
+						assert(symbol.size() == 1);
+						assert(symbol.isRelative());
+						assert(symbol.first().templateArguments.empty());
+						return SEM::Value::VarValue(localVarNode.getSEMLocalVar());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
@@ -196,7 +188,12 @@ namespace Locic {
 				case AST::Value::INTERNALCONSTRUCT: {
 					const std::vector<AST::Value*>& astValues = value->internalConstruct.parameters;
 					
-					SEM::TypeInstance* thisTypeInstance = context.getThisTypeInstance();
+					const Node thisTypeNode = context.lookupParentType();
+					
+					// TODO: throw an exception.
+					assert(thisTypeNode.isTypeInstance());
+					
+					SEM::TypeInstance* thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
 					if(astValues.size() != thisTypeInstance->variables().size()) {
 						printf("Semantic Analysis Error: Internal constructor called "

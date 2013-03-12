@@ -126,7 +126,7 @@ namespace Locic {
 				inline NamespaceNode lookup(const Locic::Name& targetName) const {
 					if(kind() == NONE) return NamespaceNode::None();
 					
-					Locic::Name absoluteName = name().makeAbsolute(targetName);
+					const Locic::Name absoluteName = name().makeAbsolute(targetName);
 					
 					NamespaceNode node = *this;
 					

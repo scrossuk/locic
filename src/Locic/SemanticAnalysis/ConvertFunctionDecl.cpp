@@ -31,11 +31,12 @@ namespace Locic {
 				// Return types are always rvalues.
 				const bool isLValue = false;
 				
-				std::vector<SEM::Type*> templateVars;
-				for(size_t i = 0; i < thisTypeInstance->templateVariables().size(); i++) {
-					templateVars.push_back(SEM::Type::TemplateVarRef(
+				std::vector<SEM::Type*> templateVars(thisTypeInstance->templateVariables().size(), NULL);
+				for(StringMap<SEM::TemplateVar *>::Range range = thisTypeInstance->templateVariables().range(); !range.empty(); range.popFront()) {
+					SEM::TemplateVar * templateVar = range.front().value();
+					templateVars.at(templateVar->id()) = SEM::Type::TemplateVarRef(
 							SEM::Type::MUTABLE, SEM::Type::LVALUE,
-							thisTypeInstance->templateVariables().at(i)));
+							templateVar);
 				}
 				
 				semReturnType = SEM::Type::Object(isMutable, isLValue, thisTypeInstance,
