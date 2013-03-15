@@ -44,7 +44,7 @@ template <polymorphic T>
 class PolyClass{
 	static Default();
 	
-	void function(T value);
+	void function(int value);
 };
 
 an_interface * getPtr(TestClass2 * ptr){

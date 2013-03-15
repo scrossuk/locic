@@ -4,14 +4,15 @@
 #include <stdint.h>
 #include <string>
 
+#include <Locic/SEM/Object.hpp>
+
 namespace Locic {
 
 	namespace SEM {
 	
 		class Type;
-		class TypeInstance;
 		
-		class Var {
+		class Var: public Object {
 			public:
 				enum Kind {
 					LOCAL,
@@ -19,39 +20,40 @@ namespace Locic {
 					MEMBER
 				};
 				
-				inline Var(Kind k, size_t i, Type* t, TypeInstance* p = NULL)
-					: kind_(k), id_(i), type_(t), parent_(p) {
-					assert(type_ != NULL);
+				static inline Var * Local(Type * type){
+					return new Var(LOCAL, type);
+				}
+				
+				static inline Var * Param(Type * type){
+					return new Var(PARAM, type);
+				}
+				
+				static inline Var * Member(Type * type){
+					return new Var(MEMBER, type);
+				}
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_VARIABLE;
 				}
 				
 				inline Kind kind() const {
 					return kind_;
 				}
 				
-				inline size_t id() const {
-					return id_;
-				}
-				
 				inline Type* type() const {
 					return type_;
-				}
-				
-				inline bool hasParentType() const {
-					return parent_ != NULL;
-				}
-				
-				inline TypeInstance* getParentType() const {
-					assert(hasParentType());
-					return parent_;
 				}
 				
 				std::string toString() const;
 				
 			private:
+				inline Var(Kind k, Type* t)
+					: kind_(k), type_(t) {
+					assert(type_ != NULL);
+				}
+				
 				Kind kind_;
-				size_t id_;
 				Type* type_;
-				TypeInstance* parent_;
 				
 		};
 		

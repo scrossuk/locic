@@ -12,13 +12,18 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* function) {
-			AST::Type* returnType = function->returnType;
+		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* astFunction) {
+			AST::Type* returnType = astFunction->returnType;
 			SEM::Type* semReturnType = NULL;
 			
-			SEM::TypeInstance* thisTypeInstance = context.getThisTypeInstance();
+			const Node parentTypeNode = context.lookupParentType();
 			
-			const Name functionName = context.getName() + function->name;
+			SEM::TypeInstance* thisTypeInstance =
+				parentTypeNode.isTypeInstance() ?
+					parentTypeNode.getSEMTypeInstance() :
+					NULL;
+			
+			const Name functionName = context.name() + astFunction->name;
 			
 			if(returnType->typeEnum == AST::Type::UNDEFINED) {
 				// Undefined return type means this must be a class
@@ -31,12 +36,15 @@ namespace Locic {
 				// Return types are always rvalues.
 				const bool isLValue = false;
 				
-				std::vector<SEM::Type*> templateVars(thisTypeInstance->templateVariables().size(), NULL);
-				for(StringMap<SEM::TemplateVar *>::Range range = thisTypeInstance->templateVariables().range(); !range.empty(); range.popFront()) {
-					SEM::TemplateVar * templateVar = range.front().value();
-					templateVars.at(templateVar->id()) = SEM::Type::TemplateVarRef(
+				std::vector<SEM::Type*> templateVars;
+				
+				// The parent class type needs to include the template arguments.
+				for(size_t i = 0; i < thisTypeInstance->templateVariables().size(); i++){
+					SEM::TemplateVar * templateVar = thisTypeInstance->templateVariables().at(i);
+					assert(i == templateVars.size());
+					templateVars.push_back(SEM::Type::TemplateVarRef(
 							SEM::Type::MUTABLE, SEM::Type::LVALUE,
-							templateVar);
+							templateVar));
 				}
 				
 				semReturnType = SEM::Type::Object(isMutable, isLValue, thisTypeInstance,
@@ -51,26 +59,26 @@ namespace Locic {
 			
 			std::vector<AST::TypeVar*>::const_iterator it;
 			
-			for(size_t i = 0; i < function->parameters.size(); i++) {
-				AST::TypeVar* typeVar = function->parameters.at(i);
-				AST::Type* paramType = typeVar->type;
+			for(size_t i = 0; i < astFunction->parameters.size(); i++) {
+				AST::TypeVar* astVar = astFunction->parameters.at(i);
+				AST::Type* astParamType = astVar->type;
 				
 				// Parameter types are always lvalues.
-				SEM::Type* semParamType = ConvertType(context, paramType, SEM::Type::LVALUE);
+				SEM::Type* semParamType = ConvertType(context, astParamType, SEM::Type::LVALUE);
 				
 				if(semParamType->isVoid()) {
-					throw ParamVoidTypeException(functionName, typeVar->name);
+					throw ParamVoidTypeException(functionName, astVar->name);
 				}
 				
-				SEM::Var* semParamVar = new SEM::Var(SEM::Var::PARAM, i, semParamType);
-				
 				parameterTypes.push_back(semParamType);
-				parameterVars.push_back(semParamVar);
+				
+				parameterVars.push_back(SEM::Var::Param(semParamType));
 			}
 			
-			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE, function->isVarArg, semReturnType, parameterTypes);
+			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE, astFunction->isVarArg, semReturnType, parameterTypes);
 			
-			return SEM::Function::Decl(function->isMethod, thisTypeInstance, functionType, context.getName() + function->name, parameterVars);
+			return SEM::Function::Decl(astFunction->isMethod, thisTypeInstance,
+				functionType, astFunction->name, parameterVars);
 		}
 		
 	}

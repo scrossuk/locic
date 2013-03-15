@@ -5,67 +5,49 @@
 #include <Locic/Name.hpp>
 #include <Locic/SEM.hpp>
 
+#include <Locic/SemanticAnalysis/Node.hpp>
+
 namespace Locic {
 
 	namespace SemanticAnalysis {
 	
 		class Context {
 			public:
-				Context(Node rootNode)
-					: parent_(NULL), name_(Name::Absolute()), node_(rootNode){
-						assert(rootNode.isNamespace() && "Root node must be a namespace.");
-					}
+				Context(const Node& rootNode);
 				
-				Context(Context& parent, const std::string& n, Node node)
-					: parent_(&parent), name_(parent.name() + n), node_(node){
-						assert(node.isNotNone());
-					}
+				Context(Context& parent, const std::string& n, const Node& node);
 				
-				const Name& name() const {
-					return name_;
-				}
+				const Name& name() const;
 				
-				const Node& node() const {
-					return node_;
-				}
+				Node& node();
 				
-				bool hasParent() const {
-					return parent_ != NULL;
-				}
+				const Node& node() const;
 				
-				const Context& parent() const {
-					assert(hasParent());
-					return *parent_;
-				}
+				bool hasParent() const;
 				
-				const Context * parentPtr() const {
-					return parent_;
-				}
+				const Context& parent() const;
 				
-				Node lookupParentType() const {
-					Context * currentContext = this;
-					
-					while(currentContext != NULL){
-						if(currentContext->node().isTypeInstance()){
-							return currentContext->node();
-						}
-						
-						currentContext = currentContext->parentPtr();
-					}
-					
-					return Node::None();
-				}
+				const Context * parentPtr() const;
 				
-				Node lookupLocalVar(const std::string& name) const {
-					
-				}
+				Node reverseLookup(SEM::Object* object) const;
 				
-				Node lookupName(const Name& name) const {
-					
-				}
+				Node lookupParentType() const;
+				
+				Node getParentMemberVariable(const std::string& varName) const;
+				
+				Node lookupParentFunction() const;
+				
+				SEM::Type * getParentFunctionReturnType() const;
+				
+				//Node lookupLocalVar(const std::string& name) const;
+				
+				SEM::TypeInstance* getBuiltInType(const std::string& typeName) const;
+				
+				Node lookupName(const Name& name) const;
 			
 			private:
 				Context * parent_;
+				mutable Map<SEM::Object*, Node> reverseLookupCache_;
 				Name name_;
 				Node node_;
 				

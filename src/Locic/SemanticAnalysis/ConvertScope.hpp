@@ -11,7 +11,7 @@ namespace Locic {
 	
 		bool WillScopeReturn(const SEM::Scope& scope);
 		
-		SEM::Scope* ConvertScope(LocalContext& context, AST::Scope* scope);
+		SEM::Scope* ConvertScope(Context& context, AST::Scope* astScope);
 		
 	}
 	

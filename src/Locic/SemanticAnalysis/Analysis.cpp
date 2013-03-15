@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <list>
@@ -45,13 +46,13 @@ namespace Locic {
 				const std::string& nsName = astChildNamespace->name;
 				
 				SEM::Namespace* semChildNamespace =
-					new SEM::Namespace(context.name() + nsName);
+					new SEM::Namespace(nsName);
 				
-				Node nsNode = Node::Namespace(astChildNamespace, semChildNamespace);
+				const Node nsNode = Node::Namespace(astChildNamespace, semChildNamespace);
 				
 				if(!node.tryAttach(nsName, nsNode)){
 					throw NameClashException(NameClashException::NAMESPACE_WITH_NAMESPACE,
-						semChildNamespace->name());
+						context.name() + nsName);
 				}
 				
 				node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
@@ -82,12 +83,12 @@ namespace Locic {
 				
 				SEM::TypeInstance* semTypeInstance =
 					new SEM::TypeInstance(ConvertTypeInstanceKind(astTypeInstance->typeEnum),
-							context.name() + typeName);
+							typeName);
 				
 				const Node existingNode = node.getChild(typeName);
 				if(existingNode.isNamespace()) {
 					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE,
-							semTypeInstance->name());
+							context.name() + typeName);
 				} else if(existingNode.isTypeInstance()) {
 					// Types can be unified by name at this point.
 					// Later stages will identify whether the types actually match.
@@ -99,14 +100,14 @@ namespace Locic {
 						// Classes decls and definitions can be unified.
 						semExistingType->unifyToKind(SEM::TypeInstance::CLASSDEF);
 					} else if(semExistingType->kind() != semTypeInstance->kind()) {
-						throw NonUnifiableTypeClashException(semTypeInstance->name());
+						throw NonUnifiableTypeClashException(context.name() + typeName);
 					}
 				} else {
 					assert(existingNode.isNone() &&
 						   "Functions shouldn't be added at this point, so anything "
 						   "that isn't a namespace or a type instance should be 'none'");
 					
-					Node newNode = Node::TypeInstance(astTypeInstance, semTypeInstance);
+					const Node newNode = Node::TypeInstance(astTypeInstance, semTypeInstance);
 					
 					node.attach(typeName, newNode);
 					node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
@@ -130,21 +131,24 @@ namespace Locic {
 			Node& node = context.node();
 			
 			if(node.isTypeInstance()){
+				AST::TypeInstance* astTypeInstance = node.getASTTypeInstance();
+				SEM::TypeInstance* semTypeInstance = node.getSEMTypeInstance();
+				
 				for(size_t i = 0; i < astTypeInstance->templateVariables.size(); i++){
 					AST::TemplateTypeVar * astTemplateVar = astTypeInstance->templateVariables.at(i);
 					
 					const std::string& varName = astTemplateVar->name;
 					
 					SEM::TemplateVar * semTemplateVar = new SEM::TemplateVar(
-						ConvertTemplateVarType(templateTypeVar->kind), i);
+						ConvertTemplateVarType(astTemplateVar->kind));
 					
 					const Node templateNode = Node::TemplateVar(astTemplateVar, semTemplateVar);
 					
-					if(!node.tryAttach(varName, templateNode))
-						throw TemplateVariableClashException(semTypeInstance->name(), varName);
+					if(!node.tryAttach(varName, templateNode)){
+						throw TemplateVariableClashException(context.name() + semTypeInstance->name(), varName);
 					}
 					
-					node.getSEMTypeInstance()->templateVariables().push_back(semTemplateVar);
+					semTypeInstance->templateVariables().push_back(semTemplateVar);
 				}
 			}else{
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
@@ -159,9 +163,9 @@ namespace Locic {
 			
 			if(node.isTypeInstance()){
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
-			 		Node& childNode = range.front().value();
+			 		Node childNode = range.front().value();
 			 		if(childNode.isTemplateVar()){
-			 			AST::Type * specType = childNode.getASTTemplateVar();
+			 			AST::Type * specType = childNode.getASTTemplateVar()->specType;
 			 			if(specType != NULL){
 							childNode.getSEMTemplateVar()->setSpecType(ConvertType(context,
 								specType, SEM::Type::LVALUE));
@@ -194,12 +198,13 @@ namespace Locic {
 					AST::TypeVar* typeVar = astTypeInstance->variables.at(i);
 					SEM::Type* semType = ConvertType(context, typeVar->type, SEM::Type::LVALUE);
 					
-					SEM::Var* var = new SEM::Var(SEM::Var::MEMBER, i, semType, semTypeInstance);
+					SEM::Var* var = SEM::Var::Member(semType);
 					
-					const Node memberNode = Node::MemberVariable(typeVar, var);
+					const Node memberNode = Node::Variable(typeVar, var);
 					
-					if(!node.tryAttach(memberNode)){
-						throw MemberVariableClashException(semTypeInstance->name(), typeVar->name);
+					if(!node.tryAttach(typeVar->name, memberNode)){
+						throw MemberVariableClashException(context.name() + astTypeInstance->name,
+							typeVar->name);
 					}
 					
 					semTypeInstance->variables().push_back(var);
@@ -220,27 +225,41 @@ namespace Locic {
 			SEM::Function* semFunction = ConvertFunctionDecl(context, astFunction);
 			assert(semFunction != NULL);
 			
-			const Name functionName = context.name() + astFunction->name;
-			const Node existingNode = node.getChild(functionName);
+			const Name fullFunctionName = context.name() + astFunction->name;
+			const Node existingNode = node.getChild(astFunction->name);
 			
 			if(existingNode.isNamespace()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, functionName);
+				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullFunctionName);
 			} else if(existingNode.isTypeInstance()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, functionName);
+				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullFunctionName);
 			} else if(existingNode.isFunction()) {
 				SEM::Function* existingFunction = existingNode.getSEMFunction();
 				assert(existingFunction != NULL && "getFunction() must not be NULL as indicated by isFunction() returning true");
 				if(*(semFunction->type()) != *(existingFunction->type())) {
-					throw NonUnifiableFunctionsException(functionName,
+					throw NonUnifiableFunctionsException(fullFunctionName,
 							semFunction->type()->toString(),
 							existingFunction->type()->toString());
 				}
 			} else {
 				assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
 				
-				const Node functionNode = Node::Function(astFunction, semFunction);
+				Node functionNode = Node::Function(astFunction, semFunction);
 				
-				node.attach(functionNode);
+				// Attach function node to parent.
+				node.attach(astFunction->name, functionNode);
+				
+				assert(astFunction->parameters.size() == semFunction->parameters().size());
+				
+				// Attach parameter variable nodes to the function node.
+				for(size_t i = 0; i < astFunction->parameters.size(); i++) {
+					AST::TypeVar* astVar = astFunction->parameters.at(i);
+					SEM::Var* semVar = semFunction->parameters().at(i);
+					
+					const Node paramNode = Node::Variable(astVar, semVar);
+					if(!functionNode.tryAttach(astVar->name, paramNode)){
+						throw ParamVariableClashException(fullFunctionName, astVar->name);
+					}
+				}
 				
 				if(node.isNamespace()){
 					node.getSEMNamespace()->functions().push_back(semFunction);
@@ -248,6 +267,11 @@ namespace Locic {
 					node.getSEMTypeInstance()->functions().push_back(semFunction);
 				}
 			}
+		}
+		
+		static bool methodCompare(SEM::Function* f0, SEM::Function* f1){
+			assert(f0 != NULL && f1 != NULL);
+			return f0->name() < f1->name();
 		}
 		
 		void AddFunctionDecls(Context& context) {
@@ -270,13 +294,102 @@ namespace Locic {
 					AST::Function* astFunction = astTypeInstance->functions.at(i);
 					AddFunctionDecl(context, astFunction);
 				}
+				
+				// Sort type instance methods.
+				SEM::TypeInstance * semTypeInstance = node.getSEMTypeInstance();
+				std::sort(semTypeInstance->functions().begin(),
+					semTypeInstance->functions().end(),
+					methodCompare);
+			}
+		}
+		
+		Node GetNullConstructor(const Node& node){
+			assert(node.isTypeInstance());
+			SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+			
+			const std::string functionName = "Null";
+			const Node functionNode = node.getChild(functionName);
+			if(!functionNode.isFunction()) return Node::None();
+			
+			SEM::Function* function = functionNode.getSEMFunction();
+			
+			// Looking for static method.
+			if(function->isMethod()) return Node::None();
+			
+			SEM::Type* type = function->type();
+			
+			// Check it's not var arg.
+			if(type->isFunctionVarArg()) return Node::None();
+			
+			// Takes no arguments.
+			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
+			
+			// Check function returns its parent type.
+			if(!type->getFunctionReturnType()->isTypeInstance(typeInstance)){
+				return Node::None();
+			}
+			
+			return functionNode;
+		}
+		
+		Node GetImplicitCopy(const Node& node){
+			assert(node.isTypeInstance());
+			SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+			
+			const std::string functionName = "implicitCopy";
+			const Node functionNode = node.getChild(functionName);
+			if(!functionNode.isFunction()) return Node::None();
+			
+			SEM::Function* function = functionNode.getSEMFunction();
+			
+			// Looking for non-static method.
+			if(!function->isMethod()) return Node::None();
+			
+			SEM::Type* type = function->type();
+			
+			// Check it's not var arg.
+			if(type->isFunctionVarArg()) return Node::None();
+			
+			// Takes no arguments.
+			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
+			
+			// Check function returns its parent type.
+			if(!type->getFunctionReturnType()->isTypeInstance(typeInstance)){
+				return Node::None();
+			}
+			
+			return functionNode;
+		}
+		
+		void IdentifyTypeProperties(Context& context) {
+			Node& node = context.node();
+			
+			if(node.isTypeInstance()){
+				SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+				
+				// Look for null constructor.
+				const Node nullNode = GetNullConstructor(node);
+				if(nullNode.isNotNone()){
+					typeInstance->setNullConstructor(nullNode.getSEMFunction());
+				}
+				
+				// Look for implicit copy.
+				const Node copyNode = GetImplicitCopy(node);
+				if(copyNode.isNotNone()){
+					typeInstance->setImplicitCopy(copyNode.getSEMFunction());
+				}
+			}else{
+				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			 		Context newContext(context, range.front().key(), range.front().value());
+					IdentifyTypeProperties(newContext);
+				}
 			}
 		}
 		
 		SEM::Namespace* Run(AST::Namespace * rootASTNamespace) {
 			try {
 				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
-				SEM::Namespace* rootSEMNamespace = new SEM::Namespace(Name::Absolute());
+				SEM::Namespace* rootSEMNamespace = new SEM::Namespace("");
 				
 				// Create the root namespace node.
 				Node rootNode = Node::Namespace(rootASTNamespace, rootSEMNamespace);
@@ -301,6 +414,9 @@ namespace Locic {
 				
 				// ---- Pass 6: Create function declarations.
 				AddFunctionDecls(rootContext);
+				
+				// ---- Pass 7: Identify type properties.
+				IdentifyTypeProperties(rootContext);
 				
 				// ---- Pass 7: Fill in function code.
 				ConvertNamespace(rootContext);

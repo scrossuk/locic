@@ -10,24 +10,36 @@
 namespace Locic {
 
 	namespace SEM {
-	
-		NamespaceNode TypeInstance::lookup(const Locic::Name& targetName) {
-			assert(targetName.isAbsolute() && !targetName.empty());
-			
-			if(name().isPrefixOf(targetName) &&
-				targetName.size() == (name().size() + 1)) {
-					
-				const std::string nameEnd = targetName.last();
-				
-				// Look for functions...
-				Locic::Optional<Function*> function = functions().tryGet(nameEnd);
-				if(function.hasValue()) return NamespaceNode::Function(function.getValue());
-			}
-			
-			return NamespaceNode::None();
-		}
 		
 		bool TypeInstance::supportsNullConstruction() const {
+			return typeProperties_.nullConstructor != NULL;
+		}
+		
+		SEM::Function* TypeInstance::getNullConstructor() const {
+			assert(supportsNullConstruction());
+			return typeProperties_.nullConstructor;
+		}
+		
+		void TypeInstance::setNullConstructor(SEM::Function* function) {
+			assert(typeProperties_.nullConstructor == NULL);
+			typeProperties_.nullConstructor = function;
+		}
+		
+		bool TypeInstance::supportsImplicitCopy() const {
+			return typeProperties_.implicitCopy != NULL;
+		}
+		
+		Type* TypeInstance::getImplicitCopyType() const {
+			assert(supportsImplicitCopy());
+			return typeProperties_.implicitCopy->type()->getFunctionReturnType();
+		}
+		
+		void TypeInstance::setImplicitCopy(SEM::Function* function) {
+			assert(typeProperties_.implicitCopy == NULL);
+			typeProperties_.implicitCopy = function;
+		}
+	
+		/*bool TypeInstance::supportsNullConstruction() const {
 			const std::string functionName = "Null";
 			Locic::Optional<Function*> result = functions().tryGet(functionName);
 			
@@ -88,28 +100,28 @@ namespace Locic {
 		Type* TypeInstance::getImplicitCopyType() {
 			assert(supportsImplicitCopy());
 			return getFunctionReturnType("implicitCopy");
-		}
+		}*/
 		
 		std::string TypeInstance::toString() const {
 			switch(kind()) {
 				case PRIMITIVE:
 					return makeString("PrimitiveType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				case STRUCTDECL:
 					return makeString("StructDeclType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				case STRUCTDEF:
 					return makeString("StructDefType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				case CLASSDECL:
 					return makeString("ClassDeclType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				case CLASSDEF:
 					return makeString("ClassDefType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				case INTERFACE:
 					return makeString("InterfaceType(%s)",
-							name().toString().c_str());
+							name().c_str());
 				default:
 					return "[UNKNOWN TYPE INSTANCE]";
 			}

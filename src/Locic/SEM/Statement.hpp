@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_STATEMENT_HPP
 #define LOCIC_SEM_STATEMENT_HPP
 
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/Value.hpp>
 #include <Locic/SEM/Var.hpp>
@@ -11,7 +12,7 @@ namespace Locic {
 	
 		class Scope;
 		
-		class Statement {
+		class Statement: public Object {
 			public:
 				enum Kind {
 					VALUE,
@@ -70,6 +71,10 @@ namespace Locic {
 					Statement* statement = new Statement(RETURN);
 					statement->returnStmt_.value = value;
 					return statement;
+				}
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_STATEMENT;
 				}
 				
 				inline Kind kind() const {

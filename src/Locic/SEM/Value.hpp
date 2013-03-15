@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <Locic/Constant.hpp>
+
 #include <Locic/SEM/Function.hpp>
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 #include <Locic/SEM/Var.hpp>
@@ -12,7 +14,7 @@ namespace Locic {
 
 	namespace SEM {
 	
-		class Value {
+		class Value: public Object {
 			public:
 				enum Kind {
 					NONE,
@@ -84,7 +86,7 @@ namespace Locic {
 				
 				struct {
 					Value* object;
-					std::size_t memberId;
+					Var* memberVar;
 				} memberAccess;
 				
 				struct {
@@ -199,10 +201,10 @@ namespace Locic {
 					return value;
 				}
 				
-				inline static Value* MemberAccess(Value* object, std::size_t memberId, Type* type) {
+				inline static Value* MemberAccess(Value* object, Var* var, Type* type) {
 					Value* value = new Value(MEMBERACCESS, type);
 					value->memberAccess.object = object;
-					value->memberAccess.memberId = memberId;
+					value->memberAccess.memberVar = var;
 					return value;
 				}
 				
@@ -241,6 +243,10 @@ namespace Locic {
 				
 				inline static Value* CastDummy(Type* type) {
 					return new Value(CASTDUMMYOBJECT, type);
+				}
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_VALUE;
 				}
 				
 				std::string toString() const;

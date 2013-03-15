@@ -51,16 +51,16 @@ namespace Locic {
 					return makeString("InternalConstruct(args: %s)",
 							makeArrayString(internalConstruct.parameters).c_str());
 				case MEMBERACCESS:
-					return makeString("MemberAccess(object: %s, memberId: %llu)",
+					return makeString("MemberAccess(object: %s, var: %s)",
 							memberAccess.object->toString().c_str(),
-							(unsigned long long) memberAccess.memberId);
+							memberAccess.memberVar->toString().c_str());
 				case FUNCTIONCALL:
 					return makeString("FunctionCall(funcValue: %s, args: %s)",
 							functionCall.functionValue->toString().c_str(),
 							makeArrayString(functionCall.parameters).c_str());
 				case FUNCTIONREF:
 					return makeString("FunctionRef(%s)",
-							functionRef.function->name().toString().c_str());
+							functionRef.function->name().c_str());
 				case METHODOBJECT:
 					return makeString("MethodObject(object: %s, method: %s)",
 							methodObject.methodOwner->toString().c_str(),

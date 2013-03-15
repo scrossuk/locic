@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <Locic/SEM/Object.hpp>
+
 namespace Locic {
 
 	namespace SEM {
@@ -15,18 +17,17 @@ namespace Locic {
 		
 		class Type;
 		
-		class TemplateVar {
+		class TemplateVar: public Object {
 			public:
-				inline TemplateVar(TemplateVarType t,
-						size_t i)
-					: type_(t), id_(i), specType_(NULL) { }
-					
-				inline TemplateVarType type() const {
-					return type_;
+				inline TemplateVar(TemplateVarType t)
+					: type_(t), specType_(NULL) { }
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_TEMPLATEVAR;
 				}
 				
-				inline size_t id() const {
-					return id_;
+				inline TemplateVarType type() const {
+					return type_;
 				}
 				
 				inline void setSpecType(Type * spec){
@@ -41,7 +42,6 @@ namespace Locic {
 				
 			private:
 				TemplateVarType type_;
-				size_t id_;
 				Type * specType_;
 				
 		};

@@ -12,46 +12,35 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertFunctionDef(Context& context, AST::Function* astFunction, SEM::Function* semFunction) {
+		void ConvertFunctionDef(Context& context) {
+			Node& functionNode = context.node();
+			
+			AST::Function * astFunction = functionNode.getASTFunction();
+			SEM::Function * semFunction = functionNode.getSEMFunction();
+			
+			assert(astFunction->scope != NULL);
+			
 			if(semFunction->isDefinition()) {
-				throw MultipleFunctionDefinitionsException(semFunction->name());
-			}
-			
-			LocalContext localContext(context, semFunction);
-			
-			// AST information gives parameter names; SEM information gives parameter variable information.
-			const std::vector<AST::TypeVar*>& astParameters = astFunction->parameters;
-			const std::vector<SEM::Var*>& semParameters = semFunction->parameters();
-			
-			assert(astParameters.size() == semParameters.size());
-			
-			for(std::size_t i = 0; i < astParameters.size(); i++) {
-				AST::TypeVar* typeVar = astParameters.at(i);
-				SEM::Var* paramVar = semParameters.at(i);
-				
-				// Create a mapping from the parameter's name to its variable information.
-				if(!localContext.defineFunctionParameter(typeVar->name, paramVar)) {
-					throw ParamVariableClashException(semFunction->name(), typeVar->name);
-				}
+				throw MultipleFunctionDefinitionsException(context.name());
 			}
 			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)
-			SEM::Scope* scope = ConvertScope(localContext, astFunction->scope);
+			SEM::Scope* semScope = ConvertScope(context, astFunction->scope);
 			
 			SEM::Type* returnType = semFunction->type()->getFunctionReturnType();
 			
 			if(!returnType->isVoid()) {
 				// Functions with non-void return types must return a value.
-				if(!WillScopeReturn(*scope)) {
-					throw MissingReturnStatementException(semFunction->name());
+				if(!WillScopeReturn(*semScope)) {
+					throw MissingReturnStatementException(context.name() + astFunction->name);
 				}
 			} else {
 				// Need to add a void return statement in case the program didn't.
-				scope->statements().push_back(SEM::Statement::ReturnVoid());
+				semScope->statements().push_back(SEM::Statement::ReturnVoid());
 			}
 			
-			semFunction->setScope(scope);
+			semFunction->setScope(semScope);
 		}
 		
 	}

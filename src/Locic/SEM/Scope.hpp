@@ -2,6 +2,8 @@
 #define LOCIC_SEM_SCOPE_HPP
 
 #include <vector>
+
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/Statement.hpp>
 #include <Locic/SEM/Var.hpp>
 
@@ -9,9 +11,13 @@ namespace Locic {
 
 	namespace SEM {
 	
-		class Scope {
+		class Scope: public Object {
 			public:
 				inline Scope() { }
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_SCOPE;
+				}
 				
 				inline std::vector<Var*>& localVariables() {
 					return localVariables_;

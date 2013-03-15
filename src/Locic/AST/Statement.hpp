@@ -4,6 +4,7 @@
 #include <string>
 
 #include <Locic/AST/Type.hpp>
+#include <Locic/AST/TypeVar.hpp>
 #include <Locic/AST/Value.hpp>
 
 namespace AST {
@@ -41,8 +42,8 @@ namespace AST {
 		} whileStmt;
 		
 		struct {
-			Type* type;  // NULL when the keyword 'auto' is used.
-			std::string varName;
+			// Type var's type is NULL when the keyword 'auto' is used.
+			TypeVar* typeVar;
 			Value* value;
 		} varDecl;
 		
@@ -87,18 +88,16 @@ namespace AST {
 			return statement;
 		}
 		
-		inline static Statement* VarDecl(Type* type, const std::string& name, Value* value) {
+		inline static Statement* VarDecl(TypeVar* typeVar, Value* value) {
 			Statement* statement = new Statement(VARDECL);
-			statement->varDecl.type = type;
-			statement->varDecl.varName = name;
+			statement->varDecl.typeVar = typeVar;
 			statement->varDecl.value = value;
 			return statement;
 		}
 		
 		inline static Statement* AutoVarDecl(const std::string& name, Value* value) {
 			Statement* statement = new Statement(VARDECL);
-			statement->varDecl.type = 0;
-			statement->varDecl.varName = name;
+			statement->varDecl.typeVar = new TypeVar(NULL, name);
 			statement->varDecl.value = value;
 			return statement;
 		}

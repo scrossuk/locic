@@ -2,174 +2,59 @@
 #define LOCIC_SEM_NAMESPACE_HPP
 
 #include <string>
-#include <Locic/Map.hpp>
-#include <Locic/Name.hpp>
-#include <Locic/Optional.hpp>
+#include <vector>
+
 #include <Locic/SEM/Function.hpp>
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
 namespace Locic {
 
 	namespace SEM {
 	
-		struct NamespaceNode;
-		
-		class Namespace {
+		class Namespace: public Object {
 			public:
-				inline Namespace(const Locic::Name& n)
+				inline Namespace(const std::string& n)
 					: name_(n) { }
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_NAMESPACE;
+				}
 					
-				inline const Locic::Name& name() const {
+				inline const std::string& name() const {
 					return name_;
 				}
 				
-				inline Locic::StringMap<NamespaceNode>& children() {
-					return children_;
+				inline std::vector<Namespace *>& namespaces() {
+					return namespaces_;
 				}
 				
-				inline const Locic::StringMap<NamespaceNode>& children() const {
-					return children_;
+				inline const std::vector<Namespace *>& namespaces() const {
+					return namespaces_;
 				}
 				
-				NamespaceNode lookup(const Locic::Name& targetName) const;
-				
-			private:
-				Locic::Name name_;
-				Locic::StringMap<NamespaceNode> children_;
-				
-		};
-		
-		class NamespaceNode {
-			public:
-				enum Kind {
-					NONE,
-					FUNCTION,
-					NAMESPACE,
-					TYPEINSTANCE
-				};
-				
-				inline static NamespaceNode None() {
-					return NamespaceNode(NONE);
+				inline std::vector<TypeInstance *>& typeInstances() {
+					return typeInstances_;
 				}
 				
-				inline static NamespaceNode Function(Function* function) {
-					NamespaceNode node(FUNCTION);
-					node.function_ = function;
-					return node;
+				inline const std::vector<TypeInstance *>& typeInstances() const {
+					return typeInstances_;
 				}
 				
-				inline static NamespaceNode Namespace(Namespace* nameSpace) {
-					NamespaceNode node(NAMESPACE);
-					node.nameSpace_ = nameSpace;
-					return node;
+				inline std::vector<Function *>& functions() {
+					return functions_;
 				}
 				
-				inline static NamespaceNode TypeInstance(TypeInstance* typeInstance) {
-					NamespaceNode node(TYPEINSTANCE);
-					node.typeInstance_ = typeInstance;
-					return node;
-				}
-				
-				inline Kind kind() const {
-					return kind_;
-				}
-				
-				inline Locic::Name name() const {
-					switch(kind()) {
-						case FUNCTION:
-							return function_->name();
-						case NAMESPACE:
-							return nameSpace_->name();
-						case TYPEINSTANCE:
-							return typeInstance_->name();
-						default:
-							assert(false && "Can't get name of 'NONE' namespace node.");
-							return Locic::Name::Absolute();
-					}
-				}
-				
-				inline bool isNone() const {
-					return kind() == NONE;
-				}
-				
-				inline bool isNotNone() const {
-					return kind() != NONE;
-				}
-				
-				inline bool isFunction() const {
-					return kind() == FUNCTION;
-				}
-				
-				inline bool isNamespace() const {
-					return kind() == NAMESPACE;
-				}
-				
-				inline bool isTypeInstance() const {
-					return kind() == TYPEINSTANCE;
-				}
-				
-				inline class Function* getFunction() const {
-						assert(kind() == FUNCTION);
-						return function_;
-					}
-					
-				inline class Namespace* getNamespace() const {
-						assert(kind() == NAMESPACE);
-						return nameSpace_;
-					}
-					
-				inline class TypeInstance* getTypeInstance() const {
-						assert(kind() == TYPEINSTANCE);
-						return typeInstance_;
-					}
-					
-				inline NamespaceNode lookup(const Locic::Name& targetName) const {
-					if(kind() == NONE) return NamespaceNode::None();
-					
-					const Locic::Name absoluteName = name().makeAbsolute(targetName);
-					
-					NamespaceNode node = *this;
-					
-					while(!node.isNone()) {
-						if(node.name() == absoluteName) {
-							return node;
-						}
-						
-						switch(node.kind()) {
-							case NAMESPACE: {
-								node = node.getNamespace()->lookup(absoluteName);
-								break;
-							}
-							case TYPEINSTANCE: {
-								node = node.getTypeInstance()->lookup(absoluteName);
-								break;
-							}
-							case FUNCTION: {
-								// Functions have no children.
-								return NamespaceNode::None();
-							}
-							default: {
-								assert(false);
-								return NamespaceNode::None();
-							}
-						}
-					}
-					
-					return NamespaceNode::None();
+				inline const std::vector<Function *>& functions() const {
+					return functions_;
 				}
 				
 			private:
-				inline NamespaceNode(Kind k)
-					: kind_(k), nullPtr_(NULL) { }
-					
-				Kind kind_;
+				std::string name_;
+				std::vector<Namespace *> namespaces_;
+				std::vector<TypeInstance *> typeInstances_;
+				std::vector<Function *> functions_;
 				
-				union {
-					void* nullPtr_;
-					class Function* function_;
-					class Namespace* nameSpace_;
-					class TypeInstance* typeInstance_;
-				};
 		};
 		
 	}

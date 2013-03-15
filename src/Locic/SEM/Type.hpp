@@ -5,6 +5,8 @@
 #include <vector>
 
 #include <Locic/String.hpp>
+
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
 namespace Locic {
@@ -13,7 +15,7 @@ namespace Locic {
 	
 		class TemplateVar;
 		
-		class Type {
+		class Type: public Object {
 			public:
 				enum Kind {
 					VOID,
@@ -96,6 +98,10 @@ namespace Locic {
 					type->methodType_.objectType = objectType;
 					type->methodType_.functionType = functionType;
 					return type;
+				}
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_TYPE;
 				}
 				
 				inline Kind kind() const {

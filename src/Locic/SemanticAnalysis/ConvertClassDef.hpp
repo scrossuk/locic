@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertClassDef(Context& context, AST::TypeInstance* astTypeInstance, SEM::TypeInstance* semTypeInstance);
+		void ConvertClassDef(Context& context);
 		
 	}
 	

@@ -237,7 +237,6 @@ rootNameSpace:
 	{
 		parserContext->rootNamespace->namespaces.push_back($2);
 	}
-	| rootNameSpace SEMICOLON
 	| rootNameSpace error
 	{
 		parserContext->error("Invalid struct, class, function or other.");
@@ -737,7 +736,7 @@ normalStatement:
 	 */
 	| type NAME SETEQUAL value %dprec 2
 	{
-		$$ = AST::Statement::VarDecl($1, *($2), $4);
+		$$ = AST::Statement::VarDecl(new AST::TypeVar($1, *($2)), $4);
 	}
 	| value SETEQUAL value %dprec 1
 	{

@@ -14,31 +14,33 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* ConvertValue(LocalContext& context, AST::Value* value) {
+		SEM::Value* ConvertValue(Context& context, AST::Value* value) {
 			assert(value != NULL && "Cannot convert NULL AST::Value");
 			
 			switch(value->typeEnum) {
 				case AST::Value::CONSTANT: {
 					if(value->constant->getType() == Locic::Constant::NULLVAL) {
 						return SEM::Value::Constant(value->constant, SEM::Type::Null());
-					} else if(value->constant->getType() == Locic::Constant::STRING && value->constant->getStringType() == Locic::Constant::CSTRING) {
+					} else if(value->constant->getType() == Locic::Constant::STRING
+						&& value->constant->getStringType() == Locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						SEM::TypeInstance* charType = context.lookupName(Name::Absolute() + "char").getTypeInstance();
-						assert(charType != NULL && "Couldn't find char constant type");
+						SEM::TypeInstance* charType = context.getBuiltInType("char");
 						
 						SEM::Type* constCharPtrType = SEM::Type::Pointer(SEM::Type::CONST, SEM::Type::RVALUE,
-								SEM::Type::Object(SEM::Type::CONST, SEM::Type::LVALUE, charType, SEM::Type::NO_TEMPLATE_ARGS));
+								SEM::Type::Object(SEM::Type::CONST, SEM::Type::LVALUE, charType,
+									SEM::Type::NO_TEMPLATE_ARGS));
 						return SEM::Value::Constant(value->constant, constCharPtrType);
 					} else {
 						const std::string typeName = value->constant->getTypeName();
-						SEM::TypeInstance* typeInstance = context.lookupName(Name::Absolute() + typeName).getTypeInstance();
+						SEM::TypeInstance* typeInstance = context.getBuiltInType(typeName);
 						if(typeInstance == NULL) {
 							printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
 						}
 						assert(typeInstance != NULL && "Couldn't find constant type");
 						return SEM::Value::Constant(value->constant,
-								SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE, typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
+								SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE,
+								typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
 					}
 					
 					assert(false && "Invalid if fallthrough in ConvertValue for constant");
@@ -58,37 +60,38 @@ namespace Locic {
 						printf("Semantic Analysis Error: Namespace '%s' is not a valid value.\n", name.toString().c_str());
 						return NULL;
 					} else if(node.isFunction()) {
-						SEM::Function* function = node.getFunction();
+						SEM::Function* function = node.getSEMFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						assert(!function->isMethod() && "TODO: class method references not implemented yet.");
 						
 						return SEM::Value::FunctionRef(function);
 					} else if(node.isTypeInstance()) {
-						SEM::TypeInstance* typeInstance = node.getTypeInstance();
-						assert(typeInstance != NULL && "Type instance pointer must not be NULL (as indicated by isTypeInstance() being true)");
+						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+						assert(typeInstance != NULL && "Type instance pointer must not "
+							"be NULL (as indicated by isTypeInstance() being true)");
 						
 						if(typeInstance->isInterface()) {
-							printf("Semantic Analysis Error: Can't construct interface type '%s' (full name: '%s').\n",
-								   name.toString().c_str(), typeInstance->name().toString().c_str());
+							printf("Semantic Analysis Error: Can't construct interface type '%s'.\n",
+								   name.toString().c_str());
 							return NULL;
 						}
 						
 						const Node defaultConstructorNode = node.getChild("Default");
 						if(!defaultConstructorNode.isFunction()) {
-							printf("Semantic Analysis Error: Couldn't find default constructor for type '%s' (full name: '%s').\n",
-								   name.toString().c_str(), typeInstance->name().toString().c_str());
+							printf("Semantic Analysis Error: Couldn't find default constructor for type '%s'.\n",
+								   name.toString().c_str());
 							return NULL;
 						}
 						
 						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction());
-					} else if(node.isLocalVar()) {
-						// Local variables must just be a single plain string,
+					} else if(node.isVariable()) {
+						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
 						// TODO: make these throw exceptions.
 						assert(symbol.size() == 1);
 						assert(symbol.isRelative());
-						assert(symbol.first().templateArguments.empty());
-						return SEM::Value::VarValue(localVarNode.getSEMLocalVar());
+						assert(symbol.first().templateArguments().empty());
+						return SEM::Value::VarValue(node.getSEMVar());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
@@ -99,7 +102,7 @@ namespace Locic {
 				}
 				case AST::Value::MEMBERREF: {
 					const std::string& memberName = value->memberRef.name;
-					SEM::Var* semVar = context.getThisVar(memberName);
+					SEM::Var* semVar = context.getParentMemberVariable(memberName).getSEMVar();
 					
 					if(semVar == NULL) {
 						printf("Semantic Analysis Error: member variable '@%s' not found.\n", memberName.c_str());
@@ -134,8 +137,8 @@ namespace Locic {
 					SEM::Value* cond = ConvertValue(context, value->ternary.condition);
 					if(cond == NULL) return NULL;
 					
-					SEM::TypeInstance* boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
-					assert(boolType != NULL && "Couldn't find bool type");
+					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
+					
 					SEM::Value* boolValue = ImplicitCast(cond,
 							SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE, boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
@@ -202,24 +205,13 @@ namespace Locic {
 						return NULL;
 					}
 					
-					std::vector<SEM::Value*> semValues(astValues.size(), NULL);
+					std::vector<SEM::Value*> semValues;
 					
-					StringMap<SEM::Var*>::Range range = thisTypeInstance->variables().range();
-					for(; !range.empty(); range.popFront()) {
-						SEM::Var* var = range.front().value();
-						const size_t id = var->id();
-						
-						assert(semValues.at(id) == NULL);
-						
-						SEM::Value* semValue = ConvertValue(context, astValues.at(id));
-						if(semValue == NULL) return NULL;
-						
+					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
+						SEM::Var* var = thisTypeInstance->variables().at(i);
+						SEM::Value* semValue = ConvertValue(context, astValues.at(i));
 						SEM::Value* semParam = ImplicitCast(semValue, var->type());
-						semValues.at(id) = semParam;
-					}
-					
-					for(size_t i = 0; i < semValues.size(); i++) {
-						assert(semValues.at(i) != NULL);
+						semValues.push_back(semParam);
 					}
 					
 					return SEM::Value::InternalConstruct(thisTypeInstance, semValues);
@@ -243,11 +235,16 @@ namespace Locic {
 					SEM::TypeInstance* typeInstance = object->type()->getObjectType();
 					assert(typeInstance != NULL);
 					
+					const Node typeNode = context.reverseLookup(typeInstance);
+					assert(typeNode.isNotNone());
+					
 					if(typeInstance->isStructDef()) {
 						// Look for struct variables.
-						Optional<SEM::Var*> varResult = typeInstance->variables().tryGet(memberName);
-						if(varResult.hasValue()) {
-							SEM::Var* var = varResult.getValue();
+						const Node varNode = typeNode.getChild(memberName);
+						
+						if(varNode.isNotNone()) {
+							assert(varNode.isVariable());
+							SEM::Var* var = varNode.getSEMVar();
 							SEM::Type* memberType = var->type();
 							
 							if(object->type()->isConst()) {
@@ -262,35 +259,35 @@ namespace Locic {
 								memberType = memberType->createRValueType();
 							}
 							
-							return SEM::Value::MemberAccess(object, var->id(), memberType);
+							return SEM::Value::MemberAccess(object, var, memberType);
 						} else {
 							printf("Semantic Analysis Error: Can't access struct "
 								   "member '%s' in type '%s'.\n",
-								   memberName.c_str(), typeInstance->name().toString().c_str());
+								   memberName.c_str(), typeInstance->name().c_str());
 							return NULL;
 						}
 					} else if(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
 						// Look for class methods.
-						Optional<SEM::Function*> functionResult = typeInstance->functions().tryGet(memberName);
+						const Node childNode = typeNode.getChild(memberName);
 						
-						if(functionResult.hasValue()) {
-							SEM::Function* function = functionResult.getValue();
+						if(childNode.isFunction()) {
+							SEM::Function* function = childNode.getSEMFunction();
 							
 							if(!function->isMethod()) {
 								printf("Semantic Analysis Error: Cannot call static function '%s' in type '%s'.\n",
-									   function->name().last().c_str(), typeInstance->name().toString().c_str());
+									   function->name().c_str(), typeInstance->name().c_str());
 								return NULL;
 							}
 							
 							return SEM::Value::MethodObject(function, object);
 						} else {
 							printf("Semantic Analysis Error: Can't find method '%s' in type '%s'.\n",
-								   memberName.c_str(), typeInstance->name().toString().c_str());
+								memberName.c_str(), typeInstance->name().c_str());
 							return NULL;
 						}
 					} else if(typeInstance->isStructDecl()) {
 						printf("Semantic Analysis Error: Can't access member '%s' in unspecified struct type '%s'.\n",
-							   memberName.c_str(), typeInstance->name().toString().c_str());
+							   memberName.c_str(), typeInstance->name().c_str());
 						return NULL;
 					}
 					

@@ -4,6 +4,8 @@
 #include <string>
 #include <Locic/Map.hpp>
 #include <Locic/Name.hpp>
+
+#include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Var.hpp>
 
@@ -14,7 +16,7 @@ namespace Locic {
 		struct Function;
 		struct NamespaceNode;
 		
-		class TypeInstance {
+		class TypeInstance: public Object {
 			public:
 				enum Kind {
 					PRIMITIVE,
@@ -25,10 +27,14 @@ namespace Locic {
 					INTERFACE
 				};
 				
-				inline TypeInstance(Kind k, const Locic::Name& n)
+				inline TypeInstance(Kind k, const std::string& n)
 					: kind_(k), name_(n) { }
+				
+				inline ObjectKind objectKind() const {
+					return OBJECT_TYPEINSTANCE;
+				}
 					
-				inline const Locic::Name& name() const {
+				inline const std::string& name() const {
 					return name_;
 				}
 				
@@ -36,27 +42,27 @@ namespace Locic {
 					return kind_;
 				}
 				
-				inline Locic::StringMap<TemplateVar*>& templateVariables() {
+				inline std::vector<TemplateVar*>& templateVariables() {
 					return templateVariables_;
 				}
 				
-				inline const Locic::StringMap<TemplateVar*>& templateVariables() const {
+				inline const std::vector<TemplateVar*>& templateVariables() const {
 					return templateVariables_;
 				}
 				
-				inline Locic::StringMap<Var*>& variables() {
+				inline std::vector<Var*>& variables() {
 					return variables_;
 				}
 				
-				inline const Locic::StringMap<Var*>& variables() const {
+				inline const std::vector<Var*>& variables() const {
 					return variables_;
 				}
 				
-				inline Locic::StringMap<Function*>& functions() {
+				inline std::vector<Function*>& functions() {
 					return functions_;
 				}
 				
-				inline const Locic::StringMap<Function*>& functions() const {
+				inline const std::vector<Function*>& functions() const {
 					return functions_;
 				}
 				
@@ -121,20 +127,36 @@ namespace Locic {
 				
 				bool supportsNullConstruction() const;
 				
+				SEM::Function* getNullConstructor() const;
+				
+				void setNullConstructor(SEM::Function* function);
+				
 				bool supportsImplicitCopy() const;
 				
-				Type* getFunctionReturnType(const std::string& name);
+				Type* getImplicitCopyType() const;
 				
-				Type* getImplicitCopyType();
+				void setImplicitCopy(SEM::Function* function);
 				
 				std::string toString() const;
 				
 			private:
 				Kind kind_;
-				Locic::Name name_;
-				Locic::StringMap<TemplateVar*> templateVariables_;
-				Locic::StringMap<Var*> variables_;
-				Locic::StringMap<Function*> functions_;
+				std::string name_;
+				
+				struct TypeProperties{
+					bool isConstType;
+					Function * nullConstructor;
+					Function * implicitCopy;
+					
+					inline TypeProperties()
+						: isConstType(false),
+						nullConstructor(NULL),
+						implicitCopy(NULL){ }
+				} typeProperties_;
+				
+				std::vector<TemplateVar*> templateVariables_;
+				std::vector<Var*> variables_;
+				std::vector<Function*> functions_;
 				
 		};
 		

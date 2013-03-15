@@ -41,7 +41,7 @@ namespace Locic {
 			}
 		}
 		
-		SEM::Statement* ConvertStatement(LocalContext& context, AST::Statement* statement) {
+		SEM::Statement* ConvertStatement(Context& context, AST::Statement* statement) {
 			switch(statement->typeEnum) {
 				case AST::Statement::VALUE: {
 					SEM::Value* value = ConvertValue(context, statement->valueStmt.value);
@@ -53,13 +53,7 @@ namespace Locic {
 					return NULL;
 				}
 				case AST::Statement::SCOPE: {
-					SEM::Scope* scope = ConvertScope(context, statement->scopeStmt.scope);
-					
-					if(scope == NULL) {
-						return NULL;
-					}
-					
-					return SEM::Statement::ScopeStmt(scope);
+					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
 					SEM::Value* condition = ConvertValue(context, statement->ifStmt.condition);
@@ -70,8 +64,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::TypeInstance* boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
-					assert(boolType != NULL && "Couldn't find bool type");
+					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
@@ -88,8 +81,7 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::TypeInstance* boolType = context.getNode(Name::Absolute() + "bool").getTypeInstance();
-					assert(boolType != NULL && "Couldn't find bool type");
+					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
@@ -99,8 +91,9 @@ namespace Locic {
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
 				case AST::Statement::VARDECL: {
-					AST::Type* typeAnnotation = statement->varDecl.type;
-					std::string varName = statement->varDecl.varName;
+					//AST::Type* typeAnnotation = statement->varDecl.type;
+					//std::string varName = statement->varDecl.varName;
+					AST::TypeVar* astTypeVar = statement->varDecl.typeVar;
 					AST::Value* initialValue = statement->varDecl.value;
 					
 					SEM::Value* semValue = ConvertValue(context, initialValue);
@@ -111,16 +104,12 @@ namespace Locic {
 					
 					SEM::Type* varType = NULL;
 					
-					if(typeAnnotation == NULL) {
+					if(astTypeVar->type == NULL) {
 						// Auto keyword - use type of initial value.
 						varType = semValue->type()->createLValueType();
 					} else {
 						// Using type annotation - verify that it is compatible with the type of the initial value.
-						varType = ConvertType(context, typeAnnotation, SEM::Type::LVALUE);
-						
-						if(varType == NULL) {
-							return NULL;
-						}
+						varType = ConvertType(context, astTypeVar->type, SEM::Type::LVALUE);
 					}
 					
 					assert(varType != NULL);
@@ -131,10 +120,13 @@ namespace Locic {
 						return NULL;
 					}
 					
-					SEM::Var* semVar = context.defineLocalVar(varName, varType);
+					SEM::Var* semVar = SEM::Var::Local(varType);
 					
-					if(semVar == NULL) {
-						printf("Semantic Analysis Error: Local variable name already exists.\n");
+					const Node localVarNode = Node::Variable(astTypeVar, semVar);
+					
+					if(!context.node().tryAttach(astTypeVar->name, localVarNode)){
+						// TODO: throw exception.
+						assert(false && "Local variable name already exists.");
 						return NULL;
 					}
 					
@@ -166,7 +158,7 @@ namespace Locic {
 				case AST::Statement::RETURN: {
 					if(statement->returnStmt.value == NULL) {
 						// Void return statement (i.e. return;)
-						if(!context.getReturnType()->isVoid()) {
+						if(!context.getParentFunctionReturnType()->isVoid()) {
 							printf("Semantic Analysis Error: Cannot return void in function with non-void return type.\n");
 							return NULL;
 						}
@@ -179,7 +171,7 @@ namespace Locic {
 							return NULL;
 						}
 						
-						SEM::Value* castValue = ImplicitCast(semValue, context.getReturnType());
+						SEM::Value* castValue = ImplicitCast(semValue, context.getParentFunctionReturnType());
 						
 						return SEM::Statement::Return(castValue);
 					}

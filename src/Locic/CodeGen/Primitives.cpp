@@ -213,25 +213,25 @@ namespace Locic {
 			
 			llvm::LLVMContext& context = module.getContext();
 			
-			const std::string name = type->name().toString();
+			const std::string name = type->name();
 			
-			if(name == "::bool") return llvm::Type::getInt1Ty(context);
+			if(name == "bool") return llvm::Type::getInt1Ty(context);
 			
-			if(name == "::char") return llvm::Type::getInt8Ty(context);
+			if(name == "char") return llvm::Type::getInt8Ty(context);
 			
-			if(name == "::short") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("short"));
+			if(name == "short") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("short"));
 			
-			if(name == "::int") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("int"));
+			if(name == "int") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("int"));
 			
-			if(name == "::long") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("long"));
+			if(name == "long") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("long"));
 			
-			if(name == "::longlong") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("longlong"));
+			if(name == "longlong") return llvm::IntegerType::get(context, targetInfo.getPrimitiveSize("longlong"));
 			
-			if(name == "::float") return llvm::Type::getFloatTy(context);
+			if(name == "float") return llvm::Type::getFloatTy(context);
 			
-			if(name == "::double") return llvm::Type::getDoubleTy(context);
+			if(name == "double") return llvm::Type::getDoubleTy(context);
 			
-			if(name == "::longdouble") return llvm::Type::getFP128Ty(context);
+			if(name == "longdouble") return llvm::Type::getFP128Ty(context);
 			
 			assert(false && "Unrecognised primitive type");
 			return NULL;

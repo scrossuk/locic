@@ -24,19 +24,22 @@ namespace Locic {
 			SEM::TypeInstance* destInstance = destTargetType->getObjectType();
 			assert(sourceInstance != destInstance);
 			
-			StringMap<SEM::Function*>::Range range = destInstance->functions().range();
-			for(; !range.empty(); range.popFront()) {
-				SEM::Function* destFunction = range.front().value();
-				
-				Optional<SEM::Function*> result = sourceInstance->functions().tryGet(destFunction->name().last());
-				if(!result.hasValue()) {
+			// NOTE: This code relies on the function arrays being sorted
+			//       (which is performed by an early Semantic Analysis pass).
+			for(size_t sourcePos = 0, destPos = 0; destPos < destInstance->functions().size(); sourcePos++){
+				SEM::Function * destFunction = destInstance->functions().at(destPos);
+				if(sourcePos >= sourceInstance->functions().size()){
 					throw PolyCastMissingMethodException(sourceType, destType, destFunction);
 				}
 				
-				SEM::Function* sourceFunction = result.getValue();
-				assert(sourceFunction != NULL);
-				if(*(sourceFunction->type()) != *(destFunction->type())) {
-					throw PolyCastMethodMismatchException(sourceType, destType, sourceFunction, destFunction);
+				SEM::Function* sourceFunction = sourceInstance->functions().at(sourcePos);
+				if(sourceFunction->name() == destFunction->name()){
+					if(*(sourceFunction->type()) == *(destFunction->type())){
+						destPos++;
+						continue;
+					}else{
+						throw PolyCastMethodMismatchException(sourceType, destType, sourceFunction, destFunction);
+					}
 				}
 			}
 			
@@ -257,12 +260,8 @@ namespace Locic {
 				if(typeInstance->supportsNullConstruction()) {
 					// Casting null to object type invokes the null constructor,
 					// assuming that one exists.
-					SEM::Function* function =
-						typeInstance->lookup(typeInstance->name() + "Null").getFunction();
-					assert(function != NULL);
-					
 					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(function),
+							SEM::Value::FunctionRef(typeInstance->getNullConstructor()),
 							std::vector<SEM::Value*>());
 							
 					// There still might be some aspects to cast with the null constructed type.

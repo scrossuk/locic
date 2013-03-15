@@ -22,14 +22,14 @@ namespace Locic {
 					assert(!symbol.empty());
 					
 					const Name name = symbol.createName();
-					SEM::NamespaceNode objectNode = context.lookupName(name);
+					const Node objectNode = context.lookupName(name);
 					
 					if(!objectNode.isTypeInstance()) {
 						printf("Semantic Analysis Error: Unknown type with name '%s'.\n", name.toString().c_str());
 						return NULL;
 					}
 					
-					SEM::TypeInstance* typeInstance = objectNode.getTypeInstance();
+					SEM::TypeInstance* typeInstance = objectNode.getSEMTypeInstance();
 					
 					// TODO: Handle template arguments.
 					std::vector<SEM::Type*> templateArguments;

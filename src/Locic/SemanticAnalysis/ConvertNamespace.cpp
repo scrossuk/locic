@@ -12,33 +12,24 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertNamespace(Context& context, AST::Namespace* astNamespace, SEM::Namespace* semNamespace) {
-			NamespaceContext namespaceContext(context, semNamespace);
+		void ConvertNamespace(Context& context) {
+			Node& node = context.node();
 			
-			for(std::size_t i = 0; i < astNamespace->functions.size(); i++) {
-				AST::Function* astFunction = astNamespace->functions.at(i);
-				
-				if(astFunction->typeEnum == AST::Function::DEFINITION) {
-					SEM::Function* semFunction = namespaceContext.getNode(namespaceContext.getName() + astFunction->name).getFunction();
-					assert(semFunction != NULL);
-					ConvertFunctionDef(namespaceContext, astFunction, semFunction);
-				}
-			}
+			assert(node.isNamespace());
 			
-			for(std::size_t i = 0; i < astNamespace->namespaces.size(); i++) {
-				AST::Namespace* astChildNamespace = astNamespace->namespaces.at(i);
-				SEM::Namespace* semChildNamespace = namespaceContext.getNode(namespaceContext.getName() + astChildNamespace->name).getNamespace();
-				assert(semChildNamespace != NULL);
-				ConvertNamespace(namespaceContext, astChildNamespace, semChildNamespace);
-			}
-			
-			for(std::size_t i = 0; i < astNamespace->typeInstances.size(); i++) {
-				AST::TypeInstance* astTypeInstance = astNamespace->typeInstances.at(i);
-				
-				if(astTypeInstance->typeEnum == AST::TypeInstance::CLASSDEF) {
-					SEM::TypeInstance* semTypeInstance = namespaceContext.getNode(namespaceContext.getName() + astTypeInstance->name).getTypeInstance();
-					assert(semTypeInstance != NULL);
-					ConvertClassDef(namespaceContext, astTypeInstance, semTypeInstance);
+			for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+				const Node& childNode = range.front().value();
+				Context newContext(context, range.front().key(), childNode);
+				if(childNode.isFunction()){
+					if(childNode.getASTFunction()->scope != NULL){
+						ConvertFunctionDef(newContext);
+					}
+				}else if(childNode.isNamespace()){
+					ConvertNamespace(newContext);
+				}else if(childNode.isTypeInstance()){
+					if(childNode.getSEMTypeInstance()->isClassDef()){
+						ConvertClassDef(newContext);
+					}
 				}
 			}
 		}

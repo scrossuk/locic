@@ -9,7 +9,7 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value* ConvertValue(LocalContext& context, AST::Value* value);
+		SEM::Value* ConvertValue(Context& context, AST::Value* value);
 		
 	}
 	

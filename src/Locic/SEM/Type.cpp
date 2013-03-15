@@ -82,7 +82,7 @@ namespace Locic {
 				}
 				case OBJECT:
 					return makeString("ObjectType(%s)",
-							getObjectType()->name().toString().c_str());
+							getObjectType()->name().c_str());
 				case POINTER:
 					return makeString("PointerType(%s)",
 							getPointerTarget()->toString().c_str());

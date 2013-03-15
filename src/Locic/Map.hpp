@@ -86,6 +86,14 @@ namespace Locic{
 				assert(tryInsert(key, value));
 			}
 			
+			void forceInsert(const Key& key, const Value& value){
+				std::pair<ItType, bool> p = map_.insert(std::make_pair(key, value));
+				if(!p.second){
+					ItType it = p.first;
+					it->second = value;
+				}
+			}
+			
 			Optional<Value> tryGet(const Key& key) const{
 				CItType it = map_.find(key);
 				if(it != map_.end()){
@@ -115,6 +123,10 @@ namespace Locic{
 			
 			void insertRange(const Range& rangeToInsert){
 				map_.insert(rangeToInsert.begin_, rangeToInsert.end_);
+			}
+			
+			void clear() {
+				map_.clear();
 			}
 			
 		private:

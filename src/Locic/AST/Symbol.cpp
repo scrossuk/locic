@@ -39,7 +39,9 @@ namespace AST {
 	}
 	
 	Locic::Name Symbol::createName() const {
-		Locic::Name name;
+		Locic::Name name = isAbsolute()
+			? Locic::Name::Absolute()
+			: Locic::Name::Relative();
 		
 		for(size_t i = 0; i < list_.size(); i++) {
 			name = name + list_.at(i).name();

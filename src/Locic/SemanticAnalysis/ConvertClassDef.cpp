@@ -8,18 +8,20 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertClassDef(Context& context, AST::TypeInstance* astTypeInstance, SEM::TypeInstance* semTypeInstance) {
-			assert(semTypeInstance->isClassDef());
+		void ConvertClassDef(Context& context) {
+			Node& node = context.node();
 			
-			TypeInstanceContext typeInstanceContext(context, semTypeInstance);
+			assert(node.isTypeInstance());
+			assert(node.getSEMTypeInstance()->isClassDef());
 			
-			for(std::size_t i = 0; i < astTypeInstance->functions.size(); i++) {
-				AST::Function* astFunction = astTypeInstance->functions.at(i);
-				SEM::Function* semFunction =
-					typeInstanceContext.getNode(typeInstanceContext.getName() + astFunction->name).getFunction();
-				assert(semFunction != NULL
-					   && "Convert function definition requires an already-converted corresponding function declaration");
-				ConvertFunctionDef(typeInstanceContext, astFunction, semFunction);
+			for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+				const Node& childNode = range.front().value();
+				
+				if(!childNode.isFunction()
+					|| childNode.getASTFunction()->scope == NULL) continue;
+				
+				Context functionContext(context, range.front().key(), childNode);
+				ConvertFunctionDef(functionContext);
 			}
 		}
 		
