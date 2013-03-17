@@ -1,0 +1,31 @@
+template <typename T>
+interface forward_range {
+	bool empty() const;
+	
+	void popFront();
+	
+	lvalue(T) front() const;
+}
+
+template <typename T>
+interface backward_range {
+	bool empty() const;
+	
+	void popBack();
+	
+	lvalue(T) back() const;
+}
+
+template <typename T>
+interface bidirectional_range {
+	bool empty() const;
+	
+	void popFront();
+	
+	lvalue(T) front() const;
+	
+	void popBack();
+	
+	lvalue(T) back() const;
+}
+

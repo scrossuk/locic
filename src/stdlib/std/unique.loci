@@ -1,0 +1,58 @@
+
+template <typename T>
+class unique(unique_ptr<T> ptr){
+	static default(T value){
+		return @(new<unique_ptr>(value));
+	}
+	
+	template <typename S>
+	static polycast(unique<S> value) {
+		return @(unique_ptr<T>::polycast(value));
+	}
+
+	T& forward() const {
+		return *@ptr;
+	}
+};
+
+template <typename T>
+unique<T> new_unique(T value){
+	return unique<T>(value);
+}
+
+template <typename T>
+class unique_ptr(T * ptr){
+	static default(T value){
+		return @(new<raw_ptr>(value));
+	}
+	
+	static null() {
+		return @(null);
+	}
+	
+	template <typename S>
+	static polycast(unique_ptr<S> value) {
+		(T* ptr) = move value;
+		return @(ptr.ptr);
+	}
+
+	~{
+		delete<raw_ptr>(@ptr);
+	}
+	
+	if(T has copyable<T>){
+		unique_ptr<T> copy() const {
+			return unique_ptr<T>(@ptr != null ? @ptr->copy() : null);
+		}
+	}
+	
+	lvalue(T) deref() const {
+		return *@ptr;
+	}
+};
+
+template <typename T>
+unique_ptr<T> new_unique_ptr(T value){
+	return unique_ptr<T>(value);
+}
+

@@ -1,0 +1,16 @@
+template <typename T>
+T* new_raw_ptr(T value){
+	void * ptr = malloc(sizeof(T));
+	memset(ptr, sizeof(T), 0x00);
+	T* castPtr = reinterpret_cast<T*>(ptr);
+	*castPtr = value;
+	return castPtr;
+}
+
+template <any T>
+void delete_raw_ptr(T* ptr){
+	if(ptr == null) return;
+	ptr->~();
+	free(reinterpret_cast<void*>(ptr));
+}
+

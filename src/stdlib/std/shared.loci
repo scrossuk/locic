@@ -1,0 +1,61 @@
+
+template <typename T>
+class shared(shared_ptr<T> ptr){
+	static default(T value) {
+		return @(new<shared_ptr>(value));
+	}
+	
+	template <typename S>
+	static polycast(shared<S> value) {
+		return @(shared_ptr<T>::polycast(value));
+	}
+	
+	shared<T> implicitCopy() const {
+		return @(@ptr);
+	}
+	
+	T& forward() const {
+		return *@ptr;
+	}
+};
+
+template <typename T>
+shared<T> new_shared(T value){
+	return shared<T>(value);
+}
+
+template <typename T>
+class shared_ptr(size_t* countField, T* ptr){
+	static default(T value) {
+		return @(new<raw_ptr>(cast<size_t>(1)), new<raw_ptr>(value));
+	}
+	
+	template <typename S>
+	static polycast(shared_ptr<S> value) {
+		(size_t* count, S* ptr) = move value;
+		return @(count, ptr);
+	}
+
+	~{
+		(*@countField)--;		
+		if(*@countField == 0){
+			delete<raw_ptr>(@countField);
+			delete<raw_ptr>(@ptr);
+		}
+	}
+	
+	shared_ptr<T> implicitCopy() const {
+		(*@countField)++;
+		return @(@countField, @ptr);
+	}
+
+	lvalue(T) deref() const {
+		return *@ptr;
+	}
+};
+
+template <typename T>
+shared_ptr<T> new_shared_ptr(T value){
+	return shared_ptr<T>(value);
+}
+
