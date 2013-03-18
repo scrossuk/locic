@@ -1,6 +1,7 @@
 #ifndef LOCIC_CODEGEN_PRIMITIVES_HPP
 #define LOCIC_CODEGEN_PRIMITIVES_HPP
 
+#include <llvm/Function.h>
 #include <llvm/Module.h>
 #include <llvm/Type.h>
 
@@ -11,7 +12,10 @@ namespace Locic{
 	
 	namespace CodeGen{
 		
-		void createPrimitiveMethods(llvm::Module& module);
+		void createPrimitiveSizeOf(llvm::Module& module, const std::string& name, llvm::Function* function);
+		
+		void createPrimitiveMethod(llvm::Module& module, const std::string& typeName,
+			const std::string& methodName, llvm::Function* function);
 		
 		llvm::Type* createPrimitiveType(llvm::Module& module, SEM::TypeInstance* type);
 		

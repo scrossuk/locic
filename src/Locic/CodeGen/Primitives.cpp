@@ -15,128 +15,102 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveMethods(llvm::Module& module) {
-			TargetInfo targetInfo(module.getTargetTriple());
+		void createPrimitiveSizeOf(llvm::Module& module, const std::string& name, llvm::Function* function){
+			assert(function->isDeclaration());
 			
 			llvm::LLVMContext& context = module.getContext();
+			TargetInfo targetInfo(module.getTargetTriple());
 			
 			llvm::IRBuilder<> builder(context);
 			
-			std::vector< std::pair<std::string, std::size_t> > sizes;
-			sizes.push_back(std::make_pair("short", targetInfo.getPrimitiveSize("short")));
-			sizes.push_back(std::make_pair("int", targetInfo.getPrimitiveSize("int")));
-			sizes.push_back(std::make_pair("long", targetInfo.getPrimitiveSize("long")));
-			sizes.push_back(std::make_pair("longlong", targetInfo.getPrimitiveSize("longlong")));
+			const size_t sizeTypeWidth = targetInfo.getPrimitiveSize("size_t");
+			
+			llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
+			builder.SetInsertPoint(basicBlock);
+			
+			LOG(LOG_INFO, "Generating sizeof() for primitive type '%s'.",
+				name.c_str());
+			
+			const size_t size = targetInfo.getPrimitiveSize(name);
+			assert((size % 8) == 0);
+			builder.CreateRet(llvm::ConstantInt::get(context, llvm::APInt(sizeTypeWidth, size / 8)));
+		}
+		
+		bool isIntegerType(const std::string& name){
+			return name == "short" || name == "int" || name == "long" || name == "longlong";
+		}
+		
+		bool isUnaryOp(const std::string& methodName){
+			return methodName == "implicitCopy" ||
+				methodName == "not" ||
+				methodName == "isZero" ||
+				methodName == "isPositive" ||
+				methodName == "isNegative" ||
+				methodName == "abs";
+		}
+		
+		bool isBinaryOp(const std::string& methodName){
+			return methodName == "add" ||
+				methodName == "subtract" ||
+				methodName == "multiply" ||
+				methodName == "divide" ||
+				methodName == "modulo" ||
+				methodName == "compare";
+		}
+		
+		void createPrimitiveMethod(llvm::Module& module, const std::string& typeName, const std::string& methodName, llvm::Function* function){
+			assert(function->isDeclaration());
+			
+			llvm::LLVMContext& context = module.getContext();
+			TargetInfo targetInfo(module.getTargetTriple());
+			
+			llvm::IRBuilder<> builder(context);
+			
+			llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
+			builder.SetInsertPoint(basicBlock);
+			
 			const size_t integerWidth = targetInfo.getPrimitiveSize("int");
-			llvm::Type* boolType = llvm::Type::getInt1Ty(context);
-			llvm::Type* integerType = llvm::IntegerType::get(context, integerWidth);
+			const size_t size = targetInfo.getPrimitiveSize(typeName);
 			
-			{
-				const std::string functionName = "bool__not";
-				llvm::Type* ptrType = boolType->getPointerTo();
-				llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, std::vector<llvm::Type*>(1, ptrType), false);
-				llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-				llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-				builder.SetInsertPoint(basicBlock);
-				builder.CreateRet(builder.CreateNot(builder.CreateLoad(function->arg_begin())));
-			}
-			
-			// Generate integer methods.
-			for(std::size_t i = 0; i < sizes.size(); i++) {
-				const std::string name = sizes.at(i).first;
-				const std::size_t size = sizes.at(i).second;
-				llvm::Type* intType = llvm::IntegerType::get(context, size);
-				llvm::Type* ptrType = intType->getPointerTo();
-				{
-					const std::string functionName = name + "__implicitCopy";
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type*>(1, ptrType), false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					builder.CreateRet(builder.CreateLoad(function->arg_begin()));
+			// TODO: generate correct ops for unsigned and floating point types.
+			if(isUnaryOp(methodName)){
+				llvm::Value* arg = builder.CreateLoad(function->arg_begin());
+				llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(size, 0));
+				
+				if(methodName == "implicitCopy"){
+					builder.CreateRet(arg);
+				}else if(methodName == "not"){
+					assert(typeName == "bool");
+					builder.CreateRet(builder.CreateNot(arg));
+				}else if(methodName == "isZero"){
+					builder.CreateRet(builder.CreateICmpEQ(arg, zero));
+				}else if(methodName == "isPositive"){
+					builder.CreateRet(builder.CreateICmpSGT(arg, zero));
+				}else if(methodName == "isNegative"){
+					builder.CreateRet(builder.CreateICmpSLT(arg, zero));
+				}else if(methodName == "abs"){
+					// Generates: (value < 0) ? -value : value.
+					llvm::Value* lessThanZero = builder.CreateICmpSLT(arg, zero);
+					builder.CreateRet(builder.CreateSelect(lessThanZero, builder.CreateNeg(arg), arg));
+				}else{
+					assert(false && "Unknown primitive unary op.");
 				}
-				{
-					const std::string functionName = name + "__add";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+			}else if(isBinaryOp(methodName)){
+				llvm::Function::arg_iterator arg = function->arg_begin();
+				llvm::Value* firstArg = builder.CreateLoad(arg++);
+				llvm::Value* secondArg = arg;
+				
+				if(methodName == "add"){
 					builder.CreateRet(builder.CreateAdd(firstArg, secondArg));
-				}
-				{
-					const std::string functionName = name + "__subtract";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+				}else if(methodName == "subtract"){
 					builder.CreateRet(builder.CreateSub(firstArg, secondArg));
-				}
-				{
-					const std::string functionName = name + "__multiply";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+				}else if(methodName == "multiply"){
 					builder.CreateRet(builder.CreateMul(firstArg, secondArg));
-				}
-				{
-					const std::string functionName = name + "__divide";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+				}else if(methodName == "divide"){
 					builder.CreateRet(builder.CreateSDiv(firstArg, secondArg));
-				}
-				{
-					const std::string functionName = name + "__modulo";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+				}else if(methodName == "modulo"){
 					builder.CreateRet(builder.CreateSRem(firstArg, secondArg));
-				}
-				{
-					const std::string functionName = name + "__compare";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					argumentTypes.push_back(intType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(integerType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					llvm::Value* secondArg = arg;
+				}else if(methodName == "compare"){
 					llvm::Value* isLessThan = builder.CreateICmpSLT(firstArg, secondArg);
 					llvm::Value* isGreaterThan = builder.CreateICmpSGT(firstArg, secondArg);
 					llvm::Value* minusOne = llvm::ConstantInt::get(context, llvm::APInt(integerWidth, -1));
@@ -144,67 +118,15 @@ namespace Locic {
 					llvm::Value* plusOne = llvm::ConstantInt::get(context, llvm::APInt(integerWidth, 1));
 					llvm::Value* returnValue =
 						builder.CreateSelect(isLessThan, minusOne,
-											 builder.CreateSelect(isGreaterThan, plusOne, zero));
+							builder.CreateSelect(isGreaterThan, plusOne, zero));
 					builder.CreateRet(returnValue);
+				}else{
+					assert(false && "Unknown primitive binary op.");
 				}
-				{
-					const std::string functionName = name + "__isZero";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Value* arg = builder.CreateLoad(function->arg_begin());
-					llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(size, 0));
-					builder.CreateRet(builder.CreateICmpEQ(arg, zero));
-				}
-				{
-					const std::string functionName = name + "__isPositive";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Value* arg = builder.CreateLoad(function->arg_begin());
-					llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(size, 0));
-					builder.CreateRet(builder.CreateICmpSGT(arg, zero));
-				}
-				{
-					const std::string functionName = name + "__isNegative";
-					std::vector<llvm::Type*> argumentTypes;
-					argumentTypes.push_back(ptrType);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(boolType, argumentTypes, false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Value* arg = builder.CreateLoad(function->arg_begin());
-					llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(size, 0));
-					builder.CreateRet(builder.CreateICmpSLT(arg, zero));
-				}
-				{
-					const std::string functionName = name + "__abs";
-					llvm::FunctionType* functionType = llvm::FunctionType::get(intType, std::vector<llvm::Type*>(1, ptrType), false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					llvm::Function::arg_iterator arg = function->arg_begin();
-					llvm::Value* firstArg = builder.CreateLoad(arg++);
-					// Generates: (value < 0) ? -value : value
-					llvm::Value* lessThanZero = builder.CreateICmpSLT(firstArg, llvm::ConstantInt::get(context, llvm::APInt(size, 0)));
-					builder.CreateRet(builder.CreateSelect(lessThanZero, builder.CreateNeg(firstArg), firstArg));
-				}
-				{
-					const size_t sizeTypeWidth = targetInfo.getPrimitiveSize("size_t");
-					llvm::Type* sizeType = llvm::IntegerType::get(context, sizeTypeWidth);
-					const std::string functionName = std::string("__BUILTIN__") + name + "__sizeof";
-					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
-					llvm::Function* function = llvm::Function::Create(functionType, llvm::Function::LinkOnceODRLinkage, functionName, &module);
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-					builder.SetInsertPoint(basicBlock);
-					builder.CreateRet(llvm::ConstantInt::get(context, llvm::APInt(sizeTypeWidth, size / 8)));
-				}
+			}else{
+				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
+					typeName.c_str(), methodName.c_str());
+				assert(false && "Unknown primitive method.");
 			}
 		}
 		

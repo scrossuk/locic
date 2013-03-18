@@ -22,7 +22,9 @@ namespace Locic {
 			
 			SEM::TypeInstance* sourceInstance = sourceTargetType->getObjectType();
 			SEM::TypeInstance* destInstance = destTargetType->getObjectType();
-			assert(sourceInstance != destInstance);
+			if(sourceInstance == destInstance){
+				return value;
+			}
 			
 			// NOTE: This code relies on the function arrays being sorted
 			//       (which is performed by an early Semantic Analysis pass).

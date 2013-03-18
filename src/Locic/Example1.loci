@@ -47,6 +47,14 @@ class PolyClass{
 	void function(int value);
 };
 
+interface value_giving_interface{
+	int getValue();
+}
+
+int getValue(value_giving_interface * v){
+	return v->getValue();
+}
+
 an_interface * getPtr(TestClass2 * ptr){
 	return ptr;
 }
@@ -82,6 +90,9 @@ int main(int argc, char ** argv){
 	printf("Value: %d\n"C, testObject.getValue());
 	
 	printf("Interface value: %d\n"C, getPtr(&testObject)->getValue());
+	
+	an_interface * interfaceObject = getPtr(&testObject);
+	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));
 	
 	int i = 0;
 	int * j = &i;

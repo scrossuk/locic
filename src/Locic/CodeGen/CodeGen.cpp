@@ -91,7 +91,6 @@ namespace Locic {
 					  returnVar_(NULL),
 					  thisPointer_(NULL) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
-					createPrimitiveMethods(*module_);
 				}
 				
 				~InternalCodeGen() {
@@ -183,7 +182,7 @@ namespace Locic {
 						// Generating the type for a class or struct definition, so
 						// the size and contents of the type instance is known and
 						// hence the contents can be specified.
-						std::vector<llvm::Type*> memberVariables(typeInstance->variables().size(), NULL);
+						std::vector<llvm::Type*> memberVariables;
 						
 						const std::vector<SEM::Var*>& variables = typeInstance->variables();
 						
@@ -192,6 +191,9 @@ namespace Locic {
 							memberVariables.push_back(genType(var->type()));
 							memberVarIds_.insert(var, i);
 						}
+						
+						LOG(LOG_INFO, "Set %llu member variables for type '%s'.",
+							(unsigned long long) memberVariables.size(), typeInstance->name().c_str());
 						
 						structType->setBody(memberVariables);
 					}
@@ -217,7 +219,6 @@ namespace Locic {
 				void genSizeOfMethodDecl(const Name& typeName, SEM::TypeInstance* typeInstance) {
 					const std::string functionName = std::string("__BUILTIN__") + typeName.genString() + "__sizeof";
 					
-					assert(!typeInstance->isPrimitive() && "Primitive types must have already defined a sizeof() function");
 					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 					llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
 					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
@@ -269,9 +270,7 @@ namespace Locic {
 				void genTypeInstanceFunctionDecls(const Name& name, SEM::TypeInstance* typeInstance){
 					const Name typeName = name + typeInstance->name();
 					
-					if(!typeInstance->isPrimitive()){
-						genSizeOfMethodDecl(typeName, typeInstance);
-					}
+					genSizeOfMethodDecl(typeName, typeInstance);
 					
 					const std::vector<SEM::Function*>& functions = typeInstance->functions();
 					for(size_t i = 0; i < functions.size(); i++){
@@ -382,30 +381,34 @@ namespace Locic {
 				
 				// Generate 'sizeof()' method code.
 				void genSizeOfMethodDef(SEM::TypeInstance* typeInstance) {
-					assert(!typeInstance->isDeclaration());
-					
 					llvm::Function* function = sizeOfMethods_.get(typeInstance);
 					
-					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
-					
-					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-					builder_.SetInsertPoint(basicBlock);
-					llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 0));
-					llvm::Value* one = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 1));
-					llvm::Value* classSize = zero;
-					
-					// Add up all member variable sizes.
-					const std::vector<SEM::Var *>& variables = typeInstance->variables();
-					
-					for(size_t i = 0; i < variables.size(); i++){
-						SEM::Var * var = variables.at(i);
-						classSize = builder_.CreateAdd(classSize, genSizeOf(var->type()));
+					if(typeInstance->isPrimitive()){
+						createPrimitiveSizeOf(*module_, typeInstance->name(), function);
+					}else{
+						assert(!typeInstance->isDeclaration());
+						
+						const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
+						
+						llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
+						builder_.SetInsertPoint(basicBlock);
+						llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 0));
+						llvm::Value* one = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 1));
+						llvm::Value* classSize = zero;
+						
+						// Add up all member variable sizes.
+						const std::vector<SEM::Var *>& variables = typeInstance->variables();
+						
+						for(size_t i = 0; i < variables.size(); i++){
+							SEM::Var * var = variables.at(i);
+							classSize = builder_.CreateAdd(classSize, genSizeOf(var->type()));
+						}
+						
+						// Class sizes must be at least one byte.
+						llvm::Value* isZero = builder_.CreateICmpEQ(classSize, zero);
+						classSize = builder_.CreateSelect(isZero, one, classSize);
+						builder_.CreateRet(classSize);
 					}
-					
-					// Class sizes must be at least one byte.
-					llvm::Value* isZero = builder_.CreateICmpEQ(classSize, zero);
-					classSize = builder_.CreateSelect(isZero, one, classSize);
-					builder_.CreateRet(classSize);
 				}
 				
 				void genInterfaceMethod(SEM::Function* function) {
@@ -510,6 +513,8 @@ namespace Locic {
 					for(std::size_t i = 0; i < parameterVars.size(); ++arg, i++) {
 						SEM::Var* paramVar = parameterVars.at(i);
 						
+						assert(paramVar->kind() == SEM::Var::PARAM);
+						
 						// Create an alloca for this variable.
 						llvm::Value* stackObject = genAlloca(paramVar->type());
 						
@@ -535,7 +540,7 @@ namespace Locic {
 				}
 				
 				void genTypeInstanceFunctionDefs(SEM::TypeInstance* typeInstance){
-					if(!typeInstance->isPrimitive() && typeInstance->isDefinition()){
+					if(typeInstance->isPrimitive() || typeInstance->isDefinition()){
 						genSizeOfMethodDef(typeInstance);
 					}
 					
@@ -543,6 +548,13 @@ namespace Locic {
 						const std::vector<SEM::Function*>& functions = typeInstance->functions();
 						for(size_t i = 0; i < functions.size(); i++){
 							genFunctionDef(functions.at(i));
+						}
+					}else if(typeInstance->isPrimitive()) {
+						const std::vector<SEM::Function*>& functions = typeInstance->functions();
+						for(size_t i = 0; i < functions.size(); i++){
+							SEM::Function* function = functions.at(i);
+							createPrimitiveMethod(*module_, typeInstance->name(),
+								function->name(), functions_.get(function));
 						}
 					}else if(typeInstance->isInterface()) {
 						const std::vector<SEM::Function *>& functions = typeInstance->functions();
@@ -1188,6 +1200,13 @@ namespace Locic {
 						case SEM::Value::INTERNALCONSTRUCT: {
 							const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
 							llvm::Value* objectValue = genAlloca(value->type());
+							
+							LOG(LOG_INFO, "Type is %s.",
+								value->type()->toString().c_str());
+							
+							genType(value->type())->dump();
+							
+							objectValue->dump();
 							
 							for(size_t i = 0; i < parameters.size(); i++) {
 								SEM::Value* paramValue = parameters.at(i);

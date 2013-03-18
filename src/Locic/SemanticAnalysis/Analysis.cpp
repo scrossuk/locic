@@ -86,6 +86,7 @@ namespace Locic {
 							typeName);
 				
 				const Node existingNode = node.getChild(typeName);
+				
 				if(existingNode.isNamespace()) {
 					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE,
 							context.name() + typeName);
@@ -93,12 +94,15 @@ namespace Locic {
 					// Types can be unified by name at this point.
 					// Later stages will identify whether the types actually match.
 					SEM::TypeInstance* semExistingType = existingNode.getSEMTypeInstance();
-					if((semExistingType->kind() == SEM::TypeInstance::CLASSDECL
-							&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDEF)
-							|| (semExistingType->kind() == SEM::TypeInstance::CLASSDEF
-									&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDECL)) {
+					if(semExistingType->kind() == SEM::TypeInstance::CLASSDECL
+							&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDEF) {
 						// Classes decls and definitions can be unified.
 						semExistingType->unifyToKind(SEM::TypeInstance::CLASSDEF);
+						const Node newNode = Node::TypeInstance(astTypeInstance, semExistingType);
+						node.forceAttach(typeName, newNode);
+					} else if(semExistingType->kind() == SEM::TypeInstance::CLASSDEF
+						&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDECL){
+						// Nothing to do.
 					} else if(semExistingType->kind() != semTypeInstance->kind()) {
 						throw NonUnifiableTypeClashException(context.name() + typeName);
 					}
@@ -108,7 +112,6 @@ namespace Locic {
 						   "that isn't a namespace or a type instance should be 'none'");
 					
 					const Node newNode = Node::TypeInstance(astTypeInstance, semTypeInstance);
-					
 					node.attach(typeName, newNode);
 					node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
 				}
@@ -418,7 +421,7 @@ namespace Locic {
 				// ---- Pass 7: Identify type properties.
 				IdentifyTypeProperties(rootContext);
 				
-				// ---- Pass 7: Fill in function code.
+				// ---- Pass 8: Fill in function code.
 				ConvertNamespace(rootContext);
 				
 				return rootSEMNamespace;

@@ -98,6 +98,10 @@ namespace Locic {
 					children().insert(name, node);
 				}
 				
+				inline void forceAttach(const std::string& name, const Node& node) {
+					children().forceInsert(name, node);
+				}
+				
 				inline bool isNone() const {
 					return kind() == NONE;
 				}

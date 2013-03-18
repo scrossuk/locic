@@ -35,6 +35,14 @@ namespace Locic {
 				semScope->statements().push_back(statement);
 			}
 			
+			// Add local variables.
+			for(StringMap<Node>::Range range = scopeNode.children().range(); !range.empty(); range.popFront()){
+				const Node& node = range.front().value();
+				if(node.isVariable()){
+					semScope->localVariables().push_back(node.getSEMVar());
+				}
+			}
+			
 			return semScope;
 		}
 		

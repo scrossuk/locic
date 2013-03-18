@@ -167,12 +167,12 @@ __primitive char{
 	
 	bool isZero();
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 __primitive short{
@@ -188,12 +188,12 @@ __primitive short{
 	
 	int compare(short v);
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 __primitive int{
@@ -212,12 +212,12 @@ __primitive int{
 	bool isPositive();
 	bool isNegative();
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 __primitive long{
@@ -233,38 +233,38 @@ __primitive long{
 	
 	int compare(long v);
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 __primitive float{
 	float implicitCopy();
 
-	float plus(float v);
+	//float add(float v);
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 __primitive double{
 	double implicitCopy();
 	
-	double plus(double v);
+	//double add(double v);
 	
-	char toChar();
+	/*char toChar();
 	short toShort();
 	int toInt();
 	long toLong();
 	float toFloat();
-	double toDouble();
+	double toDouble();*/
 };
 
 

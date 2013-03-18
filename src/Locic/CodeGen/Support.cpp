@@ -29,14 +29,22 @@ namespace Locic {
 			return i8Type()->getPointerTo();
 		}
 		
-		llvm::StructType* getVTableType() {
+		llvm::StructType* createVTableType() {
 			std::vector<llvm::Type*> structElements;
 			// Destructor.
 			const bool isVarArg = false;
 			structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
 					->getPointerTo());
 			structElements.push_back(llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE));
-			return llvm::StructType::create(llvm::getGlobalContext(), structElements);
+			return llvm::StructType::create(llvm::getGlobalContext(), structElements, "__vtable_type");
+		}
+		
+		llvm::StructType* getVTableType() {
+			static llvm::StructType* type = NULL;
+			if(type == NULL){
+				type = createVTableType();
+			}
+			return type;
 		}
 		
 	}
