@@ -9,27 +9,27 @@ class array_range(const Array& array, size_t start, size_t end) {
 	}
 	
 	void popFront() {
-		assert(!empty());
+		assert(!self.empty());
 		@start++;
 	}
 	
-	lvalue(T) front() const {
-		assert(!empty());
+	T& front() const {
+		assert(!self.empty());
 		return @array[@start];
 	}
 	
 	void popBack() {
-		assert(!empty());
+		assert(!self.empty());
 		@end--;
 	}
 	
-	lvalue(T) back() const {
+	T& back() const {
 		assert(!empty());
 		return @array[@end - 1];
 	}
 	
 	bool invariant() const {
-		return @start <= @end && (!empty() => @end > 0);
+		return @start <= @end && (!self.empty() => @end > 0);
 	}
 	
 }
@@ -38,12 +38,12 @@ template <typename T>
 using variable_array_range = array_range<T, variable_array<T>>;
 
 template <typename T>
-class variable_array(size_t size, size_t capacity, T* data) {
+class variable_array(size_t size, size_t capacity, T* data) if (T.is_concrete()) {
 	static default() {
 		@(0, 0, null);
 	}
 	
-	static literal(forward_range<T>& range) {
+	static literal_array(const forward_range<T>& range) {
 		auto array = variable_array<T>();
 		for(value in range){
 			array.push_back(move(value));
@@ -55,7 +55,7 @@ class variable_array(size_t size, size_t capacity, T* data) {
 		if(size <= @capacity) return;
 		T* newData = reinterpret_cast<T*>(calloc(size, sizeof(T)));
 		for(i in 0 .. @size){
-			newData[i] = move @data[i];
+			newData[i] := move @data[i];
 		}
 		@data = newData;
 		@capacity = size;
@@ -68,7 +68,7 @@ class variable_array(size_t size, size_t capacity, T* data) {
 	void resize(size_t size) {
 		reserve(size);
 		for(i in size .. @size){
-			(void) move(@data[i]);
+			@data[i] := void;
 		}
 		@size = size;
 	}
@@ -77,7 +77,7 @@ class variable_array(size_t size, size_t capacity, T* data) {
 		return @size;
 	}
 	
-	lvalue(T) indexAt(size_t index) const {
+	T& indexAt(size_t index) const {
 		assert(index < @size);
 		return @data[index];
 	}
@@ -86,12 +86,12 @@ class variable_array(size_t size, size_t capacity, T* data) {
 		return variable_array_range<T>(@data, 0, @size);
 	}
 	
-	if(T has copyable){
+	if(T.implements(copyable<T>)){
 		variable_array<T> copy() const {
 			auto array = variable_array<T>();
 			array.resize(@size);
 			for(i in 0 .. @size){
-				array[i] = self[i].copy();
+				array[i] := self[i].copy();
 			}
 			return array;
 		}

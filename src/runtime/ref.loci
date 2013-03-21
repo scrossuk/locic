@@ -1,0 +1,10 @@
+template <typename T>
+__primitive ref{
+	static unit();
+	
+	if(!T.is_const){
+		void assign(T value);
+	}
+}
+
+

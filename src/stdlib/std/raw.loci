@@ -10,7 +10,7 @@ T* new_raw_ptr(T value){
 template <any T>
 void delete_raw_ptr(T* ptr){
 	if(ptr == null) return;
-	ptr->~();
+	*ptr := void;
 	free(reinterpret_cast<void*>(ptr));
 }
 

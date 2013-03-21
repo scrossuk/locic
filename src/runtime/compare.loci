@@ -1,0 +1,9 @@
+__primitive compare_result{
+	bool isEqual() const;
+	
+	bool isLessThan() const;
+	
+	bool isGreaterThan() const;
+};
+
+

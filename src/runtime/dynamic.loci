@@ -1,0 +1,12 @@
+exception bad_cast;
+
+template <typename From, typename To>
+To dynamic_cast(From value){
+	if(To >= From){
+		return static_cast<To>(value);
+	}else{
+		throw bad_cast();
+	}
+}
+
+

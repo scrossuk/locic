@@ -95,7 +95,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token EXTRACT
 %token TEMPLATE
 %token TYPENAME
-%token POLYMORPHIC
 %token USING
 %token ENUM
 %token UNION
@@ -126,6 +125,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token ELSE
 %token FOR
 %token WHILE
+%token IN
+%token HAS
 %token SETEQUAL
 %token ADDEQUAL
 %token SUBEQUAL
@@ -421,10 +422,6 @@ templateTypeVar:
 	| TYPENAME NAME COLON type
 	{
 		$$ = AST::TemplateTypeVar::TypenameSpec(*($2), $4);
-	}
-	| POLYMORPHIC NAME
-	{
-		$$ = AST::TemplateTypeVar::Polymorphic(*($2));
 	}
 	;
 

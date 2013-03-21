@@ -1,0 +1,90 @@
+__primitive char{
+	static unit();
+	
+	char implicitCopy();
+	
+	int compare(char v);
+	
+	bool isZero();
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+
+__primitive short{
+	static unit();
+	
+	short implicitCopy();
+	
+	short abs();
+
+	short add(short v);
+	short subtract(short v);
+	short multiply(short v);
+	short divide(short v);
+	short modulo(short v);
+	
+	int compare(short v);
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+
+__primitive int{
+	static unit();
+	
+	int implicitCopy();
+	
+	int abs();
+
+	int add(int v);
+	int subtract(int v);
+	int multiply(int v);
+	int divide(int v);
+	int modulo(int v);
+	
+	int compare(int v);
+	bool isZero();
+	bool isPositive();
+	bool isNegative();
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+
+__primitive long{
+	static unit();
+	
+	long implicitCopy();
+	
+	long abs();
+
+	long add(long v);
+	long subtract(long v);
+	long multiply(long v);
+	long divide(long v);
+	long modulo(long v);
+	
+	int compare(long v);
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+
+

@@ -1,0 +1,16 @@
+template <typename T>
+__primitive ptr{
+	static unit();
+	
+	static null();
+	
+	ref<T> deref() const;
+	
+	ptr<T> add(ssize_t offset) const;
+	
+	ssize_t subtract(ptr<T> ptr) const;
+	
+	ref<T> index(size_t index) const;
+}
+
+

@@ -1,0 +1,26 @@
+__primitive float{
+	float implicitCopy();
+
+	//float add(float v);
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+
+__primitive double{
+	double implicitCopy();
+	
+	//double add(double v);
+	
+	/*char toChar();
+	short toShort();
+	int toInt();
+	long toLong();
+	float toFloat();
+	double toDouble();*/
+};
+

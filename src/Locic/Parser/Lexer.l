@@ -44,24 +44,26 @@ if                      { return IF; }
 else                    { return ELSE; }
 while                   { return WHILE; }
 for                     { return FOR; }
-return                 { return RETURN; }
-switch                 { return SWITCH; }
+return                  { return RETURN; }
+switch                  { return SWITCH; }
 case                    { return CASE; }
 default                 { return DEFAULT; }
-continue               { return CONTINUE; }
+continue                { return CONTINUE; }
 break                   { return BREAK; }
+
+in                      { return IN; }
+has                     { return HAS; }
 
 exception               { return EXCEPTION; }
 throw                   { return THROW; }
 try                     { return TRY; }
-catch                  { return CATCH; }
+catch                   { return CATCH; }
 
 template                { return TEMPLATE; }
-polymorphic             { return POLYMORPHIC; }
 typename                { return TYPENAME; }
 move                    { return MOVE; }
 
-struct                 { return STRUCT; }
+struct                  { return STRUCT; }
 enum                    { return ENUM; }
 union                   { return UNION; }
 class                   { return CLASS; }
@@ -75,7 +77,7 @@ const                   { return CONST; }
 constexpr               { return CONSTEXPR; }
 
 using                   { return USING; }
-static                 { return STATIC; }
+static                  { return STATIC; }
 import                  { return IMPORT; }
 export                  { return EXPORT; }
 
