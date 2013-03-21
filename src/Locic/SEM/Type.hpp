@@ -183,6 +183,11 @@ namespace Locic {
 					return referenceType_.targetType;
 				}
 				
+				inline Type* getPointerOrReferenceTarget() const {
+					assert(isPointer() || isReference());
+					return isPointer() ? getPointerTarget() : getReferenceTarget();
+				}
+				
 				inline bool isObject() const {
 					return kind() == OBJECT;
 				}

@@ -40,7 +40,7 @@ class ExampleTemplatedClass0(){
 template <typename T: an_interface>
 class ExampleTemplatedClass1{ }
 
-template <polymorphic T>
+template <typename T>
 class PolyClass{
 	static Default();
 	
@@ -63,6 +63,14 @@ void function(TestClass2 * object){
 	const TestClass2& ptr = *object;
 	const TestClass2& ptr2 = ptr;
 	printf("Value from fn: %d\n"C, ptr.getValue());
+}
+
+interface is_zero_interface {
+	bool isZero();
+}
+
+bool isZero(is_zero_interface& v){
+	return v.isZero();
 }
 
 int main(int argc, char ** argv){
@@ -93,6 +101,14 @@ int main(int argc, char ** argv){
 	
 	an_interface * interfaceObject = getPtr(&testObject);
 	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));
+	
+	{
+		int potentially_zero_value = argc - 2;
+		bool isZ = isZero(potentially_zero_value);
+		if(isZ){
+			printf("Is zero!\n"C);
+		}
+	}
 	
 	int i = 0;
 	int * j = &i;

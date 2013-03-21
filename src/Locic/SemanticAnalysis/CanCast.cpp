@@ -12,10 +12,11 @@ namespace Locic {
 	
 		SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
 			SEM::Type* sourceType = value->type();
-			assert(sourceType->isPointer() && destType->isPointer());
+			assert((sourceType->isPointer() && destType->isPointer())
+				|| (sourceType->isReference() && destType->isReference()));
 			
-			SEM::Type* sourceTargetType = sourceType->getPointerTarget();
-			SEM::Type* destTargetType = destType->getPointerTarget();
+			SEM::Type* sourceTargetType = sourceType->getPointerOrReferenceTarget();
+			SEM::Type* destTargetType = destType->getPointerOrReferenceTarget();
 			
 			assert(sourceTargetType->isObject());
 			assert(destTargetType->isInterface());

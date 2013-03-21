@@ -131,6 +131,16 @@ namespace Locic {
 					modulePassManager.run(*module_);
 				}
 				
+				llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* type){
+					if(type == NULL){
+						return llvm::Function::ExternalLinkage;
+					}
+					
+					return type->isClass()
+						? llvm::Function::ExternalLinkage
+						: llvm::Function::LinkOnceODRLinkage;
+				}
+				
 				// ---- Pass 1: Generate type placeholders.
 				
 				void genTypeInstanceTypePlaceholders(const Name& name, SEM::TypeInstance* typeInstance){
@@ -223,15 +233,7 @@ namespace Locic {
 					llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
 					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
 					
-					// Struct definitions use 'LinkOnce' because they may
-					// appear in multiple modules, and hence the compiler
-					// may generate multiple sizeof() methods.
-					llvm::GlobalValue::LinkageTypes linkage =
-						(typeInstance->isClass() || typeInstance->isStructDecl())
-						? llvm::Function::ExternalLinkage
-						: llvm::Function::LinkOnceODRLinkage;
-					
-					llvm::Function* function = llvm::Function::Create(functionType, linkage, functionName, module_);
+					llvm::Function* function = llvm::Function::Create(functionType, getFunctionLinkage(typeInstance), functionName, module_);
 					function->setDoesNotAccessMemory();
 					
 					sizeOfMethods_.insert(typeInstance, function);
@@ -246,7 +248,7 @@ namespace Locic {
 						: NULL;
 					
 					llvm::Function* functionDecl = llvm::Function::Create(genFunctionType(function->type(), thisType),
-						llvm::Function::ExternalLinkage, functionName, module_);
+						getFunctionLinkage(parent), functionName, module_);
 					
 					if(function->type()->getFunctionReturnType()->isClass()) {
 						// Class return values are allocated by the caller,
@@ -302,18 +304,13 @@ namespace Locic {
 				void genTypeInstanceVTables(const Name& name, SEM::TypeInstance* typeInstance){
 					assert(typeInstance != NULL);
 					
-					if(!typeInstance->isClass()){
-						// Skip.
-						return;
-					}
-					
 					const Name typeName = name + typeInstance->name();
 					
 					const std::string vtableName = makeString("__VTABLE__%s", typeName.genString().c_str());
 					
 					const bool isConstant = true;
 					llvm::GlobalVariable* globalVariable = new llvm::GlobalVariable(*module_, getVTableType(),
-							isConstant, llvm::GlobalValue::ExternalLinkage, NULL, vtableName);
+							isConstant, getFunctionLinkage(typeInstance), NULL, vtableName);
 					
 					if(typeInstance->isClassDecl()) return;
 					
@@ -340,8 +337,9 @@ namespace Locic {
 						if(slotList.empty()) {
 							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
 						} else if(slotList.size() > 1) {
-							printf("COLLISION at %llu.\n",
-								   (unsigned long long) i);
+							LOG(LOG_ERROR, "COLLISION at %llu for type %s.\n",
+								   (unsigned long long) i, typeInstance->toString().c_str());
+							//assert(false && "Collision resolution not implemented.");
 							methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType()));
 						} else {
 							assert(slotList.size() == 1);
@@ -1154,10 +1152,10 @@ namespace Locic {
 							llvm::Value* rawValue = genValue(value->polyCast.value);
 							SEM::Type* sourceType = value->polyCast.value->type();
 							SEM::Type* destType = value->type();
-							assert(sourceType->isPointer() && "Polycast source type must be pointer");
-							assert(destType->isPointer() && "Polycast dest type must be pointer");
-							SEM::Type* sourceTarget = sourceType->getPointerTarget();
-							SEM::Type* destTarget = destType->getPointerTarget();
+							assert((sourceType->isPointer() || sourceType->isReference())  && "Polycast source type must be pointer or reference.");
+							assert((destType->isPointer() || destType->isReference()) && "Polycast dest type must be pointer or reference.");
+							SEM::Type* sourceTarget = sourceType->getPointerOrReferenceTarget();
+							SEM::Type* destTarget = destType->getPointerOrReferenceTarget();
 							assert(destTarget->isInterface() && "Polycast dest target type must be interface");
 							
 							if(sourceTarget->isInterface()) {
@@ -1178,7 +1176,7 @@ namespace Locic {
 								interfaceValue = builder_.CreateInsertValue(interfaceValue, vtablePointer,
 									std::vector<unsigned>(1, 1));
 								return interfaceValue;
-							} else if(sourceTarget->isClass()) {
+							} else {
 								// Cast class pointer to pointer to the opaque struct
 								// representing destination interface type.
 								llvm::Value* objectPointer = builder_.CreatePointerCast(rawValue,
@@ -1192,9 +1190,6 @@ namespace Locic {
 								interfaceValue = builder_.CreateInsertValue(interfaceValue, vtablePointer,
 									std::vector<unsigned>(1, 1));
 								return interfaceValue;
-							} else {
-								assert(false && "Polycast source target type must be class or interface");
-								return NULL;
 							}
 						}
 						case SEM::Value::INTERNALCONSTRUCT: {
