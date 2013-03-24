@@ -148,7 +148,7 @@ namespace Locic {
 					const Node templateNode = Node::TemplateVar(astTemplateVar, semTemplateVar);
 					
 					if(!node.tryAttach(varName, templateNode)){
-						throw TemplateVariableClashException(context.name() + semTypeInstance->name(), varName);
+						throw TemplateVariableClashException(context.name(), varName);
 					}
 					
 					semTypeInstance->templateVariables().push_back(semTemplateVar);

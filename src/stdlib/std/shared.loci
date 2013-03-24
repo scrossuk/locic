@@ -5,11 +5,6 @@ class shared(shared_ptr<T> ptr){
 		return @(new<shared_ptr>(value));
 	}
 	
-	template <typename S>
-	static polycast(shared<S> value) {
-		return @(shared_ptr<T>::polycast(value));
-	}
-	
 	shared<T> implicitCopy() const {
 		return @(@ptr);
 	}
@@ -28,12 +23,6 @@ template <typename T>
 class shared_ptr(size_t* countField, T* ptr){
 	static default(T value) {
 		return @(new<raw_ptr>(cast<size_t>(1)), new<raw_ptr>(value));
-	}
-	
-	template <typename S>
-	static polycast(shared_ptr<S> value) {
-		(size_t* count, S* ptr) = move value;
-		return @(count, ptr);
 	}
 
 	~{

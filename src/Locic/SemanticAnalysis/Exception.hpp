@@ -219,7 +219,7 @@ namespace Locic {
 					: message_(message) { }
 					
 				inline std::string toString() const {
-					return makeString("Some error: %s.", message_.c_str());
+					return makeString("[TODO EXCEPTION] %s", message_.c_str());
 				}
 				
 			private:

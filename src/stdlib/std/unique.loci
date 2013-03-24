@@ -5,11 +5,6 @@ class unique(unique_ptr<T> ptr){
 		return @(new<unique_ptr>(value));
 	}
 	
-	template <typename S>
-	static polycast(unique<S> value) {
-		return @(unique_ptr<T>::polycast(value));
-	}
-
 	T& forward() const {
 		return *@ptr;
 	}
@@ -30,18 +25,12 @@ class unique_ptr(T * ptr){
 		return @(null);
 	}
 	
-	template <typename S>
-	static polycast(unique_ptr<S> value) {
-		(T* ptr) = move value;
-		return @(ptr.ptr);
-	}
-
 	~{
 		delete<raw_ptr>(@ptr);
 	}
 	
 	if(T has copyable<T>){
-		unique_ptr<T> copy() const {
+		unique_ptr<T> copy() const <T: copyable<T>> {
 			return unique_ptr<T>(@ptr != null ? @ptr->copy() : null);
 		}
 	}

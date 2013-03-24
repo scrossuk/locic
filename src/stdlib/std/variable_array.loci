@@ -13,9 +13,9 @@ class array_range(const Array& array, size_t start, size_t end) {
 		@start++;
 	}
 	
-	T& front() const {
+	T ref front() const {
 		assert(!self.empty());
-		return @array[@start];
+		return ref @array[@start];
 	}
 	
 	void popBack() {
@@ -23,9 +23,9 @@ class array_range(const Array& array, size_t start, size_t end) {
 		@end--;
 	}
 	
-	T& back() const {
+	T ref back() const {
 		assert(!empty());
-		return @array[@end - 1];
+		return ref @array[@end - 1];
 	}
 	
 	bool invariant() const {
@@ -77,9 +77,9 @@ class variable_array(size_t size, size_t capacity, T* data) if (T.is_concrete())
 		return @size;
 	}
 	
-	T& indexAt(size_t index) const {
+	T ref indexAt(size_t index) const {
 		assert(index < @size);
-		return @data[index];
+		return ref @data[index];
 	}
 
 	variable_array_range<T> range() const {

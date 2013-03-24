@@ -250,7 +250,7 @@ namespace Locic {
 					llvm::Function* functionDecl = llvm::Function::Create(genFunctionType(function->type(), thisType),
 						getFunctionLinkage(parent), functionName, module_);
 					
-					if(function->type()->getFunctionReturnType()->isClass()) {
+					if(function->type()->getFunctionReturnType()->isClassOrTemplateVar()) {
 						// Class return values are allocated by the caller,
 						// which passes a pointer to the callee. The caller
 						// and callee must, for the sake of optimisation,
@@ -589,7 +589,7 @@ namespace Locic {
 					llvm::Type* returnType = genType(semReturnType);
 					std::vector<llvm::Type*> paramTypes;
 					
-					if(semReturnType->isClass()) {
+					if(semReturnType->isClassOrTemplateVar()) {
 						// Class return values are constructed on the caller's
 						// stack, and given to the callee as a pointer.
 						paramTypes.push_back(returnType->getPointerTo());
@@ -687,6 +687,10 @@ namespace Locic {
 								getTypeInstancePointer(*(objectType->getObjectType())))->getPointerTo());
 							types.push_back(genPointerType(objectType));
 							return llvm::StructType::get(llvm::getGlobalContext(), types);
+						}
+						case SEM::Type::TEMPLATEVAR: {
+							// TODO: There might a more meaningful type to generate here.
+							return llvm::Type::getInt8Ty(llvm::getGlobalContext());
 						}
 						default: {
 							assert(false && "Unknown type enum for generating type");
@@ -1237,7 +1241,7 @@ namespace Locic {
 							SEM::Type* returnType = value->type();
 							llvm::Value* returnValue = NULL;
 							
-							if(returnType->isClass()) {
+							if(returnType->isClassOrTemplateVar()) {
 								returnValue = genAlloca(returnType);
 								assert(returnValue != NULL &&
 									"Must have lvalue for holding class "

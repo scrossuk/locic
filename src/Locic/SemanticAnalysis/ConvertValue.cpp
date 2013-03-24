@@ -54,11 +54,9 @@ namespace Locic {
 					const Node node = context.lookupName(name);
 					
 					if(node.isNone()) {
-						printf("Semantic Analysis Error: Couldn't find symbol or value '%s'.\n", name.toString().c_str());
-						return NULL;
+						throw TodoException(makeString("Couldn't find symbol or value '%s'.", name.toString().c_str()));
 					} else if(node.isNamespace()) {
-						printf("Semantic Analysis Error: Namespace '%s' is not a valid value.\n", name.toString().c_str());
-						return NULL;
+						throw TodoException(makeString("Namespace '%s' is not a valid value.", name.toString().c_str()));
 					} else if(node.isFunction()) {
 						SEM::Function* function = node.getSEMFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
@@ -67,20 +65,15 @@ namespace Locic {
 						return SEM::Value::FunctionRef(function);
 					} else if(node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
-						assert(typeInstance != NULL && "Type instance pointer must not "
-							"be NULL (as indicated by isTypeInstance() being true)");
 						
 						if(typeInstance->isInterface()) {
-							printf("Semantic Analysis Error: Can't construct interface type '%s'.\n",
-								   name.toString().c_str());
-							return NULL;
+							throw TodoException(makeString("Can't construct interface type '%s'.", name.toString().c_str()));
 						}
 						
 						const Node defaultConstructorNode = node.getChild("Default");
 						if(!defaultConstructorNode.isFunction()) {
-							printf("Semantic Analysis Error: Couldn't find default constructor for type '%s'.\n",
-								   name.toString().c_str());
-							return NULL;
+							throw TodoException(makeString("Couldn't find default constructor for type '%s'.",
+								name.toString().c_str()));
 						}
 						
 						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction());
@@ -105,37 +98,34 @@ namespace Locic {
 					SEM::Var* semVar = context.getParentMemberVariable(memberName).getSEMVar();
 					
 					if(semVar == NULL) {
-						printf("Semantic Analysis Error: member variable '@%s' not found.\n", memberName.c_str());
-						return NULL;
+						throw TodoException(makeString("Member variable '@%s' not found.",
+								memberName.c_str()));
 					}
 					
 					return SEM::Value::VarValue(semVar);
 				}
 				case AST::Value::ADDRESSOF: {
 					SEM::Value* operand = ConvertValue(context, value->addressOf.value);
-					if(operand == NULL) return NULL;
 					
 					if(operand->type()->isLValue()) {
 						return SEM::Value::AddressOf(operand);
 					}
 					
-					printf("Semantic Analysis Error: Attempting to take address of R-value.\n");
-					return NULL;
+					throw TodoException(makeString("Attempted to take address of R-value '%s'.",
+						operand->toString().c_str()));
 				}
 				case AST::Value::DEREFERENCE: {
 					SEM::Value* operand = ConvertValue(context, value->dereference.value);
-					if(operand == NULL) return NULL;
 					
 					if(operand->type()->isPointer()) {
 						return SEM::Value::DerefPointer(operand);
 					}
 					
-					printf("Semantic Analysis Error: Attempting to dereference non-pointer type.\n");
-					return NULL;
+					throw TodoException(makeString("Attempted to dereference non-pointer value '%s'.",
+						operand->toString().c_str()));
 				}
 				case AST::Value::TERNARY: {
 					SEM::Value* cond = ConvertValue(context, value->ternary.condition);
-					if(cond == NULL) return NULL;
 					
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
@@ -161,9 +151,8 @@ namespace Locic {
 					SEM::Type* type = ConvertType(context, value->cast.targetType, SEM::Type::RVALUE);
 					SEM::Value* val = ConvertValue(context, value->cast.value);
 					
-					if(type == NULL || val == NULL) {
-						return NULL;
-					}
+					(void) type;
+					(void) val;
 					
 					std::string s;
 					switch(value->cast.castKind) {
@@ -184,9 +173,8 @@ namespace Locic {
 							return NULL;
 					}
 					
-					printf("Internal Compiler Error: Casts of kind '%s' not yet implemented.\n",
-						   s.c_str());
-					return NULL;
+					throw TodoException(makeString("Casts of kind '%s' not yet implemented.",
+						s.c_str()));
 				}
 				case AST::Value::INTERNALCONSTRUCT: {
 					const std::vector<AST::Value*>& astValues = value->internalConstruct.parameters;
@@ -199,10 +187,10 @@ namespace Locic {
 					SEM::TypeInstance* thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
 					if(astValues.size() != thisTypeInstance->variables().size()) {
-						printf("Semantic Analysis Error: Internal constructor called "
-							   "with wrong number of arguments; received %lu, expected %lu.\n",
-							   (unsigned long) astValues.size(), (unsigned long) thisTypeInstance->variables().size());
-						return NULL;
+						throw TodoException(makeString("Internal constructor called "
+							   "with wrong number of arguments; received %llu, expected %llu.",
+							(unsigned long long) astValues.size(),
+							(unsigned long long) thisTypeInstance->variables().size()));
 					}
 					
 					std::vector<SEM::Value*> semValues;
@@ -220,7 +208,6 @@ namespace Locic {
 					const std::string memberName = value->memberAccess.memberName;
 					
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
-					if(object == NULL) return NULL;
 					
 					// Any number of levels of references are automatically dereferenced.
 					while(object->type()->isReference()) {
@@ -228,8 +215,8 @@ namespace Locic {
 					}
 					
 					if(!object->type()->isObject()) {
-						printf("Semantic Analysis Error: Can't access member of non-object type.\n");
-						return NULL;
+						throw TodoException(makeString("Can't access member of non-object value '%s'.",
+							object->toString().c_str()));
 					}
 					
 					SEM::TypeInstance* typeInstance = object->type()->getObjectType();
@@ -261,10 +248,8 @@ namespace Locic {
 							
 							return SEM::Value::MemberAccess(object, var, memberType);
 						} else {
-							printf("Semantic Analysis Error: Can't access struct "
-								   "member '%s' in type '%s'.\n",
-								   memberName.c_str(), typeInstance->name().c_str());
-							return NULL;
+							throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
+								memberName.c_str(), typeInstance->name().c_str()));
 						}
 					} else if(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
 						// Look for class methods.
@@ -274,21 +259,18 @@ namespace Locic {
 							SEM::Function* function = childNode.getSEMFunction();
 							
 							if(!function->isMethod()) {
-								printf("Semantic Analysis Error: Cannot call static function '%s' in type '%s'.\n",
-									   function->name().c_str(), typeInstance->name().c_str());
-								return NULL;
+								throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
+									function->name().c_str(), typeInstance->name().c_str()));
 							}
 							
 							return SEM::Value::MethodObject(function, object);
 						} else {
-							printf("Semantic Analysis Error: Can't find method '%s' in type '%s'.\n",
-								memberName.c_str(), typeInstance->name().c_str());
-							return NULL;
+							throw TodoException(makeString("Can't find method '%s' in type '%s'.",
+								memberName.c_str(), typeInstance->name().c_str()));
 						}
 					} else if(typeInstance->isStructDecl()) {
-						printf("Semantic Analysis Error: Can't access member '%s' in unspecified struct type '%s'.\n",
-							   memberName.c_str(), typeInstance->name().c_str());
-						return NULL;
+						throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
+							memberName.c_str(), typeInstance->name().c_str()));
 					}
 					
 					assert(false && "Invalid switch fallthrough in ConvertValue for member access");
@@ -298,10 +280,6 @@ namespace Locic {
 					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");
 					SEM::Value* functionValue = ConvertValue(context, value->functionCall.functionValue);
 					
-					if(functionValue == NULL) {
-						return NULL;
-					}
-					
 					switch(functionValue->type()->kind()) {
 						case SEM::Type::FUNCTION: {
 							const std::vector<SEM::Type*>& typeList = functionValue->type()->getFunctionParameterTypes();
@@ -309,15 +287,17 @@ namespace Locic {
 							
 							if(functionValue->type()->isFunctionVarArg()) {
 								if(astValueList.size() < typeList.size()) {
-									printf("Semantic Analysis Error: Var Arg Function [%s] called with %lu number of parameters; expected at least %lu.\n",
-										   functionValue->toString().c_str(), astValueList.size(), typeList.size());
-									return NULL;
+									throw TodoException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
+										functionValue->toString().c_str(),
+										(unsigned long long) astValueList.size(),
+										(unsigned long long) typeList.size()));
 								}
 							} else {
 								if(astValueList.size() != typeList.size()) {
-									printf("Semantic Analysis Error: Function [%s] called with %lu number of parameters; expected %lu.\n",
-										   functionValue->toString().c_str(), astValueList.size(), typeList.size());
-									return NULL;
+									throw TodoException(makeString("Function [%s] called with %llu number of parameters; expected %llu.",
+										functionValue->toString().c_str(),
+										(unsigned long long) astValueList.size(),
+										(unsigned long long) typeList.size()));
 								}
 							}
 							
@@ -327,8 +307,6 @@ namespace Locic {
 							
 							for(std::size_t i = 0; i < astValueList.size(); i++) {
 								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
-								
-								if(semArgValue == NULL) return NULL;
 								
 								SEM::Value* param = (i < typeList.size()) ?
 										ImplicitCast(semArgValue, typeList.at(i)->createRValueType()) :
@@ -348,18 +326,15 @@ namespace Locic {
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
 							if(typeList.size() != astValueList.size()) {
-								printf("Semantic Analysis Error: Method called with %lu number "
-									   "of parameters; expected %lu.\n",
-									   astValueList.size(), typeList.size());
-								return NULL;
+								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+									functionValue->toString().c_str(),
+									astValueList.size(), typeList.size()));
 							}
 							
 							std::vector<SEM::Value*> semValueList;
 							
 							for(std::size_t i = 0; i < astValueList.size(); i++) {
 								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
-								
-								if(semArgValue == NULL) return NULL;
 								
 								SEM::Value* param = ImplicitCast(semArgValue, typeList.at(i));
 								
@@ -369,8 +344,8 @@ namespace Locic {
 							return SEM::Value::MethodCall(functionValue, semValueList);
 						}
 						default: {
-							printf("Semantic Analysis Error: Can't call type that isn't a function or a method.\n");
-							return NULL;
+							throw TodoException(makeString("Can't call value '%s' that isn't a function or a method.",
+								functionValue->toString().c_str()));
 						}
 					}
 				}

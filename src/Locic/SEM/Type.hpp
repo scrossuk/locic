@@ -221,6 +221,14 @@ namespace Locic {
 					return getObjectType()->isInterface();
 				}
 				
+				inline bool isTemplateVar() const {
+					return kind() == TEMPLATEVAR;
+				}
+				
+				inline bool isClassOrTemplateVar() const {
+					return isClass() || isTemplateVar();
+				}
+				
 				inline Type* createConstType() const {
 					Type* type = new Type(*this);
 					type->isMutable_ = false;

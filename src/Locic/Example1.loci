@@ -44,7 +44,7 @@ template <typename T>
 class PolyClass{
 	static Default();
 	
-	void function(int value);
+	T function(int value);
 };
 
 interface value_giving_interface{
