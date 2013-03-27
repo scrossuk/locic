@@ -52,7 +52,6 @@ continue                { return CONTINUE; }
 break                   { return BREAK; }
 
 in                      { return IN; }
-has                     { return HAS; }
 
 exception               { return EXCEPTION; }
 throw                   { return THROW; }
@@ -61,7 +60,6 @@ catch                   { return CATCH; }
 
 template                { return TEMPLATE; }
 typename                { return TYPENAME; }
-move                    { return MOVE; }
 
 struct                  { return STRUCT; }
 enum                    { return ENUM; }
@@ -77,22 +75,24 @@ const                   { return CONST; }
 constexpr               { return CONSTEXPR; }
 
 using                   { return USING; }
-static                  { return STATIC; }
+static                 { return STATIC; }
 import                  { return IMPORT; }
 export                  { return EXPORT; }
 
 new                     { return NEW; }
 delete                  { return DELETE; }
+move                    { return MOVE; }
+lval                    { return LVAL; }
 extract                 { return EXTRACT; }
 sizeof                  { return SIZEOF; }
 
 const_cast              { return CONST_CAST; }
 static_cast             { return STATIC_CAST; }
 reinterpret_cast        { return REINTERPRET_CAST; }
-
-is_a                    { return IS_A; }
-typeid                  { return TYPEID; }
 dynamic_cast            { return DYNAMIC_CAST; }
+
+typeof                  { return TYPEOF; }
+typeid                  { return TYPEID; }
 
 void                    { return VOIDNAME; }
 

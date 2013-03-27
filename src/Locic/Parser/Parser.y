@@ -93,6 +93,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token DELETE
 %token MOVE
 %token EXTRACT
+%token LVAL
 %token TEMPLATE
 %token TYPENAME
 %token USING
@@ -108,6 +109,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token TRY
 %token CATCH
 %token SIZEOF
+%token TYPEOF
 %token TYPEID
 %token LROUNDBRACKET
 %token RROUNDBRACKET
@@ -126,7 +128,6 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token FOR
 %token WHILE
 %token IN
-%token HAS
 %token SETEQUAL
 %token ADDEQUAL
 %token SUBEQUAL

@@ -1,6 +1,6 @@
-template <typename T, typename Array: array<T>>
-class array_range(const Array& array, size_t start, size_t end) {
-	static default(const Array& array){
+template <typename T>
+class array_range(const array<T>& array, size_t start, size_t end) {
+	static default(const array<T>& array){
 		return @(array, 0, array.size());
 	}
 	
@@ -8,28 +8,28 @@ class array_range(const Array& array, size_t start, size_t end) {
 		return @start == @end;
 	}
 	
-	void popFront() {
+	void advanceFront() {
 		assert(!self.empty());
 		@start++;
 	}
 	
-	T ref front() const {
+	lval<T> front() const {
 		assert(!self.empty());
-		return ref @array[@start];
+		return lval @array[@start];
 	}
 	
-	void popBack() {
+	void advanceBack() {
 		assert(!self.empty());
 		@end--;
 	}
 	
-	T ref back() const {
+	lval<T> back() const {
 		assert(!empty());
-		return ref @array[@end - 1];
+		return lval @array[@end - 1];
 	}
 	
 	bool invariant() const {
-		return @start <= @end && (!self.empty() => @end > 0);
+		return @start <= @end && (!self.empty() implies @end > 0);
 	}
 	
 }
@@ -38,7 +38,7 @@ template <typename T>
 using variable_array_range = array_range<T, variable_array<T>>;
 
 template <typename T>
-class variable_array(size_t size, size_t capacity, T* data) if (T.is_concrete()) {
+class variable_array(size_t size, size_t capacity, T* data) {
 	static default() {
 		@(0, 0, null);
 	}
@@ -77,24 +77,22 @@ class variable_array(size_t size, size_t capacity, T* data) if (T.is_concrete())
 		return @size;
 	}
 	
-	T ref indexAt(size_t index) const {
+	lval<T> indexAt(size_t index) const {
 		assert(index < @size);
-		return ref @data[index];
+		return lval @data[index];
 	}
 
 	variable_array_range<T> range() const {
 		return variable_array_range<T>(@data, 0, @size);
 	}
 	
-	if(T.implements(copyable<T>)){
-		variable_array<T> copy() const {
-			auto array = variable_array<T>();
-			array.resize(@size);
-			for(i in 0 .. @size){
-				array[i] := self[i].copy();
-			}
-			return array;
+	variable_array<T> copy() const <T: copyable<T>> {
+		auto array = variable_array<T>();
+		array.resize(@size);
+		for(i in 0 .. @size){
+			array[i] := self[i].copy();
 		}
+		return array;
 	}
 }
 
