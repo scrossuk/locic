@@ -6,6 +6,7 @@
 #include <Locic/SEM/Namespace.hpp>
 #include <Locic/SEM/Scope.hpp>
 #include <Locic/SEM/Statement.hpp>
+#include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 #include <Locic/SEM/Value.hpp>

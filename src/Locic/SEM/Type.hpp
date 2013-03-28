@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <Locic/Map.hpp>
 #include <Locic/String.hpp>
 
 #include <Locic/SEM/Object.hpp>
@@ -48,6 +49,7 @@ namespace Locic {
 				
 				inline static Type* Object(bool isMutable, bool isLValue, TypeInstance* typeInstance,
 						const std::vector<Type*>& templateArguments) {
+					assert(typeInstance->templateVariables().size() == templateArguments.size());
 					Type* type = new Type(OBJECT, isMutable, isLValue);
 					type->objectType_.typeInstance = typeInstance;
 					type->objectType_.templateArguments = templateArguments;
@@ -188,18 +190,22 @@ namespace Locic {
 					return isPointer() ? getPointerTarget() : getReferenceTarget();
 				}
 				
+				inline TemplateVar* getTemplateVar() const {
+					assert(isTemplateVar());
+					return templateVarRef_.templateVar;
+				}
+				
 				inline bool isObject() const {
 					return kind() == OBJECT;
 				}
 				
 				inline SEM::TypeInstance* getObjectType() const {
-					assert(isObject() && "Cannot get object type, since type is not an object type");
+					assert(isObject());
 					return objectType_.typeInstance;
 				}
 				
 				inline const std::vector<Type*>& templateArguments() const {
-					assert(isObject() &&
-						   "Cannot get object type template arguments, since type is not an object type");
+					assert(isObject());
 					return objectType_.templateArguments;
 				}
 				
@@ -248,6 +254,10 @@ namespace Locic {
 					type->isLValue_ = false;
 					return type;
 				}
+				
+				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
+				
+				Type* substituteTemplateVars(const Map<TemplateVar*, Type*>& templateVarMap) const;
 				
 				bool supportsImplicitCopy() const;
 				

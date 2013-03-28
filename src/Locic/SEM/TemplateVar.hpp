@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <Locic/SEM/Object.hpp>
+#include <Locic/SEM/Type.hpp>
 
 namespace Locic {
 
@@ -14,8 +15,6 @@ namespace Locic {
 			TEMPLATEVAR_TYPENAME,
 			TEMPLATEVAR_POLYMORPHIC
 		};
-		
-		class Type;
 		
 		class TemplateVar: public Object {
 			public:
@@ -38,6 +37,13 @@ namespace Locic {
 				
 				inline Type * specType() const {
 					return specType_;
+				}
+				
+				inline std::string toString() const {
+					return makeString("TemplateVar(specType = %s)",
+						specType_ != NULL ?
+							specType_->toString().c_str() :
+							"[none]");
 				}
 				
 			private:

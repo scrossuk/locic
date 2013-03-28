@@ -1288,7 +1288,7 @@ namespace Locic {
 							return function;
 						}
 						case SEM::Value::METHODOBJECT: {
-							llvm::Function* function = functions_.get(value->methodObject.method);
+							llvm::Value* function = genValue(value->methodObject.method);
 							assert(function != NULL && "MethodObject requires a valid function");
 							llvm::Value* dataPointer = generateLValue(value->methodObject.methodOwner);
 							assert(dataPointer != NULL && "MethodObject requires a valid data pointer");

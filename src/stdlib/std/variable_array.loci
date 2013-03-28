@@ -1,10 +1,10 @@
-template <typename T>
-class array_range(const array<T>& array, size_t start, size_t end) {
-	static default(const array<T>& array){
+template <typename T, typename Array: array<T>>
+class array_range(Array& array, size_t start, size_t end) {
+	static default(Array& array){
 		return @(array, 0, array.size());
 	}
 	
-	bool empty() const {
+	bool empty() {
 		return @start == @end;
 	}
 	
@@ -13,7 +13,7 @@ class array_range(const array<T>& array, size_t start, size_t end) {
 		@start++;
 	}
 	
-	lval<T> front() const {
+	lval<T> front() {
 		assert(!self.empty());
 		return lval @array[@start];
 	}
@@ -23,19 +23,16 @@ class array_range(const array<T>& array, size_t start, size_t end) {
 		@end--;
 	}
 	
-	lval<T> back() const {
+	lval<T> back() {
 		assert(!empty());
 		return lval @array[@end - 1];
 	}
 	
-	bool invariant() const {
+	bool invariant() {
 		return @start <= @end && (!self.empty() implies @end > 0);
 	}
 	
 }
-
-template <typename T>
-using variable_array_range = array_range<T, variable_array<T>>;
 
 template <typename T>
 class variable_array(size_t size, size_t capacity, T* data) {
@@ -61,7 +58,7 @@ class variable_array(size_t size, size_t capacity, T* data) {
 		@capacity = size;
 	}
 	
-	size_t capacity() const {
+	size_t capacity() {
 		return @capacity;
 	}
 	
@@ -73,20 +70,20 @@ class variable_array(size_t size, size_t capacity, T* data) {
 		@size = size;
 	}
 	
-	size_t size() const {
+	size_t size() {
 		return @size;
 	}
 	
-	lval<T> indexAt(size_t index) const {
+	lval<T> indexAt(size_t index) {
 		assert(index < @size);
 		return lval @data[index];
 	}
-
-	variable_array_range<T> range() const {
-		return variable_array_range<T>(@data, 0, @size);
+	
+	array_range<T, this_type> range() {
+		return array_range<T, this_type>(@data, 0, @size);
 	}
 	
-	variable_array<T> copy() const <T: copyable<T>> {
+	variable_array<T> copy() <T: copyable<T>> {
 		auto array = variable_array<T>();
 		array.resize(@size);
 		for(i in 0 .. @size){

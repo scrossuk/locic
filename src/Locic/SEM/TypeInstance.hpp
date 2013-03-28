@@ -6,15 +6,14 @@
 #include <Locic/Name.hpp>
 
 #include <Locic/SEM/Object.hpp>
-#include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Var.hpp>
 
 namespace Locic {
 
 	namespace SEM {
 	
-		struct Function;
-		struct NamespaceNode;
+		class Function;
+		class TemplateVar;
 		
 		class TypeInstance: public Object {
 			public:

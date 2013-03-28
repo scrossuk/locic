@@ -263,7 +263,9 @@ namespace Locic {
 									function->name().c_str(), typeInstance->name().c_str()));
 							}
 							
-							return SEM::Value::MethodObject(function, object);
+							SEM::Value* functionRef = SEM::Value::FunctionRef(function);
+							
+							return SEM::Value::MethodObject(functionRef, object);
 						} else {
 							throw TodoException(makeString("Can't find method '%s' in type '%s'.",
 								memberName.c_str(), typeInstance->name().c_str()));

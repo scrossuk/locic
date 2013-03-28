@@ -1,7 +1,9 @@
 #include <string>
 #include <vector>
 
+#include <Locic/Map.hpp>
 #include <Locic/String.hpp>
+#include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 
@@ -10,6 +12,26 @@ namespace Locic {
 	namespace SEM {
 	
 		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
+		
+		Map<TemplateVar*, Type*> Type::generateTemplateVarMap() const {
+			assert(isObject());
+			const std::vector<TemplateVar*>& templateVars = getObjectType()->templateVariables();
+			const std::vector<Type*>& templateArgs = templateArguments();
+			
+			assert(templateVars.size() == templateArgs.size());
+			
+			Map<TemplateVar*, Type*> templateVarMap;
+			for(size_t i = 0; i < templateVars.size(); i++){
+				templateVarMap.insert(templateVars.at(i), templateArgs.at(i));
+			}
+			
+			return templateVarMap;
+		}
+		
+		Type* Type::substituteTemplateVars(const Map<TemplateVar*, Type*>& templateVarMap) const {
+			assert(false && "TODO");
+			return NULL;
+		}
 		
 		Type* Type::createTransitiveConstType() const {
 			if(isPointer()) {
@@ -98,6 +120,9 @@ namespace Locic {
 					return makeString("MethodType(object: %s, function: %s)",
 							getMethodObjectType()->toString().c_str(),
 							getMethodFunctionType()->toString().c_str());
+				case TEMPLATEVAR:
+					return makeString("TemplateVarType(templateVar: %s)",
+						getTemplateVar()->toString().c_str());
 				default:
 					return "[UNKNOWN TYPE]";
 			}

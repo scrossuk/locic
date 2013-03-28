@@ -34,6 +34,16 @@ namespace Locic {
 							templateArguments.push_back(ConvertType(context, astTemplateArgs.at(i), SEM::Type::LVALUE));
 						}
 						
+						const size_t numTemplateVariables = typeInstance->templateVariables().size();
+						const size_t numTemplateArguments = templateArguments.size();
+						if(numTemplateVariables != numTemplateArguments){
+							throw TodoException(makeString("Incorrect number of template "
+								"arguments provided for type '%s'; %llu were required, "
+								"but %llu were provided.", name.toString().c_str(),
+								(unsigned long long) numTemplateVariables,
+								(unsigned long long) numTemplateArguments));
+						}
+						
 						return SEM::Type::Object(type->isMutable, isLValue, typeInstance, templateArguments);
 					}else if(objectNode.isTemplateVar()) {
 						SEM::TemplateVar* templateVar = objectNode.getSEMTemplateVar();

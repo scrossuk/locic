@@ -99,7 +99,7 @@ namespace Locic {
 				} functionRef;
 				
 				struct {
-					Function* method;
+					Value* method;
 					Value* methodOwner;
 				} methodObject;
 				
@@ -193,9 +193,14 @@ namespace Locic {
 				}
 				
 				inline static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters) {
-					// Internal construction always operates on the 'generic type'
-					// (i.e. the type with no template arguments supplied).
-					Type* type = Type::Object(Type::MUTABLE, Type::RVALUE, typeInstance, std::vector<Type*>());
+					std::vector<Type*> templateArguments;
+					for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
+						templateArguments.push_back(Type::TemplateVarRef(
+							SEM::Type::MUTABLE, SEM::Type::LVALUE,
+							typeInstance->templateVariables().at(i)));
+					}
+					
+					Type* type = Type::Object(Type::MUTABLE, Type::RVALUE, typeInstance, templateArguments);
 					Value* value = new Value(INTERNALCONSTRUCT, type);
 					value->internalConstruct.parameters = parameters;
 					return value;
@@ -222,7 +227,15 @@ namespace Locic {
 					return value;
 				}
 				
-				inline static Value* MethodObject(Function* method, Value* methodOwner) {
+				inline static Value* TemplatedFunctionRef(Function* function,
+					const Map<TemplateVar*, Type*>& templateVarMap){
+					Value* value = new Value(FUNCTIONREF, function->type()->substituteTemplateVars(templateVarMap));
+					value->functionRef.function = function;
+					return value;
+				}
+				
+				inline static Value* MethodObject(Value* method, Value* methodOwner) {
+					assert(method->type()->isFunction());
 					assert(methodOwner->type()->isObject());
 					Value* value = new Value(METHODOBJECT,
 							SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE,
