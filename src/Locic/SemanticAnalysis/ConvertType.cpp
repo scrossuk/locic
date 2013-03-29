@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <Locic/AST.hpp>
+#include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
@@ -9,6 +10,48 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
+		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Symbol& symbol) {
+			const Name fullName = symbol.createName();
+			assert(fullName.size() == symbol.size());
+			
+			Map<SEM::TemplateVar*, SEM::Type*> templateVarMap;
+			
+			for(size_t i = 0; i < symbol.size(); i++){
+				const AST::SymbolElement& element = symbol.at(i);
+				const std::vector<AST::Type*>& astTemplateArgs = element.templateArguments();
+				const size_t numTemplateArguments = astTemplateArgs.size();
+				
+				const Name name = fullName.substr(i + 1);
+				
+				const Node objectNode = context.lookupName(name);
+				if(objectNode.isTypeInstance()){
+					SEM::TypeInstance* typeInstance = objectNode.getSEMTypeInstance();
+					const size_t numTemplateVariables = typeInstance->templateVariables().size();
+					if(numTemplateVariables != numTemplateArguments){
+						throw TodoException(makeString("Incorrect number of template "
+							"arguments provided for type '%s'; %llu were required, "
+							"but %llu were provided.", name.toString().c_str(),
+							(unsigned long long) numTemplateVariables,
+							(unsigned long long) numTemplateArguments));
+					}
+					
+					for(size_t j = 0; j < numTemplateArguments; j++){
+						templateVarMap.insert(typeInstance->templateVariables().at(j),
+							ConvertType(context, astTemplateArgs.at(i), SEM::Type::LVALUE));
+					}
+				}else{
+					if(numTemplateArguments > 0){
+						throw TodoException(makeString("%llu template "
+							"arguments provided for non-type node '%s'; none should be provided.",
+							(unsigned long long) numTemplateArguments,
+							name.toString().c_str()));
+					}
+				}
+			}
+			
+			return templateVarMap;
+		}
+		
 		SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {
 			switch(type->typeEnum) {
 				case AST::Type::UNDEFINED: {
@@ -25,27 +68,22 @@ namespace Locic {
 					const Name name = symbol.createName();
 					const Node objectNode = context.lookupName(name);
 					
+					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
+					
 					if(objectNode.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = objectNode.getSEMTypeInstance();
 						
-						std::vector<SEM::Type*> templateArguments;
-						const std::vector<AST::Type*>& astTemplateArgs = symbol.last().templateArguments();
-						for(size_t i = 0; i < astTemplateArgs.size(); i++) {
-							templateArguments.push_back(ConvertType(context, astTemplateArgs.at(i), SEM::Type::LVALUE));
-						}
+						assert(templateVarMap.size() == typeInstance->templateVariables().size());
 						
-						const size_t numTemplateVariables = typeInstance->templateVariables().size();
-						const size_t numTemplateArguments = templateArguments.size();
-						if(numTemplateVariables != numTemplateArguments){
-							throw TodoException(makeString("Incorrect number of template "
-								"arguments provided for type '%s'; %llu were required, "
-								"but %llu were provided.", name.toString().c_str(),
-								(unsigned long long) numTemplateVariables,
-								(unsigned long long) numTemplateArguments));
+						std::vector<SEM::Type*> templateArguments;
+						for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
+							templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
 						}
 						
 						return SEM::Type::Object(type->isMutable, isLValue, typeInstance, templateArguments);
 					}else if(objectNode.isTemplateVar()) {
+						assert(templateVarMap.empty());
+						
 						SEM::TemplateVar* templateVar = objectNode.getSEMTemplateVar();
 						
 						return SEM::Type::TemplateVarRef(type->isMutable, isLValue, templateVar);

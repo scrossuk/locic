@@ -53,6 +53,9 @@ namespace Locic {
 					// Not a local variable => do a symbol lookup.
 					const Node node = context.lookupName(name);
 					
+					// Get a map from template variables to their values (i.e. types).
+					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
+					
 					if(node.isNone()) {
 						throw TodoException(makeString("Couldn't find symbol or value '%s'.", name.toString().c_str()));
 					} else if(node.isNamespace()) {
@@ -62,7 +65,7 @@ namespace Locic {
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						assert(!function->isMethod() && "TODO: class method references not implemented yet.");
 						
-						return SEM::Value::FunctionRef(function);
+						return SEM::Value::FunctionRef(function, templateVarMap);
 					} else if(node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 						
@@ -76,7 +79,7 @@ namespace Locic {
 								name.toString().c_str()));
 						}
 						
-						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction());
+						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction(), templateVarMap);
 					} else if(node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
@@ -263,7 +266,7 @@ namespace Locic {
 									function->name().c_str(), typeInstance->name().c_str()));
 							}
 							
-							SEM::Value* functionRef = SEM::Value::FunctionRef(function);
+							SEM::Value* functionRef = SEM::Value::FunctionRef(function, object->type()->generateTemplateVarMap());
 							
 							return SEM::Value::MethodObject(functionRef, object);
 						} else {

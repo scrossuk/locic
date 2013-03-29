@@ -93,7 +93,7 @@ namespace Locic {
 					return type;
 				}
 				
-				inline static Type* Method(bool isMutable, bool isLValue, Type* objectType, Type* functionType) {
+				inline static Type* Method(bool isLValue, Type* objectType, Type* functionType) {
 					assert(objectType->isObject());
 					// Methods are a 'const type', meaning they are always const.
 					Type* type = new Type(METHOD, CONST, isLValue);
@@ -235,29 +235,30 @@ namespace Locic {
 					return isClass() || isTemplateVar();
 				}
 				
-				inline Type* createConstType() const {
+				inline Type* copyType(bool makeMutable, bool makeLValue) const {
 					Type* type = new Type(*this);
-					type->isMutable_ = false;
+					type->isMutable_ = makeMutable;
+					type->isLValue_ = makeLValue;
 					return type;
+				}
+				
+				inline Type* createConstType() const {
+					return copyType(CONST, isLValue());
 				}
 				
 				Type* createTransitiveConstType() const;
 				
 				inline Type* createLValueType() const {
-					Type* type = new Type(*this);
-					type->isLValue_ = true;
-					return type;
+					return copyType(isMutable(), LVALUE);
 				}
 				
 				inline Type* createRValueType() const {
-					Type* type = new Type(*this);
-					type->isLValue_ = false;
-					return type;
+					return copyType(isMutable(), RVALUE);
 				}
 				
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
 				
-				Type* substituteTemplateVars(const Map<TemplateVar*, Type*>& templateVarMap) const;
+				Type* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
 				
 				bool supportsImplicitCopy() const;
 				

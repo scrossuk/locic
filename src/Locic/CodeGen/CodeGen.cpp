@@ -116,15 +116,16 @@ namespace Locic {
 				void applyOptimisations(size_t optLevel) {
 					llvm::FunctionPassManager functionPassManager(module_);
 					llvm::PassManager modulePassManager;
+					
 					llvm::PassManagerBuilder passManagerBuilder;
 					passManagerBuilder.OptLevel = optLevel;
 					passManagerBuilder.Inliner = llvm::createFunctionInliningPass();
 					passManagerBuilder.populateFunctionPassManager(functionPassManager);
 					passManagerBuilder.populateModulePassManager(modulePassManager);
-					functionPassManager.doInitialization();
-					llvm::Module::iterator i;
 					
-					for(i = module_->begin(); i != module_->end(); ++i) {
+					functionPassManager.doInitialization();
+					
+					for(llvm::Module::iterator i = module_->begin(); i != module_->end(); ++i) {
 						functionPassManager.run(*i);
 					}
 					
@@ -244,7 +245,7 @@ namespace Locic {
 					
 					const std::string functionName = (name + function->name()).genString();
 					
-					llvm::Type* thisType = function->isMethod() ? getTypeInstancePointer(*parent)
+					llvm::Type* thisType = function->isMethod() ? getTypeInstancePointer(parent)
 						: NULL;
 					
 					llvm::Function* functionDecl = llvm::Function::Create(genFunctionType(function->type(), thisType),
@@ -621,10 +622,7 @@ namespace Locic {
 					return llvm::FunctionType::get(returnType, paramTypes, type->isFunctionVarArg());
 				}
 				
-				llvm::Type* genObjectType(SEM::Type* type){
-					assert(type->isObject());
-					SEM::TypeInstance* typeInstance = type->getObjectType();
-					
+				llvm::Type* genObjectType(SEM::TypeInstance* typeInstance){
 					if(typeInstance->isPrimitive()) {
 						return createPrimitiveType(*module_, typeInstance);
 					} else {
@@ -634,30 +632,36 @@ namespace Locic {
 				}
 				
 				llvm::Type* genPointerType(SEM::Type* targetType){
-					// Interface pointers/references are actually two pointers:
-					// one to the class, and one to the class vtable.
-					if(targetType->isInterface()) {
-						std::vector<llvm::Type*> types;
-						// Class pointer.
-						types.push_back(typeInstances_.get(targetType->getObjectType())->getPointerTo());
-						// Vtable pointer.
-						types.push_back(getVTableType()->getPointerTo());
-						return llvm::StructType::get(llvm::getGlobalContext(), types);
-					}
-					
-					llvm::Type* pointerType = genType(targetType);
-					
-					if(pointerType->isVoidTy()) {
-						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-						return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
-					} else {
-						return pointerType->getPointerTo();
+					if(targetType->isObject()) {
+						return getTypeInstancePointer(targetType->getObjectType());
+					}else{
+						llvm::Type* pointerType = genType(targetType);
+						
+						if(pointerType->isVoidTy()) {
+							// LLVM doesn't support 'void *' => use 'int8_t *' instead.
+							return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
+						} else {
+							return pointerType->getPointerTo();
+						}
 					}
 				}
 				
-				llvm::Type* getTypeInstancePointer(SEM::TypeInstance& typeInstance) {
-					return genPointerType(SEM::Type::Object(SEM::Type::MUTABLE,
-						SEM::Type::LVALUE, &typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
+				llvm::Type* getTypeInstancePointer(SEM::TypeInstance* typeInstance) {
+					if(typeInstance->isInterface()) {
+						// Interface pointers/references are actually two pointers:
+						// one to the class, and one to the class vtable.
+						std::vector<llvm::Type*> types;
+						
+						// Class pointer.
+						types.push_back(typeInstances_.get(typeInstance)->getPointerTo());
+						
+						// Vtable pointer.
+						types.push_back(getVTableType()->getPointerTo());
+						
+						return llvm::StructType::get(llvm::getGlobalContext(), types);
+					}else{
+						return genObjectType(typeInstance)->getPointerTo();
+					}
 				}
 				
 				llvm::Type* genType(SEM::Type* type) {
@@ -669,7 +673,7 @@ namespace Locic {
 							return llvm::Type::getInt8Ty(llvm::getGlobalContext())->getPointerTo();
 						}
 						case SEM::Type::OBJECT: {
-							return genObjectType(type);
+							return genObjectType(type->getObjectType());
 						}
 						case SEM::Type::POINTER: {
 							return genPointerType(type->getPointerTarget());
@@ -684,7 +688,7 @@ namespace Locic {
 							SEM::Type* objectType = type->getMethodObjectType();
 							std::vector<llvm::Type*> types;
 							types.push_back(genFunctionType(type->getMethodFunctionType(),
-								getTypeInstancePointer(*(objectType->getObjectType())))->getPointerTo());
+								getTypeInstancePointer(objectType->getObjectType()))->getPointerTo());
 							types.push_back(genPointerType(objectType));
 							return llvm::StructType::get(llvm::getGlobalContext(), types);
 						}
@@ -929,6 +933,52 @@ namespace Locic {
 						llvm::Value* rValue = genValue(value);
 						genStore(rValue, lValue, value->type());
 						return lValue;
+					}
+				}
+				
+				llvm::Function* createSubstitutionStub(llvm::Function* function, SEM::Type* sourceType, SEM::Type* destType){
+					assert(sourceType->isFunction());
+					assert(destType->isFunction());
+					
+					SEM::Type* sourceReturnType = sourceType->getFunctionReturnType();
+					SEM::Type* destReturnType = destType->getFunctionReturnType();
+					
+					// TODO: A whole load of things need to be done here, but
+					//       for now this only converts template var return value
+					//       to a primitive return value.
+					if(sourceReturnType->isTemplateVar() && !destReturnType->isClassOrTemplateVar()){
+						assert(function->arg_size() >= 1);
+						
+						// Extract parent type if there is one.
+						llvm::Type* parent = (function->getArgumentList().size() > (sourceType->getFunctionParameterTypes().size() + 1))
+							? (++(function->getArgumentList().begin()))->getType() : NULL;
+						
+						llvm::Function* stub = llvm::Function::Create(genFunctionType(destType, parent), llvm::Function::InternalLinkage, "", module_);
+						assert((stub->arg_size() + 1) == function->arg_size());
+						
+						llvm::IRBuilder<> builder(module_->getContext());
+						
+						llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(module_->getContext(), "entry", stub);
+						builder.SetInsertPoint(basicBlock);
+						
+						LOG(LOG_INFO, "Creating substitution stub from type %s to %s.",
+							sourceType->toString().c_str(), destType->toString().c_str());
+						
+						llvm::Value* captureVar = builder.CreateAlloca(genType(destReturnType));
+						std::vector<llvm::Value*> arguments;
+						arguments.push_back(builder.CreatePointerCast(captureVar, genType(sourceReturnType)->getPointerTo()));
+						for(llvm::Function::arg_iterator arg = stub->arg_begin(); arg != stub->arg_end(); ++arg){
+							arguments.push_back(arg);
+						}
+						
+						llvm::Value* returnValue = builder.CreateCall(function, arguments);
+						assert(returnValue->getType()->isVoidTy());
+						
+						builder.CreateRet(builder.CreateLoad(captureVar));
+						
+						return stub;
+					}else{
+						return function;
 					}
 				}
 				
@@ -1283,9 +1333,10 @@ namespace Locic {
 							}
 						}
 						case SEM::Value::FUNCTIONREF: {
-							llvm::Function* function = functions_.get(value->functionRef.function);
+							SEM::Function* semFunction = value->functionRef.function;
+							llvm::Function* function = functions_.get(semFunction);
 							assert(function != NULL && "FunctionRef requires a valid function");
-							return function;
+							return createSubstitutionStub(function, semFunction->type(), value->type());
 						}
 						case SEM::Value::METHODOBJECT: {
 							llvm::Value* function = genValue(value->methodObject.method);
@@ -1293,6 +1344,11 @@ namespace Locic {
 							llvm::Value* dataPointer = generateLValue(value->methodObject.methodOwner);
 							assert(dataPointer != NULL && "MethodObject requires a valid data pointer");
 							llvm::Value* methodValue = llvm::UndefValue::get(genType(value->type()));
+							
+							function->dump();
+							dataPointer->dump();
+							methodValue->dump();
+							
 							methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
 							methodValue = builder_.CreateInsertValue(methodValue, dataPointer, std::vector<unsigned>(1, 1));
 							return methodValue;

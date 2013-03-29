@@ -221,15 +221,9 @@ namespace Locic {
 					return value;
 				}
 				
-				inline static Value* FunctionRef(Function* function) {
-					Value* value = new Value(FUNCTIONREF, function->type());
-					value->functionRef.function = function;
-					return value;
-				}
-				
-				inline static Value* TemplatedFunctionRef(Function* function,
+				inline static Value* FunctionRef(Function* function,
 					const Map<TemplateVar*, Type*>& templateVarMap){
-					Value* value = new Value(FUNCTIONREF, function->type()->substituteTemplateVars(templateVarMap));
+					Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
 					value->functionRef.function = function;
 					return value;
 				}
@@ -238,7 +232,7 @@ namespace Locic {
 					assert(method->type()->isFunction());
 					assert(methodOwner->type()->isObject());
 					Value* value = new Value(METHODOBJECT,
-							SEM::Type::Method(SEM::Type::MUTABLE, SEM::Type::RVALUE,
+							SEM::Type::Method(SEM::Type::RVALUE,
 									methodOwner->type(), method->type()));
 					value->methodObject.method = method;
 					value->methodObject.methodOwner = methodOwner;

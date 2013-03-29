@@ -28,9 +28,55 @@ namespace Locic {
 			return templateVarMap;
 		}
 		
-		Type* Type::substituteTemplateVars(const Map<TemplateVar*, Type*>& templateVarMap) const {
-			assert(false && "TODO");
-			return NULL;
+		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
+			switch(kind()) {
+				case VOID: {
+					return Void();
+				}
+				case NULLT: {
+					return Null();
+				}
+				case OBJECT: {
+					std::vector<Type*> templateArgs;
+					for(size_t i = 0; i < templateArguments().size(); i++){
+						templateArgs.push_back(templateArguments().at(i)->substitute(templateVarMap));
+					}
+					return Object(isMutable(), isLValue(), getObjectType(), templateArgs);
+				}
+				case POINTER: {
+					return Pointer(isMutable(), isLValue(), getPointerTarget()->substitute(templateVarMap));
+				}
+				case REFERENCE: {
+					return Reference(isLValue(), getReferenceTarget()->substitute(templateVarMap));
+				}
+				case FUNCTION: {
+					std::vector<Type*> args;
+					for(size_t i = 0; i < getFunctionParameterTypes().size(); i++){
+						args.push_back(getFunctionParameterTypes().at(i)->substitute(templateVarMap));
+					}
+					
+					Type* returnType = getFunctionReturnType()->substitute(templateVarMap);
+					
+					return Function(isLValue(), isFunctionVarArg(), returnType, args);
+				}
+				case METHOD: {
+					Type* objectType = getMethodObjectType()->substitute(templateVarMap);
+					Type* functionType = getMethodFunctionType()->substitute(templateVarMap);
+					
+					return Method(isLValue(), objectType, functionType);
+				}
+				case TEMPLATEVAR: {
+					Optional<Type*> substituteType = templateVarMap.tryGet(getTemplateVar());
+					if(substituteType.hasValue()){
+						return substituteType.getValue()->copyType(isMutable(), isLValue());
+					}else{
+						return TemplateVarRef(isMutable(), isLValue(), getTemplateVar());
+					}
+				}
+				default:
+					assert(false && "Unknown type enum for template var substitution.");
+					return NULL;
+			}
 		}
 		
 		Type* Type::createTransitiveConstType() const {
@@ -189,8 +235,11 @@ namespace Locic {
 						   && isFunctionVarArg() == type.isFunctionVarArg();
 				}
 				case SEM::Type::METHOD: {
-					return getMethodObjectType() != type.getMethodObjectType()
+					return getMethodObjectType() == type.getMethodObjectType()
 						   && *(getMethodFunctionType()) == *(type.getMethodFunctionType());
+				}
+				case SEM::Type::TEMPLATEVAR: {
+					return getTemplateVar() == type.getTemplateVar();
 				}
 				default:
 					return false;

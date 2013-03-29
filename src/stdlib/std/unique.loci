@@ -18,7 +18,7 @@ unique<T> new_unique(T value){
 template <typename T>
 class unique_ptr(T * ptr){
 	static default(T value){
-		return @(new<raw_ptr>(value));
+		return @(new<raw_ptr>(move value));
 	}
 	
 	static null() {
@@ -29,13 +29,11 @@ class unique_ptr(T * ptr){
 		delete<raw_ptr>(@ptr);
 	}
 	
-	if(T has copyable<T>){
-		unique_ptr<T> copy() const <T: copyable<T>> {
-			return unique_ptr<T>(@ptr != null ? @ptr->copy() : null);
-		}
+	unique_ptr<T> copy() const <T: copyable<T>> {
+		return unique_ptr<T>(@ptr != null ? @ptr->copy() : null);
 	}
 	
-	lvalue(T) deref() const {
+	lval<T> deref() const {
 		return *@ptr;
 	}
 };

@@ -1,6 +1,8 @@
 int printf(const(char *) str, ...);
 
 class TestClass{
+	static Null();	
+	
 	static Default(int v);
 	
 	int getValue();
@@ -79,13 +81,15 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	auto templatedInstance = ExampleTemplatedClass0();
-	auto polyInst = PolyClass<TestClass>();
+	TestClass nullThing = null;
+	
+	auto templatedInstance = ExampleTemplatedClass0<int>();
+	auto polyInst = PolyClass<int>();
 	
 	int res000 = polyInst.function(2);
 	
 	{
-		auto templatedInstancee = ExampleTemplatedClass0();
+		auto templatedInstancee = ExampleTemplatedClass0<int>();
 	}
 	
 	auto firstTestClass = TestClass(1);

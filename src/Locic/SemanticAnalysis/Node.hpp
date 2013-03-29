@@ -195,6 +195,32 @@ namespace Locic {
 					return (SEM::Var*) data_->sem;
 				}
 				
+				inline std::string toString() const {
+					switch(kind()){
+						case NONE:
+							return "Node(None)";
+						case NAMESPACE:
+							return makeString("Node(Namespace: %s)",
+								getSEMNamespace()->name().c_str());
+						case TYPEINSTANCE:
+							return makeString("Node(Type Instance: %s)",
+								getSEMTypeInstance()->toString().c_str());
+						case FUNCTION:
+							return makeString("Node(Function: %s)",
+								getSEMFunction()->toString().c_str());
+						case TEMPLATEVAR:
+							return makeString("Node(TemplateVar: %s)",
+								getASTTemplateVar()->name.c_str());
+						case SCOPE:
+							return "Node(Scope)";
+						case VARIABLE:
+							return "Node(Variable)";
+						default:
+							assert(false && "Unknown node type.");
+							return "Node([INVALID])";
+					}
+				}
+				
 			private:
 				struct NodeData{
 					Kind kind;

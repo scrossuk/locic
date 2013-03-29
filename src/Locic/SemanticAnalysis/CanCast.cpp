@@ -264,11 +264,14 @@ namespace Locic {
 					// Casting null to object type invokes the null constructor,
 					// assuming that one exists.
 					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(typeInstance->getNullConstructor()),
+							SEM::Value::FunctionRef(typeInstance->getNullConstructor(), destType->generateTemplateVarMap()),
 							std::vector<SEM::Value*>());
-							
+					
 					// There still might be some aspects to cast with the null constructed type.
 					return ImplicitCastToReference(nullConstructedValue, destType);
+				}else{
+					throw TodoException(makeString("No null constructor specified for type '%s'.",
+						destType->toString().c_str()));
 				}
 			}
 			

@@ -22,10 +22,10 @@ namespace Locic{
 			inline Name(const Name& name, size_t substrSize)
 				: isAbsolute_(name.isAbsolute()){
 				
-				assert(substrSize <= size());
+				assert(substrSize <= name.size());
 				
 				for(std::size_t i = 0; i < substrSize; i++){
-					list_.push_back(name.at(substrSize));
+					list_.push_back(name.at(i));
 				}	
 			}
 			

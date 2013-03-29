@@ -1,6 +1,10 @@
 
 
 class TestClass(int i, int j){
+	static Null(){
+		return @(0, 0);
+	}
+	
 	static Default(int v){
 		return @(v, v + 1);
 	}

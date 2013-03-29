@@ -312,6 +312,7 @@ namespace Locic {
 			
 			const std::string functionName = "Null";
 			const Node functionNode = node.getChild(functionName);
+			
 			if(!functionNode.isFunction()) return Node::None();
 			
 			SEM::Function* function = functionNode.getSEMFunction();
