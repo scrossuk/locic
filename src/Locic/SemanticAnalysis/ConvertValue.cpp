@@ -88,6 +88,10 @@ namespace Locic {
 						assert(symbol.isRelative());
 						assert(symbol.first().templateArguments().empty());
 						return SEM::Value::VarValue(node.getSEMVar());
+					} else if(node.isTemplateVar()) {
+						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
+						assert(false && "TODO");
+						return NULL;
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
