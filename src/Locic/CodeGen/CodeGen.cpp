@@ -77,7 +77,7 @@ namespace Locic {
 				Map<SEM::TypeInstance*, llvm::GlobalVariable*> vtables_;
 				
 				Map<SEM::Function*, llvm::Function*> functions_;
-				Map<SEM::Var *, size_t> memberVarIds_;
+				Map<SEM::Var *, size_t> memberVarOffsets_;
 				Map<SEM::Var *, llvm::Value *> localVariables_, paramVariables_;
 				llvm::Value* returnVar_;
 				llvm::Value* thisPointer_;
@@ -195,12 +195,19 @@ namespace Locic {
 						// hence the contents can be specified.
 						std::vector<llvm::Type*> memberVariables;
 						
+						const std::vector<SEM::TemplateVar*>& templateVars =
+							typeInstance->templateVariables();
+						
+						for(size_t i = 0; i < templateVars.size(); i++){
+							memberVariables.push_back(getVTableType());
+						}
+						
 						const std::vector<SEM::Var*>& variables = typeInstance->variables();
 						
 						for(size_t i = 0; i < variables.size(); i++){
 							SEM::Var* var = variables.at(i);
 							memberVariables.push_back(genType(var->type()));
-							memberVarIds_.insert(var, i);
+							memberVarOffsets_.insert(var, templateVars.size() + i);
 						}
 						
 						LOG(LOG_INFO, "Set %llu member variables for type '%s'.",
@@ -234,7 +241,8 @@ namespace Locic {
 					llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
 					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
 					
-					llvm::Function* function = llvm::Function::Create(functionType, getFunctionLinkage(typeInstance), functionName, module_);
+					llvm::Function* function = llvm::Function::Create(functionType,
+						getFunctionLinkage(typeInstance), functionName, module_);
 					function->setDoesNotAccessMemory();
 					
 					sizeOfMethods_.insert(typeInstance, function);
@@ -244,6 +252,9 @@ namespace Locic {
 					if(function->isMethod()) assert(parent != NULL);
 					
 					const std::string functionName = (name + function->name()).genString();
+					
+					LOG(LOG_INFO, "Generating %s.",
+						functionName.c_str());
 					
 					llvm::Type* thisType = function->isMethod() ? getTypeInstancePointer(parent)
 						: NULL;
@@ -411,11 +422,19 @@ namespace Locic {
 				}
 				
 				void genInterfaceMethod(SEM::Function* function) {
+					if(!function->isMethod()){
+						// Don't process static methods of interfaces.
+						return;
+					}
+					
 					assert(function->isDeclaration() && "Interface methods must be declarations");
-					assert(function->isMethod() && "Must be a method");
+					
+					LOG(LOG_INFO, "Generating interface method '%s'.",
+						function->name().c_str());
 					
 					llvm::Function* generatedFunction = functions_.get(function);
 					assert(generatedFunction != NULL);
+					
 					llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", generatedFunction);
 					builder_.SetInsertPoint(basicBlock);
 					
@@ -1090,7 +1109,7 @@ namespace Locic {
 									assert(thisPointer_ != NULL &&
 										"The 'this' pointer cannot be null when accessing member variables");
 									llvm::Value* memberPtr = builder_.CreateConstInBoundsGEP2_32(
-										thisPointer_, 0, memberVarIds_.get(var));
+										thisPointer_, 0, memberVarOffsets_.get(var));
 									
 									if(genLValue) {
 										return memberPtr;
@@ -1267,7 +1286,7 @@ namespace Locic {
 							return objectValue;
 						}
 						case SEM::Value::MEMBERACCESS: {
-							const size_t offset = memberVarIds_.get(value->memberAccess.memberVar);
+							const size_t offset = memberVarOffsets_.get(value->memberAccess.memberVar);
 							if(genLValue) {
 								return builder_.CreateConstInBoundsGEP2_32(
 									genValue(value->memberAccess.object, true), 0,

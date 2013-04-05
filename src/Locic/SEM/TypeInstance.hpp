@@ -23,7 +23,8 @@ namespace Locic {
 					STRUCTDEF,
 					CLASSDECL,
 					CLASSDEF,
-					INTERFACE
+					INTERFACE,
+					TEMPLATETYPE
 				};
 				
 				inline TypeInstance(Kind k, const std::string& n)
@@ -103,6 +104,10 @@ namespace Locic {
 				
 				inline bool isDefinition() const {
 					return isStructDef() || isClassDef();
+				}
+				
+				inline bool isTemplateType() const {
+					return kind() == TEMPLATETYPE;
 				}
 				
 				void unifyToKind(Kind newKind) {

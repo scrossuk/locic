@@ -43,13 +43,18 @@ template <typename T: an_interface>
 class ExampleTemplatedClass1{ }
 
 template <typename T>
-class PolyClass(T v){
-	static Default(){
+interface DefaultConstructInterface {
+	static T Default();
+}
+
+template <typename T: DefaultConstructInterface<T> >
+class PolyClass(T v) {
+	static Default() {
 		return @(T());
 	}
 	
-	T function(int value){
-		return T();
+	T function(int value) {
+		return @v;
 	}
 };
 
