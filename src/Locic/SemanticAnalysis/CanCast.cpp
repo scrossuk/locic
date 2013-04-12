@@ -166,6 +166,10 @@ namespace Locic {
 							
 					return value;
 				}
+				case SEM::Type::TEMPLATEVAR: {
+					assert(sourceType->getTemplateVar() == destType->getTemplateVar());
+					return value;
+				}
 				default: {
 					assert(false && "Unknown SEM type enum value.");
 					return NULL;

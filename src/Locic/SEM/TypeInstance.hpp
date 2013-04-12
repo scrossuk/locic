@@ -129,17 +129,19 @@ namespace Locic {
 					}
 				}
 				
+				Function* getDefaultConstructor() const;
+				
 				bool supportsNullConstruction() const;
 				
 				SEM::Function* getNullConstructor() const;
 				
-				void setNullConstructor(SEM::Function* function);
+				void setNullConstructor(Function* function);
 				
 				bool supportsImplicitCopy() const;
 				
 				Type* getImplicitCopyType() const;
 				
-				void setImplicitCopy(SEM::Function* function);
+				void setImplicitCopy(Function* function);
 				
 				std::string toString() const;
 				

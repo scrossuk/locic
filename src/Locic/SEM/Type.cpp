@@ -112,6 +112,8 @@ namespace Locic {
 				case OBJECT:
 					// Named types must have a method for implicit copying.
 					return getObjectType()->supportsImplicitCopy();
+				case TEMPLATEVAR:
+					return getTemplateVar()->specType()->supportsImplicitCopy();
 				default:
 					assert(false && "Unknown SEM type enum");
 					return false;
@@ -133,7 +135,9 @@ namespace Locic {
 				}
 				case OBJECT:
 					// Object types may or may not retain 'constness'.
-					return getObjectType()->getImplicitCopyType();
+					return getObjectType()->getImplicitCopyType()->substitute(generateTemplateVarMap());
+				case TEMPLATEVAR:
+					return getTemplateVar()->specType()->getImplicitCopyType();
 				default:
 					assert(false && "Unknown SEM type enum");
 					return false;

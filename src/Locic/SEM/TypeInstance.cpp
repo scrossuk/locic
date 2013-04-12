@@ -11,16 +11,27 @@ namespace Locic {
 
 	namespace SEM {
 		
+		Function* TypeInstance::getDefaultConstructor() const {
+			for(size_t i = 0; i < functions_.size(); i++){
+				if(functions_.at(i)->name() == "Default"){
+					return functions_.at(i);
+				}
+			}
+			
+			assert(false && "Couldn't find default constructor...");
+			return NULL;
+		}
+		
 		bool TypeInstance::supportsNullConstruction() const {
 			return typeProperties_.nullConstructor != NULL;
 		}
 		
-		SEM::Function* TypeInstance::getNullConstructor() const {
+		Function* TypeInstance::getNullConstructor() const {
 			assert(supportsNullConstruction());
 			return typeProperties_.nullConstructor;
 		}
 		
-		void TypeInstance::setNullConstructor(SEM::Function* function) {
+		void TypeInstance::setNullConstructor(Function* function) {
 			assert(typeProperties_.nullConstructor == NULL);
 			typeProperties_.nullConstructor = function;
 		}
@@ -34,7 +45,7 @@ namespace Locic {
 			return typeProperties_.implicitCopy->type()->getFunctionReturnType();
 		}
 		
-		void TypeInstance::setImplicitCopy(SEM::Function* function) {
+		void TypeInstance::setImplicitCopy(Function* function) {
 			assert(typeProperties_.implicitCopy == NULL);
 			typeProperties_.implicitCopy = function;
 		}

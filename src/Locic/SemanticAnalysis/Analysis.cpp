@@ -338,7 +338,7 @@ namespace Locic {
 		
 		Node GetImplicitCopy(const Node& node){
 			assert(node.isTypeInstance());
-			SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+			//SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 			
 			const std::string functionName = "implicitCopy";
 			const Node functionNode = node.getChild(functionName);
@@ -357,10 +357,10 @@ namespace Locic {
 			// Takes no arguments.
 			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
 			
-			// Check function returns its parent type.
+			/*// Check function returns its parent type.
 			if(!type->getFunctionReturnType()->isTypeInstance(typeInstance)){
 				return Node::None();
-			}
+			}*/
 			
 			return functionNode;
 		}

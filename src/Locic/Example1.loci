@@ -45,6 +45,8 @@ class ExampleTemplatedClass1{ }
 template <typename T>
 interface DefaultConstructInterface {
 	static T Default();
+	
+	T implicitCopy();
 }
 
 template <typename T: DefaultConstructInterface<T> >

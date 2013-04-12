@@ -90,8 +90,16 @@ namespace Locic {
 						return SEM::Value::VarValue(node.getSEMVar());
 					} else if(node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
-						assert(false && "TODO");
-						return NULL;
+						SEM::TemplateVar* templateVar = node.getSEMTemplateVar();
+						
+						SEM::Type* specType = templateVar->specType();
+						assert(specType != NULL && "Can't find default constructor in template type (without spec type).");
+						
+						SEM::TypeInstance* specTypeInstance = specType->getObjectType();
+						
+						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
+						
+						return SEM::Value::FunctionRef(defaultConstructor, specType->generateTemplateVarMap());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
