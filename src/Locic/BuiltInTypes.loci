@@ -267,4 +267,21 @@ __primitive double{
 	double toDouble();*/
 };
 
+/*template <typename T, typename Ret, typename[] Param>
+class interface_method(T* objectPtr, void* vtable, uint32_t value) {
+	static Default(T* objectPtr, void* vtable, uint32_t value){
+		return @(objectPtr, vtable, value);
+	}
+	
+	interface_method<T, Ret, Param> implicitCopy() const {
+		return interface_method(@objectPtr, @vtable, @value);
+	}
+	
+	Ret opCall(Param args[]) const {
+		auto vtableArray = static_array<void *>(@vtable);
+		auto f = function_ptr<Ret, {T*} + Param>(
+		f(@objectPtr, args);
+	}
+};*/
+
 

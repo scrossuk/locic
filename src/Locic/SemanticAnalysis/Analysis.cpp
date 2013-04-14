@@ -306,9 +306,29 @@ namespace Locic {
 			}
 		}
 		
+		Node GetDefaultConstructor(const Node& node){
+			assert(node.isTypeInstance());
+			
+			const std::string functionName = "Default";
+			const Node functionNode = node.getChild(functionName);
+			
+			if(!functionNode.isFunction()) return Node::None();
+			
+			SEM::Function* function = functionNode.getSEMFunction();
+			
+			// Looking for static method.
+			if(function->isMethod()) return Node::None();
+			
+			SEM::Type* type = function->type();
+			
+			// Check it's not var arg.
+			if(type->isFunctionVarArg()) return Node::None();
+			
+			return functionNode;
+		}
+		
 		Node GetNullConstructor(const Node& node){
 			assert(node.isTypeInstance());
-			SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 			
 			const std::string functionName = "Null";
 			const Node functionNode = node.getChild(functionName);
@@ -328,17 +348,11 @@ namespace Locic {
 			// Takes no arguments.
 			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
 			
-			// Check function returns its parent type.
-			if(!type->getFunctionReturnType()->isTypeInstance(typeInstance)){
-				return Node::None();
-			}
-			
 			return functionNode;
 		}
 		
 		Node GetImplicitCopy(const Node& node){
 			assert(node.isTypeInstance());
-			//SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 			
 			const std::string functionName = "implicitCopy";
 			const Node functionNode = node.getChild(functionName);
@@ -357,11 +371,6 @@ namespace Locic {
 			// Takes no arguments.
 			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
 			
-			/*// Check function returns its parent type.
-			if(!type->getFunctionReturnType()->isTypeInstance(typeInstance)){
-				return Node::None();
-			}*/
-			
 			return functionNode;
 		}
 		
@@ -370,6 +379,12 @@ namespace Locic {
 			
 			if(node.isTypeInstance()){
 				SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+				
+				// Look for default constructor.
+				const Node defaultNode = GetDefaultConstructor(node);
+				if(defaultNode.isNotNone()){
+					typeInstance->setDefaultConstructor(defaultNode.getSEMFunction());
+				}
 				
 				// Look for null constructor.
 				const Node nullNode = GetNullConstructor(node);

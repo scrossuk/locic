@@ -131,6 +131,8 @@ namespace Locic {
 				
 				Function* getDefaultConstructor() const;
 				
+				void setDefaultConstructor(Function* function);
+				
 				bool supportsNullConstruction() const;
 				
 				SEM::Function* getNullConstructor() const;
@@ -151,11 +153,13 @@ namespace Locic {
 				
 				struct TypeProperties{
 					bool isConstType;
+					Function * defaultConstructor;
 					Function * nullConstructor;
 					Function * implicitCopy;
 					
 					inline TypeProperties()
 						: isConstType(false),
+						defaultConstructor(NULL),
 						nullConstructor(NULL),
 						implicitCopy(NULL){ }
 				} typeProperties_;

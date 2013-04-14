@@ -12,14 +12,13 @@ namespace Locic {
 	namespace SEM {
 		
 		Function* TypeInstance::getDefaultConstructor() const {
-			for(size_t i = 0; i < functions_.size(); i++){
-				if(functions_.at(i)->name() == "Default"){
-					return functions_.at(i);
-				}
-			}
-			
-			assert(false && "Couldn't find default constructor...");
-			return NULL;
+			assert(typeProperties_.defaultConstructor != NULL);
+			return typeProperties_.defaultConstructor;
+		}
+		
+		void TypeInstance::setDefaultConstructor(Function* function) {
+			assert(typeProperties_.defaultConstructor == NULL);
+			typeProperties_.defaultConstructor = function;
 		}
 		
 		bool TypeInstance::supportsNullConstruction() const {

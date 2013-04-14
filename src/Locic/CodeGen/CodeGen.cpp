@@ -239,7 +239,14 @@ namespace Locic {
 					
 					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 					llvm::Type* sizeType = llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
-					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, std::vector<llvm::Type*>(), false);
+					
+					std::vector<llvm::Type*> parameterTypes;
+					
+					for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
+						parameterTypes.push_back(sizeType);
+					}
+					
+					llvm::FunctionType* functionType = llvm::FunctionType::get(sizeType, parameterTypes, false);
 					
 					llvm::Function* function = llvm::Function::Create(functionType,
 						getFunctionLinkage(typeInstance), functionName, module_);
@@ -406,12 +413,21 @@ namespace Locic {
 						llvm::Value* one = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 1));
 						llvm::Value* classSize = zero;
 						
+						// Arguments are sizes of template parameters.
+						llvm::Function::arg_iterator arg = function->arg_begin();
+						
+						Map<SEM::TemplateVar*, llvm::Value*> templateVarSizes;
+						for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
+							templateVarSizes.insert(typeInstance->templateVariables().at(i),
+								arg++);
+						}
+						
 						// Add up all member variable sizes.
 						const std::vector<SEM::Var *>& variables = typeInstance->variables();
 						
 						for(size_t i = 0; i < variables.size(); i++){
 							SEM::Var * var = variables.at(i);
-							classSize = builder_.CreateAdd(classSize, genSizeOf(var->type()));
+							classSize = builder_.CreateAdd(classSize, genSizeOf(var->type(), templateVarSizes));
 						}
 						
 						// Class sizes must be at least one byte.
@@ -441,7 +457,7 @@ namespace Locic {
 					// Store arguments onto stack.
 					llvm::Function::arg_iterator arg = generatedFunction->arg_begin();
 					SEM::Type* returnType = function->type()->getFunctionReturnType();
-					llvm::Value* returnVar = returnType->isClass() ? arg++ : NULL;
+					llvm::Value* returnVar = returnType->isClassOrTemplateVar() ? arg++ : NULL;
 					
 					// Get the 'this' record, which is the
 					// pair of the 'this' pointer and the
@@ -483,10 +499,12 @@ namespace Locic {
 					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
 					builder_.CreateCall(setEax);
 					
+					const bool isVoidReturnType = returnType->isVoid() || returnType->isClassOrTemplateVar();
+					
 					llvm::Value* methodCallValue = builder_.CreateCall(castedMethodFunctionPointer,
-						arguments, returnType->isVoid() ? "" : "methodCallValue");
+						arguments, isVoidReturnType ? "" : "methodCallValue");
 												   
-					if(returnType->isVoid()) {
+					if(isVoidReturnType) {
 						builder_.CreateRetVoid();
 					} else {
 						builder_.CreateRet(methodCallValue);
@@ -512,7 +530,7 @@ namespace Locic {
 					llvm::Function::arg_iterator arg = currentFunction_->arg_begin();
 					SEM::Type* returnType = function->type()->getFunctionReturnType();
 					
-					if(returnType->isClass()) {
+					if(returnType->isClassOrTemplateVar()) {
 						returnVar_ = arg++;
 					} else {
 						returnVar_ = NULL;
@@ -722,7 +740,7 @@ namespace Locic {
 					}
 				}
 				
-				llvm::Value* genSizeOf(SEM::Type* type) {
+				llvm::Value* genSizeOf(SEM::Type* type, const Map<SEM::TemplateVar*, llvm::Value*>& templateVarSizes) {
 					const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 					
 					switch(type->kind()) {
@@ -752,6 +770,9 @@ namespace Locic {
 							return llvm::ConstantInt::get(llvm::getGlobalContext(),
 								llvm::APInt(sizeTypeWidth, 2 * targetInfo_.getPointerSize() / 8));
 						}
+						case SEM::Type::TEMPLATEVAR: {
+							return templateVarSizes.get(type->getTemplateVar());
+						}
 						default: {
 							assert(false && "Unknown type enum for generating sizeof");
 							return llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 0));
@@ -778,7 +799,8 @@ namespace Locic {
 								return builder_.CreateAlloca(rawType);
 							} else {
 								llvm::Value* alloca = builder_.CreateAlloca(
-									llvm::Type::getInt8Ty(llvm::getGlobalContext()), genSizeOf(type));
+									llvm::Type::getInt8Ty(llvm::getGlobalContext()),
+									genSizeOf(type, Map<SEM::TemplateVar*, llvm::Value*>()));
 								return builder_.CreatePointerCast(alloca,
 									typeInstances_.get(typeInstance)->getPointerTo());
 							}
@@ -809,7 +831,8 @@ namespace Locic {
 								if(typeInstance->isDefinition()) {
 									return builder_.CreateStore(builder_.CreateLoad(value), var);
 								} else {
-									return builder_.CreateMemCpy(var, value, genSizeOf(type), 1);
+									return builder_.CreateMemCpy(var, value,
+										genSizeOf(type, Map<SEM::TemplateVar*, llvm::Value*>()), 1);
 								}
 							}
 						}
