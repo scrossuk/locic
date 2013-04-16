@@ -17,14 +17,33 @@ namespace Locic {
 		
 		class Function: public Object {
 			public:
-				inline static Function* Decl(bool isMethod, TypeInstance* parentType,
-						Type* type, const std::string& name, const std::vector<Var*>& parameters) {
+				inline static Function* Decl(bool isMethod, Type* type,
+					const std::string& name, const std::vector<Var*>& parameters) {
 					return new Function(isMethod, type, name, parameters, NULL);
 				}
 				
-				inline static Function* Def(bool isMethod, TypeInstance* parentType,
-						Type* type, const std::string& name, const std::vector<Var*>& parameters, Scope* scope) {
+				inline static Function* Def(bool isMethod, Type* type,
+					const std::string& name, const std::vector<Var*>& parameters, Scope* scope) {
 					return new Function(isMethod, type, name, parameters, scope);
+				}
+				
+				inline Function* createDecl() const {
+					return Decl(isMethod(), type(), name(), parameters());
+				}
+				
+				inline Function* fullSubstitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
+					assert(isDeclaration());
+					
+					// Parameter types need to be substituted.
+					std::vector<SEM::Var*> substitutedParam;
+					for(size_t i = 0; i < parameters().size(); i++){
+						assert(parameters().at(i)->kind() == Var::PARAM);
+						substitutedParam.push_back(Var::Param(
+							parameters().at(i)->type()->substitute(templateVarMap)));
+					}
+					
+					return Decl(isMethod(), type()->substitute(templateVarMap), name(),
+						substitutedParam);
 				}
 				
 				inline ObjectKind objectKind() const {
