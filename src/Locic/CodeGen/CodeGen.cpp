@@ -392,8 +392,13 @@ namespace Locic {
 					
 					if(function->isDeclaration()) return;
 					
-					LOG(LOG_NOTICE, "Generating method definition for '%s' in type '%s'.",
-						function->name().c_str(), typeInstance->name().c_str());
+					if(typeInstance != NULL) {
+						LOG(LOG_NOTICE, "Generating method definition for '%s' in type '%s'.",
+							function->name().c_str(), typeInstance->name().c_str());
+					} else {
+						LOG(LOG_NOTICE, "Generating function definition for '%s'.",
+							function->name().c_str());
+					}
 					
 					currentFunction_ = functions_.get(function);
 					assert(currentFunction_ != NULL);
@@ -415,6 +420,7 @@ namespace Locic {
 					}
 					
 					if(function->isMethod()) {
+						assert(typeInstance != NULL);
 						// Generating a method, so capture the 'this' pointer.
 						thisPointer_ = arg++;
 					}
@@ -434,7 +440,7 @@ namespace Locic {
 								templateVarVTables_.insert(typeInstance->templateVariables().at(i),
 									vtable);
 							}
-						} else {
+						} else if(!typeInstance->templateVariables().empty()) {
 							// For static methods, they are passed as arguments.
 							llvm::Value* vtableArray = arg++;
 							assert(vtableArray != NULL);
@@ -454,6 +460,8 @@ namespace Locic {
 					const std::vector<SEM::Var*>& parameterVars = function->parameters();
 					
 					for(std::size_t i = 0; i < parameterVars.size(); ++arg, i++) {
+						assert(arg != currentFunction_->arg_end());
+						
 						SEM::Var* paramVar = parameterVars.at(i);
 						
 						assert(paramVar->kind() == SEM::Var::PARAM);
@@ -877,8 +885,10 @@ namespace Locic {
 				}
 				
 				llvm::Value* genStore(llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+					LOG(LOG_NOTICE, "Store.");
 					value->dump();
 					var->dump();
+					
 					switch(type->kind()) {
 						case SEM::Type::VOID:
 						case SEM::Type::NULLT:
@@ -1421,6 +1431,9 @@ namespace Locic {
 								parameters.push_back(returnValue);
 							}
 							
+							LOG(LOG_NOTICE, "Function:");
+							function->dump();
+							
 							for(std::size_t i = 0; i < paramList.size(); i++) {
 								llvm::Value* argValue = genValue(paramList.at(i));
 								
@@ -1436,15 +1449,34 @@ namespace Locic {
 										// Need to extend to int.
 										// TODO: this doesn't handle unsigned types; perhaps
 										// this code should be moved to semantic analysis.
-										argValue = builder_.CreateSExt(argValue, llvm::IntegerType::get(llvm::getGlobalContext(), targetInfo_.getPrimitiveSize("int")));
+										argValue = builder_.CreateSExt(argValue,
+											llvm::IntegerType::get(llvm::getGlobalContext(),
+												targetInfo_.getPrimitiveSize("int")));
 									} else if(argType->isFloatingPointTy() && sizeInBits < 64) {
 										// Need to extend to double.
-										argValue = builder_.CreateFPExt(argValue, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+										argValue = builder_.CreateFPExt(argValue,
+											llvm::Type::getDoubleTy(llvm::getGlobalContext()));
 									}
 								}
 								
 								parameters.push_back(argValue);
+								
+								LOG(LOG_NOTICE, "    Param %llu:",
+									(unsigned long long) i);
+								argValue->dump();
 							}
+							
+							const size_t numFunctionArgs =
+								llvm::cast<llvm::Function>(function)->arg_size();
+							
+							if(numFunctionArgs != parameters.size()) {
+								LOG(LOG_NOTICE, "ERROR: number of arguments given (%llu) "
+									" doesn't match required number (%llu).",
+									(unsigned long long) parameters.size(),
+									(unsigned long long) numFunctionArgs);
+							}
+							
+							assert(numFunctionArgs == parameters.size());
 							
 							llvm::Value* callReturnValue = builder_.CreateCall(function, parameters);
 							
