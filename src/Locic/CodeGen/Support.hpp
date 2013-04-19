@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#include <Locic/CodeGen/TargetInfo.hpp>
+
 namespace Locic {
 
 	namespace CodeGen {
@@ -15,9 +17,11 @@ namespace Locic {
 		
 		llvm::Type* i32Type();
 		
+		llvm::Type* getSizeType(const TargetInfo& targetInfo);
+		
 		llvm::PointerType* i8PtrType();
 		
-		llvm::StructType* getVTableType();
+		llvm::StructType* getVTableType(const TargetInfo& targetInfo);
 		
 	}
 	

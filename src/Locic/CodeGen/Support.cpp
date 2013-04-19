@@ -25,24 +25,38 @@ namespace Locic {
 			return llvm::Type::getInt32Ty(llvm::getGlobalContext());
 		}
 		
+		llvm::Type* getSizeType(const TargetInfo& targetInfo) {
+			const size_t sizeTypeWidth = targetInfo.getPrimitiveSize("size_t");
+			return llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
+		}
+		
 		llvm::PointerType* i8PtrType() {
 			return i8Type()->getPointerTo();
 		}
 		
-		llvm::StructType* createVTableType() {
+		llvm::StructType* createVTableType(const TargetInfo& targetInfo) {
 			std::vector<llvm::Type*> structElements;
+			
+			const bool NO_VAR_ARG = false;
+			
 			// Destructor.
-			const bool isVarArg = false;
-			structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), isVarArg)
+			structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), NO_VAR_ARG)
 					->getPointerTo());
+			
+			// Sizeof.
+			structElements.push_back(llvm::FunctionType::get(getSizeType(targetInfo), std::vector<llvm::Type*>(), NO_VAR_ARG)
+					->getPointerTo());
+			
+			// Hash table.
 			structElements.push_back(llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE));
+			
 			return llvm::StructType::create(llvm::getGlobalContext(), structElements, "__vtable_type");
 		}
 		
-		llvm::StructType* getVTableType() {
+		llvm::StructType* getVTableType(const TargetInfo& targetInfo) {
 			static llvm::StructType* type = NULL;
 			if(type == NULL){
-				type = createVTableType();
+				type = createVTableType(targetInfo);
 			}
 			return type;
 		}

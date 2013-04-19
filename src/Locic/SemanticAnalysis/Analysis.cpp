@@ -161,8 +161,8 @@ namespace Locic {
 			}
 		}
 		
-		// Creates a new type instance based around a template variable specification type.
-		SEM::TypeInstance* CreateTemplateVarTypeInstance(const std::string& name, SEM::Type* type) {
+		/*// Creates a new type instance based around a template variable specification type.
+		Node CreateTemplateVarTypeInstance(const std::string& name, SEM::Type* type) {
 			assert(type->isObject());
 			
 			const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = type->generateTemplateVarMap();
@@ -170,16 +170,19 @@ namespace Locic {
 			SEM::TypeInstance* templateVarTypeInstance = new SEM::TypeInstance(
 				SEM::TypeInstance::TEMPLATETYPE, name);
 			
+			Node node = Node::TypeInstance(NULL, templateVarTypeInstance);
+			
 			SEM::TypeInstance* typeInstance = type->getObjectType();
 			
 			for(size_t i = 0; i < typeInstance->functions().size(); i++){
 				SEM::Function* function = typeInstance->functions().at(i);
-				templateVarTypeInstance->functions().push_back(
-					function->createDecl()->fullSubstitute(templateVarMap));
+				SEM::Function* substFunction = function->createDecl()->fullSubstitute(templateVarMap);
+				templateVarTypeInstance->functions().push_back(substFunction);
+				node.attach(function->name(), Node::Function(NULL, substFunction));
 			}
 			
-			return templateVarTypeInstance;
-		}
+			return node;
+		}*/
 		
 		void AddTemplateVariableRequirements(Context& context){
 			Node& node = context.node();
@@ -188,20 +191,23 @@ namespace Locic {
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
 			 		Node childNode = range.front().value();
 			 		if(childNode.isTemplateVar()){
-			 			AST::Type * specType = childNode.getASTTemplateVar()->specType;
-			 			if(specType != NULL){
+			 			AST::Type * astSpecType = childNode.getASTTemplateVar()->specType;
+			 			if(astSpecType != NULL){
 			 				SEM::Type* semSpecType = ConvertType(context,
-								specType, SEM::Type::LVALUE);
+								astSpecType, SEM::Type::LVALUE);
+							
+							childNode.getSEMTemplateVar()->setSpecType(semSpecType);
 							
 							// Convert the type to a template var type instance.
-							SEM::TypeInstance* templateVarTypeInstance =
+							/*SEM::TypeInstance* templateVarTypeInstance =
 								CreateTemplateVarTypeInstance(range.front().key(), semSpecType);
 							
 							childNode.attach("__fulltype", Node::TypeInstance(NULL, templateVarTypeInstance));
 							
 							childNode.getSEMTemplateVar()->setSpecType(
 								SEM::Type::Object(SEM::Type::LVALUE, SEM::Type::MUTABLE,
-								templateVarTypeInstance, std::vector<SEM::Type*>()));
+								templateVarTypeInstance, std::vector<SEM::Type*>()));*/
+							
 						}
 			 		}
 				}
@@ -458,7 +464,7 @@ namespace Locic {
 				AddTemplateVariables(rootContext);
 				
 				// ---- Pass 4: Add template type variable requirements.
-				//AddTemplateVariableRequirements(rootContext);
+				AddTemplateVariableRequirements(rootContext);
 				
 				// ---- Pass 5: Add type member variables.
 				AddTypeMemberVariables(rootContext);
@@ -468,10 +474,6 @@ namespace Locic {
 				
 				// ---- Pass 7: Identify type properties.
 				IdentifyTypeProperties(rootContext);
-				
-				// Hack.
-				// ---- Pass 4: Add template type variable requirements.
-				AddTemplateVariableRequirements(rootContext);
 				
 				// ---- Pass 8: Fill in function code.
 				ConvertNamespace(rootContext);
