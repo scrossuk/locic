@@ -1,9 +1,8 @@
-/*template <any T>
+/*template <typename T>
 __primitive ptr{
 	static Null();
 	
 	ptr<T> implicitCopy();
-	const ptr<T> implicitCopy() const;
 	
 	T& derefGet() const;
 	

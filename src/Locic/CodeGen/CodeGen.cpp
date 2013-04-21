@@ -252,7 +252,7 @@ namespace Locic {
 						parent != NULL ?
 							(function->isMethod() ?
 								getTypeInstancePointer(parent) :
-								(parentNumTemplateArgs > 0 ?
+								(parentNumTemplateArgs > 0 && parent->isClass() ?
 									getVTableArrayType(parentNumTemplateArgs)->getPointerTo() :
 									NULL)
 							) :
@@ -482,8 +482,12 @@ namespace Locic {
 					// be removed by dead code elimination)
 					builder_.CreateBr(builder_.GetInsertBlock());
 					
+					currentFunction_->dump();
+					
 					// Check the generated function is correct.
 					verifyFunction(*currentFunction_);
+					
+					templateVarVTables_.clear();
 					paramVariables_.clear();
 					localVariables_.clear();
 					returnVar_ = NULL;
@@ -546,8 +550,11 @@ namespace Locic {
 					}else if(typeInstance->isDefinition()) {
 						const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
 						
+						llvm::IRBuilder<> sizeOfBuilder(llvm::getGlobalContext());
+						
 						llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function);
-						builder_.SetInsertPoint(basicBlock);
+						sizeOfBuilder.SetInsertPoint(basicBlock);
+						
 						llvm::Value* zero = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 0));
 						llvm::Value* one = llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(sizeTypeWidth, 1));
 						llvm::Value* classSize = zero;
@@ -556,7 +563,7 @@ namespace Locic {
 						if(!typeInstance->templateVariables().empty()) {
 							llvm::Value* vtableArrayPtrSize = llvm::ConstantInt::get(llvm::getGlobalContext(),
 								llvm::APInt(sizeTypeWidth, targetInfo_.getPointerSize() / 8));
-							classSize = builder_.CreateAdd(classSize, vtableArrayPtrSize);
+							classSize = sizeOfBuilder.CreateAdd(classSize, vtableArrayPtrSize);
 						}
 						
 						const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = type->generateTemplateVarMap();
@@ -566,14 +573,14 @@ namespace Locic {
 						
 						for(size_t i = 0; i < variables.size(); i++) {
 							SEM::Var * var = variables.at(i);
-							classSize = builder_.CreateAdd(classSize,
+							classSize = sizeOfBuilder.CreateAdd(classSize,
 								genSizeOf(var->type()->substitute(templateVarMap)));
 						}
 						
 						// Class sizes must be at least one byte.
-						llvm::Value* isZero = builder_.CreateICmpEQ(classSize, zero);
-						classSize = builder_.CreateSelect(isZero, one, classSize);
-						builder_.CreateRet(classSize);
+						llvm::Value* isZero = sizeOfBuilder.CreateICmpEQ(classSize, zero);
+						classSize = sizeOfBuilder.CreateSelect(isZero, one, classSize);
+						sizeOfBuilder.CreateRet(classSize);
 					}
 					
 					return function;
@@ -1265,6 +1272,9 @@ namespace Locic {
 								|| destType->isVoid())
 								&& "Types must be in the same group for cast, or "
 								"it should be a cast from null, or a cast to void");
+							
+							LOG(LOG_NOTICE, "Generating cast from type %s to type %s.",
+								sourceType->toString().c_str(), destType->toString().c_str());
 									
 							if(destType->isVoid()) {
 								// All casts to void have the same outcome.
@@ -1321,6 +1331,9 @@ namespace Locic {
 									return codeValue;
 								}
 								case SEM::Type::METHOD: {
+									return codeValue;
+								}
+								case SEM::Type::TEMPLATEVAR: {
 									return codeValue;
 								}
 								default:
@@ -1470,13 +1483,13 @@ namespace Locic {
 								llvm::cast<llvm::Function>(function)->arg_size();
 							
 							if(numFunctionArgs != parameters.size()) {
-								LOG(LOG_NOTICE, "ERROR: number of arguments given (%llu) "
+								LOG(LOG_NOTICE, "POSSIBLE ERROR: number of arguments given (%llu) "
 									" doesn't match required number (%llu).",
 									(unsigned long long) parameters.size(),
 									(unsigned long long) numFunctionArgs);
 							}
 							
-							assert(numFunctionArgs == parameters.size());
+							//assert(numFunctionArgs == parameters.size());
 							
 							llvm::Value* callReturnValue = builder_.CreateCall(function, parameters);
 							
@@ -1535,7 +1548,9 @@ namespace Locic {
 								parameters.push_back(genValue(paramList.at(i)));
 							}
 							
-							LOG(LOG_EXCESSIVE, "Creating call.");
+							LOG(LOG_EXCESSIVE, "Creating method call.");
+							function->dump();
+							dataPointer->dump();
 							
 							llvm::Value* callReturnValue = builder_.CreateCall(function, parameters);
 							

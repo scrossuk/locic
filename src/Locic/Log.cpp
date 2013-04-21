@@ -81,7 +81,7 @@ namespace Locic{
 	void log(LogLevel level, const LogInfo& info, const std::string& message){
 		assert(level != LOG_NONE && level != LOG_ALL);
 		
-		printf("[File %s] [Function %s] [Line %d] (%s):\n\t%s\n\n",
+		fprintf(stderr, "[File %s] [Function %s] [Line %d] (%s):\n\t%s\n\n",
 			info.fileName.c_str(), info.functionName.c_str(),
 			info.lineNumber, levelToString(level).c_str(),
 			formatMessage(message).c_str());
