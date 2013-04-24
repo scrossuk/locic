@@ -1,6 +1,8 @@
-#include "llvm/Bitcode/ReaderWriter.h"
+#include <llvm/Attributes.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/InlineAsm.h>
+#include <llvm/IRBuilder.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 #include <llvm/PassManager.h>
@@ -10,7 +12,6 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
-#include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/raw_os_ostream.h>
 
 #include <assert.h>
@@ -262,19 +263,25 @@ namespace Locic {
 						contextPtrType), getFunctionLinkage(parent), functionName, module_);
 					
 					if(function->type()->getFunctionReturnType()->isClassOrTemplateVar()) {
+						std::vector<llvm::Attributes::AttrVal> attributes;
 						// Class return values are allocated by the caller,
 						// which passes a pointer to the callee. The caller
 						// and callee must, for the sake of optimisation,
 						// ensure that the following attributes hold...
+						
 						// Caller must ensure pointer is always valid.
-						functionDecl->addAttribute(1, llvm::Attribute::StructRet);
+						attributes.push_back(llvm::Attributes::StructRet);
 						
 						// Caller must ensure pointer does not alias with
 						// any other arguments.
-						functionDecl->addAttribute(1, llvm::Attribute::NoAlias);
+						attributes.push_back(llvm::Attributes::NoAlias);
 						
 						// Callee must not capture the pointer.
-						functionDecl->addAttribute(1, llvm::Attribute::NoCapture);
+						attributes.push_back(llvm::Attributes::NoCapture);
+						
+						functionDecl->addAttribute(1,
+							llvm::Attributes::get(llvm::getGlobalContext(),
+								attributes));
 					}
 					
 					functions_.insert(function, functionDecl);

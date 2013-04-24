@@ -1,6 +1,6 @@
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
-#include <llvm/Support/IRBuilder.h>
+#include <llvm/IRBuilder.h>
 
 #include <assert.h>
 

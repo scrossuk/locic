@@ -1,4 +1,4 @@
-#include <llvm/Target/TargetData.h>
+#include <llvm/DataLayout.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetRegistry.h>
@@ -34,12 +34,12 @@ namespace Locic {
 			assert(target->hasTargetMachine());
 			
 			std::auto_ptr<llvm::TargetMachine> targetMachine(target->createTargetMachine(triple, "", "", llvm::TargetOptions()));
-			const llvm::TargetData* targetData = targetMachine->getTargetData();
+			const llvm::DataLayout* dataLayout = targetMachine->getDataLayout();
 			
-			assert(targetData != NULL);
+			assert(dataLayout != NULL);
 			
-			isBigEndian_ = targetData->isBigEndian();
-			pointerSize_ = targetData->getPointerSize();
+			isBigEndian_ = dataLayout->isBigEndian();
+			pointerSize_ = dataLayout->getPointerSize();
 			
 			clang::CompilerInstance ci;
 			ci.createDiagnostics(0, NULL);
