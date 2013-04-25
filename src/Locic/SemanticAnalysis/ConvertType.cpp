@@ -120,7 +120,9 @@ namespace Locic {
 						parameterTypes.push_back(paramType);
 					}
 					
-					return SEM::Type::Function(isLValue, type->functionType.isVarArg, returnType, parameterTypes);
+					const bool requiresContext = false;
+					
+					return SEM::Type::Function(isLValue, type->functionType.isVarArg, requiresContext, returnType, parameterTypes);
 				}
 				default:
 					assert(false && "Unknown AST::Type type enum.");

@@ -154,6 +154,10 @@ namespace Locic {
 						throw CastFunctionVarArgsMismatchException(sourceType, destType);
 					}
 					
+					if (sourceType->functionRequiresContext() != destType->functionRequiresContext()) {
+						throw TodoException("Can't cast between functions with different context requirements.");
+					}
+					
 					return value;
 				}
 				case SEM::Type::METHOD: {

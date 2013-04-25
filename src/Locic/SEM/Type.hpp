@@ -25,6 +25,7 @@ namespace Locic {
 					POINTER,
 					REFERENCE,
 					FUNCTION,
+					CONTEXT_FUNCTION,
 					METHOD,
 					TEMPLATEVAR
 				};
@@ -77,7 +78,7 @@ namespace Locic {
 					return type;
 				}
 				
-				inline static Type* Function(bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
+				inline static Type* Function(bool isLValue, bool isVarArg, bool isContextFunction, Type* returnType, const std::vector<Type*>& parameterTypes) {
 					assert(returnType->isRValue() && "Return type must always be an R-value.");
 					
 					for(size_t i = 0; i < parameterTypes.size(); i++) {
@@ -88,6 +89,7 @@ namespace Locic {
 					// Functions are a 'const type', meaning they are always const.
 					Type* type = new Type(FUNCTION, CONST, isLValue);
 					type->functionType_.isVarArg = isVarArg;
+					type->functionType_.isContext = isContextFunction;
 					type->functionType_.returnType = returnType;
 					type->functionType_.parameterTypes = parameterTypes;
 					return type;
@@ -95,6 +97,7 @@ namespace Locic {
 				
 				inline static Type* Method(bool isLValue, Type* objectType, Type* functionType) {
 					assert(objectType->isObject());
+					assert(functionType->isFunction());
 					// Methods are a 'const type', meaning they are always const.
 					Type* type = new Type(METHOD, CONST, isLValue);
 					type->methodType_.objectType = objectType;
@@ -149,6 +152,11 @@ namespace Locic {
 				inline bool isFunctionVarArg() const {
 					assert(isFunction());
 					return functionType_.isVarArg;
+				}
+				
+				inline bool functionRequiresContext() const {
+					assert(isFunction());
+					return functionType_.isContext;
 				}
 				
 				inline Type* getFunctionReturnType() const {
@@ -301,6 +309,7 @@ namespace Locic {
 				
 				struct FunctionType {
 					bool isVarArg;
+					bool isContext;
 					Type* returnType;
 					std::vector<Type*> parameterTypes;
 				} functionType_;

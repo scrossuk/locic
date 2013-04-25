@@ -17,14 +17,14 @@ namespace Locic {
 		
 		class Function: public Object {
 			public:
-				inline static Function* Decl(bool isMethod, Type* type,
+				inline static Function* Decl(bool isMethod, bool isContextFunction, Type* type,
 					const std::string& name, const std::vector<Var*>& parameters) {
-					return new Function(isMethod, type, name, parameters, NULL);
+					return new Function(isMethod, isContextFunction, type, name, parameters, NULL);
 				}
 				
-				inline static Function* Def(bool isMethod, Type* type,
+				inline static Function* Def(bool isMethod, bool isContextFunction, Type* type,
 					const std::string& name, const std::vector<Var*>& parameters, Scope* scope) {
-					return new Function(isMethod, type, name, parameters, scope);
+					return new Function(isMethod, isContextFunction, type, name, parameters, scope);
 				}
 				
 				inline Function* createDecl() const {
@@ -70,6 +70,10 @@ namespace Locic {
 					return isMethod_;
 				}
 				
+				inline bool isContextFunction() const {
+					return isContextFunction_;
+				}
+				
 				inline const std::vector<Var*>& parameters() const {
 					return parameters_;
 				}
@@ -86,21 +90,23 @@ namespace Locic {
 				}
 				
 				inline std::string toString() const {
-					return makeString("Function(name: %s, isMethod: %s, type: %s)",
-							name_.c_str(),
-							isMethod_ ? "Yes" : "No",
-							type_->toString().c_str());
+					return makeString("Function(name: %s, isMethod: %s, isContextFunction: %s, type: %s)",
+							name().c_str(),
+							isMethod() ? "Yes" : "No",
+							isContextFunction() ? "Yes" : "No",
+							type()->toString().c_str());
 				}
 				
 			private:
-				inline Function(bool isM, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)
+				inline Function(bool isM, bool isCF, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)
 					: isMethod_(isM),
+					  isContextFunction_(isCF),
 					  type_(t), name_(n),
 					  parameters_(p), scope_(s) {
 					assert(type_ != NULL);
 				}
 				
-				bool isMethod_;
+				bool isMethod_, isContextFunction_;
 				Type* type_;
 				std::string name_;
 				std::vector<Var*> parameters_;
