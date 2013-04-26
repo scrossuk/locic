@@ -52,8 +52,6 @@ interface DefaultConstructInterface {
 template <typename T: DefaultConstructInterface<T> >
 class PolyClass(T v) {
 	static Default() {
-		OtherClass<Array<T>> ...;
-		auto o = OtherClass<T, int>();
 		return @(T());
 	}
 	

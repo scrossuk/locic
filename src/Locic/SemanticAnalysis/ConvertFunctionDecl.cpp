@@ -83,7 +83,7 @@ namespace Locic {
 			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE, astFunction->isVarArg,
 				requiresContext, semReturnType, parameterTypes);
 			
-			return SEM::Function::Decl(astFunction->isMethod,
+			return SEM::Function::Decl(astFunction->isMethod, requiresContext,
 				functionType, astFunction->name, parameterVars);
 		}
 		

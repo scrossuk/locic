@@ -57,7 +57,7 @@ namespace Locic {
 					
 					Type* returnType = getFunctionReturnType()->substitute(templateVarMap);
 					
-					return Function(isLValue(), isFunctionVarArg(), returnType, args);
+					return Function(isLValue(), isFunctionVarArg(), functionRequiresContext(), returnType, args);
 				}
 				case METHOD: {
 					Type* objectType = getMethodObjectType()->substitute(templateVarMap);
