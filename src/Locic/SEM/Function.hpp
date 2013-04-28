@@ -17,18 +17,18 @@ namespace Locic {
 		
 		class Function: public Object {
 			public:
-				inline static Function* Decl(bool isMethod, bool requiresContext, Type* type,
+				inline static Function* Decl(bool isMethod, bool isStatic, Type* type,
 					const std::string& name, const std::vector<Var*>& parameters) {
-					return new Function(isMethod, requiresContext, type, name, parameters, NULL);
+					return new Function(isMethod, isStatic, type, name, parameters, NULL);
 				}
 				
-				inline static Function* Def(bool isMethod, bool requiresContext, Type* type,
+				inline static Function* Def(bool isMethod, bool isStatic, Type* type,
 					const std::string& name, const std::vector<Var*>& parameters, Scope* scope) {
-					return new Function(isMethod, requiresContext, type, name, parameters, scope);
+					return new Function(isMethod, isStatic, type, name, parameters, scope);
 				}
 				
 				inline Function* createDecl() const {
-					return Decl(isMethod(), requiresContext(), type(), name(), parameters());
+					return Decl(isMethod(), isStatic(), type(), name(), parameters());
 				}
 				
 				inline Function* fullSubstitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
@@ -42,7 +42,7 @@ namespace Locic {
 							parameters().at(i)->type()->substitute(templateVarMap)));
 					}
 					
-					return Decl(isMethod(), requiresContext(),
+					return Decl(isMethod(), isStatic(),
 						type()->substitute(templateVarMap),
 						name(), substitutedParam);
 				}
@@ -71,8 +71,8 @@ namespace Locic {
 					return isMethod_;
 				}
 				
-				inline bool requiresContext() const {
-					return requiresContext_;
+				inline bool isStatic() const {
+					return isStatic_;
 				}
 				
 				inline const std::vector<Var*>& parameters() const {
@@ -91,23 +91,23 @@ namespace Locic {
 				}
 				
 				inline std::string toString() const {
-					return makeString("Function(name: %s, isMethod: %s, requiresContext: %s, type: %s)",
+					return makeString("Function(name: %s, isMethod: %s, isStatic: %s, type: %s)",
 							name().c_str(),
 							isMethod() ? "Yes" : "No",
-							requiresContext() ? "Yes" : "No",
+							isStatic() ? "Yes" : "No",
 							type()->toString().c_str());
 				}
 				
 			private:
-				inline Function(bool isM, bool reqC, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)
+				inline Function(bool isM, bool isS, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)
 					: isMethod_(isM),
-					  requiresContext_(reqC),
+					  isStatic_(isS),
 					  type_(t), name_(n),
 					  parameters_(p), scope_(s) {
 					assert(type_ != NULL);
 				}
 				
-				bool isMethod_, requiresContext_;
+				bool isMethod_, isStatic_;
 				Type* type_;
 				std::string name_;
 				std::vector<Var*> parameters_;

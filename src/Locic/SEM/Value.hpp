@@ -32,6 +32,7 @@ namespace Locic {
 					MEMBERACCESS,
 					FUNCTIONCALL,
 					FUNCTIONREF,
+					STATICMETHODREF,
 					METHODOBJECT,
 					METHODCALL,
 					
@@ -97,6 +98,10 @@ namespace Locic {
 				struct {
 					Function* function;
 				} functionRef;
+				
+				struct {
+					Function* function;
+				} staticMethodRef;
 				
 				struct {
 					Value* method;
@@ -228,12 +233,21 @@ namespace Locic {
 					return value;
 				}
 				
+				inline static Value* StaticMethodRef(Function* function,
+					const Map<TemplateVar*, Type*>& templateVarMap){
+					Type* functionType = function->type()->substitute(templateVarMap);
+					Value* value = new Value(STATICMETHODREF,
+						SEM::Type::Method(SEM::Type::RVALUE, functionType));
+					value->staticMethodRef.function = function;
+					return value;
+				}
+				
 				inline static Value* MethodObject(Value* method, Value* methodOwner) {
 					assert(method->type()->isFunction());
 					assert(methodOwner->type()->isObject());
 					Value* value = new Value(METHODOBJECT,
-							SEM::Type::Method(SEM::Type::RVALUE,
-									methodOwner->type(), method->type()));
+						SEM::Type::Method(SEM::Type::RVALUE,
+							method->type()));
 					value->methodObject.method = method;
 					value->methodObject.methodOwner = methodOwner;
 					return value;

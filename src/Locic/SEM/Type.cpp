@@ -57,13 +57,12 @@ namespace Locic {
 					
 					Type* returnType = getFunctionReturnType()->substitute(templateVarMap);
 					
-					return Function(isLValue(), isFunctionVarArg(), functionRequiresContext(), returnType, args);
+					return Function(isLValue(), isFunctionVarArg(), returnType, args);
 				}
 				case METHOD: {
-					Type* objectType = getMethodObjectType()->substitute(templateVarMap);
 					Type* functionType = getMethodFunctionType()->substitute(templateVarMap);
 					
-					return Method(isLValue(), objectType, functionType);
+					return Method(isLValue(), functionType);
 				}
 				case TEMPLATEVAR: {
 					Optional<Type*> substituteType = templateVarMap.tryGet(getTemplateVar());
@@ -167,8 +166,7 @@ namespace Locic {
 							makeArrayString(getFunctionParameterTypes()).c_str(),
 							isFunctionVarArg() ? "Yes" : "No");
 				case METHOD:
-					return makeString("MethodType(object: %s, function: %s)",
-							getMethodObjectType()->toString().c_str(),
+					return makeString("MethodType(functionType: %s)",
 							getMethodFunctionType()->toString().c_str());
 				case TEMPLATEVAR:
 					return makeString("TemplateVarType(templateVar: %s)",
@@ -239,8 +237,7 @@ namespace Locic {
 						   && isFunctionVarArg() == type.isFunctionVarArg();
 				}
 				case SEM::Type::METHOD: {
-					return getMethodObjectType() == type.getMethodObjectType()
-						   && *(getMethodFunctionType()) == *(type.getMethodFunctionType());
+					return *(getMethodFunctionType()) == *(type.getMethodFunctionType());
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					return getTemplateVar() == type.getTemplateVar();

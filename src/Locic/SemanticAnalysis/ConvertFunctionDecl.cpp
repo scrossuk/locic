@@ -75,15 +75,13 @@ namespace Locic {
 				parameterVars.push_back(SEM::Var::Param(semParamType));
 			}
 			
-			// Static methods of classes with at least one template variable require a 'context' parameter.
-			const bool requiresContext = (thisTypeInstance != NULL ?
-				(!astFunction->isMethod && !thisTypeInstance->templateVariables().empty()) :
-				false);
+			const bool isMethod = (thisTypeInstance != NULL);
+			const bool isStatic = (!isMethod || !astFunction->isMethod);
 			
-			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE, astFunction->isVarArg,
-				requiresContext, semReturnType, parameterTypes);
+			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE,
+				astFunction->isVarArg, semReturnType, parameterTypes);
 			
-			return SEM::Function::Decl(astFunction->isMethod, requiresContext,
+			return SEM::Function::Decl(isMethod, isStatic,
 				functionType, astFunction->name, parameterVars);
 		}
 		

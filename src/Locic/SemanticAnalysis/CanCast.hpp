@@ -177,23 +177,6 @@ namespace Locic {
 				
 		};
 		
-		class CastMethodObjectTypeMismatchException: public CastException {
-			public:
-				inline CastMethodObjectTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
-					: sourceType_(sourceType), destType_(destType) { }
-					
-				inline std::string toString() const {
-					return makeString("Method object type doesn't match in cast from type '%s' to type '%s'.",
-							sourceType_->toString().c_str(),
-							destType_->toString().c_str());
-				}
-				
-			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
-				
-		};
-		
 		class PolyCastMissingMethodException: public CastException {
 			public:
 				inline PolyCastMissingMethodException(SEM::Type* sourceType, SEM::Type* destType,

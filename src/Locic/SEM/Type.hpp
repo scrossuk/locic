@@ -77,7 +77,7 @@ namespace Locic {
 					return type;
 				}
 				
-				inline static Type* Function(bool isLValue, bool isVarArg, bool requiresContext, Type* returnType, const std::vector<Type*>& parameterTypes) {
+				inline static Type* Function(bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
 					assert(returnType->isRValue() && "Return type must always be an R-value.");
 					
 					for(size_t i = 0; i < parameterTypes.size(); i++) {
@@ -88,18 +88,15 @@ namespace Locic {
 					// Functions are a 'const type', meaning they are always const.
 					Type* type = new Type(FUNCTION, CONST, isLValue);
 					type->functionType_.isVarArg = isVarArg;
-					type->functionType_.requiresContext = requiresContext;
 					type->functionType_.returnType = returnType;
 					type->functionType_.parameterTypes = parameterTypes;
 					return type;
 				}
 				
-				inline static Type* Method(bool isLValue, Type* objectType, Type* functionType) {
-					assert(objectType->isObject());
+				inline static Type* Method(bool isLValue, Type* functionType) {
 					assert(functionType->isFunction());
 					// Methods are a 'const type', meaning they are always const.
 					Type* type = new Type(METHOD, CONST, isLValue);
-					type->methodType_.objectType = objectType;
 					type->methodType_.functionType = functionType;
 					return type;
 				}
@@ -153,11 +150,6 @@ namespace Locic {
 					return functionType_.isVarArg;
 				}
 				
-				inline bool functionRequiresContext() const {
-					assert(isFunction());
-					return functionType_.requiresContext;
-				}
-				
 				inline Type* getFunctionReturnType() const {
 					assert(isFunction());
 					return functionType_.returnType;
@@ -170,11 +162,6 @@ namespace Locic {
 				
 				inline bool isMethod() const {
 					return kind() == METHOD;
-				}
-				
-				inline Type* getMethodObjectType() const {
-					assert(isMethod());
-					return methodType_.objectType;
 				}
 				
 				inline Type* getMethodFunctionType() const {
@@ -308,13 +295,11 @@ namespace Locic {
 				
 				struct FunctionType {
 					bool isVarArg;
-					bool requiresContext;
 					Type* returnType;
 					std::vector<Type*> parameterTypes;
 				} functionType_;
 				
 				struct {
-					Type* objectType;
 					Type* functionType;
 				} methodType_;
 				

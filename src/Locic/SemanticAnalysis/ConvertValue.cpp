@@ -63,9 +63,17 @@ namespace Locic {
 					} else if(node.isFunction()) {
 						SEM::Function* function = node.getSEMFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
-						assert(!function->isMethod() && "TODO: class method references not implemented yet.");
 						
-						return SEM::Value::FunctionRef(function, templateVarMap);
+						if (function->isMethod()) {
+							if (!function->isStatic()) {
+								throw TodoException(makeString("Cannot refer directly to non-static class method '%s'.",
+									name.toString().c_str()));
+							}
+							
+							return SEM::Value::StaticMethodRef(function, templateVarMap);
+						} else {
+							return SEM::Value::FunctionRef(function, templateVarMap);
+						}
 					} else if(node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 						
@@ -79,7 +87,7 @@ namespace Locic {
 								name.toString().c_str()));
 						}
 						
-						return SEM::Value::FunctionRef(defaultConstructorNode.getSEMFunction(), templateVarMap);
+						return SEM::Value::StaticMethodRef(defaultConstructorNode.getSEMFunction(), templateVarMap);
 					} else if(node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
@@ -99,7 +107,7 @@ namespace Locic {
 						
 						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
 						
-						return SEM::Value::FunctionRef(defaultConstructor, specType->generateTemplateVarMap());
+						return SEM::Value::StaticMethodRef(defaultConstructor, specType->generateTemplateVarMap());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;

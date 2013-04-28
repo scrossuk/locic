@@ -353,7 +353,7 @@ namespace Locic {
 			SEM::Function* function = functionNode.getSEMFunction();
 			
 			// Looking for static method.
-			if(function->isMethod()) return Node::None();
+			if(!function->isStatic()) return Node::None();
 			
 			SEM::Type* type = function->type();
 			
@@ -374,7 +374,7 @@ namespace Locic {
 			SEM::Function* function = functionNode.getSEMFunction();
 			
 			// Looking for static method.
-			if(function->isMethod()) return Node::None();
+			if(!function->isStatic()) return Node::None();
 			
 			SEM::Type* type = function->type();
 			
@@ -397,7 +397,7 @@ namespace Locic {
 			SEM::Function* function = functionNode.getSEMFunction();
 			
 			// Looking for non-static method.
-			if(!function->isMethod()) return Node::None();
+			if(function->isStatic()) return Node::None();
 			
 			SEM::Type* type = function->type();
 			
