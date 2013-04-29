@@ -35,6 +35,7 @@ namespace Locic {
 					STATICMETHODREF,
 					METHODOBJECT,
 					METHODCALL,
+					INTERFACEMETHODREF,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -112,6 +113,16 @@ namespace Locic {
 					Value* methodValue;
 					std::vector<Value*> parameters;
 				} methodCall;
+				
+				struct {
+					Value* methodOwner;
+					std::string methodName;
+				} interfaceMethodObject;
+				
+				struct {
+					Value* methodValue;
+					std::vector<Value*> parameters;
+				} interfaceMethodCall;
 				
 				inline Value() : kind_(NONE), type_(Type::Void()) { }
 				

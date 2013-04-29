@@ -26,6 +26,7 @@ namespace Locic {
 					REFERENCE,
 					FUNCTION,
 					METHOD,
+					INTERFACEMETHOD,
 					TEMPLATEVAR
 				};
 				
@@ -101,6 +102,14 @@ namespace Locic {
 					return type;
 				}
 				
+				inline static Type* InterfaceMethod(bool isLValue, Type* functionType) {
+					assert(functionType->isFunction());
+					// Interface methods are a 'const type', meaning they are always const.
+					Type* type = new Type(INTERFACEMETHOD, CONST, isLValue);
+					type->interfaceMethodType_.functionType = functionType;
+					return type;
+				}
+				
 				inline ObjectKind objectKind() const {
 					return OBJECT_TYPE;
 				}
@@ -167,6 +176,15 @@ namespace Locic {
 				inline Type* getMethodFunctionType() const {
 					assert(isMethod());
 					return methodType_.functionType;
+				}
+				
+				inline bool isInterfaceMethod() const {
+					return kind() == INTERFACEMETHOD;
+				}
+				
+				inline Type* getInterfaceMethodFunctionType() const {
+					assert(isInterfaceMethod());
+					return interfaceMethodType_.functionType;
 				}
 				
 				inline Type* getPointerTarget() const {
@@ -302,6 +320,10 @@ namespace Locic {
 				struct {
 					Type* functionType;
 				} methodType_;
+				
+				struct {
+					Type* functionType;
+				} interfaceMethodType_;
 				
 				struct {
 					TemplateVar* templateVar;

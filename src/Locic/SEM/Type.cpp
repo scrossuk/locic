@@ -64,6 +64,11 @@ namespace Locic {
 					
 					return Method(isLValue(), functionType);
 				}
+				case INTERFACEMETHOD: {
+					Type* functionType = getInterfaceMethodFunctionType()->substitute(templateVarMap);
+					
+					return InterfaceMethod(isLValue(), functionType);
+				}
 				case TEMPLATEVAR: {
 					Optional<Type*> substituteType = templateVarMap.tryGet(getTemplateVar());
 					if(substituteType.hasValue()){
@@ -106,6 +111,7 @@ namespace Locic {
 				case REFERENCE:
 				case FUNCTION:
 				case METHOD:
+				case INTERFACEMETHOD:
 					// Pointer, function and method types can be copied implicitly.
 					return true;
 				case OBJECT:

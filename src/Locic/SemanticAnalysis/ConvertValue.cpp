@@ -281,7 +281,9 @@ namespace Locic {
 						if(childNode.isFunction()) {
 							SEM::Function* function = childNode.getSEMFunction();
 							
-							if(!function->isMethod()) {
+							assert(function->isMethod());
+							
+							if(function->isStatic()) {
 								throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
 									function->name().c_str(), typeInstance->name().c_str()));
 							}
