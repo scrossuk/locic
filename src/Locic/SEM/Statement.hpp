@@ -1,6 +1,8 @@
 #ifndef LOCIC_SEM_STATEMENT_HPP
 #define LOCIC_SEM_STATEMENT_HPP
 
+#include <string>
+
 #include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/Value.hpp>
@@ -161,6 +163,8 @@ namespace Locic {
 					assert(isReturnStatement());
 					return returnStmt_.value;
 				}
+				
+				std::string toString() const;
 				
 			private:
 				inline Statement(Kind k)

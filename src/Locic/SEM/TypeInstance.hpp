@@ -145,6 +145,8 @@ namespace Locic {
 				
 				void setImplicitCopy(Function* function);
 				
+				std::string refToString() const;
+				
 				std::string toString() const;
 				
 			private:

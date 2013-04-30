@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_SCOPE_HPP
 #define LOCIC_SEM_SCOPE_HPP
 
+#include <string>
 #include <vector>
 
 #include <Locic/SEM/Object.hpp>
@@ -33,6 +34,12 @@ namespace Locic {
 				
 				inline const std::vector<Statement*>& statements() const {
 					return statementList_;
+				}
+				
+				inline std::string toString() const {
+					return makeString("Scope(vars: %s, statements: %s)",
+						makeArrayString(localVariables_).c_str(),
+						makeArrayString(statementList_).c_str());
 				}
 				
 			private:

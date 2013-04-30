@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <fstream>
+
 #include <Locic/AST.hpp>
 #include <Locic/Parser/DefaultParser.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
@@ -93,6 +95,11 @@ int main(int argc, char * argv[]){
 	// Perform semantic analysis.
 	SEM::Namespace * rootSEMNamespace = SemanticAnalysis::Run(rootASTNamespace);
 	assert(rootSEMNamespace != NULL);
+	
+	{
+		std::ofstream ofs("sem.txt", std::ios_base::binary);
+		ofs << formatMessage(rootSEMNamespace->toString());
+	}
 	
 	const std::string outputName = "output";
 	

@@ -59,8 +59,11 @@ namespace Locic {
 							functionCall.functionValue->toString().c_str(),
 							makeArrayString(functionCall.parameters).c_str());
 				case FUNCTIONREF:
-					return makeString("FunctionRef(%s)",
+					return makeString("FunctionRef(name: %s)",
 							functionRef.function->name().c_str());
+				case STATICMETHODREF:
+					return makeString("StaticMethodRef(name: %s)",
+							staticMethodRef.function->name().c_str());
 				case METHODOBJECT:
 					return makeString("MethodObject(object: %s, method: %s)",
 							methodObject.methodOwner->toString().c_str(),
@@ -69,12 +72,20 @@ namespace Locic {
 					return makeString("MethodCall(methodObject: %s, args: %s)",
 							methodCall.methodValue->toString().c_str(),
 							makeArrayString(methodCall.parameters).c_str());
+				case INTERFACEMETHODOBJECT:
+					return makeString("InterfaceMethodObject(object: %s, method: %s)",
+							interfaceMethodObject.methodOwner->toString().c_str(),
+							interfaceMethodObject.method->toString().c_str());
+				case INTERFACEMETHODCALL:
+					return makeString("InterfaceMethodCall(methodObject: %s, args: %s)",
+							interfaceMethodCall.methodValue->toString().c_str(),
+							makeArrayString(interfaceMethodCall.parameters).c_str());
 				case CASTDUMMYOBJECT:
 					return "[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)]";
 				case NONE:
 					return "[NONE]";
 				default:
-					return "[UNKNOWN VALUE]";
+					return makeString("[UNKNOWN VALUE (kind = %u)]", (unsigned int) kind());
 			}
 		}
 	}

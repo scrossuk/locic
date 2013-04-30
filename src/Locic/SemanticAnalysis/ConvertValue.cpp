@@ -290,7 +290,11 @@ namespace Locic {
 							
 							SEM::Value* functionRef = SEM::Value::FunctionRef(function, object->type()->generateTemplateVarMap());
 							
-							return SEM::Value::MethodObject(functionRef, object);
+							if (typeInstance->isInterface()) {
+								return SEM::Value::InterfaceMethodObject(functionRef, object);
+							} else {
+								return SEM::Value::MethodObject(functionRef, object);
+							}
 						} else {
 							throw TodoException(makeString("Can't find method '%s' in type '%s'.",
 								memberName.c_str(), typeInstance->name().c_str()));
@@ -369,6 +373,32 @@ namespace Locic {
 							}
 							
 							return SEM::Value::MethodCall(functionValue, semValueList);
+						}
+						case SEM::Type::INTERFACEMETHOD: {
+							SEM::Type* functionType = functionValue->type()->getInterfaceMethodFunctionType();
+							
+							const std::vector<SEM::Type*>& typeList = functionType->getFunctionParameterTypes();
+							const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+							
+							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
+							
+							if(typeList.size() != astValueList.size()) {
+								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+									functionValue->toString().c_str(),
+									astValueList.size(), typeList.size()));
+							}
+							
+							std::vector<SEM::Value*> semValueList;
+							
+							for(std::size_t i = 0; i < astValueList.size(); i++) {
+								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
+								
+								SEM::Value* param = ImplicitCast(semArgValue, typeList.at(i));
+								
+								semValueList.push_back(param);
+							}
+							
+							return SEM::Value::InterfaceMethodCall(functionValue, semValueList);
 						}
 						default: {
 							throw TodoException(makeString("Can't call value '%s' that isn't a function or a method.",

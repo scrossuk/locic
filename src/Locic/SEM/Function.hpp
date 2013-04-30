@@ -90,13 +90,7 @@ namespace Locic {
 					assert(scope_ != NULL);
 				}
 				
-				inline std::string toString() const {
-					return makeString("Function(name: %s, isMethod: %s, isStatic: %s, type: %s)",
-							name().c_str(),
-							isMethod() ? "Yes" : "No",
-							isStatic() ? "Yes" : "No",
-							type()->toString().c_str());
-				}
+				std::string toString() const;
 				
 			private:
 				inline Function(bool isM, bool isS, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)

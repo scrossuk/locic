@@ -31,6 +31,8 @@ namespace Locic{
 		LOG_ALL
 	};
 	
+	std::string formatMessage(const std::string& message);
+	
 	void log(LogLevel level, const LogInfo& info, const std::string& message);
 
 }

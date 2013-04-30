@@ -37,7 +37,7 @@ namespace Locic{
 		return s;
 	}
 	
-	static std::string formatMessage(const std::string& message){
+	std::string formatMessage(const std::string& message){
 		size_t tabLevel = 1;
 		std::string resultString;
 		char prevChar = 0x00;

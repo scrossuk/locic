@@ -49,6 +49,16 @@ namespace Locic {
 					return functions_;
 				}
 				
+				inline std::string toString() const {
+					return makeString("TypeInstance(name: %s, "
+						"namespaces: %s, typeInstances: %s, "
+						"functions: %s)",
+						name().c_str(),
+						makeArrayString(namespaces_).c_str(),
+						makeArrayString(typeInstances_).c_str(),
+						makeArrayString(functions_).c_str()); 
+				}
+				
 			private:
 				std::string name_;
 				std::vector<Namespace *> namespaces_;

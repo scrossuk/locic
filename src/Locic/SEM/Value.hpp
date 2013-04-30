@@ -35,7 +35,8 @@ namespace Locic {
 					STATICMETHODREF,
 					METHODOBJECT,
 					METHODCALL,
-					INTERFACEMETHODREF,
+					INTERFACEMETHODOBJECT,
+					INTERFACEMETHODCALL,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -115,8 +116,8 @@ namespace Locic {
 				} methodCall;
 				
 				struct {
+					Value* method;
 					Value* methodOwner;
-					std::string methodName;
 				} interfaceMethodObject;
 				
 				struct {
@@ -256,6 +257,7 @@ namespace Locic {
 				inline static Value* MethodObject(Value* method, Value* methodOwner) {
 					assert(method->type()->isFunction());
 					assert(methodOwner->type()->isObject());
+					assert(!methodOwner->type()->isInterface());
 					Value* value = new Value(METHODOBJECT,
 						SEM::Type::Method(SEM::Type::RVALUE,
 							method->type()));
@@ -270,6 +272,26 @@ namespace Locic {
 							methodValue->type()->getMethodFunctionType()->getFunctionReturnType());
 					value->methodCall.methodValue = methodValue;
 					value->methodCall.parameters = parameters;
+					return value;
+				}
+				
+				inline static Value* InterfaceMethodObject(Value* method, Value* methodOwner) {
+					assert(method->type()->isFunction());
+					assert(methodOwner->type()->isInterface());
+					Value* value = new Value(INTERFACEMETHODOBJECT,
+						SEM::Type::InterfaceMethod(SEM::Type::RVALUE,
+							method->type()));
+					value->interfaceMethodObject.method = method;
+					value->interfaceMethodObject.methodOwner = methodOwner;
+					return value;
+				}
+				
+				inline static Value* InterfaceMethodCall(Value* methodValue, const std::vector<Value*>& parameters) {
+					assert(methodValue->type()->isInterfaceMethod());
+					Value* value = new Value(INTERFACEMETHODCALL,
+							methodValue->type()->getInterfaceMethodFunctionType()->getFunctionReturnType());
+					value->interfaceMethodCall.methodValue = methodValue;
+					value->interfaceMethodCall.parameters = parameters;
 					return value;
 				}
 				

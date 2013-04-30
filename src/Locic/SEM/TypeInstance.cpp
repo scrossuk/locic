@@ -3,7 +3,9 @@
 #include <Locic/Log.hpp>
 #include <Locic/Map.hpp>
 #include <Locic/Name.hpp>
+#include <Locic/String.hpp>
 #include <Locic/SEM/Namespace.hpp>
+#include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
 #include <Locic/SEM/Var.hpp>
 
@@ -112,29 +114,39 @@ namespace Locic {
 			return getFunctionReturnType("implicitCopy");
 		}*/
 		
-		std::string TypeInstance::toString() const {
+		std::string TypeInstance::refToString() const {
 			switch(kind()) {
 				case PRIMITIVE:
-					return makeString("PrimitiveType(%s)",
+					return makeString("PrimitiveType(name: %s)",
 							name().c_str());
 				case STRUCTDECL:
-					return makeString("StructDeclType(%s)",
+					return makeString("StructDeclType(name: %s)",
 							name().c_str());
 				case STRUCTDEF:
-					return makeString("StructDefType(%s)",
+					return makeString("StructDefType(name: %s)",
 							name().c_str());
 				case CLASSDECL:
-					return makeString("ClassDeclType(%s)",
+					return makeString("ClassDeclType(name: %s)",
 							name().c_str());
 				case CLASSDEF:
-					return makeString("ClassDefType(%s)",
+					return makeString("ClassDefType(name: %s)",
 							name().c_str());
 				case INTERFACE:
-					return makeString("InterfaceType(%s)",
+					return makeString("InterfaceType(name: %s)",
 							name().c_str());
 				default:
 					return "[UNKNOWN TYPE INSTANCE]";
 			}
+		}
+		
+		std::string TypeInstance::toString() const {
+			return makeString("TypeInstance(ref: %s, "
+				"templateVariables: %s, variables: %s, "
+				"functions: %s)",
+				refToString().c_str(),
+				makeArrayString(templateVariables_).c_str(),
+				makeArrayString(variables_).c_str(),
+				makeArrayString(functions_).c_str()); 
 		}
 		
 	}
