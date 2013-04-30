@@ -56,7 +56,7 @@ class PolyClass(T v) {
 	}
 	
 	T function(int value) {
-		return @v;
+		return @v.implicitCopy();
 	}
 };
 

@@ -81,6 +81,7 @@ namespace Locic {
 				Map<SEM::Var *, llvm::Value *> localVariables_, paramVariables_;
 				llvm::Value* returnVar_;
 				llvm::Value* thisPointer_;
+				llvm::StructType* typenameType_;
 				
 			public:
 				InternalCodeGen(const TargetInfo& targetInfo, const std::string& moduleName)
@@ -91,6 +92,12 @@ namespace Locic {
 					  returnVar_(NULL),
 					  thisPointer_(NULL) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
+					
+					std::vector<llvm::Type*> structElementTypes;
+					structElementTypes.push_back(getVTableType(targetInfo_)->getPointerTo());
+					structElementTypes.push_back(i8PtrType());
+					typenameType_ = llvm::StructType::create(llvm::getGlobalContext(),
+						structElementTypes, "typename");
 				}
 				
 				~InternalCodeGen() {
@@ -195,9 +202,6 @@ namespace Locic {
 						// hence the contents can be specified.
 						std::vector<llvm::Type*> structVariables;
 						
-						const std::vector<SEM::TemplateVar*>& templateVars =
-							typeInstance->templateVariables();
-						
 						// Pointer for template context information.
 						structVariables.push_back(i8PtrType());
 						
@@ -207,7 +211,7 @@ namespace Locic {
 						for(size_t i = 0; i < variables.size(); i++){
 							SEM::Var* var = variables.at(i);
 							structVariables.push_back(genType(var->type()));
-							memberVarOffsets_.insert(var, (templateVars.empty() ? 0 : 1) + i);
+							memberVarOffsets_.insert(var, 1 + i);
 						}
 						
 						LOG(LOG_INFO, "Set %llu struct variables for type '%s'.",
@@ -651,11 +655,7 @@ namespace Locic {
 				}
 				
 				llvm::StructType* getTypenameType() {
-					std::vector<llvm::Type*> structElementTypes;
-					structElementTypes.push_back(getVTableType(targetInfo_)->getPointerTo());
-					structElementTypes.push_back(i8PtrType());
-					return llvm::StructType::create(llvm::getGlobalContext(),
-						structElementTypes);
+					return typenameType_;
 				}
 				
 				llvm::Constant* genTypename(SEM::Type* type) {
@@ -687,7 +687,9 @@ namespace Locic {
 					}
 					
 					return llvm::StructType::create(llvm::getGlobalContext(),
-						structElementTypes);
+						structElementTypes,
+						makeString("typename_list_%llu",
+							(unsigned long long) numArguments));
 				}
 				
 				llvm::GlobalVariable* genTypenameArray(const std::vector<SEM::Type*>& typeArray) {
@@ -864,7 +866,12 @@ namespace Locic {
 								llvm::APInt(sizeTypeWidth, 2 * targetInfo_.getPointerSize() / 8));
 						}
 						case SEM::Type::TEMPLATEVAR: {
-							llvm::Value* vtable = templateVarValues_.get(type->getTemplateVar());
+							llvm::Value* typenameValue = templateVarValues_.get(type->getTemplateVar());
+							
+							typenameValue->dump();
+							
+							llvm::Value* vtable = builder_.CreateExtractValue(typenameValue,
+								std::vector<unsigned>(1, 0));
 							
 							vtable->dump();
 							
@@ -1524,7 +1531,7 @@ namespace Locic {
 							
 							if(numFunctionArgs != parameters.size()) {
 								LOG(LOG_NOTICE, "POSSIBLE ERROR: number of arguments given (%llu) "
-									" doesn't match required number (%llu).",
+									"doesn't match required number (%llu).",
 									(unsigned long long) parameters.size(),
 									(unsigned long long) numFunctionArgs);
 							}
@@ -1551,13 +1558,19 @@ namespace Locic {
 							assert(function != NULL && "StaticMethodRef requires a valid function");
 							
 							llvm::Value* methodValue = llvm::UndefValue::get(genType(value->type()));
-							methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
+							
+							llvm::Value* functionPtr =
+								builder_.CreatePointerCast(function,
+									genFunctionType(value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
+									"static_method_function_ptr");
 							
 							// TODO: need to generate the actual template parameter values,
 							//        NOT pass a NULL pointer!
 							llvm::Value* contextPointer = llvm::ConstantPointerNull::get(
 								llvm::PointerType::getUnqual(
 									llvm::Type::getInt8Ty(llvm::getGlobalContext())));
+							
+							methodValue = builder_.CreateInsertValue(methodValue, functionPtr, std::vector<unsigned>(1, 0));
 							methodValue = builder_.CreateInsertValue(methodValue, contextPointer, std::vector<unsigned>(1, 1));
 							
 							return methodValue;
@@ -1567,16 +1580,24 @@ namespace Locic {
 							assert(function != NULL && "MethodObject requires a valid function");
 							llvm::Value* dataPointer = generateLValue(value->methodObject.methodOwner);
 							assert(dataPointer != NULL && "MethodObject requires a valid data pointer");
+							
+							assert(value->type()->isMethod());
+							
 							llvm::Value* methodValue = llvm::UndefValue::get(genType(value->type()));
 							
 							function->dump();
 							dataPointer->dump();
 							methodValue->dump();
 							
+							llvm::Value* functionPtr =
+								builder_.CreatePointerCast(function,
+									genFunctionType(value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
+									"dynamic_method_function_ptr");
+							
 							llvm::Value* contextPtr =
 								builder_.CreatePointerCast(dataPointer, i8PtrType(), "this_ptr_cast_to_void_ptr");
 							
-							methodValue = builder_.CreateInsertValue(methodValue, function, std::vector<unsigned>(1, 0));
+							methodValue = builder_.CreateInsertValue(methodValue, functionPtr, std::vector<unsigned>(1, 0));
 							methodValue = builder_.CreateInsertValue(methodValue, contextPtr, std::vector<unsigned>(1, 1));
 							return methodValue;
 						}
@@ -1593,7 +1614,7 @@ namespace Locic {
 							SEM::Type* returnType = value->type();
 							llvm::Value* returnValue = NULL;
 							
-							if(returnType->isClass()) {
+							if(returnType->isClassOrTemplateVar()) {
 								returnValue = genAlloca(returnType);
 								assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference");
 								parameters.push_back(returnValue);
