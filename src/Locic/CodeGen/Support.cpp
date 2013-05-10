@@ -12,7 +12,7 @@
 namespace Locic {
 
 	namespace CodeGen {
-		
+	
 		llvm::Type* voidType() {
 			return llvm::Type::getVoidTy(llvm::getGlobalContext());
 		}
@@ -41,12 +41,12 @@ namespace Locic {
 			
 			// Destructor.
 			structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), NO_VAR_ARG)
-					->getPointerTo());
-			
+									 ->getPointerTo());
+									 
 			// Sizeof.
 			structElements.push_back(llvm::FunctionType::get(getSizeType(targetInfo), std::vector<llvm::Type*>(), NO_VAR_ARG)
-					->getPointerTo());
-			
+									 ->getPointerTo());
+									 
 			// Hash table.
 			structElements.push_back(llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE));
 			
@@ -55,9 +55,11 @@ namespace Locic {
 		
 		llvm::StructType* getVTableType(const TargetInfo& targetInfo) {
 			static llvm::StructType* type = NULL;
-			if(type == NULL){
+			
+			if (type == NULL) {
 				type = createVTableType(targetInfo);
 			}
+			
 			return type;
 		}
 		

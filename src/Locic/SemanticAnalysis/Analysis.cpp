@@ -80,16 +80,17 @@ namespace Locic {
 				AST::TypeInstance* astTypeInstance = node.getASTNamespace()->typeInstances.at(i);
 				
 				const std::string& typeName = astTypeInstance->name;
+				const Name& fullTypeName = context.name() + typeName;
 				
 				SEM::TypeInstance* semTypeInstance =
 					new SEM::TypeInstance(ConvertTypeInstanceKind(astTypeInstance->typeEnum),
-							typeName);
+						fullTypeName);
 				
 				const Node existingNode = node.getChild(typeName);
 				
 				if(existingNode.isNamespace()) {
 					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE,
-							context.name() + typeName);
+							fullTypeName);
 				} else if(existingNode.isTypeInstance()) {
 					// Types can be unified by name at this point.
 					// Later stages will identify whether the types actually match.
@@ -104,7 +105,7 @@ namespace Locic {
 						&& semTypeInstance->kind() == SEM::TypeInstance::CLASSDECL){
 						// Nothing to do.
 					} else if(semExistingType->kind() != semTypeInstance->kind()) {
-						throw NonUnifiableTypeClashException(context.name() + typeName);
+						throw NonUnifiableTypeClashException(fullTypeName);
 					}
 				} else {
 					assert(existingNode.isNone() &&
@@ -310,7 +311,7 @@ namespace Locic {
 		
 		static bool methodCompare(SEM::Function* f0, SEM::Function* f1){
 			assert(f0 != NULL && f1 != NULL);
-			return f0->name() < f1->name();
+			return f0->name().last() < f1->name().last();
 		}
 		
 		void AddFunctionDecls(Context& context) {

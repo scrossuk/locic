@@ -118,22 +118,22 @@ namespace Locic {
 			switch(kind()) {
 				case PRIMITIVE:
 					return makeString("PrimitiveType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				case STRUCTDECL:
 					return makeString("StructDeclType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				case STRUCTDEF:
 					return makeString("StructDefType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				case CLASSDECL:
 					return makeString("ClassDeclType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				case CLASSDEF:
 					return makeString("ClassDefType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				case INTERFACE:
 					return makeString("InterfaceType(name: %s)",
-							name().c_str());
+							name().toString().c_str());
 				default:
 					return "[UNKNOWN TYPE INSTANCE]";
 			}

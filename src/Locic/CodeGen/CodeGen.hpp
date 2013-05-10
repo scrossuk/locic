@@ -6,20 +6,20 @@
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
 
-namespace Locic{
+namespace Locic {
+
+	namespace CodeGen {
 	
-	namespace CodeGen{
-		
 		class InternalCodeGen;
-	
-		class CodeGenerator{
+		
+		class CodeGenerator {
 			public:
 				CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName);
 				~CodeGenerator();
 				
 				void applyOptimisations(size_t optLevel);
 				
-				void genNamespace(SEM::Namespace * nameSpace);
+				void genNamespace(SEM::Namespace* nameSpace);
 				
 				void writeToFile(const std::string& fileName);
 				
@@ -28,8 +28,8 @@ namespace Locic{
 				void dump();
 				
 			private:
-				InternalCodeGen * codeGen_;
-			
+				InternalCodeGen* codeGen_;
+				
 		};
 		
 	}

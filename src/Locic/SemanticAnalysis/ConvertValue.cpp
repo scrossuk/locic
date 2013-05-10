@@ -272,7 +272,7 @@ namespace Locic {
 							return SEM::Value::MemberAccess(object, var, memberType);
 						} else {
 							throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
-								memberName.c_str(), typeInstance->name().c_str()));
+								memberName.c_str(), typeInstance->name().toString().c_str()));
 						}
 					} else if(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
 						// Look for class methods.
@@ -285,7 +285,7 @@ namespace Locic {
 							
 							if(function->isStatic()) {
 								throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
-									function->name().c_str(), typeInstance->name().c_str()));
+									function->name().toString().c_str(), typeInstance->name().toString().c_str()));
 							}
 							
 							SEM::Value* functionRef = SEM::Value::FunctionRef(function, object->type()->generateTemplateVarMap());
@@ -297,11 +297,11 @@ namespace Locic {
 							}
 						} else {
 							throw TodoException(makeString("Can't find method '%s' in type '%s'.",
-								memberName.c_str(), typeInstance->name().c_str()));
+								memberName.c_str(), typeInstance->name().toString().c_str()));
 						}
 					} else if(typeInstance->isStructDecl()) {
 						throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
-							memberName.c_str(), typeInstance->name().c_str()));
+							memberName.c_str(), typeInstance->name().toString().c_str()));
 					}
 					
 					assert(false && "Invalid switch fallthrough in ConvertValue for member access");

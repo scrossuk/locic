@@ -26,7 +26,7 @@ namespace Locic {
 			VirtualTable table;
 			table.table_.resize(VTABLE_SIZE);
 			
-			for(size_t i = 0; i < methods.size(); i++) {
+			for (size_t i = 0; i < methods.size(); i++) {
 				const MethodHash method = methods.at(i);
 				std::list<MethodHash>& slotList = table.table_.at(method % VTABLE_SIZE);
 				slotList.push_back(method);
@@ -38,7 +38,7 @@ namespace Locic {
 		VirtualTable VirtualTable::CalculateFromNames(const std::vector<std::string>& methods) {
 			std::vector<MethodHash> hashes;
 			
-			for(size_t i = 0; i < methods.size(); i++) {
+			for (size_t i = 0; i < methods.size(); i++) {
 				hashes.push_back(CreateMethodNameHash(methods.at(i)));
 			}
 			
@@ -52,18 +52,20 @@ namespace Locic {
 		std::string VirtualTable::toString() const {
 			std::string s = "VirtualTable{";
 			
-			for(size_t i = 0; i < VTABLE_SIZE; i++) {
-				if(i > 0) s += ", ";
+			for (size_t i = 0; i < VTABLE_SIZE; i++) {
+				if (i > 0) {
+					s += ", ";
+				}
 				
 				s += makeString("%llu: ",
 								(unsigned long long) i);
 								
 				const std::list<MethodHash>& slotList = table_.at(i);
 				
-				if(slotList.empty()) {
+				if (slotList.empty()) {
 					s += "empty";
 					continue;
-				} else if(slotList.size() == 1) {
+				} else if (slotList.size() == 1) {
 					s += makeString("%llu",
 									(unsigned long long) slotList.front());
 					continue;
@@ -71,10 +73,12 @@ namespace Locic {
 				
 				s += "clash[";
 				
-				for(std::list<MethodHash>::const_iterator it = slotList.begin();
-						it != slotList.end(); ++it) {
-						
-					if(it != slotList.begin()) s += ", ";
+				for (std::list<MethodHash>::const_iterator it = slotList.begin();
+					 it != slotList.end(); ++it) {
+					 
+					if (it != slotList.begin()) {
+						s += ", ";
+					}
 					
 					s += makeString("%llu",
 									(unsigned long long) * it);

@@ -10,7 +10,7 @@
 namespace Locic {
 
 	namespace CodeGen {
-		
+	
 		llvm::Type* voidType();
 		
 		llvm::Type* i8Type();

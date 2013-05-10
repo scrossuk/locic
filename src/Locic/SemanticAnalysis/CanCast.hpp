@@ -186,7 +186,7 @@ namespace Locic {
 					  
 				inline std::string toString() const {
 					return makeString("Method '%s' missing in source type of polymorphic cast (from type '%s' to type '%s').",
-							methodFunction_->name().c_str(),
+							methodFunction_->name().toString().c_str(),
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
 				}
@@ -207,7 +207,7 @@ namespace Locic {
 					  
 				inline std::string toString() const {
 					return makeString("Method '%s' doesn't have matching types ('%s' vs '%s') in polymorphic cast (from type '%s' to type '%s').",
-							sourceMethod_->name().c_str(),
+							sourceMethod_->name().toString().c_str(),
 							sourceMethod_->type()->toString().c_str(),
 							destMethod_->type()->toString().c_str(),
 							sourceType_->toString().c_str(),

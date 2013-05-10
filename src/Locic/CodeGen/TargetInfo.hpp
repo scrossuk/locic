@@ -6,11 +6,11 @@
 
 #include <Locic/Map.hpp>
 
-namespace Locic{
+namespace Locic {
+
+	namespace CodeGen {
 	
-	namespace CodeGen{
-		
-		class TargetInfo{
+		class TargetInfo {
 			public:
 				static TargetInfo DefaultTarget();
 				
@@ -23,14 +23,22 @@ namespace Locic{
 				
 				size_t getPointerSize() const;
 				
+				inline size_t getPointerSizeInBytes() const {
+					return getPointerSize() / 8;
+				}
+				
 				size_t getPrimitiveSize(const std::string& name) const;
+				
+				inline size_t getPrimitiveSizeInBytes(const std::string& name) const {
+					return getPrimitiveSize(name) / 8;
+				}
 				
 			private:
 				Map<std::string, size_t> primitiveSizes_;
 				std::string triple_;
 				bool isBigEndian_;
 				size_t pointerSize_;
-			
+				
 		};
 		
 	}

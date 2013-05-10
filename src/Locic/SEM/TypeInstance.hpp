@@ -27,14 +27,14 @@ namespace Locic {
 					TEMPLATETYPE
 				};
 				
-				inline TypeInstance(Kind k, const std::string& n)
+				inline TypeInstance(Kind k, const Name& n)
 					: kind_(k), name_(n) { }
 				
 				inline ObjectKind objectKind() const {
 					return OBJECT_TYPEINSTANCE;
 				}
 					
-				inline const std::string& name() const {
+				inline const Name& name() const {
 					return name_;
 				}
 				
@@ -151,7 +151,7 @@ namespace Locic {
 				
 			private:
 				Kind kind_;
-				std::string name_;
+				Name name_;
 				
 				struct TypeProperties{
 					bool isConstType;

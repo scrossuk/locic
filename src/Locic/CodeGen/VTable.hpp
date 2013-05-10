@@ -1,5 +1,5 @@
-#ifndef LOCIC_CODEGEN_HASH_HPP
-#define LOCIC_CODEGEN_HASH_HPP
+#ifndef LOCIC_CODEGEN_VTABLE_HPP
+#define LOCIC_CODEGEN_VTABLE_HPP
 
 #include <stdint.h>
 
@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-namespace Locic{
+namespace Locic {
 
-	namespace CodeGen{
-		
+	namespace CodeGen {
+	
 		const size_t VTABLE_SIZE = 20;
 		
 		/**
@@ -22,7 +22,7 @@ namespace Locic{
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName);
 		
-		class VirtualTable{
+		class VirtualTable {
 			public:
 				static VirtualTable CalculateFromHashes(const std::vector<MethodHash>& methods);
 				
@@ -38,8 +38,8 @@ namespace Locic{
 				std::vector< std::list<MethodHash> > table_;
 				
 		};
-	
-	}	
+		
+	}
 	
 }
 

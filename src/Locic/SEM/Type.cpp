@@ -145,7 +145,7 @@ namespace Locic {
 					return getTemplateVar()->specType()->getImplicitCopyType();
 				default:
 					assert(false && "Unknown SEM type enum");
-					return false;
+					return NULL;
 			}
 		}
 		
@@ -159,7 +159,7 @@ namespace Locic {
 				}
 				case OBJECT:
 					return makeString("ObjectType(%s)",
-							getObjectType()->name().c_str());
+							getObjectType()->name().toString().c_str());
 				case POINTER:
 					return makeString("PointerType(%s)",
 							getPointerTarget()->toString().c_str());

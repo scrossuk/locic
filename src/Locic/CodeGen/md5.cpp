@@ -73,7 +73,7 @@ inline MD5::uint4 MD5::H(uint4 x, uint4 y, uint4 z) {
 }
 
 inline MD5::uint4 MD5::I(uint4 x, uint4 y, uint4 z) {
-	return y ^(x | ~z);
+	return y ^ (x | ~z);
 }
 
 // rotate_left rotates x left n bits.
@@ -134,7 +134,7 @@ void MD5::init() {
 
 // decodes input (unsigned char) into output (uint4). Assumes len is a multiple of 4.
 void MD5::decode(uint4 output[], const uint1 input[], size_type len) {
-	for(unsigned int i = 0, j = 0; j < len; i++, j += 4)
+	for (unsigned int i = 0, j = 0; j < len; i++, j += 4)
 		output[i] = ((uint4)input[j]) | (((uint4)input[j + 1]) << 8) |
 					(((uint4)input[j + 2]) << 16) | (((uint4)input[j + 3]) << 24);
 }
@@ -144,7 +144,7 @@ void MD5::decode(uint4 output[], const uint1 input[], size_type len) {
 // encodes input (uint4) into output (unsigned char). Assumes len is
 // a multiple of 4.
 void MD5::encode(uint1 output[], const uint4 input[], size_type len) {
-	for(size_type i = 0, j = 0; j < len; i++, j += 4) {
+	for (size_type i = 0, j = 0; j < len; i++, j += 4) {
 		output[j] = input[i] & 0xff;
 		output[j + 1] = (input[i] >> 8) & 0xff;
 		output[j + 2] = (input[i] >> 16) & 0xff;
@@ -249,9 +249,10 @@ void MD5::update(const unsigned char input[], size_type length) {
 	size_type index = count[0] / 8 % blocksize;
 	
 	// Update number of bits
-	if((count[0] += (length << 3)) < (length << 3))
+	if ((count[0] += (length << 3)) < (length << 3)) {
 		count[1]++;
-		
+	}
+	
 	count[1] += (length >> 29);
 	
 	// number of bytes we need to fill in buffer
@@ -260,19 +261,21 @@ void MD5::update(const unsigned char input[], size_type length) {
 	size_type i;
 	
 	// transform as many times as possible.
-	if(length >= firstpart) {
+	if (length >= firstpart) {
 		// fill buffer first, transform
 		memcpy(&buffer[index], input, firstpart);
 		transform(buffer);
 		
 		// transform chunks of blocksize (64 bytes)
-		for(i = firstpart; i + blocksize <= length; i += blocksize)
+		for (i = firstpart; i + blocksize <= length; i += blocksize) {
 			transform(&input[i]);
-			
-		index = 0;
-	} else
-		i = 0;
+		}
 		
+		index = 0;
+	} else {
+		i = 0;
+	}
+	
 	// buffer remaining input
 	memcpy(&buffer[index], &input[i], length - i);
 }
@@ -295,7 +298,7 @@ MD5& MD5::finalize() {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 	};
 	
-	if(!finalized) {
+	if (!finalized) {
 		// Save number of bits
 		unsigned char bits[8];
 		encode(bits, count, 8);
@@ -325,14 +328,16 @@ MD5& MD5::finalize() {
 
 // return hex representation of digest as string
 std::string MD5::hexdigest() const {
-	if(!finalized)
+	if (!finalized) {
 		return "";
-		
+	}
+	
 	char buf[33];
 	
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++) {
 		sprintf(buf + i * 2, "%02x", digest[i]);
-		
+	}
+	
 	buf[32] = 0;
 	
 	return std::string(buf);

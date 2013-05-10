@@ -1,9 +1,11 @@
 #ifndef LOCIC_SEM_FUNCTION_HPP
 #define LOCIC_SEM_FUNCTION_HPP
 
-#include <list>
 #include <string>
+#include <vector>
+
 #include <Locic/Map.hpp>
+#include <Locic/Name.hpp>
 
 #include <Locic/SEM/Object.hpp>
 #include <Locic/SEM/Type.hpp>
@@ -18,12 +20,12 @@ namespace Locic {
 		class Function: public Object {
 			public:
 				inline static Function* Decl(bool isMethod, bool isStatic, Type* type,
-					const std::string& name, const std::vector<Var*>& parameters) {
+					const Name& name, const std::vector<Var*>& parameters) {
 					return new Function(isMethod, isStatic, type, name, parameters, NULL);
 				}
 				
 				inline static Function* Def(bool isMethod, bool isStatic, Type* type,
-					const std::string& name, const std::vector<Var*>& parameters, Scope* scope) {
+					const Name& name, const std::vector<Var*>& parameters, Scope* scope) {
 					return new Function(isMethod, isStatic, type, name, parameters, scope);
 				}
 				
@@ -51,7 +53,7 @@ namespace Locic {
 					return OBJECT_FUNCTION;
 				}
 				
-				inline const std::string& name() const {
+				inline const Name& name() const {
 					return name_;
 				}
 				
@@ -93,7 +95,7 @@ namespace Locic {
 				std::string toString() const;
 				
 			private:
-				inline Function(bool isM, bool isS, Type* t, const std::string& n, const std::vector<Var*>& p, Scope* s)
+				inline Function(bool isM, bool isS, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s)
 					: isMethod_(isM),
 					  isStatic_(isS),
 					  type_(t), name_(n),
@@ -103,7 +105,7 @@ namespace Locic {
 				
 				bool isMethod_, isStatic_;
 				Type* type_;
-				std::string name_;
+				Name name_;
 				std::vector<Var*> parameters_;
 				
 				// NULL for declarations.

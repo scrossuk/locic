@@ -82,7 +82,7 @@ namespace Locic {
 				astFunction->isVarArg, semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(isMethod, isStatic,
-				functionType, astFunction->name, parameterVars);
+				functionType, functionName, parameterVars);
 		}
 		
 	}

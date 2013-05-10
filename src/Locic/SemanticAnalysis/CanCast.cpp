@@ -36,7 +36,7 @@ namespace Locic {
 				}
 				
 				SEM::Function* sourceFunction = sourceInstance->functions().at(sourcePos);
-				if(sourceFunction->name() == destFunction->name()){
+				if(sourceFunction->name().last() == destFunction->name().last()){
 					if(*(sourceFunction->type()) == *(destFunction->type())){
 						destPos++;
 						continue;
