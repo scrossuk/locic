@@ -6,6 +6,33 @@ namespace Locic {
 
 	namespace CodeGen {
 	
+		Map<MethodHash, SEM::Function*> CreateFunctionHashMap(SEM::TypeInstance* typeInstance) {
+			Map<MethodHash, SEM::Function*> hashMap;
+			
+			const std::vector<SEM::Function*>& functions = typeInstance->functions();
+			
+			for (size_t i = 0; i < functions.size(); i++) {
+				SEM::Function* function = functions.at(i);
+				hashMap.insert(CreateMethodNameHash(function->name().last()), function);
+			}
+			
+			return hashMap;
+		}
+		
+		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, SEM::Function*>& hashMap) {
+			std::vector<MethodHash> hashArray;
+			
+			Map<MethodHash, SEM::Function*>::Range range = hashMap.range();
+			
+			for (; !range.empty(); range.popFront()) {
+				hashArray.push_back(range.front().key());
+			}
+			
+			assert(hashMap.size() == hashArray.size());
+			
+			return hashArray;
+		}
+		
 		llvm::GlobalVariable* genVTable(Module& module, SEM::Type* type) {
 			assert(type->isObject());
 			
@@ -28,7 +55,7 @@ namespace Locic {
 			// Destructor.
 			const bool isVarArg = false;
 			llvm::PointerType* destructorType = TypeGenerator(module).getVoidFunctionType(
-				std::vector<llvm::Type*>(1, i8PtrType))->getPointerTo();
+													std::vector<llvm::Type*>(1, i8PtrType))->getPointerTo();
 			vtableStructElements.push_back(llvm::ConstantPointerNull::get(destructorType));
 			
 			// Sizeof.
@@ -56,10 +83,10 @@ namespace Locic {
 			}
 			
 			llvm::ArrayType* slotTableType = TypeGenerator(module).getArrayType(
-				i8PtrType, VTABLE_SIZE);
+												 i8PtrType, VTABLE_SIZE);
 												 
 			llvm::Constant* methodSlotTable = llvm::ConstantArray::get(
-				slotTableType, methodSlotElements);
+												  slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
 			llvm::Constant* vtableStruct =

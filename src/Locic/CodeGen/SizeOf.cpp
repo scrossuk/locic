@@ -11,10 +11,12 @@ namespace Locic {
 				TypeGenerator(module).getFunctionType(
 					TypeGenerator(module).getSizeType(),
 					std::vector<llvm::Type*>());
+					
+			llvm::Function* llvmFunction = createLLVMFunction(module,
+										   functionType, llvm::Function::InternalLinkage, NO_FUNCTION_NAME);
+			llvmFunction->setDoesNotAccessMemory();
 			
-			Function function(module, functionType, llvm::Function::InternalLinkage,
-				NO_FUNCTION_NAME, ArgInfo::None());
-			function.getLLVMFunction().setDoesNotAccessMemory();
+			Function function(module, llvmFunction, ArgInfo::None());
 			
 			SEM::TypeInstance* typeInstance = type->getObjectType();
 			assert(typeInstance->templateVariables().size() == type->templateArguments().size());
@@ -39,7 +41,7 @@ namespace Locic {
 				for (size_t i = 0; i < variables.size(); i++) {
 					SEM::Var* var = variables.at(i);
 					classSize = function.getBuilder().CreateAdd(classSize,
-						genSizeOf(module, function, var->type()->substitute(templateVarMap)));
+								genSizeOf(module, function, var->type()->substitute(templateVarMap)));
 				}
 				
 				// Class sizes must be at least one byte.

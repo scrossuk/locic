@@ -28,10 +28,10 @@ namespace Locic {
 						return function.getBuilder().CreateAlloca(rawType);
 					} else {
 						llvm::Value* alloca = function.getBuilder().CreateAlloca(
-							TypeGenerator(module).getI8Type(),
-							genSizeOf(function, type));
+												  TypeGenerator(module).getI8Type(),
+												  genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
-							module.getTypeMapping().get(typeInstance)->getPointerTo());
+								module.getTypeMapping().get(typeInstance)->getPointerTo());
 					}
 				}
 				
@@ -72,7 +72,7 @@ namespace Locic {
 							return function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
 						} else {
 							return function.getBuilder().CreateMemCpy(var, value,
-								genSizeOf(function, type), 1);
+									genSizeOf(function, type), 1);
 						}
 					}
 				}

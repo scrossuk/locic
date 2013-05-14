@@ -1,5 +1,4 @@
 #include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
 #include <llvm/IRBuilder.h>
 
 #include <assert.h>
@@ -8,6 +7,7 @@
 #include <vector>
 
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
 
@@ -15,25 +15,18 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveSizeOf(llvm::Module& module, const std::string& name, llvm::Function* function) {
-			assert(function->isDeclaration());
+		void createPrimitiveSizeOf(Module& module, const std::string& name, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
 			
-			llvm::LLVMContext& context = module.getContext();
-			TargetInfo targetInfo(module.getTargetTriple());
+			Function genFunction(module, llvmFunction, ArgInfo::None());
 			
-			llvm::IRBuilder<> builder(context);
-			
-			const size_t sizeTypeWidth = targetInfo.getPrimitiveSize("size_t");
-			
-			llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-			builder.SetInsertPoint(basicBlock);
+			genFunction.selectBasicBlock(genFunction.createBasicBlock("entry"));
 			
 			LOG(LOG_INFO, "Generating sizeof() for primitive type '%s'.",
 				name.c_str());
 				
-			const size_t size = targetInfo.getPrimitiveSize(name);
-			assert((size % 8) == 0);
-			builder.CreateRet(llvm::ConstantInt::get(context, llvm::APInt(sizeTypeWidth, size / 8)));
+			genFunction.getBuilder().CreateRet(ConstantGenerator(module).getSize(
+												   targetInfo.getPrimitiveSizeInBytes(name)));
 		}
 		
 		bool isIntegerType(const std::string& name) {
@@ -58,68 +51,73 @@ namespace Locic {
 				   methodName == "compare";
 		}
 		
-		void createPrimitiveMethod(llvm::Module& module, const std::string& typeName, const std::string& methodName, llvm::Function* function) {
-			assert(function->isDeclaration());
+		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
+			assert(isUnaryOp(methodName) xor isBinaryOp(methodName));
+			const bool hasReturnVarArg = false;
+			const bool hasContextArg = true;
+			const size_t numStandardArguments =
+				isUnaryOp(methodName) ? 0 : 1;
+			return ArgInfo(hasReturnVarArg, hasContextArg, numStandardArguments);
+		}
+		
+		void createPrimitiveMethod(Module& module, const std::string& typeName, const std::string& methodName, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
 			
-			llvm::LLVMContext& context = module.getContext();
-			TargetInfo targetInfo(module.getTargetTriple());
+			Function genFunction(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
 			
-			llvm::IRBuilder<> builder(context);
-			
-			llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
-			builder.SetInsertPoint(basicBlock);
-			
-			const size_t integerWidth = targetInfo.getPrimitiveSize("int");
-			const size_t size = targetInfo.getPrimitiveSize(typeName);
+			llvm::Value* methodOwner = builder.CreateLoad(function.getContextValue());
 			
 			// TODO: generate correct ops for unsigned and floating point types.
 			if (isUnaryOp(methodName)) {
-				llvm::Value* arg = builder.CreateLoad(function->arg_begin());
-				llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(size, 0));
+				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				
 				if (methodName == "implicitCopy") {
-					builder.CreateRet(arg);
+					function.getBuilder().CreateRet(methodOwner);
 				} else if (methodName == "not") {
 					assert(typeName == "bool");
-					builder.CreateRet(builder.CreateNot(arg));
+					function.getBuilder().CreateRet(builder.CreateNot(methodOwner));
 				} else if (methodName == "isZero") {
-					builder.CreateRet(builder.CreateICmpEQ(arg, zero));
+					function.getBuilder().CreateRet(builder.CreateICmpEQ(methodOwner, zero));
 				} else if (methodName == "isPositive") {
-					builder.CreateRet(builder.CreateICmpSGT(arg, zero));
+					function.getBuilder().CreateRet(builder.CreateICmpSGT(methodOwner, zero));
 				} else if (methodName == "isNegative") {
-					builder.CreateRet(builder.CreateICmpSLT(arg, zero));
+					function.getBuilder().CreateRet(builder.CreateICmpSLT(methodOwner, zero));
 				} else if (methodName == "abs") {
 					// Generates: (value < 0) ? -value : value.
-					llvm::Value* lessThanZero = builder.CreateICmpSLT(arg, zero);
-					builder.CreateRet(builder.CreateSelect(lessThanZero, builder.CreateNeg(arg), arg));
+					llvm::Value* lessThanZero = function.getBuilder().CreateICmpSLT(methodOwner, zero);
+					function.getBuilder().CreateRet(
+						builder.CreateSelect(lessThanZero, builder.CreateNeg(methodOwner), methodOwner));
 				} else {
 					assert(false && "Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				llvm::Function::arg_iterator arg = function->arg_begin();
-				llvm::Value* firstArg = builder.CreateLoad(arg++);
-				llvm::Value* secondArg = arg;
+				llvm::Value* operand = function.getArg(0);
 				
 				if (methodName == "add") {
-					builder.CreateRet(builder.CreateAdd(firstArg, secondArg));
+					function.getBuilder().CreateRet(
+						function.getBuilder().CreateAdd(methodOwner, operand));
 				} else if (methodName == "subtract") {
-					builder.CreateRet(builder.CreateSub(firstArg, secondArg));
+					function.getBuilder().CreateRet(
+						function.getBuilder().CreateSub(methodOwner, operand));
 				} else if (methodName == "multiply") {
-					builder.CreateRet(builder.CreateMul(firstArg, secondArg));
+					function.getBuilder().CreateRet(
+						function.getBuilder().CreateMul(methodOwner, operand));
 				} else if (methodName == "divide") {
-					builder.CreateRet(builder.CreateSDiv(firstArg, secondArg));
+					function.getBuilder().CreateRet(
+						function.getBuilder().CreateSDiv(methodOwner, operand));
 				} else if (methodName == "modulo") {
-					builder.CreateRet(builder.CreateSRem(firstArg, secondArg));
+					function.getBuilder().CreateRet(
+						function.getBuilder().CreateSRem(methodOwner, operand));
 				} else if (methodName == "compare") {
-					llvm::Value* isLessThan = builder.CreateICmpSLT(firstArg, secondArg);
-					llvm::Value* isGreaterThan = builder.CreateICmpSGT(firstArg, secondArg);
-					llvm::Value* minusOne = llvm::ConstantInt::get(context, llvm::APInt(integerWidth, -1));
-					llvm::Value* zero = llvm::ConstantInt::get(context, llvm::APInt(integerWidth, 0));
-					llvm::Value* plusOne = llvm::ConstantInt::get(context, llvm::APInt(integerWidth, 1));
+					llvm::Value* isLessThan = function.getBuilder().CreateICmpSLT(methodOwner, operand);
+					llvm::Value* isGreaterThan = function.getBuilder().CreateICmpSGT(methodOwner, operand);
+					llvm::Value* minusOne = ConstantGenerator(module).getPrimitiveInt("int", -1);
+					llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt("int", 0);
+					llvm::Value* plusOne = ConstantGenerator(module).getPrimitiveInt("int", 1);
 					llvm::Value* returnValue =
-						builder.CreateSelect(isLessThan, minusOne,
-											 builder.CreateSelect(isGreaterThan, plusOne, zero));
-					builder.CreateRet(returnValue);
+						function.getBuilder().CreateSelect(isLessThan, minusOne,
+														   function.getBuilder().CreateSelect(isGreaterThan, plusOne, zero));
+					function.getBuilder().CreateRet(returnValue);
 				} else {
 					assert(false && "Unknown primitive binary op.");
 				}
@@ -130,14 +128,10 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* createPrimitiveType(llvm::Module& module, SEM::TypeInstance* type) {
-			TargetInfo targetInfo(module.getTargetTriple());
-			
-			llvm::LLVMContext& context = module.getContext();
-			
+		llvm::Type* createPrimitiveType(Module& module, SEM::TypeInstance* type) {
 			const std::string name = type->name().last();
 			
-			if (name == "bool") {
+			/*if (name == "bool") {
 				return llvm::Type::getInt1Ty(context);
 			}
 			
@@ -173,8 +167,8 @@ namespace Locic {
 				return llvm::Type::getFP128Ty(context);
 			}
 			
-			assert(false && "Unrecognised primitive type");
-			return NULL;
+			assert(false && "Unrecognised primitive type");*/
+			return TypeGenerator(module).getPrimitiveType(name);
 		}
 		
 	}

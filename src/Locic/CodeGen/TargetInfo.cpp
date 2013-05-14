@@ -48,7 +48,7 @@ namespace Locic {
 			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 			
 			primitiveSizes_.insert("size_t",
-				clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
+								   clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
 			primitiveSizes_.insert("null_t", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("bool", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("char", clangTargetInfo->getCharWidth());

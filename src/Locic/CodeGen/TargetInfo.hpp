@@ -24,13 +24,17 @@ namespace Locic {
 				size_t getPointerSize() const;
 				
 				inline size_t getPointerSizeInBytes() const {
-					return getPointerSize() / 8;
+					const size_t size = getPointerSize();
+					assert((size % 8) == 0);
+					return size / 8;
 				}
 				
 				size_t getPrimitiveSize(const std::string& name) const;
 				
 				inline size_t getPrimitiveSizeInBytes(const std::string& name) const {
-					return getPrimitiveSize(name) / 8;
+					const size_t size = getPrimitiveSize(name);
+					assert((size % 8) == 0);
+					return size / 8;
 				}
 				
 			private:

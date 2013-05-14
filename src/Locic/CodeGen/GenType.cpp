@@ -62,9 +62,9 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* genPointerType(SEM::Type* targetType) {
+		llvm::Type* genPointerType(const Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
-				return getTypeInstancePointer(targetType->getObjectType());
+				return getTypeInstancePointer(module, targetType->getObjectType());
 			} else {
 				llvm::Type* pointerType = genType(module, targetType);
 				
