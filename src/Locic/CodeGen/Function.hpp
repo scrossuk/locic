@@ -3,65 +3,19 @@
 
 #include <string>
 
+#include <llvm/Analysis/Verifier.h>
+#include <llvm/IRBuilder.h>
+
+#include <Locic/Map.hpp>
+
+#include <Locic/CodeGen/ArgInfo.hpp>
 #include <Locic/CodeGen/Module.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
 	
-		class ArgInfo {
-			public:
-				inline static ArgInfo None() {
-					return ArgInfo(false, false, 0);
-				}
-				
-				inline ArgInfo(bool hRVA, bool hCA,
-							   size_t nSA)
-					: hasReturnVarArgument_(hRVA),
-					  hasContextArgument_(hCA),
-					  numStandardArguments_(nSA) { }
-					  
-				bool hasReturnVarArgument() const {
-					return hasReturnVarArgument_;
-				}
-				
-				bool hasContextArgument() const {
-					return hasContextArgument_;
-				}
-				
-				size_t contextArgumentOffset() const {
-					return hasReturnVarArgument() ? 1 : 0;
-				}
-				
-				size_t standardArgumentOffset() const {
-					return contextArgumentOffset() +
-						   (hasContextArgument() ? 1 : 0);
-				}
-				
-				size_t numStandardArguments() const {
-					return numStandardArguments_;
-				}
-				
-				size_t numArguments() const {
-					return standardArgumentOffset() +
-						   numStandardArguments();
-				}
-				
-			private:
-				bool hasReturnVarArgument_;
-				bool hasContextArgument_;
-				size_t numStandardArguments_;
-				
-		};
-		
 		static const std::string NO_FUNCTION_NAME = "";
-		
-		inline ArgInfo getArgInfo(SEM::Function* function) {
-			const bool hasReturnVarArg = function->type()->getFunctionReturnType()->isClass();
-			const bool hasContextArg = function->isMethod() && !function->isStatic();
-			return ArgInfo(hasReturnVarArg, hasContextArg,
-						   function->type()->getFunctionParameterTypes().size());
-		}
 		
 		inline llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
 				llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
@@ -70,10 +24,12 @@ namespace Locic {
 		
 		class Function {
 			public:
+				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
+				
 				inline Function(Module& module, llvm::Function& function, const ArgInfo& argInfo)
 					: module_(module), function_(function),
 					  builder_(module.getLLVMContext()), argInfo_(argInfo) {
-					assert(argInfo_.numArguments() == function_.type()->getNumParams());
+					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 					selectBasicBlock(createBasicBlock("entry"));
 				}
 				
@@ -102,7 +58,7 @@ namespace Locic {
 						arg++;
 					}
 					
-					assert(arg != function_->arg_end());
+					assert(arg != function_.arg_end());
 					return arg;
 				}
 				
@@ -138,15 +94,25 @@ namespace Locic {
 				}
 				
 				inline void verify() const {
-					llvm::verifyFunction(&function_);
+					(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+				}
+				
+				inline LocalVarMap& getLocalVarMap() {
+					return localVarMap_;
+				}
+				
+				inline const LocalVarMap& getLocalVarMap() const {
+					return localVarMap_;
 				}
 				
 			private:
 				Module& module_;
-				llvm::Function* function_;
+				llvm::Function& function_;
 				llvm::IRBuilder<> builder_;
+				ArgInfo argInfo_;
+				LocalVarMap localVarMap_;
 				
-		}
+		};
 		
 	}
 	

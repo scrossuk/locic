@@ -17,7 +17,7 @@ namespace Locic {
 		void createPrimitiveMethod(Module& module, const std::string& typeName,
 								   const std::string& methodName, llvm::Function& llvmFunction);
 								   
-		llvm::Type* createPrimitiveType(Module& module, SEM::TypeInstance* type);
+		llvm::Type* getPrimitiveType(const Module& module, SEM::TypeInstance* type);
 		
 	}
 	

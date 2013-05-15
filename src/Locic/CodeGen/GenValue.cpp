@@ -6,8 +6,12 @@
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenValue.hpp>
+#include <Locic/CodeGen/GenVTable.hpp>
+#include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
 
 namespace Locic {
@@ -25,7 +29,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Value* genValue(Function& function, SEM::Value* value, bool genLValue = false) {
+		llvm::Value* genValue(Function& function, SEM::Value* value, bool genLValue) {
 			assert(value != NULL && "Cannot generate NULL value");
 			
 			LOG(LOG_INFO, "Generating value %s.",
@@ -36,7 +40,7 @@ namespace Locic {
 					switch (value->constant->getType()) {
 						case Locic::Constant::NULLVAL:
 							return ConstantGenerator(function.getModule()).getNullPointer(
-									   TypeGenerator(function.getModule).getI8Pointer());
+									   TypeGenerator(function.getModule()).getI8PtrType());
 									   
 						case Locic::Constant::BOOLEAN:
 							return ConstantGenerator(function.getModule()).getI1(value->constant->getBool());
@@ -119,7 +123,7 @@ namespace Locic {
 					switch (var->kind()) {
 						case SEM::Var::PARAM:
 						case SEM::Var::LOCAL: {
-							llvm::Value* val = function.getVariableMapping().get(var);
+							llvm::Value* val = function.getLocalVarMap().get(var);
 							
 							if (genLValue) {
 								return val;
@@ -129,9 +133,10 @@ namespace Locic {
 						}
 						
 						case SEM::Var::MEMBER: {
-							llvm::Value* memberPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
-														 function.getContextValue(), 0,
-														 function.getModule().getMemberVariableMapping(var));
+							llvm::Value* memberPtr =
+								function.getBuilder().CreateConstInBoundsGEP2_32(
+									function.getContextValue(), 0,
+									function.getModule().getMemberVarMap().get(var));
 														 
 							if (genLValue) {
 								return memberPtr;
@@ -269,7 +274,7 @@ namespace Locic {
 				
 				case SEM::Value::POLYCAST: {
 					assert(!genLValue && "Cannot generate interfaces as lvalues in polycast");
-					llvm::Value* rawValue = genValue(value->polyCast.value);
+					llvm::Value* rawValue = genValue(function, value->polyCast.value);
 					SEM::Type* sourceType = value->polyCast.value->type();
 					SEM::Type* destType = value->type();
 					assert((sourceType->isPointer() || sourceType->isReference())  && "Polycast source type must be pointer or reference.");
@@ -286,7 +291,7 @@ namespace Locic {
 						// Cast it as a pointer to the opaque struct representing
 						// destination interface type.
 						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(objectPointerValue,
-													 typeInstances_.get(destTarget->getObjectType())->getPointerTo());
+								function.getModule().getTypeMap().get(destTarget->getObjectType())->getPointerTo());
 													 
 						// Get the vtable pointer.
 						llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(rawValue,
@@ -303,10 +308,10 @@ namespace Locic {
 						// Cast class pointer to pointer to the opaque struct
 						// representing destination interface type.
 						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-													 typeInstances_.get(destTarget->getObjectType())->getPointerTo());
+								function.getModule().getTypeMap().get(destTarget->getObjectType())->getPointerTo());
 													 
 						// Create the vtable.
-						llvm::Value* vtablePointer = genVTable(sourceTarget);
+						llvm::Value* vtablePointer = genVTable(function.getModule(), sourceTarget);
 						
 						// Build the new interface pointer struct with these values.
 						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(function.getModule(), destType));
@@ -320,7 +325,7 @@ namespace Locic {
 				
 				case SEM::Value::INTERNALCONSTRUCT: {
 					const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
-					llvm::Value* objectValue = genAlloca(value->type());
+					llvm::Value* objectValue = genAlloca(function, value->type());
 					
 					LOG(LOG_INFO, "Type is %s.",
 						value->type()->toString().c_str());
@@ -341,7 +346,7 @@ namespace Locic {
 													  
 					for (size_t i = 0; i < parameters.size(); i++) {
 						SEM::Value* paramValue = parameters.at(i);
-						genStore(genValue(paramValue),
+						genStore(function, genValue(function, paramValue),
 								 function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1),
 								 paramValue->type());
 					}
@@ -350,15 +355,15 @@ namespace Locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const size_t offset = memberVarOffsets_.get(value->memberAccess.memberVar);
+					const size_t offset = function.getModule().getMemberVarMap().get(value->memberAccess.memberVar);
 					
 					if (genLValue) {
 						return function.getBuilder().CreateConstInBoundsGEP2_32(
-								   genValue(value->memberAccess.object, true), 0,
+								   genValue(function, value->memberAccess.object, true), 0,
 								   offset);
 					} else {
 						return function.getBuilder().CreateExtractValue(
-								   genValue(value->memberAccess.object),
+								   genValue(function, value->memberAccess.object),
 								   std::vector<unsigned>(1, offset));
 					}
 				}
@@ -438,18 +443,18 @@ namespace Locic {
 				
 				case SEM::Value::FUNCTIONREF: {
 					SEM::Function* semFunction = value->functionRef.function;
-					return function.getModule().getFunctionMapping().get(semFunction);
+					return function.getModule().getFunctionMap().get(semFunction);
 				}
 				
 				case SEM::Value::STATICMETHODREF: {
 					SEM::Function* semFunction = value->staticMethodRef.function;
-					llvm::Function* llvmFunction = function.getModule().getFunctionMapping().get(semFunction);
+					llvm::Function* llvmFunction = function.getModule().getFunctionMap().get(semFunction);
 					
 					llvm::Value* methodValue = llvm::UndefValue::get(genType(function.getModule(), value->type()));
 					
 					llvm::Value* functionPtr =
-						function.getBuilder().CreatePointerCast(function,
-								genFunctionType(value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
+						function.getBuilder().CreatePointerCast(llvmFunction,
+								genFunctionType(function.getModule(), value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
 								"static_method_function_ptr");
 								
 					// TODO: need to generate the actual template parameter values,
@@ -466,7 +471,7 @@ namespace Locic {
 				
 				case SEM::Value::METHODOBJECT: {
 					llvm::Value* functionValue = genValue(function, value->methodObject.method);
-					assert(function != NULL && "MethodObject requires a valid function");
+					assert(functionValue != NULL && "MethodObject requires a valid function");
 					llvm::Value* dataPointer = generateLValue(function, value->methodObject.methodOwner);
 					assert(dataPointer != NULL && "MethodObject requires a valid data pointer");
 					
@@ -475,13 +480,13 @@ namespace Locic {
 					llvm::Value* methodValue = ConstantGenerator(function.getModule()).getUndef(
 												   genType(function.getModule(), value->type()));
 												   
-					function->dump();
+					functionValue->dump();
 					dataPointer->dump();
 					methodValue->dump();
 					
 					llvm::Value* functionPtr =
-						function.getBuilder().CreatePointerCast(function,
-								genFunctionType(value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
+						function.getBuilder().CreatePointerCast(functionValue,
+								genFunctionType(function.getModule(), value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
 								"dynamic_method_function_ptr");
 								
 					llvm::Value* contextPtr =
@@ -496,8 +501,8 @@ namespace Locic {
 					LOG(LOG_EXCESSIVE, "Generating method call value %s.",
 						value->methodCall.methodValue->toString().c_str());
 						
-					llvm::Value* method = genValue(value->methodCall.methodValue);
-					llvm::Value* function = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 0));
+					llvm::Value* method = genValue(function, value->methodCall.methodValue);
+					llvm::Value* functionValue = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 0));
 					llvm::Value* contextPointer = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 1));
 					
 					std::vector<llvm::Value*> parameters;
@@ -518,17 +523,17 @@ namespace Locic {
 					for (std::size_t i = 0; i < paramList.size(); i++) {
 						LOG(LOG_EXCESSIVE, "Generating method call argument %s.",
 							paramList.at(i)->toString().c_str());
-						parameters.push_back(genValue(paramList.at(i)));
+						parameters.push_back(genValue(function, paramList.at(i)));
 					}
 					
 					LOG(LOG_EXCESSIVE, "Creating method call.");
-					function->dump();
+					functionValue->dump();
 					contextPointer->dump();
 					
-					llvm::Value* callReturnValue = function.getBuilder().CreateCall(function, parameters);
+					llvm::Value* callReturnValue = function.getBuilder().CreateCall(functionValue, parameters);
 					
 					if (returnValue != NULL) {
-						return genLoad(returnValue, returnType);
+						return genLoad(function, returnValue, returnType);
 					} else {
 						return callReturnValue;
 					}

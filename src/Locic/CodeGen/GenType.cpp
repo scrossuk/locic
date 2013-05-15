@@ -2,13 +2,17 @@
 #include <vector>
 
 #include <Locic/CodeGen/GenType.hpp>
+#include <Locic/CodeGen/Mangling.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/Primitives.hpp>
+#include <Locic/CodeGen/Support.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
 	
-		llvm::FunctionType* genFunctionType(const Module& module, SEM::Type* type, llvm::Type* contextPointerType = NULL) {
+		llvm::FunctionType* genFunctionType(const Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
 			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
 			
@@ -35,7 +39,7 @@ namespace Locic {
 			
 			for (std::size_t i = 0; i < params.size(); i++) {
 				SEM::Type* paramType = params.at(i);
-				llvm::Type* rawType = genType(paramType);
+				llvm::Type* rawType = genType(module, paramType);
 				
 				if (paramType->isObject()) {
 					SEM::TypeInstance* typeInstance = paramType->getObjectType();
@@ -49,16 +53,14 @@ namespace Locic {
 			}
 			
 			return TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
-			
-			return llvm::FunctionType::get(returnType, paramTypes, type->isFunctionVarArg());
 		}
 		
 		llvm::Type* genObjectType(const Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
-				return createPrimitiveType(module, typeInstance);
+				return getPrimitiveType(module, typeInstance);
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
-				return module.getTypeMapping().get(typeInstance);
+				return module.getTypeMap().get(typeInstance);
 			}
 		}
 		
@@ -83,7 +85,7 @@ namespace Locic {
 				// one to the class, and one to the class vtable.
 				std::vector<llvm::Type*> types;
 				// Class pointer.
-				types.push_back(typeInstances_.get(typeInstance)->getPointerTo());
+				types.push_back(module.getTypeMap().get(typeInstance)->getPointerTo());
 				// Vtable pointer.
 				types.push_back(getVTableType(module.getTargetInfo())->getPointerTo());
 				return TypeGenerator(module).getStructType(types);
@@ -101,7 +103,7 @@ namespace Locic {
 				}
 				
 				case SEM::Type::NULLT: {
-					return TypeGenerator(module).getInt8PtrType();
+					return TypeGenerator(module).getI8PtrType();
 				}
 				
 				case SEM::Type::OBJECT: {
@@ -122,9 +124,9 @@ namespace Locic {
 				
 				case SEM::Type::METHOD: {
 					std::vector<llvm::Type*> types;
-					llvm::Type* contextPtrType = TypeGenerator(module).getInt8PtrType();
-					types.push_back(genFunctionType(type->getMethodFunctionType(),
-													contextPtrType)->getPointerTo());
+					llvm::Type* contextPtrType = TypeGenerator(module).getI8PtrType();
+					types.push_back(genFunctionType(module, type->getMethodFunctionType(),
+							contextPtrType)->getPointerTo());
 					types.push_back(contextPtrType);
 					return TypeGenerator(module).getStructType(types);
 				}

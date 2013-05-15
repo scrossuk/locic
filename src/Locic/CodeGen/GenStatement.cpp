@@ -6,7 +6,9 @@
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenStatement.hpp>
 #include <Locic/CodeGen/GenValue.hpp>
+#include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
 
@@ -21,7 +23,7 @@ namespace Locic {
 				// Create an alloca for this variable.
 				llvm::Value* stackObject = genAlloca(function, localVar->type());
 				
-				genFunction.getVariableMapping().insert(localVar, stackObject);
+				function.getLocalVarMap().forceInsert(localVar, stackObject);
 			}
 			
 			for (std::size_t i = 0; i < scope.statements().size(); i++) {
@@ -87,7 +89,7 @@ namespace Locic {
 				case SEM::Statement::ASSIGN: {
 					SEM::Value* lValue = statement->getAssignLValue();
 					SEM::Value* rValue = statement->getAssignRValue();
-					genStore(function, genValue(rValue), genValue(lValue, true), rValue->type());
+					genStore(function, genValue(function, rValue), genValue(function, lValue, true), rValue->type());
 					break;
 				}
 				
@@ -96,8 +98,8 @@ namespace Locic {
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						llvm::Value* returnValue = genValue(function, statement->getReturnValue());
 						
-						if (returnVar_ != NULL) {
-							genStore(function, returnValue, returnVar_, statement->getReturnValue()->type());
+						if (function.getArgInfo().hasReturnVarArgument()) {
+							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							function.getBuilder().CreateRetVoid();
 						} else {
 							function.getBuilder().CreateRet(returnValue);

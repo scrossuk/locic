@@ -26,29 +26,40 @@ namespace Locic {
 					return llvm::Type::getInt8PtrTy(module_.getLLVMContext());
 				}
 				
-				inline llvm::StructType* getVoidFunctionType(const std::vector<llvm::Type*>& args) const {
+				inline llvm::Type* getDoubleType() const {
+					return llvm::Type::getDoubleTy(module_.getLLVMContext());
+				}
+				
+				inline llvm::ArrayType* getArrayType(llvm::Type* elementType, size_t size) const {
+					return llvm::ArrayType::get(elementType, size);
+				}
+				
+				inline llvm::FunctionType* getVoidFunctionType(const std::vector<llvm::Type*>& args) const {
 					const bool isVarArg = false;
 					return llvm::FunctionType::get(getVoidType(), args, isVarArg);
 				}
 				
-				inline llvm::StructType* getFunctionType(llvm::Type* returnType, const std::vector<llvm::Type*>& args) const {
-					const bool isVarArg = false;
+				inline llvm::FunctionType* getFunctionType(llvm::Type* returnType, const std::vector<llvm::Type*>& args, bool isVarArg = false) const {
 					return llvm::FunctionType::get(returnType, args, isVarArg);
 				}
 				
-				inline llvm::StructType* getVarArgsFunctionType(llvm::Type* returnType, const std::vector<llvm::Type*>& args) const {
+				inline llvm::FunctionType* getVarArgsFunctionType(llvm::Type* returnType, const std::vector<llvm::Type*>& args) const {
 					const bool isVarArg = true;
-					return llvm::FunctionType::get(returnType, args, isVarArg);
+					return getFunctionType(returnType, args, isVarArg);
 				}
 				
 				inline llvm::StructType* getStructType(const std::vector<llvm::Type*>& members) const {
 					return llvm::StructType::get(module_.getLLVMContext(), members);
 				}
 				
+				inline llvm::StructType* getForwardDeclaredStructType(const std::string& name) const {
+					return llvm::StructType::create(module_.getLLVMContext(), name);
+				}
+				
 			private:
 				const Module& module_;
 				
-		}
+		};
 		
 	}
 	

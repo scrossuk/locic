@@ -128,7 +128,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* createPrimitiveType(Module& module, SEM::TypeInstance* type) {
+		llvm::Type* getPrimitiveType(const Module& module, SEM::TypeInstance* type) {
 			const std::string name = type->name().last();
 			
 			/*if (name == "bool") {

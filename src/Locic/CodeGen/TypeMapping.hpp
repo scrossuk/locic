@@ -11,7 +11,7 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		struct Context {
+		/*struct Context {
 			std::string name;
 			TargetInfo targetInfo_;
 			llvm::Module* module;
@@ -28,7 +28,7 @@ namespace Locic {
 			llvm::Value* returnVar_;
 			llvm::Value* thisPointer_;
 			llvm::StructType* typenameType_;
-		};
+		};*/
 		
 		class TypeMapping {
 			public:
@@ -42,7 +42,7 @@ namespace Locic {
 			private:
 				Map<SEM::TypeInstance*, llvm::StructType*> map_;
 				
-		}
+		};
 		
 	}
 	

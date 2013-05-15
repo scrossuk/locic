@@ -1,18 +1,10 @@
 #include <llvm/Attributes.h>
-#include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/InlineAsm.h>
-#include <llvm/IRBuilder.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Analysis/Passes.h>
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Host.h>
-#include <llvm/Support/raw_os_ostream.h>
 
 #include <assert.h>
 #include <cstdio>
@@ -26,11 +18,18 @@
 #include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/String.hpp>
+
 #include <Locic/CodeGen/CodeGen.hpp>
+#include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenStatement.hpp>
+#include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/Mangling.hpp>
+#include <Locic/CodeGen/Memory.hpp>
+#include <Locic/CodeGen/Optimisations.hpp>
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
@@ -45,6 +44,10 @@ namespace Locic {
 			public:
 				InternalCodeGen(const std::string& moduleName, const TargetInfo& targetInfo)
 					: module_(moduleName, targetInfo) { }
+				
+				Module& getModule() {
+					return module_;
+				}
 					
 				llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* type) {
 					if (type == NULL) {
@@ -69,7 +72,7 @@ namespace Locic {
 					llvm::StructType* structType = TypeGenerator(module_).getForwardDeclaredStructType(
 						mangleTypeName(typeInstance->name()));
 					
-					typeInstances_.insert(typeInstance, structType);
+					module_.getTypeMap().insert(typeInstance, structType);
 				}
 				
 				void genNamespaceTypePlaceholders(SEM::Namespace* nameSpace) {
@@ -97,7 +100,7 @@ namespace Locic {
 					}
 					
 					// Generate type member variables.
-					llvm::StructType* structType = typeInstances_.get(typeInstance);
+					llvm::StructType* structType = module_.getTypeMap().get(typeInstance);
 					
 					if (typeInstance->isClassDef() || typeInstance->isStructDef()) {
 						// Generating the type for a class or struct definition, so
@@ -105,16 +108,13 @@ namespace Locic {
 						// hence the contents can be specified.
 						std::vector<llvm::Type*> structVariables;
 						
-						// Pointer for template context information.
-						structVariables.push_back(i8PtrType());
-						
 						// Add member variables.
 						const std::vector<SEM::Var*>& variables = typeInstance->variables();
 						
 						for (size_t i = 0; i < variables.size(); i++) {
 							SEM::Var* var = variables.at(i);
 							structVariables.push_back(genType(module_, var->type()));
-							memberVarOffsets_.insert(var, 1 + i);
+							module_.getMemberVarMap().insert(var, i);
 						}
 						
 						LOG(LOG_INFO, "Set %llu struct variables for type '%s'.",
@@ -148,24 +148,18 @@ namespace Locic {
 					LOG(LOG_INFO, "Generating %s.",
 						function->name().toString().c_str());
 						
-					const size_t parentNumTemplateArgs =
-						parent != NULL ?
-						parent->templateVariables().size() :
-						0;
-						
 					llvm::Type* contextPtrType =
 						function->isMethod() && !function->isStatic() ?
-						getTypeInstancePointer(parent) :
+						getTypeInstancePointer(module_, parent) :
 						NULL;
-					const ArgInfo argInfo = getArgInfo(function);
 					
 					llvm::FunctionType* functionType =
-						genFunctionType(function->type(), contextPtrType);
+						genFunctionType(module_, function->type(), contextPtrType);
 						
 					llvm::Function* llvmFunction =
 						createLLVMFunction(module_,
-										   functionType, getFunctionLinkage(parent),
-										   mangleFunctionName(function->name()));
+							functionType, getFunctionLinkage(parent),
+							mangleFunctionName(function->name()));
 										   
 					if (function->type()->getFunctionReturnType()->isClass()) {
 						std::vector<llvm::Attributes::AttrVal> attributes;
@@ -190,7 +184,7 @@ namespace Locic {
 														   attributes));
 					}
 					
-					functions_.insert(function, llvmFunction);
+					module_.getFunctionMap().insert(function, llvmFunction);
 				}
 				
 				void genTypeInstanceFunctionDecls(SEM::TypeInstance* typeInstance) {
@@ -224,7 +218,7 @@ namespace Locic {
 				// ---- Pass 4: Generate function code.
 				
 				// TODO: this needs to be removed...
-				void genInterfaceMethod(SEM::Function* function) {
+				/*void genInterfaceMethod(SEM::Function* function) {
 					assert(function->isMethod());
 					
 					if (function->isStatic()) {
@@ -237,7 +231,7 @@ namespace Locic {
 					LOG(LOG_INFO, "Generating interface method '%s'.",
 						function->name().toString().c_str());
 						
-					llvm::Function* llvmFunction = module_.getFunctionMapping().get(function);
+					llvm::Function* llvmFunction = module_.getFunctionMap().get(function);
 					
 					Function genFunction(module_, llvmFunction, getArgInfo(function));
 					
@@ -303,7 +297,7 @@ namespace Locic {
 					
 					// Check the generated function is correct.
 					genFunction.verify();
-				}
+				}*/
 				
 				void genFunctionDef(SEM::Function* function, SEM::TypeInstance* typeInstance) {
 					assert(function != NULL && "Generating a function definition requires a non-NULL SEM Function object");
@@ -320,11 +314,11 @@ namespace Locic {
 							function->name().toString().c_str());
 					}
 					
-					llvm::Function* llvmFunction = module_.getFunctionMapping().get(function);
+					llvm::Function* llvmFunction = module_.getFunctionMap().get(function);
 					
 					llvmFunction->dump();
 					
-					Function genFunction(module_, llvmFunction, getArgInfo(function));
+					Function genFunction(module_, *llvmFunction, getArgInfo(function));
 					
 					// Parameters need to be copied to the stack, so that it's
 					// possible to assign to them, take their address, etc.
@@ -340,7 +334,7 @@ namespace Locic {
 						// Store the initial value into the alloca.
 						genStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
 						
-						genFunction.getVariableMapping().insert(paramVar, stackObject);
+						genFunction.getLocalVarMap().insert(paramVar, stackObject);
 					}
 					
 					genScope(genFunction, function->scope());
@@ -369,13 +363,7 @@ namespace Locic {
 						for (size_t i = 0; i < functions.size(); i++) {
 							SEM::Function* function = functions.at(i);
 							createPrimitiveMethod(module_, typeInstance->name().last(),
-												  function->name().last(), module.getFunctionMapping().get(function)));
-						}
-					} else if (typeInstance->isInterface()) {
-						const std::vector<SEM::Function*>& functions = typeInstance->functions();
-						
-						for (size_t i = 0; i < functions.size(); i++) {
-							genInterfaceMethod(functions.at(i));
+								function->name().last(), *(module_.getFunctionMap().get(function)));
 						}
 					}
 				}
@@ -403,7 +391,7 @@ namespace Locic {
 		};
 		
 		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName) {
-			codeGen_ = new InternalCodeGen(targetInfo, moduleName);
+			codeGen_ = new InternalCodeGen(moduleName, targetInfo);
 		}
 		
 		CodeGenerator::~CodeGenerator() {
@@ -411,7 +399,9 @@ namespace Locic {
 		}
 		
 		void CodeGenerator::applyOptimisations(size_t optLevel) {
-			codeGen_->applyOptimisations(optLevel);
+			Optimisations optimisations(codeGen_->getModule());
+			optimisations.addDefaultPasses(optLevel);
+			optimisations.run();
 		}
 		
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
@@ -422,15 +412,15 @@ namespace Locic {
 		}
 		
 		void CodeGenerator::writeToFile(const std::string& fileName) {
-			codeGen_->writeToFile(fileName);
+			codeGen_->getModule().writeBitCodeToFile(fileName);
 		}
 		
 		void CodeGenerator::dumpToFile(const std::string& fileName) {
-			codeGen_->dumpToFile(fileName);
+			codeGen_->getModule().dumpToFile(fileName);
 		}
 		
 		void CodeGenerator::dump() {
-			codeGen_->dump();
+			codeGen_->getModule().dump();
 		}
 		
 	}

@@ -3,8 +3,16 @@
 
 #include <fstream>
 #include <string>
+
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/DerivedTypes.h>
+#include <llvm/GlobalVariable.h>
+#include <llvm/LLVMContext.h>
+#include <llvm/Module.h>
+#include <llvm/Support/raw_os_ostream.h>
+
+#include <Locic/Map.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
-#include <Locic/CodeGen/TypeMapping.hpp>
 
 namespace Locic {
 
@@ -12,6 +20,10 @@ namespace Locic {
 	
 		class Module {
 			public:
+				typedef Map<SEM::Function*, llvm::Function*> FunctionMap;
+				typedef Map<SEM::Var*, size_t> MemberVarMap;
+				typedef Map<SEM::TypeInstance*, llvm::StructType*> TypeMap;
+				
 				inline Module(const std::string& name, const TargetInfo& targetInfo)
 					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 					  targetInfo_(targetInfo) {
@@ -50,24 +62,51 @@ namespace Locic {
 					return *module_;
 				}
 				
-				inline llvm::Module& getLLVMModule() const {
-					return *module_;
+				inline llvm::Module* getLLVMModulePtr() const {
+					return module_;
 				}
 				
-				inline TypeMapping& getTypeMapping() {
-					return typeMapping_;
+				inline FunctionMap& getFunctionMap() {
+					return functionMap_;
 				}
 				
-				inline const TypeMapping& getTypeMapping() const {
-					return typeMapping_;
+				inline const FunctionMap& getFunctionMap() const {
+					return functionMap_;
+				}
+				
+				inline MemberVarMap& getMemberVarMap() {
+					return memberVarMap_;
+				}
+				
+				inline const MemberVarMap& getMemberVarMap() const {
+					return memberVarMap_;
+				}
+				
+				inline TypeMap& getTypeMap() {
+					return typeMap_;
+				}
+				
+				inline const TypeMap& getTypeMap() const {
+					return typeMap_;
+				}
+				
+				inline llvm::GlobalVariable* createConstGlobal(const std::string& name,
+					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
+					llvm::Constant* value) {
+					const bool isConstant = true;
+					return new llvm::GlobalVariable(getLLVMModule(),
+						type, isConstant,
+						linkage, value, name);
 				}
 				
 			private:
 				llvm::Module* module_;
 				TargetInfo targetInfo_;
-				TypeMapping typeMapping_;
+				FunctionMap functionMap_;
+				MemberVarMap memberVarMap_;
+				TypeMap typeMap_;
 				
-		}
+		};
 		
 	}
 	

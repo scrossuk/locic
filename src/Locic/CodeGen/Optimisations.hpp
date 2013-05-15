@@ -1,7 +1,9 @@
 #ifndef LOCIC_CODEGEN_OPTIMISATIONS_HPP
 #define LOCIC_CODEGEN_OPTIMISATIONS_HPP
 
+#include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/Scalar.h>
 
 #include <Locic/CodeGen/Module.hpp>
 
@@ -11,9 +13,10 @@ namespace Locic {
 	
 		class Optimisations {
 			public:
-				inline Optimisations(const Module& module)
-					: functionPassManager_(module_.getModule()),
-					  modulePassManager_() { }
+				inline Optimisations(Module& module)
+					: llvmModule_(module.getLLVMModule()),
+					functionPassManager_(&llvmModule_),
+					modulePassManager_() { }
 					  
 				void addDefaultPasses(size_t optLevel, bool useInliner = true) {
 					llvm::PassManagerBuilder passManagerBuilder;
@@ -29,26 +32,25 @@ namespace Locic {
 						modulePassManager_);
 				}
 				
-				inline bool run(Module& module) const {
+				inline bool run() {
 					bool changed = false;
-					
-					llvm::Module& llvmModule = module.getLLVMModule();
 					
 					functionPassManager_.doInitialization();
 					
-					for (llvm::Module::iterator i = llvmModule.begin(); i != llvmModule.end(); ++i) {
+					for (llvm::Module::iterator i = llvmModule_.begin(); i != llvmModule_.end(); ++i) {
 						changed |= functionPassManager_.run(*i);
 					}
 					
 					functionPassManager_.doFinalization();
 					
-					changed |= modulePassManager_.run(llvmModule);
+					changed |= modulePassManager_.run(llvmModule_);
 					
 					return changed;
 				}
 				
 			private:
-				mutable llvm::FunctionPassManager functionPassManager_;
+				llvm::Module& llvmModule_;
+				llvm::FunctionPassManager functionPassManager_;
 				llvm::PassManager modulePassManager_;
 				
 		};
