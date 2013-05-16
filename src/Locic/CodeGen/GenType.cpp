@@ -72,7 +72,7 @@ namespace Locic {
 				
 				if (pointerType->isVoidTy()) {
 					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-					return llvm::Type::getInt8Ty(module.getLLVMContext())->getPointerTo();
+					return TypeGenerator(module).getI8PtrType();
 				} else {
 					return pointerType->getPointerTo();
 				}
@@ -95,7 +95,8 @@ namespace Locic {
 		}
 		
 		llvm::Type* genType(const Module& module, SEM::Type* type) {
-			LOG(LOG_INFO, "genType(%s)", mangleType(type).c_str());
+			LOG(LOG_INFO, "genType(type: %s, mangledType: %s)",
+				type->toString().c_str(), mangleType(type).c_str());
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {

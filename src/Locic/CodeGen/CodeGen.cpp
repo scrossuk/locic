@@ -117,8 +117,9 @@ namespace Locic {
 							module_.getMemberVarMap().insert(var, i);
 						}
 						
-						LOG(LOG_INFO, "Set %llu struct variables for type '%s'.",
-							(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str());
+						LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",
+							(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str(),
+							mangleTypeName(typeInstance->name()).c_str());
 							
 						structType->setBody(structVariables);
 					}
