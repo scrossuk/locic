@@ -29,6 +29,7 @@ namespace Locic {
 				inline Function(Module& module, llvm::Function& function, const ArgInfo& argInfo)
 					: module_(module), function_(function),
 					  builder_(module.getLLVMContext()), argInfo_(argInfo) {
+					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 					selectBasicBlock(createBasicBlock("entry"));
 				}

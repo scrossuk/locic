@@ -57,7 +57,7 @@ namespace Locic {
 		
 		llvm::Type* genObjectType(const Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
-				return getPrimitiveType(module, typeInstance);
+				return getPrimitiveType(module, typeInstance->name().last());
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
 				return module.getTypeMap().get(typeInstance);

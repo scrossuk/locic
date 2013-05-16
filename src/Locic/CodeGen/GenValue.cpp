@@ -11,6 +11,7 @@
 #include <Locic/CodeGen/GenVTable.hpp>
 #include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
 
@@ -405,7 +406,7 @@ namespace Locic {
 								// TODO: this doesn't handle unsigned types; perhaps
 								// this code should be moved to semantic analysis.
 								argValue = function.getBuilder().CreateSExt(argValue,
-										   TypeGenerator(function.getModule()).getPrimitiveType("int");
+										   getPrimitiveType(function.getModule(), "int"));
 							} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 								// Need to extend to double.
 								argValue = function.getBuilder().CreateFPExt(argValue,

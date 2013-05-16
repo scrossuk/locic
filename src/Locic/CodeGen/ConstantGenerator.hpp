@@ -51,9 +51,21 @@ namespace Locic {
 						llvm::APFloat(value));
 				}
 				
+				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, const std::vector<llvm::Constant*>& values) const {
+					return llvm::ConstantArray::get(arrayType, values);
+				}
+				
+				inline llvm::Constant* getStruct(llvm::StructType* structType, const std::vector<llvm::Constant*>& values) const {
+					return llvm::ConstantStruct::get(structType, values);
+				}
+				
 				inline llvm::Constant* getString(const std::string& value, bool withNullTerminator = true) const {
 					return llvm::ConstantDataArray::getString(module_.getLLVMContext(),
 						value, withNullTerminator);
+				}
+				
+				inline llvm::Constant* getPointerCast(llvm::Constant* value, llvm::Type* targetType) const {
+					return llvm::ConstantExpr::getPointerCast(value, targetType);
 				}
 				
 			private:

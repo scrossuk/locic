@@ -1,7 +1,10 @@
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/SizeOf.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
 
 namespace Locic {
 
@@ -27,11 +30,12 @@ namespace Locic {
 					if (typeInstance->isPrimitive() || typeInstance->isDefinition()) {
 						return function.getBuilder().CreateAlloca(rawType);
 					} else {
-						llvm::Value* alloca = function.getBuilder().CreateAlloca(
-												  TypeGenerator(module).getI8Type(),
-												  genSizeOf(function, type));
+						llvm::Value* alloca =
+							function.getBuilder().CreateAlloca(
+								TypeGenerator(module).getI8Type(),
+								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
-								module.getTypeMapping().get(typeInstance)->getPointerTo());
+								module.getTypeMap().get(typeInstance)->getPointerTo());
 					}
 				}
 				

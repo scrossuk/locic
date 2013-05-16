@@ -12,6 +12,7 @@
 #include <llvm/Support/raw_os_ostream.h>
 
 #include <Locic/Map.hpp>
+#include <Locic/SEM.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
 
 namespace Locic {
@@ -92,7 +93,7 @@ namespace Locic {
 				
 				inline llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
-					llvm::Constant* value) {
+					llvm::Constant* value = NULL) {
 					const bool isConstant = true;
 					return new llvm::GlobalVariable(getLLVMModule(),
 						type, isConstant,

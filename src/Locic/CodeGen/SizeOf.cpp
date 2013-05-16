@@ -1,6 +1,11 @@
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/ConstantGenerator.hpp>
+#include <Locic/CodeGen/Function.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/Primitives.hpp>
+#include <Locic/CodeGen/SizeOf.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
 
 namespace Locic {
 
@@ -9,25 +14,20 @@ namespace Locic {
 		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
 			llvm::FunctionType* functionType =
 				TypeGenerator(module).getFunctionType(
-					TypeGenerator(module).getSizeType(),
+					getPrimitiveType(module, "size_t"),
 					std::vector<llvm::Type*>());
 					
 			llvm::Function* llvmFunction = createLLVMFunction(module,
 										   functionType, llvm::Function::InternalLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
 			
-			Function function(module, llvmFunction, ArgInfo::None());
-			
 			SEM::TypeInstance* typeInstance = type->getObjectType();
 			assert(typeInstance->templateVariables().size() == type->templateArguments().size());
 			
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, typeInstance->name().last(), function);
+				createPrimitiveSizeOf(module, typeInstance->name().last(), *llvmFunction);
 			} else if (typeInstance->isDefinition()) {
-				const size_t sizeTypeWidth = targetInfo_.getPrimitiveSize("size_t");
-				
-				llvm::BasicBlock* basicBlock = function.createBasicBlock("entry");
-				function.getBuilder().SetInsertPoint(basicBlock);
+				Function function(module, *llvmFunction, ArgInfo::None());
 				
 				llvm::Value* zero = ConstantGenerator(module).getSize(0);
 				llvm::Value* one = ConstantGenerator(module).getSize(1);
@@ -41,7 +41,7 @@ namespace Locic {
 				for (size_t i = 0; i < variables.size(); i++) {
 					SEM::Var* var = variables.at(i);
 					classSize = function.getBuilder().CreateAdd(classSize,
-								genSizeOf(module, function, var->type()->substitute(templateVarMap)));
+								genSizeOf(function, var->type()->substitute(templateVarMap)));
 				}
 				
 				// Class sizes must be at least one byte.
@@ -50,10 +50,11 @@ namespace Locic {
 				function.getBuilder().CreateRet(classSize);
 			}
 			
-			return function;
+			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOf(Module& module, Function& function, SEM::Type* type) {
+		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
+			Module& module = function.getModule();
 			const TargetInfo& targetInfo = module.getTargetInfo();
 			
 			switch (type->kind()) {

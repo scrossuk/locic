@@ -18,16 +18,32 @@ namespace Locic {
 					return llvm::Type::getVoidTy(module_.getLLVMContext());
 				}
 				
+				inline llvm::IntegerType* getI1Type() const {
+					return llvm::Type::getInt1Ty(module_.getLLVMContext());
+				}
+				
 				inline llvm::IntegerType* getI8Type() const {
 					return llvm::Type::getInt8Ty(module_.getLLVMContext());
+				}
+				
+				inline llvm::IntegerType* getIntType(size_t typeSizeInBits) const {
+					return llvm::IntegerType::get(module_.getLLVMContext(), typeSizeInBits);
 				}
 				
 				inline llvm::PointerType* getI8PtrType() const {
 					return llvm::Type::getInt8PtrTy(module_.getLLVMContext());
 				}
 				
+				inline llvm::Type* getFloatType() const {
+					return llvm::Type::getFloatTy(module_.getLLVMContext());
+				}
+				
 				inline llvm::Type* getDoubleType() const {
 					return llvm::Type::getDoubleTy(module_.getLLVMContext());
+				}
+				
+				inline llvm::Type* getLongDoubleType() const {
+					return llvm::Type::getFP128Ty(module_.getLLVMContext());
 				}
 				
 				inline llvm::ArrayType* getArrayType(llvm::Type* elementType, size_t size) const {

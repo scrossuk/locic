@@ -1,6 +1,11 @@
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
 #include <Locic/CodeGen/Module.hpp>
+#include <Locic/CodeGen/SizeOf.hpp>
+#include <Locic/CodeGen/Support.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
+#include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
 
@@ -38,9 +43,8 @@ namespace Locic {
 			
 			SEM::TypeInstance* typeInstance = type->getObjectType();
 			
-			const bool isConstant = true;
-			llvm::GlobalVariable* globalVariable = new llvm::GlobalVariable(module.getLLVMModule(), getVTableType(module.getTargetInfo()),
-					isConstant, llvm::Function::InternalLinkage, NULL, "");
+			llvm::GlobalVariable* globalVariable = module.createConstGlobal("__type_vtable",
+				getVTableType(module.getTargetInfo()), llvm::Function::InternalLinkage);
 					
 			// Generate the vtable.
 			const Map<MethodHash, SEM::Function*> functionHashMap = CreateFunctionHashMap(typeInstance);
@@ -53,10 +57,9 @@ namespace Locic {
 			llvm::PointerType* i8PtrType = TypeGenerator(module).getI8PtrType();
 			
 			// Destructor.
-			const bool isVarArg = false;
-			llvm::PointerType* destructorType = TypeGenerator(module).getVoidFunctionType(
-													std::vector<llvm::Type*>(1, i8PtrType))->getPointerTo();
-			vtableStructElements.push_back(llvm::ConstantPointerNull::get(destructorType));
+			llvm::PointerType* destructorType =
+				TypeGenerator(module).getVoidFunctionType(std::vector<llvm::Type*>(1, i8PtrType))->getPointerTo();
+			vtableStructElements.push_back(ConstantGenerator(module).getNullPointer(destructorType));
 			
 			// Sizeof.
 			vtableStructElements.push_back(genSizeOfFunction(module, type));
@@ -68,29 +71,29 @@ namespace Locic {
 				const std::list<MethodHash>& slotList = virtualTable.table().at(i);
 				
 				if (slotList.empty()) {
-					methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType));
+					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
 				} else if (slotList.size() > 1) {
 					LOG(LOG_ERROR, "COLLISION at %llu for type %s.\n",
 						(unsigned long long) i, typeInstance->toString().c_str());
 					//assert(false && "Collision resolution not implemented.");
-					methodSlotElements.push_back(llvm::ConstantPointerNull::get(i8PtrType));
+					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
 				} else {
 					assert(slotList.size() == 1);
 					SEM::Function* semFunction = functionHashMap.get(slotList.front());
-					llvm::Function* function = functions_.get(semFunction);
-					methodSlotElements.push_back(llvm::ConstantExpr::getPointerCast(function, i8PtrType));
+					llvm::Function* function = module.getFunctionMap().get(semFunction);
+					methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(function, i8PtrType));
 				}
 			}
 			
-			llvm::ArrayType* slotTableType = TypeGenerator(module).getArrayType(
-												 i8PtrType, VTABLE_SIZE);
+			llvm::ArrayType* slotTableType =
+				TypeGenerator(module).getArrayType(i8PtrType, VTABLE_SIZE);
 												 
-			llvm::Constant* methodSlotTable = llvm::ConstantArray::get(
-												  slotTableType, methodSlotElements);
+			llvm::Constant* methodSlotTable =
+				ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
 			llvm::Constant* vtableStruct =
-				llvm::ConstantStruct::get(getVTableType(module.getTargetInfo()), vtableStructElements);
+				ConstantGenerator(module).getStruct(getVTableType(module.getTargetInfo()), vtableStructElements);
 				
 			globalVariable->setInitializer(vtableStruct);
 			
