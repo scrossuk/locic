@@ -47,11 +47,7 @@ namespace Locic {
 				
 				case SEM::Type::OBJECT: {
 					SEM::TypeInstance* typeInstance = type->getObjectType();
-					assert(typeInstance != NULL);
-					const std::string typeListMangle = mangleTypeList(type->templateArguments());
-					return makeString("%s%s",
-									  mangleTypeName(typeInstance->name()).c_str(),
-									  typeListMangle.c_str());
+					return mangleObjectType(typeInstance, type->templateArguments());
 				}
 				
 				case SEM::Type::POINTER: {
@@ -93,6 +89,13 @@ namespace Locic {
 					return "[UNKNOWN]";
 				}
 			}
+		}
+		
+		std::string mangleObjectType(SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
+			assert(typeInstance != NULL);
+			const std::string typeListMangle = mangleTypeList(type->templateArguments());
+			return makeString("%s%s", mangleTypeName(typeInstance->name()).c_str(),
+				typeListMangle.c_str());
 		}
 		
 		std::string mangleTypeList(const std::vector<SEM::Type*> typeList) {

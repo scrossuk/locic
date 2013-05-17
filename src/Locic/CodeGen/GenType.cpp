@@ -12,7 +12,7 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		llvm::FunctionType* genFunctionType(const Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
+		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
 			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
 			
@@ -55,7 +55,7 @@ namespace Locic {
 			return TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
 		}
 		
-		llvm::Type* genObjectType(const Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
 				return getPrimitiveType(module, typeInstance->name().last());
 			} else {
@@ -64,7 +64,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* genPointerType(const Module& module, SEM::Type* targetType) {
+		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
 				return getTypeInstancePointer(module, targetType->getObjectType());
 			} else {
@@ -79,7 +79,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* getTypeInstancePointer(const Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isInterface()) {
 				// Interface pointers/references are actually two pointers:
 				// one to the class, and one to the class vtable.
@@ -94,7 +94,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* genType(const Module& module, SEM::Type* type) {
+		llvm::Type* genType(Module& module, SEM::Type* type) {
 			LOG(LOG_INFO, "genType(type: %s, mangledType: %s)",
 				type->toString().c_str(), mangleType(type).c_str());
 			
