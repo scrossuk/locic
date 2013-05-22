@@ -11,6 +11,8 @@ namespace Locic {
 	namespace SemanticAnalysis {
 		
 		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Symbol& symbol);
+		
+		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Symbol& symbol);
 	
 		// Convert a type annotation to a semantic type definition.
 		SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue);

@@ -133,8 +133,9 @@ namespace Locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					assert(false && "Cannot generate template variable type.");
-					return NULL;
+					//assert(false && "Cannot generate template variable type.");
+					//return NULL;
+					return TypeGenerator(module).getI8Type();
 				}
 				
 				default: {

@@ -70,12 +70,12 @@ namespace Locic {
 				
 				inline llvm::Value* getReturnVar() const {
 					assert(argInfo_.hasReturnVarArgument());
-					return getArg(0);
+					return getRawArg(0);
 				}
 				
 				inline llvm::Value* getContextValue() const {
 					assert(argInfo_.hasContextArgument());
-					return getArg(argInfo_.contextArgumentOffset());
+					return getRawArg(argInfo_.contextArgumentOffset());
 				}
 				
 				inline llvm::BasicBlock* createBasicBlock(const std::string& name) {

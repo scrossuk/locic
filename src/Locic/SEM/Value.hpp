@@ -98,12 +98,9 @@ namespace Locic {
 				} functionCall;
 				
 				struct {
+					Type* parentType;
 					Function* function;
 				} functionRef;
-				
-				struct {
-					Function* function;
-				} staticMethodRef;
 				
 				struct {
 					Value* method;
@@ -238,19 +235,11 @@ namespace Locic {
 					return value;
 				}
 				
-				inline static Value* FunctionRef(Function* function,
+				inline static Value* FunctionRef(Type* parentType, Function* function,
 					const Map<TemplateVar*, Type*>& templateVarMap){
 					Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
+					value->functionRef.parentType = parentType;
 					value->functionRef.function = function;
-					return value;
-				}
-				
-				inline static Value* StaticMethodRef(Function* function,
-					const Map<TemplateVar*, Type*>& templateVarMap){
-					Type* functionType = function->type()->substitute(templateVarMap);
-					Value* value = new Value(STATICMETHODREF,
-						SEM::Type::Method(SEM::Type::RVALUE, functionType));
-					value->staticMethodRef.function = function;
 					return value;
 				}
 				

@@ -9,6 +9,7 @@
 #include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenValue.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
+#include <Locic/CodeGen/Mangling.hpp>
 #include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/Primitives.hpp>
@@ -334,21 +335,11 @@ namespace Locic {
 					genType(function.getModule(), value->type())->dump();
 					
 					objectValue->dump();
-					
-					// TODO: need to get the actual template parameter values,
-					//        NOT pass a NULL pointer!
-					llvm::Value* contextPointer = llvm::ConstantPointerNull::get(
-													  llvm::PointerType::getUnqual(
-														  llvm::Type::getInt8Ty(llvm::getGlobalContext())));
-														  
-					function.getBuilder().CreateStore(contextPointer,
-													  function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, 0),
-													  "store_context_ptr");
 													  
 					for (size_t i = 0; i < parameters.size(); i++) {
 						SEM::Value* paramValue = parameters.at(i);
 						genStore(function, genValue(function, paramValue),
-								 function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1),
+								 function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i),
 								 paramValue->type());
 					}
 					
@@ -444,30 +435,11 @@ namespace Locic {
 				
 				case SEM::Value::FUNCTIONREF: {
 					SEM::Function* semFunction = value->functionRef.function;
+					if (value->functionRef.parentType != NULL) {
+						LOG(LOG_INFO, "Mangled method name is %s.",
+							mangleMethodName(value->functionRef.parentType, semFunction->name().last()).c_str());
+					}
 					return function.getModule().getFunctionMap().get(semFunction);
-				}
-				
-				case SEM::Value::STATICMETHODREF: {
-					SEM::Function* semFunction = value->staticMethodRef.function;
-					llvm::Function* llvmFunction = function.getModule().getFunctionMap().get(semFunction);
-					
-					llvm::Value* methodValue = llvm::UndefValue::get(genType(function.getModule(), value->type()));
-					
-					llvm::Value* functionPtr =
-						function.getBuilder().CreatePointerCast(llvmFunction,
-								genFunctionType(function.getModule(), value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
-								"static_method_function_ptr");
-								
-					// TODO: need to generate the actual template parameter values,
-					//        NOT pass a NULL pointer!
-					llvm::Value* contextPointer = llvm::ConstantPointerNull::get(
-													  llvm::PointerType::getUnqual(
-														  llvm::Type::getInt8Ty(llvm::getGlobalContext())));
-														  
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, functionPtr, std::vector<unsigned>(1, 0));
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, contextPointer, std::vector<unsigned>(1, 1));
-					
-					return methodValue;
 				}
 				
 				case SEM::Value::METHODOBJECT: {

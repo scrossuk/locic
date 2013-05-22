@@ -149,6 +149,39 @@ namespace Locic {
 			}
 		}
 		
+		std::string Type::nameToString() const {
+			switch(kind()) {
+				case VOID: {
+					return "VoidType()";
+				}
+				case NULLT: {
+					return "NullType()";
+				}
+				case OBJECT:
+					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
+							getObjectType()->name().toString().c_str(),
+							makeNameArrayString(templateArguments()).c_str());
+				case POINTER:
+					return makeString("PointerType(%s)",
+							getPointerTarget()->nameToString().c_str());
+				case REFERENCE:
+					return makeString("ReferenceType(%s)",
+							getReferenceTarget()->nameToString().c_str());
+				case FUNCTION:
+					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
+							getFunctionReturnType()->nameToString().c_str(),
+							makeNameArrayString(getFunctionParameterTypes()).c_str(),
+							isFunctionVarArg() ? "Yes" : "No");
+				case METHOD:
+					return makeString("MethodType(functionType: %s)",
+							getMethodFunctionType()->nameToString().c_str());
+				case TEMPLATEVAR:
+					return "TemplateVarType(templateVar: [possible loop])";
+				default:
+					return "[UNKNOWN TYPE]";
+			}
+		}
+		
 		std::string Type::basicToString() const {
 			switch(kind()) {
 				case VOID: {
@@ -158,8 +191,9 @@ namespace Locic {
 					return "NullType()";
 				}
 				case OBJECT:
-					return makeString("ObjectType(%s)",
-							getObjectType()->name().toString().c_str());
+					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
+							getObjectType()->name().toString().c_str(),
+							makeArrayString(templateArguments()).c_str());
 				case POINTER:
 					return makeString("PointerType(%s)",
 							getPointerTarget()->toString().c_str());

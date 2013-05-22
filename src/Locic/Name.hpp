@@ -171,6 +171,11 @@ namespace Locic{
 				return Name(*this, suffix);
 			}
 			
+			inline Name getPrefix() const {
+				assert(!empty());
+				return substr(size() - 1);
+			}
+			
 		private:
 			bool isAbsolute_;
 			ListType list_;

@@ -37,7 +37,7 @@ namespace Locic {
 					
 					for(size_t j = 0; j < numTemplateArguments; j++){
 						templateVarMap.insert(typeInstance->templateVariables().at(j),
-							ConvertType(context, astTemplateArgs.at(i), SEM::Type::LVALUE));
+							ConvertType(context, astTemplateArgs.at(j), SEM::Type::LVALUE));
 					}
 				}else{
 					if(numTemplateArguments > 0){
@@ -50,6 +50,20 @@ namespace Locic {
 			}
 			
 			return templateVarMap;
+		}
+		
+		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Symbol& symbol) {
+			std::vector<SEM::Type*> templateArguments;
+			for(size_t i = 0; i < symbol.size(); i++){
+				const AST::SymbolElement& element = symbol.at(i);
+				const std::vector<AST::Type*>& astTemplateArgs = element.templateArguments();
+				const size_t numTemplateArguments = astTemplateArgs.size();
+				
+				for(size_t j = 0; j < numTemplateArguments; j++){
+					templateArguments.push_back(ConvertType(context, astTemplateArgs.at(j), SEM::Type::LVALUE));
+				}
+			}
+			return templateArguments;
 		}
 		
 		SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue) {

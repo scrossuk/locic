@@ -276,6 +276,8 @@ namespace Locic {
 				
 				Type* getImplicitCopyType() const;
 				
+				std::string nameToString() const;
+				
 				std::string basicToString() const;
 				
 				std::string constToString() const;

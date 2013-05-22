@@ -189,6 +189,8 @@ namespace Locic {
 				}
 				
 				void genTypeInstanceFunctionDecls(SEM::TypeInstance* typeInstance) {
+					
+					
 					const std::vector<SEM::Function*>& functions = typeInstance->functions();
 					
 					for (size_t i = 0; i < functions.size(); i++) {

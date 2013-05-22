@@ -1,7 +1,9 @@
 #include <vector>
 
+#include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenTypeInstance.hpp>
 #include <Locic/CodeGen/Mangling.hpp>
+#include <Locic/CodeGen/TypeGenerator.hpp>
 
 namespace Locic {
 
@@ -14,10 +16,10 @@ namespace Locic {
 			
 			assert(typeInstance->isClass() || typeInstance->isStruct());
 					
-			llvm::StructType* structType = TypeGenerator(module_).getForwardDeclaredStructType(
+			llvm::StructType* structType = TypeGenerator(module).getForwardDeclaredStructType(
 				mangleTypeName(typeInstance->name()));
 					
-			module.getTypeMap().insert(mangledName, structType);
+			//module.getTypeMap().insert(mangledName, structType);
 			
 			if (typeInstance->isClassDef() || typeInstance->isStructDef()) {
 				// Generating the type for a class or struct definition, so

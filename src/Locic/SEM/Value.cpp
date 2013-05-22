@@ -59,11 +59,11 @@ namespace Locic {
 							functionCall.functionValue->toString().c_str(),
 							makeArrayString(functionCall.parameters).c_str());
 				case FUNCTIONREF:
-					return makeString("FunctionRef(name: %s)",
+					return makeString("FunctionRef(parentType: %s, name: %s)",
+							functionRef.parentType != NULL ?
+								functionRef.parentType->toString().c_str() :
+								"[NONE]",
 							functionRef.function->name().toString().c_str());
-				case STATICMETHODREF:
-					return makeString("StaticMethodRef(name: %s)",
-							staticMethodRef.function->name().toString().c_str());
 				case METHODOBJECT:
 					return makeString("MethodObject(object: %s, method: %s)",
 							methodObject.methodOwner->toString().c_str(),

@@ -33,6 +33,12 @@ namespace Locic {
 			return mangleName("F", name);
 		}
 		
+		std::string mangleMethodName(SEM::Type* parentType, const std::string& methodName) {
+			return makeString("M%s%s",
+				mangleType(parentType).c_str(),
+				mangleName("F", Name::Absolute() + methodName).c_str());
+		}
+		
 		std::string mangleType(SEM::Type* type) {
 			assert(type != NULL);
 			
@@ -93,7 +99,7 @@ namespace Locic {
 		
 		std::string mangleObjectType(SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
 			assert(typeInstance != NULL);
-			const std::string typeListMangle = mangleTypeList(type->templateArguments());
+			const std::string typeListMangle = mangleTypeList(templateArguments);
 			return makeString("%s%s", mangleTypeName(typeInstance->name()).c_str(),
 				typeListMangle.c_str());
 		}

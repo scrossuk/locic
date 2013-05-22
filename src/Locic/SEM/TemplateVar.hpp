@@ -42,7 +42,7 @@ namespace Locic {
 				inline std::string toString() const {
 					return makeString("TemplateVar(specType = %s)",
 						specType_ != NULL ?
-							specType_->toString().c_str() :
+							specType_->nameToString().c_str() :
 							"[none]");
 				}
 				

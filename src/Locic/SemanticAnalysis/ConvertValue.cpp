@@ -70,9 +70,15 @@ namespace Locic {
 									name.toString().c_str()));
 							}
 							
-							return SEM::Value::StaticMethodRef(function, templateVarMap);
+							const Node typeNode = context.lookupName(name.getPrefix());
+							assert(node.isTypeInstance());
+							
+							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE,
+								node.getSEMTypeInstance(), GetTemplateValues(context, symbol));
+							
+							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
 						} else {
-							return SEM::Value::FunctionRef(function, templateVarMap);
+							return SEM::Value::FunctionRef(NULL, function, templateVarMap);
 						}
 					} else if(node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
@@ -87,7 +93,10 @@ namespace Locic {
 								name.toString().c_str()));
 						}
 						
-						return SEM::Value::StaticMethodRef(defaultConstructorNode.getSEMFunction(), templateVarMap);
+						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE, typeInstance, GetTemplateValues(context, symbol));
+						
+						return SEM::Value::FunctionRef(parentType,
+							defaultConstructorNode.getSEMFunction(), templateVarMap);
 					} else if(node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
@@ -107,7 +116,8 @@ namespace Locic {
 						
 						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
 						
-						return SEM::Value::StaticMethodRef(defaultConstructor, specType->generateTemplateVarMap());
+						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, SEM::Type::LVALUE, templateVar),
+							defaultConstructor, specType->generateTemplateVarMap());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
@@ -288,7 +298,7 @@ namespace Locic {
 									function->name().toString().c_str(), typeInstance->name().toString().c_str()));
 							}
 							
-							SEM::Value* functionRef = SEM::Value::FunctionRef(function, object->type()->generateTemplateVarMap());
+							SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
 							
 							if (typeInstance->isInterface()) {
 								return SEM::Value::InterfaceMethodObject(functionRef, object);

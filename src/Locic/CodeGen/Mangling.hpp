@@ -13,6 +13,8 @@ namespace Locic {
 	
 		std::string mangleFunctionName(const Name& name);
 		
+		std::string mangleMethodName(SEM::Type* parentType, const std::string& methodName);
+		
 		std::string mangleType(SEM::Type* type);
 		
 		std::string mangleObjectType(SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments);
