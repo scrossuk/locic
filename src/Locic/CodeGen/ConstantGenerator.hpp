@@ -53,7 +53,12 @@ namespace Locic {
 					return getInt(primitiveWidth, intValue);
 				}
 				
-				inline llvm::ConstantFP* getFloat(double value) const {
+				inline llvm::ConstantFP* getFloat(float value) const {
+					return llvm::ConstantFP::get(module_.getLLVMContext(),
+						llvm::APFloat(value));
+				}
+				
+				inline llvm::ConstantFP* getDouble(double value) const {
 					return llvm::ConstantFP::get(module_.getLLVMContext(),
 						llvm::APFloat(value));
 				}

@@ -196,6 +196,8 @@ __primitive short{
 };
 
 __primitive int{
+	static Default();	
+	
 	int implicitCopy();
 	
 	int abs();

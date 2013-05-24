@@ -66,11 +66,11 @@ namespace Locic {
 							switch (value->constant->getFloatType()) {
 								case Locic::Constant::FLOAT:
 									return ConstantGenerator(module).getFloat(
-											   value->constant->getFloat());
+										value->constant->getFloat());
 											   
 								case Locic::Constant::DOUBLE:
-									return ConstantGenerator(module).getFloat(
-											   value->constant->getFloat());
+									return ConstantGenerator(module).getDouble(
+										value->constant->getFloat());
 											   
 								case Locic::Constant::LONGDOUBLE:
 									assert(false && "Long double not implemented yet");
@@ -604,7 +604,7 @@ namespace Locic {
 					llvm::FunctionType* asmFunctionType =
 						TypeGenerator(module).getFunctionType(voidType(),
 							std::vector<llvm::Type*>(1, TypeGenerator(module).getI32Type()));
-					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %%eax", "r,~eax", true);
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~eax", true);
 					function.getBuilder().CreateCall(setEax, std::vector<llvm::Value*>(1, methodHashValue));
 					
 					LOG(LOG_EXCESSIVE, "Creating interface method call.");

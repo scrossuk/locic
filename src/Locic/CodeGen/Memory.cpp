@@ -10,8 +10,9 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		llvm::Value* genAlloca(Function& function, SEM::Type* type) {
+		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
 			Module& module = function.getModule();
+			SEM::Type* type = module.resolveType(unresolvedType);
 			llvm::Type* rawType = genType(module, type);
 			
 			switch (type->kind()) {
@@ -53,10 +54,12 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Value* genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+		llvm::Value* genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
 			LOG(LOG_NOTICE, "Store.");
 			value->dump();
 			var->dump();
+			
+			SEM::Type* type = function.getModule().resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
@@ -95,7 +98,9 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* type) {
+		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* unresolvedType) {
+			SEM::Type* type = function.getModule().resolveType(unresolvedType);
+			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
 				case SEM::Type::NULLT:

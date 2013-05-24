@@ -44,7 +44,7 @@ class ExampleTemplatedClass1{ }
 
 template <typename T>
 interface DefaultConstructInterface {
-	static int Default();
+	static T Default();
 	
 	T implicitCopy();
 }
@@ -98,6 +98,7 @@ int main(int argc, char ** argv){
 	auto polyInst = PolyClass<int>();
 	
 	int res000 = polyInst.function(2);
+	printf("res000 = %d.\n"C, res000);
 	
 	{
 		auto templatedInstancee = ExampleTemplatedClass0<int>();

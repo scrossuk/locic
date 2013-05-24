@@ -52,7 +52,12 @@ namespace Locic {
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
-			assert(isUnaryOp(methodName) xor isBinaryOp(methodName));
+			assert((methodName == "Default") xor isUnaryOp(methodName) xor isBinaryOp(methodName));
+			
+			if (methodName == "Default") {
+				return ArgInfo::None();
+			}
+			
 			const bool hasReturnVarArg = false;
 			const bool hasContextArg = true;
 			const size_t numStandardArguments =
@@ -67,10 +72,16 @@ namespace Locic {
 			
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
-			llvm::Value* methodOwner = builder.CreateLoad(function.getContextValue());
+			llvm::Value* methodOwner =
+				methodName == "Default" ?
+					NULL :
+					builder.CreateLoad(function.getContextValue());
 			
 			// TODO: generate correct ops for unsigned and floating point types.
-			if (isUnaryOp(methodName)) {
+			if (methodName == "Default") {
+				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
+				builder.CreateRet(zero);
+			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				
 				if (methodName == "implicitCopy") {
