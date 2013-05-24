@@ -26,6 +26,10 @@ namespace Locic {
 					return llvm::Type::getInt8Ty(module_.getLLVMContext());
 				}
 				
+				inline llvm::IntegerType* getI32Type() const {
+					return llvm::Type::getInt32Ty(module_.getLLVMContext());
+				}
+				
 				inline llvm::IntegerType* getIntType(size_t typeSizeInBits) const {
 					return llvm::IntegerType::get(module_.getLLVMContext(), typeSizeInBits);
 				}

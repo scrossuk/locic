@@ -128,6 +128,12 @@ namespace Locic {
 					typeName.c_str(), methodName.c_str());
 				assert(false && "Unknown primitive method.");
 			}
+			
+			LOG(LOG_INFO, "Generated primitive method:");
+			llvmFunction.dump();
+			
+			// Check the generated function is correct.
+			function.verify();
 		}
 		
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name) {

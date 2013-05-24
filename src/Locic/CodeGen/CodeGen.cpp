@@ -21,8 +21,10 @@
 
 #include <Locic/CodeGen/CodeGen.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenFunction.hpp>
 #include <Locic/CodeGen/GenStatement.hpp>
 #include <Locic/CodeGen/GenType.hpp>
+#include <Locic/CodeGen/GenTypeInstance.hpp>
 #include <Locic/CodeGen/Mangling.hpp>
 #include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Optimisations.hpp>
@@ -36,6 +38,69 @@ namespace Locic {
 
 	namespace CodeGen {
 	
+		void genNamespaceTypes(Module& module, SEM::Namespace* nameSpace) {
+			const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
+			
+			for (size_t i = 0; i < namespaces.size(); i++) {
+				genNamespaceTypes(module, namespaces.at(i));
+			}
+			
+			const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
+			
+			for (size_t i = 0; i < typeInstances.size(); i++) {
+				SEM::TypeInstance* typeInstance = typeInstances.at(i);
+				
+				if (!typeInstance->templateVariables().empty()) {
+					// Can't generate types with template arguments.
+					return;
+				}
+				
+				if (typeInstance->isPrimitive()) {
+					// Can't generate primitive types.
+					return;
+				}
+				
+				(void) genTypeInstance(module, typeInstance, std::vector<SEM::Type*>());
+			}
+		}
+		
+		void genTypeInstanceFunctions(Module& module, SEM::TypeInstance* typeInstance) {
+			if (!typeInstance->templateVariables().empty() && !typeInstance->isPrimitive()) {
+				// Can't generate types with template arguments.
+				return;
+			}
+			
+			const std::vector<SEM::Function*>& functions = typeInstance->functions();
+			
+			SEM::Type* objectType =
+				SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE,
+					typeInstance, std::vector<SEM::Type*>());
+			
+			for (size_t i = 0; i < functions.size(); i++) {
+				(void) genFunction(module, objectType, functions.at(i));
+			}
+		}
+		
+		void genNamespaceFunctions(Module& module, SEM::Namespace* nameSpace) {
+			const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
+			
+			for (size_t i = 0; i < namespaces.size(); i++) {
+				genNamespaceFunctions(module, namespaces.at(i));
+			}
+			
+			const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
+			
+			for (size_t i = 0; i < typeInstances.size(); i++) {
+				genTypeInstanceFunctions(module, typeInstances.at(i));
+			}
+			
+			const std::vector<SEM::Function*>& functions = nameSpace->functions();
+			
+			for (size_t i = 0; i < functions.size(); i++) {
+				(void) genFunction(module, NULL, functions.at(i));
+			}
+		}
+		
 		class InternalCodeGen {
 			private:
 				std::string name_;
@@ -47,175 +112,6 @@ namespace Locic {
 				
 				Module& getModule() {
 					return module_;
-				}
-					
-				llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* type) {
-					if (type == NULL) {
-						return llvm::Function::ExternalLinkage;
-					}
-					
-					return type->isClass()
-						   ? llvm::Function::ExternalLinkage
-						   : llvm::Function::LinkOnceODRLinkage;
-				}
-				
-				// ---- Pass 1: Generate type placeholders.
-				
-				void genTypeInstanceTypePlaceholders(SEM::TypeInstance* typeInstance) {
-					assert(typeInstance != NULL);
-					
-					if (typeInstance->isPrimitive()) {
-						// Skip.
-						return;
-					}
-					
-					llvm::StructType* structType = TypeGenerator(module_).getForwardDeclaredStructType(
-						mangleTypeName(typeInstance->name()));
-					
-					module_.getTypeMap().insert(typeInstance, structType);
-				}
-				
-				void genNamespaceTypePlaceholders(SEM::Namespace* nameSpace) {
-					const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-					
-					for (size_t i = 0; i < namespaces.size(); i++) {
-						genNamespaceTypePlaceholders(namespaces.at(i));
-					}
-					
-					const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-					
-					for (size_t i = 0; i < typeInstances.size(); i++) {
-						genTypeInstanceTypePlaceholders(typeInstances.at(i));
-					}
-				}
-				
-				// ---- Pass 2: Generate type members.
-				
-				void genTypeInstanceTypeMembers(SEM::TypeInstance* typeInstance) {
-					assert(typeInstance != NULL);
-					
-					if (typeInstance->isPrimitive()) {
-						// Skip.
-						return;
-					}
-					
-					// Generate type member variables.
-					llvm::StructType* structType = module_.getTypeMap().get(typeInstance);
-					
-					if (typeInstance->isClassDef() || typeInstance->isStructDef()) {
-						// Generating the type for a class or struct definition, so
-						// the size and contents of the type instance is known and
-						// hence the contents can be specified.
-						std::vector<llvm::Type*> structVariables;
-						
-						// Add member variables.
-						const std::vector<SEM::Var*>& variables = typeInstance->variables();
-						
-						for (size_t i = 0; i < variables.size(); i++) {
-							SEM::Var* var = variables.at(i);
-							structVariables.push_back(genType(module_, var->type()));
-							module_.getMemberVarMap().insert(var, i);
-						}
-						
-						LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",
-							(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str(),
-							mangleTypeName(typeInstance->name()).c_str());
-							
-						structType->setBody(structVariables);
-					}
-				}
-				
-				void genNamespaceTypeMembers(SEM::Namespace* nameSpace) {
-					const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-					
-					for (size_t i = 0; i < namespaces.size(); i++) {
-						genNamespaceTypeMembers(namespaces.at(i));
-					}
-					
-					const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-					
-					for (size_t i = 0; i < typeInstances.size(); i++) {
-						genTypeInstanceTypeMembers(typeInstances.at(i));
-					}
-				}
-				
-				// ---- Pass 3: Generate function declarations.
-				
-				void genFunctionDecl(SEM::TypeInstance* parent, SEM::Function* function) {
-					if (function->isMethod()) {
-						assert(parent != NULL);
-					}
-					
-					LOG(LOG_INFO, "Generating %s.",
-						function->name().toString().c_str());
-						
-					llvm::Type* contextPtrType =
-						function->isMethod() && !function->isStatic() ?
-						getTypeInstancePointer(module_, parent) :
-						NULL;
-					
-					llvm::FunctionType* functionType =
-						genFunctionType(module_, function->type(), contextPtrType);
-						
-					llvm::Function* llvmFunction =
-						createLLVMFunction(module_,
-							functionType, getFunctionLinkage(parent),
-							mangleFunctionName(function->name()));
-										   
-					if (function->type()->getFunctionReturnType()->isClass()) {
-						std::vector<llvm::Attributes::AttrVal> attributes;
-						
-						// Class return values are allocated by the caller,
-						// which passes a pointer to the callee. The caller
-						// and callee must, for the sake of optimisation,
-						// ensure that the following attributes hold...
-						
-						// Caller must ensure pointer is always valid.
-						attributes.push_back(llvm::Attributes::StructRet);
-						
-						// Caller must ensure pointer does not alias with
-						// any other arguments.
-						attributes.push_back(llvm::Attributes::NoAlias);
-						
-						// Callee must not capture the pointer.
-						attributes.push_back(llvm::Attributes::NoCapture);
-						
-						llvmFunction->addAttribute(1,
-												   llvm::Attributes::get(module_.getLLVMContext(),
-														   attributes));
-					}
-					
-					module_.getFunctionMap().insert(function, llvmFunction);
-				}
-				
-				void genTypeInstanceFunctionDecls(SEM::TypeInstance* typeInstance) {
-					
-					
-					const std::vector<SEM::Function*>& functions = typeInstance->functions();
-					
-					for (size_t i = 0; i < functions.size(); i++) {
-						genFunctionDecl(typeInstance, functions.at(i));
-					}
-				}
-				
-				void genNamespaceFunctionDecls(SEM::Namespace* nameSpace) {
-					const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-					
-					for (size_t i = 0; i < namespaces.size(); i++) {
-						genNamespaceFunctionDecls(namespaces.at(i));
-					}
-					
-					const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-					
-					for (size_t i = 0; i < typeInstances.size(); i++) {
-						genTypeInstanceFunctionDecls(typeInstances.at(i));
-					}
-					
-					const std::vector<SEM::Function*>& functions = nameSpace->functions();
-					
-					for (size_t i = 0; i < functions.size(); i++) {
-						genFunctionDecl(NULL, functions.at(i));
-					}
 				}
 				
 				// ---- Pass 4: Generate function code.
@@ -302,128 +198,37 @@ namespace Locic {
 					genFunction.verify();
 				}*/
 				
-				void genFunctionDef(SEM::Function* function, SEM::TypeInstance* typeInstance) {
-					assert(function != NULL && "Generating a function definition requires a non-NULL SEM Function object");
-					
-					if (function->isDeclaration()) {
-						return;
-					}
-					
-					if (typeInstance != NULL) {
-						LOG(LOG_NOTICE, "Generating method definition for '%s' in type '%s'.",
-							function->name().toString().c_str(), typeInstance->name().toString().c_str());
-					} else {
-						LOG(LOG_NOTICE, "Generating function definition for '%s'.",
-							function->name().toString().c_str());
-					}
-					
-					llvm::Function* llvmFunction = module_.getFunctionMap().get(function);
-					
-					llvmFunction->dump();
-					
-					Function genFunction(module_, *llvmFunction, getArgInfo(function));
-					
-					// Parameters need to be copied to the stack, so that it's
-					// possible to assign to them, take their address, etc.
-					const std::vector<SEM::Var*>& parameterVars = function->parameters();
-					
-					for (std::size_t i = 0; i < parameterVars.size(); i++) {
-						SEM::Var* paramVar = parameterVars.at(i);
-						assert(paramVar->kind() == SEM::Var::PARAM);
-						
-						// Create an alloca for this variable.
-						llvm::Value* stackObject = genAlloca(genFunction, paramVar->type());
-						
-						// Store the initial value into the alloca.
-						genStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
-						
-						genFunction.getLocalVarMap().insert(paramVar, stackObject);
-					}
-					
-					genScope(genFunction, function->scope());
-					
-					// Need to terminate the final basic block.
-					// (just make it loop to itself - this will
-					// be removed by dead code elimination)
-					genFunction.getBuilder().CreateBr(genFunction.getSelectedBasicBlock());
-					
-					llvmFunction->dump();
-					
-					// Check the generated function is correct.
-					genFunction.verify();
-				}
-				
-				void genTypeInstanceFunctionDefs(SEM::TypeInstance* typeInstance) {
-					if (typeInstance->isClass()) {
-						const std::vector<SEM::Function*>& functions = typeInstance->functions();
-						
-						for (size_t i = 0; i < functions.size(); i++) {
-							genFunctionDef(functions.at(i), typeInstance);
-						}
-					} else if (typeInstance->isPrimitive()) {
-						const std::vector<SEM::Function*>& functions = typeInstance->functions();
-						
-						for (size_t i = 0; i < functions.size(); i++) {
-							SEM::Function* function = functions.at(i);
-							createPrimitiveMethod(module_, typeInstance->name().last(),
-								function->name().last(), *(module_.getFunctionMap().get(function)));
-						}
-					}
-				}
-				
-				void genNamespaceFunctionDefs(SEM::Namespace* nameSpace) {
-					const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-					
-					for (size_t i = 0; i < namespaces.size(); i++) {
-						genNamespaceFunctionDefs(namespaces.at(i));
-					}
-					
-					const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-					
-					for (size_t i = 0; i < typeInstances.size(); i++) {
-						genTypeInstanceFunctionDefs(typeInstances.at(i));
-					}
-					
-					const std::vector<SEM::Function*>& functions = nameSpace->functions();
-					
-					for (size_t i = 0; i < functions.size(); i++) {
-						genFunctionDef(functions.at(i), NULL);
-					}
-				}
-				
 		};
 		
 		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName) {
-			codeGen_ = new InternalCodeGen(moduleName, targetInfo);
+			module_ = new Module(moduleName, targetInfo);
 		}
 		
 		CodeGenerator::~CodeGenerator() {
-			delete codeGen_;
+			delete module_;
 		}
 		
 		void CodeGenerator::applyOptimisations(size_t optLevel) {
-			Optimisations optimisations(codeGen_->getModule());
+			Optimisations optimisations(*module_);
 			optimisations.addDefaultPasses(optLevel);
 			optimisations.run();
 		}
 		
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
-			codeGen_->genNamespaceTypePlaceholders(nameSpace);
-			codeGen_->genNamespaceTypeMembers(nameSpace);
-			codeGen_->genNamespaceFunctionDecls(nameSpace);
-			codeGen_->genNamespaceFunctionDefs(nameSpace);
+			genNamespaceTypes(*module_, nameSpace);
+			genNamespaceFunctions(*module_, nameSpace);
 		}
 		
 		void CodeGenerator::writeToFile(const std::string& fileName) {
-			codeGen_->getModule().writeBitCodeToFile(fileName);
+			module_->writeBitCodeToFile(fileName);
 		}
 		
 		void CodeGenerator::dumpToFile(const std::string& fileName) {
-			codeGen_->getModule().dumpToFile(fileName);
+			module_->dumpToFile(fileName);
 		}
 		
 		void CodeGenerator::dump() {
-			codeGen_->getModule().dump();
+			module_->dump();
 		}
 		
 	}

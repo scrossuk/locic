@@ -27,6 +27,8 @@ namespace Locic {
 				case SEM::Type::OBJECT: {
 					SEM::TypeInstance* typeInstance = type->getObjectType();
 					
+					assert(!typeInstance->isInterface());
+					
 					if (typeInstance->isPrimitive() || typeInstance->isDefinition()) {
 						return function.getBuilder().CreateAlloca(rawType);
 					} else {
@@ -35,7 +37,7 @@ namespace Locic {
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
-								module.getTypeMap().get(typeInstance)->getPointerTo());
+							rawType->getPointerTo());
 					}
 				}
 				

@@ -2,6 +2,7 @@
 #define LOCIC_CODEGEN_MODULE_HPP
 
 #include <fstream>
+#include <stack>
 #include <string>
 
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -21,9 +22,10 @@ namespace Locic {
 	
 		class Module {
 			public:
-				typedef Map<SEM::Function*, llvm::Function*> FunctionMap;
+				typedef Map<std::string, llvm::Function*> FunctionMap;
 				typedef Map<SEM::Var*, size_t> MemberVarMap;
-				typedef Map<SEM::TypeInstance*, llvm::StructType*> TypeMap;
+				typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
+				typedef Map<std::string, llvm::StructType*> TypeMap;
 				
 				inline Module(const std::string& name, const TargetInfo& targetInfo)
 					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
@@ -83,6 +85,19 @@ namespace Locic {
 					return memberVarMap_;
 				}
 				
+				inline void pushTemplateVarMap(const TemplateVarMap& templateVarMap) {
+					templateVarMapStack_.push(&templateVarMap);
+				}
+				
+				inline void popTemplateVarMap() {
+					templateVarMapStack_.pop();
+				}
+				
+				inline SEM::Type* getTemplateVarValue(SEM::TemplateVar* templateVar) const {
+					assert(templateVar != NULL);
+					return templateVarMapStack_.top()->get(templateVar);
+				}
+				
 				inline TypeMap& getTypeMap() {
 					return typeMap_;
 				}
@@ -105,7 +120,24 @@ namespace Locic {
 				TargetInfo targetInfo_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
+				std::stack<const TemplateVarMap*> templateVarMapStack_;
 				TypeMap typeMap_;
+				
+		};
+		
+		class TemplateVarMapStackEntry {
+			public:
+				inline TemplateVarMapStackEntry(Module& module, const Module::TemplateVarMap& templateVarMap)
+					: module_(module) {
+						module_.pushTemplateVarMap(templateVarMap);
+					}
+				
+				inline ~TemplateVarMapStackEntry() {
+					module_.popTemplateVarMap();
+				}
+			
+			private:
+				Module& module_;
 				
 		};
 		

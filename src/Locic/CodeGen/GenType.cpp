@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <Locic/CodeGen/GenType.hpp>
+#include <Locic/CodeGen/GenTypeInstance.hpp>
 #include <Locic/CodeGen/Mangling.hpp>
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/Primitives.hpp>
@@ -55,18 +56,19 @@ namespace Locic {
 			return TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
 		}
 		
-		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance,
+			const std::vector<SEM::Type*>& templateArguments) {
 			if (typeInstance->isPrimitive()) {
 				return getPrimitiveType(module, typeInstance->name().last());
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
-				return module.getTypeMap().get(typeInstance);
+				return genTypeInstance(module, typeInstance, templateArguments);
 			}
 		}
 		
 		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
-				return getTypeInstancePointer(module, targetType->getObjectType());
+				return getTypeInstancePointer(module, targetType->getObjectType(), targetType->templateArguments());
 			} else {
 				llvm::Type* pointerType = genType(module, targetType);
 				
@@ -79,18 +81,22 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::StructType* getInterfaceStruct(Module& module) {
+			// Interface pointers/references are actually two pointers:
+			// one to the class, and one to the class vtable.
+			std::vector<llvm::Type*> types;
+			// Class pointer.
+			types.push_back(TypeGenerator(module).getI8PtrType());
+			// Vtable pointer.
+			types.push_back(getVTableType(module.getTargetInfo())->getPointerTo());
+			return TypeGenerator(module).getStructType(types);
+		}
+		
+		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
 			if (typeInstance->isInterface()) {
-				// Interface pointers/references are actually two pointers:
-				// one to the class, and one to the class vtable.
-				std::vector<llvm::Type*> types;
-				// Class pointer.
-				types.push_back(module.getTypeMap().get(typeInstance)->getPointerTo());
-				// Vtable pointer.
-				types.push_back(getVTableType(module.getTargetInfo())->getPointerTo());
-				return TypeGenerator(module).getStructType(types);
+				return getInterfaceStruct(module);
 			} else {
-				return genObjectType(module, typeInstance)->getPointerTo();
+				return genObjectType(module, typeInstance, templateArguments)->getPointerTo();
 			}
 		}
 		
@@ -108,7 +114,8 @@ namespace Locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					return genObjectType(module, type->getObjectType());
+					return genObjectType(module, type->getObjectType(),
+						type->templateArguments());
 				}
 				
 				case SEM::Type::POINTER: {
@@ -124,6 +131,12 @@ namespace Locic {
 				}
 				
 				case SEM::Type::METHOD: {
+					/* Method type is:
+						struct {
+							i8* context,
+							RetType (*func)(i8*, ArgTypes)
+						};
+					*/
 					std::vector<llvm::Type*> types;
 					llvm::Type* contextPtrType = TypeGenerator(module).getI8PtrType();
 					types.push_back(genFunctionType(module, type->getMethodFunctionType(),
@@ -132,10 +145,27 @@ namespace Locic {
 					return TypeGenerator(module).getStructType(types);
 				}
 				
+				case SEM::Type::INTERFACEMETHOD: {
+					/* Interface method type is:
+						struct {
+							struct {
+								i8* context,
+								__vtable_type* vtable
+							},
+							i32 methodHash
+						};
+					*/
+					std::vector<llvm::Type*> interfaceMethodTypes;
+					interfaceMethodTypes.push_back(
+						getInterfaceStruct(module));
+					interfaceMethodTypes.push_back(
+						TypeGenerator(module).getI32Type());
+					
+					return TypeGenerator(module).getStructType(interfaceMethodTypes);
+				}
+				
 				case SEM::Type::TEMPLATEVAR: {
-					//assert(false && "Cannot generate template variable type.");
-					//return NULL;
-					return TypeGenerator(module).getI8Type();
+					return genType(module, module.getTemplateVarValue(type->getTemplateVar()));
 				}
 				
 				default: {

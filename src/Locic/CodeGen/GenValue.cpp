@@ -6,6 +6,7 @@
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/GenFunction.hpp>
 #include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenValue.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
@@ -15,6 +16,7 @@
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
+#include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
 
@@ -286,14 +288,9 @@ namespace Locic {
 					assert(destTarget->isInterface() && "Polycast dest target type must be interface");
 					
 					if (sourceTarget->isInterface()) {
-						// Get the object pointer.
-						llvm::Value* objectPointerValue = function.getBuilder().CreateExtractValue(rawValue,
+						/*// Get the object pointer (of type i8*).
+						llvm::Value* objectPointer = function.getBuilder().CreateExtractValue(rawValue,
 														  std::vector<unsigned>(1, 0));
-														  
-						// Cast it as a pointer to the opaque struct representing
-						// destination interface type.
-						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(objectPointerValue,
-								function.getModule().getTypeMap().get(destTarget->getObjectType())->getPointerTo());
 													 
 						// Get the vtable pointer.
 						llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(rawValue,
@@ -304,13 +301,13 @@ namespace Locic {
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, objectPointer,
 										 std::vector<unsigned>(1, 0));
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, vtablePointer,
-										 std::vector<unsigned>(1, 1));
-						return interfaceValue;
+										 std::vector<unsigned>(1, 1));*/
+						return rawValue;
 					} else {
 						// Cast class pointer to pointer to the opaque struct
 						// representing destination interface type.
 						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-								function.getModule().getTypeMap().get(destTarget->getObjectType())->getPointerTo());
+								TypeGenerator(function.getModule()).getI8PtrType());
 													 
 						// Create the vtable.
 						llvm::Value* vtablePointer = genVTable(function.getModule(), sourceTarget);
@@ -434,12 +431,8 @@ namespace Locic {
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					SEM::Function* semFunction = value->functionRef.function;
-					if (value->functionRef.parentType != NULL) {
-						LOG(LOG_INFO, "Mangled method name is %s.",
-							mangleMethodName(value->functionRef.parentType, semFunction->name().last()).c_str());
-					}
-					return function.getModule().getFunctionMap().get(semFunction);
+					return genFunction(function.getModule(), value->functionRef.parentType,
+						value->functionRef.function);
 				}
 				
 				case SEM::Value::METHODOBJECT: {
@@ -510,6 +503,44 @@ namespace Locic {
 					} else {
 						return callReturnValue;
 					}
+				}
+				
+				case SEM::Value::INTERFACEMETHODOBJECT: {
+					SEM::Value* method = value->interfaceMethodObject.method;
+					llvm::Value* methodOwner = genValue(function, value->interfaceMethodObject.methodOwner);
+					
+					assert(method->kind() == SEM::Value::FUNCTIONREF);
+					
+					SEM::Function* interfaceFunction = method->functionRef.function;
+					const MethodHash methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					
+					llvm::Value* methodHashValue =
+						ConstantGenerator(function.getModule()).getI32(methodHash);
+					
+					llvm::Value* methodValue = ConstantGenerator(function.getModule()).getUndef(
+						genType(function.getModule(), value->type()));
+					
+					LOG(LOG_INFO, "Interface method is:");
+					methodValue->dump();
+					
+					LOG(LOG_INFO, "Interface method owner is:");
+					methodOwner->dump();
+					
+					methodValue = function.getBuilder().CreateInsertValue(methodValue, methodOwner, std::vector<unsigned>(1, 0));
+					methodValue = function.getBuilder().CreateInsertValue(methodValue, methodHashValue, std::vector<unsigned>(1, 1));
+					
+					LOG(LOG_INFO, "Interface method is:");
+					methodValue->dump();
+					
+					return methodValue;
+				}
+				
+				case SEM::Value::INTERFACEMETHODCALL: {
+					llvm::Value* methodValue = genValue(function, value->interfaceMethodCall.methodValue);
+					LOG(LOG_INFO, "Interface method is:");
+					methodValue->dump();
+					assert(false && "TODO");
+					return NULL;
 				}
 				
 				default:

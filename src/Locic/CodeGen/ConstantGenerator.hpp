@@ -29,21 +29,28 @@ namespace Locic {
 					return llvm::ConstantPointerNull::get(pointerType);
 				}
 				
-				inline llvm::ConstantInt* getI1(bool value) const {
+				inline llvm::ConstantInt* getInt(size_t sizeInBits, long long intValue) const {
+					assert(sizeInBits >= 1);
 					return llvm::ConstantInt::get(module_.getLLVMContext(),
-						llvm::APInt(1, value ? 1 : 0));
+						llvm::APInt(sizeInBits, intValue));
 				}
-					
-				inline llvm::ConstantInt* getSize(size_t sizeValue) const {
+				
+				inline llvm::ConstantInt* getI1(bool value) const {
+					return getInt(1, value ? 1 : 0);
+				}
+				
+				inline llvm::ConstantInt* getI32(uint32_t value) const {
+					return getInt(32, value);
+				}
+				
+				inline llvm::ConstantInt* getSize(unsigned long long sizeValue) const {
 					const size_t sizeTypeWidth = module_.getTargetInfo().getPrimitiveSize("size_t");
-					return llvm::ConstantInt::get(module_.getLLVMContext(),
-						llvm::APInt(sizeTypeWidth, sizeValue));
+					return getInt(sizeTypeWidth, sizeValue);
 				}
 				
 				inline llvm::ConstantInt* getPrimitiveInt(const std::string& primitiveName, long long intValue) const {
 					const size_t primitiveWidth = module_.getTargetInfo().getPrimitiveSize(primitiveName);
-					return llvm::ConstantInt::get(module_.getLLVMContext(),
-						llvm::APInt(primitiveWidth, intValue));
+					return getInt(primitiveWidth, intValue);
 				}
 				
 				inline llvm::ConstantFP* getFloat(double value) const {

@@ -1,5 +1,6 @@
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/ConstantGenerator.hpp>
+#include <Locic/CodeGen/GenFunction.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/SizeOf.hpp>
@@ -80,8 +81,8 @@ namespace Locic {
 				} else {
 					assert(slotList.size() == 1);
 					SEM::Function* semFunction = functionHashMap.get(slotList.front());
-					llvm::Function* function = module.getFunctionMap().get(semFunction);
-					methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(function, i8PtrType));
+					llvm::Function* llvmFunction = genFunction(module, type, semFunction);
+					methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(llvmFunction, i8PtrType));
 				}
 			}
 			

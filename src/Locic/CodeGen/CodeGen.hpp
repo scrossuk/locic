@@ -10,7 +10,7 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		class InternalCodeGen;
+		class Module;
 		
 		class CodeGenerator {
 			public:
@@ -28,7 +28,7 @@ namespace Locic {
 				void dump();
 				
 			private:
-				InternalCodeGen* codeGen_;
+				Module* module_;
 				
 		};
 		
