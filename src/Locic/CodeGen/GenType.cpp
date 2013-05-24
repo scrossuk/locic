@@ -13,6 +13,11 @@ namespace Locic {
 
 	namespace CodeGen {
 	
+		bool resolvesToClassType(Module& module, SEM::Type* type) {
+			assert(type != NULL);
+			return module.resolveType(type)->isClass();
+		}
+		
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
 			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
@@ -23,7 +28,7 @@ namespace Locic {
 			llvm::Type* returnType = genType(module, semReturnType);
 			std::vector<llvm::Type*> paramTypes;
 			
-			if (semReturnType->isClassOrTemplateVar()) {
+			if (resolvesToClassType(module, semReturnType)) {
 				// Class return values are constructed on the caller's
 				// stack, and given to the callee as a pointer.
 				paramTypes.push_back(returnType->getPointerTo());
@@ -100,9 +105,13 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Type* genType(Module& module, SEM::Type* type) {
+		llvm::Type* genType(Module& module, SEM::Type* unresolvedType) {
+			assert(unresolvedType != NULL);
+			
+			SEM::Type* type = module.resolveType(unresolvedType);
+			
 			LOG(LOG_INFO, "genType(type: %s, mangledType: %s)",
-				type->toString().c_str(), mangleType(type).c_str());
+				type->toString().c_str(), mangleType(module, type).c_str());
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
@@ -162,10 +171,6 @@ namespace Locic {
 						TypeGenerator(module).getI32Type());
 					
 					return TypeGenerator(module).getStructType(interfaceMethodTypes);
-				}
-				
-				case SEM::Type::TEMPLATEVAR: {
-					return genType(module, module.getTemplateVarValue(type->getTemplateVar()));
 				}
 				
 				default: {

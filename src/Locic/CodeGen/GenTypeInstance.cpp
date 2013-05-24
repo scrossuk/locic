@@ -16,7 +16,7 @@ namespace Locic {
 				&& "Number of template arguments provided must match number required.");
 			assert(typeInstance->isClass() || typeInstance->isStruct());
 			
-			const std::string mangledName = mangleObjectType(typeInstance, templateArguments);
+			const std::string mangledName = mangleObjectType(module, typeInstance, templateArguments);
 			
 			const Optional<llvm::StructType*> result = module.getTypeMap().tryGet(mangledName);
 			

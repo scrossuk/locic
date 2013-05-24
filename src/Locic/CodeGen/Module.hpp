@@ -2,8 +2,8 @@
 #define LOCIC_CODEGEN_MODULE_HPP
 
 #include <fstream>
-#include <stack>
 #include <string>
+#include <vector>
 
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/DerivedTypes.h>
@@ -86,16 +86,40 @@ namespace Locic {
 				}
 				
 				inline void pushTemplateVarMap(const TemplateVarMap& templateVarMap) {
-					templateVarMapStack_.push(&templateVarMap);
+					templateVarMapStack_.push_back(&templateVarMap);
 				}
 				
 				inline void popTemplateVarMap() {
-					templateVarMapStack_.pop();
+					templateVarMapStack_.pop_back();
 				}
 				
-				inline SEM::Type* getTemplateVarValue(SEM::TemplateVar* templateVar) const {
-					assert(templateVar != NULL);
-					return templateVarMapStack_.top()->get(templateVar);
+				inline SEM::Type* resolveType(SEM::Type* type) const {
+					for(size_t i = 0; i < templateVarMapStack_.size(); i++) {
+						assert(type != NULL);
+						if (!type->isTemplateVar()) {
+							return type;
+						}
+						const TemplateVarMap* map = templateVarMapStack_.at(templateVarMapStack_.size() - i - 1);
+						assert(map != NULL);
+						const Optional<SEM::Type*> result = map->tryGet(type->getTemplateVar());
+						if (result.hasValue()) {
+							LOG(LOG_INFO, "Resolved %s -> %s.",
+								type->toString().c_str(),
+								result.getValue()->toString().c_str());
+							type = result.getValue();
+						}
+					}
+					
+					if (!type->isTemplateVar()) {
+						return type;
+					}
+					
+					LOG(LOG_INFO, "Failed to resolve type %s.",
+						type->toString().c_str());
+					
+					assert(false && "Failed to resolve type.");
+					
+					return NULL;
 				}
 				
 				inline TypeMap& getTypeMap() {
@@ -120,7 +144,7 @@ namespace Locic {
 				TargetInfo targetInfo_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
-				std::stack<const TemplateVarMap*> templateVarMapStack_;
+				std::vector<const TemplateVarMap*> templateVarMapStack_;
 				TypeMap typeMap_;
 				
 		};

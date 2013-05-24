@@ -25,10 +25,18 @@ namespace Locic {
 				: llvm::Function::LinkOnceODRLinkage;
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::Type* parent, SEM::Function* function) {
+		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* function) {
 			assert(function != NULL);
+			
+			SEM::Type* parent =
+				unresolvedParent != NULL ?
+					module.resolveType(unresolvedParent) :
+					NULL;
+			
 			if (function->isMethod()) {
 				assert(parent != NULL);
+				LOG(LOG_INFO, "Function parent is %s.",
+					parent->toString().c_str());
 				assert(parent->isObject());
 			} else {
 				assert(parent == NULL);
@@ -36,8 +44,8 @@ namespace Locic {
 			
 			const std::string mangledName =
 				function->isMethod() ?
-					mangleMethodName(parent, function->name().last()) :
-					mangleFunctionName(function->name());
+					mangleMethodName(module, parent, function->name().last()) :
+					mangleFunctionName(module, function->name());
 			
 			LOG(LOG_INFO, "Generating %s %s '%s' (mangled as '%s').",
 				function->isMethod() ? "method" : "function",

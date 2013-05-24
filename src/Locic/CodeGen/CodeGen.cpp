@@ -60,6 +60,11 @@ namespace Locic {
 					return;
 				}
 				
+				if (typeInstance->isInterface()) {
+					// Can't generate interface types.
+					return;
+				}
+				
 				(void) genTypeInstance(module, typeInstance, std::vector<SEM::Type*>());
 			}
 		}
@@ -67,6 +72,11 @@ namespace Locic {
 		void genTypeInstanceFunctions(Module& module, SEM::TypeInstance* typeInstance) {
 			if (!typeInstance->templateVariables().empty() && !typeInstance->isPrimitive()) {
 				// Can't generate types with template arguments.
+				return;
+			}
+			
+			if (typeInstance->isInterface()) {
+				// Can't generate interface types.
 				return;
 			}
 			

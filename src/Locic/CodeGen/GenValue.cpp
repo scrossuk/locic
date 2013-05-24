@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <llvm/InlineAsm.h>
 #include <llvm/Value.h>
 
 #include <Locic/SEM.hpp>
@@ -38,35 +39,37 @@ namespace Locic {
 			
 			LOG(LOG_INFO, "Generating value %s.",
 				value->toString().c_str());
+			
+			Module& module = function.getModule();
 				
 			switch (value->kind()) {
 				case SEM::Value::CONSTANT: {
 					switch (value->constant->getType()) {
 						case Locic::Constant::NULLVAL:
-							return ConstantGenerator(function.getModule()).getNullPointer(
-									   TypeGenerator(function.getModule()).getI8PtrType());
+							return ConstantGenerator(module).getNullPointer(
+									   TypeGenerator(module).getI8PtrType());
 									   
 						case Locic::Constant::BOOLEAN:
-							return ConstantGenerator(function.getModule()).getI1(value->constant->getBool());
+							return ConstantGenerator(module).getI1(value->constant->getBool());
 							
 						case Locic::Constant::SIGNEDINT: {
-							return ConstantGenerator(function.getModule()).getPrimitiveInt(
+							return ConstantGenerator(module).getPrimitiveInt(
 									   value->constant->getTypeName(), value->constant->getInt());
 						}
 						
 						case Locic::Constant::UNSIGNEDINT: {
-							return ConstantGenerator(function.getModule()).getPrimitiveInt(
+							return ConstantGenerator(module).getPrimitiveInt(
 									   value->constant->getTypeName(), value->constant->getUint());
 						}
 						
 						case Locic::Constant::FLOATINGPOINT: {
 							switch (value->constant->getFloatType()) {
 								case Locic::Constant::FLOAT:
-									return ConstantGenerator(function.getModule()).getFloat(
+									return ConstantGenerator(module).getFloat(
 											   value->constant->getFloat());
 											   
 								case Locic::Constant::DOUBLE:
-									return ConstantGenerator(function.getModule()).getFloat(
+									return ConstantGenerator(module).getFloat(
 											   value->constant->getFloat());
 											   
 								case Locic::Constant::LONGDOUBLE:
@@ -85,14 +88,14 @@ namespace Locic {
 							switch (value->constant->getStringType()) {
 								case Locic::Constant::CSTRING: {
 									llvm::ArrayType* arrayType =
-										TypeGenerator(function.getModule()).getArrayType(
-											TypeGenerator(function.getModule()).getI8Type(),
+										TypeGenerator(module).getArrayType(
+											TypeGenerator(module).getI8Type(),
 											stringValue.size() + 1);
 									llvm::Constant* constArray =
-										ConstantGenerator(function.getModule()).getString(
+										ConstantGenerator(module).getString(
 											stringValue.c_str());
 									llvm::GlobalVariable* globalArray =
-										function.getModule().createConstGlobal("cstring_constant",
+										module.createConstGlobal("cstring_constant",
 												arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
 									globalArray->setAlignment(1);
 									// Convert array to a pointer.
@@ -140,7 +143,7 @@ namespace Locic {
 							llvm::Value* memberPtr =
 								function.getBuilder().CreateConstInBoundsGEP2_32(
 									function.getContextValue(), 0,
-									function.getModule().getMemberVarMap().get(var));
+									module.getMemberVarMap().get(var));
 														 
 							if (genLValue) {
 								return memberPtr;
@@ -201,7 +204,7 @@ namespace Locic {
 						
 					if (destType->isVoid()) {
 						// All casts to void have the same outcome.
-						return ConstantGenerator(function.getModule()).getVoidUndef();
+						return ConstantGenerator(module).getVoidUndef();
 					}
 					
 					switch (sourceType->kind()) {
@@ -217,7 +220,7 @@ namespace Locic {
 								case SEM::Type::POINTER:
 								case SEM::Type::FUNCTION:
 									return function.getBuilder().CreatePointerCast(codeValue,
-											genType(function.getModule(), destType));
+											genType(module, destType));
 											
 								case SEM::Type::OBJECT: {
 									assert(false && "TODO");
@@ -243,18 +246,18 @@ namespace Locic {
 						case SEM::Type::REFERENCE: {
 							if (genLValue) {
 								return function.getBuilder().CreatePointerCast(codeValue,
-										genType(function.getModule(), destType)->getPointerTo());
+										genType(module, destType)->getPointerTo());
 							} else {
-								return function.getBuilder().CreatePointerCast(codeValue, genType(function.getModule(), destType));
+								return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
 							}
 						}
 						
 						case SEM::Type::POINTER: {
 							if (genLValue) {
 								return function.getBuilder().CreatePointerCast(codeValue,
-										genType(function.getModule(), destType)->getPointerTo());
+										genType(module, destType)->getPointerTo());
 							} else {
-								return function.getBuilder().CreatePointerCast(codeValue, genType(function.getModule(), destType));
+								return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
 							}
 						}
 						
@@ -297,7 +300,7 @@ namespace Locic {
 													 std::vector<unsigned>(1, 1));
 													 
 						// Build the new interface pointer struct with these values.
-						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(function.getModule(), destType));
+						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(module, destType));
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, objectPointer,
 										 std::vector<unsigned>(1, 0));
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, vtablePointer,
@@ -307,13 +310,13 @@ namespace Locic {
 						// Cast class pointer to pointer to the opaque struct
 						// representing destination interface type.
 						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-								TypeGenerator(function.getModule()).getI8PtrType());
+								TypeGenerator(module).getI8PtrType());
 													 
 						// Create the vtable.
-						llvm::Value* vtablePointer = genVTable(function.getModule(), sourceTarget);
+						llvm::Value* vtablePointer = genVTable(module, sourceTarget);
 						
 						// Build the new interface pointer struct with these values.
-						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(function.getModule(), destType));
+						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(module, destType));
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, objectPointer,
 										 std::vector<unsigned>(1, 0));
 						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, vtablePointer,
@@ -329,7 +332,7 @@ namespace Locic {
 					LOG(LOG_INFO, "Type is %s.",
 						value->type()->toString().c_str());
 						
-					genType(function.getModule(), value->type())->dump();
+					genType(module, value->type())->dump();
 					
 					objectValue->dump();
 													  
@@ -344,7 +347,7 @@ namespace Locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const size_t offset = function.getModule().getMemberVarMap().get(value->memberAccess.memberVar);
+					const size_t offset = module.getMemberVarMap().get(value->memberAccess.memberVar);
 					
 					if (genLValue) {
 						return function.getBuilder().CreateConstInBoundsGEP2_32(
@@ -370,7 +373,7 @@ namespace Locic {
 					SEM::Type* returnType = value->type();
 					llvm::Value* returnValue = NULL;
 					
-					if (returnType->isClass()) {
+					if (resolvesToClassType(module, returnType)) {
 						returnValue = genAlloca(function, returnType);
 						parameters.push_back(returnValue);
 					}
@@ -389,16 +392,16 @@ namespace Locic {
 							llvm::Type* argType = argValue->getType();
 							const unsigned sizeInBits = argType->getPrimitiveSizeInBits();
 							
-							if (argType->isIntegerTy() && sizeInBits < function.getModule().getTargetInfo().getPrimitiveSize("int")) {
+							if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int")) {
 								// Need to extend to int.
 								// TODO: this doesn't handle unsigned types; perhaps
 								// this code should be moved to semantic analysis.
 								argValue = function.getBuilder().CreateSExt(argValue,
-										   getPrimitiveType(function.getModule(), "int"));
+										   getPrimitiveType(module, "int"));
 							} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 								// Need to extend to double.
 								argValue = function.getBuilder().CreateFPExt(argValue,
-										   TypeGenerator(function.getModule()).getDoubleType());
+										   TypeGenerator(module).getDoubleType());
 							}
 						}
 						
@@ -431,7 +434,7 @@ namespace Locic {
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					return genFunction(function.getModule(), value->functionRef.parentType,
+					return genFunction(module, value->functionRef.parentType,
 						value->functionRef.function);
 				}
 				
@@ -443,8 +446,8 @@ namespace Locic {
 					
 					assert(value->type()->isMethod());
 					
-					llvm::Value* methodValue = ConstantGenerator(function.getModule()).getUndef(
-												   genType(function.getModule(), value->type()));
+					llvm::Value* methodValue = ConstantGenerator(module).getUndef(
+												   genType(module, value->type()));
 												   
 					functionValue->dump();
 					dataPointer->dump();
@@ -452,7 +455,7 @@ namespace Locic {
 					
 					llvm::Value* functionPtr =
 						function.getBuilder().CreatePointerCast(functionValue,
-								genFunctionType(function.getModule(), value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
+								genFunctionType(module, value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
 								"dynamic_method_function_ptr");
 								
 					llvm::Value* contextPtr =
@@ -476,7 +479,7 @@ namespace Locic {
 					SEM::Type* returnType = value->type();
 					llvm::Value* returnValue = NULL;
 					
-					if (returnType->isClassOrTemplateVar()) {
+					if (resolvesToClassType(module, returnType)) {
 						returnValue = genAlloca(function, returnType);
 						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference.");
 						parameters.push_back(returnValue);
@@ -515,10 +518,10 @@ namespace Locic {
 					const MethodHash methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					
 					llvm::Value* methodHashValue =
-						ConstantGenerator(function.getModule()).getI32(methodHash);
+						ConstantGenerator(module).getI32(methodHash);
 					
-					llvm::Value* methodValue = ConstantGenerator(function.getModule()).getUndef(
-						genType(function.getModule(), value->type()));
+					llvm::Value* methodValue = ConstantGenerator(module).getUndef(
+						genType(module, value->type()));
 					
 					LOG(LOG_INFO, "Interface method is:");
 					methodValue->dump();
@@ -536,11 +539,144 @@ namespace Locic {
 				}
 				
 				case SEM::Value::INTERFACEMETHODCALL: {
-					llvm::Value* methodValue = genValue(function, value->interfaceMethodCall.methodValue);
+					SEM::Value* method = value->interfaceMethodCall.methodValue;
+					const std::vector<SEM::Value*>& paramList = value->interfaceMethodCall.parameters;
+					llvm::Value* methodValue = genValue(function, method);
+					
+					llvm::Value* contextValue = function.getBuilder().CreateExtractValue(methodValue,
+						std::vector<unsigned>(1, 0), "context");
+					
+					llvm::Value* objectPointer = function.getBuilder().CreateExtractValue(contextValue,
+						std::vector<unsigned>(1, 0), "object");
+					
+					llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(contextValue,
+						std::vector<unsigned>(1, 1), "vtable");
+					
+					llvm::Value* methodHashValue = function.getBuilder().CreateExtractValue(methodValue,
+						std::vector<unsigned>(1, 1), "methodHash");
+					
+					const ConstantGenerator constantGen(module);
+					
+					llvm::Value* vtableSizeValue =
+						constantGen.getI32(VTABLE_SIZE);
+					
+					llvm::Value* vtableOffsetValue =
+						function.getBuilder().CreateURem(methodHashValue, vtableSizeValue, "vtableOffset");
+					
+					std::vector<llvm::Value*> vtableEntryGEP;
+					vtableEntryGEP.push_back(constantGen.getI32(0));
+					vtableEntryGEP.push_back(constantGen.getI32(2));
+					vtableEntryGEP.push_back(vtableOffsetValue);
+					
+					llvm::Value* vtableEntryPointer =
+						function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+					
+					llvm::Value* methodFunctionPointer =
+						function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+					
+					SEM::Type* functionType = method->type()->getInterfaceMethodFunctionType();
+					llvm::Type* methodFunctionType = genFunctionType(module, functionType,
+						TypeGenerator(module).getI8PtrType());
+					
+					llvm::Value* castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
+						methodFunctionPointer, methodFunctionType->getPointerTo(), "castedMethodFunctionPointer");
+					
+					SEM::Type* returnType = functionType->getFunctionReturnType();
+					
+					std::vector<llvm::Value*> parameters;
+					llvm::Value* returnValue = NULL;
+					
+					if (resolvesToClassType(module, returnType)) {
+						returnValue = genAlloca(function, returnType);
+						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference.");
+						parameters.push_back(returnValue);
+					}
+					
+					parameters.push_back(objectPointer);
+					
+					for (std::size_t i = 0; i < paramList.size(); i++) {
+						LOG(LOG_EXCESSIVE, "Generating method call argument %s.",
+							paramList.at(i)->toString().c_str());
+						parameters.push_back(genValue(function, paramList.at(i)));
+					}
+					
+					LOG(LOG_EXCESSIVE, "Creating interface call assembly.");
+					llvm::FunctionType* asmFunctionType =
+						TypeGenerator(module).getFunctionType(voidType(),
+							std::vector<llvm::Type*>(1, TypeGenerator(module).getI32Type()));
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %%eax", "r,~eax", true);
+					function.getBuilder().CreateCall(setEax, std::vector<llvm::Value*>(1, methodHashValue));
+					
+					LOG(LOG_EXCESSIVE, "Creating interface method call.");
+					
+					llvm::Value* callReturnValue =
+						function.getBuilder().CreateCall(castedMethodFunctionPointer, parameters);
+					
+					if (returnValue != NULL) {
+						return genLoad(function, returnValue, returnType);
+					} else {
+						return callReturnValue;
+					}
+					
+					/*// Get the 'this' record, which is the
+					// pair of the 'this' pointer and the
+					// method vtable pointer.
+					llvm::Value* thisRecord = arg++;
+					
+					// Get the 'this' pointer.
+					llvm::Value* thisPointer = function.getBuilder().CreateExtractValue(thisRecord, std::vector<unsigned>(1, 0), "thisPointer");
+					
+					// Get the vtable pointer.
+					llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(thisRecord,
+												 std::vector<unsigned>(1, 1), "vtablePointer");
+												 
+					const MethodHash methodHash = CreateMethodNameHash(function->name().last());
+					const size_t offset = methodHash % VTABLE_SIZE;
+					
+					std::vector<llvm::Value*> vtableEntryGEP;
+					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0)));
+					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 2)));
+					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, offset)));
+					
+					llvm::Value* vtableEntryPointer = function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+					llvm::Value* methodFunctionPointer = function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+					llvm::Type* methodFunctionType = genFunctionType(function->type(), thisPointer->getType());
+					llvm::Value* castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
+								methodFunctionPointer, methodFunctionType->getPointerTo(), "castedMethodFunctionPointer");
+					std::vector<llvm::Value*> arguments;
+					
+					if (returnVar != NULL) {
+						arguments.push_back(returnVar);
+					}
+					
+					arguments.push_back(thisPointer);
+					
+					while (arg != generatedFunction->arg_end()) {
+						arguments.push_back(arg++);
+					}
+					
+					llvm::FunctionType* asmFunctionType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), false);
+					const std::string assembly = makeString("movl $$%llu, %%eax",
+															(unsigned long long) methodHash);
+															
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
+					function.getBuilder().CreateCall(setEax);
+					
+					const bool isVoidReturnType = returnType->isVoid() || returnType->isClassOrTemplateVar();
+					
+					llvm::Value* methodCallValue = function.getBuilder().CreateCall(castedMethodFunctionPointer,
+												   arguments, isVoidReturnType ? "" : "methodCallValue");
+												   
+					if (isVoidReturnType) {
+						function.getBuilder().CreateRetVoid();
+					} else {
+						function.getBuilder().CreateRet(methodCallValue);
+					}
+					
 					LOG(LOG_INFO, "Interface method is:");
 					methodValue->dump();
 					assert(false && "TODO");
-					return NULL;
+					return NULL;*/
 				}
 				
 				default:

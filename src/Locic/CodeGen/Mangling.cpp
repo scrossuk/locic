@@ -2,45 +2,48 @@
 
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/Mangling.hpp>
+#include <Locic/CodeGen/Module.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
 	
-		std::string mangleName(const std::string& prefix, const Name& name) {
+		std::string mangleName(const Module& module, const std::string& prefix, const Name& name) {
 			assert(!name.empty());
 			assert(name.isAbsolute());
 			
 			std::string s = makeString("%s%llu",
-									   prefix.c_str(),
-									   (unsigned long long) name.size());
+				prefix.c_str(),
+				(unsigned long long) name.size());
 									   
 			for (size_t i = 0; i < name.size(); i++) {
 				s += makeString("N%llu%s",
-								(unsigned long long) name.at(i).size(),
-								name.at(i).c_str());
+					(unsigned long long) name.at(i).size(),
+					name.at(i).c_str());
 			}
 			
 			return s;
 		}
 		
-		std::string mangleFunctionName(const Name& name) {
+		std::string mangleFunctionName(const Module& module, const Name& name) {
 			if (name.size() == 1) {
 				// Special case for compatibility with C functions.
 				return name.last();
 			}
 			
-			return mangleName("F", name);
+			return mangleName(module, "F", name);
 		}
 		
-		std::string mangleMethodName(SEM::Type* parentType, const std::string& methodName) {
+		std::string mangleMethodName(const Module& module, SEM::Type* parentType, const std::string& methodName) {
 			return makeString("M%s%s",
-				mangleType(parentType).c_str(),
-				mangleName("F", Name::Absolute() + methodName).c_str());
+				mangleType(module, parentType).c_str(),
+				mangleName(module, "F", Name::Absolute() + methodName).c_str());
 		}
 		
-		std::string mangleType(SEM::Type* type) {
-			assert(type != NULL);
+		std::string mangleType(const Module& module, SEM::Type* unresolvedType) {
+			assert(unresolvedType != NULL);
+			
+			SEM::Type* type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
@@ -53,19 +56,19 @@ namespace Locic {
 				
 				case SEM::Type::OBJECT: {
 					SEM::TypeInstance* typeInstance = type->getObjectType();
-					return mangleObjectType(typeInstance, type->templateArguments());
+					return mangleObjectType(module, typeInstance, type->templateArguments());
 				}
 				
 				case SEM::Type::POINTER: {
-					const std::string typeListMangle = mangleTypeList(
-														   std::vector<SEM::Type*>(1, type->getPointerTarget()));
+					const std::string typeListMangle =
+						mangleTypeList(module, std::vector<SEM::Type*>(1, type->getPointerTarget()));
 					return makeString("T1N5__ptr%s",
 									  typeListMangle.c_str());
 				}
 				
 				case SEM::Type::REFERENCE: {
-					const std::string typeListMangle = mangleTypeList(
-														   std::vector<SEM::Type*>(1, type->getReferenceTarget()));
+					const std::string typeListMangle =
+						mangleTypeList(module, std::vector<SEM::Type*>(1, type->getReferenceTarget()));
 					return makeString("T1N5__ref%s",
 									  typeListMangle.c_str());
 				}
@@ -85,11 +88,6 @@ namespace Locic {
 					return "T1N13__ifacemethod";
 				}
 				
-				case SEM::Type::TEMPLATEVAR: {
-					//assert(false && "Can't mangle template variables.");
-					return "[TEMPLATEVAR]";
-				}
-				
 				default: {
 					assert(false && "Unknown SEM::Type enum.");
 					return "[UNKNOWN]";
@@ -97,14 +95,13 @@ namespace Locic {
 			}
 		}
 		
-		std::string mangleObjectType(SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
+		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
 			assert(typeInstance != NULL);
-			const std::string typeListMangle = mangleTypeList(templateArguments);
-			return makeString("%s%s", mangleTypeName(typeInstance->name()).c_str(),
-				typeListMangle.c_str());
+			return makeString("%s%s", mangleTypeName(module, typeInstance->name()).c_str(),
+				mangleTypeList(module, templateArguments).c_str());
 		}
 		
-		std::string mangleTypeList(const std::vector<SEM::Type*> typeList) {
+		std::string mangleTypeList(const Module& module, const std::vector<SEM::Type*> typeList) {
 			if (typeList.empty()) {
 				return "";
 			}
@@ -113,17 +110,17 @@ namespace Locic {
 									   (unsigned long long) typeList.size());
 									   
 			for (size_t i = 0; i < typeList.size(); i++) {
-				const std::string typeMangle = mangleType(typeList.at(i));
+				const std::string typeMangle = mangleType(module, typeList.at(i));
 				s += makeString("A%llu%s",
-								(unsigned long long) typeMangle.size(),
-								typeMangle.c_str());
+					(unsigned long long) typeMangle.size(),
+					typeMangle.c_str());
 			}
 			
 			return s;
 		}
 		
-		std::string mangleTypeName(const Name& name) {
-			return mangleName("T", name);
+		std::string mangleTypeName(const Module& module, const Name& name) {
+			return mangleName(module, "T", name);
 		}
 		
 	}
