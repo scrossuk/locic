@@ -33,7 +33,7 @@ namespace Locic {
 					return Decl(isMethod(), isStatic(), type(), name(), parameters());
 				}
 				
-				inline Function* fullSubstitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
+				inline Function* fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const {
 					assert(isDeclaration());
 					
 					// Parameter types need to be substituted.
@@ -46,7 +46,7 @@ namespace Locic {
 					
 					return Decl(isMethod(), isStatic(),
 						type()->substitute(templateVarMap),
-						name(), substitutedParam);
+						declName, substitutedParam);
 				}
 				
 				inline ObjectKind objectKind() const {

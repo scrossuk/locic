@@ -134,6 +134,9 @@ namespace Locic {
 				case INTERFACE:
 					return makeString("InterfaceType(name: %s)",
 							name().toString().c_str());
+				case TEMPLATETYPE:
+					return makeString("TemplateType(name: %s)",
+							name().toString().c_str());
 				default:
 					return "[UNKNOWN TYPE INSTANCE]";
 			}

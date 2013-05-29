@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <Locic/SEM/Object.hpp>
-#include <Locic/SEM/Type.hpp>
+#include <Locic/SEM/TypeInstance.hpp>
 
 namespace Locic {
 
@@ -29,26 +29,26 @@ namespace Locic {
 					return type_;
 				}
 				
-				inline void setSpecType(Type * spec){
+				inline void setSpecType(TypeInstance * spec){
 					assert(specType_ == NULL);
 					assert(spec != NULL);
 					specType_ = spec;
 				}
 				
-				inline Type * specType() const {
+				inline TypeInstance * specType() const {
 					return specType_;
 				}
 				
 				inline std::string toString() const {
 					return makeString("TemplateVar(specType = %s)",
 						specType_ != NULL ?
-							specType_->nameToString().c_str() :
-							"[none]");
+							specType_->refToString().c_str() :
+							"[NONE]");
 				}
 				
 			private:
 				TemplateVarType type_;
-				Type * specType_;
+				TypeInstance * specType_;
 				
 		};
 		

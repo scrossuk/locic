@@ -25,27 +25,13 @@ namespace Locic {
 				: llvm::Function::LinkOnceODRLinkage;
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::Type* parent, SEM::Function* function) {
+		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* function) {
 			assert(function != NULL);
 			
-			if (parent != NULL && parent->isTemplateVar()) {
-				SEM::Type* resolvedParent = module.resolveType(parent);
-				assert(resolvedParent->isObject());
-				SEM::TypeInstance* parentTypeInstance = resolvedParent->getObjectType();
-				for (size_t i = 0; i < parentTypeInstance->functions().size(); i++) {
-					SEM::Function* parentFunction =
-						parentTypeInstance->functions().at(i);
-					if (parentFunction->name().last() == function->name().last()) {
-						return genFunction(module, resolvedParent, parentFunction);
-					}
-					LOG(LOG_INFO, "%s != %s.",
-						parentFunction->name().last().c_str(),
-						function->name().last().c_str());
-				}
-				
-				assert(false && "Failed to find function in resolved parent type.");
-				return NULL;
-			}
+			SEM::Type* parent =
+				unresolvedParent != NULL ?
+					module.resolveType(unresolvedParent) :
+					NULL;
 			
 			if (function->isMethod()) {
 				assert(parent != NULL);

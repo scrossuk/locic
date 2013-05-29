@@ -80,7 +80,7 @@ namespace Locic {
 						} else {
 							return SEM::Value::FunctionRef(NULL, function, templateVarMap);
 						}
-					} else if(node.isTypeInstance()) {
+					} else if (node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 						
 						if(typeInstance->isInterface()) {
@@ -109,15 +109,11 @@ namespace Locic {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						SEM::TemplateVar* templateVar = node.getSEMTemplateVar();
 						
-						SEM::Type* specType = templateVar->specType();
-						assert(specType != NULL && "Can't find default constructor in template type (without spec type).");
-						
-						SEM::TypeInstance* specTypeInstance = specType->getObjectType();
-						
+						SEM::TypeInstance* specTypeInstance = templateVar->specType();
 						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
 						
 						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, SEM::Type::LVALUE, templateVar),
-							defaultConstructor, specType->generateTemplateVarMap());
+							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());
 					} else {
 						assert(false && "Unknown node for name reference");
 						return NULL;
@@ -254,7 +250,7 @@ namespace Locic {
 					
 					SEM::TypeInstance* typeInstance =
 						object->type()->isTemplateVar() ?
-							object->type()->getTemplateVar()->specType()->getObjectType() :
+							object->type()->getTemplateVar()->specType() :
 							object->type()->getObjectType();
 					assert(typeInstance != NULL);
 					
@@ -287,7 +283,7 @@ namespace Locic {
 							throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
 								memberName.c_str(), typeInstance->name().toString().c_str()));
 						}
-					} else if(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
+					} else if(typeInstance->isClass() || typeInstance->isTemplateType() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
 						// Look for class methods.
 						const Node childNode = typeNode.getChild(memberName);
 						
@@ -303,7 +299,7 @@ namespace Locic {
 							
 							SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
 							
-							if (typeInstance->isInterface() && !object->type()->isTemplateVar()) {
+							if (typeInstance->isInterface()) {
 								return SEM::Value::InterfaceMethodObject(functionRef, object);
 							} else {
 								return SEM::Value::MethodObject(functionRef, object);

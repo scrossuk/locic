@@ -48,17 +48,17 @@ interface DefaultConstructInterface {
 	
 	T implicitCopy();
 	
-	T add(T value);
+	T multiply(T value);
 }
 
 template <typename T: DefaultConstructInterface<T> >
 class PolyClass(T v) {
-	static Default() {
-		return @(T());
+	static Default(T value) {
+		return @(value);
 	}
 	
-	T function(int value) {
-		return @v + @v;
+	T function(T value) {
+		return value * @v;
 	}
 };
 
@@ -97,10 +97,18 @@ int main(int argc, char ** argv){
 	TestClass nullThing = null;
 	
 	auto templatedInstance = ExampleTemplatedClass0<int>();
-	auto polyInst = PolyClass<int>();
 	
-	int res000 = polyInst.function(2);
+	auto polyInst = PolyClass<int>(21);
+	const int res000 = polyInst.function(8);
 	printf("res000 = %d.\n"C, res000);
+	
+	auto polyInst2 = PolyClass<double>(4.0);
+	const double res001 = polyInst2.function(16.0);
+	printf("res001 = %f.\n"C, res001);
+	
+	auto polyInst3 = PolyClass<float>(4.0f);
+	const float res002 = polyInst3.function(4.0f);
+	printf("res002 = %f.\n"C, res002);
 	
 	{
 		auto templatedInstancee = ExampleTemplatedClass0<int>();

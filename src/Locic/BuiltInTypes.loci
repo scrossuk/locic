@@ -260,6 +260,8 @@ __primitive double{
 	
 	//double add(double v);
 	
+	double multiply(double v);
+	
 	/*char toChar();
 	short toShort();
 	int toInt();
