@@ -163,6 +163,10 @@ namespace Locic {
 					return value;
 				}
 				case SEM::Type::TEMPLATEVAR: {
+					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
+						throw TodoException(makeString("Can't cast from template type '%s' to template type '%s'.",
+							sourceType->toString().c_str(), destType->toString().c_str()));
+					}
 					assert(sourceType->getTemplateVar() == destType->getTemplateVar());
 					return value;
 				}

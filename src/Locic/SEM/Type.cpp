@@ -14,7 +14,12 @@ namespace Locic {
 		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
 		
 		Map<TemplateVar*, Type*> Type::generateTemplateVarMap() const {
-			assert(isObject());
+			assert(isObject() || isTemplateVar());
+			
+			if (isTemplateVar()) {
+				return Map<TemplateVar*, Type*>();
+			}
+			
 			const std::vector<TemplateVar*>& templateVars = getObjectType()->templateVariables();
 			const std::vector<Type*>& templateArgs = templateArguments();
 			

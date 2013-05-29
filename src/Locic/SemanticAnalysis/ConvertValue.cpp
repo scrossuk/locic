@@ -247,12 +247,15 @@ namespace Locic {
 						object = SEM::Value::DerefReference(object);
 					}
 					
-					if(!object->type()->isObject()) {
+					if(!object->type()->isObject() && !object->type()->isTemplateVar()) {
 						throw TodoException(makeString("Can't access member of non-object value '%s'.",
 							object->toString().c_str()));
 					}
 					
-					SEM::TypeInstance* typeInstance = object->type()->getObjectType();
+					SEM::TypeInstance* typeInstance =
+						object->type()->isTemplateVar() ?
+							object->type()->getTemplateVar()->specType()->getObjectType() :
+							object->type()->getObjectType();
 					assert(typeInstance != NULL);
 					
 					const Node typeNode = context.reverseLookup(typeInstance);
@@ -300,7 +303,7 @@ namespace Locic {
 							
 							SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
 							
-							if (typeInstance->isInterface()) {
+							if (typeInstance->isInterface() && !object->type()->isTemplateVar()) {
 								return SEM::Value::InterfaceMethodObject(functionRef, object);
 							} else {
 								return SEM::Value::MethodObject(functionRef, object);

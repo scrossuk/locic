@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <list>
 #include <Locic/AST.hpp>
+#include <Locic/Log.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/SemanticAnalysis/CanCast.hpp>
 #include <Locic/SemanticAnalysis/Context.hpp>
@@ -481,7 +482,7 @@ namespace Locic {
 				
 				return rootSEMNamespace;
 			} catch(const Exception& e) {
-				printf("Semantic Analysis Error: %s\n", e.toString().c_str());
+				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());
 				throw;
 			}
 		}

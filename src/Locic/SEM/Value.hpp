@@ -244,7 +244,8 @@ namespace Locic {
 				
 				inline static Value* MethodObject(Value* method, Value* methodOwner) {
 					assert(method->type()->isFunction());
-					assert(methodOwner->type()->isObject());
+					assert(methodOwner->type()->isObject() ||
+						methodOwner->type()->isTemplateVar());
 					assert(!methodOwner->type()->isInterface());
 					Value* value = new Value(METHODOBJECT,
 						SEM::Type::Method(SEM::Type::RVALUE,

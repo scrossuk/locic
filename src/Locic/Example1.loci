@@ -47,6 +47,8 @@ interface DefaultConstructInterface {
 	static T Default();
 	
 	T implicitCopy();
+	
+	T add(T value);
 }
 
 template <typename T: DefaultConstructInterface<T> >
@@ -56,7 +58,7 @@ class PolyClass(T v) {
 	}
 	
 	T function(int value) {
-		return @v;
+		return @v + @v;
 	}
 };
 
