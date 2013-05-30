@@ -85,6 +85,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token NAMESPACE
 %token LCURLYBRACKET
 %token RCURLYBRACKET
+%token LSQUAREBRACKET
+%token RSQUAREBRACKET
 %token AUTO
 %token STATIC
 %token IMPORT
@@ -830,6 +832,10 @@ precision6:
 	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
 		$$ = AST::Value::FunctionCall($1, *($3));
+	}
+	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
+	{
+		$$ = AST::Value::BinaryOp("indexOf", $1, $3);
 	}
 	;
 	

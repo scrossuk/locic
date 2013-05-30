@@ -93,7 +93,7 @@ namespace Locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
-			if (function->type()->getFunctionReturnType()->isClass()) {
+			if (resolvesToClassType(module, function->type()->getFunctionReturnType())) {
 				std::vector<llvm::Attributes::AttrVal> attributes;
 				
 				// Class return values are allocated by the caller,
@@ -133,7 +133,7 @@ namespace Locic {
 				return llvmFunction;
 			}
 			
-			Function genFunction(module, *llvmFunction, getArgInfo(function));
+			Function genFunction(module, *llvmFunction, getArgInfo(module, function));
 			
 			// Parameters need to be copied to the stack, so that it's
 			// possible to assign to them, take their address, etc.

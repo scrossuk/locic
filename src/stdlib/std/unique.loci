@@ -29,10 +29,6 @@ class unique_ptr(T * ptr){
 		delete<raw_ptr>(@ptr);
 	}
 	
-	unique_ptr<T> copy() const <T: copyable<T>> {
-		return unique_ptr<T>(@ptr != null ? @ptr->copy() : null);
-	}
-	
 	lval<T> deref() const {
 		return *@ptr;
 	}

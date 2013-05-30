@@ -143,6 +143,8 @@ false                   { yyextra->token.constant = Locic::Constant::False(); re
 ")"                     { return RROUNDBRACKET; }
 "{"                     { return LCURLYBRACKET; }
 "}"                     { return RCURLYBRACKET; }
+"["                     { return LSQUAREBRACKET; }
+"]"                     { return RSQUAREBRACKET; }
 "."                     { return DOT; }
 "<<"                    { return DOUBLE_LTRIBRACKET; }
 ">>"                    { return DOUBLE_RTRIBRACKET; }

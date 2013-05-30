@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/GenType.hpp>
+#include <Locic/CodeGen/Module.hpp>
 
 namespace Locic {
 
@@ -54,8 +56,8 @@ namespace Locic {
 				
 		};
 		
-		inline ArgInfo getArgInfo(SEM::Function* function) {
-			const bool hasReturnVarArg = function->type()->getFunctionReturnType()->isClass();
+		inline ArgInfo getArgInfo(Module& module, SEM::Function* function) {
+			const bool hasReturnVarArg = resolvesToClassType(module, function->type()->getFunctionReturnType());
 			const bool hasContextArg = function->isMethod() && !function->isStatic();
 			return ArgInfo(hasReturnVarArg, hasContextArg,
 						   function->type()->getFunctionParameterTypes().size());

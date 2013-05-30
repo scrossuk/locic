@@ -94,6 +94,8 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
+	//char * argv0 = argv[0];
+	
 	TestClass nullThing = null;
 	
 	auto templatedInstance = ExampleTemplatedClass0<int>();
@@ -137,6 +139,11 @@ int main(int argc, char ** argv){
 		}
 	}
 	
+	{
+		auto t = PolyClass<TestClass>(TestClass(0));
+		auto t2 = t.function(TestClass(1));
+	}
+	
 	int i = 0;
 	int * j = &i;
 	while(i < argc){
@@ -150,7 +157,15 @@ int main(int argc, char ** argv){
 	
 	float f = 3.141592653f;
 	double d = 3.141592653;
-	printf("Float f = %f, Double d = %f\n"C, f, d);
+	printf("Float f = %.10f, Double d = %.10f\n"C, f, d);
+	
+	int loopCount = 0;
+	while(loopCount < 5) {
+		loopCount += 1;
+		f = f * f;
+		d = d * d;
+		printf("Float f = %.10f, Double d = %.10f\n"C, f, d);
+	}
 	
 	printf("Hello world!\n"C);
 	printf("This is Loci!\n"C);

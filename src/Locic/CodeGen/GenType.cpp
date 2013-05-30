@@ -47,12 +47,8 @@ namespace Locic {
 				SEM::Type* paramType = params.at(i);
 				llvm::Type* rawType = genType(module, paramType);
 				
-				if (paramType->isObject()) {
-					SEM::TypeInstance* typeInstance = paramType->getObjectType();
-					
-					if (typeInstance->isClass()) {
-						rawType = rawType->getPointerTo();
-					}
+				if (resolvesToClassType(module, paramType)) {
+					rawType = rawType->getPointerTo();
 				}
 				
 				paramTypes.push_back(rawType);
