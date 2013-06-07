@@ -432,6 +432,29 @@ namespace Locic {
 			return functionNode;
 		}
 		
+		Node GetDestructor(const Node& node){
+			assert(node.isTypeInstance());
+			
+			const std::string functionName = "__destructor";
+			const Node functionNode = node.getChild(functionName);
+			if(!functionNode.isFunction()) return Node::None();
+			
+			SEM::Function* function = functionNode.getSEMFunction();
+			
+			// Looking for non-static method.
+			if (function->isStatic()) return Node::None();
+			
+			SEM::Type* type = function->type();
+			
+			// Check it's not var arg.
+			if(type->isFunctionVarArg()) return Node::None();
+			
+			// Takes no arguments.
+			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
+			
+			return functionNode;
+		}
+		
 		void IdentifyTypeProperties(Context& context) {
 			Node& node = context.node();
 			
@@ -440,20 +463,25 @@ namespace Locic {
 				
 				// Look for default constructor.
 				const Node defaultNode = GetDefaultConstructor(node);
-				if(defaultNode.isNotNone()){
+				if (defaultNode.isNotNone()) {
 					typeInstance->setDefaultConstructor(defaultNode.getSEMFunction());
 				}
 				
 				// Look for null constructor.
 				const Node nullNode = GetNullConstructor(node);
-				if(nullNode.isNotNone()){
+				if (nullNode.isNotNone()) {
 					typeInstance->setNullConstructor(nullNode.getSEMFunction());
 				}
 				
 				// Look for implicit copy.
 				const Node copyNode = GetImplicitCopy(node);
-				if(copyNode.isNotNone()){
+				if (copyNode.isNotNone()) {
 					typeInstance->setImplicitCopy(copyNode.getSEMFunction());
+				}
+				
+				const Node destructorNode = GetDestructor(node);
+				if (destructorNode.isNotNone()) {
+					typeInstance->setDestructor(destructorNode.getSEMFunction());
 				}
 			}
 			

@@ -44,13 +44,16 @@ namespace Locic {
 				// hence the contents can be specified.
 				std::vector<llvm::Type*> structVariables;
 				
+				// Add 'live' indicator (to determine whether destructors are run).
+				structVariables.push_back(TypeGenerator(module).getI1Type());
+				
 				// Add member variables.
 				const std::vector<SEM::Var*>& variables = typeInstance->variables();
 				
 				for (size_t i = 0; i < variables.size(); i++) {
 					SEM::Var* var = variables.at(i);
 					structVariables.push_back(genType(module, var->type()));
-					module.getMemberVarMap().forceInsert(var, i);
+					module.getMemberVarMap().forceInsert(var, i + 1);
 				}
 				
 				LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",

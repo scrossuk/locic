@@ -150,6 +150,7 @@ false                   { yyextra->token.constant = Locic::Constant::False(); re
 ">>"                    { return DOUBLE_RTRIBRACKET; }
 "<"                     { return LTRIBRACKET; }
 ">"                     { return RTRIBRACKET; }
+"~"                     { return TILDA; }
 \n                      { }
 [ \t\r]+                { }
 .                       { return ERROR; }

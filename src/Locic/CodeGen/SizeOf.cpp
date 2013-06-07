@@ -53,8 +53,9 @@ namespace Locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
+		llvm::Value* genSizeOf(Function& function, SEM::Type* unresolvedType) {
 			Module& module = function.getModule();
+			SEM::Type* type = module.resolveType(unresolvedType);
 			const TargetInfo& targetInfo = module.getTargetInfo();
 			
 			switch (type->kind()) {

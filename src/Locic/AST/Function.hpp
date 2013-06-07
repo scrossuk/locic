@@ -24,21 +24,25 @@ namespace AST {
 		// NULL for declarations.
 		Scope* scope;
 		
-		inline Function(TypeEnum e, bool vA, Type* t, const std::string& n, const std::vector<TypeVar*>& p, Scope* s)
-			: typeEnum(e), isMethod(false),
+		inline Function(TypeEnum e, bool isM, bool vA, Type* t, const std::string& n, const std::vector<TypeVar*>& p, Scope* s)
+			: typeEnum(e), isMethod(isM),
 			  isVarArg(vA), returnType(t), name(n),
 			  parameters(p), scope(s) { }
 			  
 		inline static Function* Decl(Type* returnType, const std::string& name, const std::vector<TypeVar*>& parameters) {
-			return new Function(DECLARATION, false, returnType, name, parameters, NULL);
+			return new Function(DECLARATION, false, false, returnType, name, parameters, NULL);
 		}
 		
 		inline static Function* VarArgDecl(Type* returnType, const std::string& name, const std::vector<TypeVar*>& parameters) {
-			return new Function(DECLARATION, true, returnType, name, parameters, NULL);
+			return new Function(DECLARATION, false, true, returnType, name, parameters, NULL);
 		}
 		
 		inline static Function* Def(Type* returnType, const std::string& name, const std::vector<TypeVar*>& parameters, Scope* scope) {
-			return new Function(DEFINITION, false, returnType, name, parameters, scope);
+			return new Function(DEFINITION, false, false, returnType, name, parameters, scope);
+		}
+		
+		inline static Function* Destructor(Scope* scope) {
+			return new Function(DEFINITION, true, false, Type::Void(), "__destructor", std::vector<TypeVar*>(), scope);
 		}
 	};
 	

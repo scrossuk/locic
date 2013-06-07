@@ -25,6 +25,10 @@ namespace Locic {
 					return llvm::UndefValue::get(type);
 				}
 				
+				inline llvm::Constant* getNull(llvm::Type* type) const {
+					return llvm::Constant::getNullValue(type);
+				}
+				
 				inline llvm::ConstantPointerNull* getNullPointer(llvm::PointerType* pointerType) const {
 					return llvm::ConstantPointerNull::get(pointerType);
 				}
@@ -37,6 +41,10 @@ namespace Locic {
 				
 				inline llvm::ConstantInt* getI1(bool value) const {
 					return getInt(1, value ? 1 : 0);
+				}
+				
+				inline llvm::ConstantInt* getI8(uint8_t value) const {
+					return getInt(8, value);
 				}
 				
 				inline llvm::ConstantInt* getI32(uint32_t value) const {

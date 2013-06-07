@@ -15,6 +15,10 @@ class TestClass2(int i){
 		return @(v);
 	}
 	
+	~{
+		printf("Destructor for TestClass2 with value %d.\n"C, @i);
+	}
+	
 	int getValue(){
 		return @i;
 	}
@@ -55,6 +59,10 @@ template <typename T: DefaultConstructInterface<T> >
 class PolyClass(T v) {
 	static Default(T value) {
 		return @(value);
+	}
+	
+	~{
+		printf("Destroying PolyClass.\n"C);
 	}
 	
 	T function(T value) {
@@ -117,6 +125,12 @@ int main(int argc, char ** argv){
 	}
 	
 	auto firstTestClass = TestClass(1);
+	
+	{
+		auto tmpValue = TestClass2(50).getValue();
+		printf("TMPVALUE: %d\n"C, tmpValue);
+		auto toDestroy = TestClass2(99);
+	}
 	
 	auto testObject = TestClass2(argc * 2);
 	

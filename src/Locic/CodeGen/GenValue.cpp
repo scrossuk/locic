@@ -29,7 +29,7 @@ namespace Locic {
 			} else {
 				llvm::Value* lValue = genAlloca(function, value->type());
 				llvm::Value* rValue = genValue(function, value);
-				genStore(function, rValue, lValue, value->type());
+				genMoveStore(function, rValue, lValue, value->type());
 				return lValue;
 			}
 		}
@@ -335,12 +335,16 @@ namespace Locic {
 					genType(module, value->type())->dump();
 					
 					objectValue->dump();
+					
+					// Set 'liveness indicator' to true (indicating destructor should be run).
+					function.getBuilder().CreateStore(ConstantGenerator(function.getModule()).getI1(true),
+						function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, 0));
 													  
 					for (size_t i = 0; i < parameters.size(); i++) {
 						SEM::Value* paramValue = parameters.at(i);
-						genStore(function, genValue(function, paramValue),
-								 function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i),
-								 paramValue->type());
+						genMoveStore(function, genValue(function, paramValue),
+								function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1),
+								paramValue->type());
 					}
 					
 					return objectValue;
@@ -604,7 +608,7 @@ namespace Locic {
 					llvm::FunctionType* asmFunctionType =
 						TypeGenerator(module).getFunctionType(voidType(),
 							std::vector<llvm::Type*>(1, TypeGenerator(module).getI32Type()));
-					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~{eax}", true);
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~{eax}", false);
 					function.getBuilder().CreateCall(setEax, std::vector<llvm::Value*>(1, methodHashValue));
 					
 					LOG(LOG_EXCESSIVE, "Creating interface method call.");

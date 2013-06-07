@@ -1,6 +1,7 @@
 #include <vector>
 #include <llvm/Value.h>
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Destructor.hpp>
 #include <Locic/CodeGen/Function.hpp>
 #include <Locic/CodeGen/GenFunction.hpp>
@@ -12,15 +13,24 @@ namespace Locic {
 	namespace CodeGen {
 	
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
-			SEM::Type* type = function.getModule().resolveType(unresolvedType);
-			if (!type->isObject() || type->getObjectType()->isPrimitive()) {
+			Module& module = function.getModule();
+			
+			SEM::Type* type = module.resolveType(unresolvedType);
+			if (!type->isClass()) {
 				return;
 			}
 			
 			llvm::Function* destructorFunction =
-				genDestructorFunction(function.getModule(), type);
+				genDestructorFunction(module, type);
+			
+			// Call destructor.
 			function.getBuilder().CreateCall(destructorFunction,
 				std::vector<llvm::Value*>(1, value));
+			
+			// Zero out memory.
+			function.getBuilder().CreateStore(
+				ConstantGenerator(module).getNull(genType(module, type)),
+				value);
 		}
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* unresolvedParent) {
@@ -79,7 +89,22 @@ namespace Locic {
 			
 			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
 			
-			// First call the custom destructor function.
+			// Check the 'liveness indicator' which indicates whether the
+			// destructor should be run.
+			llvm::Value* isLive = function.getBuilder().CreateLoad(
+				function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0));
+			
+			llvm::BasicBlock* isLiveBB = function.createBasicBlock("is_live");
+			llvm::BasicBlock* isNotLiveBB = function.createBasicBlock("is_not_live");
+			
+			function.getBuilder().CreateCondBr(isLive, isLiveBB, isNotLiveBB);
+			
+			function.selectBasicBlock(isNotLiveBB);
+			function.getBuilder().CreateRetVoid();
+			
+			function.selectBasicBlock(isLiveBB);
+			
+			// Call the custom destructor function, if one exists.
 			if (parent->getObjectType()->hasDestructor()) {
 				llvm::Function* customDestructor =
 					genFunction(module, parent, parent->getObjectType()->getDestructor());

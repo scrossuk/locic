@@ -2,6 +2,7 @@
 
 #include <Locic/SEM.hpp>
 
+#include <Locic/CodeGen/Destructor.hpp>
 #include <Locic/CodeGen/Function.hpp>
 #include <Locic/CodeGen/GenFunction.hpp>
 #include <Locic/CodeGen/GenStatement.hpp>
@@ -135,6 +136,8 @@ namespace Locic {
 			
 			Function genFunction(module, *llvmFunction, getArgInfo(module, function));
 			
+			LifetimeScope lifetimeScope(genFunction);
+			
 			// Parameters need to be copied to the stack, so that it's
 			// possible to assign to them, take their address, etc.
 			const std::vector<SEM::Var*>& parameterVars = function->parameters();
@@ -147,7 +150,7 @@ namespace Locic {
 				llvm::Value* stackObject = genAlloca(genFunction, paramVar->type());
 				
 				// Store the initial value into the alloca.
-				genStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
+				genMoveStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
 				
 				genFunction.getLocalVarMap().insert(paramVar, stackObject);
 			}

@@ -19,6 +19,10 @@ namespace Locic {
 			
 			for (size_t i = 0; i < functions.size(); i++) {
 				SEM::Function* function = functions.at(i);
+				if (function->name().last().find("__") == 0) {
+					// Don't add 'special' methods to vtable.
+					continue;
+				}
 				hashMap.insert(CreateMethodNameHash(function->name().last()), function);
 			}
 			

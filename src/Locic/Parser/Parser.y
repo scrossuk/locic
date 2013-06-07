@@ -164,6 +164,7 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %token GREATEROREQUAL
 %token LESSOREQUAL
 %token QUESTIONMARK
+%token TILDA
 
 // ================ Non-Terminals ================
 %type <nameSpace> nameSpace
@@ -383,6 +384,10 @@ classFunctionDef:
 	staticFunctionDef
 	{
 		$$ = $1;
+	}
+	| TILDA scope
+	{
+		$$ = AST::Function::Destructor($2);
 	}
 	| functionDef
 	{

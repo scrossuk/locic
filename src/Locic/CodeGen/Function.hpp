@@ -22,6 +22,8 @@ namespace Locic {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
+		typedef std::vector< std::pair<SEM::Type*, llvm::Value*> > DestructorScope;
+		
 		class Function {
 			public:
 				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
@@ -106,12 +108,21 @@ namespace Locic {
 					return localVarMap_;
 				}
 				
+				inline std::vector<DestructorScope>& destructorScopeStack() {
+					return destructorScopeStack_;
+				}
+				
+				inline const std::vector<DestructorScope>& destructorScopeStack() const {
+					return destructorScopeStack_;
+				}
+				
 			private:
 				Module& module_;
 				llvm::Function& function_;
 				llvm::IRBuilder<> builder_;
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
+				std::vector<DestructorScope> destructorScopeStack_;
 				
 		};
 		

@@ -18,6 +18,8 @@ namespace Locic {
 	namespace CodeGen {
 	
 		void genScope(Function& function, const SEM::Scope& scope) {
+			LifetimeScope lifetimeScope(function);
+			
 			for (std::size_t i = 0; i < scope.localVariables().size(); i++) {
 				SEM::Var* localVar = scope.localVariables().at(i);
 				
@@ -30,18 +32,11 @@ namespace Locic {
 			for (std::size_t i = 0; i < scope.statements().size(); i++) {
 				genStatement(function, scope.statements().at(i));
 			}
-			
-			// Loop backwards through local variables, calling destructors.
-			for (std::size_t i = 0; i < scope.localVariables().size(); i++) {
-				SEM::Var* localVar = scope.localVariables().at(
-					scope.localVariables().size() - i - 1);
-				
-				llvm::Value* llvmValue = function.getLocalVarMap().get(localVar);
-				genDestructorCall(function, localVar->type(), llvmValue);
-			}
 		}
 		
 		void genStatement(Function& function, SEM::Statement* statement) {
+			LifetimeScope lifetimeScope(function);
+			
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
 					genValue(function, statement->getValue());
@@ -99,17 +94,20 @@ namespace Locic {
 				case SEM::Statement::ASSIGN: {
 					SEM::Value* lValue = statement->getAssignLValue();
 					SEM::Value* rValue = statement->getAssignRValue();
-					genStore(function, genValue(function, rValue), genValue(function, lValue, true), rValue->type());
+					genMoveStore(function, genValue(function, rValue), genValue(function, lValue, true), rValue->type());
 					break;
 				}
 				
 				case SEM::Statement::RETURN: {
+					// Call all destructors.
+					genAllScopeDestructorCalls(function);
+					
 					if (statement->getReturnValue() != NULL
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						llvm::Value* returnValue = genValue(function, statement->getReturnValue());
 						
 						if (function.getArgInfo().hasReturnVarArgument()) {
-							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							function.getBuilder().CreateRetVoid();
 						} else {
 							function.getBuilder().CreateRet(returnValue);

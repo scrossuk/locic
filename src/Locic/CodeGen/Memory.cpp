@@ -1,4 +1,6 @@
 #include <Locic/SEM.hpp>
+#include <Locic/CodeGen/ConstantGenerator.hpp>
+#include <Locic/CodeGen/Destructor.hpp>
 #include <Locic/CodeGen/Function.hpp>
 #include <Locic/CodeGen/GenType.hpp>
 #include <Locic/CodeGen/GenVTable.hpp>
@@ -10,9 +12,21 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
+		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			Module& module = function.getModule();
 			SEM::Type* type = module.resolveType(unresolvedType);
+			
+			if (!type->isClass()) {
+				return;
+			}
+			
+			(void) function.getBuilder().CreateStore(
+				ConstantGenerator(module).getNull(genType(module, type)),
+				value);
+		}
+		
+		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
+			Module& module = function.getModule();
 			llvm::Type* rawType = genType(module, type);
 			
 			switch (type->kind()) {
@@ -52,6 +66,21 @@ namespace Locic {
 					return NULL;
 				}
 			}
+		}
+		
+		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
+			Module& module = function.getModule();
+			SEM::Type* type = module.resolveType(unresolvedType);
+			
+			llvm::Value* alloca = genUnzeroedAlloca(function, type);
+			
+			// Zero allocated memory.
+			genZero(function, type, alloca);
+			
+			assert(!function.destructorScopeStack().empty());
+			function.destructorScopeStack().back().push_back(std::make_pair(type, alloca));
+			
+			return alloca;
 		}
 		
 		llvm::Value* genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
@@ -96,6 +125,17 @@ namespace Locic {
 					return NULL;
 				}
 			}
+		}
+		
+		void genMoveStore(Function& function, llvm::Value* source, llvm::Value* dest, SEM::Type* type) {
+			// Destroy existing value in destination.
+			genDestructorCall(function, type, dest);
+			
+			// Do store.
+			(void) genStore(function, source, dest, type);
+			
+			// Zero out source.
+			genZero(function, type, source);
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* unresolvedType) {
