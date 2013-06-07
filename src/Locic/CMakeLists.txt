@@ -44,7 +44,7 @@ copy_loci_source(Example1)
 copy_loci_source(Example2)
 
 add_custom_command(OUTPUT exampleProgram
-		COMMAND ./locic Example1.loci Example2.loci && clang -o exampleProgram output.bc
+		COMMAND ./locic Example1.loci Example2.loci && clang -o exampleProgram output.bc -lm
 		DEPENDS calculateVTable locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
 		
 add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)

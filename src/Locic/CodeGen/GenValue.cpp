@@ -604,7 +604,7 @@ namespace Locic {
 					llvm::FunctionType* asmFunctionType =
 						TypeGenerator(module).getFunctionType(voidType(),
 							std::vector<llvm::Type*>(1, TypeGenerator(module).getI32Type()));
-					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~eax", true);
+					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~{eax}", true);
 					function.getBuilder().CreateCall(setEax, std::vector<llvm::Value*>(1, methodHashValue));
 					
 					LOG(LOG_EXCESSIVE, "Creating interface method call.");

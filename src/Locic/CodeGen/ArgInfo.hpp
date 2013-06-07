@@ -17,6 +17,10 @@ namespace Locic {
 					return ArgInfo(false, false, 0);
 				}
 				
+				inline static ArgInfo ContextOnly() {
+					return ArgInfo(false, true, 0);
+				}
+				
 				inline ArgInfo(bool hRVA, bool hCA,
 							   size_t nSA)
 					: hasReturnVarArgument_(hRVA),

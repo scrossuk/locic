@@ -40,6 +40,10 @@ namespace Locic {
 				mangleName(module, "F", Name::Absolute() + methodName).c_str());
 		}
 		
+		std::string mangleDestructorName(const Module& module, SEM::Type* parentType) {
+			return mangleMethodName(module, parentType, "__destroy");
+		}
+		
 		std::string mangleType(const Module& module, SEM::Type* unresolvedType) {
 			assert(unresolvedType != NULL);
 			

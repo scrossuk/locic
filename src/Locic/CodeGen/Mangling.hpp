@@ -17,6 +17,8 @@ namespace Locic {
 		
 		std::string mangleMethodName(const Module& module, SEM::Type* parentType, const std::string& methodName);
 		
+		std::string mangleDestructorName(const Module& module, SEM::Type* parentType);
+		
 		std::string mangleType(const Module& module, SEM::Type* type);
 		
 		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments);

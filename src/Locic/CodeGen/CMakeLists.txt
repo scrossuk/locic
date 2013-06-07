@@ -1,5 +1,6 @@
 add_library(locic-codegen
 	CodeGen.cpp
+	Destructor.cpp
 	GenFunction.cpp
 	GenStatement.cpp
 	GenType.cpp

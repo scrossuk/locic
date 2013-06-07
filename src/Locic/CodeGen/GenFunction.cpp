@@ -15,12 +15,12 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* type) {
-			if (type == NULL) {
+		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* parentType) {
+			if (parentType == NULL) {
 				return llvm::Function::ExternalLinkage;
 			}
 			
-			return type->isClass()
+			return parentType->isClass()
 				? llvm::Function::ExternalLinkage
 				: llvm::Function::LinkOnceODRLinkage;
 		}

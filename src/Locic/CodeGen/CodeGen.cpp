@@ -219,6 +219,11 @@ namespace Locic {
 		}
 		
 		void CodeGenerator::applyOptimisations(size_t optLevel) {
+			if (optLevel == 0) {
+				// Don't touch the code if optimisations
+				// are set to zero; useful for debugging.
+				return;
+			}
 			Optimisations optimisations(*module_);
 			optimisations.addDefaultPasses(optLevel);
 			optimisations.run();

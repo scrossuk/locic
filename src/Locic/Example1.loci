@@ -139,10 +139,10 @@ int main(int argc, char ** argv){
 		}
 	}
 	
-	{
+	/*{
 		auto t = PolyClass<TestClass>(TestClass(0));
 		auto t2 = t.function(TestClass(1));
-	}
+	}*/
 	
 	int i = 0;
 	int * j = &i;

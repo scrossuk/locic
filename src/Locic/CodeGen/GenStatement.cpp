@@ -5,6 +5,7 @@
 #include <Locic/SEM.hpp>
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>
+#include <Locic/CodeGen/Destructor.hpp>
 #include <Locic/CodeGen/Function.hpp>
 #include <Locic/CodeGen/GenStatement.hpp>
 #include <Locic/CodeGen/GenValue.hpp>
@@ -28,6 +29,15 @@ namespace Locic {
 			
 			for (std::size_t i = 0; i < scope.statements().size(); i++) {
 				genStatement(function, scope.statements().at(i));
+			}
+			
+			// Loop backwards through local variables, calling destructors.
+			for (std::size_t i = 0; i < scope.localVariables().size(); i++) {
+				SEM::Var* localVar = scope.localVariables().at(
+					scope.localVariables().size() - i - 1);
+				
+				llvm::Value* llvmValue = function.getLocalVarMap().get(localVar);
+				genDestructorCall(function, localVar->type(), llvmValue);
 			}
 		}
 		

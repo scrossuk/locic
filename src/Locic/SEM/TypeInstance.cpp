@@ -50,6 +50,20 @@ namespace Locic {
 			assert(typeProperties_.implicitCopy == NULL);
 			typeProperties_.implicitCopy = function;
 		}
+		
+		bool TypeInstance::hasDestructor() const {
+			return typeProperties_.destructor != NULL;
+		}
+		
+		Function* TypeInstance::getDestructor() const {
+			assert(typeProperties_.destructor != NULL);
+			return typeProperties_.destructor;
+		}
+		
+		void TypeInstance::setDestructor(Function* function) {
+			assert(typeProperties_.destructor == NULL);
+			typeProperties_.destructor = function;
+		}
 	
 		/*bool TypeInstance::supportsNullConstruction() const {
 			const std::string functionName = "Null";

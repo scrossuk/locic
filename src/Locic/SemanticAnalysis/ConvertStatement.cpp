@@ -130,6 +130,10 @@ namespace Locic {
 						return NULL;
 					}
 					
+					SEM::Scope* semScope = context.node().getSEMScope();
+					assert(semScope != NULL);
+					semScope->localVariables().push_back(semVar);
+					
 					return SEM::Statement::Assign(SEM::Value::VarValue(semVar),
 							// The value being assigned must be an R-value.
 							ImplicitCast(semValue, varType->createRValueType()));

@@ -145,6 +145,12 @@ namespace Locic {
 				
 				void setImplicitCopy(Function* function);
 				
+				bool hasDestructor() const;
+				
+				Function* getDestructor() const;
+				
+				void setDestructor(Function* function);
+				
 				std::string refToString() const;
 				
 				std::string toString() const;
@@ -155,15 +161,17 @@ namespace Locic {
 				
 				struct TypeProperties{
 					bool isConstType;
-					Function * defaultConstructor;
-					Function * nullConstructor;
-					Function * implicitCopy;
+					Function* defaultConstructor;
+					Function* nullConstructor;
+					Function* implicitCopy;
+					Function* destructor;
 					
 					inline TypeProperties()
 						: isConstType(false),
 						defaultConstructor(NULL),
 						nullConstructor(NULL),
-						implicitCopy(NULL){ }
+						implicitCopy(NULL),
+						destructor(NULL) { }
 				} typeProperties_;
 				
 				std::vector<TemplateVar*> templateVariables_;
