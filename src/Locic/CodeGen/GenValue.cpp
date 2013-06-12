@@ -124,6 +124,24 @@ namespace Locic {
 					return genValue(function, value->copyValue.value);
 				}
 				
+				case SEM::Value::MOVE: {
+					assert(!genLValue && "Can't generate MOVE as lvalue.");
+					SEM::Value* semValue = value->moveValue.value;
+					llvm::Value* llvmLValue = genValue(function, semValue, true);
+					
+					// Allocate a temporary variable.
+					llvm::Value* llvmTmp = genAlloca(function, semValue->type());
+					
+					// Copy the lvalue's content to the temporary.
+					genMoveStore(function, genLoad(function, llvmLValue, semValue->type()), llvmTmp, semValue->type());
+					
+					// Zero the lvalue.
+					genZeroStore(function, llvmLValue, semValue->type());
+					
+					// Return the loaded temporary.
+					return genLoad(function, llvmTmp, semValue->type());
+				}
+				
 				case SEM::Value::VAR: {
 					SEM::Var* var = value->varValue.var;
 					
@@ -621,66 +639,6 @@ namespace Locic {
 					} else {
 						return callReturnValue;
 					}
-					
-					/*// Get the 'this' record, which is the
-					// pair of the 'this' pointer and the
-					// method vtable pointer.
-					llvm::Value* thisRecord = arg++;
-					
-					// Get the 'this' pointer.
-					llvm::Value* thisPointer = function.getBuilder().CreateExtractValue(thisRecord, std::vector<unsigned>(1, 0), "thisPointer");
-					
-					// Get the vtable pointer.
-					llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(thisRecord,
-												 std::vector<unsigned>(1, 1), "vtablePointer");
-												 
-					const MethodHash methodHash = CreateMethodNameHash(function->name().last());
-					const size_t offset = methodHash % VTABLE_SIZE;
-					
-					std::vector<llvm::Value*> vtableEntryGEP;
-					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0)));
-					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 2)));
-					vtableEntryGEP.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, offset)));
-					
-					llvm::Value* vtableEntryPointer = function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
-					llvm::Value* methodFunctionPointer = function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
-					llvm::Type* methodFunctionType = genFunctionType(function->type(), thisPointer->getType());
-					llvm::Value* castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
-								methodFunctionPointer, methodFunctionType->getPointerTo(), "castedMethodFunctionPointer");
-					std::vector<llvm::Value*> arguments;
-					
-					if (returnVar != NULL) {
-						arguments.push_back(returnVar);
-					}
-					
-					arguments.push_back(thisPointer);
-					
-					while (arg != generatedFunction->arg_end()) {
-						arguments.push_back(arg++);
-					}
-					
-					llvm::FunctionType* asmFunctionType = llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(), false);
-					const std::string assembly = makeString("movl $$%llu, %%eax",
-															(unsigned long long) methodHash);
-															
-					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, assembly, "~eax", true);
-					function.getBuilder().CreateCall(setEax);
-					
-					const bool isVoidReturnType = returnType->isVoid() || returnType->isClassOrTemplateVar();
-					
-					llvm::Value* methodCallValue = function.getBuilder().CreateCall(castedMethodFunctionPointer,
-												   arguments, isVoidReturnType ? "" : "methodCallValue");
-												   
-					if (isVoidReturnType) {
-						function.getBuilder().CreateRetVoid();
-					} else {
-						function.getBuilder().CreateRet(methodCallValue);
-					}
-					
-					LOG(LOG_INFO, "Interface method is:");
-					methodValue->dump();
-					assert(false && "TODO");
-					return NULL;*/
 				}
 				
 				default:

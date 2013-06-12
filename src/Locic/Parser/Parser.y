@@ -869,6 +869,10 @@ precision5:
 	{
 		$$ = AST::Value::Dereference($2);
 	}
+	| MOVE precision5
+	{
+		$$ = AST::Value::Move($2);
+	}
 	;
 	
 precision4:

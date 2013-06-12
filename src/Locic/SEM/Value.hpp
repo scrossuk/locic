@@ -20,6 +20,7 @@ namespace Locic {
 					NONE,
 					CONSTANT,
 					COPY,
+					MOVE,
 					VAR,
 					ADDRESSOF,
 					DEREF_POINTER,
@@ -47,6 +48,10 @@ namespace Locic {
 				struct {
 					Value* value;
 				} copyValue;
+				
+				struct {
+					Value* value;
+				} moveValue;
 				
 				struct {
 					Var* var;
@@ -145,6 +150,13 @@ namespace Locic {
 					Value* valueCopy = new Value(COPY, value->type()->getImplicitCopyType());
 					valueCopy->copyValue.value = value;
 					return valueCopy;
+				}
+				
+				inline static Value* MoveValue(Value* value) {
+					assert(value->type()->isLValue() && "Move operand must be lvalue.");
+					Value* moveValue = new Value(MOVE, value->type()->createRValueType());
+					moveValue->moveValue.value = value;
+					return moveValue;
 				}
 				
 				inline static Value* VarValue(Var* var) {

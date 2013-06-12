@@ -287,7 +287,7 @@ namespace Locic {
 						// Look for class methods.
 						const Node childNode = typeNode.getChild(memberName);
 						
-						if(childNode.isFunction()) {
+						if (childNode.isFunction()) {
 							SEM::Function* function = childNode.getSEMFunction();
 							
 							assert(function->isMethod());
@@ -315,6 +315,18 @@ namespace Locic {
 					
 					assert(false && "Invalid switch fallthrough in ConvertValue for member access");
 					return NULL;
+				}
+				case AST::Value::MOVE: {
+					assert(value->move.value != NULL);
+					SEM::Value* moveOperand = ConvertValue(context, value->move.value);
+					LOG(LOG_INFO, "Move operand is %s.", moveOperand->toString().c_str());
+					
+					if (!moveOperand->type()->isLValue()) {
+						throw TodoException(makeString("Can't move R-value '%s'.",
+							moveOperand->toString().c_str()));
+					}
+					
+					return SEM::Value::MoveValue(moveOperand);
 				}
 				case AST::Value::FUNCTIONCALL: {
 					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");

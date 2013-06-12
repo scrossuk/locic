@@ -9,6 +9,8 @@ namespace Locic {
 
 	namespace CodeGen {
 	
+		void genZeroStore(Function& function, llvm::Value* value, SEM::Type* type);
+		
 		llvm::Value* genAlloca(Function& function, SEM::Type* type);
 		
 		void genMoveStore(Function& function, llvm::Value* source, llvm::Value* dest, SEM::Type* type);

@@ -11,6 +11,13 @@
 namespace Locic {
 
 	namespace CodeGen {
+		
+		void genZeroStore(Function& function, llvm::Value* value, SEM::Type* type) {
+			Module& module = function.getModule();
+			(void) function.getBuilder().CreateStore(
+				ConstantGenerator(module).getNull(genType(module, type)),
+				value);
+		}
 	
 		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			Module& module = function.getModule();

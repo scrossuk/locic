@@ -20,6 +20,7 @@ namespace AST {
 			MEMBERREF,
 			ADDRESSOF,
 			DEREFERENCE,
+			MOVE,
 			TERNARY,
 			CAST,
 			INTERNALCONSTRUCT,
@@ -44,6 +45,10 @@ namespace AST {
 		struct Dereference {
 			Value* value;
 		} dereference;
+		
+		struct Move {
+			Value* value;
+		} move;
 		
 		struct {
 			Value* condition, * ifTrue, * ifFalse;
@@ -107,6 +112,12 @@ namespace AST {
 		inline static Value* Dereference(Value* operand) {
 			Value* value = new Value(DEREFERENCE);
 			value->dereference.value = operand;
+			return value;
+		}
+		
+		inline static Value* Move(Value* operand) {
+			Value* value = new Value(MOVE);
+			value->move.value = operand;
 			return value;
 		}
 		
