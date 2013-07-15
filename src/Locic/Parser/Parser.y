@@ -575,6 +575,10 @@ type:
 	{
 		$$ = $1;
 	}
+	| LVAL typePrecision0
+	{
+		$$ = AST::Type::Lval($2);
+	}
 	;
 	
 nonEmptyTypeList:

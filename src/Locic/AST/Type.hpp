@@ -12,6 +12,7 @@ namespace AST {
 			UNDEFINED,
 			VOID,
 			NULLT,
+			LVAL,
 			OBJECT,
 			POINTER,
 			REFERENCE,
@@ -22,6 +23,10 @@ namespace AST {
 		static const bool CONST = false;
 		
 		bool isMutable;
+		
+		struct {
+			Type* targetType;
+		} lvalType;
 		
 		struct {
 			Symbol symbol;
@@ -57,6 +62,12 @@ namespace AST {
 		
 		inline static Type* Void() {
 			return new Type(VOID, MUTABLE);
+		}
+		
+		inline static Type* Lval(Type* targetType) {
+			Type* type = new Type(LVAL, MUTABLE);
+			type->lvalType.targetType = targetType;
+			return type;
 		}
 		
 		inline static Type* Object(const Symbol& symbol) {

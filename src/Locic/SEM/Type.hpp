@@ -21,6 +21,7 @@ namespace Locic {
 				enum Kind {
 					VOID,
 					NULLT,
+					LVAL,
 					OBJECT,
 					POINTER,
 					REFERENCE,
@@ -46,6 +47,13 @@ namespace Locic {
 				inline static Type* Null() {
 					// Null is a 'const type', meaning it is always const.
 					return new Type(NULLT, CONST, RVALUE);
+				}
+				
+				inline static Type* Lval(Type* targetType) {
+					assert(targetType != NULL);
+					Type* type = new Type(LVAL, MUTABLE, LVALUE);
+					type->lvalType_.targetType = targetType;
+					return type;
 				}
 				
 				inline static Type* Object(bool isMutable, bool isLValue, TypeInstance* typeInstance,
@@ -142,6 +150,10 @@ namespace Locic {
 					return kind() == NULLT;
 				}
 				
+				inline bool isLval() const {
+					return kind() == LVAL;
+				}
+				
 				inline bool isPointer() const {
 					return kind() == POINTER;
 				}
@@ -187,13 +199,18 @@ namespace Locic {
 					return interfaceMethodType_.functionType;
 				}
 				
+				inline Type* getLvalTarget() const {
+					assert(isLval() && "Cannot get target type of non-lval type.");
+					return lvalType_.targetType;
+				}
+				
 				inline Type* getPointerTarget() const {
-					assert(isPointer() && "Cannot get target type of non-pointer type");
+					assert(isPointer() && "Cannot get target type of non-pointer type.");
 					return pointerType_.targetType;
 				}
 				
 				inline Type* getReferenceTarget() const {
-					assert(isReference() && "Cannot get target type of non-reference type");
+					assert(isReference() && "Cannot get target type of non-reference type.");
 					return referenceType_.targetType;
 				}
 				
@@ -297,6 +314,10 @@ namespace Locic {
 				Kind kind_;
 				bool isMutable_;
 				bool isLValue_;
+				
+				struct {
+					Type* targetType;
+				} lvalType_;
 				
 				struct {
 					TypeInstance* typeInstance;

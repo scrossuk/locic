@@ -96,24 +96,14 @@ bool isZero(is_zero_interface& v){
 	return v.isZero();
 }
 
-void testFn() {
-	auto firstTestClass = TestClass(1000);
-	printf("Statement1.\n"C);
-	auto f = move firstTestClass;
-	printf("Statement2.\n"C);
-	
-	int i = 2;
-	int j = move i;
-	printf("Values are (%d, %d).\n"C, i, j);
-}
-
 int main(int argc, char ** argv){
-	testFn();
-	
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
+	
+	//int lvalTestTarget = 0;
+	//lval int lvalTest = lvalTestTarget;
 	
 	//char * argv0 = argv[0];
 	

@@ -41,6 +41,9 @@ namespace Locic {
 				case NULLT: {
 					return Null();
 				}
+				case LVAL: {
+					return Lval(getLvalTarget()->substitute(templateVarMap));
+				}
 				case OBJECT: {
 					std::vector<Type*> templateArgs;
 					for(size_t i = 0; i < templateArguments().size(); i++){
@@ -112,6 +115,7 @@ namespace Locic {
 			switch(kind()) {
 				case VOID:
 				case NULLT:
+				case LVAL:
 				case POINTER:
 				case REFERENCE:
 				case FUNCTION:
@@ -134,6 +138,7 @@ namespace Locic {
 			switch(kind()) {
 				case VOID:
 				case NULLT:
+				case LVAL:
 				case POINTER:
 				case REFERENCE:
 				case FUNCTION:
@@ -161,6 +166,10 @@ namespace Locic {
 				}
 				case NULLT: {
 					return "NullType()";
+				}
+				case LVAL: {
+					return makeString("LvalType(%s)",
+							getLvalTarget()->nameToString().c_str());
 				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
@@ -194,6 +203,10 @@ namespace Locic {
 				}
 				case NULLT: {
 					return "NullType()";
+				}
+				case LVAL: {
+					return makeString("LvalType(%s)",
+							getLvalTarget()->toString().c_str());
 				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
@@ -254,6 +267,9 @@ namespace Locic {
 				case SEM::Type::VOID:
 				case SEM::Type::NULLT: {
 					return true;
+				}
+				case SEM::Type::LVAL: {
+					return *(getLvalTarget()) == *(type.getLvalTarget());
 				}
 				case SEM::Type::OBJECT: {
 					return getObjectType() == type.getObjectType();

@@ -75,6 +75,10 @@ namespace Locic {
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
 				}
+				case AST::Type::LVAL: {
+					assert(isLValue);
+					return SEM::Type::Lval(ConvertType(context, type->lvalType.targetType, SEM::Type::LVALUE));
+				}
 				case AST::Type::OBJECT: {
 					const AST::Symbol& symbol = type->objectType.symbol;
 					assert(!symbol.empty());
