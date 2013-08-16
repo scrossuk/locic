@@ -18,9 +18,6 @@ namespace AST {
 			CONSTANT,
 			SYMBOLREF,
 			MEMBERREF,
-			ADDRESSOF,
-			DEREFERENCE,
-			MOVE,
 			TERNARY,
 			CAST,
 			INTERNALCONSTRUCT,
@@ -37,18 +34,6 @@ namespace AST {
 		struct {
 			std::string name;
 		} memberRef;
-		
-		struct AddressOf {
-			Value* value;
-		} addressOf;
-		
-		struct Dereference {
-			Value* value;
-		} dereference;
-		
-		struct Move {
-			Value* value;
-		} move;
 		
 		struct {
 			Value* condition, * ifTrue, * ifFalse;
@@ -100,24 +85,6 @@ namespace AST {
 		inline static Value* MemberRef(const std::string& name) {
 			Value* value = new Value(MEMBERREF);
 			value->memberRef.name = name;
-			return value;
-		}
-		
-		inline static Value* AddressOf(Value* operand) {
-			Value* value = new Value(ADDRESSOF);
-			value->addressOf.value = operand;
-			return value;
-		}
-		
-		inline static Value* Dereference(Value* operand) {
-			Value* value = new Value(DEREFERENCE);
-			value->dereference.value = operand;
-			return value;
-		}
-		
-		inline static Value* Move(Value* operand) {
-			Value* value = new Value(MOVE);
-			value->move.value = operand;
 			return value;
 		}
 		

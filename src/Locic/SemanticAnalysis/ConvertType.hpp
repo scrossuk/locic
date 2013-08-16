@@ -15,7 +15,7 @@ namespace Locic {
 		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Symbol& symbol);
 	
 		// Convert a type annotation to a semantic type definition.
-		SEM::Type* ConvertType(Context& context, AST::Type* type, bool isLValue);
+		SEM::Type* ConvertType(Context& context, AST::Type* type);
 		
 	}
 	

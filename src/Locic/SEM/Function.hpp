@@ -39,9 +39,10 @@ namespace Locic {
 					// Parameter types need to be substituted.
 					std::vector<SEM::Var*> substitutedParam;
 					for(size_t i = 0; i < parameters().size(); i++){
-						assert(parameters().at(i)->kind() == Var::PARAM);
+						SEM::Var* originalParam = parameters().at(i);
+						assert(originalParam->kind() == Var::PARAM);
 						substitutedParam.push_back(Var::Param(
-							parameters().at(i)->type()->substitute(templateVarMap)));
+							originalParam->type()->substitute(templateVarMap)));
 					}
 					
 					return Decl(isMethod(), isStatic(),

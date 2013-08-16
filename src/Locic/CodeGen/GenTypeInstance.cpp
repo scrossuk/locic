@@ -34,8 +34,7 @@ namespace Locic {
 			
 			if (typeInstance->isClassDef() || typeInstance->isStructDef()) {
 				const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap =
-					SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE,
-						typeInstance, templateArguments)->generateTemplateVarMap();
+					SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, templateArguments)->generateTemplateVarMap();
 				
 				TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 				

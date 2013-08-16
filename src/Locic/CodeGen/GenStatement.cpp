@@ -91,13 +91,6 @@ namespace Locic {
 					break;
 				}
 				
-				case SEM::Statement::ASSIGN: {
-					SEM::Value* lValue = statement->getAssignLValue();
-					SEM::Value* rValue = statement->getAssignRValue();
-					genMoveStore(function, genValue(function, rValue), genValue(function, lValue, true), rValue->type());
-					break;
-				}
-				
 				case SEM::Statement::RETURN: {
 					// Call all destructors.
 					genAllScopeDestructorCalls(function);

@@ -7,6 +7,7 @@
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/Exception.hpp>
+#include <Locic/SemanticAnalysis/Lval.hpp>
 
 namespace Locic {
 
@@ -25,7 +26,7 @@ namespace Locic {
 			
 			const Name functionName = context.name() + astFunction->name;
 			
-			if(returnType->typeEnum == AST::Type::UNDEFINED) {
+			if (returnType->typeEnum == AST::Type::UNDEFINED) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
@@ -33,25 +34,18 @@ namespace Locic {
 				
 				const bool isMutable = true;
 				
-				// Return types are always rvalues.
-				const bool isLValue = false;
-				
 				std::vector<SEM::Type*> templateVars;
 				
 				// The parent class type needs to include the template arguments.
 				for(size_t i = 0; i < thisTypeInstance->templateVariables().size(); i++){
 					SEM::TemplateVar * templateVar = thisTypeInstance->templateVariables().at(i);
 					assert(i == templateVars.size());
-					templateVars.push_back(SEM::Type::TemplateVarRef(
-							SEM::Type::MUTABLE, SEM::Type::LVALUE,
-							templateVar));
+					templateVars.push_back(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar));
 				}
 				
-				semReturnType = SEM::Type::Object(isMutable, isLValue, thisTypeInstance,
-						templateVars);
+				semReturnType = SEM::Type::Object(isMutable, thisTypeInstance, templateVars);
 			} else {
-				// Return types are always rvalues.
-				semReturnType = ConvertType(context, returnType, SEM::Type::RVALUE);
+				semReturnType = ConvertType(context, returnType);
 			}
 			
 			std::vector<SEM::Var*> parameterVars;
@@ -60,26 +54,32 @@ namespace Locic {
 			std::vector<AST::TypeVar*>::const_iterator it;
 			
 			for(size_t i = 0; i < astFunction->parameters.size(); i++) {
-				AST::TypeVar* astVar = astFunction->parameters.at(i);
-				AST::Type* astParamType = astVar->type;
+				AST::TypeVar* astTypeVar = astFunction->parameters.at(i);
+				AST::Type* astParamType = astTypeVar->type;
 				
-				// Parameter types are always lvalues.
-				SEM::Type* semParamType = ConvertType(context, astParamType, SEM::Type::LVALUE);
+				SEM::Type* semParamType = ConvertType(context, astParamType);
 				
 				if(semParamType->isVoid()) {
-					throw ParamVoidTypeException(functionName, astVar->name);
+					throw ParamVoidTypeException(functionName, astTypeVar->name);
 				}
 				
 				parameterTypes.push_back(semParamType);
 				
-				parameterVars.push_back(SEM::Var::Param(semParamType));
+				// TODO: add support for lval parameter variables.
+				assert(!astTypeVar->usesCustomLval);
+				
+				// TODO: implement 'final'.
+				const bool isLvalMutable = SEM::Type::MUTABLE;
+					
+				SEM::Type* lvalType = makeLvalType(context, astTypeVar->usesCustomLval, isLvalMutable, semParamType);
+				
+				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}
 			
 			const bool isMethod = (thisTypeInstance != NULL);
 			const bool isStatic = (!isMethod || !astFunction->isMethod);
 			
-			SEM::Type* functionType = SEM::Type::Function(SEM::Type::RVALUE,
-				astFunction->isVarArg, semReturnType, parameterTypes);
+			SEM::Type* functionType = SEM::Type::Function(astFunction->isVarArg, semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(isMethod, isStatic,
 				functionType, functionName, parameterVars);

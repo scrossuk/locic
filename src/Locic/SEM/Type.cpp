@@ -41,21 +41,15 @@ namespace Locic {
 				case NULLT: {
 					return Null();
 				}
-				case LVAL: {
-					return Lval(getLvalTarget()->substitute(templateVarMap));
-				}
 				case OBJECT: {
 					std::vector<Type*> templateArgs;
 					for(size_t i = 0; i < templateArguments().size(); i++){
 						templateArgs.push_back(templateArguments().at(i)->substitute(templateVarMap));
 					}
-					return Object(isMutable(), isLValue(), getObjectType(), templateArgs);
-				}
-				case POINTER: {
-					return Pointer(isMutable(), isLValue(), getPointerTarget()->substitute(templateVarMap));
+					return Object(isMutable(), getObjectType(), templateArgs);
 				}
 				case REFERENCE: {
-					return Reference(isLValue(), getReferenceTarget()->substitute(templateVarMap));
+					return Reference(getReferenceTarget()->substitute(templateVarMap));
 				}
 				case FUNCTION: {
 					std::vector<Type*> args;
@@ -65,24 +59,24 @@ namespace Locic {
 					
 					Type* returnType = getFunctionReturnType()->substitute(templateVarMap);
 					
-					return Function(isLValue(), isFunctionVarArg(), returnType, args);
+					return Function(isFunctionVarArg(), returnType, args);
 				}
 				case METHOD: {
 					Type* functionType = getMethodFunctionType()->substitute(templateVarMap);
 					
-					return Method(isLValue(), functionType);
+					return Method(functionType);
 				}
 				case INTERFACEMETHOD: {
 					Type* functionType = getInterfaceMethodFunctionType()->substitute(templateVarMap);
 					
-					return InterfaceMethod(isLValue(), functionType);
+					return InterfaceMethod(functionType);
 				}
 				case TEMPLATEVAR: {
 					Optional<Type*> substituteType = templateVarMap.tryGet(getTemplateVar());
 					if(substituteType.hasValue()){
-						return substituteType.getValue()->copyType(isMutable(), isLValue());
+						return substituteType.getValue()->copyType(isMutable());
 					}else{
-						return TemplateVarRef(isMutable(), isLValue(), getTemplateVar());
+						return TemplateVarRef(isMutable(), getTemplateVar());
 					}
 				}
 				default:
@@ -92,12 +86,8 @@ namespace Locic {
 		}
 		
 		Type* Type::createTransitiveConstType() const {
-			if(isPointer()) {
-				return Type::Pointer(CONST, isLValue(),
-						getReferenceTarget()->createTransitiveConstType());
-			} else if(isReference()) {
-				return Type::Reference(isLValue(),
-						getReferenceTarget()->createTransitiveConstType());
+			if(isReference()) {
+				return Type::Reference(getReferenceTarget()->createTransitiveConstType());
 			} else if(isObject()) {
 				std::vector<Type*> constArguments;
 				const std::vector<Type*>& templateArgs = templateArguments();
@@ -105,7 +95,7 @@ namespace Locic {
 					constArguments.push_back(
 						templateArgs.at(i)->createTransitiveConstType());
 				}
-				return Type::Object(CONST, isLValue(), getObjectType(), constArguments);
+				return Type::Object(CONST, getObjectType(), constArguments);
 			} else {
 				return createConstType();
 			}
@@ -115,8 +105,6 @@ namespace Locic {
 			switch(kind()) {
 				case VOID:
 				case NULLT:
-				case LVAL:
-				case POINTER:
 				case REFERENCE:
 				case FUNCTION:
 				case METHOD:
@@ -138,15 +126,11 @@ namespace Locic {
 			switch(kind()) {
 				case VOID:
 				case NULLT:
-				case LVAL:
-				case POINTER:
 				case REFERENCE:
 				case FUNCTION:
 				case METHOD: {
 					// Built in types retain their 'constness' in copying.
-					// However, all except pointers are const types
-					// anyway, so this essentially has no effect for them.
-					return createRValueType();
+					return new Type(*this);
 				}
 				case OBJECT:
 					// Object types may or may not retain 'constness'.
@@ -167,17 +151,10 @@ namespace Locic {
 				case NULLT: {
 					return "NullType()";
 				}
-				case LVAL: {
-					return makeString("LvalType(%s)",
-							getLvalTarget()->nameToString().c_str());
-				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),
 							makeNameArrayString(templateArguments()).c_str());
-				case POINTER:
-					return makeString("PointerType(%s)",
-							getPointerTarget()->nameToString().c_str());
 				case REFERENCE:
 					return makeString("ReferenceType(%s)",
 							getReferenceTarget()->nameToString().c_str());
@@ -204,17 +181,10 @@ namespace Locic {
 				case NULLT: {
 					return "NullType()";
 				}
-				case LVAL: {
-					return makeString("LvalType(%s)",
-							getLvalTarget()->toString().c_str());
-				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),
 							makeArrayString(templateArguments()).c_str());
-				case POINTER:
-					return makeString("PointerType(%s)",
-							getPointerTarget()->toString().c_str());
 				case REFERENCE:
 					return makeString("ReferenceType(%s)",
 							getReferenceTarget()->toString().c_str());
@@ -234,21 +204,12 @@ namespace Locic {
 			}
 		}
 		
-		std::string Type::constToString() const {
+		std::string Type::toString() const {
 			if(isMutable()) {
 				return basicToString();
 			} else {
 				return makeString("Const(%s)",
 						basicToString().c_str());
-			}
-		}
-		
-		std::string Type::toString() const {
-			if(isLValue()) {
-				return makeString("LValue(%s)",
-						constToString().c_str());
-			} else {
-				return constToString();
 			}
 		}
 		
@@ -258,29 +219,22 @@ namespace Locic {
 			}
 			
 			if(kind() != type.kind()
-					|| isMutable() != type.isMutable()
-					|| isLValue() != type.isLValue()) {
+					|| isMutable() != type.isMutable()) {
 				return false;
 			}
 			
 			switch(kind_) {
-				case SEM::Type::VOID:
-				case SEM::Type::NULLT: {
+				case VOID:
+				case NULLT: {
 					return true;
 				}
-				case SEM::Type::LVAL: {
-					return *(getLvalTarget()) == *(type.getLvalTarget());
-				}
-				case SEM::Type::OBJECT: {
+				case OBJECT: {
 					return getObjectType() == type.getObjectType();
 				}
-				case SEM::Type::POINTER: {
-					return *(getPointerTarget()) == *(type.getPointerTarget());
-				}
-				case SEM::Type::REFERENCE: {
+				case REFERENCE: {
 					return *(getReferenceTarget()) == *(type.getReferenceTarget());
 				}
-				case SEM::Type::FUNCTION: {
+				case FUNCTION: {
 					const std::vector<Type*>& firstList = getFunctionParameterTypes();
 					const std::vector<Type*>& secondList = type.getFunctionParameterTypes();
 					
@@ -297,10 +251,10 @@ namespace Locic {
 					return *(getFunctionReturnType()) == *(type.getFunctionReturnType())
 						   && isFunctionVarArg() == type.isFunctionVarArg();
 				}
-				case SEM::Type::METHOD: {
+				case METHOD: {
 					return *(getMethodFunctionType()) == *(type.getMethodFunctionType());
 				}
-				case SEM::Type::TEMPLATEVAR: {
+				case TEMPLATEVAR: {
 					return getTemplateVar() == type.getTemplateVar();
 				}
 				default:

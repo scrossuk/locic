@@ -83,8 +83,7 @@ namespace Locic {
 			const std::vector<SEM::Function*>& functions = typeInstance->functions();
 			
 			SEM::Type* objectType =
-				SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE,
-					typeInstance, std::vector<SEM::Type*>());
+				SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, std::vector<SEM::Type*>());
 			
 			for (size_t i = 0; i < functions.size(); i++) {
 				(void) genFunction(module, objectType, functions.at(i));

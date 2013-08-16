@@ -14,7 +14,7 @@ namespace Locic {
 		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
 			llvm::FunctionType* functionType =
 				TypeGenerator(module).getFunctionType(
-					getPrimitiveType(module, "size_t"),
+					getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()),
 					std::vector<llvm::Type*>());
 					
 			llvm::Function* llvmFunction = createLLVMFunction(module,
@@ -67,11 +67,6 @@ namespace Locic {
 				
 				case SEM::Type::OBJECT: {
 					return function.getBuilder().CreateCall(genSizeOfFunction(module, type));
-				}
-				
-				case SEM::Type::POINTER: {
-					const size_t multiplier = type->getPointerTarget()->isInterface() ? 2 : 1;
-					return ConstantGenerator(module).getSize(multiplier * targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::REFERENCE: {

@@ -8,6 +8,7 @@
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/Memory.hpp>
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/TargetInfo.hpp>
@@ -43,7 +44,10 @@ namespace Locic {
 				   methodName == "isZero" ||
 				   methodName == "isPositive" ||
 				   methodName == "isNegative" ||
-				   methodName == "abs";
+				   methodName == "abs" ||
+				   methodName == "opAddress" ||
+				   methodName == "opDeref" ||
+				   methodName == "opMove";
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
@@ -52,7 +56,8 @@ namespace Locic {
 				   methodName == "multiply" ||
 				   methodName == "divide" ||
 				   methodName == "modulo" ||
-				   methodName == "compare";
+				   methodName == "compare" ||
+				   methodName == "opAssign";
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
@@ -263,6 +268,87 @@ namespace Locic {
 			function.verify();
 		}
 		
+		void createPtrPrimitiveMethod(Module& module, const std::string& methodName, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			
+			llvm::IRBuilder<>& builder = function.getBuilder();
+			
+			llvm::Value* methodOwner = builder.CreateLoad(function.getContextValue());
+			
+			if (isUnaryOp(methodName)) {
+				if (methodName == "opDeref") {
+					builder.CreateRet(methodOwner);
+				} else {
+					assert(false && "Unknown primitive unary op.");
+				}
+			} else if (isBinaryOp(methodName)) {
+				// TODO: implement addition and subtraction.
+				llvm::Value* operand = function.getArg(0);
+				(void) operand;
+				
+				{
+					assert(false && "Unknown primitive binary op.");
+				}
+			} else {
+				LOG(LOG_INFO, "Unknown primitive method: ptr::%s.", methodName.c_str());
+				assert(false && "Unknown primitive method.");
+			}
+			
+			LOG(LOG_INFO, "Generated primitive method:");
+			llvmFunction.dump();
+			
+			// Check the generated function is correct.
+			function.verify();
+		}
+		
+		void createValueLvalPrimitiveMethod(Module& module, const std::string& methodName, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			
+			llvm::IRBuilder<>& builder = function.getBuilder();
+			
+			if (isUnaryOp(methodName)) {
+				if (methodName == "opAddress") {
+					builder.CreateRet(function.getContextValue());
+				} else if (methodName == "opMove") {
+					if (function.getArgInfo().hasReturnVarArgument()) {
+						assert(false && "TODO");
+						// genMoveStore(function, function.getContextValue(), function.getReturnVar());
+						builder.CreateRetVoid();
+					} else {
+						builder.CreateRet(builder.CreateLoad(function.getContextValue()));
+					}
+				} else if (methodName == "opReference") {
+					builder.CreateRet(function.getContextValue());
+				} else {
+					assert(false && "Unknown primitive unary op.");
+				}
+			} else if (isBinaryOp(methodName)) {
+				llvm::Value* operand = function.getArg(0);
+				(void) operand;
+				
+				if (methodName == "opAssign") {
+					assert(false && "TODO");
+					// genMoveStore(function, operand, function.getContextValue());
+					builder.CreateRetVoid();
+				} else {
+					assert(false && "Unknown primitive binary op.");
+				}
+			} else {
+				LOG(LOG_INFO, "Unknown primitive method: value_lval::%s.", methodName.c_str());
+				assert(false && "Unknown primitive method.");
+			}
+			
+			LOG(LOG_INFO, "Generated primitive method:");
+			llvmFunction.dump();
+			
+			// Check the generated function is correct.
+			function.verify();
+		}
+		
 		void createPrimitiveMethod(Module& module, const std::string& typeName, const std::string& methodName, llvm::Function& llvmFunction) {
 			if (typeName == "bool") {
 				createBoolPrimitiveMethod(module, methodName, llvmFunction);
@@ -270,12 +356,16 @@ namespace Locic {
 				createSignedIntegerPrimitiveMethod(module, typeName, methodName, llvmFunction);
 			} else if (isFloatType(typeName)) {
 				createFloatPrimitiveMethod(module, typeName, methodName, llvmFunction);
+			} else if(typeName == "ptr") {
+				createPtrPrimitiveMethod(module, methodName, llvmFunction);
+			} else if(typeName == "value_lval") {
+				createValueLvalPrimitiveMethod(module, methodName, llvmFunction);
 			} else {
 				assert(false && "TODO");
 			}
 		}
 		
-		llvm::Type* getPrimitiveType(const Module& module, const std::string& name) {
+		llvm::Type* getPrimitiveType(const Module& module, const std::string& name, const std::vector<llvm::Type*>& templateArguments) {
 			if (name == "bool") {
 				return TypeGenerator(module).getI1Type();
 			}
@@ -297,6 +387,23 @@ namespace Locic {
 			
 			if (name == "longdouble") {
 				return TypeGenerator(module).getLongDoubleType();
+			}
+			
+			if (name == "ptr") {
+				assert(templateArguments.size() == 1);
+				llvm::Type* targetType = templateArguments.at(0);
+				if (targetType->isVoidTy()) {
+					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
+					return TypeGenerator(module).getI8PtrType();
+				} else {
+					return targetType->getPointerTo();
+				}
+			}
+			
+			if (name == "value_lval") {
+				assert(templateArguments.size() == 1);
+				llvm::Type* targetType = templateArguments.at(0);
+				return targetType;
 			}
 			
 			assert(false && "Unrecognised primitive type");

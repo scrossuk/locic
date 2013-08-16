@@ -20,10 +20,7 @@ namespace Locic {
 					NONE,
 					CONSTANT,
 					COPY,
-					MOVE,
 					VAR,
-					ADDRESSOF,
-					DEREF_POINTER,
 					REFERENCEOF,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -50,20 +47,8 @@ namespace Locic {
 				} copyValue;
 				
 				struct {
-					Value* value;
-				} moveValue;
-				
-				struct {
 					Var* var;
 				} varValue;
-				
-				struct {
-					Value* value;
-				} addressOf;
-				
-				struct {
-					Value* value;
-				} derefPointer;
 				
 				struct {
 					Value* value;
@@ -152,38 +137,16 @@ namespace Locic {
 					return valueCopy;
 				}
 				
-				inline static Value* MoveValue(Value* value) {
-					assert(value->type()->isLValue() && "Move operand must be lvalue.");
-					Value* moveValue = new Value(MOVE, value->type()->createRValueType());
-					moveValue->moveValue.value = value;
-					return moveValue;
-				}
-				
 				inline static Value* VarValue(Var* var) {
-					assert(var->type()->isLValue());
 					Value* value = new Value(VAR, var->type());
 					value->varValue.var = var;
 					return value;
 				}
 				
-				inline static Value* AddressOf(Value* operand) {
-					assert(operand->type()->isLValue());
-					Value* value = new Value(ADDRESSOF,
-							SEM::Type::Pointer(SEM::Type::MUTABLE, SEM::Type::RVALUE, operand->type()));
-					value->addressOf.value = operand;
-					return value;
-				}
-				
-				inline static Value* DerefPointer(Value* operand) {
-					Value* value = new Value(DEREF_POINTER, operand->type()->getPointerTarget());
-					value->derefPointer.value = operand;
-					return value;
-				}
-				
 				inline static Value* ReferenceOf(Value* operand) {
-					assert(operand->type()->isLValue());
+					// TODO: fix this...
 					Value* value = new Value(REFERENCEOF,
-							SEM::Type::Reference(SEM::Type::RVALUE, operand->type()));
+							SEM::Type::Reference(operand->type()));
 					value->referenceOf.value = operand;
 					return value;
 				}
@@ -221,11 +184,10 @@ namespace Locic {
 					std::vector<Type*> templateArguments;
 					for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
 						templateArguments.push_back(Type::TemplateVarRef(
-							SEM::Type::MUTABLE, SEM::Type::LVALUE,
-							typeInstance->templateVariables().at(i)));
+							SEM::Type::MUTABLE, typeInstance->templateVariables().at(i)));
 					}
 					
-					Type* type = Type::Object(Type::MUTABLE, Type::RVALUE, typeInstance, templateArguments);
+					Type* type = Type::Object(Type::MUTABLE, typeInstance, templateArguments);
 					Value* value = new Value(INTERNALCONSTRUCT, type);
 					value->internalConstruct.parameters = parameters;
 					return value;
@@ -260,8 +222,7 @@ namespace Locic {
 						methodOwner->type()->isTemplateVar());
 					assert(!methodOwner->type()->isInterface());
 					Value* value = new Value(METHODOBJECT,
-						SEM::Type::Method(SEM::Type::RVALUE,
-							method->type()));
+						SEM::Type::Method(method->type()));
 					value->methodObject.method = method;
 					value->methodObject.methodOwner = methodOwner;
 					return value;
@@ -280,8 +241,7 @@ namespace Locic {
 					assert(method->type()->isFunction());
 					assert(methodOwner->type()->isInterface());
 					Value* value = new Value(INTERFACEMETHODOBJECT,
-						SEM::Type::InterfaceMethod(SEM::Type::RVALUE,
-							method->type()));
+						SEM::Type::InterfaceMethod(method->type()));
 					value->interfaceMethodObject.method = method;
 					value->interfaceMethodObject.methodOwner = methodOwner;
 					return value;

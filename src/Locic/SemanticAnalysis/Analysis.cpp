@@ -11,6 +11,7 @@
 #include <Locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/Exception.hpp>
+#include <Locic/SemanticAnalysis/Lval.hpp>
 
 namespace Locic {
 
@@ -191,7 +192,7 @@ namespace Locic {
 		void AddTypeMemberVariables(Context& context) {
 			Node& node = context.node();
 			
-			if(node.isTypeInstance()){
+			if (node.isTypeInstance()) {
 				AST::TypeInstance * astTypeInstance = node.getASTTypeInstance();
 				if(astTypeInstance->variables.empty()) return;
 				
@@ -202,21 +203,29 @@ namespace Locic {
 				SEM::TypeInstance * semTypeInstance = node.getSEMTypeInstance();
 				
 				for(std::size_t i = 0; i < astTypeInstance->variables.size(); i++) {
-					AST::TypeVar* typeVar = astTypeInstance->variables.at(i);
-					SEM::Type* semType = ConvertType(context, typeVar->type, SEM::Type::LVALUE);
+					AST::TypeVar* astTypeVar = astTypeInstance->variables.at(i);
+					SEM::Type* semType = ConvertType(context, astTypeVar->type);
 					
-					SEM::Var* var = SEM::Var::Member(semType);
+					// TODO: support lval member variables.
+					assert(!astTypeVar->usesCustomLval);
 					
-					const Node memberNode = Node::Variable(typeVar, var);
+					// TODO: implement 'final'.
+					const bool isLvalMutable = SEM::Type::MUTABLE;
 					
-					if(!node.tryAttach(typeVar->name, memberNode)){
+					SEM::Type* lvalType = makeLvalType(context, astTypeVar->usesCustomLval, isLvalMutable, semType);
+					
+					SEM::Var* var = SEM::Var::Member(lvalType);
+					
+					const Node memberNode = Node::Variable(astTypeVar, var);
+					
+					if(!node.tryAttach(astTypeVar->name, memberNode)){
 						throw MemberVariableClashException(context.name() + astTypeInstance->name,
-							typeVar->name);
+							astTypeVar->name);
 					}
 					
 					semTypeInstance->variables().push_back(var);
 				}
-			}else{
+			} else {
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
 			 		Context newContext(context, range.front().key(), range.front().value());
 					AddTypeMemberVariables(newContext);
@@ -341,8 +350,7 @@ namespace Locic {
 			 		if(childNode.isTemplateVar()){
 			 			AST::Type * astSpecType = childNode.getASTTemplateVar()->specType;
 			 			if(astSpecType != NULL){
-			 				SEM::Type* semSpecType = ConvertType(context,
-								astSpecType, SEM::Type::LVALUE);
+			 				SEM::Type* semSpecType = ConvertType(context, astSpecType);
 							
 							Node templateVarTypeInstanceNode = childNode.getChild("#spectype");
 							assert(templateVarTypeInstanceNode.isNotNone());

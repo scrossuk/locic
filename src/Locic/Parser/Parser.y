@@ -555,7 +555,8 @@ typePrecision1:
 	}
 	| typePrecision1 STAR
 	{
-		$$ = AST::Type::Pointer($1);
+		// Create 'ptr<TYPE>'.
+		$$ = AST::Type::Object(AST::Symbol(AST::Symbol::Absolute() + AST::SymbolElement("ptr", std::vector<AST::Type*>(1, $1))));
 	}
 	;
 
@@ -566,6 +567,7 @@ typePrecision0:
 	}
 	| typePrecision1 AMPERSAND
 	{
+		// Still a built-in type until virtual typenames are implemented.
 		$$ = AST::Type::Reference($1);
 	}
 	;
@@ -574,10 +576,6 @@ type:
 	typePrecision0
 	{
 		$$ = $1;
-	}
-	| LVAL typePrecision0
-	{
-		$$ = AST::Type::Lval($2);
 	}
 	;
 	
@@ -607,7 +605,13 @@ typeList:
 typeVar:
 	type NAME
 	{
-		$$ = new AST::TypeVar($1, *($2));
+		const bool usesCustomLval = false;
+		$$ = new AST::TypeVar($1, *($2), usesCustomLval);
+	}
+	| LVAL type NAME
+	{
+		const bool usesCustomLval = true;
+		$$ = new AST::TypeVar($2, *($3), usesCustomLval);
 	}
 	;
 	
@@ -725,7 +729,13 @@ scopedStatement:
 normalStatement:
 	AUTO NAME SETEQUAL value
 	{
-		$$ = AST::Statement::AutoVarDecl(*($2), $4);
+		const bool usesCustomLval = false;
+		$$ = AST::Statement::AutoVarDecl(usesCustomLval, *($2), $4);
+	}
+	| LVAL AUTO NAME SETEQUAL value
+	{
+		const bool usesCustomLval = true;
+		$$ = AST::Statement::AutoVarDecl(usesCustomLval, *($3), $5);
 	}
 	
 	/*
@@ -739,38 +749,45 @@ normalStatement:
 	 * null to the lvalue result of 'T * p', where 'T' and 'p'
 	 * are both values of some kind.
 	 * 
-	 * In Loci, operators should never return lvalues, so
-	 * 'a * b' should never be an lvalue, and hence variable
-	 * definitions always take precedence in this case.
+	 * Given that multiplication shouldn't return an l-value
+	 * (if it really must, use parentheses around it),
+	 * variable definitions always take precedence in this case.
 	 */
 	| type NAME SETEQUAL value %dprec 2
 	{
-		$$ = AST::Statement::VarDecl(new AST::TypeVar($1, *($2)), $4);
+		const bool usesCustomLval = false;
+		$$ = AST::Statement::VarDecl(new AST::TypeVar($1, *($2), usesCustomLval), $4);
 	}
+	| LVAL type NAME SETEQUAL value %dprec 2
+	{
+		const bool usesCustomLval = true;
+		$$ = AST::Statement::VarDecl(new AST::TypeVar($2, *($3), usesCustomLval), $5);
+	}
+	
 	| value SETEQUAL value %dprec 1
 	{
-		$$ = AST::Statement::Assign($1, $3);
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, $3));
 	}
 	
 	| value ADDEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("add", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opAdd", $1, $3)));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("subtract", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opSubtract", $1, $3)));
 	}
 	| value MULEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("multiply", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opMultiply", $1, $3)));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("divide", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opDivide", $1, $3)));
 	}
 	| precision4 PERCENTEQUAL precision5
 	{
-		$$ = AST::Statement::Assign($1, AST::Value::BinaryOp("modulo", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opModulo", $1, $3)));
 	}
 	| value
 	{
@@ -836,7 +853,7 @@ precision6:
 	}
 	| precision6 PTRACCESS NAME
 	{
-		$$ = AST::Value::MemberAccess(AST::Value::Dereference($1), *($3));
+		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp("opDeref", $1), *($3));
 	}
 	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
@@ -867,15 +884,15 @@ precision5:
 	}
 	| AMPERSAND precision5
 	{
-		$$ = AST::Value::AddressOf($2);
+		$$ = AST::Value::UnaryOp("opAddress", $2);
 	}
 	| STAR precision5
 	{
-		$$ = AST::Value::Dereference($2);
+		$$ = AST::Value::UnaryOp("opDeref", $2);
 	}
 	| MOVE precision5
 	{
-		$$ = AST::Value::Move($2);
+		$$ = AST::Value::UnaryOp("opMove", $2);
 	}
 	;
 	

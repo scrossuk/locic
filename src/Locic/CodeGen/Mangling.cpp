@@ -63,13 +63,6 @@ namespace Locic {
 					return mangleObjectType(module, typeInstance, type->templateArguments());
 				}
 				
-				case SEM::Type::POINTER: {
-					const std::string typeListMangle =
-						mangleTypeList(module, std::vector<SEM::Type*>(1, type->getPointerTarget()));
-					return makeString("T1N5__ptr%s",
-									  typeListMangle.c_str());
-				}
-				
 				case SEM::Type::REFERENCE: {
 					const std::string typeListMangle =
 						mangleTypeList(module, std::vector<SEM::Type*>(1, type->getReferenceTarget()));

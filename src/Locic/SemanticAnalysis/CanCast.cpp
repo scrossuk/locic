@@ -12,11 +12,10 @@ namespace Locic {
 	
 		SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
 			SEM::Type* sourceType = value->type();
-			assert((sourceType->isPointer() && destType->isPointer())
-				|| (sourceType->isReference() && destType->isReference()));
+			assert(sourceType->isReference() && destType->isReference());
 			
-			SEM::Type* sourceTargetType = sourceType->getPointerOrReferenceTarget();
-			SEM::Type* destTargetType = destType->getPointerOrReferenceTarget();
+			SEM::Type* sourceTargetType = sourceType->getReferenceTarget();
+			SEM::Type* destTargetType = destType->getReferenceTarget();
 			
 			assert(sourceTargetType->isObject());
 			assert(destTargetType->isInterface());
@@ -29,7 +28,7 @@ namespace Locic {
 			
 			// NOTE: This code relies on the function arrays being sorted
 			//       (which is performed by an early Semantic Analysis pass).
-			for(size_t sourcePos = 0, destPos = 0; destPos < destInstance->functions().size(); sourcePos++){
+			for (size_t sourcePos = 0, destPos = 0; destPos < destInstance->functions().size(); sourcePos++) {
 				SEM::Function * destFunction = destInstance->functions().at(destPos);
 				if(sourcePos >= sourceInstance->functions().size()){
 					throw PolyCastMissingMethodException(sourceType, destType, destFunction);
@@ -52,28 +51,25 @@ namespace Locic {
 		static inline SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, bool hasParentConstChain) {
 			SEM::Type* sourceType = value->type();
 			
-			if(sourceType->kind() != destType->kind() && destType->kind() != SEM::Type::VOID) {
+			if (sourceType->kind() != destType->kind() && destType->kind() != SEM::Type::VOID) {
 				// At this point, types need to be in the same group.
 				throw CastTypeMismatchException(sourceType, destType);
 			}
 			
-			if(sourceType->isConst() && destType->isMutable()) {
+			if (sourceType->isConst() && destType->isMutable()) {
 				// No copying can be done now, so this is just an error.
 				throw CastConstCorrectnessViolationException(sourceType, destType);
 			}
 			
-			if(sourceType->isMutable() && destType->isConst()) {
+			if (sourceType->isMutable() && destType->isConst()) {
 				assert(hasParentConstChain && "Must be a const chain for mutable-to-const cast to succeed.");
 			}
-			
-			assert((sourceType->isRValue() || destType->isLValue())
-				   && "Cannot cast lvalues to rvalues.");
 				   
 			// There is a chain of const if all parents of the destination type are const,
 			// and the destination type itself is const.
 			const bool hasConstChain = hasParentConstChain && destType->isConst();
 			
-			switch(destType->kind()) {
+			switch (destType->kind()) {
 				case SEM::Type::VOID: {
 					// Everything can be cast to void.
 					// In this case, it's a 'format only' change, so
@@ -91,27 +87,6 @@ namespace Locic {
 						throw CastObjectTypeMismatchException(sourceType, destType);
 					}
 				}
-				case SEM::Type::POINTER: {
-					SEM::Type* sourceTarget = sourceType->getPointerTarget();
-					SEM::Type* destTarget = destType->getPointerTarget();
-					
-					if(!hasConstChain && sourceTarget->isMutable() && destTarget->isConst()) {
-						// Check for const-correctness inside pointers,
-						// ensuring that the const chaining rule rule is followed.
-						// For example, the following cast is invalid:
-						//         T * -> const T *
-						// It can be made valid by changing it to:
-						//         T * const -> const T * const
-						throw CastConstChainingViolationException(sourceType, destType);
-					}
-					
-					if(sourceTarget->isObject() && destTarget->isInterface()) {
-						return PolyCastValueToType(value, destType);
-					} else {
-						(void) ImplicitCastFormatOnly(SEM::Value::CastDummy(sourceTarget), destTarget, hasConstChain);
-						return value;
-					}
-				}
 				case SEM::Type::REFERENCE: {
 					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
 					SEM::Type* destTarget = destType->getReferenceTarget();
@@ -126,7 +101,7 @@ namespace Locic {
 						throw CastConstChainingViolationException(sourceType, destType);
 					}
 					
-					if(sourceTarget->isObject() && destTarget->isInterface()) {
+					if (sourceTarget->isObject() && destTarget->isInterface()) {
 						return PolyCastValueToType(value, destType);
 					} else {
 						(void) ImplicitCastFormatOnly(SEM::Value::CastDummy(sourceTarget), destTarget, hasConstChain);
@@ -150,7 +125,7 @@ namespace Locic {
 						(void) ImplicitCast(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
 					}
 					
-					if(sourceType->isFunctionVarArg() != destType->isFunctionVarArg()) {
+					if (sourceType->isFunctionVarArg() != destType->isFunctionVarArg()) {
 						throw CastFunctionVarArgsMismatchException(sourceType, destType);
 					}
 					
@@ -195,7 +170,7 @@ namespace Locic {
 		}
 		
 		static inline SEM::Value* ImplicitCastAllToVoid(SEM::Value* value, SEM::Type* destType) {
-			if(destType->isVoid()) {
+			if (destType->isVoid()) {
 				// Everything can be cast to void.
 				return SEM::Value::Cast(destType, value);
 			}
@@ -208,11 +183,11 @@ namespace Locic {
 			
 			// Const values must be copied to become mutable values, but
 			// implicit copying may not necessarily produce a mutable value.
-			if(sourceType->isConst() && destType->isMutable()) {
-				if(value->type()->supportsImplicitCopy()) {
+			if (sourceType->isConst() && destType->isMutable()) {
+				if (value->type()->supportsImplicitCopy()) {
 					SEM::Type* copyType = sourceType->getImplicitCopyType();
 					
-					if(copyType->isMutable()) {
+					if (copyType->isMutable()) {
 						return ImplicitCastAllToVoid(SEM::Value::CopyValue(value), destType);
 					}
 				} else {
@@ -227,31 +202,31 @@ namespace Locic {
 		}
 		
 		static inline SEM::Value* ImplicitCastHandleLValueToRValue(SEM::Value* value, SEM::Type* destType) {
-			SEM::Type* sourceType = value->type();
+			/*SEM::Type* sourceType = value->type();
 			
-			if(sourceType->isLValue() && destType->isRValue()) {
+			if (sourceType->isLval() && !destType->isLval()) {
 				// L-values must be copied to become R-values.
-				if(value->type()->supportsImplicitCopy()) {
+				if (sourceType->getLvalTarget()->supportsImplicitCopy()) {
 					// If possible, create a copy.
 					SEM::Value* copiedValue = SEM::Value::CopyValue(value);
 					
 					// Copying must always produce an R-value.
-					assert(copiedValue->type()->isRValue());
+					assert(!copiedValue->type()->isLval());
 					return ImplicitCastHandleConstToMutable(copiedValue, destType);
 				} else {
 					throw CastLValueToRValueException(sourceType, destType);
 				}
-			}
+			}*/
 			
 			return ImplicitCastHandleConstToMutable(value, destType);
 		}
 		
 		static inline SEM::Value* ImplicitCastToReference(SEM::Value* value, SEM::Type* destType) {
 			SEM::Type* sourceType = value->type();
-			if(!sourceType->isReference() && destType->isReference()) {
-				if(sourceType->isRValue()) {
+			if (!sourceType->isReference() && destType->isReference()) {
+				/*if(!sourceType->isLval()) {
 					throw CastRValueToReferenceException(sourceType, destType);
-				}
+				}*/
 				
 				return ImplicitCastHandleLValueToRValue(SEM::Value::ReferenceOf(value), destType);
 			}
@@ -262,9 +237,9 @@ namespace Locic {
 		static inline SEM::Value* ImplicitCastNullConstruction(SEM::Value* value, SEM::Type* destType) {
 			SEM::Type* sourceType = value->type();
 			
-			if(sourceType->isNull() && destType->isObject()) {
+			if (sourceType->isNull() && destType->isObject()) {
 				SEM::TypeInstance* typeInstance = destType->getObjectType();
-				if(typeInstance->supportsNullConstruction()) {
+				if (typeInstance->supportsNullConstruction()) {
 					// Casting null to object type invokes the null constructor,
 					// assuming that one exists.
 					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
@@ -273,7 +248,7 @@ namespace Locic {
 					
 					// There still might be some aspects to cast with the null constructed type.
 					return ImplicitCastToReference(nullConstructedValue, destType);
-				}else{
+				} else {
 					throw TodoException(makeString("No null constructor specified for type '%s'.",
 						destType->toString().c_str()));
 				}

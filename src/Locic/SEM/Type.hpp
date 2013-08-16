@@ -21,9 +21,7 @@ namespace Locic {
 				enum Kind {
 					VOID,
 					NULLT,
-					LVAL,
 					OBJECT,
-					POINTER,
 					REFERENCE,
 					FUNCTION,
 					METHOD,
@@ -34,86 +32,62 @@ namespace Locic {
 				static const bool MUTABLE = true;
 				static const bool CONST = false;
 				
-				static const bool LVALUE = true;
-				static const bool RVALUE = false;
-				
 				static const std::vector<Type*> NO_TEMPLATE_ARGS;
 				
 				inline static Type* Void() {
 					// Void is a 'const type', meaning it is always const.
-					return new Type(VOID, CONST, RVALUE);
+					return new Type(VOID, CONST);
 				}
 				
 				inline static Type* Null() {
 					// Null is a 'const type', meaning it is always const.
-					return new Type(NULLT, CONST, RVALUE);
+					return new Type(NULLT, CONST);
 				}
 				
-				inline static Type* Lval(Type* targetType) {
-					assert(targetType != NULL);
-					Type* type = new Type(LVAL, MUTABLE, LVALUE);
-					type->lvalType_.targetType = targetType;
-					return type;
-				}
-				
-				inline static Type* Object(bool isMutable, bool isLValue, TypeInstance* typeInstance,
+				inline static Type* Object(bool isMutable, TypeInstance* typeInstance,
 						const std::vector<Type*>& templateArguments) {
 					assert(typeInstance->templateVariables().size() == templateArguments.size());
-					Type* type = new Type(OBJECT, isMutable, isLValue);
+					
+					Type* type = new Type(OBJECT, isMutable);
 					type->objectType_.typeInstance = typeInstance;
 					type->objectType_.templateArguments = templateArguments;
 					return type;
 				}
 				
-				inline static Type* Pointer(bool isMutable, bool isLValue, Type* targetType) {
-					assert(targetType->isLValue());
-					Type* type = new Type(POINTER, isMutable, isLValue);
-					type->pointerType_.targetType = targetType;
-					return type;
-				}
-				
-				inline static Type* Reference(bool isLValue, Type* targetType) {
-					assert(targetType->isLValue());
+				inline static Type* Reference(Type* targetType) {
 					// References are a 'const type', meaning they are always const.
-					Type* type = new Type(REFERENCE, CONST, isLValue);
+					Type* type = new Type(REFERENCE, CONST);
 					type->referenceType_.targetType = targetType;
 					return type;
 				}
 				
-				inline static Type* TemplateVarRef(bool isMutable, bool isLValue, TemplateVar* templateVar) {
-					Type* type = new Type(TEMPLATEVAR, isMutable, isLValue);
+				inline static Type* TemplateVarRef(bool isMutable, TemplateVar* templateVar) {
+					Type* type = new Type(TEMPLATEVAR, isMutable);
 					type->templateVarRef_.templateVar = templateVar;
 					return type;
 				}
 				
-				inline static Type* Function(bool isLValue, bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
-					assert(returnType->isRValue() && "Return type must always be an R-value.");
-					
-					for(size_t i = 0; i < parameterTypes.size(); i++) {
-						assert(parameterTypes.at(i)->isLValue()
-							   && "Parameter type must always be an L-value.");
-					}
-					
+				inline static Type* Function(bool isVarArg, Type* returnType, const std::vector<Type*>& parameterTypes) {
 					// Functions are a 'const type', meaning they are always const.
-					Type* type = new Type(FUNCTION, CONST, isLValue);
+					Type* type = new Type(FUNCTION, CONST);
 					type->functionType_.isVarArg = isVarArg;
 					type->functionType_.returnType = returnType;
 					type->functionType_.parameterTypes = parameterTypes;
 					return type;
 				}
 				
-				inline static Type* Method(bool isLValue, Type* functionType) {
+				inline static Type* Method(Type* functionType) {
 					assert(functionType->isFunction());
 					// Methods are a 'const type', meaning they are always const.
-					Type* type = new Type(METHOD, CONST, isLValue);
+					Type* type = new Type(METHOD, CONST);
 					type->methodType_.functionType = functionType;
 					return type;
 				}
 				
-				inline static Type* InterfaceMethod(bool isLValue, Type* functionType) {
+				inline static Type* InterfaceMethod(Type* functionType) {
 					assert(functionType->isFunction());
 					// Interface methods are a 'const type', meaning they are always const.
-					Type* type = new Type(INTERFACEMETHOD, CONST, isLValue);
+					Type* type = new Type(INTERFACEMETHOD, CONST);
 					type->interfaceMethodType_.functionType = functionType;
 					return type;
 				}
@@ -124,14 +98,6 @@ namespace Locic {
 				
 				inline Kind kind() const {
 					return kind_;
-				}
-				
-				inline bool isLValue() const {
-					return isLValue_;
-				}
-				
-				inline bool isRValue() const {
-					return !isLValue_;
 				}
 				
 				inline bool isMutable() const {
@@ -148,14 +114,6 @@ namespace Locic {
 				
 				inline bool isNull() const {
 					return kind() == NULLT;
-				}
-				
-				inline bool isLval() const {
-					return kind() == LVAL;
-				}
-				
-				inline bool isPointer() const {
-					return kind() == POINTER;
 				}
 				
 				inline bool isReference() const {
@@ -199,24 +157,9 @@ namespace Locic {
 					return interfaceMethodType_.functionType;
 				}
 				
-				inline Type* getLvalTarget() const {
-					assert(isLval() && "Cannot get target type of non-lval type.");
-					return lvalType_.targetType;
-				}
-				
-				inline Type* getPointerTarget() const {
-					assert(isPointer() && "Cannot get target type of non-pointer type.");
-					return pointerType_.targetType;
-				}
-				
 				inline Type* getReferenceTarget() const {
 					assert(isReference() && "Cannot get target type of non-reference type.");
 					return referenceType_.targetType;
-				}
-				
-				inline Type* getPointerOrReferenceTarget() const {
-					assert(isPointer() || isReference());
-					return isPointer() ? getPointerTarget() : getReferenceTarget();
 				}
 				
 				inline TemplateVar* getTemplateVar() const {
@@ -264,26 +207,17 @@ namespace Locic {
 					return isClass() || isTemplateVar();
 				}
 				
-				inline Type* copyType(bool makeMutable, bool makeLValue) const {
+				inline Type* copyType(bool makeMutable) const {
 					Type* type = new Type(*this);
 					type->isMutable_ = makeMutable;
-					type->isLValue_ = makeLValue;
 					return type;
 				}
 				
 				inline Type* createConstType() const {
-					return copyType(CONST, isLValue());
+					return copyType(CONST);
 				}
 				
 				Type* createTransitiveConstType() const;
-				
-				inline Type* createLValueType() const {
-					return copyType(isMutable(), LVALUE);
-				}
-				
-				inline Type* createRValueType() const {
-					return copyType(isMutable(), RVALUE);
-				}
 				
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
 				
@@ -297,8 +231,6 @@ namespace Locic {
 				
 				std::string basicToString() const;
 				
-				std::string constToString() const;
-				
 				std::string toString() const;
 				
 				bool operator==(const Type& type) const;
@@ -308,26 +240,16 @@ namespace Locic {
 				}
 				
 			private:
-				inline Type(Kind k, bool m, bool l) :
-					kind_(k), isMutable_(m), isLValue_(l) { }
+				inline Type(Kind k, bool m) :
+					kind_(k), isMutable_(m) { }
 					
 				Kind kind_;
 				bool isMutable_;
-				bool isLValue_;
-				
-				struct {
-					Type* targetType;
-				} lvalType_;
 				
 				struct {
 					TypeInstance* typeInstance;
 					std::vector<Type*> templateArguments;
 				} objectType_;
-				
-				struct {
-					// Type that is being pointed to.
-					Type* targetType;
-				} pointerType_;
 				
 				struct {
 					// Type that is being referred to.

@@ -96,14 +96,27 @@ bool isZero(is_zero_interface& v){
 	return v.isZero();
 }
 
+class custom_lval(int i) {
+	static Default() {
+		return @(0);
+	}
+
+	void opAssign(int value) {
+		@i = value;
+	}
+	
+	int opMove() {
+		int tmp = @i;
+		@i = 0;
+		return tmp;
+	}
+}
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
-	
-	//int lvalTestTarget = 0;
-	//lval int lvalTest = lvalTestTarget;
 	
 	//char * argv0 = argv[0];
 	

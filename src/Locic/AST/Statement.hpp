@@ -42,14 +42,11 @@ namespace AST {
 		} whileStmt;
 		
 		struct {
+			bool isLval;
 			// Type var's type is NULL when the keyword 'auto' is used.
 			TypeVar* typeVar;
 			Value* value;
 		} varDecl;
-		
-		struct {
-			Value* lValue, * rValue;
-		} assignStmt;
 		
 		struct {
 			Value* value;
@@ -95,17 +92,10 @@ namespace AST {
 			return statement;
 		}
 		
-		inline static Statement* AutoVarDecl(const std::string& name, Value* value) {
+		inline static Statement* AutoVarDecl(bool usesCustomLval, const std::string& name, Value* value) {
 			Statement* statement = new Statement(VARDECL);
-			statement->varDecl.typeVar = new TypeVar(NULL, name);
+			statement->varDecl.typeVar = new TypeVar(NULL, name, usesCustomLval);
 			statement->varDecl.value = value;
-			return statement;
-		}
-		
-		inline static Statement* Assign(Value* lValue, Value* rValue) {
-			Statement* statement = new Statement(ASSIGN);
-			statement->assignStmt.lValue = lValue;
-			statement->assignStmt.rValue = rValue;
 			return statement;
 		}
 		

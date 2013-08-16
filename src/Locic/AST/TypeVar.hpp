@@ -9,9 +9,10 @@ namespace AST {
 	struct TypeVar {
 		Type* type;
 		std::string name;
+		bool usesCustomLval;
 		
-		inline TypeVar(Type* t, const std::string& n)
-			: type(t), name(n) { }
+		inline TypeVar(Type* t, const std::string& n, bool u)
+			: type(t), name(n), usesCustomLval(u) { }
 	};
 	
 }

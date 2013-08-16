@@ -60,9 +60,13 @@ namespace Locic {
 		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance,
 			const std::vector<SEM::Type*>& templateArguments) {
 			if (typeInstance->isPrimitive()) {
-				return getPrimitiveType(module, typeInstance->name().last());
+				std::vector<llvm::Type*> generatedArguments;
+				for (size_t i = 0; i < templateArguments.size(); i++) {
+					generatedArguments.push_back(genType(module, templateArguments.at(i)));
+				}
+				return getPrimitiveType(module, typeInstance->name().last(), generatedArguments);
 			} else {
-				assert(!typeInstance->isInterface() && "Interface types must always be converted by pointer");
+				assert(!typeInstance->isInterface() && "Interface types must always be converted by reference");
 				return genTypeInstance(module, typeInstance, templateArguments);
 			}
 		}
@@ -83,7 +87,7 @@ namespace Locic {
 		}
 		
 		llvm::StructType* getInterfaceStruct(Module& module) {
-			// Interface pointers/references are actually two pointers:
+			// Interface references are actually two pointers:
 			// one to the class, and one to the class vtable.
 			std::vector<llvm::Type*> types;
 			// Class pointer.
@@ -121,10 +125,6 @@ namespace Locic {
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type->getObjectType(),
 						type->templateArguments());
-				}
-				
-				case SEM::Type::POINTER: {
-					return genPointerType(module, type->getPointerTarget());
 				}
 				
 				case SEM::Type::REFERENCE: {

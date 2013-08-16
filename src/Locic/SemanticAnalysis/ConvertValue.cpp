@@ -13,6 +13,81 @@
 namespace Locic {
 
 	namespace SemanticAnalysis {
+		
+		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* object, const std::string& memberName) {
+			// Any number of levels of references are automatically dereferenced.
+			while (object->type()->isReference()) {
+				object = SEM::Value::DerefReference(object);
+			}
+			
+			if (!object->type()->isObject() && !object->type()->isTemplateVar()) {
+				throw TodoException(makeString("Can't access member of non-object value '%s'.",
+					object->toString().c_str()));
+			}
+			
+			SEM::TypeInstance* typeInstance =
+				object->type()->isTemplateVar() ?
+					object->type()->getTemplateVar()->specType() :
+					object->type()->getObjectType();
+			assert(typeInstance != NULL);
+			
+			const Node typeNode = context.reverseLookup(typeInstance);
+			assert(typeNode.isNotNone());
+			
+			if (typeInstance->isStructDef()) {
+				// Look for struct variables.
+				const Node varNode = typeNode.getChild(memberName);
+				
+				if(varNode.isNotNone()) {
+					assert(varNode.isVariable());
+					SEM::Var* var = varNode.getSEMVar();
+					SEM::Type* memberType = var->type();
+					
+					if(object->type()->isConst()) {
+						// If the struct type is const, then the members must
+						// also be.
+						memberType = memberType->createConstType();
+					}
+					
+					return SEM::Value::MemberAccess(object, var, memberType);
+				} else {
+					throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
+						memberName.c_str(), typeInstance->name().toString().c_str()));
+				}
+			} else if (typeInstance->isClass() || typeInstance->isTemplateType() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
+				// Look for class methods.
+				const Node childNode = typeNode.getChild(memberName);
+				
+				if (childNode.isFunction()) {
+					SEM::Function* function = childNode.getSEMFunction();
+					
+					assert(function->isMethod());
+					
+					if (function->isStatic()) {
+						throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
+							function->name().toString().c_str(), typeInstance->name().toString().c_str()));
+					}
+					
+					SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
+					
+					if (typeInstance->isInterface()) {
+						return SEM::Value::InterfaceMethodObject(functionRef, object);
+					} else {
+						return SEM::Value::MethodObject(functionRef, object);
+					}
+				} else {
+					const Node referenceFunctionNode = typeNode.getChild("opReference");
+					throw TodoException(makeString("Can't find method '%s' in type '%s'.",
+						memberName.c_str(), typeInstance->name().toString().c_str()));
+				}
+			} else if(typeInstance->isStructDecl()) {
+				throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
+					memberName.c_str(), typeInstance->name().toString().c_str()));
+			} else {
+				assert(false && "Invalid fall through in MakeMemberAccess.");
+				return NULL;
+			}
+		}
 	
 		SEM::Value* ConvertValue(Context& context, AST::Value* value) {
 			assert(value != NULL && "Cannot convert NULL AST::Value");
@@ -25,11 +100,15 @@ namespace Locic {
 						&& value->constant->getStringType() == Locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						SEM::TypeInstance* charType = context.getBuiltInType("char");
+						SEM::TypeInstance* charTypeInstance = context.getBuiltInType("char");
+						SEM::TypeInstance* ptrTypeInstance = context.getBuiltInType("ptr");
 						
-						SEM::Type* constCharPtrType = SEM::Type::Pointer(SEM::Type::CONST, SEM::Type::RVALUE,
-								SEM::Type::Object(SEM::Type::CONST, SEM::Type::LVALUE, charType,
-									SEM::Type::NO_TEMPLATE_ARGS));
+						// Generate type 'const char'.
+						SEM::Type* constCharType = SEM::Type::Object(SEM::Type::CONST, charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+						
+						// Generate type 'const ptr<const char>'.
+						SEM::Type* constCharPtrType = SEM::Type::Object(SEM::Type::CONST, ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType));
+						
 						return SEM::Value::Constant(value->constant, constCharPtrType);
 					} else {
 						const std::string typeName = value->constant->getTypeName();
@@ -39,8 +118,7 @@ namespace Locic {
 						}
 						assert(typeInstance != NULL && "Couldn't find constant type");
 						return SEM::Value::Constant(value->constant,
-								SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE,
-								typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
+								SEM::Type::Object(SEM::Type::CONST, typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
 					}
 					
 					assert(false && "Invalid if fallthrough in ConvertValue for constant");
@@ -56,11 +134,11 @@ namespace Locic {
 					// Get a map from template variables to their values (i.e. types).
 					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
 					
-					if(node.isNone()) {
+					if (node.isNone()) {
 						throw TodoException(makeString("Couldn't find symbol or value '%s'.", name.toString().c_str()));
-					} else if(node.isNamespace()) {
+					} else if (node.isNamespace()) {
 						throw TodoException(makeString("Namespace '%s' is not a valid value.", name.toString().c_str()));
-					} else if(node.isFunction()) {
+					} else if (node.isFunction()) {
 						SEM::Function* function = node.getSEMFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
@@ -73,7 +151,7 @@ namespace Locic {
 							const Node typeNode = context.lookupName(name.getPrefix());
 							assert(node.isTypeInstance());
 							
-							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE,
+							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE,
 								node.getSEMTypeInstance(), GetTemplateValues(context, symbol));
 							
 							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
@@ -83,7 +161,7 @@ namespace Locic {
 					} else if (node.isTypeInstance()) {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 						
-						if(typeInstance->isInterface()) {
+						if (typeInstance->isInterface()) {
 							throw TodoException(makeString("Can't construct interface type '%s'.", name.toString().c_str()));
 						}
 						
@@ -93,11 +171,11 @@ namespace Locic {
 								name.toString().c_str()));
 						}
 						
-						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, SEM::Type::LVALUE, typeInstance, GetTemplateValues(context, symbol));
+						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, GetTemplateValues(context, symbol));
 						
 						return SEM::Value::FunctionRef(parentType,
 							defaultConstructorNode.getSEMFunction(), templateVarMap);
-					} else if(node.isVariable()) {
+					} else if (node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
 						// TODO: make these throw exceptions.
@@ -105,14 +183,14 @@ namespace Locic {
 						assert(symbol.isRelative());
 						assert(symbol.first().templateArguments().empty());
 						return SEM::Value::VarValue(node.getSEMVar());
-					} else if(node.isTemplateVar()) {
+					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						SEM::TemplateVar* templateVar = node.getSEMTemplateVar();
 						
 						SEM::TypeInstance* specTypeInstance = templateVar->specType();
 						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
 						
-						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, SEM::Type::LVALUE, templateVar),
+						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar),
 							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());
 					} else {
 						assert(false && "Unknown node for name reference");
@@ -133,43 +211,18 @@ namespace Locic {
 					
 					return SEM::Value::VarValue(semVar);
 				}
-				case AST::Value::ADDRESSOF: {
-					SEM::Value* operand = ConvertValue(context, value->addressOf.value);
-					
-					if(operand->type()->isLValue()) {
-						return SEM::Value::AddressOf(operand);
-					}
-					
-					throw TodoException(makeString("Attempted to take address of R-value '%s'.",
-						operand->toString().c_str()));
-				}
-				case AST::Value::DEREFERENCE: {
-					SEM::Value* operand = ConvertValue(context, value->dereference.value);
-					
-					if(operand->type()->isPointer()) {
-						return SEM::Value::DerefPointer(operand);
-					}
-					
-					throw TodoException(makeString("Attempted to dereference non-pointer value '%s'.",
-						operand->toString().c_str()));
-				}
 				case AST::Value::TERNARY: {
 					SEM::Value* cond = ConvertValue(context, value->ternary.condition);
 					
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					SEM::Value* boolValue = ImplicitCast(cond,
-							SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE, boolType, SEM::Type::NO_TEMPLATE_ARGS));
+							SEM::Type::Object(SEM::Type::CONST, boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
 					SEM::Value* ifTrue = ConvertValue(context, value->ternary.ifTrue);
 					SEM::Value* ifFalse = ConvertValue(context, value->ternary.ifFalse);
 					
 					SEM::Type* targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
-					
-					// Can only result in an lvalue if both possible results are lvalues.
-					if(ifTrue->type()->isRValue() || ifFalse->type()->isRValue()) {
-						targetType = targetType->createRValueType();
-					}
 					
 					SEM::Value* castIfTrue = ImplicitCast(ifTrue, targetType);
 					SEM::Value* castIfFalse = ImplicitCast(ifFalse, targetType);
@@ -177,7 +230,7 @@ namespace Locic {
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
 				case AST::Value::CAST: {
-					SEM::Type* type = ConvertType(context, value->cast.targetType, SEM::Type::RVALUE);
+					SEM::Type* type = ConvertType(context, value->cast.targetType);
 					SEM::Value* val = ConvertValue(context, value->cast.value);
 					
 					(void) type;
@@ -238,95 +291,9 @@ namespace Locic {
 					
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
 					
-					// Any number of levels of references are automatically dereferenced.
-					while(object->type()->isReference()) {
-						object = SEM::Value::DerefReference(object);
-					}
+					// TODO: automatically call .opReference() if needed.
 					
-					if(!object->type()->isObject() && !object->type()->isTemplateVar()) {
-						throw TodoException(makeString("Can't access member of non-object value '%s'.",
-							object->toString().c_str()));
-					}
-					
-					SEM::TypeInstance* typeInstance =
-						object->type()->isTemplateVar() ?
-							object->type()->getTemplateVar()->specType() :
-							object->type()->getObjectType();
-					assert(typeInstance != NULL);
-					
-					const Node typeNode = context.reverseLookup(typeInstance);
-					assert(typeNode.isNotNone());
-					
-					if(typeInstance->isStructDef()) {
-						// Look for struct variables.
-						const Node varNode = typeNode.getChild(memberName);
-						
-						if(varNode.isNotNone()) {
-							assert(varNode.isVariable());
-							SEM::Var* var = varNode.getSEMVar();
-							SEM::Type* memberType = var->type();
-							
-							if(object->type()->isConst()) {
-								// If the struct type is const, then the members must
-								// also be.
-								memberType = memberType->createConstType();
-							}
-							
-							if(object->type()->isRValue()) {
-								// If the struct type is an R-value, then the member must
-								// also be (preventing assignments to R-value members).
-								memberType = memberType->createRValueType();
-							}
-							
-							return SEM::Value::MemberAccess(object, var, memberType);
-						} else {
-							throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
-								memberName.c_str(), typeInstance->name().toString().c_str()));
-						}
-					} else if(typeInstance->isClass() || typeInstance->isTemplateType() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
-						// Look for class methods.
-						const Node childNode = typeNode.getChild(memberName);
-						
-						if (childNode.isFunction()) {
-							SEM::Function* function = childNode.getSEMFunction();
-							
-							assert(function->isMethod());
-							
-							if(function->isStatic()) {
-								throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
-									function->name().toString().c_str(), typeInstance->name().toString().c_str()));
-							}
-							
-							SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
-							
-							if (typeInstance->isInterface()) {
-								return SEM::Value::InterfaceMethodObject(functionRef, object);
-							} else {
-								return SEM::Value::MethodObject(functionRef, object);
-							}
-						} else {
-							throw TodoException(makeString("Can't find method '%s' in type '%s'.",
-								memberName.c_str(), typeInstance->name().toString().c_str()));
-						}
-					} else if(typeInstance->isStructDecl()) {
-						throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
-							memberName.c_str(), typeInstance->name().toString().c_str()));
-					}
-					
-					assert(false && "Invalid switch fallthrough in ConvertValue for member access");
-					return NULL;
-				}
-				case AST::Value::MOVE: {
-					assert(value->move.value != NULL);
-					SEM::Value* moveOperand = ConvertValue(context, value->move.value);
-					LOG(LOG_INFO, "Move operand is %s.", moveOperand->toString().c_str());
-					
-					if (!moveOperand->type()->isLValue()) {
-						throw TodoException(makeString("Can't move R-value '%s'.",
-							moveOperand->toString().c_str()));
-					}
-					
-					return SEM::Value::MoveValue(moveOperand);
+					return MakeMemberAccess(context, object, memberName);
 				}
 				case AST::Value::FUNCTIONCALL: {
 					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");
@@ -361,7 +328,7 @@ namespace Locic {
 								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
 								
 								SEM::Value* param = (i < typeList.size()) ?
-										ImplicitCast(semArgValue, typeList.at(i)->createRValueType()) :
+										ImplicitCast(semArgValue, typeList.at(i)) :
 										semArgValue;
 										
 								semValueList.push_back(param);

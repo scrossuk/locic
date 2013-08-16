@@ -23,6 +23,12 @@ namespace Locic {
 					return makeString("ScopeStatement(scope: %s)",
 						scopeStmt_.scope->toString().c_str());
 				}
+				case INITIALISE:
+				{
+					return makeString("InitialiseStatement(var: %s, value: %s)",
+						initialiseStmt_.var->toString().c_str(),
+						initialiseStmt_.value->toString().c_str());
+				}
 				case IF:
 				{
 					return makeString("IfStatement(condition: %s, ifTrue: %s, ifFalse: %s)",
@@ -35,12 +41,6 @@ namespace Locic {
 					return makeString("WhileStatement(condition: %s, whileTrue: %s)",
 						whileStmt_.condition->toString().c_str(),
 						whileStmt_.whileTrue->toString().c_str());
-				}
-				case ASSIGN:
-				{
-					return makeString("AssignStatement(lvalue: %s, rvalue: %s)",
-						assignStmt_.lValue->toString().c_str(),
-						assignStmt_.rValue->toString().c_str());
 				}
 				case RETURN:
 				{

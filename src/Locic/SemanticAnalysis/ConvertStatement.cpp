@@ -8,6 +8,7 @@
 #include <Locic/SemanticAnalysis/ConvertScope.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/ConvertValue.hpp>
+#include <Locic/SemanticAnalysis/Lval.hpp>
 
 namespace Locic {
 
@@ -21,15 +22,15 @@ namespace Locic {
 				case SEM::Statement::SCOPE: {
 					return WillScopeReturn(statement->getScope());
 				}
+				case SEM::Statement::INITIALISE: {
+					return false;
+				}
 				case SEM::Statement::IF: {
 					return WillScopeReturn(statement->getIfTrueScope()) &&
 						   WillScopeReturn(statement->getIfFalseScope());
 				}
 				case SEM::Statement::WHILE: {
 					return WillScopeReturn(statement->getWhileScope());
-				}
-				case SEM::Statement::ASSIGN: {
-					return false;
 				}
 				case SEM::Statement::RETURN: {
 					return true;
@@ -45,12 +46,7 @@ namespace Locic {
 			switch(statement->typeEnum) {
 				case AST::Statement::VALUE: {
 					SEM::Value* value = ConvertValue(context, statement->valueStmt.value);
-					
-					if(value != NULL) {
-						return SEM::Statement::ValueStmt(value);
-					}
-					
-					return NULL;
+					return SEM::Statement::ValueStmt(value);
 				}
 				case AST::Statement::SCOPE: {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
@@ -60,16 +56,12 @@ namespace Locic {
 					SEM::Scope* ifTrue = ConvertScope(context, statement->ifStmt.ifTrue);
 					SEM::Scope* ifFalse = ConvertScope(context, statement->ifStmt.ifFalse);
 					
-					if(condition == NULL || ifTrue == NULL || ifFalse == NULL) {
-						return NULL;
-					}
-					
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
 					SEM::Value* boolValue = ImplicitCast(condition,
-							SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE, boolType, NO_TEMPLATE_ARGS));
+							SEM::Type::Object(SEM::Type::CONST, boolType, NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
@@ -77,16 +69,12 @@ namespace Locic {
 					SEM::Value* condition = ConvertValue(context, statement->whileStmt.condition);
 					SEM::Scope* whileTrue = ConvertScope(context, statement->whileStmt.whileTrue);
 					
-					if(condition == NULL || whileTrue == NULL) {
-						return NULL;
-					}
-					
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
 					SEM::Value* boolValue = ImplicitCast(condition,
-							SEM::Type::Object(SEM::Type::CONST, SEM::Type::RVALUE, boolType, NO_TEMPLATE_ARGS));
+							SEM::Type::Object(SEM::Type::CONST, boolType, NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
@@ -98,33 +86,30 @@ namespace Locic {
 					
 					SEM::Value* semValue = ConvertValue(context, initialValue);
 					
-					if(semValue == NULL) {
-						return NULL;
-					}
+					// Check whether a type annotation has been used.
+					const bool autoType = (astTypeVar->type == NULL);
 					
-					SEM::Type* varType = NULL;
-					
-					if(astTypeVar->type == NULL) {
-						// Auto keyword - use type of initial value.
-						varType = semValue->type()->createLValueType();
-					} else {
-						// Using type annotation - verify that it is compatible with the type of the initial value.
-						varType = ConvertType(context, astTypeVar->type, SEM::Type::LVALUE);
-					}
+					// If type is 'auto', infer it from type value.
+					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVar->type);
 					
 					assert(varType != NULL);
-					assert(varType->isLValue());
-					
-					if(varType->isVoid()) {
+					if (varType->isVoid()) {
 						printf("Semantic Analysis Error: Local variable cannot have void type.\n");
+						// TODO: throw exception.
+						assert(false);
 						return NULL;
 					}
 					
-					SEM::Var* semVar = SEM::Var::Local(varType);
+					// TODO: implement 'final'.
+					const bool isLvalMutable = SEM::Type::MUTABLE;
+					
+					SEM::Type* lvalType = makeLvalType(context, astTypeVar->usesCustomLval, isLvalMutable, varType);
+					
+					SEM::Var* semVar = SEM::Var::Local(lvalType);
 					
 					const Node localVarNode = Node::Variable(astTypeVar, semVar);
 					
-					if(!context.node().tryAttach(astTypeVar->name, localVarNode)){
+					if( !context.node().tryAttach(astTypeVar->name, localVarNode)) {
 						// TODO: throw exception.
 						assert(false && "Local variable name already exists.");
 						return NULL;
@@ -134,46 +119,22 @@ namespace Locic {
 					assert(semScope != NULL);
 					semScope->localVariables().push_back(semVar);
 					
-					return SEM::Statement::Assign(SEM::Value::VarValue(semVar),
-							// The value being assigned must be an R-value.
-							ImplicitCast(semValue, varType->createRValueType()));
-				}
-				case AST::Statement::ASSIGN: {
-					SEM::Value* lValue = ConvertValue(context, statement->assignStmt.lValue);
-					
-					if(lValue == NULL) {
-						return NULL;
-					}
-					
-					if(!lValue->type()->isLValue()) {
-						printf("Semantic Analysis Error: Cannot assign to r-value.\n");
-						return NULL;
-					}
-					
-					SEM::Value* rValue = ConvertValue(context, statement->assignStmt.rValue);
-					
-					if(rValue == NULL) {
-						return NULL;
-					}
-					
-					return SEM::Statement::Assign(lValue,
-							ImplicitCast(rValue, lValue->type()->createRValueType()));
+					// Initialise variable.
+					return SEM::Statement::InitialiseStmt(semVar, ImplicitCast(semValue, varType));
 				}
 				case AST::Statement::RETURN: {
 					if(statement->returnStmt.value == NULL) {
 						// Void return statement (i.e. return;)
 						if(!context.getParentFunctionReturnType()->isVoid()) {
 							printf("Semantic Analysis Error: Cannot return void in function with non-void return type.\n");
+							// TODO: throw exception.
+							assert(false);
 							return NULL;
 						}
 						
 						return SEM::Statement::ReturnVoid();
 					} else {
 						SEM::Value* semValue = ConvertValue(context, statement->returnStmt.value);
-						
-						if(semValue == NULL) {
-							return NULL;
-						}
 						
 						SEM::Value* castValue = ImplicitCast(semValue, context.getParentFunctionReturnType());
 						
@@ -182,6 +143,8 @@ namespace Locic {
 				}
 				default:
 					printf("Internal Compiler Error: Unknown statement type in 'ConvertStatement'.\n");
+					// TODO: throw exception.
+					assert(false);
 					return NULL;
 			}
 		}

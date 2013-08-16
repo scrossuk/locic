@@ -1,23 +1,12 @@
-/*template <virtual typename T>
-__primitive ptr{
-	static Null();
-	
-	ptr<T> implicitCopy();
-	
-	lval<T> indexAt(size_t index);
-	
-	const lval<T> indexAt(size_t index) const;
-};*/
+__primitive null_t { }
 
-__primitive null_t{ };
-
-__primitive bool{
+__primitive bool {
 	bool implicitCopy();
 	
 	bool not();
-};
+}
 
-__primitive char{
+__primitive char {
 	char implicitCopy();
 	
 	int compare(char v);
@@ -30,9 +19,9 @@ __primitive char{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
 
-__primitive short{
+__primitive short {
 	short implicitCopy();
 	
 	short abs();
@@ -51,9 +40,9 @@ __primitive short{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
 
-__primitive int{
+__primitive int {
 	static Default();	
 	
 	int implicitCopy();
@@ -77,9 +66,9 @@ __primitive int{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
 
-__primitive long{
+__primitive long {
 	long implicitCopy();
 	
 	long abs();
@@ -98,9 +87,9 @@ __primitive long{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
 
-__primitive float{
+__primitive float {
 	float implicitCopy();
 
 	float abs();
@@ -119,9 +108,9 @@ __primitive float{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
 
-__primitive double{
+__primitive double {
 	double implicitCopy();
 	
 	double abs();
@@ -140,7 +129,25 @@ __primitive double{
 	long toLong();
 	float toFloat();
 	double toDouble();*/
-};
+}
+
+template <typename T>
+__primitive ptr {
+	static Null();
+	
+	ptr<T> implicitCopy();
+	
+	value_lval<T>& opDeref();
+}
+
+template <typename T>
+__primitive value_lval {
+	static Default(T value);
+	T* opAddress();
+	void opAssign(T value);
+	T opMove();
+	T& opReference();
+}
 
 /*template <typename T, typename Ret, typename[] Param>
 class interface_method(T* objectPtr, void* vtable, uint32_t value) {
@@ -157,6 +164,6 @@ class interface_method(T* objectPtr, void* vtable, uint32_t value) {
 		auto f = function_ptr<Ret, {T*} + Param>(
 		f(@objectPtr, args);
 	}
-};*/
+}*/
 
 

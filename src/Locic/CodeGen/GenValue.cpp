@@ -24,14 +24,10 @@ namespace Locic {
 	namespace CodeGen {
 	
 		llvm::Value* generateLValue(Function& function, SEM::Value* value) {
-			if (value->type()->isLValue()) {
-				return genValue(function, value, true);
-			} else {
-				llvm::Value* lValue = genAlloca(function, value->type());
-				llvm::Value* rValue = genValue(function, value);
-				genMoveStore(function, rValue, lValue, value->type());
-				return lValue;
-			}
+			llvm::Value* lValue = genAlloca(function, value->type());
+			llvm::Value* rValue = genValue(function, value);
+			genMoveStore(function, rValue, lValue, value->type());
+			return lValue;
 		}
 		
 		llvm::Value* genValue(Function& function, SEM::Value* value, bool genLValue) {
@@ -124,7 +120,7 @@ namespace Locic {
 					return genValue(function, value->copyValue.value);
 				}
 				
-				case SEM::Value::MOVE: {
+				/*case SEM::Value::MOVE: {
 					assert(!genLValue && "Can't generate MOVE as lvalue.");
 					SEM::Value* semValue = value->moveValue.value;
 					llvm::Value* llvmLValue = genValue(function, semValue, true);
@@ -140,7 +136,7 @@ namespace Locic {
 					
 					// Return the loaded temporary.
 					return genLoad(function, llvmTmp, semValue->type());
-				}
+				}*/
 				
 				case SEM::Value::VAR: {
 					SEM::Var* var = value->varValue.var;
@@ -174,18 +170,6 @@ namespace Locic {
 							assert(false && "Unknown variable type in variable access.");
 							return NULL;
 						}
-					}
-				}
-				
-				case SEM::Value::ADDRESSOF: {
-					return genValue(function, value->addressOf.value, true);
-				}
-				
-				case SEM::Value::DEREF_POINTER: {
-					if (genLValue) {
-						return genValue(function, value->derefPointer.value);
-					} else {
-						return genLoad(function, genValue(function, value->derefPointer.value), value->type());
 					}
 				}
 				
@@ -235,7 +219,6 @@ namespace Locic {
 								case SEM::Type::NULLT:
 									return codeValue;
 									
-								case SEM::Type::POINTER:
 								case SEM::Type::FUNCTION:
 									return function.getBuilder().CreatePointerCast(codeValue,
 											genType(module, destType));
@@ -270,15 +253,6 @@ namespace Locic {
 							}
 						}
 						
-						case SEM::Type::POINTER: {
-							if (genLValue) {
-								return function.getBuilder().CreatePointerCast(codeValue,
-										genType(module, destType)->getPointerTo());
-							} else {
-								return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
-							}
-						}
-						
 						case SEM::Type::FUNCTION: {
 							return codeValue;
 						}
@@ -302,10 +276,10 @@ namespace Locic {
 					llvm::Value* rawValue = genValue(function, value->polyCast.value);
 					SEM::Type* sourceType = value->polyCast.value->type();
 					SEM::Type* destType = value->type();
-					assert((sourceType->isPointer() || sourceType->isReference())  && "Polycast source type must be pointer or reference.");
-					assert((destType->isPointer() || destType->isReference()) && "Polycast dest type must be pointer or reference.");
-					SEM::Type* sourceTarget = sourceType->getPointerOrReferenceTarget();
-					SEM::Type* destTarget = destType->getPointerOrReferenceTarget();
+					assert(sourceType->isReference()  && "Polycast source type must be reference.");
+					assert(destType->isReference() && "Polycast dest type must be reference.");
+					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
+					SEM::Type* destTarget = destType->getReferenceTarget();
 					assert(destTarget->isInterface() && "Polycast dest target type must be interface");
 					
 					if (sourceTarget->isInterface()) {
@@ -419,7 +393,7 @@ namespace Locic {
 								// TODO: this doesn't handle unsigned types; perhaps
 								// this code should be moved to semantic analysis.
 								argValue = function.getBuilder().CreateSExt(argValue,
-										   getPrimitiveType(module, "int"));
+										   getPrimitiveType(module, "int", std::vector<llvm::Type*>()));
 							} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 								// Need to extend to double.
 								argValue = function.getBuilder().CreateFPExt(argValue,

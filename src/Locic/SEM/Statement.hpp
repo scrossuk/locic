@@ -19,9 +19,9 @@ namespace Locic {
 				enum Kind {
 					VALUE,
 					SCOPE,
+					INITIALISE,
 					IF,
 					WHILE,
-					ASSIGN,
 					RETURN
 				};
 				
@@ -37,6 +37,13 @@ namespace Locic {
 					return statement;
 				}
 				
+				inline static Statement* InitialiseStmt(Var* var, Value* value) {
+					Statement* statement = new Statement(INITIALISE);
+					statement->initialiseStmt_.var = var;
+					statement->initialiseStmt_.value = value;
+					return statement;
+				}
+				
 				inline static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
 					Statement* statement = new Statement(IF);
 					statement->ifStmt_.condition = condition;
@@ -49,17 +56,6 @@ namespace Locic {
 					Statement* statement = new Statement(WHILE);
 					statement->whileStmt_.condition = condition;
 					statement->whileStmt_.whileTrue = whileTrue;
-					return statement;
-				}
-				
-				inline static Statement* Assign(Value* lValue, Value* rValue) {
-					assert(lValue->type()->isLValue());
-					assert(!rValue->type()->isLValue());
-					assert(*(lValue->type()) == *(rValue->type()->createLValueType()));
-					
-					Statement* statement = new Statement(ASSIGN);
-					statement->assignStmt_.lValue = lValue;
-					statement->assignStmt_.rValue = rValue;
 					return statement;
 				}
 				
@@ -99,6 +95,20 @@ namespace Locic {
 				inline Scope& getScope() const {
 					assert(isScope());
 					return *(scopeStmt_.scope);
+				}
+				
+				inline bool isInitialiseStatement() const {
+					return kind() == INITIALISE;
+				}
+				
+				inline Var* getInitialiseVar() const {
+					assert(isInitialiseStatement());
+					return initialiseStmt_.var;
+				}
+				
+				inline Value* getInitialiseValue() const {
+					assert(isInitialiseStatement());
+					return initialiseStmt_.value;
 				}
 				
 				inline bool isIfStatement() const {
@@ -141,20 +151,6 @@ namespace Locic {
 					return *(whileStmt_.whileTrue);
 				}
 				
-				inline bool isAssignStatement() const {
-					return kind() == ASSIGN;
-				}
-				
-				inline Value* getAssignLValue() const {
-					assert(isAssignStatement());
-					return assignStmt_.lValue;
-				}
-				
-				inline Value* getAssignRValue() const {
-					assert(isAssignStatement());
-					return assignStmt_.rValue;
-				}
-				
 				inline bool isReturnStatement() const {
 					return kind() == RETURN;
 				}
@@ -181,6 +177,11 @@ namespace Locic {
 				} scopeStmt_;
 				
 				struct {
+					Var* var;
+					Value* value;
+				} initialiseStmt_;
+				
+				struct {
 					Value* condition;
 					Scope* ifTrue, * ifFalse;
 				} ifStmt_;
@@ -189,10 +190,6 @@ namespace Locic {
 					Value* condition;
 					Scope* whileTrue;
 				} whileStmt_;
-				
-				struct {
-					Value* lValue, * rValue;
-				} assignStmt_;
 				
 				struct {
 					Value* value;
