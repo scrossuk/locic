@@ -12,6 +12,7 @@
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/Exception.hpp>
 #include <Locic/SemanticAnalysis/Lval.hpp>
+#include <Locic/SemanticAnalysis/MethodPattern.hpp>
 
 namespace Locic {
 
@@ -372,124 +373,22 @@ namespace Locic {
 			}
 		}
 		
-		Node GetDefaultConstructor(const Node& node){
-			assert(node.isTypeInstance());
-			
-			const std::string functionName = "Default";
-			const Node functionNode = node.getChild(functionName);
-			
-			if(!functionNode.isFunction()) return Node::None();
-			
-			SEM::Function* function = functionNode.getSEMFunction();
-			
-			// Looking for static method.
-			if(!function->isStatic()) return Node::None();
-			
-			SEM::Type* type = function->type();
-			
-			// Check it's not var arg.
-			if(type->isFunctionVarArg()) return Node::None();
-			
-			return functionNode;
-		}
-		
-		Node GetNullConstructor(const Node& node){
-			assert(node.isTypeInstance());
-			
-			const std::string functionName = "Null";
-			const Node functionNode = node.getChild(functionName);
-			
-			if(!functionNode.isFunction()) return Node::None();
-			
-			SEM::Function* function = functionNode.getSEMFunction();
-			
-			// Looking for static method.
-			if(!function->isStatic()) return Node::None();
-			
-			SEM::Type* type = function->type();
-			
-			// Check it's not var arg.
-			if(type->isFunctionVarArg()) return Node::None();
-			
-			// Takes no arguments.
-			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
-			
-			return functionNode;
-		}
-		
-		Node GetImplicitCopy(const Node& node){
-			assert(node.isTypeInstance());
-			
-			const std::string functionName = "implicitCopy";
-			const Node functionNode = node.getChild(functionName);
-			if(!functionNode.isFunction()) return Node::None();
-			
-			SEM::Function* function = functionNode.getSEMFunction();
-			
-			// Looking for non-static method.
-			if(function->isStatic()) return Node::None();
-			
-			SEM::Type* type = function->type();
-			
-			// Check it's not var arg.
-			if(type->isFunctionVarArg()) return Node::None();
-			
-			// Takes no arguments.
-			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
-			
-			return functionNode;
-		}
-		
-		Node GetDestructor(const Node& node){
-			assert(node.isTypeInstance());
-			
-			const std::string functionName = "__destructor";
-			const Node functionNode = node.getChild(functionName);
-			if(!functionNode.isFunction()) return Node::None();
-			
-			SEM::Function* function = functionNode.getSEMFunction();
-			
-			// Looking for non-static method.
-			if (function->isStatic()) return Node::None();
-			
-			SEM::Type* type = function->type();
-			
-			// Check it's not var arg.
-			if(type->isFunctionVarArg()) return Node::None();
-			
-			// Takes no arguments.
-			if(type->getFunctionParameterTypes().size() != 0) return Node::None();
-			
-			return functionNode;
-		}
-		
 		void IdentifyTypeProperties(Context& context) {
 			Node& node = context.node();
 			
 			if(node.isTypeInstance()){
 				SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 				
-				// Look for default constructor.
-				const Node defaultNode = GetDefaultConstructor(node);
-				if (defaultNode.isNotNone()) {
-					typeInstance->setDefaultConstructor(defaultNode.getSEMFunction());
-				}
+				// Find all the standard patterns, and add
+				// them to the type instances.
+				const std::vector<MethodPattern> standardPatterns = GetStandardPatterns();
 				
-				// Look for null constructor.
-				const Node nullNode = GetNullConstructor(node);
-				if (nullNode.isNotNone()) {
-					typeInstance->setNullConstructor(nullNode.getSEMFunction());
-				}
-				
-				// Look for implicit copy.
-				const Node copyNode = GetImplicitCopy(node);
-				if (copyNode.isNotNone()) {
-					typeInstance->setImplicitCopy(copyNode.getSEMFunction());
-				}
-				
-				const Node destructorNode = GetDestructor(node);
-				if (destructorNode.isNotNone()) {
-					typeInstance->setDestructor(destructorNode.getSEMFunction());
+				for (size_t i = 0; i < standardPatterns.size(); i++) {
+					const Node functionNode = FindMethodPattern(standardPatterns.at(i), node);
+					if (functionNode.isNotNone()) {
+						SEM::Function* function = functionNode.getSEMFunction();
+						typeInstance->addProperty(function->name().last(), function);
+					}
 				}
 			}
 			

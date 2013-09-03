@@ -110,7 +110,7 @@ namespace Locic{
 			}
 			
 			bool has(const Key& key) const{
-				return tryGet(key);
+				return tryGet(key).hasValue();
 			}
 			
 			std::size_t size() const{

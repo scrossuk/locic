@@ -105,9 +105,9 @@ namespace Locic {
 			function.selectBasicBlock(isLiveBB);
 			
 			// Call the custom destructor function, if one exists.
-			if (parent->getObjectType()->hasDestructor()) {
+			if (parent->getObjectType()->hasProperty("__destructor")) {
 				llvm::Function* customDestructor =
-					genFunction(module, parent, parent->getObjectType()->getDestructor());
+					genFunction(module, parent, parent->getObjectType()->getProperty("__destructor"));
 				function.getBuilder().CreateCall(customDestructor, function.getContextValue());
 			}
 			

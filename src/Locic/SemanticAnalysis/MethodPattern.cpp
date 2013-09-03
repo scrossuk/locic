@@ -1,0 +1,61 @@
+#include <Locic/SEM.hpp>
+#include <Locic/SemanticAnalysis/MethodPattern.hpp>
+#include <Locic/SemanticAnalysis/Node.hpp>
+
+namespace Locic {
+
+	namespace SemanticAnalysis {
+		
+		MethodPattern DefaultConstructorPattern() {
+			return MethodPattern("Default", IS_STATIC, DO_NOT_CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern NullConstructorPattern() {
+			return MethodPattern("Null", IS_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern ImplicitCopyPattern() {
+			return MethodPattern("implicitCopy", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern OpReferencePattern() {
+			return MethodPattern("opReference", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern DestructorPattern() {
+			return MethodPattern("__destructor", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		std::vector<MethodPattern> GetStandardPatterns() {
+			std::vector<MethodPattern> patterns;
+			patterns.push_back(DefaultConstructorPattern());
+			patterns.push_back(NullConstructorPattern());
+			patterns.push_back(ImplicitCopyPattern());
+			patterns.push_back(OpReferencePattern());
+			patterns.push_back(DestructorPattern());
+			return patterns;
+		}
+	
+		Node FindMethodPattern(const MethodPattern& pattern, const Node& typeNode) {
+			assert(typeNode.isTypeInstance());
+			
+			const Node functionNode = typeNode.getChild(pattern.name);
+			if (!functionNode.isFunction()) return Node::None();
+			
+			SEM::Function* function = functionNode.getSEMFunction();
+			
+			if (function->isStatic() != pattern.isStatic) return Node::None();
+			
+			SEM::Type* type = function->type();
+			
+			assert(!type->isFunctionVarArg() && "Methods can never be var-arg.");
+			
+			if (pattern.checkParamCount && type->getFunctionParameterTypes().size() != pattern.numParameters) return Node::None();
+			
+			return functionNode;
+		}
+	}
+	
+}
+
+

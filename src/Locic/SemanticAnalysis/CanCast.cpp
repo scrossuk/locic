@@ -239,11 +239,11 @@ namespace Locic {
 			
 			if (sourceType->isNull() && destType->isObject()) {
 				SEM::TypeInstance* typeInstance = destType->getObjectType();
-				if (typeInstance->supportsNullConstruction()) {
-					// Casting null to object type invokes the null constructor,
-					// assuming that one exists.
+				// Casting null to object type invokes the null constructor,
+				// assuming one exists.
+				if (typeInstance->hasProperty("Null")) {
 					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(destType, typeInstance->getNullConstructor(), destType->generateTemplateVarMap()),
+							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
 							std::vector<SEM::Value*>());
 					
 					// There still might be some aspects to cast with the null constructed type.
@@ -262,11 +262,11 @@ namespace Locic {
 		}
 		
 		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second) {
-			// A little simplistic, give that this assumes types
+			// A little simplistic, given that this assumes types
 			// can only be unified by one type being converted to
 			// another (and ignores the possibility of both types
-			// being converted to a separate third type).
-			if(CanDoImplicitCast(first, second)) {
+			// being converted to a seperate third type).
+			if (CanDoImplicitCast(first, second)) {
 				return second;
 			} else {
 				(void) ImplicitCast(SEM::Value::CastDummy(second), first);

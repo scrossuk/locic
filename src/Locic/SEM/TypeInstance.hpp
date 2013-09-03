@@ -110,7 +110,7 @@ namespace Locic {
 					return kind() == TEMPLATETYPE;
 				}
 				
-				void unifyToKind(Kind newKind) {
+				inline void unifyToKind(Kind newKind) {
 					if(newKind == kind()) return;
 					switch(newKind) {
 						case STRUCTDEF: {
@@ -129,27 +129,19 @@ namespace Locic {
 					}
 				}
 				
-				Function* getDefaultConstructor() const;
+				// TODO: 'type properties' should be moved out of SEM tree
+				//       representation into Semantic Analysis nodes.
+				inline bool hasProperty(const std::string& propertyName) const {
+					return typeProperties_.has(propertyName);
+				}
 				
-				void setDefaultConstructor(Function* function);
+				inline Function* getProperty(const std::string& propertyName) const {
+					return typeProperties_.get(propertyName);
+				}
 				
-				bool supportsNullConstruction() const;
-				
-				SEM::Function* getNullConstructor() const;
-				
-				void setNullConstructor(Function* function);
-				
-				bool supportsImplicitCopy() const;
-				
-				Type* getImplicitCopyType() const;
-				
-				void setImplicitCopy(Function* function);
-				
-				bool hasDestructor() const;
-				
-				Function* getDestructor() const;
-				
-				void setDestructor(Function* function);
+				inline void addProperty(const std::string& propertyName, Function* function) {
+					typeProperties_.insert(propertyName, function);
+				}
 				
 				std::string refToString() const;
 				
@@ -159,20 +151,7 @@ namespace Locic {
 				Kind kind_;
 				Name name_;
 				
-				struct TypeProperties{
-					bool isConstType;
-					Function* defaultConstructor;
-					Function* nullConstructor;
-					Function* implicitCopy;
-					Function* destructor;
-					
-					inline TypeProperties()
-						: isConstType(false),
-						defaultConstructor(NULL),
-						nullConstructor(NULL),
-						implicitCopy(NULL),
-						destructor(NULL) { }
-				} typeProperties_;
+				StringMap<Function*> typeProperties_;
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::vector<Var*> variables_;

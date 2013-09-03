@@ -76,7 +76,6 @@ namespace Locic {
 						return SEM::Value::MethodObject(functionRef, object);
 					}
 				} else {
-					const Node referenceFunctionNode = typeNode.getChild("opReference");
 					throw TodoException(makeString("Can't find method '%s' in type '%s'.",
 						memberName.c_str(), typeInstance->name().toString().c_str()));
 				}
@@ -188,7 +187,7 @@ namespace Locic {
 						SEM::TemplateVar* templateVar = node.getSEMTemplateVar();
 						
 						SEM::TypeInstance* specTypeInstance = templateVar->specType();
-						SEM::Function* defaultConstructor = specTypeInstance->getDefaultConstructor();
+						SEM::Function* defaultConstructor = specTypeInstance->getProperty("Default");
 						
 						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar),
 							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());
@@ -291,9 +290,41 @@ namespace Locic {
 					
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
 					
-					// TODO: automatically call .opReference() if needed.
-					
-					return MakeMemberAccess(context, object, memberName);
+					try {
+						return MakeMemberAccess(context, object, memberName);
+					} catch(const Exception& e) {
+						// Didn't work; try using 'opReference' if available.
+						LOG(LOG_INFO, "Encountered error in member access; attempting to use opReference (error is: %s).", formatMessage(e.toString()).c_str());
+						
+						// Any number of levels of references are automatically dereferenced.
+						while (object->type()->isReference()) {
+							object = SEM::Value::DerefReference(object);
+						}
+						
+						SEM::Type* type = object->type();
+						if (!type->isObject()) {
+							LOG(LOG_INFO, "Type is NOT an object; cannot use opReference.");
+							throw;
+						}
+						
+						if (!type->getObjectType()->hasProperty("opReference")) {
+							LOG(LOG_INFO, "Object type does NOT support opReference.");
+							throw;
+						}
+						
+						LOG(LOG_INFO, "Object type does support opReference...");
+						
+						SEM::Function* refFunction = type->getObjectType()->getProperty("opReference");
+						
+						SEM::Value* functionRef = SEM::Value::FunctionRef(type, refFunction, type->generateTemplateVarMap());
+						SEM::Value* methodRef = SEM::Value::MethodObject(functionRef, object);
+						
+						SEM::Value* refValue = SEM::Value::MethodCall(methodRef, std::vector<SEM::Value*>());
+						SEM::Value* accessValue = MakeMemberAccess(context, refValue, memberName);
+						
+						LOG(LOG_INFO, "opReference worked: %s.", accessValue->toString().c_str());
+						return accessValue;
+					}
 				}
 				case AST::Value::FUNCTIONCALL: {
 					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");

@@ -3,6 +3,7 @@
 
 #include <Locic/Map.hpp>
 #include <Locic/String.hpp>
+#include <Locic/SEM/Function.hpp>
 #include <Locic/SEM/TemplateVar.hpp>
 #include <Locic/SEM/Type.hpp>
 #include <Locic/SEM/TypeInstance.hpp>
@@ -113,9 +114,9 @@ namespace Locic {
 					return true;
 				case OBJECT:
 					// Named types must have a method for implicit copying.
-					return getObjectType()->supportsImplicitCopy();
+					return getObjectType()->hasProperty("implicitCopy");
 				case TEMPLATEVAR:
-					return getTemplateVar()->specType()->supportsImplicitCopy();
+					return getTemplateVar()->specType()->hasProperty("implicitCopy");
 				default:
 					assert(false && "Unknown SEM type enum");
 					return false;
@@ -134,9 +135,9 @@ namespace Locic {
 				}
 				case OBJECT:
 					// Object types may or may not retain 'constness'.
-					return getObjectType()->getImplicitCopyType()->substitute(generateTemplateVarMap());
+					return getObjectType()->getProperty("implicitCopy")->type()->getFunctionReturnType()->substitute(generateTemplateVarMap());
 				case TEMPLATEVAR:
-					return getTemplateVar()->specType()->getImplicitCopyType();
+					return getTemplateVar()->specType()->getProperty("implicitCopy")->type()->getFunctionReturnType();
 				default:
 					assert(false && "Unknown SEM type enum");
 					return NULL;
