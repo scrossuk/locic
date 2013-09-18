@@ -145,8 +145,8 @@ __primitive value_lval {
 	static Default(T value);
 	T* opAddress();
 	void opAssign(T value);
+	T& opDissolve();
 	T opMove();
-	T& opReference();
 }
 
 /*template <typename T, typename Ret, typename[] Param>

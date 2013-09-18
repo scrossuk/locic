@@ -18,8 +18,20 @@ namespace Locic {
 			return MethodPattern("implicitCopy", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
-		MethodPattern OpReferencePattern() {
-			return MethodPattern("opReference", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		MethodPattern OpAddressPattern() {
+			return MethodPattern("opAddress", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern OpAssignPattern() {
+			return MethodPattern("opAssign", IS_NOT_STATIC, CHECK_PARAM_COUNT, 1);
+		}
+		
+		MethodPattern OpDissolvePattern() {
+			return MethodPattern("opDissolve", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern OpMovePattern() {
+			return MethodPattern("opMove", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
 		MethodPattern DestructorPattern() {
@@ -31,7 +43,10 @@ namespace Locic {
 			patterns.push_back(DefaultConstructorPattern());
 			patterns.push_back(NullConstructorPattern());
 			patterns.push_back(ImplicitCopyPattern());
-			patterns.push_back(OpReferencePattern());
+			patterns.push_back(OpAddressPattern());
+			patterns.push_back(OpAssignPattern());
+			patterns.push_back(OpDissolvePattern());
+			patterns.push_back(OpMovePattern());
 			patterns.push_back(DestructorPattern());
 			return patterns;
 		}

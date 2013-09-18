@@ -31,7 +31,10 @@ namespace Locic {
 		MethodPattern DefaultConstructorPattern();
 		MethodPattern NullConstructorPattern();
 		MethodPattern ImplicitCopyPattern();
-		MethodPattern OpReferencePattern();
+		MethodPattern OpAddressPattern();
+		MethodPattern OpAssignPattern();
+		MethodPattern OpDissolvePattern();
+		MethodPattern OpMovePattern();
 		MethodPattern DestructorPattern();
 		
 		std::vector<MethodPattern> GetStandardPatterns();

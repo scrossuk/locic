@@ -9,6 +9,7 @@
 #include <Locic/SemanticAnalysis/Context.hpp>
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/ConvertValue.hpp>
+#include <Locic/SemanticAnalysis/Lval.hpp>
 
 namespace Locic {
 
@@ -290,41 +291,13 @@ namespace Locic {
 					
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
 					
-					try {
-						return MakeMemberAccess(context, object, memberName);
-					} catch(const Exception& e) {
-						// Didn't work; try using 'opReference' if available.
-						LOG(LOG_INFO, "Encountered error in member access; attempting to use opReference (error is: %s).", formatMessage(e.toString()).c_str());
-						
-						// Any number of levels of references are automatically dereferenced.
-						while (object->type()->isReference()) {
-							object = SEM::Value::DerefReference(object);
+					if (memberName != "opAddress" && memberName != "opAssign" && memberName != "opDissolve" && memberName != "opMove") {
+						if (canDissolveValue(object)) {
+							object = dissolveLval(object);
 						}
-						
-						SEM::Type* type = object->type();
-						if (!type->isObject()) {
-							LOG(LOG_INFO, "Type is NOT an object; cannot use opReference.");
-							throw;
-						}
-						
-						if (!type->getObjectType()->hasProperty("opReference")) {
-							LOG(LOG_INFO, "Object type does NOT support opReference.");
-							throw;
-						}
-						
-						LOG(LOG_INFO, "Object type does support opReference...");
-						
-						SEM::Function* refFunction = type->getObjectType()->getProperty("opReference");
-						
-						SEM::Value* functionRef = SEM::Value::FunctionRef(type, refFunction, type->generateTemplateVarMap());
-						SEM::Value* methodRef = SEM::Value::MethodObject(functionRef, object);
-						
-						SEM::Value* refValue = SEM::Value::MethodCall(methodRef, std::vector<SEM::Value*>());
-						SEM::Value* accessValue = MakeMemberAccess(context, refValue, memberName);
-						
-						LOG(LOG_INFO, "opReference worked: %s.", accessValue->toString().c_str());
-						return accessValue;
 					}
+					
+					return MakeMemberAccess(context, object, memberName);
 				}
 				case AST::Value::FUNCTIONCALL: {
 					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");
@@ -426,7 +399,7 @@ namespace Locic {
 					}
 				}
 				default:
-					assert(false && "Unknown AST::Value type enum");
+					assert(false && "Unknown AST::Value kind enum");
 					return NULL;
 			}
 		}

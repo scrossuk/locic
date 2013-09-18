@@ -57,8 +57,8 @@ namespace Locic {
 				   methodName == "abs" ||
 				   methodName == "opAddress" ||
 				   methodName == "opDeref" ||
-				   methodName == "opMove" ||
-				   methodName == "opReference";
+				   methodName == "opDissolve" ||
+				   methodName == "opMove";
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
@@ -346,7 +346,7 @@ namespace Locic {
 					} else {
 						builder.CreateRet(builder.CreateLoad(function.getContextValue()));
 					}
-				} else if (methodName == "opReference") {
+				} else if (methodName == "opDissolve") {
 					builder.CreateRet(function.getContextValue());
 				} else {
 					assert(false && "Unknown primitive unary op.");

@@ -258,7 +258,6 @@ namespace Locic {
 				} objectType_;
 				
 				struct {
-					// Type that is being referred to.
 					Type* targetType;
 				} referenceType_;
 				

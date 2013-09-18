@@ -12,9 +12,7 @@ namespace AST {
 			UNDEFINED,
 			VOID,
 			NULLT,
-			LVAL,
 			OBJECT,
-			POINTER,
 			REFERENCE,
 			FUNCTION
 		} typeEnum;
@@ -25,20 +23,10 @@ namespace AST {
 		bool isMutable;
 		
 		struct {
-			Type* targetType;
-		} lvalType;
-		
-		struct {
 			Symbol symbol;
 		} objectType;
 		
 		struct {
-			// Type that is being pointed to.
-			Type* targetType;
-		} pointerType;
-		
-		struct {
-			// Type that is being referred to.
 			Type* targetType;
 		} referenceType;
 		
@@ -64,21 +52,9 @@ namespace AST {
 			return new Type(VOID, MUTABLE);
 		}
 		
-		inline static Type* Lval(Type* targetType) {
-			Type* type = new Type(LVAL, MUTABLE);
-			type->lvalType.targetType = targetType;
-			return type;
-		}
-		
 		inline static Type* Object(const Symbol& symbol) {
 			Type* type = new Type(OBJECT, MUTABLE);
 			type->objectType.symbol = symbol;
-			return type;
-		}
-		
-		inline static Type* Pointer(Type* targetType) {
-			Type* type = new Type(POINTER, MUTABLE);
-			type->pointerType.targetType = targetType;
 			return type;
 		}
 		
@@ -112,21 +88,12 @@ namespace AST {
 			return typeEnum == NULLT;
 		}
 		
-		inline bool isPointer() const {
-			return typeEnum == POINTER;
-		}
-		
 		inline bool isReference() const {
 			return typeEnum == REFERENCE;
 		}
 		
 		inline bool isFunction() const {
 			return typeEnum == FUNCTION;
-		}
-		
-		inline AST::Type* getPointerTarget() const {
-			assert(isPointer() && "Cannot get target type of non-pointer type");
-			return pointerType.targetType;
 		}
 		
 		inline AST::Type* getReferenceTarget() const {
@@ -144,9 +111,7 @@ namespace AST {
 			while(true) {
 				t->isMutable = false;
 				
-				if(t->typeEnum == POINTER) {
-					t = t->getPointerTarget();
-				} else if(t->typeEnum == REFERENCE) {
+				if(t->typeEnum == REFERENCE) {
 					t = t->getReferenceTarget();
 				} else {
 					break;
@@ -184,12 +149,8 @@ namespace AST {
 				case OBJECT:
 					str += std::string("[object type: ") + objectType.symbol.toString() + std::string("]");
 					break;
-				case POINTER:
-					str += pointerType.targetType->toString();
-					str += "*";
-					break;
 				case REFERENCE:
-					str += pointerType.targetType->toString();
+					str += getReferenceTarget()->toString();
 					str += "&";
 					break;
 				case FUNCTION: {

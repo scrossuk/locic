@@ -207,9 +207,6 @@ namespace Locic {
 					AST::TypeVar* astTypeVar = astTypeInstance->variables.at(i);
 					SEM::Type* semType = ConvertType(context, astTypeVar->type);
 					
-					// TODO: support lval member variables.
-					assert(!astTypeVar->usesCustomLval);
-					
 					// TODO: implement 'final'.
 					const bool isLvalMutable = SEM::Type::MUTABLE;
 					

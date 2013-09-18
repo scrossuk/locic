@@ -104,13 +104,17 @@ class custom_lval(int i) {
 	custom_lval implicitCopy() {
 		return @(@i);
 	}
+	
+	int* opAddress() {
+		return &@i;
+	}
 
 	void opAssign(int value) {
 		@i = value;
 	}
 	
-	void setValue(int value) {
-		@i = value;
+	int& opDissolve() {
+		return @i;
 	}
 	
 	int opMove() {
@@ -130,8 +134,8 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	custom_lval custLval = custom_lval();
-	custLval.setValue(101);
+	lval custom_lval custLval = custom_lval();
+	custLval = 101;
 	lvalFunc(custLval);
 	
 	//char * argv0 = argv[0];

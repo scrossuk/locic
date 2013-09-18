@@ -87,8 +87,8 @@ namespace Locic {
 		}
 		
 		Type* Type::createTransitiveConstType() const {
-			if(isReference()) {
-				return Type::Reference(getReferenceTarget()->createTransitiveConstType());
+			if (isReference()) {
+				return Reference(getReferenceTarget()->createTransitiveConstType());
 			} else if(isObject()) {
 				std::vector<Type*> constArguments;
 				const std::vector<Type*>& templateArgs = templateArguments();
@@ -96,7 +96,7 @@ namespace Locic {
 					constArguments.push_back(
 						templateArgs.at(i)->createTransitiveConstType());
 				}
-				return Type::Object(CONST, getObjectType(), constArguments);
+				return Object(CONST, getObjectType(), constArguments);
 			} else {
 				return createConstType();
 			}
@@ -146,12 +146,10 @@ namespace Locic {
 		
 		std::string Type::nameToString() const {
 			switch(kind()) {
-				case VOID: {
+				case VOID:
 					return "VoidType()";
-				}
-				case NULLT: {
+				case NULLT:
 					return "NullType()";
-				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),
@@ -176,12 +174,10 @@ namespace Locic {
 		
 		std::string Type::basicToString() const {
 			switch(kind()) {
-				case VOID: {
+				case VOID:
 					return "VoidType()";
-				}
-				case NULLT: {
+				case NULLT:
 					return "NullType()";
-				}
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),
