@@ -13,7 +13,9 @@ namespace Locic {
 		
 		llvm::Value* genAlloca(Function& function, SEM::Type* type);
 		
-		void genMoveStore(Function& function, llvm::Value* source, llvm::Value* dest, SEM::Type* type);
+		llvm::Value* genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
+		
+		void genMove(Function& function, llvm::Value* source, llvm::Value* dest, SEM::Type* type);
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* source, SEM::Type* type);
 		

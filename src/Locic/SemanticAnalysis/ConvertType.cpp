@@ -36,8 +36,17 @@ namespace Locic {
 					}
 					
 					for (size_t j = 0; j < numTemplateArguments; j++) {
+						SEM::Type* templateTypeValue = ConvertType(context, astTemplateArgs.at(j));
+						
+						if (templateTypeValue->isInterface()) {
+							throw TodoException(makeString("Cannot use abstract type '%s' "
+							"as template parameter %llu for type '%s'.",
+							templateTypeValue->getObjectType()->name().toString().c_str(),
+							(unsigned long long) j, name.toString().c_str()));
+						}
+					
 						templateVarMap.insert(typeInstance->templateVariables().at(j),
-							ConvertType(context, astTemplateArgs.at(j)));
+							templateTypeValue);
 					}
 				} else {
 					if (numTemplateArguments > 0) {

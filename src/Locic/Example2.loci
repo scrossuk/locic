@@ -1,17 +1,17 @@
 
 
-class TestClass(int i, int j){
+class TestClass(const char * n, int i, int j){
 	static Null(){
-		return @(0, 0);
+		return @("NULL"C, 0, 0);
 	}
 	
 	static Default(int v){
-		return @(v, v + 1);
+		return @("NON-NULL"C, v, v + 1);
 	}
 	
 	~{
-		printf("Destroying TestClass(i: %d, j: %d).\n"C,
-			@i, @j);
+		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n"C,
+			@n, @i, @j);
 	}
 
 	int getValue(){

@@ -277,9 +277,9 @@ namespace Locic {
 					std::vector<SEM::Value*> semValues;
 					
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
-						SEM::Var* var = thisTypeInstance->variables().at(i);
+						SEM::Type* constructType = thisTypeInstance->constructTypes().at(i);
 						SEM::Value* semValue = ConvertValue(context, astValues.at(i));
-						SEM::Value* semParam = ImplicitCast(semValue, var->type());
+						SEM::Value* semParam = ImplicitCast(semValue, constructType);
 						semValues.push_back(semParam);
 					}
 					

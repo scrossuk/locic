@@ -94,7 +94,7 @@ namespace Locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
-			if (resolvesToClassType(module, function->type()->getFunctionReturnType())) {
+			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				std::vector<llvm::Attributes::AttrVal> attributes;
 				
 				// Class return values are allocated by the caller,
@@ -117,15 +117,14 @@ namespace Locic {
 						attributes));
 			}
 			
-			LOG(LOG_INFO, "Declaration is:");
-			llvmFunction->dump();
+			// LOG(LOG_INFO, "Declaration is:");
+			// llvmFunction->dump();
 			
 			// --- Generate function code.
 			
 			if (parent != NULL && parent->getObjectType()->isPrimitive()) {
 				// This is a primitive method; needs special code generation.
-				createPrimitiveMethod(module, parent->getObjectType()->name().last(),
-					function->name().last(), *llvmFunction);
+				createPrimitiveMethod(module, parent, function, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -136,34 +135,44 @@ namespace Locic {
 			
 			Function genFunction(module, *llvmFunction, getArgInfo(module, function));
 			
-			LifetimeScope lifetimeScope(genFunction);
-			
-			// Parameters need to be copied to the stack, so that it's
-			// possible to assign to them, take their address, etc.
-			const std::vector<SEM::Var*>& parameterVars = function->parameters();
-			
-			for (std::size_t i = 0; i < parameterVars.size(); i++) {
-				SEM::Var* paramVar = parameterVars.at(i);
-				assert(paramVar->kind() == SEM::Var::PARAM);
+			{
+				LifetimeScope lifetimeScope(genFunction);
 				
-				// Create an alloca for this variable.
-				llvm::Value* stackObject = genAlloca(genFunction, paramVar->type());
+				// Parameters need to be copied to the stack, so that it's
+				// possible to assign to them, take their address, etc.
+				const std::vector<SEM::Var*>& parameterVars = function->parameters();
 				
-				// Store the initial value into the alloca.
-				genMoveStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
+				llvm::BasicBlock* setParamsStartBB = genFunction.createBasicBlock("setParams_START");
+				genFunction.getBuilder().CreateBr(setParamsStartBB);
+				genFunction.selectBasicBlock(setParamsStartBB);
 				
-				genFunction.getLocalVarMap().insert(paramVar, stackObject);
+				for (std::size_t i = 0; i < parameterVars.size(); i++) {
+					SEM::Var* paramVar = parameterVars.at(i);
+					assert(paramVar->kind() == SEM::Var::PARAM);
+					
+					// Create an alloca for this variable.
+					llvm::Value* stackObject = genAlloca(genFunction, paramVar->type());
+					
+					// Store the initial value into the alloca.
+					genStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
+					
+					genFunction.getLocalVarMap().insert(paramVar, stackObject);
+				}
+				
+				llvm::BasicBlock* setParamsEndBB = genFunction.createBasicBlock("setParams_END");
+				genFunction.getBuilder().CreateBr(setParamsEndBB);
+				genFunction.selectBasicBlock(setParamsEndBB);
+				
+				genScope(genFunction, function->scope());
 			}
-			
-			genScope(genFunction, function->scope());
 			
 			// Need to terminate the final basic block.
 			// (just make it loop to itself - this will
 			// be removed by dead code elimination)
 			genFunction.getBuilder().CreateBr(genFunction.getSelectedBasicBlock());
 			
-			LOG(LOG_INFO, "Function definition is:");
-			llvmFunction->dump();
+			// LOG(LOG_INFO, "Function definition is:");
+			// llvmFunction->dump();
 			
 			// Check the generated function is correct.
 			genFunction.verify();

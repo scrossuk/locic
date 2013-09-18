@@ -132,6 +132,7 @@ namespace Locic {
 				}
 				
 				inline static Value* CopyValue(Value* value) {
+					assert(!value->type()->isObject());
 					Value* valueCopy = new Value(COPY, value->type()->getImplicitCopyType());
 					valueCopy->copyValue.value = value;
 					return valueCopy;

@@ -47,8 +47,7 @@ namespace Locic {
 			to.Triple = triple;
 			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
 			
-			primitiveSizes_.insert("size_t",
-								   clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
+			primitiveSizes_.insert("size_t", clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
 			primitiveSizes_.insert("null_t", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("bool", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("char", clangTargetInfo->getCharWidth());
@@ -58,6 +57,7 @@ namespace Locic {
 			primitiveSizes_.insert("longlong", clangTargetInfo->getLongLongWidth());
 			primitiveSizes_.insert("float", clangTargetInfo->getFloatWidth());
 			primitiveSizes_.insert("double", clangTargetInfo->getDoubleWidth());
+			primitiveSizes_.insert("ptr", clangTargetInfo->getPointerWidth(0));
 		}
 		
 		TargetInfo::~TargetInfo() { }
@@ -75,6 +75,9 @@ namespace Locic {
 		}
 		
 		size_t TargetInfo::getPrimitiveSize(const std::string& name) const {
+			if (!primitiveSizes_.has(name)) {
+				LOG(LOG_CRITICAL, "Can't find primitive type '%s'.", name.c_str());
+			}
 			return primitiveSizes_.get(name);
 		}
 		

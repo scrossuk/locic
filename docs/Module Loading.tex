@@ -184,7 +184,7 @@ struct ClassRecord classRecord = {&classSizeInfo, NULL, 2, 2,
 \end{lstlisting}
 
 \paragraph{}
-Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size of the members of the class that had a known size at compile-time\footnote{To make this clear, all the children of known size are shifted by the compiler to the beginning of the class, so that offsets for the children of unknown size can start at CLASS\_MIN\_SIZE, making the algorithm simpler.} (and hence are its minimum size). This value must be at least sizeof(void *), since it includes a pointer to the vtable.
+Where `CLASS\_MIN\_SIZE' is a constant that would be replaced by the total size of the members of the class that had a known size at compile-time\footnote{To make this clear, all the children of known size are shifted by the compiler to the beginning of the class, so that offsets for the children of unknown size can start at CLASS\_MIN\_SIZE, making the algorithm simpler.} (and hence are its minimum size).
 
 \section{Resolution}
 

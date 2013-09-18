@@ -861,7 +861,7 @@ precision6:
 	}
 	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
 	{
-		$$ = AST::Value::BinaryOp("indexOf", $1, $3);
+		$$ = AST::Value::BinaryOp("opIndexOf", $1, $3);
 	}
 	;
 	
@@ -872,15 +872,15 @@ precision5:
 	}
 	| PLUS precision5
 	{
-		$$ = AST::Value::UnaryOp("plus", $2);
+		$$ = AST::Value::UnaryOp("opPlus", $2);
 	}
 	| MINUS precision5
 	{
-		$$ = AST::Value::UnaryOp("minus", $2);
+		$$ = AST::Value::UnaryOp("opMinus", $2);
 	}
 	| EXCLAIMMARK precision5
 	{
-		$$ = AST::Value::UnaryOp("not", $2);
+		$$ = AST::Value::UnaryOp("opNot", $2);
 	}
 	| AMPERSAND precision5
 	{
@@ -903,15 +903,15 @@ precision4:
 	}
 	| precision4 STAR precision5
 	{
-		$$ = AST::Value::BinaryOp("multiply", $1, $3);
+		$$ = AST::Value::BinaryOp("opMultiply", $1, $3);
 	}
 	| precision4 FORWARDSLASH precision5
 	{
-		$$ = AST::Value::BinaryOp("divide", $1, $3);
+		$$ = AST::Value::BinaryOp("opDivide", $1, $3);
 	}
 	| precision4 PERCENT precision5
 	{
-		$$ = AST::Value::BinaryOp("modulo", $1, $3);
+		$$ = AST::Value::BinaryOp("opModulo", $1, $3);
 	}
 	;
 	
@@ -922,11 +922,11 @@ precision3:
 	}
 	| precision3 PLUS precision4
 	{
-		$$ = AST::Value::BinaryOp("add", $1, $3);
+		$$ = AST::Value::BinaryOp("opAdd", $1, $3);
 	}
 	| precision3 MINUS precision4
 	{
-		$$ = AST::Value::BinaryOp("subtract", $1, $3);
+		$$ = AST::Value::BinaryOp("opSubtract", $1, $3);
 	}
 	;
 	
@@ -941,30 +941,30 @@ precision2:
 	 */
 	| precision3 ISEQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3));
+		$$ = AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("opCompare", $1, $3));
 	}
 	| precision3 NOTEQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("not", 
-			AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3)));
+		$$ = AST::Value::UnaryOp("opNot", 
+			AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("opCompare", $1, $3)));
 	}
 	| precision3 LTRIBRACKET precision3
 	{
-		$$ = AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3));
+		$$ = AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("opCompare", $1, $3));
 	}
 	| precision3 RTRIBRACKET precision3
 	{
-		$$ = AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3));
+		$$ = AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("opCompare", $1, $3));
 	}
 	| precision3 LESSOREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("not", 
-			AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3)));
+		$$ = AST::Value::UnaryOp("opNot", 
+			AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("opCompare", $1, $3)));
 	}
 	| precision3 GREATEROREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("not", 
-			AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3)));
+		$$ = AST::Value::UnaryOp("opNot", 
+			AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("opCompare", $1, $3)));
 	}
 	;
 	

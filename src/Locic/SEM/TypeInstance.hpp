@@ -66,6 +66,14 @@ namespace Locic {
 					return functions_;
 				}
 				
+				inline std::vector<Type*>& constructTypes() {
+					return constructTypes_;
+				}
+				
+				inline const std::vector<Type*>& constructTypes() const {
+					return constructTypes_;
+				}
+				
 				inline bool isPrimitive() const {
 					return kind() == PRIMITIVE;
 				}
@@ -156,6 +164,7 @@ namespace Locic {
 				std::vector<TemplateVar*> templateVariables_;
 				std::vector<Var*> variables_;
 				std::vector<Function*> functions_;
+				std::vector<Type*> constructTypes_;
 				
 		};
 		

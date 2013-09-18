@@ -199,6 +199,12 @@ namespace Locic {
 					return getObjectType()->isInterface();
 				}
 				
+				inline bool isPrimitive() const {
+					if(!isObject()) return false;
+					
+					return getObjectType()->isPrimitive();
+				}
+				
 				inline bool isTemplateVar() const {
 					return kind() == TEMPLATEVAR;
 				}

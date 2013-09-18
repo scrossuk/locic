@@ -21,7 +21,7 @@ namespace Locic{
 	};
 
 	enum LogLevel{
-		LOG_NONE,
+		LOG_NONE = 0,
 		LOG_CRITICAL,
 		LOG_ERROR,
 		LOG_WARNING,

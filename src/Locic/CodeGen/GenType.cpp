@@ -8,16 +8,12 @@
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
+#include <Locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace Locic {
 
 	namespace CodeGen {
 	
-		bool resolvesToClassType(Module& module, SEM::Type* type) {
-			assert(type != NULL);
-			return module.resolveType(type)->isClass();
-		}
-		
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
 			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
@@ -28,8 +24,8 @@ namespace Locic {
 			llvm::Type* returnType = genType(module, semReturnType);
 			std::vector<llvm::Type*> paramTypes;
 			
-			if (resolvesToClassType(module, semReturnType)) {
-				// Class return values are constructed on the caller's
+			if (!isTypeSizeAlwaysKnown(module, semReturnType)) {
+				// Unknown size return values are constructed on the caller's
 				// stack, and given to the callee as a pointer.
 				paramTypes.push_back(returnType->getPointerTo());
 				returnType = TypeGenerator(module).getVoidType();
@@ -47,7 +43,7 @@ namespace Locic {
 				SEM::Type* paramType = params.at(i);
 				llvm::Type* rawType = genType(module, paramType);
 				
-				if (resolvesToClassType(module, paramType)) {
+				if (!isTypeSizeAlwaysKnown(module, paramType)) {
 					rawType = rawType->getPointerTo();
 				}
 				

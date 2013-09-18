@@ -12,12 +12,17 @@ namespace Locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveSizeOf(Module& module, const std::string& name, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, const std::string& name, const std::vector<SEM::Type*>& templateArguments, llvm::Function& llvmFunction);
 		
-		void createPrimitiveMethod(Module& module, const std::string& typeName,
-								   const std::string& methodName, llvm::Function& llvmFunction);
+		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction);
+		
+		void createPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction);
 								   
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name, const std::vector<llvm::Type*>& templateArguments);
+		
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
+		
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
 		
 	}
 	

@@ -53,23 +53,23 @@ namespace Locic {
 							functionCall.functionValue->toString().c_str(),
 							makeArrayString(functionCall.parameters).c_str());
 				case FUNCTIONREF:
-					return makeString("FunctionRef(parentType: %s, name: %s)",
+					return makeString("FunctionRef(name: %s, parentType: %s)",
+							functionRef.function->name().toString().c_str(),
 							functionRef.parentType != NULL ?
 								functionRef.parentType->toString().c_str() :
-								"[NONE]",
-							functionRef.function->name().toString().c_str());
+								"[NONE]");
 				case METHODOBJECT:
-					return makeString("MethodObject(object: %s, method: %s)",
-							methodObject.methodOwner->toString().c_str(),
-							methodObject.method->toString().c_str());
+					return makeString("MethodObject(method: %s, object: %s)",
+							methodObject.method->toString().c_str(),
+							methodObject.methodOwner->toString().c_str());
 				case METHODCALL:
 					return makeString("MethodCall(methodObject: %s, args: %s)",
 							methodCall.methodValue->toString().c_str(),
 							makeArrayString(methodCall.parameters).c_str());
 				case INTERFACEMETHODOBJECT:
-					return makeString("InterfaceMethodObject(object: %s, method: %s)",
-							interfaceMethodObject.methodOwner->toString().c_str(),
-							interfaceMethodObject.method->toString().c_str());
+					return makeString("InterfaceMethodObject(method: %s, object: %s)",
+							interfaceMethodObject.method->toString().c_str(),
+							interfaceMethodObject.methodOwner->toString().c_str());
 				case INTERFACEMETHODCALL:
 					return makeString("InterfaceMethodCall(methodObject: %s, args: %s)",
 							interfaceMethodCall.methodValue->toString().c_str(),

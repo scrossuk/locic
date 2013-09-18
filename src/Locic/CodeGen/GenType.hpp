@@ -9,8 +9,6 @@ namespace Locic {
 
 	namespace CodeGen {
 		
-		bool resolvesToClassType(Module& module, SEM::Type* type);
-		
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType = NULL);
 		
 		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance,

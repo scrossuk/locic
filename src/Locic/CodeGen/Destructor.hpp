@@ -13,37 +13,14 @@ namespace Locic {
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* parent);
 		
-		inline void genScopeDestructorCalls(Function& function, const DestructorScope& destructorScope) {
-			for (size_t i = 0; i < destructorScope.size(); i++) {
-				// Destroy in reverse order.
-				const std::pair<SEM::Type*, llvm::Value*> object =
-					destructorScope.at((destructorScope.size() - 1) - i);
-				genDestructorCall(function, object.first, object.second);
-			}
-		}
+		void genScopeDestructorCalls(Function& function, const DestructorScope& destructorScope, size_t scopeId);
 		
-		inline void genAllScopeDestructorCalls(Function& function) {
-			const std::vector<DestructorScope>& scopeStack =
-				function.destructorScopeStack();
-			for (size_t i = 0; i < scopeStack.size(); i++) {
-				// Destroy scopes in reverse order.
-				const DestructorScope& destructorScope =
-					scopeStack.at((scopeStack.size() - 1) - i);
-				genScopeDestructorCalls(function, destructorScope);
-			}
-		}
+		void genAllScopeDestructorCalls(Function& function);
 		
 		class LifetimeScope {
 			public:
-				inline LifetimeScope(Function& function)
-					: function_(function) {
-					function_.destructorScopeStack().push_back(DestructorScope());
-				}
-				
-				inline ~LifetimeScope() {
-					genScopeDestructorCalls(function_, function_.destructorScopeStack().back());
-					function_.destructorScopeStack().pop_back();
-				}
+				LifetimeScope(Function& function);
+				~LifetimeScope();
 				
 			private:
 				Function& function_;

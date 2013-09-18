@@ -65,9 +65,6 @@ namespace Locic {
 				
 				parameterTypes.push_back(semParamType);
 				
-				// TODO: add support for lval parameter variables.
-				assert(!astTypeVar->usesCustomLval);
-				
 				// TODO: implement 'final'.
 				const bool isLvalMutable = SEM::Type::MUTABLE;
 					

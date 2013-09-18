@@ -78,8 +78,14 @@ namespace Locic{
 		return resultString;
 	}
 	
+	static LogLevel DISPLAY_LEVEL = LOG_NOTICE;
+	
 	void log(LogLevel level, const LogInfo& info, const std::string& message){
 		assert(level != LOG_NONE && level != LOG_ALL);
+		
+		if (unsigned(level) > unsigned(DISPLAY_LEVEL)) {
+			return;
+		}
 		
 		fprintf(stderr, "[File %s] [Function %s] [Line %d] (%s):\n\t%s\n\n",
 			info.fileName.c_str(), info.functionName.c_str(),

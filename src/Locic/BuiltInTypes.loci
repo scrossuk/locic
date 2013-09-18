@@ -3,13 +3,13 @@ __primitive null_t { }
 __primitive bool {
 	bool implicitCopy();
 	
-	bool not();
+	bool opNot();
 }
 
 __primitive char {
 	char implicitCopy();
 	
-	int compare(char v);
+	int opCompare(char v);
 	
 	bool isZero();
 	
@@ -26,13 +26,13 @@ __primitive short {
 	
 	short abs();
 
-	short add(short v);
-	short subtract(short v);
-	short multiply(short v);
-	short divide(short v);
-	short modulo(short v);
+	short opAdd(short v);
+	short opSubtract(short v);
+	short opMultiply(short v);
+	short opDivide(short v);
+	short opModulo(short v);
 	
-	int compare(short v);
+	int opCompare(short v);
 	
 	/*char toChar();
 	short toShort();
@@ -49,13 +49,13 @@ __primitive int {
 	
 	int abs();
 
-	int add(int v);
-	int subtract(int v);
-	int multiply(int v);
-	int divide(int v);
-	int modulo(int v);
+	int opAdd(int v);
+	int opSubtract(int v);
+	int opMultiply(int v);
+	int opDivide(int v);
+	int opModulo(int v);
 	
-	int compare(int v);
+	int opCompare(int v);
 	bool isZero();
 	bool isPositive();
 	bool isNegative();
@@ -73,13 +73,13 @@ __primitive long {
 	
 	long abs();
 
-	long add(long v);
-	long subtract(long v);
-	long multiply(long v);
-	long divide(long v);
-	long modulo(long v);
+	long opAdd(long v);
+	long opSubtract(long v);
+	long opMultiply(long v);
+	long opDivide(long v);
+	long opModulo(long v);
 	
-	int compare(long v);
+	int opCompare(long v);
 	
 	/*char toChar();
 	short toShort();
@@ -94,13 +94,13 @@ __primitive float {
 
 	float abs();
 
-	float add(float v);
-	float subtract(float v);
-	float multiply(float v);
-	float divide(float v);
-	float modulo(float v);
+	float opAdd(float v);
+	float opSubtract(float v);
+	float opMultiply(float v);
+	float opDivide(float v);
+	float opModulo(float v);
 	
-	int compare(float v);
+	int opCompare(float v);
 	
 	/*char toChar();
 	short toShort();
@@ -115,13 +115,13 @@ __primitive double {
 	
 	double abs();
 
-	double add(double v);
-	double subtract(double v);
-	double multiply(double v);
-	double divide(double v);
-	double modulo(double v);
+	double opAdd(double v);
+	double opSubtract(double v);
+	double opMultiply(double v);
+	double opDivide(double v);
+	double opModulo(double v);
 	
-	int compare(double v);
+	int opCompare(double v);
 	
 	/*char toChar();
 	short toShort();

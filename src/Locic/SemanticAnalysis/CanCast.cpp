@@ -169,69 +169,133 @@ namespace Locic {
 			}
 		}
 		
+		static inline SEM::Value* ImplicitCastRefImplicitCopy(SEM::Value* object, SEM::Type* destType) {
+			try {
+				return ImplicitCastFormatOnlyTop(object, destType);
+			} catch(const Exception& e) {
+				// Didn't work; try using dereference with implicit copy if possible.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to dereference and implicit copy (error is: %s).", formatMessage(e.toString()).c_str());
+				
+				if (!object->type()->isReference()) {
+					LOG(LOG_INFO, "Type is NOT a reference; cannot dereference.");
+					throw;
+				}
+				
+				if (!object->type()->getReferenceTarget()->supportsImplicitCopy()) {
+					LOG(LOG_INFO, "Reference target type is not implicitly copyable.");
+					throw;
+				}
+				
+				LOG(LOG_INFO, "Type is reference and reference target type is implicitly copyable.");
+				
+				SEM::Value* derefObject = SEM::Value::DerefReference(object);
+				
+				SEM::Value* copyValue = NULL;
+				
+				if (derefObject->type()->isObject()) {
+					SEM::Function* copyFunction = derefObject->type()->getObjectType()->getProperty("implicitCopy");
+					
+					SEM::Value* functionRef = SEM::Value::FunctionRef(derefObject->type(), copyFunction, derefObject->type()->generateTemplateVarMap());
+					SEM::Value* methodRef = SEM::Value::MethodObject(functionRef, derefObject);
+					
+					copyValue = SEM::Value::MethodCall(methodRef, std::vector<SEM::Value*>());
+				} else {
+					copyValue = SEM::Value::CopyValue(derefObject);
+				}
+				
+				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", copyValue->type()->toString().c_str(), destType->toString().c_str());
+				
+				SEM::Value* castValue = ImplicitCastFormatOnlyTop(copyValue, destType);
+				
+				LOG(LOG_INFO, "Dereference and implicit copy worked: %s.", castValue->toString().c_str());
+				return castValue;
+			}
+		}
+		
+		static inline SEM::Value* ImplicitCastImplicitCopy(SEM::Value* object, SEM::Type* destType) {
+			try {
+				return ImplicitCastRefImplicitCopy(object, destType);
+			} catch(const Exception& e) {
+				// Didn't work; try using implicit copy if possible.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to implicit copy (error is: %s).", formatMessage(e.toString()).c_str());
+				
+				if (!object->type()->supportsImplicitCopy()) {
+					LOG(LOG_INFO, "Type is not implicitly copyable.");
+					throw;
+				}
+				
+				LOG(LOG_INFO, "Type is implicitly copyable.");
+				
+				SEM::Value* copyValue = NULL;
+				
+				if (object->type()->isObject()) {
+					SEM::Function* copyFunction = object->type()->getObjectType()->getProperty("implicitCopy");
+					
+					SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), copyFunction, object->type()->generateTemplateVarMap());
+					SEM::Value* methodRef = SEM::Value::MethodObject(functionRef, object);
+					
+					copyValue = SEM::Value::MethodCall(methodRef, std::vector<SEM::Value*>());
+				} else {
+					copyValue = SEM::Value::CopyValue(object);
+				}
+				
+				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", copyValue->type()->toString().c_str(), destType->toString().c_str());
+				
+				SEM::Value* castValue = ImplicitCastRefImplicitCopy(copyValue, destType);
+				
+				LOG(LOG_INFO, "Implicit copy worked: %s.", castValue->toString().c_str());
+				return castValue;
+			}
+		}
+		
+		static inline SEM::Value* ImplicitCastOpReference(SEM::Value* object, SEM::Type* destType) {
+			try {
+				return ImplicitCastImplicitCopy(object, destType);
+			} catch(const Exception& e) {
+				// Didn't work; try using 'opReference' if available.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to use opReference (error is: %s).", formatMessage(e.toString()).c_str());
+				
+				// Any number of levels of references are automatically dereferenced.
+				while (object->type()->isReference()) {
+					object = SEM::Value::DerefReference(object);
+				}
+				
+				SEM::Type* type = object->type();
+				if (!type->isObject()) {
+					LOG(LOG_INFO, "Type is NOT an object; cannot use opReference.");
+					throw;
+				}
+				
+				if (!type->getObjectType()->hasProperty("opReference")) {
+					LOG(LOG_INFO, "Object type does NOT support opReference.");
+					throw;
+				}
+				
+				LOG(LOG_INFO, "Object type does support opReference...");
+				
+				SEM::Function* refFunction = type->getObjectType()->getProperty("opReference");
+				
+				SEM::Value* functionRef = SEM::Value::FunctionRef(type, refFunction, type->generateTemplateVarMap());
+				SEM::Value* methodRef = SEM::Value::MethodObject(functionRef, object);
+				
+				SEM::Value* refValue = SEM::Value::MethodCall(methodRef, std::vector<SEM::Value*>());
+				
+				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", refValue->type()->toString().c_str(), destType->toString().c_str());
+				
+				SEM::Value* castValue = ImplicitCastImplicitCopy(refValue, destType);
+				
+				LOG(LOG_INFO, "opReference worked: %s.", castValue->toString().c_str());
+				return castValue;
+			}
+		}
+		
 		static inline SEM::Value* ImplicitCastAllToVoid(SEM::Value* value, SEM::Type* destType) {
 			if (destType->isVoid()) {
 				// Everything can be cast to void.
 				return SEM::Value::Cast(destType, value);
 			}
 			
-			return ImplicitCastFormatOnlyTop(value, destType);
-		}
-		
-		static inline SEM::Value* ImplicitCastHandleConstToMutable(SEM::Value* value, SEM::Type* destType) {
-			SEM::Type* sourceType = value->type();
-			
-			// Const values must be copied to become mutable values, but
-			// implicit copying may not necessarily produce a mutable value.
-			if (sourceType->isConst() && destType->isMutable()) {
-				if (value->type()->supportsImplicitCopy()) {
-					SEM::Type* copyType = sourceType->getImplicitCopyType();
-					
-					if (copyType->isMutable()) {
-						return ImplicitCastAllToVoid(SEM::Value::CopyValue(value), destType);
-					}
-				} else {
-					LOG(LOG_INFO, "Type '%s' doesn't support implicit copying.",
-						value->type()->toString().c_str());
-				}
-				
-				throw CastConstCorrectnessViolationException(sourceType, destType);
-			}
-			
-			return ImplicitCastAllToVoid(value, destType);
-		}
-		
-		static inline SEM::Value* ImplicitCastHandleLValueToRValue(SEM::Value* value, SEM::Type* destType) {
-			/*SEM::Type* sourceType = value->type();
-			
-			if (sourceType->isLval() && !destType->isLval()) {
-				// L-values must be copied to become R-values.
-				if (sourceType->getLvalTarget()->supportsImplicitCopy()) {
-					// If possible, create a copy.
-					SEM::Value* copiedValue = SEM::Value::CopyValue(value);
-					
-					// Copying must always produce an R-value.
-					assert(!copiedValue->type()->isLval());
-					return ImplicitCastHandleConstToMutable(copiedValue, destType);
-				} else {
-					throw CastLValueToRValueException(sourceType, destType);
-				}
-			}*/
-			
-			return ImplicitCastHandleConstToMutable(value, destType);
-		}
-		
-		static inline SEM::Value* ImplicitCastToReference(SEM::Value* value, SEM::Type* destType) {
-			SEM::Type* sourceType = value->type();
-			if (!sourceType->isReference() && destType->isReference()) {
-				/*if(!sourceType->isLval()) {
-					throw CastRValueToReferenceException(sourceType, destType);
-				}*/
-				
-				return ImplicitCastHandleLValueToRValue(SEM::Value::ReferenceOf(value), destType);
-			}
-			
-			return ImplicitCastHandleLValueToRValue(value, destType);
+			return ImplicitCastOpReference(value, destType);
 		}
 		
 		static inline SEM::Value* ImplicitCastNullConstruction(SEM::Value* value, SEM::Type* destType) {
@@ -247,14 +311,14 @@ namespace Locic {
 							std::vector<SEM::Value*>());
 					
 					// There still might be some aspects to cast with the null constructed type.
-					return ImplicitCastToReference(nullConstructedValue, destType);
+					return ImplicitCastAllToVoid(nullConstructedValue, destType);
 				} else {
 					throw TodoException(makeString("No null constructor specified for type '%s'.",
 						destType->toString().c_str()));
 				}
 			}
 			
-			return ImplicitCastToReference(value, destType);
+			return ImplicitCastAllToVoid(value, destType);
 		}
 		
 		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {

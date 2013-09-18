@@ -48,10 +48,21 @@ namespace Locic {
 					break;
 				}
 				
+				case SEM::Statement::INITIALISE: {
+					llvm::Value* varValue = function.getLocalVarMap().get(statement->getInitialiseVar());
+					genMove(function, genValue(function, statement->getInitialiseValue(), true), varValue, statement->getInitialiseValue()->type());
+					break;
+				}
+				
 				case SEM::Statement::IF: {
-					llvm::BasicBlock* thenBB = function.createBasicBlock("then");
-					llvm::BasicBlock* elseBB = function.createBasicBlock("else");
-					llvm::BasicBlock* mergeBB = function.createBasicBlock("ifmerge");
+					llvm::BasicBlock* conditionBB = function.createBasicBlock("ifCondition");
+					llvm::BasicBlock* thenBB = function.createBasicBlock("ifThen");
+					llvm::BasicBlock* elseBB = function.createBasicBlock("ifElse");
+					llvm::BasicBlock* mergeBB = function.createBasicBlock("ifMerge");
+					
+					function.getBuilder().CreateBr(conditionBB);
+					function.selectBasicBlock(conditionBB);
+					
 					function.getBuilder().CreateCondBr(genValue(function, statement->getIfCondition()),
 													   thenBB, elseBB);
 													   
@@ -75,16 +86,32 @@ namespace Locic {
 				}
 				
 				case SEM::Statement::WHILE: {
-					llvm::BasicBlock* insideLoopBB = function.createBasicBlock("insideLoop");
-					llvm::BasicBlock* afterLoopBB = function.createBasicBlock("afterLoop");
-					function.getBuilder().CreateCondBr(genValue(function, statement->getWhileCondition()),
-													   insideLoopBB, afterLoopBB);
+					llvm::BasicBlock* conditionBB = function.createBasicBlock("whileConditionLoop");
+					llvm::BasicBlock* insideLoopBB = function.createBasicBlock("whileInsideLoop");
+					llvm::BasicBlock* afterLoopBB = function.createBasicBlock("whileAfterLoop");
+					
+					// Execution starts in the condition block.
+					function.getBuilder().CreateBr(conditionBB);
+					function.selectBasicBlock(conditionBB);
+					
+					llvm::Value* condition = NULL;
+					
+					// Ensure destructors for conditional expression are generated
+					// before the branch instruction.
+					{
+						LifetimeScope conditionLifetimeScope(function);
+						condition = genValue(function, statement->getWhileCondition());
+					}
+					
+					function.getBuilder().CreateCondBr(condition, insideLoopBB, afterLoopBB);
 													   
 					// Create loop contents.
 					function.selectBasicBlock(insideLoopBB);
 					genScope(function, statement->getWhileScope());
-					function.getBuilder().CreateCondBr(genValue(function, statement->getWhileCondition()),
-													   insideLoopBB, afterLoopBB);
+					
+					// At the end of a loop iteration, branch back
+					// to the start to re-check the condition.
+					function.getBuilder().CreateBr(conditionBB);
 													   
 					// Create after loop basic block (which is where execution continues).
 					function.selectBasicBlock(afterLoopBB);
@@ -92,26 +119,34 @@ namespace Locic {
 				}
 				
 				case SEM::Statement::RETURN: {
-					// Call all destructors.
-					genAllScopeDestructorCalls(function);
-					
 					if (statement->getReturnValue() != NULL
 						&& !statement->getReturnValue()->type()->isVoid()) {
-						llvm::Value* returnValue = genValue(function, statement->getReturnValue());
-						
 						if (function.getArgInfo().hasReturnVarArgument()) {
-							genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							llvm::Value* returnValue = genValue(function, statement->getReturnValue(), true);
+							genMove(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							
+							// Call all destructors.
+							genAllScopeDestructorCalls(function);
+							
 							function.getBuilder().CreateRetVoid();
 						} else {
+							llvm::Value* returnValue = genValue(function, statement->getReturnValue(), false);
+							
+							// Call all destructors.
+							genAllScopeDestructorCalls(function);
+							
 							function.getBuilder().CreateRet(returnValue);
 						}
 					} else {
+						// Call all destructors.
+						genAllScopeDestructorCalls(function);
+						
 						function.getBuilder().CreateRetVoid();
 					}
 					
 					// Need a basic block after a return statement in case anything more is generated.
 					// This (and any following code) will be removed by dead code elimination.
-					function.selectBasicBlock(function.createBasicBlock("next"));
+					function.selectBasicBlock(function.createBasicBlock("afterReturn"));
 					break;
 				}
 				

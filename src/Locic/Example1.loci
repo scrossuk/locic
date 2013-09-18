@@ -52,7 +52,7 @@ interface DefaultConstructInterface {
 	
 	T implicitCopy();
 	
-	T multiply(T value);
+	T opMultiply(T value);
 }
 
 template <typename T: DefaultConstructInterface<T> >
@@ -74,12 +74,12 @@ interface value_giving_interface{
 	int getValue();
 }
 
-int getValue(value_giving_interface * v){
-	return v->getValue();
+int getValue(value_giving_interface& v){
+	return v.getValue();
 }
 
-an_interface * getPtr(TestClass2 * ptr){
-	return ptr;
+an_interface& getPtrAsInterfaceRef(TestClass2 * ptr){
+	return *ptr;
 }
 
 void function(TestClass2 * object){
@@ -100,8 +100,16 @@ class custom_lval(int i) {
 	static Default() {
 		return @(0);
 	}
+	
+	custom_lval implicitCopy() {
+		return @(@i);
+	}
 
 	void opAssign(int value) {
+		@i = value;
+	}
+	
+	void setValue(int value) {
 		@i = value;
 	}
 	
@@ -112,11 +120,19 @@ class custom_lval(int i) {
 	}
 }
 
+void lvalFunc(lval custom_lval custLval) {
+	printf("Custom lval: %d\n"C, move custLval);
+}
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
+	
+	custom_lval custLval = custom_lval();
+	custLval.setValue(101);
+	lvalFunc(custLval);
 	
 	//char * argv0 = argv[0];
 	
@@ -157,9 +173,9 @@ int main(int argc, char ** argv){
 	
 	printf("Value: %d\n"C, testObject.getValue());
 	
-	printf("Interface value: %d\n"C, getPtr(&testObject)->getValue());
+	printf("Interface value: %d\n"C, getPtrAsInterfaceRef(&testObject).getValue());
 	
-	an_interface * interfaceObject = getPtr(&testObject);
+	an_interface& interfaceObject = getPtrAsInterfaceRef(&testObject);
 	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));
 	
 	{

@@ -225,6 +225,7 @@ namespace Locic {
 					}
 					
 					semTypeInstance->variables().push_back(var);
+					semTypeInstance->constructTypes().push_back(semType);
 				}
 			} else {
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){

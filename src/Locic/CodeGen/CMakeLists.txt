@@ -14,5 +14,6 @@ add_library(locic-codegen
 	SizeOf.cpp
 	Support.cpp
 	TargetInfo.cpp
+	TypeSizeKnowledge.cpp
 	VTable.cpp)
 

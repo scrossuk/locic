@@ -25,7 +25,7 @@ namespace Locic {
 			assert(typeInstance->templateVariables().size() == type->templateArguments().size());
 			
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, typeInstance->name().last(), *llvmFunction);
+				createPrimitiveSizeOf(module, typeInstance->name().last(), type->templateArguments(), *llvmFunction);
 			} else if (typeInstance->isDefinition()) {
 				Function function(module, *llvmFunction, ArgInfo::None());
 				

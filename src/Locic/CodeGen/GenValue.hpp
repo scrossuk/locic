@@ -13,7 +13,7 @@ namespace Locic {
 	
 		llvm::Value* generateLValue(Function& function, SEM::Value* value);
 		
-		llvm::Value* genValue(Function& function, SEM::Value* value, bool genLValue = false);
+		llvm::Value* genValue(Function& function, SEM::Value* value, bool genPtr = false);
 		
 	}
 	
