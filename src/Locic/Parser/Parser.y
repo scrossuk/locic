@@ -861,7 +861,7 @@ precision6:
 	}
 	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
 	{
-		$$ = AST::Value::BinaryOp("opIndexOf", $1, $3);
+		$$ = AST::Value::BinaryOp("opIndex", $1, $3);
 	}
 	;
 	

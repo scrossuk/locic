@@ -134,6 +134,16 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
+	char * programName = argv[0];
+	printf("Program name is %s.\n"C, programName);
+	
+	int argIndex = 1;
+	while (argIndex < argc) {
+		char * argValue = argv[argIndex];
+		printf("    Arg %d: %s\n"C, argIndex, argValue);
+		argIndex += 1;
+	}
+	
 	lval custom_lval custLval = custom_lval();
 	custLval = 101;
 	lvalFunc(custLval);

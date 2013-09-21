@@ -68,7 +68,8 @@ namespace Locic {
 				   methodName == "opDivide" ||
 				   methodName == "opModulo" ||
 				   methodName == "opCompare" ||
-				   methodName == "opAssign";
+				   methodName == "opAssign" ||
+				   methodName == "opIndex";
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
@@ -279,8 +280,10 @@ namespace Locic {
 			function.verify();
 		}
 		
-		void createPtrPrimitiveMethod(Module& module, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createPtrPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
+			
+			SEM::Type* targetType = parent->templateArguments().at(0);
 			
 			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
 			
@@ -299,9 +302,16 @@ namespace Locic {
 			} else if (isBinaryOp(methodName)) {
 				// TODO: implement addition and subtraction.
 				llvm::Value* operand = function.getArg(0);
-				(void) operand;
 				
-				{
+				if (methodName == "opIndex") {
+					llvm::Value* i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+					llvm::Value* targetSize = genSizeOf(function, targetType);
+					llvm::Value* offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()), true);
+					llvm::Value* adjustedOffset = builder.CreateMul(offset, targetSize);
+					llvm::Value* i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
+					llvm::Value* castPtr = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+					builder.CreateRet(castPtr);
+				} else {
 					assert(false && "Unknown primitive binary op.");
 				}
 			} else {
@@ -388,7 +398,7 @@ namespace Locic {
 			} else if (isFloatType(typeName)) {
 				createFloatPrimitiveMethod(module, typeName, methodName, llvmFunction);
 			} else if(typeName == "ptr") {
-				createPtrPrimitiveMethod(module, methodName, llvmFunction);
+				createPtrPrimitiveMethod(module, parent, methodName, llvmFunction);
 			} else if(typeName == "value_lval") {
 				createValueLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
 			} else {
