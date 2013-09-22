@@ -10,6 +10,7 @@
 #include <Locic/SemanticAnalysis/ConvertType.hpp>
 #include <Locic/SemanticAnalysis/ConvertValue.hpp>
 #include <Locic/SemanticAnalysis/Lval.hpp>
+#include <Locic/SemanticAnalysis/VarArgCast.hpp>
 
 namespace Locic {
 
@@ -50,7 +51,7 @@ namespace Locic {
 						memberType = memberType->createConstType();
 					}
 					
-					return SEM::Value::MemberAccess(object, var, memberType);
+					return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType));
 				} else {
 					throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
 						memberName.c_str(), typeInstance->name().toString().c_str()));
@@ -292,9 +293,7 @@ namespace Locic {
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
 					
 					if (memberName != "opAddress" && memberName != "opAssign" && memberName != "opDissolve" && memberName != "opMove") {
-						if (canDissolveValue(object)) {
-							object = dissolveLval(object);
-						}
+						object = tryDissolveValue(object);
 					}
 					
 					return MakeMemberAccess(context, object, memberName);
@@ -308,7 +307,7 @@ namespace Locic {
 							const std::vector<SEM::Type*>& typeList = functionValue->type()->getFunctionParameterTypes();
 							const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
 							
-							if(functionValue->type()->isFunctionVarArg()) {
+							if (functionValue->type()->isFunctionVarArg()) {
 								if(astValueList.size() < typeList.size()) {
 									throw TodoException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
 										functionValue->toString().c_str(),
@@ -331,9 +330,13 @@ namespace Locic {
 							for(std::size_t i = 0; i < astValueList.size(); i++) {
 								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
 								
+								// Cast arguments to the function type's corresponding
+								// argument type; var-arg arguments should be cast to
+								// one of the allowed types (since there's no specific
+								// destination type).
 								SEM::Value* param = (i < typeList.size()) ?
 										ImplicitCast(semArgValue, typeList.at(i)) :
-										semArgValue;
+										VarArgCast(semArgValue);
 										
 								semValueList.push_back(param);
 							}

@@ -16,6 +16,8 @@ namespace Locic {
 		
 		SEM::Value* dissolveLval(SEM::Value* lvalValue);
 		
+		SEM::Value* tryDissolveValue(SEM::Value* value);
+		
 	}
 	
 }

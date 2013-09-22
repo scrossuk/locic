@@ -124,7 +124,7 @@ class custom_lval(int i) {
 	}
 }
 
-void lvalFunc(lval custom_lval custLval) {
+void lvalFunc(lval custom_lval& custLval) {
 	printf("Custom lval: %d\n"C, move custLval);
 }
 
@@ -139,8 +139,7 @@ int main(int argc, char ** argv){
 	
 	int argIndex = 1;
 	while (argIndex < argc) {
-		char * argValue = argv[argIndex];
-		printf("    Arg %d: %s\n"C, argIndex, argValue);
+		printf("    Arg %d: %s\n"C, argIndex, argv[argIndex]);
 		argIndex += 1;
 	}
 	

@@ -60,6 +60,10 @@ namespace Locic {
 			return CallProperty(value, "opDissolve", std::vector<SEM::Value*>());
 		}
 		
+		SEM::Value* tryDissolveValue(SEM::Value* value) {
+			return canDissolveValue(value) ? dissolveLval(value) : value;
+		}
+		
 	}
 	
 }

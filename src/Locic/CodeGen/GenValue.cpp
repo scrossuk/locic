@@ -139,31 +139,19 @@ namespace Locic {
 				}
 				
 				case SEM::Value::VAR: {
+					assert(!genPtr);
 					SEM::Var* var = value->varValue.var;
 					
 					switch (var->kind()) {
 						case SEM::Var::PARAM:
 						case SEM::Var::LOCAL: {
-							llvm::Value* val = function.getLocalVarMap().get(var);
-							
-							if (genPtr) {
-								return val;
-							} else {
-								return genLoad(function, val, value->type());
-							}
+							return function.getLocalVarMap().get(var);
 						}
 						
 						case SEM::Var::MEMBER: {
-							llvm::Value* memberPtr =
-								function.getBuilder().CreateConstInBoundsGEP2_32(
+							return function.getBuilder().CreateConstInBoundsGEP2_32(
 									function.getContextValue(), 0,
 									module.getMemberVarMap().get(var));
-														 
-							if (genPtr) {
-								return memberPtr;
-							} else {
-								return genLoad(function, memberPtr, value->type());
-							}
 						}
 						
 						default: {

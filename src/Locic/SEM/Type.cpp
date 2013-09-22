@@ -147,9 +147,9 @@ namespace Locic {
 		std::string Type::nameToString() const {
 			switch(kind()) {
 				case VOID:
-					return "VoidType()";
+					return "VoidType";
 				case NULLT:
-					return "NullType()";
+					return "NullType";
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),
@@ -175,9 +175,9 @@ namespace Locic {
 		std::string Type::basicToString() const {
 			switch(kind()) {
 				case VOID:
-					return "VoidType()";
+					return "VoidType";
 				case NULLT:
-					return "NullType()";
+					return "NullType";
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 							getObjectType()->name().toString().c_str(),

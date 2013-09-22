@@ -228,7 +228,7 @@ namespace Locic{
 			std::string toString() const {
 				switch(type_){
 					case NULLVAL:
-						return "NullConstant()";
+						return "NullConstant";
 					case BOOLEAN:
 						return makeString("BoolConstant(%s)",
 							bool_ ? "true" : "false");

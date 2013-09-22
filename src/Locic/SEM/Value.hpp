@@ -139,7 +139,7 @@ namespace Locic {
 				}
 				
 				inline static Value* VarValue(Var* var) {
-					Value* value = new Value(VAR, var->type());
+					Value* value = new Value(VAR, SEM::Type::Reference(var->type()));
 					value->varValue.var = var;
 					return value;
 				}
