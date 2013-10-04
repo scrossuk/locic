@@ -50,26 +50,26 @@ namespace Locic {
 		
 		bool isUnaryOp(const std::string& methodName) {
 			return methodName == "implicitCopy" ||
-				   methodName == "opNot" ||
+				   methodName == "not" ||
 				   methodName == "isZero" ||
 				   methodName == "isPositive" ||
 				   methodName == "isNegative" ||
 				   methodName == "abs" ||
-				   methodName == "opAddress" ||
-				   methodName == "opDeref" ||
-				   methodName == "opDissolve" ||
-				   methodName == "opMove";
+				   methodName == "address" ||
+				   methodName == "deref" ||
+				   methodName == "dissolve" ||
+				   methodName == "move";
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
-			return methodName == "opAdd" ||
-				   methodName == "opSubtract" ||
-				   methodName == "opMultiply" ||
-				   methodName == "opDivide" ||
-				   methodName == "opModulo" ||
-				   methodName == "opCompare" ||
-				   methodName == "opAssign" ||
-				   methodName == "opIndex";
+			return methodName == "add" ||
+				   methodName == "subtract" ||
+				   methodName == "multiply" ||
+				   methodName == "divide" ||
+				   methodName == "modulo" ||
+				   methodName == "compare" ||
+				   methodName == "assign" ||
+				   methodName == "index";
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
@@ -103,7 +103,7 @@ namespace Locic {
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
-				} else if (methodName == "opNot") {
+				} else if (methodName == "not") {
 					builder.CreateRet(builder.CreateNot(methodOwner));
 				} else {
 					assert(false && "Unknown bool unary op.");
@@ -141,9 +141,6 @@ namespace Locic {
 				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
-				} else if (methodName == "opNot") {
-					assert(typeName == "bool");
-					builder.CreateRet(builder.CreateNot(methodOwner));
 				} else if (methodName == "isZero") {
 					builder.CreateRet(builder.CreateICmpEQ(methodOwner, zero));
 				} else if (methodName == "isPositive") {
@@ -161,22 +158,22 @@ namespace Locic {
 			} else if (isBinaryOp(methodName)) {
 				llvm::Value* operand = function.getArg(0);
 				
-				if (methodName == "opAdd") {
+				if (methodName == "add") {
 					builder.CreateRet(
 						builder.CreateAdd(methodOwner, operand));
-				} else if (methodName == "opSubtract") {
+				} else if (methodName == "subtract") {
 					builder.CreateRet(
 						builder.CreateSub(methodOwner, operand));
-				} else if (methodName == "opMultiply") {
+				} else if (methodName == "multiply") {
 					builder.CreateRet(
 						builder.CreateMul(methodOwner, operand));
-				} else if (methodName == "opDivide") {
+				} else if (methodName == "divide") {
 					builder.CreateRet(
 						builder.CreateSDiv(methodOwner, operand));
-				} else if (methodName == "opModulo") {
+				} else if (methodName == "modulo") {
 					builder.CreateRet(
 						builder.CreateSRem(methodOwner, operand));
-				} else if (methodName == "opCompare") {
+				} else if (methodName == "compare") {
 					llvm::Value* isLessThan = builder.CreateICmpSLT(methodOwner, operand);
 					llvm::Value* isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
 					llvm::Value* minusOne = ConstantGenerator(module).getPrimitiveInt("int", -1);
@@ -239,22 +236,22 @@ namespace Locic {
 			} else if (isBinaryOp(methodName)) {
 				llvm::Value* operand = function.getArg(0);
 				
-				if (methodName == "opAdd") {
+				if (methodName == "add") {
 					builder.CreateRet(
 						builder.CreateFAdd(methodOwner, operand));
-				} else if (methodName == "opSubtract") {
+				} else if (methodName == "subtract") {
 					builder.CreateRet(
 						builder.CreateFSub(methodOwner, operand));
-				} else if (methodName == "opMultiply") {
+				} else if (methodName == "multiply") {
 					builder.CreateRet(
 						builder.CreateFMul(methodOwner, operand));
-				} else if (methodName == "opDivide") {
+				} else if (methodName == "divide") {
 					builder.CreateRet(
 						builder.CreateFDiv(methodOwner, operand));
-				} else if (methodName == "opModulo") {
+				} else if (methodName == "modulo") {
 					builder.CreateRet(
 						builder.CreateFRem(methodOwner, operand));
-				} else if (methodName == "opCompare") {
+				} else if (methodName == "compare") {
 					llvm::Value* isLessThan = builder.CreateFCmpOLT(methodOwner, operand);
 					llvm::Value* isGreaterThan = builder.CreateFCmpOGT(methodOwner, operand);
 					llvm::Value* minusOne = ConstantGenerator(module).getPrimitiveInt("int", -1);
@@ -294,7 +291,7 @@ namespace Locic {
 			if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
-				} else if (methodName == "opDeref") {
+				} else if (methodName == "deref") {
 					builder.CreateRet(methodOwner);
 				} else {
 					assert(false && "Unknown primitive unary op.");
@@ -303,7 +300,7 @@ namespace Locic {
 				// TODO: implement addition and subtraction.
 				llvm::Value* operand = function.getArg(0);
 				
-				if (methodName == "opIndex") {
+				if (methodName == "index") {
 					llvm::Value* i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
 					llvm::Value* targetSize = genSizeOf(function, targetType);
 					llvm::Value* offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()), true);
@@ -327,7 +324,7 @@ namespace Locic {
 		}
 		
 		ArgInfo getValueLvalMethodArgInfo(Module& module, SEM::Type* targetType, const std::string& methodName) {
-			if (methodName == "opMove") {
+			if (methodName == "move") {
 				const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, targetType);
 				const bool hasContextArg = true;
 				const size_t numStandardArguments = 0;
@@ -347,16 +344,16 @@ namespace Locic {
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
 			if (isUnaryOp(methodName)) {
-				if (methodName == "opAddress") {
+				if (methodName == "address") {
 					builder.CreateRet(function.getContextValue());
-				} else if (methodName == "opMove") {
+				} else if (methodName == "move") {
 					if (function.getArgInfo().hasReturnVarArgument()) {
 						genMove(function, function.getContextValue(), function.getReturnVar(), targetType);
 						builder.CreateRetVoid();
 					} else {
 						builder.CreateRet(builder.CreateLoad(function.getContextValue()));
 					}
-				} else if (methodName == "opDissolve") {
+				} else if (methodName == "dissolve") {
 					builder.CreateRet(function.getContextValue());
 				} else {
 					assert(false && "Unknown primitive unary op.");
@@ -365,7 +362,7 @@ namespace Locic {
 				llvm::Value* operand = function.getArg(0);
 				(void) operand;
 				
-				if (methodName == "opAssign") {
+				if (methodName == "assign") {
 					if (isTypeSizeAlwaysKnown(module, targetType)) {
 						genStore(function, operand, function.getContextValue(), targetType);
 					} else {

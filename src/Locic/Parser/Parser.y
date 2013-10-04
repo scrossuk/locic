@@ -173,6 +173,8 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 %type <typeInstance> typeInstance
 %type <typeInstance> nonTemplatedTypeInstance
 
+%type <str> functionName
+
 %type <function> functionDecl
 %type <function> functionDef
 
@@ -337,22 +339,34 @@ staticFunctionDef:
 		$$ = AST::Function::Def($2, *($3), *($5), $7);
 	}
 	;
+
+// TODO: make this apply to all symbol names?
+functionName:
+	NAME
+	{
+		$$ = $1;
+	}
+	| MOVE
+	{
+		$$ = new std::string("move");
+	}
+	;
 	
 functionDecl:
-	type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
 		$$ = AST::Function::Decl($1, *($2), *($4));
 	}
-	| type NAME LROUNDBRACKET nonEmptyTypeVarList COMMA DOT DOT DOT RROUNDBRACKET SEMICOLON
+	| type functionName LROUNDBRACKET nonEmptyTypeVarList COMMA DOT DOT DOT RROUNDBRACKET SEMICOLON
 	{
 		$$ = AST::Function::VarArgDecl($1, *($2), *($4));
 	}
-	| type NAME LROUNDBRACKET typeVarList RROUNDBRACKET error
+	| type functionName LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.");
 		$$ = NULL;
 	}
-	| type NAME LROUNDBRACKET typeVarList COMMA DOT DOT DOT RROUNDBRACKET error
+	| type functionName LROUNDBRACKET typeVarList COMMA DOT DOT DOT RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.");
 		$$ = NULL;
@@ -360,7 +374,7 @@ functionDecl:
 	;
 	
 functionDef:
-	type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
 		$$ = AST::Function::Def($1, *($2), *($4), $6);
 	}
@@ -514,6 +528,10 @@ typePrecision3:
 	| symbol
 	{
 		$$ = AST::Type::Object(*($1));
+	}
+	| TYPENAME
+	{
+		$$ = AST::Type::Object(AST::Symbol(AST::Symbol::Absolute() + AST::SymbolElement("typename_type", std::vector<AST::Type *>())));
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
@@ -716,9 +734,60 @@ scopedStatement:
 	}
 	| FOR LROUNDBRACKET type NAME COLON value RROUNDBRACKET scope
 	{
-		// TODO
-		assert(false && "For loops not implemented yet");
-		$$ = NULL;
+		/**
+		 * This code converts:
+		 * for (type value_var: range_value) {
+		 *     //...
+		 * }
+		 * 
+		 * ...to:
+		 * 
+		 * {
+		 *     auto anon_var = range_value;
+		 *     while (!anon_var.empty()) {
+		 *         type value_var = anon_var.front();
+		 *         {
+		 *             //...
+		 *         }
+		 *         anon_var.popFront();
+		 *     }
+		 * }
+		 *
+		 * In future this should be done in Semantic Analysis,
+		 * particularly since this doesn't handle break/continue
+		 * correctly, but right now it's easier to do it here.
+		 */
+		
+		const std::string anonVariableName = parserContext->getAnonymousVariableName();
+		const AST::Symbol anonVariableSymbol = AST::Symbol::Relative() + AST::SymbolElement(anonVariableName, std::vector<AST::Type*>());
+		
+		// {
+		std::vector<AST::Statement*> statements;
+		
+		//     auto anon_var = range_value;
+		statements.push_back(AST::Statement::AutoVarDecl(false, anonVariableName, $6));
+		
+		//     while (!anon_var.empty()) {
+		AST::Value* condition = AST::Value::UnaryOp("not", AST::Value::UnaryOp("empty", AST::Value::SymbolRef(anonVariableSymbol)));
+		std::vector<AST::Statement*> whileLoopStatements;
+		
+		//         type value_var = anon_var.front();
+		AST::TypeVar* loopTypeVar = new AST::TypeVar($3, *($4), false);
+		whileLoopStatements.push_back(AST::Statement::VarDecl(loopTypeVar, AST::Value::UnaryOp("front", AST::Value::SymbolRef(anonVariableSymbol))));
+		
+		//         {
+		//             //...
+		//         }
+		whileLoopStatements.push_back(AST::Statement::ScopeStmt($8));
+		
+		//         anon_var.popFront();
+		whileLoopStatements.push_back(AST::Statement::ValueStmt(AST::Value::UnaryOp("popFront", AST::Value::SymbolRef(anonVariableSymbol))));
+		
+		//     }
+		statements.push_back(AST::Statement::While(condition, new AST::Scope(whileLoopStatements)));
+		
+		// }
+		$$ = AST::Statement::ScopeStmt(new AST::Scope(statements));
 	}
 	| WHILE LROUNDBRACKET value RROUNDBRACKET scope
 	{
@@ -766,28 +835,28 @@ normalStatement:
 	
 	| value SETEQUAL value %dprec 1
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, $3));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, $3));
 	}
 	
 	| value ADDEQUAL value
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opAdd", $1, $3)));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, AST::Value::BinaryOp("add", $1, $3)));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opSubtract", $1, $3)));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, AST::Value::BinaryOp("subtract", $1, $3)));
 	}
 	| value MULEQUAL value
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opMultiply", $1, $3)));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, AST::Value::BinaryOp("multiply", $1, $3)));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opDivide", $1, $3)));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, AST::Value::BinaryOp("divide", $1, $3)));
 	}
 	| precision4 PERCENTEQUAL precision5
 	{
-		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("opAssign", $1, AST::Value::BinaryOp("opModulo", $1, $3)));
+		$$ = AST::Statement::ValueStmt(AST::Value::BinaryOp("assign", $1, AST::Value::BinaryOp("modulo", $1, $3)));
 	}
 	| value
 	{
@@ -853,7 +922,7 @@ precision6:
 	}
 	| precision6 PTRACCESS NAME
 	{
-		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp("opDeref", $1), *($3));
+		$$ = AST::Value::MemberAccess(AST::Value::UnaryOp("deref", $1), *($3));
 	}
 	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
@@ -861,7 +930,7 @@ precision6:
 	}
 	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
 	{
-		$$ = AST::Value::BinaryOp("opIndex", $1, $3);
+		$$ = AST::Value::BinaryOp("index", $1, $3);
 	}
 	;
 	
@@ -872,27 +941,27 @@ precision5:
 	}
 	| PLUS precision5
 	{
-		$$ = AST::Value::UnaryOp("opPlus", $2);
+		$$ = AST::Value::UnaryOp("plus", $2);
 	}
 	| MINUS precision5
 	{
-		$$ = AST::Value::UnaryOp("opMinus", $2);
+		$$ = AST::Value::UnaryOp("minus", $2);
 	}
 	| EXCLAIMMARK precision5
 	{
-		$$ = AST::Value::UnaryOp("opNot", $2);
+		$$ = AST::Value::UnaryOp("not", $2);
 	}
 	| AMPERSAND precision5
 	{
-		$$ = AST::Value::UnaryOp("opAddress", $2);
+		$$ = AST::Value::UnaryOp("address", $2);
 	}
 	| STAR precision5
 	{
-		$$ = AST::Value::UnaryOp("opDeref", $2);
+		$$ = AST::Value::UnaryOp("deref", $2);
 	}
 	| MOVE precision5
 	{
-		$$ = AST::Value::UnaryOp("opMove", $2);
+		$$ = AST::Value::UnaryOp("move", $2);
 	}
 	;
 	
@@ -903,15 +972,15 @@ precision4:
 	}
 	| precision4 STAR precision5
 	{
-		$$ = AST::Value::BinaryOp("opMultiply", $1, $3);
+		$$ = AST::Value::BinaryOp("multiply", $1, $3);
 	}
 	| precision4 FORWARDSLASH precision5
 	{
-		$$ = AST::Value::BinaryOp("opDivide", $1, $3);
+		$$ = AST::Value::BinaryOp("divide", $1, $3);
 	}
 	| precision4 PERCENT precision5
 	{
-		$$ = AST::Value::BinaryOp("opModulo", $1, $3);
+		$$ = AST::Value::BinaryOp("modulo", $1, $3);
 	}
 	;
 	
@@ -922,11 +991,11 @@ precision3:
 	}
 	| precision3 PLUS precision4
 	{
-		$$ = AST::Value::BinaryOp("opAdd", $1, $3);
+		$$ = AST::Value::BinaryOp("add", $1, $3);
 	}
 	| precision3 MINUS precision4
 	{
-		$$ = AST::Value::BinaryOp("opSubtract", $1, $3);
+		$$ = AST::Value::BinaryOp("subtract", $1, $3);
 	}
 	;
 	
@@ -941,30 +1010,30 @@ precision2:
 	 */
 	| precision3 ISEQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("opCompare", $1, $3));
+		$$ = AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3));
 	}
 	| precision3 NOTEQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("opNot", 
-			AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("opCompare", $1, $3)));
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isZero", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	| precision3 LTRIBRACKET precision3
 	{
-		$$ = AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("opCompare", $1, $3));
+		$$ = AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3));
 	}
 	| precision3 RTRIBRACKET precision3
 	{
-		$$ = AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("opCompare", $1, $3));
+		$$ = AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3));
 	}
 	| precision3 LESSOREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("opNot", 
-			AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("opCompare", $1, $3)));
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isPositive", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	| precision3 GREATEROREQUAL precision3
 	{
-		$$ = AST::Value::UnaryOp("opNot", 
-			AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("opCompare", $1, $3)));
+		$$ = AST::Value::UnaryOp("not", 
+			AST::Value::UnaryOp("isNegative", AST::Value::BinaryOp("compare", $1, $3)));
 	}
 	;
 	

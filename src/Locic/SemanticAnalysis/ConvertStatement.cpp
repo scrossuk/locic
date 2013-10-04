@@ -78,9 +78,38 @@ namespace Locic {
 							
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
+				// TODO: replace code in parser with this.
+				/*case AST::Statement::FOR: {
+					AST::TypeVar* astTypeVar = statement->forStmt.typeVar;
+					AST::Value* astRangeValue = statement->forStmt.rangeValue;
+					
+					SEM::Value* semRangeValue = ConvertValue(context, astRangeValue);
+					
+					// Create an anonymous variable to hold the range.
+					SEM::Var* rangeVar = SEM::Var::Local(semRangeValue->type());
+					
+					// Start off by assigning the range value to the variable.
+					SEM::Statement* setRangeVar = SEM::Statement::InitialiseStmt(rangeVar, semRangeValue);
+					
+					
+					
+					// Check whether a type annotation has been used.
+					const bool autoType = (astTypeVar->type == NULL);
+					
+					// If type is 'auto', infer it from type value.
+					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVar->type);
+					
+					assert(varType != NULL);
+					if (varType->isVoid()) {
+						printf("Semantic Analysis Error: Local variable cannot have void type.\n");
+						// TODO: throw exception.
+						assert(false);
+						return NULL;
+					}
+					
+					return SEM::Statement::ScopeStmt(
+				}*/
 				case AST::Statement::VARDECL: {
-					//AST::Type* typeAnnotation = statement->varDecl.type;
-					//std::string varName = statement->varDecl.varName;
 					AST::TypeVar* astTypeVar = statement->varDecl.typeVar;
 					AST::Value* initialValue = statement->varDecl.value;
 					

@@ -3,13 +3,13 @@ __primitive null_t { }
 __primitive bool {
 	bool implicitCopy();
 	
-	bool opNot();
+	bool not();
 }
 
 __primitive char {
 	char implicitCopy();
 	
-	int opCompare(char v);
+	int compare(char v);
 	
 	bool isZero();
 	
@@ -26,13 +26,13 @@ __primitive short {
 	
 	short abs();
 
-	short opAdd(short v);
-	short opSubtract(short v);
-	short opMultiply(short v);
-	short opDivide(short v);
-	short opModulo(short v);
+	short add(short v);
+	short subtract(short v);
+	short multiply(short v);
+	short divide(short v);
+	short modulo(short v);
 	
-	int opCompare(short v);
+	int compare(short v);
 	
 	/*char toChar();
 	short toShort();
@@ -49,13 +49,13 @@ __primitive int {
 	
 	int abs();
 
-	int opAdd(int v);
-	int opSubtract(int v);
-	int opMultiply(int v);
-	int opDivide(int v);
-	int opModulo(int v);
+	int add(int v);
+	int subtract(int v);
+	int multiply(int v);
+	int divide(int v);
+	int modulo(int v);
 	
-	int opCompare(int v);
+	int compare(int v);
 	bool isZero();
 	bool isPositive();
 	bool isNegative();
@@ -73,13 +73,13 @@ __primitive long {
 	
 	long abs();
 
-	long opAdd(long v);
-	long opSubtract(long v);
-	long opMultiply(long v);
-	long opDivide(long v);
-	long opModulo(long v);
+	long add(long v);
+	long subtract(long v);
+	long multiply(long v);
+	long divide(long v);
+	long modulo(long v);
 	
-	int opCompare(long v);
+	int compare(long v);
 	
 	/*char toChar();
 	short toShort();
@@ -94,13 +94,13 @@ __primitive float {
 
 	float abs();
 
-	float opAdd(float v);
-	float opSubtract(float v);
-	float opMultiply(float v);
-	float opDivide(float v);
-	float opModulo(float v);
+	float add(float v);
+	float subtract(float v);
+	float multiply(float v);
+	float divide(float v);
+	float modulo(float v);
 	
-	int opCompare(float v);
+	int compare(float v);
 	
 	/*char toChar();
 	short toShort();
@@ -115,13 +115,13 @@ __primitive double {
 	
 	double abs();
 
-	double opAdd(double v);
-	double opSubtract(double v);
-	double opMultiply(double v);
-	double opDivide(double v);
-	double opModulo(double v);
+	double add(double v);
+	double subtract(double v);
+	double multiply(double v);
+	double divide(double v);
+	double modulo(double v);
 	
-	int opCompare(double v);
+	int compare(double v);
 	
 	/*char toChar();
 	short toShort();
@@ -137,23 +137,83 @@ __primitive ptr {
 	
 	ptr<T> implicitCopy();
 	
-	value_lval<T>& opDeref();
+	value_lval<T>& deref();
 	
-	value_lval<T>& opIndex(int index);
+	value_lval<T>& index(int index);
 }
 
 template <typename T>
 __primitive value_lval {
 	static Default(T value);
-	T* opAddress();
-	void opAssign(T value);
-	T& opDissolve();
-	T opMove();
+	T* address();
+	void assign(T value);
+	T& dissolve();
+	T move();
 }
 
-/*template <typename T, typename Ret, typename[] Param>
+/*
+Eventually the following will be adopted for use (once compile-time evaluation
+has been implemented). For now, this stuff is still built-in to the compiler.
+
+template <virtual typename T>
+__primitive ref {
+	ref<T> implicitCopy();
+	T implicitDeepCopy();
+	
+	do (synthesizer) {
+		// Add any methods from the referred-to type
+		// that aren't part of this type.
+		for (auto method: T.dynamic_methods()) {
+			if (synthesizer.has_dynamic_method(method.name())) break;
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes());
+		}
+	}
+}
+
+__primitive method {
+	typename returnType() const;
+	typename[] paramTypes() const;
+}
+
+interface None { }
+
+template <virtual typename Constraint = None>
+__primitive typename {
+	bool has_static_method(string name) const;
+	method get_static_method(string name) const;
+	
+	bool has_dynamic_method(string name) const;
+	method get_dynamic_method(string name) const;
+	
+	do (synthesizer) {
+		// 'call' calls the default constructor, if any exists.
+		if (!Constraint.has_static_method("default")) break;
+		auto method = Constraint.get_static_method("default");
+		synthesizer.add_dynamic_method(method.returnType(), "call", method.argTypes());
+	}
+	
+	do (synthesizer) {
+		// All constructors can be called by
+		// name, as methods of this object.
+		for (auto method: Constraint.static_methods()) {
+			if (synthesizer.has_method(method.name())) break;
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes());
+		}
+	}
+}
+
+template <virtual typename Constraint = None>
+__primitive virtual_typename {
+	bool has_static_method(string name) const;
+	method get_static_method(string name) const;
+	
+	bool has_dynamic_method(string name) const;
+	method get_dynamic_method(string name) const;
+}
+
+template <typename T, typename Ret, typename[] Param>
 class interface_method(T* objectPtr, void* vtable, uint32_t value) {
-	static Default(T* objectPtr, void* vtable, uint32_t value){
+	static Default(T* objectPtr, void* vtable, uint32_t value) {
 		return @(objectPtr, vtable, value);
 	}
 	
@@ -161,7 +221,7 @@ class interface_method(T* objectPtr, void* vtable, uint32_t value) {
 		return interface_method(@objectPtr, @vtable, @value);
 	}
 	
-	Ret opCall(Param args[]) const {
+	Ret call(Param args[]) const {
 		auto vtableArray = static_array<void *>(@vtable);
 		auto f = function_ptr<Ret, {T*} + Param>(
 		f(@objectPtr, args);

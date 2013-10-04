@@ -26,13 +26,20 @@ namespace Locic{
 			std::size_t lineNumber;
 			std::vector<Error> errors;
 			std::string stringConstant;
+			size_t nextAnonymousVariable;
 			
 			inline Context(AST::Namespace * root, const std::string& n)
 				: rootNamespace(root), fileName(n),
-				lineNumber(0){ }
+				lineNumber(0), nextAnonymousVariable(0) { }
 			
-			inline void error(const std::string& message){
+			inline void error(const std::string& message) {
 				errors.push_back(Error(message, lineNumber));
+			}
+			
+			inline std::string getAnonymousVariableName() {
+				const std::string name = makeString("__anon_var_%llu", (unsigned long long) nextAnonymousVariable);
+				nextAnonymousVariable++;
+				return name;
 			}
 		};
 		

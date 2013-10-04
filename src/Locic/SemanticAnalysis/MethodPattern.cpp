@@ -19,19 +19,19 @@ namespace Locic {
 		}
 		
 		MethodPattern OpAddressPattern() {
-			return MethodPattern("opAddress", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+			return MethodPattern("address", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
 		MethodPattern OpAssignPattern() {
-			return MethodPattern("opAssign", IS_NOT_STATIC, CHECK_PARAM_COUNT, 1);
+			return MethodPattern("assign", IS_NOT_STATIC, CHECK_PARAM_COUNT, 1);
 		}
 		
 		MethodPattern OpDissolvePattern() {
-			return MethodPattern("opDissolve", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+			return MethodPattern("dissolve", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
 		MethodPattern OpMovePattern() {
-			return MethodPattern("opMove", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+			return MethodPattern("move", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
 		MethodPattern DestructorPattern() {

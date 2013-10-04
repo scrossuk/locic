@@ -32,7 +32,7 @@ namespace Locic {
 				return false;
 			}
 			
-			if (!type->getObjectType()->hasProperty("opDissolve")) {
+			if (!type->getObjectType()->hasProperty("dissolve")) {
 				return false;
 			}
 			
@@ -52,12 +52,12 @@ namespace Locic {
 					type->toString().c_str()));
 			}
 			
-			if (!type->getObjectType()->hasProperty("opDissolve")) {
-				throw TodoException(makeString("Type '%s' does not support 'opDissolve' and hence it cannot be dissolved.",
+			if (!type->getObjectType()->hasProperty("dissolve")) {
+				throw TodoException(makeString("Type '%s' does not support 'dissolve'.",
 					type->toString().c_str()));
 			}
 			
-			return CallProperty(value, "opDissolve", std::vector<SEM::Value*>());
+			return CallProperty(value, "dissolve", std::vector<SEM::Value*>());
 		}
 		
 		SEM::Value* tryDissolveValue(SEM::Value* value) {

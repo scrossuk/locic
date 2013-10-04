@@ -113,6 +113,7 @@ namespace Locic {
 						return SEM::Value::Constant(value->constant, constCharPtrType);
 					} else {
 						const std::string typeName = value->constant->getTypeName();
+						assert(typeName != "string" && "Loci strings not yet implemented");
 						SEM::TypeInstance* typeInstance = context.getBuiltInType(typeName);
 						if(typeInstance == NULL) {
 							printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
@@ -292,7 +293,7 @@ namespace Locic {
 					
 					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
 					
-					if (memberName != "opAddress" && memberName != "opAssign" && memberName != "opDissolve" && memberName != "opMove") {
+					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
 						object = tryDissolveValue(object);
 					}
 					

@@ -52,7 +52,7 @@ interface DefaultConstructInterface {
 	
 	T implicitCopy();
 	
-	T opMultiply(T value);
+	T multiply(T value);
 }
 
 template <typename T: DefaultConstructInterface<T> >
@@ -105,19 +105,19 @@ class custom_lval(int i) {
 		return @(@i);
 	}
 	
-	int* opAddress() {
+	int* address() {
 		return &@i;
 	}
 
-	void opAssign(int value) {
+	void assign(int value) {
 		@i = value;
 	}
 	
-	int& opDissolve() {
+	int& dissolve() {
 		return @i;
 	}
 	
-	int opMove() {
+	int move() {
 		int tmp = @i;
 		@i = 0;
 		return tmp;
@@ -128,10 +128,32 @@ void lvalFunc(lval custom_lval& custLval) {
 	printf("Custom lval: %d\n"C, move custLval);
 }
 
+class number_counter(int from, int to) {
+	static Default(int from, int to) {
+		return @(from, to);
+	}
+	
+	int front() {
+		return @from;
+	}
+	
+	void popFront() {
+		@from += 1;
+	}
+	
+	bool empty() {
+		return @from >= @to;
+	}
+};
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
+	}
+	
+	for (int i: number_counter(0, 10)) {
+		printf("Got number %d.\n"C, i);
 	}
 	
 	char * programName = argv[0];
