@@ -2,7 +2,7 @@
 find_package(LLVM REQUIRED)
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -Wall -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
 
 SET(CMAKE_BUILD_TYPE Debug)
 
@@ -31,7 +31,7 @@ add_executable(locic locic.cpp Log.cpp String.cpp)
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES bitwriter core native ipo)
-target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem locic-ast clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
+target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem locic-ast clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES} boost_program_options)
 
 macro(copy_loci_source name)
 	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}.loci"
@@ -44,7 +44,7 @@ copy_loci_source(Example1)
 copy_loci_source(Example2)
 
 add_custom_command(OUTPUT exampleProgram
-		COMMAND ./locic Example1.loci Example2.loci && clang -o exampleProgram output.bc -lm
+		COMMAND ./locic -O3 -o exampleProgram.bc --sem-debug-file=sem_debug.txt --codegen-debug-file=codegen_debug.ll --opt-debug-file=opt_debug.ll Example1.loci Example2.loci && clang -o exampleProgram exampleProgram.bc -lm
 		DEPENDS calculateVTable locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
 		
 add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)

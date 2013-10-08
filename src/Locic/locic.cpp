@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include <boost/program_options.hpp>
+
 #include <Locic/AST.hpp>
 #include <Locic/Parser/DefaultParser.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
@@ -11,79 +13,89 @@
 
 using namespace Locic;
 
+namespace po = boost::program_options;
+
 int main(int argc, char * argv[]){
-	if(argc < 2){
-		printf("Locic: No files provided.\n");
+	std::vector<std::string> inputFileNames;
+	int optimisationLevel = 0;
+	std::string outputFileName;
+	std::string semDebugFileName;
+	std::string codeGenDebugFileName;
+	std::string optDebugFileName;
+	
+	po::options_description visibleOptions("Options");
+	visibleOptions.add_options()
+		("help,h", "Display help information")
+		("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
+		("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
+		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
+		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
+		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
+	;
+	
+	po::options_description hiddenOptions;
+	hiddenOptions.add_options()
+		("input-file", po::value< std::vector<std::string> >(&inputFileNames), "Set input file names")
+	;
+	
+	po::options_description allOptions;
+	allOptions.add(visibleOptions).add(hiddenOptions);
+	
+	po::positional_options_description optionsPositions;
+	optionsPositions.add("input-file", -1);
+	
+	po::variables_map variableMap;
+	
+	try {
+		po::store(po::command_line_parser(argc, argv).options(allOptions).positional(optionsPositions).run(), variableMap);
+		po::notify(variableMap);
+	} catch (const po::error& e) {
+		std::cout << "Command line parser error: " << e.what() << std::endl;
 		return 1;
 	}
-	assert(argc >= 1);
 	
-	size_t optLevel = 0;
-	
-	std::vector<std::string> fileNames;
-	fileNames.push_back("BuiltInTypes.loci");
-	
-	for(size_t i = 1; i < static_cast<size_t>(argc); i++){
-		const std::string argument(argv[i]);
-		
-		assert(!argument.empty());
-	
-		if(argument.at(0) == '-'){
-			if(argument.size() == 1){
-				printf("Locic: Invalid option specifier.\n");
-				return -1;
-			}
-			if(argument.at(1) == 'O'){
-				if(argument.size() != 3){
-					printf("Locic: Invalid option '%s'.\n", argument.c_str());
-					return -1;
-				}
-				switch(argument.at(2)){
-					case '0':
-						optLevel = 0;
-						break;
-					case '1':
-						optLevel = 1;
-						break;
-					case '2':
-						optLevel = 2;
-						break;
-					case '3':
-						optLevel = 3;
-						break;
-					default:
-						printf("Locic: Invalid optimisation level '%c'.\n", argument.at(2));
-						return -1;
-				}
-			}else{
-				printf("Locic: Unknown option '%s'.\n", argument.c_str());
-				return -1;
-			}
-		}else{
-			fileNames.push_back(argument);
-		}
+	if (!variableMap["help"].empty()) {
+		printf("Usage: locic [options] file...\n");
+		std::cout << visibleOptions << std::endl;
+		return 1;
 	}
+	
+	if (inputFileNames.empty()) {
+		printf("locic: No files provided.\n");
+		printf("Usage: locic [options] file...\n");
+		std::cout << visibleOptions << std::endl;
+		return 1;
+	}
+	
+	if (optimisationLevel < 0 || optimisationLevel > 3) {
+		printf("locic: Invalid optimisation level '%d'.\n", optimisationLevel);
+		printf("Usage: locic [options] file...\n");
+		std::cout << visibleOptions << std::endl;
+		return 1;
+	}
+	
+	inputFileNames.push_back("BuiltInTypes.loci");
 	
 	AST::Namespace * rootASTNamespace = new AST::Namespace("");
 	
 	// Parse all source files.
-	for(std::size_t i = 0; i < fileNames.size(); i++){
-		const std::string filename = fileNames.at(i);
+	for (std::size_t i = 0; i < inputFileNames.size(); i++) {
+		const std::string filename = inputFileNames.at(i);
 		FILE * file = fopen(filename.c_str(), "rb");
 		
-		if(file == NULL){
+		if (file == NULL) {
 			printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
 			return 1;
 		}
 		
 		Parser::DefaultParser parser(rootASTNamespace, file, filename);
-		if(!parser.parseFile()){
-			std::vector<Parser::Error> errors = parser.getErrors();
+		if (!parser.parseFile()) {
+			const std::vector<Parser::Error> errors = parser.getErrors();
 			assert(!errors.empty());
 		
 			printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
 			
-			for(size_t j = 0; j < errors.size(); j++){
+			for (size_t j = 0; j < errors.size(); j++) {
 				const Parser::Error& error = errors.at(j);
 				printf("Parser Error (line %lu): %s\n", error.lineNumber, error.message.c_str());
 			}
@@ -96,8 +108,9 @@ int main(int argc, char * argv[]){
 	SEM::Namespace * rootSEMNamespace = SemanticAnalysis::Run(rootASTNamespace);
 	assert(rootSEMNamespace != NULL);
 	
-	{
-		std::ofstream ofs("sem.txt", std::ios_base::binary);
+	if (!semDebugFileName.empty()) {
+		// If requested, dump SEM tree information.
+		std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
 		ofs << formatMessage(rootSEMNamespace->toString());
 	}
 	
@@ -106,9 +119,20 @@ int main(int argc, char * argv[]){
 	CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 	CodeGen::CodeGenerator codeGenerator(targetInfo, outputName);
 	codeGenerator.genNamespace(rootSEMNamespace);
-	codeGenerator.applyOptimisations(optLevel);
-	codeGenerator.dumpToFile(outputName + ".ll");
-	codeGenerator.writeToFile(outputName + ".bc");
+	
+	if (!codeGenDebugFileName.empty()) {
+		// If requested, dump LLVM IR prior to optimisation.
+		codeGenerator.dumpToFile(codeGenDebugFileName);
+	}
+	
+	codeGenerator.applyOptimisations(optimisationLevel);
+	
+	if (!optDebugFileName.empty()) {
+		// If requested, dump LLVM IR after optimisation.
+		codeGenerator.dumpToFile(optDebugFileName);
+	}
+	
+	codeGenerator.writeToFile(outputFileName);
 	
 	return 0;
 }
