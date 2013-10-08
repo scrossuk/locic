@@ -97,7 +97,7 @@ int main(int argc, char * argv[]){
 			
 			for (size_t j = 0; j < errors.size(); j++) {
 				const Parser::Error& error = errors.at(j);
-				printf("Parser Error (line %lu): %s\n", error.lineNumber, error.message.c_str());
+				printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
 			}
 			
 			return 1;

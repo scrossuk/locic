@@ -9,12 +9,25 @@
 #include <vector>
 #include <Locic/AST.hpp>
 #include <Locic/Name.hpp>
+#include <Locic/SourceLocation.hpp>
 #include <Locic/Parser/Context.hpp>
 #include <Locic/Parser/Lexer.hpp>
+#include <Locic/Parser/LocationInfo.hpp>
 #include <Locic/Parser/Token.hpp>
 
-int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s);
-int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext);
+int Locic_Parser_GeneratedParser_error(Locic::Parser::LocationInfo* locationInfo, void * scanner, Locic::Parser::Context * parserContext, const char *s);
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, Locic::Parser::LocationInfo* locationInfo, void * lexer, Locic::Parser::Context * parserContext);
+
+static Locic::SourceLocation convertLocationInfo(const std::string& fileName, const Locic::Parser::LocationInfo* locationInfo) {
+	return Locic::SourceLocation(fileName,
+		Locic::SourceRange(
+			Locic::SourcePosition(locationInfo->first_line, locationInfo->first_column),
+			Locic::SourcePosition(locationInfo->last_line, locationInfo->last_column)
+		)
+	);
+}
+
+#define LOC(locationInfo) (convertLocationInfo(parserContext->fileName, (locationInfo)))
 
 %}
 
@@ -27,6 +40,13 @@ int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer,
 // Prefix generated symbols.
 %define api.prefix Locic_Parser_GeneratedParser_
 
+// Enable location information.
+%locations
+
+// Produce verbose errors.
+%error-verbose
+
+// Use the GLR parsing algorithm.
 %glr-parser
 
 // Expecting to get four shift/reduce and four reduce/reduce.
@@ -246,7 +266,7 @@ rootNameSpace:
 	}
 	| rootNameSpace error
 	{
-		parserContext->error("Invalid struct, class, function or other.");
+		parserContext->error("Invalid struct, class, function or other.", LOC(&@2));
 	}
 	;
 
@@ -281,7 +301,7 @@ nameSpace:
 	}
 	| nameSpace error
 	{
-		parserContext->error("Invalid struct, class, function or other.");
+		parserContext->error("Invalid struct, class, function or other.", LOC(&@2));
 		$$ = $1;
 	}
 	;
@@ -363,12 +383,12 @@ functionDecl:
 	}
 	| type functionName LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
-		parserContext->error("Function declaration must be terminated with a semicolon.");
+		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@6));
 		$$ = NULL;
 	}
 	| type functionName LROUNDBRACKET typeVarList COMMA DOT DOT DOT RROUNDBRACKET error
 	{
-		parserContext->error("Function declaration must be terminated with a semicolon.");
+		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@10));
 		$$ = NULL;
 	}
 	;
@@ -547,7 +567,7 @@ typePrecision3:
 	}
 	| LROUNDBRACKET error RROUNDBRACKET
 	{
-		parserContext->error("Invalid type.");
+		parserContext->error("Invalid type.", LOC(&@2));
 		$$ = NULL;
 	}
 	;
@@ -703,7 +723,7 @@ statementList:
 	}
 	| statementList normalStatement error
 	{
-		parserContext->error("Statement must be terminated with semicolon.");
+		parserContext->error("Statement must be terminated with semicolon.", LOC(&@3));
 		($1)->push_back($2);
 		$$ = $1;
 	}
@@ -713,7 +733,7 @@ statementList:
 	}
 	| statementList error
 	{
-		parserContext->error("Invalid statement.");
+		parserContext->error("Invalid statement.", LOC(&@2));
 		$$ = $1;
 	}
 	;
@@ -1064,14 +1084,12 @@ value:
 	
 %%
 
-int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, void * lexer, Locic::Parser::Context * parserContext){
-	const int result = Locic::Parser::LexGetToken(lexer);
-	*token = parserContext->token;
-	return result;
+int Locic_Parser_GeneratedParser_lex(Locic::Parser::Token * token, Locic::Parser::LocationInfo* locationInfo, void * lexer, Locic::Parser::Context * parserContext){
+	return Locic::Parser::LexGetToken(token, locationInfo, lexer);
 }
 
-int Locic_Parser_GeneratedParser_error(void * scanner, Locic::Parser::Context * parserContext, const char *s){
-	parserContext->error(s);
+int Locic_Parser_GeneratedParser_error(Locic::Parser::LocationInfo* locationInfo, void * scanner, Locic::Parser::Context * parserContext, const char *s) {
+	parserContext->error(s, LOC(locationInfo));
 	return 0;
 }
 

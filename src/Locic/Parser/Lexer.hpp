@@ -3,16 +3,18 @@
 
 #include <cstdio>
 #include <Locic/Parser/Context.hpp>
+#include <Locic/Parser/LocationInfo.hpp>
+#include <Locic/Parser/Token.hpp>
 
 namespace Locic{
 
 	namespace Parser{
 		
-		void * LexAlloc(FILE *, Context *);
+		void * LexAlloc(FILE * file, Context * context);
 		
-		int LexGetToken(void *);
+		int LexGetToken(Token* token, LocationInfo* locationInfo, void * scanner);
 		
-		void LexFree(void *);
+		void LexFree(void * scanner);
 		
 	}
 
