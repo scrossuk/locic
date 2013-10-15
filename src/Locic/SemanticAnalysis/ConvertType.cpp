@@ -10,16 +10,16 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Symbol& symbol) {
-			const Name fullName = symbol.createName();
-			assert(fullName.size() == symbol.size());
+		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+			const Name fullName = astSymbol->createName();
+			assert(fullName.size() == astSymbol->size());
 			
 			Map<SEM::TemplateVar*, SEM::Type*> templateVarMap;
 			
-			for (size_t i = 0; i < symbol.size(); i++) {
-				const AST::SymbolElement& element = symbol.at(i);
-				const std::vector<AST::Type*>& astTemplateArgs = element.templateArguments();
-				const size_t numTemplateArguments = astTemplateArgs.size();
+			for (size_t i = 0; i < astSymbol->size(); i++) {
+				const auto& astSymbolElement = astSymbol->at(i);
+				const auto& astTemplateArgs = astSymbolElement->templateArguments();
+				const size_t numTemplateArguments = astTemplateArgs->size();
 				
 				const Name name = fullName.substr(i + 1);
 				
@@ -36,7 +36,7 @@ namespace Locic {
 					}
 					
 					for (size_t j = 0; j < numTemplateArguments; j++) {
-						SEM::Type* templateTypeValue = ConvertType(context, astTemplateArgs.at(j));
+						SEM::Type* templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
 						
 						if (templateTypeValue->isInterface()) {
 							throw TodoException(makeString("Cannot use abstract type '%s' "
@@ -61,34 +61,34 @@ namespace Locic {
 			return templateVarMap;
 		}
 		
-		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Symbol& symbol) {
+		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
 			std::vector<SEM::Type*> templateArguments;
-			for(size_t i = 0; i < symbol.size(); i++){
-				const AST::SymbolElement& element = symbol.at(i);
-				const std::vector<AST::Type*>& astTemplateArgs = element.templateArguments();
-				const size_t numTemplateArguments = astTemplateArgs.size();
-				
-				for(size_t j = 0; j < numTemplateArguments; j++){
-					templateArguments.push_back(ConvertType(context, astTemplateArgs.at(j)));
+			for (size_t i = 0; i < astSymbol->size(); i++) {
+				const auto& astSymbolElement = astSymbol->at(i);
+				for (const auto& astTemplateArg: *(astSymbolElement->templateArguments())) {
+					templateArguments.push_back(ConvertType(context, astTemplateArg));
 				}
 			}
 			return templateArguments;
 		}
 		
-		SEM::Type* ConvertType(Context& context, AST::Type* type) {
+		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::UNDEFINED: {
 					assert(false && "Cannot convert undefined type.");
 					return NULL;
 				}
+				case AST::Type::BRACKET: {
+					return ConvertType(context, type->bracketType.targetType);
+				}
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
 				}
 				case AST::Type::OBJECT: {
-					const AST::Symbol& symbol = type->objectType.symbol;
-					assert(!symbol.empty());
+					const AST::Node<AST::Symbol>& symbol = type->objectType.symbol;
+					assert(!symbol->empty());
 					
-					const Name name = symbol.createName();
+					const Name name = symbol->createName();
 					const Node objectNode = context.lookupName(name);
 					
 					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
@@ -123,10 +123,9 @@ namespace Locic {
 					
 					std::vector<SEM::Type*> parameterTypes;
 					
-					const std::vector<AST::Type*>& astParameterTypes = type->functionType.parameterTypes;
-					
-					for(std::size_t i = 0; i < astParameterTypes.size(); i++) {
-						SEM::Type* paramType = ConvertType(context, astParameterTypes.at(i));
+					const AST::Node<AST::TypeList>& astParameterTypes = type->functionType.parameterTypes;
+					for (const auto& astParamType: *astParameterTypes) {
+						SEM::Type* paramType = ConvertType(context, astParamType);
 						
 						if(paramType->isVoid()) {
 							throw TodoException("Parameter type (inside function type) cannot be void.");
@@ -138,7 +137,7 @@ namespace Locic {
 					return SEM::Type::Function(type->functionType.isVarArg, returnType, parameterTypes);
 				}
 				default:
-					assert(false && "Unknown AST::Type type enum.");
+					assert(false && "Unknown AST::Node<AST::Type> type enum.");
 					return NULL;
 			}
 		}

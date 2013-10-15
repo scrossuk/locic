@@ -3,13 +3,20 @@
 
 #include <string>
 #include <vector>
-#include <Locic/AST/Symbol.hpp>
+#include <Locic/AST/Node.hpp>
 
 namespace AST {
+	
+	class Symbol;
+	
+	struct Type;
+	
+	typedef std::vector<Node<Type>> TypeList;
 
 	struct Type {
 		enum TypeEnum {
 			UNDEFINED,
+			BRACKET,
 			VOID,
 			NULLT,
 			OBJECT,
@@ -23,17 +30,21 @@ namespace AST {
 		bool isMutable;
 		
 		struct {
-			Symbol symbol;
+			Node<Type> targetType;
+		} bracketType;
+		
+		struct {
+			Node<Symbol> symbol;
 		} objectType;
 		
 		struct {
-			Type* targetType;
+			Node<Type> targetType;
 		} referenceType;
 		
 		struct {
 			bool isVarArg;
-			Type* returnType;
-			std::vector<Type*> parameterTypes;
+			Node<Type> returnType;
+			Node<TypeList> parameterTypes;
 		} functionType;
 		
 		inline Type()
@@ -48,23 +59,29 @@ namespace AST {
 			return new Type(UNDEFINED, MUTABLE);
 		}
 		
+		inline static Type* Bracket(Node<Type> targetType) {
+			Type* type = new Type(BRACKET, MUTABLE);
+			type->bracketType.targetType = targetType;
+			return type;
+		}
+		
 		inline static Type* Void() {
 			return new Type(VOID, MUTABLE);
 		}
 		
-		inline static Type* Object(const Symbol& symbol) {
+		inline static Type* Object(const Node<Symbol>& symbol) {
 			Type* type = new Type(OBJECT, MUTABLE);
 			type->objectType.symbol = symbol;
 			return type;
 		}
 		
-		inline static Type* Reference(Type* targetType) {
+		inline static Type* Reference(Node<Type> targetType) {
 			Type* type = new Type(REFERENCE, CONST);
 			type->referenceType.targetType = targetType;
 			return type;
 		}
 		
-		inline static Type* Function(Type* returnType, const std::vector<Type*>& parameterTypes) {
+		inline static Type* Function(Node<Type> returnType, const Node<TypeList>& parameterTypes) {
 			Type* type = new Type(FUNCTION, MUTABLE);
 			type->functionType.isVarArg = false;
 			type->functionType.returnType = returnType;
@@ -72,7 +89,7 @@ namespace AST {
 			return type;
 		}
 		
-		inline static Type* VarArgFunction(Type* returnType, const std::vector<Type*>& parameterTypes) {
+		inline static Type* VarArgFunction(Node<Type> returnType, const Node<TypeList>& parameterTypes) {
 			Type* type = new Type(FUNCTION, MUTABLE);
 			type->functionType.isVarArg = true;
 			type->functionType.returnType = returnType;
@@ -96,7 +113,7 @@ namespace AST {
 			return typeEnum == FUNCTION;
 		}
 		
-		inline AST::Type* getReferenceTarget() const {
+		inline Node<Type> getReferenceTarget() const {
 			assert(isReference() && "Cannot get target type of non-reference type");
 			return referenceType.targetType;
 		}
@@ -105,78 +122,9 @@ namespace AST {
 			return typeEnum == OBJECT;
 		}
 		
-		inline void applyTransitiveConst() {
-			Type* t = this;
-			
-			while(true) {
-				t->isMutable = false;
-				
-				if(t->typeEnum == REFERENCE) {
-					t = t->getReferenceTarget();
-				} else {
-					break;
-				}
-			}
-		}
+		void applyTransitiveConst();
 		
-		inline std::string toString() const {
-			std::string str;
-			
-			bool bracket = false;
-			
-			if(!isMutable) {
-				str += "const ";
-				bracket = true;
-			}
-			
-			if(bracket) {
-				str += "(";
-			}
-			
-			switch(typeEnum) {
-				case UNDEFINED: {
-					str += "[undefined]";
-					break;
-				}
-				case VOID: {
-					str += "void";
-					break;
-				}
-				case NULLT: {
-					str += "null";
-					break;
-				}
-				case OBJECT:
-					str += std::string("[object type: ") + objectType.symbol.toString() + std::string("]");
-					break;
-				case REFERENCE:
-					str += getReferenceTarget()->toString();
-					str += "&";
-					break;
-				case FUNCTION: {
-					str += "(";
-					str += functionType.returnType->toString();
-					str += ")(";
-					
-					for(std::size_t i = 0; i < functionType.parameterTypes.size(); i++) {
-						if(i != 0) {
-							str += ", ";
-						}
-						
-						str += functionType.parameterTypes.at(i)->toString();
-					}
-					
-					str += ")";
-					break;
-				}
-				default:
-					break;
-			}
-			
-			if(bracket) str += ")";
-			
-			return str;
-		}
+		std::string toString() const;
 		
 	};
 	

@@ -1,2 +1,2 @@
-add_library(locic-ast Symbol.cpp)
+add_library(locic-ast Symbol.cpp Type.cpp)
 

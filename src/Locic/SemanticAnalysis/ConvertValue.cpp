@@ -90,15 +90,18 @@ namespace Locic {
 			}
 		}
 	
-		SEM::Value* ConvertValue(Context& context, AST::Value* value) {
-			assert(value != NULL && "Cannot convert NULL AST::Value");
+		SEM::Value* ConvertValue(Context& context, AST::Node<AST::Value> astValueNode) {
+			assert(astValueNode.get() != NULL);
 			
-			switch(value->typeEnum) {
+			switch (astValueNode->typeEnum) {
+				case AST::Value::BRACKET: {
+					return ConvertValue(context, astValueNode->bracket.value);
+				}
 				case AST::Value::CONSTANT: {
-					if(value->constant->getType() == Locic::Constant::NULLVAL) {
-						return SEM::Value::Constant(value->constant, SEM::Type::Null());
-					} else if(value->constant->getType() == Locic::Constant::STRING
-						&& value->constant->getStringType() == Locic::Constant::CSTRING) {
+					if (astValueNode->constant->getType() == Locic::Constant::NULLVAL) {
+						return SEM::Value::Constant(astValueNode->constant.get(), SEM::Type::Null());
+					} else if(astValueNode->constant->getType() == Locic::Constant::STRING
+						&& astValueNode->constant->getStringType() == Locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
 						SEM::TypeInstance* charTypeInstance = context.getBuiltInType("char");
@@ -110,16 +113,16 @@ namespace Locic {
 						// Generate type 'const ptr<const char>'.
 						SEM::Type* constCharPtrType = SEM::Type::Object(SEM::Type::CONST, ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType));
 						
-						return SEM::Value::Constant(value->constant, constCharPtrType);
+						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
 					} else {
-						const std::string typeName = value->constant->getTypeName();
+						const std::string typeName = astValueNode->constant->getTypeName();
 						assert(typeName != "string" && "Loci strings not yet implemented");
 						SEM::TypeInstance* typeInstance = context.getBuiltInType(typeName);
-						if(typeInstance == NULL) {
+						if (typeInstance == NULL) {
 							printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
 						}
 						assert(typeInstance != NULL && "Couldn't find constant type");
-						return SEM::Value::Constant(value->constant,
+						return SEM::Value::Constant(astValueNode->constant.get(),
 								SEM::Type::Object(SEM::Type::CONST, typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
 					}
 					
@@ -127,34 +130,36 @@ namespace Locic {
 					return NULL;
 				}
 				case AST::Value::SYMBOLREF: {
-					const AST::Symbol& symbol = value->symbolRef.symbol;
-					const Name name = symbol.createName();
+					const auto& astSymbolNode = astValueNode->symbolRef.symbol;
+					const Name name = astSymbolNode->createName();
 					
 					// Not a local variable => do a symbol lookup.
 					const Node node = context.lookupName(name);
 					
 					// Get a map from template variables to their values (i.e. types).
-					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
+					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
 					
 					if (node.isNone()) {
-						throw TodoException(makeString("Couldn't find symbol or value '%s'.", name.toString().c_str()));
+						throw TodoException(makeString("Couldn't find symbol or value '%s' at %s.",
+							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 					} else if (node.isNamespace()) {
-						throw TodoException(makeString("Namespace '%s' is not a valid value.", name.toString().c_str()));
+						throw TodoException(makeString("Namespace '%s' is not a valid value at %s.",
+							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 					} else if (node.isFunction()) {
 						SEM::Function* function = node.getSEMFunction();
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
 						if (function->isMethod()) {
 							if (!function->isStatic()) {
-								throw TodoException(makeString("Cannot refer directly to non-static class method '%s'.",
-									name.toString().c_str()));
+								throw TodoException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
+									name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 							}
 							
 							const Node typeNode = context.lookupName(name.getPrefix());
 							assert(node.isTypeInstance());
 							
 							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE,
-								node.getSEMTypeInstance(), GetTemplateValues(context, symbol));
+								node.getSEMTypeInstance(), GetTemplateValues(context, astSymbolNode));
 							
 							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
 						} else {
@@ -164,16 +169,17 @@ namespace Locic {
 						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
 						
 						if (typeInstance->isInterface()) {
-							throw TodoException(makeString("Can't construct interface type '%s'.", name.toString().c_str()));
+							throw TodoException(makeString("Can't construct interface type '%s' at %s.",
+								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
 						const Node defaultConstructorNode = node.getChild("Default");
 						if(!defaultConstructorNode.isFunction()) {
-							throw TodoException(makeString("Couldn't find default constructor for type '%s'.",
-								name.toString().c_str()));
+							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
+								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
-						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, GetTemplateValues(context, symbol));
+						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, GetTemplateValues(context, astSymbolNode));
 						
 						return SEM::Value::FunctionRef(parentType,
 							defaultConstructorNode.getSEMFunction(), templateVarMap);
@@ -181,9 +187,9 @@ namespace Locic {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
 						// TODO: make these throw exceptions.
-						assert(symbol.size() == 1);
-						assert(symbol.isRelative());
-						assert(symbol.first().templateArguments().empty());
+						assert(astSymbolNode->size() == 1);
+						assert(astSymbolNode->isRelative());
+						assert(astSymbolNode->first()->templateArguments()->empty());
 						return SEM::Value::VarValue(node.getSEMVar());
 					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
@@ -203,7 +209,7 @@ namespace Locic {
 					return NULL;
 				}
 				case AST::Value::MEMBERREF: {
-					const std::string& memberName = value->memberRef.name;
+					const std::string& memberName = astValueNode->memberRef.name;
 					SEM::Var* semVar = context.getParentMemberVariable(memberName).getSEMVar();
 					
 					if(semVar == NULL) {
@@ -214,15 +220,15 @@ namespace Locic {
 					return SEM::Value::VarValue(semVar);
 				}
 				case AST::Value::TERNARY: {
-					SEM::Value* cond = ConvertValue(context, value->ternary.condition);
+					SEM::Value* cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					SEM::Value* boolValue = ImplicitCast(cond,
 							SEM::Type::Object(SEM::Type::CONST, boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
-					SEM::Value* ifTrue = ConvertValue(context, value->ternary.ifTrue);
-					SEM::Value* ifFalse = ConvertValue(context, value->ternary.ifFalse);
+					SEM::Value* ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
+					SEM::Value* ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
 					SEM::Type* targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
 					
@@ -232,14 +238,14 @@ namespace Locic {
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
 				case AST::Value::CAST: {
-					SEM::Type* type = ConvertType(context, value->cast.targetType);
-					SEM::Value* val = ConvertValue(context, value->cast.value);
+					SEM::Type* type = ConvertType(context, astValueNode->cast.targetType);
+					SEM::Value* val = ConvertValue(context, astValueNode->cast.value);
 					
 					(void) type;
 					(void) val;
 					
 					std::string s;
-					switch(value->cast.castKind) {
+					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_STATIC:
 							s = "STATIC";
 							break;
@@ -261,7 +267,7 @@ namespace Locic {
 						s.c_str()));
 				}
 				case AST::Value::INTERNALCONSTRUCT: {
-					const std::vector<AST::Value*>& astValues = value->internalConstruct.parameters;
+					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					
 					const Node thisTypeNode = context.lookupParentType();
 					
@@ -270,10 +276,10 @@ namespace Locic {
 					
 					SEM::TypeInstance* thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
-					if(astValues.size() != thisTypeInstance->variables().size()) {
+					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
 						throw TodoException(makeString("Internal constructor called "
 							   "with wrong number of arguments; received %llu, expected %llu.",
-							(unsigned long long) astValues.size(),
+							(unsigned long long) astParameterValueNodes->size(),
 							(unsigned long long) thisTypeInstance->variables().size()));
 					}
 					
@@ -281,7 +287,7 @@ namespace Locic {
 					
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
 						SEM::Type* constructType = thisTypeInstance->constructTypes().at(i);
-						SEM::Value* semValue = ConvertValue(context, astValues.at(i));
+						SEM::Value* semValue = ConvertValue(context, astParameterValueNodes->at(i));
 						SEM::Value* semParam = ImplicitCast(semValue, constructType);
 						semValues.push_back(semParam);
 					}
@@ -289,9 +295,9 @@ namespace Locic {
 					return SEM::Value::InternalConstruct(thisTypeInstance, semValues);
 				}
 				case AST::Value::MEMBERACCESS: {
-					const std::string memberName = value->memberAccess.memberName;
+					const std::string memberName = astValueNode->memberAccess.memberName;
 					
-					SEM::Value* object = ConvertValue(context, value->memberAccess.object);
+					SEM::Value* object = ConvertValue(context, astValueNode->memberAccess.object);
 					
 					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
 						object = tryDissolveValue(object);
@@ -300,36 +306,36 @@ namespace Locic {
 					return MakeMemberAccess(context, object, memberName);
 				}
 				case AST::Value::FUNCTIONCALL: {
-					assert(value->functionCall.functionValue != NULL && "Cannot call NULL function value");
-					SEM::Value* functionValue = ConvertValue(context, value->functionCall.functionValue);
+					assert(astValueNode->functionCall.functionValue.get() != NULL && "Cannot call NULL function value");
+					SEM::Value* functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);
 					
 					switch(functionValue->type()->kind()) {
 						case SEM::Type::FUNCTION: {
 							const std::vector<SEM::Type*>& typeList = functionValue->type()->getFunctionParameterTypes();
-							const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+							const auto& astValueList = astValueNode->functionCall.parameters;
 							
 							if (functionValue->type()->isFunctionVarArg()) {
-								if(astValueList.size() < typeList.size()) {
+								if(astValueList->size() < typeList.size()) {
 									throw TodoException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
 										functionValue->toString().c_str(),
-										(unsigned long long) astValueList.size(),
+										(unsigned long long) astValueList->size(),
 										(unsigned long long) typeList.size()));
 								}
 							} else {
-								if(astValueList.size() != typeList.size()) {
+								if(astValueList->size() != typeList.size()) {
 									throw TodoException(makeString("Function [%s] called with %llu number of parameters; expected %llu.",
 										functionValue->toString().c_str(),
-										(unsigned long long) astValueList.size(),
+										(unsigned long long) astValueList->size(),
 										(unsigned long long) typeList.size()));
 								}
 							}
 							
-							assert(astValueList.size() >= typeList.size());
+							assert(astValueList->size() >= typeList.size());
 							
 							std::vector<SEM::Value*> semValueList;
 							
-							for(std::size_t i = 0; i < astValueList.size(); i++) {
-								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
+							for(std::size_t i = 0; i < astValueList->size(); i++) {
+								SEM::Value* semArgValue = ConvertValue(context, astValueList->at(i));
 								
 								// Cast arguments to the function type's corresponding
 								// argument type; var-arg arguments should be cast to
@@ -348,20 +354,20 @@ namespace Locic {
 							SEM::Type* functionType = functionValue->type()->getMethodFunctionType();
 							
 							const std::vector<SEM::Type*>& typeList = functionType->getFunctionParameterTypes();
-							const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+							const auto& astValueList = astValueNode->functionCall.parameters;
 							
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
-							if(typeList.size() != astValueList.size()) {
+							if (typeList.size() != astValueList->size()) {
 								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
 									functionValue->toString().c_str(),
-									astValueList.size(), typeList.size()));
+									astValueList->size(), typeList.size()));
 							}
 							
 							std::vector<SEM::Value*> semValueList;
 							
-							for(std::size_t i = 0; i < astValueList.size(); i++) {
-								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
+							for(std::size_t i = 0; i < astValueList->size(); i++) {
+								SEM::Value* semArgValue = ConvertValue(context, astValueList->at(i));
 								
 								SEM::Value* param = ImplicitCast(semArgValue, typeList.at(i));
 								
@@ -374,20 +380,20 @@ namespace Locic {
 							SEM::Type* functionType = functionValue->type()->getInterfaceMethodFunctionType();
 							
 							const std::vector<SEM::Type*>& typeList = functionType->getFunctionParameterTypes();
-							const std::vector<AST::Value*>& astValueList = value->functionCall.parameters;
+							const auto& astValueList = astValueNode->functionCall.parameters;
 							
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
-							if(typeList.size() != astValueList.size()) {
+							if (typeList.size() != astValueList->size()) {
 								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
 									functionValue->toString().c_str(),
-									astValueList.size(), typeList.size()));
+									astValueList->size(), typeList.size()));
 							}
 							
 							std::vector<SEM::Value*> semValueList;
 							
-							for(std::size_t i = 0; i < astValueList.size(); i++) {
-								SEM::Value* semArgValue = ConvertValue(context, astValueList.at(i));
+							for (std::size_t i = 0; i < astValueList->size(); i++) {
+								SEM::Value* semArgValue = ConvertValue(context, astValueList->at(i));
 								
 								SEM::Value* param = ImplicitCast(semArgValue, typeList.at(i));
 								

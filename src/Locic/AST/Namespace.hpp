@@ -5,23 +5,28 @@
 #include <vector>
 
 #include <Locic/AST/Function.hpp>
+#include <Locic/AST/Node.hpp>
 #include <Locic/AST/TypeInstance.hpp>
 
 namespace AST {
 
+	struct Namespace;
+	
+	struct NamespaceData {
+		std::vector< AST::Node<Function> > functions;
+		std::vector< AST::Node<Namespace> > namespaces;
+		std::vector< AST::Node<TypeInstance> > typeInstances;
+	};
+	
 	struct Namespace {
 		std::string name;
-		std::vector<Function*> functions;
-		std::vector<Namespace*> namespaces;
-		std::vector<TypeInstance*> typeInstances;
+		AST::Node<NamespaceData> data;
 		
-		inline Namespace(const std::string& n)
-			: name(n) { }
-			
-		inline void print() {
-			// TODO
-		}
+		inline Namespace(const std::string& n, AST::Node<NamespaceData> d)
+			: name(n), data(d) { }
 	};
+	
+	typedef std::vector<Node<Namespace>> NamespaceList;
 	
 }
 

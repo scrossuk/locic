@@ -14,11 +14,10 @@ namespace Locic {
 			assert(node.isTypeInstance());
 			assert(node.getSEMTypeInstance()->isClassDef());
 			
-			for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 				const Node& childNode = range.front().value();
 				
-				if(!childNode.isFunction()
-					|| childNode.getASTFunction()->scope == NULL) continue;
+				if (!childNode.isFunction()) continue;
 				
 				Context functionContext(context, range.front().key(), childNode);
 				ConvertFunctionDef(functionContext);

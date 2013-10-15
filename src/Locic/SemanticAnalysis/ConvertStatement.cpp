@@ -42,7 +42,7 @@ namespace Locic {
 			}
 		}
 		
-		SEM::Statement* ConvertStatement(Context& context, AST::Statement* statement) {
+		SEM::Statement* ConvertStatement(Context& context, AST::Node<AST::Statement> statement) {
 			switch(statement->typeEnum) {
 				case AST::Statement::VALUE: {
 					SEM::Value* value = ConvertValue(context, statement->valueStmt.value);
@@ -81,7 +81,7 @@ namespace Locic {
 				// TODO: replace code in parser with this.
 				/*case AST::Statement::FOR: {
 					AST::TypeVar* astTypeVar = statement->forStmt.typeVar;
-					AST::Value* astRangeValue = statement->forStmt.rangeValue;
+					AST::Node<AST::Value> astRangeValue = statement->forStmt.rangeValue;
 					
 					SEM::Value* semRangeValue = ConvertValue(context, astRangeValue);
 					
@@ -110,16 +110,16 @@ namespace Locic {
 					return SEM::Statement::ScopeStmt(
 				}*/
 				case AST::Statement::VARDECL: {
-					AST::TypeVar* astTypeVar = statement->varDecl.typeVar;
-					AST::Value* initialValue = statement->varDecl.value;
+					AST::Node<AST::TypeVar> astTypeVarNode = statement->varDecl.typeVar;
+					AST::Node<AST::Value> astInitialValueNode = statement->varDecl.value;
 					
-					SEM::Value* semValue = ConvertValue(context, initialValue);
+					SEM::Value* semValue = ConvertValue(context, astInitialValueNode);
 					
 					// Check whether a type annotation has been used.
-					const bool autoType = (astTypeVar->type == NULL);
+					const bool autoType = (astTypeVarNode->type->typeEnum == AST::Type::UNDEFINED);
 					
 					// If type is 'auto', infer it from type value.
-					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVar->type);
+					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVarNode->type);
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
@@ -132,16 +132,14 @@ namespace Locic {
 					// TODO: implement 'final'.
 					const bool isLvalMutable = SEM::Type::MUTABLE;
 					
-					SEM::Type* lvalType = makeLvalType(context, astTypeVar->usesCustomLval, isLvalMutable, varType);
+					SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->usesCustomLval, isLvalMutable, varType);
 					
 					SEM::Var* semVar = SEM::Var::Local(lvalType);
 					
-					const Node localVarNode = Node::Variable(astTypeVar, semVar);
+					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
 					
-					if( !context.node().tryAttach(astTypeVar->name, localVarNode)) {
-						// TODO: throw exception.
-						assert(false && "Local variable name already exists.");
-						return NULL;
+					if(!context.node().tryAttach(astTypeVarNode->name, localVarNode)) {
+						throw TodoException(makeString("Local variable name '%s' already exists.", astTypeVarNode->name.c_str()));
 					}
 					
 					SEM::Scope* semScope = context.node().getSEMScope();
@@ -152,13 +150,11 @@ namespace Locic {
 					return SEM::Statement::InitialiseStmt(semVar, ImplicitCast(semValue, varType));
 				}
 				case AST::Statement::RETURN: {
-					if(statement->returnStmt.value == NULL) {
+					if (statement->returnStmt.value.get() == NULL) {
 						// Void return statement (i.e. return;)
-						if(!context.getParentFunctionReturnType()->isVoid()) {
-							printf("Semantic Analysis Error: Cannot return void in function with non-void return type.\n");
-							// TODO: throw exception.
-							assert(false);
-							return NULL;
+						if (!context.getParentFunctionReturnType()->isVoid()) {
+							throw TodoException(makeString("Cannot return void in function '%s' with non-void return type.",
+								context.lookupParentFunction().getSEMFunction()->name().toString().c_str()));
 						}
 						
 						return SEM::Statement::ReturnVoid();

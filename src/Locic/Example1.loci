@@ -146,6 +146,14 @@ class number_counter(int from, int to) {
 	}
 };
 
+namespace NAMEsPaCe {
+	int function();
+}
+
+namespace NAMEsPaCe {
+	int function(int arg);
+}
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);

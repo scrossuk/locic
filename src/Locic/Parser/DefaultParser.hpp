@@ -12,7 +12,7 @@ namespace Locic{
 
 		class DefaultParser{
 			public:
-				DefaultParser(AST::Namespace * rootNamespace, FILE * file, const std::string& fileName);
+				DefaultParser(AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName);
 				~DefaultParser();
 				
 				bool parseFile();

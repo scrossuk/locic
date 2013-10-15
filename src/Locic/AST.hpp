@@ -2,7 +2,8 @@
 #define LOCIC_AST_HPP
 
 #include <Locic/AST/Function.hpp>
-#include <Locic/AST/Module.hpp>
+#include <Locic/AST/Namespace.hpp>
+#include <Locic/AST/Node.hpp>
 #include <Locic/AST/Scope.hpp>
 #include <Locic/AST/Statement.hpp>
 #include <Locic/AST/Type.hpp>

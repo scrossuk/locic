@@ -17,13 +17,11 @@ namespace Locic {
 			
 			assert(node.isNamespace());
 			
-			for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
+			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 				const Node& childNode = range.front().value();
 				Context newContext(context, range.front().key(), childNode);
 				if(childNode.isFunction()){
-					if(childNode.getASTFunction()->scope != NULL){
-						ConvertFunctionDef(newContext);
-					}
+					ConvertFunctionDef(newContext);
 				}else if(childNode.isNamespace()){
 					ConvertNamespace(newContext);
 				}else if(childNode.isTypeInstance()){

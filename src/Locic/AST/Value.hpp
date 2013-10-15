@@ -7,14 +7,20 @@
 #include <Locic/Constant.hpp>
 #include <Locic/Name.hpp>
 
+#include <Locic/AST/Node.hpp>
 #include <Locic/AST/Symbol.hpp>
 #include <Locic/AST/Type.hpp>
 
 namespace AST {
+	
+	struct Value;
+	
+	typedef std::vector<Node<Value>> ValueList;
 
 	struct Value {
 		enum TypeEnum {
 			NONE,
+			BRACKET,
 			CONSTANT,
 			SYMBOLREF,
 			MEMBERREF,
@@ -25,10 +31,14 @@ namespace AST {
 			FUNCTIONCALL
 		} typeEnum;
 		
-		Locic::Constant* constant;
+		Node<Locic::Constant> constant;
 		
 		struct {
-			Symbol symbol;
+			Node<Value> value;
+		} bracket;
+		
+		struct {
+			Node<Symbol> symbol;
 		} symbolRef;
 		
 		struct {
@@ -36,7 +46,7 @@ namespace AST {
 		} memberRef;
 		
 		struct {
-			Value* condition, * ifTrue, * ifFalse;
+			Node<Value> condition, ifTrue, ifFalse;
 		} ternary;
 		
 		enum CastKind {
@@ -48,35 +58,41 @@ namespace AST {
 		
 		struct {
 			CastKind castKind;
-			Type* targetType;
-			Value* value;
+			Node<Type> targetType;
+			Node<Value> value;
 		} cast;
 		
 		struct {
-			std::vector<Value*> parameters;
+			Node<ValueList> parameters;
 		} internalConstruct;
 		
 		struct {
-			Value* object;
+			Node<Value> object;
 			std::string memberName;
 		} memberAccess;
 		
 		struct {
-			Value* functionValue;
-			std::vector<Value*> parameters;
+			Node<Value> functionValue;
+			Node<ValueList> parameters;
 		} functionCall;
 		
 		inline Value() : typeEnum(NONE) { }
 		
 		inline Value(TypeEnum e) : typeEnum(e) { }
 		
-		inline static Value* Constant(Locic::Constant* constant) {
+		inline static Value* Bracket(Node<Value> operand) {
+			Value* value = new Value(BRACKET);
+			value->bracket.value = operand;
+			return value;
+		}
+		
+		inline static Value* Constant(const Node<Locic::Constant>& constant) {
 			Value* value = new Value(CONSTANT);
 			value->constant = constant;
 			return value;
 		}
 		
-		inline static Value* SymbolRef(const Symbol& symbol) {
+		inline static Value* SymbolRef(const Node<Symbol>& symbol) {
 			Value* value = new Value(SYMBOLREF);
 			value->symbolRef.symbol = symbol;
 			return value;
@@ -88,15 +104,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value* UnaryOp(const std::string& name, Value* operand) {
-			return Value::FunctionCall(Value::MemberAccess(operand, name), std::vector<Value*>());
-		}
-		
-		inline static Value* BinaryOp(const std::string& name, Value* leftOperand, Value* rightOperand) {
-			return Value::FunctionCall(Value::MemberAccess(leftOperand, name), std::vector<Value*>(1, rightOperand));
-		}
-		
-		inline static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse) {
+		inline static Value* Ternary(Node<Value> condition, Node<Value> ifTrue, Node<Value> ifFalse) {
 			Value* value = new Value(TERNARY);
 			value->ternary.condition = condition;
 			value->ternary.ifTrue = ifTrue;
@@ -104,7 +112,7 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value* Cast(CastKind castKind, Type* targetType, Value* operand) {
+		inline static Value* Cast(CastKind castKind, Node<Type> targetType, Node<Value> operand) {
 			Value* value = new Value(CAST);
 			value->cast.castKind = castKind;
 			value->cast.targetType = targetType;
@@ -112,20 +120,20 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value* InternalConstruct(const std::vector<Value*>& parameters) {
+		inline static Value* InternalConstruct(const Node<ValueList>& parameters) {
 			Value* value = new Value(INTERNALCONSTRUCT);
 			value->internalConstruct.parameters = parameters;
 			return value;
 		}
 		
-		inline static Value* MemberAccess(Value* object, const std::string& memberName) {
+		inline static Value* MemberAccess(Node<Value> object, const std::string& memberName) {
 			Value* value = new Value(MEMBERACCESS);
 			value->memberAccess.object = object;
 			value->memberAccess.memberName = memberName;
 			return value;
 		}
 		
-		inline static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
+		inline static Value* FunctionCall(Node<Value> functionValue, const Node<ValueList>& parameters) {
 			Value* value = new Value(FUNCTIONCALL);
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;

@@ -5,27 +5,27 @@
 #include <vector>
 
 #include <Locic/Name.hpp>
+#include <Locic/AST/Node.hpp>
+#include <Locic/AST/Type.hpp>
 
 namespace AST {
 
-	struct Type;
-	
 	class SymbolElement {
 		public:
-			inline SymbolElement(const std::string& n, const std::vector<Type*> t)
+			inline SymbolElement(const std::string& n, const Node<TypeList>& t)
 				: name_(n), templateArguments_(t) { }
 				
 			inline const std::string& name() const {
 				return name_;
 			}
 			
-			inline const std::vector<Type*>& templateArguments() const {
+			inline const Node<TypeList>& templateArguments() const {
 				return templateArguments_;
 			}
 			
 		private:
 			std::string name_;
-			std::vector<Type*> templateArguments_;
+			Node<TypeList> templateArguments_;
 			
 	};
 	
@@ -42,7 +42,7 @@ namespace AST {
 			inline Symbol()
 				: isAbsolute_(false){ }
 			
-			inline Symbol operator+(const SymbolElement& symbolElement) const {
+			inline Symbol operator+(const Node<SymbolElement>& symbolElement) const {
 				return Symbol(*this, symbolElement);
 			}
 			
@@ -54,15 +54,15 @@ namespace AST {
 				return list_.size();
 			}
 			
-			inline const SymbolElement& at(size_t i) const {
+			inline const Node<SymbolElement>& at(size_t i) const {
 				return list_.at(i);
 			}
 			
-			inline const SymbolElement& first() const {
+			inline const Node<SymbolElement>& first() const {
 				return list_.front();
 			}
 			
-			inline const SymbolElement& last() const {
+			inline const Node<SymbolElement>& last() const {
 				return list_.back();
 			}
 			
@@ -82,10 +82,10 @@ namespace AST {
 			inline explicit Symbol(bool isAbs)
 				: isAbsolute_(isAbs) { }
 				
-			Symbol(const Symbol& symbol, const SymbolElement& symbolElement);
+			Symbol(const Symbol& symbol, const Node<SymbolElement>& symbolElement);
 			
 			bool isAbsolute_;
-			std::vector<SymbolElement> list_;
+			std::vector<Node<SymbolElement>> list_;
 			
 	};
 	

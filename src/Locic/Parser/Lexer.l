@@ -11,8 +11,8 @@
 #define YYSTYPE Locic::Parser::Token
 #define YYLTYPE Locic::Parser::LocationInfo
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
-	yylloc->first_column = yyextra->column; yylloc->last_column = yyextra->column+yyleng; \
-	yyextra->column += yyleng;
+	yylloc->first_column = yyextra->columnPosition(); yylloc->last_column = yyextra->columnPosition() + yyleng; \
+	yyextra->advanceColumn(yyleng);
 
 %}
 
@@ -30,21 +30,21 @@
 "/*"                          { BEGIN(COMMENT_STATE); }
 <COMMENT_STATE>[^*\n]*        { }
 <COMMENT_STATE>"*"+[^*/\n]*   { }
-<COMMENT_STATE>\n             { yyextra->column = 1; }
+<COMMENT_STATE>\n             { yyextra->resetColumn(); }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
 
-"\""                          { yyextra->stringConstant = ""; BEGIN(STRING_STATE); }
-<STRING_STATE>"\\\""          { yyextra->stringConstant += "\""; }
-<STRING_STATE>"\\\\"          { yyextra->stringConstant += "\\"; }
-<STRING_STATE>"\\n"           { yyextra->stringConstant += "\n"; }
-<STRING_STATE>"\\t"           { yyextra->stringConstant += "\t"; }
-<STRING_STATE>"\"C"           { yylval->constant = Locic::Constant::String(Locic::Constant::CSTRING, yyextra->stringConstant);
+"\""                          { yyextra->resetStringConstant(); BEGIN(STRING_STATE); }
+<STRING_STATE>"\\\""          { yyextra->appendStringConstant("\""); }
+<STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
+<STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
+<STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
+<STRING_STATE>"\"C"           { yylval->lexer_constant = Locic::Constant::String(Locic::Constant::CSTRING, yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
-<STRING_STATE>"\""            { yylval->constant = Locic::Constant::String(Locic::Constant::LOCISTRING, yyextra->stringConstant);
+<STRING_STATE>"\""            { yylval->lexer_constant = Locic::Constant::String(Locic::Constant::LOCISTRING, yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
-<STRING_STATE>.               { yyextra->stringConstant += yytext; }
+<STRING_STATE>.               { yyextra->appendStringConstant(yytext); }
 
 if                      { return IF; }
 else                    { return ELSE; }
@@ -102,18 +102,18 @@ typeid                  { return TYPEID; }
 
 void                    { return VOIDNAME; }
 
-null                    { yylval->constant = Locic::Constant::Null(); return CONSTANT; }
-true                    { yylval->constant = Locic::Constant::True(); return CONSTANT; }
-false                   { yylval->constant = Locic::Constant::False(); return CONSTANT; }
-[0-9]+                  { yylval->constant = Locic::Constant::SignedInt(Locic::Constant::INT, atol(yytext)); return CONSTANT; }
-[0-9]+l                 { yylval->constant = Locic::Constant::SignedInt(Locic::Constant::LONG, atol(yytext)); return CONSTANT; }
-[0-9]+u                 { yylval->constant = Locic::Constant::UnsignedInt(Locic::Constant::UINT, atol(yytext)); return CONSTANT; }
-[0-9]+ul                { yylval->constant = Locic::Constant::UnsignedInt(Locic::Constant::ULONG, atol(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+f         { yylval->constant = Locic::Constant::Float(Locic::Constant::FLOAT, atof(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+          { yylval->constant = Locic::Constant::Float(Locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+L         { yylval->constant = Locic::Constant::Float(Locic::Constant::LONGDOUBLE, atof(yytext)); return CONSTANT; }
+null                    { yylval->lexer_constant = Locic::Constant::Null(); return CONSTANT; }
+true                    { yylval->lexer_constant = Locic::Constant::True(); return CONSTANT; }
+false                   { yylval->lexer_constant = Locic::Constant::False(); return CONSTANT; }
+[0-9]+                  { yylval->lexer_constant = Locic::Constant::SignedInt(Locic::Constant::INT, atol(yytext)); return CONSTANT; }
+[0-9]+l                 { yylval->lexer_constant = Locic::Constant::SignedInt(Locic::Constant::LONG, atol(yytext)); return CONSTANT; }
+[0-9]+u                 { yylval->lexer_constant = Locic::Constant::UnsignedInt(Locic::Constant::UINT, atol(yytext)); return CONSTANT; }
+[0-9]+ul                { yylval->lexer_constant = Locic::Constant::UnsignedInt(Locic::Constant::ULONG, atol(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+f         { yylval->lexer_constant = Locic::Constant::Float(Locic::Constant::FLOAT, atof(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+          { yylval->lexer_constant = Locic::Constant::Float(Locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+L         { yylval->lexer_constant = Locic::Constant::Float(Locic::Constant::LONGDOUBLE, atof(yytext)); return CONSTANT; }
 
-[A-Za-z_][A-Za-z0-9_]* { yylval->str = new std::string(yytext); return NAME; }
+[A-Za-z_][A-Za-z0-9_]* { yylval->lexer_str = new std::string(yytext); return NAME; }
 
 "=="                    { return ISEQUAL; }
 "!="                    { return NOTEQUAL; }
@@ -157,7 +157,7 @@ false                   { yylval->constant = Locic::Constant::False(); return CO
 "<"                     { return LTRIBRACKET; }
 ">"                     { return RTRIBRACKET; }
 "~"                     { return TILDA; }
-\n                      { yyextra->column = 1; }
+\n                      { yyextra->resetColumn(); }
 [ \t\r]+                { }
 .                       { return ERROR; }
 

@@ -20,36 +20,37 @@ namespace AST {
 			WHILE,
 			VARDECL,
 			ASSIGN,
-			RETURN
+			RETURN,
+			RETURNVOID
 		} typeEnum;
 		
 		struct {
-			Value* value;
+			Node<Value> value;
 		} valueStmt;
 		
 		struct {
-			Scope* scope;
+			Node<Scope> scope;
 		} scopeStmt;
 		
 		struct {
-			Value* condition;
-			Scope* ifTrue, * ifFalse;
+			Node<Value> condition;
+			Node<Scope> ifTrue, ifFalse;
 		} ifStmt;
 		
 		struct {
-			Value* condition;
-			Scope* whileTrue;
+			Node<Value> condition;
+			Node<Scope> whileTrue;
 		} whileStmt;
 		
 		struct {
 			bool isLval;
 			// Type var's type is NULL when the keyword 'auto' is used.
-			TypeVar* typeVar;
-			Value* value;
+			Node<TypeVar> typeVar;
+			Node<Value> value;
 		} varDecl;
 		
 		struct {
-			Value* value;
+			Node<Value> value;
 		} returnStmt;
 		
 		inline Statement()
@@ -58,19 +59,19 @@ namespace AST {
 		inline Statement(TypeEnum e)
 			: typeEnum(e) { }
 			
-		inline static Statement* ValueStmt(Value* value) {
+		inline static Statement* ValueStmt(Node<Value> value) {
 			Statement* statement = new Statement(VALUE);
 			statement->valueStmt.value = value;
 			return statement;
 		}
 		
-		inline static Statement* ScopeStmt(Scope* scope) {
+		inline static Statement* ScopeStmt(Node<Scope> scope) {
 			Statement* statement = new Statement(SCOPE);
 			statement->scopeStmt.scope = scope;
 			return statement;
 		}
 		
-		inline static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
+		inline static Statement* If(Node<Value> condition, Node<Scope> ifTrue, Node<Scope> ifFalse) {
 			Statement* statement = new Statement(IF);
 			statement->ifStmt.condition = condition;
 			statement->ifStmt.ifTrue = ifTrue;
@@ -78,39 +79,32 @@ namespace AST {
 			return statement;
 		}
 		
-		inline static Statement* While(Value* condition, Scope* whileTrue) {
+		inline static Statement* While(Node<Value> condition, Node<Scope> whileTrue) {
 			Statement* statement = new Statement(WHILE);
 			statement->whileStmt.condition = condition;
 			statement->whileStmt.whileTrue = whileTrue;
 			return statement;
 		}
 		
-		inline static Statement* VarDecl(TypeVar* typeVar, Value* value) {
+		inline static Statement* VarDecl(Node<TypeVar> typeVar, Node<Value> value) {
 			Statement* statement = new Statement(VARDECL);
 			statement->varDecl.typeVar = typeVar;
 			statement->varDecl.value = value;
 			return statement;
 		}
 		
-		inline static Statement* AutoVarDecl(bool usesCustomLval, const std::string& name, Value* value) {
-			Statement* statement = new Statement(VARDECL);
-			statement->varDecl.typeVar = new TypeVar(NULL, name, usesCustomLval);
-			statement->varDecl.value = value;
-			return statement;
-		}
-		
-		inline static Statement* ReturnVoid() {
-			Statement* statement = new Statement(RETURN);
-			statement->returnStmt.value = NULL;
-			return statement;
-		}
-		
-		inline static Statement* Return(Value* value) {
+		inline static Statement* Return(Node<Value> value) {
 			Statement* statement = new Statement(RETURN);
 			statement->returnStmt.value = value;
 			return statement;
 		}
+		
+		inline static Statement* ReturnVoid() {
+			return new Statement(RETURNVOID);
+		}
 	};
+	
+	typedef std::vector<Node<Statement>> StatementList;
 	
 }
 

@@ -13,8 +13,8 @@ namespace Locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, AST::Function* astFunction) {
-			AST::Type* returnType = astFunction->returnType;
+		SEM::Function* ConvertFunctionDecl(Context& context, AST::Node<AST::Function> astFunctionNode) {
+			AST::Node<AST::Type> astReturnTypeNode = astFunctionNode->returnType;
 			SEM::Type* semReturnType = NULL;
 			
 			const Node parentTypeNode = context.lookupParentType();
@@ -24,9 +24,9 @@ namespace Locic {
 					parentTypeNode.getSEMTypeInstance() :
 					NULL;
 			
-			const Name functionName = context.name() + astFunction->name;
+			const Name functionName = context.name() + astFunctionNode->name;
 			
-			if (returnType->typeEnum == AST::Type::UNDEFINED) {
+			if (astReturnTypeNode->typeEnum == AST::Type::UNDEFINED) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
@@ -37,30 +37,25 @@ namespace Locic {
 				std::vector<SEM::Type*> templateVars;
 				
 				// The parent class type needs to include the template arguments.
-				for(size_t i = 0; i < thisTypeInstance->templateVariables().size(); i++){
-					SEM::TemplateVar * templateVar = thisTypeInstance->templateVariables().at(i);
-					assert(i == templateVars.size());
+				for (auto templateVar: thisTypeInstance->templateVariables()) {
 					templateVars.push_back(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar));
 				}
 				
 				semReturnType = SEM::Type::Object(isMutable, thisTypeInstance, templateVars);
 			} else {
-				semReturnType = ConvertType(context, returnType);
+				semReturnType = ConvertType(context, astReturnTypeNode);
 			}
 			
 			std::vector<SEM::Var*> parameterVars;
 			std::vector<SEM::Type*> parameterTypes;
 			
-			std::vector<AST::TypeVar*>::const_iterator it;
-			
-			for(size_t i = 0; i < astFunction->parameters.size(); i++) {
-				AST::TypeVar* astTypeVar = astFunction->parameters.at(i);
-				AST::Type* astParamType = astTypeVar->type;
+			for (const auto& astTypeVarNode: *(astFunctionNode->parameters)) {
+				const AST::Node<AST::Type>& astParamTypeNode = astTypeVarNode->type;
 				
-				SEM::Type* semParamType = ConvertType(context, astParamType);
+				SEM::Type* semParamType = ConvertType(context, astParamTypeNode);
 				
 				if(semParamType->isVoid()) {
-					throw ParamVoidTypeException(functionName, astTypeVar->name);
+					throw ParamVoidTypeException(functionName, astTypeVarNode->name);
 				}
 				
 				parameterTypes.push_back(semParamType);
@@ -68,15 +63,15 @@ namespace Locic {
 				// TODO: implement 'final'.
 				const bool isLvalMutable = SEM::Type::MUTABLE;
 					
-				SEM::Type* lvalType = makeLvalType(context, astTypeVar->usesCustomLval, isLvalMutable, semParamType);
+				SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->usesCustomLval, isLvalMutable, semParamType);
 				
 				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}
 			
 			const bool isMethod = (thisTypeInstance != NULL);
-			const bool isStatic = (!isMethod || !astFunction->isMethod);
+			const bool isStatic = (!isMethod || !astFunctionNode->isMethod);
 			
-			SEM::Type* functionType = SEM::Type::Function(astFunction->isVarArg, semReturnType, parameterTypes);
+			SEM::Type* functionType = SEM::Type::Function(astFunctionNode->isVarArg, semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(isMethod, isStatic,
 				functionType, functionName, parameterVars);

@@ -11,7 +11,7 @@ namespace Locic {
 	
 		bool WillStatementReturn(SEM::Statement* statement);
 		
-		SEM::Statement* ConvertStatement(Context& context, AST::Statement* statement);
+		SEM::Statement* ConvertStatement(Context& context, AST::Node<AST::Statement> statement);
 		
 	}
 	

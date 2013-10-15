@@ -19,8 +19,8 @@ namespace Locic {
 			return false;
 		}
 		
-		SEM::Scope* ConvertScope(Context& context, AST::Scope* astScope) {
-			assert(astScope != NULL);
+		SEM::Scope* ConvertScope(Context& context, AST::Node<AST::Scope> astScope) {
+			assert(astScope.get() != NULL);
 			
 			SEM::Scope* semScope = new SEM::Scope();
 			
@@ -28,8 +28,8 @@ namespace Locic {
 			Context scopeContext(context, "##scope", scopeNode);
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
-			for(std::size_t i = 0; i < astScope->statements.size(); i++) {
-				SEM::Statement* statement = ConvertStatement(scopeContext, astScope->statements.at(i));
+			for (const auto& astStatementNode: *(astScope->statements)) {
+				SEM::Statement* statement = ConvertStatement(scopeContext, astStatementNode);
 				assert(statement != NULL);
 				
 				semScope->statements().push_back(statement);
