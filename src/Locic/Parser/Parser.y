@@ -590,8 +590,7 @@ typePrecision2:
 	}
 	| CONST typePrecision3
 	{
-		(GETSYM($2))->applyTransitiveConst();
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($2)).get()));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Const(GETSYM($2))));
 	}
 	;
 

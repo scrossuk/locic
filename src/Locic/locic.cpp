@@ -15,11 +15,36 @@ using namespace Locic;
 
 namespace po = boost::program_options;
 
+static std::string makeRepeatChar(char c, size_t numChars) {
+	std::string s;
+	for (size_t i = 0; i < numChars; i++) {
+		s += c;
+	}
+	return s;
+}
+
+static std::string generateSpacedText(const std::string& text, size_t minSize) {
+	const std::string BORDER = "====";
+	const size_t BORDER_SIZE = BORDER.length();	
+	const size_t MIN_SPACE_BORDER_SIZE = 1;
+	
+	const size_t spacedTextSize = text.length() + (BORDER_SIZE + MIN_SPACE_BORDER_SIZE) * 2;
+	const size_t size = spacedTextSize < minSize ? minSize : spacedTextSize;
+	const size_t spacingSize = size - text.length();
+	const size_t numSpaces = spacingSize - BORDER_SIZE;
+	if ((numSpaces % 2) == 0) {
+		return BORDER + makeRepeatChar(' ', numSpaces / 2) + text + makeRepeatChar(' ', numSpaces / 2) + BORDER;
+	} else {
+		return BORDER + makeRepeatChar(' ', numSpaces / 2) + text + makeRepeatChar(' ', (numSpaces / 2) + 1) + BORDER;
+	}
+}
+
 int main(int argc, char* argv[]) {
 	try {
 		std::vector<std::string> inputFileNames;
 		int optimisationLevel = 0;
 		std::string outputFileName;
+		std::string astDebugFileName;
 		std::string semDebugFileName;
 		std::string codeGenDebugFileName;
 		std::string optDebugFileName;
@@ -29,6 +54,7 @@ int main(int argc, char* argv[]) {
 		("help,h", "Display help information")
 		("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
 		("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
+		("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
 		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
 		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
@@ -102,6 +128,21 @@ int main(int argc, char* argv[]) {
 				}
 				
 				return 1;
+			}
+		}
+		
+		if (!astDebugFileName.empty()) {
+			// If requested, dump AST tree information.
+			std::ofstream ofs(astDebugFileName.c_str(), std::ios_base::binary);
+			
+			for (size_t i = 0; i < astRootNamespaceList.size(); i++) {
+				const std::string spacedFileName = generateSpacedText(inputFileNames.at(i), 20);
+				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
+				ofs << spacedFileName << std::endl;
+				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
+				ofs << std::endl;
+				ofs << formatMessage(astRootNamespaceList.at(i)->toString());
+				ofs << std::endl << std::endl;
 			}
 		}
 		

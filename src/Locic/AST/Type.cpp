@@ -6,65 +6,31 @@
 
 namespace AST {
 
-	void Type::applyTransitiveConst() {
-		Type* t = this;
-		
-		while (true) {
-			t->isMutable = false;
-			
-			if (t->typeEnum == REFERENCE) {
-				t = t->getReferenceTarget().get();
-			} else {
-				break;
-			}
-		}
-	}
-	
 	std::string Type::toString() const {
-		std::string str;
-		
-		bool bracket = false;
-		
-		if (!isMutable) {
-			str += "const ";
-			bracket = true;
-		}
-		
-		if (bracket) {
-			str += "(";
-		}
-		
 		switch (typeEnum) {
-			case UNDEFINED: {
-				str += "[undefined]";
-				break;
-			}
-			
-			case VOID: {
-				str += "void";
-				break;
-			}
-			
-			case NULLT: {
-				str += "null";
-				break;
-			}
-			
+			case NONE:
+				return "[NONE]";
+			case UNDEFINED:
+				return "auto";
+			case BRACKET:
+				return std::string("(") + getBracketTarget()->toString() + ")";
+			case CONST:
+				return std::string("const ") + getConstTarget()->toString();
+			case VOID:
+				return "void";
+			case NULLT:
+				return "null";
 			case OBJECT:
-				str += std::string("[object type: ") + objectType.symbol->toString() + std::string("]");
-				break;
-				
+				return std::string("[object type: ") + objectType.symbol->toString() + std::string("]");
 			case REFERENCE:
-				str += getReferenceTarget()->toString();
-				str += "&";
-				break;
-				
+				return getReferenceTarget()->toString() + "&";
 			case FUNCTION: {
+				std::string str;
 				str += "(";
 				str += functionType.returnType->toString();
 				str += ")(";
 				
-				for (std::size_t i = 0; i < functionType.parameterTypes->size(); i++) {
+				for (auto i = 0; i < functionType.parameterTypes->size(); i++) {
 					if (i != 0) {
 						str += ", ";
 					}
@@ -73,18 +39,11 @@ namespace AST {
 				}
 				
 				str += ")";
-				break;
+				return str;
 			}
-			
 			default:
-				break;
+				return "[UNKNOWN]";
 		}
-		
-		if (bracket) {
-			str += ")";
-		}
-		
-		return str;
 	}
 	
 }

@@ -79,7 +79,10 @@ namespace Locic {
 					return NULL;
 				}
 				case AST::Type::BRACKET: {
-					return ConvertType(context, type->bracketType.targetType);
+					return ConvertType(context, type->getBracketTarget());
+				}
+				case AST::Type::CONST: {
+					return ConvertType(context, type->getConstTarget())->createConstType();
 				}
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
@@ -103,13 +106,13 @@ namespace Locic {
 							templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
 						}
 						
-						return SEM::Type::Object(type->isMutable, typeInstance, templateArguments);
+						return SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, templateArguments);
 					}else if(objectNode.isTemplateVar()) {
 						assert(templateVarMap.empty());
 						
 						SEM::TemplateVar* templateVar = objectNode.getSEMTemplateVar();
 						
-						return SEM::Type::TemplateVarRef(type->isMutable, templateVar);
+						return SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar);
 					}else{
 						throw TodoException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
 					}
