@@ -190,7 +190,7 @@ namespace Locic {
 						   && "Types must be in the same group for cast, or "
 						   "it should be a cast from null, or a cast to void");
 						   
-					LOG(LOG_NOTICE, "Generating cast from type %s to type %s.",
+					LOG(LOG_INFO, "Generating cast from type %s to type %s.",
 						sourceType->toString().c_str(), destType->toString().c_str());
 						
 					if (destType->isVoid()) {

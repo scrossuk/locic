@@ -19,6 +19,8 @@
 %option prefix="Locic_Parser_GeneratedLexer_"
 %option reentrant
 %option noyywrap
+%option noinput
+%option nounput
 %option yylineno
 %option bison-bridge bison-locations
 

@@ -114,9 +114,6 @@ namespace Locic {
 				assert(false && "Unknown bool method.");
 			}
 			
-			LOG(LOG_INFO, "Generated bool method:");
-			llvmFunction.dump();
-			
 			// Check the generated function is correct.
 			function.verify();
 		}
@@ -191,9 +188,6 @@ namespace Locic {
 					typeName.c_str(), methodName.c_str());
 				assert(false && "Unknown primitive method.");
 			}
-			
-			LOG(LOG_INFO, "Generated primitive method:");
-			llvmFunction.dump();
 			
 			// Check the generated function is correct.
 			function.verify();
@@ -270,9 +264,6 @@ namespace Locic {
 				assert(false && "Unknown primitive method.");
 			}
 			
-			LOG(LOG_INFO, "Generated primitive method:");
-			llvmFunction.dump();
-			
 			// Check the generated function is correct.
 			function.verify();
 		}
@@ -315,9 +306,6 @@ namespace Locic {
 				LOG(LOG_INFO, "Unknown primitive method: ptr::%s.", methodName.c_str());
 				assert(false && "Unknown primitive method.");
 			}
-			
-			LOG(LOG_INFO, "Generated primitive method:");
-			llvmFunction.dump();
 			
 			// Check the generated function is correct.
 			function.verify();
@@ -377,9 +365,6 @@ namespace Locic {
 				assert(false && "Unknown primitive method.");
 			}
 			
-			LOG(LOG_INFO, "Generated primitive method:");
-			llvmFunction.dump();
-			
 			// Check the generated function is correct.
 			function.verify();
 		}
@@ -414,9 +399,6 @@ namespace Locic {
 			genDestructorCall(function, targetType, function.getContextValue());
 			function.getBuilder().CreateRetVoid();
 			
-			LOG(LOG_INFO, "Generated primitive destructor:");
-			llvmFunction.dump();
-			
 			// Check the generated function is correct.
 			function.verify();
 		}
@@ -428,9 +410,6 @@ namespace Locic {
 			
 			// Nothing to do; just return.
 			function.getBuilder().CreateRetVoid();
-			
-			LOG(LOG_INFO, "Generated primitive destructor:");
-			llvmFunction.dump();
 			
 			// Check the generated function is correct.
 			function.verify();

@@ -78,8 +78,9 @@ namespace Locic {
 				if (slotList.empty()) {
 					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
 				} else if (slotList.size() > 1) {
-					LOG(LOG_ERROR, "COLLISION at %llu for type %s.\n",
-						(unsigned long long) i, typeInstance->toString().c_str());
+					// TODO: fix this!
+					/*LOG(LOG_ERROR, "COLLISION at %llu for type %s.\n",
+						(unsigned long long) i, typeInstance->toString().c_str());*/
 					//assert(false && "Collision resolution not implemented.");
 					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
 				} else {

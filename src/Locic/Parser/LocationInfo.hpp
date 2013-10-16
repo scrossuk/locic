@@ -8,7 +8,7 @@ namespace Locic{
 	namespace Parser{
 		
 		// Resolve circular reference.
-		struct Context;
+		class Context;
 		
 	}
 	

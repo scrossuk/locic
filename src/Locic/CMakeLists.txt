@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 find_package(LLVM REQUIRED)
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings -Werror")
 
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
