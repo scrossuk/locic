@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 				ofs << spacedFileName << std::endl;
 				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
 				ofs << std::endl;
-				ofs << formatMessage(astRootNamespaceList.at(i)->toString());
+				ofs << formatMessage(astRootNamespaceList.at(i).toString());
 				ofs << std::endl << std::endl;
 			}
 		}

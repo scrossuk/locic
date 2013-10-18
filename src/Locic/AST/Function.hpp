@@ -44,6 +44,10 @@ namespace AST {
 		inline static Function* Destructor(Node<Scope> scope) {
 			return new Function(DEFINITION, true, false, makeNode(scope.location(), Type::Void()), "__destructor", makeDefaultNode<TypeVarList>(), scope);
 		}
+		
+		inline std::string toString() const {
+			return Locic::makeString("Function(name = %s, returnType = %s, ... (TODO))", name.c_str(), returnType.toString().c_str());
+		}
 	};
 	
 	typedef std::vector<Node<Function>> FunctionList;

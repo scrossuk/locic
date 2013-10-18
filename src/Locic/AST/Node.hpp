@@ -40,6 +40,12 @@ namespace AST {
 				assert(!isNull());
 				return *contents_;
 			}
+			
+			inline std::string toString() const {
+				return Locic::makeString("Node[location = %s](%s)",
+					location_.toString().c_str(),
+					isNull() ? "[NULL]" : contents_->toString().c_str());
+			}
 		
 		private:
 			Locic::SourceLocation location_;

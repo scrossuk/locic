@@ -345,7 +345,7 @@ namespace Locic {
 			 		Node childNode = range.front().value();
 			 		if(childNode.isTemplateVar()){
 			 			AST::Node<AST::Type> astSpecType = childNode.getASTTemplateVar()->specType;
-			 			if (astSpecType.get() != NULL){
+			 			if (!astSpecType->isVoid()) {
 			 				SEM::Type* semSpecType = ConvertType(context, astSpecType);
 							
 							Node templateVarTypeInstanceNode = childNode.getChild("#spectype");

@@ -100,6 +100,10 @@ namespace AST {
 			return type;
 		}
 		
+		inline bool isUndefined() const {
+			return typeEnum == UNDEFINED;
+		}
+		
 		inline bool isVoid() const {
 			return typeEnum == VOID;
 		}

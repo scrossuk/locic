@@ -2,11 +2,12 @@
 #define LOCIC_AST_TEMPLATETYPEVAR_HPP
 
 #include <string>
+#include <Locic/String.hpp>
 #include <Locic/AST/Node.hpp>
 #include <Locic/AST/Type.hpp>
 
 namespace AST {
-
+	
 	struct TemplateTypeVar {
 		enum Kind {
 			TYPENAME,
@@ -18,12 +19,12 @@ namespace AST {
 		inline static TemplateTypeVar* Typename(const std::string& name) {
 			TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
 			typeVar->name = name;
-			typeVar->specType = AST::Node<Type>();
+			typeVar->specType = makeNode(NullLocation(), Type::Void());
 			return typeVar;
 		}
 		
 		inline static TemplateTypeVar* TypenameSpec(const std::string& name, Node<Type> specType) {
-			assert(specType.get() != NULL);
+			assert(!specType.isNull());
 			TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
 			typeVar->name = name;
 			typeVar->specType = specType;
@@ -33,12 +34,17 @@ namespace AST {
 		inline static TemplateTypeVar* Polymorphic(const std::string& name) {
 			TemplateTypeVar* typeVar = new TemplateTypeVar(POLYMORPHIC);
 			typeVar->name = name;
-			typeVar->specType = AST::Node<Type>();
+			typeVar->specType = makeNode(NullLocation(), Type::Void());
 			return typeVar;
 		}
 		
 		inline TemplateTypeVar(Kind k)
 			: kind(k) { }
+		
+		inline std::string toString() const {
+			return Locic::makeString("TemplateTypeVar(name = %s, specType = %s)",
+				name.c_str(), specType.toString().c_str());
+		}
 	};
 	
 	typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;

@@ -29,18 +29,24 @@ namespace AST {
 		inline std::string toString() const {
 			std::string s = name.empty() ? "RootNamespace(" : Locic::makeString("Namespace[name = %s](", name.c_str());
 			
-			s += "[TODO]";
+			bool isFirst = true;
 			
-			for (auto functionNode: data->functions) {
-				// TODO.
+			for (auto node: data->functions) {
+				if (!isFirst) s += ", ";
+				isFirst = false;
+				s += node.toString();
 			}
 			
-			for (auto namespaceNode: data->namespaces) {
-				// TODO.
+			for (auto node: data->namespaces) {
+				if (!isFirst) s += ", ";
+				isFirst = false;
+				s += node.toString();
 			}
 			
-			for (auto typeInstanceNode: data->typeInstances) {
-				// TODO.
+			for (auto node: data->typeInstances) {
+				if (!isFirst) s += ", ";
+				isFirst = false;
+				s += node.toString();
 			}
 			
 			s += ")";
