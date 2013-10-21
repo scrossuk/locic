@@ -21,7 +21,6 @@ namespace Locic {
 					CONSTANT,
 					COPY,
 					VAR,
-					REFERENCEOF,
 					DEREF_REFERENCE,
 					TERNARY,
 					CAST,
@@ -49,10 +48,6 @@ namespace Locic {
 				struct {
 					Var* var;
 				} varValue;
-				
-				struct {
-					Value* value;
-				} referenceOf;
 				
 				struct {
 					Value* value;
@@ -144,14 +139,6 @@ namespace Locic {
 					return value;
 				}
 				
-				inline static Value* ReferenceOf(Value* operand) {
-					// TODO: fix this...
-					Value* value = new Value(REFERENCEOF,
-							SEM::Type::Reference(operand->type()));
-					value->referenceOf.value = operand;
-					return value;
-				}
-				
 				inline static Value* DerefReference(Value* operand) {
 					Value* value = new Value(DEREF_REFERENCE, operand->type()->getReferenceTarget());
 					value->derefReference.value = operand;
@@ -219,9 +206,6 @@ namespace Locic {
 				
 				inline static Value* MethodObject(Value* method, Value* methodOwner) {
 					assert(method->type()->isFunction());
-					assert(methodOwner->type()->isObject() ||
-						methodOwner->type()->isTemplateVar());
-					assert(!methodOwner->type()->isInterface());
 					Value* value = new Value(METHODOBJECT,
 						SEM::Type::Method(method->type()));
 					value->methodObject.method = method;
@@ -240,7 +224,6 @@ namespace Locic {
 				
 				inline static Value* InterfaceMethodObject(Value* method, Value* methodOwner) {
 					assert(method->type()->isFunction());
-					assert(methodOwner->type()->isInterface());
 					Value* value = new Value(INTERFACEMETHODOBJECT,
 						SEM::Type::InterfaceMethod(method->type()));
 					value->interfaceMethodObject.method = method;

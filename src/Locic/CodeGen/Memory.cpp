@@ -12,15 +12,6 @@ namespace Locic {
 
 	namespace CodeGen {
 		
-		void genZeroStore(Function& function, llvm::Value* value, SEM::Type* type) {
-			assert(value->getType()->isPointerTy());
-			
-			Module& module = function.getModule();
-			(void) function.getBuilder().CreateStore(
-				ConstantGenerator(module).getNull(genType(module, type)),
-				value);
-		}
-	
 		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
@@ -123,7 +114,7 @@ namespace Locic {
 			}
 		}
 		
-		llvm::Value* genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
 			assert(var->getType()->isPointerTy());
 			
 			SEM::Type* type = function.getModule().resolveType(unresolvedType);
@@ -134,47 +125,46 @@ namespace Locic {
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateStore(value, var);
+					function.getBuilder().CreateStore(value, var);
+					return;
 				}
 				
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeAlwaysKnown(function.getModule(), type)) {
-						return function.getBuilder().CreateStore(value, var);
+						// Most primitives will be passed around as values,
+						// rather than points, and also don't need destructors
+						// to be run.
+						function.getBuilder().CreateStore(value, var);
+						return;
 					} else {	
+						// Destroy existing value in destination.
+						genDestructorCall(function, type, var);
+						
+						// Do store.
 						if (isTypeSizeKnownInThisModule(function.getModule(), type)) {
-							return function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
+							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
 						} else {
 							assert(false && "sizeof is currently broken, so memcpy won't work correctly...");
-							return function.getBuilder().CreateMemCpy(var, value,
+							function.getBuilder().CreateMemCpy(var, value,
 								genSizeOf(function, type), 1);
 						}
+						
+						// Zero out source.
+						genZero(function, type, value);
+						return;
 					}
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
 					assert(false && "Can't store template var.");
-					return NULL;
+					return;
 				}
 				
 				default: {
 					assert(false && "Unknown type enum for generating store.");
-					return NULL;
+					return;
 				}
 			}
-		}
-		
-		void genMove(Function& function, llvm::Value* source, llvm::Value* dest, SEM::Type* type) {
-			assert(source->getType()->isPointerTy());
-			assert(dest->getType()->isPointerTy());
-			
-			// Destroy existing value in destination.
-			genDestructorCall(function, type, dest);
-			
-			// Do store.
-			(void) genStore(function, genLoad(function, source, type), dest, type);
-			
-			// Zero out source.
-			genZero(function, type, source);
 		}
 		
 	}

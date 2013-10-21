@@ -22,9 +22,6 @@ namespace Locic {
 				case VAR:
 					return makeString("VarValue(%s)",
 							varValue.var->toString().c_str());
-				case REFERENCEOF:
-					return makeString("ReferenceOf(%s)",
-							referenceOf.value->toString().c_str());
 				case DEREF_REFERENCE:
 					return makeString("DerefReference(%s)",
 							derefReference.value->toString().c_str());

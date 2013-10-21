@@ -50,7 +50,7 @@ namespace Locic {
 				
 				case SEM::Statement::INITIALISE: {
 					llvm::Value* varValue = function.getLocalVarMap().get(statement->getInitialiseVar());
-					genMove(function, genValue(function, statement->getInitialiseValue(), true), varValue, statement->getInitialiseValue()->type());
+					genStore(function, genValue(function, statement->getInitialiseValue()), varValue, statement->getInitialiseValue()->type());
 					break;
 				}
 				
@@ -122,15 +122,17 @@ namespace Locic {
 					if (statement->getReturnValue() != NULL
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
-							llvm::Value* returnValue = genValue(function, statement->getReturnValue(), true);
-							genMove(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							llvm::Value* returnValue = genValue(function, statement->getReturnValue());
+							
+							// Store the return value into the return value pointer.
+							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
 							
 							function.getBuilder().CreateRetVoid();
 						} else {
-							llvm::Value* returnValue = genValue(function, statement->getReturnValue(), false);
+							llvm::Value* returnValue = genValue(function, statement->getReturnValue());
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);

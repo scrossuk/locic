@@ -336,7 +336,7 @@ namespace Locic {
 					builder.CreateRet(function.getContextValue());
 				} else if (methodName == "move") {
 					if (function.getArgInfo().hasReturnVarArgument()) {
-						genMove(function, function.getContextValue(), function.getReturnVar(), targetType);
+						genStore(function, function.getContextValue(), function.getReturnVar(), targetType);
 						builder.CreateRetVoid();
 					} else {
 						builder.CreateRet(builder.CreateLoad(function.getContextValue()));
@@ -348,14 +348,9 @@ namespace Locic {
 				}
 			} else if (isBinaryOp(methodName)) {
 				llvm::Value* operand = function.getArg(0);
-				(void) operand;
 				
 				if (methodName == "assign") {
-					if (isTypeSizeAlwaysKnown(module, targetType)) {
-						genStore(function, operand, function.getContextValue(), targetType);
-					} else {
-						genMove(function, operand, function.getContextValue(), targetType);
-					}
+					genStore(function, operand, function.getContextValue(), targetType);
 					builder.CreateRetVoid();
 				} else {
 					assert(false && "Unknown primitive binary op.");

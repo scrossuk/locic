@@ -32,11 +32,7 @@ namespace Locic {
 			return lValue;
 		}
 		
-		static llvm::Value* makePtrIfNeeded(Function& function, llvm::Value* value, SEM::Type* type, bool genPtr) {
-			return genPtr ? makePtr(function, value, type) : value;
-		}
-		
-		llvm::Value* genValue(Function& function, SEM::Value* value, bool genPtr) {
+		llvm::Value* genValue(Function& function, SEM::Value* value) {
 			assert(value != NULL && "Cannot generate NULL value");
 			
 			LOG(LOG_INFO, "Generating value %s.",
@@ -46,10 +42,6 @@ namespace Locic {
 				
 			switch (value->kind()) {
 				case SEM::Value::CONSTANT: {
-					if (genPtr) {
-						return makePtr(function, genValue(function, value, false), value->type());
-					}
-				
 					switch (value->constant->getType()) {
 						case Locic::Constant::NULLVAL:
 							return ConstantGenerator(module).getNullPointer(
@@ -129,17 +121,10 @@ namespace Locic {
 					// This copies built-in types only; object
 					// copies use the 'implicitCopy' method.
 					assert(!value->type()->isObject());
-					llvm::Value* origValue = genValue(function, value->copyValue.value, false);
-					
-					if (genPtr) {
-						return makePtr(function, origValue, value->type());
-					} else {
-						return origValue;
-					}
+					return genValue(function, value->copyValue.value);
 				}
 				
 				case SEM::Value::VAR: {
-					assert(!genPtr);
 					SEM::Var* var = value->varValue.var;
 					
 					switch (var->kind()) {
@@ -161,27 +146,19 @@ namespace Locic {
 					}
 				}
 				
-				case SEM::Value::REFERENCEOF: {
-					return genValue(function, value->referenceOf.value, true);
-				}
-				
 				case SEM::Value::DEREF_REFERENCE: {
 					llvm::Value* refValue = genValue(function, value->derefReference.value);
-					if (genPtr) {
-						return refValue;
-					} else {
-						return genLoad(function, refValue, value->type());
-					}
+					return genLoad(function, refValue, value->type());
 				}
 				
 				case SEM::Value::TERNARY: {
 					return function.getBuilder().CreateSelect(genValue(function, value->ternary.condition),
-							genValue(function, value->ternary.ifTrue, genPtr),
-							genValue(function, value->ternary.ifFalse, genPtr));
+							genValue(function, value->ternary.ifTrue),
+							genValue(function, value->ternary.ifFalse));
 				}
 				
 				case SEM::Value::CAST: {
-					llvm::Value* codeValue = genValue(function, value->cast.value, genPtr);
+					llvm::Value* codeValue = genValue(function, value->cast.value);
 					SEM::Type* sourceType = value->cast.value->type();
 					SEM::Type* destType = value->type();
 					assert((sourceType->kind() == destType->kind()
@@ -234,12 +211,7 @@ namespace Locic {
 						}
 						
 						case SEM::Type::REFERENCE: {
-							if (genPtr) {
-								return function.getBuilder().CreatePointerCast(codeValue,
-										genType(module, destType)->getPointerTo());
-							} else {
-								return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
-							}
+							return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
 						}
 						
 						case SEM::Type::FUNCTION: {
@@ -261,7 +233,6 @@ namespace Locic {
 				}
 				
 				case SEM::Value::POLYCAST: {
-					assert(!genPtr && "Cannot generate interfaces as lvalues in polycast");
 					llvm::Value* rawValue = genValue(function, value->polyCast.value);
 					SEM::Type* sourceType = value->polyCast.value->type();
 					SEM::Type* destType = value->type();
@@ -316,9 +287,9 @@ namespace Locic {
 													  
 					for (size_t i = 0; i < parameters.size(); i++) {
 						SEM::Value* paramValue = parameters.at(i);
-						genMove(function, genValue(function, paramValue, true),
-								function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1),
-								paramValue->type());
+						llvm::Value* llvmParamValue = genValue(function, paramValue);
+						llvm::Value* llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1);
+						genStore(function, llvmParamValue, llvmInsertPointer, paramValue->type());
 					}
 					
 					return objectValue;
@@ -327,15 +298,8 @@ namespace Locic {
 				case SEM::Value::MEMBERACCESS: {
 					const size_t offset = module.getMemberVarMap().get(value->memberAccess.memberVar);
 					
-					if (genPtr) {
-						return function.getBuilder().CreateConstInBoundsGEP2_32(
-								   genValue(function, value->memberAccess.object, true), 0,
-								   offset);
-					} else {
-						return function.getBuilder().CreateExtractValue(
-								   genValue(function, value->memberAccess.object),
-								   std::vector<unsigned>(1, offset));
-					}
+					return function.getBuilder().CreateConstInBoundsGEP2_32(
+						genValue(function, value->memberAccess.object), 0, offset);
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {
@@ -349,11 +313,16 @@ namespace Locic {
 					std::vector<llvm::Value*> parameters;
 					const std::vector<SEM::Value*>& paramList = value->functionCall.parameters;
 					SEM::Type* returnType = value->type();
-					llvm::Value* returnValue = NULL;
+					
+					// Some values (e.g. classes) will be returned
+					// by assigning to a pointer passed as the first
+					// argument (this deals with the class sizes
+					// potentially being unknown).
+					llvm::Value* returnVarValue = NULL;
 					
 					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnValue = genAlloca(function, returnType);
-						parameters.push_back(returnValue);
+						returnVarValue = genAlloca(function, returnType);
+						parameters.push_back(returnVarValue);
 					}
 					
 					for (std::size_t i = 0; i < paramList.size(); i++) {
@@ -385,45 +354,47 @@ namespace Locic {
 					
 					llvm::Value* callReturnValue = function.getBuilder().CreateCall(functionValue, parameters);
 					
-					if (returnValue != NULL) {
-						if (genPtr) {
-							return returnValue;
-						} else {
-							return genLoad(function, returnValue, returnType);
-						}
+					if (returnVarValue != NULL) {
+						// As above, if the return value pointer is used,
+						// this should be loaded (and used instead).
+						return genLoad(function, returnVarValue, returnType);
 					} else {
-						return makePtrIfNeeded(function, callReturnValue, returnType, genPtr);
+						return callReturnValue;
 					}
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					llvm::Value* functionRef = genFunction(module, value->functionRef.parentType,
-						value->functionRef.function);
-					return makePtrIfNeeded(function, functionRef, value->type(), genPtr);
+					return genFunction(module, value->functionRef.parentType, value->functionRef.function);
 				}
 				
 				case SEM::Value::METHODOBJECT: {
 					llvm::Value* functionValue = genValue(function, value->methodObject.method);
 					assert(functionValue != NULL && "MethodObject requires a valid function");
-					llvm::Value* dataPointer = genValue(function, value->methodObject.methodOwner, true);
+					
+					SEM::Value* dataValue = value->methodObject.methodOwner;
+					llvm::Value* llvmDataValue = genValue(function, dataValue);
+					
+					// Methods must have a pointer to the object, which
+					// may require generating a fresh 'alloca'.
+					const bool isValuePtr = dataValue->type()->isReference() ||
+						!isTypeSizeAlwaysKnown(function.getModule(), dataValue->type());
+					llvm::Value* dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
+							
 					assert(dataPointer != NULL && "MethodObject requires a valid data pointer");
 					
 					assert(value->type()->isMethod());
-					
-					llvm::Value* methodValue = ConstantGenerator(module).getUndef(
-												   genType(module, value->type()));
 					
 					llvm::Value* functionPtr =
 						function.getBuilder().CreatePointerCast(functionValue,
 								genFunctionType(module, value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
 								"dynamic_method_function_ptr");
-								
-					llvm::Value* contextPtr =
-						function.getBuilder().CreatePointerCast(dataPointer, i8PtrType(), "this_ptr_cast_to_void_ptr");
-						
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, functionPtr, std::vector<unsigned>(1, 0));
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, contextPtr, std::vector<unsigned>(1, 1));
-					return methodValue;
+					
+					llvm::Value* contextPtr = function.getBuilder().CreatePointerCast(dataPointer, i8PtrType(), "this_ptr_cast_to_void_ptr");
+					
+					llvm::Value* llvmMethodValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
+					llvmMethodValue = function.getBuilder().CreateInsertValue(llvmMethodValue, functionPtr, std::vector<unsigned>(1, 0));
+					llvmMethodValue = function.getBuilder().CreateInsertValue(llvmMethodValue, contextPtr, std::vector<unsigned>(1, 1));
+					return llvmMethodValue;
 				}
 				
 				case SEM::Value::METHODCALL: {
@@ -437,12 +408,16 @@ namespace Locic {
 					std::vector<llvm::Value*> parameters;
 					
 					SEM::Type* returnType = value->type();
-					llvm::Value* returnValue = NULL;
+					
+					// Some values (e.g. classes) will be returned
+					// by assigning to a pointer passed as the first
+					// argument (this deals with the class sizes
+					// potentially being unknown).
+					llvm::Value* returnVarValue = NULL;
 					
 					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnValue = genAlloca(function, returnType);
-						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference.");
-						parameters.push_back(returnValue);
+						returnVarValue = genAlloca(function, returnType);
+						parameters.push_back(returnVarValue);
 					}
 					
 					parameters.push_back(contextPointer);
@@ -457,14 +432,12 @@ namespace Locic {
 					
 					llvm::Value* callReturnValue = function.getBuilder().CreateCall(functionValue, parameters);
 					
-					if (returnValue != NULL) {
-						if (genPtr) {
-							return returnValue;
-						} else {
-							return genLoad(function, returnValue, returnType);
-						}
+					if (returnVarValue != NULL) {
+						// As above, if the return value pointer is used,
+						// this should be loaded (and used instead).
+						return genLoad(function, returnVarValue, returnType);
 					} else {
-						return makePtrIfNeeded(function, callReturnValue, returnType, genPtr);
+						return callReturnValue;
 					}
 				}
 				
@@ -535,12 +508,16 @@ namespace Locic {
 					SEM::Type* returnType = functionType->getFunctionReturnType();
 					
 					std::vector<llvm::Value*> parameters;
-					llvm::Value* returnValue = NULL;
+					
+					// Some values (e.g. classes) will be returned
+					// by assigning to a pointer passed as the first
+					// argument (this deals with the class sizes
+					// potentially being unknown).
+					llvm::Value* returnVarValue = NULL;
 					
 					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnValue = genAlloca(function, returnType);
-						assert(returnValue != NULL && "Must have lvalue for holding class return value so it can be passed by reference.");
-						parameters.push_back(returnValue);
+						returnVarValue = genAlloca(function, returnType);
+						parameters.push_back(returnVarValue);
 					}
 					
 					parameters.push_back(objectPointer);
@@ -563,14 +540,12 @@ namespace Locic {
 					llvm::Value* callReturnValue =
 						function.getBuilder().CreateCall(castedMethodFunctionPointer, parameters);
 					
-					if (returnValue != NULL) {
-						if (genPtr) {
-							return returnValue;
-						} else {
-							return genLoad(function, returnValue, returnType);
-						}
+					if (returnVarValue != NULL) {
+						// As above, if the return value pointer is used,
+						// this should be loaded (and used instead).
+						return genLoad(function, returnVarValue, returnType);
 					} else {
-						return makePtrIfNeeded(function, callReturnValue, returnType, genPtr);
+						return callReturnValue;
 					}
 				}
 				

@@ -17,20 +17,22 @@ namespace Locic {
 	namespace SemanticAnalysis {
 		
 		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* object, const std::string& memberName) {
-			// Any number of levels of references are automatically dereferenced.
-			while (object->type()->isReference()) {
+			// Any number of extra levels of references are automatically dereferenced.
+			while (object->type()->isReference() && object->type()->getReferenceTarget()->isReference()) {
 				object = SEM::Value::DerefReference(object);
 			}
 			
-			if (!object->type()->isObject() && !object->type()->isTemplateVar()) {
+			SEM::Type* objectType = object->type()->isReference() ? object->type()->getReferenceTarget() : object->type();
+			
+			if (!objectType->isObject() && !objectType->isTemplateVar()) {
 				throw TodoException(makeString("Can't access member of non-object value '%s'.",
 					object->toString().c_str()));
 			}
 			
 			SEM::TypeInstance* typeInstance =
-				object->type()->isTemplateVar() ?
-					object->type()->getTemplateVar()->specType() :
-					object->type()->getObjectType();
+				objectType->isTemplateVar() ?
+					objectType->getTemplateVar()->specType() :
+					objectType->getObjectType();
 			assert(typeInstance != NULL);
 			
 			const Node typeNode = context.reverseLookup(typeInstance);
@@ -40,12 +42,12 @@ namespace Locic {
 				// Look for struct variables.
 				const Node varNode = typeNode.getChild(memberName);
 				
-				if(varNode.isNotNone()) {
+				if (varNode.isNotNone()) {
 					assert(varNode.isVariable());
 					SEM::Var* var = varNode.getSEMVar();
 					SEM::Type* memberType = var->type();
 					
-					if(object->type()->isConst()) {
+					if (objectType->isConst()) {
 						// If the struct type is const, then the members must
 						// also be.
 						memberType = memberType->createConstType();
@@ -70,7 +72,7 @@ namespace Locic {
 							function->name().toString().c_str(), typeInstance->name().toString().c_str()));
 					}
 					
-					SEM::Value* functionRef = SEM::Value::FunctionRef(object->type(), function, object->type()->generateTemplateVarMap());
+					SEM::Value* functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
 					
 					if (typeInstance->isInterface()) {
 						return SEM::Value::InterfaceMethodObject(functionRef, object);
@@ -81,7 +83,7 @@ namespace Locic {
 					throw TodoException(makeString("Can't find method '%s' in type '%s'.",
 						memberName.c_str(), typeInstance->name().toString().c_str()));
 				}
-			} else if(typeInstance->isStructDecl()) {
+			} else if (typeInstance->isStructDecl()) {
 				throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
 					memberName.c_str(), typeInstance->name().toString().c_str()));
 			} else {
