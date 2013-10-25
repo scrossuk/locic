@@ -3,8 +3,7 @@
 
 #include <string>
 
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/IRBuilder.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/Map.hpp>
 

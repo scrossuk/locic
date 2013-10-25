@@ -1,9 +1,9 @@
 #ifndef LOCIC_CODEGEN_DESTRUCTOR_HPP
 #define LOCIC_CODEGEN_DESTRUCTOR_HPP
 
-#include <llvm/Value.h>
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/Function.hpp>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 namespace Locic {
 

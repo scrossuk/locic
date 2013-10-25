@@ -1,9 +1,7 @@
 #ifndef LOCIC_CODEGEN_OPTIMISATIONS_HPP
 #define LOCIC_CODEGEN_OPTIMISATIONS_HPP
 
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/CodeGen/Module.hpp>
 

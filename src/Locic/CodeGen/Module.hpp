@@ -5,12 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/GlobalVariable.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
-#include <llvm/Support/raw_os_ostream.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/Map.hpp>
 #include <Locic/SEM.hpp>

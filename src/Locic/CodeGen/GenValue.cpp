@@ -1,8 +1,5 @@
 #include <assert.h>
 
-#include <llvm/InlineAsm.h>
-#include <llvm/Value.h>
-
 #include <Locic/SEM.hpp>
 
 #include <Locic/CodeGen/ConstantGenerator.hpp>

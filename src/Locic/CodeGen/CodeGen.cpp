@@ -1,10 +1,4 @@
-#include <llvm/Attributes.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/InlineAsm.h>
-#include <llvm/PassManager.h>
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/Analysis/Passes.h>
-#include <llvm/Support/Host.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <assert.h>
 #include <cstdio>

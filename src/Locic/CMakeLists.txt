@@ -35,7 +35,7 @@ add_executable(locic locic.cpp Log.cpp String.cpp)
 
 # Link with LLVM
 link_directories(${LLVM_LIBRARY_DIRS})
-llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES bitwriter core native ipo)
+llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES bitreader bitwriter core native ipo)
 target_link_libraries(locic locic-parser locic-semanalysis locic-codegen locic-sem locic-ast clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES} boost_program_options)
 
 macro(copy_loci_source name)

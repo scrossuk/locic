@@ -38,6 +38,21 @@ namespace Locic {
 				return typeGen.getVoidFunctionType(argTypes);
 			}
 			
+			void setStubAttributes(llvm::Function* llvmFunction) {
+				{
+					// Return value pointer attributes.
+					llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
+					llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
+					llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
+				}
+				
+				{
+					// Arguments struct pointer attributes.
+					llvmFunction->addAttribute(4, llvm::Attribute::NoAlias);
+					llvmFunction->addAttribute(4, llvm::Attribute::NoCapture);
+				}
+			}
+			
 			llvm::Value* makeArgsStruct(Function& function, const std::vector<SEM::Value*>& args) {
 				if (args.empty()) {
 					// Don't allocate struct when it's not needed.
@@ -163,6 +178,8 @@ namespace Locic {
 				
 				llvm::Function* llvmFunction = createLLVMFunction(module, getStubFunctionType(module), linkage, "__slot_conflict_resolution_stub");
 				
+				setStubAttributes(llvmFunction);
+				
 				const bool hasReturnVarArgument = true;
 				const bool hasContextArgument = true;
 				const size_t numStandardArguments = 2;
@@ -230,12 +247,6 @@ namespace Locic {
 							llvmArgsStructPtr, 0, offset);
 						parameters.push_back(function.getBuilder().CreateLoad(argPtr, "extractedArg"));
 					}
-					
-					for (auto i: parameters) {
-						i->dump();
-					}
-					
-					llvmMethod->dump();
 					
 					// Call the method.
 					llvm::Value* llvmCallReturnValue = function.getBuilder().CreateCall(llvmMethod, parameters);

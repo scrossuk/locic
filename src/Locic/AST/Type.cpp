@@ -30,7 +30,7 @@ namespace AST {
 				str += functionType.returnType->toString();
 				str += ")(";
 				
-				for (auto i = 0; i < functionType.parameterTypes->size(); i++) {
+				for (size_t i = 0; i < functionType.parameterTypes->size(); i++) {
 					if (i != 0) {
 						str += ", ";
 					}

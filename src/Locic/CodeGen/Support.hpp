@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_SUPPORT_HPP
 #define LOCIC_CODEGEN_SUPPORT_HPP
 
-#include <llvm/Type.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <vector>
 

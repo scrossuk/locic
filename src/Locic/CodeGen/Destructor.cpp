@@ -1,5 +1,5 @@
 #include <vector>
-#include <llvm/Value.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/ConstantGenerator.hpp>
 #include <Locic/CodeGen/Destructor.hpp>

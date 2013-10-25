@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_GENVALUE_HPP
 #define LOCIC_CODEGEN_GENVALUE_HPP
 
-#include <llvm/Value.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/SEM.hpp>
 

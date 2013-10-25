@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_GENFUNCTION_HPP
 #define LOCIC_CODEGEN_GENFUNCTION_HPP
 
-#include <llvm/Function.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 #include <Locic/SEM.hpp>
 
 #include <Locic/CodeGen/Module.hpp>

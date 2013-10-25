@@ -1,8 +1,4 @@
-#include <llvm/DataLayout.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Basic/TargetOptions.h>
@@ -42,10 +38,10 @@ namespace Locic {
 			pointerSize_ = dataLayout->getPointerSize();
 			
 			clang::CompilerInstance ci;
-			ci.createDiagnostics(0, NULL);
-			clang::TargetOptions to;
-			to.Triple = triple;
-			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), to);
+			ci.createDiagnostics(NULL, false);
+			clang::TargetOptions targetOptions;
+			targetOptions.Triple = triple;
+			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), &targetOptions);
 			
 			primitiveSizes_.insert("size_t", clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
 			primitiveSizes_.insert("null_t", clangTargetInfo->getCharWidth());

@@ -1,9 +1,3 @@
-#include <llvm/ADT/ArrayRef.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Type.h>
-
 #include <vector>
 
 #include <Locic/CodeGen/Support.hpp>

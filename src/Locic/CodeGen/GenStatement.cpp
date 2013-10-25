@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <llvm/Value.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/SEM.hpp>
 
@@ -125,7 +125,10 @@ namespace Locic {
 							llvm::Value* returnValue = genValue(function, statement->getReturnValue());
 							
 							// Store the return value into the return value pointer.
-							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							// Do NOT run a destructor on the return value pointer.
+							const bool shouldDestroyExisting = false;
+							genStore(function, returnValue, function.getReturnVar(),
+								statement->getReturnValue()->type(), shouldDestroyExisting);
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);

@@ -114,7 +114,7 @@ namespace Locic {
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType, bool destroyExisting) {
 			assert(var->getType()->isPointerTy());
 			
 			SEM::Type* type = function.getModule().resolveType(unresolvedType);
@@ -138,7 +138,7 @@ namespace Locic {
 						return;
 					} else {	
 						// Destroy existing value in destination.
-						genDestructorCall(function, type, var);
+						if (destroyExisting) genDestructorCall(function, type, var);
 						
 						// Do store.
 						if (isTypeSizeKnownInThisModule(function.getModule(), type)) {

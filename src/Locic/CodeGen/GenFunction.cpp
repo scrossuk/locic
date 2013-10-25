@@ -95,26 +95,20 @@ namespace Locic {
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
-				std::vector<llvm::Attributes::AttrVal> attributes;
-				
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller
 				// and callee must, for the sake of optimisation,
 				// ensure that the following attributes hold...
 				
 				// Caller must ensure pointer is always valid.
-				attributes.push_back(llvm::Attributes::StructRet);
+				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
 				
 				// Caller must ensure pointer does not alias with
 				// any other arguments.
-				attributes.push_back(llvm::Attributes::NoAlias);
+				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
 				
 				// Callee must not capture the pointer.
-				attributes.push_back(llvm::Attributes::NoCapture);
-				
-				llvmFunction->addAttribute(1,
-					llvm::Attributes::get(module.getLLVMContext(),
-						attributes));
+				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
 			}
 			
 			// LOG(LOG_INFO, "Declaration is:");

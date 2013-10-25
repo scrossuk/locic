@@ -46,7 +46,7 @@ namespace Locic {
 		 * the source value to be zeroed out (to prevent
 		 * multiple destruction of the same value).
 		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType, bool destroyExisting = true);
 		
 	}
 	

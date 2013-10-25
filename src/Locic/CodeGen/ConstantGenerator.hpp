@@ -1,8 +1,7 @@
 #ifndef LOCIC_CODEGEN_CONSTANTGENERATOR_HPP
 #define LOCIC_CODEGEN_CONSTANTGENERATOR_HPP
 
-#include <llvm/Constants.h>
-#include <llvm/Type.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/CodeGen/Module.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>

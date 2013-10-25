@@ -1,8 +1,7 @@
 #ifndef LOCIC_CODEGEN_PRIMITIVES_HPP
 #define LOCIC_CODEGEN_PRIMITIVES_HPP
 
-#include <llvm/Function.h>
-#include <llvm/Type.h>
+#include <Locic/CodeGen/LLVMIncludes.hpp>
 
 #include <Locic/SEM.hpp>
 #include <Locic/CodeGen/Module.hpp>
