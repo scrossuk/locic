@@ -51,6 +51,10 @@ namespace Locic {
 					return getInt(32, value);
 				}
 				
+				inline llvm::ConstantInt* getI64(uint64_t value) const {
+					return getInt(64, value);
+				}
+				
 				inline llvm::ConstantInt* getSize(unsigned long long sizeValue) const {
 					const size_t sizeTypeWidth = module_.getTargetInfo().getPrimitiveSize("size_t");
 					return getInt(sizeTypeWidth, sizeValue);

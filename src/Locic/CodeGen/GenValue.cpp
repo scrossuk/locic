@@ -17,6 +17,7 @@
 #include <Locic/CodeGen/Primitives.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
+#include <Locic/CodeGen/VirtualCall.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
@@ -451,7 +452,7 @@ namespace Locic {
 					const MethodHash methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					
 					llvm::Value* methodHashValue =
-						ConstantGenerator(module).getI32(methodHash);
+						ConstantGenerator(module).getI64(methodHash);
 					
 					llvm::Value* methodValue = ConstantGenerator(module).getUndef(
 						genType(module, value->type()));
@@ -465,88 +466,8 @@ namespace Locic {
 				case SEM::Value::INTERFACEMETHODCALL: {
 					SEM::Value* method = value->interfaceMethodCall.methodValue;
 					const std::vector<SEM::Value*>& paramList = value->interfaceMethodCall.parameters;
-					llvm::Value* methodValue = genValue(function, method);
 					
-					llvm::Value* contextValue = function.getBuilder().CreateExtractValue(methodValue,
-						std::vector<unsigned>(1, 0), "context");
-					
-					llvm::Value* objectPointer = function.getBuilder().CreateExtractValue(contextValue,
-						std::vector<unsigned>(1, 0), "object");
-					
-					llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(contextValue,
-						std::vector<unsigned>(1, 1), "vtable");
-					
-					llvm::Value* methodHashValue = function.getBuilder().CreateExtractValue(methodValue,
-						std::vector<unsigned>(1, 1), "methodHash");
-					
-					const ConstantGenerator constantGen(module);
-					
-					llvm::Value* vtableSizeValue =
-						constantGen.getI32(VTABLE_SIZE);
-					
-					llvm::Value* vtableOffsetValue =
-						function.getBuilder().CreateURem(methodHashValue, vtableSizeValue, "vtableOffset");
-					
-					std::vector<llvm::Value*> vtableEntryGEP;
-					vtableEntryGEP.push_back(constantGen.getI32(0));
-					vtableEntryGEP.push_back(constantGen.getI32(2));
-					vtableEntryGEP.push_back(vtableOffsetValue);
-					
-					llvm::Value* vtableEntryPointer =
-						function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
-					
-					llvm::Value* methodFunctionPointer =
-						function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
-					
-					SEM::Type* functionType = method->type()->getInterfaceMethodFunctionType();
-					llvm::Type* methodFunctionType = genFunctionType(module, functionType,
-						TypeGenerator(module).getI8PtrType());
-					
-					llvm::Value* castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
-						methodFunctionPointer, methodFunctionType->getPointerTo(), "castedMethodFunctionPointer");
-					
-					SEM::Type* returnType = functionType->getFunctionReturnType();
-					
-					std::vector<llvm::Value*> parameters;
-					
-					// Some values (e.g. classes) will be returned
-					// by assigning to a pointer passed as the first
-					// argument (this deals with the class sizes
-					// potentially being unknown).
-					llvm::Value* returnVarValue = NULL;
-					
-					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnVarValue = genAlloca(function, returnType);
-						parameters.push_back(returnVarValue);
-					}
-					
-					parameters.push_back(objectPointer);
-					
-					for (std::size_t i = 0; i < paramList.size(); i++) {
-						LOG(LOG_EXCESSIVE, "Generating method call argument %s.",
-							paramList.at(i)->toString().c_str());
-						parameters.push_back(genValue(function, paramList.at(i)));
-					}
-					
-					LOG(LOG_EXCESSIVE, "Creating interface call assembly.");
-					llvm::FunctionType* asmFunctionType =
-						TypeGenerator(module).getFunctionType(voidType(),
-							std::vector<llvm::Type*>(1, TypeGenerator(module).getI32Type()));
-					llvm::InlineAsm* setEax = llvm::InlineAsm::get(asmFunctionType, "movl $0, %eax", "r,~{eax}", false);
-					function.getBuilder().CreateCall(setEax, std::vector<llvm::Value*>(1, methodHashValue));
-					
-					LOG(LOG_EXCESSIVE, "Creating interface method call.");
-					
-					llvm::Value* callReturnValue =
-						function.getBuilder().CreateCall(castedMethodFunctionPointer, parameters);
-					
-					if (returnVarValue != NULL) {
-						// As above, if the return value pointer is used,
-						// this should be loaded (and used instead).
-						return genLoad(function, returnVarValue, returnType);
-					} else {
-						return callReturnValue;
-					}
+					return VirtualCall::generateCall(function, method, paramList);
 				}
 				
 				default:

@@ -153,14 +153,14 @@ namespace Locic {
 								i8* context,
 								__vtable_type* vtable
 							},
-							i32 methodHash
+							i64 methodHash
 						};
 					*/
 					std::vector<llvm::Type*> interfaceMethodTypes;
 					interfaceMethodTypes.push_back(
 						getInterfaceStruct(module));
 					interfaceMethodTypes.push_back(
-						TypeGenerator(module).getI32Type());
+						TypeGenerator(module).getI64Type());
 					
 					return TypeGenerator(module).getStructType(interfaceMethodTypes);
 				}

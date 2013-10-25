@@ -23,17 +23,23 @@ class TestClass2(int i){
 		return @i;
 	}
 	
+	void passTestClass2(TestClass2 value) {
+		printf("Received testclass2 value %d.\n"C, value.getValue());
+	}
+	
 	void doSomething(){ }
 	
-	/*TestClass2 implicitCopy(){
-		return TestClass2(@i);
-	}*/
+	TestClass2 implicitCopy(){
+		return @(@i);
+	}
 };
 
 interface an_interface{
 	int getValue();
 	
 	void doSomething();
+	
+	void passTestClass2(TestClass2 value);
 }
 
 template <typename T>
@@ -146,6 +152,11 @@ class number_counter(int from, int to) {
 	}
 };
 
+void goGet(an_interface& interfaceRef, TestClass2* val) {
+	interfaceRef.passTestClass2(move *val);
+	printf("Done goGet.\n"C);
+}
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
@@ -208,7 +219,11 @@ int main(int argc, char ** argv){
 	
 	printf("Value: %d\n"C, testObject.getValue());
 	
-	printf("Interface value: %d\n"C, getPtrAsInterfaceRef(&testObject).getValue());
+	auto interfaceRef = getPtrAsInterfaceRef(&testObject);
+	printf("Got interface ref.\n"C);
+	
+	auto newTestClass2 = TestClass2(1024);
+	goGet(interfaceRef, &newTestClass2);
 	
 	an_interface& interfaceObject = getPtrAsInterfaceRef(&testObject);
 	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));

@@ -14,7 +14,7 @@ namespace Locic {
 	namespace CodeGen {
 	
 		static MethodHash getMethodHash(const std::string& hash) {
-			return strtoul(hash.substr(0, 8).c_str(), NULL, 16);
+			return strtoul(hash.substr(0, 16).c_str(), NULL, 16);
 		}
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName) {

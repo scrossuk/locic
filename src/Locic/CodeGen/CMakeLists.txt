@@ -15,5 +15,6 @@ add_library(locic-codegen
 	Support.cpp
 	TargetInfo.cpp
 	TypeSizeKnowledge.cpp
-	VTable.cpp)
+	VTable.cpp
+	VirtualCall/VirtualCall-Default.cpp)
 

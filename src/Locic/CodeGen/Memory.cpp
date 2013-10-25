@@ -132,7 +132,7 @@ namespace Locic {
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeAlwaysKnown(function.getModule(), type)) {
 						// Most primitives will be passed around as values,
-						// rather than points, and also don't need destructors
+						// rather than pointers, and also don't need destructors
 						// to be run.
 						function.getBuilder().CreateStore(value, var);
 						return;

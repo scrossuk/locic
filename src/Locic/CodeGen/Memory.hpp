@@ -10,6 +10,14 @@ namespace Locic {
 	namespace CodeGen {
 		
 		/**
+		 * \brief Zero a stack object.
+		 * 
+		 * This will zero out the memory pointed to by the
+		 * value for the type given.
+		 */
+		void genZero(Function& function, SEM::Type* type, llvm::Value* value);
+		
+		/**
 		 * \brief Create a stack object.
 		 * 
 		 * This will allocate stack space for the given

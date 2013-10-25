@@ -14,11 +14,11 @@ namespace Locic {
 		const size_t VTABLE_SIZE = 20;
 		
 		/**
-		 * All method names are 'hashed' to a 32 bit
+		 * All method names are 'hashed' to a 64 bit
 		 * unsigned integer, for use in virtual method
 		 * tables.
 		 */
-		typedef uint32_t MethodHash;
+		typedef uint64_t MethodHash;
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName);
 		

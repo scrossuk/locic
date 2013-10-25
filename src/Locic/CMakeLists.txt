@@ -49,7 +49,7 @@ copy_loci_source(Example1)
 copy_loci_source(Example2)
 
 add_custom_command(OUTPUT exampleProgram
-		COMMAND rm -f *.txt *.ll *.bc && ./locic -O3 -o exampleProgram.bc --ast-debug-file=ast_debug.txt --sem-debug-file=sem_debug.txt --codegen-debug-file=codegen_debug.ll --opt-debug-file=opt_debug.ll Example1.loci Example2.loci && clang -o exampleProgram exampleProgram.bc -lm
+		COMMAND rm -f *.txt *.ll *.bc && ./locic -O3 -o exampleProgram.bc --ast-debug-file=ast_debug.txt --sem-debug-file=sem_debug.txt --codegen-debug-file=codegen_debug.ll --opt-debug-file=opt_debug.ll Example1.loci Example2.loci && /usr/bin/clang -S -emit-llvm -O3 -o clangopt_debug.ll opt_debug.ll && /usr/bin/clang -o exampleProgram clangopt_debug.ll -lm
 		DEPENDS calculateVTable locic ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/Example1.loci ${CMAKE_CURRENT_BINARY_DIR}/Example2.loci)
 		
 add_custom_target(LocicExampleProgram ALL DEPENDS exampleProgram)

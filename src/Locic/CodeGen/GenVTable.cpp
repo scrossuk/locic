@@ -6,6 +6,7 @@
 #include <Locic/CodeGen/SizeOf.hpp>
 #include <Locic/CodeGen/Support.hpp>
 #include <Locic/CodeGen/TypeGenerator.hpp>
+#include <Locic/CodeGen/VirtualCall.hpp>
 #include <Locic/CodeGen/VTable.hpp>
 
 namespace Locic {
@@ -57,9 +58,9 @@ namespace Locic {
 			
 			const VirtualTable virtualTable = VirtualTable::CalculateFromHashes(hashArray);
 			
-			std::vector<llvm::Constant*> vtableStructElements;
-			
 			llvm::PointerType* i8PtrType = TypeGenerator(module).getI8PtrType();
+			
+			std::vector<llvm::Constant*> vtableStructElements;
 			
 			// Destructor.
 			llvm::PointerType* destructorType =
@@ -75,20 +76,14 @@ namespace Locic {
 			for (size_t i = 0; i < VTABLE_SIZE; i++) {
 				const std::list<MethodHash>& slotList = virtualTable.table().at(i);
 				
-				if (slotList.empty()) {
-					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
-				} else if (slotList.size() > 1) {
-					// TODO: fix this!
-					/*LOG(LOG_ERROR, "COLLISION at %llu for type %s.\n",
-						(unsigned long long) i, typeInstance->toString().c_str());*/
-					//assert(false && "Collision resolution not implemented.");
-					methodSlotElements.push_back(ConstantGenerator(module).getNullPointer(i8PtrType));
-				} else {
-					assert(slotList.size() == 1);
-					SEM::Function* semFunction = functionHashMap.get(slotList.front());
-					llvm::Function* llvmFunction = genFunction(module, type, semFunction);
-					methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(llvmFunction, i8PtrType));
+				std::vector<SEM::Function*> methods;
+				for (auto methodHash: slotList) {
+					methods.push_back(functionHashMap.get(methodHash));
 				}
+				
+				llvm::Constant* slotValue = VirtualCall::generateVTableSlot(module, type, methods);
+				
+				methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(slotValue, i8PtrType));
 			}
 			
 			llvm::ArrayType* slotTableType =
