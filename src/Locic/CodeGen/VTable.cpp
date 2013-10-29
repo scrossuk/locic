@@ -57,34 +57,58 @@ namespace Locic {
 					s += ", ";
 				}
 				
-				s += makeString("%llu: ",
-								(unsigned long long) i);
+				s += makeString("%llu: ", (unsigned long long) i);
 								
 				const std::list<MethodHash>& slotList = table_.at(i);
 				
-				if (slotList.empty()) {
-					s += "empty";
-					continue;
-				} else if (slotList.size() == 1) {
-					s += makeString("%llu",
-									(unsigned long long) slotList.front());
-					continue;
-				}
+				s += "(";
 				
-				s += "clash[";
-				
-				for (std::list<MethodHash>::const_iterator it = slotList.begin();
-					 it != slotList.end(); ++it) {
-					 
-					if (it != slotList.begin()) {
+				bool isFirst = true;
+				for (auto hash: slotList) {
+					if (isFirst) {
+						isFirst = false;
+					} else {
 						s += ", ";
 					}
 					
-					s += makeString("%llu",
-									(unsigned long long) * it);
+					s += makeString("%llu", (unsigned long long) hash);
 				}
 				
-				s += "]";
+				s += ")";
+			}
+			
+			s += "}";
+			
+			return s;
+		}
+		
+		std::string VirtualTable::toStringWithMapping(const Map<MethodHash, std::string>& mapping) const {
+			std::string s = "VirtualTable{";
+			
+			for (size_t i = 0; i < VTABLE_SIZE; i++) {
+				if (i > 0) {
+					s += ", ";
+				}
+				
+				s += makeString("%llu: ", (unsigned long long) i);
+								
+				const std::list<MethodHash>& slotList = table_.at(i);
+				
+				s += "(";
+				
+				bool isFirst = true;
+				for (auto hash: slotList) {
+					if (isFirst) {
+						isFirst = false;
+					} else {
+						s += ", ";
+					}
+					
+					s += makeString("%s: %llu", mapping.get(hash).c_str(),
+						(unsigned long long) hash);
+				}
+				
+				s += ")";
 			}
 			
 			s += "}";

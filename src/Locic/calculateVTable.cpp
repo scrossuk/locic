@@ -1,9 +1,14 @@
 #include <assert.h>
 #include <stdio.h>
+
 #include <string>
 #include <vector>
 
+#include <Locic/Log.hpp>
+#include <Locic/Map.hpp>
 #include <Locic/CodeGen/VTable.hpp>
+
+using namespace Locic::CodeGen;
 
 int main(int argc, char * argv[]){
 	if(argc < 2){
@@ -23,9 +28,16 @@ int main(int argc, char * argv[]){
 	
 	printf("\n");
 	
+	Locic::Map<MethodHash, std::string> namesMap;
+	
+	for (auto name: methodNames) {
+		namesMap.insert(CreateMethodNameHash(name), name);
+	}
+	
+	const auto vtable = Locic::CodeGen::VirtualTable::CalculateFromNames(methodNames);
+	
 	printf("Virtual table: %s.\n",
-		Locic::CodeGen::VirtualTable::CalculateFromNames(methodNames).
-		toString().c_str());
+		Locic::formatMessage(vtable.toStringWithMapping(namesMap)).c_str());
 	
 	return 0;
 }

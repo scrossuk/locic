@@ -27,7 +27,7 @@ add_subdirectory(SemanticAnalysis)
 add_subdirectory(CodeGen)
 
 # Build vtable generator.
-add_executable(calculateVTable calculateVTable.cpp String.cpp)
+add_executable(calculateVTable calculateVTable.cpp Log.cpp String.cpp)
 target_link_libraries(calculateVTable locic-parser locic-semanalysis locic-codegen locic-sem clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization ${REQ_LLVM_LIBRARIES})
 
 # Build compiler.

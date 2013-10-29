@@ -83,7 +83,9 @@ namespace Locic{
 			}
 			
 			void insert(const Key& key, const Value& value){
-				assert(tryInsert(key, value));
+				const bool couldInsert = tryInsert(key, value);
+				(void) couldInsert;
+				assert(couldInsert);
 			}
 			
 			void forceInsert(const Key& key, const Value& value){

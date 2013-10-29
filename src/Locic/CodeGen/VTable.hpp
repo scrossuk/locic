@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <Locic/Map.hpp>
+
 namespace Locic {
 
 	namespace CodeGen {
@@ -31,6 +33,8 @@ namespace Locic {
 				const std::vector< std::list<MethodHash> >& table() const;
 				
 				std::string toString() const;
+				
+				std::string toStringWithMapping(const Map<MethodHash, std::string>& mapping) const;
 				
 			private:
 				VirtualTable();
