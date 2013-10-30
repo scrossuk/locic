@@ -82,8 +82,34 @@ namespace Locic {
 					return value;
 				}
 				case SEM::Type::OBJECT: {
-					if(sourceType->getObjectType() == destType->getObjectType()) {
+					if (sourceType->getObjectType() == destType->getObjectType()) {
 						// The same type instance can be cast to itself.
+						// Need to check template arguments.
+						const auto sourceNumArgs = sourceType->templateArguments().size();
+						const auto destNumArgs = destType->templateArguments().size();
+						
+						if (sourceNumArgs != destNumArgs) {
+							throw TodoException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
+								sourceType->toString().c_str(), destType->toString().c_str()));
+						}
+						
+						for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
+							const auto sourceTemplateArg = sourceType->templateArguments().at(i);
+							const auto destTemplateArg = destType->templateArguments().at(i);
+							
+							if (!hasConstChain && sourceTemplateArg->isMutable() && destTemplateArg->isConst()) {
+								// Check for const-correctness inside templates,
+								// ensuring that the const chaining rule rule is followed.
+								// For example, the following cast is invalid:
+								//         ptr<T> -> ptr<const T>
+								// It can be made valid by changing it to:
+								//         const ptr<T> -> const ptr<const T>
+								throw CastConstChainingViolationException(sourceType, destType);
+							}
+							
+							(void) ImplicitCastFormatOnly(SEM::Value::CastDummy(sourceTemplateArg), destTemplateArg, hasConstChain);
+						}
+						
 						return value;
 					} else {
 						throw CastObjectTypeMismatchException(sourceType, destType);
@@ -93,7 +119,7 @@ namespace Locic {
 					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
 					SEM::Type* destTarget = destType->getReferenceTarget();
 					
-					if(!hasConstChain && sourceTarget->isMutable() && destTarget->isConst()) {
+					if (!hasConstChain && sourceTarget->isMutable() && destTarget->isConst()) {
 						// Check for const-correctness inside references,
 						// ensuring that the const chaining rule rule is followed.
 						// For example, the following cast is invalid:
