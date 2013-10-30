@@ -50,7 +50,7 @@ namespace Locic {
 				}
 				
 				inline std::string toString() const {
-					return makeString("TypeInstance(name: %s, "
+					return makeString("NameSpace(name: %s, "
 						"namespaces: %s, typeInstances: %s, "
 						"functions: %s)",
 						name().c_str(),

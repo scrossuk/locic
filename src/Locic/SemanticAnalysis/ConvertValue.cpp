@@ -175,16 +175,16 @@ namespace Locic {
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
-						const Node defaultConstructorNode = node.getChild("Default");
-						if(!defaultConstructorNode.isFunction()) {
+						if (!typeInstance->hasProperty("Default")) {
 							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
+						SEM::Function* defaultConstructor = typeInstance->getProperty("Default");
+						
 						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, GetTemplateValues(context, astSymbolNode));
 						
-						return SEM::Value::FunctionRef(parentType,
-							defaultConstructorNode.getSEMFunction(), templateVarMap);
+						return SEM::Value::FunctionRef(parentType, defaultConstructor, templateVarMap);
 					} else if (node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').

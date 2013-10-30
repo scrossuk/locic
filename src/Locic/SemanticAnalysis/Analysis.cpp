@@ -54,6 +54,7 @@ namespace Locic {
 					Node existingChildNode = node.getChild(childNamespaceName);
 					if (existingChildNode.isNone()) {
 						SEM::Namespace* semChildNamespace = new SEM::Namespace(childNamespaceName);
+						node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
 						const Node childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
 						node.attach(childNamespaceName, childNode);
 					} else {
@@ -104,6 +105,7 @@ namespace Locic {
 						   "Functions shouldn't be added at this point, so anything "
 						   "that isn't a namespace or a type instance should be 'none'");
 						auto semTypeInstance = new SEM::TypeInstance(typeInstanceKind, fullTypeName);
+						node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
 						const Node typeInstanceNode = Node::TypeInstance(AST::TypeInstanceList(1, astTypeInstanceNode), semTypeInstance);
 						node.attach(typeInstanceName, typeInstanceNode);
 					}

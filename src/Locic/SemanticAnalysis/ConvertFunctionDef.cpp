@@ -49,7 +49,7 @@ namespace Locic {
 			if (!returnType->isVoid()) {
 				// Functions with non-void return types must return a value.
 				if(!WillScopeReturn(*semScope)) {
-					throw MissingReturnStatementException(context.name() + astFunctionNode->name);
+					throw MissingReturnStatementException(context.name());
 				}
 			} else {
 				// Need to add a void return statement in case the program didn't.
