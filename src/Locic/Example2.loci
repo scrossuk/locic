@@ -1,6 +1,6 @@
 
 
-class TestClass(const char * n, int i, int j){
+class TestClass(const char * const n, int i, int j){
 	static Null(){
 		return @("NULL"C, 0, 0);
 	}

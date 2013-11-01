@@ -1,4 +1,4 @@
-int printf(const(char *) str, ...);
+int printf(const char * const str, ...);
 
 class TestClass{
 	static Null();	

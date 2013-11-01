@@ -35,7 +35,7 @@ namespace Locic {
 		}
 		
 		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
-			switch(kind()) {
+			switch (kind()) {
 				case VOID: {
 					return Void();
 				}
@@ -74,9 +74,12 @@ namespace Locic {
 				}
 				case TEMPLATEVAR: {
 					Optional<Type*> substituteType = templateVarMap.tryGet(getTemplateVar());
-					if(substituteType.hasValue()){
-						return substituteType.getValue()->copyType(isMutable());
-					}else{
+					if (substituteType.hasValue()) {
+						// Substituted type can only be mutable if both the
+						// template variable and the substituted type are mutable.
+						Type* typeValue = substituteType.getValue();
+						return isMutable() ? typeValue : typeValue->createConstType();
+					} else {
 						return TemplateVarRef(isMutable(), getTemplateVar());
 					}
 				}

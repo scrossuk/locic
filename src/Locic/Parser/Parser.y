@@ -235,6 +235,7 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
+%type <type> pointerType
 %type <type> type
 %type <type> implicitAutoType
 %type <typeArray> nonEmptyTypeList
@@ -594,18 +595,30 @@ typePrecision2:
 	}
 	;
 
+pointerType:
+	typePrecision1 STAR
+	{
+		// Create 'ptr<TYPE>'.
+		auto typeList = AST::makeNode(LOC(&@1), new AST::TypeList(1, GETSYM($1)));
+		auto symbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement("ptr", typeList));
+		auto symbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + symbolElement));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(symbol)));
+	}
+	;
+
 typePrecision1:
 	typePrecision2
 	{
 		$$ = $1;
 	}
-	| typePrecision1 STAR
+	| pointerType
 	{
-		// Create 'ptr<TYPE>'.
-		auto typeList = AST::makeNode(LOC(&@$), new AST::TypeList(1, GETSYM($1)));
-		auto symbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement("ptr", typeList));
-		auto symbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + symbolElement));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(symbol)));
+		$$ = $1;
+	}
+	| pointerType CONST
+	{
+		// Create 'const ptr<TYPE>'.
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Const(GETSYM($1))));
 	}
 	;
 
