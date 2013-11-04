@@ -134,7 +134,7 @@ void lvalFunc(lval custom_lval& custLval) {
 	printf("Custom lval: %d\n"C, move custLval);
 }
 
-class number_counter(int from, int to) {
+class count(int from, int to) {
 	static Default(int from, int to) {
 		return @(from, to);
 	}
@@ -157,14 +157,67 @@ void goGet(an_interface& interfaceRef, TestClass2* val) {
 	printf("Done goGet.\n"C);
 }
 
+void* malloc(int size);
+void free(void* ptr);
+
+template <typename T>
+interface Copyable {
+	T implicitCopy();
+}
+
+template <typename T: Copyable<T> >
+class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
+	static Default(int size, T emptyValue) {
+		int sizeof_int = 4;
+		auto inst = @(reinterpret_cast<void*, T*>(malloc(size * sizeof_int)), size, emptyValue, emptyValue);
+		
+		for (auto i: count(0, inst.size())) {
+			inst[i] = emptyValue;
+		}
+		
+		return move inst;
+	}
+	
+	~ {
+		free(reinterpret_cast<T*, void*>(@ptr));
+	}
+	
+	value_lval<T>& index(int i) {
+		if (i >= 0) {
+			if (i < @size) {
+				return @ptr[i];
+			}
+		}
+		printf("Out of bounds at index '%d'.\n"C, i);
+		@guardSlot = @emptyValue;
+		return @guardSlot;
+	}
+	
+	int size() {
+		return @size;
+	}
+	
+}
+
+Memory<int> createMemory() {
+	auto m = Memory<int>(20, 0-1000000);
+	for (auto i: count(0 - 5, 25)) {
+		m[i] = 42 + i;
+	}
+	return move m;
+}
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
 		return 1;
 	}
 	
-	for (int i: number_counter(0, 10)) {
-		printf("Got number %d.\n"C, i);
+	{
+		auto m = createMemory();
+		for (auto i: count(0 - 5, m.size() + 5)) {
+			printf("m[%02d] = %d.\n"C, i, m[i]);
+		}
 	}
 	
 	char * programName = argv[0];

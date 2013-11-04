@@ -144,6 +144,14 @@ namespace Locic {
 					}
 				}
 				
+				case SEM::Value::REINTERPRET: {
+					llvm::Value* sourceValue = genValue(function, value->reinterpretValue.value);
+					llvm::Type* targetType = genType(module, value->type());
+					
+					// Currently, reinterpret_cast is only implemented for pointers.
+					return function.getBuilder().CreatePointerCast(sourceValue, targetType);
+				}
+				
 				case SEM::Value::DEREF_REFERENCE: {
 					llvm::Value* refValue = genValue(function, value->derefReference.value);
 					return genLoad(function, refValue, value->type());

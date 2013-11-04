@@ -240,33 +240,29 @@ namespace Locic {
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
 				case AST::Value::CAST: {
-					SEM::Type* type = ConvertType(context, astValueNode->cast.targetType);
-					SEM::Value* val = ConvertValue(context, astValueNode->cast.value);
+					SEM::Value* sourceValue = ConvertValue(context, astValueNode->cast.value);
+					SEM::Type* sourceType = ConvertType(context, astValueNode->cast.sourceType);
+					SEM::Type* targetType = ConvertType(context, astValueNode->cast.targetType);
 					
-					(void) type;
-					(void) val;
-					
-					std::string s;
 					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_STATIC:
-							s = "STATIC";
-							break;
+							throw TodoException("static_cast not yet implemented.");
 						case AST::Value::CAST_CONST:
-							s = "CONST";
-							break;
+							throw TodoException("const_cast not yet implemented.");
 						case AST::Value::CAST_DYNAMIC:
-							s = "DYNAMIC";
-							break;
+							throw TodoException("dynamic_cast not yet implemented.");
 						case AST::Value::CAST_REINTERPRET:
-							s = "REINTERPRET";
-							break;
+							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr"
+								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr") {
+								throw TodoException(makeString("reinterpret_cast currently only supports ptr<T>, "
+									"in cast from value %s of type %s to type %s.", sourceValue->toString().c_str(),
+									sourceType->toString().c_str(), targetType->toString().c_str()));
+							}
+							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType), targetType);
 						default:
 							assert(false && "Unknown cast kind");
 							return NULL;
 					}
-					
-					throw TodoException(makeString("Casts of kind '%s' not yet implemented.",
-						s.c_str()));
 				}
 				case AST::Value::INTERNALCONSTRUCT: {
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;

@@ -21,6 +21,7 @@ namespace Locic {
 					CONSTANT,
 					COPY,
 					VAR,
+					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
 					CAST,
@@ -48,6 +49,10 @@ namespace Locic {
 				struct {
 					Var* var;
 				} varValue;
+				
+				struct {
+					Value* value;
+				} reinterpretValue;
 				
 				struct {
 					Value* value;
@@ -136,6 +141,12 @@ namespace Locic {
 				inline static Value* VarValue(Var* var) {
 					Value* value = new Value(VAR, SEM::Type::Reference(var->type()));
 					value->varValue.var = var;
+					return value;
+				}
+				
+				inline static Value* Reinterpret(Value* operand, Type* type) {
+					Value* value = new Value(REINTERPRET, type);
+					value->reinterpretValue.value = operand;
 					return value;
 				}
 				

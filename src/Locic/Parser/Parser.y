@@ -115,6 +115,7 @@ const T& GETSYM(T* value) {
 	AST::Node<AST::StatementList>* statementArray;
 	
 	// Values.
+	AST::Value::CastKind castKind;
 	AST::Node<AST::Value>* value;
 	AST::Node<AST::ValueList>* valueArray;
 }
@@ -254,6 +255,7 @@ const T& GETSYM(T* value) {
 %type <statement> normalStatement
 
 %type <constant> constant
+%type <castKind> castKind
 %type <value> value
 %type <valueArray> nonEmptyValueList
 %type <valueArray> valueList
@@ -912,6 +914,25 @@ constant:
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), $1));
 	}
 	;
+
+castKind:
+	STATIC_CAST
+	{
+		$$ = AST::Value::CAST_STATIC;
+	}
+	| CONST_CAST
+	{
+		$$ = AST::Value::CAST_CONST;
+	}
+	| DYNAMIC_CAST
+	{
+		$$ = AST::Value::CAST_DYNAMIC;
+	}
+	| REINTERPRET_CAST
+	{
+		$$ = AST::Value::CAST_REINTERPRET;
+	}
+	;
 	
 precision7:
 	LROUNDBRACKET precision0 RROUNDBRACKET
@@ -934,21 +955,9 @@ precision7:
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Constant(GETSYM($1))));
 	}
-	| STATIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	| castKind LTRIBRACKET type COMMA type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_STATIC, GETSYM($3), GETSYM($6))));
-	}
-	| CONST_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_CONST, GETSYM($3), GETSYM($6))));
-	}
-	| DYNAMIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_DYNAMIC, GETSYM($3), GETSYM($6))));
-	}
-	| REINTERPRET_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_REINTERPRET, GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
 	}
 	;
 	
