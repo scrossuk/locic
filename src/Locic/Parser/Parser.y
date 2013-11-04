@@ -139,10 +139,10 @@ const T& GETSYM(T* value) {
 %token NEW
 %token DELETE
 %token MOVE
-%token EXTRACT
 %token LVAL
 %token TEMPLATE
 %token TYPENAME
+%token VIRTUAL
 %token USING
 %token ENUM
 %token UNION
@@ -167,14 +167,12 @@ const T& GETSYM(T* value) {
 %token COLON
 %token VOIDNAME
 %token CONST
-%token CONSTEXPR
 %token STAR
 %token COMMA
 %token IF
 %token ELSE
 %token FOR
 %token WHILE
-%token IN
 %token SETEQUAL
 %token ADDEQUAL
 %token SUBEQUAL
