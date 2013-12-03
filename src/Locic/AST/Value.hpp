@@ -58,6 +58,7 @@ namespace AST {
 		
 		struct {
 			CastKind castKind;
+			Node<Type> sourceType;
 			Node<Type> targetType;
 			Node<Value> value;
 		} cast;
@@ -112,9 +113,10 @@ namespace AST {
 			return value;
 		}
 		
-		inline static Value* Cast(CastKind castKind, Node<Type> targetType, Node<Value> operand) {
+		inline static Value* Cast(CastKind castKind, Node<Type> sourceType, Node<Type> targetType, Node<Value> operand) {
 			Value* value = new Value(CAST);
 			value->cast.castKind = castKind;
+			value->cast.sourceType = sourceType;
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
 			return value;

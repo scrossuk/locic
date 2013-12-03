@@ -59,8 +59,6 @@ default                 { return DEFAULT; }
 continue                { return CONTINUE; }
 break                   { return BREAK; }
 
-in                      { return IN; }
-
 exception               { return EXCEPTION; }
 throw                   { return THROW; }
 try                     { return TRY; }
@@ -68,6 +66,7 @@ catch                   { return CATCH; }
 
 template                { return TEMPLATE; }
 typename                { return TYPENAME; }
+virtual                 { return VIRTUAL; }
 
 struct                  { return STRUCT; }
 enum                    { return ENUM; }
@@ -80,7 +79,6 @@ __primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
-constexpr               { return CONSTEXPR; }
 
 using                   { return USING; }
 static                  { return STATIC; }
@@ -91,7 +89,6 @@ new                     { return NEW; }
 delete                  { return DELETE; }
 move                    { return MOVE; }
 lval                    { return LVAL; }
-extract                 { return EXTRACT; }
 sizeof                  { return SIZEOF; }
 
 const_cast              { return CONST_CAST; }

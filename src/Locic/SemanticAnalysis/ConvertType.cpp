@@ -44,7 +44,7 @@ namespace Locic {
 							templateTypeValue->getObjectType()->name().toString().c_str(),
 							(unsigned long long) j, name.toString().c_str()));
 						}
-					
+						
 						templateVarMap.insert(typeInstance->templateVariables().at(j),
 							templateTypeValue);
 					}

@@ -208,7 +208,7 @@ namespace Locic {
 						
 						const Node memberNode = Node::Variable(astTypeVarNode, var);
 						
-						if (!node.tryAttach(astTypeVarNode->name, memberNode)) {
+						if (!node.tryAttach("#__ivar_" + astTypeVarNode->name, memberNode)) {
 							throw MemberVariableClashException(context.name() + astTypeInstanceNode->name,
 								astTypeVarNode->name);
 						}

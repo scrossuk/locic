@@ -119,6 +119,7 @@ const T& GETSYM(T* value) {
 	AST::Node<AST::StatementList>* statementArray;
 	
 	// Values.
+	AST::Value::CastKind castKind;
 	AST::Node<AST::Value>* value;
 	AST::Node<AST::ValueList>* valueArray;
 }
@@ -144,10 +145,10 @@ const T& GETSYM(T* value) {
 %token NEW
 %token DELETE
 %token MOVE
-%token EXTRACT
 %token LVAL
 %token TEMPLATE
 %token TYPENAME
+%token VIRTUAL
 %token USING
 %token ENUM
 %token UNION
@@ -172,14 +173,12 @@ const T& GETSYM(T* value) {
 %token COLON
 %token VOIDNAME
 %token CONST
-%token CONSTEXPR
 %token STAR
 %token COMMA
 %token IF
 %token ELSE
 %token FOR
 %token WHILE
-%token IN
 %token SETEQUAL
 %token ADDEQUAL
 %token SUBEQUAL
@@ -240,6 +239,7 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
+%type <type> pointerType
 %type <type> type
 %type <type> implicitAutoType
 %type <typeArray> nonEmptyTypeList
@@ -264,6 +264,7 @@ const T& GETSYM(T* value) {
 %type <statement> normalStatement
 
 %type <constant> constant
+%type <castKind> castKind
 %type <value> value
 %type <valueArray> nonEmptyValueList
 %type <valueArray> valueList
@@ -607,18 +608,30 @@ typePrecision2:
 	}
 	;
 
+pointerType:
+	typePrecision1 STAR
+	{
+		// Create 'ptr<TYPE>'.
+		auto typeList = AST::makeNode(LOC(&@1), new AST::TypeList(1, GETSYM($1)));
+		auto symbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement("ptr", typeList));
+		auto symbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + symbolElement));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(symbol)));
+	}
+	;
+
 typePrecision1:
 	typePrecision2
 	{
 		$$ = $1;
 	}
-	| typePrecision1 STAR
+	| pointerType
 	{
-		// Create 'ptr<TYPE>'.
-		auto typeList = AST::makeNode(LOC(&@$), new AST::TypeList(1, GETSYM($1)));
-		auto symbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement("ptr", typeList));
-		auto symbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + symbolElement));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(symbol)));
+		$$ = $1;
+	}
+	| pointerType CONST
+	{
+		// Create 'const ptr<TYPE>'.
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Const(GETSYM($1))));
 	}
 	;
 
@@ -953,6 +966,25 @@ constant:
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), $1));
 	}
 	;
+
+castKind:
+	STATIC_CAST
+	{
+		$$ = AST::Value::CAST_STATIC;
+	}
+	| CONST_CAST
+	{
+		$$ = AST::Value::CAST_CONST;
+	}
+	| DYNAMIC_CAST
+	{
+		$$ = AST::Value::CAST_DYNAMIC;
+	}
+	| REINTERPRET_CAST
+	{
+		$$ = AST::Value::CAST_REINTERPRET;
+	}
+	;
 	
 precision7:
 	LROUNDBRACKET precision0 RROUNDBRACKET
@@ -975,21 +1007,9 @@ precision7:
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Constant(GETSYM($1))));
 	}
-	| STATIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	| castKind LTRIBRACKET type COMMA type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_STATIC, GETSYM($3), GETSYM($6))));
-	}
-	| CONST_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_CONST, GETSYM($3), GETSYM($6))));
-	}
-	| DYNAMIC_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_DYNAMIC, GETSYM($3), GETSYM($6))));
-	}
-	| REINTERPRET_CAST LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast(AST::Value::CAST_REINTERPRET, GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
 	}
 	;
 	
