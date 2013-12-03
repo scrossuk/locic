@@ -16,6 +16,7 @@ namespace AST {
 			STRUCT,
 			CLASSDECL,
 			CLASSDEF,
+			DATATYPE,
 			INTERFACE
 		} typeEnum;
 		
@@ -39,6 +40,10 @@ namespace AST {
 		
 		inline static TypeInstance* ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions) {
 			return new TypeInstance(CLASSDEF, name, variables, functions);
+		}
+		
+		inline static TypeInstance* Datatype(const std::string& name, const Node<TypeVarList>& variables) {
+			return new TypeInstance(DATATYPE, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
 		inline static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions) {

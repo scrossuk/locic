@@ -2,6 +2,7 @@
 #define LOCIC_AST_TYPEVAR_HPP
 
 #include <string>
+#include <Locic/Optional.hpp>
 #include <Locic/String.hpp>
 #include <Locic/AST/Node.hpp>
 #include <Locic/AST/Type.hpp>
@@ -24,6 +25,33 @@ namespace AST {
 	};
 	
 	typedef std::vector<Node<TypeVar>> TypeVarList;
+	
+	struct PatternVar {
+		Locic::Optional<Node<TypeVar>> typeVar;
+		
+		static inline PatternVar* MatchAny() {
+			return new PatternVar(Locic::Optional<Node<TypeVar>>());
+		}
+		
+		static inline PatternVar* MatchTypeVar(const Node<TypeVar>& typeVar) {
+			return new PatternVar(Locic::make_optional(typeVar));
+		}
+		
+		inline PatternVar(const Locic::Optional<Node<TypeVar>>& pTypeVar)
+			: typeVar(pTypeVar) { }
+		
+		inline std::string toString() const {
+			if (typeVar.hasValue()) {
+				return Locic::makeString("PatternVar[MatchTypeVar](typeVar = %s)",
+					typeVar.getValue()->toString().c_str());
+			} else {
+				return "PatternVar[MatchAny]()";
+			}
+		}
+		
+	};
+	
+	typedef std::vector<Node<PatternVar>> PatternVarList;
 	
 }
 

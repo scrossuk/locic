@@ -115,7 +115,9 @@ false                   { yylval->lexer_constant = Locic::Constant::False(); ret
 [0-9]+\.[0-9]+          { yylval->lexer_constant = Locic::Constant::Float(Locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
 [0-9]+\.[0-9]+L         { yylval->lexer_constant = Locic::Constant::Float(Locic::Constant::LONGDOUBLE, atof(yytext)); return CONSTANT; }
 
-[A-Za-z_][A-Za-z0-9_]* { yylval->lexer_str = new std::string(yytext); return NAME; }
+"_"                     { return UNDERSCORE; }
+
+[A-Za-z_][A-Za-z0-9_]*  { yylval->lexer_str = new std::string(yytext); return NAME; }
 
 "=="                    { return ISEQUAL; }
 "!="                    { return NOTEQUAL; }

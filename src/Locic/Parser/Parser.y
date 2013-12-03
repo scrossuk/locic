@@ -71,7 +71,7 @@ const T& GETSYM(T* value) {
 
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
-%expect 5
+%expect 7
 %expect-rr 2
 
 %lex-param {void * scanner}
@@ -109,6 +109,10 @@ const T& GETSYM(T* value) {
 	AST::Node<AST::TemplateTypeVar>* templateTypeVar;
 	AST::Node<AST::TemplateTypeVarList>* templateTypeVarArray;
 	
+	// Pattern match.
+	AST::Node<AST::PatternVar>* patternVar;
+	AST::Node<AST::PatternVarList>* patternVarArray;
+	
 	// Program code.
 	AST::Node<AST::Scope>* scope;
 	AST::Node<AST::Statement>* statement;
@@ -128,6 +132,7 @@ const T& GETSYM(T* value) {
 %token INTERFACE
 %token SEMICOLON
 %token NAMESPACE
+%token UNDERSCORE
 %token LCURLYBRACKET
 %token RCURLYBRACKET
 %token LSQUAREBRACKET
@@ -245,6 +250,10 @@ const T& GETSYM(T* value) {
 %type <typeVarArray> structVarList
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarArray> templateTypeVarList
+
+%type <patternVar> patternVar
+%type <patternVarArray> nonEmptyPatternVarList
+%type <patternVarArray> patternVarList
 
 %type <symbolElement> symbolElement
 %type <symbol> symbol
@@ -519,6 +528,10 @@ nonTemplatedTypeInstance:
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Interface(GETSYM($2), GETSYM($4))));
 	}
+	| DATATYPE NAME LROUNDBRACKET typeVarList RROUNDBRACKET
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Datatype(GETSYM($2), GETSYM($4))));
+	}
 	;
 
 symbolElement:
@@ -681,6 +694,40 @@ nonEmptyTypeVarList:
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList(1, GETSYM($1))));
 	}
 	| nonEmptyTypeVarList COMMA typeVar
+	{
+		(GETSYM($1))->push_back(GETSYM($3));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+patternVar:
+	UNDERSCORE
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::PatternVar::MatchAny()));
+	}
+	| typeVar
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::PatternVar::MatchTypeVar(GETSYM($1))));
+	}
+	;
+
+patternVarList:
+	// empty
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::PatternVarList()));
+	}
+	| nonEmptyPatternVarList
+	{
+		$$ = $1;
+	}
+	;
+	
+nonEmptyPatternVarList:
+	patternVar
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::PatternVarList(1, GETSYM($1))));
+	}
+	| nonEmptyPatternVarList COMMA patternVar
 	{
 		(GETSYM($1))->push_back(GETSYM($3));
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
@@ -854,6 +901,11 @@ normalStatement:
 	typeVar SETEQUAL value %dprec 2
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(GETSYM($1), GETSYM($3))));
+	}
+	
+	| NAME LROUNDBRACKET patternVarList RROUNDBRACKET SETEQUAL value
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::PatternVarDecl(GETSYM($1), GETSYM($3), GETSYM($6))));
 	}
 	
 	| value SETEQUAL value %dprec 1

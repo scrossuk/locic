@@ -157,6 +157,16 @@ void goGet(an_interface& interfaceRef, TestClass2* val) {
 	printf("Done goGet.\n"C);
 }
 
+datatype Something(int a, int b);
+
+void datatypeDemo() {
+	Something i = Something(41, 42);
+	Something(int a, _) = move i;
+	printf("a = %d\n"C, a);
+}
+
+// datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);
+
 int main(int argc, char ** argv){
 	if(argc < 2){
 		printf("Give me at least one argument...\n"C);
