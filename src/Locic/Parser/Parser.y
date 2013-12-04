@@ -71,8 +71,8 @@ const T& GETSYM(T* value) {
 
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
-%expect 7
-%expect-rr 2
+%expect 2
+%expect-rr 3
 
 %lex-param {void * scanner}
 %lex-param {Locic::Parser::Context * parserContext}
@@ -108,10 +108,6 @@ const T& GETSYM(T* value) {
 	AST::Node<AST::TypeVarList>* typeVarArray;
 	AST::Node<AST::TemplateTypeVar>* templateTypeVar;
 	AST::Node<AST::TemplateTypeVarList>* templateTypeVarArray;
-	
-	// Pattern match.
-	AST::Node<AST::PatternVar>* patternVar;
-	AST::Node<AST::PatternVarList>* patternVarArray;
 	
 	// Program code.
 	AST::Node<AST::Scope>* scope;
@@ -241,7 +237,6 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision0
 %type <type> pointerType
 %type <type> type
-%type <type> implicitAutoType
 %type <typeArray> nonEmptyTypeList
 %type <typeArray> typeList
 %type <typeVar> typeVar
@@ -250,10 +245,6 @@ const T& GETSYM(T* value) {
 %type <typeVarArray> structVarList
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarArray> templateTypeVarList
-
-%type <patternVar> patternVar
-%type <patternVarArray> nonEmptyPatternVarList
-%type <patternVarArray> patternVarList
 
 %type <symbolElement> symbolElement
 %type <symbol> symbol
@@ -352,17 +343,11 @@ structVarList:
 	}
 	;
 
-implicitAutoType:
-	// empty
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Undefined()));
-	}
-	;
-
 staticFunctionDecl:
-	STATIC implicitAutoType NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($2), GETSYM($3), GETSYM($5))));
+		const auto implicitAutoType = AST::makeNode(LOC(&@1), AST::Type::Undefined());
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(implicitAutoType, GETSYM($2), GETSYM($4))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
@@ -371,9 +356,10 @@ staticFunctionDecl:
 	;
 
 staticFunctionDef:
-	STATIC implicitAutoType NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Def(GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7))));
+		const auto implicitAutoType = AST::makeNode(LOC(&@1), AST::Type::Undefined());
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Def(implicitAutoType, GETSYM($2), GETSYM($4), GETSYM($6))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
@@ -398,7 +384,7 @@ functionDecl:
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
-	| type functionName LROUNDBRACKET nonEmptyTypeVarList COMMA DOT DOT DOT RROUNDBRACKET SEMICOLON
+	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET SEMICOLON
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
@@ -407,9 +393,9 @@ functionDecl:
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@6));
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
-	| type functionName LROUNDBRACKET typeVarList COMMA DOT DOT DOT RROUNDBRACKET error
+	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET error
 	{
-		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@10));
+		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@9));
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	;
@@ -681,12 +667,20 @@ typeVar:
 	type NAME
 	{
 		const bool usesCustomLval = false;
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVar(GETSYM($1), GETSYM($2), usesCustomLval)));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2), usesCustomLval)));
 	}
 	| LVAL type NAME
 	{
 		const bool usesCustomLval = true;
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVar(GETSYM($2), GETSYM($3), usesCustomLval)));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(GETSYM($2), GETSYM($3), usesCustomLval)));
+	}
+	| type LROUNDBRACKET typeVarList RROUNDBRACKET
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
+	}
+	| UNDERSCORE
+	{
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::Any()));
 	}
 	;
 	
@@ -695,54 +689,21 @@ typeVarList:
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList()));
 	}
-	| nonEmptyTypeVarList
+	| nonEmptyTypeVarList typeVar
 	{
-		$$ = $1;
+		(GETSYM($1))->push_back(GETSYM($2));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 nonEmptyTypeVarList:
-	typeVar
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList(1, GETSYM($1))));
-	}
-	| nonEmptyTypeVarList COMMA typeVar
-	{
-		(GETSYM($1))->push_back(GETSYM($3));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
-	}
-	;
-
-patternVar:
-	UNDERSCORE
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::PatternVar::MatchAny()));
-	}
-	| typeVar
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::PatternVar::MatchTypeVar(GETSYM($1))));
-	}
-	;
-
-patternVarList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::PatternVarList()));
+		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList()));
 	}
-	| nonEmptyPatternVarList
+	| nonEmptyTypeVarList typeVar COMMA
 	{
-		$$ = $1;
-	}
-	;
-	
-nonEmptyPatternVarList:
-	patternVar
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::PatternVarList(1, GETSYM($1))));
-	}
-	| nonEmptyPatternVarList COMMA patternVar
-	{
-		(GETSYM($1))->push_back(GETSYM($3));
+		(GETSYM($1))->push_back(GETSYM($2));
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
@@ -859,7 +820,7 @@ scopedStatement:
 		
 		//     auto anon_var = range_value;
 		const bool usesCustomLval = false;
-		AST::Node<AST::TypeVar> anonVarTypeVar = AST::makeNode(LOC(&@$), new AST::TypeVar(AST::makeNode(LOC(&@$), AST::Type::Undefined()), anonVariableName, usesCustomLval));
+		AST::Node<AST::TypeVar> anonVarTypeVar = AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(AST::makeNode(LOC(&@$), AST::Type::Undefined()), anonVariableName, usesCustomLval));
 		statements.push_back(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(anonVarTypeVar, GETSYM($5))));
 		
 		//     while (!anon_var.empty()) {
@@ -914,11 +875,6 @@ normalStatement:
 	typeVar SETEQUAL value %dprec 2
 	{
 		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(GETSYM($1), GETSYM($3))));
-	}
-	
-	| NAME LROUNDBRACKET patternVarList RROUNDBRACKET SETEQUAL value
-	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::PatternVarDecl(GETSYM($1), GETSYM($3), GETSYM($6))));
 	}
 	
 	| value SETEQUAL value %dprec 1

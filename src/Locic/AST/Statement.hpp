@@ -19,7 +19,6 @@ namespace AST {
 			IF,
 			WHILE,
 			VARDECL,
-			PATTERNVARDECL,
 			ASSIGN,
 			RETURN,
 			RETURNVOID
@@ -48,12 +47,6 @@ namespace AST {
 			Node<TypeVar> typeVar;
 			Node<Value> value;
 		} varDecl;
-		
-		struct {
-			std::string typeName;
-			Node<PatternVarList> patternVarList;
-			Node<Value> value;
-		} patternVarDecl;
 		
 		struct {
 			Node<Value> value;
@@ -96,14 +89,6 @@ namespace AST {
 			Statement* statement = new Statement(VARDECL);
 			statement->varDecl.typeVar = typeVar;
 			statement->varDecl.value = value;
-			return statement;
-		}
-		
-		inline static Statement* PatternVarDecl(const std::string& typeName, Node<PatternVarList> patternVarList, Node<Value> value) {
-			Statement* statement = new Statement(PATTERNVARDECL);
-			statement->patternVarDecl.typeName = typeName;
-			statement->patternVarDecl.patternVarList = patternVarList;
-			statement->patternVarDecl.value = value;
 			return statement;
 		}
 		

@@ -111,15 +111,16 @@ namespace Locic {
 				}*/
 				case AST::Statement::VARDECL: {
 					AST::Node<AST::TypeVar> astTypeVarNode = statement->varDecl.typeVar;
+					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					AST::Node<AST::Value> astInitialValueNode = statement->varDecl.value;
 					
 					SEM::Value* semValue = ConvertValue(context, astInitialValueNode);
 					
 					// Check whether a type annotation has been used.
-					const bool autoType = (astTypeVarNode->type->typeEnum == AST::Type::UNDEFINED);
+					const bool autoType = (astTypeVarNode->namedVar.type->typeEnum == AST::Type::UNDEFINED);
 					
 					// If type is 'auto', infer it from type value.
-					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVarNode->type);
+					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
@@ -132,14 +133,15 @@ namespace Locic {
 					// TODO: implement 'final'.
 					const bool isLvalMutable = SEM::Type::MUTABLE;
 					
-					SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->usesCustomLval, isLvalMutable, varType);
+					SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, varType);
 					
 					SEM::Var* semVar = SEM::Var::Local(lvalType);
 					
 					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
 					
-					if(!context.node().tryAttach(astTypeVarNode->name, localVarNode)) {
-						throw TodoException(makeString("Local variable name '%s' already exists.", astTypeVarNode->name.c_str()));
+					if(!context.node().tryAttach(astTypeVarNode->namedVar.name, localVarNode)) {
+						throw TodoException(makeString("Local variable name '%s' already exists.",
+							astTypeVarNode->namedVar.name.c_str()));
 					}
 					
 					SEM::Scope* semScope = context.node().getSEMScope();

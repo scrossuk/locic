@@ -50,12 +50,14 @@ namespace Locic {
 			std::vector<SEM::Type*> parameterTypes;
 			
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters)) {
-				const AST::Node<AST::Type>& astParamTypeNode = astTypeVarNode->type;
+				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+				
+				const AST::Node<AST::Type>& astParamTypeNode = astTypeVarNode->namedVar.type;
 				
 				SEM::Type* semParamType = ConvertType(context, astParamTypeNode);
 				
-				if(semParamType->isVoid()) {
-					throw ParamVoidTypeException(functionName, astTypeVarNode->name);
+				if (semParamType->isVoid()) {
+					throw ParamVoidTypeException(functionName, astTypeVarNode->namedVar.name);
 				}
 				
 				parameterTypes.push_back(semParamType);
@@ -63,7 +65,7 @@ namespace Locic {
 				// TODO: implement 'final'.
 				const bool isLvalMutable = SEM::Type::MUTABLE;
 					
-				SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->usesCustomLval, isLvalMutable, semParamType);
+				SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, semParamType);
 				
 				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}

@@ -197,20 +197,21 @@ namespace Locic {
 					assert(semTypeInstance->variables().empty());
 					
 					for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
-						SEM::Type* semType = ConvertType(context, astTypeVarNode->type);
+						assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+						SEM::Type* semType = ConvertType(context, astTypeVarNode->namedVar.type);
 						
 						// TODO: implement 'final'.
 						const bool isLvalMutable = SEM::Type::MUTABLE;
 						
-						SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->usesCustomLval, isLvalMutable, semType);
+						SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, semType);
 						
 						SEM::Var* var = SEM::Var::Member(lvalType);
 						
 						const Node memberNode = Node::Variable(astTypeVarNode, var);
 						
-						if (!node.tryAttach("#__ivar_" + astTypeVarNode->name, memberNode)) {
+						if (!node.tryAttach("#__ivar_" + astTypeVarNode->namedVar.name, memberNode)) {
 							throw MemberVariableClashException(context.name() + astTypeInstanceNode->name,
-								astTypeVarNode->name);
+								astTypeVarNode->namedVar.name);
 						}
 					
 						semTypeInstance->variables().push_back(var);
@@ -270,9 +271,11 @@ namespace Locic {
 					const auto& astTypeVarNode = astParametersNode->at(i);
 					auto semVar = semFunction->parameters().at(i);
 					
+					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+					
 					const Node paramNode = Node::Variable(astTypeVarNode, semVar);
-					if (!functionNode.tryAttach(astTypeVarNode->name, paramNode)) {
-						throw ParamVariableClashException(fullFunctionName, astTypeVarNode->name);
+					if (!functionNode.tryAttach(astTypeVarNode->namedVar.name, paramNode)) {
+						throw ParamVariableClashException(fullFunctionName, astTypeVarNode->namedVar.name);
 					}
 				}
 				
