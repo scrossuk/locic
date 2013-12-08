@@ -9,52 +9,59 @@
 #include <Locic/AST/Node.hpp>
 #include <Locic/AST/TypeInstance.hpp>
 
-namespace AST {
+namespace Locic {
 
-	struct Namespace;
+	namespace AST {
 	
-	struct NamespaceData {
-		std::vector< AST::Node<Function> > functions;
-		std::vector< AST::Node<Namespace> > namespaces;
-		std::vector< AST::Node<TypeInstance> > typeInstances;
-	};
-	
-	struct Namespace {
-		std::string name;
-		AST::Node<NamespaceData> data;
+		struct Namespace;
 		
-		inline Namespace(const std::string& n, AST::Node<NamespaceData> d)
-			: name(n), data(d) { }
+		struct NamespaceData {
+			std::vector< AST::Node<Function> > functions;
+			std::vector< AST::Node<Namespace> > namespaces;
+			std::vector< AST::Node<TypeInstance> > typeInstances;
+		};
 		
-		inline std::string toString() const {
-			std::string s = name.empty() ? "RootNamespace(" : Locic::makeString("Namespace[name = %s](", name.c_str());
+		struct Namespace {
+			std::string name;
+			AST::Node<NamespaceData> data;
 			
-			bool isFirst = true;
-			
-			for (auto node: data->functions) {
-				if (!isFirst) s += ", ";
-				isFirst = false;
-				s += node.toString();
+			inline Namespace(const std::string& n, AST::Node<NamespaceData> d)
+				: name(n), data(d) { }
+				
+			inline std::string toString() const {
+				std::string s = name.empty() ? "RootNamespace(" : makeString("Namespace[name = %s](", name.c_str());
+				
+				bool isFirst = true;
+				
+				for(auto node : data->functions) {
+					if(!isFirst) s += ", ";
+					
+					isFirst = false;
+					s += node.toString();
+				}
+				
+				for(auto node : data->namespaces) {
+					if(!isFirst) s += ", ";
+					
+					isFirst = false;
+					s += node.toString();
+				}
+				
+				for(auto node : data->typeInstances) {
+					if(!isFirst) s += ", ";
+					
+					isFirst = false;
+					s += node.toString();
+				}
+				
+				s += ")";
+				return s;
 			}
-			
-			for (auto node: data->namespaces) {
-				if (!isFirst) s += ", ";
-				isFirst = false;
-				s += node.toString();
-			}
-			
-			for (auto node: data->typeInstances) {
-				if (!isFirst) s += ", ";
-				isFirst = false;
-				s += node.toString();
-			}
-			
-			s += ")";
-			return s;
-		}
-	};
-	
-	typedef std::vector<Node<Namespace>> NamespaceList;
+		};
+		
+		typedef std::vector<Node<Namespace>> NamespaceList;
+		
+	}
 	
 }
 

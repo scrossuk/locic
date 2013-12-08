@@ -6,48 +6,52 @@
 #include <Locic/AST/Node.hpp>
 #include <Locic/AST/Type.hpp>
 
-namespace AST {
+namespace Locic {
+
+	namespace AST {
 	
-	struct TemplateTypeVar {
-		enum Kind {
-			TYPENAME,
-			POLYMORPHIC
-		} kind;
-		std::string name;
-		Node<Type> specType;
+		struct TemplateTypeVar {
+			enum Kind {
+				TYPENAME,
+				POLYMORPHIC
+			} kind;
+			std::string name;
+			Node<Type> specType;
+			
+			inline static TemplateTypeVar* Typename(const std::string& name) {
+				TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
+				typeVar->name = name;
+				typeVar->specType = makeNode(NullLocation(), Type::Void());
+				return typeVar;
+			}
+			
+			inline static TemplateTypeVar* TypenameSpec(const std::string& name, Node<Type> specType) {
+				assert(!specType.isNull());
+				TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
+				typeVar->name = name;
+				typeVar->specType = specType;
+				return typeVar;
+			}
+			
+			inline static TemplateTypeVar* Polymorphic(const std::string& name) {
+				TemplateTypeVar* typeVar = new TemplateTypeVar(POLYMORPHIC);
+				typeVar->name = name;
+				typeVar->specType = makeNode(NullLocation(), Type::Void());
+				return typeVar;
+			}
+			
+			inline TemplateTypeVar(Kind k)
+				: kind(k) { }
+				
+			inline std::string toString() const {
+				return makeString("TemplateTypeVar(name = %s, specType = %s)",
+										 name.c_str(), specType.toString().c_str());
+			}
+		};
 		
-		inline static TemplateTypeVar* Typename(const std::string& name) {
-			TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
-			typeVar->name = name;
-			typeVar->specType = makeNode(NullLocation(), Type::Void());
-			return typeVar;
-		}
+		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
 		
-		inline static TemplateTypeVar* TypenameSpec(const std::string& name, Node<Type> specType) {
-			assert(!specType.isNull());
-			TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
-			typeVar->name = name;
-			typeVar->specType = specType;
-			return typeVar;
-		}
-		
-		inline static TemplateTypeVar* Polymorphic(const std::string& name) {
-			TemplateTypeVar* typeVar = new TemplateTypeVar(POLYMORPHIC);
-			typeVar->name = name;
-			typeVar->specType = makeNode(NullLocation(), Type::Void());
-			return typeVar;
-		}
-		
-		inline TemplateTypeVar(Kind k)
-			: kind(k) { }
-		
-		inline std::string toString() const {
-			return Locic::makeString("TemplateTypeVar(name = %s, specType = %s)",
-				name.c_str(), specType.toString().c_str());
-		}
-	};
-	
-	typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
+	}
 	
 }
 

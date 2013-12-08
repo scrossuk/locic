@@ -29,14 +29,14 @@ static Locic::SourceLocation convertLocationInfo(const std::string& fileName, co
 
 #define LOC(locationInfo) (convertLocationInfo(parserContext->fileName(), (locationInfo)))
 
-static AST::Value* UnaryOp(const std::string& name, AST::Node<AST::Value> operand) {
-	const auto paramNode = AST::Node<AST::ValueList>(operand.location(), new AST::ValueList());
-	return AST::Value::FunctionCall(AST::makeNode(operand.location(), AST::Value::MemberAccess(operand, name)), paramNode);
+static Locic::AST::Value* UnaryOp(const std::string& name, Locic::AST::Node<Locic::AST::Value> operand) {
+	const auto paramNode = Locic::AST::Node<Locic::AST::ValueList>(operand.location(), new Locic::AST::ValueList());
+	return Locic::AST::Value::FunctionCall(Locic::AST::makeNode(operand.location(), Locic::AST::Value::MemberAccess(operand, name)), paramNode);
 }
 
-static AST::Value* BinaryOp(const std::string& name, AST::Node<AST::Value> leftOperand, AST::Node<AST::Value> rightOperand) {
-	const auto paramNode = AST::makeNode(rightOperand.location(), new AST::ValueList(1, rightOperand));
-	return AST::Value::FunctionCall(AST::makeNode(leftOperand.location(), AST::Value::MemberAccess(leftOperand, name)), paramNode);
+static Locic::AST::Value* BinaryOp(const std::string& name, Locic::AST::Node<Locic::AST::Value> leftOperand, Locic::AST::Node<Locic::AST::Value> rightOperand) {
+	const auto paramNode = Locic::AST::makeNode(rightOperand.location(), new Locic::AST::ValueList(1, rightOperand));
+	return Locic::AST::Value::FunctionCall(Locic::AST::makeNode(leftOperand.location(), Locic::AST::Value::MemberAccess(leftOperand, name)), paramNode);
 }
 
 template <typename T>
@@ -88,36 +88,36 @@ const T& GETSYM(T* value) {
 	std::string* str;
 	
 	// Constants.
-	AST::Node<Locic::Constant>* constant;
+	Locic::AST::Node<Locic::Constant>* constant;
 	
 	// Structures.
-	AST::Node<AST::NamespaceData>* namespaceData;
-	AST::Node<AST::Namespace>* nameSpace;
-	AST::Node<AST::TypeInstance>* typeInstance;
-	AST::Node<AST::Function>* function;
-	AST::Node<AST::FunctionList>* functionArray;
+	Locic::AST::Node<Locic::AST::NamespaceData>* namespaceData;
+	Locic::AST::Node<Locic::AST::Namespace>* nameSpace;
+	Locic::AST::Node<Locic::AST::TypeInstance>* typeInstance;
+	Locic::AST::Node<Locic::AST::Function>* function;
+	Locic::AST::Node<Locic::AST::FunctionList>* functionArray;
 	
 	// Symbol names.
-	AST::Node<AST::SymbolElement>* symbolElement;
-	AST::Node<AST::Symbol>* symbol;
+	Locic::AST::Node<Locic::AST::SymbolElement>* symbolElement;
+	Locic::AST::Node<Locic::AST::Symbol>* symbol;
 	
 	// Type information.
-	AST::Node<AST::Type>* type;
-	AST::Node<AST::TypeList>* typeArray;
-	AST::Node<AST::TypeVar>* typeVar;
-	AST::Node<AST::TypeVarList>* typeVarArray;
-	AST::Node<AST::TemplateTypeVar>* templateTypeVar;
-	AST::Node<AST::TemplateTypeVarList>* templateTypeVarArray;
+	Locic::AST::Node<Locic::AST::Type>* type;
+	Locic::AST::Node<Locic::AST::TypeList>* typeArray;
+	Locic::AST::Node<Locic::AST::TypeVar>* typeVar;
+	Locic::AST::Node<Locic::AST::TypeVarList>* typeVarArray;
+	Locic::AST::Node<Locic::AST::TemplateTypeVar>* templateTypeVar;
+	Locic::AST::Node<Locic::AST::TemplateTypeVarList>* templateTypeVarArray;
 	
 	// Program code.
-	AST::Node<AST::Scope>* scope;
-	AST::Node<AST::Statement>* statement;
-	AST::Node<AST::StatementList>* statementArray;
+	Locic::AST::Node<Locic::AST::Scope>* scope;
+	Locic::AST::Node<Locic::AST::Statement>* statement;
+	Locic::AST::Node<Locic::AST::StatementList>* statementArray;
 	
 	// Values.
-	AST::Value::CastKind castKind;
-	AST::Node<AST::Value>* value;
-	AST::Node<AST::ValueList>* valueArray;
+	Locic::AST::Value::CastKind castKind;
+	Locic::AST::Node<Locic::AST::Value>* value;
+	Locic::AST::Node<Locic::AST::ValueList>* valueArray;
 }
 
 // ================ Terminals ================
@@ -280,90 +280,90 @@ start:
 rootNamespace:
 	namespaceData
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Namespace("", GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Namespace("", GETSYM($1))));
 	}
 	;
 
 namespaceData:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::NamespaceData()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::NamespaceData()));
 	}
 	| namespaceData SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData functionDecl
 	{
 		(GETSYM($1))->functions.push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData functionDef
 	{
 		(GETSYM($1))->functions.push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData typeInstance
 	{
 		(GETSYM($1))->typeInstances.push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData nameSpace
 	{
 		(GETSYM($1))->namespaces.push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData error
 	{
 		parserContext->error("Invalid struct, class, function or other.", LOC(&@2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 
 nameSpace:
 	NAMESPACE NAME LCURLYBRACKET namespaceData RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Namespace(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Namespace(GETSYM($2), GETSYM($4))));
 	}
 	;
 
 structVarList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeVarList()));
 	}
 	| structVarList typeVar SEMICOLON
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| structVarList SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 
 staticFunctionDecl:
 	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		const auto implicitAutoType = AST::makeNode(LOC(&@1), AST::Type::Undefined());
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(implicitAutoType, GETSYM($2), GETSYM($4))));
+		const auto implicitAutoType = Locic::AST::makeNode(LOC(&@1), Locic::AST::Type::Undefined());
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Decl(implicitAutoType, GETSYM($2), GETSYM($4))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($2), GETSYM($3), GETSYM($5))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Decl(GETSYM($2), GETSYM($3), GETSYM($5))));
 	}
 	;
 
 staticFunctionDef:
 	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		const auto implicitAutoType = AST::makeNode(LOC(&@1), AST::Type::Undefined());
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Def(implicitAutoType, GETSYM($2), GETSYM($4), GETSYM($6))));
+		const auto implicitAutoType = Locic::AST::makeNode(LOC(&@1), Locic::AST::Type::Undefined());
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Def(implicitAutoType, GETSYM($2), GETSYM($4), GETSYM($6))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Def(GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Def(GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7))));
 	}
 	;
 
@@ -382,28 +382,28 @@ functionName:
 functionDecl:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	| type functionName LROUNDBRACKET typeVarList RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@6));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Decl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@9));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::VarArgDecl(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	;
 	
 functionDef:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Def(GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($6))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Def(GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($6))));
 	}
 	;
 	
@@ -426,7 +426,7 @@ classFunctionDef:
 	}
 	| TILDA scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Function::Destructor(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Function::Destructor(GETSYM($2))));
 	}
 	| functionDef
 	{
@@ -438,47 +438,47 @@ classFunctionDef:
 classFunctionDeclList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::FunctionList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::FunctionList()));
 	}
 	| classFunctionDeclList classFunctionDecl
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 classFunctionDefList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::FunctionList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::FunctionList()));
 	}
 	| classFunctionDefList classFunctionDef
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 
 templateTypeVar:
 	TYPENAME NAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TemplateTypeVar::Typename(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TemplateTypeVar::Typename(GETSYM($2))));
 	}
 	| TYPENAME NAME COLON type
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TemplateTypeVar::TypenameSpec(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TemplateTypeVar::TypenameSpec(GETSYM($2), GETSYM($4))));
 	}
 	;
 
 templateTypeVarList:
 	templateTypeVar
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TemplateTypeVarList(1, GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TemplateTypeVarList(1, GETSYM($1))));
 	}
 	| templateTypeVarList COMMA templateTypeVar
 	{
 		(GETSYM($1))->push_back(GETSYM($3));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 
@@ -486,7 +486,7 @@ typeInstance:
 	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedTypeInstance
 	{
 		(GETSYM($5))->templateVariables = GETSYM($3);
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
 	}
 	| nonTemplatedTypeInstance
 	{
@@ -497,89 +497,89 @@ typeInstance:
 nonTemplatedTypeInstance:
 	STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Struct(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::Struct(GETSYM($2), GETSYM($4))));
 	}
 	| CLASS NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::ClassDecl(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::ClassDecl(GETSYM($2), GETSYM($4))));
 	}
 	| CLASS NAME LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classFunctionDefList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::ClassDef(GETSYM($2), GETSYM($4), GETSYM($7))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::ClassDef(GETSYM($2), GETSYM($4), GETSYM($7))));
 	}
 	| PRIMITIVE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Primitive(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::Primitive(GETSYM($2), GETSYM($4))));
 	}
 	| INTERFACE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Interface(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::Interface(GETSYM($2), GETSYM($4))));
 	}
 	| DATATYPE NAME LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeInstance::Datatype(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeInstance::Datatype(GETSYM($2), GETSYM($4))));
 	}
 	;
 
 symbolElement:
 	NAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::SymbolElement(GETSYM($1), AST::makeDefaultNode<AST::TypeList>())));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::SymbolElement(GETSYM($1), Locic::AST::makeDefaultNode<Locic::AST::TypeList>())));
 	}
 	| NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::SymbolElement(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::SymbolElement(GETSYM($1), GETSYM($3))));
 	}
 	| TYPENAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::SymbolElement("typename_type", AST::makeDefaultNode<AST::TypeList>())));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::SymbolElement("typename_type", Locic::AST::makeDefaultNode<Locic::AST::TypeList>())));
 	}
 	;
 	
 symbol:
 	symbolElement
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Relative() + GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Symbol(Locic::AST::Symbol::Relative() + GETSYM($1))));
 	}
 	| COLON COLON symbolElement
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Symbol(Locic::AST::Symbol::Absolute() + GETSYM($3))));
 	}
 	| symbol COLON COLON symbolElement
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Symbol(*(GETSYM($1)) + GETSYM($4))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Symbol(*(GETSYM($1)) + GETSYM($4))));
 	}
 	;
 	
 typePrecision3:
 	VOIDNAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Void()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Void()));
 	}
 	| symbol
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Object(GETSYM($1))));
 	}
 	| AUTO
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Undefined()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Undefined()));
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Bracket(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Bracket(GETSYM($2))));
 	}
 	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Function(GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Function(GETSYM($3), GETSYM($6))));
 	}
 	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::VarArgFunction(GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::VarArgFunction(GETSYM($3), GETSYM($6))));
 	}
 	| LROUNDBRACKET error RROUNDBRACKET
 	{
 		parserContext->error("Invalid type.", LOC(&@2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Undefined()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Undefined()));
 	}
 	;
 
@@ -590,7 +590,7 @@ typePrecision2:
 	}
 	| CONST typePrecision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Const(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Const(GETSYM($2))));
 	}
 	;
 
@@ -598,10 +598,10 @@ pointerType:
 	typePrecision1 STAR
 	{
 		// Create 'ptr<TYPE>'.
-		auto typeList = AST::makeNode(LOC(&@1), new AST::TypeList(1, GETSYM($1)));
-		auto symbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement("ptr", typeList));
-		auto symbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Absolute() + symbolElement));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Object(symbol)));
+		auto typeList = Locic::AST::makeNode(LOC(&@1), new Locic::AST::TypeList(1, GETSYM($1)));
+		auto symbolElement = Locic::AST::makeNode(LOC(&@$), new Locic::AST::SymbolElement("ptr", typeList));
+		auto symbol = Locic::AST::makeNode(LOC(&@$), new Locic::AST::Symbol(Locic::AST::Symbol::Absolute() + symbolElement));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Object(symbol)));
 	}
 	;
 
@@ -617,7 +617,7 @@ typePrecision1:
 	| pointerType CONST
 	{
 		// Create 'const ptr<TYPE>'.
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Const(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Const(GETSYM($1))));
 	}
 	;
 
@@ -629,7 +629,7 @@ typePrecision0:
 	| typePrecision1 AMPERSAND
 	{
 		// Still a built-in type until virtual typenames are implemented.
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Type::Reference(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Reference(GETSYM($1))));
 	}
 	;
 
@@ -643,19 +643,19 @@ type:
 nonEmptyTypeList:
 	type
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeList(1, GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeList(1, GETSYM($1))));
 	}
 	| nonEmptyTypeList COMMA type
 	{
 		(GETSYM($1))->push_back(GETSYM($3));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 typeList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeList()));
 	}
 	| nonEmptyTypeList
 	{
@@ -667,51 +667,51 @@ typeVar:
 	type NAME
 	{
 		const bool usesCustomLval = false;
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2), usesCustomLval)));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2), usesCustomLval)));
 	}
 	| LVAL type NAME
 	{
 		const bool usesCustomLval = true;
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(GETSYM($2), GETSYM($3), usesCustomLval)));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeVar::NamedVar(GETSYM($2), GETSYM($3), usesCustomLval)));
 	}
 	| type LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
 	}
 	| UNDERSCORE
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::TypeVar::Any()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeVar::Any()));
 	}
 	;
 	
 typeVarList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeVarList()));
 	}
 	| nonEmptyTypeVarList typeVar
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 nonEmptyTypeVarList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::TypeVarList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeVarList()));
 	}
 	| nonEmptyTypeVarList typeVar COMMA
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 valueList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::ValueList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::ValueList()));
 	}
 	| nonEmptyValueList
 	{
@@ -722,7 +722,7 @@ valueList:
 nonEmptyValueList:
 	value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::ValueList(1, GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::ValueList(1, GETSYM($1))));
 	}
 	| nonEmptyValueList COMMA value
 	{
@@ -734,55 +734,55 @@ nonEmptyValueList:
 scope:
 	LCURLYBRACKET statementList RCURLYBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::Scope(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::Scope(GETSYM($2))));
 	}
 	;
 	
 statementList:
 	// empty
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), new AST::StatementList()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), new Locic::AST::StatementList()));
 	}
 	| statementList scopedStatement
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| statementList normalStatement SEMICOLON
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| statementList normalStatement error
 	{
 		parserContext->error("Statement must be terminated with semicolon.", LOC(&@3));
 		(GETSYM($1))->push_back(GETSYM($2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| statementList SEMICOLON
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| statementList error
 	{
 		parserContext->error("Invalid statement.", LOC(&@2));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
 	
 scopedStatement:
 	scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ScopeStmt(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ScopeStmt(GETSYM($1))));
 	}
 	| IF LROUNDBRACKET value RROUNDBRACKET scope
 	{
 		// One sided if statement (i.e. nothing happens in 'else' case).
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::If(GETSYM($3), GETSYM($5), AST::makeNode(LOC(&@1), new AST::Scope()))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::If(GETSYM($3), GETSYM($5), Locic::AST::makeNode(LOC(&@1), new Locic::AST::Scope()))));
 	}
 	| IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::If(GETSYM($3), GETSYM($5), GETSYM($7))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::If(GETSYM($3), GETSYM($5), GETSYM($7))));
 	}
 	| FOR LROUNDBRACKET typeVar COLON value RROUNDBRACKET scope
 	{
@@ -811,48 +811,48 @@ scopedStatement:
 		 */
 		
 		const std::string anonVariableName = parserContext->getAnonymousVariableName();
-		const auto emptyTypeList = AST::makeNode(LOC(&@$), new AST::TypeList());
-		const auto anonVariableSymbolElement = AST::makeNode(LOC(&@$), new AST::SymbolElement(anonVariableName, emptyTypeList));
-		const auto anonVariableSymbol = AST::makeNode(LOC(&@$), new AST::Symbol(AST::Symbol::Relative() + anonVariableSymbolElement));
+		const auto emptyTypeList = Locic::AST::makeNode(LOC(&@$), new Locic::AST::TypeList());
+		const auto anonVariableSymbolElement = Locic::AST::makeNode(LOC(&@$), new Locic::AST::SymbolElement(anonVariableName, emptyTypeList));
+		const auto anonVariableSymbol = Locic::AST::makeNode(LOC(&@$), new Locic::AST::Symbol(Locic::AST::Symbol::Relative() + anonVariableSymbolElement));
 		
 		// {
-		std::vector< AST::Node<AST::Statement> > statements;
+		std::vector< Locic::AST::Node<Locic::AST::Statement> > statements;
 		
 		//     auto anon_var = range_value;
 		const bool usesCustomLval = false;
-		AST::Node<AST::TypeVar> anonVarTypeVar = AST::makeNode(LOC(&@$), AST::TypeVar::NamedVar(AST::makeNode(LOC(&@$), AST::Type::Undefined()), anonVariableName, usesCustomLval));
-		statements.push_back(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(anonVarTypeVar, GETSYM($5))));
+		Locic::AST::Node<Locic::AST::TypeVar> anonVarTypeVar = Locic::AST::makeNode(LOC(&@$), Locic::AST::TypeVar::NamedVar(Locic::AST::makeNode(LOC(&@$), Locic::AST::Type::Undefined()), anonVariableName, usesCustomLval));
+		statements.push_back(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::VarDecl(anonVarTypeVar, GETSYM($5))));
 		
 		//     while (!anon_var.empty()) {
-		AST::Node<AST::Value> condition = AST::makeNode(LOC(&@$), UnaryOp("not", AST::makeNode(LOC(&@$), UnaryOp("empty", AST::makeNode(LOC(&@$), AST::Value::SymbolRef(anonVariableSymbol))))));
-		std::vector< AST::Node<AST::Statement> > whileLoopStatements;
+		Locic::AST::Node<Locic::AST::Value> condition = Locic::AST::makeNode(LOC(&@$), UnaryOp("not", Locic::AST::makeNode(LOC(&@$), UnaryOp("empty", Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::SymbolRef(anonVariableSymbol))))));
+		std::vector< Locic::AST::Node<Locic::AST::Statement> > whileLoopStatements;
 		
 		//         type value_var = anon_var.front();
-		whileLoopStatements.push_back(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(GETSYM($3), AST::makeNode(LOC(&@$), UnaryOp("front", AST::makeNode(LOC(&@$), AST::Value::SymbolRef(anonVariableSymbol)))))));
+		whileLoopStatements.push_back(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::VarDecl(GETSYM($3), Locic::AST::makeNode(LOC(&@$), UnaryOp("front", Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::SymbolRef(anonVariableSymbol)))))));
 		
 		//         {
 		//             //...
 		//         }
-		whileLoopStatements.push_back(AST::makeNode(LOC(&@$), AST::Statement::ScopeStmt(GETSYM($7))));
+		whileLoopStatements.push_back(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ScopeStmt(GETSYM($7))));
 		
 		//         anon_var.popFront();
-		const auto anonVariableSymbolRef = AST::makeNode(LOC(&@$), AST::Value::SymbolRef(anonVariableSymbol));
-		const auto popFrontValue = AST::makeNode(LOC(&@$), UnaryOp("popFront", anonVariableSymbolRef));
-		whileLoopStatements.push_back(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(popFrontValue)));
+		const auto anonVariableSymbolRef = Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::SymbolRef(anonVariableSymbol));
+		const auto popFrontValue = Locic::AST::makeNode(LOC(&@$), UnaryOp("popFront", anonVariableSymbolRef));
+		whileLoopStatements.push_back(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(popFrontValue)));
 		
 		//     }
-		const auto whileLoopStatementsNode = AST::makeNode(LOC(&@$), new AST::StatementList(whileLoopStatements));
-		const auto whileScopeNode = AST::makeNode(LOC(&@$), new AST::Scope(whileLoopStatementsNode));
-		statements.push_back(AST::makeNode(LOC(&@$), AST::Statement::While(condition, whileScopeNode)));
+		const auto whileLoopStatementsNode = Locic::AST::makeNode(LOC(&@$), new Locic::AST::StatementList(whileLoopStatements));
+		const auto whileScopeNode = Locic::AST::makeNode(LOC(&@$), new Locic::AST::Scope(whileLoopStatementsNode));
+		statements.push_back(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::While(condition, whileScopeNode)));
 		
 		// }
-		const auto statementsNode = AST::makeNode(LOC(&@$), new AST::StatementList(statements));
-		const auto scopeNode = AST::makeNode(LOC(&@$), new AST::Scope(statementsNode));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ScopeStmt(scopeNode)));
+		const auto statementsNode = Locic::AST::makeNode(LOC(&@$), new Locic::AST::StatementList(statements));
+		const auto scopeNode = Locic::AST::makeNode(LOC(&@$), new Locic::AST::Scope(statementsNode));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ScopeStmt(scopeNode)));
 	}
 	| WHILE LROUNDBRACKET value RROUNDBRACKET scope
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::While(GETSYM($3), GETSYM($5))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::While(GETSYM($3), GETSYM($5))));
 	}
 	;
 	
@@ -874,98 +874,98 @@ normalStatement:
 	 */
 	typeVar SETEQUAL value %dprec 2
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::VarDecl(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::VarDecl(GETSYM($1), GETSYM($3))));
 	}
 	
 	| value SETEQUAL value %dprec 1
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), GETSYM($3))))));
 	}
 	
 	| value ADDEQUAL value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), Locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))))))));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), Locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))))))));
 	}
 	| value MULEQUAL value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), Locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))))))));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), Locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))))))));
 	}
 	| precision4 PERCENTEQUAL precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(Locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), Locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))))))));
 	}
 	| value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ValueStmt(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ValueStmt(GETSYM($1))));
 	}
 	| RETURN
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::ReturnVoid()));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::ReturnVoid()));
 	}
 	| RETURN value
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Statement::Return(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Statement::Return(GETSYM($2))));
 	}
 	;
 
 constant:
 	CONSTANT
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), $1));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), $1));
 	}
 	;
 
 castKind:
 	STATIC_CAST
 	{
-		$$ = AST::Value::CAST_STATIC;
+		$$ = Locic::AST::Value::CAST_STATIC;
 	}
 	| CONST_CAST
 	{
-		$$ = AST::Value::CAST_CONST;
+		$$ = Locic::AST::Value::CAST_CONST;
 	}
 	| DYNAMIC_CAST
 	{
-		$$ = AST::Value::CAST_DYNAMIC;
+		$$ = Locic::AST::Value::CAST_DYNAMIC;
 	}
 	| REINTERPRET_CAST
 	{
-		$$ = AST::Value::CAST_REINTERPRET;
+		$$ = Locic::AST::Value::CAST_REINTERPRET;
 	}
 	;
 	
 precision7:
 	LROUNDBRACKET precision0 RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Bracket(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::Bracket(GETSYM($2))));
 	}
 	| symbol
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::SymbolRef(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::SymbolRef(GETSYM($1))));
 	}
 	| AT NAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::MemberRef(GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::MemberRef(GETSYM($2))));
 	}
 	| AT LROUNDBRACKET valueList RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::InternalConstruct(GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::InternalConstruct(GETSYM($3))));
 	}
 	| constant
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Constant(GETSYM($1))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::ConstantValue(GETSYM($1))));
 	}
 	| castKind LTRIBRACKET type COMMA type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
 	}
 	;
 	
@@ -976,20 +976,20 @@ precision6:
 	}
 	| precision6 DOT NAME
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
 	}
 	| precision6 PTRACCESS NAME
 	{
-		const auto derefNode = AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::MemberAccess(derefNode, GETSYM($3))));
+		const auto derefNode = Locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::MemberAccess(derefNode, GETSYM($3))));
 	}
 	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
 	}
 	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("index", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("index", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1000,27 +1000,27 @@ precision5:
 	}
 	| PLUS precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
 	}
 	| MINUS precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
 	}
 	| EXCLAIMMARK precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
 	}
 	| AMPERSAND precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
 	}
 	| STAR precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
 	}
 	| MOVE precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
 	}
 	;
 	
@@ -1031,15 +1031,15 @@ precision4:
 	}
 	| precision4 STAR precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))));
 	}
 	| precision4 FORWARDSLASH precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))));
 	}
 	| precision4 PERCENT precision5
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1050,11 +1050,11 @@ precision3:
 	}
 	| precision3 PLUS precision4
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))));
 	}
 	| precision3 MINUS precision4
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1065,30 +1065,30 @@ precision2:
 	}
 	| precision3 ISEQUAL precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("isZero", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision3 NOTEQUAL precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("not", 
-			AST::makeNode(LOC(&@$), UnaryOp("isZero", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
+			Locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
 	| precision3 LTRIBRACKET precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("isNegative", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision3 RTRIBRACKET precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("isPositive", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision3 LESSOREQUAL precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("not", 
-			AST::makeNode(LOC(&@$), UnaryOp("isPositive", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
+			Locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
 	| precision3 GREATEROREQUAL precision3
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), UnaryOp("not", 
-			AST::makeNode(LOC(&@$), UnaryOp("isNegative", AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
+			Locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", Locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
 	;
 	
@@ -1099,7 +1099,7 @@ precision1:
 	}
 	| precision2 QUESTIONMARK precision1 COLON precision1
 	{
-		$$ = MAKESYM(AST::makeNode(LOC(&@$), AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
+		$$ = MAKESYM(Locic::AST::makeNode(LOC(&@$), Locic::AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
 	;
 	

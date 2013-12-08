@@ -5,17 +5,21 @@
 #include <Locic/AST/Node.hpp>
 #include <Locic/AST/Statement.hpp>
 
-namespace AST {
+namespace Locic {
 
-	struct Scope {
-		Node<StatementList> statements;
+	namespace AST {
+	
+		struct Scope {
+			Node<StatementList> statements;
+			
+			inline Scope()
+				: statements(makeDefaultNode<StatementList>()) { }
+				
+			inline Scope(const Node<StatementList>& s)
+				: statements(s) { }
+		};
 		
-		inline Scope()
-			: statements(makeDefaultNode<StatementList>()) { }
-		
-		inline Scope(const Node<StatementList>& s)
-			: statements(s) { }
-	};
+	}
 	
 }
 
