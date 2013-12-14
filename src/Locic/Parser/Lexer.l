@@ -154,7 +154,6 @@ false                   { yylval->lexer_constant = Locic::Constant::False(); ret
 "]"                     { return RSQUAREBRACKET; }
 "."                     { return DOT; }
 "<<"                    { return DOUBLE_LTRIBRACKET; }
-">>"                    { return DOUBLE_RTRIBRACKET; }
 "<"                     { return LTRIBRACKET; }
 ">"                     { return RTRIBRACKET; }
 "~"                     { return TILDA; }

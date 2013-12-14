@@ -175,7 +175,7 @@ interface Copyable {
 	T implicitCopy();
 }
 
-template <typename T: Copyable<T> >
+template <typename T: Copyable<T>>
 class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 	static Default(int size, T emptyValue) {
 		int sizeof_int = 4;
