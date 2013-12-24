@@ -1,0 +1,40 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class declaration.
+class TestClass {
+	static Default(int value);
+	
+	int getValue();
+	
+	void doSomething();
+}
+
+// Class definition.
+class TestClass(int value) {
+	static Default(int value) {
+		testPrint("TestClass.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	int getValue() {
+		testPrint("getValue: Value = %d"C, @value);
+		return @value;
+	}
+	
+	void doSomething() {
+		testPrint("doSomething: Value = %d"C, @value);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv){
+	auto testInstance = TestClass(10);
+	
+	auto testInstance2 = TestClass(testInstance.getValue() + 5);
+	
+	testInstance2.doSomething();
+	
+	return 0;
+}
+

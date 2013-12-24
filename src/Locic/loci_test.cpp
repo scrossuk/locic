@@ -16,30 +16,6 @@ using namespace Locic;
 
 namespace po = boost::program_options;
 
-static std::string makeRepeatChar(char c, size_t numChars) {
-	std::string s;
-	for (size_t i = 0; i < numChars; i++) {
-		s += c;
-	}
-	return s;
-}
-
-static std::string generateSpacedText(const std::string& text, size_t minSize) {
-	const std::string BORDER = "====";
-	const size_t BORDER_SIZE = BORDER.length();	
-	const size_t MIN_SPACE_BORDER_SIZE = 1;
-	
-	const size_t spacedTextSize = text.length() + (BORDER_SIZE + MIN_SPACE_BORDER_SIZE) * 2;
-	const size_t size = spacedTextSize < minSize ? minSize : spacedTextSize;
-	const size_t spacingSize = size - text.length();
-	const size_t numSpaces = spacingSize - BORDER_SIZE;
-	if ((numSpaces % 2) == 0) {
-		return BORDER + makeRepeatChar(' ', numSpaces / 2) + text + makeRepeatChar(' ', numSpaces / 2) + BORDER;
-	} else {
-		return BORDER + makeRepeatChar(' ', numSpaces / 2) + text + makeRepeatChar(' ', (numSpaces / 2) + 1) + BORDER;
-	}
-}
-
 extern unsigned char BuiltInTypes_loci[];
 extern unsigned int BuiltInTypes_loci_len;
 
@@ -57,28 +33,33 @@ static FILE* builtInTypesFile() {
 	return file;
 }
 
+std::string testOutput;
+
+// This function will be called by the Loci
+// code being tested.
+extern "C" void testPrint(const char* format, ...) {
+	// TODO...
+	testOutput += "testPrint";
+}
+
 int main(int argc, char* argv[]) {
 	try {
 		if (argc < 1) return -1;
 		const std::string programName = boost::filesystem::path(argv[0]).stem().string();
 		
 		std::vector<std::string> inputFileNames;
-		int optimisationLevel = 0;
-		std::string outputFileName;
-		std::string astDebugFileName;
-		std::string semDebugFileName;
-		std::string codeGenDebugFileName;
-		std::string optDebugFileName;
+		std::string entryPointName;
+		std::string expectedOutputFileName;
+		int expectedResult = 0;
+		std::vector<std::string> programArgs;
 		
 		po::options_description visibleOptions("Options");
 		visibleOptions.add_options()
 		("help,h", "Display help information")
-		("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
-		("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
-		("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
-		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
-		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
-		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
+		("entry-point", po::value<std::string>(&entryPointName)->default_value("testEntryPoint"), "Set entry point function name")
+		("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
+		("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
+		("args", po::value<std::vector<std::string>>(&programArgs), "Set program arguments")
 		;
 		
 		po::options_description hiddenOptions;
@@ -100,27 +81,28 @@ int main(int argc, char* argv[]) {
 		} catch (const po::error& e) {
 			printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
 			printf("Usage: %s [options] file...\n", programName.c_str());
-			return 1;
+			std::cout << visibleOptions << std::endl;
+			return -1;
 		}
 		
 		if (!variableMap["help"].empty()) {
 			printf("Usage: %s [options] file...\n", programName.c_str());
 			std::cout << visibleOptions << std::endl;
-			return 1;
+			return -1;
 		}
 		
 		if (inputFileNames.empty()) {
 			printf("%s: No files provided.\n", programName.c_str());
 			printf("Usage: %s [options] file...\n", programName.c_str());
 			std::cout << visibleOptions << std::endl;
-			return 1;
+			return -1;
 		}
 		
-		if (optimisationLevel < 0 || optimisationLevel > 3) {
-			printf("%s: Invalid optimisation level '%d'.\n", programName.c_str(), optimisationLevel);
+		if (expectedOutputFileName.empty()) {
+			printf("%s: No expected output filename specified.\n", programName.c_str());
 			printf("Usage: %s [options] file...\n", programName.c_str());
 			std::cout << visibleOptions << std::endl;
-			return 1;
+			return -1;
 		}
 		
 		inputFileNames.push_back("BuiltInTypes.loci");
@@ -134,7 +116,7 @@ int main(int argc, char* argv[]) {
 			
 			if (file == NULL) {
 				printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
-				return 1;
+				return -1;
 			}
 			
 			Parser::DefaultParser parser(astRootNamespaceList, file, filename);
@@ -149,22 +131,7 @@ int main(int argc, char* argv[]) {
 					printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
 				}
 				
-				return 1;
-			}
-		}
-		
-		if (!astDebugFileName.empty()) {
-			// If requested, dump AST tree information.
-			std::ofstream ofs(astDebugFileName.c_str(), std::ios_base::binary);
-			
-			for (size_t i = 0; i < astRootNamespaceList.size(); i++) {
-				const std::string spacedFileName = generateSpacedText(inputFileNames.at(i), 20);
-				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
-				ofs << spacedFileName << std::endl;
-				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
-				ofs << std::endl;
-				ofs << formatMessage(astRootNamespaceList.at(i).toString());
-				ofs << std::endl << std::endl;
+				return -1;
 			}
 		}
 		
@@ -172,35 +139,34 @@ int main(int argc, char* argv[]) {
 		SEM::Namespace* rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList);
 		assert(rootSEMNamespace != NULL);
 		
-		if (!semDebugFileName.empty()) {
-			// If requested, dump SEM tree information.
-			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-			ofs << formatMessage(rootSEMNamespace->toString());
-		}
-		
-		const std::string outputName = "output";
-		
+		// Perform code generation.
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName);
+		CodeGen::CodeGenerator codeGenerator(targetInfo, "test");
 		codeGenerator.genNamespace(rootSEMNamespace);
 		
-		if (!codeGenDebugFileName.empty()) {
-			// If requested, dump LLVM IR prior to optimisation.
-			codeGenerator.dumpToFile(codeGenDebugFileName);
+		// TODO...
+		return -1;
+		
+		// Interpret the code.
+		/*CodeGen::Interpreter interpreter;
+		interpreter.addCodeGenerator(codeGenerator);
+		
+		// Treat entry point function as if it is 'main'.
+		const int result = interpreter.run(entryPointName, programArgs);
+		
+		if (result != expectedResult) {
+			printf("Test FAILED: Result '%d' doesn't match expected result '%d'.\n",
+				result, expectedResult);
+			return -1;
 		}
 		
-		codeGenerator.applyOptimisations(optimisationLevel);
+		// TODO...
 		
-		if (!optDebugFileName.empty()) {
-			// If requested, dump LLVM IR after optimisation.
-			codeGenerator.dumpToFile(optDebugFileName);
-		}
-		
-		codeGenerator.writeToFile(outputFileName);
+		printf("Test PASSED.\n");*/
 		
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
-		return 1;
+		return -1;
 	}
 	
 	return 0;
