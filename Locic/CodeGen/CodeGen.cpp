@@ -113,6 +113,10 @@ namespace Locic {
 			delete module_;
 		}
 		
+		Module& CodeGenerator::module() {
+			return *module_;
+		}
+		
 		void CodeGenerator::applyOptimisations(size_t optLevel) {
 			if (optLevel == 0) {
 				// Don't touch the code if optimisations

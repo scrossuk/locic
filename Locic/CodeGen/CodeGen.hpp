@@ -17,6 +17,8 @@ namespace Locic {
 				CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName);
 				~CodeGenerator();
 				
+				Module& module();
+				
 				void applyOptimisations(size_t optLevel);
 				
 				void genNamespace(SEM::Namespace* nameSpace);

@@ -7,6 +7,7 @@ add_library(locic-codegen
 	GenTypeInstance.cpp
 	GenValue.cpp
 	GenVTable.cpp
+	Interpreter.cpp
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp

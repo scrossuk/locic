@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 # Find LLVM (for code generation).
 find_package(LLVM REQUIRED)
 
+include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
-llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core native ipo)
+llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core jit native ipo)
 
 # Clang.
 set(CLANG_REQ_LIBS clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization)

@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,7 @@
 #include <Locic/AST.hpp>
 #include <Locic/Parser/DefaultParser.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
+#include <Locic/CodeGen/Interpreter.hpp>
 #include <Locic/SemanticAnalysis.hpp>
 
 using namespace Locic;
@@ -38,8 +40,32 @@ std::string testOutput;
 // This function will be called by the Loci
 // code being tested.
 extern "C" void testPrint(const char* format, ...) {
-	// TODO...
-	testOutput += "testPrint";
+	va_list varArgList;
+	
+	size_t bufferSize = 1024;
+	char stackBuffer[1024];
+	std::vector<char> dynamicBuffer;
+	char* buffer = &stackBuffer[0];
+	
+	while (true) {
+		va_start(varArgList, format);
+		const int needed = vsnprintf(buffer, bufferSize, format, varArgList);
+		va_end(varArgList);
+		
+		// In case the buffer provided is too small, some
+		// platforms return the needed buffer size, whereas
+		// some simply return -1.
+		if (needed <= (int)bufferSize && needed >= 0) {
+			testOutput += std::string(buffer, (size_t) needed);
+			testOutput += "\n";
+			return;
+		}
+		
+		// Need to increase buffer size; use needed size if available.
+		bufferSize = (needed > 0) ? (needed + 1) : (bufferSize * 2);
+		dynamicBuffer.resize(bufferSize);
+		buffer = &dynamicBuffer[0];
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -144,15 +170,12 @@ int main(int argc, char* argv[]) {
 		CodeGen::CodeGenerator codeGenerator(targetInfo, "test");
 		codeGenerator.genNamespace(rootSEMNamespace);
 		
-		// TODO...
-		return -1;
-		
 		// Interpret the code.
-		/*CodeGen::Interpreter interpreter;
-		interpreter.addCodeGenerator(codeGenerator);
+		CodeGen::Interpreter interpreter(codeGenerator.module());
 		
 		// Treat entry point function as if it is 'main'.
-		const int result = interpreter.run(entryPointName, programArgs);
+		programArgs.insert(programArgs.begin(), "testProgram");
+		const int result = interpreter.runAsMain(entryPointName, programArgs);
 		
 		if (result != expectedResult) {
 			printf("Test FAILED: Result '%d' doesn't match expected result '%d'.\n",
@@ -160,15 +183,26 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		
-		// TODO...
+		std::ifstream expectedOutputFileStream(expectedOutputFileName.c_str());
+		std::stringstream expectedOutputBuffer;
+		expectedOutputBuffer << expectedOutputFileStream.rdbuf();
 		
-		printf("Test PASSED.\n");*/
+		const std::string& expectedOutput = expectedOutputBuffer.str();
 		
+		if (testOutput == expectedOutput) {
+			printf("Test FAILED: Actual output doesn't match expected output.\n");
+			printf("---Expected output:\n%s\n", expectedOutput.c_str());
+			printf("---Actual output:\n%s\n", testOutput.c_str());
+			return -1;
+		}
+		
+		printf("Test PASSED.\n\n");
+		printf("Output:\n%s\n", testOutput.c_str());
+		
+		return 0;
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
 		return -1;
 	}
-	
-	return 0;
 }
 
