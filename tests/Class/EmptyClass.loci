@@ -1,0 +1,18 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass() {
+	static Default() {
+		testPrint("TestClass.Default"C);
+		return @();
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv){
+	TestClass();
+	return 0;
+}
+

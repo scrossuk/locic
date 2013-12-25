@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 		
 		const std::string& expectedOutput = expectedOutputBuffer.str();
 		
-		if (testOutput == expectedOutput) {
+		if (testOutput != expectedOutput) {
 			printf("Test FAILED: Actual output doesn't match expected output.\n");
 			printf("---Expected output:\n%s\n", expectedOutput.c_str());
 			printf("---Actual output:\n%s\n", testOutput.c_str());

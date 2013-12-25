@@ -2,4 +2,3 @@ TestClass.Default: Value = 10
 getValue: Value = 10
 TestClass.Default: Value = 15
 doSomething: Value = 15
-

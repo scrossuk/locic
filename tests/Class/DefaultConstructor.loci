@@ -1,0 +1,25 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Default(int value) {
+		testPrint("TestClass.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	static NonDefault(int value) {
+		testPrint("TestClass.NonDefault: Value = %d"C, value);
+		return @(value);
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv){
+	TestClass(1);
+	TestClass::Default(2);
+	TestClass::NonDefault(3);
+	return 0;
+}
+

@@ -1,0 +1,3 @@
+TestClass.Default: Value = 1
+TestClass.Default: Value = 2
+TestClass.NonDefault: Value = 3
