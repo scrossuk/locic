@@ -158,10 +158,10 @@ namespace Locic {
 							}
 							
 							const Node typeNode = context.lookupName(name.getPrefix());
-							assert(node.isTypeInstance());
+							assert(typeNode.isTypeInstance());
 							
 							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE,
-								node.getSEMTypeInstance(), GetTemplateValues(context, astSymbolNode));
+								typeNode.getSEMTypeInstance(), GetTemplateValues(context, astSymbolNode));
 							
 							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
 						} else {
