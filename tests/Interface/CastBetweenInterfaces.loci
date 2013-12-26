@@ -1,0 +1,65 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// First interface implementation.
+class TestClass (int first, int second) {
+	static Default(int first, int second) {
+		testPrint("TestClass.Default: First = %d, Second = %d"C, first, second);
+		return @(first, second);
+	}
+	
+	int getFirst() {
+		testPrint("TestClass.getFirst: First = %d"C, @first);
+		return @first;
+	}
+	
+	int getSecond() {
+		testPrint("TestClass.getSecond: Second = %d"C, @second);
+		return @second;
+	}
+	
+}
+
+// First interface definition.
+interface TestInterfaceBoth {
+	int getFirst();
+	
+	int getSecond();
+}
+
+interface TestInterfaceFirstOnly {
+	int getFirst();
+}
+
+interface TestInterfaceSecondOnly {
+	int getSecond();
+}
+
+void polymorphicPrintFirst(TestInterfaceFirstOnly& object) {
+	int value = object.getFirst();
+	testPrint("polymorphicPrintFirst: Value = %d"C, value);
+}
+
+void polymorphicPrintSecond(TestInterfaceSecondOnly& object) {
+	int value = object.getSecond();
+	testPrint("polymorphicPrintSecond: Value = %d"C, value);
+}
+
+void polymorphicPrintBoth(TestInterfaceBoth& object) {
+	int first = object.getFirst();
+	int second = object.getSecond();
+	testPrint("polymorphicPrintBoth: First = %d, Second = %d"C, first, second);
+	
+	polymorphicPrintFirst(object);
+	polymorphicPrintSecond(object);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto testInstance = TestClass(5, 6);
+	
+	polymorphicPrintBoth(testInstance);
+	
+	return 0;
+}
+
