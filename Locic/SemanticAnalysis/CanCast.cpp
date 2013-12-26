@@ -24,9 +24,6 @@ namespace Locic {
 			
 			auto sourceInstance = sourceTargetType->getObjectType();
 			auto destInstance = destTargetType->getObjectType();
-			if (sourceInstance == destInstance) {
-				return value;
-			}
 			
 			const auto sourceTemplateVarMap = sourceTargetType->generateTemplateVarMap();
 			const auto destTemplateVarMap = destTargetType->generateTemplateVarMap();
@@ -51,10 +48,10 @@ namespace Locic {
 					auto destFunctionType = destFunction->type()->substitute(destTemplateVarMap);
 					
 					// Function types must be equivalent.
-					if(*(sourceFunctionType) == *(destFunctionType)){
+					if (*(sourceFunctionType) == *(destFunctionType)) {
 						destPos++;
 						continue;
-					}else{
+					} else {
 						throw PolyCastMethodMismatchException(sourceFunction->name(),
 							sourceType, destType, sourceFunctionType, destFunctionType);
 					}
@@ -158,12 +155,12 @@ namespace Locic {
 					const std::vector<SEM::Type*>& sourceList = sourceType->getFunctionParameterTypes();
 					const std::vector<SEM::Type*>& destList = destType->getFunctionParameterTypes();
 					
-					if(sourceList.size() != destList.size()) {
+					if (sourceList.size() != destList.size()) {
 						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
 					}
 					
 					// Check contra-variance for argument types.
-					for(std::size_t i = 0; i < sourceList.size(); i++) {
+					for (std::size_t i = 0; i < sourceList.size(); i++) {
 						(void) ImplicitCast(SEM::Value::CastDummy(sourceList.at(i)), destList.at(i));
 					}
 					
@@ -204,7 +201,7 @@ namespace Locic {
 			
 			// The value's type needs to reflect the successful cast, however
 			// this shouldn't be added unless necessary.
-			if(*(resultValue->type()) != *destType) {
+			if (*(resultValue->type()) != *destType) {
 				return SEM::Value::Cast(destType, resultValue);
 			} else {
 				return resultValue;
