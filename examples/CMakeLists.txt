@@ -1,4 +1,4 @@
-set(LOCIC ${CMAKE_CURRENT_BINARY_DIR}/../lib/locic)
+set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
 set(EXAMPLE_SOURCES
 	Example1.loci
