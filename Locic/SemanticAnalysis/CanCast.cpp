@@ -197,9 +197,32 @@ namespace Locic {
 			}
 		}
 		
+		static inline SEM::Value* ImplicitCastNullConstruction(SEM::Value* value, SEM::Type* destType) {
+			SEM::Type* sourceType = value->type();
+			
+			if (sourceType->isNull() && destType->isObject()) {
+				SEM::TypeInstance* typeInstance = destType->getObjectType();
+				// Casting null to object type invokes the null constructor,
+				// assuming one exists.
+				if (typeInstance->hasProperty("Null")) {
+					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
+							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
+							std::vector<SEM::Value*>());
+					
+					// There still might be some aspects to cast with the null constructed type.
+					return ImplicitCastFormatOnlyTop(nullConstructedValue, destType);
+				} else {
+					throw TodoException(makeString("No null constructor specified for type '%s'.",
+						destType->toString().c_str()));
+				}
+			}
+			
+			return ImplicitCastFormatOnlyTop(value, destType);
+		}
+		
 		static inline SEM::Value* ImplicitCastRefImplicitCopy(SEM::Value* object, SEM::Type* destType) {
 			try {
-				return ImplicitCastFormatOnlyTop(object, destType);
+				return ImplicitCastNullConstruction(object, destType);
 			} catch(const Exception& e) {
 				// Didn't work; try using dereference with implicit copy if possible.
 				LOG(LOG_INFO, "Encountered error in cast; attempting to dereference and implicit copy (error is: %s).", formatMessage(e.toString()).c_str());
@@ -226,7 +249,7 @@ namespace Locic {
 				
 				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", copyValue->type()->toString().c_str(), destType->toString().c_str());
 				
-				SEM::Value* castValue = ImplicitCastFormatOnlyTop(copyValue, destType);
+				SEM::Value* castValue = ImplicitCastNullConstruction(copyValue, destType);
 				
 				LOG(LOG_INFO, "Dereference and implicit copy worked: %s.", castValue->toString().c_str());
 				return castValue;
@@ -287,31 +310,8 @@ namespace Locic {
 			return ImplicitCastOpDissolve(value, destType);
 		}
 		
-		static inline SEM::Value* ImplicitCastNullConstruction(SEM::Value* value, SEM::Type* destType) {
-			SEM::Type* sourceType = value->type();
-			
-			if (sourceType->isNull() && destType->isObject()) {
-				SEM::TypeInstance* typeInstance = destType->getObjectType();
-				// Casting null to object type invokes the null constructor,
-				// assuming one exists.
-				if (typeInstance->hasProperty("Null")) {
-					SEM::Value* nullConstructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
-							std::vector<SEM::Value*>());
-					
-					// There still might be some aspects to cast with the null constructed type.
-					return ImplicitCastAllToVoid(nullConstructedValue, destType);
-				} else {
-					throw TodoException(makeString("No null constructor specified for type '%s'.",
-						destType->toString().c_str()));
-				}
-			}
-			
-			return ImplicitCastAllToVoid(value, destType);
-		}
-		
 		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {
-			return ImplicitCastNullConstruction(value, destType);
+			return ImplicitCastAllToVoid(value, destType);
 		}
 		
 		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second) {

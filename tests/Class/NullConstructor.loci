@@ -1,0 +1,28 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Null() {
+		testPrint("TestClass.Null"C);
+		return @(1);
+	}
+	
+	void printValue() {
+		testPrint("TestClass.printValue: Value = %d"C, @value);
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass testInstance1 = null;
+	
+	auto nullValue = null;
+	TestClass testInstance2 = nullValue;
+	
+	testInstance1.printValue();
+	testInstance2.printValue();
+	return 0;
+}
+

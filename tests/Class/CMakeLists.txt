@@ -7,4 +7,5 @@ class_test(BasicClass)
 class_test(DefaultConstructor)
 class_test(Destructor)
 class_test(EmptyClass)
+class_test(NullConstructor)
 

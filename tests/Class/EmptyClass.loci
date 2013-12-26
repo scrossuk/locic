@@ -11,7 +11,8 @@ class TestClass() {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv){
+int testEntryPoint(int argc, char ** argv) {
+	auto testInstance = TestClass();
 	TestClass();
 	return 0;
 }

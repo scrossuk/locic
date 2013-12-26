@@ -28,7 +28,7 @@ class TestClass(int value) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv){
+int testEntryPoint(int argc, char ** argv) {
 	auto testInstance = TestClass(10);
 	
 	auto testInstance2 = TestClass(testInstance.getValue() + 5);
