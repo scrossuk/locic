@@ -45,9 +45,9 @@ set(REQ_LIBS
 # Use 'xxd' to convert 'BuiltInTypes.loci'
 # into a C string constant that can be
 # built into the compiler.
-add_custom_command(OUTPUT BuiltInTypes.loci.c
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c
 	COMMAND xxd -i BuiltInTypes.loci ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/BuiltInTypes.loci
+	MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/BuiltInTypes.loci
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_custom_target(BuiltInTypes DEPENDS BuiltInTypes.loci.c)
@@ -75,6 +75,8 @@ add_executable(locic
 	String.cpp
 	)
 
+add_dependencies(locic BuiltInTypes)
+
 target_link_libraries(locic
 	locic-parser
 	locic-semanalysis
@@ -91,6 +93,8 @@ add_executable(loci-test
 	Log.cpp
 	String.cpp
 	)
+
+add_dependencies(loci-test BuiltInTypes)
 
 target_link_libraries(loci-test
 	locic-parser
