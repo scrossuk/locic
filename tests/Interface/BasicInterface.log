@@ -1,0 +1,6 @@
+TestClass1.Default: Value = 100
+TestClass1.getValue: Value = 100
+polymorphicPrint: Value = 100
+TestClass2.Default: Value = 200
+TestClass2.getValue: Value = 200
+polymorphicPrint: Value = 200

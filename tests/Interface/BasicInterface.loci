@@ -1,0 +1,54 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// First interface implementation.
+class TestClass1 (int value) {
+	static Default(int value) {
+		testPrint("TestClass1.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	int getValue() {
+		testPrint("TestClass1.getValue: Value = %d"C, @value);
+		return @value;
+	}
+	
+}
+
+// Second interface implementation.
+class TestClass2 (int value) {
+	static Default(int value) {
+		testPrint("TestClass2.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	int getValue() {
+		testPrint("TestClass2.getValue: Value = %d"C, @value);
+		return @value;
+	}
+	
+}
+
+// Interface definition.
+interface TestInterface {
+	int getValue();
+}
+
+void polymorphicPrint(TestInterface& object) {
+	int value = object.getValue();
+	testPrint("polymorphicPrint: Value = %d"C, value);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto testInstance1 = TestClass1(100);
+	
+	polymorphicPrint(testInstance1);
+	
+	auto testInstance2 = TestClass2(200);
+	
+	polymorphicPrint(testInstance2);
+	
+	return 0;
+}
+
