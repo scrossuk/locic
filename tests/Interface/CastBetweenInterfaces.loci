@@ -1,7 +1,6 @@
 // Test output.
 void testPrint(const char * const str, ...);
 
-// First interface implementation.
 class TestClass (int first, int second) {
 	static Default(int first, int second) {
 		testPrint("TestClass.Default: First = %d, Second = %d"C, first, second);
@@ -20,7 +19,6 @@ class TestClass (int first, int second) {
 	
 }
 
-// First interface definition.
 interface TestInterfaceBoth {
 	int getFirst();
 	

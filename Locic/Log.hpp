@@ -33,6 +33,8 @@ namespace Locic{
 	
 	std::string formatMessage(const std::string& message);
 	
+	void setLogDisplayLevel(LogLevel level);
+	
 	void log(LogLevel level, const LogInfo& info, const std::string& message);
 
 }

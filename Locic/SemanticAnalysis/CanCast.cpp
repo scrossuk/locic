@@ -13,36 +13,50 @@ namespace Locic {
 	namespace SemanticAnalysis {
 	
 		SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
-			SEM::Type* sourceType = value->type();
+			auto sourceType = value->type();
 			assert(sourceType->isReference() && destType->isReference());
 			
-			SEM::Type* sourceTargetType = sourceType->getReferenceTarget();
-			SEM::Type* destTargetType = destType->getReferenceTarget();
+			auto sourceTargetType = sourceType->getReferenceTarget();
+			auto destTargetType = destType->getReferenceTarget();
 			
 			assert(sourceTargetType->isObject());
 			assert(destTargetType->isInterface());
 			
-			SEM::TypeInstance* sourceInstance = sourceTargetType->getObjectType();
-			SEM::TypeInstance* destInstance = destTargetType->getObjectType();
-			if(sourceInstance == destInstance){
+			auto sourceInstance = sourceTargetType->getObjectType();
+			auto destInstance = destTargetType->getObjectType();
+			if (sourceInstance == destInstance) {
 				return value;
 			}
+			
+			const auto sourceTemplateVarMap = sourceTargetType->generateTemplateVarMap();
+			const auto destTemplateVarMap = destTargetType->generateTemplateVarMap();
 			
 			// NOTE: This code relies on the function arrays being sorted
 			//       (which is performed by an early Semantic Analysis pass).
 			for (size_t sourcePos = 0, destPos = 0; destPos < destInstance->functions().size(); sourcePos++) {
-				SEM::Function * destFunction = destInstance->functions().at(destPos);
-				if(sourcePos >= sourceInstance->functions().size()){
+				auto destFunction = destInstance->functions().at(destPos);
+				
+				if (sourcePos >= sourceInstance->functions().size()) {
+					// If all the source methods have been considered, but
+					// there's still a destination method to consider, then
+					// that method must not be present in the source type.
 					throw PolyCastMissingMethodException(sourceType, destType, destFunction);
 				}
 				
-				SEM::Function* sourceFunction = sourceInstance->functions().at(sourcePos);
-				if(sourceFunction->name().last() == destFunction->name().last()){
-					if(*(sourceFunction->type()) == *(destFunction->type())){
+				auto sourceFunction = sourceInstance->functions().at(sourcePos);
+				
+				if (sourceFunction->name().last() == destFunction->name().last()) {
+					// Substitute any template variables in the function types.
+					auto sourceFunctionType = sourceFunction->type()->substitute(sourceTemplateVarMap);
+					auto destFunctionType = destFunction->type()->substitute(destTemplateVarMap);
+					
+					// Function types must be equivalent.
+					if(*(sourceFunctionType) == *(destFunctionType)){
 						destPos++;
 						continue;
 					}else{
-						throw PolyCastMethodMismatchException(sourceType, destType, sourceFunction, destFunction);
+						throw PolyCastMethodMismatchException(sourceFunction->name(),
+							sourceType, destType, sourceFunctionType, destFunctionType);
 					}
 				}
 			}

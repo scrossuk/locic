@@ -78,7 +78,11 @@ namespace Locic{
 		return resultString;
 	}
 	
-	static const LogLevel DISPLAY_LEVEL = LOG_NOTICE;
+	static LogLevel DISPLAY_LEVEL = LOG_NOTICE;
+	
+	void setLogDisplayLevel(LogLevel level) {
+		DISPLAY_LEVEL = level;
+	}
 	
 	void log(LogLevel level, const LogInfo& info, const std::string& message){
 		assert(level != LOG_NONE && level != LOG_ALL);

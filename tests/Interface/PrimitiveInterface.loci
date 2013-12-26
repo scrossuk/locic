@@ -1,0 +1,26 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+template <typename T>
+interface PrimitiveInterface {
+	T add(T value);
+}
+
+void polymorphicAddAndPrint(PrimitiveInterface<int>& value1, int value2) {
+	auto sum = value1.add(value2);
+	testPrint("polymorphicAddAndPrint: Sum = %d"C, sum);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	int value1 = 4;
+	int value2 = 5;
+	
+	testPrint("Value1 = %d"C, value1);
+	testPrint("Value2 = %d"C, value2);
+	
+	polymorphicAddAndPrint(value1, value2);
+	
+	return 0;
+}
+

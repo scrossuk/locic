@@ -9,6 +9,7 @@
 #include <boost/program_options.hpp>
 
 #include <Locic/AST.hpp>
+#include <Locic/Log.hpp>
 #include <Locic/Parser/DefaultParser.hpp>
 #include <Locic/CodeGen/CodeGen.hpp>
 #include <Locic/CodeGen/Interpreter.hpp>
@@ -69,6 +70,8 @@ extern "C" void testPrint(const char* format, ...) {
 }
 
 int main(int argc, char* argv[]) {
+	setLogDisplayLevel(LOG_INFO);
+	
 	try {
 		if (argc < 1) return -1;
 		const std::string programName = boost::filesystem::path(argv[0]).stem().string();

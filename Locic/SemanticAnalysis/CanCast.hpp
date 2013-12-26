@@ -200,25 +200,28 @@ namespace Locic {
 		
 		class PolyCastMethodMismatchException: public CastException {
 			public:
-				inline PolyCastMethodMismatchException(SEM::Type* sourceType, SEM::Type* destType,
-						SEM::Function* sourceMethod, SEM::Function* destMethod)
-					: sourceType_(sourceType), destType_(destType),
-					  sourceMethod_(sourceMethod), destMethod_(destMethod) { }
+				inline PolyCastMethodMismatchException(const Name& methodName,
+						SEM::Type* sourceType, SEM::Type* destType,
+						SEM::Type* sourceMethodType, SEM::Type* destMethodType)
+					: methodName_(methodName),
+					  sourceType_(sourceType), destType_(destType),
+					  sourceMethodType_(sourceMethodType), destMethodType_(destMethodType) { }
 					  
 				inline std::string toString() const {
 					return makeString("Method '%s' doesn't have matching types ('%s' vs '%s') in polymorphic cast (from type '%s' to type '%s').",
-							sourceMethod_->name().toString().c_str(),
-							sourceMethod_->type()->toString().c_str(),
-							destMethod_->type()->toString().c_str(),
+							methodName_.toString().c_str(),
+							sourceMethodType_->toString().c_str(),
+							destMethodType_->toString().c_str(),
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
 				}
 				
 			private:
+				Name methodName_;
 				SEM::Type* sourceType_;
 				SEM::Type* destType_;
-				SEM::Function* sourceMethod_;
-				SEM::Function* destMethod_;
+				SEM::Type* sourceMethodType_;
+				SEM::Type* destMethodType_;
 				
 		};
 		
