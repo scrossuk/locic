@@ -1,0 +1,29 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Default(int value) {
+		testPrint("TestClass.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	TestClass implicitCopy() {
+		int newValue = @value + 1;
+		testPrint("TestClass.implicitCopy: Value = %d"C, newValue);
+		return @(newValue);
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass testInstance1 = TestClass(1);
+	TestClass testInstance2 = testInstance1;
+	TestClass testInstance3 = testInstance2;
+	TestClass testInstance4 = testInstance3;
+	TestClass testInstance5 = testInstance4;
+	
+	return 0;
+}
+

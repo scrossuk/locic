@@ -1,0 +1,5 @@
+TestClass.Default: Value = 1
+TestClass.implicitCopy: Value = 2
+TestClass.implicitCopy: Value = 3
+TestClass.implicitCopy: Value = 4
+TestClass.implicitCopy: Value = 5
