@@ -124,10 +124,8 @@ namespace locic {
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
-						printf("Semantic Analysis Error: Local variable cannot have void type.\n");
-						// TODO: throw exception.
-						assert(false);
-						return NULL;
+						throw TodoException(makeString("Local variable '%s' cannot have void type.",
+							astTypeVarNode->namedVar.name.c_str()));
 					}
 					
 					// TODO: implement 'final'.
