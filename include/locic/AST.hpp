@@ -6,6 +6,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Statement.hpp>
+#include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>

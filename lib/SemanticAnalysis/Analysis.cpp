@@ -198,16 +198,16 @@ namespace locic {
 					
 					for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
 						assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
-						SEM::Type* semType = ConvertType(context, astTypeVarNode->namedVar.type);
+						auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
 						
 						// TODO: implement 'final'.
-						const bool isLvalMutable = SEM::Type::MUTABLE;
+						const bool isLvalConst = false;
 						
-						SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, semType);
+						auto lvalType = semType->isLval() ? semType : makeValueLvalType(context, isLvalConst, semType);
 						
-						SEM::Var* var = SEM::Var::Member(lvalType);
+						auto var = SEM::Var::Member(lvalType);
 						
-						const Node memberNode = Node::Variable(astTypeVarNode, var);
+						const auto memberNode = Node::Variable(astTypeVarNode, var);
 						
 						if (!node.tryAttach("#__ivar_" + astTypeVarNode->namedVar.name, memberNode)) {
 							throw MemberVariableClashException(context.name() + astTypeInstanceNode->name,

@@ -8,16 +8,10 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Type* makeValueLvalType(Context& context, bool isLvalMutable, SEM::Type* valueType) {
+		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
 			SEM::TypeInstance* valueLvalTypeInstance = context.getBuiltInType("value_lval");
-			SEM::Type* valueLvalType = SEM::Type::Object(isLvalMutable, valueLvalTypeInstance, std::vector<SEM::Type*>(1, valueType));
-			return valueLvalType;
-		}
-		
-		// If the type 'T' given isn't an lval,
-		// return the SEM tree for 'lval value_lval<T>'.
-		SEM::Type* makeLvalType(Context& context, bool usesCustomLval, bool isLvalMutable, SEM::Type* valueType) {
-			return usesCustomLval ? valueType : makeValueLvalType(context, isLvalMutable, valueType);
+			SEM::Type* valueLvalType = SEM::Type::Object(valueLvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType();
+			return isLvalConst ? valueLvalType->createConstType() : valueLvalType;
 		}
 		
 		bool canDissolveValue(SEM::Value* value) {
@@ -26,17 +20,8 @@ namespace locic {
 				value = SEM::Value::DerefReference(value);
 			}
 			
-			SEM::Type* type = value->type();
-			
-			if (!type->isObject()) {
-				return false;
-			}
-			
-			if (!type->getObjectType()->hasProperty("dissolve")) {
-				return false;
-			}
-			
-			return true;
+			auto type = value->type();
+			return type->isLval() && type->isObject() && type->getObjectType()->hasProperty("dissolve");
 		}
 		
 		SEM::Value* dissolveLval(SEM::Value* value) {
@@ -45,7 +30,12 @@ namespace locic {
 				value = SEM::Value::DerefReference(value);
 			}
 			
-			SEM::Type* type = value->type();
+			auto type = value->type();
+			
+			if (!type->isLval()) {
+				throw TodoException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
+					type->toString().c_str()));
+			}
 			
 			if (!type->isObject()) {
 				throw TodoException(makeString("Type '%s' is not an object type and hence it cannot be dissolved.",

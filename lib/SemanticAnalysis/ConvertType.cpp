@@ -74,7 +74,7 @@ namespace locic {
 		
 		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
-				case AST::Type::UNDEFINED: {
+				case AST::Type::AUTO: {
 					assert(false && "Cannot convert undefined type.");
 					return NULL;
 				}
@@ -83,6 +83,9 @@ namespace locic {
 				}
 				case AST::Type::CONST: {
 					return ConvertType(context, type->getConstTarget())->createConstType();
+				}
+				case AST::Type::LVAL: {
+					return ConvertType(context, type->getLvalTarget())->createLvalType();
 				}
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
@@ -106,13 +109,13 @@ namespace locic {
 							templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
 						}
 						
-						return SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, templateArguments);
+						return SEM::Type::Object(typeInstance, templateArguments);
 					}else if(objectNode.isTemplateVar()) {
 						assert(templateVarMap.empty());
 						
 						SEM::TemplateVar* templateVar = objectNode.getSEMTemplateVar();
 						
-						return SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar);
+						return SEM::Type::TemplateVarRef(templateVar);
 					}else{
 						throw TodoException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
 					}

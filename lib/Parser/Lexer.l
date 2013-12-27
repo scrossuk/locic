@@ -80,6 +80,7 @@ __primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
+lval                    { return LVAL; }
 
 using                   { return USING; }
 static                  { return STATIC; }
@@ -89,7 +90,6 @@ export                  { return EXPORT; }
 new                     { return NEW; }
 delete                  { return DELETE; }
 move                    { return MOVE; }
-lval                    { return LVAL; }
 sizeof                  { return SIZEOF; }
 
 const_cast              { return CONST_CAST; }
@@ -100,7 +100,7 @@ dynamic_cast            { return DYNAMIC_CAST; }
 typeof                  { return TYPEOF; }
 typeid                  { return TYPEID; }
 
-void                    { return VOIDNAME; }
+void                    { return VOID; }
 
 null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }

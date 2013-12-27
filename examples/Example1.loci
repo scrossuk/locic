@@ -192,7 +192,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 		free(reinterpret_cast<T*, void*>(@ptr));
 	}
 	
-	value_lval<T>& index(int i) {
+	lval value_lval<T>& index(int i) {
 		if (i >= 0) {
 			if (i < @size) {
 				return @ptr[i];

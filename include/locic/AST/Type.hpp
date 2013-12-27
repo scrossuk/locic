@@ -18,10 +18,11 @@ namespace locic {
 		struct Type {
 			enum TypeEnum {
 				NONE,
-				UNDEFINED,
+				AUTO,
+				VOID,
 				BRACKET,
 				CONST,
-				VOID,
+				LVAL,
 				NULLT,
 				OBJECT,
 				REFERENCE,
@@ -35,6 +36,10 @@ namespace locic {
 			struct {
 				Node<Type> targetType;
 			} constType;
+			
+			struct {
+				Node<Type> targetType;
+			} lvalType;
 			
 			struct {
 				Node<Symbol> symbol;
@@ -54,8 +59,12 @@ namespace locic {
 			
 			inline Type(TypeEnum e) : typeEnum(e) { }
 			
-			inline static Type* Undefined() {
-				return new Type(UNDEFINED);
+			inline static Type* Auto() {
+				return new Type(AUTO);
+			}
+			
+			inline static Type* Void() {
+				return new Type(VOID);
 			}
 			
 			inline static Type* Bracket(Node<Type> targetType) {
@@ -70,8 +79,10 @@ namespace locic {
 				return type;
 			}
 			
-			inline static Type* Void() {
-				return new Type(VOID);
+			inline static Type* Lval(Node<Type> targetType) {
+				Type* type = new Type(LVAL);
+				type->lvalType.targetType = targetType;
+				return type;
 			}
 			
 			inline static Type* Object(const Node<Symbol>& symbol) {
@@ -102,8 +113,8 @@ namespace locic {
 				return type;
 			}
 			
-			inline bool isUndefined() const {
-				return typeEnum == UNDEFINED;
+			inline bool isAuto() const {
+				return typeEnum == AUTO;
 			}
 			
 			inline bool isVoid() const {
@@ -126,6 +137,15 @@ namespace locic {
 			inline Node<Type> getConstTarget() const {
 				assert(isConst());
 				return constType.targetType;
+			}
+			
+			inline bool isLval() const {
+				return typeEnum == LVAL;
+			}
+			
+			inline Node<Type> getLvalTarget() const {
+				assert(isLval());
+				return lvalType.targetType;
 			}
 			
 			inline bool isNull() const {

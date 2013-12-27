@@ -182,11 +182,11 @@ namespace locic {
 				inline static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters) {
 					std::vector<Type*> templateArguments;
 					for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
-						templateArguments.push_back(Type::TemplateVarRef(
-							SEM::Type::MUTABLE, typeInstance->templateVariables().at(i)));
+						templateArguments.push_back(
+							Type::TemplateVarRef(typeInstance->templateVariables().at(i)));
 					}
 					
-					Type* type = Type::Object(Type::MUTABLE, typeInstance, templateArguments);
+					Type* type = Type::Object(typeInstance, templateArguments);
 					Value* value = new Value(INTERNALCONSTRUCT, type);
 					value->internalConstruct.parameters = parameters;
 					return value;

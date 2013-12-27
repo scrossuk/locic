@@ -26,22 +26,20 @@ namespace locic {
 			
 			const Name functionName = context.name() + astFunctionNode->name;
 			
-			if (astReturnTypeNode->typeEnum == AST::Type::UNDEFINED) {
+			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
 				assert(thisTypeInstance != NULL);
 				
-				const bool isMutable = true;
-				
 				std::vector<SEM::Type*> templateVars;
 				
 				// The parent class type needs to include the template arguments.
 				for (auto templateVar: thisTypeInstance->templateVariables()) {
-					templateVars.push_back(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar));
+					templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
 				}
 				
-				semReturnType = SEM::Type::Object(isMutable, thisTypeInstance, templateVars);
+				semReturnType = SEM::Type::Object(thisTypeInstance, templateVars);
 			} else {
 				semReturnType = ConvertType(context, astReturnTypeNode);
 			}
@@ -63,9 +61,9 @@ namespace locic {
 				parameterTypes.push_back(semParamType);
 				
 				// TODO: implement 'final'.
-				const bool isLvalMutable = SEM::Type::MUTABLE;
-					
-				SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, semParamType);
+				const bool isLvalConst = false;
+				
+				auto lvalType = semParamType->isLval() ? semParamType : makeValueLvalType(context, isLvalConst, semParamType);
 				
 				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}

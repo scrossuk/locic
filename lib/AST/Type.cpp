@@ -13,7 +13,7 @@ namespace locic {
 				case NONE:
 					return "[NONE]";
 					
-				case UNDEFINED:
+				case AUTO:
 					return "auto";
 					
 				case BRACKET:

@@ -3,15 +3,22 @@
 
 #include <string>
 #include <vector>
-#include <locic/AST/Function.hpp>
+
 #include <locic/AST/Node.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
-#include <locic/AST/TypeVar.hpp>
 
 namespace locic {
 
 	namespace AST {
 	
+		struct Function;
+		typedef std::vector<Node<Function>> FunctionList;
+		
+		struct TemplateTypeVar;
+		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
+		
+		struct TypeVar;
+		typedef std::vector<Node<TypeVar>> TypeVarList;
+		
 		struct TypeInstance {
 			enum TypeEnum {
 				PRIMITIVE,
@@ -27,90 +34,25 @@ namespace locic {
 			Node<TypeVarList> variables;
 			Node<FunctionList> functions;
 			
-			inline TypeInstance(TypeEnum e, const std::string& n,
-								const Node<TypeVarList>& v, const Node<FunctionList>& f)
-				: typeEnum(e), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
-				  variables(v), functions(f) { }
-				  
-			inline static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions) {
-				return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), functions);
-			}
-			
-			inline static TypeInstance* ClassDecl(const std::string& name, const Node<FunctionList>& functions) {
-				return new TypeInstance(CLASSDECL, name, makeDefaultNode<TypeVarList>(), functions);
-			}
-			
-			inline static TypeInstance* ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions) {
-				return new TypeInstance(CLASSDEF, name, variables, functions);
-			}
-			
-			inline static TypeInstance* Datatype(const std::string& name, const Node<TypeVarList>& variables) {
-				return new TypeInstance(DATATYPE, name, variables, makeDefaultNode<FunctionList>());
-			}
-			
-			inline static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions) {
-				return new TypeInstance(INTERFACE, name, makeDefaultNode<TypeVarList>(), functions);
-			}
-			
-			inline static TypeInstance* Struct(const std::string& name, const Node<TypeVarList>& variables) {
-				return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
-			}
-			
-			inline std::string toString() const {
-				std::string s = makeString("TypeInstance[name = %s](", name.c_str());
+			public:
+				static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions);
 				
-				{
-					s += "TemplateVariableList(";
-					
-					bool isFirst = true;
-					
-					for(auto node : *templateVariables) {
-						if(!isFirst) s += ", ";
-						
-						isFirst = false;
-						s += node.toString();
-					}
-					
-					s += ")";
-				}
+				static TypeInstance* ClassDecl(const std::string& name, const Node<FunctionList>& functions);
 				
-				s += ", ";
+				static TypeInstance* ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions);
 				
-				{
-					s += "MemberVariableList(";
-					
-					bool isFirst = true;
-					
-					for(auto node : *variables) {
-						if(!isFirst) s += ", ";
-						
-						isFirst = false;
-						s += node.toString();
-					}
-					
-					s += ")";
-				}
+				static TypeInstance* Datatype(const std::string& name, const Node<TypeVarList>& variables);
 				
-				s += ", ";
+				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
 				
-				{
-					s += "FunctionList(";
-					
-					bool isFirst = true;
-					
-					for(auto node : *functions) {
-						if(!isFirst) s += ", ";
-						
-						isFirst = false;
-						s += node.toString();
-					}
-					
-					s += ")";
-				}
+				static TypeInstance* Struct(const std::string& name, const Node<TypeVarList>& variables);
 				
-				s += ")";
-				return s;
-			}
+				std::string toString() const;
+				
+			private:
+				TypeInstance(TypeEnum e, const std::string& n,
+					const Node<TypeVarList>& v, const Node<FunctionList>& f);
+				
 		};
 		
 		typedef std::vector<Node<TypeInstance>> TypeInstanceList;

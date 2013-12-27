@@ -110,10 +110,10 @@ namespace locic {
 						SEM::TypeInstance* ptrTypeInstance = context.getBuiltInType("ptr");
 						
 						// Generate type 'const char'.
-						SEM::Type* constCharType = SEM::Type::Object(SEM::Type::CONST, charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+						auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
 						
 						// Generate type 'const ptr<const char>'.
-						SEM::Type* constCharPtrType = SEM::Type::Object(SEM::Type::CONST, ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType));
+						auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
 						
 						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
 					} else {
@@ -125,7 +125,7 @@ namespace locic {
 						}
 						assert(typeInstance != NULL && "Couldn't find constant type");
 						return SEM::Value::Constant(astValueNode->constant.get(),
-								SEM::Type::Object(SEM::Type::CONST, typeInstance, SEM::Type::NO_TEMPLATE_ARGS));
+								SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType());
 					}
 					
 					assert(false && "Invalid if fallthrough in ConvertValue for constant");
@@ -160,15 +160,16 @@ namespace locic {
 							const Node typeNode = context.lookupName(name.getPrefix());
 							assert(typeNode.isTypeInstance());
 							
-							SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE,
-								typeNode.getSEMTypeInstance(), GetTemplateValues(context, astSymbolNode));
+							auto typeInstance = typeNode.getSEMTypeInstance();
+							
+							auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 							
 							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
 						} else {
 							return SEM::Value::FunctionRef(NULL, function, templateVarMap);
 						}
 					} else if (node.isTypeInstance()) {
-						SEM::TypeInstance* typeInstance = node.getSEMTypeInstance();
+						auto typeInstance = node.getSEMTypeInstance();
 						
 						if (typeInstance->isInterface()) {
 							throw TodoException(makeString("Can't construct interface type '%s' at %s.",
@@ -182,7 +183,7 @@ namespace locic {
 						
 						SEM::Function* defaultConstructor = typeInstance->getProperty("Default");
 						
-						SEM::Type* parentType = SEM::Type::Object(SEM::Type::MUTABLE, typeInstance, GetTemplateValues(context, astSymbolNode));
+						auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 						
 						return SEM::Value::FunctionRef(parentType, defaultConstructor, templateVarMap);
 					} else if (node.isVariable()) {
@@ -200,7 +201,7 @@ namespace locic {
 						SEM::TypeInstance* specTypeInstance = templateVar->specType();
 						SEM::Function* defaultConstructor = specTypeInstance->getProperty("Default");
 						
-						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(SEM::Type::MUTABLE, templateVar),
+						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(templateVar),
 							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());
 					} else {
 						assert(false && "Unknown node for name reference");
@@ -227,7 +228,7 @@ namespace locic {
 					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
 					
 					SEM::Value* boolValue = ImplicitCast(cond,
-							SEM::Type::Object(SEM::Type::CONST, boolType, SEM::Type::NO_TEMPLATE_ARGS));
+							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
 					SEM::Value* ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					SEM::Value* ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);

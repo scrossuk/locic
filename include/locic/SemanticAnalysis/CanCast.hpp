@@ -42,16 +42,18 @@ namespace locic {
 		
 		class CastTypeMismatchException: public CastException {
 			public:
-				inline CastTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
-					: sourceType_(sourceType), destType_(destType) { }
+				inline CastTypeMismatchException(SEM::Value* value, SEM::Type* sourceType, SEM::Type* destType)
+					: value_(value), sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
-					return makeString("Fundamental type mismatch in cast from type '%s' to type '%s'.",
+					return makeString("Fundamental type mismatch in cast of value '%s' from type '%s' to type '%s'.",
+							value_->toString().c_str(),
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
 				}
 				
 			private:
+				SEM::Value* value_;
 				SEM::Type* sourceType_;
 				SEM::Type* destType_;
 				

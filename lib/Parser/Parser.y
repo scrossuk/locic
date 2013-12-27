@@ -168,7 +168,7 @@ const T& GETSYM(T* value) {
 %token CLASS
 %token DATATYPE
 %token COLON
-%token VOIDNAME
+%token VOID
 %token CONST
 %token STAR
 %token COMMA
@@ -347,7 +347,7 @@ structVarList:
 staticFunctionDecl:
 	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
-		const auto implicitAutoType = locic::AST::makeNode(LOC(&@1), locic::AST::Type::Undefined());
+		const auto implicitAutoType = locic::AST::makeNode(LOC(&@1), locic::AST::Type::Auto());
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(implicitAutoType, GETSYM($2), GETSYM($4))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
@@ -359,7 +359,7 @@ staticFunctionDecl:
 staticFunctionDef:
 	STATIC NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
-		const auto implicitAutoType = locic::AST::makeNode(LOC(&@1), locic::AST::Type::Undefined());
+		const auto implicitAutoType = locic::AST::makeNode(LOC(&@1), locic::AST::Type::Auto());
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(implicitAutoType, GETSYM($2), GETSYM($4), GETSYM($6))));
 	}
 	| STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
@@ -553,17 +553,17 @@ symbol:
 	;
 	
 typePrecision3:
-	VOIDNAME
+	VOID
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Void()));
+	}
+	| AUTO
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
 	}
 	| symbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(GETSYM($1))));
-	}
-	| AUTO
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Undefined()));
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
@@ -580,7 +580,7 @@ typePrecision3:
 	| LROUNDBRACKET error RROUNDBRACKET
 	{
 		parserContext->error("Invalid type.", LOC(&@2));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Undefined()));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
 	}
 	;
 
@@ -592,6 +592,10 @@ typePrecision2:
 	| CONST typePrecision3
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
+	}
+	| LVAL typePrecision3
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($2))));
 	}
 	;
 
@@ -667,13 +671,7 @@ typeList:
 typeVar:
 	type NAME
 	{
-		const bool usesCustomLval = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2), usesCustomLval)));
-	}
-	| LVAL type NAME
-	{
-		const bool usesCustomLval = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(GETSYM($2), GETSYM($3), usesCustomLval)));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2))));
 	}
 	| type LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
@@ -817,16 +815,15 @@ scopedStatement:
 		const auto anonVariableSymbol = locic::AST::makeNode(LOC(&@$), new locic::AST::Symbol(locic::AST::Symbol::Relative() + anonVariableSymbolElement));
 		
 		// {
-		std::vector< locic::AST::Node<locic::AST::Statement> > statements;
+		std::vector<locic::AST::Node<locic::AST::Statement>> statements;
 		
 		//     auto anon_var = range_value;
-		const bool usesCustomLval = false;
-		locic::AST::Node<locic::AST::TypeVar> anonVarTypeVar = locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Undefined()), anonVariableName, usesCustomLval));
+		locic::AST::Node<locic::AST::TypeVar> anonVarTypeVar = locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()), anonVariableName));
 		statements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(anonVarTypeVar, GETSYM($5))));
 		
 		//     while (!anon_var.empty()) {
 		locic::AST::Node<locic::AST::Value> condition = locic::AST::makeNode(LOC(&@$), UnaryOp("not", locic::AST::makeNode(LOC(&@$), UnaryOp("empty", locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(anonVariableSymbol))))));
-		std::vector< locic::AST::Node<locic::AST::Statement> > whileLoopStatements;
+		std::vector<locic::AST::Node<locic::AST::Statement>> whileLoopStatements;
 		
 		//         type value_var = anon_var.front();
 		whileLoopStatements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(GETSYM($3), locic::AST::makeNode(LOC(&@$), UnaryOp("front", locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(anonVariableSymbol)))))));

@@ -10,8 +10,6 @@ namespace locic {
 	
 		SEM::Type* makeValueLvalType(Context& context, bool isLvalMutable, SEM::Type* valueType);
 		
-		SEM::Type* makeLvalType(Context& context, bool usesCustomLval, bool isLvalMutable, SEM::Type* valueType);
-		
 		bool canDissolveValue(SEM::Value* value);
 		
 		SEM::Value* dissolveLval(SEM::Value* lvalValue);

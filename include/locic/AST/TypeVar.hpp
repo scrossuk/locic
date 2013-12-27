@@ -2,8 +2,8 @@
 #define LOCIC_AST_TYPEVAR_HPP
 
 #include <string>
-#include <locic/Optional.hpp>
-#include <locic/String.hpp>
+#include <vector>
+
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
 
@@ -25,7 +25,6 @@ namespace locic {
 			struct {
 				Node<Type> type;
 				std::string name;
-				bool usesCustomLval;
 			} namedVar;
 			
 			struct {
@@ -33,51 +32,22 @@ namespace locic {
 				Node<TypeVarList> typeVarList;
 			} patternVar;
 			
-			inline TypeVar(Kind pKind)
-				: kind(pKind) { }
+			public:	
+				static TypeVar* NamedVar(const Node<Type>& type, const std::string& name);
 				
-			inline static TypeVar* NamedVar(const Node<Type>& type, const std::string& name, bool usesCustomLval) {
-				TypeVar* typeVar = new TypeVar(NAMEDVAR);
-				typeVar->namedVar.type = type;
-				typeVar->namedVar.name = name;
-				typeVar->namedVar.usesCustomLval = usesCustomLval;
-				return typeVar;
-			}
+				static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
+				
+				static TypeVar* Any();
+				
+				std::string toString() const;
 			
-			inline static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList) {
-				TypeVar* typeVar = new TypeVar(PATTERNVAR);
-				typeVar->patternVar.type = type;
-				typeVar->patternVar.typeVarList = typeVarList;
-				return typeVar;
-			}
+			private:
+				TypeVar(Kind pKind);
 			
-			inline static TypeVar* Any() {
-				return new TypeVar(ANYVAR);
-			}
-			
-			inline std::string toString() const {
-				switch(kind) {
-					case NAMEDVAR:
-						return makeString("TypeVar[NAMED](isLval = %s, type = %s, name = %s)",
-												 namedVar.usesCustomLval ? "YES" : "NO",
-												 namedVar.type.toString().c_str(), namedVar.name.c_str());
-												 
-					case PATTERNVAR:
-						return makeString("TypeVar[PATTERN](type = %s, typeVarList = %s)",
-												 patternVar.type->toString().c_str(),
-												 makeArrayString(*(patternVar.typeVarList)).c_str());
-												 
-					case ANYVAR:
-						return "TypeVar[ANY]()";
-						
-					default:
-						return "TypeVar[UNKNOWN]()";
-				}
-			}
 		};
 		
 	}
 	
 }
 
-#endif
+#endif 

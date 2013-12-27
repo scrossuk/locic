@@ -66,15 +66,15 @@ namespace locic {
 			
 			if (sourceType->kind() != destType->kind() && destType->kind() != SEM::Type::VOID) {
 				// At this point, types need to be in the same group.
-				throw CastTypeMismatchException(sourceType, destType);
+				throw CastTypeMismatchException(value, sourceType, destType);
 			}
 			
-			if (sourceType->isConst() && destType->isMutable()) {
+			if (sourceType->isConst() && !destType->isConst()) {
 				// No copying can be done now, so this is just an error.
 				throw CastConstCorrectnessViolationException(sourceType, destType);
 			}
 			
-			if (sourceType->isMutable() && destType->isConst()) {
+			if (!sourceType->isConst() && destType->isConst()) {
 				assert(hasParentConstChain && "Must be a const chain for mutable-to-const cast to succeed.");
 			}
 				   
@@ -108,7 +108,7 @@ namespace locic {
 							const auto sourceTemplateArg = sourceType->templateArguments().at(i);
 							const auto destTemplateArg = destType->templateArguments().at(i);
 							
-							if (!hasConstChain && sourceTemplateArg->isMutable() && destTemplateArg->isConst()) {
+							if (!hasConstChain && !sourceTemplateArg->isConst() && destTemplateArg->isConst()) {
 								// Check for const-correctness inside templates,
 								// ensuring that the const chaining rule rule is followed.
 								// For example, the following cast is invalid:
@@ -130,7 +130,7 @@ namespace locic {
 					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
 					SEM::Type* destTarget = destType->getReferenceTarget();
 					
-					if (!hasConstChain && sourceTarget->isMutable() && destTarget->isConst()) {
+					if (!hasConstChain && !sourceTarget->isConst() && destTarget->isConst()) {
 						// Check for const-correctness inside references,
 						// ensuring that the const chaining rule rule is followed.
 						// For example, the following cast is invalid:

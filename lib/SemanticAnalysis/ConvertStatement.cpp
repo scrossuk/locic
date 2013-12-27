@@ -61,7 +61,7 @@ namespace locic {
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
 					SEM::Value* boolValue = ImplicitCast(condition,
-							SEM::Type::Object(SEM::Type::CONST, boolType, NO_TEMPLATE_ARGS));
+							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
@@ -74,7 +74,7 @@ namespace locic {
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
 					SEM::Value* boolValue = ImplicitCast(condition,
-							SEM::Type::Object(SEM::Type::CONST, boolType, NO_TEMPLATE_ARGS));
+							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
@@ -110,17 +110,17 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(
 				}*/
 				case AST::Statement::VARDECL: {
-					AST::Node<AST::TypeVar> astTypeVarNode = statement->varDecl.typeVar;
+					const auto& astTypeVarNode = statement->varDecl.typeVar;
 					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
-					AST::Node<AST::Value> astInitialValueNode = statement->varDecl.value;
+					const auto& astInitialValueNode = statement->varDecl.value;
 					
-					SEM::Value* semValue = ConvertValue(context, astInitialValueNode);
+					auto semValue = ConvertValue(context, astInitialValueNode);
 					
 					// Check whether a type annotation has been used.
-					const bool autoType = (astTypeVarNode->namedVar.type->typeEnum == AST::Type::UNDEFINED);
+					const bool isAutoType = (astTypeVarNode->namedVar.type->typeEnum == AST::Type::AUTO);
 					
 					// If type is 'auto', infer it from type value.
-					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVarNode->namedVar.type);
+					auto varType = isAutoType ? semValue->type() : ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
@@ -131,11 +131,11 @@ namespace locic {
 					}
 					
 					// TODO: implement 'final'.
-					const bool isLvalMutable = SEM::Type::MUTABLE;
+					const bool isLvalConst = false;
+				
+					auto lvalType = varType->isLval() ? varType : makeValueLvalType(context, isLvalConst, varType);
 					
-					SEM::Type* lvalType = makeLvalType(context, astTypeVarNode->namedVar.usesCustomLval, isLvalMutable, varType);
-					
-					SEM::Var* semVar = SEM::Var::Local(lvalType);
+					auto semVar = SEM::Var::Local(lvalType);
 					
 					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
 					
