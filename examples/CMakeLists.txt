@@ -1,34 +1,36 @@
 set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
-set(EXAMPLE_SOURCES
-	Example1.loci
-	Example2.loci
-	)
-
-macro(copy_file name)
+macro(copy_example_file name)
 	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}"
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${name}" "${CMAKE_CURRENT_BINARY_DIR}/${name}"
 		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${name}")
-endmacro(copy_file)
+endmacro(copy_example_file)
 
-set(EXAMPLE_BUILD_SOURCES "")
-
-foreach(f ${EXAMPLE_SOURCES})
-	copy_file(${f})
-	list(APPEND EXAMPLE_BUILD_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${f})
-endforeach(f)
-
-add_custom_command(OUTPUT exampleProgram ast.txt sem.txt codegen.ll opt.ll clangopt.ll
+function(loci_example name binary_name)
+	set(${name}Sources ${ARGN})
+	set(${name}BuildSources "")
+	
+	foreach(f ${${name}Sources})
+		copy_example_file(${f})
+		list(APPEND ${name}BuildSources ${CMAKE_CURRENT_BINARY_DIR}/${f})
+	endforeach(f)
+	
+	add_custom_command(OUTPUT ${binary_name} ast.txt sem.txt codegen.ll opt.ll clangopt.ll
 		COMMAND # Run compiler.
-			${LOCIC} -O3 -o exampleProgram.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${EXAMPLE_BUILD_SOURCES} &&
+			${LOCIC} -O3 -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&
 			
 			# Use clang to optimise, since it currently does
 			# much better than locic.
 			clang -S -emit-llvm -O3 -o clangopt.ll opt.ll &&
 			
 			# Use clang to generate platform binary.
-			clang -o exampleProgram clangopt.ll -lm
-		DEPENDS ${LOCIC} ${EXAMPLE_BUILD_SOURCES})
+			clang -o ${binary_name} clangopt.ll -lm
+		DEPENDS ${LOCIC} ${${name}BuildSources}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+	
+	add_custom_target(${name}Example ALL DEPENDS ${binary_name})
+endfunction(loci_example)
 
-add_custom_target(ExampleProgram ALL DEPENDS exampleProgram)
+add_subdirectory(Calculator)
+add_subdirectory(General)
 
