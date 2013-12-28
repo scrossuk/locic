@@ -8,7 +8,13 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		// Wraps the given type as lval<type> value_type<type>.
 		SEM::Type* makeValueLvalType(Context& context, bool isLvalMutable, SEM::Type* valueType);
+		
+		// Wraps the given type as lval<type> value_type<type>, unless
+		// the type is itself an lval (or some number of refs that lead
+		// to an lval).
+		SEM::Type* makeLvalType(Context& context, bool isLvalConst, SEM::Type* valueType);
 		
 		bool canDissolveValue(SEM::Value* value);
 		

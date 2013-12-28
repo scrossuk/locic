@@ -63,7 +63,7 @@ namespace locic {
 				// TODO: implement 'final'.
 				const bool isLvalConst = false;
 				
-				auto lvalType = semParamType->isLval() ? semParamType : makeValueLvalType(context, isLvalConst, semParamType);
+				auto lvalType = makeLvalType(context, isLvalConst, semParamType);
 				
 				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}

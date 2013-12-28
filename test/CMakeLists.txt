@@ -8,4 +8,5 @@ endmacro(test_check_output)
 
 add_subdirectory(Class)
 add_subdirectory(Interface)
+add_subdirectory(Lval)
 

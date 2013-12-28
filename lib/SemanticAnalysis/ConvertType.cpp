@@ -85,7 +85,12 @@ namespace locic {
 					return ConvertType(context, type->getConstTarget())->createConstType();
 				}
 				case AST::Type::LVAL: {
-					return ConvertType(context, type->getLvalTarget())->createLvalType();
+					auto targetType = ConvertType(context, type->getLvalTarget());
+					return ConvertType(context, type->getLvalType())->createLvalType(targetType);
+				}
+				case AST::Type::REF: {
+					auto targetType = ConvertType(context, type->getRefTarget());
+					return ConvertType(context, type->getRefType())->createRefType(targetType);
 				}
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
@@ -122,7 +127,7 @@ namespace locic {
 				}
 				case AST::Type::REFERENCE: {
 					SEM::Type* refType = ConvertType(context, type->getReferenceTarget());
-					return SEM::Type::Reference(refType);
+					return SEM::Type::Reference(refType)->createRefType(refType);
 				}
 				case AST::Type::FUNCTION: {
 					SEM::Type* returnType = ConvertType(context, type->functionType.returnType);

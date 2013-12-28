@@ -10,8 +10,17 @@ namespace locic {
 	
 		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
 			SEM::TypeInstance* valueLvalTypeInstance = context.getBuiltInType("value_lval");
-			SEM::Type* valueLvalType = SEM::Type::Object(valueLvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType();
+			SEM::Type* valueLvalType = SEM::Type::Object(valueLvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
 			return isLvalConst ? valueLvalType->createConstType() : valueLvalType;
+		}
+		
+		SEM::Type* makeLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
+			SEM::Type* derefType = valueType;
+			while (derefType->isRef()) {
+				derefType = derefType->refTarget();
+			}
+			
+			return derefType->isLval() ? valueType : makeValueLvalType(context, isLvalConst, valueType);
 		}
 		
 		bool canDissolveValue(SEM::Value* value) {

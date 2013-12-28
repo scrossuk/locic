@@ -46,12 +46,20 @@ namespace locic {
 				static Type* Method(Type* functionType);
 				static Type* InterfaceMethod(Type* functionType);
 				
-				bool isConst() const;
-				bool isLval() const;
-				
 				Kind kind() const;
 				
 				ObjectKind objectKind() const;
+				
+				bool isConst() const;
+				bool isLval() const;
+				bool isRef() const;
+				
+				Type* lvalTarget() const;
+				Type* refTarget() const;
+				
+				Type* createConstType() const;
+				Type* createLvalType(Type* targetType) const;
+				Type* createRefType(Type* targetType) const;
 				
 				bool isVoid() const;
 				bool isNull() const;
@@ -83,9 +91,6 @@ namespace locic {
 				bool isPrimitive() const;
 				bool isClassOrTemplateVar() const;
 				
-				Type* createConstType() const;
-				Type* createLvalType() const;
-				
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
 				
 				Type* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
@@ -107,14 +112,15 @@ namespace locic {
 				}
 				
 			private:
-				Type(Kind k) :
-					kind_(k), isConst_(false), isLval_(false) { }
+				Type(Kind k);
 				
 				// Not assignable.
 				Type& operator=(Type) = delete;
 					
 				Kind kind_;
-				bool isConst_, isLval_;
+				bool isConst_;
+				Type* lvalTarget_;
+				Type* refTarget_;
 				
 				struct {
 					TypeInstance* typeInstance;

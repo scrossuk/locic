@@ -143,6 +143,7 @@ const T& GETSYM(T* value) {
 %token DELETE
 %token MOVE
 %token LVAL
+%token REF
 %token TEMPLATE
 %token TYPENAME
 %token VIRTUAL
@@ -593,9 +594,13 @@ typePrecision2:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
 	}
-	| LVAL typePrecision3
+	| LVAL LTRIBRACKET type RTRIBRACKET typePrecision3
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($5))));
+	}
+	| REF LTRIBRACKET type RTRIBRACKET typePrecision3
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($5))));
 	}
 	;
 

@@ -81,6 +81,7 @@ __primitive             { return PRIMITIVE; }
 auto                    { return AUTO; }
 const                   { return CONST; }
 lval                    { return LVAL; }
+ref                     { return REF; }
 
 using                   { return USING; }
 static                  { return STATIC; }

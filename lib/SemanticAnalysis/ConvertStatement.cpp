@@ -131,7 +131,7 @@ namespace locic {
 					// TODO: implement 'final'.
 					const bool isLvalConst = false;
 				
-					auto lvalType = varType->isLval() ? varType : makeValueLvalType(context, isLvalConst, varType);
+					auto lvalType = makeLvalType(context, isLvalConst, varType);
 					
 					auto semVar = SEM::Var::Local(lvalType);
 					

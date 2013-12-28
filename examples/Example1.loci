@@ -130,7 +130,7 @@ class custom_lval(int i) {
 	}
 }
 
-void lvalFunc(lval custom_lval& custLval) {
+void lvalFunc(lval<int> custom_lval& custLval) {
 	printf("Custom lval: %d\n"C, move custLval);
 }
 
@@ -192,7 +192,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 		free(reinterpret_cast<T*, void*>(@ptr));
 	}
 	
-	lval value_lval<T>& index(int i) {
+	lval<T> value_lval<T>& index(int i) {
 		if (i >= 0) {
 			if (i < @size) {
 				return @ptr[i];
@@ -223,8 +223,6 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	printf("!!!!!!!!!!!!!!!\n"C);
-	
 	{
 		auto m = createMemory();
 		for (auto i: count(0 - 5, m.size() + 5)) {
@@ -241,7 +239,7 @@ int main(int argc, char ** argv){
 		argIndex += 1;
 	}
 	
-	lval custom_lval custLval = custom_lval();
+	lval<int> custom_lval custLval = custom_lval();
 	custLval = 101;
 	lvalFunc(custLval);
 	

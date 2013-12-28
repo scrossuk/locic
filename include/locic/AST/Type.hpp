@@ -19,10 +19,11 @@ namespace locic {
 			enum TypeEnum {
 				NONE,
 				AUTO,
-				VOID,
-				BRACKET,
 				CONST,
 				LVAL,
+				REF,
+				BRACKET,
+				VOID,
 				NULLT,
 				OBJECT,
 				REFERENCE,
@@ -39,7 +40,13 @@ namespace locic {
 			
 			struct {
 				Node<Type> targetType;
+				Node<Type> lvalType;
 			} lvalType;
+			
+			struct {
+				Node<Type> targetType;
+				Node<Type> refType;
+			} refType;
 			
 			struct {
 				Node<Symbol> symbol;
@@ -79,9 +86,17 @@ namespace locic {
 				return type;
 			}
 			
-			inline static Type* Lval(Node<Type> targetType) {
+			inline static Type* Lval(const Node<Type>& targetType, const Node<Type>& lvalType) {
 				Type* type = new Type(LVAL);
 				type->lvalType.targetType = targetType;
+				type->lvalType.lvalType = lvalType;
+				return type;
+			}
+			
+			inline static Type* Ref(const Node<Type>& targetType, const Node<Type>& refType) {
+				Type* type = new Type(REF);
+				type->refType.targetType = targetType;
+				type->refType.refType = refType;
 				return type;
 			}
 			
@@ -146,6 +161,25 @@ namespace locic {
 			inline Node<Type> getLvalTarget() const {
 				assert(isLval());
 				return lvalType.targetType;
+			}
+			
+			inline Node<Type> getLvalType() const {
+				assert(isLval());
+				return lvalType.lvalType;
+			}
+			
+			inline bool isRef() const {
+				return typeEnum == REF;
+			}
+			
+			inline Node<Type> getRefTarget() const {
+				assert(isRef());
+				return refType.targetType;
+			}
+			
+			inline Node<Type> getRefType() const {
+				assert(isRef());
+				return refType.refType;
 			}
 			
 			inline bool isNull() const {

@@ -75,6 +75,9 @@ namespace locic {
 			return type->createConstType();
 		}
 		
+		Type::Type(Kind k) :
+			kind_(k), isConst_(false), lvalTarget_(NULL), refTarget_(NULL) { }
+		
 		ObjectKind Type::objectKind() const {
 			return OBJECT_TYPE;
 		}
@@ -88,7 +91,41 @@ namespace locic {
 		}
 		
 		bool Type::isLval() const {
-			return isLval_;
+			return lvalTarget_ != NULL;
+		}
+		
+		bool Type::isRef() const {
+			return refTarget_ != NULL;
+		}
+		
+		Type* Type::lvalTarget() const {
+			assert(isLval());
+			return lvalTarget_;
+		}
+		
+		Type* Type::refTarget() const {
+			assert(isRef());
+			return refTarget_;
+		}
+		
+		Type* Type::createConstType() const {
+			Type* type = new Type(*this);
+			type->isConst_ = true;
+			return type;
+		}
+		
+		Type* Type::createLvalType(Type* targetType) const {
+			assert(!isLval() && !isRef());
+			Type* type = new Type(*this);
+			type->lvalTarget_ = targetType;
+			return type;
+		}
+		
+		Type* Type::createRefType(Type* targetType) const {
+			assert(!isLval() && !isRef());
+			Type* type = new Type(*this);
+			type->refTarget_ = targetType;
+			return type;
 		}
 		
 		bool Type::isVoid() const {
@@ -204,18 +241,6 @@ namespace locic {
 			return isClass() || isTemplateVar();
 		}
 		
-		Type* Type::createConstType() const {
-			Type* type = new Type(*this);
-			type->isConst_ = true;
-			return type;
-		}
-		
-		Type* Type::createLvalType() const {
-			Type* type = new Type(*this);
-			type->isLval_ = true;
-			return type;
-		}
-		
 		Map<TemplateVar*, Type*> Type::generateTemplateVarMap() const {
 			assert(isObject() || isTemplateVar());
 			
@@ -304,8 +329,9 @@ namespace locic {
 		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
 			auto substitutedType = substituteTemplateVariables(this, templateVarMap);
 			auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
-			auto lvalType = isLval() ? constType->createLvalType() : constType;
-			return lvalType;
+			auto lvalType = isLval() ? constType->createLvalType(lvalTarget()) : constType;
+			auto refType = isRef() ? lvalType->createRefType(refTarget()) : lvalType;
+			return refType;
 		}
 		
 		bool Type::supportsImplicitCopy() const {

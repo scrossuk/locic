@@ -333,10 +333,19 @@ namespace locic {
 					builder.CreateRet(function.getContextValue());
 				} else if (methodName == "move") {
 					if (function.getArgInfo().hasReturnVarArgument()) {
+						// For types where the size isn't always known
+						// (i.e. non-primitives), a pointer to the return
+						// value (the 'return var') will be passed, so
+						// just store into that.
 						genStore(function, function.getContextValue(), function.getReturnVar(), targetType);
 						builder.CreateRetVoid();
 					} else {
-						builder.CreateRet(builder.CreateLoad(function.getContextValue()));
+						// For types where the size is always known,
+						// just load the value and return it. However,
+						// it is necessary to zero out the lval's data.
+						auto loadedValue = builder.CreateLoad(function.getContextValue());
+						genZero(function, targetType, function.getContextValue());
+						builder.CreateRet(loadedValue);
 					}
 				} else if (methodName == "dissolve") {
 					builder.CreateRet(function.getContextValue());

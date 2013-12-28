@@ -1,0 +1,11 @@
+testEntryPoint: Value = 4
+assignFunction: Previous value = 4
+assignFunction: New value = 10
+testEntryPoint: Value = 10
+moveFunction: Previous value = 10
+moveFunction: Moved value = 10
+moveFunction: New value = 0
+testEntryPoint: Value = 0
+assignFunction: Previous value = 0
+assignFunction: New value = 20
+testEntryPoint: Value = 20
