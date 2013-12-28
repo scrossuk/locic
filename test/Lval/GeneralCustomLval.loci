@@ -1,0 +1,108 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+interface serializable {
+	const char * const toCString();
+}
+
+template <typename T: serializable>
+class custom_lval(T value) {
+	static Default(T value) {
+		testPrint("custom_lval.Default: Value = %s"C, value.toCString());
+		return @(move value);
+	}
+	
+	T* address() {
+		testPrint("custom_lval.address: Value = %s"C, @value.toCString());
+		return &@value;
+	}
+
+	void assign(T value) {
+		testPrint("custom_lval.assign: Previous value = %s, New value = %s"C, @value.toCString(), value.toCString());
+		@value = move value;
+	}
+	
+	T& dissolve() {
+		testPrint("custom_lval.dissolve: Value = %s"C, @value.toCString());
+		return @value;
+	}
+	
+	T move() {
+		testPrint("custom_lval.move: Value = %s"C, @value.toCString());
+		return move @value;
+	}
+}
+
+class TestClass(int a, int b) {
+	static Default(int a, int b) {
+		return @(a, b);
+	}
+	
+	const char* const toCString() {
+		if (@a == 0) {
+			if (@b == 0) {
+				return "Both Zero"C;
+			}
+		}
+		
+		if (@a < @b) {
+			return "OrderedLess"C;
+		}
+		
+		if (@a > @b) {
+			return "OrderedMore"C;
+		}
+		
+		return "OrderedEqual"C;
+	}
+}
+
+void addressAssignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, TestClass value) {
+	TestClass* valuePtr = &objectLval;
+	
+	testPrint("addressAssignFunction: Previous value = %s"C, (*valuePtr).toCString());
+	
+	*valuePtr = move value;
+	
+	testPrint("addressAssignFunction: New value = %s"C, (*valuePtr).toCString());
+}
+
+void assignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, TestClass value) {
+	testPrint("assignFunction: Previous value = %s"C, objectLval.toCString());
+	
+	objectLval = move value;
+	
+	testPrint("assignFunction: New value = %s"C, objectLval.toCString());
+}
+
+void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
+	testPrint("moveFunction: Previous value = %s"C, objectLval.toCString());
+	
+	TestClass value = move objectLval;
+	
+	testPrint("moveFunction: Moved value = %s"C, value.toCString());
+	
+	testPrint("moveFunction: New value = %s"C, objectLval.toCString());
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	lval<TestClass> custom_lval<TestClass> value = custom_lval<TestClass>(TestClass(2, 2));
+	
+	testPrint("testEntryPoint: Value = %s"C, value.toCString());
+	
+	addressAssignFunction(value, TestClass(1, 2));
+	
+	testPrint("testEntryPoint: Value = %s"C, value.toCString());
+	
+	assignFunction(value, TestClass(2, 1));
+	
+	testPrint("testEntryPoint: Value = %s"C, value.toCString());
+	
+	moveFunction(value);
+	
+	testPrint("testEntryPoint: Value = %s"C, value.toCString());
+	
+	return 0;
+}
+

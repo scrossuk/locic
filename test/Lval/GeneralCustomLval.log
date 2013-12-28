@@ -1,0 +1,23 @@
+custom_lval.Default: Value = OrderedEqual
+custom_lval.dissolve: Value = OrderedEqual
+testEntryPoint: Value = OrderedEqual
+custom_lval.address: Value = OrderedEqual
+addressAssignFunction: Previous value = OrderedEqual
+addressAssignFunction: New value = OrderedLess
+custom_lval.dissolve: Value = OrderedLess
+testEntryPoint: Value = OrderedLess
+custom_lval.dissolve: Value = OrderedLess
+assignFunction: Previous value = OrderedLess
+custom_lval.assign: Previous value = OrderedLess, New value = OrderedMore
+custom_lval.dissolve: Value = OrderedMore
+assignFunction: New value = OrderedMore
+custom_lval.dissolve: Value = OrderedMore
+testEntryPoint: Value = OrderedMore
+custom_lval.dissolve: Value = OrderedMore
+moveFunction: Previous value = OrderedMore
+custom_lval.move: Value = OrderedMore
+moveFunction: Moved value = OrderedMore
+custom_lval.dissolve: Value = Both Zero
+moveFunction: New value = Both Zero
+custom_lval.dissolve: Value = Both Zero
+testEntryPoint: Value = Both Zero
