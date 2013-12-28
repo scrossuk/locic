@@ -1,0 +1,71 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class TestClass (int value) {
+	static Default(int value) {
+		testPrint("TestClass.Default: Value = %d"C, value);
+		return @(value);
+	}
+	
+	TestClass implicitCopy() {
+		int result = @value * 2;
+		testPrint("TestClass.implicitCopy: Value = %d, Copy value = %d"C, @value, result);
+		return @(result);
+	}
+	
+	int getValue() {
+		testPrint("TestClass.getValue: Value = %d"C, @value);
+		return @value;
+	}
+	
+	TestClass combine(TestClass& arg) {
+		int argValue = arg.getValue();
+		int result = @value * argValue;
+		testPrint("TestClass.combine: Value = %d, Arg value = %d, Combined value = %d"C, @value, argValue, result);
+		return @(result);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass inst1 = TestClass(1);
+	
+	// Should have no effect.
+	TestClass& inst1Ref = inst1;
+	
+	// Should have no effect.
+	lval<TestClass> value_lval<TestClass>& inst1LvalRef = inst1;
+	
+	TestClass inst2 = inst1;
+	
+	TestClass inst3 = inst1;
+	
+	TestClass inst4 = inst2;
+	
+	TestClass inst5 = inst2;
+	
+	TestClass inst6 = inst4;
+	
+	TestClass inst7 = inst4;
+	
+	TestClass combined = inst6.combine(inst7);
+	
+	testPrint("Inst1: Value = %d"C, inst1.getValue());
+	
+	testPrint("Inst2: Value = %d"C, inst2.getValue());
+	
+	testPrint("Inst3: Value = %d"C, inst3.getValue());
+	
+	testPrint("Inst4: Value = %d"C, inst4.getValue());
+	
+	testPrint("Inst5: Value = %d"C, inst5.getValue());
+	
+	testPrint("Inst6: Value = %d"C, inst6.getValue());
+	
+	testPrint("Inst7: Value = %d"C, inst7.getValue());
+	
+	testPrint("Combined: Value = %d"C, combined.getValue());
+	
+	return 0;
+}
+
