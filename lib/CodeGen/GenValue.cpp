@@ -115,13 +115,6 @@ namespace locic {
 					}
 				}
 				
-				case SEM::Value::COPY: {
-					// This copies built-in types only; object
-					// copies use the 'implicitCopy' method.
-					assert(!value->type()->isObject());
-					return genValue(function, value->copyValue.value);
-				}
-				
 				case SEM::Value::VAR: {
 					SEM::Var* var = value->varValue.var;
 					

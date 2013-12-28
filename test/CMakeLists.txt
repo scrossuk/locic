@@ -3,7 +3,7 @@
 
 macro(test_check_output name)
 	add_test(NAME TestCheckOutput${name}
-		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci --expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log)
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestCheckOutput${name} --expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
 endmacro(test_check_output)
 
 add_subdirectory(Class)

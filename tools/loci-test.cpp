@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
 		if (argc < 1) return -1;
 		const std::string programName = boost::filesystem::path(argv[0]).stem().string();
 		
+		std::string testName;
 		std::vector<std::string> inputFileNames;
 		std::string entryPointName;
 		std::string expectedOutputFileName;
@@ -85,6 +86,7 @@ int main(int argc, char* argv[]) {
 		po::options_description visibleOptions("Options");
 		visibleOptions.add_options()
 		("help,h", "Display help information")
+		("test-name", po::value<std::string>(&testName), "Set test name")
 		("entry-point", po::value<std::string>(&entryPointName)->default_value("testEntryPoint"), "Set entry point function name")
 		("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
 		("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
@@ -115,6 +117,13 @@ int main(int argc, char* argv[]) {
 		}
 		
 		if (!variableMap["help"].empty()) {
+			printf("Usage: %s [options] file...\n", programName.c_str());
+			std::cout << visibleOptions << std::endl;
+			return -1;
+		}
+		
+		if (testName.empty()) {
+			printf("%s: No test name specified.\n", programName.c_str());
 			printf("Usage: %s [options] file...\n", programName.c_str());
 			std::cout << visibleOptions << std::endl;
 			return -1;
@@ -168,10 +177,19 @@ int main(int argc, char* argv[]) {
 		SEM::Namespace* rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList);
 		assert(rootSEMNamespace != NULL);
 		
+		// Dump SEM tree information.
+		const std::string semDebugFileName = testName + "_semdebug.txt";
+		std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
+		ofs << formatMessage(rootSEMNamespace->toString());
+		
 		// Perform code generation.
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 		CodeGen::CodeGenerator codeGenerator(targetInfo, "test");
 		codeGenerator.genNamespace(rootSEMNamespace);
+		
+		// Dump LLVM IR.
+		const std::string codeGenDebugFileName = testName + "_codegendebug.ll";
+		codeGenerator.dumpToFile(codeGenDebugFileName);
 		
 		// Interpret the code.
 		CodeGen::Interpreter interpreter(codeGenerator.module());

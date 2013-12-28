@@ -116,6 +116,7 @@ namespace locic {
 		
 		Type* Type::createLvalType(Type* targetType) const {
 			assert(!isLval() && !isRef());
+			assert(isObject());
 			Type* type = new Type(*this);
 			type->lvalTarget_ = targetType;
 			return type;
@@ -262,7 +263,7 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		static Type* substituteTemplateVariables(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
+		static Type* doSubstitute(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
 			switch (type->kind()) {
 				case Type::VOID: {
 					return Type::Void();
@@ -327,10 +328,10 @@ namespace locic {
 		}
 		
 		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
-			auto substitutedType = substituteTemplateVariables(this, templateVarMap);
+			auto substitutedType = doSubstitute(this, templateVarMap);
 			auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
-			auto lvalType = isLval() ? constType->createLvalType(lvalTarget()) : constType;
-			auto refType = isRef() ? lvalType->createRefType(refTarget()) : lvalType;
+			auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
+			auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
 			return refType;
 		}
 		
@@ -342,7 +343,7 @@ namespace locic {
 				case FUNCTION:
 				case METHOD:
 				case INTERFACEMETHOD:
-					// Pointer, function and method types can be copied implicitly.
+					// Built-in types can be copied implicitly.
 					return true;
 					
 				case OBJECT:
@@ -461,10 +462,15 @@ namespace locic {
 			
 			const std::string lvalStr =
 				isLval() ?
-					makeString("Lval(%s)", constStr.c_str()) :
+					makeString("Lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
 					constStr;
 			
-			return lvalStr;
+			const std::string refStr =
+				isRef() ?
+					makeString("Ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
+					lvalStr;
+			
+			return refStr;
 		}
 		
 		bool Type::operator==(const Type& type) const {

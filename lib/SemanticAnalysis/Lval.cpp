@@ -2,6 +2,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -15,31 +16,16 @@ namespace locic {
 		}
 		
 		SEM::Type* makeLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
-			SEM::Type* derefType = valueType;
-			while (derefType->isRef()) {
-				derefType = derefType->refTarget();
-			}
-			
-			return derefType->isLval() ? valueType : makeValueLvalType(context, isLvalConst, valueType);
+			return getDerefType(valueType)->isLval() ? valueType : makeValueLvalType(context, isLvalConst, valueType);
 		}
 		
 		bool canDissolveValue(SEM::Value* value) {
-			// Dereference any number of references.
-			while (value->type()->isReference()) {
-				value = SEM::Value::DerefReference(value);
-			}
-			
-			auto type = value->type();
+			auto type = getDerefType(value->type());
 			return type->isLval() && type->isObject() && type->getObjectType()->hasProperty("dissolve");
 		}
 		
 		SEM::Value* dissolveLval(SEM::Value* value) {
-			// Dereference any number of references.
-			while (value->type()->isReference()) {
-				value = SEM::Value::DerefReference(value);
-			}
-			
-			auto type = value->type();
+			auto type = getDerefType(value->type());
 			
 			if (!type->isLval()) {
 				throw TodoException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
@@ -56,7 +42,7 @@ namespace locic {
 					type->toString().c_str()));
 			}
 			
-			return CallProperty(value, "dissolve", std::vector<SEM::Value*>());
+			return CallProperty(derefValue(value), "dissolve", std::vector<SEM::Value*>());
 		}
 		
 		SEM::Value* tryDissolveValue(SEM::Value* value) {

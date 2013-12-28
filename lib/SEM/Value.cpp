@@ -16,9 +16,6 @@ namespace locic {
 				case CONSTANT:
 					return makeString("Constant(%s)",
 							constant->toString().c_str());
-				case COPY:
-					return makeString("Copy(%s)",
-							copyValue.value->toString().c_str());
 				case VAR:
 					return makeString("VarValue(%s)",
 							varValue.var->toString().c_str());

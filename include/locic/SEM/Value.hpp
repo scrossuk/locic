@@ -19,7 +19,6 @@ namespace locic {
 				enum Kind {
 					NONE,
 					CONSTANT,
-					COPY,
 					VAR,
 					REINTERPRET,
 					DEREF_REFERENCE,
@@ -41,10 +40,6 @@ namespace locic {
 				};
 				
 				locic::Constant* constant;
-				
-				struct {
-					Value* value;
-				} copyValue;
 				
 				struct {
 					Var* var;
@@ -131,15 +126,8 @@ namespace locic {
 					return value;
 				}
 				
-				inline static Value* CopyValue(Value* value) {
-					assert(!value->type()->isObject());
-					Value* valueCopy = new Value(COPY, value->type()->getImplicitCopyType());
-					valueCopy->copyValue.value = value;
-					return valueCopy;
-				}
-				
 				inline static Value* VarValue(Var* var) {
-					Value* value = new Value(VAR, SEM::Type::Reference(var->type()));
+					Value* value = new Value(VAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
 					value->varValue.var = var;
 					return value;
 				}

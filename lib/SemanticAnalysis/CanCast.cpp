@@ -6,6 +6,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -231,38 +232,66 @@ namespace locic {
 			return ImplicitCastFormatOnlyTop(value, destType);
 		}
 		
-		static inline SEM::Value* ImplicitCastRefImplicitCopy(SEM::Value* object, SEM::Type* destType) {
+		static inline SEM::Value* ImplicitCastRefImplicitCopy(SEM::Value* object, SEM::Type* destType);
+		
+		static inline SEM::Value* ImplicitCastDeref(SEM::Value* object, SEM::Type* destType) {
 			try {
 				return ImplicitCastNullConstruction(object, destType);
 			} catch(const Exception& e) {
-				// Didn't work; try using dereference with implicit copy if possible.
-				LOG(LOG_INFO, "Encountered error in cast; attempting to dereference and implicit copy (error is: %s).", formatMessage(e.toString()).c_str());
+				// Didn't work; try using dissolve if possible.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to deref (error is: %s).", formatMessage(e.toString()).c_str());
 				
-				SEM::Type* type = object->type();
-				if (!type->isReference()) {
-					LOG(LOG_INFO, "Type is NOT a reference; cannot dereference.");
+				if (!object->type()->isRef() || !object->type()->refTarget()->isRef()) {
+					LOG(LOG_INFO, "Cannot deref object '%s' of type '%s', in cast to '%s'.",
+						object->toString().c_str(), object->type()->toString().c_str(), destType->toString().c_str());
 					throw;
 				}
 				
-				if (!type->getReferenceTarget()->supportsImplicitCopy()) {
-					LOG(LOG_INFO, "Reference target type is not implicitly copyable.");
+				return ImplicitCastRefImplicitCopy(SEM::Value::DerefReference(object), destType);
+			}
+		}
+		
+		static inline SEM::Value* ImplicitCastOpDissolve(SEM::Value* object, SEM::Type* destType) {
+			try {
+				return ImplicitCastDeref(object, destType);
+			} catch(const Exception& e) {
+				// Didn't work; try using dissolve if possible.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to dissolve (error is: %s).", formatMessage(e.toString()).c_str());
+				
+				if (!canDissolveValue(object)) {
+					LOG(LOG_INFO, "Cannot disolve object '%s' of type '%s', in cast to '%s'.",
+						object->toString().c_str(), object->type()->toString().c_str(), destType->toString().c_str());
 					throw;
 				}
 				
-				LOG(LOG_INFO, "Type is reference and reference target type is implicitly copyable.");
+				return ImplicitCastRefImplicitCopy(dissolveLval(object), destType);
+			}
+		}
+		
+		static inline SEM::Value* ImplicitCastRefImplicitCopy(SEM::Value* object, SEM::Type* destType) {
+			try {
+				return ImplicitCastOpDissolve(object, destType);
+			} catch(const Exception& e) {
+				// Didn't work; try using implicit copy if possible.
+				LOG(LOG_INFO, "Encountered error in cast; attempting to implicit copy (error is: %s).", formatMessage(e.toString()).c_str());
 				
-				SEM::Value* derefObject = SEM::Value::DerefReference(object);
-				SEM::Type* derefType = derefObject->type();
+				SEM::Type* type = getDerefType(object->type());
+				if (!object->type()->isRef() || !type->supportsImplicitCopy()) {
+					LOG(LOG_INFO, "Type is not implicitly copyable.");
+					throw;
+				}
 				
-				SEM::Value* copyValue = derefType->isObject() ?
-					CallProperty(derefObject, "implicitCopy", std::vector<SEM::Value*>()) :
-					SEM::Value::CopyValue(derefObject);
+				LOG(LOG_INFO, "Type is implicitly copyable.");
+				
+				SEM::Value* copyValue = type->isObject() ?
+					CallProperty(derefValue(object), "implicitCopy", std::vector<SEM::Value*>()) :
+					derefAll(object);
 				
 				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", copyValue->type()->toString().c_str(), destType->toString().c_str());
 				
-				SEM::Value* castValue = ImplicitCastNullConstruction(copyValue, destType);
+				SEM::Value* castValue = ImplicitCastRefImplicitCopy(copyValue, destType);
 				
-				LOG(LOG_INFO, "Dereference and implicit copy worked: %s.", castValue->toString().c_str());
+				LOG(LOG_INFO, "Implicit copy worked: %s.", castValue->toString().c_str());
 				return castValue;
 			}
 		}
@@ -284,7 +313,7 @@ namespace locic {
 				
 				SEM::Value* copyValue = type->isObject() ?
 					CallProperty(object, "implicitCopy", std::vector<SEM::Value*>()) :
-					SEM::Value::CopyValue(object);
+					derefAll(object);
 				
 				LOG(LOG_INFO, "Now trying to cast type '%s' to type '%s'.", copyValue->type()->toString().c_str(), destType->toString().c_str());
 				
@@ -295,30 +324,13 @@ namespace locic {
 			}
 		}
 		
-		static inline SEM::Value* ImplicitCastOpDissolve(SEM::Value* object, SEM::Type* destType) {
-			try {
-				return ImplicitCastImplicitCopy(object, destType);
-			} catch(const Exception& e) {
-				// Didn't work; try using dissolve if possible.
-				LOG(LOG_INFO, "Encountered error in cast; attempting to dissolve (error is: %s).", formatMessage(e.toString()).c_str());
-				
-				if (!canDissolveValue(object)) {
-					LOG(LOG_INFO, "Cannot disolve object '%s' of type '%s', in cast to '%s'.",
-						object->toString().c_str(), object->type()->toString().c_str(), destType->toString().c_str());
-					throw;
-				}
-				
-				return ImplicitCastImplicitCopy(dissolveLval(object), destType);
-			}
-		}
-		
 		static inline SEM::Value* ImplicitCastAllToVoid(SEM::Value* value, SEM::Type* destType) {
 			if (destType->isVoid()) {
 				// Everything can be cast to void.
 				return SEM::Value::Cast(destType, value);
 			}
 			
-			return ImplicitCastOpDissolve(value, destType);
+			return ImplicitCastImplicitCopy(value, destType);
 		}
 		
 		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {

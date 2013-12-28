@@ -10,23 +10,20 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* object, const std::string& memberName) {
-			// Any number of extra levels of references are automatically dereferenced.
-			while (object->type()->isReference() && object->type()->getReferenceTarget()->isReference()) {
-				object = SEM::Value::DerefReference(object);
-			}
-			
-			SEM::Type* objectType = object->type()->isReference() ? object->type()->getReferenceTarget() : object->type();
+		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* accessObject, const std::string& memberName) {
+			auto object = derefValue(accessObject);
+			auto objectType = getDerefType(accessObject->type());
 			
 			if (!objectType->isObject() && !objectType->isTemplateVar()) {
-				throw TodoException(makeString("Can't access member of non-object value '%s'.",
-					object->toString().c_str()));
+				throw TodoException(makeString("Can't access member of non-object value '%s' of type '%s'.",
+					object->toString().c_str(), objectType->toString().c_str()));
 			}
 			
 			SEM::TypeInstance* typeInstance =
@@ -80,8 +77,9 @@ namespace locic {
 						return SEM::Value::MethodObject(functionRef, object);
 					}
 				} else {
-					throw TodoException(makeString("Can't find method '%s' in type '%s'.",
-						memberName.c_str(), typeInstance->name().toString().c_str()));
+					throw TodoException(makeString("Can't find method '%s' in type '%s' with value %s.",
+						memberName.c_str(), typeInstance->name().toString().c_str(),
+						object->toString().c_str()));
 				}
 			} else if (typeInstance->isStructDecl()) {
 				throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
