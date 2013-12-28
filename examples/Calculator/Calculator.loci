@@ -8,9 +8,10 @@ bool isStrEqual(const char * const s1, const char * const s2) {
 }
 
 int main(int argc, char ** argv){
-	printf("Welcome to Calculator!\n"C);
+	printf("* Welcome to Calculator! *\n"C);
 	
 	const char * const usage = "loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)"C;
+	const char * const answerText = "Here's your answer"C;
 	
 	if (argc < 4) {
 		printf("Too few arguments! You need to give 3 arguments:\n"C);
@@ -24,34 +25,31 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
+	const char * const op = argv[1];
 	int arg1 = atoi(argv[2]);
 	int arg2 = atoi(argv[3]);
 	
-	if (isStrEqual(argv[1], "add"C)) {
-		int result = arg1 + arg2;
-		printf("Here's your answer: %d.\n"C, result);
+	if (isStrEqual(op, "add"C)) {
+		printf("%s: %d.\n"C, answerText, arg1 + arg2);
 		return 0;
 	}
 	
-	if (isStrEqual(argv[1], "sub"C)) {
-		int result = arg1 - arg2;
-		printf("Here's your answer: %d.\n"C, result);
+	if (isStrEqual(op, "sub"C)) {
+		printf("%s: %d.\n"C, answerText, arg1 - arg2);
 		return 0;
 	}
 	
-	if (isStrEqual(argv[1], "mul"C)) {
-		int result = arg1 * arg2;
-		printf("Here's your answer: %d.\n"C, result);
+	if (isStrEqual(op, "mul"C)) {
+		printf("%s: %d.\n"C, answerText, arg1 * arg2);
 		return 0;
 	}
 	
-	if (isStrEqual(argv[1], "div"C)) {
-		int result = arg1 / arg2;
-		printf("Here's your answer: %d.\n"C, result);
+	if (isStrEqual(op, "div"C)) {
+		printf("%s: %d.\n"C, answerText, arg1 / arg2);
 		return 0;
 	}
 	
-	printf("Unknown operation '%s'. Sorry...\n"C, argv[1]);
+	printf("Unknown operation '%s'. Sorry...\n"C, op);
 	return 1;
 }
 
