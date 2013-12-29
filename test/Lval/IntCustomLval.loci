@@ -60,7 +60,7 @@ void moveFunction(lval<int> custom_lval& objectLval) {
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
-	lval<int> custom_lval value = custom_lval(4);
+	lval<int> custom_lval value = lval<int>(custom_lval(4));
 	
 	testPrint("testEntryPoint: Value = %d"C, value);
 	

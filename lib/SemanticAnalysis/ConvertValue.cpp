@@ -263,6 +263,38 @@ namespace locic {
 							return NULL;
 					}
 				}
+				case AST::Value::LVAL: {
+					SEM::Value* sourceValue = ConvertValue(context, astValueNode->makeLval.value);
+					
+					if (sourceValue->type()->isLval()) {
+						throw TodoException(makeString("Can't create lval of value that is already a lval, for value '%s'.",
+							sourceValue->toString().c_str()));
+					}
+					
+					if (sourceValue->type()->isRef()) {
+						throw TodoException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
+							sourceValue->toString().c_str()));
+					}
+					
+					SEM::Type* targetType = ConvertType(context, astValueNode->makeLval.targetType);
+					return SEM::Value::Lval(targetType, sourceValue);
+				}
+				case AST::Value::REF: {
+					SEM::Value* sourceValue = ConvertValue(context, astValueNode->makeRef.value);
+					
+					if (sourceValue->type()->isLval()) {
+						throw TodoException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
+							sourceValue->toString().c_str()));
+					}
+					
+					if (sourceValue->type()->isRef()) {
+						throw TodoException(makeString("Can't create ref of value that is already a ref, for value '%s'.",
+							sourceValue->toString().c_str()));
+					}
+					
+					SEM::Type* targetType = ConvertType(context, astValueNode->makeRef.targetType);
+					return SEM::Value::Ref(targetType, sourceValue);
+				}
 				case AST::Value::INTERNALCONSTRUCT: {
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					

@@ -24,6 +24,10 @@ namespace locic {
 			return (new Type(NULLT))->createConstType();
 		}
 		
+		Type* Type::Auto() {
+			return new Type(AUTO);
+		}
+		
 		Type* Type::Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			
@@ -129,12 +133,24 @@ namespace locic {
 			return type;
 		}
 		
+		Type* Type::withoutTags() const {
+			Type* type = new Type(*this);
+			type->isConst_ = false;
+			type->lvalTarget_ = NULL;
+			type->refTarget_ = NULL;
+			return type;
+		}
+		
 		bool Type::isVoid() const {
 			return kind() == VOID;
 		}
 		
 		bool Type::isNull() const {
 			return kind() == NULLT;
+		}
+		
+		bool Type::isAuto() const {
+			return kind() == AUTO;
 		}
 		
 		bool Type::isReference() const {
@@ -390,6 +406,9 @@ namespace locic {
 					
 				case NULLT:
 					return "NullType";
+				
+				case AUTO:
+					return "Auto";
 					
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
@@ -425,6 +444,9 @@ namespace locic {
 					
 				case NULLT:
 					return "NullType";
+				
+				case AUTO:
+					return "Auto";
 					
 				case OBJECT:
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",

@@ -26,17 +26,38 @@ namespace locic {
 				: llvm::Function::LinkOnceODRLinkage;
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* function) {
-			assert(function != NULL);
+		static SEM::Function* getFunctionInParent(SEM::Type* unresolvedParent, const std::string& name) {
+			for (auto function: unresolvedParent->getObjectType()->functions()) {
+				if (function->name().last() == name) {
+					return function;
+				}
+			}
+			return NULL;
+		}
+		
+		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* unresolvedFunction) {
+			assert(unresolvedFunction != NULL);
 			
-			SEM::Type* parent =
+			// Resolve parent type, by replacing any template variables
+			// with their mapped values.
+			auto parent =
 				unresolvedParent != NULL ?
 					module.resolveType(unresolvedParent) :
 					NULL;
 			
+			// Similarly, for template variables refer to the
+			// method of the actual mapped type.
+			auto function =
+				unresolvedParent != NULL && unresolvedParent->isTemplateVar() ?
+					getFunctionInParent(parent, unresolvedFunction->name().last()) :
+					unresolvedFunction;
+			
 			if (function->isMethod()) {
 				assert(parent != NULL);
-				LOG(LOG_INFO, "Function parent is %s.",
+				LOG(LOG_INFO, "Function unresolved parent is %s.",
+					unresolvedParent->toString().c_str());
+				
+				LOG(LOG_INFO, "Function resolved parent is %s.",
 					parent->toString().c_str());
 				assert(parent->isObject());
 			} else {

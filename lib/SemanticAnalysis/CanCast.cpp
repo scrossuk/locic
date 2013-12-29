@@ -13,147 +13,207 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		static bool CanImplicitCastFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain) {
+		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain);
+		
+		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain) {
+			if (destType->isAuto()) {
+				// 'auto' is pattern matching, so in this
+				// case it can match the source type.
+				return sourceType->withoutTags();
+			}
+			
 			if (sourceType->kind() != destType->kind()) {
 				// At this point types need to be in the same group.
-				return false;
+				return NULL;
 			}
-			
-			if (sourceType->isConst() && !destType->isConst()) {
-				// No copying can be done now, so this is just an error.
-				return false;
-			}
-			
-			if (!sourceType->isConst() && destType->isConst()) {
-				assert(hasParentConstChain && "Must be a const chain for mutable-to-const cast to succeed.");
-			}
-			
-			// There is a chain of const if all parents of the destination type are const,
-			// and the destination type itself is const.
-			const bool hasConstChain = hasParentConstChain && destType->isConst();
 			
 			switch (destType->kind()) {
 				case SEM::Type::VOID: {
 					// Void can be cast to void...
-					return true;
+					return sourceType->withoutTags();
 				}
 				case SEM::Type::NULLT: {
 					// Null can be cast to null...
-					return true;
+					return sourceType->withoutTags();
 				}
 				case SEM::Type::OBJECT: {
 					// Objects can only be cast to the same object type.
-					if (sourceType->getObjectType() == destType->getObjectType()) {
-						// The same type instance can be cast to itself.
-						// Need to check template arguments.
-						const auto sourceNumArgs = sourceType->templateArguments().size();
-						const auto destNumArgs = destType->templateArguments().size();
-						
-						if (sourceNumArgs != destNumArgs) {
-							throw TodoException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
-								sourceType->toString().c_str(), destType->toString().c_str()));
-						}
-						
-						for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
-							const auto sourceTemplateArg = sourceType->templateArguments().at(i);
-							const auto destTemplateArg = destType->templateArguments().at(i);
-							
-							if (!hasConstChain && !sourceTemplateArg->isConst() && destTemplateArg->isConst()) {
-								// Check for const-correctness inside templates,
-								// ensuring that the const chaining rule is followed.
-								// For example, the following cast is invalid:
-								//         ptr<T> -> ptr<const T>
-								// It can be made valid by changing it to:
-								//         const ptr<T> -> const ptr<const T>
-								
-								// throw CastConstChainingViolationException(sourceType, destType);
-								return false;
-							}
-							
-							if (!CanImplicitCastFormatOnlyChain(sourceTemplateArg, destTemplateArg, hasConstChain)) {
-								return false;
-							}
-						}
-						
-						return true;
-					} else {
+					if (sourceType->getObjectType() != destType->getObjectType()) {
 						// throw CastObjectTypeMismatchException(sourceType, destType);
-						return false;
+						return NULL;
 					}
+					
+					// Need to check template arguments.
+					const auto sourceNumArgs = sourceType->templateArguments().size();
+					const auto destNumArgs = destType->templateArguments().size();
+					
+					if (sourceNumArgs != destNumArgs) {
+						// throw TodoException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
+						//	sourceType->toString().c_str(), destType->toString().c_str()));
+						return NULL;
+					}
+					
+					std::vector<SEM::Type*> templateArgs;
+					
+					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
+						const auto sourceTemplateArg = sourceType->templateArguments().at(i);
+						const auto destTemplateArg = destType->templateArguments().at(i);
+						
+						auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg, destTemplateArg, hasConstChain);
+						if (templateArg == NULL) return NULL;
+						
+						templateArgs.push_back(templateArg);
+					}
+					
+					return SEM::Type::Object(sourceType->getObjectType(), templateArgs);
 				}
 				case SEM::Type::REFERENCE: {
-					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
-					SEM::Type* destTarget = destType->getReferenceTarget();
-					
-					if (!hasConstChain && !sourceTarget->isConst() && destTarget->isConst()) {
-						// Check for const-correctness inside references,
-						// ensuring that the const chaining rule rule is followed.
-						
-						// throw CastConstChainingViolationException(sourceType, destType);
-						return false;
-					}
-					
-					return CanImplicitCastFormatOnlyChain(sourceTarget, destTarget, hasConstChain);
+					auto sourceTarget = sourceType->getReferenceTarget();
+					auto destTarget = destType->getReferenceTarget();
+					auto target = ImplicitCastTypeFormatOnlyChain(sourceTarget, destTarget, hasConstChain);
+					if (target == NULL) return NULL;
+					return SEM::Type::Reference(target);
 				}
 				case SEM::Type::FUNCTION: {
 					// Check return type.
-					if (!CanImplicitCastFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain)) {
-						return false;
-					}
-							
-					const std::vector<SEM::Type*>& sourceList = sourceType->getFunctionParameterTypes();
-					const std::vector<SEM::Type*>& destList = destType->getFunctionParameterTypes();
+					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain);
+					if (returnType == NULL) return NULL;
+					
+					const auto& sourceList = sourceType->getFunctionParameterTypes();
+					const auto& destList = destType->getFunctionParameterTypes();
 					
 					if (sourceList.size() != destList.size()) {
-						throw CastFunctionParameterNumberMismatchException(sourceType, destType);
+						// throw CastFunctionParameterNumberMismatchException(sourceType, destType);
+						return NULL;
 					}
+					
+					std::vector<SEM::Type*> paramTypes;
 					
 					// Check contra-variance for argument types.
 					for (std::size_t i = 0; i < sourceList.size(); i++) {
-						if (!CanImplicitCastFormatOnlyChain(sourceList.at(i), destList.at(i), hasConstChain)) {
-							return false;
-						}
+						auto paramType = ImplicitCastTypeFormatOnlyChain(sourceList.at(i), destList.at(i), hasConstChain);
+						if (paramType == NULL) return NULL;
+						paramTypes.push_back(paramType);
 					}
 					
 					if (sourceType->isFunctionVarArg() != destType->isFunctionVarArg()) {
-						throw CastFunctionVarArgsMismatchException(sourceType, destType);
+						// throw CastFunctionVarArgsMismatchException(sourceType, destType);
+						return NULL;
 					}
 					
-					return true;
+					return SEM::Type::Function(sourceType->isFunctionVarArg(), returnType, paramTypes);
 				}
 				case SEM::Type::METHOD: {
-					return CanImplicitCastFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain);
+					auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain);
+					if (functionType == NULL) return NULL;
+					return SEM::Type::Method(functionType);
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
 						throw TodoException(makeString("Can't cast from template type '%s' to template type '%s'.",
 							sourceType->toString().c_str(), destType->toString().c_str()));
 					}
-					return true;
+					return sourceType->withoutTags();
 				}
 				default: {
 					assert(false && "Unknown SEM type enum value.");
-					return false;
+					return NULL;
 				}
 			}
 		}
 		
-		static bool CanImplicitCastFormatOnly(SEM::Type* sourceType, SEM::Type* destType) {
+		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain) {
+			// Can't cast const to non-const, unless the destination type is
+			// 'auto', since that can match 'const T'.
+			if (sourceType->isConst() && !destType->isConst() && !destType->isAuto()) {
+				// No copying can be done now, so this is just an error.
+				return NULL;
+			}
+			
+			if (!hasParentConstChain && !sourceType->isConst() && destType->isConst()) {
+				// Must be a const chain for mutable-to-const cast to succeed.
+				// For example, the following cast is invalid:
+				//         ptr<T> -> ptr<const T>
+				// It can be made valid by changing it to:
+				//         const ptr<T> -> const ptr<const T>
+				return NULL;
+			}
+			
+			// There is a chain of const if all parents of the destination type are const,
+			// and the destination type itself is const.
+			const bool hasConstChain = hasParentConstChain && destType->isConst();
+			
+			SEM::Type* lvalTarget = NULL;
+			
+			if (sourceType->isLval() || destType->isLval()) {
+				if (!(sourceType->isLval() && destType->isLval())) {
+					// If one type is lval, both types must be lvals.
+					return NULL;
+				}
+				
+				// Must perform substitutions for the lval target type.
+				lvalTarget = ImplicitCastTypeFormatOnlyChain(sourceType->lvalTarget(), destType->lvalTarget(), hasConstChain);
+				if (lvalTarget == NULL) return NULL;
+			}
+			
+			SEM::Type* refTarget = NULL;
+			
+			if (sourceType->isRef() || destType->isRef()) {
+				if (!(sourceType->isRef() && destType->isRef())) {
+					// If one type is ref, both types must be refs.
+					return NULL;
+				}
+				
+				// Must perform substitutions for the ref target type.
+				refTarget = ImplicitCastTypeFormatOnlyChain(sourceType->refTarget(), destType->refTarget(), hasConstChain);
+				if (refTarget == NULL) return NULL;
+			}
+			
+			// No type can be both an lval and a ref.
+			assert(lvalTarget == NULL || refTarget == NULL);
+			
+			// Generate the 'untagged' type.
+			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(sourceType, destType, hasConstChain);
+			if (resultType == NULL) return NULL;
+			
+			// Add the substituted tags.
+			if (lvalTarget != NULL) {
+				resultType = resultType->createLvalType(lvalTarget);
+			}
+			
+			if (refTarget != NULL) {
+				resultType = resultType->createRefType(refTarget);
+			}
+			
+			// Non-const 'auto' can match 'const T', and in that case
+			// the resulting type must be const.
+			const bool isConst = destType->isAuto() && !destType->isConst() ?
+				sourceType->isConst() : destType->isConst();
+			
+			return isConst ? resultType->createConstType() : resultType;
+		}
+		
+		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain) {
+			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain);
+		}
+		
+		static SEM::Type* ImplicitCastTypeFormatOnly(SEM::Type* sourceType, SEM::Type* destType) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
 			// is root there is a valid chain of (zero) const parent types.
 			const bool hasParentConstChain = true;
 			
-			return CanImplicitCastFormatOnlyChain(sourceType, destType, hasParentConstChain);
+			return ImplicitCastTypeFormatOnlyChain(sourceType, destType, hasParentConstChain);
 		}
 		
 		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType) {
-			if (!CanImplicitCastFormatOnly(value->type(), destType)) return NULL;
+			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType);
+			if (resultType == NULL) return NULL;
 			
 			// The value's type needs to reflect the successful cast, however
 			// this shouldn't be added unless necessary.
-			if (*(value->type()) != *destType) {
-				return SEM::Value::Cast(destType, value);
+			if (*(value->type()) != *resultType) {
+				return SEM::Value::Cast(resultType, value);
 			} else {
 				return value;
 			}
@@ -322,7 +382,7 @@ namespace locic {
 					
 					auto convertCast = ImplicitCastConvert(copyValue, destType);
 					if (convertCast != NULL) return convertCast;
-				} else if (destType->isObject() && CanImplicitCastFormatOnly(sourceDerefType, destType)) {
+				} else if (destType->isObject() && ImplicitCastTypeFormatOnly(sourceDerefType, destType)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
@@ -351,6 +411,15 @@ namespace locic {
 					destType->toString().c_str()));
 			}
 			return result;
+		}
+		
+		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
+			try {
+				(void) ImplicitCast(SEM::Value::CastDummy(sourceType), destType);
+				return true;
+			} catch(const CastException& e) {
+				return false;
+			}
 		}
 		
 		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second) {

@@ -21,6 +21,7 @@ namespace locic {
 				enum Kind {
 					VOID,
 					NULLT,
+					AUTO,
 					OBJECT,
 					REFERENCE,
 					FUNCTION,
@@ -39,6 +40,7 @@ namespace locic {
 				
 				static Type* Void();
 				static Type* Null();
+				static Type* Auto();
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
 				static Type* Reference(Type* targetType);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
@@ -60,9 +62,11 @@ namespace locic {
 				Type* createConstType() const;
 				Type* createLvalType(Type* targetType) const;
 				Type* createRefType(Type* targetType) const;
+				Type* withoutTags() const;
 				
 				bool isVoid() const;
 				bool isNull() const;
+				bool isAuto() const;
 				
 				bool isReference() const;
 				Type* getReferenceTarget() const;

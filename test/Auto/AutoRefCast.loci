@@ -1,0 +1,46 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class TestClass (int value) {
+	static Default(int value) {
+		testPrint("TestClass.Default: Value = %d."C, value);
+		return @(value);
+	}
+	
+	TestClass implicitCopy() {
+		int newValue = @value * 2;
+		testPrint("TestClass.implicitCopy: Previous value = %d, New value = %d."C, @value, newValue);
+		return @(newValue);
+	}
+	
+	int getValue() {
+		testPrint("TestClass.getValue: Value = %d."C, @value);
+		return @value;
+	}
+}
+
+TestClass& function(TestClass& object) {
+	auto& refObject = object;
+	
+	testPrint("function: Ref value = %d."C, refObject.getValue());
+	
+	auto copyObject = object;
+	
+	testPrint("function: Copy value = %d."C, copyObject.getValue());
+	
+	return object;
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto inst = TestClass(44);
+	
+	testPrint("testEntryPoint: Value = %d."C, inst.getValue());
+	
+	auto& inst2 = function(inst);
+	
+	testPrint("testEntryPoint: Value = %d."C, inst2.getValue());
+	
+	return 0;
+}
+

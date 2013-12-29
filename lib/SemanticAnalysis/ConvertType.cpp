@@ -75,8 +75,7 @@ namespace locic {
 		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
-					assert(false && "Cannot convert undefined type.");
-					return NULL;
+					return SEM::Type::Auto();
 				}
 				case AST::Type::BRACKET: {
 					return ConvertType(context, type->getBracketTarget());

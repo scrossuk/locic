@@ -1,0 +1,32 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto i = 4;
+	
+	testPrint("testEntryPoint: i = %d."C, i);
+	
+	auto j = i.abs() + 2;
+	
+	testPrint("testEntryPoint: i = %d, j = %d."C, i, j);
+	
+	auto k = j;
+	
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	
+	i = 1;
+	
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	
+	j = 2;
+	
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	
+	k = 3;
+	
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	
+	return 0;
+}
+

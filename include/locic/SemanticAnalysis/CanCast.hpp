@@ -29,14 +29,7 @@ namespace locic {
 		
 		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second);
 		
-		inline bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
-			try {
-				(void) ImplicitCast(SEM::Value::CastDummy(sourceType), destType);
-				return true;
-			} catch(const CastException& e) {
-				return false;
-			}
-		}
+		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
 		class CastTypeMismatchException: public CastException {
 			public:

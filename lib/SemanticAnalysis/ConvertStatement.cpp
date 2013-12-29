@@ -115,12 +115,13 @@ namespace locic {
 					const auto& astInitialValueNode = statement->varDecl.value;
 					
 					auto semValue = ConvertValue(context, astInitialValueNode);
+					auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
-					// Check whether a type annotation has been used.
-					const bool isAutoType = (astTypeVarNode->namedVar.type->typeEnum == AST::Type::AUTO);
+					// Use ImplicitCast() to resolve any instances of
+					// 'auto' in the variable's type.
+					auto semInitialiseValue = ImplicitCast(semValue, varDeclType);
 					
-					// If type is 'auto', infer it from type value.
-					auto varType = isAutoType ? semValue->type() : ConvertType(context, astTypeVarNode->namedVar.type);
+					auto varType = semInitialiseValue->type();
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
@@ -130,14 +131,14 @@ namespace locic {
 					
 					// TODO: implement 'final'.
 					const bool isLvalConst = false;
-				
+					
 					auto lvalType = makeLvalType(context, isLvalConst, varType);
 					
 					auto semVar = SEM::Var::Local(lvalType);
 					
 					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
 					
-					if(!context.node().tryAttach(astTypeVarNode->namedVar.name, localVarNode)) {
+					if (!context.node().tryAttach(astTypeVarNode->namedVar.name, localVarNode)) {
 						throw TodoException(makeString("Local variable name '%s' already exists.",
 							astTypeVarNode->namedVar.name.c_str()));
 					}
@@ -147,7 +148,7 @@ namespace locic {
 					semScope->localVariables().push_back(semVar);
 					
 					// Initialise variable.
-					return SEM::Statement::InitialiseStmt(semVar, ImplicitCast(semValue, varType));
+					return SEM::Statement::InitialiseStmt(semVar, semInitialiseValue);
 				}
 				case AST::Statement::RETURN: {
 					if (statement->returnStmt.value.get() == NULL) {

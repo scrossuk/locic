@@ -239,7 +239,7 @@ int main(int argc, char ** argv){
 		argIndex += 1;
 	}
 	
-	lval<int> custom_lval custLval = custom_lval();
+	lval<int> custom_lval custLval = lval<int>(custom_lval());
 	custLval = 101;
 	lvalFunc(custLval);
 	
@@ -282,8 +282,8 @@ int main(int argc, char ** argv){
 	
 	printf("Value: %d\n"C, testObject.getValue());
 	
-	auto interfaceRef = getPtrAsInterfaceRef(&testObject);
-	printf("Got interface ref.\n"C);
+	auto& interfaceRef = getPtrAsInterfaceRef(&testObject);
+	printf("Got interface ref: %d.\n"C, interfaceRef.getValue());
 	
 	auto newTestClass2 = TestClass2(1024);
 	goGet(interfaceRef, &newTestClass2);

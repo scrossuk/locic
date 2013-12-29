@@ -25,6 +25,8 @@ namespace locic {
 					TERNARY,
 					CAST,
 					POLYCAST,
+					LVAL,
+					REF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
 					FUNCTIONCALL,
@@ -66,6 +68,16 @@ namespace locic {
 					Type* targetType;
 					Value* value;
 				} polyCast;
+				
+				struct {
+					Type* targetType;
+					Value* value;
+				} makeLval;
+				
+				struct {
+					Type* targetType;
+					Value* value;
+				} makeRef;
 				
 				struct {
 					std::vector<Value*> parameters;
@@ -164,6 +176,20 @@ namespace locic {
 					Value* value = new Value(POLYCAST, targetType);
 					value->polyCast.targetType = targetType;
 					value->polyCast.value = operand;
+					return value;
+				}
+				
+				inline static Value* Lval(Type* targetType, Value* operand) {
+					Value* value = new Value(LVAL, operand->type()->createLvalType(targetType));
+					value->makeLval.targetType = targetType;
+					value->makeLval.value = operand;
+					return value;
+				}
+				
+				inline static Value* Ref(Type* targetType, Value* operand) {
+					Value* value = new Value(REF, operand->type()->createRefType(targetType));
+					value->makeRef.targetType = targetType;
+					value->makeRef.value = operand;
 					return value;
 				}
 				

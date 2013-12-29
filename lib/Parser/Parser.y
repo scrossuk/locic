@@ -970,6 +970,14 @@ precision7:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
 	}
+	| LVAL LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Lval(GETSYM($3), GETSYM($6))));
+	}
+	| REF LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ref(GETSYM($3), GETSYM($6))));
+	}
 	;
 	
 precision6:

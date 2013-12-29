@@ -1,0 +1,52 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+template <typename T>
+interface copyable {
+	T implicitCopy();
+	
+	int abs();
+}
+
+template <typename T: copyable<T>>
+class TestClass(T value, int extra) {
+	static Default(T value) {
+		return @(move value, 1);
+	}
+	
+	TestClass<T> implicitCopy() {
+		return @(@value, 1);
+	}
+	
+	int abs() {
+		int result = @value.abs() + @extra;
+		@extra = @extra * 2;
+		return result;
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto inst = TestClass<TestClass<TestClass<int>>>(TestClass<TestClass<int>>(TestClass<int>(1)));
+	
+	testPrint("testEntryPoint: Value = %d."C, inst.abs());
+	
+	TestClass<auto>& instRef1 = inst;
+	
+	testPrint("testEntryPoint: Ref 1 = %d."C, instRef1.abs());
+	
+	TestClass<TestClass<auto>>& instRef2 = inst;
+	
+	testPrint("testEntryPoint: Ref 2 = %d."C, instRef2.abs());
+	
+	TestClass<TestClass<TestClass<auto>>>& instRef3 = inst;
+	
+	testPrint("testEntryPoint: Ref 3 = %d."C, instRef3.abs());
+	
+	TestClass<auto> instCopy = inst;
+	
+	testPrint("testEntryPoint: Copy = %d."C, instCopy.abs());
+	
+	return 0;
+}
+

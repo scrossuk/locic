@@ -276,6 +276,14 @@ namespace locic {
 					}
 				}
 				
+				case SEM::Value::LVAL: {
+					return genValue(function, value->makeLval.value);
+				}
+				
+				case SEM::Value::REF: {
+					return genValue(function, value->makeRef.value);
+				}
+				
 				case SEM::Value::INTERNALCONSTRUCT: {
 					const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
 					llvm::Value* objectValue = genAlloca(function, value->type());

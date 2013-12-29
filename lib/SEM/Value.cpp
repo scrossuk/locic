@@ -19,6 +19,9 @@ namespace locic {
 				case VAR:
 					return makeString("VarValue(%s)",
 							varValue.var->toString().c_str());
+				case REINTERPRET:
+					return makeString("Reinterpret(value: %s)",
+							reinterpretValue.value->toString().c_str());
 				case DEREF_REFERENCE:
 					return makeString("DerefReference(%s)",
 							derefReference.value->toString().c_str());
@@ -35,6 +38,14 @@ namespace locic {
 					return makeString("PolyCast(value: %s, targetType: %s)",
 							polyCast.value->toString().c_str(),
 							polyCast.targetType->toString().c_str());
+				case LVAL:
+					return makeString("Lval(value: %s, targetType: %s)",
+							makeLval.value->toString().c_str(),
+							makeLval.targetType->toString().c_str());
+				case REF:
+					return makeString("Ref(value: %s, targetType: %s)",
+							makeRef.value->toString().c_str(),
+							makeRef.targetType->toString().c_str());
 				case INTERNALCONSTRUCT:
 					return makeString("InternalConstruct(args: %s)",
 							makeArrayString(internalConstruct.parameters).c_str());
