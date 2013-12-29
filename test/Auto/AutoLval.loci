@@ -1,0 +1,35 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	int value = 1;
+	
+	testPrint("testEntryPoint: Value = %d."C, value);
+	
+	lval<int> auto& valueLvalRef1 = value;
+	valueLvalRef1 = 11;
+	
+	testPrint("testEntryPoint: Value = %d."C, value);
+	
+	lval<auto> auto& valueLvalRef2 = value;
+	valueLvalRef2 = 111;
+	
+	testPrint("testEntryPoint: Value = %d."C, value);
+	
+	auto& valueRef = value;
+	
+	testPrint("testEntryPoint: Value ref = %d."C, valueRef);
+	
+	valueLvalRef1 = 1111;
+	
+	testPrint("testEntryPoint: Value = %d, Value ref = %d."C, value, valueRef);
+	
+	auto valueCopy = value;
+	valueCopy = 11111;
+	
+	testPrint("testEntryPoint: Value = %d."C, value);
+	
+	return 0;
+}
+

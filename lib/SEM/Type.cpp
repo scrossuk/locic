@@ -120,7 +120,6 @@ namespace locic {
 		
 		Type* Type::createLvalType(Type* targetType) const {
 			assert(!isLval() && !isRef());
-			assert(isObject());
 			Type* type = new Type(*this);
 			type->lvalTarget_ = targetType;
 			return type;
