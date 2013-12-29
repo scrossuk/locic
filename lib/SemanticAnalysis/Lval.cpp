@@ -19,6 +19,17 @@ namespace locic {
 			return getDerefType(valueType)->isLval() ? valueType : makeValueLvalType(context, isLvalConst, valueType);
 		}
 		
+		size_t getLvalCount(SEM::Type* type) {
+			type = getDerefType(type);
+			
+			size_t count = 0;
+			while (type->isLval()) {
+				count++;
+				type = getDerefType(type->lvalTarget());
+			}
+			return count;
+		}
+		
 		bool canDissolveValue(SEM::Value* value) {
 			auto type = getDerefType(value->type());
 			return type->isLval() && type->isObject() && type->getObjectType()->hasProperty("dissolve");

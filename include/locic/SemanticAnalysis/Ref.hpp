@@ -7,7 +7,11 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		size_t getRefCount(SEM::Type* type);
+		
 		SEM::Type* getDerefType(SEM::Type* type);
+		
+		SEM::Value* derefOne(SEM::Value* value);
 		
 		SEM::Value* derefValue(SEM::Value* value);
 		

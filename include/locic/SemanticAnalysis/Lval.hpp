@@ -16,6 +16,8 @@ namespace locic {
 		// to an lval).
 		SEM::Type* makeLvalType(Context& context, bool isLvalConst, SEM::Type* valueType);
 		
+		size_t getLvalCount(SEM::Type* type);
+		
 		bool canDissolveValue(SEM::Value* value);
 		
 		SEM::Value* dissolveLval(SEM::Value* lvalValue);

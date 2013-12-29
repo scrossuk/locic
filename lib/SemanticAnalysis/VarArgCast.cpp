@@ -28,15 +28,6 @@ namespace locic {
 			return false;
 		}
 		
-		static inline bool VarArgCastCheckType(SEM::Value* value) {
-			if (!isValidVarArgType(value->type())) {
-				/*throw TodoException(makeString("Var arg parameter '%s' has invalid type '%s'.",
-					value->toString().c_str(), value->type()->toString().c_str()));*/
-			}
-			
-			return value;
-		}
-		
 		static inline SEM::Value* VarArgCastSearch(SEM::Value* value) {
 			if (isValidVarArgType(value->type())) {
 				// Already a valid var arg type.
