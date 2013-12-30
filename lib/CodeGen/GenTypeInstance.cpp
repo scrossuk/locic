@@ -32,10 +32,9 @@ namespace locic {
 			
 			module.getTypeMap().insert(mangledName, structType);
 			
-			if (typeInstance->isClassDef() || typeInstance->isStructDef()) {
+			if (typeInstance->isClassDef() || typeInstance->isStruct()) {
 				// TODO: Remove this, since CodeGen should not generate any SEM trees.
-				const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap =
-					SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();
+				const auto templateVarMap = SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();
 				
 				TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 				

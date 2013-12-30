@@ -2,49 +2,29 @@
 #define LOCIC_SEM_TEMPLATEVAR_HPP
 
 #include <string>
-#include <vector>
-
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
+		class TypeInstance;
+		
 		enum TemplateVarType {
 			TEMPLATEVAR_TYPENAME,
 			TEMPLATEVAR_POLYMORPHIC
 		};
 		
-		class TemplateVar: public Object {
+		class TemplateVar {
 			public:
-				inline TemplateVar(TemplateVarType t)
-					: type_(t), specType_(NULL) { }
+				TemplateVar(TemplateVarType t);
 				
-				inline ObjectKind objectKind() const {
-					return OBJECT_TEMPLATEVAR;
-				}
+				TemplateVarType type() const;
 				
-				inline TemplateVarType type() const {
-					return type_;
-				}
+				void setSpecType(TypeInstance * spec);
 				
-				inline void setSpecType(TypeInstance * spec){
-					assert(specType_ == NULL);
-					assert(spec != NULL);
-					specType_ = spec;
-				}
+				TypeInstance * specType() const;
 				
-				inline TypeInstance * specType() const {
-					return specType_;
-				}
-				
-				inline std::string toString() const {
-					return makeString("TemplateVar(specType = %s)",
-						specType_ != NULL ?
-							specType_->refToString().c_str() :
-							"[NONE]");
-				}
+				std::string toString() const;
 				
 			private:
 				TemplateVarType type_;

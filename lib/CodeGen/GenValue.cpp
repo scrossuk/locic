@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <locic/Constant.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>

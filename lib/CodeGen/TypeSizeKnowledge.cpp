@@ -9,7 +9,7 @@ namespace locic {
 	namespace CodeGen {
 	
 		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* unresolvedType) {
-			SEM::Type* type = module.resolveType(unresolvedType);
+			auto type = module.resolveType(unresolvedType);
 			switch (type->kind()) {
 				case SEM::Type::VOID:
 				case SEM::Type::NULLT:
@@ -23,11 +23,12 @@ namespace locic {
 					if (objectType->isPrimitive()) {
 						// Not all primitives have a known size (e.g. value_lval).
 						return isPrimitiveTypeSizeKnownInThisModule(module, type);
-					} else if (objectType->isStructDef()) {
+					} else if (objectType->isStruct()) {
 						// Structs can only contain known size members.
 						return true;
-					} else if (objectType->isClassDef()) {
-						// All members of the class must have a known size.
+					} else if (objectType->isClassDef() || objectType->isDatatype()) {
+						// All members of the type must have a known size
+						// for it to have a known size.
 						const Module::TemplateVarMap templateVarMap = type->generateTemplateVarMap();
 						TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 						for (size_t i = 0; i < objectType->variables().size(); i++) {

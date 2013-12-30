@@ -35,18 +35,18 @@ namespace locic {
 			const Node typeNode = context.reverseLookup(typeInstance);
 			assert(typeNode.isNotNone());
 			
-			if (typeInstance->isStructDef()) {
-				// Look for struct variables.
+			if (typeInstance->isStruct() || typeInstance->isDatatype()) {
+				// Look for variables.
 				const Node varNode = typeNode.getChild(memberName);
 				
 				if (varNode.isNotNone()) {
 					assert(varNode.isVariable());
-					SEM::Var* var = varNode.getSEMVar();
-					SEM::Type* memberType = var->type();
+					auto var = varNode.getSEMVar();
+					auto memberType = var->type();
 					
 					if (objectType->isConst()) {
-						// If the struct type is const, then the members must
-						// also be.
+						// If the type instance is const, then
+						// the members must also be.
 						memberType = memberType->createConstType();
 					}
 					
@@ -56,7 +56,7 @@ namespace locic {
 						memberName.c_str(), typeInstance->name().toString().c_str()));
 				}
 			} else if (typeInstance->isClass() || typeInstance->isTemplateType() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
-				// Look for class methods.
+				// Look for methods.
 				const Node childNode = typeNode.getChild(memberName);
 				
 				if (childNode.isFunction()) {
@@ -81,9 +81,6 @@ namespace locic {
 						memberName.c_str(), typeInstance->name().toString().c_str(),
 						object->toString().c_str()));
 				}
-			} else if (typeInstance->isStructDecl()) {
-				throw TodoException(makeString("Can't access member '%s' in unspecified struct type '%s'.",
-					memberName.c_str(), typeInstance->name().toString().c_str()));
 			} else {
 				assert(false && "Invalid fall through in MakeMemberAccess.");
 				return NULL;

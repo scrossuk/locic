@@ -1,16 +1,6 @@
 // Test output.
 void testPrint(const char * const str, ...);
 
-// Class declaration.
-class TestClass {
-	static Default(int value);
-	
-	int getValue();
-	
-	void doSomething();
-}
-
-// Class definition.
 class TestClass(int value) {
 	static Default(int value) {
 		testPrint("TestClass.Default: Value = %d"C, value);

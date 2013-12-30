@@ -29,7 +29,7 @@ namespace locic {
 				
 				const Context * parentPtr() const;
 				
-				Node reverseLookup(SEM::Object* object) const;
+				Node reverseLookup(SEM::TypeInstance* target) const;
 				
 				Node lookupParentType() const;
 				
@@ -47,7 +47,7 @@ namespace locic {
 			
 			private:
 				Context * parent_;
-				mutable Map<SEM::Object*, Node> reverseLookupCache_;
+				mutable Map<SEM::TypeInstance*, Node> reverseLookupCache_;
 				Name name_;
 				Node node_;
 				

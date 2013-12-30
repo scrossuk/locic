@@ -1,15 +1,5 @@
 int printf(const char * const str, ...);
 
-class TestClass{
-	static Null();	
-	
-	static Default(int v);
-	
-	int getValue();
-	
-	void doSomething();
-};
-
 class TestClass2(int i){
 	static Default(int v){
 		return @(v);

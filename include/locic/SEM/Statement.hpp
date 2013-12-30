@@ -3,18 +3,16 @@
 
 #include <string>
 
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/Type.hpp>
-#include <locic/SEM/Value.hpp>
-#include <locic/SEM/Var.hpp>
-
 namespace locic {
 
 	namespace SEM {
 	
 		class Scope;
+		class Type;
+		class Value;
+		class Var;
 		
-		class Statement: public Object {
+		class Statement {
 			public:
 				enum Kind {
 					VALUE,
@@ -25,147 +23,60 @@ namespace locic {
 					RETURN
 				};
 				
-				inline static Statement* ValueStmt(Value* value) {
-					Statement* statement = new Statement(VALUE);
-					statement->valueStmt_.value = value;
-					return statement;
-				}
+				static Statement* ValueStmt(Value* value);
 				
-				inline static Statement* ScopeStmt(Scope* scope) {
-					Statement* statement = new Statement(SCOPE);
-					statement->scopeStmt_.scope = scope;
-					return statement;
-				}
+				static Statement* ScopeStmt(Scope* scope);
 				
-				inline static Statement* InitialiseStmt(Var* var, Value* value) {
-					assert(var->kind() == SEM::Var::LOCAL);
-					Statement* statement = new Statement(INITIALISE);
-					statement->initialiseStmt_.var = var;
-					statement->initialiseStmt_.value = value;
-					return statement;
-				}
+				static Statement* InitialiseStmt(Var* var, Value* value);
 				
-				inline static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
-					Statement* statement = new Statement(IF);
-					statement->ifStmt_.condition = condition;
-					statement->ifStmt_.ifTrue = ifTrue;
-					statement->ifStmt_.ifFalse = ifFalse;
-					return statement;
-				}
+				static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse);
 				
-				inline static Statement* While(Value* condition, Scope* whileTrue) {
-					Statement* statement = new Statement(WHILE);
-					statement->whileStmt_.condition = condition;
-					statement->whileStmt_.whileTrue = whileTrue;
-					return statement;
-				}
+				static Statement* While(Value* condition, Scope* whileTrue);
 				
-				inline static Statement* ReturnVoid() {
-					Statement* statement = new Statement(RETURN);
-					statement->returnStmt_.value = NULL;
-					return statement;
-				}
+				static Statement* ReturnVoid();
 				
-				inline static Statement* Return(Value* value) {
-					Statement* statement = new Statement(RETURN);
-					statement->returnStmt_.value = value;
-					return statement;
-				}
+				static Statement* Return(Value* value);
 				
-				inline ObjectKind objectKind() const {
-					return OBJECT_STATEMENT;
-				}
+				Kind kind() const;
 				
-				inline Kind kind() const {
-					return kind_;
-				}
+				bool isValueStatement() const;
 				
-				inline bool isValueStatement() const {
-					return kind() == VALUE;
-				}
+				Value* getValue() const;
 				
-				inline Value* getValue() const {
-					assert(isValueStatement());
-					return valueStmt_.value;
-				}
+				bool isScope() const;
 				
-				inline bool isScope() const {
-					return kind() == SCOPE;
-				}
+				Scope& getScope() const;
 				
-				inline Scope& getScope() const {
-					assert(isScope());
-					return *(scopeStmt_.scope);
-				}
+				bool isInitialiseStatement() const;
 				
-				inline bool isInitialiseStatement() const {
-					return kind() == INITIALISE;
-				}
+				Var* getInitialiseVar() const;
 				
-				inline Var* getInitialiseVar() const {
-					assert(isInitialiseStatement());
-					return initialiseStmt_.var;
-				}
+				Value* getInitialiseValue() const;
 				
-				inline Value* getInitialiseValue() const {
-					assert(isInitialiseStatement());
-					return initialiseStmt_.value;
-				}
+				bool isIfStatement() const;
 				
-				inline bool isIfStatement() const {
-					return kind() == IF;
-				}
+				Value* getIfCondition() const;
 				
-				inline Value* getIfCondition() const {
-					assert(isIfStatement());
-					return ifStmt_.condition;
-				}
+				Scope& getIfTrueScope() const;
 				
-				inline Scope& getIfTrueScope() const {
-					assert(isIfStatement());
-					assert(ifStmt_.ifTrue != NULL);
-					return *(ifStmt_.ifTrue);
-				}
+				bool hasIfFalseScope() const;
 				
-				inline bool hasIfFalseScope() const {
-					assert(isIfStatement());
-					return ifStmt_.ifFalse != NULL;
-				}
+				Scope& getIfFalseScope() const;
 				
-				inline Scope& getIfFalseScope() const {
-					assert(isIfStatement());
-					assert(hasIfFalseScope());
-					return *(ifStmt_.ifFalse);
-				}
+				bool isWhileStatement() const;
 				
-				inline bool isWhileStatement() const {
-					return kind() == WHILE;
-				}
+				Value* getWhileCondition() const;
 				
-				inline Value* getWhileCondition() const {
-					assert(isWhileStatement());
-					return whileStmt_.condition;
-				}
+				Scope& getWhileScope() const;
 				
-				inline Scope& getWhileScope() const {
-					assert(isWhileStatement());
-					return *(whileStmt_.whileTrue);
-				}
+				bool isReturnStatement() const;
 				
-				inline bool isReturnStatement() const {
-					return kind() == RETURN;
-				}
-				
-				inline Value* getReturnValue() const {
-					assert(isReturnStatement());
-					return returnStmt_.value;
-				}
+				Value* getReturnValue() const;
 				
 				std::string toString() const;
 				
 			private:
-				inline Statement(Kind k)
-					: kind_(k) { }
+				Statement(Kind k);
 					
 				Kind kind_;
 				

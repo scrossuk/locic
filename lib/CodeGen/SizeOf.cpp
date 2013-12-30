@@ -12,51 +12,62 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
-			llvm::FunctionType* functionType =
-				TypeGenerator(module).getFunctionType(
+			assert(type->isObject());
+			
+			auto functionType = TypeGenerator(module).getFunctionType(
 					getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()),
 					std::vector<llvm::Type*>());
 					
-			llvm::Function* llvmFunction = createLLVMFunction(module,
-										   functionType, llvm::Function::InternalLinkage, NO_FUNCTION_NAME);
+			auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::InternalLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
 			
-			SEM::TypeInstance* typeInstance = type->getObjectType();
+			auto typeInstance = type->getObjectType();
 			assert(typeInstance->templateVariables().size() == type->templateArguments().size());
 			
+			assert(!typeInstance->isInterface());
+			
+			// For class declarations, the sizeof() function
+			// will be implemented in another module.
+			if (typeInstance->isClassDecl()) return llvmFunction;
+			
+			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
 				createPrimitiveSizeOf(module, typeInstance->name().last(), type->templateArguments(), *llvmFunction);
-			} else if (typeInstance->isDefinition()) {
-				Function function(module, *llvmFunction, ArgInfo::None());
-				
-				llvm::Value* zero = ConstantGenerator(module).getSize(0);
-				llvm::Value* one = ConstantGenerator(module).getSize(1);
-				llvm::Value* classSize = zero;
-				
-				const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = type->generateTemplateVarMap();
-				
-				// Add up all member variable sizes.
-				const std::vector<SEM::Var*>& variables = typeInstance->variables();
-				
-				for (size_t i = 0; i < variables.size(); i++) {
-					SEM::Var* var = variables.at(i);
-					classSize = function.getBuilder().CreateAdd(classSize,
-								genSizeOf(function, var->type()->substitute(templateVarMap)));
-				}
-				
-				// Class sizes must be at least one byte.
-				llvm::Value* isZero = function.getBuilder().CreateICmpEQ(classSize, zero);
-				classSize = function.getBuilder().CreateSelect(isZero, one, classSize);
-				function.getBuilder().CreateRet(classSize);
+				return llvmFunction;
 			}
+			
+			// Since the member variables are known, generate
+			// the contents of the sizeof() function to sum
+			// their sizes.
+			Function function(module, *llvmFunction, ArgInfo::None());
+			
+			auto zero = ConstantGenerator(module).getSize(0);
+			auto one = ConstantGenerator(module).getSize(1);
+			llvm::Value* classSize = zero;
+			
+			const auto templateVarMap = type->generateTemplateVarMap();
+			
+			// Add up all member variable sizes.
+			const auto& variables = typeInstance->variables();
+			
+			for (const auto& var: variables) {
+				classSize = function.getBuilder().CreateAdd(classSize,
+						genSizeOf(function, var->type()->substitute(templateVarMap)));
+			}
+			
+			// Class sizes must be at least one byte.
+			auto isZero = function.getBuilder().CreateICmpEQ(classSize, zero);
+			classSize = function.getBuilder().CreateSelect(isZero, one, classSize);
+			function.getBuilder().CreateRet(classSize);
 			
 			return llvmFunction;
 		}
 		
 		llvm::Value* genSizeOf(Function& function, SEM::Type* unresolvedType) {
-			Module& module = function.getModule();
-			SEM::Type* type = module.resolveType(unresolvedType);
-			const TargetInfo& targetInfo = module.getTargetInfo();
+			auto& module = function.getModule();
+			const auto& targetInfo = module.getTargetInfo();
+			
+			auto type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:

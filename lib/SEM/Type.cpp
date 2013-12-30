@@ -3,6 +3,7 @@
 
 #include <locic/Map.hpp>
 #include <locic/String.hpp>
+
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -81,10 +82,6 @@ namespace locic {
 		
 		Type::Type(Kind k) :
 			kind_(k), isConst_(false), lvalTarget_(NULL), refTarget_(NULL) { }
-		
-		ObjectKind Type::objectKind() const {
-			return OBJECT_TYPE;
-		}
 		
 		Type::Kind Type::kind() const {
 			return kind_;
@@ -278,68 +275,72 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		static Type* doSubstitute(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
-			switch (type->kind()) {
-				case Type::VOID: {
-					return Type::Void();
-				}
-				
-				case Type::NULLT: {
-					return Type::Null();
-				}
-				
-				case Type::OBJECT: {
-					std::vector<Type*> templateArgs;
-					
-					for (const auto& templateArg: type->templateArguments()) {
-						templateArgs.push_back(templateArg->substitute(templateVarMap));
+		namespace {
+		
+			Type* doSubstitute(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
+				switch (type->kind()) {
+					case Type::VOID: {
+						return Type::Void();
 					}
 					
-					return Type::Object(type->getObjectType(), templateArgs);
-				}
-				
-				case Type::REFERENCE: {
-					return Type::Reference(type->getReferenceTarget()->substitute(templateVarMap));
-				}
-				
-				case Type::FUNCTION: {
-					std::vector<Type*> args;
-					
-					for (const auto& paramType: type->getFunctionParameterTypes()) {
-						args.push_back(paramType->substitute(templateVarMap));
+					case Type::NULLT: {
+						return Type::Null();
 					}
 					
-					Type* returnType = type->getFunctionReturnType()->substitute(templateVarMap);
-					
-					return Type::Function(type->isFunctionVarArg(), returnType, args);
-				}
-				
-				case Type::METHOD: {
-					Type* functionType = type->getMethodFunctionType()->substitute(templateVarMap);
-					
-					return Type::Method(functionType);
-				}
-				
-				case Type::INTERFACEMETHOD: {
-					Type* functionType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
-					
-					return Type::InterfaceMethod(functionType);
-				}
-				
-				case Type::TEMPLATEVAR: {
-					Optional<Type*> substituteType = templateVarMap.tryGet(type->getTemplateVar());
-					
-					if (substituteType.hasValue()) {
-						return substituteType.getValue();
-					} else {
-						return Type::TemplateVarRef(type->getTemplateVar());
+					case Type::OBJECT: {
+						std::vector<Type*> templateArgs;
+						
+						for (const auto& templateArg : type->templateArguments()) {
+							templateArgs.push_back(templateArg->substitute(templateVarMap));
+						}
+						
+						return Type::Object(type->getObjectType(), templateArgs);
 					}
+					
+					case Type::REFERENCE: {
+						return Type::Reference(type->getReferenceTarget()->substitute(templateVarMap));
+					}
+					
+					case Type::FUNCTION: {
+						std::vector<Type*> args;
+						
+						for (const auto& paramType : type->getFunctionParameterTypes()) {
+							args.push_back(paramType->substitute(templateVarMap));
+						}
+						
+						Type* returnType = type->getFunctionReturnType()->substitute(templateVarMap);
+						
+						return Type::Function(type->isFunctionVarArg(), returnType, args);
+					}
+					
+					case Type::METHOD: {
+						Type* functionType = type->getMethodFunctionType()->substitute(templateVarMap);
+						
+						return Type::Method(functionType);
+					}
+					
+					case Type::INTERFACEMETHOD: {
+						Type* functionType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
+						
+						return Type::InterfaceMethod(functionType);
+					}
+					
+					case Type::TEMPLATEVAR: {
+						Optional<Type*> substituteType = templateVarMap.tryGet(type->getTemplateVar());
+						
+						if (substituteType.hasValue()) {
+							return substituteType.getValue();
+						} else {
+							return Type::TemplateVarRef(type->getTemplateVar());
+						}
+					}
+					
+					default:
+						assert(false && "Unknown type enum for template var substitution.");
+						return NULL;
 				}
-				
-				default:
-					assert(false && "Unknown type enum for template var substitution.");
-					return NULL;
 			}
+			
 		}
 		
 		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
@@ -405,7 +406,7 @@ namespace locic {
 					
 				case NULLT:
 					return "NullType";
-				
+					
 				case AUTO:
 					return "Auto";
 					
@@ -443,7 +444,7 @@ namespace locic {
 					
 				case NULLT:
 					return "NullType";
-				
+					
 				case AUTO:
 					return "Auto";
 					
@@ -478,19 +479,19 @@ namespace locic {
 		std::string Type::toString() const {
 			const std::string constStr =
 				isConst() ?
-					makeString("Const(%s)", basicToString().c_str()) :
-					basicToString();
-			
+				makeString("Const(%s)", basicToString().c_str()) :
+				basicToString();
+				
 			const std::string lvalStr =
 				isLval() ?
-					makeString("Lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
-					constStr;
-			
+				makeString("Lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
+				constStr;
+				
 			const std::string refStr =
 				isRef() ?
-					makeString("Ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
-					lvalStr;
-			
+				makeString("Ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
+				lvalStr;
+				
 			return refStr;
 		}
 		

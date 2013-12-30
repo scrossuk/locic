@@ -21,10 +21,11 @@ namespace locic {
 		class NameClashException: public Exception {
 			public:
 				enum Kind {
-					NAMESPACE_WITH_NAMESPACE,
+					FUNCTION_WITH_FUNCTION,
 					FUNCTION_WITH_NAMESPACE,
 					FUNCTION_WITH_TYPE,
-					TYPE_WITH_NAMESPACE
+					TYPE_WITH_NAMESPACE,
+					TYPE_WITH_TYPE
 				};
 				
 				inline NameClashException(Kind kind, const Name& name)
@@ -40,14 +41,20 @@ namespace locic {
 				
 				inline std::string toString() const {
 					switch(kind_) {
-						case NAMESPACE_WITH_NAMESPACE: {
-							return makeString("Namespace already defined with name '%s'.", name_.toString().c_str());
+						case FUNCTION_WITH_FUNCTION: {
+							return makeString("Function name '%s' clashes with existing function.", name_.toString().c_str());
 						}
 						case FUNCTION_WITH_NAMESPACE: {
-							return makeString("Function name '%s' clashes with existing namespace name.", name_.toString().c_str());
+							return makeString("Function name '%s' clashes with existing namespace.", name_.toString().c_str());
 						}
 						case FUNCTION_WITH_TYPE: {
-							return makeString("Function name '%s' clashes with existing type name.", name_.toString().c_str());
+							return makeString("Function name '%s' clashes with existing type.", name_.toString().c_str());
+						}
+						case TYPE_WITH_NAMESPACE: {
+							return makeString("Type name '%s' clashes with existing namespace.", name_.toString().c_str());
+						}
+						case TYPE_WITH_TYPE: {
+							return makeString("Type name '%s' clashes with existing type.", name_.toString().c_str());
 						}
 						default: {
 							assert(false);

@@ -4,105 +4,54 @@
 #include <string>
 #include <vector>
 
-#include <locic/Map.hpp>
 #include <locic/Name.hpp>
 
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/Type.hpp>
-#include <locic/SEM/TypeInstance.hpp>
-
 namespace locic {
+	
+	template <typename Key, typename Value>
+	class Map;
 
 	namespace SEM {
 	
 		class Scope;
+		class TemplateVar;
+		class Type;
+		class Var;
 		
-		class Function: public Object {
+		class Function {
 			public:
-				inline static Function* Decl(bool isMethod, bool isStatic, Type* type,
-					const Name& name, const std::vector<Var*>& parameters) {
-					return new Function(isMethod, isStatic, type, name, parameters, NULL);
-				}
+				static Function* Decl(bool isMethod, bool isStatic, Type* type,
+					const Name& name, const std::vector<Var*>& parameters);
 				
-				inline static Function* Def(bool isMethod, bool isStatic, Type* type,
-					const Name& name, const std::vector<Var*>& parameters, Scope* scope) {
-					return new Function(isMethod, isStatic, type, name, parameters, scope);
-				}
+				static Function* Def(bool isMethod, bool isStatic, Type* type,
+					const Name& name, const std::vector<Var*>& parameters, Scope* scope);
 				
-				inline Function* createDecl() const {
-					return Decl(isMethod(), isStatic(), type(), name(), parameters());
-				}
+				const Name& name() const;
 				
-				inline Function* fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const {
-					assert(isDeclaration());
-					
-					// Parameter types need to be substituted.
-					std::vector<SEM::Var*> substitutedParam;
-					for(size_t i = 0; i < parameters().size(); i++){
-						SEM::Var* originalParam = parameters().at(i);
-						assert(originalParam->kind() == Var::PARAM);
-						substitutedParam.push_back(Var::Param(
-							originalParam->type()->substitute(templateVarMap)));
-					}
-					
-					return Decl(isMethod(), isStatic(),
-						type()->substitute(templateVarMap),
-						declName, substitutedParam);
-				}
+				Type* type() const;
 				
-				inline ObjectKind objectKind() const {
-					return OBJECT_FUNCTION;
-				}
+				bool isDeclaration() const;
 				
-				inline const Name& name() const {
-					return name_;
-				}
+				bool isDefinition() const;
 				
-				inline Type* type() const {
-					return type_;
-				}
+				bool isMethod() const;
 				
-				inline bool isDeclaration() const {
-					return scope_ == NULL;
-				}
+				bool isStatic() const;
 				
-				inline bool isDefinition() const {
-					return scope_ != NULL;
-				}
+				const std::vector<Var*>& parameters() const;
 				
-				inline bool isMethod() const {
-					return isMethod_;
-				}
+				const Scope& scope() const;
 				
-				inline bool isStatic() const {
-					return isStatic_;
-				}
+				Function* createDecl() const;
 				
-				inline const std::vector<Var*>& parameters() const {
-					return parameters_;
-				}
+				Function* fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const;
 				
-				inline const Scope& scope() const {
-					assert(isDefinition());
-					return *scope_;
-				}
-				
-				inline void setScope(Scope* newScope) {
-					assert(scope_ == NULL);
-					scope_ = newScope;
-					assert(scope_ != NULL);
-				}
+				void setScope(Scope* newScope);
 				
 				std::string toString() const;
 				
 			private:
-				inline Function(bool isM, bool isS, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s)
-					: isMethod_(isM),
-					  isStatic_(isS),
-					  type_(t), name_(n),
-					  parameters_(p), scope_(s) {
-					assert(type_ != NULL);
-				}
+				Function(bool isM, bool isS, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s);
 				
 				bool isMethod_, isStatic_;
 				Type* type_;

@@ -4,60 +4,29 @@
 #include <string>
 #include <vector>
 
-#include <locic/SEM/Function.hpp>
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/TypeInstance.hpp>
-
 namespace locic {
 
 	namespace SEM {
+		
+		class Function;
+		class TypeInstance;
 	
-		class Namespace: public Object {
+		class Namespace {
 			public:
-				inline Namespace(const std::string& n)
-					: name_(n) { }
-				
-				inline ObjectKind objectKind() const {
-					return OBJECT_NAMESPACE;
-				}
+				Namespace(const std::string& n);
 					
-				inline const std::string& name() const {
-					return name_;
-				}
+				const std::string& name() const;
 				
-				inline std::vector<Namespace *>& namespaces() {
-					return namespaces_;
-				}
+				std::vector<Namespace *>& namespaces();
+				const std::vector<Namespace *>& namespaces() const;
 				
-				inline const std::vector<Namespace *>& namespaces() const {
-					return namespaces_;
-				}
+				std::vector<TypeInstance *>& typeInstances();
+				const std::vector<TypeInstance *>& typeInstances() const;
 				
-				inline std::vector<TypeInstance *>& typeInstances() {
-					return typeInstances_;
-				}
+				std::vector<Function *>& functions();
+				const std::vector<Function *>& functions() const;
 				
-				inline const std::vector<TypeInstance *>& typeInstances() const {
-					return typeInstances_;
-				}
-				
-				inline std::vector<Function *>& functions() {
-					return functions_;
-				}
-				
-				inline const std::vector<Function *>& functions() const {
-					return functions_;
-				}
-				
-				inline std::string toString() const {
-					return makeString("NameSpace(name: %s, "
-						"namespaces: %s, typeInstances: %s, "
-						"functions: %s)",
-						name().c_str(),
-						makeArrayString(namespaces_).c_str(),
-						makeArrayString(typeInstances_).c_str(),
-						makeArrayString(functions_).c_str()); 
-				}
+				std::string toString() const;
 				
 			private:
 				std::string name_;

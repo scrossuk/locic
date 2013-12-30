@@ -497,7 +497,11 @@ typeInstance:
 	;
 
 nonTemplatedTypeInstance:
-	STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
+	PRIMITIVE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Primitive(GETSYM($2), GETSYM($4))));
+	}
+	| STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Struct(GETSYM($2), GETSYM($4))));
 	}
@@ -508,10 +512,6 @@ nonTemplatedTypeInstance:
 	| CLASS NAME LROUNDBRACKET typeVarList RROUNDBRACKET LCURLYBRACKET classFunctionDefList RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::ClassDef(GETSYM($2), GETSYM($4), GETSYM($7))));
-	}
-	| PRIMITIVE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Primitive(GETSYM($2), GETSYM($4))));
 	}
 	| INTERFACE NAME LCURLYBRACKET classFunctionDeclList RCURLYBRACKET
 	{

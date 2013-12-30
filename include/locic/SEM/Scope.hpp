@@ -4,43 +4,24 @@
 #include <string>
 #include <vector>
 
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/Statement.hpp>
-#include <locic/SEM/Var.hpp>
-
 namespace locic {
 
 	namespace SEM {
+		
+		class Statement;
+		class Var;
 	
-		class Scope: public Object {
+		class Scope {
 			public:
-				inline Scope() { }
+				Scope();
 				
-				inline ObjectKind objectKind() const {
-					return OBJECT_SCOPE;
-				}
+				std::vector<Var*>& localVariables();
+				const std::vector<Var*>& localVariables() const;
 				
-				inline std::vector<Var*>& localVariables() {
-					return localVariables_;
-				}
+				std::vector<Statement*>& statements();
+				const std::vector<Statement*>& statements() const;
 				
-				inline const std::vector<Var*>& localVariables() const {
-					return localVariables_;
-				}
-				
-				inline std::vector<Statement*>& statements() {
-					return statementList_;
-				}
-				
-				inline const std::vector<Statement*>& statements() const {
-					return statementList_;
-				}
-				
-				inline std::string toString() const {
-					return makeString("Scope(vars: %s, statements: %s)",
-						makeArrayString(localVariables_).c_str(),
-						makeArrayString(statementList_).c_str());
-				}
+				std::string toString() const;
 				
 			private:
 				std::vector<Var*> localVariables_;

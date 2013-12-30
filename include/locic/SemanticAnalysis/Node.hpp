@@ -34,42 +34,42 @@ namespace locic {
 				inline static Node Namespace(const AST::NamespaceList& ast, SEM::Namespace* sem) {
 					Node node(NAMESPACE);
 					node.data_->ast.nameSpaceList = ast;
-					node.data_->sem= sem;
+					node.data_->sem.nameSpace = sem;
 					return node;
 				}
 				
-				inline static Node TypeInstance(const AST::TypeInstanceList& ast, SEM::TypeInstance* sem) {
+				inline static Node TypeInstance(const AST::Node<AST::TypeInstance>& ast, SEM::TypeInstance* sem) {
 					Node node(TYPEINSTANCE);
-					node.data_->ast.typeInstanceList = ast;
-					node.data_->sem = sem;
+					node.data_->ast.typeInstance = ast;
+					node.data_->sem.typeInstance = sem;
 					return node;
 				}
 				
-				inline static Node Function(const AST::FunctionList& ast, SEM::Function* sem) {
+				inline static Node Function(const AST::Node<AST::Function>& ast, SEM::Function* sem) {
 					Node node(FUNCTION);
-					node.data_->ast.functionList = ast;
-					node.data_->sem = sem;
+					node.data_->ast.function = ast;
+					node.data_->sem.function = sem;
 					return node;
 				}
 				
-				inline static Node TemplateVar(AST::Node<AST::TemplateTypeVar> ast, SEM::TemplateVar * sem){
+				inline static Node TemplateVar(const AST::Node<AST::TemplateTypeVar>& ast, SEM::TemplateVar * sem){
 					Node node(TEMPLATEVAR);
 					node.data_->ast.templateVar = ast;
-					node.data_->sem = sem;
+					node.data_->sem.templateVar = sem;
 					return node;
 				}
 				
-				inline static Node Scope(AST::Node<AST::Scope> ast, SEM::Scope * sem){
+				inline static Node Scope(const AST::Node<AST::Scope>& ast, SEM::Scope * sem){
 					Node node(SCOPE);
 					node.data_->ast.scope = ast;
-					node.data_->sem = sem;
+					node.data_->sem.scope = sem;
 					return node;
 				}
 				
-				inline static Node Variable(AST::Node<AST::TypeVar> ast, SEM::Var * sem){
+				inline static Node Variable(const AST::Node<AST::TypeVar>& ast, SEM::Var * sem){
 					Node node(VARIABLE);
 					node.data_->ast.var = ast;
-					node.data_->sem = sem;
+					node.data_->sem.var = sem;
 					return node;
 				}
 				
@@ -135,37 +135,27 @@ namespace locic {
 				}
 				
 				inline AST::NamespaceList& getASTNamespaceList() {
-					assert(kind() == NAMESPACE);
+					assert(isNamespace());
 					return data_->ast.nameSpaceList;
 				}
 				
 				inline const AST::NamespaceList& getASTNamespaceList() const {
-					assert(kind() == NAMESPACE);
+					assert(isNamespace());
 					return data_->ast.nameSpaceList;
 				}
 				
-				inline AST::TypeInstanceList& getASTTypeInstanceList() {
-					assert(kind() == TYPEINSTANCE);
-					return data_->ast.typeInstanceList;
-				}
-					
-				inline const AST::TypeInstanceList& getASTTypeInstanceList() const {
-					assert(kind() == TYPEINSTANCE);
-					return data_->ast.typeInstanceList;
+				inline const AST::Node<AST::TypeInstance>& getASTTypeInstance() const {
+					assert(isTypeInstance());
+					return data_->ast.typeInstance;
 				}
 				
-				inline AST::FunctionList& getASTFunctionList() {
-					assert(kind() == FUNCTION);
-					return data_->ast.functionList;
-				}
-				
-				inline const AST::FunctionList& getASTFunctionList() const {
-					assert(kind() == FUNCTION);
-					return data_->ast.functionList;
+				inline const AST::Node<AST::Function>& getASTFunction() const {
+					assert(isFunction());
+					return data_->ast.function;
 				}
 				
 				inline const AST::Node<AST::TemplateTypeVar>& getASTTemplateVar() const {
-					assert(kind() == TEMPLATEVAR);
+					assert(isTemplateVar());
 					return data_->ast.templateVar;
 				}
 				
@@ -174,40 +164,34 @@ namespace locic {
 					return data_->ast.scope;
 				}
 				
-				inline SEM::Object* getSEMObject() const {
-					assert(isNotNone());
-					assert(data_->sem != NULL);
-					return data_->sem;
-				}
-				
 				inline SEM::Namespace* getSEMNamespace() const {
-					assert(kind() == NAMESPACE);
-					return (SEM::Namespace*) data_->sem;
+					assert(isNamespace());
+					return data_->sem.nameSpace;
 				}
 					
 				inline SEM::TypeInstance* getSEMTypeInstance() const {
-					assert(kind() == TYPEINSTANCE);
-					return (SEM::TypeInstance*) data_->sem;
+					assert(isTypeInstance());
+					return data_->sem.typeInstance;
 				}
 				
 				inline SEM::Function* getSEMFunction() const {
-					assert(kind() == FUNCTION);
-					return (SEM::Function*) data_->sem;
+					assert(isFunction());
+					return data_->sem.function;
 				}
 				
 				inline SEM::TemplateVar* getSEMTemplateVar() const {
-					assert(kind() == TEMPLATEVAR);
-					return (SEM::TemplateVar*) data_->sem;
+					assert(isTemplateVar());
+					return data_->sem.templateVar;
 				}
 				
 				inline SEM::Scope* getSEMScope() const {
 					assert(isScope());
-					return (SEM::Scope*) data_->sem;
+					return data_->sem.scope;
 				}
 				
 				inline SEM::Var* getSEMVar() const {
 					assert(isVariable());
-					return (SEM::Var*) data_->sem;
+					return data_->sem.var;
 				}
 				
 				inline std::string toString() const {
@@ -241,19 +225,28 @@ namespace locic {
 					Kind kind;
 					StringMap<Node> children;
 					
+					// Can't use 'union' since members have
+					// destructors.
 					struct {
 						AST::NamespaceList nameSpaceList;
-						AST::TypeInstanceList typeInstanceList;
-						AST::FunctionList functionList;
+						AST::Node<AST::TypeInstance> typeInstance;
+						AST::Node<AST::Function> function;
 						AST::Node<AST::TemplateTypeVar> templateVar;
 						AST::Node<AST::Scope> scope;
 						AST::Node<AST::TypeVar> var;
 					} ast;
 				
-					SEM::Object* sem;
+					union {
+						SEM::Namespace* nameSpace;
+						SEM::TypeInstance* typeInstance;
+						SEM::Function* function;
+						SEM::TemplateVar* templateVar;
+						SEM::Scope* scope;
+						SEM::Var* var;
+					} sem;
 					
 					inline NodeData(Kind k)
-						: kind(k), sem(NULL) { }
+						: kind(k) { }
 				};
 				
 				inline Node(Kind k)

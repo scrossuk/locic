@@ -2,7 +2,6 @@
 #define LOCIC_SEM_HPP
 
 #include <locic/SEM/Function.hpp>
-#include <locic/SEM/Object.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>

@@ -11,7 +11,6 @@ add_library(locic-semanalysis
 	ConvertType.cpp
 	ConvertValue.cpp
 	Lval.cpp
-	MergeTypes.cpp
 	MethodPattern.cpp
 	Ref.cpp
 	TypeProperties.cpp

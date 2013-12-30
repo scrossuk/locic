@@ -20,14 +20,14 @@ namespace locic {
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
 		struct TypeInstance {
-			enum TypeEnum {
+			enum Kind {
 				PRIMITIVE,
 				STRUCT,
 				CLASSDECL,
 				CLASSDEF,
 				DATATYPE,
-				INTERFACE
-			} typeEnum;
+				INTERFACE,
+			} kind;
 			
 			std::string name;
 			Node<TemplateTypeVarList> templateVariables;
@@ -37,6 +37,8 @@ namespace locic {
 			public:
 				static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions);
 				
+				static TypeInstance* Struct(const std::string& name, const Node<TypeVarList>& variables);
+				
 				static TypeInstance* ClassDecl(const std::string& name, const Node<FunctionList>& functions);
 				
 				static TypeInstance* ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions);
@@ -45,12 +47,10 @@ namespace locic {
 				
 				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
 				
-				static TypeInstance* Struct(const std::string& name, const Node<TypeVarList>& variables);
-				
 				std::string toString() const;
 				
 			private:
-				TypeInstance(TypeEnum e, const std::string& n,
+				TypeInstance(Kind k, const std::string& n,
 					const Node<TypeVarList>& v, const Node<FunctionList>& f);
 				
 		};

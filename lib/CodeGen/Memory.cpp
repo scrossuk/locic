@@ -37,19 +37,19 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					SEM::TypeInstance* typeInstance = type->getObjectType();
+					auto typeInstance = type->getObjectType();
 					
 					assert(!typeInstance->isInterface());
 					
-					if (typeInstance->isPrimitive() || typeInstance->isDefinition()) {
-						return function.getBuilder().CreateAlloca(rawType);
-					} else {
-						llvm::Value* alloca =
+					if (typeInstance->isClassDecl()) {
+						auto alloca =
 							function.getBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
 							rawType->getPointerTo());
+					} else {
+						return function.getBuilder().CreateAlloca(rawType);
 					}
 				}
 				

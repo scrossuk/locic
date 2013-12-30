@@ -13,9 +13,9 @@ namespace locic {
 
 	namespace AST {
 	
-		TypeInstance::TypeInstance(TypeEnum e, const std::string& n,
+		TypeInstance::TypeInstance(Kind k, const std::string& n,
 								   const Node<TypeVarList>& v, const Node<FunctionList>& f)
-			: typeEnum(e), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
+			: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
 			  variables(v), functions(f) { }
 			  
 		TypeInstance* TypeInstance::Primitive(const std::string& name, const Node<FunctionList>& functions) {

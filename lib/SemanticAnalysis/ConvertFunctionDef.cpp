@@ -17,38 +17,30 @@ namespace locic {
 			
 			// Look through all the AST functions corresponding to
 			// this function to find the definition.
-			AST::FunctionList astFunctionDefNodeList;
-			for (const auto& astFunctionNode: functionNode.getASTFunctionList()) {
-				if (astFunctionNode->scope.get() != NULL) {
-					astFunctionDefNodeList.push_back(astFunctionNode);
-				}
-			}
+			const auto& astFunctionNode = functionNode.getASTFunction();
 			
-			if (astFunctionDefNodeList.empty()) {
+			if (astFunctionNode->scope.get() == NULL) {
 				// Only a declaration.
 				return;
 			}
 			
-			if (astFunctionDefNodeList.size() > 1) {
-				// More than one definition!
-				throw MultipleFunctionDefinitionsException(context.name());
-			}
-			
-			const AST::Node<AST::Function> astFunctionNode = astFunctionDefNodeList.front();
-			SEM::Function * semFunction = functionNode.getSEMFunction();
+			auto semFunction = functionNode.getSEMFunction();
 			
 			assert(astFunctionNode->scope.get() != NULL);
-			assert(!semFunction->isDefinition());
+			
+			// Function should currently be a declaration
+			// (it is about to be made into a definition).
+			assert(semFunction->isDeclaration());
 			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)
-			SEM::Scope* semScope = ConvertScope(context, astFunctionNode->scope);
+			auto semScope = ConvertScope(context, astFunctionNode->scope);
 			
-			SEM::Type* returnType = semFunction->type()->getFunctionReturnType();
+			auto returnType = semFunction->type()->getFunctionReturnType();
 			
 			if (!returnType->isVoid()) {
 				// Functions with non-void return types must return a value.
-				if(!WillScopeReturn(*semScope)) {
+				if (!WillScopeReturn(*semScope)) {
 					throw MissingReturnStatementException(context.name());
 				}
 			} else {

@@ -14,16 +14,16 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
-			Module& module = function.getModule();
+			auto& module = function.getModule();
 			
 			assert(value->getType()->isPointerTy());
 			
-			SEM::Type* type = module.resolveType(unresolvedType);
+			auto type = module.resolveType(unresolvedType);
 			if (!type->isClass() && !type->isPrimitive()) {
 				return;
 			}
 			
-			llvm::Function* destructorFunction = genDestructorFunction(module, type);
+			auto destructorFunction = genDestructorFunction(module, type);
 			
 			// Call destructor.
 			function.getBuilder().CreateCall(destructorFunction,
@@ -37,18 +37,19 @@ namespace locic {
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* unresolvedParent) {
 			assert(unresolvedParent != NULL);
-			assert(unresolvedParent->isObject());
-			assert(unresolvedParent->getObjectType()->isClass() || 
-				unresolvedParent->getObjectType()->isStruct() ||
-				unresolvedParent->getObjectType()->isPrimitive());
 			
-			SEM::Type* parent = module.resolveType(unresolvedParent);
-			const std::string mangledName = mangleDestructorName(module, parent);
+			auto parent = module.resolveType(unresolvedParent);
+			
+			assert(parent->isObject());
+			assert(parent->getObjectType()->isClass() || 
+				parent->getObjectType()->isPrimitive());
+			
+			const auto mangledName = mangleDestructorName(module, parent);
 			LOG(LOG_INFO, "Generating destructor for type '%s' (mangled as '%s').",
 				parent->toString().c_str(),
 				mangledName.c_str());
 			
-			const Optional<llvm::Function*> result = module.getFunctionMap().tryGet(mangledName);
+			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
 				LOG(LOG_INFO, "Destructor for type '%s' (mangled as '%s') already exists.",
@@ -58,19 +59,16 @@ namespace locic {
 			}
 			
 			// --- Add parent template mapping to module.
-			const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap =
-				parent != NULL ?
-					parent->generateTemplateVarMap() :
-					Map<SEM::TemplateVar*, SEM::Type*>();
+			const auto templateVarMap = (parent != NULL) ? parent->generateTemplateVarMap() : Map<SEM::TemplateVar*, SEM::Type*>();
 			
 			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 			
 			// --- Generate function declaration.
-			llvm::Type* contextPtrType =
+			auto contextPtrType =
 				getTypeInstancePointer(module, parent->getObjectType(),
 					parent->templateArguments());
 			
-			llvm::FunctionType* functionType =
+			auto functionType =
 				TypeGenerator(module).getVoidFunctionType(
 					std::vector<llvm::Type*>(1, contextPtrType));
 			
@@ -90,9 +88,9 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			assert(parent->getObjectType()->isDeclaration() ||
-				parent->getObjectType()->isDefinition());
-			if (parent->getObjectType()->isDeclaration()) {
+			assert(parent->getObjectType()->isClass());
+			
+			if (parent->getObjectType()->isClassDecl()) {
 				return llvmFunction;
 			}
 			

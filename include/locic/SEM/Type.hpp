@@ -4,19 +4,17 @@
 #include <string>
 #include <vector>
 
-#include <locic/Map.hpp>
-#include <locic/String.hpp>
-
-#include <locic/SEM/Object.hpp>
-#include <locic/SEM/TypeInstance.hpp>
-
 namespace locic {
+	
+	template <typename Key, typename Value>
+	class Map;
 
 	namespace SEM {
 	
 		class TemplateVar;
+		class TypeInstance;
 		
-		class Type: public Object {
+		class Type {
 			public:
 				enum Kind {
 					VOID,
@@ -29,12 +27,6 @@ namespace locic {
 					INTERFACEMETHOD,
 					TEMPLATEVAR
 				};
-				
-				static const bool CONST = true;
-				static const bool MUTABLE = false;
-				
-				static const bool LVAL = true;
-				static const bool RVAL = false;
 				
 				static const std::vector<Type*> NO_TEMPLATE_ARGS;
 				
@@ -49,8 +41,6 @@ namespace locic {
 				static Type* InterfaceMethod(Type* functionType);
 				
 				Kind kind() const;
-				
-				ObjectKind objectKind() const;
 				
 				bool isConst() const;
 				bool isLval() const;
@@ -117,9 +107,6 @@ namespace locic {
 				
 			private:
 				Type(Kind k);
-				
-				// Not assignable.
-				Type& operator=(Type) = delete;
 					
 				Kind kind_;
 				bool isConst_;

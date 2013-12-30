@@ -1,10 +1,7 @@
 #ifndef LOCIC_SEM_VAR_HPP
 #define LOCIC_SEM_VAR_HPP
 
-#include <stdint.h>
 #include <string>
-
-#include <locic/SEM/Object.hpp>
 
 namespace locic {
 
@@ -12,7 +9,7 @@ namespace locic {
 	
 		class Type;
 		
-		class Var: public Object {
+		class Var {
 			public:
 				enum Kind {
 					LOCAL,
@@ -20,37 +17,20 @@ namespace locic {
 					MEMBER
 				};
 				
-				static inline Var * Local(Type * type){
-					return new Var(LOCAL, type);
-				}
+				static Var * Local(Type * type);
 				
-				static inline Var * Param(Type * type){
-					return new Var(PARAM, type);
-				}
+				static Var * Param(Type * type);
 				
-				static inline Var * Member(Type * type){
-					return new Var(MEMBER, type);
-				}
+				static Var * Member(Type * type);
 				
-				inline ObjectKind objectKind() const {
-					return OBJECT_VARIABLE;
-				}
+				Kind kind() const;
 				
-				inline Kind kind() const {
-					return kind_;
-				}
-				
-				inline Type* type() const {
-					return type_;
-				}
+				Type* type() const;
 				
 				std::string toString() const;
 				
 			private:
-				inline Var(Kind k, Type* t)
-					: kind_(k), type_(t) {
-					assert(type_ != NULL);
-				}
+				Var(Kind k, Type* t);
 				
 				Kind kind_;
 				Type* type_;

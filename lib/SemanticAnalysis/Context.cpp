@@ -46,15 +46,14 @@ namespace locic {
 					return parent_;
 				}
 				
-				static Node findNode(Node currentNode, SEM::Object* targetObject){
-					if(currentNode.getSEMObject() == targetObject){
+				static Node findNode(const Node& currentNode, SEM::TypeInstance* target){
+					if (currentNode.isTypeInstance() && currentNode.getSEMTypeInstance() == target) {
 						return currentNode;
 					}
 					
-					for(StringMap<Node>::Range range = currentNode.children().range();
-						!range.empty(); range.popFront()){
-						const Node resultNode = findNode(range.front().value(), targetObject);
-						if(resultNode.isNotNone()){
+					for (auto range = currentNode.children().range(); !range.empty(); range.popFront()) {
+						const Node resultNode = findNode(range.front().value(), target);
+						if (resultNode.isNotNone()) {
 							return resultNode;
 						}
 					}
@@ -62,23 +61,21 @@ namespace locic {
 					return Node::None();
 				}
 				
-				Node Context::reverseLookup(SEM::Object* object) const {
-					Optional<Node> result = reverseLookupCache_.tryGet(object);
-					if(result.hasValue()){
+				Node Context::reverseLookup(SEM::TypeInstance* typeInstance) const {
+					auto result = reverseLookupCache_.tryGet(typeInstance);
+					if (result.hasValue()) {
 						return result.getValue();
 					}
 					
-					if(hasParent()){
-						return parent().reverseLookup(object);
+					if (hasParent()) {
+						return parent().reverseLookup(typeInstance);
 					}
 					
-					const Node foundNode = hasParent() ?
-						parent().reverseLookup(object) :
-						findNode(node(), object);
+					const Node foundNode = findNode(node(), typeInstance);
 					
-					if(foundNode.isNotNone()){
-						assert(foundNode.getSEMObject() == object);
-						reverseLookupCache_.insert(object, foundNode);
+					if (foundNode.isNotNone()) {
+						assert(foundNode.isTypeInstance() && foundNode.getSEMTypeInstance() == typeInstance);
+						reverseLookupCache_.insert(typeInstance, foundNode);
 					}
 					
 					return foundNode;
@@ -87,8 +84,8 @@ namespace locic {
 				Node Context::lookupParentType() const {
 					const Context * currentContext = this;
 					
-					while(currentContext != NULL){
-						if(currentContext->node().isTypeInstance()){
+					while (currentContext != NULL) {
+						if (currentContext->node().isTypeInstance()) {
 							return currentContext->node();
 						}
 						
