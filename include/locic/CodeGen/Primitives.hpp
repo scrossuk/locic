@@ -10,14 +10,20 @@
 namespace locic {
 
 	namespace CodeGen {
+		
+		class Function;
 	
 		void createPrimitiveSizeOf(Module& module, const std::string& name, const std::vector<SEM::Type*>& templateArguments, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction);
 		
 		void createPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction);
+		
+		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
 								   
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name, const std::vector<llvm::Type*>& templateArguments);
+		
+		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type);
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
 		

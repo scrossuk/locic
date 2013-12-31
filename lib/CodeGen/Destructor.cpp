@@ -13,31 +13,29 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool hasDestructor(Module& module, SEM::Type* unresolvedType) {
+		bool typeHasDestructor(Module& module, SEM::Type* unresolvedType) {
 			auto type = module.resolveType(unresolvedType);
-			return type->isClass() || type->isPrimitive() || type->isDatatype();
+			
+			if (type->isPrimitive()) {
+				return primitiveTypeHasDestructor(module, type);
+			}
+			
+			return type->isClass() || type->isDatatype();
 		}
 		
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			auto& module = function.getModule();
 			
-			assert(value->getType()->isPointerTy());
-			
-			auto type = module.resolveType(unresolvedType);
-			if (!hasDestructor(module, type)) {
+			const auto type = module.resolveType(unresolvedType);
+			if (!typeHasDestructor(module, type)) {
 				return;
 			}
 			
-			auto destructorFunction = genDestructorFunction(module, type);
+			assert(value->getType()->isPointerTy());
 			
 			// Call destructor.
-			function.getBuilder().CreateCall(destructorFunction,
-				std::vector<llvm::Value*>(1, value));
-			
-			// Zero out memory.
-			function.getBuilder().CreateStore(
-				ConstantGenerator(module).getNull(genType(module, type)),
-				value);
+			const auto destructorFunction = genDestructorFunction(module, type);
+			function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>(1, value));
 		}
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* unresolvedParent) {
@@ -68,18 +66,17 @@ namespace locic {
 			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 			
 			// --- Generate function declaration.
-			auto contextPtrType =
+			const auto contextPtrType =
 				getTypeInstancePointer(module, parent->getObjectType(),
 					parent->templateArguments());
 			
-			auto functionType =
+			const auto functionType =
 				TypeGenerator(module).getVoidFunctionType(
 					std::vector<llvm::Type*>(1, contextPtrType));
 			
-			const llvm::GlobalValue::LinkageTypes linkage =
-				getFunctionLinkage(parent->getObjectType());
+			const auto linkage = getFunctionLinkage(parent->getObjectType());
 			
-			llvm::Function* llvmFunction =
+			const auto llvmFunction =
 				createLLVMFunction(module,
 					functionType, linkage,
 					mangledName);
@@ -102,36 +99,20 @@ namespace locic {
 			
 			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
 			
-			// Check the 'liveness indicator' which indicates whether the
-			// destructor should be run.
-			llvm::Value* isLive = function.getBuilder().CreateLoad(
-				function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0));
-			
-			llvm::BasicBlock* isLiveBB = function.createBasicBlock("is_live");
-			llvm::BasicBlock* isNotLiveBB = function.createBasicBlock("is_not_live");
-			
-			function.getBuilder().CreateCondBr(isLive, isLiveBB, isNotLiveBB);
-			
-			function.selectBasicBlock(isNotLiveBB);
-			function.getBuilder().CreateRetVoid();
-			
-			function.selectBasicBlock(isLiveBB);
-			
 			// Call the custom destructor function, if one exists.
 			if (parent->getObjectType()->hasProperty("__destructor")) {
-				llvm::Function* customDestructor =
-					genFunction(module, parent, parent->getObjectType()->getProperty("__destructor"));
+				const auto customDestructor = genFunction(module, parent, parent->getObjectType()->getProperty("__destructor"));
 				function.getBuilder().CreateCall(customDestructor, function.getContextValue());
 			}
 			
-			const std::vector<SEM::Var*>& memberVars = parent->getObjectType()->variables();
+			const auto& memberVars = parent->getObjectType()->variables();
 			
-			// Call destructors for all objects within the parent
-			// object, in reverse order.
+			// Call destructors for all objects within the
+			// parent object, in *reverse order*.
 			for (size_t i = 0; i < memberVars.size(); i++) {
-				SEM::Var* memberVar = memberVars.at((memberVars.size() - 1) - i);
+				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 				const size_t offset = module.getMemberVarMap().get(memberVar);
-				llvm::Value* ptrToMember =
+				const auto ptrToMember =
 					function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, offset);
 				genDestructorCall(function, memberVar->type(), ptrToMember);
 			}
@@ -146,33 +127,32 @@ namespace locic {
 			// to be destroyed.
 			bool anyDestructors = false;
 			for (const auto& object: destructorScope) {
-				if (hasDestructor(function.getModule(), object.first)) {
+				if (typeHasDestructor(function.getModule(), object.first)) {
 					anyDestructors = true;
 				}
 			}
 			if (!anyDestructors) return;
 			
 			// Create a new basic block to make this clearer...
-			llvm::BasicBlock* scopeDestroyStartBB = function.createBasicBlock(makeString("destroyScope_%llu_START", (unsigned long long) scopeId));
+			const auto scopeDestroyStartBB = function.createBasicBlock(makeString("destroyScope_%llu_START", (unsigned long long) scopeId));
 			function.getBuilder().CreateBr(scopeDestroyStartBB);
 			function.selectBasicBlock(scopeDestroyStartBB);
 			
 			for (size_t i = 0; i < destructorScope.size(); i++) {
 				// Destroy in reverse order.
-				const std::pair<SEM::Type*, llvm::Value*> object =
-					destructorScope.at((destructorScope.size() - 1) - i);
+				const auto& object = destructorScope.at((destructorScope.size() - 1) - i);
 				genDestructorCall(function, object.first, object.second);
 			}
 			
 			// ...and another to make it clear where it ends.
-			llvm::BasicBlock* scopeDestroyEndBB = function.createBasicBlock(makeString("destroyScope_%llu_END", (unsigned long long) scopeId));
+			const auto scopeDestroyEndBB = function.createBasicBlock(makeString("destroyScope_%llu_END", (unsigned long long) scopeId));
 			function.getBuilder().CreateBr(scopeDestroyEndBB);
 			function.selectBasicBlock(scopeDestroyEndBB);
 		}
 		
 		void genAllScopeDestructorCalls(Function& function) {
 			// Create a new basic block to make this clearer.
-			llvm::BasicBlock* scopeDestroyAllBB = function.createBasicBlock("destroyAllScopes");
+			const auto scopeDestroyAllBB = function.createBasicBlock("destroyAllScopes");
 			function.getBuilder().CreateBr(scopeDestroyAllBB);
 			function.selectBasicBlock(scopeDestroyAllBB);
 		
@@ -190,7 +170,7 @@ namespace locic {
 		LifetimeScope::LifetimeScope(Function& function)
 			: function_(function) {
 			const size_t scopeId = function_.destructorScopeStack().size();
-			llvm::BasicBlock* scopeStartBB = function_.createBasicBlock(makeString("scope_%llu_START", (unsigned long long) scopeId));
+			const auto scopeStartBB = function_.createBasicBlock(makeString("scope_%llu_START", (unsigned long long) scopeId));
 			function_.getBuilder().CreateBr(scopeStartBB);
 			function_.selectBasicBlock(scopeStartBB);
 			
@@ -203,7 +183,7 @@ namespace locic {
 			function_.destructorScopeStack().pop_back();
 			
 			const size_t scopeId = function_.destructorScopeStack().size();
-			llvm::BasicBlock* scopeEndBB = function_.createBasicBlock(makeString("scope_%llu_END", (unsigned long long) scopeId));
+			const auto scopeEndBB = function_.createBasicBlock(makeString("scope_%llu_END", (unsigned long long) scopeId));
 			function_.getBuilder().CreateBr(scopeEndBB);
 			function_.selectBasicBlock(scopeEndBB);
 		}

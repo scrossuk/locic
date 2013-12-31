@@ -27,8 +27,7 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			llvm::StructType* structType = TypeGenerator(module).getForwardDeclaredStructType(
-				mangledName);
+			const auto structType = TypeGenerator(module).getForwardDeclaredStructType(mangledName);
 			
 			module.getTypeMap().insert(mangledName, structType);
 			
@@ -45,16 +44,16 @@ namespace locic {
 			// hence the contents can be specified.
 			std::vector<llvm::Type*> structVariables;
 			
-			// Add 'live' indicator (to determine whether destructors are run).
-			structVariables.push_back(TypeGenerator(module).getI1Type());
-			
 			// Add member variables.
 			const auto& variables = typeInstance->variables();
 			
+			// In future this should try to rearrange the
+			// member variables to minimise the class size
+			// (by dealing with alignment issues).
 			for (size_t i = 0; i < variables.size(); i++) {
-				SEM::Var* var = variables.at(i);
+				const auto var = variables.at(i);
 				structVariables.push_back(genType(module, var->type()));
-				module.getMemberVarMap().forceInsert(var, i + 1);
+				module.getMemberVarMap().forceInsert(var, i);
 			}
 			
 			LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",

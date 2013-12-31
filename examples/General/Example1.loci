@@ -142,8 +142,8 @@ class count(int from, int to) {
 	}
 };
 
-void goGet(an_interface& interfaceRef, TestClass2* val) {
-	interfaceRef.passTestClass2(move *val);
+void goGet(an_interface& interfaceRef, TestClass2 val) {
+	interfaceRef.passTestClass2(move val);
 	printf("Done goGet.\n"C);
 }
 
@@ -183,7 +183,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 		free(reinterpret_cast<T*, void*>(@ptr));
 	}
 	
-	lval<T> value_lval<T>& index(int i) {
+	lval<T> ptr_lval<T> index(int i) {
 		if (i >= 0) {
 			if (i < @size) {
 				return @ptr[i];
@@ -191,7 +191,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 		}
 		printf("Out of bounds at index '%d'.\n"C, i);
 		@guardSlot = @emptyValue;
-		return @guardSlot;
+		return *(&(@guardSlot));
 	}
 	
 	int size() {
@@ -279,7 +279,7 @@ int main(int argc, char ** argv){
 	printf("Got interface ref: %d.\n"C, interfaceRef.getValue());
 	
 	auto newTestClass2 = TestClass2(1024);
-	goGet(interfaceRef, &newTestClass2);
+	goGet(interfaceRef, move newTestClass2);
 	
 	an_interface& interfaceObject = getPtrAsInterfaceRef(&testObject);
 	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));

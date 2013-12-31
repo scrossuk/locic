@@ -1,10 +1,11 @@
+#include <stdexcept>
+
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -15,8 +16,8 @@ namespace locic {
 		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
-			Module& module = function.getModule();
-			SEM::Type* type = module.resolveType(unresolvedType);
+			auto& module = function.getModule();
+			const auto type = module.resolveType(unresolvedType);
 			
 			(void) function.getBuilder().CreateStore(
 				ConstantGenerator(module).getNull(genType(module, type)),
@@ -24,8 +25,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
-			Module& module = function.getModule();
-			llvm::Type* rawType = genType(module, type);
+			auto& module = function.getModule();
+			const auto rawType = genType(module, type);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
@@ -37,12 +38,12 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					auto typeInstance = type->getObjectType();
+					const auto typeInstance = type->getObjectType();
 					
 					assert(!typeInstance->isInterface());
 					
 					if (typeInstance->isClassDecl()) {
-						auto alloca =
+						const auto alloca =
 							function.getBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
@@ -54,34 +55,29 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					assert(false && "Can't alloca template var.");
-					return NULL;
+					throw std::runtime_error("Can't alloca template var.");
 				}
 				
 				default: {
-					assert(false && "Unknown type enum for generating alloca.");
-					return NULL;
+					throw std::runtime_error("Unknown type enum for generating alloca.");
 				}
 			}
 		}
 		
 		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
-			Module& module = function.getModule();
-			SEM::Type* type = module.resolveType(unresolvedType);
+			auto& module = function.getModule();
+			const auto type = module.resolveType(unresolvedType);
 			
-			llvm::Value* alloca = genUnzeroedAlloca(function, type);
+			const auto alloca = genUnzeroedAlloca(function, type);
 			
 			// Zero allocated memory.
 			genZero(function, type, alloca);
-			
-			assert(!function.destructorScopeStack().empty());
-			function.destructorScopeStack().back().push_back(std::make_pair(type, alloca));
 			
 			return alloca;
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* unresolvedType) {
-			SEM::Type* type = function.getModule().resolveType(unresolvedType);
+			const auto type = function.getModule().resolveType(unresolvedType);
 			
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			
@@ -103,21 +99,19 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					assert(false && "Can't load template var.");
-					return NULL;
+					throw std::runtime_error("Can't load template var.");
 				}
 				
 				default: {
-					assert(false && "Unknown type enum for generating load.");
-					return NULL;
+					throw std::runtime_error("Unknown type enum for generating load.");
 				}
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType, bool destroyExisting) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
 			assert(var->getType()->isPointerTy());
 			
-			SEM::Type* type = function.getModule().resolveType(unresolvedType);
+			const auto type = function.getModule().resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
@@ -132,38 +126,48 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeAlwaysKnown(function.getModule(), type)) {
 						// Most primitives will be passed around as values,
-						// rather than pointers, and also don't need destructors
-						// to be run.
+						// rather than pointers.
 						function.getBuilder().CreateStore(value, var);
 						return;
 					} else {	
-						// Destroy existing value in destination.
-						if (destroyExisting) genDestructorCall(function, type, var);
-						
-						// Do store.
 						if (isTypeSizeKnownInThisModule(function.getModule(), type)) {
+							// If the type size is known now, it's
+							// better to generate an explicit load
+							// and store (optimisations will be able
+							// to make more sense of this).
 							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
 						} else {
-							assert(false && "sizeof is currently broken, so memcpy won't work correctly...");
-							function.getBuilder().CreateMemCpy(var, value,
-								genSizeOf(function, type), 1);
+							// If the type size isn't known, then
+							// a memcpy is unavoidable.
+							function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1);
 						}
-						
-						// Zero out source.
-						genZero(function, type, value);
 						return;
 					}
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					assert(false && "Can't store template var.");
-					return;
+					throw std::runtime_error("Can't store template var.");
 				}
 				
 				default: {
-					assert(false && "Unknown type enum for generating store.");
-					return;
+					throw std::runtime_error("Unknown type enum for generating store.");
 				}
+			}
+		}
+		
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedValueType, SEM::Type* unresolvedVarType) {
+			auto& module = function.getModule();
+			
+			const auto valueType = module.resolveType(unresolvedValueType);
+			const auto varType = module.resolveType(unresolvedVarType);
+			
+			// If the variable type wasn't actually an lval
+			// (very likely), then a value_lval will be created
+			// to hold it, and this needs to be constructed.
+			if (*(valueType) == *(varType)) {
+				genStore(function, value, var, varType);
+			} else {
+				genStoreValueLval(function, value, var, varType);
 			}
 		}
 		

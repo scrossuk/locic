@@ -41,12 +41,15 @@ namespace locic {
 		/**
 		 * \brief Store a value into a variable.
 		 * 
-		 * This will automatically handle types that need the
-		 * existing destination value to be destroyed, and for
-		 * the source value to be zeroed out (to prevent
-		 * multiple destruction of the same value).
+		 * As with the load function, this handles both
+		 * value types (such as primitives) by generating
+		 * a normal store, but also handles reference types
+		 * (such as classes) by copying the memory from
+		 * one pointer to another.
 		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType, bool destroyExisting = true);
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
+		
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedValueType, SEM::Type* unresolvedVarType);
 		
 	}
 	

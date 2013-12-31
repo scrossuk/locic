@@ -137,9 +137,16 @@ __primitive ptr {
 	
 	ptr<T> implicitCopy();
 	
-	lval<T> value_lval<T>& deref();
+	lval<T> ptr_lval<T> deref();
 	
-	lval<T> value_lval<T>& index(int index);
+	lval<T> ptr_lval<T> index(int index);
+}
+
+template <typename T>
+__primitive ptr_lval {
+	T* address();
+	void assign(T value);
+	T& dissolve();
 }
 
 template <typename T>

@@ -41,6 +41,8 @@ namespace locic {
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
 				LifetimeScope lifetimeScope(functionGenerator);
 				
+				const auto& parameterTypes = function->type()->getFunctionParameterTypes();
+				
 				// Parameters need to be copied to the stack, so that it's
 				// possible to assign to them, take their address, etc.
 				const auto& parameterVars = function->parameters();
@@ -56,10 +58,17 @@ namespace locic {
 					// Create an alloca for this variable.
 					auto stackObject = genAlloca(functionGenerator, paramVar->type());
 					
-					// Store the initial value into the alloca.
-					genStore(functionGenerator, functionGenerator.getArg(i), stackObject, paramVar->type());
+					// Store the argument into the stack alloca.
+					genStoreVar(functionGenerator, functionGenerator.getArg(i), stackObject, parameterTypes.at(i), paramVar->type());
 					
+					// Add this to the local variable map, so that
+					// any SEM vars can be mapped to the actual value.
 					functionGenerator.getLocalVarMap().insert(paramVar, stackObject);
+					
+					// Add this to the list of variables to be
+					// destroyed at the end of the function.
+					assert(!functionGenerator.destructorScopeStack().empty());
+					functionGenerator.destructorScopeStack().back().push_back(std::make_pair(paramVar->type(), stackObject));
 				}
 				
 				auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");
@@ -136,15 +145,14 @@ namespace locic {
 						parent->templateArguments()) :
 					NULL;
 			
-			auto functionType =
-				genFunctionType(module, function->type(), contextPtrType);
+			const auto functionType = genFunctionType(module, function->type(), contextPtrType);
 			
 			const auto linkage = getFunctionLinkage(
 				parent != NULL ?
 					parent->getObjectType() :
 					NULL);
 			
-			auto llvmFunction =
+			const auto llvmFunction =
 				createLLVMFunction(module,
 					functionType, linkage,
 					mangledName);

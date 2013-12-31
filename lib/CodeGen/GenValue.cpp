@@ -287,18 +287,17 @@ namespace locic {
 				}
 				
 				case SEM::Value::INTERNALCONSTRUCT: {
-					const std::vector<SEM::Value*>& parameters = value->internalConstruct.parameters;
-					llvm::Value* objectValue = genAlloca(function, value->type());
+					const auto& parameterValues = value->internalConstruct.parameters;
+					const auto& parameterVars = value->type()->getObjectType()->variables();
 					
-					// Set 'liveness indicator' to true (indicating destructor should be run).
-					function.getBuilder().CreateStore(ConstantGenerator(function.getModule()).getI1(true),
-						function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, 0));
-													  
-					for (size_t i = 0; i < parameters.size(); i++) {
-						SEM::Value* paramValue = parameters.at(i);
-						llvm::Value* llvmParamValue = genValue(function, paramValue);
-						llvm::Value* llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1);
-						genStore(function, llvmParamValue, llvmInsertPointer, paramValue->type(), false);
+					const auto objectValue = genAlloca(function, value->type());
+					
+					for (size_t i = 0; i < parameterValues.size(); i++) {
+						const auto parameterValue = parameterValues.at(i);
+						const auto llvmParamValue = genValue(function, parameterValue);
+						const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+						
+						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterValue->type(), parameterVars.at(i)->type());
 					}
 					
 					return objectValue;

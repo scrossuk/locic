@@ -21,7 +21,7 @@ namespace locic {
 			LifetimeScope lifetimeScope(function);
 			
 			for (std::size_t i = 0; i < scope.localVariables().size(); i++) {
-				SEM::Var* localVar = scope.localVariables().at(i);
+				const auto localVar = scope.localVariables().at(i);
 				
 				// Create an alloca for this variable.
 				llvm::Value* stackObject = genAlloca(function, localVar->type());
@@ -35,11 +35,12 @@ namespace locic {
 		}
 		
 		void genStatement(Function& function, SEM::Statement* statement) {
-			LifetimeScope lifetimeScope(function);
-			
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
-					genValue(function, statement->getValue());
+					const auto value = genValue(function, statement->getValue());
+					
+					// Call destructor for the value.
+					genDestructorCall(function, statement->getValue()->type(), value);
 					break;
 				}
 				
@@ -49,16 +50,22 @@ namespace locic {
 				}
 				
 				case SEM::Statement::INITIALISE: {
-					llvm::Value* varValue = function.getLocalVarMap().get(statement->getInitialiseVar());
-					genStore(function, genValue(function, statement->getInitialiseValue()), varValue, statement->getInitialiseValue()->type());
+					const auto varValue = function.getLocalVarMap().get(statement->getInitialiseVar());
+					const auto initialiseValue = genValue(function, statement->getInitialiseValue());
+					genStoreVar(function, initialiseValue, varValue, statement->getInitialiseValue()->type(), statement->getInitialiseVar()->type());
+					
+					// Add this to the list of variables to be
+					// destroyed at the end of the function.
+					assert(!function.destructorScopeStack().empty());
+					function.destructorScopeStack().back().push_back(std::make_pair(statement->getInitialiseVar()->type(), varValue));
 					break;
 				}
 				
 				case SEM::Statement::IF: {
-					llvm::BasicBlock* conditionBB = function.createBasicBlock("ifCondition");
-					llvm::BasicBlock* thenBB = function.createBasicBlock("ifThen");
-					llvm::BasicBlock* elseBB = function.createBasicBlock("ifElse");
-					llvm::BasicBlock* mergeBB = function.createBasicBlock("ifMerge");
+					const auto conditionBB = function.createBasicBlock("ifCondition");
+					const auto thenBB = function.createBasicBlock("ifThen");
+					const auto elseBB = function.createBasicBlock("ifElse");
+					const auto mergeBB = function.createBasicBlock("ifMerge");
 					
 					function.getBuilder().CreateBr(conditionBB);
 					function.selectBasicBlock(conditionBB);
@@ -86,9 +93,9 @@ namespace locic {
 				}
 				
 				case SEM::Statement::WHILE: {
-					llvm::BasicBlock* conditionBB = function.createBasicBlock("whileConditionLoop");
-					llvm::BasicBlock* insideLoopBB = function.createBasicBlock("whileInsideLoop");
-					llvm::BasicBlock* afterLoopBB = function.createBasicBlock("whileAfterLoop");
+					const auto conditionBB = function.createBasicBlock("whileConditionLoop");
+					const auto insideLoopBB = function.createBasicBlock("whileInsideLoop");
+					const auto afterLoopBB = function.createBasicBlock("whileAfterLoop");
 					
 					// Execution starts in the condition block.
 					function.getBuilder().CreateBr(conditionBB);
@@ -122,20 +129,17 @@ namespace locic {
 					if (statement->getReturnValue() != NULL
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
-							llvm::Value* returnValue = genValue(function, statement->getReturnValue());
+							const auto returnValue = genValue(function, statement->getReturnValue());
 							
 							// Store the return value into the return value pointer.
-							// Do NOT run a destructor on the return value pointer.
-							const bool shouldDestroyExisting = false;
-							genStore(function, returnValue, function.getReturnVar(),
-								statement->getReturnValue()->type(), shouldDestroyExisting);
+							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
 							
 							function.getBuilder().CreateRetVoid();
 						} else {
-							llvm::Value* returnValue = genValue(function, statement->getReturnValue());
+							const auto returnValue = genValue(function, statement->getReturnValue());
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
