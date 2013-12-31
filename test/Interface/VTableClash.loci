@@ -1,0 +1,237 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// The VTable hash table should have 20 slots,
+// so this should cause multiple clashes.
+interface HugeInterface {
+	int getValue1();
+	int getValue2();
+	int getValue3();
+	int getValue4();
+	int getValue5();
+	int getValue6();
+	int getValue7();
+	int getValue8();
+	int getValue9();
+	int getValue10();
+	int getValue11();
+	int getValue12();
+	int getValue13();
+	int getValue14();
+	int getValue15();
+	int getValue16();
+	int getValue17();
+	int getValue18();
+	int getValue19();
+	int getValue20();
+	int getValue21();
+	int getValue22();
+	int getValue23();
+	int getValue24();
+	int getValue25();
+	int getValue26();
+	int getValue27();
+	int getValue28();
+	int getValue29();
+	int getValue30();
+}
+
+class HugeClass (int value) {
+	static Default(int value) {
+		return @(value);
+	}
+	
+	int getValue1() {
+		testPrint("getValue1: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue2() {
+		testPrint("getValue2: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue3() {
+		testPrint("getValue3: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue4() {
+		testPrint("getValue4: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue5() {
+		testPrint("getValue5: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue6() {
+		testPrint("getValue6: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue7() {
+		testPrint("getValue7: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue8() {
+		testPrint("getValue8: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue9() {
+		testPrint("getValue9: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue10() {
+		testPrint("getValue10: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue11() {
+		testPrint("getValue11: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue12() {
+		testPrint("getValue12: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue13() {
+		testPrint("getValue13: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue14() {
+		testPrint("getValue14: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue15() {
+		testPrint("getValue15: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue16() {
+		testPrint("getValue16: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue17() {
+		testPrint("getValue17: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue18() {
+		testPrint("getValue18: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue19() {
+		testPrint("getValue19: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue20() {
+		testPrint("getValue20: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue21() {
+		testPrint("getValue21: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue22() {
+		testPrint("getValue22: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue23() {
+		testPrint("getValue23: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue24() {
+		testPrint("getValue24: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue25() {
+		testPrint("getValue25: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue26() {
+		testPrint("getValue26: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue27() {
+		testPrint("getValue27: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue28() {
+		testPrint("getValue28: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue29() {
+		testPrint("getValue29: value = %d"C, @value);
+		return @value;
+	}
+	
+	int getValue30() {
+		testPrint("getValue30: value = %d"C, @value);
+		return @value;
+	}
+	
+}
+
+void polymorphicPrint(HugeInterface& object) {
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue1());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue2());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue3());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue4());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue5());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue6());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue7());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue8());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue9());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue10());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue11());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue12());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue13());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue14());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue15());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue16());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue17());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue18());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue19());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue20());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue21());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue22());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue23());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue24());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue25());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue26());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue27());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue28());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue29());
+	testPrint("polymorphicPrint: Value = %d"C, object.getValue30());
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto instance = HugeClass(42);
+	
+	polymorphicPrint(instance);
+	
+	return 0;
+}
+
