@@ -298,7 +298,7 @@ namespace locic {
 						SEM::Value* paramValue = parameters.at(i);
 						llvm::Value* llvmParamValue = genValue(function, paramValue);
 						llvm::Value* llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i + 1);
-						genStore(function, llvmParamValue, llvmInsertPointer, paramValue->type());
+						genStore(function, llvmParamValue, llvmInsertPointer, paramValue->type(), false);
 					}
 					
 					return objectValue;

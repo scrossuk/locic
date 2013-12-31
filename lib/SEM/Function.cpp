@@ -11,20 +11,38 @@ namespace locic {
 	
 		Function* Function::Decl(bool isMethod, bool isStatic, Type* type,
 								 const Name& name, const std::vector<Var*>& parameters) {
-			return new Function(isMethod, isStatic, type, name, parameters, NULL);
+			const bool defaultImplementation = false;
+			return new Function(isMethod, isStatic, defaultImplementation, type, name, parameters, NULL);
 		}
 		
 		Function* Function::Def(bool isMethod, bool isStatic, Type* type,
 								const Name& name, const std::vector<Var*>& parameters, Scope* scope) {
-			return new Function(isMethod, isStatic, type, name, parameters, scope);
+			const bool defaultImplementation = false;
+			return new Function(isMethod, isStatic, defaultImplementation, type, name, parameters, scope);
 		}
 		
-		Function::Function(bool isM, bool isS, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s)
+		Function* Function::DefDefault(bool isStatic, Type* type, const Name& name) {
+			// Only methods can have default implementations.
+			const bool isMethod = true;
+			
+			const bool defaultImplementation = true;
+			
+			// No parameters need to be created, since
+			// they're only used for generating the
+			// implementation of a function.
+			const auto parameters = std::vector<Var*>();
+			
+			return new Function(isMethod, isStatic, defaultImplementation, type, name, parameters, NULL);	
+		}
+		
+		Function::Function(bool isM, bool isS, bool hasD, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s)
 			: isMethod_(isM),
 			  isStatic_(isS),
+			  hasDefaultImplementation_(hasD),
 			  type_(t), name_(n),
 			  parameters_(p), scope_(s) {
 			assert(type_ != NULL);
+			assert(!(hasDefaultImplementation_ && scope_ != NULL));
 		}
 		
 		const Name& Function::name() const {
@@ -36,11 +54,11 @@ namespace locic {
 		}
 		
 		bool Function::isDeclaration() const {
-			return scope_ == NULL;
+			return !isDefinition();
 		}
 		
 		bool Function::isDefinition() const {
-			return scope_ != NULL;
+			return hasDefaultImplementation_ || scope_ != NULL;
 		}
 		
 		bool Function::isMethod() const {
@@ -49,6 +67,10 @@ namespace locic {
 		
 		bool Function::isStatic() const {
 			return isStatic_;
+		}
+		
+		bool Function::hasDefaultImplementation() const {
+			return hasDefaultImplementation_;
 		}
 		
 		const std::vector<Var*>& Function::parameters() const {
@@ -91,6 +113,12 @@ namespace locic {
 		std::string Function::toString() const {
 			if (isDeclaration()) {
 				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, type: %s)",
+								  name().toString().c_str(),
+								  isMethod() ? "Yes" : "No",
+								  isStatic() ? "Yes" : "No",
+								  type()->toString().c_str());
+			} else if (hasDefaultImplementation()) {
+				return makeString("FunctionDefaultDefinition(name: %s, isMethod: %s, isStatic: %s, type: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStatic() ? "Yes" : "No",

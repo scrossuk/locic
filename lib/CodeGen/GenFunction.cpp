@@ -2,6 +2,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/DefaultMethods.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -26,13 +27,48 @@ namespace locic {
 				: llvm::Function::LinkOnceODRLinkage;
 		}
 		
-		static SEM::Function* getFunctionInParent(SEM::Type* unresolvedParent, const std::string& name) {
-			for (auto function: unresolvedParent->getObjectType()->functions()) {
-				if (function->name().last() == name) {
-					return function;
+		namespace {
+		
+			SEM::Function* getFunctionInParent(SEM::Type* unresolvedParent, const std::string& name) {
+				for (auto function: unresolvedParent->getObjectType()->functions()) {
+					if (function->name().last() == name) {
+						return function;
+					}
 				}
+				return NULL;
 			}
-			return NULL;
+			
+			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
+				LifetimeScope lifetimeScope(functionGenerator);
+				
+				// Parameters need to be copied to the stack, so that it's
+				// possible to assign to them, take their address, etc.
+				const auto& parameterVars = function->parameters();
+				
+				auto setParamsStartBB = functionGenerator.createBasicBlock("setParams_START");
+				functionGenerator.getBuilder().CreateBr(setParamsStartBB);
+				functionGenerator.selectBasicBlock(setParamsStartBB);
+				
+				for (std::size_t i = 0; i < parameterVars.size(); i++) {
+					auto paramVar = parameterVars.at(i);
+					assert(paramVar->kind() == SEM::Var::PARAM);
+					
+					// Create an alloca for this variable.
+					auto stackObject = genAlloca(functionGenerator, paramVar->type());
+					
+					// Store the initial value into the alloca.
+					genStore(functionGenerator, functionGenerator.getArg(i), stackObject, paramVar->type());
+					
+					functionGenerator.getLocalVarMap().insert(paramVar, stackObject);
+				}
+				
+				auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");
+				functionGenerator.getBuilder().CreateBr(setParamsEndBB);
+				functionGenerator.selectBasicBlock(setParamsEndBB);
+				
+				genScope(functionGenerator, function->scope());
+			}
+			
 		}
 		
 		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* unresolvedFunction) {
@@ -64,7 +100,7 @@ namespace locic {
 				assert(parent == NULL);
 			}
 			
-			const std::string mangledName =
+			const auto mangledName =
 				function->isMethod() ?
 					mangleMethodName(module, parent, function->name().last()) :
 					mangleFunctionName(module, function->name());
@@ -75,7 +111,7 @@ namespace locic {
 				function->name().toString().c_str(),
 				mangledName.c_str());
 			
-			const Optional<llvm::Function*> result = module.getFunctionMap().tryGet(mangledName);
+			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
 				LOG(LOG_INFO, "%s '%s' (mangled as '%s') already exists.",
@@ -86,7 +122,7 @@ namespace locic {
 			}
 			
 			// --- Add parent template mapping to module.
-			const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap =
+			const auto templateVarMap =
 				parent != NULL ?
 					parent->generateTemplateVarMap() :
 					Map<SEM::TemplateVar*, SEM::Type*>();
@@ -94,21 +130,21 @@ namespace locic {
 			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 			
 			// --- Generate function declaration.
-			llvm::Type* contextPtrType =
+			auto contextPtrType =
 				function->isMethod() && !function->isStatic() ?
 					getTypeInstancePointer(module, parent->getObjectType(),
 						parent->templateArguments()) :
 					NULL;
 			
-			llvm::FunctionType* functionType =
+			auto functionType =
 				genFunctionType(module, function->type(), contextPtrType);
 			
-			const llvm::GlobalValue::LinkageTypes linkage = getFunctionLinkage(
+			const auto linkage = getFunctionLinkage(
 				parent != NULL ?
 					parent->getObjectType() :
 					NULL);
 			
-			llvm::Function* llvmFunction =
+			auto llvmFunction =
 				createLLVMFunction(module,
 					functionType, linkage,
 					mangledName);
@@ -148,49 +184,25 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function genFunction(module, *llvmFunction, getArgInfo(module, function));
+			Function functionGenerator(module, *llvmFunction, getArgInfo(module, function));
 			
-			{
-				LifetimeScope lifetimeScope(genFunction);
+			if (function->hasDefaultImplementation()) {
+				assert(parent != NULL);
+				genDefaultMethod(functionGenerator, parent, function);
+			} else {
+				genFunctionCode(functionGenerator, function);
 				
-				// Parameters need to be copied to the stack, so that it's
-				// possible to assign to them, take their address, etc.
-				const std::vector<SEM::Var*>& parameterVars = function->parameters();
-				
-				llvm::BasicBlock* setParamsStartBB = genFunction.createBasicBlock("setParams_START");
-				genFunction.getBuilder().CreateBr(setParamsStartBB);
-				genFunction.selectBasicBlock(setParamsStartBB);
-				
-				for (std::size_t i = 0; i < parameterVars.size(); i++) {
-					SEM::Var* paramVar = parameterVars.at(i);
-					assert(paramVar->kind() == SEM::Var::PARAM);
-					
-					// Create an alloca for this variable.
-					llvm::Value* stackObject = genAlloca(genFunction, paramVar->type());
-					
-					// Store the initial value into the alloca.
-					genStore(genFunction, genFunction.getArg(i), stackObject, paramVar->type());
-					
-					genFunction.getLocalVarMap().insert(paramVar, stackObject);
-				}
-				
-				llvm::BasicBlock* setParamsEndBB = genFunction.createBasicBlock("setParams_END");
-				genFunction.getBuilder().CreateBr(setParamsEndBB);
-				genFunction.selectBasicBlock(setParamsEndBB);
-				
-				genScope(genFunction, function->scope());
+				// Need to terminate the final basic block.
+				// (just make it loop to itself - this will
+				// be removed by dead code elimination)
+				functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			}
-			
-			// Need to terminate the final basic block.
-			// (just make it loop to itself - this will
-			// be removed by dead code elimination)
-			genFunction.getBuilder().CreateBr(genFunction.getSelectedBasicBlock());
 			
 			// LOG(LOG_INFO, "Function definition is:");
 			// llvmFunction->dump();
 			
 			// Check the generated function is correct.
-			genFunction.verify();
+			functionGenerator.verify();
 			
 			return llvmFunction;
 		}

@@ -37,7 +37,7 @@ namespace locic {
 			
 			if (typeInstance->isStruct() || typeInstance->isDatatype()) {
 				// Look for variables.
-				const Node varNode = typeNode.getChild(memberName);
+				const Node varNode = typeNode.getChild("#__ivar_" + memberName);
 				
 				if (varNode.isNotNone()) {
 					assert(varNode.isVariable());
@@ -50,7 +50,7 @@ namespace locic {
 						memberType = memberType->createConstType();
 					}
 					
-					return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType));
+					return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType)->createRefType(memberType));
 				} else {
 					throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
 						memberName.c_str(), typeInstance->name().toString().c_str()));
@@ -176,9 +176,9 @@ namespace locic {
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
-						SEM::Function* defaultConstructor = typeInstance->getProperty("Default");
-						
 						auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
+						
+						auto defaultConstructor = typeInstance->getProperty("Default");
 						
 						return SEM::Value::FunctionRef(parentType, defaultConstructor, templateVarMap);
 					} else if (node.isVariable()) {

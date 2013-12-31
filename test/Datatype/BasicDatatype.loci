@@ -1,0 +1,33 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+datatype TestDatatype(int a, int b, int c);
+
+TestDatatype makeData() {
+	return TestDatatype(10, 20, 30);
+}
+
+void printData(TestDatatype& data) {
+	testPrint("printData: TestDatatype(a = %d, b = %d, c = %d)"C,
+		data.a, data.b, data.c);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestDatatype data1 = TestDatatype(1, 2, 3);
+	
+	testPrint("testEntryPoint: data1 = TestDatatype(a = %d, b = %d, c = %d)"C,
+		data1.a, data1.b, data1.c);
+	
+	printData(data1);
+	
+	TestDatatype data2 = makeData();
+	
+	testPrint("testEntryPoint: data2 = TestDatatype(a = %d, b = %d, c = %d)"C,
+		data2.a, data2.b, data2.c);
+	
+	printData(data2);
+	
+	return 0;
+}
+

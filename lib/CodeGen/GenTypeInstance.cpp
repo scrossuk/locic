@@ -14,7 +14,7 @@ namespace locic {
 			
 			assert(typeInstance->templateVariables().size() == templateArguments.size()
 				&& "Number of template arguments provided must match number required.");
-			assert(typeInstance->isClass() || typeInstance->isStruct());
+			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype());
 			
 			const std::string mangledName = mangleObjectType(module, typeInstance, templateArguments);
 			
@@ -32,35 +32,36 @@ namespace locic {
 			
 			module.getTypeMap().insert(mangledName, structType);
 			
-			if (typeInstance->isClassDef() || typeInstance->isStruct()) {
-				// TODO: Remove this, since CodeGen should not generate any SEM trees.
-				const auto templateVarMap = SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();
-				
-				TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
-				
-				// Generating the type for a class or struct definition, so
-				// the size and contents of the type instance is known and
-				// hence the contents can be specified.
-				std::vector<llvm::Type*> structVariables;
-				
-				// Add 'live' indicator (to determine whether destructors are run).
-				structVariables.push_back(TypeGenerator(module).getI1Type());
-				
-				// Add member variables.
-				const std::vector<SEM::Var*>& variables = typeInstance->variables();
-				
-				for (size_t i = 0; i < variables.size(); i++) {
-					SEM::Var* var = variables.at(i);
-					structVariables.push_back(genType(module, var->type()));
-					module.getMemberVarMap().forceInsert(var, i + 1);
-				}
-				
-				LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",
-					(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str(),
-					mangledName.c_str());
-					
-				structType->setBody(structVariables);
+			// Member variables are not known for class declarations.
+			if (typeInstance->isClassDecl()) return structType;
+			
+			// TODO: Remove this, since CodeGen should not generate any SEM trees.
+			const auto templateVarMap = SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();
+			
+			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
+			
+			// Generating the type for a class or struct definition, so
+			// the size and contents of the type instance is known and
+			// hence the contents can be specified.
+			std::vector<llvm::Type*> structVariables;
+			
+			// Add 'live' indicator (to determine whether destructors are run).
+			structVariables.push_back(TypeGenerator(module).getI1Type());
+			
+			// Add member variables.
+			const auto& variables = typeInstance->variables();
+			
+			for (size_t i = 0; i < variables.size(); i++) {
+				SEM::Var* var = variables.at(i);
+				structVariables.push_back(genType(module, var->type()));
+				module.getMemberVarMap().forceInsert(var, i + 1);
 			}
+			
+			LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",
+				(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str(),
+				mangledName.c_str());
+			
+			structType->setBody(structVariables);
 			
 			return structType;
 		}
