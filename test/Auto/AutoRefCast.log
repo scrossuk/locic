@@ -1,4 +1,4 @@
-TestClass.Default: Value = 44.
+TestClass.Create: Value = 44.
 TestClass.getValue: Value = 44.
 testEntryPoint: Value = 44.
 TestClass.getValue: Value = 44.

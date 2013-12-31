@@ -3,8 +3,8 @@ void testPrint(const char * const str, ...);
 
 // Class definition.
 class TestClass() {
-	static Default() {
-		testPrint("TestClass.Default"C);
+	static Create() {
+		testPrint("TestClass.Create"C);
 		return @();
 	}
 	

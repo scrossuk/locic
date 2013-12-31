@@ -155,9 +155,9 @@ namespace locic {
 							const Node typeNode = context.lookupName(name.getPrefix());
 							assert(typeNode.isTypeInstance());
 							
-							auto typeInstance = typeNode.getSEMTypeInstance();
+							const auto typeInstance = typeNode.getSEMTypeInstance();
 							
-							auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
+							const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 							
 							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
 						} else {
@@ -171,14 +171,14 @@ namespace locic {
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
-						if (!typeInstance->hasProperty("Default")) {
+						if (!typeInstance->hasProperty("Create")) {
 							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
 						auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 						
-						auto defaultConstructor = typeInstance->getProperty("Default");
+						auto defaultConstructor = typeInstance->getProperty("Create");
 						
 						return SEM::Value::FunctionRef(parentType, defaultConstructor, templateVarMap);
 					} else if (node.isVariable()) {
@@ -191,10 +191,10 @@ namespace locic {
 						return SEM::Value::VarValue(node.getSEMVar());
 					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
-						SEM::TemplateVar* templateVar = node.getSEMTemplateVar();
+						const auto templateVar = node.getSEMTemplateVar();
 						
-						SEM::TypeInstance* specTypeInstance = templateVar->specType();
-						SEM::Function* defaultConstructor = specTypeInstance->getProperty("Default");
+						const auto specTypeInstance = templateVar->specType();
+						const auto defaultConstructor = specTypeInstance->getProperty("Create");
 						
 						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(templateVar),
 							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());

@@ -598,12 +598,12 @@ Another detail is that instance member variables are referred to using the @ sym
 \subsubsection{Constructors}
 
 \paragraph{}
-The above example shows a class with no constructor, however there is an automatically generated constructor named `Default', so that the above is equivalent to:
+The above example shows a class with no constructor, however there is an automatically generated constructor named `Create', so that the above is equivalent to:
 
 
 \begin{lstlisting}
 class Bucket(bool b, int value){
-	static Default(bool b, int value){
+	static Create(bool b, int value){
 		return @(b, value);
 	}
 
@@ -613,7 +613,7 @@ class Bucket(bool b, int value){
 void function(){
 	// Equivalent ways to call the default constructor.
 	Bucket bucket = Bucket(true, 1);
-	Bucket bucket = Bucket::Default(true, 1);
+	Bucket bucket = Bucket::Create(true, 1);
 }
 \end{lstlisting}
 
@@ -696,7 +696,7 @@ Here's a declaration of the Bucket class:
 
 \begin{lstlisting}
 class Bucket{
-	static Default(bool b, int v);
+	static Create(bool b, int v);
 
 	bool containsValue() const;
 	
@@ -899,7 +899,7 @@ class Mutex{
 }
 
 class Lock(Mutex& mutex){
-	static Default(Mutex& mutex){
+	static Create(Mutex& mutex){
 		mutex.lock();
 		return @(mutex);
 	}
@@ -1016,7 +1016,7 @@ For example:
 
 \begin{lstlisting}
 class Bucket{
-	static Default(int v);
+	static Create(int v);
 	bool containsValue() const;
 	void placeValue(int value);
 	int getValue() const;
@@ -1346,7 +1346,7 @@ For this loss of functionality there is, however, a gain in speed since all chec
 \subsubsection{Compared to C++}
 
 \paragraph{}
-This previous code showed the move semantics applied to a type `SomeType', for which the user has specified no special methods. In fact, `SomeType' is almost the complete implementation of `UPtr'\footnote{It is missing a trivial `Default' constructor implementation.}.
+This previous code showed the move semantics applied to a type `SomeType', for which the user has specified no special methods. In fact, `SomeType' is almost the complete implementation of `UPtr'\footnote{It is missing a trivial `Create' constructor implementation.}.
 
 \paragraph{}
 Additionally, the developer writing the class doesn't need to worry to about objects having a null state, since nullable types provide this, reliably and automatically producing the correct code for assignment and extraction.
@@ -1417,7 +1417,7 @@ After allocating the memory, the array will move R-values given to it into the m
 \begin{lstlisting}
 // Admittedly this implementation is of low quality, but it is simple.
 class ObjectArray(size_t size, ObjectType * memory){
-	static Default(){
+	static Create(){
 		return @(0, NULL);
 	}
 	
@@ -1762,7 +1762,7 @@ interface AbstractException{
 }
 
 class RealException(std::string what, int i){
-	static Default(std::string what, int i){
+	static Create(std::string what, int i){
 		return @(what, i);
 	}
 
@@ -1944,7 +1944,7 @@ interface Comparable{
 
 template <T: Comparable<T>>
 class Class(T v0, T v1){
-	static Default(T v0, T v1){
+	static Create(T v0, T v1){
 		return @(v0, v1);
 	}
 
@@ -2206,7 +2206,7 @@ In some cases, this means an extra bit\footnote{With padding this could become a
 
 \begin{lstlisting}
 class Example(int i) {
-	static Default(int i) {
+	static Create(int i) {
 		return @(i);
 	}
 	
@@ -2242,7 +2242,7 @@ Note that the empty/non-empty distinction is only made for the benefit of destru
 
 \begin{lstlisting}
 class Example(int i) {
-	static Default(int i) {
+	static Create(int i) {
 		return @(i);
 	}
 }

@@ -2,8 +2,8 @@
 void testPrint(const char * const str, ...);
 
 class custom_lval(int value) {
-	static Default(int value) {
-		testPrint("custom_lval.Default: Value = %d"C, value);
+	static Create(int value) {
+		testPrint("custom_lval.Create: Value = %d"C, value);
 		return @(value);
 	}
 	

@@ -70,9 +70,9 @@ namespace locic {
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
-			assert((methodName == "Default") xor isUnaryOp(methodName) xor isBinaryOp(methodName));
+			assert((methodName == "Create") xor isUnaryOp(methodName) xor isBinaryOp(methodName));
 			
-			if (methodName == "Default") {
+			if (methodName == "Create") {
 				return ArgInfo::None();
 			}
 			
@@ -91,11 +91,11 @@ namespace locic {
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
 			llvm::Value* methodOwner =
-				methodName == "Default" ?
+				methodName == "Create" ?
 					NULL :
 					builder.CreateLoad(function.getContextValue());
 			
-			if (methodName == "Default") {
+			if (methodName == "Create") {
 				builder.CreateRet(ConstantGenerator(module).getI1(false));
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
@@ -123,11 +123,11 @@ namespace locic {
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
 			llvm::Value* methodOwner =
-				methodName == "Default" ?
+				methodName == "Create" ?
 					NULL :
 					builder.CreateLoad(function.getContextValue());
 			
-			if (methodName == "Default") {
+			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
 			} else if (isUnaryOp(methodName)) {
@@ -198,11 +198,11 @@ namespace locic {
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
 			llvm::Value* methodOwner =
-				methodName == "Default" ?
+				methodName == "Create" ?
 					NULL :
 					builder.CreateLoad(function.getContextValue());
 			
-			if (methodName == "Default") {
+			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				builder.CreateRet(zero);
 			} else if (isUnaryOp(methodName)) {

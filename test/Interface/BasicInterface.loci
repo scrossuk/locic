@@ -3,8 +3,8 @@ void testPrint(const char * const str, ...);
 
 // First interface implementation.
 class TestClass1 (int value) {
-	static Default(int value) {
-		testPrint("TestClass1.Default: Value = %d"C, value);
+	static Create(int value) {
+		testPrint("TestClass1.Create: Value = %d"C, value);
 		return @(value);
 	}
 	
@@ -17,8 +17,8 @@ class TestClass1 (int value) {
 
 // Second interface implementation.
 class TestClass2 (int value) {
-	static Default(int value) {
-		testPrint("TestClass2.Default: Value = %d"C, value);
+	static Create(int value) {
+		testPrint("TestClass2.Create: Value = %d"C, value);
 		return @(value);
 	}
 	

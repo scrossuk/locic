@@ -14,6 +14,7 @@ namespace locic {
 	
 		struct Function {
 			enum TypeEnum {
+				DEFAULTDEFINITION,
 				DEFINITION,
 				DECLARATION
 			} typeEnum;
@@ -43,12 +44,24 @@ namespace locic {
 				return new Function(DEFINITION, false, false, returnType, name, parameters, scope);
 			}
 			
+			inline static Function* DefaultStaticDef(const std::string& name) {
+				return new Function(DEFAULTDEFINITION, false, false, Node<Type>(), name, Node<TypeVarList>(), Node<Scope>());
+			}
+			
+			inline static Function* DefaultMethodDef(const std::string& name) {
+				return new Function(DEFAULTDEFINITION, true, false, Node<Type>(), name, Node<TypeVarList>(), Node<Scope>());
+			}
+			
 			inline static Function* Destructor(Node<Scope> scope) {
 				return new Function(DEFINITION, true, false, makeNode(scope.location(), Type::Void()), "__destructor", makeDefaultNode<TypeVarList>(), scope);
 			}
 			
 			inline std::string toString() const {
-				return makeString("Function(name = %s, returnType = %s, ... (TODO))", name.c_str(), returnType.toString().c_str());
+				if (typeEnum == DEFAULTDEFINITION) {
+					return makeString("DefaultFunction(name = %s)", name.c_str());
+				} else {
+					return makeString("Function(name = %s, returnType = %s, ... (TODO))", name.c_str(), returnType.toString().c_str());
+				}
 			}
 		};
 		

@@ -7,7 +7,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		MethodPattern DefaultConstructorPattern() {
-			return MethodPattern("Default", IS_STATIC, DO_NOT_CHECK_PARAM_COUNT, 0);
+			return MethodPattern("Create", IS_STATIC, DO_NOT_CHECK_PARAM_COUNT, 0);
 		}
 		
 		MethodPattern NullConstructorPattern() {

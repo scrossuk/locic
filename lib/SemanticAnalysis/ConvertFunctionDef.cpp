@@ -19,6 +19,11 @@ namespace locic {
 			// this function to find the definition.
 			const auto& astFunctionNode = functionNode.getASTFunction();
 			
+			if (astFunctionNode->typeEnum == AST::Function::DEFAULTDEFINITION) {
+				// Has a default definition.
+				return;
+			}
+			
 			if (astFunctionNode->scope.get() == NULL) {
 				// Only a declaration.
 				return;

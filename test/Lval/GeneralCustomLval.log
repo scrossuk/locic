@@ -1,4 +1,4 @@
-custom_lval.Default: Value = OrderedEqual
+custom_lval.Create: Value = OrderedEqual
 custom_lval.dissolve: Value = OrderedEqual
 testEntryPoint: Value = OrderedEqual
 custom_lval.address: Value = OrderedEqual

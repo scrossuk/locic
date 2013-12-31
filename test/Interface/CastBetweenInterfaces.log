@@ -1,4 +1,4 @@
-TestClass.Default: First = 5, Second = 6
+TestClass.Create: First = 5, Second = 6
 TestClass.getFirst: First = 5
 TestClass.getSecond: Second = 6
 polymorphicPrintBoth: First = 5, Second = 6

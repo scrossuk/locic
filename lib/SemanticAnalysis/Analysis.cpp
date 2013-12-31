@@ -223,17 +223,43 @@ namespace locic {
 			}
 		}
 		
+		SEM::Function* CreateDefaultConstructor(SEM::TypeInstance* typeInstance) {
+			const bool isVarArg = false;
+			
+			std::vector<SEM::Type*> templateVars;
+			
+			// The parent class type needs to include the template arguments.
+			for (auto templateVar: typeInstance->templateVariables()) {
+				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
+			}
+				
+			auto returnType = SEM::Type::Object(typeInstance, templateVars);
+			
+			auto functionType = SEM::Type::Function(isVarArg, returnType, typeInstance->constructTypes());
+			
+			const bool isStatic = true;
+			
+			return SEM::Function::DefDefault(isStatic, functionType, typeInstance->name() + "Create");
+		}
+		
+		SEM::Function* CreateDefaultMethod(SEM::TypeInstance* typeInstance, const bool isStatic, const Name& name) {
+			if (isStatic && name.last() == "Create") {
+				return CreateDefaultConstructor(typeInstance);
+			}
+			
+			throw TodoException(makeString("%s method '%s' does not have a default implementation.",
+				isStatic ? "Static" : "Non-static", name.toString().c_str()));
+		}
+		
 		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& node = context.node();
 			
 			assert(node.isNamespace() || node.isTypeInstance());
 			
-			auto semFunction = ConvertFunctionDecl(context, astFunctionNode);
-			assert(semFunction != NULL);
-			
 			const Name fullFunctionName = context.name() + astFunctionNode->name;
-			const Node existingNode = node.getChild(astFunctionNode->name);
 			
+			// Check that no other node exists with this name.
+			const Node existingNode = node.getChild(astFunctionNode->name);
 			if (existingNode.isNamespace()) {
 				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullFunctionName);
 			} else if (existingNode.isTypeInstance()) {
@@ -243,6 +269,27 @@ namespace locic {
 			}
 			
 			assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
+			
+			if (astFunctionNode->typeEnum == AST::Function::DEFAULTDEFINITION) {
+				assert(node.isTypeInstance());
+				
+				const auto typeInstance = node.getSEMTypeInstance();
+				const bool isStatic = !(astFunctionNode->isMethod);
+				
+				// Create the declaration for the default method.
+				const auto semFunction = CreateDefaultMethod(typeInstance, isStatic, fullFunctionName);
+				
+				typeInstance->functions().push_back(semFunction);
+				
+				// Attach function node to type.
+				auto functionNode = Node::Function(astFunctionNode, semFunction);
+				node.attach(astFunctionNode->name, functionNode);
+				
+				return;
+			}
+			
+			auto semFunction = ConvertFunctionDecl(context, astFunctionNode);
+			assert(semFunction != NULL);
 			
 			auto functionNode = Node::Function(astFunctionNode, semFunction);
 			
@@ -278,25 +325,6 @@ namespace locic {
 			return f0->name().last() < f1->name().last();
 		}
 		
-		SEM::Function* CreateDefaultConstructor(SEM::TypeInstance* typeInstance) {
-			const bool isVarArg = false;
-			
-			std::vector<SEM::Type*> templateVars;
-			
-			// The parent class type needs to include the template arguments.
-			for (auto templateVar: typeInstance->templateVariables()) {
-				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
-			}
-				
-			auto returnType = SEM::Type::Object(typeInstance, templateVars);
-			
-			auto functionType = SEM::Type::Function(isVarArg, returnType, typeInstance->constructTypes());
-			
-			const bool isStatic = true;
-			
-			return SEM::Function::DefDefault(isStatic, functionType, typeInstance->name() + "Default");
-		}
-		
 		void AddFunctionDecls(Context& context) {
 			Node& node = context.node();
 			
@@ -330,7 +358,7 @@ namespace locic {
 					semTypeInstance->functions().push_back(constructor);
 					
 					auto constructorNode = Node::Function(AST::Node<AST::Function>(), constructor);
-					node.attach("Default", constructorNode);
+					node.attach("Create", constructorNode);
 				}
 				
 				// Sort type instance methods.

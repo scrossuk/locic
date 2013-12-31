@@ -3,9 +3,7 @@
 void printf(const char * const str, ...);
 
 class TestClass2(int i){
-	static Default(int v){
-		return @(v);
-	}
+	static Create = default;
 	
 	~{
 		printf("Destructor for TestClass2 with value %d.\n"C, @i);
@@ -36,7 +34,7 @@ interface an_interface{
 
 template <typename T>
 class ExampleTemplatedClass0(){
-	static Default(){
+	static Create(){
 		return @();
 	}
 }
@@ -46,7 +44,7 @@ class ExampleTemplatedClass1{ }
 
 template <typename T>
 interface DefaultConstructInterface {
-	static T Default();
+	static T Create();
 	
 	T implicitCopy();
 	
@@ -55,7 +53,7 @@ interface DefaultConstructInterface {
 
 template <typename T: DefaultConstructInterface<T> >
 class PolyClass(T v) {
-	static Default(T value) {
+	static Create(T value) {
 		return @(value);
 	}
 	
@@ -95,7 +93,7 @@ bool isZero(is_zero_interface& v){
 }
 
 class custom_lval(int i) {
-	static Default() {
+	static Create() {
 		return @(0);
 	}
 	
@@ -127,7 +125,7 @@ void lvalFunc(lval<int> custom_lval& custLval) {
 }
 
 class count(int from, int to) {
-	static Default(int from, int to) {
+	static Create(int from, int to) {
 		return @(from, to);
 	}
 	
@@ -170,7 +168,7 @@ interface Copyable {
 
 template <typename T: Copyable<T>>
 class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
-	static Default(int size, T emptyValue) {
+	static Create(int size, T emptyValue) {
 		int sizeof_int = 4;
 		auto inst = @(reinterpret_cast<void*, T*>(malloc(size * sizeof_int)), size, emptyValue, emptyValue);
 		

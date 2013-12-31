@@ -422,13 +422,21 @@ classFunctionDecl:
 	;
 	
 classFunctionDef:
-	staticFunctionDef
+	STATIC NAME SETEQUAL DEFAULT SEMICOLON
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultStaticDef(GETSYM($2))));
+	}
+	| staticFunctionDef
 	{
 		$$ = $1;
 	}
 	| TILDA scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Destructor(GETSYM($2))));
+	}
+	| NAME SETEQUAL DEFAULT SEMICOLON
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultMethodDef(GETSYM($1))));
 	}
 	| functionDef
 	{

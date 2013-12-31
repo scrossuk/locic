@@ -43,7 +43,7 @@ __primitive short {
 }
 
 __primitive int {
-	static Default();	
+	static Create();	
 	
 	int implicitCopy();
 	
@@ -151,7 +151,7 @@ __primitive ptr_lval {
 
 template <typename T>
 __primitive value_lval {
-	static Default(T value);
+	static Create(T value);
 	T* address();
 	void assign(T value);
 	T& dissolve();
@@ -220,7 +220,7 @@ __primitive virtual_typename {
 
 template <typename T, typename Ret, typename[] Param>
 class interface_method(T* objectPtr, void* vtable, uint32_t value) {
-	static Default(T* objectPtr, void* vtable, uint32_t value) {
+	static Create(T* objectPtr, void* vtable, uint32_t value) {
 		return @(objectPtr, vtable, value);
 	}
 	

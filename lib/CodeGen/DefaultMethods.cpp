@@ -44,7 +44,7 @@ namespace locic {
 			
 			llvm::Value* returnValue = nullptr;
 			
-			if (function->name().last() == "Default") {
+			if (function->name().last() == "Create") {
 				returnValue = genDefaultConstructor(functionGenerator, parent, function);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.",

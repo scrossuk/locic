@@ -7,8 +7,8 @@ interface serializable {
 
 template <typename T: serializable>
 class custom_lval(T value) {
-	static Default(T value) {
-		testPrint("custom_lval.Default: Value = %s"C, value.toCString());
+	static Create(T value) {
+		testPrint("custom_lval.Create: Value = %s"C, value.toCString());
 		return @(move value);
 	}
 	
@@ -34,7 +34,7 @@ class custom_lval(T value) {
 }
 
 class TestClass(int a, int b) {
-	static Default(int a, int b) {
+	static Create(int a, int b) {
 		return @(a, b);
 	}
 	

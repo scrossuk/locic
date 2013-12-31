@@ -1,0 +1,3 @@
+OtherClass.printValue: a = 4, b = 5, c = 6
+TestClass.printValue
+OtherClass.printValue: a = 7, b = 8, c = 9

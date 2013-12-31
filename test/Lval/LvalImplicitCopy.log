@@ -1,4 +1,4 @@
-TestClass.Default: Value = 1
+TestClass.Create: Value = 1
 TestClass.implicitCopy: Value = 1, Copy value = 2
 TestClass.implicitCopy: Value = 1, Copy value = 2
 TestClass.implicitCopy: Value = 2, Copy value = 4

@@ -5,7 +5,7 @@ class TestClass(const char * const n, int i, int j){
 		return @("NULL"C, 0, 0);
 	}
 	
-	static Default(int v){
+	static Create(int v){
 		return @("NON-NULL"C, v, v + 1);
 	}
 	

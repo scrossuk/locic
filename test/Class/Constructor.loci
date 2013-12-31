@@ -3,23 +3,22 @@ void testPrint(const char * const str, ...);
 
 // Class definition.
 class TestClass(int value) {
-	static Default(int value) {
-		testPrint("TestClass.Default: Value = %d"C, value);
+	static Create(int value) {
+		testPrint("TestClass.Create: Value = %d"C, value);
 		return @(value);
 	}
 	
-	static NonDefault(int value) {
-		testPrint("TestClass.NonDefault: Value = %d"C, value);
+	static Other(int value) {
+		testPrint("TestClass.Other: Value = %d"C, value);
 		return @(value);
 	}
-	
 }
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
 	(void) TestClass(1);
-	(void) TestClass::Default(2);
-	(void) TestClass::NonDefault(3);
+	(void) TestClass::Create(2);
+	(void) TestClass::Other(3);
 	return 0;
 }
 

@@ -2,8 +2,8 @@
 void testPrint(const char * const str, ...);
 
 class TestClass(int value) {
-	static Default(int value) {
-		testPrint("TestClass.Default: Value = %d"C, value);
+	static Create(int value) {
+		testPrint("TestClass.Create: Value = %d"C, value);
 		return @(value);
 	}
 	

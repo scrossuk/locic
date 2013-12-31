@@ -1,0 +1,32 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class OtherClass(int a, int b, int c) {
+	static Create = default;
+	
+	void printValue() {
+		testPrint("OtherClass.printValue: a = %d, b = %d, c = %d"C, @a, @b, @c);
+	}
+}
+
+class TestClass(OtherClass value) {
+	static Create = default;
+	
+	void printValue() {
+		testPrint("TestClass.printValue"C);
+		@value.printValue();
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	OtherClass otherInst = OtherClass(4, 5, 6);
+	otherInst.printValue();
+	
+	TestClass inst = TestClass(OtherClass(7, 8, 9));
+	inst.printValue();
+	
+	return 0;
+}
+

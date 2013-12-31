@@ -10,7 +10,7 @@ interface copyable {
 
 template <typename T: copyable<T>>
 class TestClass(T value, int extra) {
-	static Default(T value) {
+	static Create(T value) {
 		return @(move value, 1);
 	}
 	
