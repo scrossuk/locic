@@ -13,13 +13,18 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		bool hasDestructor(Module& module, SEM::Type* unresolvedType) {
+			auto type = module.resolveType(unresolvedType);
+			return type->isClass() || type->isPrimitive() || type->isDatatype();
+		}
+		
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			auto& module = function.getModule();
 			
 			assert(value->getType()->isPointerTy());
 			
 			auto type = module.resolveType(unresolvedType);
-			if (!type->isClass() && !type->isPrimitive()) {
+			if (!hasDestructor(module, type)) {
 				return;
 			}
 			
@@ -41,8 +46,7 @@ namespace locic {
 			auto parent = module.resolveType(unresolvedParent);
 			
 			assert(parent->isObject());
-			assert(parent->getObjectType()->isClass() || 
-				parent->getObjectType()->isPrimitive());
+			assert(parent->isClass() || parent->isPrimitive() || parent->isDatatype());
 			
 			const auto mangledName = mangleDestructorName(module, parent);
 			LOG(LOG_INFO, "Generating destructor for type '%s' (mangled as '%s').",
@@ -88,11 +92,13 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			assert(parent->getObjectType()->isClass());
+			assert(parent->isClass() || parent->isDatatype());
 			
 			if (parent->getObjectType()->isClassDecl()) {
 				return llvmFunction;
 			}
+			
+			assert(parent->isClassDef() || parent->isDatatype());
 			
 			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
 			
@@ -136,6 +142,16 @@ namespace locic {
 		}
 		
 		void genScopeDestructorCalls(Function& function, const DestructorScope& destructorScope, size_t scopeId) {
+			// Only generate this code if there are actually types
+			// to be destroyed.
+			bool anyDestructors = false;
+			for (const auto& object: destructorScope) {
+				if (hasDestructor(function.getModule(), object.first)) {
+					anyDestructors = true;
+				}
+			}
+			if (!anyDestructors) return;
+			
 			// Create a new basic block to make this clearer...
 			llvm::BasicBlock* scopeDestroyStartBB = function.createBasicBlock(makeString("destroyScope_%llu_START", (unsigned long long) scopeId));
 			function.getBuilder().CreateBr(scopeDestroyStartBB);

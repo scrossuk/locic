@@ -80,9 +80,13 @@ namespace locic {
 				TemplateVar* getTemplateVar() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
+				bool isClassDecl() const;
+				bool isClassDef() const;
 				bool isClass() const;
 				bool isInterface() const;
 				bool isPrimitive() const;
+				bool isDatatype() const;
+				bool isStruct() const;
 				bool isClassOrTemplateVar() const;
 				
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;

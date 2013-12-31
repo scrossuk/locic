@@ -222,6 +222,22 @@ namespace locic {
 			return getObjectType() == typeInstance;
 		}
 		
+		bool Type::isClassDecl() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isClassDecl();
+		}
+		
+		bool Type::isClassDef() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isClassDef();
+		}
+		
 		bool Type::isClass() const {
 			if (!isObject()) {
 				return false;
@@ -244,6 +260,22 @@ namespace locic {
 			}
 			
 			return getObjectType()->isPrimitive();
+		}
+		
+		bool Type::isDatatype() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isDatatype();
+		}
+		
+		bool Type::isStruct() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isStruct();
 		}
 		
 		bool Type::isTemplateVar() const {
