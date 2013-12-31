@@ -45,8 +45,20 @@ namespace locic {
 		SEM::Statement* ConvertStatement(Context& context, AST::Node<AST::Statement> statement) {
 			switch(statement->typeEnum) {
 				case AST::Statement::VALUE: {
-					SEM::Value* value = ConvertValue(context, statement->valueStmt.value);
-					return SEM::Statement::ValueStmt(value);
+					const auto value = ConvertValue(context, statement->valueStmt.value);
+					if (statement->valueStmt.hasVoidCast) {
+						if (value->type()->isVoid()) {
+							throw TodoException(makeString("Void explicitly ignored in expression '%s'.",
+								value->toString().c_str()));
+						}
+						return SEM::Statement::ValueStmt(SEM::Value::Cast(SEM::Type::Void(), value));
+					} else {
+						if (!value->type()->isVoid()) {
+							throw TodoException(makeString("Non-void value result ignored in expression '%s'.",
+								value->toString().c_str()));
+						}
+						return SEM::Statement::ValueStmt(value);
+					}
 				}
 				case AST::Statement::SCOPE: {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));

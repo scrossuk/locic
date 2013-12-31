@@ -28,6 +28,7 @@ namespace locic {
 			
 			struct {
 				Node<Value> value;
+				bool hasVoidCast;
 			} valueStmt;
 			
 			struct {
@@ -63,6 +64,14 @@ namespace locic {
 			inline static Statement* ValueStmt(Node<Value> value) {
 				Statement* statement = new Statement(VALUE);
 				statement->valueStmt.value = value;
+				statement->valueStmt.hasVoidCast = false;
+				return statement;
+			}
+			
+			inline static Statement* ValueStmtVoidCast(Node<Value> value) {
+				Statement* statement = new Statement(VALUE);
+				statement->valueStmt.value = value;
+				statement->valueStmt.hasVoidCast = true;
 				return statement;
 			}
 			

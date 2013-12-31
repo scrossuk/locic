@@ -5,6 +5,7 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -159,9 +160,9 @@ namespace locic {
 				}
 				
 				case SEM::Value::CAST: {
-					llvm::Value* codeValue = genValue(function, value->cast.value);
-					SEM::Type* sourceType = value->cast.value->type();
-					SEM::Type* destType = value->type();
+					const auto codeValue = genValue(function, value->cast.value);
+					const auto sourceType = value->cast.value->type();
+					const auto destType = value->type();
 					assert((sourceType->kind() == destType->kind()
 							|| sourceType->isNull()
 							|| destType->isVoid())
@@ -172,6 +173,9 @@ namespace locic {
 						sourceType->toString().c_str(), destType->toString().c_str());
 						
 					if (destType->isVoid()) {
+						// Call destructor for the value.
+						genDestructorCall(function, sourceType, codeValue);
+						
 						// All casts to void have the same outcome.
 						return ConstantGenerator(module).getVoidUndef();
 					}

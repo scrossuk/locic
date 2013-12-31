@@ -72,7 +72,7 @@ const T& GETSYM(T* value) {
 
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
-%expect 2
+%expect 3
 %expect-rr 3
 
 %lex-param {void * scanner}
@@ -908,6 +908,10 @@ normalStatement:
 	| value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(GETSYM($1))));
+	}
+	| LROUNDBRACKET VOID RROUNDBRACKET value
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmtVoidCast(GETSYM($4))));
 	}
 	| RETURN
 	{

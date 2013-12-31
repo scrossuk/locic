@@ -20,7 +20,7 @@ int testEntryPoint(int argc, char ** argv) {
 	auto testInstance2 = TestClass(2);
 	
 	{
-		TestClass(3);
+		(void) TestClass(3);
 		auto testInstance3 = TestClass(4);
 	}
 	

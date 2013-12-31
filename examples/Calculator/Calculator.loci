@@ -1,4 +1,6 @@
-int printf(const char * const str, ...);
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+void printf(const char * const str, ...);
 
 int atoi(const char * const str);
 int strcmp(const char * const s1, const char * const s2);

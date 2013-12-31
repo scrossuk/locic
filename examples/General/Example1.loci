@@ -1,4 +1,6 @@
-int printf(const char * const str, ...);
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+void printf(const char * const str, ...);
 
 class TestClass2(int i){
 	static Default(int v){

@@ -37,10 +37,8 @@ namespace locic {
 		void genStatement(Function& function, SEM::Statement* statement) {
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
-					const auto value = genValue(function, statement->getValue());
-					
-					// Call destructor for the value.
-					genDestructorCall(function, statement->getValue()->type(), value);
+					assert(statement->getValue()->type()->isVoid());
+					(void) genValue(function, statement->getValue());
 					break;
 				}
 				
