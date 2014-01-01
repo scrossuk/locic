@@ -143,6 +143,7 @@ const T& GETSYM(T* value) {
 %token DELETE
 %token MOVE
 %token LVAL
+%token FINAL
 %token REF
 %token TEMPLATE
 %token TYPENAME
@@ -685,6 +686,10 @@ typeVar:
 	type NAME
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(GETSYM($1), GETSYM($2))));
+	}
+	| FINAL type NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), GETSYM($3))));
 	}
 	| type LROUNDBRACKET typeVarList RROUNDBRACKET
 	{

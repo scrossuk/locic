@@ -141,8 +141,8 @@ namespace locic {
 							astTypeVarNode->namedVar.name.c_str()));
 					}
 					
-					// TODO: implement 'final'.
-					const bool isLvalConst = false;
+					// 'final' keyword makes the default lval const.
+					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 					
 					auto lvalType = makeLvalType(context, isLvalConst, varType);
 					

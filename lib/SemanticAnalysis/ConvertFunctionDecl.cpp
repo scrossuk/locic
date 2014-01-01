@@ -50,9 +50,9 @@ namespace locic {
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters)) {
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 				
-				const AST::Node<AST::Type>& astParamTypeNode = astTypeVarNode->namedVar.type;
+				const auto& astParamTypeNode = astTypeVarNode->namedVar.type;
 				
-				SEM::Type* semParamType = ConvertType(context, astParamTypeNode);
+				const auto semParamType = ConvertType(context, astParamTypeNode);
 				
 				if (semParamType->isVoid()) {
 					throw ParamVoidTypeException(functionName, astTypeVarNode->namedVar.name);
@@ -60,10 +60,10 @@ namespace locic {
 				
 				parameterTypes.push_back(semParamType);
 				
-				// TODO: implement 'final'.
-				const bool isLvalConst = false;
+				// 'final' keyword makes the default lval const.
+				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 				
-				auto lvalType = makeLvalType(context, isLvalConst, semParamType);
+				const auto lvalType = makeLvalType(context, isLvalConst, semParamType);
 				
 				parameterVars.push_back(SEM::Var::Param(lvalType));
 			}

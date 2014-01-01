@@ -1,0 +1,36 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class TestClass (final int value) {
+	static Create(int value) {
+		testPrint("TestClass.Create: Value = %d"C, value);
+		return @(value);
+	}
+	
+	int getValue() {
+		testPrint("TestClass.getValue: Value = %d"C, @value);
+		return @value;
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	int i = 4;
+	
+	testPrint("testEntryPoint: i = %d"C, i);
+	
+	final int j = 5;
+	
+	testPrint("testEntryPoint: j = %d"C, j);
+	
+	TestClass inst1 = TestClass(6);
+	
+	testPrint("testEntryPoint: inst1 = %d"C, inst1.getValue());
+	
+	TestClass inst2 = TestClass(inst1.getValue() * 2);
+	
+	testPrint("testEntryPoint: inst2 = %d"C, inst2.getValue());
+	
+	return 0;
+}
+

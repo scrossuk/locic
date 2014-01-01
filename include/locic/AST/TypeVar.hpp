@@ -23,6 +23,7 @@ namespace locic {
 			} kind;
 			
 			struct {
+				bool isFinal;
 				Node<Type> type;
 				std::string name;
 			} namedVar;
@@ -32,8 +33,10 @@ namespace locic {
 				Node<TypeVarList> typeVarList;
 			} patternVar;
 			
-			public:	
+			public:
 				static TypeVar* NamedVar(const Node<Type>& type, const std::string& name);
+				
+				static TypeVar* FinalNamedVar(const Node<Type>& type, const std::string& name);
 				
 				static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
 				

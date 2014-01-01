@@ -198,8 +198,8 @@ namespace locic {
 					
 					auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
-					// TODO: implement 'final'.
-					const bool isLvalConst = false;
+					// 'final' keyword makes the default lval const.
+					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 					
 					auto lvalType = makeLvalType(context, isLvalConst, semType);
 					

@@ -80,6 +80,7 @@ __primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
+final                   { return FINAL; }
 lval                    { return LVAL; }
 ref                     { return REF; }
 

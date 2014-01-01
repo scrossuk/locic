@@ -18,6 +18,15 @@ namespace locic {
 		
 		TypeVar* TypeVar::NamedVar(const Node<Type>& type, const std::string& name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
+			typeVar->namedVar.isFinal = false;
+			typeVar->namedVar.type = type;
+			typeVar->namedVar.name = name;
+			return typeVar;
+		}
+		
+		TypeVar* TypeVar::FinalNamedVar(const Node<Type>& type, const std::string& name) {
+			TypeVar* typeVar = new TypeVar(NAMEDVAR);
+			typeVar->namedVar.isFinal = true;
 			typeVar->namedVar.type = type;
 			typeVar->namedVar.name = name;
 			return typeVar;
