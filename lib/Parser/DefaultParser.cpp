@@ -15,7 +15,7 @@ namespace locic {
 	namespace Parser {
 	
 		DefaultParser::DefaultParser(AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName)
-			: file_(file), context_(rootNamespaceList, fileName){
+			: context_(rootNamespaceList, fileName){
 			lexer_ = LexAlloc(file, &context_);
 		}
 		

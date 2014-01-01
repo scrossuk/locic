@@ -20,7 +20,6 @@ namespace locic{
 				std::vector<Error> getErrors();
 				
 			private:
-				FILE * file_;
 				void * lexer_;
 				Context context_;
 				
