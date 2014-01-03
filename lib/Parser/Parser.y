@@ -1148,10 +1148,12 @@ value:
 %%
 
 int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext){
+	(void) parserContext;
 	return locic::Parser::LexGetToken(token, locationInfo, lexer);
 }
 
 int Locic_Parser_GeneratedParser_error(locic::Parser::LocationInfo* locationInfo, void * scanner, locic::Parser::Context * parserContext, const char *s) {
+	(void) scanner;
 	parserContext->error(s, LOC(locationInfo));
 	return 0;
 }

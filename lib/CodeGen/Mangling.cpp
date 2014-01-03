@@ -9,6 +9,8 @@ namespace locic {
 	namespace CodeGen {
 	
 		std::string mangleName(const Module& module, const std::string& prefix, const Name& name) {
+			(void) module;
+			
 			assert(!name.empty());
 			assert(name.isAbsolute());
 			

@@ -15,14 +15,23 @@
 	yylloc->first_column = yyextra->columnPosition(); yylloc->last_column = yyextra->columnPosition() + yyleng; \
 	yyextra->advanceColumn(yyleng);
 
+// To fix 'unused parameter' warnings.
+#define YY_EXIT_FAILURE ((void) yyscanner, 2)
+
 %}
 
 %option prefix="Locic_Parser_GeneratedLexer_"
 %option reentrant
+
+%option noyyalloc
+%option noyyrealloc
+%option noyyfree
 %option noyywrap
 %option noinput
 %option nounput
+
 %option yylineno
+
 %option bison-bridge bison-locations
 
 %x COMMENT_STATE
@@ -165,6 +174,21 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 .                       { return ERROR; }
 
 %%
+
+void * Locic_Parser_GeneratedLexer_alloc(yy_size_t size, yyscan_t yyscanner) {
+	(void) yyscanner;
+	return malloc(size);
+}
+
+void * Locic_Parser_GeneratedLexer_realloc(void * ptr, yy_size_t size, yyscan_t yyscanner) {
+	(void) yyscanner;
+	return realloc(ptr, size);
+}
+
+void Locic_Parser_GeneratedLexer_free(void * ptr, yyscan_t yyscanner) {
+	(void) yyscanner;
+	free(ptr);
+}
 
 namespace locic {
 	

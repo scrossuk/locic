@@ -238,48 +238,37 @@ namespace locic {
 				}
 				
 				case SEM::Value::POLYCAST: {
-					llvm::Value* rawValue = genValue(function, value->polyCast.value);
-					SEM::Type* sourceType = value->polyCast.value->type();
-					SEM::Type* destType = value->type();
+					const auto rawValue = genValue(function, value->polyCast.value);
+					const auto sourceType = value->polyCast.value->type();
+					const auto destType = value->type();
+					
 					assert(sourceType->isReference()  && "Polycast source type must be reference.");
 					assert(destType->isReference() && "Polycast dest type must be reference.");
-					SEM::Type* sourceTarget = sourceType->getReferenceTarget();
-					SEM::Type* destTarget = destType->getReferenceTarget();
-					assert(destTarget->isInterface() && "Polycast dest target type must be interface");
+					assert(destType->getReferenceTarget()->isInterface() && "Polycast dest target type must be interface");
+					
+					const auto sourceTarget = sourceType->getReferenceTarget();
 					
 					if (sourceTarget->isInterface()) {
-						/*// Get the object pointer (of type i8*).
-						llvm::Value* objectPointer = function.getBuilder().CreateExtractValue(rawValue,
-														  std::vector<unsigned>(1, 0));
-													 
-						// Get the vtable pointer.
-						llvm::Value* vtablePointer = function.getBuilder().CreateExtractValue(rawValue,
-													 std::vector<unsigned>(1, 1));
-													 
-						// Build the new interface pointer struct with these values.
-						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(module, destType));
-						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, objectPointer,
-										 std::vector<unsigned>(1, 0));
-						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, vtablePointer,
-										 std::vector<unsigned>(1, 1));*/
+						// Since the vtable is a hash table and it has
+						// already been generated, this is a no-op.
 						return rawValue;
-					} else {
-						// Cast class pointer to pointer to the opaque struct
-						// representing destination interface type.
-						llvm::Value* objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-								TypeGenerator(module).getI8PtrType());
-													 
-						// Create the vtable.
-						llvm::Value* vtablePointer = genVTable(module, sourceTarget);
-						
-						// Build the new interface pointer struct with these values.
-						llvm::Value* interfaceValue = llvm::UndefValue::get(genType(module, destType));
-						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, objectPointer,
-										 std::vector<unsigned>(1, 0));
-						interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, vtablePointer,
-										 std::vector<unsigned>(1, 1));
-						return interfaceValue;
 					}
+					
+					// Cast class pointer to pointer to the opaque struct
+					// representing destination interface type.
+					const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
+								TypeGenerator(module).getI8PtrType());
+					
+					// Generate the vtable.
+					const auto vtablePointer = genVTable(module, sourceTarget);
+						
+					// Build the new interface pointer struct with these values.
+					const auto interfaceValueEmpty = llvm::UndefValue::get(genType(module, destType));
+					const auto interfaceValuePartial = function.getBuilder().CreateInsertValue(interfaceValueEmpty, objectPointer,
+										 std::vector<unsigned>(1, 0));
+					const auto interfaceValue = function.getBuilder().CreateInsertValue(interfaceValuePartial, vtablePointer,
+										 std::vector<unsigned>(1, 1));
+					return interfaceValue;
 				}
 				
 				case SEM::Value::LVAL: {

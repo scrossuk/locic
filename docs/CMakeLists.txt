@@ -7,9 +7,9 @@ macro(add_latex name)
 		MAIN_DEPENDENCY "${CMAKE_CURRENT_BINARY_DIR}/${name}.tex")
 endmacro(add_latex)
 
-add_latex("Language Design")
-add_latex("Module Loading")
+add_latex("LanguageDesign")
+add_latex("ModuleLoading")
 
 add_custom_target(Documentation ALL DEPENDS
-	"Language Design.pdf"
-	"Module Loading.pdf")
+	"LanguageDesign.pdf"
+	"ModuleLoading.pdf")
