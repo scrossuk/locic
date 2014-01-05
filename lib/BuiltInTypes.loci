@@ -1,139 +1,139 @@
 __primitive null_t { }
 
 __primitive bool {
-	bool implicitCopy();
+	bool implicitCopy() const;
 	
-	bool not();
+	bool not() const;
 }
 
 __primitive char {
-	char implicitCopy();
+	char implicitCopy() const;
 	
-	int compare(char v);
+	int compare(char v) const;
 	
-	bool isZero();
+	bool isZero() const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 __primitive short {
-	short implicitCopy();
+	short implicitCopy() const;
 	
-	short abs();
+	short abs() const;
 
-	short add(short v);
-	short subtract(short v);
-	short multiply(short v);
-	short divide(short v);
-	short modulo(short v);
+	short add(short v) const;
+	short subtract(short v) const;
+	short multiply(short v) const;
+	short divide(short v) const;
+	short modulo(short v) const;
 	
-	int compare(short v);
+	int compare(short v) const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 __primitive int {
-	int implicitCopy();
+	int implicitCopy() const;
 	
-	int abs();
+	int abs() const;
 
-	int add(int v);
-	int subtract(int v);
-	int multiply(int v);
-	int divide(int v);
-	int modulo(int v);
+	int add(int v) const;
+	int subtract(int v) const;
+	int multiply(int v) const;
+	int divide(int v) const;
+	int modulo(int v) const;
 	
-	int compare(int v);
-	bool isZero();
-	bool isPositive();
-	bool isNegative();
+	int compare(int v) const;
+	bool isZero() const;
+	bool isPositive() const;
+	bool isNegative() const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 __primitive long {
-	long implicitCopy();
+	long implicitCopy() const;
 	
-	long abs();
+	long abs() const;
 
-	long add(long v);
-	long subtract(long v);
-	long multiply(long v);
-	long divide(long v);
-	long modulo(long v);
+	long add(long v) const;
+	long subtract(long v) const;
+	long multiply(long v) const;
+	long divide(long v) const;
+	long modulo(long v) const;
 	
-	int compare(long v);
+	int compare(long v) const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 __primitive float {
-	float implicitCopy();
+	float implicitCopy() const;
 
-	float abs();
+	float abs() const;
 
-	float add(float v);
-	float subtract(float v);
-	float multiply(float v);
-	float divide(float v);
-	float modulo(float v);
+	float add(float v) const;
+	float subtract(float v) const;
+	float multiply(float v) const;
+	float divide(float v) const;
+	float modulo(float v) const;
 	
-	int compare(float v);
+	int compare(float v) const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 __primitive double {
-	double implicitCopy();
+	double implicitCopy() const;
 	
-	double abs();
+	double abs() const;
 
-	double add(double v);
-	double subtract(double v);
-	double multiply(double v);
-	double divide(double v);
-	double modulo(double v);
+	double add(double v) const;
+	double subtract(double v) const;
+	double multiply(double v) const;
+	double divide(double v) const;
+	double modulo(double v) const;
 	
-	int compare(double v);
+	int compare(double v) const;
 	
-	/*char toChar();
-	short toShort();
-	int toInt();
-	long toLong();
-	float toFloat();
-	double toDouble();*/
+	/*char toChar() const;
+	short toShort() const;
+	int toInt() const;
+	long toLong() const;
+	float toFloat() const;
+	double toDouble() const;*/
 }
 
 template <typename T>
 __primitive ptr {
 	static ptr<T> Null();
 	
-	ptr<T> implicitCopy();
+	ptr<T> implicitCopy() const;
 	
 	lval<T> ptr_lval<T> deref();
 	
@@ -144,7 +144,7 @@ template <typename T>
 __primitive ptr_lval {
 	T* address();
 	void assign(T value);
-	T& dissolve();
+	T& dissolve() const;
 }
 
 template <typename T>
@@ -152,7 +152,7 @@ __primitive value_lval {
 	static value_lval<T> Create(T value);
 	T* address();
 	void assign(T value);
-	T& dissolve();
+	T& dissolve() const;
 	T move();
 }
 
@@ -162,15 +162,15 @@ has been implemented). For now, this stuff is still built-in to the compiler.
 
 template <virtual typename T>
 __primitive ref {
-	ref<T> implicitCopy();
-	T implicitDeepCopy();
+	ref<T> implicitCopy() const;
+	T implicitDeepCopy() const;
 	
 	do (synthesizer) {
 		// Add any methods from the referred-to type
 		// that aren't part of this type.
 		for (auto method: T.dynamic_methods()) {
 			if (synthesizer.has_dynamic_method(method.name())) break;
-			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes());
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const;
 		}
 	}
 }
@@ -193,8 +193,8 @@ __primitive typename {
 	do (synthesizer) {
 		// 'call' calls the default constructor, if any exists.
 		if (!Constraint.has_static_method("default")) break;
-		auto method = Constraint.get_static_method("default");
-		synthesizer.add_dynamic_method(method.returnType(), "call", method.argTypes());
+		auto method = Constraint.get_static_method("default") const;
+		synthesizer.add_dynamic_method(method.returnType(), "call", method.argTypes()) const;
 	}
 	
 	do (synthesizer) {
@@ -202,7 +202,7 @@ __primitive typename {
 		// name, as methods of this object.
 		for (auto method: Constraint.static_methods()) {
 			if (synthesizer.has_method(method.name())) break;
-			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes());
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const;
 		}
 	}
 }
@@ -219,17 +219,17 @@ __primitive virtual_typename {
 template <typename T, typename Ret, typename[] Param>
 class interface_method(T* objectPtr, void* vtable, uint32_t value) {
 	static Create(T* objectPtr, void* vtable, uint32_t value) {
-		return @(objectPtr, vtable, value);
+		return @(objectPtr, vtable, value) const;
 	}
 	
 	interface_method<T, Ret, Param> implicitCopy() const {
-		return interface_method(@objectPtr, @vtable, @value);
+		return interface_method(@objectPtr, @vtable, @value) const;
 	}
 	
 	Ret call(Param args[]) const {
-		auto vtableArray = static_array<void *>(@vtable);
+		auto vtableArray = static_array<void *>(@vtable) const;
 		auto f = function_ptr<Ret, {T*} + Param>(
-		f(@objectPtr, args);
+		f(@objectPtr, args) const;
 	}
 }*/
 
