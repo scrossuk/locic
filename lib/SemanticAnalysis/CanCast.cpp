@@ -250,21 +250,25 @@ namespace locic {
 				
 				auto sourceFunction = sourceInstance->functions().at(sourcePos);
 				
-				if (sourceFunction->name().last() == destFunction->name().last()) {
-					// Substitute any template variables in the function types.
-					auto sourceFunctionType = sourceFunction->type()->substitute(sourceTemplateVarMap);
-					auto destFunctionType = destFunction->type()->substitute(destTemplateVarMap);
-					
-					// Function types must be equivalent.
-					if (*(sourceFunctionType) == *(destFunctionType)) {
-						destPos++;
-						continue;
-					} else {
-						/* throw PolyCastMethodMismatchException(sourceFunction->name(),
-							sourceType, destType, sourceFunctionType, destFunctionType); */
-						return NULL;
-					}
+				if (sourceFunction->name().last() != destFunction->name().last()) continue;
+				
+				// Can't cast mutator method to const method.
+				if (!sourceFunction->isConstMethod() && destFunction->isConstMethod()) {
+					return NULL;
 				}
+					
+				// Substitute any template variables in the function types.
+				const auto sourceFunctionType = sourceFunction->type()->substitute(sourceTemplateVarMap);
+				const auto destFunctionType = destFunction->type()->substitute(destTemplateVarMap);
+				
+				// Function types must be equivalent.
+				if (*(sourceFunctionType) != *(destFunctionType)) {
+					/* throw PolyCastMethodMismatchException(sourceFunction->name(),
+						sourceType, destType, sourceFunctionType, destFunctionType); */
+					return NULL;
+				}
+				
+				destPos++;
 			}
 			
 			return SEM::Value::PolyCast(destType, value);
