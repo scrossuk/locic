@@ -18,15 +18,15 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* accessObject, const std::string& memberName) {
-			auto object = derefValue(accessObject);
-			auto objectType = getDerefType(accessObject->type());
+			const auto object = derefValue(accessObject);
+			const auto objectType = getDerefType(accessObject->type());
 			
 			if (!objectType->isObject() && !objectType->isTemplateVar()) {
 				throw TodoException(makeString("Can't access member of non-object value '%s' of type '%s'.",
 					object->toString().c_str(), objectType->toString().c_str()));
 			}
 			
-			SEM::TypeInstance* typeInstance =
+			const auto typeInstance =
 				objectType->isTemplateVar() ?
 					objectType->getTemplateVar()->specType() :
 					objectType->getObjectType();
@@ -60,16 +60,22 @@ namespace locic {
 				const Node childNode = typeNode.getChild(memberName);
 				
 				if (childNode.isFunction()) {
-					SEM::Function* function = childNode.getSEMFunction();
+					const auto function = childNode.getSEMFunction();
 					
 					assert(function->isMethod());
 					
-					if (function->isStatic()) {
+					if (function->isStaticMethod()) {
 						throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
 							function->name().toString().c_str(), typeInstance->name().toString().c_str()));
 					}
 					
-					SEM::Value* functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
+					if (objectType->isConst() && !function->isConstMethod()) {
+						throw TodoException(makeString("Cannot refer to mutator method '%s' from const object '%s' of type '%s'.",
+							function->name().toString().c_str(), accessObject->toString().c_str(),
+							objectType->toString().c_str()));
+					}
+					
+					const auto functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
 					
 					if (typeInstance->isInterface()) {
 						return SEM::Value::InterfaceMethodObject(functionRef, object);
@@ -134,7 +140,7 @@ namespace locic {
 					const Node node = context.lookupName(name);
 					
 					// Get a map from template variables to their values (i.e. types).
-					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
+					const auto templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
 					
 					if (node.isNone()) {
 						throw TodoException(makeString("Couldn't find symbol or value '%s' at %s.",
@@ -147,7 +153,7 @@ namespace locic {
 						assert(function != NULL && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
 						if (function->isMethod()) {
-							if (!function->isStatic()) {
+							if (!function->isStaticMethod()) {
 								throw TodoException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
 									name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 							}

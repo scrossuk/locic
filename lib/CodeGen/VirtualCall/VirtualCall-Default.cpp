@@ -218,7 +218,7 @@ namespace locic {
 					}
 					
 					// If this is not a static method, pass the object pointer.
-					if (!semMethod->isStatic()) {
+					if (!semMethod->isStaticMethod()) {
 						const size_t objectPointerOffset = parameters.size();
 						llvm::Type* objectPointerType = llvmMethod->getFunctionType()->getParamType(objectPointerOffset);
 						parameters.push_back(function.getBuilder().CreatePointerCast(function.getContextValue(), objectPointerType));

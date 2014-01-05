@@ -18,7 +18,7 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* genDefaultConstructor(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
-				assert(function->isMethod() && function->isStatic());
+				assert(function->isMethod() && function->isStaticMethod());
 				assert(parent->isObject());
 				
 				const auto& parameterTypes = function->type()->getFunctionParameterTypes();

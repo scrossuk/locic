@@ -140,7 +140,7 @@ namespace locic {
 			
 			// --- Generate function declaration.
 			auto contextPtrType =
-				function->isMethod() && !function->isStatic() ?
+				function->isMethod() && !function->isStaticMethod() ?
 					getTypeInstancePointer(module, parent->getObjectType(),
 						parent->templateArguments()) :
 					NULL;

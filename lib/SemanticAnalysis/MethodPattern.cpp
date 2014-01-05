@@ -59,7 +59,7 @@ namespace locic {
 			
 			SEM::Function* function = functionNode.getSEMFunction();
 			
-			if (function->isStatic() != pattern.isStatic) return Node::None();
+			if (function->isStaticMethod() != pattern.isStatic) return Node::None();
 			
 			SEM::Type* type = function->type();
 			

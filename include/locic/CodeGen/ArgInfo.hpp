@@ -63,7 +63,7 @@ namespace locic {
 		
 		inline ArgInfo getArgInfo(Module& module, SEM::Function* function) {
 			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
-			const bool hasContextArg = function->isMethod() && !function->isStatic();
+			const bool hasContextArg = function->isMethod() && !function->isStaticMethod();
 			return ArgInfo(hasReturnVarArg, hasContextArg,
 						   function->type()->getFunctionParameterTypes().size());
 		}

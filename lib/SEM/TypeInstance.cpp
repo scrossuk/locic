@@ -62,7 +62,7 @@ namespace locic {
 		// Queries whether all methods are const.
 		bool TypeInstance::isConstType() const {
 			// TODO: actually detect this.
-			return isPrimitive() && name_.last() != "value_lval" && name_.last() != "ptr";
+			return isPrimitive() && name_.last() != "value_lval" && name_.last() != "ptr" && name_.last() != "ptr_lval";
 		}
 		
 		std::vector<TemplateVar*>& TypeInstance::templateVariables() {

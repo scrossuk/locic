@@ -75,7 +75,7 @@ namespace locic {
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(astFunctionNode->isMethod(), astFunctionNode->isStaticMethod(),
-				functionType, fullName, parameterVars);
+				astFunctionNode->isConstMethod(), functionType, fullName, parameterVars);
 		}
 		
 	}
