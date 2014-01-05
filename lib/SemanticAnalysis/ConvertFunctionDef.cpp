@@ -13,25 +13,23 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		void ConvertFunctionDef(Context& context) {
-			Node& functionNode = context.node();
+			const auto& functionNode = context.node();
 			
 			// Look through all the AST functions corresponding to
 			// this function to find the definition.
 			const auto& astFunctionNode = functionNode.getASTFunction();
 			
-			if (astFunctionNode->typeEnum == AST::Function::DEFAULTDEFINITION) {
+			if (astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
 				return;
 			}
 			
-			if (astFunctionNode->scope.get() == NULL) {
+			if (astFunctionNode->isDeclaration()) {
 				// Only a declaration.
 				return;
 			}
 			
-			auto semFunction = functionNode.getSEMFunction();
-			
-			assert(astFunctionNode->scope.get() != NULL);
+			const auto semFunction = functionNode.getSEMFunction();
 			
 			// Function should currently be a declaration
 			// (it is about to be made into a definition).
@@ -39,9 +37,9 @@ namespace locic {
 			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)
-			auto semScope = ConvertScope(context, astFunctionNode->scope);
+			const auto semScope = ConvertScope(context, astFunctionNode->scope());
 			
-			auto returnType = semFunction->type()->getFunctionReturnType();
+			const auto returnType = semFunction->type()->getFunctionReturnType();
 			
 			if (!returnType->isVoid()) {
 				// Functions with non-void return types must return a value.

@@ -43,8 +43,6 @@ __primitive short {
 }
 
 __primitive int {
-	static Create();	
-	
 	int implicitCopy();
 	
 	int abs();
@@ -133,7 +131,7 @@ __primitive double {
 
 template <typename T>
 __primitive ptr {
-	static Null();
+	static ptr<T> Null();
 	
 	ptr<T> implicitCopy();
 	
@@ -151,7 +149,7 @@ __primitive ptr_lval {
 
 template <typename T>
 __primitive value_lval {
-	static Create(T value);
+	static value_lval<T> Create(T value);
 	T* address();
 	void assign(T value);
 	T& dissolve();

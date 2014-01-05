@@ -5,11 +5,11 @@ void printf(const char * const str, ...);
 class TestClass2(int i){
 	static Create = default;
 	
-	~{
+	~ {
 		printf("Destructor for TestClass2 with value %d.\n"C, @i);
 	}
 	
-	int getValue(){
+	int getValue() const {
 		return @i;
 	}
 	
@@ -17,9 +17,9 @@ class TestClass2(int i){
 		printf("Received testclass2 value %d.\n"C, value.getValue());
 	}
 	
-	void doSomething(){ }
+	void doSomething() { }
 	
-	TestClass2 implicitCopy(){
+	TestClass2 implicitCopy() {
 		return @(@i);
 	}
 };
@@ -34,7 +34,7 @@ interface an_interface{
 
 template <typename T>
 class ExampleTemplatedClass0(){
-	static Create(){
+	static Create() {
 		return @();
 	}
 }
@@ -150,7 +150,7 @@ void goGet(an_interface& interfaceRef, TestClass2 val) {
 datatype Something(int a, int b);
 
 void datatypeDemo() {
-	auto i = Something(41, 42);
+	const auto i = Something(41, 42);
 	printf("Something(%d, %d)\n"C, i.a, i.b);
 	//Something(int a, _) = move i;
 	//printf("a = %d\n"C, a);
@@ -163,7 +163,7 @@ void free(void* ptr);
 
 template <typename T>
 interface Copyable {
-	T implicitCopy();
+	T implicitCopy() const;
 }
 
 template <typename T: Copyable<T>>

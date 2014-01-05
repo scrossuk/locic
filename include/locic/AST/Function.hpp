@@ -13,56 +13,55 @@ namespace locic {
 	namespace AST {
 	
 		struct Function {
-			enum TypeEnum {
-				DEFAULTDEFINITION,
-				DEFINITION,
-				DECLARATION
-			} typeEnum;
-			
-			bool isMethod, isVarArg;
-			Node<Type> returnType;
-			std::string name;
-			Node<TypeVarList> parameters;
-			
-			// NULL for declarations.
-			Node<Scope> scope;
-			
-			inline Function(TypeEnum e, bool isM, bool vA, Node<Type> t, const std::string& n, const Node<TypeVarList>& p, Node<Scope> s)
-				: typeEnum(e), isMethod(isM),
-				  isVarArg(vA), returnType(t), name(n),
-				  parameters(p), scope(s) { }
-				  
-			inline static Function* Decl(Node<Type> returnType, const std::string& name, const Node<TypeVarList>& parameters) {
-				return new Function(DECLARATION, false, false, returnType, name, parameters, Node<Scope>());
-			}
-			
-			inline static Function* VarArgDecl(Node<Type> returnType, const std::string& name, const Node<TypeVarList>& parameters) {
-				return new Function(DECLARATION, false, true, returnType, name, parameters, Node<Scope>());
-			}
-			
-			inline static Function* Def(Node<Type> returnType, const std::string& name, const Node<TypeVarList>& parameters, Node<Scope> scope) {
-				return new Function(DEFINITION, false, false, returnType, name, parameters, scope);
-			}
-			
-			inline static Function* DefaultStaticDef(const std::string& name) {
-				return new Function(DEFAULTDEFINITION, false, false, Node<Type>(), name, Node<TypeVarList>(), Node<Scope>());
-			}
-			
-			inline static Function* DefaultMethodDef(const std::string& name) {
-				return new Function(DEFAULTDEFINITION, true, false, Node<Type>(), name, Node<TypeVarList>(), Node<Scope>());
-			}
-			
-			inline static Function* Destructor(Node<Scope> scope) {
-				return new Function(DEFINITION, true, false, makeNode(scope.location(), Type::Void()), "__destructor", makeDefaultNode<TypeVarList>(), scope);
-			}
-			
-			inline std::string toString() const {
-				if (typeEnum == DEFAULTDEFINITION) {
-					return makeString("DefaultFunction(name = %s)", name.c_str());
-				} else {
-					return makeString("Function(name = %s, returnType = %s, ... (TODO))", name.c_str(), returnType.toString().c_str());
-				}
-			}
+			public:
+				static Function* Decl(bool isVarArg, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				
+				static Function* Def(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				
+				static Function* StaticMethodDecl(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				
+				static Function* MethodDecl(bool isConstMethod, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				
+				static Function* DefaultStaticMethodDef(const std::string& name);
+				
+				static Function* DefaultMethodDef(const std::string& name);
+				
+				static Function* Destructor(const Node<Scope>& scope);
+				
+				static Function* StaticMethodDef(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				
+				static Function* MethodDef(bool isConstMethod, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				
+				bool isDeclaration() const;
+				bool isDefinition() const;
+				bool isDefaultDefinition() const;
+				
+				bool isMethod() const;
+				bool isConstMethod() const;
+				bool isStaticMethod() const;
+				
+				bool isVarArg() const;
+				
+				const std::string& name() const;
+				
+				const Node<Type>& returnType() const;
+				const Node<TypeVarList>& parameters() const;
+				const Node<Scope>& scope() const;
+				
+				std::string toString() const;
+				
+			private:
+				explicit Function(const std::string& pName);
+				
+				bool isDefinition_, isDefaultDefinition_, isVarArg_;
+				bool isMethod_, isConstMethod_, isStaticMethod_;
+				
+				std::string name_;
+				
+				Node<Type> returnType_;
+				Node<TypeVarList> parameters_;
+				Node<Scope> scope_;
+				
 		};
 		
 		typedef std::vector<Node<Function>> FunctionList;

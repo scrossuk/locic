@@ -256,34 +256,34 @@ namespace locic {
 			
 			assert(node.isNamespace() || node.isTypeInstance());
 			
-			const Name fullFunctionName = context.name() + astFunctionNode->name;
+			const auto& name = astFunctionNode->name();
+			const auto fullName = context.name() + name;
 			
 			// Check that no other node exists with this name.
-			const Node existingNode = node.getChild(astFunctionNode->name);
+			const Node existingNode = node.getChild(name);
 			if (existingNode.isNamespace()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullFunctionName);
+				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullName);
 			} else if (existingNode.isTypeInstance()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullFunctionName);
+				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullName);
 			} else if (existingNode.isFunction()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullFunctionName);
+				throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
 			}
 			
 			assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
 			
-			if (astFunctionNode->typeEnum == AST::Function::DEFAULTDEFINITION) {
+			if (astFunctionNode->isDefaultDefinition()) {
 				assert(node.isTypeInstance());
 				
 				const auto typeInstance = node.getSEMTypeInstance();
-				const bool isStatic = !(astFunctionNode->isMethod);
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethod(typeInstance, isStatic, fullFunctionName);
+				const auto semFunction = CreateDefaultMethod(typeInstance, astFunctionNode->isStaticMethod(), fullName);
 				
 				typeInstance->functions().push_back(semFunction);
 				
 				// Attach function node to type.
 				auto functionNode = Node::Function(astFunctionNode, semFunction);
-				node.attach(astFunctionNode->name, functionNode);
+				node.attach(name, functionNode);
 				
 				return;
 			}
@@ -294,22 +294,22 @@ namespace locic {
 			auto functionNode = Node::Function(astFunctionNode, semFunction);
 			
 			// Attach function node to parent.
-			node.attach(astFunctionNode->name, functionNode);
+			node.attach(name, functionNode);
 			
-			const auto& astParametersNode = astFunctionNode->parameters;
+			const auto& astParametersNode = astFunctionNode->parameters();
 			
 			assert(astParametersNode->size() == semFunction->parameters().size());
 			
 			// Attach parameter variable nodes to the function node.
 			for (size_t i = 0; i < astParametersNode->size(); i++) {
 				const auto& astTypeVarNode = astParametersNode->at(i);
-				auto semVar = semFunction->parameters().at(i);
+				const auto& semVar = semFunction->parameters().at(i);
 				
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 				
 				const Node paramNode = Node::Variable(astTypeVarNode, semVar);
 				if (!functionNode.tryAttach(astTypeVarNode->namedVar.name, paramNode)) {
-					throw ParamVariableClashException(fullFunctionName, astTypeVarNode->namedVar.name);
+					throw ParamVariableClashException(fullName, astTypeVarNode->namedVar.name);
 				}
 			}
 			

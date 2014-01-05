@@ -1,23 +1,23 @@
 
 
 class TestClass(const char * const n, int i, int j){
-	static Null(){
+	static Null() {
 		return @("NULL"C, 0, 0);
 	}
 	
-	static Create(int v){
+	static Create(int v) {
 		return @("NON-NULL"C, v, v + 1);
 	}
 	
-	~{
+	~ {
 		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n"C,
 			@n, @i, @j);
 	}
 
-	int getValue(){
+	int getValue() {
 		return 42;
 	}
 	
-	void doSomething(){ }
+	void doSomething() { }
 }
 
