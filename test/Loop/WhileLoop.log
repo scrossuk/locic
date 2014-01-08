@@ -1,0 +1,17 @@
+testEntryPoint: i = 0, j = 1
+testEntryPoint: i = 1, j = 2
+testEntryPoint: i = 2, j = 4
+testEntryPoint: i = 3, j = 8
+testEntryPoint: i = 4, j = 16
+testEntryPoint: i = 5, j = 32
+testEntryPoint: i = 6, j = 64
+testEntryPoint: i = 7, j = 128
+testEntryPoint: i = 8, j = 256
+testEntryPoint: i = 9, j = 512
+testEntryPoint: i = 10, j = 1024
+testEntryPoint: i = 11, j = 2048
+testEntryPoint: i = 12, j = 4096
+testEntryPoint: i = 13, j = 8192
+testEntryPoint: i = 14, j = 16384
+testEntryPoint: i = 15, j = 32768
+testEntryPoint: i = 16, j = 65536
