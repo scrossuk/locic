@@ -1,0 +1,36 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class test_range(int value, int position, int limit) {
+	static Create(int limit) {
+		return @(1, 0, limit);
+	}
+	
+	int front() {
+		return @value;
+	}
+	
+	void popFront() {
+		@position += 1;
+		@value *= 2;
+	}
+	
+	bool empty() {
+		return @position > @limit;
+	}
+};
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	
+	for (auto value: test_range(8)) {
+		testPrint("testEntryPoint(up to 2^8): value = %d"C, value);
+	}
+	
+	for (auto value: test_range(16)) {
+		testPrint("testEntryPoint(up to 2^16): value = %d"C, value);
+	}
+	
+	return 0;
+}
+
