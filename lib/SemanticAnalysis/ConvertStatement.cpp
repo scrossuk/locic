@@ -126,14 +126,14 @@ namespace locic {
 					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					const auto& astInitialValueNode = statement->varDecl.value;
 					
-					auto semValue = ConvertValue(context, astInitialValueNode);
-					auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
+					const auto semValue = ConvertValue(context, astInitialValueNode);
+					const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					// Use ImplicitCast() to resolve any instances of
 					// 'auto' in the variable's type.
-					auto semInitialiseValue = ImplicitCast(semValue, varDeclType);
+					const auto semInitialiseValue = ImplicitCast(semValue, varDeclType);
 					
-					auto varType = semInitialiseValue->type();
+					const auto varType = semInitialiseValue->type();
 					
 					assert(varType != NULL);
 					if (varType->isVoid()) {
@@ -144,9 +144,9 @@ namespace locic {
 					// 'final' keyword makes the default lval const.
 					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 					
-					auto lvalType = makeLvalType(context, isLvalConst, varType);
+					const auto lvalType = makeLvalType(context, isLvalConst, varType);
 					
-					auto semVar = SEM::Var::Local(lvalType);
+					const auto semVar = SEM::Var::Basic(lvalType);
 					
 					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
 					
@@ -155,7 +155,7 @@ namespace locic {
 							astTypeVarNode->namedVar.name.c_str()));
 					}
 					
-					SEM::Scope* semScope = context.node().getSEMScope();
+					const auto semScope = context.node().getSEMScope();
 					assert(semScope != NULL);
 					semScope->localVariables().push_back(semVar);
 					

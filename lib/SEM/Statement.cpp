@@ -25,7 +25,6 @@ namespace locic {
 		}
 		
 		Statement* Statement::InitialiseStmt(Var* var, Value* value) {
-			assert(var->kind() == SEM::Var::LOCAL);
 			Statement* statement = new Statement(INITIALISE);
 			statement->initialiseStmt_.var = var;
 			statement->initialiseStmt_.value = value;

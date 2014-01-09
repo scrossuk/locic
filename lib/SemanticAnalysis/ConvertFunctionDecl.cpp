@@ -69,7 +69,7 @@ namespace locic {
 				
 				const auto lvalType = makeLvalType(context, isLvalConst, semParamType);
 				
-				parameterVars.push_back(SEM::Var::Param(lvalType));
+				parameterVars.push_back(SEM::Var::Basic(lvalType));
 			}
 			
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), semReturnType, parameterTypes);

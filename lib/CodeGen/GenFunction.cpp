@@ -53,7 +53,6 @@ namespace locic {
 				
 				for (std::size_t i = 0; i < parameterVars.size(); i++) {
 					auto paramVar = parameterVars.at(i);
-					assert(paramVar->kind() == SEM::Var::PARAM);
 					
 					// Create an alloca for this variable.
 					auto stackObject = genAlloca(functionGenerator, paramVar->type());

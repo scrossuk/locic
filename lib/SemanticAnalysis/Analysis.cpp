@@ -203,7 +203,7 @@ namespace locic {
 					
 					auto lvalType = makeLvalType(context, isLvalConst, semType);
 					
-					auto var = SEM::Var::Member(lvalType);
+					auto var = SEM::Var::Basic(lvalType);
 					
 					const auto memberNode = Node::Variable(astTypeVarNode, var);
 					

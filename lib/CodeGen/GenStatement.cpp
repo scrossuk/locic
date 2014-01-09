@@ -24,7 +24,7 @@ namespace locic {
 				const auto localVar = scope.localVariables().at(i);
 				
 				// Create an alloca for this variable.
-				llvm::Value* stackObject = genAlloca(function, localVar->type());
+				const auto stackObject = genAlloca(function, localVar->type());
 				
 				function.getLocalVarMap().forceInsert(localVar, stackObject);
 			}

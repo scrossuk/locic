@@ -19,7 +19,8 @@ namespace locic {
 				enum Kind {
 					NONE,
 					CONSTANT,
-					VAR,
+					LOCALVAR,
+					MEMBERVAR,
 					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -45,7 +46,11 @@ namespace locic {
 				
 				struct {
 					Var* var;
-				} varValue;
+				} localVar;
+				
+				struct {
+					Var* var;
+				} memberVar;
 				
 				struct {
 					Value* value;
@@ -120,7 +125,9 @@ namespace locic {
 				
 				static Value* Constant(locic::Constant* constant, SEM::Type* type);
 				
-				static Value* VarValue(Var* var);
+				static Value* LocalVar(Var* var);
+				
+				static Value* MemberVar(Var* var);
 				
 				static Value* Reinterpret(Value* operand, Type* type);
 				

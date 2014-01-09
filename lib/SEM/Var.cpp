@@ -1,65 +1,95 @@
 #include <assert.h>
+#include <stdexcept>
 #include <string>
 
 #include <locic/String.hpp>
 #include <locic/SEM/Type.hpp>
-#include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Var.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
-		Var* Var::Local(Type* type) {
-			return new Var(LOCAL, type);
+		Var* Var::Any() {
+			Var* var = new Var;
+			var->kind_ = ANY;
+			return var;
 		}
 		
-		Var* Var::Param(Type* type) {
-			return new Var(PARAM, type);
+		Var* Var::Basic(Type* type) {
+			Var* var = new Var;
+			var->kind_ = BASIC;
+			var->type_ = type;
+			return var;
 		}
 		
-		Var* Var::Member(Type* type) {
-			return new Var(MEMBER, type);
+		Var* Var::Composite(Type* parent, const std::vector<Var*>& children) {
+			Var* var = new Var;
+			var->kind_ = COMPOSITE;
+			var->type_ = parent;
+			var->children_ = children;
+			return var;
 		}
 		
-		Var::Var(Kind k, Type* t)
-			: kind_(k), type_(t) {
-			assert(type_ != NULL);
-		}
+		Var::Var() : kind_(ANY), type_(NULL) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
 		}
 		
+		bool Var::isAny() const {
+			return kind() == ANY;
+		}
+		
+		bool Var::isBasic() const {
+			return kind() == BASIC;
+		}
+		
+		bool Var::isComposite() const {
+			return kind() == COMPOSITE;
+		}
+		
 		Type* Var::type() const {
+			assert(isBasic() || isComposite());
 			return type_;
 		}
 		
-		namespace {
+		const std::vector<Var*>& Var::children() const {
+			assert(isComposite());
+			return children_;
+		}
 		
-			std::string kindToString(Var::Kind kind) {
-				switch (kind) {
-					case Var::LOCAL:
-						return "LOCAL";
-						
-					case Var::PARAM:
-						return "PARAM";
-						
-					case Var::MEMBER:
-						return "MEMBER";
-						
-					default:
-						assert(false && "Unknown var kind.");
-						return "[INVALID]";
+		Var* Var::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
+			switch (kind()) {
+				case ANY:
+					return Var::Any();
+				case BASIC:
+					return Var::Basic(type()->substitute(templateVarMap));
+				case COMPOSITE:
+				{
+					std::vector<Var*> substitutedChildren;
+					for (const auto var: children()) {
+						substitutedChildren.push_back(var->substitute(templateVarMap));
+					}
+					return Var::Composite(type()->substitute(templateVarMap), substitutedChildren);
 				}
+				default:
+					throw std::runtime_error("Unknown var kind.");
 			}
-			
 		}
 		
 		std::string Var::toString() const {
-			return makeString("Var(kind: %s, type: %s)",
-							  kindToString(kind()).c_str(),
-							  type()->toString().c_str());
+			switch (kind()) {
+				case ANY:
+					return "Var[ANY]()";
+				case BASIC:
+					return makeString("Var[BASIC](type: %s)", type()->toString().c_str());
+				case COMPOSITE:
+					return makeString("Var[COMPOSITE](type: %s, children: %s)", type()->toString().c_str(),
+						makeArrayString(children()).c_str());
+				default:
+					throw std::runtime_error("Unknown var kind.");
+			}
 		}
 		
 	}

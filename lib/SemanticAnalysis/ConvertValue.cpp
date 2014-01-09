@@ -41,7 +41,7 @@ namespace locic {
 				
 				if (varNode.isNotNone()) {
 					assert(varNode.isVariable());
-					auto var = varNode.getSEMVar();
+					const auto var = varNode.getSEMVar();
 					auto memberType = var->type();
 					
 					if (objectType->isConst()) {
@@ -107,8 +107,8 @@ namespace locic {
 						&& astValueNode->constant->getStringType() == locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						SEM::TypeInstance* charTypeInstance = context.getBuiltInType("char");
-						SEM::TypeInstance* ptrTypeInstance = context.getBuiltInType("ptr");
+						const auto charTypeInstance = context.getBuiltInType("char");
+						const auto ptrTypeInstance = context.getBuiltInType("ptr");
 						
 						// Generate type 'const char'.
 						auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
@@ -119,12 +119,16 @@ namespace locic {
 						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
 					} else {
 						const std::string typeName = astValueNode->constant->getTypeName();
-						assert(typeName != "string" && "Loci strings not yet implemented");
-						SEM::TypeInstance* typeInstance = context.getBuiltInType(typeName);
-						if (typeInstance == NULL) {
-							printf("Couldn't find '::%s' constant type.\n", typeName.c_str());
+						if (typeName == "string") {
+							throw TodoException("Loci string constants not yet implemented (use 'C' suffix to get C strings for now, e.g. \"someString\"C).");
 						}
-						assert(typeInstance != NULL && "Couldn't find constant type");
+						
+						const auto typeInstance = context.getBuiltInType(typeName);
+						if (typeInstance == NULL) {
+							throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
+								typeName.c_str()));
+						}
+						
 						return SEM::Value::Constant(astValueNode->constant.get(),
 								SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType());
 					}
@@ -194,7 +198,7 @@ namespace locic {
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						return SEM::Value::VarValue(node.getSEMVar());
+						return SEM::Value::LocalVar(node.getSEMVar());
 					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = node.getSEMTemplateVar();
@@ -221,7 +225,7 @@ namespace locic {
 								memberName.c_str()));
 					}
 					
-					return SEM::Value::VarValue(semVar);
+					return SEM::Value::MemberVar(semVar);
 				}
 				case AST::Value::TERNARY: {
 					SEM::Value* cond = ConvertValue(context, astValueNode->ternary.condition);

@@ -17,9 +17,15 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::VarValue(Var* var) {
-			Value* value = new Value(VAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
-			value->varValue.var = var;
+		Value* Value::LocalVar(Var* var) {
+			Value* value = new Value(LOCALVAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
+			value->localVar.var = var;
+			return value;
+		}
+		
+		Value* Value::MemberVar(Var* var) {
+			Value* value = new Value(MEMBERVAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
+			value->memberVar.var = var;
 			return value;
 		}
 		
@@ -169,10 +175,14 @@ namespace locic {
 					return makeString("Constant(%s)",
 									  constant->toString().c_str());
 									  
-				case VAR:
-					return makeString("VarValue(%s)",
-									  varValue.var->toString().c_str());
+				case LOCALVAR:
+					return makeString("LocalVar(%s)",
+									  localVar.var->toString().c_str());
 									  
+				case MEMBERVAR:
+					return makeString("MemberVar(%s)",
+									  memberVar.var->toString().c_str());
+				
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)",
 									  reinterpretValue.value->toString().c_str());

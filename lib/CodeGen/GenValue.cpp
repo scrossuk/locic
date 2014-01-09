@@ -118,31 +118,21 @@ namespace locic {
 					}
 				}
 				
-				case SEM::Value::VAR: {
-					SEM::Var* var = value->varValue.var;
-					
-					switch (var->kind()) {
-						case SEM::Var::PARAM:
-						case SEM::Var::LOCAL: {
-							return function.getLocalVarMap().get(var);
-						}
-						
-						case SEM::Var::MEMBER: {
-							return function.getBuilder().CreateConstInBoundsGEP2_32(
-									function.getContextValue(), 0,
-									module.getMemberVarMap().get(var));
-						}
-						
-						default: {
-							assert(false && "Unknown variable type in variable access.");
-							return NULL;
-						}
-					}
+				case SEM::Value::LOCALVAR: {
+					const auto var = value->localVar.var;
+					return function.getLocalVarMap().get(var);
+				}
+				
+				case SEM::Value::MEMBERVAR: {
+					const auto var = value->memberVar.var;
+					return function.getBuilder().CreateConstInBoundsGEP2_32(
+							function.getContextValue(), 0,
+							module.getMemberVarMap().get(var));
 				}
 				
 				case SEM::Value::REINTERPRET: {
-					llvm::Value* sourceValue = genValue(function, value->reinterpretValue.value);
-					llvm::Type* targetType = genType(module, value->type());
+					const auto sourceValue = genValue(function, value->reinterpretValue.value);
+					const auto targetType = genType(module, value->type());
 					
 					// Currently, reinterpret_cast is only implemented for pointers.
 					return function.getBuilder().CreatePointerCast(sourceValue, targetType);

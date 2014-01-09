@@ -2,38 +2,50 @@
 #define LOCIC_SEM_VAR_HPP
 
 #include <string>
+#include <vector>
+
+#include <locic/Map.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
+		class TemplateVar;
 		class Type;
 		
 		class Var {
 			public:
+				static Var* Any();
+				
+				static Var* Basic(Type* type);
+				
+				static Var* Composite(Type* type, const std::vector<Var*>& children);
+				
 				enum Kind {
-					LOCAL,
-					PARAM,
-					MEMBER
+					ANY,
+					BASIC,
+					COMPOSITE
 				};
-				
-				static Var * Local(Type * type);
-				
-				static Var * Param(Type * type);
-				
-				static Var * Member(Type * type);
 				
 				Kind kind() const;
 				
+				bool isAny() const;
+				bool isBasic() const;
+				bool isComposite() const;
+				
 				Type* type() const;
+				const std::vector<Var*>& children() const;
+				
+				Var* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
 				
 				std::string toString() const;
 				
 			private:
-				Var(Kind k, Type* t);
+				Var();
 				
 				Kind kind_;
 				Type* type_;
+				std::vector<Var*> children_;
 				
 		};
 		

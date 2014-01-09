@@ -245,6 +245,7 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
+%type <type> objectType
 %type <type> pointerType
 %type <type> type
 %type <typeArray> nonEmptyTypeList
@@ -582,6 +583,13 @@ symbol:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Symbol(*(GETSYM($1)) + GETSYM($4))));
 	}
 	;
+
+objectType:
+	symbol
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(GETSYM($1))));
+	}
+	;
 	
 typePrecision3:
 	VOID
@@ -592,21 +600,21 @@ typePrecision3:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
 	}
-	| symbol
+	| objectType
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(GETSYM($1))));
+		$$ = $1;
 	}
 	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Bracket(GETSYM($2))));
 	}
-	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
+	| LROUNDBRACKET STAR RROUNDBRACKET LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Function(GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Function(GETSYM($5), GETSYM($8))));
 	}
-	| STAR LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
+	| LROUNDBRACKET STAR RROUNDBRACKET LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET nonEmptyTypeList COMMA DOT DOT DOT RROUNDBRACKET
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::VarArgFunction(GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::VarArgFunction(GETSYM($5), GETSYM($8))));
 	}
 	| LROUNDBRACKET error RROUNDBRACKET
 	{
@@ -712,7 +720,7 @@ typeVar:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), GETSYM($3))));
 	}
-	| type LROUNDBRACKET typeVarList RROUNDBRACKET
+	| objectType LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
 	}
