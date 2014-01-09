@@ -10,28 +10,31 @@ namespace locic {
 
 	namespace SEM {
 	
-		Var* Var::Any() {
+		Var* Var::Any(Type* constructType) {
 			Var* var = new Var;
 			var->kind_ = ANY;
+			var->constructType_ = constructType;
 			return var;
 		}
 		
-		Var* Var::Basic(Type* type) {
+		Var* Var::Basic(Type* constructType, Type* type) {
 			Var* var = new Var;
 			var->kind_ = BASIC;
+			var->constructType_ = constructType;
 			var->type_ = type;
 			return var;
 		}
 		
-		Var* Var::Composite(Type* parent, const std::vector<Var*>& children) {
+		Var* Var::Composite(Type* type, const std::vector<Var*>& children) {
 			Var* var = new Var;
 			var->kind_ = COMPOSITE;
-			var->type_ = parent;
+			var->constructType_ = type;
+			var->type_ = type;
 			var->children_ = children;
 			return var;
 		}
 		
-		Var::Var() : kind_(ANY), type_(NULL) { }
+		Var::Var() : kind_(ANY), constructType_(NULL), type_(NULL) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
@@ -49,6 +52,10 @@ namespace locic {
 			return kind() == COMPOSITE;
 		}
 		
+		Type* Var::constructType() const {
+			return constructType_;
+		}
+		
 		Type* Var::type() const {
 			assert(isBasic() || isComposite());
 			return type_;
@@ -62,9 +69,9 @@ namespace locic {
 		Var* Var::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
 			switch (kind()) {
 				case ANY:
-					return Var::Any();
+					return Var::Any(constructType()->substitute(templateVarMap));
 				case BASIC:
-					return Var::Basic(type()->substitute(templateVarMap));
+					return Var::Basic(constructType()->substitute(templateVarMap), type()->substitute(templateVarMap));
 				case COMPOSITE:
 				{
 					std::vector<Var*> substitutedChildren;
@@ -81,12 +88,15 @@ namespace locic {
 		std::string Var::toString() const {
 			switch (kind()) {
 				case ANY:
-					return "Var[ANY]()";
+					return makeString("Var[ANY](constructType: %s)",
+							constructType()->toString().c_str());
 				case BASIC:
-					return makeString("Var[BASIC](type: %s)", type()->toString().c_str());
+					return makeString("Var[BASIC](constructType: %s, type: %s)",
+							constructType()->toString().c_str(),
+							type()->toString().c_str());
 				case COMPOSITE:
 					return makeString("Var[COMPOSITE](type: %s, children: %s)", type()->toString().c_str(),
-						makeArrayString(children()).c_str());
+							makeArrayString(children()).c_str());
 				default:
 					throw std::runtime_error("Unknown var kind.");
 			}

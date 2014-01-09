@@ -10,13 +10,25 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
-			SEM::TypeInstance* valueLvalTypeInstance = context.getBuiltInType("value_lval");
-			SEM::Type* valueLvalType = SEM::Type::Object(valueLvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
-			return isLvalConst ? valueLvalType->createConstType() : valueLvalType;
+			const auto lvalTypeInstance = context.getBuiltInType("value_lval");
+			const auto lvalType = SEM::Type::Object(lvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
+			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
-		SEM::Type* makeLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
-			return getDerefType(valueType)->isLval() ? valueType : makeValueLvalType(context, isLvalConst, valueType);
+		SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
+			const auto lvalTypeInstance = context.getBuiltInType("member_lval");
+			const auto lvalType = SEM::Type::Object(lvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
+			return isLvalConst ? lvalType->createConstType() : lvalType;
+		}
+		
+		SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, SEM::Type* valueType) {
+			if (getDerefType(valueType)->isLval()) return valueType;
+			
+			if (isMember) {
+				return makeMemberLvalType(context, isLvalConst, valueType);
+			} else {
+				return makeValueLvalType(context, isLvalConst, valueType);
+			}
 		}
 		
 		size_t getLvalCount(SEM::Type* type) {

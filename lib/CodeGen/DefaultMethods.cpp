@@ -21,16 +21,13 @@ namespace locic {
 				assert(function->isMethod() && function->isStaticMethod());
 				assert(parent->isObject());
 				
-				const auto& parameterTypes = function->type()->getFunctionParameterTypes();
 				const auto& parentVars = parent->getObjectType()->variables();
-				
-				assert(parameterTypes.size() == parentVars.size());
 				
 				const auto objectValue = genAlloca(functionGenerator, parent);
 				
-				for (size_t i = 0; i < parameterTypes.size(); i++) {
+				for (size_t i = 0; i < parentVars.size(); i++) {
 					auto llvmInsertPointer = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
-					genStoreVar(functionGenerator, functionGenerator.getArg(i), llvmInsertPointer, parameterTypes.at(i), parentVars.at(i)->type());
+					genStoreVar(functionGenerator, functionGenerator.getArg(i), llvmInsertPointer, parentVars.at(i));
 				}
 				
 				return genLoad(functionGenerator, objectValue, parent);

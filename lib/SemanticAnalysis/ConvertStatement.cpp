@@ -1,6 +1,8 @@
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+
+#include <stdexcept>
 #include <string>
+
 #include <locic/AST.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CanCast.hpp>
@@ -8,7 +10,7 @@
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
-#include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/ConvertVar.hpp>
 
 namespace locic {
 
@@ -36,8 +38,7 @@ namespace locic {
 					return true;
 				}
 				default: {
-					printf("Internal Compiler Error: Unknown statement type in WillStatementReturn.\n");
-					return false;
+					throw std::runtime_error("Unknown statement kind.");
 				}
 			}
 		}
@@ -78,16 +79,16 @@ namespace locic {
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
 				case AST::Statement::WHILE: {
-					SEM::Value* condition = ConvertValue(context, statement->whileStmt.condition);
-					SEM::Scope* whileTrue = ConvertScope(context, statement->whileStmt.whileTrue);
+					const auto condition = ConvertValue(context, statement->whileStmt.condition);
+					const auto whileTrue = ConvertScope(context, statement->whileStmt.whileTrue);
 					
-					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
+					const auto boolType = context.getBuiltInType("bool");
 					
 					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
 					
-					SEM::Value* boolValue = ImplicitCast(condition,
+					const auto boolValue = ImplicitCast(condition,
 							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
-							
+					
 					return SEM::Statement::While(boolValue, whileTrue);
 				}
 				// TODO: replace code in parser with this.
@@ -123,43 +124,26 @@ namespace locic {
 				}*/
 				case AST::Statement::VARDECL: {
 					const auto& astTypeVarNode = statement->varDecl.typeVar;
-					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					const auto& astInitialValueNode = statement->varDecl.value;
 					
 					const auto semValue = ConvertValue(context, astInitialValueNode);
-					const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
-					// Use ImplicitCast() to resolve any instances of
-					// 'auto' in the variable's type.
-					const auto semInitialiseValue = ImplicitCast(semValue, varDeclType);
+					// Convert the AST type var.
+					const bool isMemberVar = false;
+					const auto semVar = ConvertInitialisedVar(context, isMemberVar, astTypeVarNode, semValue->type());
+					assert(!semVar->isAny());
 					
-					const auto varType = semInitialiseValue->type();
+					// Cast the initialise value to the variable's type.
+					// (The variable conversion above should have ensured
+					// this will work.)
+					const auto semInitialiseValue = ImplicitCast(semValue, semVar->constructType());
+					assert(!semInitialiseValue->type()->isVoid());
 					
-					assert(varType != NULL);
-					if (varType->isVoid()) {
-						throw TodoException(makeString("Local variable '%s' cannot have void type.",
-							astTypeVarNode->namedVar.name.c_str()));
-					}
-					
-					// 'final' keyword makes the default lval const.
-					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
-					
-					const auto lvalType = makeLvalType(context, isLvalConst, varType);
-					
-					const auto semVar = SEM::Var::Basic(lvalType);
-					
-					const Node localVarNode = Node::Variable(astTypeVarNode, semVar);
-					
-					if (!context.node().tryAttach(astTypeVarNode->namedVar.name, localVarNode)) {
-						throw TodoException(makeString("Local variable name '%s' already exists.",
-							astTypeVarNode->namedVar.name.c_str()));
-					}
-					
+					// Add the variable to the SEM scope.
 					const auto semScope = context.node().getSEMScope();
-					assert(semScope != NULL);
 					semScope->localVariables().push_back(semVar);
 					
-					// Initialise variable.
+					// Generate the initialise statement.
 					return SEM::Statement::InitialiseStmt(semVar, semInitialiseValue);
 				}
 				case AST::Statement::RETURN: {
@@ -172,18 +156,17 @@ namespace locic {
 						
 						return SEM::Statement::ReturnVoid();
 					} else {
-						SEM::Value* semValue = ConvertValue(context, statement->returnStmt.value);
+						const auto semValue = ConvertValue(context, statement->returnStmt.value);
 						
-						SEM::Value* castValue = ImplicitCast(semValue, context.getParentFunctionReturnType());
+						// Cast the return value to the function's
+						// specified return type.
+						const auto castValue = ImplicitCast(semValue, context.getParentFunctionReturnType());
 						
 						return SEM::Statement::Return(castValue);
 					}
 				}
 				default:
-					printf("Internal Compiler Error: Unknown statement type in 'ConvertStatement'.\n");
-					// TODO: throw exception.
-					assert(false);
-					return NULL;
+					throw std::runtime_error("Unknown statement kind.");
 			}
 		}
 		

@@ -409,12 +409,17 @@ namespace locic {
 		
 		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {
 			auto result = ImplicitCastConvert(value, destType);
-			if (result == NULL) {
+			if (result != NULL) return result;
+			
+			if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {
+				throw TodoException(makeString("Can't implicitly cast type '%s' to type '%s'.",
+					value->type()->toString().c_str(),
+					destType->toString().c_str()));
+			} else {
 				throw TodoException(makeString("Can't implicitly cast value '%s' to type '%s'.",
 					value->toString().c_str(),
 					destType->toString().c_str()));
 			}
-			return result;
 		}
 		
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {

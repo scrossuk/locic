@@ -15,9 +15,9 @@ namespace locic {
 		
 		class Var {
 			public:
-				static Var* Any();
+				static Var* Any(Type* constructType);
 				
-				static Var* Basic(Type* type);
+				static Var* Basic(Type* constructType, Type* type);
 				
 				static Var* Composite(Type* type, const std::vector<Var*>& children);
 				
@@ -33,6 +33,7 @@ namespace locic {
 				bool isBasic() const;
 				bool isComposite() const;
 				
+				Type* constructType() const;
 				Type* type() const;
 				const std::vector<Var*>& children() const;
 				
@@ -44,6 +45,7 @@ namespace locic {
 				Var();
 				
 				Kind kind_;
+				Type* constructType_;
 				Type* type_;
 				std::vector<Var*> children_;
 				

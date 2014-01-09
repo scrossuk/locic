@@ -156,6 +156,14 @@ __primitive value_lval {
 	T move();
 }
 
+template <typename T>
+__primitive member_lval {
+	static member_lval<T> Create(T value);
+	T* address();
+	void assign(T value);
+	T& dissolve() const;
+}
+
 /*
 Eventually the following will be adopted for use (once compile-time evaluation
 has been implemented). For now, this stuff is still built-in to the compiler.

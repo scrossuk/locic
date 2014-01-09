@@ -10,6 +10,7 @@ add_library(locic-semanalysis
 	ConvertStatement.cpp
 	ConvertType.cpp
 	ConvertValue.cpp
+	ConvertVar.cpp
 	Lval.cpp
 	MethodPattern.cpp
 	Ref.cpp

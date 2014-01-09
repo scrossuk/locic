@@ -152,8 +152,8 @@ datatype Something(int a, int b);
 void datatypeDemo() {
 	const auto i = Something(41, 42);
 	printf("Something(%d, %d)\n"C, i.a, i.b);
-	//Something(int a, _) = move i;
-	//printf("a = %d\n"C, a);
+	const Something(int a, _) = move i;
+	printf("a = %d\n"C, a);
 }
 
 // datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);

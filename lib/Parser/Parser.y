@@ -241,13 +241,17 @@ const T& GETSYM(T* value) {
 %type <functionArray> methodDeclList
 %type <functionArray> methodDefList
 
+%type <type> objectType
+%type <type> constModifiedObjectType
+%type <type> pointerType
+
+%type <type> typePrecision4
 %type <type> typePrecision3
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
-%type <type> objectType
-%type <type> pointerType
 %type <type> type
+
 %type <typeArray> nonEmptyTypeList
 %type <typeArray> typeList
 %type <typeVar> typeVar
@@ -590,8 +594,19 @@ objectType:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(GETSYM($1))));
 	}
 	;
+
+constModifiedObjectType:
+	objectType
+	{
+		$$ = $1;
+	}
+	| CONST objectType
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
+	}
+	;
 	
-typePrecision3:
+typePrecision4:
 	VOID
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Void()));
@@ -623,20 +638,27 @@ typePrecision3:
 	}
 	;
 
+typePrecision3:
+	typePrecision4
+	{
+		$$ = $1;
+	}
+	| CONST typePrecision4
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
+	}
+	;
+
 typePrecision2:
 	typePrecision3
 	{
 		$$ = $1;
 	}
-	| CONST typePrecision2
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
-	}
-	| LVAL LTRIBRACKET type RTRIBRACKET typePrecision2
+	| LVAL LTRIBRACKET type RTRIBRACKET typePrecision3
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($5))));
 	}
-	| REF LTRIBRACKET type RTRIBRACKET typePrecision2
+	| REF LTRIBRACKET type RTRIBRACKET typePrecision3
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($5))));
 	}
@@ -720,7 +742,7 @@ typeVar:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), GETSYM($3))));
 	}
-	| objectType LROUNDBRACKET typeVarList RROUNDBRACKET
+	| constModifiedObjectType LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
 	}

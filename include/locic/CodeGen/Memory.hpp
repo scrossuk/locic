@@ -28,7 +28,7 @@ namespace locic {
 		llvm::Value* genAlloca(Function& function, SEM::Type* type);
 		
 		/**
-		 * \brief Load a value.
+		 * \brief Load a value from a memory location.
 		 * 
 		 * For most primitive types, this function will
 		 * generated a load instruction. However, otherwise
@@ -39,7 +39,7 @@ namespace locic {
 		llvm::Value* genLoad(Function& function, llvm::Value* source, SEM::Type* type);
 		
 		/**
-		 * \brief Store a value into a variable.
+		 * \brief Store a value into a memory location.
 		 * 
 		 * As with the load function, this handles both
 		 * value types (such as primitives) by generating
@@ -49,7 +49,14 @@ namespace locic {
 		 */
 		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
 		
-		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedValueType, SEM::Type* unresolvedVarType);
+		/**
+		 * \brief Store a value into a variable.
+		 * 
+		 * Stores a value into the given memory location,
+		 * while also performing any necessary conversion
+		 * operations needed to create implicit lval types.
+		 */
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar);
 		
 	}
 	

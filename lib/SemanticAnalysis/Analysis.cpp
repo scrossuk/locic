@@ -198,12 +198,14 @@ namespace locic {
 					
 					auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
+					const bool isMemberVar = true;
+					
 					// 'final' keyword makes the default lval const.
 					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 					
-					auto lvalType = makeLvalType(context, isLvalConst, semType);
+					auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
 					
-					auto var = SEM::Var::Basic(lvalType);
+					auto var = SEM::Var::Basic(semType, lvalType);
 					
 					const auto memberNode = Node::Variable(astTypeVarNode, var);
 					

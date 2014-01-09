@@ -41,8 +41,6 @@ namespace locic {
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
 				LifetimeScope lifetimeScope(functionGenerator);
 				
-				const auto& parameterTypes = function->type()->getFunctionParameterTypes();
-				
 				// Parameters need to be copied to the stack, so that it's
 				// possible to assign to them, take their address, etc.
 				const auto& parameterVars = function->parameters();
@@ -58,7 +56,7 @@ namespace locic {
 					auto stackObject = genAlloca(functionGenerator, paramVar->type());
 					
 					// Store the argument into the stack alloca.
-					genStoreVar(functionGenerator, functionGenerator.getArg(i), stackObject, parameterTypes.at(i), paramVar->type());
+					genStoreVar(functionGenerator, functionGenerator.getArg(i), stackObject, paramVar);
 					
 					// Add this to the local variable map, so that
 					// any SEM vars can be mapped to the actual value.

@@ -28,7 +28,7 @@ namespace locic {
 			LOG(LOG_INFO, "Generating sizeof() for primitive type '%s'.",
 				name.c_str());
 			
-			if (name == "value_lval") {
+			if (name == "member_lval" || name == "value_lval") {
 				// The size of a built-in lvalue is entirely dependent
 				// on the size of its target type.
 				function.getBuilder().CreateRet(genSizeOf(function, templateArguments.at(0)));
@@ -301,7 +301,6 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: ptr::%s.", methodName.c_str());
 				throw std::runtime_error("Unknown primitive method.");
 			}
 			
@@ -338,7 +337,40 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: ptr::%s.", methodName.c_str());
+				throw std::runtime_error("Unknown primitive method.");
+			}
+			
+			// Check the generated function is correct.
+			function.verify();
+		}
+		
+		void createMemberLvalPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			const auto targetType = parent->templateArguments().at(0);
+			
+			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			
+			auto& builder = function.getBuilder();
+			
+			if (isUnaryOp(methodName)) {
+				if (methodName == "address") {
+					builder.CreateRet(function.getContextValue());
+				} else if (methodName == "dissolve") {
+					builder.CreateRet(function.getContextValue());
+				} else {
+					throw std::runtime_error("Unknown primitive unary op.");
+				}
+			} else if (isBinaryOp(methodName)) {
+				const auto operand = function.getArg(0);
+				
+				if (methodName == "assign") {
+					genStore(function, operand, function.getContextValue(), targetType);
+					builder.CreateRetVoid();
+				} else {
+					throw std::runtime_error("Unknown primitive binary op.");
+				}
+			} else {
 				throw std::runtime_error("Unknown primitive method.");
 			}
 			
@@ -347,7 +379,12 @@ namespace locic {
 		}
 		
 		ArgInfo getValueLvalMethodArgInfo(Module& module, SEM::Type* targetType, const std::string& methodName) {
-			if (methodName == "move") {
+			if (methodName == "Create") {
+				const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, targetType);
+				const bool hasContextArg = false;
+				const size_t numStandardArguments = 1;
+				return ArgInfo(hasReturnVarArg, hasContextArg, numStandardArguments);
+			} else if (methodName == "move") {
 				const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, targetType);
 				const bool hasContextArg = true;
 				const size_t numStandardArguments = 0;
@@ -355,31 +392,6 @@ namespace locic {
 			}
 		
 			return getPrimitiveMethodArgInfo(methodName);
-		}
-		
-		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
-			assert(var->getType()->isPointerTy());
-			
-			auto& module = functionGenerator.getModule();
-			
-			const auto type = module.resolveType(unresolvedType);
-			
-			assert(type->isObject());
-			
-			const auto targetType = type->templateArguments().at(0);
-			
-			// Get a pointer to the liveness indicator.
-			const auto livenessIndicator = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
-			
-			// Get a pointer to the value, which is
-			// just after the liveness indicator.
-			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 1);
-			
-			// Set the liveness indicator.
-			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
-			
-			// Store the new child value.
-			genStore(functionGenerator, value, ptrToValue, targetType);
 		}
 		
 		void createValueLvalPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
@@ -390,6 +402,31 @@ namespace locic {
 			Function function(module, llvmFunction, getValueLvalMethodArgInfo(module, targetType, methodName));
 			
 			auto& builder = function.getBuilder();
+			
+			if (methodName == "Create") {
+				const auto stackObject = genAlloca(function, parent);
+				
+				// Set the liveness indicator.
+				const auto livenessIndicatorPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 0);
+				builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicatorPtr);
+				
+				// Store the object.
+				const auto objectPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 1);
+				genStore(function, function.getArg(0), objectPtr, targetType);
+				
+				if (function.getArgInfo().hasReturnVarArgument()) {
+					genStore(function, genLoad(function, stackObject, parent), function.getReturnVar(), parent);
+					builder.CreateRetVoid();
+				} else {
+					const auto loadedValue = builder.CreateLoad(stackObject);
+					builder.CreateRet(loadedValue);
+				}
+				
+				// Check the generated function is correct.
+				function.verify();
+				
+				return;
+			}
 			
 			// Get a pointer to the value, which is
 			// just after the liveness indicator.
@@ -416,7 +453,7 @@ namespace locic {
 					} else {
 						// For types where the size is always known,
 						// just load the value and return it.
-						auto loadedValue = builder.CreateLoad(ptrToValue);
+						const auto loadedValue = builder.CreateLoad(ptrToValue);
 						
 						// Zero out the entire lval, which will
 						// also reset the liveness indicator.
@@ -426,6 +463,7 @@ namespace locic {
 					}
 				} else if (methodName == "dissolve") {
 					// TODO: check liveness indicator (?).
+					
 					builder.CreateRet(ptrToValue);
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
@@ -434,7 +472,9 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
-					// Destroy any existing value.
+					// Destroy any existing value. (This calls
+					// the destructor of value_lval, which will
+					// check the liveness indicator).
 					genDestructorCall(function, parent, function.getContextValue());
 					
 					// Get a pointer to the liveness indicator.
@@ -451,7 +491,6 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: value_lval::%s.", methodName.c_str());
 				throw std::runtime_error("Unknown primitive method.");
 			}
 			
@@ -471,13 +510,78 @@ namespace locic {
 				createFloatPrimitiveMethod(module, typeName, methodName, llvmFunction);
 			} else if(typeName == "ptr") {
 				createPtrPrimitiveMethod(module, parent, methodName, llvmFunction);
+			} else if(typeName == "member_lval") {
+				createMemberLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
 			} else if(typeName == "ptr_lval") {
 				createPtrLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
 			} else if(typeName == "value_lval") {
 				createValueLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
 			} else {
-				throw std::runtime_error("TODO");
+				throw std::runtime_error(makeString("Unknown primitive type '%s' for method generation.",
+					typeName.c_str()));
 			}
+		}
+		
+		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+			// A value lval contains the target type and
+			// a boolean 'liveness' indicator, which records
+			// whether the lval currently holds a value.
+			
+			auto& module = functionGenerator.getModule();
+			
+			const auto targetType = type->templateArguments().at(0);
+			
+			// Get a pointer to the liveness indicator.
+			const auto livenessIndicator = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
+			
+			// Get a pointer to the value, which is
+			// just after the liveness indicator.
+			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 1);
+			
+			// Set the liveness indicator.
+			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
+			
+			// Store the new child value.
+			genStore(functionGenerator, value, ptrToValue, targetType);
+		}
+		
+		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+			// A member lval just contains its target type,
+			// so just store that directly.
+			const auto targetType = type->templateArguments().at(0);
+			genStore(functionGenerator, value, var, targetType);
+		}
+		
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
+			assert(var->getType()->isPointerTy());
+			
+			auto& module = functionGenerator.getModule();
+			
+			const auto type = module.resolveType(unresolvedType);
+			
+			const std::string typeName = type->getObjectType()->name().last();
+			if (typeName == "value_lval") {
+				genStoreValueLval(functionGenerator, value, var, type);
+			} else if (typeName == "member_lval") {
+				genStoreMemberLval(functionGenerator, value, var, type);
+			} else {
+				throw std::runtime_error("Unknown primitive lval kind.");
+			}
+		}
+		
+		void createMemberLvalPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			const auto targetType = parent->templateArguments().at(0);
+			
+			Function function(module, llvmFunction, ArgInfo::ContextOnly());
+			
+			// Run the child value's destructor.
+			genDestructorCall(function, targetType, function.getContextValue());
+			function.getBuilder().CreateRetVoid();
+			
+			// Check the generated function is correct.
+			function.verify();
 		}
 		
 		void createValueLvalPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
@@ -525,7 +629,9 @@ namespace locic {
 		
 		void createPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
 			const std::string typeName = parent->getObjectType()->name().last();
-			if (typeName == "value_lval") {
+			if (typeName == "member_lval") {
+				createMemberLvalPrimitiveDestructor(module, parent, llvmFunction);
+			} else if (typeName == "value_lval") {
 				createValueLvalPrimitiveDestructor(module, parent, llvmFunction);
 			} else {
 				createVoidPrimitiveDestructor(module, llvmFunction);
@@ -583,22 +689,31 @@ namespace locic {
 				return TypeGenerator(module).getStructType(structVariables);
 			}
 			
+			if (name == "member_lval") {
+				assert(templateArguments.size() == 1);
+				// Member lval only contains its target type.
+				return templateArguments.at(0);
+			}
+			
 			throw std::runtime_error("Unrecognised primitive type.");
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type) {
 			assert(type->isPrimitive());
-			return type->getObjectType()->name().first() == "value_lval" && typeHasDestructor(module, type->templateArguments().at(0));
+			const auto name = type->getObjectType()->name().first();
+			return (name == "member_lval" || name == "value_lval") && typeHasDestructor(module, type->templateArguments().at(0));
 		}
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
 			assert(type->isPrimitive());
-			return type->getObjectType()->name().first() != "value_lval" || isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
+			const auto name = type->getObjectType()->name().first();
+			return (name != "member_lval" && name != "value_lval") || isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
 		}
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {
 			assert(type->isPrimitive());
-			return type->getObjectType()->name().first() != "value_lval" || isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
+			const auto name = type->getObjectType()->name().first();
+			return (name != "member_lval" && name != "value_lval") || isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
 		}
 		
 	}

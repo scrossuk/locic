@@ -6,10 +6,11 @@ interface serializable {
 }
 
 template <typename T: serializable>
-class custom_lval(T value) {
+// Use a 'value_lval' since it supports move operations.
+class custom_lval(lval<T> value_lval<T> value) {
 	static Create(T value) {
 		testPrint("custom_lval.Create: Value = %s"C, value.toCString());
-		return @(move value);
+		return @(lval<T>(value_lval<T>(move value)));
 	}
 	
 	T* address() {

@@ -155,11 +155,13 @@ namespace locic {
 			}
 		}
 		
-		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedValueType, SEM::Type* unresolvedVarType) {
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar) {
+			assert(semVar->isBasic());
+			
 			auto& module = function.getModule();
 			
-			const auto valueType = module.resolveType(unresolvedValueType);
-			const auto varType = module.resolveType(unresolvedVarType);
+			const auto valueType = module.resolveType(semVar->constructType());
+			const auto varType = module.resolveType(semVar->type());
 			
 			// If the variable type wasn't actually an lval
 			// (very likely), then a value_lval will be created
@@ -167,7 +169,7 @@ namespace locic {
 			if (*(valueType) == *(varType)) {
 				genStore(function, value, var, varType);
 			} else {
-				genStoreValueLval(function, value, var, varType);
+				genStorePrimitiveLval(function, value, var, varType);
 			}
 		}
 		

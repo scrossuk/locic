@@ -64,12 +64,14 @@ namespace locic {
 				
 				parameterTypes.push_back(semParamType);
 				
+				const bool isMember = false;
+				
 				// 'final' keyword makes the default lval const.
 				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 				
-				const auto lvalType = makeLvalType(context, isLvalConst, semParamType);
+				const auto lvalType = makeLvalType(context, isMember, isLvalConst, semParamType);
 				
-				parameterVars.push_back(SEM::Var::Basic(lvalType));
+				parameterVars.push_back(SEM::Var::Basic(semParamType, lvalType));
 			}
 			
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), semReturnType, parameterTypes);

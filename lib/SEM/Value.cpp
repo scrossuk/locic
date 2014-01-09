@@ -259,7 +259,8 @@ namespace locic {
 									  makeArrayString(interfaceMethodCall.parameters).c_str());
 									  
 				case CASTDUMMYOBJECT:
-					return "[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)]";
+					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",
+									  type()->toString().c_str());
 					
 				case NONE:
 					return "[NONE]";

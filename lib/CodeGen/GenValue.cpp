@@ -276,11 +276,9 @@ namespace locic {
 					const auto objectValue = genAlloca(function, value->type());
 					
 					for (size_t i = 0; i < parameterValues.size(); i++) {
-						const auto parameterValue = parameterValues.at(i);
-						const auto llvmParamValue = genValue(function, parameterValue);
+						const auto llvmParamValue = genValue(function, parameterValues.at(i));
 						const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
-						
-						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterValue->type(), parameterVars.at(i)->type());
+						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterVars.at(i));
 					}
 					
 					return objectValue;
