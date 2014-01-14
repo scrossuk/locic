@@ -274,12 +274,17 @@ namespace locic {
 			return SEM::Value::PolyCast(destType, value);
 		}
 		
-		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType) {
+		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType, bool formatOnly = false) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
 				auto castResult = ImplicitCastFormatOnly(value, destType);
-				if (castResult != NULL) return castResult;
+				if (castResult != NULL) {
+					return castResult;
+				} else if (formatOnly) {
+					throw TodoException(makeString("Format only cast failed from type %s to type %s.",
+						value->type()->toString().c_str(), destType->toString().c_str()));
+				}
 			}
 			
 			if (destType->isVoid()) {
@@ -390,8 +395,11 @@ namespace locic {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
-					throw TodoException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method.",
-						destType->getObjectType()->name().toString().c_str()));
+					throw TodoException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
+							"in cast from type %s to type %s.",
+						destType->getObjectType()->name().toString().c_str(),
+						sourceType->toString().c_str(),
+						destType->toString().c_str()));
 				}
 			}
 			
@@ -407,8 +415,8 @@ namespace locic {
 			return NULL;
 		}
 		
-		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType) {
-			auto result = ImplicitCastConvert(value, destType);
+		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType, bool formatOnly) {
+			auto result = ImplicitCastConvert(value, destType, formatOnly);
 			if (result != NULL) return result;
 			
 			if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {

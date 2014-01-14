@@ -25,7 +25,7 @@ namespace locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* type);
+		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* type, bool formatOnly = false);
 		
 		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second);
 		
