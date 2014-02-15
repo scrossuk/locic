@@ -51,6 +51,10 @@ namespace locic {
 			return kind() == DATATYPE;
 		}
 		
+		bool TypeInstance::isUnionDatatype() const {
+			return kind() == UNION_DATATYPE;
+		}
+		
 		bool TypeInstance::isInterface() const {
 			return kind() == INTERFACE;
 		}
@@ -72,6 +76,14 @@ namespace locic {
 		
 		const std::vector<TemplateVar*>& TypeInstance::templateVariables() const {
 			return templateVariables_;
+		}
+		
+		std::vector<TypeInstance*>& TypeInstance::variants() {
+			return variants_;
+		}
+		
+		const std::vector<TypeInstance*>& TypeInstance::variants() const {
+			return variants_;
 		}
 		
 		std::vector<Var*>& TypeInstance::variables() {
@@ -132,6 +144,10 @@ namespace locic {
 									  
 				case DATATYPE:
 					return makeString("Datatype(name: %s)",
+									  name().toString().c_str());
+				
+				case UNION_DATATYPE:
+					return makeString("UnionDatatype(name: %s)",
 									  name().toString().c_str());
 									  
 				case INTERFACE:

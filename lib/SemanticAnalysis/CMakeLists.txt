@@ -11,6 +11,7 @@ add_library(locic-semanalysis
 	ConvertType.cpp
 	ConvertValue.cpp
 	ConvertVar.cpp
+	DefaultMethods.cpp
 	Lval.cpp
 	MethodPattern.cpp
 	Ref.cpp

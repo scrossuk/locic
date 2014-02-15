@@ -1,15 +1,18 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include <list>
+#include <set>
+
 #include <locic/AST.hpp>
 #include <locic/Log.hpp>
 #include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/MethodPattern.hpp>
@@ -30,6 +33,8 @@ namespace locic {
 					return SEM::TypeInstance::CLASSDEF;
 				case AST::TypeInstance::DATATYPE:
 					return SEM::TypeInstance::DATATYPE;
+				case AST::TypeInstance::UNION_DATATYPE:
+					return SEM::TypeInstance::UNION_DATATYPE;
 				case AST::TypeInstance::INTERFACE:
 					return SEM::TypeInstance::INTERFACE;
 				default:
@@ -39,7 +44,7 @@ namespace locic {
 		}
 		
 		// Get all type names, and build initial type instance structures.
-		void AddNamespaces(Context& context) {
+		void AddNamespacesPass(Context& context) {
 			Node& node = context.node();
 			
 			assert(node.isNamespace());
@@ -67,12 +72,48 @@ namespace locic {
 			// This level is complete; now go to the deeper levels of namespaces.
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 	Context childNamespaceContext(context, range.front().key(), range.front().value());
-				AddNamespaces(childNamespaceContext);
+				AddNamespacesPass(childNamespaceContext);
 			}
 		}
 		
+		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+			Node& node = context.node();
+			
+			const auto& typeInstanceName = astTypeInstanceNode->name;
+			
+			const Name fullTypeName = context.name() + typeInstanceName;
+			
+			// Check if there's anything with the same name.
+			Node existingNode = node.getChild(typeInstanceName);
+			if (existingNode.isTypeInstance()) {
+				throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
+			} else if (existingNode.isNamespace()) {
+				throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE, fullTypeName);
+			}
+			
+			assert(existingNode.isNone() &&
+				"Functions shouldn't be added at this point, so anything "
+				"that isn't a namespace or a type instance should be 'none'.");
+			
+			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
+			
+			// Create a placeholder type instance.
+			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind);
+			node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
+			
+			const Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
+			node.attach(typeInstanceName, typeInstanceNode);
+			
+			for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+				const auto variantTypeInstance = AddTypeInstance(context, astVariantNode);
+				semTypeInstance->variants().push_back(variantTypeInstance);
+			}
+			
+			return semTypeInstance;
+		}
+		
 		// Get all type names, and build initial type instance structures.
-		void AddTypeInstances(Context& context) {
+		void AddTypeInstancesPass(Context& context) {
 			Node& node = context.node();
 			
 			if (!node.isNamespace()) return;
@@ -80,7 +121,7 @@ namespace locic {
 			//-- Look through child namespaces for type instances.
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 	Context childNamespaceContext(context, range.front().key(), range.front().value());
-				AddTypeInstances(childNamespaceContext);
+				AddTypeInstancesPass(childNamespaceContext);
 			}
 			
 			// Multiple AST namespace trees correspond to one SEM namespace,
@@ -88,30 +129,7 @@ namespace locic {
 			for (auto astNamespaceNode: node.getASTNamespaceList()) {
 				auto astNamespaceDataNode = astNamespaceNode->data;
 				for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-					const auto& typeInstanceName = astTypeInstanceNode->name;
-					
-					const Name fullTypeName = context.name() + typeInstanceName;
-					
-					// Check if there's anything with the same name.
-					Node existingNode = node.getChild(typeInstanceName);
-					if (existingNode.isTypeInstance()) {
-						throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
-					} else if (existingNode.isNamespace()) {
-						throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE, fullTypeName);
-					}
-					
-					assert(existingNode.isNone() &&
-					   "Functions shouldn't be added at this point, so anything "
-					   "that isn't a namespace or a type instance should be 'none'.");
-					
-					const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
-					
-					// Create a placeholder type instance.
-					auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind);
-					node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
-					
-					const Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
-					node.attach(typeInstanceName, typeInstanceNode);
+					(void) AddTypeInstance(context, astTypeInstanceNode);
 				}
 			}
 		}
@@ -128,7 +146,7 @@ namespace locic {
 			}
 		}
 		
-		void AddTemplateVariables(Context& context){
+		void AddTemplateVariablesPass(Context& context){
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
@@ -151,12 +169,12 @@ namespace locic {
 			} else {
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
 			 		Context newContext(context, range.front().key(), range.front().value());
-					AddTemplateVariables(newContext);
+					AddTemplateVariablesPass(newContext);
 				}
 			}
 		}
 		
-		void AddTemplateVariableRequirements(Context& context){
+		void AddTemplateVariableRequirementsPass(Context& context){
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
@@ -177,13 +195,13 @@ namespace locic {
 			} else {
 				for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 			 		Context newContext(context, range.front().key(), range.front().value());
-					AddTemplateVariableRequirements(newContext);
+					AddTemplateVariableRequirementsPass(newContext);
 				}
 			}
 		}
 		
 		// Fill in type instance structures with member variable information.
-		void AddTypeMemberVariables(Context& context) {
+		void AddTypeMemberVariablesPass(Context& context) {
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
@@ -220,37 +238,9 @@ namespace locic {
 			} else {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 		Context newContext(context, range.front().key(), range.front().value());
-					AddTypeMemberVariables(newContext);
+					AddTypeMemberVariablesPass(newContext);
 				}
 			}
-		}
-		
-		SEM::Function* CreateDefaultConstructor(SEM::TypeInstance* typeInstance) {
-			const bool isVarArg = false;
-			
-			std::vector<SEM::Type*> templateVars;
-			
-			// The parent class type needs to include the template arguments.
-			for (auto templateVar: typeInstance->templateVariables()) {
-				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
-			}
-				
-			auto returnType = SEM::Type::Object(typeInstance, templateVars);
-			
-			auto functionType = SEM::Type::Function(isVarArg, returnType, typeInstance->constructTypes());
-			
-			const bool isStatic = true;
-			
-			return SEM::Function::DefDefault(isStatic, functionType, typeInstance->name() + "Create");
-		}
-		
-		SEM::Function* CreateDefaultMethod(SEM::TypeInstance* typeInstance, const bool isStatic, const Name& name) {
-			if (isStatic && name.last() == "Create") {
-				return CreateDefaultConstructor(typeInstance);
-			}
-			
-			throw TodoException(makeString("%s method '%s' does not have a default implementation.",
-				isStatic ? "Static" : "Non-static", name.toString().c_str()));
 		}
 		
 		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
@@ -327,13 +317,13 @@ namespace locic {
 			return f0->name().last() < f1->name().last();
 		}
 		
-		void AddFunctionDecls(Context& context) {
+		void AddFunctionDeclsPass(Context& context) {
 			Node& node = context.node();
 			
 			if (node.isNamespace()) {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 		Context newContext(context, range.front().key(), range.front().value());
-					AddFunctionDecls(newContext);
+					AddFunctionDeclsPass(newContext);
 				}
 				
 				for (auto astNamespaceNode: node.getASTNamespaceList()) {
@@ -371,6 +361,10 @@ namespace locic {
 		}
 		
 		// Creates a new type instance based around a template variable specification type.
+		// i.e. building a type for 'T' based on 'SPEC_TYPE' in:
+		// 
+		//        template <typename T: SPEC_TYPE>
+		// 
 		void CopyTemplateVarTypeInstance(SEM::Type* srcType, Node& destTypeInstanceNode) {
 			assert(srcType->isObject());
 			
@@ -381,7 +375,10 @@ namespace locic {
 			
 			for (auto srcFunction: srcTypeInstance->functions()) {
 				// The specification type may contain template arguments,
-				// so this code does the necessary substitution.
+				// so this code does the necessary substitution. For example:
+				// 
+				//        template <typename T: SPEC_TYPE<T>>
+				// 
 				auto destFunction =
 					srcFunction->createDecl()->fullSubstitute(
 						destTypeInstance->name() + srcFunction->name().last(),
@@ -391,7 +388,7 @@ namespace locic {
 			}
 		}
 		
-		void CompleteTemplateVariableRequirements(Context& context){
+		void CompleteTemplateVariableRequirementsPass(Context& context){
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
@@ -420,36 +417,74 @@ namespace locic {
 			} else {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 		Context newContext(context, range.front().key(), range.front().value());
-					CompleteTemplateVariableRequirements(newContext);
+					CompleteTemplateVariableRequirementsPass(newContext);
 				}
 			}
 		}
 		
-		void IdentifyTypeProperties(Context& context) {
+		void AddTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
+			auto typeInstance = node.getSEMTypeInstance();
+			if (completedTypes.find(typeInstance) != completedTypes.end()) {
+				return;
+			}
+			
+			completedTypes.insert(typeInstance);
+			
+			// Add default implicit copy for datatypes if available.
+			if (typeInstance->isDatatype()) {
+				// Get type properties for member variable types,
+				// since this is needed to determine whether the
+				// datatype is implicitly copyable.
+				for (auto var: typeInstance->variables()) {
+					if (!var->constructType()->isObject()) continue;
+					AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
+				}
+				
+				if (HasDefaultImplicitCopy(typeInstance)) {
+					auto implicitCopy = CreateDefaultImplicitCopy(typeInstance);
+					typeInstance->functions().push_back(implicitCopy);
+					
+					// Re-sort type instance methods.
+					std::sort(typeInstance->functions().begin(),
+						typeInstance->functions().end(),
+						methodCompare);
+					
+					auto implicitCopyNode = Node::Function(AST::Node<AST::Function>(), implicitCopy);
+					node.attach("implicitCopy", implicitCopyNode);
+				}
+			}
+			
+			// Find all the standard patterns, and add
+			// them to the type instance.
+			const auto standardPatterns = GetStandardPatterns();
+			
+			for (auto pattern: standardPatterns) {
+				const Node functionNode = FindMethodPattern(pattern, node);
+				if (functionNode.isNotNone()) {
+					SEM::Function* function = functionNode.getSEMFunction();
+					typeInstance->addProperty(function->name().last(), function);
+				}
+			}
+		}
+		
+		void IdentifyTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes) {
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
-				auto typeInstance = node.getSEMTypeInstance();
-				
-				// Find all the standard patterns, and add
-				// them to the type instances.
-				const auto standardPatterns = GetStandardPatterns();
-				
-				for (auto pattern: standardPatterns) {
-					const Node functionNode = FindMethodPattern(pattern, node);
-					if (functionNode.isNotNone()) {
-						SEM::Function* function = functionNode.getSEMFunction();
-						typeInstance->addProperty(function->name().last(), function);
-					}
-				}
+				AddTypeProperties(context, completedTypes, node);
 			}
 			
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 	Context newContext(context, range.front().key(), range.front().value());
-			 	LOG(LOG_INFO, "Getting properties for %s.",
+			 	LOG(LOG_INFO, "Getting properties for '%s'.",
 			 		newContext.name().toString().c_str());
-				IdentifyTypeProperties(newContext);
+				IdentifyTypeProperties(newContext, completedTypes);
 			}
+		}
+		
+		void IdentifyTypePropertiesPass(Context& context) {
+			std::set<SEM::TypeInstance*> completedTypes;
+			IdentifyTypeProperties(context, completedTypes);
 		}
 		
 		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces) {
@@ -464,28 +499,28 @@ namespace locic {
 				Context rootContext(rootNode);
 				
 				// ---- Pass 1: Create namespaces.
-				AddNamespaces(rootContext);
+				AddNamespacesPass(rootContext);
 				
 				// ---- Pass 2: Create type names.
-				AddTypeInstances(rootContext);
+				AddTypeInstancesPass(rootContext);
 				
 				// ---- Pass 3: Add template type variables.
-				AddTemplateVariables(rootContext);
+				AddTemplateVariablesPass(rootContext);
 				
 				// ---- Pass 4: Add template type variable requirements.
-				AddTemplateVariableRequirements(rootContext);
+				AddTemplateVariableRequirementsPass(rootContext);
 				
 				// ---- Pass 5: Add type member variables.
-				AddTypeMemberVariables(rootContext);
+				AddTypeMemberVariablesPass(rootContext);
 				
 				// ---- Pass 6: Create function declarations.
-				AddFunctionDecls(rootContext);
+				AddFunctionDeclsPass(rootContext);
 				
 				// ---- Pass 7: Complete template type variable requirements.
-				CompleteTemplateVariableRequirements(rootContext);
+				CompleteTemplateVariableRequirementsPass(rootContext);
 				
 				// ---- Pass 8: Identify type properties.
-				IdentifyTypeProperties(rootContext);
+				IdentifyTypePropertiesPass(rootContext);
 				
 				// ---- Pass 9: Fill in function code.
 				ConvertNamespace(rootContext);

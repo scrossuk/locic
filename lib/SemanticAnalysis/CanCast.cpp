@@ -294,6 +294,21 @@ namespace locic {
 			
 			auto sourceType = value->type();
 			
+			// Try to cast datatype to its parent union datatype.
+			if (sourceType->isDatatype() && destType->isUnionDatatype()) {
+				bool found = false;
+				for (const auto variant: destType->getObjectType()->variants()) {
+					if (sourceType->getObjectType() == variant) {
+						found = true;
+						break;
+					}
+				}
+				
+				if (found) {
+					return SEM::Value::Cast(destType, value);
+				}
+			}
+			
 			if (sourceType->isNull() && destType->isObject()) {
 				SEM::TypeInstance* typeInstance = destType->getObjectType();
 				// Casting null to object type invokes the null constructor,
@@ -391,13 +406,13 @@ namespace locic {
 					
 					auto convertCast = ImplicitCastConvert(copyValue, destType);
 					if (convertCast != NULL) return convertCast;
-				} else if (destType->isObject() && ImplicitCastTypeFormatOnly(sourceDerefType, destType)) {
+				} else if (sourceDerefType->isObject() && CanDoImplicitCast(sourceDerefType, destType)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
 					throw TodoException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
 							"in cast from type %s to type %s.",
-						destType->getObjectType()->name().toString().c_str(),
+						sourceDerefType->getObjectType()->name().toString().c_str(),
 						sourceType->toString().c_str(),
 						destType->toString().c_str()));
 				}
@@ -431,10 +446,11 @@ namespace locic {
 		}
 		
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
+			// TODO: don't use exceptions for this.
 			try {
 				(void) ImplicitCast(SEM::Value::CastDummy(sourceType), destType);
 				return true;
-			} catch(const CastException& e) {
+			} catch(const SemanticAnalysis::Exception& e) {
 				return false;
 			}
 		}

@@ -86,6 +86,7 @@ namespace locic {
 				bool isInterface() const;
 				bool isPrimitive() const;
 				bool isDatatype() const;
+				bool isUnionDatatype() const;
 				bool isStruct() const;
 				bool isClassOrTemplateVar() const;
 				

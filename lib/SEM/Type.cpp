@@ -270,6 +270,14 @@ namespace locic {
 			return getObjectType()->isDatatype();
 		}
 		
+		bool Type::isUnionDatatype() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isUnionDatatype();
+		}
+		
 		bool Type::isStruct() const {
 			if (!isObject()) {
 				return false;

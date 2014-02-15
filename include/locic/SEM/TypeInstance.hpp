@@ -2,6 +2,7 @@
 #define LOCIC_SEM_TYPEINSTANCE_HPP
 
 #include <string>
+#include <vector>
 
 #include <locic/Map.hpp>
 #include <locic/Name.hpp>
@@ -22,6 +23,7 @@ namespace locic {
 					CLASSDECL,
 					CLASSDEF,
 					DATATYPE,
+					UNION_DATATYPE,
 					INTERFACE,
 					TEMPLATETYPE
 				};
@@ -44,6 +46,8 @@ namespace locic {
 				
 				bool isDatatype() const;
 				
+				bool isUnionDatatype() const;
+				
 				bool isInterface() const;
 				
 				bool isTemplateType() const;
@@ -55,6 +59,9 @@ namespace locic {
 				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
+				
+				std::vector<TypeInstance*>& variants();
+				const std::vector<TypeInstance*>& variants() const;
 				
 				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
@@ -84,6 +91,7 @@ namespace locic {
 				Map<std::string, Function*> typeProperties_;
 				
 				std::vector<TemplateVar*> templateVariables_;
+				std::vector<TypeInstance*> variants_;
 				std::vector<Var*> variables_;
 				std::vector<Function*> functions_;
 				std::vector<Type*> constructTypes_;
