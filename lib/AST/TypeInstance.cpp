@@ -13,11 +13,11 @@ namespace locic {
 
 	namespace AST {
 	
-		TypeInstance::TypeInstance(Kind k, const std::string& n,
-								   const Node<TypeVarList>& v, const Node<FunctionList>& f)
+		TypeInstance::TypeInstance(Kind k, const std::string& n, const Node<TypeVarList>& v, const Node<FunctionList>& f)
 			: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
+			  variants(makeDefaultNode<TypeInstanceList>()),
 			  variables(v), functions(f) { }
-			  
+		
 		TypeInstance* TypeInstance::Primitive(const std::string& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), functions);
 		}
@@ -32,6 +32,12 @@ namespace locic {
 		
 		TypeInstance* TypeInstance::Datatype(const std::string& name, const Node<TypeVarList>& variables) {
 			return new TypeInstance(DATATYPE, name, variables, makeDefaultNode<FunctionList>());
+		}
+		
+		TypeInstance* TypeInstance::UnionDatatype(const std::string& name, const Node<TypeInstanceList>& variants) {
+			TypeInstance* typeInstance = new TypeInstance(UNION_DATATYPE, name,  makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
+			typeInstance->variants = variants;
+			return typeInstance;
 		}
 		
 		TypeInstance* TypeInstance::Interface(const std::string& name, const Node<FunctionList>& functions) {
@@ -51,6 +57,25 @@ namespace locic {
 				bool isFirst = true;
 				
 				for (auto node : *templateVariables) {
+					if (!isFirst) {
+						s += ", ";
+					}
+					
+					isFirst = false;
+					s += node.toString();
+				}
+				
+				s += ")";
+			}
+			
+			s += ", ";
+			
+			{
+				s += "VariantList(";
+				
+				bool isFirst = true;
+				
+				for (auto node : *variants) {
 					if (!isFirst) {
 						s += ", ";
 					}

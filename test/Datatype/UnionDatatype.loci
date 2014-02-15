@@ -1,0 +1,27 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+datatype UnionDataType =
+	TestDatatype(int a) |
+	Test2Datatype(int a, int b);
+
+TestDatatype makeData() {
+	return TestDatatype(12345);
+}
+
+void printData(UnionDataType data) {
+	/*testPrint("printData: TestDatatype(a = %d, b = %d, c = %d)"C,
+		data.a, data.b, data.c);*/
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestDatatype data = makeData();
+	
+	testPrint("testEntryPoint: data = TestDatatype(a = %d)"C, data.a);
+	
+	printData(data);
+	
+	return 0;
+}
+

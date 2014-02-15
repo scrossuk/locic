@@ -1,0 +1,1 @@
+testEntryPoint: data = TestDatatype(a = 12345)

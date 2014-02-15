@@ -98,8 +98,9 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::NamespaceData>* namespaceData;
 	locic::AST::Node<locic::AST::Namespace>* nameSpace;
 	locic::AST::Node<locic::AST::TypeInstance>* typeInstance;
+	locic::AST::Node<locic::AST::TypeInstanceList>* typeInstanceList;
 	locic::AST::Node<locic::AST::Function>* function;
-	locic::AST::Node<locic::AST::FunctionList>* functionArray;
+	locic::AST::Node<locic::AST::FunctionList>* functionList;
 	
 	// Symbol names.
 	locic::AST::Node<locic::AST::SymbolElement>* symbolElement;
@@ -107,21 +108,21 @@ const T& GETSYM(T* value) {
 	
 	// Type information.
 	locic::AST::Node<locic::AST::Type>* type;
-	locic::AST::Node<locic::AST::TypeList>* typeArray;
+	locic::AST::Node<locic::AST::TypeList>* typeList;
 	locic::AST::Node<locic::AST::TypeVar>* typeVar;
-	locic::AST::Node<locic::AST::TypeVarList>* typeVarArray;
+	locic::AST::Node<locic::AST::TypeVarList>* typeVarList;
 	locic::AST::Node<locic::AST::TemplateTypeVar>* templateTypeVar;
-	locic::AST::Node<locic::AST::TemplateTypeVarList>* templateTypeVarArray;
+	locic::AST::Node<locic::AST::TemplateTypeVarList>* templateTypeVarList;
 	
 	// Program code.
 	locic::AST::Node<locic::AST::Scope>* scope;
 	locic::AST::Node<locic::AST::Statement>* statement;
-	locic::AST::Node<locic::AST::StatementList>* statementArray;
+	locic::AST::Node<locic::AST::StatementList>* statementList;
 	
 	// Values.
 	locic::AST::Value::CastKind castKind;
 	locic::AST::Node<locic::AST::Value>* value;
-	locic::AST::Node<locic::AST::ValueList>* valueArray;
+	locic::AST::Node<locic::AST::ValueList>* valueList;
 }
 
 // ================ Terminals ================
@@ -222,6 +223,9 @@ const T& GETSYM(T* value) {
 %type <namespaceData> namespaceData
 %type <nameSpace> nameSpace
 
+%type <typeInstance> unionDatatypeEntry
+%type <typeInstanceList> unionDatatypeEntryList
+
 %type <typeInstance> typeInstance
 %type <typeInstance> nonTemplatedTypeInstance
 
@@ -238,8 +242,8 @@ const T& GETSYM(T* value) {
 %type <function> staticMethodDef
 %type <function> methodDecl
 %type <function> methodDef
-%type <functionArray> methodDeclList
-%type <functionArray> methodDefList
+%type <functionList> methodDeclList
+%type <functionList> methodDefList
 
 %type <type> objectType
 %type <type> constModifiedObjectType
@@ -252,28 +256,28 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision0
 %type <type> type
 
-%type <typeArray> nonEmptyTypeList
-%type <typeArray> typeList
+%type <typeList> nonEmptyTypeList
+%type <typeList> typeList
 %type <typeVar> typeVar
-%type <typeVarArray> nonEmptyTypeVarList
-%type <typeVarArray> typeVarList
-%type <typeVarArray> structVarList
+%type <typeVarList> nonEmptyTypeVarList
+%type <typeVarList> typeVarList
+%type <typeVarList> structVarList
 %type <templateTypeVar> templateTypeVar
-%type <templateTypeVarArray> templateTypeVarList
+%type <templateTypeVarList> templateTypeVarList
 
 %type <symbolElement> symbolElement
 %type <symbol> symbol
 
 %type <scope> scope
-%type <statementArray> statementList
+%type <statementList> statementList
 %type <statement> scopedStatement
 %type <statement> normalStatement
 
 %type <constant> constant
 %type <castKind> castKind
 %type <value> value
-%type <valueArray> nonEmptyValueList
-%type <valueArray> valueList
+%type <valueList> nonEmptyValueList
+%type <valueList> valueList
 %type <value> precision0
 %type <value> precision1
 %type <value> precision2
@@ -531,6 +535,25 @@ typeInstance:
 	}
 	;
 
+unionDatatypeEntry:
+	NAME LROUNDBRACKET typeVarList RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Datatype(GETSYM($1), GETSYM($3))));
+	}
+	;
+
+unionDatatypeEntryList:
+	unionDatatypeEntry
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeInstanceList(1, GETSYM($1))));
+	}
+	| unionDatatypeEntryList VERTICAL_BAR unionDatatypeEntry
+	{
+		(GETSYM($1))->push_back(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
 nonTemplatedTypeInstance:
 	PRIMITIVE NAME LCURLYBRACKET methodDeclList RCURLYBRACKET
 	{
@@ -555,6 +578,10 @@ nonTemplatedTypeInstance:
 	| DATATYPE NAME LROUNDBRACKET typeVarList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Datatype(GETSYM($2), GETSYM($4))));
+	}
+	| DATATYPE NAME SETEQUAL unionDatatypeEntryList
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::UnionDatatype(GETSYM($2), GETSYM($4))));
 	}
 	;
 
