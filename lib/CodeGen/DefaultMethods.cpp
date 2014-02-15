@@ -19,6 +19,8 @@ namespace locic {
 			
 			llvm::Value* genDefaultConstructor(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
 				assert(function->isMethod() && function->isStaticMethod());
+				(void) function;
+				
 				assert(parent->isObject());
 				
 				const auto& parentVars = parent->getObjectType()->variables();
@@ -33,6 +35,15 @@ namespace locic {
 				return genLoad(functionGenerator, objectValue, parent);
 			}
 			
+			llvm::Value* genDefaultImplicitCopy(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
+				assert(function->isMethod() && !function->isStaticMethod());
+				(void) function;
+				
+				assert(parent->isObject());
+				
+				return genLoad(functionGenerator, functionGenerator.getContextValue(), parent);
+			}
+			
 		}
 		
 		void genDefaultMethod(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
@@ -43,6 +54,8 @@ namespace locic {
 			
 			if (function->name().last() == "Create") {
 				returnValue = genDefaultConstructor(functionGenerator, parent, function);
+			} else if (function->name().last() == "implicitCopy") {
+				returnValue = genDefaultImplicitCopy(functionGenerator, parent, function);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.",
 					function->name().toString().c_str()));
