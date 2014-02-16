@@ -54,7 +54,7 @@ namespace locic {
 					return getInt(64, value);
 				}
 				
-				inline llvm::ConstantInt* getSize(unsigned long long sizeValue) const {
+				inline llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const {
 					const size_t sizeTypeWidth = module_.getTargetInfo().getPrimitiveSize("size_t");
 					return getInt(sizeTypeWidth, sizeValue);
 				}
@@ -100,6 +100,24 @@ namespace locic {
 				
 				inline llvm::Constant* getPointerCast(llvm::Constant* value, llvm::Type* targetType) const {
 					return llvm::ConstantExpr::getPointerCast(value, targetType);
+				}
+				
+				inline llvm::Constant* getAlignOf(llvm::Type* type) const {
+					return llvm::ConstantExpr::getAlignOf(type);
+				}
+				
+				inline llvm::Constant* getSizeOf(llvm::Type* type) const {
+					return llvm::ConstantExpr::getSizeOf(type);
+				}
+				
+				inline llvm::Constant* getMin(llvm::Constant* first, llvm::Constant* second) const {
+					llvm::Constant* compareResult = llvm::ConstantExpr::getICmp(llvm::CmpInst::ICMP_ULT, first, second);
+					return llvm::ConstantExpr::getSelect(compareResult, first, second);
+				}
+				
+				inline llvm::Constant* getMax(llvm::Constant* first, llvm::Constant* second) const {
+					llvm::Constant* compareResult = llvm::ConstantExpr::getICmp(llvm::CmpInst::ICMP_UGT, first, second);
+					return llvm::ConstantExpr::getSelect(compareResult, first, second);
 				}
 				
 			private:

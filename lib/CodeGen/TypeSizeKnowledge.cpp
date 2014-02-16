@@ -39,6 +39,7 @@ namespace locic {
 						}
 						return true;
 					} else {
+						// TODO: union datatypes.
 						return false;
 					}
 				}

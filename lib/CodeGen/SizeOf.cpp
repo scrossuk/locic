@@ -41,8 +41,8 @@ namespace locic {
 			// their sizes.
 			Function function(module, *llvmFunction, ArgInfo::None());
 			
-			auto zero = ConstantGenerator(module).getSize(0);
-			auto one = ConstantGenerator(module).getSize(1);
+			auto zero = ConstantGenerator(module).getSizeTValue(0);
+			auto one = ConstantGenerator(module).getSizeTValue(1);
 			llvm::Value* classSize = zero;
 			
 			const auto templateVarMap = type->generateTemplateVarMap();
@@ -73,7 +73,7 @@ namespace locic {
 				case SEM::Type::VOID:
 				case SEM::Type::NULLT: {
 					// Void and null have zero size.
-					return ConstantGenerator(module).getSize(0);
+					return ConstantGenerator(module).getSizeTValue(0);
 				}
 				
 				case SEM::Type::OBJECT: {
@@ -82,15 +82,15 @@ namespace locic {
 				
 				case SEM::Type::REFERENCE: {
 					const size_t multiplier = type->getReferenceTarget()->isInterface() ? 2 : 1;
-					return ConstantGenerator(module).getSize(multiplier * targetInfo.getPointerSizeInBytes());
+					return ConstantGenerator(module).getSizeTValue(multiplier * targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::FUNCTION: {
-					return ConstantGenerator(module).getSize(targetInfo.getPointerSizeInBytes());
+					return ConstantGenerator(module).getSizeTValue(targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::METHOD: {
-					return ConstantGenerator(module).getSize(2 * targetInfo.getPointerSizeInBytes());
+					return ConstantGenerator(module).getSizeTValue(2 * targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {

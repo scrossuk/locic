@@ -14,7 +14,7 @@ namespace locic {
 			
 			assert(typeInstance->templateVariables().size() == templateArguments.size()
 				&& "Number of template arguments provided must match number required.");
-			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype());
+			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
 			const std::string mangledName = mangleObjectType(module, typeInstance, templateArguments);
 			
@@ -31,8 +31,25 @@ namespace locic {
 			
 			module.getTypeMap().insert(mangledName, structType);
 			
-			// Member variables are not known for class declarations.
+			// Member variables are not known for class declarations,
+			// hence return an empty struct.
 			if (typeInstance->isClassDecl()) return structType;
+			
+			if (typeInstance->isUnionDatatype()) {
+				llvm::DataLayout dataLayout(module.getLLVMModulePtr());
+				
+				size_t unionSize = 0;
+				for (auto variantTypeInstance: typeInstance->variants()) {
+					auto variantStructType = genTypeInstance(module, variantTypeInstance, templateArguments);
+					unionSize = std::max<size_t>(unionSize, dataLayout.getTypeAllocSize(variantStructType));
+				}
+				
+				std::vector<llvm::Type*> structMembers;
+				structMembers.push_back(TypeGenerator(module).getI8Type());
+				structMembers.push_back(TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), unionSize));
+				structType->setBody(structMembers);
+				return structType;
+			}
 			
 			// TODO: Remove this, since CodeGen should not generate any SEM trees.
 			const auto templateVarMap = SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();

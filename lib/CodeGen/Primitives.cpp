@@ -34,7 +34,7 @@ namespace locic {
 				function.getBuilder().CreateRet(genSizeOf(function, templateArguments.at(0)));
 			} else {
 				function.getBuilder().CreateRet(
-					ConstantGenerator(module).getSize(module.getTargetInfo().getPrimitiveSizeInBytes(name)));
+					ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveSizeInBytes(name)));
 			}
 		}
 		

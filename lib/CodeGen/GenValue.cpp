@@ -161,7 +161,7 @@ namespace locic {
 						   
 					LOG(LOG_INFO, "Generating cast from type %s to type %s.",
 						sourceType->toString().c_str(), destType->toString().c_str());
-						
+					
 					if (destType->isVoid()) {
 						// Call destructor for the value.
 						genDestructorCall(function, sourceType, codeValue);
@@ -199,6 +199,28 @@ namespace locic {
 						case SEM::Type::OBJECT: {
 							if (sourceType->getObjectType() == destType->getObjectType()) {
 								return codeValue;
+							}
+							
+							if (sourceType->isDatatype() && destType->isUnionDatatype()) {
+								uint8_t variantKind = 0;
+								for (auto variantTypeInstance: destType->getObjectType()->variants()) {
+									if (variantTypeInstance == sourceType->getObjectType()) break;
+									variantKind++;
+								}
+								
+								const auto unionValue = genAlloca(function, destType);
+								
+								// Set the variant kind value.
+								const auto variantKindPtr = function.getBuilder().CreateConstInBoundsGEP2_32(unionValue, 0, 0);
+								function.getBuilder().CreateStore(ConstantGenerator(module).getI8(variantKind), variantKindPtr);
+								
+								// Store the union value.
+								const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(unionValue, 0, 1);
+								const auto unionValueType = genType(function.getModule(), sourceType);
+								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+								genStore(function, codeValue, castedUnionValuePtr, sourceType);
+								
+								return unionValue;
 							}
 							
 							assert(false && "Casts between named types not implemented.");
