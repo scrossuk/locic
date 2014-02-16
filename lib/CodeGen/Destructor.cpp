@@ -20,7 +20,7 @@ namespace locic {
 				return primitiveTypeHasDestructor(module, type);
 			}
 			
-			return type->isClass() || type->isDatatype();
+			return type->isClass() || type->isDatatype() || type->isUnionDatatype();
 		}
 		
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
@@ -38,13 +38,48 @@ namespace locic {
 			function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>(1, value));
 		}
 		
+		void genUnionDestructor(Function& function, SEM::Type* parent) {
+			assert(parent->isUnionDatatype());
+			
+			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
+			const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
+			
+			const auto endBB = function.createBasicBlock("end");
+			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, parent->getObjectType()->variants().size());
+			
+			std::vector<llvm::BasicBlock*> caseBlocks;
+			
+			uint8_t tag = 0;
+			for (auto variantTypeInstance: parent->getObjectType()->variants()) {
+				const auto matchBB = function.createBasicBlock("tagMatch");
+				const auto tagValue = ConstantGenerator(function.getModule()).getI8(tag++);
+				
+				switchInstruction->addCase(tagValue, matchBB);
+				
+				function.selectBasicBlock(matchBB);
+				
+				// TODO: CodeGen shouldn't create SEM trees.
+				const auto variantType = SEM::Type::Object(variantTypeInstance, parent->templateArguments());
+				
+				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
+				const auto unionValueType = genType(function.getModule(), variantType);
+				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+				
+				genDestructorCall(function, variantType, castedUnionValuePtr);
+				
+				function.getBuilder().CreateBr(endBB);
+			}
+			
+			function.selectBasicBlock(endBB);
+		}
+		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* unresolvedParent) {
 			assert(unresolvedParent != NULL);
 			
 			auto parent = module.resolveType(unresolvedParent);
 			
 			assert(parent->isObject());
-			assert(parent->isClass() || parent->isPrimitive() || parent->isDatatype());
+			assert(parent->isClass() || parent->isPrimitive() || parent->isDatatype() || parent->isUnionDatatype());
 			
 			const auto mangledName = mangleDestructorName(module, parent);
 			LOG(LOG_INFO, "Generating destructor for type '%s' (mangled as '%s').",
@@ -89,15 +124,23 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			assert(parent->isClass() || parent->isDatatype());
+			assert(parent->isClass() || parent->isDatatype() || parent->isUnionDatatype());
 			
 			if (parent->getObjectType()->isClassDecl()) {
 				return llvmFunction;
 			}
 			
-			assert(parent->isClassDef() || parent->isDatatype());
+			assert(parent->isClassDef() || parent->isDatatype() || parent->isUnionDatatype());
 			
 			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
+			
+			if (parent->isUnionDatatype()) {
+				genUnionDestructor(function, parent);
+				function.getBuilder().CreateRetVoid();
+				return llvmFunction;
+			}
+			
+			assert(parent->isClassDef() || parent->isDatatype());
 			
 			// Call the custom destructor function, if one exists.
 			if (parent->getObjectType()->hasProperty("__destructor")) {

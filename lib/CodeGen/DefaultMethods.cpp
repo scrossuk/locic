@@ -41,6 +41,8 @@ namespace locic {
 				
 				assert(parent->isObject());
 				
+				// TODO: this code should call implicitCopy method of children.
+				
 				return genLoad(functionGenerator, functionGenerator.getContextValue(), parent);
 			}
 			
