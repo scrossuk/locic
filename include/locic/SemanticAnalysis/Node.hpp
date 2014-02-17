@@ -24,7 +24,8 @@ namespace locic {
 					FUNCTION,
 					TEMPLATEVAR,
 					SCOPE,
-					VARIABLE
+					VARIABLE,
+					SWITCHCASE
 				};
 				
 				inline static Node None() {
@@ -70,6 +71,13 @@ namespace locic {
 					Node node(VARIABLE);
 					node.data_->ast.var = ast;
 					node.data_->sem.var = sem;
+					return node;
+				}
+				
+				inline static Node SwitchCase(const AST::Node<AST::SwitchCase>& ast, SEM::SwitchCase * sem){
+					Node node(SWITCHCASE);
+					node.data_->ast.switchCase = ast;
+					node.data_->sem.switchCase = sem;
 					return node;
 				}
 				
@@ -134,6 +142,10 @@ namespace locic {
 					return kind() == VARIABLE;
 				}
 				
+				inline bool isSwitchCase() const {
+					return kind() == SWITCHCASE;
+				}
+				
 				inline AST::NamespaceList& getASTNamespaceList() {
 					assert(isNamespace());
 					return data_->ast.nameSpaceList;
@@ -162,6 +174,11 @@ namespace locic {
 				inline const AST::Node<AST::Scope>& getASTScope() const {
 					assert(isScope());
 					return data_->ast.scope;
+				}
+				
+				inline const AST::Node<AST::SwitchCase>& getASTSwitchCase() const {
+					assert(isSwitchCase());
+					return data_->ast.switchCase;
 				}
 				
 				inline SEM::Namespace* getSEMNamespace() const {
@@ -194,26 +211,34 @@ namespace locic {
 					return data_->sem.var;
 				}
 				
+				inline SEM::SwitchCase* getSEMSwitchCase() const {
+					assert(isSwitchCase());
+					return data_->sem.switchCase;
+				}
+				
 				inline std::string toString() const {
 					switch(kind()){
 						case NONE:
-							return "Node(None)";
+							return "Node[None]()";
 						case NAMESPACE:
-							return makeString("Node(Namespace: %s)",
+							return makeString("Node[Namespace](%s)",
 								getSEMNamespace()->name().c_str());
 						case TYPEINSTANCE:
-							return makeString("Node(Type Instance: %s)",
+							return makeString("Node[TypeInstance](%s)",
 								getSEMTypeInstance()->toString().c_str());
 						case FUNCTION:
-							return makeString("Node(Function: %s)",
+							return makeString("Node[Function](%s)",
 								getSEMFunction()->toString().c_str());
 						case TEMPLATEVAR:
-							return makeString("Node(TemplateVar: %s)",
+							return makeString("Node[TemplateVar](%s)",
 								getASTTemplateVar()->name.c_str());
 						case SCOPE:
-							return "Node(Scope)";
+							return "Node[Scope]()";
 						case VARIABLE:
-							return "Node(Variable)";
+							return "Node[Variable]()";
+						case SWITCHCASE:
+							return makeString("Node[SwitchCase](%s)",
+								getSEMSwitchCase()->toString().c_str());
 						default:
 							assert(false && "Unknown node type.");
 							return "Node([INVALID])";
@@ -234,6 +259,7 @@ namespace locic {
 						AST::Node<AST::TemplateTypeVar> templateVar;
 						AST::Node<AST::Scope> scope;
 						AST::Node<AST::TypeVar> var;
+						AST::Node<AST::SwitchCase> switchCase;
 					} ast;
 				
 					union {
@@ -243,6 +269,7 @@ namespace locic {
 						SEM::TemplateVar* templateVar;
 						SEM::Scope* scope;
 						SEM::Var* var;
+						SEM::SwitchCase* switchCase;
 					} sem;
 					
 					inline NodeData(Kind k)

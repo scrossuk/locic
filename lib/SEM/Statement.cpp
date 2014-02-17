@@ -1,9 +1,13 @@
 #include <assert.h>
 
+#include <string>
+#include <vector>
+
 #include <locic/String.hpp>
 
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
+#include <locic/SEM/SwitchCase.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/Var.hpp>
@@ -36,6 +40,13 @@ namespace locic {
 			statement->ifStmt_.condition = condition;
 			statement->ifStmt_.ifTrue = ifTrue;
 			statement->ifStmt_.ifFalse = ifFalse;
+			return statement;
+		}
+		
+		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList) {
+			Statement* statement = new Statement(SWITCH);
+			statement->switchStmt_.value = value;
+			statement->switchStmt_.caseList = caseList;
 			return statement;
 		}
 		
@@ -123,6 +134,20 @@ namespace locic {
 			return *(ifStmt_.ifFalse);
 		}
 		
+		bool Statement::isSwitchStatement() const {
+			return kind() == SWITCH;
+		}
+		
+		Value* Statement::getSwitchValue() const {
+			assert(isSwitchStatement());
+			return switchStmt_.value;
+		}
+		
+		const std::vector<SwitchCase*>& Statement::getSwitchCaseList() const {
+			assert(isSwitchStatement());
+			return switchStmt_.caseList;
+		}
+		
 		bool Statement::isWhileStatement() const {
 			return kind() == WHILE;
 		}
@@ -169,6 +194,12 @@ namespace locic {
 									  ifStmt_.condition->toString().c_str(),
 									  ifStmt_.ifTrue->toString().c_str(),
 									  ifStmt_.ifFalse->toString().c_str());
+				}
+				
+				case SWITCH: {
+					return makeString("SwitchStatement(value: %s, caseList: %s)",
+									  switchStmt_.value->toString().c_str(),
+									  makeArrayString(switchStmt_.caseList).c_str());
 				}
 				
 				case WHILE: {

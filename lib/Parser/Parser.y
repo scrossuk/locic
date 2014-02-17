@@ -114,6 +114,10 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::TemplateTypeVar>* templateTypeVar;
 	locic::AST::Node<locic::AST::TemplateTypeVarList>* templateTypeVarList;
 	
+	// Switch case.
+	locic::AST::Node<locic::AST::SwitchCase>* switchCase;
+	locic::AST::Node<locic::AST::SwitchCaseList>* switchCaseList;
+	
 	// Program code.
 	locic::AST::Node<locic::AST::Scope>* scope;
 	locic::AST::Node<locic::AST::Statement>* statement;
@@ -258,6 +262,7 @@ const T& GETSYM(T* value) {
 
 %type <typeList> nonEmptyTypeList
 %type <typeList> typeList
+%type <typeVar> patternTypeVar
 %type <typeVar> typeVar
 %type <typeVarList> nonEmptyTypeVarList
 %type <typeVarList> typeVarList
@@ -267,6 +272,9 @@ const T& GETSYM(T* value) {
 
 %type <symbolElement> symbolElement
 %type <symbol> symbol
+
+%type <switchCase> switchCase
+%type <switchCaseList> switchCaseList
 
 %type <scope> scope
 %type <statementList> statementList
@@ -760,6 +768,13 @@ typeList:
 	}
 	;
 
+patternTypeVar:
+	constModifiedObjectType LROUNDBRACKET typeVarList RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
+	}
+	;
+
 typeVar:
 	type NAME
 	{
@@ -769,9 +784,9 @@ typeVar:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), GETSYM($3))));
 	}
-	| constModifiedObjectType LROUNDBRACKET typeVarList RROUNDBRACKET
+	| patternTypeVar
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
+		$$ = $1;
 	}
 	| UNDERSCORE
 	{
@@ -865,6 +880,25 @@ statementList:
 	}
 	;
 	
+switchCase:
+	CASE patternTypeVar scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SwitchCase(GETSYM($2), GETSYM($3))));
+	}
+	;
+	
+switchCaseList:
+	// empty
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SwitchCaseList()));
+	}
+	| switchCaseList switchCase
+	{
+		(GETSYM($1))->push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+	
 scopedStatement:
 	scope
 	{
@@ -878,6 +912,10 @@ scopedStatement:
 	| IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::If(GETSYM($3), GETSYM($5), GETSYM($7))));
+	}
+	| SWITCH LROUNDBRACKET value RROUNDBRACKET LCURLYBRACKET switchCaseList RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Switch(GETSYM($3), GETSYM($6))));
 	}
 	| FOR LROUNDBRACKET typeVar COLON value RROUNDBRACKET scope
 	{

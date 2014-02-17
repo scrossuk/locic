@@ -3,6 +3,7 @@ add_library(locic-sem
 	Namespace.cpp
 	Scope.cpp
 	Statement.cpp
+	SwitchCase.cpp
 	TemplateVar.cpp
 	Type.cpp
 	TypeInstance.cpp

@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <locic/Map.hpp>
+
 namespace locic {
 	
 	class Constant;
@@ -10,6 +12,7 @@ namespace locic {
 	namespace SEM {
 		
 		class Function;
+		class TemplateVar;
 		class Type;
 		class TypeInstance;
 		class Var;

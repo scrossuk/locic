@@ -44,6 +44,8 @@ namespace locic {
 			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
 			const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
 			
+			const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
+			
 			const auto endBB = function.createBasicBlock("end");
 			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, parent->getObjectType()->variants().size());
 			
@@ -61,7 +63,6 @@ namespace locic {
 				// TODO: CodeGen shouldn't create SEM trees.
 				const auto variantType = SEM::Type::Object(variantTypeInstance, parent->templateArguments());
 				
-				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
 				const auto unionValueType = genType(function.getModule(), variantType);
 				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 				

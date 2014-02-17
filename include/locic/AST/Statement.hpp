@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
@@ -19,6 +20,7 @@ namespace locic {
 				VALUE,
 				SCOPE,
 				IF,
+				SWITCH,
 				WHILE,
 				VARDECL,
 				ASSIGN,
@@ -39,6 +41,11 @@ namespace locic {
 				Node<Value> condition;
 				Node<Scope> ifTrue, ifFalse;
 			} ifStmt;
+			
+			struct {
+				Node<Value> value;
+				Node<SwitchCaseList> caseList;
+			} switchStmt;
 			
 			struct {
 				Node<Value> condition;
@@ -86,6 +93,13 @@ namespace locic {
 				statement->ifStmt.condition = condition;
 				statement->ifStmt.ifTrue = ifTrue;
 				statement->ifStmt.ifFalse = ifFalse;
+				return statement;
+			}
+			
+			inline static Statement* Switch(const Node<Value>& value, const Node<SwitchCaseList>& caseList) {
+				Statement* statement = new Statement(SWITCH);
+				statement->switchStmt.value = value;
+				statement->switchStmt.caseList = caseList;
 				return statement;
 			}
 			

@@ -73,9 +73,6 @@ namespace locic {
 									varDeclType->toString().c_str()));
 						}
 						
-						printf("Source type is %s\n\n", initialiseType->toString().c_str());
-						printf("Dest type is %s\n\n", varDeclType->toString().c_str());
-						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
 						const auto varType = CastType(initialiseType, varDeclType, isTopLevel);
@@ -117,7 +114,7 @@ namespace locic {
 		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			switch (astTypeVarNode->kind) {
 				case AST::TypeVar::ANYVAR: {
-					throw TodoException("Pattern vars not yet implemented for uninitialised variables.");
+					throw TodoException("'Any' vars not yet implemented for uninitialised variables.");
 				}
 				
 				case AST::TypeVar::NAMEDVAR: {
@@ -140,7 +137,33 @@ namespace locic {
 				}
 				
 				case AST::TypeVar::PATTERNVAR: {
-					throw TodoException("Pattern vars not yet implemented for uninitialised variables.");
+					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type);
+					
+					if (!varType->isDatatype()) {
+						throw TodoException(makeString("Can't pattern match for non-datatype '%s'.",
+								varType->toString().c_str()));
+					}
+					
+					const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
+					const auto& typeChildVars = varType->getObjectType()->variables();
+					
+					if (astChildTypeVars->size() != typeChildVars.size()) {
+						throw TodoException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
+								(unsigned long long) astChildTypeVars->size(),
+								(unsigned long long) typeChildVars.size(),
+								varType->toString().c_str()));
+					}
+					
+					const auto templateVarMap = varType->generateTemplateVarMap();
+					
+					std::vector<SEM::Var*> children;
+					
+					for (size_t i = 0; i < typeChildVars.size(); i++) {
+						const auto& astVar = astChildTypeVars->at(i);
+						children.push_back(ConvertVar(context, isMember, astVar));
+					}
+					
+					return SEM::Var::Composite(varType, children);
 				}
 				
 				default: {

@@ -2,12 +2,14 @@
 #define LOCIC_SEM_STATEMENT_HPP
 
 #include <string>
+#include <vector>
 
 namespace locic {
 
 	namespace SEM {
 	
 		class Scope;
+		class SwitchCase;
 		class Type;
 		class Value;
 		class Var;
@@ -19,6 +21,7 @@ namespace locic {
 					SCOPE,
 					INITIALISE,
 					IF,
+					SWITCH,
 					WHILE,
 					RETURN
 				};
@@ -30,6 +33,8 @@ namespace locic {
 				static Statement* InitialiseStmt(Var* var, Value* value);
 				
 				static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse);
+				
+				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList);
 				
 				static Statement* While(Value* condition, Scope* whileTrue);
 				
@@ -62,6 +67,12 @@ namespace locic {
 				bool hasIfFalseScope() const;
 				
 				Scope& getIfFalseScope() const;
+				
+				bool isSwitchStatement() const;
+				
+				Value* getSwitchValue() const;
+				
+				const std::vector<SwitchCase*>& getSwitchCaseList() const;
 				
 				bool isWhileStatement() const;
 				
@@ -97,6 +108,11 @@ namespace locic {
 					Value* condition;
 					Scope* ifTrue, * ifFalse;
 				} ifStmt_;
+				
+				struct {
+					Value* value;
+					std::vector<SwitchCase*> caseList;
+				} switchStmt_;
 				
 				struct {
 					Value* condition;

@@ -8,6 +8,37 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		namespace {
+			
+			bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType, const Module::TemplateVarMap& templateVarMap) {
+				if (objectType->isStruct()) {
+					// Structs can only contain known size members.
+					return true;
+				} else if (objectType->isClassDef() || objectType->isDatatype()) {
+					TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
+					
+					// All members of the type must have a known size
+					// for it to have a known size.
+					for (auto var: objectType->variables()) {
+						if (!isTypeSizeKnownInThisModule(module, var->type())) {
+							return false;
+						}
+					}
+					return true;
+				} else if (objectType->isUnionDatatype()) {
+					for (auto variantTypeInstance: objectType->variants()) {
+						if (!isObjectTypeSizeKnownInThisModule(module, variantTypeInstance, templateVarMap)) {
+							return false;
+						}
+					}
+					return true;
+				} else {
+					return false;
+				}
+			}
+			
+		}
+		
 		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* unresolvedType) {
 			auto type = module.resolveType(unresolvedType);
 			switch (type->kind()) {
@@ -19,28 +50,12 @@ namespace locic {
 					return true;
 				case SEM::Type::OBJECT:
 				{
-					SEM::TypeInstance* objectType = type->getObjectType();
+					auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
 						// Not all primitives have a known size (e.g. value_lval).
 						return isPrimitiveTypeSizeKnownInThisModule(module, type);
-					} else if (objectType->isStruct()) {
-						// Structs can only contain known size members.
-						return true;
-					} else if (objectType->isClassDef() || objectType->isDatatype()) {
-						// All members of the type must have a known size
-						// for it to have a known size.
-						const Module::TemplateVarMap templateVarMap = type->generateTemplateVarMap();
-						TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
-						for (size_t i = 0; i < objectType->variables().size(); i++) {
-							SEM::Type* varType = objectType->variables().at(i)->type();
-							if (!isTypeSizeKnownInThisModule(module, varType)) {
-								return false;
-							}
-						}
-						return true;
 					} else {
-						// TODO: union datatypes.
-						return false;
+						return isObjectTypeSizeKnownInThisModule(module, objectType, type->generateTemplateVarMap());
 					}
 				}
 				case SEM::Type::TEMPLATEVAR:

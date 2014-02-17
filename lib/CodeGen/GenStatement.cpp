@@ -127,6 +127,50 @@ namespace locic {
 					break;
 				}
 				
+				case SEM::Statement::SWITCH: {
+					const auto switchValue = genValue(function, statement->getSwitchValue());
+					const auto switchType = statement->getSwitchValue()->type();
+					
+					const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValue, 0, 0);
+					const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
+					
+					const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValue, 0, 1);
+					
+					const auto endBB = function.createBasicBlock("switchEnd");
+					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, statement->getSwitchCaseList().size());
+					
+					for (auto switchCase: statement->getSwitchCaseList()) {
+						auto caseType = switchCase->var()->constructType();
+						uint8_t tag = 0;
+						for (auto variantTypeInstance: switchType->getObjectType()->variants()) {
+							if (variantTypeInstance == caseType->getObjectType()) break;
+							tag++;
+						}
+						
+						const auto tagValue = ConstantGenerator(function.getModule()).getI8(tag);
+						const auto caseBB = function.createBasicBlock("switchCase");
+						
+						switchInstruction->addCase(tagValue, caseBB);
+						
+						function.selectBasicBlock(caseBB);
+						
+						const auto unionValueType = genType(function.getModule(), caseType);
+						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+						
+						{
+							LifetimeScope lifetimeScope(function);
+							genVar(function, switchCase->var());
+							genVarInitialise(function, switchCase->var(), castedUnionValuePtr);
+							genScope(function, switchCase->scope());
+						}
+						
+						function.getBuilder().CreateBr(endBB);
+					}
+					
+					function.selectBasicBlock(endBB);
+					break;
+				}
+				
 				case SEM::Statement::WHILE: {
 					const auto conditionBB = function.createBasicBlock("whileConditionLoop");
 					const auto insideLoopBB = function.createBasicBlock("whileInsideLoop");

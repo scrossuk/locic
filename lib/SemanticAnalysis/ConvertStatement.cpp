@@ -31,6 +31,14 @@ namespace locic {
 					return WillScopeReturn(statement->getIfTrueScope()) &&
 						   WillScopeReturn(statement->getIfFalseScope());
 				}
+				case SEM::Statement::SWITCH: {
+					for (auto switchCase: statement->getSwitchCaseList()) {
+						if (!WillScopeReturn(switchCase->scope())) {
+							return false;
+						}
+					}
+					return true;
+				}
 				case SEM::Statement::WHILE: {
 					return WillScopeReturn(statement->getWhileScope());
 				}
@@ -77,6 +85,26 @@ namespace locic {
 							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
+				}
+				case AST::Statement::SWITCH: {
+					auto value = ConvertValue(context, statement->switchStmt.value);
+					
+					std::vector<SEM::SwitchCase*> caseList;
+					for (const auto& astCase: *(statement->switchStmt.caseList)) {
+						auto semCase = new SEM::SwitchCase();
+						auto switchCaseNode = Node::SwitchCase(astCase, semCase);
+						Context switchCaseContext(context, "#switchcase", switchCaseNode);
+						
+						const bool isMember = false;
+						semCase->setVar(ConvertVar(switchCaseContext, isMember, astCase->var));
+						semCase->setScope(ConvertScope(switchCaseContext, astCase->scope));
+						
+						caseList.push_back(semCase);
+					}
+					
+					// TODO: check cases are correct.
+					
+					return SEM::Statement::Switch(value, caseList);
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
