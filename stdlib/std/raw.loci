@@ -1,16 +1,18 @@
 template <typename T>
-T* new_raw_ptr(T value){
+T* new_raw(T value) {
 	void * ptr = malloc(sizeof(T));
 	memset(ptr, sizeof(T), 0x00);
-	T* castPtr = reinterpret_cast<T*>(ptr);
-	*castPtr = value;
+	T* castPtr = reinterpret_cast<void*, T*>(ptr);
+	castPtr.lval().__assign(move value);
 	return castPtr;
 }
 
-template <virtual typename T>
-void delete_raw_ptr(T* ptr){
-	if(ptr == null) return;
-	*ptr := void;
-	free(reinterpret_cast<void*>(ptr));
+template <typename T>
+void delete_raw(T* ptr) {
+	if (ptr == null) {
+		return;
+	}
+	ptr.lval().__clear();
+	free(reinterpret_cast<T*, void*>(ptr));
 }
 

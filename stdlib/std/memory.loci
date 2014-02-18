@@ -2,4 +2,4 @@ void * malloc(size_t size);
 void* calloc(size_t num, size_t size);
 void free(void* ptr);
 
-void memset(void* ptr, size_t size, uint8_t value);
+void memset(void* ptr, int constant, size_t size);

@@ -4,7 +4,7 @@ interface forward_range {
 	
 	void popFront();
 	
-	lvalue(T) front() const;
+	lval<T> value_lval<T> front() const;
 }
 
 template <typename T>
@@ -13,7 +13,7 @@ interface backward_range {
 	
 	void popBack();
 	
-	lvalue(T) back() const;
+	lval<T> value_lval<T> back() const;
 }
 
 template <typename T>
@@ -22,10 +22,10 @@ interface bidirectional_range {
 	
 	void popFront();
 	
-	lvalue(T) front() const;
+	lval<T> value_lval<T> front() const;
 	
 	void popBack();
 	
-	lvalue(T) back() const;
+	lval<T> value_lval<T> back() const;
 }
 

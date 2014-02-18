@@ -1,41 +1,20 @@
-
 template <typename T>
-class unique(unique_ptr<T> ptr){
-	static default(T value){
-		return @(new<unique_ptr>(value));
-	}
-	
-	T& forward() const {
-		return *@ptr;
-	}
-};
-
-template <typename T>
-unique<T> new_unique(T value){
-	return unique<T>(value);
-}
-
-template <typename T>
-class unique_ptr(T * ptr){
-	static default(T value){
-		return @(new<raw_ptr>(move value));
+class unique_ptr(T* ptr) {
+	static create(T value) {
+		return @(new_raw(move value));
 	}
 	
 	static null() {
 		return @(null);
 	}
 	
-	~{
-		delete<raw_ptr>(@ptr);
+	~ {
+		delete_raw(@ptr);
 	}
 	
 	lval<T> deref() const {
 		return *@ptr;
 	}
-};
-
-template <typename T>
-unique_ptr<T> new_unique_ptr(T value){
-	return unique_ptr<T>(value);
+	
 }
 
