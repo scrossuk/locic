@@ -10,7 +10,7 @@ TestDatatype makeData() {
 }
 
 void printData(UnionDataType data) {
-	switch (move data) {
+	switch (data) {
 		case TestDatatype(int a) {
 			testPrint("printData: TestDatatype(a = %d)"C, a);
 		}

@@ -148,7 +148,11 @@ namespace locic {
 						}
 					}
 					
-					return SEM::Statement::Switch(value, caseList);
+					// Case value to switch type.
+					const auto castValue = ImplicitCast(value,
+							SEM::Type::Object(switchTypeInstance, SEM::Type::NO_TEMPLATE_ARGS));
+					
+					return SEM::Statement::Switch(castValue, caseList);
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
@@ -156,10 +160,8 @@ namespace locic {
 					
 					const auto boolType = context.getBuiltInType("bool");
 					
-					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
-					
 					const auto boolValue = ImplicitCast(condition,
-							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
+							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 					
 					return SEM::Statement::While(boolValue, whileTrue);
 				}

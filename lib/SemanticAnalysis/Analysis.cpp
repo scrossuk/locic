@@ -432,13 +432,19 @@ namespace locic {
 			completedTypes.insert(typeInstance);
 			
 			// Add default implicit copy for datatypes if available.
-			if (typeInstance->isDatatype()) {
-				// Get type properties for member variable types,
+			if (typeInstance->isDatatype() || typeInstance->isUnionDatatype()) {
+				// Get type properties for member types,
 				// since this is needed to determine whether the
 				// datatype is implicitly copyable.
-				for (auto var: typeInstance->variables()) {
-					if (!var->constructType()->isObject()) continue;
-					AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
+				if (typeInstance->isUnionDatatype()) {
+					for (auto variantTypeInstance: typeInstance->variants()) {
+						AddTypeProperties(context, completedTypes, context.reverseLookup(variantTypeInstance));
+					}
+				} else {
+					for (auto var: typeInstance->variables()) {
+						if (!var->constructType()->isObject()) continue;
+						AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
+					}
 				}
 				
 				if (HasDefaultImplicitCopy(typeInstance)) {
@@ -450,8 +456,7 @@ namespace locic {
 						typeInstance->functions().end(),
 						methodCompare);
 					
-					auto implicitCopyNode = Node::Function(AST::Node<AST::Function>(), implicitCopy);
-					node.attach("implicitCopy", implicitCopyNode);
+					node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 				}
 			}
 			

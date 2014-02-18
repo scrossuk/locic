@@ -28,13 +28,23 @@ namespace locic {
 		}
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
-			for (auto var: typeInstance->variables()) {
-				if (!var->constructType()->supportsImplicitCopy()) {
-					return false;
+			if (typeInstance->isUnionDatatype()) {
+				for (auto variantTypeInstance: typeInstance->variants()) {
+					if (!HasDefaultImplicitCopy(variantTypeInstance)) {
+						return false;
+					}
 				}
+				
+				return true;
+			} else {
+				for (auto var: typeInstance->variables()) {
+					if (!var->constructType()->supportsImplicitCopy()) {
+						return false;
+					}
+				}
+				
+				return true;
 			}
-			
-			return true;
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
