@@ -17,7 +17,7 @@ namespace locic {
 	namespace SEM {
 	
 		TypeInstance::TypeInstance(const Name& n, Kind k)
-			: name_(n), kind_(k) { }
+			: name_(n), kind_(k), parent_(nullptr) { }
 			
 		const Name& TypeInstance::name() const {
 			return name_;
@@ -108,6 +108,14 @@ namespace locic {
 		
 		const std::vector<Type*>& TypeInstance::constructTypes() const {
 			return constructTypes_;
+		}
+		
+		void TypeInstance::setParent(TypeInstance* pParent) {
+			parent_ = pParent;
+		}
+		
+		TypeInstance* TypeInstance::parent() const {
+			return parent_;
 		}
 		
 		// TODO: 'type properties' should be moved out of SEM tree

@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -89,6 +90,8 @@ namespace locic {
 				case AST::Statement::SWITCH: {
 					auto value = ConvertValue(context, statement->switchStmt.value);
 					
+					std::set<SEM::TypeInstance*> switchCaseTypeInstances;
+					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
 						auto semCase = new SEM::SwitchCase();
@@ -100,9 +103,50 @@ namespace locic {
 						semCase->setScope(ConvertScope(switchCaseContext, astCase->scope));
 						
 						caseList.push_back(semCase);
+						
+						const auto insertResult = switchCaseTypeInstances.insert(semCase->var()->constructType()->getObjectType());
+						
+						// Check for duplicate cases.
+						if (!insertResult.second) {
+							throw TodoException(makeString("Duplicate switch case for type '%s'.",
+								(*(insertResult.first))->refToString().c_str()));
+						}
 					}
 					
-					// TODO: check cases are correct.
+					if (caseList.empty()) {
+						throw TodoException("Switch statement must contain at least one case.");
+					}
+					
+					// Check that all switch cases are based
+					// on the same union datatype.
+					const auto switchTypeInstance = (*(switchCaseTypeInstances.begin()))->parent();
+					for (auto caseTypeInstance: switchCaseTypeInstances) {
+						auto caseTypeInstanceParent = caseTypeInstance->parent();
+						
+						if (caseTypeInstanceParent == nullptr) {
+							throw TodoException(makeString("Switch case type '%s' is not a member of a union datatype.",
+								caseTypeInstance->refToString().c_str()));
+						}
+						
+						if (caseTypeInstanceParent != switchTypeInstance) {
+							throw TodoException(makeString("Switch case type '%s' does not share the same parent as type '%s'.",
+								caseTypeInstance->refToString().c_str(),
+								(*(switchCaseTypeInstances.begin()))->refToString().c_str()));
+						}
+					}
+					
+					// TODO: implement 'default' case.
+					const bool hasDefaultCase = false;
+					
+					if (!hasDefaultCase) {
+						// Check all cases are handled.
+						for (auto variantTypeInstance: switchTypeInstance->variants()) {
+							if (switchCaseTypeInstances.find(variantTypeInstance) == switchCaseTypeInstances.end()) {
+								throw TodoException(makeString("Union datatype member '%s' not handled in switch.",
+									variantTypeInstance->refToString().c_str()));
+							}
+						}
+					}
 					
 					return SEM::Statement::Switch(value, caseList);
 				}

@@ -106,6 +106,7 @@ namespace locic {
 			
 			for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 				const auto variantTypeInstance = AddTypeInstance(context, astVariantNode);
+				variantTypeInstance->setParent(semTypeInstance);
 				semTypeInstance->variants().push_back(variantTypeInstance);
 			}
 			
