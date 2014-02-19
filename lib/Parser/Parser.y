@@ -591,6 +591,10 @@ nonTemplatedTypeInstance:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::UnionDatatype(GETSYM($2), GETSYM($4))));
 	}
+	| EXCEPTION NAME LROUNDBRACKET typeVarList RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Exception(GETSYM($2), GETSYM($4))));
+	}
 	;
 
 symbolElement:
@@ -1049,6 +1053,10 @@ normalStatement:
 	| RETURN value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Return(GETSYM($2))));
+	}
+	| THROW value
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Throw(GETSYM($2))));
 	}
 	;
 

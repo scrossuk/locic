@@ -25,7 +25,8 @@ namespace locic {
 				VARDECL,
 				ASSIGN,
 				RETURN,
-				RETURNVOID
+				RETURNVOID,
+				THROW
 			} typeEnum;
 			
 			struct {
@@ -62,33 +63,37 @@ namespace locic {
 				Node<Value> value;
 			} returnStmt;
 			
+			struct {
+				Node<Value> value;
+			} throwStmt;
+			
 			inline Statement()
 				: typeEnum(NONE) { }
 				
 			inline Statement(TypeEnum e)
 				: typeEnum(e) { }
 				
-			inline static Statement* ValueStmt(Node<Value> value) {
+			inline static Statement* ValueStmt(const Node<Value>& value) {
 				Statement* statement = new Statement(VALUE);
 				statement->valueStmt.value = value;
 				statement->valueStmt.hasVoidCast = false;
 				return statement;
 			}
 			
-			inline static Statement* ValueStmtVoidCast(Node<Value> value) {
+			inline static Statement* ValueStmtVoidCast(const Node<Value>& value) {
 				Statement* statement = new Statement(VALUE);
 				statement->valueStmt.value = value;
 				statement->valueStmt.hasVoidCast = true;
 				return statement;
 			}
 			
-			inline static Statement* ScopeStmt(Node<Scope> scope) {
+			inline static Statement* ScopeStmt(const Node<Scope>& scope) {
 				Statement* statement = new Statement(SCOPE);
 				statement->scopeStmt.scope = scope;
 				return statement;
 			}
 			
-			inline static Statement* If(Node<Value> condition, Node<Scope> ifTrue, Node<Scope> ifFalse) {
+			inline static Statement* If(const Node<Value>& condition, const Node<Scope>& ifTrue, const Node<Scope>& ifFalse) {
 				Statement* statement = new Statement(IF);
 				statement->ifStmt.condition = condition;
 				statement->ifStmt.ifTrue = ifTrue;
@@ -103,21 +108,21 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* While(Node<Value> condition, Node<Scope> whileTrue) {
+			inline static Statement* While(const Node<Value>& condition, const Node<Scope>& whileTrue) {
 				Statement* statement = new Statement(WHILE);
 				statement->whileStmt.condition = condition;
 				statement->whileStmt.whileTrue = whileTrue;
 				return statement;
 			}
 			
-			inline static Statement* VarDecl(Node<TypeVar> typeVar, Node<Value> value) {
+			inline static Statement* VarDecl(const Node<TypeVar>& typeVar, const Node<Value>& value) {
 				Statement* statement = new Statement(VARDECL);
 				statement->varDecl.typeVar = typeVar;
 				statement->varDecl.value = value;
 				return statement;
 			}
 			
-			inline static Statement* Return(Node<Value> value) {
+			inline static Statement* Return(const Node<Value>& value) {
 				Statement* statement = new Statement(RETURN);
 				statement->returnStmt.value = value;
 				return statement;
@@ -125,6 +130,12 @@ namespace locic {
 			
 			inline static Statement* ReturnVoid() {
 				return new Statement(RETURNVOID);
+			}
+			
+			inline static Statement* Throw(const Node<Value>& value) {
+				Statement* statement = new Statement(THROW);
+				statement->throwStmt.value = value;
+				return statement;
 			}
 		};
 		

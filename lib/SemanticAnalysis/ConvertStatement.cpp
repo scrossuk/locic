@@ -239,6 +239,10 @@ namespace locic {
 						return SEM::Statement::Return(castValue);
 					}
 				}
+				case AST::Statement::THROW: {
+					const auto semValue = ConvertValue(context, statement->throwStmt.value);
+					return SEM::Statement::Throw(semValue);
+				}
 				default:
 					throw std::runtime_error("Unknown statement kind.");
 			}

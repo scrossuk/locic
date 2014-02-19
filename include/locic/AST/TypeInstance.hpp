@@ -31,6 +31,7 @@ namespace locic {
 				DATATYPE,
 				UNION_DATATYPE,
 				INTERFACE,
+				EXCEPTION
 			} kind;
 			
 			std::string name;
@@ -53,6 +54,8 @@ namespace locic {
 				static TypeInstance* UnionDatatype(const std::string& name, const Node<TypeInstanceList>& variants);
 				
 				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
+				
+				static TypeInstance* Exception(const std::string& name, const Node<TypeVarList>& variables);
 				
 				std::string toString() const;
 				

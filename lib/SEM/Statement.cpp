@@ -69,6 +69,12 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement* Statement::Throw(Value* value) {
+			Statement* statement = new Statement(THROW);
+			statement->throwStmt_.value = value;
+			return statement;
+		}
+		
 		Statement::Statement(Kind k)
 			: kind_(k) { }
 			
@@ -171,6 +177,15 @@ namespace locic {
 			return returnStmt_.value;
 		}
 		
+		bool Statement::isThrowStatement() const {
+			return kind() == THROW;
+		}
+		
+		Value* Statement::getThrowValue() const {
+			assert(isThrowStatement());
+			return throwStmt_.value;
+		}
+		
 		std::string Statement::toString() const {
 			switch (kind_) {
 				case VALUE: {
@@ -212,6 +227,11 @@ namespace locic {
 					return makeString("ReturnStatement(value: %s)",
 									  returnStmt_.value == NULL ? "[VOID]" :
 									  returnStmt_.value->toString().c_str());
+				}
+				
+				case THROW: {
+					return makeString("ThrowStatement(value: %s)",
+									  throwStmt_.value->toString().c_str());
 				}
 				
 				default:

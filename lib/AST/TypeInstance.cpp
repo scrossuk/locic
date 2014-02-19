@@ -48,6 +48,10 @@ namespace locic {
 			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
+		TypeInstance* TypeInstance::Exception(const std::string& name, const Node<TypeVarList>& variables) {
+			return new TypeInstance(EXCEPTION, name, variables, makeDefaultNode<FunctionList>());
+		}
+		
 		std::string TypeInstance::toString() const {
 			std::string s = makeString("TypeInstance[name = %s](", name.c_str());
 			

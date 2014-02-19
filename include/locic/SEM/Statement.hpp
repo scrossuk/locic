@@ -23,7 +23,8 @@ namespace locic {
 					IF,
 					SWITCH,
 					WHILE,
-					RETURN
+					RETURN,
+					THROW
 				};
 				
 				static Statement* ValueStmt(Value* value);
@@ -41,6 +42,8 @@ namespace locic {
 				static Statement* ReturnVoid();
 				
 				static Statement* Return(Value* value);
+				
+				static Statement* Throw(Value* value);
 				
 				Kind kind() const;
 				
@@ -84,6 +87,10 @@ namespace locic {
 				
 				Value* getReturnValue() const;
 				
+				bool isThrowStatement() const;
+				
+				Value* getThrowValue() const;
+				
 				std::string toString() const;
 				
 			private:
@@ -122,6 +129,10 @@ namespace locic {
 				struct {
 					Value* value;
 				} returnStmt_;
+				
+				struct {
+					Value* value;
+				} throwStmt_;
 				
 		};
 		

@@ -1,0 +1,20 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+exception test_error(int value);
+
+void throwFunction() {
+	throw test_error(10);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	testPrint("BasicException START"C);
+	
+	throwFunction();
+	
+	testPrint("BasicException END"C);
+	
+	return 0;
+}
+
