@@ -37,9 +37,10 @@ namespace locic {
 					return SEM::TypeInstance::UNION_DATATYPE;
 				case AST::TypeInstance::INTERFACE:
 					return SEM::TypeInstance::INTERFACE;
+				case AST::TypeInstance::EXCEPTION:
+					return SEM::TypeInstance::EXCEPTION;
 				default:
-					assert(false && "Unknown type instance type enum");
-					return SEM::TypeInstance::CLASSDECL;
+					throw std::runtime_error("Unknown type instance type enum.");
 			}
 		}
 		
@@ -342,11 +343,11 @@ namespace locic {
 					AddFunctionDecl(context, astFunctionNode);
 				}
 				
-				if (semTypeInstance->isDatatype() || semTypeInstance->isStruct()) {
+				if (semTypeInstance->isDatatype() || semTypeInstance->isException() || semTypeInstance->isStruct()) {
 					assert(semTypeInstance->functions().empty());
 					
-					// For datatypes and structs, add the default
-					// constructor.
+					// For datatypes, exceptions and structs,
+					// add the default constructor.
 					auto constructor = CreateDefaultConstructor(semTypeInstance);
 					semTypeInstance->functions().push_back(constructor);
 					

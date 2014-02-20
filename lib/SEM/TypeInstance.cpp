@@ -59,6 +59,10 @@ namespace locic {
 			return kind() == INTERFACE;
 		}
 		
+		bool TypeInstance::isException() const {
+			return kind() == EXCEPTION;
+		}
+		
 		bool TypeInstance::isTemplateType() const {
 			return kind() == TEMPLATETYPE;
 		}
@@ -160,6 +164,10 @@ namespace locic {
 									  
 				case INTERFACE:
 					return makeString("Interface(name: %s)",
+									  name().toString().c_str());
+				
+				case EXCEPTION:
+					return makeString("Exception(name: %s)",
 									  name().toString().c_str());
 									  
 				case TEMPLATETYPE:

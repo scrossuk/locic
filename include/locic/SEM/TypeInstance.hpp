@@ -25,6 +25,7 @@ namespace locic {
 					DATATYPE,
 					UNION_DATATYPE,
 					INTERFACE,
+					EXCEPTION,
 					TEMPLATETYPE
 				};
 				
@@ -49,6 +50,8 @@ namespace locic {
 				bool isUnionDatatype() const;
 				
 				bool isInterface() const;
+				
+				bool isException() const;
 				
 				bool isTemplateType() const;
 				

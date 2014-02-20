@@ -241,6 +241,10 @@ namespace locic {
 				}
 				case AST::Statement::THROW: {
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
+					if (!semValue->type()->isObject() || !semValue->type()->getObjectType()->isException()) {
+						throw TodoException(makeString("Cannot throw non-exception value '%s'.",
+								semValue->toString().c_str()));
+					}
 					return SEM::Statement::Throw(semValue);
 				}
 				default:

@@ -14,7 +14,7 @@ namespace locic {
 			
 			assert(typeInstance->templateVariables().size() == templateArguments.size()
 				&& "Number of template arguments provided must match number required.");
-			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
+			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype() || typeInstance->isException());
 			
 			const std::string mangledName = mangleObjectType(module, typeInstance, templateArguments);
 			
