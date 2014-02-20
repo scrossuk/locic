@@ -14,7 +14,7 @@ namespace locic {
 				if (objectType->isStruct()) {
 					// Structs can only contain known size members.
 					return true;
-				} else if (objectType->isClassDef() || objectType->isDatatype()) {
+				} else if (objectType->isClassDef() || objectType->isDatatype() || objectType->isException()) {
 					TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 					
 					// All members of the type must have a known size

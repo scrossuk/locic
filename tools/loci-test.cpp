@@ -70,6 +70,19 @@ extern "C" void testPrint(const char* format, ...) {
 	}
 }
 
+// Exception runtime ABI.
+extern "C" void* __loci_allocate_exception(size_t value);
+extern "C" void __loci_free_exception(void* ptr);
+extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor);
+extern "C" void __loci_begin_catch();
+extern "C" void __loci_end_catch();
+extern "C" void __loci_personality_v0();
+
+// Create a dependency on the runtime ABI.
+static void abiDependency() {
+	__loci_free_exception(__loci_allocate_exception(1));
+}
+
 int main(int argc, char* argv[]) {
 	setLogDisplayLevel(LOG_INFO);
 	

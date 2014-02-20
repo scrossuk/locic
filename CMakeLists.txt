@@ -82,6 +82,9 @@ add_subdirectory(examples)
 # Compiler libraries (e.g. SemanticAnalysis).
 add_subdirectory(lib)
 
+# Language runtime.
+add_subdirectory(runtime)
+
 # Compiler tests.
 add_subdirectory(test)
 

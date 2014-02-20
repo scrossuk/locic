@@ -8,11 +8,13 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
+#include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
 namespace locic {
@@ -235,6 +237,32 @@ namespace locic {
 					// Need a basic block after a return statement in case anything more is generated.
 					// This (and any following code) will be removed by dead code elimination.
 					function.selectBasicBlock(function.createBasicBlock("afterReturn"));
+					break;
+				}
+				
+				case SEM::Statement::THROW: {
+					auto& module = function.getModule();
+					
+					const auto exceptionValue = genValue(function, statement->getThrowValue());
+					const auto exceptionType = genType(module, statement->getThrowValue()->type());
+					
+					// Allocate space for exception.
+					const auto allocateFunction = getExceptionAllocateFunction(module);
+					const auto exceptionValueSize = genSizeOf(function, statement->getThrowValue()->type());
+					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, std::vector<llvm::Value*>{ exceptionValueSize });
+					
+					// Store value into allocated space.
+					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
+					genStore(function, exceptionValue, castedAllocatedException, statement->getThrowValue()->type());
+					
+					// Throw exception.
+					const auto throwFunction = getExceptionThrowFunction(module);
+					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+					function.getBuilder().CreateCall(throwFunction, std::vector<llvm::Value*>{ allocatedException, nullPtr, nullPtr });
+					
+					function.getBuilder().CreateUnreachable();
+					
+					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				

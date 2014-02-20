@@ -33,6 +33,7 @@ target_link_libraries(loci-test
 	locic-sem
 	locic-ast
 	locic-support
+	loci-runtime-exception
 	${REQ_LIBS}
 	)
 

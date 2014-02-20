@@ -2,6 +2,7 @@ add_library(locic-codegen
 	CodeGen.cpp
 	DefaultMethods.cpp
 	Destructor.cpp
+	Exception.cpp
 	GenFunction.cpp
 	GenStatement.cpp
 	GenType.cpp
