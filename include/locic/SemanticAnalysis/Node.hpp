@@ -25,7 +25,8 @@ namespace locic {
 					TEMPLATEVAR,
 					SCOPE,
 					VARIABLE,
-					SWITCHCASE
+					SWITCHCASE,
+					CATCHCLAUSE
 				};
 				
 				inline static Node None() {
@@ -78,6 +79,13 @@ namespace locic {
 					Node node(SWITCHCASE);
 					node.data_->ast.switchCase = ast;
 					node.data_->sem.switchCase = sem;
+					return node;
+				}
+				
+				inline static Node CatchClause(const AST::Node<AST::CatchClause>& ast, SEM::CatchClause * sem){
+					Node node(CATCHCLAUSE);
+					node.data_->ast.catchClause = ast;
+					node.data_->sem.catchClause = sem;
 					return node;
 				}
 				
@@ -144,6 +152,10 @@ namespace locic {
 				
 				inline bool isSwitchCase() const {
 					return kind() == SWITCHCASE;
+				}
+				
+				inline bool isCatchClause() const {
+					return kind() == CATCHCLAUSE;
 				}
 				
 				inline AST::NamespaceList& getASTNamespaceList() {
@@ -216,6 +228,11 @@ namespace locic {
 					return data_->sem.switchCase;
 				}
 				
+				inline SEM::CatchClause* getSEMCatchClause() const {
+					assert(isCatchClause());
+					return data_->sem.catchClause;
+				}
+				
 				inline std::string toString() const {
 					switch(kind()){
 						case NONE:
@@ -239,6 +256,9 @@ namespace locic {
 						case SWITCHCASE:
 							return makeString("Node[SwitchCase](%s)",
 								getSEMSwitchCase()->toString().c_str());
+						case CATCHCLAUSE:
+							return makeString("Node[CatchClause](%s)",
+								getSEMCatchClause()->toString().c_str());
 						default:
 							assert(false && "Unknown node type.");
 							return "Node([INVALID])";
@@ -260,6 +280,7 @@ namespace locic {
 						AST::Node<AST::Scope> scope;
 						AST::Node<AST::TypeVar> var;
 						AST::Node<AST::SwitchCase> switchCase;
+						AST::Node<AST::CatchClause> catchClause;
 					} ast;
 				
 					union {
@@ -270,6 +291,7 @@ namespace locic {
 						SEM::Scope* scope;
 						SEM::Var* var;
 						SEM::SwitchCase* switchCase;
+						SEM::CatchClause* catchClause;
 					} sem;
 					
 					inline NodeData(Kind k)

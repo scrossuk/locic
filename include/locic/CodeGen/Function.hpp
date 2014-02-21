@@ -9,6 +9,7 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
 
@@ -21,7 +22,7 @@ namespace locic {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
-		typedef std::vector< std::pair<SEM::Type*, llvm::Value*> > DestructorScope;
+		typedef std::vector<UnwindAction> UnwindStack;
 		
 		class Function {
 			public:
@@ -107,12 +108,12 @@ namespace locic {
 					return localVarMap_;
 				}
 				
-				inline std::vector<DestructorScope>& destructorScopeStack() {
-					return destructorScopeStack_;
+				inline UnwindStack& unwindStack() {
+					return unwindStack_;
 				}
 				
-				inline const std::vector<DestructorScope>& destructorScopeStack() const {
-					return destructorScopeStack_;
+				inline const UnwindStack& unwindStack() const {
+					return unwindStack_;
 				}
 				
 			private:
@@ -121,7 +122,7 @@ namespace locic {
 				llvm::IRBuilder<> builder_;
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
-				std::vector<DestructorScope> destructorScopeStack_;
+				UnwindStack unwindStack_;
 				
 		};
 		

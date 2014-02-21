@@ -15,7 +15,7 @@ namespace locic {
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* parent);
 		
-		void genScopeDestructorCalls(Function& function, const DestructorScope& destructorScope, size_t scopeId);
+		void genScopeDestructorCalls(Function& function, const UnwindStack& unwindStack, size_t scopeId);
 		
 		void genAllScopeDestructorCalls(Function& function);
 		

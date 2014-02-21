@@ -24,13 +24,14 @@ function(loci_example name binary_name)
 			clang -S -emit-llvm -O3 -o clangopt.ll opt.ll &&
 			
 			# Use clang to generate platform binary.
-			clang -o ${binary_name} clangopt.ll -lm
-		DEPENDS ${LOCIC} ${${name}BuildSources}
+			clang -o ${binary_name} clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception
+		DEPENDS ${LOCIC} ${${name}BuildSources} loci-runtime-exception
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
 	add_custom_target(${name}Example ALL DEPENDS ${binary_name})
 endfunction(loci_example)
 
 add_subdirectory(Calculator)
+add_subdirectory(Exception)
 add_subdirectory(General)
 

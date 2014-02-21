@@ -1,0 +1,31 @@
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+void printf(const char * const str, ...);
+
+class ExampleClass(int i) {
+	static Create = default;
+	
+	~ {
+		printf("ExampleClass Destructor: %d.\n"C, @i);
+	}
+}
+
+exception ExampleError(int value);
+
+void throwFunction() {
+	auto value = ExampleClass(20);
+	auto value2 = ExampleClass(314159);
+	throw ExampleError(10);
+}
+
+int main(int argc, char ** argv) {
+	printf("Started.\n"C);
+	try {
+		throwFunction();
+	} catch (ExampleError error) {
+		printf("Caught exception!\n"C);
+	}
+	printf("Finished.\n"C);
+	return 0;
+}
+

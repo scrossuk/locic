@@ -64,8 +64,7 @@ namespace locic {
 					
 					// Add this to the list of variables to be
 					// destroyed at the end of the function.
-					assert(!functionGenerator.destructorScopeStack().empty());
-					functionGenerator.destructorScopeStack().back().push_back(std::make_pair(paramVar->type(), stackObject));
+					functionGenerator.unwindStack().push_back(UnwindAction::Destroy(paramVar->type(), stackObject));
 				}
 				
 				auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");

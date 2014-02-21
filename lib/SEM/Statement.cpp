@@ -5,6 +5,7 @@
 
 #include <locic/String.hpp>
 
+#include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
@@ -54,6 +55,13 @@ namespace locic {
 			Statement* statement = new Statement(WHILE);
 			statement->whileStmt_.condition = condition;
 			statement->whileStmt_.whileTrue = whileTrue;
+			return statement;
+		}
+		
+		Statement* Statement::Try(Scope* scope, const std::vector<CatchClause*>& catchList) {
+			Statement* statement = new Statement(TRY);
+			statement->tryStmt_.scope = scope;
+			statement->tryStmt_.catchList = catchList;
 			return statement;
 		}
 		
@@ -168,6 +176,20 @@ namespace locic {
 			return *(whileStmt_.whileTrue);
 		}
 		
+		bool Statement::isTryStatement() const {
+			return kind() == TRY;
+		}
+		
+		Scope& Statement::getTryScope() const {
+			assert(isTryStatement());
+			return *(tryStmt_.scope);
+		}
+		
+		const std::vector<CatchClause*>& Statement::getTryCatchList() const {
+			assert(isTryStatement());
+			return tryStmt_.catchList;
+		}
+		
 		bool Statement::isReturnStatement() const {
 			return kind() == RETURN;
 		}
@@ -221,6 +243,12 @@ namespace locic {
 					return makeString("WhileStatement(condition: %s, whileTrue: %s)",
 									  whileStmt_.condition->toString().c_str(),
 									  whileStmt_.whileTrue->toString().c_str());
+				}
+				
+				case TRY: {
+					return makeString("TryStatement(scope: %s, catchList: %s)",
+									  tryStmt_.scope->toString().c_str(),
+									  makeArrayString(tryStmt_.catchList).c_str());
 				}
 				
 				case RETURN: {

@@ -43,7 +43,14 @@ namespace locic {
 				case SEM::Statement::WHILE: {
 					return WillScopeReturn(statement->getWhileScope());
 				}
+				case SEM::Statement::TRY: {
+					// TODO: also consider catch blocks?
+					return WillScopeReturn(statement->getTryScope());
+				}
 				case SEM::Statement::RETURN: {
+					return true;
+				}
+				case SEM::Statement::THROW: {
 					return true;
 				}
 				default: {
@@ -164,6 +171,25 @@ namespace locic {
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 					
 					return SEM::Statement::While(boolValue, whileTrue);
+				}
+				case AST::Statement::TRY: {
+					const auto tryScope = ConvertScope(context, statement->tryStmt.scope);
+					
+					std::vector<SEM::CatchClause*> catchList;
+					
+					for (const auto& astCatch: *(statement->tryStmt.catchList)) {
+						auto semCatch = new SEM::CatchClause();
+						auto catchClauseNode = Node::CatchClause(astCatch, semCatch);
+						Context catchClauseContext(context, "#catchclause", catchClauseNode);
+						
+						const bool isMember = false;
+						semCatch->setVar(ConvertVar(catchClauseContext, isMember, astCatch->var));
+						semCatch->setScope(ConvertScope(catchClauseContext, astCatch->scope));
+						
+						catchList.push_back(semCatch);
+					}
+					
+					return SEM::Statement::Try(tryScope, catchList);
 				}
 				// TODO: replace code in parser with this.
 				/*case AST::Statement::FOR: {

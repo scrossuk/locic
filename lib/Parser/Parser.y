@@ -114,6 +114,10 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::TemplateTypeVar>* templateTypeVar;
 	locic::AST::Node<locic::AST::TemplateTypeVarList>* templateTypeVarList;
 	
+	// Catch clause.
+	locic::AST::Node<locic::AST::CatchClause>* catchClause;
+	locic::AST::Node<locic::AST::CatchClauseList>* catchClauseList;
+	
 	// Switch case.
 	locic::AST::Node<locic::AST::SwitchCase>* switchCase;
 	locic::AST::Node<locic::AST::SwitchCaseList>* switchCaseList;
@@ -272,6 +276,9 @@ const T& GETSYM(T* value) {
 
 %type <symbolElement> symbolElement
 %type <symbol> symbol
+
+%type <catchClause> catchClause
+%type <catchClauseList> catchClauseList
 
 %type <switchCase> switchCase
 %type <switchCaseList> switchCaseList
@@ -902,6 +909,25 @@ switchCaseList:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
+
+catchClause:
+	CATCH LROUNDBRACKET typeVar RROUNDBRACKET scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::CatchClause(GETSYM($3), GETSYM($5))));
+	}
+	;
+
+catchClauseList:
+	catchClause
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::CatchClauseList(1, GETSYM($1))));
+	}
+	| catchClauseList catchClause
+	{
+		(GETSYM($1))->push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
 	
 scopedStatement:
 	scope
@@ -989,6 +1015,10 @@ scopedStatement:
 	| WHILE LROUNDBRACKET value RROUNDBRACKET scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::While(GETSYM($3), GETSYM($5))));
+	}
+	| TRY scope catchClauseList
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Try(GETSYM($2), GETSYM($3))));
 	}
 	;
 	

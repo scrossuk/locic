@@ -1,4 +1,5 @@
 add_library(locic-sem
+	CatchClause.cpp
 	Function.cpp
 	Namespace.cpp
 	Scope.cpp

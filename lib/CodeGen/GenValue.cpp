@@ -6,6 +6,7 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
+#include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -363,8 +364,17 @@ namespace locic {
 						parameters.push_back(argValue);
 					}
 					
-					llvm::Value* callReturnValue = function.getBuilder().CreateCall(functionValue, parameters);
+					const auto successPath = function.createBasicBlock("successPath");
+					const auto failPath = function.createBasicBlock("failPath");
 					
+					const auto callReturnValue = function.getBuilder().CreateInvoke(functionValue, successPath, failPath, parameters);
+					
+					// Fail path.
+					function.selectBasicBlock(failPath);
+					genLandingPad(function);
+					
+					// Success path.
+					function.selectBasicBlock(successPath);
 					if (returnVarValue != NULL) {
 						// As above, if the return value pointer is used,
 						// this should be loaded (and used instead).
@@ -441,8 +451,17 @@ namespace locic {
 						parameters.push_back(genValue(function, paramList.at(i)));
 					}
 					
-					llvm::Value* callReturnValue = function.getBuilder().CreateCall(functionValue, parameters);
+					const auto successPath = function.createBasicBlock("successPath");
+					const auto failPath = function.createBasicBlock("failPath");
 					
+					const auto callReturnValue = function.getBuilder().CreateInvoke(functionValue, successPath, failPath, parameters);
+					
+					// Fail path.
+					function.selectBasicBlock(failPath);
+					genLandingPad(function);
+					
+					// Success path.
+					function.selectBasicBlock(successPath);
 					if (returnVarValue != NULL) {
 						// As above, if the return value pointer is used,
 						// this should be loaded (and used instead).

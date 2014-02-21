@@ -1,6 +1,7 @@
 #ifndef LOCIC_AST_HPP
 #define LOCIC_AST_HPP
 
+#include <locic/AST/CatchClause.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/Node.hpp>

@@ -3,7 +3,16 @@ void testPrint(const char * const str, ...);
 
 exception test_error(int value);
 
+class B(int i) {
+	static Create = default;
+	
+	~ {
+		testPrint("B::~B()"C);
+	}
+}
+
 void throwFunction() {
+	auto b = B(20);
 	throw test_error(10);
 }
 

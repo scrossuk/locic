@@ -14,8 +14,17 @@ namespace locic {
 		Interpreter::Interpreter(Module& module)
 			: module_(module),
 			executionEngine_(NULL) {
+				llvm::TargetOptions targetOptions;
+				targetOptions.JITExceptionHandling = true;
+				
+				llvm::EngineBuilder engineBuilder(module.getLLVMModulePtr());
+				
+				engineBuilder.setEngineKind(llvm::EngineKind::JIT);
+				engineBuilder.setTargetOptions(targetOptions);
+				engineBuilder.setUseMCJIT(true);
+				
 				std::string errorString;
-				executionEngine_ = llvm::EngineBuilder(module.getLLVMModulePtr()).setErrorStr(&errorString).create();
+				executionEngine_ = engineBuilder.setErrorStr(&errorString).create();
 				if (executionEngine_ == NULL) {
 					throw std::runtime_error(std::string("Interpreter failed: Couldn't create execution engine with error: ") + errorString);
 				}

@@ -8,6 +8,7 @@ namespace locic {
 
 	namespace SEM {
 	
+		class CatchClause;
 		class Scope;
 		class SwitchCase;
 		class Type;
@@ -23,6 +24,7 @@ namespace locic {
 					IF,
 					SWITCH,
 					WHILE,
+					TRY,
 					RETURN,
 					THROW
 				};
@@ -38,6 +40,8 @@ namespace locic {
 				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList);
 				
 				static Statement* While(Value* condition, Scope* whileTrue);
+				
+				static Statement* Try(Scope* scope, const std::vector<CatchClause*>& catchList);
 				
 				static Statement* ReturnVoid();
 				
@@ -83,6 +87,12 @@ namespace locic {
 				
 				Scope& getWhileScope() const;
 				
+				bool isTryStatement() const;
+				
+				Scope& getTryScope() const;
+				
+				const std::vector<CatchClause*>& getTryCatchList() const;
+				
 				bool isReturnStatement() const;
 				
 				Value* getReturnValue() const;
@@ -125,6 +135,11 @@ namespace locic {
 					Value* condition;
 					Scope* whileTrue;
 				} whileStmt_;
+				
+				struct {
+					Scope* scope;
+					std::vector<CatchClause*> catchList;
+				} tryStmt_;
 				
 				struct {
 					Value* value;

@@ -8,6 +8,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
 
@@ -166,26 +167,74 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		void genScopeDestructorCalls(Function& function, const DestructorScope& destructorScope, size_t scopeId) {
+		namespace {
+			
+			bool scopeHasDestructor(Function& function) {
+				const auto& unwindStack = function.unwindStack();
+				
+				for (size_t i = 0; i < unwindStack.size(); i++) {
+					const size_t pos = unwindStack.size() - i - 1;
+					const auto& unwindAction = unwindStack.at(pos);
+					if (unwindAction.isScopeMarker()) {
+						return false;
+					}
+					
+					if (!unwindAction.isDestructor()) continue;
+					
+					if (typeHasDestructor(function.getModule(), unwindAction.destroyType())) {
+						return true;
+					}
+				}
+				
+				throw std::runtime_error("Scope marker not found.");
+			}
+			
+			size_t getScopeId(const UnwindStack& unwindStack) {
+				for (size_t i = 0; i < unwindStack.size(); i++) {
+					const size_t pos = unwindStack.size() - i - 1;
+					const auto& unwindAction = unwindStack.at(pos);
+					if (unwindAction.isScopeMarker()) {
+						return pos;
+					}
+				}
+				throw std::runtime_error("Scope marker not found.");
+			}
+			
+			void popScope(UnwindStack& unwindStack) {
+				while (!unwindStack.empty()) {
+					const bool isMarker = unwindStack.back().isScopeMarker();
+					unwindStack.pop_back();
+					if (isMarker) {
+						return;
+					}
+				}
+				throw std::runtime_error("Scope marker not found.");
+			}
+			
+		}
+		
+		void genScopeDestructorCalls(Function& function) {
+			const auto& unwindStack = function.unwindStack();
+			
 			// Only generate this code if there are actually types
 			// to be destroyed.
-			bool anyDestructors = false;
-			for (const auto& object: destructorScope) {
-				if (typeHasDestructor(function.getModule(), object.first)) {
-					anyDestructors = true;
-				}
-			}
-			if (!anyDestructors) return;
+			if (!scopeHasDestructor(function)) return;
+			
+			const auto scopeId = getScopeId(unwindStack);
 			
 			// Create a new basic block to make this clearer...
 			const auto scopeDestroyStartBB = function.createBasicBlock(makeString("destroyScope_%llu_START", (unsigned long long) scopeId));
 			function.getBuilder().CreateBr(scopeDestroyStartBB);
 			function.selectBasicBlock(scopeDestroyStartBB);
 			
-			for (size_t i = 0; i < destructorScope.size(); i++) {
+			for (size_t i = 0; i < unwindStack.size(); i++) {
 				// Destroy in reverse order.
-				const auto& object = destructorScope.at((destructorScope.size() - 1) - i);
-				genDestructorCall(function, object.first, object.second);
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& unwindAction = unwindStack.at(pos);
+				if (unwindAction.isScopeMarker()) break;
+				if (!unwindAction.isDestructor()) continue;
+				
+				genDestructorCall(function, unwindAction.destroyType(), unwindAction.destroyValue());
 			}
 			
 			// ...and another to make it clear where it ends.
@@ -195,38 +244,38 @@ namespace locic {
 		}
 		
 		void genAllScopeDestructorCalls(Function& function) {
+			const auto& unwindStack = function.unwindStack();
+			
 			// Create a new basic block to make this clearer.
 			const auto scopeDestroyAllBB = function.createBasicBlock("destroyAllScopes");
 			function.getBuilder().CreateBr(scopeDestroyAllBB);
 			function.selectBasicBlock(scopeDestroyAllBB);
 		
-			const std::vector<DestructorScope>& scopeStack =
-				function.destructorScopeStack();
-			for (size_t i = 0; i < scopeStack.size(); i++) {
-				const size_t scopeId = (scopeStack.size() - 1) - i;
-				// Destroy scopes in reverse order.
-				const DestructorScope& destructorScope =
-					scopeStack.at(scopeId);
-				genScopeDestructorCalls(function, destructorScope, scopeId);
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				// Destroy in reverse order.
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& unwindAction = unwindStack.at(pos);
+				if (!unwindAction.isDestructor()) continue;
+				
+				genDestructorCall(function, unwindAction.destroyType(), unwindAction.destroyValue());
 			}
 		}
 		
 		LifetimeScope::LifetimeScope(Function& function)
 			: function_(function) {
-			const size_t scopeId = function_.destructorScopeStack().size();
+			const size_t scopeId = function_.unwindStack().size();
 			const auto scopeStartBB = function_.createBasicBlock(makeString("scope_%llu_START", (unsigned long long) scopeId));
 			function_.getBuilder().CreateBr(scopeStartBB);
 			function_.selectBasicBlock(scopeStartBB);
 			
-			function_.destructorScopeStack().push_back(DestructorScope());
+			function_.unwindStack().push_back(UnwindAction::ScopeMarker());
 		}
-				
+		
 		LifetimeScope::~LifetimeScope() {
-			assert(!function_.destructorScopeStack().empty());
-			genScopeDestructorCalls(function_, function_.destructorScopeStack().back(), function_.destructorScopeStack().size() - 1);
-			function_.destructorScopeStack().pop_back();
+			genScopeDestructorCalls(function_);
+			popScope(function_.unwindStack());
 			
-			const size_t scopeId = function_.destructorScopeStack().size();
+			const size_t scopeId = function_.unwindStack().size();
 			const auto scopeEndBB = function_.createBasicBlock(makeString("scope_%llu_END", (unsigned long long) scopeId));
 			function_.getBuilder().CreateBr(scopeEndBB);
 			function_.selectBasicBlock(scopeEndBB);

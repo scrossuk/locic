@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <locic/AST/CatchClause.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
@@ -22,6 +23,7 @@ namespace locic {
 				IF,
 				SWITCH,
 				WHILE,
+				TRY,
 				VARDECL,
 				ASSIGN,
 				RETURN,
@@ -52,6 +54,11 @@ namespace locic {
 				Node<Value> condition;
 				Node<Scope> whileTrue;
 			} whileStmt;
+			
+			struct {
+				Node<Scope> scope;
+				Node<CatchClauseList> catchList;
+			} tryStmt;
 			
 			struct {
 				bool isLval;
@@ -112,6 +119,13 @@ namespace locic {
 				Statement* statement = new Statement(WHILE);
 				statement->whileStmt.condition = condition;
 				statement->whileStmt.whileTrue = whileTrue;
+				return statement;
+			}
+			
+			inline static Statement* Try(const Node<Scope>& scope, const Node<CatchClauseList>& catchList) {
+				Statement* statement = new Statement(TRY);
+				statement->tryStmt.scope = scope;
+				statement->tryStmt.catchList = catchList;
 				return statement;
 			}
 			

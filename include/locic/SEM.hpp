@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_HPP
 #define LOCIC_SEM_HPP
 
+#include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>

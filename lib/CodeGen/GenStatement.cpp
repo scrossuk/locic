@@ -51,6 +51,23 @@ namespace locic {
 			}
 		}
 		
+		class TryScope {
+			public:
+				TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock)
+					: unwindStack_(unwindStack) {
+					unwindStack.push_back(UnwindAction::CatchException(catchBlock));
+				}
+				
+				~TryScope() {
+					assert(unwindStack_.back().isCatch());
+					unwindStack_.pop_back();
+				}
+				
+			private:
+				UnwindStack& unwindStack_;
+			
+		};
+		
 		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue) {
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
@@ -62,8 +79,7 @@ namespace locic {
 				
 				// Add this to the list of variables to be
 				// destroyed at the end of the function.
-				assert(!function.destructorScopeStack().empty());
-				function.destructorScopeStack().back().push_back(std::make_pair(var->type(), varValue));
+				function.unwindStack().push_back(UnwindAction::Destroy(var->type(), varValue));
 			} else if (var->isComposite()) {
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.
@@ -240,6 +256,29 @@ namespace locic {
 					break;
 				}
 				
+				case SEM::Statement::TRY: {
+					const auto catchBlock = function.createBasicBlock("catch");
+					{
+						TryScope tryScope(function.unwindStack(), catchBlock);
+						genScope(function, statement->getTryScope());
+					}
+					
+					const auto afterCatchBlock = function.createBasicBlock("afterCatch");
+					function.getBuilder().CreateBr(afterCatchBlock);
+					
+					function.selectBasicBlock(catchBlock);
+					
+					for (const auto& catchClause: statement->getTryCatchList()) {
+						// TODO: check exception types.
+						genScope(function, catchClause->scope());
+					}
+					
+					function.getBuilder().CreateBr(afterCatchBlock);
+					
+					function.selectBasicBlock(afterCatchBlock);
+					break;
+				}
+				
 				case SEM::Statement::THROW: {
 					auto& module = function.getModule();
 					
@@ -255,13 +294,23 @@ namespace locic {
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
 					genStore(function, exceptionValue, castedAllocatedException, statement->getThrowValue()->type());
 					
-					// Throw exception.
+					const auto noThrowPath = function.createBasicBlock("throwFail");
+					const auto throwPath = function.createBasicBlock("throwLandingPad");
+					
+					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
-					function.getBuilder().CreateCall(throwFunction, std::vector<llvm::Value*>{ allocatedException, nullPtr, nullPtr });
+					function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, std::vector<llvm::Value*>{ allocatedException, nullPtr, nullPtr });
 					
+					// ==== 'throw' function doesn't throw: Should never happen.
+					function.selectBasicBlock(noThrowPath);
 					function.getBuilder().CreateUnreachable();
 					
+					// ==== 'throw' function DOES throw: Landing pad for running destructors/catch blocks.
+					function.selectBasicBlock(throwPath);
+					genLandingPad(function);
+					
+					// Basic block for any further instructions generated.
 					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
