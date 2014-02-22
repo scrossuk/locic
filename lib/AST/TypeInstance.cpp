@@ -3,6 +3,7 @@
 
 #include <locic/String.hpp>
 
+#include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
@@ -48,15 +49,17 @@ namespace locic {
 			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::Exception(const std::string& name, const Node<TypeVarList>& variables) {
-			return new TypeInstance(EXCEPTION, name, variables, makeDefaultNode<FunctionList>());
+		TypeInstance* TypeInstance::Exception(const std::string& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer) {
+			const auto typeInstance = new TypeInstance(EXCEPTION, name, variables, makeDefaultNode<FunctionList>());
+			typeInstance->initializer = initializer;
+			return typeInstance;
 		}
 		
 		std::string TypeInstance::toString() const {
 			std::string s = makeString("TypeInstance[name = %s](", name.c_str());
 			
 			{
-				s += "TemplateVariableList(";
+				s += "templateVariableList: (";
 				
 				bool isFirst = true;
 				
@@ -75,7 +78,7 @@ namespace locic {
 			s += ", ";
 			
 			{
-				s += "VariantList(";
+				s += "variantList: (";
 				
 				bool isFirst = true;
 				
@@ -94,7 +97,7 @@ namespace locic {
 			s += ", ";
 			
 			{
-				s += "MemberVariableList(";
+				s += "memberVariableList: (";
 				
 				bool isFirst = true;
 				
@@ -113,7 +116,7 @@ namespace locic {
 			s += ", ";
 			
 			{
-				s += "FunctionList(";
+				s += "functionList: (";
 				
 				bool isFirst = true;
 				
@@ -128,6 +131,10 @@ namespace locic {
 				
 				s += ")";
 			}
+			
+			s += ", ";
+			
+			s += makeString("initializer: %s", initializer.toString().c_str());
 			
 			s += ")";
 			return s;

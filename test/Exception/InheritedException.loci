@@ -1,0 +1,17 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+exception ParentException(int value);
+
+exception ChildException(int value1, int value2) : ParentException(value1 + value2);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	try {
+		throw ChildException(1, 2);
+	} catch (ParentException e) {
+		testPrint("Caught parent exception with value %d."C, e.value);
+	}
+	return 0;
+}
+

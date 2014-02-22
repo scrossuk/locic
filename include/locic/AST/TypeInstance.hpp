@@ -10,6 +10,8 @@ namespace locic {
 
 	namespace AST {
 	
+		struct ExceptionInitializer;
+		
 		struct Function;
 		typedef std::vector<Node<Function>> FunctionList;
 		
@@ -39,6 +41,7 @@ namespace locic {
 			Node<TypeInstanceList> variants;
 			Node<TypeVarList> variables;
 			Node<FunctionList> functions;
+			Node<ExceptionInitializer> initializer;
 			
 			public:
 				static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions);
@@ -55,7 +58,7 @@ namespace locic {
 				
 				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
 				
-				static TypeInstance* Exception(const std::string& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Exception(const std::string& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
 				
 				std::string toString() const;
 				

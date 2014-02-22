@@ -102,6 +102,9 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::Function>* function;
 	locic::AST::Node<locic::AST::FunctionList>* functionList;
 	
+	// Exception initializer.
+	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
+	
 	// Symbol names.
 	locic::AST::Node<locic::AST::SymbolElement>* symbolElement;
 	locic::AST::Node<locic::AST::Symbol>* symbol;
@@ -233,6 +236,8 @@ const T& GETSYM(T* value) {
 
 %type <typeInstance> unionDatatypeEntry
 %type <typeInstanceList> unionDatatypeEntryList
+
+%type <exceptionInitializer> exceptionInitializer
 
 %type <typeInstance> typeInstance
 %type <typeInstance> nonTemplatedTypeInstance
@@ -568,6 +573,17 @@ unionDatatypeEntryList:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
+	
+exceptionInitializer:
+	/* empty */
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ExceptionInitializer::None()));
+	}
+	| COLON symbol LROUNDBRACKET valueList RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ExceptionInitializer::Initialize(GETSYM($2), GETSYM($4))));
+	}
+	;
 
 nonTemplatedTypeInstance:
 	PRIMITIVE NAME LCURLYBRACKET methodDeclList RCURLYBRACKET
@@ -590,17 +606,17 @@ nonTemplatedTypeInstance:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Interface(GETSYM($2), GETSYM($4))));
 	}
-	| DATATYPE NAME LROUNDBRACKET typeVarList RROUNDBRACKET
+	| DATATYPE NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Datatype(GETSYM($2), GETSYM($4))));
 	}
-	| DATATYPE NAME SETEQUAL unionDatatypeEntryList
+	| DATATYPE NAME SETEQUAL unionDatatypeEntryList SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::UnionDatatype(GETSYM($2), GETSYM($4))));
 	}
-	| EXCEPTION NAME LROUNDBRACKET typeVarList RROUNDBRACKET
+	| EXCEPTION NAME LROUNDBRACKET typeVarList RROUNDBRACKET exceptionInitializer SEMICOLON
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Exception(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Exception(GETSYM($2), GETSYM($4), GETSYM($6))));
 	}
 	;
 
