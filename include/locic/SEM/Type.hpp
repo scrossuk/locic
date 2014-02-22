@@ -89,6 +89,7 @@ namespace locic {
 				bool isUnionDatatype() const;
 				bool isStruct() const;
 				bool isClassOrTemplateVar() const;
+				bool isException() const;
 				
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
 				

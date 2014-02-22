@@ -294,6 +294,14 @@ namespace locic {
 			return isClass() || isTemplateVar();
 		}
 		
+		bool Type::isException() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isException();
+		}
+		
 		Map<TemplateVar*, Type*> Type::generateTemplateVarMap() const {
 			assert(isObject() || isTemplateVar());
 			
