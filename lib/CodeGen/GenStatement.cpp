@@ -242,60 +242,74 @@ namespace locic {
 				case SEM::Statement::TRY: {
 					auto& module = function.getModule();
 					
-					// TODO: add support for multiple catch clauses.
-					assert(statement->getTryCatchList().size() == 1 && "Multiple catch clauses currently not supported.");
+					assert(!statement->getTryCatchList().empty());
 					
-					const auto catchClause = statement->getTryCatchList().front();
-					const auto catchTypeInfo = genCatchInfo(module, catchClause->var()->constructType()->getObjectType());
+					// Get list of exception types to be caught by this statement.
+					std::vector<llvm::Constant*> catchTypeList;
+					for (const auto catchClause: statement->getTryCatchList()) {
+						catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
+					}
+					
+					assert(catchTypeList.size() == statement->getTryCatchList().size());
 					
 					const auto catchBlock = function.createBasicBlock("catch");
+					
+					// Execute the 'try' scope, pushing the exception
+					// handlers onto the unwind stack.
 					{
-						TryScope tryScope(function.unwindStack(), catchBlock, catchTypeInfo);
+						TryScope tryScope(function.unwindStack(), catchBlock, catchTypeList);
 						genScope(function, statement->getTryScope());
 					}
 					
 					const auto afterCatchBlock = function.createBasicBlock("afterCatch");
+					
+					// No exception thrown; continue normal execution.
 					function.getBuilder().CreateBr(afterCatchBlock);
 					
 					function.selectBasicBlock(catchBlock);
-					
-					// Call llvm.eh.typeid.for intrinsic to get
-					// the selector for the catch type.
-					const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*>{});
-					const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeInfo, TypeGenerator(module).getI8PtrType());
-					const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*>{castedCatchTypeInfo});
 					
 					// Load selector of exception thrown.
 					const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
 					const auto thrownExceptionValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned>{0});
 					const auto throwSelectorValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned>{1});
 					
-					const auto doCatchBlock = function.createBasicBlock("doCatch");
-					const auto continueUnwindBlock = function.createBasicBlock("continueUnwind");
-					
-					// Check thrown selector against catch selector.
-					const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
-					function.getBuilder().CreateCondBr(compareResult, doCatchBlock, continueUnwindBlock);
-					
-					// If matched, run catch block and then continue normal execution.
-					function.selectBasicBlock(doCatchBlock);
-					{
-						const auto catchType = genType(function.getModule(), catchClause->var()->constructType());
-						const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
-						const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
+					for (size_t i = 0; i < statement->getTryCatchList().size(); i++) {
+						const auto catchClause = statement->getTryCatchList().at(i);
+						const auto executeCatchBlock = function.createBasicBlock("executeCatch");
+						const auto tryNextCatchBlock = function.createBasicBlock("tryNextCatch");
 						
-						assert(catchClause->var()->isBasic());
-						function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
-						genScope(function, catchClause->scope());
+						// Call llvm.eh.typeid.for intrinsic to get
+						// the selector for the catch type.
+						const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*>{});
+						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList.at(i), TypeGenerator(module).getI8PtrType());
+						const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*>{castedCatchTypeInfo});
 						
-						// TODO: make sure this gets called if an exception if thrown in the handler!
-						function.getBuilder().CreateCall(getEndCatchFunction(module), std::vector<llvm::Value*>{});
+						// Check thrown selector against catch selector.
+						const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
+						function.getBuilder().CreateCondBr(compareResult, executeCatchBlock, tryNextCatchBlock);
 						
-						function.getBuilder().CreateBr(afterCatchBlock);
+						// If matched, execute catch block and then continue normal execution.
+						{
+							function.selectBasicBlock(executeCatchBlock);
+							const auto catchType = genType(function.getModule(), catchClause->var()->constructType());
+							const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
+							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
+							
+							assert(catchClause->var()->isBasic());
+							function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
+							genScope(function, catchClause->scope());
+							
+							// TODO: make sure this gets called if an exception is thrown in the handler!
+							function.getBuilder().CreateCall(getEndCatchFunction(module), std::vector<llvm::Value*>{});
+							
+							// Exception was handled, so re-commence normal execution.
+							function.getBuilder().CreateBr(afterCatchBlock);
+						}
+						
+						function.selectBasicBlock(tryNextCatchBlock);
 					}
 					
 					// If not matched, keep unwinding.
-					function.selectBasicBlock(continueUnwindBlock);
 					genExceptionUnwind(function);
 					
 					function.selectBasicBlock(afterCatchBlock);

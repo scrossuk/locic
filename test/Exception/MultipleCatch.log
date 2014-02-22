@@ -1,0 +1,9 @@
+Not throwing.
+Throwing first exception.
+Caught exception V1 with value 1!
+Throwing second exception.
+Caught exception V2 with values 2 and 3!
+Throwing third exception.
+Caught exception V3 with values 4, 5 and 6!
+Throwing third exception.
+Caught exception V4 with values 7, 8, 9 and 10!

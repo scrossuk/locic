@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_EXCEPTION_HPP
 #define LOCIC_CODEGEN_EXCEPTION_HPP
 
+#include <vector>
+
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -29,7 +31,7 @@ namespace locic {
 		
 		class TryScope {
 			public:
-				TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
+				TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList);
 				~TryScope();
 				
 			private:
@@ -38,6 +40,7 @@ namespace locic {
 				TryScope& operator=(TryScope) = delete;
 				
 				UnwindStack& unwindStack_;
+				size_t catchCount_;
 			
 		};
 		

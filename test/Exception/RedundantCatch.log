@@ -1,0 +1,8 @@
+2: Calling 1.
+1: Calling 0.
+0: Throwing.
+0: Caught error with value 256.
+1: Successfully finished 0.
+1: Throwing.
+1: Caught error with value 512.
+2: Successfully finished 1.

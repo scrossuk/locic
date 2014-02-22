@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
@@ -218,14 +220,21 @@ namespace locic {
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*>{constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		TryScope::TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo)
-			: unwindStack_(unwindStack) {
-				unwindStack.push_back(UnwindAction::CatchException(catchBlock, catchTypeInfo));
+		TryScope::TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList)
+			: unwindStack_(unwindStack), catchCount_(catchTypeList.size()) {
+				assert(!catchTypeList.empty());
+				for (size_t i = 0; i < catchTypeList.size(); i++) {
+					// Push in reverse order.
+					const auto catchType = catchTypeList.at(catchTypeList.size() - i - 1);
+					unwindStack_.push_back(UnwindAction::CatchException(catchBlock, catchType));
+				}
 			}
 		
 		TryScope::~TryScope() {
-			assert(unwindStack_.back().isCatch());
-			unwindStack_.pop_back();
+			for (size_t i = 0; i < catchCount_; i++) {
+				assert(unwindStack_.back().isCatch());
+				unwindStack_.pop_back();
+			}
 		}
 		
 	}

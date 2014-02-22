@@ -1,0 +1,33 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+exception ExampleError(int value);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	try {
+		testPrint("2: Executing 1."C);
+		try {
+			testPrint("1: Executing 0."C);
+			try {
+				testPrint("0: Throwing."C);
+				throw ExampleError(333333);
+				testPrint("0: THROW ERROR!"C);
+			} catch (ExampleError error) {
+				testPrint("0: Caught error with value %d."C, error.value);
+			}
+			testPrint("1: Successfully finished 0."C);
+			
+			testPrint("1: Throwing."C);
+			throw ExampleError(444444);
+			testPrint("1: THROW ERROR!"C);
+		} catch (ExampleError error) {
+			testPrint("1: Caught error with value %d."C, error.value);
+		}
+		testPrint("2: Successfully finished 1."C);
+	} catch (ExampleError error) {
+		testPrint("2: Caught error with value %d."C, error.value);
+	}
+	return 0;
+}
+

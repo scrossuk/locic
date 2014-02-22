@@ -309,7 +309,7 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 	
 	const uint8_t* actionPos = (uint8_t*) actionEntry;
 	
-	for (size_t actionIndex = 0; true; ++actionIndex) {
+	while (true) {
 		// Read offset of exception type (to be caught) in type table.
 		const int64_t typeOffset = readSLEB128(&actionPos);
 		
@@ -334,7 +334,7 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 			const __loci_catch_type_t* const exceptionCatchType = (__loci_catch_type_t*) exceptionCatchTypePointer;
 			
 			if (canCatch(exceptionCatchType, exceptionThrowType)) {
-				return actionIndex + 1;
+				return typeOffset;
 			}
 		}
 		
@@ -358,7 +358,7 @@ extern "C" _Unwind_Reason_Code __loci_personality_v0(
 		// No data for this stack frame; keep unwinding.
 		return _URC_CONTINUE_UNWIND;
 	}
-			
+	
 	// Get the address of the instruction which threw
 	// (which is one before the current instruction).
 	const uintptr_t programCounter = _Unwind_GetIP(context) - 1;

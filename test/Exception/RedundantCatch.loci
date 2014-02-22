@@ -1,0 +1,45 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+exception ExampleError(int value);
+
+void throwFunction0() {
+	try {
+		testPrint("0: Throwing."C);
+		throw ExampleError(256);
+		testPrint("0: THROW ERROR!"C);
+	} catch (ExampleError error) {
+		testPrint("0: Caught error with value %d."C, error.value);
+	}
+}
+
+void throwFunction1() {
+	try {
+		testPrint("1: Calling 0."C);
+		throwFunction0();
+		testPrint("1: Successfully finished 0."C);
+		
+		testPrint("1: Throwing."C);
+		throw ExampleError(512);
+		testPrint("1: THROW ERROR!"C);
+	} catch (ExampleError error) {
+		testPrint("1: Caught error with value %d."C, error.value);
+	}
+}
+
+void throwFunction2() {
+	try {
+		testPrint("2: Calling 1."C);
+		throwFunction1();
+		testPrint("2: Successfully finished 1."C);
+	} catch (ExampleError error) {
+		testPrint("2: Caught error with value %d."C, error.value);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	throwFunction2();
+	return 0;
+}
+
