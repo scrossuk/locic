@@ -32,6 +32,5 @@ function(loci_example name binary_name)
 endfunction(loci_example)
 
 add_subdirectory(Calculator)
-add_subdirectory(Exception)
 add_subdirectory(General)
 

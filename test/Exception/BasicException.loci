@@ -1,29 +1,15 @@
 // Test output.
 void testPrint(const char * const str, ...);
 
-exception test_error(int value);
-
-class B(int i) {
-	static Create = default;
-	
-	~ {
-		testPrint("B::~B()"C);
-	}
-}
-
-void throwFunction() {
-	auto b = B(20);
-	throw test_error(10);
-}
+exception ExampleError(int value);
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
-	testPrint("BasicException START"C);
-	
-	throwFunction();
-	
-	testPrint("BasicException END"C);
-	
+	try {
+		throw ExampleError(1024);
+	} catch (ExampleError error) {
+		testPrint("Caught exception with value %d!"C, error.value);
+	}
 	return 0;
 }
 

@@ -1,0 +1,20 @@
+Started.
+ExampleClass Constructor: 0.
+ExampleClass Constructor: 1.
+ExampleClass Constructor: 2.
+ExampleClass Constructor: 3.
+ExampleClass Destructor: 3.
+Caught exception V2 with value 212121!
+ExampleClass Destructor: 2.
+ExampleClass Destructor: 1.
+ExampleClass Constructor: 1.
+ExampleClass Constructor: 2.
+ExampleClass Constructor: 3.
+ExampleClass Destructor: 3.
+ExampleClass Destructor: 2.
+ExampleClass Destructor: 1.
+ExampleClass Destructor: 0.
+ExampleClass Constructor: 4.
+Caught exception with value 424242!
+ExampleClass Destructor: 4.
+Finished.

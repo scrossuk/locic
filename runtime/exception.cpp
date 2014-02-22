@@ -27,7 +27,22 @@ typedef struct __loci_exception_t {
 	struct _Unwind_Exception unwindException;
 } __loci_exception_t;
 
-static uint64_t LOCI_EXCEPTION_CLASS = 0;
+const _Unwind_Exception_Class __loci_exception_class
+	= (
+		(
+			(
+				(
+					(
+						(_Unwind_Exception_Class) 'L'
+					) << 8 |
+					(_Unwind_Exception_Class) 'O'
+				) << 8 |
+				(_Unwind_Exception_Class) 'C'
+			) << 8 |
+			(_Unwind_Exception_Class) 'I'
+		) << 8 |
+		(_Unwind_Exception_Class) '\0'
+	);
 
 static uint64_t EXCEPTION_UNWIND_OFFSET() {
 	return offsetof(struct __loci_exception_t, unwindException);
@@ -94,6 +109,8 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* dest
 	
 	header->type = (const __loci_throw_type_t*) exceptionType;
 	assert(header->type->length > 0);
+	
+	header->unwindException.exception_class = __loci_exception_class;
 	
 	const _Unwind_Reason_Code result = _Unwind_RaiseException(&(header->unwindException));
 	
@@ -283,10 +300,8 @@ static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo,
 		uintptr_t actionEntry, uint64_t exceptionClass,
 		struct _Unwind_Exception* exceptionObject) {
-	if (exceptionObject == NULL ||
-		exceptionClass != LOCI_EXCEPTION_CLASS) {
-		return 0;
-	}
+	assert(exceptionObject != NULL);
+	assert(exceptionClass == __loci_exception_class);
 	
 	// Extract information about exception being thrown.
 	const __loci_exception_t* const exception = GET_EXCEPTION(exceptionObject);
@@ -394,7 +409,7 @@ extern "C" _Unwind_Reason_Code __loci_personality_v0(
 		}
 		
 		// Check exception class.
-		const uintptr_t useActionEntryOffsetPlusOne = (exceptionClass == LOCI_EXCEPTION_CLASS) ? actionEntryOffsetPlusOne : 0;
+		const uintptr_t useActionEntryOffsetPlusOne = (exceptionClass == __loci_exception_class) ? actionEntryOffsetPlusOne : 0;
 		
 		// Get action entry position (0 means no action).
 		const uintptr_t actionEntryPointer = useActionEntryOffsetPlusOne != 0 ? (((uintptr_t) actionTableStart) + useActionEntryOffsetPlusOne - 1) : 0;

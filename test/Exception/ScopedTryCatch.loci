@@ -1,0 +1,48 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class ExampleClass(int i) {
+	static Create(int i) {
+		testPrint("ExampleClass Constructor: %d."C, i);
+		return @(i);
+	}
+	
+	~ {
+		testPrint("ExampleClass Destructor: %d."C, @i);
+	}
+}
+
+exception ExampleError(int value);
+exception ExampleError2(int value);
+
+void throwFunction(bool throwFirst) {
+	auto value1 = ExampleClass(1);
+	auto value2 = ExampleClass(2);
+	
+	try {
+		auto value3 = ExampleClass(3);
+		if (throwFirst) {
+			throw ExampleError(424242);
+		} else {
+			throw ExampleError2(212121);
+		}
+	} catch (ExampleError2 error) {
+		testPrint("Caught exception V2 with value %d!"C, error.value);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	testPrint("Started."C);
+	try {
+		auto value0 = ExampleClass(0);
+		throwFunction(false);
+		throwFunction(true);
+	} catch (ExampleError error) {
+		auto value4 = ExampleClass(4);
+		testPrint("Caught exception with value %d!"C, error.value);
+	}
+	testPrint("Finished."C);
+	return 0;
+}
+
