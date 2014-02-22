@@ -51,23 +51,6 @@ namespace locic {
 			}
 		}
 		
-		class TryScope {
-			public:
-				TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock)
-					: unwindStack_(unwindStack) {
-					unwindStack.push_back(UnwindAction::CatchException(catchBlock));
-				}
-				
-				~TryScope() {
-					assert(unwindStack_.back().isCatch());
-					unwindStack_.pop_back();
-				}
-				
-			private:
-				UnwindStack& unwindStack_;
-			
-		};
-		
 		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue) {
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
@@ -257,9 +240,17 @@ namespace locic {
 				}
 				
 				case SEM::Statement::TRY: {
+					auto& module = function.getModule();
+					
+					// TODO: add support for multiple catch clauses.
+					assert(statement->getTryCatchList().size() == 1 && "Multiple catch clauses currently not supported.");
+					
+					const auto catchClause = statement->getTryCatchList().front();
+					const auto catchTypeInfo = genCatchInfo(module, catchClause->var()->constructType()->getObjectType());
+					
 					const auto catchBlock = function.createBasicBlock("catch");
 					{
-						TryScope tryScope(function.unwindStack(), catchBlock);
+						TryScope tryScope(function.unwindStack(), catchBlock, catchTypeInfo);
 						genScope(function, statement->getTryScope());
 					}
 					
@@ -268,12 +259,44 @@ namespace locic {
 					
 					function.selectBasicBlock(catchBlock);
 					
-					for (const auto& catchClause: statement->getTryCatchList()) {
-						// TODO: check exception types.
+					// Call llvm.eh.typeid.for intrinsic to get
+					// the selector for the catch type.
+					const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*>{});
+					const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeInfo, TypeGenerator(module).getI8PtrType());
+					const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*>{castedCatchTypeInfo});
+					
+					// Load selector of exception thrown.
+					const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
+					const auto thrownExceptionValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned>{0});
+					const auto throwSelectorValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned>{1});
+					
+					const auto doCatchBlock = function.createBasicBlock("doCatch");
+					const auto continueUnwindBlock = function.createBasicBlock("continueUnwind");
+					
+					// Check thrown selector against catch selector.
+					const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
+					function.getBuilder().CreateCondBr(compareResult, doCatchBlock, continueUnwindBlock);
+					
+					// If matched, run catch block and then continue normal execution.
+					function.selectBasicBlock(doCatchBlock);
+					{
+						const auto catchType = genType(function.getModule(), catchClause->var()->constructType());
+						const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
+						const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
+						
+						genVar(function, catchClause->var());
+						genVarInitialise(function, catchClause->var(), castedExceptionValue);
 						genScope(function, catchClause->scope());
+						
+						// TODO: make sure this gets called if an exception if thrown in the handler!
+						function.getBuilder().CreateCall(getEndCatchFunction(module), std::vector<llvm::Value*>{});
+						
+						function.getBuilder().CreateBr(afterCatchBlock);
 					}
 					
-					function.getBuilder().CreateBr(afterCatchBlock);
+					// If not matched, keep unwinding.
+					function.selectBasicBlock(continueUnwindBlock);
+					genExceptionUnwind(function);
 					
 					function.selectBasicBlock(afterCatchBlock);
 					break;
@@ -281,26 +304,29 @@ namespace locic {
 				
 				case SEM::Statement::THROW: {
 					auto& module = function.getModule();
+					auto throwType = statement->getThrowValue()->type();
 					
 					const auto exceptionValue = genValue(function, statement->getThrowValue());
-					const auto exceptionType = genType(module, statement->getThrowValue()->type());
+					const auto exceptionType = genType(module, throwType);
 					
 					// Allocate space for exception.
 					const auto allocateFunction = getExceptionAllocateFunction(module);
-					const auto exceptionValueSize = genSizeOf(function, statement->getThrowValue()->type());
+					const auto exceptionValueSize = genSizeOf(function, throwType);
 					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, std::vector<llvm::Value*>{ exceptionValueSize });
 					
 					// Store value into allocated space.
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
-					genStore(function, exceptionValue, castedAllocatedException, statement->getThrowValue()->type());
+					genStore(function, exceptionValue, castedAllocatedException, throwType);
 					
 					const auto noThrowPath = function.createBasicBlock("throwFail");
 					const auto throwPath = function.createBasicBlock("throwLandingPad");
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
+					const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
+					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getI8PtrType());
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
-					function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, std::vector<llvm::Value*>{ allocatedException, nullPtr, nullPtr });
+					function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, std::vector<llvm::Value*>{ allocatedException, castedTypeInfo, nullPtr });
 					
 					// ==== 'throw' function doesn't throw: Should never happen.
 					function.selectBasicBlock(noThrowPath);

@@ -35,7 +35,7 @@ namespace locic {
 			const Node typeNode = context.reverseLookup(typeInstance);
 			assert(typeNode.isNotNone());
 			
-			if (typeInstance->isStruct() || typeInstance->isDatatype()) {
+			if (typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isException()) {
 				// Look for variables.
 				const Node varNode = typeNode.getChild("#__ivar_" + memberName);
 				

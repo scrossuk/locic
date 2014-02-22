@@ -3,7 +3,10 @@
 void printf(const char * const str, ...);
 
 class ExampleClass(int i) {
-	static Create = default;
+	static Create(int i) {
+		printf("ExampleClass Constructor: %d.\n"C, i);
+		return @(i);
+	}
 	
 	~ {
 		printf("ExampleClass Destructor: %d.\n"C, @i);
@@ -11,19 +14,28 @@ class ExampleClass(int i) {
 }
 
 exception ExampleError(int value);
+exception ExampleError2(int value);
 
 void throwFunction() {
-	auto value = ExampleClass(20);
-	auto value2 = ExampleClass(314159);
-	throw ExampleError(10);
+	auto value1 = ExampleClass(1);
+	auto value2 = ExampleClass(2);
+	
+	try {
+		auto value3 = ExampleClass(3);
+		throw ExampleError(424242);
+	} catch (ExampleError2 error) {
+		printf("Caught exception V2 with value %d!\n"C, error.value);
+	}
 }
 
 int main(int argc, char ** argv) {
 	printf("Started.\n"C);
 	try {
+		auto value0 = ExampleClass(0);
 		throwFunction();
 	} catch (ExampleError error) {
-		printf("Caught exception!\n"C);
+		auto value4 = ExampleClass(4);
+		printf("Caught exception with value %d!\n"C, error.value);
 	}
 	printf("Finished.\n"C);
 	return 0;

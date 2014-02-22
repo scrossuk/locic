@@ -87,14 +87,12 @@ namespace locic {
 							
 							switch (value->constant->getStringType()) {
 								case locic::Constant::CSTRING: {
-									llvm::ArrayType* arrayType =
+									const auto arrayType =
 										TypeGenerator(module).getArrayType(
 											TypeGenerator(module).getI8Type(),
 											stringValue.size() + 1);
-									llvm::Constant* constArray =
-										ConstantGenerator(module).getString(
-											stringValue.c_str());
-									llvm::GlobalVariable* globalArray =
+									const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
+									const auto globalArray =
 										module.createConstGlobal("cstring_constant",
 												arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
 									globalArray->setAlignment(1);

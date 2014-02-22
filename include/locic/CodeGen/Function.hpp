@@ -9,6 +9,7 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
@@ -24,16 +25,23 @@ namespace locic {
 		
 		typedef std::vector<UnwindAction> UnwindStack;
 		
+		// TODO: move method implementations to source file.
 		class Function {
 			public:
 				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 				
 				inline Function(Module& module, llvm::Function& function, const ArgInfo& argInfo)
 					: module_(module), function_(function),
-					  builder_(module.getLLVMContext()), argInfo_(argInfo) {
+					  builder_(module.getLLVMContext()), argInfo_(argInfo),
+					  exceptionInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 					selectBasicBlock(createBasicBlock("entry"));
+					
+					// Allocate exception information values.
+					TypeGenerator typeGen(module);
+					const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI8PtrType(), typeGen.getI32Type()});
+					exceptionInfo_ = getBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
 				}
 				
 				inline llvm::Function& getLLVMFunction() {
@@ -116,6 +124,10 @@ namespace locic {
 					return unwindStack_;
 				}
 				
+				llvm::Value* exceptionInfo() const {
+					return exceptionInfo_;
+				}
+				
 			private:
 				Module& module_;
 				llvm::Function& function_;
@@ -123,6 +135,7 @@ namespace locic {
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
 				UnwindStack unwindStack_;
+				llvm::Value* exceptionInfo_;
 				
 		};
 		

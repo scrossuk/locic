@@ -1,17 +1,27 @@
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <unwind.h>
 
-typedef struct __loci_exception_type_t {
-	int type;
-} __loci_exception_type_t;
+typedef const char* __loci_exception_name_t;
+
+typedef struct __loci_catch_type_t {
+	uint32_t offset;
+	__loci_exception_name_t name;
+} __loci_catch_type_t;
+
+typedef struct __loci_throw_type_t {
+	uint32_t length;
+	__loci_exception_name_t names[8];
+} __loci_throw_type_t;
 
 typedef struct __loci_exception_t {
 	// Loci data.
-	__loci_exception_type_t type;
+	const __loci_throw_type_t* type;
 	
 	// Unwind exception.
 	struct _Unwind_Exception unwindException;
@@ -19,9 +29,35 @@ typedef struct __loci_exception_t {
 
 static uint64_t LOCI_EXCEPTION_CLASS = 0;
 
-static int64_t LOCI_EXCEPTION_UNWIND_OFFSET() {
-	__loci_exception_t exception;
-	return ((uintptr_t) &exception) - ((uintptr_t) &exception.unwindException);
+static uint64_t EXCEPTION_UNWIND_OFFSET() {
+	return offsetof(struct __loci_exception_t, unwindException);
+}
+
+static __loci_exception_t* GET_EXCEPTION(struct _Unwind_Exception* unwindException) {
+	return ((__loci_exception_t*) (((uint8_t*) unwindException) - EXCEPTION_UNWIND_OFFSET()));
+}
+
+static __loci_exception_t* GET_EXCEPTION_HEADER(void* exception) {
+	return ((__loci_exception_t*) exception) - 1;
+}
+
+static void* GET_EXCEPTION_DATA(__loci_exception_t* exception) {
+	return (uint8_t*) (exception + 1);
+}
+
+static bool canCatch(const __loci_catch_type_t* catchType, const __loci_throw_type_t* throwType) {
+	assert(throwType != NULL);
+	
+	// Treat null pointer as a catch-all.
+	if (catchType == NULL) {
+		return true;
+	}
+	
+	if (catchType->offset >= throwType->length) {
+		return false;
+	}
+	
+	return strcmp(catchType->name, throwType->names[catchType->offset]) == 0;
 }
 
 enum {
@@ -53,16 +89,18 @@ extern "C" void __loci_free_exception(void* ptr) {
 }
 
 extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor) {
-	(void) exceptionType;
 	(void) destructor;
-	__loci_exception_t* const header = ((__loci_exception_t*) exceptionPtr) - 1;
+	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
+	
+	header->type = (const __loci_throw_type_t*) exceptionType;
+	assert(header->type->length > 0);
 	
 	const _Unwind_Reason_Code result = _Unwind_RaiseException(&(header->unwindException));
 	
 	// 'RaiseException' ONLY returns if there is an error;
 	// abort the process if this happens.
 	if (result == _URC_END_OF_STACK) {
-		printf("Unhandled exception of type %d; aborting...\n", /* TODO! */ 0);
+		printf("Unhandled exception of type '%s'; aborting...\n", header->type->names[header->type->length - 1]);
 	} else {
 		printf("Unwind failed with result %d; calling abort().\n", (int) result);
 	}
@@ -70,12 +108,13 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* dest
 	abort();
 }
 
-extern "C" void __loci_begin_catch() {
-	// TODO.
+extern "C" void* __loci_begin_catch(_Unwind_Exception* unwindException) {
+	__loci_exception_t* const exception = GET_EXCEPTION(unwindException);
+	return GET_EXCEPTION_DATA(exception);
 }
 
 extern "C" void __loci_end_catch() {
-	// TODO.
+	// TODO
 }
 
 // Decode uleb128 value.
@@ -241,11 +280,6 @@ static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 	return result;
 }
 
-static bool canCatch(const __loci_exception_type_t* throwType, const __loci_exception_type_t* catchType) {
-	// Treat null pointer as a catch-all.
-	return catchType == NULL || throwType->type == catchType->type;
-}
-
 static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo,
 		uintptr_t actionEntry, uint64_t exceptionClass,
 		struct _Unwind_Exception* exceptionObject) {
@@ -255,8 +289,8 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 	}
 	
 	// Extract information about exception being thrown.
-	const __loci_exception_t* const exception = (__loci_exception_t*) (((uint8_t*) exceptionObject) + LOCI_EXCEPTION_UNWIND_OFFSET());
-	const __loci_exception_type_t* const exceptionType = &(exception->type);
+	const __loci_exception_t* const exception = GET_EXCEPTION(exceptionObject);
+	const __loci_throw_type_t* const exceptionThrowType = exception->type;
 	
 	const uint8_t* actionPos = (uint8_t*) actionEntry;
 	
@@ -282,9 +316,9 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 			// Type table is indexed 'backwards'.
 			const uint8_t* typeEntryPointer = classInfo - typeOffset * typeEncodedSize;
 			const uintptr_t exceptionCatchTypePointer = readEncodedPointer(&typeEntryPointer, typeTableEncoding);
-			const __loci_exception_type_t* const actionExceptionType = (__loci_exception_type_t*) exceptionCatchTypePointer;
+			const __loci_catch_type_t* const exceptionCatchType = (__loci_catch_type_t*) exceptionCatchTypePointer;
 			
-			if (canCatch(exceptionType, actionExceptionType)) {
+			if (canCatch(exceptionCatchType, exceptionThrowType)) {
 				return actionIndex + 1;
 			}
 		}
@@ -386,6 +420,11 @@ extern "C" _Unwind_Reason_Code __loci_personality_v0(
 				
 				// Set registers that provide information to the landing pad
 				// about what action to take.
+				
+				// Provide a pointer to the exception thrown;
+				// must point to the Unwind exception so that
+				// resume works correctly (generated code must
+				// call __loci_begin_catch to get exception data).
 				_Unwind_SetGR(context, __builtin_eh_return_data_regno(0), (uintptr_t) exceptionObject);
 				
 				if (actionValue > 0) {

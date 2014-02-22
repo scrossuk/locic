@@ -76,13 +76,11 @@ namespace locic {
 				}
 				
 				inline llvm::ConstantFP* getFloat(float value) const {
-					return llvm::ConstantFP::get(module_.getLLVMContext(),
-						llvm::APFloat(value));
+					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
 				}
 				
 				inline llvm::ConstantFP* getDouble(double value) const {
-					return llvm::ConstantFP::get(module_.getLLVMContext(),
-						llvm::APFloat(value));
+					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
 				}
 				
 				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, const std::vector<llvm::Constant*>& values) const {
@@ -108,6 +106,10 @@ namespace locic {
 				
 				inline llvm::Constant* getSizeOf(llvm::Type* type) const {
 					return llvm::ConstantExpr::getSizeOf(type);
+				}
+				
+				inline llvm::Constant* getGetElementPtr(llvm::Constant* operand, const std::vector<llvm::Constant*>& args) const {
+					return llvm::ConstantExpr::getGetElementPtr(operand, args);
 				}
 				
 				inline llvm::Constant* getMin(llvm::Constant* first, llvm::Constant* second) const {

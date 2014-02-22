@@ -1,7 +1,6 @@
 #ifndef LOCIC_CODEGEN_UNWINDACTION_HPP
 #define LOCIC_CODEGEN_UNWINDACTION_HPP
 
-#include <locic/SEM.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
@@ -12,7 +11,7 @@ namespace locic {
 			public:
 				static UnwindAction Destroy(SEM::Type* type, llvm::Value* value);
 				
-				static UnwindAction CatchException(llvm::BasicBlock* catchBlock);
+				static UnwindAction CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
 				
 				static UnwindAction ScopeMarker();
 				
@@ -36,6 +35,8 @@ namespace locic {
 				
 				llvm::BasicBlock* catchBlock() const;
 				
+				llvm::Constant* catchTypeInfo() const;
+				
 			private:
 				inline UnwindAction(Kind pKind)
 					: kind_(pKind) { }
@@ -48,7 +49,10 @@ namespace locic {
 						llvm::Value* value;
 					} destructor_;
 					
-					llvm::BasicBlock* catchBlock_;
+					struct {
+						llvm::BasicBlock* block;
+						llvm::Constant* typeInfo;
+					} catch_;
 				};
 				
 		};

@@ -13,9 +13,10 @@ namespace locic {
 			return action;
 		}
 		
-		UnwindAction UnwindAction::CatchException(llvm::BasicBlock* catchBlock) {
+		UnwindAction UnwindAction::CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo) {
 			UnwindAction action(UnwindAction::CATCH);
-			action.catchBlock_ = catchBlock;
+			action.catch_.block = catchBlock;
+			action.catch_.typeInfo = catchTypeInfo;
 			return action;
 		}
 		
@@ -51,7 +52,12 @@ namespace locic {
 		
 		llvm::BasicBlock* UnwindAction::catchBlock() const {
 			assert(isCatch());
-			return catchBlock_;
+			return catch_.block;
+		}
+		
+		llvm::Constant* UnwindAction::catchTypeInfo() const {
+			assert(isCatch());
+			return catch_.typeInfo;
 		}
 		
 	}
