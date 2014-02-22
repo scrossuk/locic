@@ -13,18 +13,18 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		namespace {
-		
-			// Attach the variable to the SemanticAnalysis node tree.
-			void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
-				assert(var->isBasic());
-				const Node localVarNode = Node::Variable(astTypeVarNode, var);
-				const bool attachResult = context.node().tryAttach(name, localVarNode);
-				
-				if (!attachResult) {
-					throw TodoException(makeString("Variable name '%s' already exists.", name.c_str()));
-				}
+		// Attach the variable to the SemanticAnalysis node tree.
+		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
+			assert(var->isBasic());
+			const Node localVarNode = Node::Variable(astTypeVarNode, var);
+			const bool attachResult = context.node().tryAttach(name, localVarNode);
+			
+			if (!attachResult) {
+				throw TodoException(makeString("Variable name '%s' already exists.", name.c_str()));
 			}
+		}
+		
+		namespace {
 			
 			SEM::Type* CastType(SEM::Type* sourceType, SEM::Type* destType, bool isTopLevel) {
 				// Pattern matched members are restricted

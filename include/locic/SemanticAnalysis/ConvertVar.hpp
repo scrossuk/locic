@@ -9,6 +9,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
+		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var);
+		
 		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& typeVar);
 		
 		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& typeVar, SEM::Type* initialiseType);

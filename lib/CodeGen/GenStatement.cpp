@@ -284,8 +284,8 @@ namespace locic {
 						const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
 						const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
 						
-						genVar(function, catchClause->var());
-						genVarInitialise(function, catchClause->var(), castedExceptionValue);
+						assert(catchClause->var()->isBasic());
+						function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
 						genScope(function, catchClause->scope());
 						
 						// TODO: make sure this gets called if an exception if thrown in the handler!

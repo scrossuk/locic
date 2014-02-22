@@ -182,8 +182,19 @@ namespace locic {
 						auto catchClauseNode = Node::CatchClause(astCatch, semCatch);
 						Context catchClauseContext(context, "#catchclause", catchClauseNode);
 						
-						const bool isMember = false;
-						semCatch->setVar(ConvertVar(catchClauseContext, isMember, astCatch->var));
+						const auto& astVar = astCatch->var;
+						
+						if (astVar->kind != AST::TypeVar::NAMEDVAR) {
+							throw TodoException(makeString("Try statement catch clauses may only contain named variables (no pattern matching)."));
+						}
+						
+						// Special case handling for catch variables,
+						// since they don't use lvalues.
+						const auto varType = ConvertType(context, astVar->namedVar.type);
+						const auto semVar = SEM::Var::Basic(varType, varType);
+						attachVar(catchClauseContext, astVar->namedVar.name, astVar, semVar);
+						
+						semCatch->setVar(semVar);
 						semCatch->setScope(ConvertScope(catchClauseContext, astCatch->scope));
 						
 						catchList.push_back(semCatch);
