@@ -1,7 +1,9 @@
+#include <assert.h>
+#include <stdio.h>
+
 #include <algorithm>
-#include <cassert>
-#include <cstdio>
 #include <set>
+#include <stdexcept>
 
 #include <locic/AST.hpp>
 #include <locic/Log.hpp>

@@ -7,6 +7,7 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -340,7 +341,13 @@ namespace locic {
 					const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
 					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getI8PtrType());
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
-					function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, std::vector<llvm::Value*>{ allocatedException, castedTypeInfo, nullPtr });
+					const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath,
+						std::vector<llvm::Value*>{ allocatedException, castedTypeInfo, nullPtr });
+					
+					DebugBuilder debugBuilder(module);
+					const auto subprogramNode = debugBuilder.convertFunction(Name::Absolute() + "someTestFn");
+					
+					throwInvoke->setDebugLoc(llvm::DebugLoc::get(100, 22, subprogramNode));
 					
 					// ==== 'throw' function doesn't throw: Should never happen.
 					function.selectBasicBlock(noThrowPath);

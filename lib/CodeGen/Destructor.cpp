@@ -1,4 +1,6 @@
+#include <stdexcept>
 #include <vector>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

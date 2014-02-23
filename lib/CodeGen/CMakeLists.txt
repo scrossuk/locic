@@ -1,5 +1,6 @@
 add_library(locic-codegen
 	CodeGen.cpp
+	Debug.cpp
 	DefaultMethods.cpp
 	Destructor.cpp
 	Exception.cpp

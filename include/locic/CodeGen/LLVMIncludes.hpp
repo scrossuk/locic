@@ -6,6 +6,8 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/DebugInfo.h>
+#include <llvm/DIBuilder.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/IR/Attributes.h>
@@ -22,6 +24,7 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 #include <llvm/PassManager.h>
+#include <llvm/Support/Dwarf.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/TargetRegistry.h>

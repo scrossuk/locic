@@ -14,6 +14,7 @@
 #include <locic/String.hpp>
 
 #include <locic/CodeGen/CodeGen.hpp>
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
@@ -107,6 +108,16 @@ namespace locic {
 		
 		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName) {
 			module_ = new Module(moduleName, targetInfo);
+			
+			// TODO: fill these in correctly.
+			DebugCompileUnit compileUnit;
+			compileUnit.compilerName = "Loci Compiler";
+			compileUnit.directoryName = "SOMEDIR";
+			compileUnit.fileName = "SOMEFILE";
+			compileUnit.flags = "example_compiler_flags";
+			
+			DebugBuilder builder(*module_);
+			builder.createCompileUnit(compileUnit);
 		}
 		
 		CodeGenerator::~CodeGenerator() {
