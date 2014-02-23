@@ -70,18 +70,23 @@ extern "C" void testPrint(const char* format, ...) {
 	}
 }
 
-// Exception runtime ABI.
-extern "C" void* __loci_allocate_exception(size_t value);
-extern "C" void __loci_free_exception(void* ptr);
-extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor);
-extern "C" void __loci_begin_catch();
-extern "C" void __loci_end_catch();
-extern "C" void __loci_personality_v0();
+#if defined(_WIN32)
+# if defined(_WIN64)
+#  define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:" #x))
+# else
+#  define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
+# endif
+#else
+# define FORCE_UNDEFINED_SYMBOL(x) extern "C" void x(void); void (*__ ## x ## _fp)(void)=&x;
+#endif
 
-// Create a dependency on the runtime ABI.
-static void abiDependency() {
-	__loci_free_exception(__loci_allocate_exception(1));
-}
+// Force dependency on exception runtime ABI.
+FORCE_UNDEFINED_SYMBOL(__loci_allocate_exception)
+FORCE_UNDEFINED_SYMBOL(__loci_free_exception)
+FORCE_UNDEFINED_SYMBOL(__loci_throw)
+FORCE_UNDEFINED_SYMBOL(__loci_begin_catch)
+FORCE_UNDEFINED_SYMBOL(__loci_end_catch)
+FORCE_UNDEFINED_SYMBOL(__loci_personality_v0)
 
 int main(int argc, char* argv[]) {
 	setLogDisplayLevel(LOG_INFO);

@@ -24,7 +24,7 @@ typedef struct __loci_exception_t {
 	const __loci_throw_type_t* type;
 	
 	// Unwind exception.
-	struct _Unwind_Exception unwindException;
+	_Unwind_Exception unwindException;
 } __loci_exception_t;
 
 const _Unwind_Exception_Class __loci_exception_class
@@ -44,12 +44,8 @@ const _Unwind_Exception_Class __loci_exception_class
 		(_Unwind_Exception_Class) '\0'
 	);
 
-static uint64_t EXCEPTION_UNWIND_OFFSET() {
-	return offsetof(struct __loci_exception_t, unwindException);
-}
-
 static __loci_exception_t* GET_EXCEPTION(struct _Unwind_Exception* unwindException) {
-	return ((__loci_exception_t*) (((uint8_t*) unwindException) - EXCEPTION_UNWIND_OFFSET()));
+	return reinterpret_cast<__loci_exception_t*>(reinterpret_cast<uintptr_t>(unwindException) - offsetof(struct __loci_exception_t, unwindException));
 }
 
 static __loci_exception_t* GET_EXCEPTION_HEADER(void* exception) {
@@ -106,11 +102,6 @@ extern "C" void __loci_free_exception(void* ptr) {
 extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor) {
 	(void) destructor;
 	
-	uint32_t* ptr = (uint32_t*) exceptionPtr;
-	for (size_t i = 0; i < 3; i++) {
-		printf("At %llu: %llu\n", (unsigned long long) i, (unsigned long long) ptr[i]);
-	}
-	
 	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
 	
 	header->type = (const __loci_throw_type_t*) exceptionType;
@@ -123,10 +114,6 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* dest
 	// 'RaiseException' ONLY returns if there is an error;
 	// abort the process if this happens.
 	if (result == _URC_END_OF_STACK) {
-		printf("Length: %llu\n", (unsigned long long) header->type->length);
-		for (uint32_t i = 0; i < header->type->length; i++) {
-			printf("At %llu: %s\n", (unsigned long long) i, header->type->names[i]);
-		}
 		printf("Unhandled exception of type '%s'; aborting...\n", header->type->names[header->type->length - 1]);
 	} else {
 		printf("Unwind failed with result %d; calling abort().\n", (int) result);
@@ -218,6 +205,14 @@ unsigned int getEncodingSize(uint8_t encoding) {
 	}
 }
 
+template <typename T>
+inline T readValue(const uint8_t*& ptr) {
+	T value = 0;
+	memcpy(&value, ptr, sizeof(value));
+	ptr += sizeof(value);
+	return value;
+}
+
 // Read DWARF encoded pointer value.
 static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 	if (encoding == DW_EH_PE_omit) {
@@ -230,8 +225,7 @@ static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 	// Read value.
 	switch (encoding & 0x0F) {
 		case DW_EH_PE_absptr:
-			result = *((uintptr_t*)nextPtr);
-			nextPtr += sizeof(uintptr_t);
+			result = readValue<uintptr_t>(nextPtr);
 			break;
 			
 		case DW_EH_PE_uleb128:
@@ -242,34 +236,29 @@ static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 			result = readSLEB128(&nextPtr);
 			break;
 			
-		case DW_EH_PE_udata2:
-			result = *((uint16_t*)nextPtr);
-			nextPtr += sizeof(uint16_t);
+		case DW_EH_PE_udata2: {
+			result = readValue<uint16_t>(nextPtr);
 			break;
-			
+		}
+		
 		case DW_EH_PE_udata4:
-			result = *((uint32_t*)nextPtr);
-			nextPtr += sizeof(uint32_t);
+			result = readValue<uint32_t>(nextPtr);
 			break;
 			
 		case DW_EH_PE_udata8:
-			result = *((uint64_t*)nextPtr);
-			nextPtr += sizeof(uint64_t);
+			result = readValue<uint64_t>(nextPtr);
 			break;
 			
 		case DW_EH_PE_sdata2:
-			result = *((int16_t*)nextPtr);
-			nextPtr += sizeof(int16_t);
+			result = readValue<int16_t>(nextPtr);
 			break;
 			
 		case DW_EH_PE_sdata4:
-			result = *((int32_t*)nextPtr);
-			nextPtr += sizeof(int32_t);
+			result = readValue<int32_t>(nextPtr);
 			break;
 			
 		case DW_EH_PE_sdata8:
-			result = *((int64_t*)nextPtr);
-			nextPtr += sizeof(int64_t);
+			result = readValue<int64_t>(nextPtr);
 			break;
 			
 		default:

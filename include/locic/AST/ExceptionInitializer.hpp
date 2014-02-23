@@ -10,7 +10,7 @@ namespace locic {
 
 	namespace AST {
 	
-		struct Symbol;
+		class Symbol;
 		struct Value;
 		typedef std::vector<Node<Value>> ValueList;
 		

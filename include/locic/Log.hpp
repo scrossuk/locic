@@ -4,7 +4,7 @@
 #include <string>
 #include <locic/String.hpp>
 
-#define LOG(level, message, ...) do{ ::locic::log(level, LogInfo(__LINE__, __PRETTY_FUNCTION__, __FILE__, __DATE__, __TIME__), ::locic::makeString(message, ##__VA_ARGS__)); } while(false);
+#define LOG(level, message, ...) do{ ::locic::log(level, LogInfo(__LINE__, __PRETTY_FUNCTION__, __FILE__, __DATE__, __TIME__), ::locic::makeString(message, __VA_ARGS__)); } while(false);
 
 namespace locic{
 	

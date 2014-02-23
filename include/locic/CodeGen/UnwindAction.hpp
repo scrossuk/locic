@@ -43,17 +43,17 @@ namespace locic {
 				
 				Kind kind_;
 				
-				union {
-					struct {
+				union Actions {
+					struct DestroyAction {
 						SEM::Type* type;
 						llvm::Value* value;
-					} destructor_;
+					} destroyAction;
 					
-					struct {
+					struct CatchAction {
 						llvm::BasicBlock* block;
 						llvm::Constant* typeInfo;
-					} catch_;
-				};
+					} catchAction;
+				} actions_;
 				
 		};
 		
