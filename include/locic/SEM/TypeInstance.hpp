@@ -60,6 +60,25 @@ namespace locic {
 				// Queries whether all methods are const.
 				bool isConstType() const;
 				
+				/**
+				 * \brief Get type of 'self'.
+				 * 
+				 * This creates an object type with template
+				 * arguments that refer to the type instance's
+				 * own template variables.
+				 * 
+				 * For example, given:
+				 * 
+				 *     template <typename A, typename B>
+				 *     class SomeType { ... }
+				 * 
+				 * ...this function will return:
+				 * 
+				 *     SomeType<A, B>
+				 * 
+				 */
+				Type* selfType() const;
+				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				

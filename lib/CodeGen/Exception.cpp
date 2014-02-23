@@ -168,26 +168,42 @@ namespace locic {
 			}
 		}
 		
-		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance) {
-			const auto typeName = catchTypeInstance->name().toString();
-			
+		llvm::Constant* getTypeNameGlobal(Module& module, const std::string& typeName) {
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);
 			
 			// Generate the name of the exception type as a constant C string.
 			const auto typeNameConstant = constGen.getString(typeName.c_str());
 			const auto typeNameType = typeGen.getArrayType(typeGen.getI8Type(), typeName.size() + 1);
-			const auto typeNameGlobal = module.createConstGlobal("catch_type_name", typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
+			const auto typeNameGlobal = module.createConstGlobal("type_name", typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
 			typeNameGlobal->setAlignment(1);
 			
 			// Convert array to a pointer.
-			const auto typeNameGlobalPtr = constGen.getGetElementPtr(typeNameGlobal, std::vector<llvm::Constant*>{constGen.getI32(0), constGen.getI32(0)});
+			return constGen.getGetElementPtr(typeNameGlobal, std::vector<llvm::Constant*>{constGen.getI32(0), constGen.getI32(0)});
+		}
+		
+		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance) {
+			assert(catchTypeInstance->isException());
+			
+			const auto typeName = catchTypeInstance->name().toString();
+			const auto typeNameGlobalPtr = getTypeNameGlobal(module, typeName);
+			
+			ConstantGenerator constGen(module);
+			TypeGenerator typeGen(module);
 			
 			// Create a constant struct {i32, i8*} for the catch type info.
 			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI32Type(), typeGen.getI8PtrType()});
 			
+			// Calculate offset to check based on number of parents.
+			size_t offset = 0;
+			auto currentInstance = catchTypeInstance;
+			while (currentInstance->parent() != NULL) {
+				offset++;
+				currentInstance = currentInstance->parent();
+			}
+			
 			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
-			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*>{constGen.getI32(0), castedTypeNamePtr});
+			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*>{constGen.getI32(offset), castedTypeNamePtr});
 			
 			const auto typeInfoGlobal = module.createConstGlobal("catch_type_info", typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
 			
@@ -195,25 +211,39 @@ namespace locic {
 		}
 		
 		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* throwTypeInstance) {
-			const auto typeName = throwTypeInstance->name().toString();
+			assert(throwTypeInstance->isException());
+			
+			std::vector<std::string> typeNames;
+			
+			// Add type names in REVERSE order.
+			auto currentInstance = throwTypeInstance;
+			while (currentInstance != NULL) {
+				typeNames.push_back(currentInstance->name().toString());
+				currentInstance = currentInstance->parent();
+			}
+			
+			assert(!typeNames.empty());
+			
+			// Since type names were added in reverse
+			// order, fix this by reversing the array.
+			std::reverse(std::begin(typeNames), std::end(typeNames));
 			
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);
 			
-			// Generate the name of the exception type as a constant C string.
-			const auto typeNameConstant = constGen.getString(typeName.c_str());
-			const auto typeNameType = typeGen.getArrayType(typeGen.getI8Type(), typeName.size() + 1);
-			const auto typeNameGlobal = module.createConstGlobal("throw_type_name", typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
-			typeNameGlobal->setAlignment(1);
-			
-			// Convert array to a pointer.
-			const auto typeNameGlobalPtr = constGen.getGetElementPtr(typeNameGlobal, std::vector<llvm::Constant*>{constGen.getI32(0), constGen.getI32(0)});
-			
 			// Create a constant struct {i32, i8*} for the throw type info.
-			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI32Type(), typeGen.getI8PtrType()});
+			const auto typeNameArrayType = typeGen.getArrayType(typeGen.getI8PtrType(), typeNames.size());
+			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI32Type(), typeNameArrayType});
 			
-			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
-			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*>{constGen.getI32(1), castedTypeNamePtr});
+			std::vector<llvm::Constant*> typeNameConstants;
+			for (const auto& typeName: typeNames) {
+				const auto typeNameGlobalPtr = getTypeNameGlobal(module, typeName);
+				const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
+				typeNameConstants.push_back(castedTypeNamePtr);
+			}
+			
+			const auto typeNameArray = constGen.getArray(typeNameArrayType, typeNameConstants);
+			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*>{constGen.getI32(typeNames.size()), typeNameArray});
 			
 			const auto typeInfoGlobal = module.createConstGlobal("throw_type_info", typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
 			

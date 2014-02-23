@@ -48,7 +48,7 @@ namespace locic {
 		}
 		
 		SEM::Value* dissolveLval(SEM::Value* value) {
-			auto type = getDerefType(value->type());
+			const auto type = getDerefType(value->type());
 			
 			if (!type->isLval()) {
 				throw TodoException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
@@ -65,7 +65,7 @@ namespace locic {
 					type->toString().c_str()));
 			}
 			
-			return CallProperty(derefValue(value), "dissolve", std::vector<SEM::Value*>());
+			return CallPropertyMethod(derefValue(value), "dissolve", std::vector<SEM::Value*>());
 		}
 		
 		SEM::Value* tryDissolveValue(SEM::Value* value) {

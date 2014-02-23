@@ -105,6 +105,12 @@ extern "C" void __loci_free_exception(void* ptr) {
 
 extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor) {
 	(void) destructor;
+	
+	uint32_t* ptr = (uint32_t*) exceptionPtr;
+	for (size_t i = 0; i < 3; i++) {
+		printf("At %llu: %llu\n", (unsigned long long) i, (unsigned long long) ptr[i]);
+	}
+	
 	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
 	
 	header->type = (const __loci_throw_type_t*) exceptionType;
@@ -117,6 +123,10 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* dest
 	// 'RaiseException' ONLY returns if there is an error;
 	// abort the process if this happens.
 	if (result == _URC_END_OF_STACK) {
+		printf("Length: %llu\n", (unsigned long long) header->type->length);
+		for (uint32_t i = 0; i < header->type->length; i++) {
+			printf("At %llu: %s\n", (unsigned long long) i, header->type->names[i]);
+		}
 		printf("Unhandled exception of type '%s'; aborting...\n", header->type->names[header->type->length - 1]);
 	} else {
 		printf("Unwind failed with result %d; calling abort().\n", (int) result);

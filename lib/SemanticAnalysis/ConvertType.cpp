@@ -1,4 +1,7 @@
-#include <cstdio>
+#include <stdio.h>
+
+#include <stdexcept>
+
 #include <locic/AST.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
@@ -40,9 +43,9 @@ namespace locic {
 						
 						if (templateTypeValue->isInterface()) {
 							throw TodoException(makeString("Cannot use abstract type '%s' "
-							"as template parameter %llu for type '%s'.",
-							templateTypeValue->getObjectType()->name().toString().c_str(),
-							(unsigned long long) j, name.toString().c_str()));
+								"as template parameter %llu for type '%s'.",
+								templateTypeValue->getObjectType()->name().toString().c_str(),
+								(unsigned long long) j, name.toString().c_str()));
 						}
 						
 						templateVarMap.insert(typeInstance->templateVariables().at(j),
@@ -72,6 +75,35 @@ namespace locic {
 			return templateArguments;
 		}
 		
+		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
+			assert(!symbol->empty());
+			
+			const Name name = symbol->createName();
+			const Node objectNode = context.lookupName(name);
+			
+			const auto templateVarMap = GenerateTemplateVarMap(context, symbol);
+			
+			if (objectNode.isTypeInstance()) {
+				const auto typeInstance = objectNode.getSEMTypeInstance();
+				
+				assert(templateVarMap.size() == typeInstance->templateVariables().size());
+				
+				std::vector<SEM::Type*> templateArguments;
+				for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
+					templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
+				}
+				
+				return SEM::Type::Object(typeInstance, templateArguments);
+			} else if(objectNode.isTemplateVar()) {
+				assert(templateVarMap.empty());
+				
+				const auto templateVar = objectNode.getSEMTemplateVar();
+				return SEM::Type::TemplateVarRef(templateVar);
+			} else {
+				throw TodoException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
+			}
+		}
+		
 		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
@@ -95,45 +127,18 @@ namespace locic {
 					return SEM::Type::Void();
 				}
 				case AST::Type::OBJECT: {
-					const AST::Node<AST::Symbol>& symbol = type->objectType.symbol;
-					assert(!symbol->empty());
-					
-					const Name name = symbol->createName();
-					const Node objectNode = context.lookupName(name);
-					
-					const Map<SEM::TemplateVar*, SEM::Type*> templateVarMap = GenerateTemplateVarMap(context, symbol);
-					
-					if(objectNode.isTypeInstance()) {
-						SEM::TypeInstance* typeInstance = objectNode.getSEMTypeInstance();
-						
-						assert(templateVarMap.size() == typeInstance->templateVariables().size());
-						
-						std::vector<SEM::Type*> templateArguments;
-						for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
-							templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
-						}
-						
-						return SEM::Type::Object(typeInstance, templateArguments);
-					}else if(objectNode.isTemplateVar()) {
-						assert(templateVarMap.empty());
-						
-						SEM::TemplateVar* templateVar = objectNode.getSEMTemplateVar();
-						
-						return SEM::Type::TemplateVarRef(templateVar);
-					}else{
-						throw TodoException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
-					}
+					return ConvertObjectType(context, type->objectType.symbol);
 				}
 				case AST::Type::REFERENCE: {
-					SEM::Type* refType = ConvertType(context, type->getReferenceTarget());
+					const auto refType = ConvertType(context, type->getReferenceTarget());
 					return SEM::Type::Reference(refType)->createRefType(refType);
 				}
 				case AST::Type::FUNCTION: {
-					SEM::Type* returnType = ConvertType(context, type->functionType.returnType);
+					const auto returnType = ConvertType(context, type->functionType.returnType);
 					
 					std::vector<SEM::Type*> parameterTypes;
 					
-					const AST::Node<AST::TypeList>& astParameterTypes = type->functionType.parameterTypes;
+					const auto& astParameterTypes = type->functionType.parameterTypes;
 					for (const auto& astParamType: *astParameterTypes) {
 						SEM::Type* paramType = ConvertType(context, astParamType);
 						
@@ -147,8 +152,7 @@ namespace locic {
 					return SEM::Type::Function(type->functionType.isVarArg, returnType, parameterTypes);
 				}
 				default:
-					assert(false && "Unknown AST::Node<AST::Type> type enum.");
-					return NULL;
+					throw std::runtime_error("Unknown AST::Node<AST::Type> type enum.");
 			}
 		}
 		

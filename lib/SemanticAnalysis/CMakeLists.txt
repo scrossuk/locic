@@ -3,6 +3,7 @@ add_library(locic-semanalysis
 	CanCast.cpp
 	Context.cpp
 	ConvertClassDef.cpp
+	ConvertException.cpp
 	ConvertFunctionDecl.cpp
 	ConvertFunctionDef.cpp
 	ConvertNamespace.cpp

@@ -1,16 +1,30 @@
 // Test output.
 void testPrint(const char * const str, ...);
 
-exception ParentException(int value);
+exception GrandParentException(int value);
 
-exception ChildException(int value1, int value2) : ParentException(value1 + value2);
+exception ParentException(int value1, int value2) : GrandParentException(value1 + value2);
+
+exception ChildException(int value1, int value2, int value3) : ParentException(value1 + value2, value2 + value3);
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
 	try {
-		throw ChildException(1, 2);
+		throw ChildException(1, 10, 100);
+	} catch (ChildException e) {
+		testPrint("Caught parent exception with values %d, %d and %d."C, e.value1, e.value2, e.value3);
+	}
+	
+	try {
+		throw ChildException(1, 10, 100);
 	} catch (ParentException e) {
-		testPrint("Caught parent exception with value %d."C, e.value);
+		testPrint("Caught parent exception with values %d and %d."C, e.value1, e.value2);
+	}
+	
+	try {
+		throw ChildException(1, 10, 100);
+	} catch (GrandParentException e) {
+		testPrint("Caught grand parent exception with value %d."C, e.value);
 	}
 	return 0;
 }

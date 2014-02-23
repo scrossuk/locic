@@ -9,6 +9,7 @@
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
@@ -105,10 +106,12 @@ namespace locic {
 			const Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
 			node.attach(typeInstanceName, typeInstanceNode);
 			
-			for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-				const auto variantTypeInstance = AddTypeInstance(context, astVariantNode);
-				variantTypeInstance->setParent(semTypeInstance);
-				semTypeInstance->variants().push_back(variantTypeInstance);
+			if (semTypeInstance->isUnionDatatype()) {
+				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode);
+					variantTypeInstance->setParent(semTypeInstance);
+					semTypeInstance->variants().push_back(variantTypeInstance);
+				}
 			}
 			
 			return semTypeInstance;
@@ -116,7 +119,7 @@ namespace locic {
 		
 		// Get all type names, and build initial type instance structures.
 		void AddTypeInstancesPass(Context& context) {
-			Node& node = context.node();
+			auto& node = context.node();
 			
 			if (!node.isNamespace()) return;
 			
@@ -128,9 +131,9 @@ namespace locic {
 			
 			// Multiple AST namespace trees correspond to one SEM namespace,
 			// so loop through all the AST namespaces.
-			for (auto astNamespaceNode: node.getASTNamespaceList()) {
+			for (const auto& astNamespaceNode: node.getASTNamespaceList()) {
 				auto astNamespaceDataNode = astNamespaceNode->data;
-				for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 					(void) AddTypeInstance(context, astTypeInstanceNode);
 				}
 			}
@@ -213,19 +216,39 @@ namespace locic {
 				assert(semTypeInstance->variables().empty());
 				assert(semTypeInstance->constructTypes().empty());
 				
+				if (semTypeInstance->isException()) {
+					// Add exception type parent using initializer.
+					const auto& astInitializerNode = astTypeInstanceNode->initializer;
+					if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
+						const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
+						
+						if (!semType->isException()) {
+							throw TodoException(makeString("Exception parent type '%s' is not an exception type.",
+								semType->toString().c_str()));
+						}
+						
+						// TODO: also handle template parameters?
+						semTypeInstance->setParent(semType->getObjectType());
+						
+						// Also add parent as first member variable.
+						const auto var = SEM::Var::Basic(semType, semType);
+						semTypeInstance->variables().push_back(var);
+					}
+				}
+				
 				for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
 					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					
-					auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
+					const auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					const bool isMemberVar = true;
 					
 					// 'final' keyword makes the default lval const.
 					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 					
-					auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
+					const auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
 					
-					auto var = SEM::Var::Basic(semType, lvalType);
+					const auto var = SEM::Var::Basic(semType, lvalType);
 					
 					const auto memberNode = Node::Variable(astTypeVarNode, var);
 					
@@ -334,25 +357,13 @@ namespace locic {
 					}
 				}
 			} else if (node.isTypeInstance()) {
-				auto astTypeInstanceNode = node.getASTTypeInstance();
-				auto semTypeInstance = node.getSEMTypeInstance();
+				const auto& astTypeInstanceNode = node.getASTTypeInstance();
+				const auto semTypeInstance = node.getSEMTypeInstance();
 				
 				assert(semTypeInstance->functions().empty());
 				
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddFunctionDecl(context, astFunctionNode);
-				}
-				
-				if (semTypeInstance->isDatatype() || semTypeInstance->isException() || semTypeInstance->isStruct()) {
-					assert(semTypeInstance->functions().empty());
-					
-					// For datatypes, exceptions and structs,
-					// add the default constructor.
-					auto constructor = CreateDefaultConstructor(semTypeInstance);
-					semTypeInstance->functions().push_back(constructor);
-					
-					auto constructorNode = Node::Function(AST::Node<AST::Function>(), constructor);
-					node.attach("Create", constructorNode);
 				}
 				
 				// Sort type instance methods.
@@ -425,40 +436,61 @@ namespace locic {
 		}
 		
 		void AddTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
-			auto typeInstance = node.getSEMTypeInstance();
-			if (completedTypes.find(typeInstance) != completedTypes.end()) {
+			const auto& astTypeInstanceNode = node.getASTTypeInstance();
+			const auto semTypeInstance = node.getSEMTypeInstance();
+			if (completedTypes.find(semTypeInstance) != completedTypes.end()) {
 				return;
 			}
 			
-			completedTypes.insert(typeInstance);
+			completedTypes.insert(semTypeInstance);
 			
-			// Add default implicit copy for datatypes if available.
-			if (typeInstance->isDatatype() || typeInstance->isUnionDatatype()) {
-				// Get type properties for member types,
-				// since this is needed to determine whether the
-				// datatype is implicitly copyable.
-				if (typeInstance->isUnionDatatype()) {
-					for (auto variantTypeInstance: typeInstance->variants()) {
-						AddTypeProperties(context, completedTypes, context.reverseLookup(variantTypeInstance));
-					}
-				} else {
-					for (auto var: typeInstance->variables()) {
-						if (!var->constructType()->isObject()) continue;
-						AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
-					}
+			// Nasty hack to ensure value_lval has been processed.
+			// TODO: move value_lval dependent code (e.g. generating
+			//       exception default constructor) out of this pass.
+			AddTypeProperties(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
+			
+			// Get type properties for types that this
+			// type depends on, since this is needed for
+			// default method generation.
+			if (semTypeInstance->isUnionDatatype()) {
+				for (auto variantTypeInstance: semTypeInstance->variants()) {
+					AddTypeProperties(context, completedTypes, context.reverseLookup(variantTypeInstance));
+				}
+			} else {
+				if (semTypeInstance->isException() && semTypeInstance->parent() != nullptr) {
+					AddTypeProperties(context, completedTypes, context.reverseLookup(semTypeInstance->parent()));
 				}
 				
-				if (HasDefaultImplicitCopy(typeInstance)) {
-					auto implicitCopy = CreateDefaultImplicitCopy(typeInstance);
-					typeInstance->functions().push_back(implicitCopy);
-					
-					// Re-sort type instance methods.
-					std::sort(typeInstance->functions().begin(),
-						typeInstance->functions().end(),
-						methodCompare);
-					
-					node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
+				for (auto var: semTypeInstance->variables()) {
+					if (!var->constructType()->isObject()) continue;
+					AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
 				}
+			}
+			
+			// Add default constructor.
+			if (semTypeInstance->isDatatype() || semTypeInstance->isStruct() || semTypeInstance->isException()) {
+				// Add constructor for exception types using initializer;
+				// for datatypes and structs, just add a default constructor.
+				const auto constructor =
+					semTypeInstance->isException() ?
+						CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance) :
+						CreateDefaultConstructor(semTypeInstance);
+				semTypeInstance->functions().push_back(constructor);
+				
+				node.attach("Create", Node::Function(AST::Node<AST::Function>(), constructor));
+			}
+			
+			// Add default implicit copy for datatypes if available.
+			if ((semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
+				const auto implicitCopy = CreateDefaultImplicitCopy(semTypeInstance);
+				semTypeInstance->functions().push_back(implicitCopy);
+				
+				// Re-sort type instance methods.
+				std::sort(semTypeInstance->functions().begin(),
+					semTypeInstance->functions().end(),
+					methodCompare);
+				
+				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
 			
 			// Find all the standard patterns, and add
@@ -469,7 +501,7 @@ namespace locic {
 				const Node functionNode = FindMethodPattern(pattern, node);
 				if (functionNode.isNotNone()) {
 					SEM::Function* function = functionNode.getSEMFunction();
-					typeInstance->addProperty(function->name().last(), function);
+					semTypeInstance->addProperty(function->name().last(), function);
 				}
 			}
 		}

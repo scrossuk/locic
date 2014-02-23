@@ -74,6 +74,18 @@ namespace locic {
 				&& name_.last() != "ptr_lval" && name_.last() != "member_lval";
 		}
 		
+		Type* TypeInstance::selfType() const {
+			std::vector<SEM::Type*> templateVars;
+			
+			for (const auto templateVar: templateVariables()) {
+				// Refer to the template variables of this type instance.
+				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
+			}
+			
+			// TODO: remove const_cast.
+			return SEM::Type::Object(const_cast<TypeInstance*>(this), templateVars);
+		}
+		
 		std::vector<TemplateVar*>& TypeInstance::templateVariables() {
 			return templateVariables_;
 		}

@@ -52,8 +52,8 @@ namespace locic {
 			if (value->type()->isRef() && derefType->supportsImplicitCopy()) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallProperty(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
-					derefAll(value) ;
+					CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
+					derefAll(value);
 				
 				// See if this results in
 				// a valid var arg value.

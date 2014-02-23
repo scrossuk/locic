@@ -17,7 +17,7 @@ namespace locic {
 		}
 		
 		ExceptionInitializer* ExceptionInitializer::Initialize(const Node<Symbol>& symbol, const Node<ValueList>& valueList) {
-			auto initializer = new ExceptionInitializer(NONE);
+			auto initializer = new ExceptionInitializer(INITIALIZE);
 			initializer->symbol = symbol;
 			initializer->valueList = valueList;
 			return initializer;

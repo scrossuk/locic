@@ -401,7 +401,7 @@ namespace locic {
 				auto sourceDerefType = getDerefType(sourceType);
 				if (sourceDerefType->supportsImplicitCopy()) {
 					SEM::Value* copyValue = sourceDerefType->isObject() ?
-						CallProperty(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
+						CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
 						derefAll(value);
 					
 					auto convertCast = ImplicitCastConvert(copyValue, destType);
@@ -420,7 +420,7 @@ namespace locic {
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (sourceType->isConst() && !destType->isConst() && sourceType->isObject() && sourceType->supportsImplicitCopy()) {
-				SEM::Value* copyValue = CallProperty(value, "implicitCopy", std::vector<SEM::Value*>());
+				SEM::Value* copyValue = CallPropertyMethod(value, "implicitCopy", std::vector<SEM::Value*>());
 				if (!copyValue->type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(copyValue, destType);
 					if (convertCast != NULL) return convertCast;

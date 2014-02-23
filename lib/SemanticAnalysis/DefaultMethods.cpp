@@ -17,7 +17,7 @@ namespace locic {
 			for (auto templateVar: typeInstance->templateVariables()) {
 				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
 			}
-				
+			
 			auto returnType = SEM::Type::Object(typeInstance, templateVars);
 			
 			auto functionType = SEM::Type::Function(isVarArg, returnType, typeInstance->constructTypes());
