@@ -9,6 +9,7 @@
 
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
@@ -24,7 +25,7 @@ namespace locic {
 				
 				inline Module(const std::string& name, const TargetInfo& targetInfo)
 					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
-					  targetInfo_(targetInfo) {
+					  targetInfo_(targetInfo), debugBuilder_(*this) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
 				}
 				
@@ -134,6 +135,10 @@ namespace locic {
 						linkage, value, name);
 				}
 				
+				inline DebugBuilder& debugBuilder() {
+					return debugBuilder_;
+				}
+				
 			private:
 				llvm::Module* module_;
 				TargetInfo targetInfo_;
@@ -141,6 +146,7 @@ namespace locic {
 				MemberVarMap memberVarMap_;
 				std::vector<const TemplateVarMap*> templateVarMapStack_;
 				TypeMap typeMap_;
+				DebugBuilder debugBuilder_;
 				
 		};
 		

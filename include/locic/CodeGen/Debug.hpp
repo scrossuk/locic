@@ -4,7 +4,6 @@
 #include <string>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
-#include <locic/CodeGen/Module.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -19,18 +18,22 @@ namespace locic {
 			std::string flags;
 		};
 		
+		class Module;
+		
 		class DebugBuilder {
 			public:
 				DebugBuilder(Module& module);
 				~DebugBuilder();
 				
-				void createCompileUnit(const DebugCompileUnit& compileUnit);
+				void finalize();
 				
-				//llvm::DICompileUnit compileUnit() const;
+				llvm::DICompileUnit createCompileUnit(const DebugCompileUnit& compileUnit);
+				
+				llvm::DICompileUnit compileUnit() const;
 				
 				llvm::DIFile createFile(const std::string& fileName, const std::string& directory);
 				
-				llvm::DISubprogram convertFunction(const Name& name);
+				llvm::DISubprogram convertFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::Function* function);
 				
 				llvm::DIVariable convertVar(SEM::Var* var, bool isParam);
 				

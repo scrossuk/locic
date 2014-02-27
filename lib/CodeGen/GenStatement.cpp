@@ -207,6 +207,8 @@ namespace locic {
 				}
 				
 				case SEM::Statement::RETURN: {
+					llvm::Instruction* returnInst = nullptr;
+					
 					if (statement->getReturnValue() != NULL
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
@@ -218,21 +220,24 @@ namespace locic {
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
 							
-							function.getBuilder().CreateRetVoid();
+							returnInst = function.getBuilder().CreateRetVoid();
 						} else {
 							const auto returnValue = genValue(function, statement->getReturnValue());
 							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
 							
-							function.getBuilder().CreateRet(returnValue);
+							returnInst = function.getBuilder().CreateRet(returnValue);
 						}
 					} else {
 						// Call all destructors.
 						genAllScopeDestructorCalls(function);
 						
-						function.getBuilder().CreateRetVoid();
+						returnInst = function.getBuilder().CreateRetVoid();
 					}
+					
+					// TODO!
+					returnInst->setDebugLoc(llvm::DebugLoc::get(200, 33, function.debugInfo()));
 					
 					// Need a basic block after a return statement in case anything more is generated.
 					// This (and any following code) will be removed by dead code elimination.
@@ -344,10 +349,8 @@ namespace locic {
 					const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath,
 						std::vector<llvm::Value*>{ allocatedException, castedTypeInfo, nullPtr });
 					
-					DebugBuilder debugBuilder(module);
-					const auto subprogramNode = debugBuilder.convertFunction(Name::Absolute() + "someTestFn");
-					
-					throwInvoke->setDebugLoc(llvm::DebugLoc::get(100, 22, subprogramNode));
+					// TODO!
+					throwInvoke->setDebugLoc(llvm::DebugLoc::get(100, 22, function.debugInfo()));
 					
 					// ==== 'throw' function doesn't throw: Should never happen.
 					function.selectBasicBlock(noThrowPath);

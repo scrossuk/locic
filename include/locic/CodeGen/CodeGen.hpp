@@ -2,7 +2,9 @@
 #define LOCIC_CODEGEN_HPP
 
 #include <cstddef>
+#include <memory>
 #include <string>
+
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 
@@ -30,7 +32,7 @@ namespace locic {
 				void dump();
 				
 			private:
-				Module* module_;
+				std::unique_ptr<Module> module_;
 				
 		};
 		

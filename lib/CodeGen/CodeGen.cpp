@@ -106,9 +106,8 @@ namespace locic {
 			}
 		}
 		
-		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName) {
-			module_ = new Module(moduleName, targetInfo);
-			
+		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName)
+			: module_(new Module(moduleName, targetInfo)) {
 			// TODO: fill these in correctly.
 			DebugCompileUnit compileUnit;
 			compileUnit.compilerName = "Loci Compiler";
@@ -116,13 +115,10 @@ namespace locic {
 			compileUnit.fileName = "SOMEFILE";
 			compileUnit.flags = "example_compiler_flags";
 			
-			DebugBuilder builder(*module_);
-			builder.createCompileUnit(compileUnit);
+			module_->debugBuilder().createCompileUnit(compileUnit);
 		}
 		
-		CodeGenerator::~CodeGenerator() {
-			delete module_;
-		}
+		CodeGenerator::~CodeGenerator() { }
 		
 		Module& CodeGenerator::module() {
 			return *module_;
@@ -142,6 +138,8 @@ namespace locic {
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
 			genNamespaceTypes(*module_, nameSpace);
 			genNamespaceFunctions(*module_, nameSpace);
+			
+			module_->debugBuilder().finalize();
 		}
 		
 		void CodeGenerator::writeToFile(const std::string& fileName) {

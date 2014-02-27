@@ -155,6 +155,12 @@ namespace locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
+			// TODO!
+			const auto file = module.debugBuilder().createFile("example_source_file.loci", "/example/directory");
+			const auto lineNumber = 42;
+			
+			const auto debugSubprogram = module.debugBuilder().convertFunction(file, lineNumber, function->isDefinition(), function->name(), llvmFunction);
+			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller
@@ -177,7 +183,7 @@ namespace locic {
 			
 			// --- Generate function code.
 			
-			if (parent != NULL && parent->getObjectType()->isPrimitive()) {
+			if (parent != nullptr && parent->getObjectType()->isPrimitive()) {
 				// This is a primitive method; needs special code generation.
 				createPrimitiveMethod(module, parent, function, *llvmFunction);
 				return llvmFunction;
@@ -189,6 +195,7 @@ namespace locic {
 			}
 			
 			Function functionGenerator(module, *llvmFunction, getArgInfo(module, function));
+			functionGenerator.attachDebugInfo(debugSubprogram);
 			
 			if (function->hasDefaultImplementation()) {
 				assert(parent != NULL);

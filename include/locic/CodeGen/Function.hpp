@@ -33,7 +33,7 @@ namespace locic {
 				inline Function(Module& module, llvm::Function& function, const ArgInfo& argInfo)
 					: module_(module), function_(function),
 					  builder_(module.getLLVMContext()), argInfo_(argInfo),
-					  exceptionInfo_(nullptr) {
+					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 					selectBasicBlock(createBasicBlock("entry"));
@@ -46,6 +46,10 @@ namespace locic {
 				
 				inline llvm::Function& getLLVMFunction() {
 					return function_;
+				}
+				
+				inline llvm::Function* getLLVMFunctionPtr() {
+					return &function_;
 				}
 				
 				inline Module& getModule() {
@@ -124,8 +128,16 @@ namespace locic {
 					return unwindStack_;
 				}
 				
-				llvm::Value* exceptionInfo() const {
+				inline llvm::Value* exceptionInfo() const {
 					return exceptionInfo_;
+				}
+				
+				inline void attachDebugInfo(llvm::DISubprogram subprogram) {
+					debugInfo_ = subprogram;
+				}
+				
+				inline llvm::DISubprogram debugInfo() const {
+					return debugInfo_;
 				}
 				
 			private:
@@ -136,6 +148,7 @@ namespace locic {
 				LocalVarMap localVarMap_;
 				UnwindStack unwindStack_;
 				llvm::Value* exceptionInfo_;
+				llvm::DISubprogram debugInfo_;
 				
 		};
 		
