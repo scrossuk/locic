@@ -1,4 +1,5 @@
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 #include <locic/CodeGen/Debug.hpp>
@@ -191,10 +192,18 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
+					const auto objectType = type->getObjectType();
+					if (objectType->isPrimitive()) {
+						if (objectType->name() == (Name::Absolute() + "ptr")) {
+							return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
+						}
+					}
+					
 					// TODO!
 					const auto file = module.debugBuilder().createFile("example_source_file.loci", "/object/dir");
 					const auto lineNumber = 12;
-					return module.debugBuilder().createObjectType(file, lineNumber, type->getObjectType()->name());
+					
+					return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
 				}
 				
 				case SEM::Type::REFERENCE: {

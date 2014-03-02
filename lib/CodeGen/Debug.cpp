@@ -72,16 +72,23 @@ namespace locic {
 			return builder_.createReferenceType(0, type);
 		}
 		
+		llvm::DIType DebugBuilder::createPointerType(llvm::DIType type) {
+			// TODO!
+			const auto sizeInBits = 32;
+			return builder_.createPointerType(type, sizeInBits);
+		}
+		
 		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {
 			// TODO!
 			const auto sizeInBits = 32;
 			const auto alignInBits = 32;
+			const auto offsetInBits = 0;
 			const auto flags = 0;
 			const auto derivedFrom = createVoidType();
 			const auto elements = llvm::DIArray();
 			
-			return builder_.createStructType(compileUnit(), name.toString(), file,
-				lineNumber, sizeInBits, alignInBits,
+			return builder_.createClassType(compileUnit(), name.toString(false), file,
+				lineNumber, sizeInBits, alignInBits, offsetInBits,
 				flags, derivedFrom, elements);
 		}
 		

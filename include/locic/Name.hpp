@@ -105,12 +105,12 @@ namespace locic{
 				return (size() + 1 == name.size()) && isPrefixOf(name);
 			}
 			
-			inline std::string toString() const{
+			inline std::string toString(bool addPrefix = true) const{
 				std::string str;
-				if(isAbsolute_) str += "::";
+				if (addPrefix && isAbsolute_) str += "::";
 				
-				for(CItType it = list_.begin(); it != list_.end(); ++it){
-					if(it != list_.begin()) str += "::";
+				for (CItType it = list_.begin(); it != list_.end(); ++it) {
+					if (it != list_.begin()) str += "::";
 					str += *it;
 				}
 				return str;

@@ -46,6 +46,8 @@ namespace locic {
 				
 				llvm::DIType createReferenceType(llvm::DIType type);
 				
+				llvm::DIType createPointerType(llvm::DIType type);
+				
 				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
 				
 				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<llvm::Value*>& parameters);
