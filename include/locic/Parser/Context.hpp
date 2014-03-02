@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <locic/AST.hpp>
-#include <locic/SourceLocation.hpp>
+#include <locic/Debug/SourceLocation.hpp>
 
 namespace locic{
 
@@ -13,9 +13,9 @@ namespace locic{
 	
 		struct Error{
 			std::string message;
-			SourceLocation location;
+			Debug::SourceLocation location;
 			
-			inline Error(const std::string& m, SourceLocation l)
+			inline Error(const std::string& m, const Debug::SourceLocation& l)
 				: message(m), location(l) { }
 		};
 		
@@ -29,7 +29,7 @@ namespace locic{
 					return fileName_;
 				}
 				
-				inline void error(const std::string& message, SourceLocation location) {
+				inline void error(const std::string& message, const Debug::SourceLocation& location) {
 					errors_.push_back(Error(message, location));
 				}
 				

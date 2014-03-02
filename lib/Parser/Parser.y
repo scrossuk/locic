@@ -9,7 +9,7 @@
 #include <vector>
 #include <locic/AST.hpp>
 #include <locic/Name.hpp>
-#include <locic/SourceLocation.hpp>
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Parser/Context.hpp>
 
 #include "Lexer.hpp"
@@ -19,11 +19,11 @@
 int Locic_Parser_GeneratedParser_error(locic::Parser::LocationInfo* locationInfo, void * scanner, locic::Parser::Context * parserContext, const char *s);
 int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext);
 
-static locic::SourceLocation convertLocationInfo(const std::string& fileName, const locic::Parser::LocationInfo* locationInfo) {
-	return locic::SourceLocation(fileName,
-		locic::SourceRange(
-			locic::SourcePosition(locationInfo->first_line, locationInfo->first_column),
-			locic::SourcePosition(locationInfo->last_line, locationInfo->last_column)
+static locic::Debug::SourceLocation convertLocationInfo(const std::string& fileName, const locic::Parser::LocationInfo* locationInfo) {
+	return locic::Debug::SourceLocation(fileName,
+		locic::Debug::SourceRange(
+			locic::Debug::SourcePosition(locationInfo->first_line, locationInfo->first_column),
+			locic::Debug::SourcePosition(locationInfo->last_line, locationInfo->last_column)
 		)
 	);
 }

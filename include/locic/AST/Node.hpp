@@ -1,15 +1,15 @@
 #ifndef LOCIC_AST_NODE_HPP
 #define LOCIC_AST_NODE_HPP
 
-#include <locic/SourceLocation.hpp>
+#include <locic/Debug/SourceLocation.hpp>
 
 namespace locic {
 
 	namespace AST {
 	
-		inline SourceLocation NullLocation() {
-			const auto nullPosition = SourcePosition(0, 0);
-			return SourceLocation("<NULL>", SourceRange(nullPosition, nullPosition));
+		inline Debug::SourceLocation NullLocation() {
+			const auto nullPosition = Debug::SourcePosition(0, 0);
+			return Debug::SourceLocation("<NULL>", Debug::SourceRange(nullPosition, nullPosition));
 		}
 		
 		template <typename NodeType>
@@ -18,10 +18,10 @@ namespace locic {
 				inline Node()
 					: location_(NullLocation()), contents_(NULL) { }
 					
-				inline Node(const SourceLocation& pLocation, NodeType* pContents)
+				inline Node(const Debug::SourceLocation& pLocation, NodeType* pContents)
 					: location_(pLocation), contents_(pContents) { }
 					
-				inline SourceLocation location() const {
+				inline Debug::SourceLocation location() const {
 					return location_;
 				}
 				
@@ -45,18 +45,18 @@ namespace locic {
 				
 				inline std::string toString() const {
 					return makeString("Node[location = %s](%s)",
-											 location_.toString().c_str(),
-											 isNull() ? "[NULL]" : contents_->toString().c_str());
+						location_.toString().c_str(),
+						isNull() ? "[NULL]" : contents_->toString().c_str());
 				}
 				
 			private:
-				SourceLocation location_;
+				Debug::SourceLocation location_;
 				NodeType* contents_;
 				
 		};
 		
 		template <typename T>
-		inline Node<T> makeNode(const SourceLocation& pLocation, T* pContents) {
+		inline Node<T> makeNode(const Debug::SourceLocation& pLocation, T* pContents) {
 			return Node<T>(pLocation, pContents);
 		}
 		

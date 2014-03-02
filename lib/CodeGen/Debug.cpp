@@ -50,7 +50,7 @@ namespace locic {
 			const auto flags = llvm::DIDescriptor::FlagPrototyped;
 			const bool isOptimised = false;
 			
-			return builder_.createFunction(file, name.toString(), "",
+			return builder_.createFunction(file, name.toString(false), "",
 				file, lineNumber, functionType, isLocalToUnit, isDefinition, scopeLine,
 				flags, isOptimised, function);
 		}
@@ -114,7 +114,7 @@ namespace locic {
 			
 		}
 		
-		llvm::Instruction* genDebugVar(Function& function, const SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue) {
+		llvm::Instruction* genDebugVar(Function& function, const Debug::SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue) {
 			auto& module = function.getModule();
 			const auto components = splitPath(sourceLocation.fileName());
 			const auto file = module.debugBuilder().createFile(components.second, components.first);

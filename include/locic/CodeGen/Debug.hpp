@@ -5,9 +5,9 @@
 #include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
-#include <locic/SourceLocation.hpp>
 
 namespace locic {
 
@@ -60,7 +60,7 @@ namespace locic {
 			
 		};
 		
-		llvm::Instruction* genDebugVar(Function& function, const SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue);
+		llvm::Instruction* genDebugVar(Function& function, const Debug::SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue);
 		
 	}
 	

@@ -125,11 +125,6 @@ namespace locic {
 			return function->type()->getFunctionReturnType();
 		}
 		
-		/*Node Context::lookupLocalVar(const std::string& varName) const {
-			// TODO.
-			return Node::None();
-		}*/
-		
 		SEM::TypeInstance* Context::getBuiltInType(const std::string& typeName) const {
 			return lookupName(Name::Absolute() + typeName).getSEMTypeInstance();
 		}

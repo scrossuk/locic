@@ -1,5 +1,6 @@
 #include <vector>
 
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
@@ -48,7 +49,8 @@ namespace locic {
 					// Generate debug information for the variable.
 					const bool isParam = true;
 					// TODO!
-					const auto location = SourceLocation("/example/directory/example_source_file.loci", SourceRange(SourcePosition(1, 0), SourcePosition(2, 0)));
+					const auto location = Debug::SourceLocation("/example/directory/example_source_file.loci",
+						Debug::SourceRange(Debug::SourcePosition(1, 0), Debug::SourcePosition(2, 0)));
 					const auto varName = "example_var";
 					const auto debugDeclare = genDebugVar(functionGenerator, location, isParam, varName, genDebugType(module, paramVar->constructType()), stackObject);
 					// TODO!
