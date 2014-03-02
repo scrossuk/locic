@@ -2,6 +2,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/DefaultMethods.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -38,6 +39,27 @@ namespace locic {
 				return NULL;
 			}
 			
+			void genFunctionVars(Function& functionGenerator, SEM::Function* function) {
+				auto& module = functionGenerator.getModule();
+				for (const auto paramVar: function->parameters()) {
+					// Create an alloca for this variable.
+					auto stackObject = genAlloca(functionGenerator, paramVar->type());
+					
+					// Generate debug information for the variable.
+					const bool isParam = true;
+					// TODO!
+					const auto location = SourceLocation("/example/directory/example_source_file.loci", SourceRange(SourcePosition(1, 0), SourcePosition(2, 0)));
+					const auto varName = "example_var";
+					const auto debugDeclare = genDebugVar(functionGenerator, location, isParam, varName, genDebugType(module, paramVar->constructType()), stackObject);
+					// TODO!
+					debugDeclare->setDebugLoc(llvm::DebugLoc::get(100, 22, functionGenerator.debugInfo()));
+					
+					// Add this to the local variable map, so that
+					// any SEM vars can be mapped to the actual value.
+					functionGenerator.getLocalVarMap().insert(paramVar, stackObject);
+				}
+			}
+			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
 				LifetimeScope lifetimeScope(functionGenerator);
 				
@@ -49,18 +71,14 @@ namespace locic {
 				functionGenerator.getBuilder().CreateBr(setParamsStartBB);
 				functionGenerator.selectBasicBlock(setParamsStartBB);
 				
-				for (std::size_t i = 0; i < parameterVars.size(); i++) {
-					auto paramVar = parameterVars.at(i);
+				for (size_t i = 0; i < parameterVars.size(); i++) {
+					const auto paramVar = parameterVars.at(i);
 					
-					// Create an alloca for this variable.
-					auto stackObject = genAlloca(functionGenerator, paramVar->type());
+					// Get the variable's alloca.
+					const auto stackObject = functionGenerator.getLocalVarMap().get(paramVar);
 					
 					// Store the argument into the stack alloca.
 					genStoreVar(functionGenerator, functionGenerator.getArg(i), stackObject, paramVar);
-					
-					// Add this to the local variable map, so that
-					// any SEM vars can be mapped to the actual value.
-					functionGenerator.getLocalVarMap().insert(paramVar, stackObject);
 					
 					// Add this to the list of variables to be
 					// destroyed at the end of the function.
@@ -159,7 +177,8 @@ namespace locic {
 			const auto file = module.debugBuilder().createFile("example_source_file.loci", "/example/directory");
 			const auto lineNumber = 42;
 			
-			const auto debugSubprogram = module.debugBuilder().convertFunction(file, lineNumber, function->isDefinition(), function->name(), llvmFunction);
+			const auto debugSubprogramType = genDebugType(module, function->type());
+			const auto debugSubprogram = module.debugBuilder().createFunction(file, lineNumber, function->isDefinition(), function->name(), debugSubprogramType, llvmFunction);
 			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
@@ -196,6 +215,8 @@ namespace locic {
 			
 			Function functionGenerator(module, *llvmFunction, getArgInfo(module, function));
 			functionGenerator.attachDebugInfo(debugSubprogram);
+			
+			genFunctionVars(functionGenerator, function);
 			
 			if (function->hasDefaultImplementation()) {
 				assert(parent != NULL);

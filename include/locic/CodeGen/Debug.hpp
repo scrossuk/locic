@@ -2,10 +2,12 @@
 #define LOCIC_CODEGEN_DEBUG_HPP
 
 #include <string>
+#include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
+#include <locic/SourceLocation.hpp>
 
 namespace locic {
 
@@ -18,6 +20,7 @@ namespace locic {
 			std::string flags;
 		};
 		
+		class Function;
 		class Module;
 		
 		class DebugBuilder {
@@ -33,15 +36,29 @@ namespace locic {
 				
 				llvm::DIFile createFile(const std::string& fileName, const std::string& directory);
 				
-				llvm::DISubprogram convertFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::Function* function);
+				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function);
 				
-				llvm::DIVariable convertVar(SEM::Var* var, bool isParam);
+				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const std::string& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
+				
+				llvm::DIType createVoidType();
+				
+				llvm::DIType createNullType();
+				
+				llvm::DIType createReferenceType(llvm::DIType type);
+				
+				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
+				
+				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<llvm::Value*>& parameters);
+				
+				llvm::Instruction* insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue);
 				
 			private:
 				Module& module_;
 				llvm::DIBuilder builder_;
 			
 		};
+		
+		llvm::Instruction* genDebugVar(Function& function, const SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue);
 		
 	}
 	

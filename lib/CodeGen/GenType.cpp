@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -37,7 +38,7 @@ namespace locic {
 				paramTypes.push_back(contextPointerType);
 			}
 			
-			const std::vector<SEM::Type*>& params = type->getFunctionParameterTypes();
+			const auto& params = type->getFunctionParameterTypes();
 			
 			for (std::size_t i = 0; i < params.size(); i++) {
 				SEM::Type* paramType = params.at(i);
@@ -168,6 +169,64 @@ namespace locic {
 				default: {
 					assert(false && "Unknown type enum for generating type");
 					return TypeGenerator(module).getVoidType();
+				}
+			}
+		}
+		
+		llvm::DIType genDebugType(Module& module, SEM::Type* unresolvedType) {
+			assert(unresolvedType != NULL);
+			
+			const auto type = module.resolveType(unresolvedType);
+			
+			LOG(LOG_INFO, "genDebugType(type: %s, mangledType: %s)",
+				type->toString().c_str(), mangleType(module, type).c_str());
+			
+			switch (type->kind()) {
+				case SEM::Type::VOID: {
+					return module.debugBuilder().createVoidType();
+				}
+				
+				case SEM::Type::NULLT: {
+					return module.debugBuilder().createNullType();
+				}
+				
+				case SEM::Type::OBJECT: {
+					// TODO!
+					const auto file = module.debugBuilder().createFile("example_source_file.loci", "/object/dir");
+					const auto lineNumber = 12;
+					return module.debugBuilder().createObjectType(file, lineNumber, type->getObjectType()->name());
+				}
+				
+				case SEM::Type::REFERENCE: {
+					return module.debugBuilder().createReferenceType(genDebugType(module, type->getReferenceTarget()));
+				}
+				
+				case SEM::Type::FUNCTION: {
+					// TODO!
+					const auto file = module.debugBuilder().createFile("object_file.loci", "/example/directory");
+					
+					std::vector<llvm::Value*> parameterTypes;
+					parameterTypes.push_back(genDebugType(module, type->getFunctionReturnType()));
+					
+					for (const auto paramType: type->getFunctionParameterTypes()) {
+						parameterTypes.push_back(genDebugType(module, paramType));
+					}
+					
+					return module.debugBuilder().createFunctionType(file, parameterTypes);
+				}
+				
+				case SEM::Type::METHOD: {
+					// TODO!
+					return module.debugBuilder().createNullType();
+				}
+				
+				case SEM::Type::INTERFACEMETHOD: {
+					// TODO!
+					return module.debugBuilder().createNullType();
+				}
+				
+				default: {
+					throw std::runtime_error("Unknown type enum for generating type.");
 				}
 			}
 		}

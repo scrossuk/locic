@@ -16,6 +16,8 @@ namespace locic {
 	
 		llvm::Type* genType(Module& module, SEM::Type* type);
 		
+		llvm::DIType genDebugType(Module& module, SEM::Type* unresolvedType);
+		
 	}
 	
 }

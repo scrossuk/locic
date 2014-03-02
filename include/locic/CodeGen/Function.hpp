@@ -36,7 +36,8 @@ namespace locic {
 					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
-					selectBasicBlock(createBasicBlock("entry"));
+					
+					selectBasicBlock(createBasicBlock(""));
 					
 					// Allocate exception information values.
 					TypeGenerator typeGen(module);

@@ -15,16 +15,19 @@ function(loci_example name binary_name)
 		list(APPEND ${name}BuildSources ${CMAKE_CURRENT_BINARY_DIR}/${f})
 	endforeach(f)
 	
-	add_custom_command(OUTPUT ${binary_name} ast.txt sem.txt codegen.ll opt.ll clangopt.ll
+	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised ast.txt sem.txt codegen.ll opt.ll clangopt.ll
 		COMMAND # Run compiler.
 			${LOCIC} -O3 -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&
 			
 			# Use clang to optimise, since it currently does
 			# much better than locic.
-			clang -S -emit-llvm -O3 -o clangopt.ll opt.ll &&
+			clang -S -emit-llvm -O3 -o clangopt.ll codegen.ll &&
 			
-			# Use clang to generate platform binary.
-			clang -o ${binary_name} clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception
+			# Use clang to generate non-optimised platform binary.
+			clang -o ${binary_name} codegen.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception &&
+			
+			# Use clang to generate optimised platform binary.
+			clang -o ${binary_name}_optimised clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception
 		DEPENDS ${LOCIC} ${${name}BuildSources} loci-runtime-exception
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
