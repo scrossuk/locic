@@ -11,6 +11,33 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		/*class Context {
+			public:
+				virtual const Name& name() const = 0;
+				
+				virtual const Node& node() const = 0;
+				
+				virtual bool hasParent() const = 0;
+				
+				virtual Context& parent() = 0;
+				
+				virtual Node lookupName(const Name& name) const = 0;
+				
+		};
+		
+		class RootContext {
+			public:
+				RootContext(Debug::Map& debugMap);
+				
+				const Name& name() const;
+				
+				
+					
+			private:
+				Debug::Map& debugMap_;
+			
+		};*/
+		
 		class Context {
 			public:
 				Context(const Node& rootNode);
@@ -27,21 +54,7 @@ namespace locic {
 				
 				const Context& parent() const;
 				
-				const Context * parentPtr() const;
-				
 				Node reverseLookup(SEM::TypeInstance* target) const;
-				
-				Node lookupParentType() const;
-				
-				Node getParentMemberVariable(const std::string& varName) const;
-				
-				Node lookupParentFunction() const;
-				
-				SEM::Type * getParentFunctionReturnType() const;
-				
-				//Node lookupLocalVar(const std::string& name) const;
-				
-				SEM::TypeInstance* getBuiltInType(const std::string& typeName) const;
 				
 				Node lookupName(const Name& name) const;
 			
@@ -52,6 +65,16 @@ namespace locic {
 				Node node_;
 				
 		};
+		
+		Node lookupParentType(const Context& context);
+		
+		Node getParentMemberVariable(const Context& context, const std::string& varName);
+		
+		Node lookupParentFunction(const Context& context);
+		
+		SEM::Type * getParentFunctionReturnType(const Context& context);
+		
+		SEM::TypeInstance* getBuiltInType(const Context& context, const std::string& typeName);
 		
 	}
 	

@@ -81,16 +81,14 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					SEM::Value* condition = ConvertValue(context, statement->ifStmt.condition);
-					SEM::Scope* ifTrue = ConvertScope(context, statement->ifStmt.ifTrue);
-					SEM::Scope* ifFalse = ConvertScope(context, statement->ifStmt.ifFalse);
+					const auto condition = ConvertValue(context, statement->ifStmt.condition);
+					const auto ifTrue = ConvertScope(context, statement->ifStmt.ifTrue);
+					const auto ifFalse = ConvertScope(context, statement->ifStmt.ifFalse);
 					
-					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
+					const auto boolType = getBuiltInType(context, "bool");
 					
-					const std::vector<SEM::Type*> NO_TEMPLATE_ARGS;
-					
-					SEM::Value* boolValue = ImplicitCast(condition,
-							SEM::Type::Object(boolType, NO_TEMPLATE_ARGS));
+					const auto boolValue = ImplicitCast(condition,
+							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
 				}
@@ -165,7 +163,7 @@ namespace locic {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
 					const auto whileTrue = ConvertScope(context, statement->whileStmt.whileTrue);
 					
-					const auto boolType = context.getBuiltInType("bool");
+					const auto boolType = getBuiltInType(context, "bool");
 					
 					const auto boolValue = ImplicitCast(condition,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
@@ -265,9 +263,9 @@ namespace locic {
 				case AST::Statement::RETURN: {
 					if (statement->returnStmt.value.get() == NULL) {
 						// Void return statement (i.e. return;)
-						if (!context.getParentFunctionReturnType()->isVoid()) {
+						if (!getParentFunctionReturnType(context)->isVoid()) {
 							throw TodoException(makeString("Cannot return void in function '%s' with non-void return type.",
-								context.lookupParentFunction().getSEMFunction()->name().toString().c_str()));
+								lookupParentFunction(context).getSEMFunction()->name().toString().c_str()));
 						}
 						
 						return SEM::Statement::ReturnVoid();
@@ -276,7 +274,7 @@ namespace locic {
 						
 						// Cast the return value to the function's
 						// specified return type.
-						const auto castValue = ImplicitCast(semValue, context.getParentFunctionReturnType());
+						const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context));
 						
 						return SEM::Statement::Return(castValue);
 					}

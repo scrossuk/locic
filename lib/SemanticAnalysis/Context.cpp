@@ -42,10 +42,6 @@ namespace locic {
 			return *parent_;
 		}
 		
-		const Context* Context::parentPtr() const {
-			return parent_;
-		}
-		
 		static Node findNode(const Node& currentNode, SEM::TypeInstance* target) {
 			if (currentNode.isTypeInstance() && currentNode.getSEMTypeInstance() == target) {
 				return currentNode;
@@ -83,52 +79,6 @@ namespace locic {
 			return foundNode;
 		}
 		
-		Node Context::lookupParentType() const {
-			const Context* currentContext = this;
-			
-			while (currentContext != NULL) {
-				if (currentContext->node().isTypeInstance()) {
-					return currentContext->node();
-				}
-				
-				currentContext = currentContext->parentPtr();
-			}
-			
-			return Node::None();
-		}
-		
-		Node Context::getParentMemberVariable(const std::string& varName) const {
-			const Node typeNode = lookupParentType();
-			assert(typeNode.isTypeInstance());
-			const Node varNode = typeNode.getChild("#__ivar_" + varName);
-			assert(varNode.isVariable());
-			return varNode;
-		}
-		
-		Node Context::lookupParentFunction() const {
-			const Context* currentContext = this;
-			
-			while (currentContext != NULL) {
-				if (currentContext->node().isFunction()) {
-					return currentContext->node();
-				}
-				
-				currentContext = currentContext->parentPtr();
-			}
-			
-			return Node::None();
-		}
-		
-		SEM::Type* Context::getParentFunctionReturnType() const {
-			const Node functionNode = lookupParentFunction();
-			SEM::Function* function = functionNode.getSEMFunction();
-			return function->type()->getFunctionReturnType();
-		}
-		
-		SEM::TypeInstance* Context::getBuiltInType(const std::string& typeName) const {
-			return lookupName(Name::Absolute() + typeName).getSEMTypeInstance();
-		}
-		
 		Node Context::lookupName(const Name& symbolName) const {
 			if (symbolName.isAbsolute() && hasParent()) {
 				LOG(LOG_INFO, "Searching in parent (for name %s)...", symbolName.toString().c_str());
@@ -154,6 +104,56 @@ namespace locic {
 			}
 			
 			return currentNode;
+		}
+		
+		Node lookupParentType(const Context& context) {
+			const Context* currentContext = &context;
+			
+			while (true) {
+				if (currentContext->node().isTypeInstance()) {
+					return currentContext->node();
+				}
+				
+				if (!currentContext->hasParent()) {
+					return Node::None();
+				}
+				
+				currentContext = &(currentContext->parent());
+			}
+		}
+		
+		Node getParentMemberVariable(const Context& context, const std::string& varName) {
+			const Node typeNode = lookupParentType(context);
+			assert(typeNode.isTypeInstance());
+			const Node varNode = typeNode.getChild("#__ivar_" + varName);
+			assert(varNode.isVariable());
+			return varNode;
+		}
+		
+		Node lookupParentFunction(const Context& context) {
+			const Context* currentContext = &context;
+			
+			while (true) {
+				if (currentContext->node().isFunction()) {
+					return currentContext->node();
+				}
+				
+				if (!currentContext->hasParent()) {
+					return Node::None();
+				}
+				
+				currentContext = &(currentContext->parent());
+			}
+		}
+		
+		SEM::Type* getParentFunctionReturnType(const Context& context) {
+			const Node functionNode = lookupParentFunction(context);
+			const auto function = functionNode.getSEMFunction();
+			return function->type()->getFunctionReturnType();
+		}
+		
+		SEM::TypeInstance* getBuiltInType(const Context& context, const std::string& typeName) {
+			return context.lookupName(Name::Absolute() + typeName).getSEMTypeInstance();
 		}
 		
 	}

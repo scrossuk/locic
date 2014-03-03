@@ -107,23 +107,23 @@ namespace locic {
 						&& astValueNode->constant->getStringType() == locic::Constant::CSTRING) {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = context.getBuiltInType("char");
-						const auto ptrTypeInstance = context.getBuiltInType("ptr");
+						const auto charTypeInstance = getBuiltInType(context, "char");
+						const auto ptrTypeInstance = getBuiltInType(context, "ptr");
 						
 						// Generate type 'const char'.
-						auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+						const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
 						
 						// Generate type 'const ptr<const char>'.
-						auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
+						const auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
 						
 						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
 					} else {
-						const std::string typeName = astValueNode->constant->getTypeName();
+						const auto typeName = astValueNode->constant->getTypeName();
 						if (typeName == "string") {
 							throw TodoException("Loci string constants not yet implemented (use 'C' suffix to get C strings for now, e.g. \"someString\"C).");
 						}
 						
-						const auto typeInstance = context.getBuiltInType(typeName);
+						const auto typeInstance = getBuiltInType(context, typeName);
 						if (typeInstance == NULL) {
 							throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
 								typeName.c_str()));
@@ -217,8 +217,8 @@ namespace locic {
 					return NULL;
 				}
 				case AST::Value::MEMBERREF: {
-					const std::string& memberName = astValueNode->memberRef.name;
-					SEM::Var* semVar = context.getParentMemberVariable(memberName).getSEMVar();
+					const auto& memberName = astValueNode->memberRef.name;
+					const auto semVar = getParentMemberVariable(context, memberName).getSEMVar();
 					
 					if(semVar == NULL) {
 						throw TodoException(makeString("Member variable '@%s' not found.",
@@ -228,27 +228,27 @@ namespace locic {
 					return SEM::Value::MemberVar(semVar);
 				}
 				case AST::Value::TERNARY: {
-					SEM::Value* cond = ConvertValue(context, astValueNode->ternary.condition);
+					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					SEM::TypeInstance* boolType = context.getBuiltInType("bool");
+					const auto boolType = getBuiltInType(context, "bool");
 					
-					SEM::Value* boolValue = ImplicitCast(cond,
+					const auto boolValue = ImplicitCast(cond,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
-					SEM::Value* ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
-					SEM::Value* ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
+					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
+					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
-					SEM::Type* targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
+					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
 					
-					SEM::Value* castIfTrue = ImplicitCast(ifTrue, targetType);
-					SEM::Value* castIfFalse = ImplicitCast(ifFalse, targetType);
+					const auto castIfTrue = ImplicitCast(ifTrue, targetType);
+					const auto castIfFalse = ImplicitCast(ifFalse, targetType);
 					
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
 				case AST::Value::CAST: {
-					SEM::Value* sourceValue = ConvertValue(context, astValueNode->cast.value);
-					SEM::Type* sourceType = ConvertType(context, astValueNode->cast.sourceType);
-					SEM::Type* targetType = ConvertType(context, astValueNode->cast.targetType);
+					const auto sourceValue = ConvertValue(context, astValueNode->cast.value);
+					const auto sourceType = ConvertType(context, astValueNode->cast.sourceType);
+					const auto targetType = ConvertType(context, astValueNode->cast.targetType);
 					
 					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_STATIC:
@@ -305,7 +305,7 @@ namespace locic {
 				case AST::Value::INTERNALCONSTRUCT: {
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					
-					const Node thisTypeNode = context.lookupParentType();
+					const Node thisTypeNode = lookupParentType(context);
 					
 					// TODO: throw an exception.
 					assert(thisTypeNode.isTypeInstance());

@@ -18,7 +18,7 @@ namespace locic {
 			
 			SEM::Type* semReturnType = NULL;
 			
-			const Node parentTypeNode = context.lookupParentType();
+			const Node parentTypeNode = lookupParentType(context);
 			
 			const auto thisTypeInstance =
 				parentTypeNode.isTypeInstance() ?
