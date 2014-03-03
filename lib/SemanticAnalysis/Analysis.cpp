@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
+#include <locic/Debug.hpp>
 #include <locic/Log.hpp>
 #include <locic/SEM.hpp>
 
@@ -528,7 +529,7 @@ namespace locic {
 			IdentifyTypeProperties(context, completedTypes);
 		}
 		
-		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces) {
+		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module&) {
 			try {
 				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
 				auto rootSEMNamespace = new SEM::Namespace("");

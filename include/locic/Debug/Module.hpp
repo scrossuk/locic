@@ -1,9 +1,10 @@
-#ifndef LOCIC_DEBUG_MAP_HPP
-#define LOCIC_DEBUG_MAP_HPP
+#ifndef LOCIC_DEBUG_MODULE_HPP
+#define LOCIC_DEBUG_MODULE_HPP
 
 #include <map>
 #include <string>
 
+#include <locic/Debug/CompilerInfo.hpp>
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/VarInfo.hpp>
 
@@ -13,7 +14,8 @@ namespace locic {
 
 	namespace Debug {
 		
-		struct Map {
+		struct Module {
+			CompilerInfo compiler;
 			std::map<SEM::Var*, VarInfo> varMap;
 		};
 		

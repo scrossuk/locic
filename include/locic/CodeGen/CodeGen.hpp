@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 
@@ -16,7 +17,7 @@ namespace locic {
 		
 		class CodeGenerator {
 			public:
-				CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName);
+				CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName, Debug::Module& debugModule);
 				~CodeGenerator();
 				
 				Module& module();

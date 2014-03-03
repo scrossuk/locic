@@ -2,11 +2,13 @@
 #define LOCIC_CODEGEN_MODULE_HPP
 
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/Debug.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -23,14 +25,11 @@ namespace locic {
 				typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 				typedef Map<std::string, llvm::StructType*> TypeMap;
 				
-				inline Module(const std::string& name, const TargetInfo& targetInfo)
+				inline Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& debugModule)
 					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
-					  targetInfo_(targetInfo), debugBuilder_(*this) {
+					  targetInfo_(targetInfo), debugBuilder_(*this),
+					  debugModule_(debugModule) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
-				}
-				
-				inline ~Module() {
-					delete module_;
 				}
 				
 				inline void dump() const {
@@ -46,7 +45,7 @@ namespace locic {
 				inline void writeBitCodeToFile(const std::string& fileName) const {
 					std::ofstream file(fileName.c_str());
 					llvm::raw_os_ostream ostream(file);
-					llvm::WriteBitcodeToFile(module_, ostream);
+					llvm::WriteBitcodeToFile(module_.get(), ostream);
 				}
 				
 				inline const TargetInfo& getTargetInfo() const {
@@ -62,7 +61,7 @@ namespace locic {
 				}
 				
 				inline llvm::Module* getLLVMModulePtr() const {
-					return module_;
+					return module_.get();
 				}
 				
 				inline FunctionMap& getFunctionMap() {
@@ -140,13 +139,14 @@ namespace locic {
 				}
 				
 			private:
-				llvm::Module* module_;
+				std::unique_ptr<llvm::Module> module_;
 				TargetInfo targetInfo_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
 				std::vector<const TemplateVarMap*> templateVarMapStack_;
 				TypeMap typeMap_;
 				DebugBuilder debugBuilder_;
+				Debug::Module& debugModule_;
 				
 		};
 		

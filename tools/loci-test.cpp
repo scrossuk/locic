@@ -10,7 +10,9 @@
 #include <boost/program_options.hpp>
 
 #include <locic/AST.hpp>
+#include <locic/Debug.hpp>
 #include <locic/Log.hpp>
+
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGen.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
@@ -93,7 +95,7 @@ int main(int argc, char* argv[]) {
 	
 	try {
 		if (argc < 1) return -1;
-		const std::string programName = boost::filesystem::path(argv[0]).stem().string();
+		const auto programName = boost::filesystem::path(argv[0]).stem().string();
 		
 		std::string testName;
 		std::vector<std::string> inputFileNames;
@@ -192,22 +194,25 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
+		// Debug information.
+		Debug::Module debugModule;
+		
 		// Perform semantic analysis.
-		SEM::Namespace* rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList);
-		assert(rootSEMNamespace != NULL);
+		const auto rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
+		assert(rootSEMNamespace != nullptr);
 		
 		// Dump SEM tree information.
-		const std::string semDebugFileName = testName + "_semdebug.txt";
+		const auto semDebugFileName = testName + "_semdebug.txt";
 		std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
 		ofs << formatMessage(rootSEMNamespace->toString());
 		
 		// Perform code generation.
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, "test");
+		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule);
 		codeGenerator.genNamespace(rootSEMNamespace);
 		
 		// Dump LLVM IR.
-		const std::string codeGenDebugFileName = testName + "_codegendebug.ll";
+		const auto codeGenDebugFileName = testName + "_codegendebug.ll";
 		codeGenerator.dumpToFile(codeGenDebugFileName);
 		
 		// Interpret the code.
@@ -227,7 +232,7 @@ int main(int argc, char* argv[]) {
 		std::stringstream expectedOutputBuffer;
 		expectedOutputBuffer << expectedOutputFileStream.rdbuf();
 		
-		const std::string& expectedOutput = expectedOutputBuffer.str();
+		const auto& expectedOutput = expectedOutputBuffer.str();
 		
 		if (testOutput != expectedOutput) {
 			printf("Test FAILED: Actual output doesn't match expected output.\n");

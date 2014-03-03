@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/Debug.hpp>
 #include <locic/Log.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
@@ -75,11 +76,10 @@ namespace locic {
 				return;
 			}
 			
-			const std::vector<SEM::Function*>& functions = typeInstance->functions();
+			const auto& functions = typeInstance->functions();
 			
 			// TODO: Remove this, since CodeGen should not generate any SEM trees.
-			SEM::Type* objectType =
-				SEM::Type::Object(typeInstance, std::vector<SEM::Type*>());
+			const auto objectType = SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
 			
 			for (size_t i = 0; i < functions.size(); i++) {
 				(void) genFunction(module, objectType, functions.at(i));
@@ -87,27 +87,22 @@ namespace locic {
 		}
 		
 		void genNamespaceFunctions(Module& module, SEM::Namespace* nameSpace) {
-			const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-			
-			for (size_t i = 0; i < namespaces.size(); i++) {
-				genNamespaceFunctions(module, namespaces.at(i));
+			for (const auto childNamespace: nameSpace->namespaces()) {
+				genNamespaceFunctions(module, childNamespace);
 			}
 			
-			const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-			
-			for (size_t i = 0; i < typeInstances.size(); i++) {
-				genTypeInstanceFunctions(module, typeInstances.at(i));
+			for (const auto typeInstance: nameSpace->typeInstances()) {
+				genTypeInstanceFunctions(module, typeInstance);
 			}
 			
-			const std::vector<SEM::Function*>& functions = nameSpace->functions();
-			
-			for (size_t i = 0; i < functions.size(); i++) {
-				(void) genFunction(module, NULL, functions.at(i));
+			for (const auto function: nameSpace->functions()) {
+				const auto parent = nullptr;
+				(void) genFunction(module, parent, function);
 			}
 		}
 		
-		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName)
-			: module_(new Module(moduleName, targetInfo)) {
+		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName, Debug::Module& debugModule)
+			: module_(new Module(moduleName, targetInfo, debugModule)) {
 			// TODO: fill these in correctly.
 			DebugCompileUnit compileUnit;
 			compileUnit.compilerName = "Loci Compiler";

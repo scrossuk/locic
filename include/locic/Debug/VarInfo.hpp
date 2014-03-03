@@ -32,7 +32,7 @@ namespace locic {
 			}
 			
 			inline VarInfo(Kind pKind, const std::string& pName, const SourceLocation& pDeclLocation, const SourceLocation& pScopeLocation)
-				: kind(pKind), name(pName), location(pDeclLocation), scopeLocation(pScopeLocation) { }
+				: kind(pKind), name(pName), declLocation(pDeclLocation), scopeLocation(pScopeLocation) { }
 		};
 		
 	}

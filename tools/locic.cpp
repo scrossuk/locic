@@ -9,6 +9,8 @@
 #include <boost/program_options.hpp>
 
 #include <locic/AST.hpp>
+#include <locic/Debug.hpp>
+
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGen.hpp>
 #include <locic/SemanticAnalysis.hpp>
@@ -61,7 +63,7 @@ static FILE* builtInTypesFile() {
 int main(int argc, char* argv[]) {
 	try {
 		if (argc < 1) return -1;
-		const std::string programName = boost::filesystem::path(argv[0]).stem().string();
+		const auto programName = boost::filesystem::path(argv[0]).stem().string();
 		
 		std::vector<std::string> inputFileNames;
 		int optimisationLevel = 0;
@@ -174,9 +176,12 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
+		// Debug information.
+		Debug::Module debugModule;
+		
 		// Perform semantic analysis.
-		SEM::Namespace* rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList);
-		assert(rootSEMNamespace != NULL);
+		const auto rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
+		assert(rootSEMNamespace != nullptr);
 		
 		if (!semDebugFileName.empty()) {
 			// If requested, dump SEM tree information.
@@ -184,10 +189,11 @@ int main(int argc, char* argv[]) {
 			ofs << formatMessage(rootSEMNamespace->toString());
 		}
 		
-		const std::string outputName = "output";
+		// TODO: name this based on output file name.
+		const auto outputName = "output";
 		
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName);
+		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName, debugModule);
 		codeGenerator.genNamespace(rootSEMNamespace);
 		
 		if (!codeGenDebugFileName.empty()) {
