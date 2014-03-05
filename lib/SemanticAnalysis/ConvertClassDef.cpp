@@ -19,7 +19,7 @@ namespace locic {
 				
 				if (!childNode.isFunction()) continue;
 				
-				Context functionContext(context, range.front().key(), childNode);
+				NodeContext functionContext(context, range.front().key(), childNode);
 				ConvertFunctionDef(functionContext);
 			}
 		}

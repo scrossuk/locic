@@ -11,35 +11,25 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Context::Context(const Node& rootNode)
-			: parent_(NULL), name_(Name::Absolute()), node_(rootNode) {
+		RootContext::RootContext(const Node& rootNode, Debug::Module& pDebugModule)
+			: debugModule_(pDebugModule), rootNode_(rootNode) {
 			assert(rootNode.isNamespace() && "Root node must be a namespace.");
 		}
 		
-		Context::Context(Context& p, const std::string& n, const Node& nd)
-			: parent_(&p), name_(p.name() + n), node_(nd) {
-			assert(node_.isNotNone());
+		Name RootContext::name() const {
+			return Name::Absolute();
 		}
 		
-		const Name& Context::name() const {
-			return name_;
+		Node& RootContext::node() {
+			return rootNode_;
 		}
 		
-		Node& Context::node() {
-			return node_;
+		const Node& RootContext::node() const {
+			return rootNode_;
 		}
 		
-		const Node& Context::node() const {
-			return node_;
-		}
-		
-		bool Context::hasParent() const {
-			return parent_ != NULL;
-		}
-		
-		const Context& Context::parent() const {
-			assert(hasParent());
-			return *parent_;
+		const Context* RootContext::parent() const {
+			return nullptr;
 		}
 		
 		static Node findNode(const Node& currentNode, SEM::TypeInstance* target) {
@@ -58,15 +48,12 @@ namespace locic {
 			return Node::None();
 		}
 		
-		Node Context::reverseLookup(SEM::TypeInstance* typeInstance) const {
+		// TODO: remove this!
+		Node RootContext::reverseLookup(SEM::TypeInstance* typeInstance) const {
 			auto result = reverseLookupCache_.tryGet(typeInstance);
 			
 			if (result.hasValue()) {
 				return result.getValue();
-			}
-			
-			if (hasParent()) {
-				return parent().reverseLookup(typeInstance);
 			}
 			
 			const Node foundNode = findNode(node(), typeInstance);
@@ -79,10 +66,52 @@ namespace locic {
 			return foundNode;
 		}
 		
-		Node Context::lookupName(const Name& symbolName) const {
-			if (symbolName.isAbsolute() && hasParent()) {
-				LOG(LOG_INFO, "Searching in parent (for name %s)...", symbolName.toString().c_str());
-				return parent().lookupName(symbolName);
+		Node RootContext::lookupName(const Name& searchName) const {
+			Node currentNode = node();
+			
+			for (const auto& component: searchName) {
+				currentNode = currentNode.getChild(component);
+				
+				if (currentNode.isNone()) {
+					return Node::None();
+				}
+			}
+			
+			return currentNode;
+		}
+		
+		Debug::Module& RootContext::debugModule() {
+			return debugModule_;
+		}
+		
+		NodeContext::NodeContext(Context& p, const std::string& n, const Node& nd)
+			: parent_(p), name_(p.name() + n), node_(nd) {
+			assert(node_.isNotNone());
+		}
+		
+		Name NodeContext::name() const {
+			return name_;
+		}
+		
+		Node& NodeContext::node() {
+			return node_;
+		}
+		
+		const Node& NodeContext::node() const {
+			return node_;
+		}
+		
+		const Context* NodeContext::parent() const {
+			return &parent_;
+		}
+		
+		Node NodeContext::reverseLookup(SEM::TypeInstance* typeInstance) const {
+			return parent_.reverseLookup(typeInstance);
+		}
+		
+		Node NodeContext::lookupName(const Name& symbolName) const {
+			if (symbolName.isAbsolute()) {
+				return parent_.lookupName(symbolName);
 			}
 			
 			assert(!symbolName.empty());
@@ -90,36 +119,32 @@ namespace locic {
 			Node currentNode = node();
 			
 			for (size_t namePos = 0; namePos < symbolName.size(); namePos++) {
-				LOG(LOG_INFO, "Searching for '%s' in node '%s'.", symbolName.at(namePos).c_str(),
-					name().toString().c_str());
 				currentNode = currentNode.getChild(symbolName.at(namePos));
 				
 				if (currentNode.isNone()) {
-					LOG(LOG_INFO, "Search failed; node has %llu children.",
-						(unsigned long long) node().children().size());
-					return hasParent() ?
-						   parent().lookupName(symbolName) :
-						   Node::None();
+					return parent_.lookupName(symbolName);
 				}
 			}
 			
 			return currentNode;
 		}
 		
+		Debug::Module& NodeContext::debugModule() {
+			return parent_.debugModule();
+		}
+		
 		Node lookupParentType(const Context& context) {
 			const Context* currentContext = &context;
 			
-			while (true) {
+			while (currentContext != nullptr) {
 				if (currentContext->node().isTypeInstance()) {
 					return currentContext->node();
 				}
 				
-				if (!currentContext->hasParent()) {
-					return Node::None();
-				}
-				
-				currentContext = &(currentContext->parent());
+				currentContext = currentContext->parent();
 			}
+			
+			return Node::None();
 		}
 		
 		Node getParentMemberVariable(const Context& context, const std::string& varName) {
@@ -133,17 +158,15 @@ namespace locic {
 		Node lookupParentFunction(const Context& context) {
 			const Context* currentContext = &context;
 			
-			while (true) {
+			while (currentContext != nullptr) {
 				if (currentContext->node().isFunction()) {
 					return currentContext->node();
 				}
 				
-				if (!currentContext->hasParent()) {
-					return Node::None();
-				}
-				
-				currentContext = &(currentContext->parent());
+				currentContext = currentContext->parent();
 			}
+			
+			return Node::None();
 		}
 		
 		SEM::Type* getParentFunctionReturnType(const Context& context) {

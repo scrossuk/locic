@@ -101,7 +101,7 @@ namespace locic {
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
 						auto semCase = new SEM::SwitchCase();
 						auto switchCaseNode = Node::SwitchCase(astCase, semCase);
-						Context switchCaseContext(context, "#switchcase", switchCaseNode);
+						NodeContext switchCaseContext(context, "#switchcase", switchCaseNode);
 						
 						const bool isMember = false;
 						semCase->setVar(ConvertVar(switchCaseContext, isMember, astCase->var));
@@ -178,7 +178,7 @@ namespace locic {
 					for (const auto& astCatch: *(statement->tryStmt.catchList)) {
 						auto semCatch = new SEM::CatchClause();
 						auto catchClauseNode = Node::CatchClause(astCatch, semCatch);
-						Context catchClauseContext(context, "#catchclause", catchClauseNode);
+						NodeContext catchClauseContext(context, "#catchclause", catchClauseNode);
 						
 						const auto& astVar = astCatch->var;
 						

@@ -42,19 +42,21 @@ namespace locic {
 			
 			void genFunctionVars(Function& functionGenerator, SEM::Function* function) {
 				auto& module = functionGenerator.getModule();
+				auto& varMap = module.debugModule().varMap;
 				for (const auto paramVar: function->parameters()) {
 					// Create an alloca for this variable.
 					auto stackObject = genAlloca(functionGenerator, paramVar->type());
 					
-					// Generate debug information for the variable.
-					const bool isParam = true;
-					// TODO!
-					const auto location = Debug::SourceLocation("/example/directory/example_source_file.loci",
-						Debug::SourceRange(Debug::SourcePosition(1, 0), Debug::SourcePosition(2, 0)));
-					const auto varName = "example_var";
-					const auto debugDeclare = genDebugVar(functionGenerator, location, isParam, varName, genDebugType(module, paramVar->constructType()), stackObject);
-					// TODO!
-					debugDeclare->setDebugLoc(llvm::DebugLoc::get(100, 22, functionGenerator.debugInfo()));
+					// Generate debug information for the variable
+					// if any is available.
+					const auto iterator = varMap.find(paramVar);
+					if (iterator != varMap.end()) {
+						const auto& varInfo = iterator->second;
+						const auto debugDeclare = genDebugVar(functionGenerator, varInfo, genDebugType(module, paramVar->constructType()), stackObject);
+						
+						const auto varDeclStart = varInfo.declLocation.range().start();
+						debugDeclare->setDebugLoc(llvm::DebugLoc::get(varDeclStart.lineNumber(), varDeclStart.column(), functionGenerator.debugInfo()));
+					}
 					
 					// Add this to the local variable map, so that
 					// any SEM vars can be mapped to the actual value.
@@ -175,13 +177,6 @@ namespace locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
-			// TODO!
-			const auto file = module.debugBuilder().createFile("example_source_file.loci", "/example/directory");
-			const auto lineNumber = 42;
-			
-			const auto debugSubprogramType = genDebugType(module, function->type());
-			const auto debugSubprogram = module.debugBuilder().createFunction(file, lineNumber, function->isDefinition(), function->name(), debugSubprogramType, llvmFunction);
-			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller
@@ -216,7 +211,15 @@ namespace locic {
 			}
 			
 			Function functionGenerator(module, *llvmFunction, getArgInfo(module, function));
-			functionGenerator.attachDebugInfo(debugSubprogram);
+			
+			const auto& functionMap = module.debugModule().functionMap;
+			const auto iterator = functionMap.find(function);
+			if (iterator != functionMap.end()) {
+				const auto debugSubprogramType = genDebugType(module, function->type());
+				const auto& functionInfo = iterator->second;
+				const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction);
+				functionGenerator.attachDebugInfo(debugSubprogram);
+			}
 			
 			genFunctionVars(functionGenerator, function);
 			

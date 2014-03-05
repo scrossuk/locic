@@ -77,6 +77,11 @@ namespace locic {
 			return primitiveSizes_.get(name);
 		}
 		
+		size_t TargetInfo::getPrimitiveAlign(const std::string& name) const {
+			// TODO
+			return getPrimitiveSize(name);
+		}
+		
 	}
 	
 }

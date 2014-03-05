@@ -22,10 +22,10 @@ namespace locic {
 		SEM::Scope* ConvertScope(Context& context, AST::Node<AST::Scope> astScope) {
 			assert(astScope.get() != NULL);
 			
-			SEM::Scope* semScope = new SEM::Scope();
+			const auto semScope = new SEM::Scope();
 			
-			Node scopeNode = Node::Scope(astScope, semScope);
-			Context scopeContext(context, "##scope", scopeNode);
+			auto scopeNode = Node::Scope(astScope, semScope);
+			NodeContext scopeContext(context, "##scope", scopeNode);
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
 			for (const auto& astStatementNode: *(astScope->statements)) {

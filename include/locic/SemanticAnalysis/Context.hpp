@@ -2,6 +2,8 @@
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
 #include <string>
+
+#include <locic/Debug.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -11,56 +13,77 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		/*class Context {
+		class Context {
 			public:
-				virtual const Name& name() const = 0;
+				virtual Name name() const = 0;
+				
+				virtual Node& node() = 0;
 				
 				virtual const Node& node() const = 0;
 				
-				virtual bool hasParent() const = 0;
+				virtual const Context* parent() const = 0;
 				
-				virtual Context& parent() = 0;
+				virtual Node reverseLookup(SEM::TypeInstance* target) const = 0;
 				
 				virtual Node lookupName(const Name& name) const = 0;
 				
+				virtual Debug::Module& debugModule() = 0;
+				
 		};
 		
-		class RootContext {
+		class RootContext: public Context {
 			public:
-				RootContext(Debug::Map& debugMap);
+				RootContext(const Node& rootNode, Debug::Module& debugModule);
 				
-				const Name& name() const;
-				
-				
-					
-			private:
-				Debug::Map& debugMap_;
-			
-		};*/
-		
-		class Context {
-			public:
-				Context(const Node& rootNode);
-				
-				Context(Context& parent, const std::string& n, const Node& node);
-				
-				const Name& name() const;
+				Name name() const;
 				
 				Node& node();
 				
 				const Node& node() const;
 				
-				bool hasParent() const;
-				
-				const Context& parent() const;
+				const Context* parent() const;
 				
 				Node reverseLookup(SEM::TypeInstance* target) const;
 				
 				Node lookupName(const Name& name) const;
+				
+				Debug::Module& debugModule();
+					
+			private:
+				// Non-copyable.
+				RootContext(const RootContext&) = delete;
+				RootContext& operator=(RootContext) = delete;
+				
+				Debug::Module& debugModule_;
+				Node rootNode_;
+				mutable Map<SEM::TypeInstance*, Node> reverseLookupCache_;
+				
+		};
+		
+		class NodeContext: public Context {
+			public:
+				NodeContext(Context& parent, const std::string& n, const Node& node);
+				
+				Name name() const;
+				
+				Node& node();
+				
+				const Node& node() const;
+				
+				const Context* parent() const;
+				
+				Node reverseLookup(SEM::TypeInstance* target) const;
+				
+				Node lookupName(const Name& name) const;
+				
+				Debug::Module& debugModule();
 			
 			private:
-				Context * parent_;
-				mutable Map<SEM::TypeInstance*, Node> reverseLookupCache_;
+				// Non-copyable.
+				NodeContext(const NodeContext&) = delete;
+				NodeContext& operator=(NodeContext) = delete;
+				
+				Context& parent_;
 				Name name_;
 				Node node_;
 				

@@ -19,7 +19,7 @@ namespace locic {
 			
 			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 				const Node& childNode = range.front().value();
-				Context newContext(context, range.front().key(), childNode);
+				NodeContext newContext(context, range.front().key(), childNode);
 				if(childNode.isFunction()){
 					ConvertFunctionDef(newContext);
 				}else if(childNode.isNamespace()){

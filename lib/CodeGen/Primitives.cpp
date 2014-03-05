@@ -406,13 +406,13 @@ namespace locic {
 			if (methodName == "Create") {
 				const auto stackObject = genAlloca(function, parent);
 				
-				// Set the liveness indicator.
-				const auto livenessIndicatorPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 0);
-				builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicatorPtr);
-				
 				// Store the object.
-				const auto objectPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 1);
+				const auto objectPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 0);
 				genStore(function, function.getArg(0), objectPtr, targetType);
+				
+				// Set the liveness indicator.
+				const auto livenessIndicatorPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 1);
+				builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicatorPtr);
 				
 				if (function.getArgInfo().hasReturnVarArgument()) {
 					genStore(function, genLoad(function, stackObject, parent), function.getReturnVar(), parent);
@@ -428,9 +428,8 @@ namespace locic {
 				return;
 			}
 			
-			// Get a pointer to the value, which is
-			// just after the liveness indicator.
-			const auto ptrToValue = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
+			// Get a pointer to the value.
+			const auto ptrToValue = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
@@ -477,8 +476,9 @@ namespace locic {
 					// check the liveness indicator).
 					genDestructorCall(function, parent, function.getContextValue());
 					
-					// Get a pointer to the liveness indicator.
-					const auto livenessIndicator = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
+					// Get a pointer to the liveness indicator,
+					// which is just after the value.
+					const auto livenessIndicator = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
 					
 					// Set the liveness indicator.
 					builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
@@ -499,8 +499,8 @@ namespace locic {
 		}
 		
 		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction) {
-			const std::string typeName = parent->getObjectType()->name().last();
-			const std::string methodName = function->name().last();
+			const auto typeName = parent->getObjectType()->name().last();
+			const auto methodName = function->name().last();
 			
 			if (typeName == "bool") {
 				createBoolPrimitiveMethod(module, methodName, llvmFunction);
@@ -531,12 +531,12 @@ namespace locic {
 			
 			const auto targetType = type->templateArguments().at(0);
 			
-			// Get a pointer to the liveness indicator.
-			const auto livenessIndicator = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
+			// Get a pointer to the value.
+			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
 			
-			// Get a pointer to the value, which is
-			// just after the liveness indicator.
-			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 1);
+			// Get a pointer to the liveness indicator,
+			// which is just after the value.
+			const auto livenessIndicator = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 1);
 			
 			// Set the liveness indicator.
 			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
@@ -594,7 +594,7 @@ namespace locic {
 			// Check the 'liveness indicator' which indicates whether
 			// child value's destructor should be run.
 			const auto isLive = function.getBuilder().CreateLoad(
-				function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0));
+				function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1));
 			
 			const auto isLiveBB = function.createBasicBlock("is_live");
 			const auto isNotLiveBB = function.createBasicBlock("is_not_live");
@@ -607,7 +607,7 @@ namespace locic {
 			
 			// If it is live, run the child value's destructor.
 			function.selectBasicBlock(isLiveBB);
-			const auto ptrToValue = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
+			const auto ptrToValue = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
 			genDestructorCall(function, targetType, ptrToValue);
 			function.getBuilder().CreateRetVoid();
 			
@@ -680,11 +680,11 @@ namespace locic {
 				
 				std::vector<llvm::Type*> structVariables;
 				
-				// Add 'live' indicator (to determine whether child destructor is run).
-				structVariables.push_back(TypeGenerator(module).getI1Type());
-				
 				// Add child value.
 				structVariables.push_back(targetType);
+				
+				// Add 'live' indicator (to determine whether child destructor is run).
+				structVariables.push_back(TypeGenerator(module).getI1Type());
 				
 				return TypeGenerator(module).getStructType(structVariables);
 			}

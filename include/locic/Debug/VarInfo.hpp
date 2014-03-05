@@ -19,20 +19,8 @@ namespace locic {
 			SourceLocation declLocation;
 			SourceLocation scopeLocation;
 			
-			static inline VarInfo Auto(const std::string& name, const SourceLocation& declLocation, const SourceLocation& scopeLocation) {
-				return VarInfo(VAR_AUTO, name, declLocation, scopeLocation);
-			}
-			
-			static inline VarInfo Arg(const std::string& name, const SourceLocation& declLocation, const SourceLocation& scopeLocation) {
-				return VarInfo(VAR_ARG, name, declLocation, scopeLocation);
-			}
-			
-			static inline VarInfo Member(const std::string& name, const SourceLocation& declLocation, const SourceLocation& scopeLocation) {
-				return VarInfo(VAR_MEMBER, name, declLocation, scopeLocation);
-			}
-			
-			inline VarInfo(Kind pKind, const std::string& pName, const SourceLocation& pDeclLocation, const SourceLocation& pScopeLocation)
-				: kind(pKind), name(pName), declLocation(pDeclLocation), scopeLocation(pScopeLocation) { }
+			inline VarInfo()
+				: kind(VAR_AUTO), name(), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
 		};
 		
 	}

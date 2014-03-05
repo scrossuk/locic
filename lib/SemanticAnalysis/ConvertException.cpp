@@ -71,7 +71,7 @@ namespace locic {
 				attachParameters(functionNode, astTypeInstanceNode->variables, parameters);
 				
 				// Create context for function (to resolve references to parameters).
-				Context functionContext(context, "Create", functionNode);
+				NodeContext functionContext(context, "Create", functionNode);
 				
 				std::vector<SEM::Value*> parentArguments;
 				for (const auto& astValueNode: *(initializerNode->valueList)) {

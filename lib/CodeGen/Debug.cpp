@@ -14,6 +14,16 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		std::pair<std::string, std::string> splitPath(const std::string& path) {
+			for (size_t i = 0; i < path.size(); i++) {
+				const auto pos = path.size() - i - 1;
+				if (path.at(pos) == '/') {
+					return std::make_pair(path.substr(0, pos), path.substr(pos + 1, i));
+				}
+			}
+			return std::make_pair("", path);
+		}
+		
 		DebugBuilder::DebugBuilder(Module& module)
 			: module_(module), builder_(module_.getLLVMModule()) { }
 		
@@ -40,8 +50,9 @@ namespace locic {
 			return llvm::DICompileUnit(node);
 		}
 		
-		llvm::DIFile DebugBuilder::createFile(const std::string& fileName, const std::string& directory) {
-			return builder_.createFile(fileName, directory);
+		llvm::DIFile DebugBuilder::createFile(const std::string& path) {
+			const auto components = splitPath(path);
+			return builder_.createFile(components.second, components.first);
 		}
 		
 		llvm::DISubprogram DebugBuilder::createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function) {
@@ -73,9 +84,14 @@ namespace locic {
 		}
 		
 		llvm::DIType DebugBuilder::createPointerType(llvm::DIType type) {
-			// TODO!
-			const auto sizeInBits = 32;
-			return builder_.createPointerType(type, sizeInBits);
+			const auto& targetInfo = module_.getTargetInfo();
+			return builder_.createPointerType(type, targetInfo.getPointerSize());
+		}
+		
+		llvm::DIType DebugBuilder::createIntType(const std::string& name) {
+			const auto& targetInfo = module_.getTargetInfo();
+			return builder_.createBasicType("name", targetInfo.getPrimitiveSize(name),
+				targetInfo.getPrimitiveAlign(name), llvm::dwarf::DW_ATE_signed);
 		}
 		
 		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {
@@ -100,26 +116,20 @@ namespace locic {
 			return builder_.insertDeclare(varValue, variable, function.getSelectedBasicBlock());
 		}
 		
-		namespace {
-			
-			std::pair<std::string, std::string> splitPath(const std::string& path) {
-				for (size_t i = 0; i < path.size(); i++) {
-					const auto pos = path.size() - i - 1;
-					if (path.at(pos) == '/') {
-						return std::make_pair(path.substr(0, pos), path.substr(pos + 1, i));
-					}
-				}
-				return std::make_pair("", path);
-			}
-			
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function) {
+			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
+			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
+			return module.debugBuilder().createFunction(file, lineNumber, functionInfo.isDefinition,
+				functionInfo.name, functionType, function);
 		}
 		
-		llvm::Instruction* genDebugVar(Function& function, const Debug::SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue) {
+		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
 			auto& module = function.getModule();
-			const auto components = splitPath(sourceLocation.fileName());
-			const auto file = module.debugBuilder().createFile(components.second, components.first);
-			const auto lineNumber = 1;
-			const auto varDebugInfo = module.debugBuilder().createVar(function.debugInfo(), isParam, name, file, lineNumber, type);
+			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName());
+			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
+			const bool isParam = (varInfo.kind == Debug::VarInfo::VAR_ARG);
+			
+			const auto varDebugInfo = module.debugBuilder().createVar(function.debugInfo(), isParam, varInfo.name, file, lineNumber, type);
 			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, varValue);
 		}
 		

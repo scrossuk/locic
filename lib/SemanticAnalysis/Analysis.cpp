@@ -16,6 +16,7 @@
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -76,7 +77,7 @@ namespace locic {
 			
 			// This level is complete; now go to the deeper levels of namespaces.
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	Context childNamespaceContext(context, range.front().key(), range.front().value());
+			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
 				AddNamespacesPass(childNamespaceContext);
 			}
 		}
@@ -128,7 +129,7 @@ namespace locic {
 			
 			//-- Look through child namespaces for type instances.
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	Context childNamespaceContext(context, range.front().key(), range.front().value());
+			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
 				AddTypeInstancesPass(childNamespaceContext);
 			}
 			
@@ -176,7 +177,7 @@ namespace locic {
 				}
 			} else {
 				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
-			 		Context newContext(context, range.front().key(), range.front().value());
+			 		NodeContext newContext(context, range.front().key(), range.front().value());
 					AddTemplateVariablesPass(newContext);
 				}
 			}
@@ -202,7 +203,7 @@ namespace locic {
 				}
 			} else {
 				for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
-			 		Context newContext(context, range.front().key(), range.front().value());
+			 		NodeContext newContext(context, range.front().key(), range.front().value());
 					AddTemplateVariableRequirementsPass(newContext);
 				}
 			}
@@ -265,10 +266,21 @@ namespace locic {
 				}
 			} else {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		Context newContext(context, range.front().key(), range.front().value());
+			 		NodeContext newContext(context, range.front().key(), range.front().value());
 					AddTypeMemberVariablesPass(newContext);
 				}
 			}
+		}
+		
+		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& astFunctionNode, SEM::Function* semFunction) {
+			Debug::FunctionInfo functionInfo;
+			functionInfo.isDefinition = astFunctionNode->isDefinition();
+			functionInfo.name = semFunction->name();
+			functionInfo.declLocation = astFunctionNode.location();
+			
+			// TODO
+			functionInfo.scopeLocation = Debug::SourceLocation::Null();
+			return functionInfo;
 		}
 		
 		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
@@ -316,6 +328,9 @@ namespace locic {
 			// Attach function node to parent.
 			node.attach(name, functionNode);
 			
+			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
+			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
+			
 			const auto& astParametersNode = astFunctionNode->parameters();
 			
 			assert(astParametersNode->size() == semFunction->parameters().size());
@@ -331,6 +346,9 @@ namespace locic {
 				if (!functionNode.tryAttach(astTypeVarNode->namedVar.name, paramNode)) {
 					throw ParamVariableClashException(fullName, astTypeVarNode->namedVar.name);
 				}
+				
+				const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_ARG, astTypeVarNode);
+				context.debugModule().varMap.insert(std::make_pair(semVar, varInfo));
 			}
 			
 			if (node.isNamespace()) {
@@ -350,7 +368,7 @@ namespace locic {
 			
 			if (node.isNamespace()) {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		Context newContext(context, range.front().key(), range.front().value());
+			 		NodeContext newContext(context, range.front().key(), range.front().value());
 					AddFunctionDeclsPass(newContext);
 				}
 				
@@ -432,7 +450,7 @@ namespace locic {
 				}
 			} else {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		Context newContext(context, range.front().key(), range.front().value());
+			 		NodeContext newContext(context, range.front().key(), range.front().value());
 					CompleteTemplateVariableRequirementsPass(newContext);
 				}
 			}
@@ -517,7 +535,7 @@ namespace locic {
 			}
 			
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	Context newContext(context, range.front().key(), range.front().value());
+			 	NodeContext newContext(context, range.front().key(), range.front().value());
 			 	LOG(LOG_INFO, "Getting properties for '%s'.",
 			 		newContext.name().toString().c_str());
 				IdentifyTypeProperties(newContext, completedTypes);
@@ -529,7 +547,7 @@ namespace locic {
 			IdentifyTypeProperties(context, completedTypes);
 		}
 		
-		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module&) {
+		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module& debugModule) {
 			try {
 				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
 				auto rootSEMNamespace = new SEM::Namespace("");
@@ -537,8 +555,8 @@ namespace locic {
 				// Create the root namespace node.
 				auto rootNode = Node::Namespace(rootASTNamespaces, rootSEMNamespace);
 				
-				// Root context is the 'top of the stack', and its methods are all effectively null.
-				Context rootContext(rootNode);
+				// Root context is the 'top of the stack'.
+				RootContext rootContext(rootNode, debugModule);
 				
 				// ---- Pass 1: Create namespaces.
 				AddNamespacesPass(rootContext);

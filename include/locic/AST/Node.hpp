@@ -7,16 +7,11 @@ namespace locic {
 
 	namespace AST {
 	
-		inline Debug::SourceLocation NullLocation() {
-			const auto nullPosition = Debug::SourcePosition(0, 0);
-			return Debug::SourceLocation("<NULL>", Debug::SourceRange(nullPosition, nullPosition));
-		}
-		
 		template <typename NodeType>
 		class Node {
 			public:
 				inline Node()
-					: location_(NullLocation()), contents_(NULL) { }
+					: location_(Debug::SourceLocation::Null()), contents_(NULL) { }
 					
 				inline Node(const Debug::SourceLocation& pLocation, NodeType* pContents)
 					: location_(pLocation), contents_(pContents) { }
@@ -62,7 +57,7 @@ namespace locic {
 		
 		template <typename T>
 		inline Node<T> makeDefaultNode() {
-			return Node<T>(NullLocation(), new T());
+			return Node<T>(Debug::SourceLocation::Null(), new T());
 		}
 		
 	}

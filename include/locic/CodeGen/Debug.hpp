@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
-#include <locic/Debug/SourceLocation.hpp>
+#include <locic/Debug.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -34,7 +34,7 @@ namespace locic {
 				
 				llvm::DICompileUnit compileUnit() const;
 				
-				llvm::DIFile createFile(const std::string& fileName, const std::string& directory);
+				llvm::DIFile createFile(const std::string& path);
 				
 				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function);
 				
@@ -48,6 +48,8 @@ namespace locic {
 				
 				llvm::DIType createPointerType(llvm::DIType type);
 				
+				llvm::DIType createIntType(const std::string& name);
+				
 				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
 				
 				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<llvm::Value*>& parameters);
@@ -60,7 +62,11 @@ namespace locic {
 			
 		};
 		
-		llvm::Instruction* genDebugVar(Function& function, const Debug::SourceLocation& sourceLocation, bool isParam, const std::string& name, llvm::DIType type, llvm::Value* varValue);
+		std::pair<std::string, std::string> splitPath(const std::string& path);
+		
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function);
+		
+		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
 		
 	}
 	

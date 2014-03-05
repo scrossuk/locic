@@ -37,6 +37,8 @@ namespace locic {
 					return size / 8;
 				}
 				
+				size_t getPrimitiveAlign(const std::string& name) const;
+				
 			private:
 				Map<std::string, size_t> primitiveSizes_;
 				std::string triple_;

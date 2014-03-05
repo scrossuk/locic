@@ -21,7 +21,7 @@ namespace locic {
 			inline static TemplateTypeVar* Typename(const std::string& name) {
 				TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
 				typeVar->name = name;
-				typeVar->specType = makeNode(NullLocation(), Type::Void());
+				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
 				return typeVar;
 			}
 			
@@ -36,7 +36,7 @@ namespace locic {
 			inline static TemplateTypeVar* Polymorphic(const std::string& name) {
 				TemplateTypeVar* typeVar = new TemplateTypeVar(POLYMORPHIC);
 				typeVar->name = name;
-				typeVar->specType = makeNode(NullLocation(), Type::Void());
+				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
 				return typeVar;
 			}
 			
@@ -45,7 +45,7 @@ namespace locic {
 				
 			inline std::string toString() const {
 				return makeString("TemplateTypeVar(name = %s, specType = %s)",
-										 name.c_str(), specType.toString().c_str());
+					name.c_str(), specType.toString().c_str());
 			}
 		};
 		

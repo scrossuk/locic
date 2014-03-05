@@ -84,6 +84,11 @@ namespace locic {
 		
 		class SourceLocation {
 			public:
+				inline static SourceLocation Null() {
+					const auto nullPosition = SourcePosition(0, 0);
+					return SourceLocation("<NULL>", SourceRange(nullPosition, nullPosition));
+				}
+				
 				inline SourceLocation(const std::string& pFileName, SourceRange pRange)
 					: fileName_(pFileName), range_(pRange) { }
 					

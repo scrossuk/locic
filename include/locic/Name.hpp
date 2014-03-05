@@ -176,6 +176,22 @@ namespace locic{
 				return substr(size() - 1);
 			}
 			
+			inline ListType::iterator begin() {
+				return list_.begin();
+			}
+			
+			inline ListType::iterator end() {
+				return list_.end();
+			}
+			
+			inline ListType::const_iterator begin() const {
+				return list_.begin();
+			}
+			
+			inline ListType::const_iterator end() const {
+				return list_.end();
+			}
+			
 		private:
 			bool isAbsolute_;
 			ListType list_;

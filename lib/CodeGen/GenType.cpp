@@ -197,10 +197,14 @@ namespace locic {
 						if (objectType->name() == (Name::Absolute() + "ptr")) {
 							return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
 						}
+						
+						if (objectType->name() == (Name::Absolute() + "int")) {
+							return module.debugBuilder().createIntType("int");
+						}
 					}
 					
 					// TODO!
-					const auto file = module.debugBuilder().createFile("example_source_file.loci", "/object/dir");
+					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 					const auto lineNumber = 12;
 					
 					return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
@@ -212,7 +216,7 @@ namespace locic {
 				
 				case SEM::Type::FUNCTION: {
 					// TODO!
-					const auto file = module.debugBuilder().createFile("object_file.loci", "/example/directory");
+					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 					
 					std::vector<llvm::Value*> parameterTypes;
 					parameterTypes.push_back(genDebugType(module, type->getFunctionReturnType()));

@@ -13,15 +13,33 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		Debug::VarInfo makeVarInfo(Debug::VarInfo::Kind kind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+			assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+			
+			Debug::VarInfo varInfo;
+			varInfo.kind = kind;
+			varInfo.name = astTypeVarNode->namedVar.name;
+			varInfo.declLocation = astTypeVarNode.location();
+			
+			// TODO
+			varInfo.scopeLocation = Debug::SourceLocation::Null();
+			return varInfo;
+		}
+		
 		// Attach the variable to the SemanticAnalysis node tree.
 		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
 			assert(var->isBasic());
+			
 			const Node localVarNode = Node::Variable(astTypeVarNode, var);
 			const bool attachResult = context.node().tryAttach(name, localVarNode);
 			
 			if (!attachResult) {
 				throw TodoException(makeString("Variable name '%s' already exists.", name.c_str()));
 			}
+			
+			// TODO: add support for member and parameter variables.
+			const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode);
+			context.debugModule().varMap.insert(std::make_pair(var, makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode)));
 		}
 		
 		namespace {

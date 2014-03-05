@@ -25,10 +25,10 @@ namespace locic {
 				typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 				typedef Map<std::string, llvm::StructType*> TypeMap;
 				
-				inline Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& debugModule)
+				inline Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 					  targetInfo_(targetInfo), debugBuilder_(*this),
-					  debugModule_(debugModule) {
+					  debugModule_(pDebugModule) {
 					module_->setTargetTriple(targetInfo_.getTargetTriple());
 				}
 				
@@ -136,6 +136,10 @@ namespace locic {
 				
 				inline DebugBuilder& debugBuilder() {
 					return debugBuilder_;
+				}
+				
+				inline Debug::Module& debugModule() {
+					return debugModule_;
 				}
 				
 			private:
