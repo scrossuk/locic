@@ -59,7 +59,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Statement* ConvertStatement(Context& context, AST::Node<AST::Statement> statement) {
+		SEM::Statement* ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			switch(statement->typeEnum) {
 				case AST::Statement::VALUE: {
 					const auto value = ConvertValue(context, statement->valueStmt.value);
@@ -290,6 +290,18 @@ namespace locic {
 				default:
 					throw std::runtime_error("Unknown statement kind.");
 			}
+		}
+		
+		Debug::StatementInfo makeStatementInfo(const AST::Node<AST::Statement>& astStatementNode) {
+			Debug::StatementInfo statementInfo;
+			statementInfo.location = astStatementNode.location();
+			return statementInfo;
+		}
+		
+		SEM::Statement* ConvertStatement(Context& context, const AST::Node<AST::Statement>& astStatementNode) {
+			const auto semStatement = ConvertStatementData(context, astStatementNode);
+			context.debugModule().statementMap.insert(std::make_pair(semStatement, makeStatementInfo(astStatementNode)));
+			return semStatement;
 		}
 		
 	}

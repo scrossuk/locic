@@ -24,7 +24,7 @@ void throwFunction(int throwIndex) {
 			throw ExampleError3(4, 5, 6);
 		}
 		if (throwIndex == 4) {
-			testPrint("Throwing third exception."C);
+			testPrint("Throwing fourth exception."C);
 			throw ExampleError4(7, 8, 9, 10);
 		}
 	} catch (ExampleError1 error) {

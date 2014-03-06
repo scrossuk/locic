@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/Name.hpp>
 #include <locic/String.hpp>
 #include <locic/CodeGen/md5.h>
 #include <locic/CodeGen/VTable.hpp>
@@ -18,7 +19,7 @@ namespace locic {
 		}
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName) {
-			const std::string md5Hash = md5(methodName);
+			const std::string md5Hash = md5(CanonicalizeMethodName(methodName));
 			return getMethodHash(md5Hash);
 		}
 		

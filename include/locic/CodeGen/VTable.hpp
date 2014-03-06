@@ -13,7 +13,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		const size_t VTABLE_SIZE = 20;
+		const size_t VTABLE_SIZE = 10;
 		
 		/**
 		 * All method names are 'hashed' to a 64 bit

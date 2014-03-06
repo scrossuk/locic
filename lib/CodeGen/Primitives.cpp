@@ -46,6 +46,11 @@ namespace locic {
 			return name == "float" || name == "double" || name == "longdouble";
 		}
 		
+		bool isConstructor(const std::string& methodName) {
+			return methodName == "Create" ||
+				methodName == "Null";
+		}
+		
 		bool isUnaryOp(const std::string& methodName) {
 			return methodName == "implicitCopy" ||
 				   methodName == "not" ||
@@ -71,9 +76,9 @@ namespace locic {
 		}
 		
 		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
-			assert((methodName == "Create") xor isUnaryOp(methodName) xor isBinaryOp(methodName));
+			assert(isConstructor(methodName) xor isUnaryOp(methodName) xor isBinaryOp(methodName));
 			
-			if (methodName == "Create") {
+			if (methodName == "Create" || methodName == "Null") {
 				return ArgInfo::None();
 			}
 			
@@ -91,10 +96,7 @@ namespace locic {
 			
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
-			llvm::Value* methodOwner =
-				methodName == "Create" ?
-					NULL :
-					builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
 			if (methodName == "Create") {
 				builder.CreateRet(ConstantGenerator(module).getI1(false));
@@ -123,10 +125,7 @@ namespace locic {
 			
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
-			llvm::Value* methodOwner =
-				methodName == "Create" ?
-					NULL :
-					builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
@@ -198,10 +197,7 @@ namespace locic {
 			
 			llvm::IRBuilder<>& builder = function.getBuilder();
 			
-			llvm::Value* methodOwner =
-				methodName == "Create" ?
-					NULL :
-					builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
@@ -275,9 +271,11 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
-			if (isUnaryOp(methodName)) {
+			if (methodName == "Null") {
+				builder.CreateRet(ConstantGenerator(module).getNull(genType(module, parent)));
+			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
 				} else if (methodName == "deref") {

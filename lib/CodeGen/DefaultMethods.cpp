@@ -28,7 +28,7 @@ namespace locic {
 				const auto objectValue = genAlloca(functionGenerator, parent);
 				
 				for (size_t i = 0; i < parentVars.size(); i++) {
-					auto llvmInsertPointer = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+					const auto llvmInsertPointer = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
 					genStoreVar(functionGenerator, functionGenerator.getArg(i), llvmInsertPointer, parentVars.at(i));
 				}
 				

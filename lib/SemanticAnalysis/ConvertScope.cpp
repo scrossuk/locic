@@ -10,15 +10,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Debug::StatementInfo makeStatementInfo(const AST::Node<AST::Statement>& astStatementNode) {
-			Debug::StatementInfo statementInfo;
-			statementInfo.location = astStatementNode.location();
-			return statementInfo;
-		}
-		
 		bool WillScopeReturn(const SEM::Scope& scope) {
 			for(std::size_t i = 0; i < scope.statements().size(); i++) {
-				if(WillStatementReturn(scope.statements().at(i))) {
+				if (WillStatementReturn(scope.statements().at(i))) {
 					return true;
 				}
 			}
@@ -38,8 +32,6 @@ namespace locic {
 			for (const auto& astStatementNode: *(astScope->statements)) {
 				const auto statement = ConvertStatement(scopeContext, astStatementNode);
 				assert(statement != nullptr);
-				
-				context.debugModule().statementMap.insert(std::make_pair(statement, makeStatementInfo(astStatementNode)));
 				
 				semScope->statements().push_back(statement);
 			}

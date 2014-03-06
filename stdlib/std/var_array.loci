@@ -4,7 +4,7 @@
 template <typename T>
 class var_array(size_t size, size_t capacity, T* data) {
 	static create() {
-		@(0, 0, null);
+		return @(0, 0, null);
 	}
 	
 	~ {

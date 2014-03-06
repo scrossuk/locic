@@ -1,9 +1,12 @@
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+#include <stdio.h>
+
 #include <list>
 #include <map>
 #include <string>
+
 #include <locic/AST.hpp>
+#include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -92,8 +95,8 @@ namespace locic {
 				return NULL;
 			}
 		}
-	
-		SEM::Value* ConvertValue(Context& context, AST::Node<AST::Value> astValueNode) {
+		
+		SEM::Value* ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
 			assert(astValueNode.get() != NULL);
 			
 			switch (astValueNode->typeEnum) {
@@ -448,6 +451,18 @@ namespace locic {
 					assert(false && "Unknown AST::Value kind enum");
 					return NULL;
 			}
+		}
+		
+		Debug::ValueInfo makeValueInfo(const AST::Node<AST::Value>& astValueNode) {
+			Debug::ValueInfo valueInfo;
+			valueInfo.location = astValueNode.location();
+			return valueInfo;
+		}
+		
+		SEM::Value* ConvertValue(Context& context, const AST::Node<AST::Value>& astValueNode) {
+			const auto semValue = ConvertValueData(context, astValueNode);
+			context.debugModule().valueMap.insert(std::make_pair(semValue, makeValueInfo(astValueNode)));
+			return semValue;
 		}
 		
 	}

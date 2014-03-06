@@ -1,0 +1,27 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+exception ExampleError(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	try {
+		throw ExampleError(1,2,3,4,5,6,7,8,9,10,11,12);
+	} catch (ExampleError error) {
+		testPrint("Caught exception!"C);
+		testPrint("    a = %d"C, error.a);
+		testPrint("    b = %d"C, error.b);
+		testPrint("    c = %d"C, error.c);
+		testPrint("    d = %d"C, error.d);
+		testPrint("    e = %d"C, error.e);
+		testPrint("    f = %d"C, error.f);
+		testPrint("    g = %d"C, error.g);
+		testPrint("    h = %d"C, error.h);
+		testPrint("    i = %d"C, error.i);
+		testPrint("    j = %d"C, error.j);
+		testPrint("    k = %d"C, error.k);
+		testPrint("    l = %d"C, error.l);
+	}
+	return 0;
+}
+

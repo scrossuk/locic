@@ -197,6 +197,24 @@ namespace locic{
 			ListType list_;
 			
 	};
+	
+	inline std::string CanonicalizeMethodName(const std::string& name) {
+		std::string canonicalName;
+		
+		for (size_t i = 0; i < name.size(); i++) {
+			const auto c = name.at(i);
+			if (c == '_') continue;
+			
+			if (c >= 'A' && c <= 'Z') {
+				canonicalName += 'a' + (c - 'A');
+				continue;
+			}
+			
+			canonicalName += c;
+		}
+		
+		return canonicalName;
+	}
 
 }
 

@@ -1,0 +1,37 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class TestClass (int value) {
+	static Create(int value) {
+		testPrint("TestClass.Create: Value = %d"C, value);
+		return @(value);
+	}
+	
+	int getValue() {
+		testPrint("TestClass.getValue: Value = %d"C, @value);
+		return @value;
+	}
+	
+}
+
+// By canonicalisation (underscores removed and
+// all converted to lower case) of the method name,
+// this should be a valid interface for TestClass.
+interface TestInterface {
+	int get_value();
+}
+
+void polymorphicPrint(TestInterface& object) {
+	int value = object.get_value();
+	testPrint("polymorphicPrint: Value = %d"C, value);
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto testInstance = TestClass(54321);
+	
+	polymorphicPrint(testInstance);
+	
+	return 0;
+}
+

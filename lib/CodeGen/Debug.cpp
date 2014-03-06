@@ -90,7 +90,7 @@ namespace locic {
 		
 		llvm::DIType DebugBuilder::createIntType(const std::string& name) {
 			const auto& targetInfo = module_.getTargetInfo();
-			return builder_.createBasicType("name", targetInfo.getPrimitiveSize(name),
+			return builder_.createBasicType(name, targetInfo.getPrimitiveSize(name),
 				targetInfo.getPrimitiveAlign(name), llvm::dwarf::DW_ATE_signed);
 		}
 		
