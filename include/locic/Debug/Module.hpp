@@ -6,6 +6,7 @@
 #include <locic/Debug/CompilerInfo.hpp>
 #include <locic/Debug/FunctionInfo.hpp>
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/Debug/StatementInfo.hpp>
 #include <locic/Debug/VarInfo.hpp>
 
 #include <locic/SEM.hpp>
@@ -17,6 +18,7 @@ namespace locic {
 		struct Module {
 			CompilerInfo compiler;
 			std::map<SEM::Function*, FunctionInfo> functionMap;
+			std::map<SEM::Statement*, StatementInfo> statementMap;
 			std::map<SEM::Var*, VarInfo> varMap;
 		};
 		

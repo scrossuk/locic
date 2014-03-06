@@ -79,6 +79,14 @@ namespace locic {
 		}
 		
 		void genStatement(Function& function, SEM::Statement* statement) {
+			auto& module = function.getModule();
+			auto& statementMap = module.debugModule().statementMap;
+			const auto iterator = statementMap.find(statement);
+			const auto hasDebugInfo = (iterator != statementMap.end());
+			const auto debugSourceLocation = hasDebugInfo ? iterator->second.location : Debug::SourceLocation::Null();
+			const auto debugStartPosition = debugSourceLocation.range().start();
+			const auto debugLocation = llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo());
+			
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
 					assert(statement->getValue()->type()->isVoid());
@@ -236,8 +244,9 @@ namespace locic {
 						returnInst = function.getBuilder().CreateRetVoid();
 					}
 					
-					// TODO!
-					returnInst->setDebugLoc(llvm::DebugLoc::get(200, 33, function.debugInfo()));
+					if (hasDebugInfo) {
+						returnInst->setDebugLoc(debugLocation);
+					}
 					
 					// Need a basic block after a return statement in case anything more is generated.
 					// This (and any following code) will be removed by dead code elimination.
@@ -246,8 +255,6 @@ namespace locic {
 				}
 				
 				case SEM::Statement::TRY: {
-					auto& module = function.getModule();
-					
 					assert(!statement->getTryCatchList().empty());
 					
 					// Get list of exception types to be caught by this statement.
@@ -323,7 +330,6 @@ namespace locic {
 				}
 				
 				case SEM::Statement::THROW: {
-					auto& module = function.getModule();
 					auto throwType = statement->getThrowValue()->type();
 					
 					const auto exceptionValue = genValue(function, statement->getThrowValue());
@@ -349,8 +355,9 @@ namespace locic {
 					const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath,
 						std::vector<llvm::Value*>{ allocatedException, castedTypeInfo, nullPtr });
 					
-					// TODO!
-					throwInvoke->setDebugLoc(llvm::DebugLoc::get(100, 22, function.debugInfo()));
+					if (hasDebugInfo) {
+						throwInvoke->setDebugLoc(debugLocation);
+					}
 					
 					// ==== 'throw' function doesn't throw: Should never happen.
 					function.selectBasicBlock(noThrowPath);
