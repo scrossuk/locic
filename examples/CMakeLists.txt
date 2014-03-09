@@ -6,7 +6,7 @@ macro(copy_example_file name)
 		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${name}")
 endmacro(copy_example_file)
 
-function(loci_example name binary_name)
+function(loci_example name binary_name flags)
 	set(${name}Sources ${ARGN})
 	set(${name}BuildSources "")
 	
@@ -24,10 +24,10 @@ function(loci_example name binary_name)
 			clang -S -emit-llvm -O3 -o clangopt.ll codegen.ll &&
 			
 			# Use clang to generate non-optimised platform binary.
-			clang -o ${binary_name} codegen.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception &&
+			clang -o ${binary_name} codegen.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags} &&
 			
 			# Use clang to generate optimised platform binary.
-			clang -o ${binary_name}_optimised clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception
+			clang -o ${binary_name}_optimised clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
 		DEPENDS ${LOCIC} ${${name}BuildSources} loci-runtime-exception
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
@@ -35,5 +35,6 @@ function(loci_example name binary_name)
 endfunction(loci_example)
 
 add_subdirectory(Calculator)
+add_subdirectory(ChainReversi)
 add_subdirectory(General)
 

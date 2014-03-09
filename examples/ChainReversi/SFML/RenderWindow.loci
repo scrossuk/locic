@@ -1,0 +1,46 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfContextSettings { };
+struct sfRenderWindow { };
+
+struct sfVideoMode {
+	int width;        ///< Video mode width, in pixels
+	int height;       ///< Video mode height, in pixels
+	int bitsPerPixel; ///< Video mode pixel depth, in bits per pixels
+};
+
+void printf(const char* text, ...);
+
+sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
+
+void sfRenderWindow_destroy(sfRenderWindow* renderWindow);
+
+void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
+
+namespace sf {
+	
+	class RenderWindow(sfRenderWindow* window) {
+		static Create (const char* title) {
+			// TitleBar (1) + Resize (2) + Close (4)
+			// (And 8 would give FullScreen...)
+			final int style = 7;
+			
+			printf("Got title=%s and style=%d.\n"C, title, style);
+			
+			// TODO: make this user customisable.
+			return @(sfRenderWindow_create(sfVideoMode(800, 800, 32), title, style, null));
+		}
+		
+		~ {
+			sfRenderWindow_destroy(@window);
+		}
+		
+		void setFramerateLimit(int limit) {
+			sfRenderWindow_setFramerateLimit(@window, limit);
+		}
+		
+	}
+	
+}
+
+

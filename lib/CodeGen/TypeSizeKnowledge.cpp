@@ -76,8 +76,15 @@ namespace locic {
 				case SEM::Type::METHOD:
 					return true;
 				case SEM::Type::OBJECT:
-					// Not all primitives have a known size (e.g. value_lval).
-					return type->isPrimitive() && isPrimitiveTypeSizeAlwaysKnown(module, type);
+					if (type->isPrimitive()) {
+						// Not all primitives have a known size (e.g. value_lval).
+						return isPrimitiveTypeSizeAlwaysKnown(module, type);
+					} else if (type->isStruct()) {
+						// Structs must always have a known size.
+						return true;
+					} else {
+						return false;
+					}
 				case SEM::Type::TEMPLATEVAR:
 					return false;
 				default:

@@ -1,0 +1,9 @@
+// Entry point.
+int main() {
+	auto renderWindow = sf::RenderWindow("Chain Reversi"C);
+	
+	renderWindow.setFramerateLimit(25);
+	
+	return 0;
+}
+
