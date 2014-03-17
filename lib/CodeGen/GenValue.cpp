@@ -65,61 +65,30 @@ namespace locic {
 									   
 						case locic::Constant::BOOLEAN:
 							return ConstantGenerator(module).getI1(value->constant->getBool());
-							
-						case locic::Constant::SIGNEDINT: {
-							return ConstantGenerator(module).getPrimitiveInt(
-									   value->constant->getTypeName(), value->constant->getInt());
-						}
 						
-						case locic::Constant::UNSIGNEDINT: {
-							return ConstantGenerator(module).getPrimitiveInt(
-									   value->constant->getTypeName(), value->constant->getUint());
+						case locic::Constant::INTEGER: {
+							return ConstantGenerator(module).getI64(static_cast<int64_t>(value->constant->getInteger()));
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
-							switch (value->constant->getFloatType()) {
-								case locic::Constant::FLOAT:
-									return ConstantGenerator(module).getFloat(
-										value->constant->getFloat());
-											   
-								case locic::Constant::DOUBLE:
-									return ConstantGenerator(module).getDouble(
-										value->constant->getFloat());
-											   
-								case locic::Constant::LONGDOUBLE:
-									llvm_unreachable("Long double not implemented yet.");
-									
-								default:
-									llvm_unreachable("Unknown float constant type.");
-							}
+							return ConstantGenerator(module).getDouble(value->constant->getFloat());
 						}
 						
 						case locic::Constant::STRING: {
 							const auto stringValue = value->constant->getString();
 							
-							switch (value->constant->getStringType()) {
-								case locic::Constant::CSTRING: {
-									const auto arrayType =
-										TypeGenerator(module).getArrayType(
-											TypeGenerator(module).getI8Type(),
-											stringValue.size() + 1);
-									const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
-									const auto globalArray =
-										module.createConstGlobal("cstring_constant",
-												arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
-									globalArray->setAlignment(1);
-									
-									// Convert array to a pointer.
-									return function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
-								}
-								
-								case locic::Constant::LOCISTRING: {
-									llvm_unreachable("Loci string constants not yet implemented.");
-								}
-								
-								default:
-									llvm_unreachable("Unknown string constant type.");
-							}
+							const auto arrayType =
+								TypeGenerator(module).getArrayType(
+									TypeGenerator(module).getI8Type(),
+										stringValue.size() + 1);
+							const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
+							const auto globalArray =
+								module.createConstGlobal("cstring_constant",
+										arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+							globalArray->setAlignment(1);
+							
+							// Convert array to a pointer.
+							return function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
 						}
 						
 						default:
@@ -163,7 +132,7 @@ namespace locic {
 					const auto sourceType = value->cast.value->type();
 					const auto destType = value->type();
 					assert((sourceType->kind() == destType->kind()
-							|| sourceType->isNull()
+							|| (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t")
 							|| destType->isVoid())
 						   && "Types must be in the same group for cast, or "
 						   "it should be a cast from null, or a cast to void");
@@ -184,25 +153,14 @@ namespace locic {
 							return codeValue;
 						}
 						
-						case SEM::Type::NULLT: {
-							switch (destType->kind()) {
-								case SEM::Type::NULLT:
-									return codeValue;
-									
-								case SEM::Type::FUNCTION:
-									return function.getBuilder().CreatePointerCast(codeValue,
-											genType(module, destType));
-											
-								default: {
-									assert(false && "Invalid cast from null.");
-									return nullptr;
-								}
-							}
-						}
-						
 						case SEM::Type::OBJECT: {
 							if (sourceType->getObjectType() == destType->getObjectType()) {
 								return codeValue;
+							}
+							
+							if (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t" && destType->isFunction()) {
+								return function.getBuilder().CreatePointerCast(codeValue,
+									genType(module, destType));
 							}
 							
 							if (sourceType->isDatatype() && destType->isUnionDatatype()) {

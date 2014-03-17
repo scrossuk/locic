@@ -104,10 +104,9 @@ namespace locic {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::CONSTANT: {
-					if (astValueNode->constant->getType() == locic::Constant::NULLVAL) {
-						return SEM::Value::Constant(astValueNode->constant.get(), SEM::Type::Null());
-					} else if(astValueNode->constant->getType() == locic::Constant::STRING
-						&& astValueNode->constant->getStringType() == locic::Constant::CSTRING) {
+					if(astValueNode->constant->getType() == locic::Constant::STRING) {
+						// TODO: translate into string_literal_t here, rather than const char*.
+						
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
 						const auto charTypeInstance = getBuiltInType(context, "char");
@@ -122,9 +121,6 @@ namespace locic {
 						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
 					} else {
 						const auto typeName = astValueNode->constant->getTypeName();
-						if (typeName == "string") {
-							throw TodoException("Loci string constants not yet implemented (use 'C' suffix to get C strings for now, e.g. \"someString\"C).");
-						}
 						
 						const auto typeInstance = getBuiltInType(context, typeName);
 						if (typeInstance == NULL) {

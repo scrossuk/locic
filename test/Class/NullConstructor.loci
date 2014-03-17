@@ -19,7 +19,7 @@ int testEntryPoint(int argc, char ** argv) {
 	TestClass testInstance1 = null;
 	
 	auto nullValue = null;
-	TestClass testInstance2 = nullValue;
+	TestClass testInstance2 = move nullValue;
 	
 	testInstance1.printValue();
 	testInstance2.printValue();

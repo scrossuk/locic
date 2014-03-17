@@ -33,10 +33,6 @@ namespace locic {
 					// Void can be cast to void...
 					return sourceType->withoutTags();
 				}
-				case SEM::Type::NULLT: {
-					// Null can be cast to null...
-					return sourceType->withoutTags();
-				}
 				case SEM::Type::OBJECT: {
 					// Objects can only be cast to the same object type.
 					if (sourceType->getObjectType() != destType->getObjectType()) {
@@ -279,6 +275,73 @@ namespace locic {
 			return SEM::Value::PolyCast(destType, value);
 		}
 		
+		static bool isPrimitiveType(SEM::Type* type, const std::string& name) {
+			return type->isPrimitive() && type->getObjectType()->name().last() == name;
+		}
+		
+		// Hard coded casts which will eventually be moved into
+		// Loci source (once templated methods are implemented).
+		SEM::Value* ImplicitCastUser(SEM::Value* value, SEM::Type* destType) {
+			const auto sourceType = value->type();
+			
+			// Null literal cast.
+			if (isPrimitiveType(sourceType, "null_t") && destType->isObject()) {
+				const auto typeInstance = destType->getObjectType();
+				// Casting null to object type invokes the null constructor,
+				// assuming one exists.
+				if (typeInstance->hasProperty("Null")) {
+					const auto constructedValue = SEM::Value::FunctionCall(
+							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
+							std::vector<SEM::Value*>());
+					
+					// There still might be some aspects to cast with the null constructed type.
+					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
+					if (castResult != nullptr) return castResult;
+				} else {
+					// There's no other way to make 'null' into an object,
+					// so just throw an exception here.
+					throw TodoException(makeString("No null constructor specified for type '%s'.",
+						destType->toString().c_str()));
+				}
+			}
+			
+			// Integer literal cast.
+			if (isPrimitiveType(sourceType, "integer_literal_t") && destType->isObject()) {
+				const auto typeInstance = destType->getObjectType();
+				if (typeInstance->hasProperty("integer_literal")) {
+					const auto constructedValue = SEM::Value::FunctionCall(
+						SEM::Value::FunctionRef(destType, typeInstance->getProperty("integer_literal"), destType->generateTemplateVarMap()),
+						{ value });
+					
+					// There still might be some aspects to cast with the null constructed type.
+					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
+					if (castResult != nullptr) return castResult;
+				} else {
+					throw TodoException(makeString("No integer_literal constructor specified for type '%s'.",
+						destType->toString().c_str()));
+				}
+			}
+			
+			// Float literal cast.
+			if (isPrimitiveType(sourceType, "float_literal_t") && destType->isObject()) {
+				const auto typeInstance = destType->getObjectType();
+				if (typeInstance->hasProperty("float_literal")) {
+					const auto constructedValue = SEM::Value::FunctionCall(
+						SEM::Value::FunctionRef(destType, typeInstance->getProperty("float_literal"), destType->generateTemplateVarMap()),
+						{ value });
+					
+					// There still might be some aspects to cast with the null constructed type.
+					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
+					if (castResult != nullptr) return castResult;
+				} else {
+					throw TodoException(makeString("No float_literal constructor specified for type '%s'.",
+						destType->toString().c_str()));
+				}
+			}
+			
+			return nullptr;
+		}
+		
 		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType, bool formatOnly = false) {
 			{
 				// Try a format only cast first, since
@@ -314,23 +377,11 @@ namespace locic {
 				}
 			}
 			
-			if (sourceType->isNull() && destType->isObject()) {
-				SEM::TypeInstance* typeInstance = destType->getObjectType();
-				// Casting null to object type invokes the null constructor,
-				// assuming one exists.
-				if (typeInstance->hasProperty("Null")) {
-					auto nullConstructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
-							std::vector<SEM::Value*>());
-					
-					// There still might be some aspects to cast with the null constructed type.
-					auto castResult = ImplicitCastFormatOnly(nullConstructedValue, destType);
-					if (castResult != nullptr) return castResult;
-				} else {
-					// There's no other way to make 'null' into an object,
-					// so just throw an exception here.
-					throw TodoException(makeString("No null constructor specified for type '%s'.",
-						destType->toString().c_str()));
+			// Try a user cast.
+			{
+				const auto castResult = ImplicitCastUser(value, destType);
+				if (castResult != nullptr) {
+					return castResult;
 				}
 			}
 			

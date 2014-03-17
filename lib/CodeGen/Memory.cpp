@@ -30,7 +30,6 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::NULLT:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
@@ -83,7 +82,6 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::NULLT:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
@@ -115,7 +113,6 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::NULLT:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {

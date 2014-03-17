@@ -47,7 +47,7 @@ namespace locic {
 						}
 					}
 				
-				ArgInfo(ArgInfo&& other) = default;
+				ArgInfo(ArgInfo&&) = default;
 					  
 				bool hasReturnVarArgument() const {
 					return hasReturnVarArgument_;

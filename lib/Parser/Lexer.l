@@ -50,10 +50,10 @@
 <STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
 <STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
 <STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
-<STRING_STATE>"\"C"           { yylval->lexer_constant = locic::Constant::String(locic::Constant::CSTRING, yyextra->getStringConstant());
+<STRING_STATE>"\"C"           { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
-<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(locic::Constant::LOCISTRING, yyextra->getStringConstant());
+<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
 <STRING_STATE>.               { yyextra->appendStringConstant(yytext); }
@@ -116,13 +116,8 @@ void                    { return VOID; }
 null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }
 false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
-[0-9]+                  { yylval->lexer_constant = locic::Constant::SignedInt(locic::Constant::INT, atol(yytext)); return CONSTANT; }
-[0-9]+l                 { yylval->lexer_constant = locic::Constant::SignedInt(locic::Constant::LONG, atol(yytext)); return CONSTANT; }
-[0-9]+u                 { yylval->lexer_constant = locic::Constant::UnsignedInt(locic::Constant::UINT, atol(yytext)); return CONSTANT; }
-[0-9]+ul                { yylval->lexer_constant = locic::Constant::UnsignedInt(locic::Constant::ULONG, atol(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+f         { yylval->lexer_constant = locic::Constant::Float(locic::Constant::FLOAT, atof(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+L         { yylval->lexer_constant = locic::Constant::Float(locic::Constant::LONGDOUBLE, atof(yytext)); return CONSTANT; }
+[0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(atof(yytext)); return CONSTANT; }
 
 "_"                     { return UNDERSCORE; }
 

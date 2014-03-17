@@ -115,10 +115,6 @@ namespace locic {
 					return TypeGenerator(module).getVoidType();
 				}
 				
-				case SEM::Type::NULLT: {
-					return TypeGenerator(module).getI8PtrType();
-				}
-				
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type->getObjectType(),
 						type->templateArguments());
@@ -186,13 +182,13 @@ namespace locic {
 					return module.debugBuilder().createVoidType();
 				}
 				
-				case SEM::Type::NULLT: {
-					return module.debugBuilder().createNullType();
-				}
-				
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
+						if (objectType->name() == (Name::Absolute() + "null_t")) {
+							return module.debugBuilder().createNullType();
+						}
+						
 						if (objectType->name() == (Name::Absolute() + "ptr")) {
 							return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
 						}

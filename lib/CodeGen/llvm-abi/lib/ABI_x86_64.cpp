@@ -84,9 +84,8 @@ namespace llvm_abi {
 				
 				// Add any final padding.
 				return roundUpToAlign(size, getTypeAlign(type));
-			} else {
-				llvm_unreachable("Unknown ABI type.");
 			}
+			llvm_unreachable("Unknown ABI type.");
 		}
 		
 		size_t getTypeAlign(const Type& type) {
@@ -108,7 +107,7 @@ namespace llvm_abi {
 		}
 		
 		bool hasUnalignedFields(const Type& type) {
-			assert(type.isStruct());
+			if (!type.isStruct()) return false;
 			
 			size_t offset = 0;
 			
@@ -116,7 +115,7 @@ namespace llvm_abi {
 				// Add necessary padding before this member.
 				offset = roundUpToAlign(offset, getTypeAlign(member.type));
 				
-				if (member.offset != offset) {
+				if (member.offset != offset || hasUnalignedFields(member.type)) {
 					return true;
 				}
 				
@@ -170,16 +169,19 @@ namespace llvm_abi {
 		
 		class Classification {
 			public:
-				bool isMemory;
 				ArgClass classes[2];
 				
-				Classification() : isMemory(false) {
+				Classification() {
 					classes[0] = NoClass;
 					classes[1] = NoClass;
 				}
 				
+				bool isMemory() const {
+					return classes[0] == Memory;
+				}
+				
 				void addField(size_t offset, ArgClass fieldClass) {
-					if (isMemory) {
+					if (isMemory()) {
 						return;
 					}
 					
@@ -196,7 +198,6 @@ namespace llvm_abi {
 						
 						if (mergedClass == Memory) {
 							classes[1 - idx] = Memory;
-							isMemory = true;
 						}
 					}
 				}
@@ -226,11 +227,6 @@ namespace llvm_abi {
 					classification.addField(offset + 16, ComplexX87);
 				}
 			} else if (type.isArray()) {
-				if (getTypeSize(type) > 16 || hasUnalignedFields(type)) {
-					classification.addField(offset, Memory);
-					return;
-				}
-				
 				const auto& elementType = type.arrayElementType();
 				const auto elementSize = getTypeSize(elementType);
 				
@@ -250,6 +246,14 @@ namespace llvm_abi {
 		
 		Classification classify(const Type& type) {
 			Classification classification;
+			
+			if (getTypeSize(type) > 32 || hasUnalignedFields(type)) {
+				// If size exceeds "four eightbytes" or type
+				// has "unaligned fields", pass in memory.
+				classification.addField(0, Memory);
+				return classification;
+			}
+			
 			classifyType(classification, type, 0);
 			return classification;
 		}
@@ -261,11 +265,16 @@ namespace llvm_abi {
 			}
 			
 			const auto classification = classify(type);
-			assert(!classification.isMemory);
+			if (classification.isMemory()) {
+				// LLVM presumably handles passing values in memory correctly.
+				return nullptr;
+			}
+			
+			assert(!classification.isMemory());
 			
 			if (classification.classes[0] == NoClass) {
 				assert(classification.classes[1] == NoClass && "Non-empty struct with empty first half?");
-				return nullptr; // Empty structs should also be handled correctly by LLVM
+				return nullptr; // Empty structs should also be handled correctly by LLVM.
 			}
 			
 			// Okay, we may need to transform. Figure out a canonical type:

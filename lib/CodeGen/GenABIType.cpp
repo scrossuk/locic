@@ -51,6 +51,18 @@ namespace locic {
 			const auto typeInstance = type->getObjectType();
 			const auto& name = typeInstance->name().last();
 			
+			if (name == "null_t") {
+				return llvm_abi::Type::Pointer();
+			}
+			
+			if (name == "integer_literal_t") {
+				return llvm_abi::Type::Integer(llvm_abi::Int64);
+			}
+			
+			if (name == "float_literal_t") {
+				return llvm_abi::Type::FloatingPoint(llvm_abi::Double);
+			}
+			
 			if (name == "ptr" || name == "ptr_lval") {
 				return llvm_abi::Type::Pointer();
 			}
@@ -125,16 +137,17 @@ namespace locic {
 					return llvm_abi::Type::Struct({});
 				}
 				
-				case SEM::Type::NULLT: {
-					return llvm_abi::Type::Pointer();
-				}
-				
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
 					if (typeInstance->isPrimitive()) {
 						return getPrimitiveABIType(module, type);
-					} else if (typeInstance->isStruct()) {
+					} else {
 						std::vector<llvm_abi::Type> members;
+						
+						if (typeInstance->isUnionDatatype()) {
+							members.push_back(llvm_abi::Type::Integer(llvm_abi::Int8));
+						}
+						
 						for (const auto var: typeInstance->variables()) {
 							members.push_back(genABIType(module, var->type()));
 						}

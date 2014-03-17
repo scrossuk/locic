@@ -49,7 +49,9 @@ namespace locic {
 		
 		bool isConstructor(const std::string& methodName) {
 			return methodName == "Create" ||
-				methodName == "Null";
+				methodName == "Null" ||
+				methodName == "integer_literal" ||
+				methodName == "float_literal";
 		}
 		
 		bool isUnaryOp(const std::string& methodName) {
@@ -118,9 +120,15 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
+			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
+			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
+			
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
+			} else if (methodName == "integer_literal") {
+				const auto operand = function.getArg(0);
+				builder.CreateRet(builder.CreateTrunc(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				
@@ -195,6 +203,10 @@ namespace locic {
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				builder.CreateRet(zero);
+			} else if (methodName == "float_literal") {
+				const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
+				const auto operand = function.getArg(0);
+				builder.CreateRet(builder.CreateFPTrunc(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				
@@ -617,6 +629,10 @@ namespace locic {
 		}
 		
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name, const std::vector<llvm::Type*>& templateArguments) {
+			if (name == "null_t") {
+				return TypeGenerator(module).getI8PtrType();
+			}
+			
 			if (name == "bool") {
 				return TypeGenerator(module).getI1Type();
 			}
@@ -639,6 +655,14 @@ namespace locic {
 			
 			if (name == "longdouble") {
 				return TypeGenerator(module).getLongDoubleType();
+			}
+			
+			if (name == "integer_literal_t") {
+				return TypeGenerator(module).getI64Type();
+			}
+			
+			if (name == "float_literal_t") {
+				return TypeGenerator(module).getDoubleType();
 			}
 			
 			if (name == "ptr" || name == "ptr_lval") {
@@ -673,7 +697,7 @@ namespace locic {
 				return templateArguments.at(0);
 			}
 			
-			throw std::runtime_error("Unrecognised primitive type.");
+			throw std::runtime_error(makeString("Unrecognised primitive type '%s'.", name.c_str()));
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type) {

@@ -56,10 +56,6 @@ namespace locic {
 					return "T1N4void";
 				}
 				
-				case SEM::Type::NULLT: {
-					return "T1N6null_t";
-				}
-				
 				case SEM::Type::OBJECT: {
 					SEM::TypeInstance* typeInstance = type->getObjectType();
 					return mangleObjectType(module, typeInstance, type->templateArguments());

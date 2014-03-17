@@ -1,3 +1,29 @@
+__primitive integer_literal_t {
+	// integer_literal_t implicitCopy() const;
+	
+	/*
+	To be used when templated methods are supported:
+	
+	template <typename T: ...>
+	T implicitCast() const {
+		return T.integer_literal(implicitCopy());
+	}
+	*/
+}
+
+__primitive float_literal_t {
+	// float_literal_t implicitCopy() const;
+	
+	/*
+	To be used when templated methods are supported:
+	
+	template <typename T: ...>
+	T implicitCast() const {
+		return T.float_literal(implicitCopy());
+	}
+	*/
+}
+
 __primitive null_t { }
 
 __primitive bool {
@@ -7,7 +33,15 @@ __primitive bool {
 }
 
 __primitive char {
+	static char integer_literal(integer_literal_t literal);
+	
 	char implicitCopy() const;
+	
+	char add(char v) const;
+	char subtract(char v) const;
+	char multiply(char v) const;
+	char divide(char v) const;
+	char modulo(char v) const;
 	
 	int compare(char v) const;
 	
@@ -22,6 +56,8 @@ __primitive char {
 }
 
 __primitive short {
+	static short integer_literal(integer_literal_t literal);
+	
 	short implicitCopy() const;
 	
 	short abs() const;
@@ -43,6 +79,8 @@ __primitive short {
 }
 
 __primitive int {
+	static int integer_literal(integer_literal_t literal);
+	
 	int implicitCopy() const;
 	
 	int abs() const;
@@ -67,6 +105,8 @@ __primitive int {
 }
 
 __primitive long {
+	static long integer_literal(integer_literal_t literal);
+	
 	long implicitCopy() const;
 	
 	long abs() const;
@@ -88,6 +128,8 @@ __primitive long {
 }
 
 __primitive float {
+	static float float_literal(float_literal_t literal);
+	
 	float implicitCopy() const;
 
 	float abs() const;
@@ -109,6 +151,8 @@ __primitive float {
 }
 
 __primitive double {
+	static double float_literal(float_literal_t literal);
+	
 	double implicitCopy() const;
 	
 	double abs() const;

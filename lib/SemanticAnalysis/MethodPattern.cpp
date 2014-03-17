@@ -14,6 +14,14 @@ namespace locic {
 			return MethodPattern("Null", IS_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
+		MethodPattern FloatLiteralConstructorPattern() {
+			return MethodPattern("float_literal", IS_STATIC, CHECK_PARAM_COUNT, 1);
+		}
+		
+		MethodPattern IntegerLiteralConstructorPattern() {
+			return MethodPattern("integer_literal", IS_STATIC, CHECK_PARAM_COUNT, 1);
+		}
+		
 		MethodPattern ImplicitCopyPattern() {
 			return MethodPattern("implicitCopy", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
@@ -42,6 +50,8 @@ namespace locic {
 			std::vector<MethodPattern> patterns;
 			patterns.push_back(DefaultConstructorPattern());
 			patterns.push_back(NullConstructorPattern());
+			patterns.push_back(FloatLiteralConstructorPattern());
+			patterns.push_back(IntegerLiteralConstructorPattern());
 			patterns.push_back(ImplicitCopyPattern());
 			patterns.push_back(OpAddressPattern());
 			patterns.push_back(OpAssignPattern());

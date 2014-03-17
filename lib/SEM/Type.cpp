@@ -20,11 +20,6 @@ namespace locic {
 			return (new Type(VOID))->createConstType();
 		}
 		
-		Type* Type::Null() {
-			// Null is always const.
-			return (new Type(NULLT))->createConstType();
-		}
-		
 		Type* Type::Auto() {
 			return new Type(AUTO);
 		}
@@ -139,10 +134,6 @@ namespace locic {
 		
 		bool Type::isVoid() const {
 			return kind() == VOID;
-		}
-		
-		bool Type::isNull() const {
-			return kind() == NULLT;
 		}
 		
 		bool Type::isAuto() const {
@@ -331,10 +322,6 @@ namespace locic {
 						return Type::Void();
 					}
 					
-					case Type::NULLT: {
-						return Type::Null();
-					}
-					
 					case Type::OBJECT: {
 						std::vector<Type*> templateArgs;
 						
@@ -402,7 +389,6 @@ namespace locic {
 		bool Type::supportsImplicitCopy() const {
 			switch (kind()) {
 				case VOID:
-				case NULLT:
 				case REFERENCE:
 				case FUNCTION:
 				case METHOD:
@@ -426,7 +412,6 @@ namespace locic {
 		Type* Type::getImplicitCopyType() const {
 			switch (kind()) {
 				case VOID:
-				case NULLT:
 				case REFERENCE:
 				case FUNCTION:
 				case METHOD: {
@@ -451,9 +436,6 @@ namespace locic {
 			switch (kind()) {
 				case VOID:
 					return "VoidType";
-					
-				case NULLT:
-					return "NullType";
 					
 				case AUTO:
 					return "Auto";
@@ -489,9 +471,6 @@ namespace locic {
 			switch (kind()) {
 				case VOID:
 					return "VoidType";
-					
-				case NULLT:
-					return "NullType";
 					
 				case AUTO:
 					return "Auto";
@@ -556,9 +535,7 @@ namespace locic {
 			
 			switch (kind_) {
 				case VOID:
-				case NULLT: {
 					return true;
-				}
 				
 				case OBJECT: {
 					return getObjectType() == type.getObjectType();

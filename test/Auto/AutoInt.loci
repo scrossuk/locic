@@ -3,7 +3,7 @@ void testPrint(const char * const str, ...);
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
-	auto i = 4;
+	auto i = int::integer_literal(4);
 	
 	testPrint("testEntryPoint: i = %d."C, i);
 	

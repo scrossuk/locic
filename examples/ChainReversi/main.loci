@@ -1,3 +1,5 @@
+void print(const char* text);
+
 void sleep(int seconds);
 
 // Entry point.
@@ -6,7 +8,20 @@ int main() {
 	
 	renderWindow.setFramerateLimit(25);
 	
-	sleep(5);
+	char i = 0;
+	
+	printf("Start!\n");
+	
+	while (i < 127) {
+		printf("At index %d.\n", i);
+		renderWindow.clear(sf::Color(i * 2, i * 2, i * 2, 255));
+		renderWindow.display();
+		i = i + 1;
+	}
+	
+	printf("Terminating...\n");
+	
+	sleep(1);
 	
 	return 0;
 }

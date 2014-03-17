@@ -9,15 +9,28 @@ struct sfVideoMode {
 	int bitsPerPixel; ///< Video mode pixel depth, in bits per pixels
 };
 
+struct sfColor {
+	char r;
+	char g;
+	char b;
+	char a;
+};
+
 void printf(const char* text, ...);
 
 sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
 
 void sfRenderWindow_destroy(sfRenderWindow* renderWindow);
 
+void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
+
 void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
 
+void sfRenderWindow_display(sfRenderWindow* renderWindow);
+
 namespace sf {
+	
+	datatype Color(char r, char g, char b, char a);
 	
 	class RenderWindow(sfRenderWindow* window) {
 		static Create (const char* title) {
@@ -35,8 +48,16 @@ namespace sf {
 			sfRenderWindow_destroy(@window);
 		}
 		
+		void clear(Color color) {
+			sfRenderWindow_clear(@window, sfColor(color.r, color.g, color.b, color.a));
+		}
+		
 		void setFramerateLimit(int limit) {
 			sfRenderWindow_setFramerateLimit(@window, limit);
+		}
+		
+		void display() {
+			sfRenderWindow_display(@window);
 		}
 		
 	}

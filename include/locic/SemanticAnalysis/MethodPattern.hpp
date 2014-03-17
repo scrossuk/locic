@@ -30,6 +30,8 @@ namespace locic {
 		// Standard patterns.
 		MethodPattern DefaultConstructorPattern();
 		MethodPattern NullConstructorPattern();
+		MethodPattern FloatLiteralConstructorPattern();
+		MethodPattern IntegerLiteralConstructorPattern();
 		MethodPattern ImplicitCopyPattern();
 		MethodPattern OpAddressPattern();
 		MethodPattern OpAssignPattern();

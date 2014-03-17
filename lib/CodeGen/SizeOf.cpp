@@ -70,9 +70,8 @@ namespace locic {
 			auto type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
-				case SEM::Type::VOID:
-				case SEM::Type::NULLT: {
-					// Void and null have zero size.
+				case SEM::Type::VOID: {
+					// Void has zero size.
 					return ConstantGenerator(module).getSizeTValue(0);
 				}
 				

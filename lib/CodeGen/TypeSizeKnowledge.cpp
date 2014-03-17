@@ -43,7 +43,6 @@ namespace locic {
 			auto type = module.resolveType(unresolvedType);
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::NULLT:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -70,7 +69,6 @@ namespace locic {
 			SEM::Type* type = module.resolveType(unresolvedType);
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::NULLT:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
