@@ -11,6 +11,7 @@
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
@@ -28,7 +29,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		static llvm::Value* makePtr(Function& function, llvm::Value* value, SEM::Type* type) {
-			assert(isTypeSizeAlwaysKnown(function.getModule(), type) && !type->isReference());
+			assert(isTypeSizeAlwaysKnown(function.module(), type) && !type->isReference());
 			
 			const auto ptrValue = genAlloca(function, type);
 			genStore(function, value, ptrValue, type);
@@ -36,7 +37,7 @@ namespace locic {
 		}
 		
 		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, SEM::Value* value) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			auto& valueMap = module.debugModule().valueMap;
 			const auto iterator = valueMap.find(value);
 			if (iterator != valueMap.end()) {
@@ -48,22 +49,13 @@ namespace locic {
 			}
 		}
 		
-		llvm::Instruction* addDebugLoc(llvm::Instruction* instruction, const boost::optional<llvm::DebugLoc>& debugLocation) {
-			if (debugLocation) {
-				instruction->setDebugLoc(*debugLocation);
-			}
-			return instruction;
-		}
-		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
-			assert(value != nullptr && "Cannot generate nullptr value");
-			
 			LOG(LOG_INFO, "Generating value %s.",
 				value->toString().c_str());
 			
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
-				
+			
 			switch (value->kind()) {
 				case SEM::Value::CONSTANT: {
 					switch (value->constant->getType()) {
@@ -95,12 +87,10 @@ namespace locic {
 										value->constant->getFloat());
 											   
 								case locic::Constant::LONGDOUBLE:
-									assert(false && "Long double not implemented yet");
-									return nullptr;
+									llvm_unreachable("Long double not implemented yet.");
 									
 								default:
-									assert(false && "Unknown float constant type");
-									return nullptr;
+									llvm_unreachable("Unknown float constant type.");
 							}
 						}
 						
@@ -124,19 +114,16 @@ namespace locic {
 								}
 								
 								case locic::Constant::LOCISTRING: {
-									assert(false && "Loci string constants not yet implemented.");
-									return nullptr;
+									llvm_unreachable("Loci string constants not yet implemented.");
 								}
 								
 								default:
-									assert(false && "Unknown string constant type.");
-									return nullptr;
+									llvm_unreachable("Unknown string constant type.");
 							}
 						}
 						
 						default:
-							assert(false && "Unknown constant type.");
-							return nullptr;
+							llvm_unreachable("Unknown constant type.");
 					}
 				}
 				
@@ -233,7 +220,7 @@ namespace locic {
 								
 								// Store the union value.
 								const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(unionValue, 0, 1);
-								const auto unionValueType = genType(function.getModule(), sourceType);
+								const auto unionValueType = genType(function.module(), sourceType);
 								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 								genStore(function, codeValue, castedUnionValuePtr, sourceType);
 								
@@ -335,72 +322,10 @@ namespace locic {
 						value->functionCall.functionValue->toString().c_str());
 						
 					const auto functionValue = genValue(function, value->functionCall.functionValue);
-					assert(functionValue->getType()->isPointerTy());
-					
-					const auto functionType = functionValue->getType()->getPointerElementType();
-					assert(functionType->isFunctionTy());
-					
-					std::vector<llvm::Value*> parameters;
-					
-					const auto& paramList = value->functionCall.parameters;
+					const auto contextPointer = nullptr;
 					const auto returnType = value->type();
 					
-					// Some values (e.g. classes) will be returned
-					// by assigning to a pointer passed as the first
-					// argument (this deals with the class sizes
-					// potentially being unknown).
-					llvm::Value* returnVarValue = nullptr;
-					
-					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnVarValue = genAlloca(function, returnType);
-						parameters.push_back(returnVarValue);
-					}
-					
-					for (const auto param: paramList) {
-						llvm::Value* argValue = genValue(function, param);
-						
-						// When calling var-args functions, all 'char' and
-						// 'short' values must be extended to 'int' values,
-						// and all 'float' values must be converted to 'double'
-						// values.
-						if (functionType->isFunctionVarArg()) {
-							const auto argType = argValue->getType();
-							const auto sizeInBits = argType->getPrimitiveSizeInBits();
-							
-							if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int")) {
-								// Need to extend to int.
-								// TODO: this doesn't handle unsigned types; perhaps
-								// this code should be moved to semantic analysis.
-								argValue = function.getBuilder().CreateSExt(argValue,
-										   getPrimitiveType(module, "int", std::vector<llvm::Type*>()));
-							} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
-								// Need to extend to double.
-								argValue = function.getBuilder().CreateFPExt(argValue,
-										   TypeGenerator(module).getDoubleType());
-							}
-						}
-						
-						parameters.push_back(argValue);
-					}
-					
-					const auto successPath = function.createBasicBlock("successPath");
-					const auto failPath = function.createBasicBlock("failPath");
-					
-					const auto callReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, parameters), debugLoc);
-					
-					// Fail path.
-					function.selectBasicBlock(failPath);
-					genLandingPad(function);
-					
-					// Success path.
-					function.selectBasicBlock(successPath);
-					if (returnVarValue != nullptr) {
-						// As above, if the return value pointer is used,
-						// this should be loaded (and used instead).
-						return genLoad(function, returnVarValue, returnType);
-					} else {
-						return callReturnValue;
-					}
+					return genFunctionCall(function, functionValue, contextPointer, returnType, value->functionCall.parameters, debugLoc);
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
@@ -417,9 +342,9 @@ namespace locic {
 					// Methods must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
 					const bool isValuePtr = dataValue->type()->isReference() ||
-						!isTypeSizeAlwaysKnown(function.getModule(), dataValue->type());
+						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
-							
+					
 					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
 					
 					assert(value->type()->isMethod());
@@ -445,49 +370,9 @@ namespace locic {
 					const auto functionValue = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 0));
 					const auto contextPointer = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 1));
 					
-					std::vector<llvm::Value*> parameters;
-					
 					const auto returnType = value->type();
 					
-					// Some values (e.g. classes) will be returned
-					// by assigning to a pointer passed as the first
-					// argument (this deals with the class sizes
-					// potentially being unknown).
-					llvm::Value* returnVarValue = nullptr;
-					
-					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						returnVarValue = genAlloca(function, returnType);
-						parameters.push_back(returnVarValue);
-					}
-					
-					parameters.push_back(contextPointer);
-					
-					const auto& paramList = value->methodCall.parameters;
-					
-					for (std::size_t i = 0; i < paramList.size(); i++) {
-						LOG(LOG_EXCESSIVE, "Generating method call argument %s.",
-							paramList.at(i)->toString().c_str());
-						parameters.push_back(genValue(function, paramList.at(i)));
-					}
-					
-					const auto successPath = function.createBasicBlock("successPath");
-					const auto failPath = function.createBasicBlock("failPath");
-					
-					const auto callReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, parameters), debugLoc);
-					
-					// Fail path.
-					function.selectBasicBlock(failPath);
-					genLandingPad(function);
-					
-					// Success path.
-					function.selectBasicBlock(successPath);
-					if (returnVarValue != nullptr) {
-						// As above, if the return value pointer is used,
-						// this should be loaded (and used instead).
-						return genLoad(function, returnVarValue, returnType);
-					} else {
-						return callReturnValue;
-					}
+					return genFunctionCall(function, functionValue, contextPointer, returnType, value->methodCall.parameters, debugLoc);
 				}
 				
 				case SEM::Value::INTERFACEMETHODOBJECT: {

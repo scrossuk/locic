@@ -17,7 +17,7 @@ namespace locic {
 	
 		namespace {
 			
-			llvm::Value* genDefaultConstructor(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
+			llvm::Value* genDefaultConstructor(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {
 				assert(function->isMethod() && function->isStaticMethod());
 				(void) function;
 				
@@ -25,17 +25,17 @@ namespace locic {
 				
 				const auto& parentVars = parent->getObjectType()->variables();
 				
-				const auto objectValue = genAlloca(functionGenerator, parent);
+				const auto objectValue = genAlloca(functionBuilder, parent);
 				
 				for (size_t i = 0; i < parentVars.size(); i++) {
-					const auto llvmInsertPointer = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
-					genStoreVar(functionGenerator, functionGenerator.getArg(i), llvmInsertPointer, parentVars.at(i));
+					const auto llvmInsertPointer = functionBuilder.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+					genStoreVar(functionBuilder, functionBuilder.getArg(i), llvmInsertPointer, parentVars.at(i));
 				}
 				
-				return genLoad(functionGenerator, objectValue, parent);
+				return genLoad(functionBuilder, objectValue, parent);
 			}
 			
-			llvm::Value* genDefaultImplicitCopy(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
+			llvm::Value* genDefaultImplicitCopy(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {
 				assert(function->isMethod() && !function->isStaticMethod());
 				(void) function;
 				
@@ -43,33 +43,41 @@ namespace locic {
 				
 				// TODO: this code should call implicitCopy method of children.
 				
-				return genLoad(functionGenerator, functionGenerator.getContextValue(), parent);
+				return genLoad(functionBuilder, functionBuilder.getContextValue(), parent);
 			}
 			
 		}
 		
-		void genDefaultMethod(Function& functionGenerator, SEM::Type* parent, SEM::Function* function) {
+		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
+			std::vector<llvm_abi::Type> abiTypes;
+			abiTypes.push_back(std::move(type));
+			return function.module().abi().encodeValues(function.getBuilder(), {value}, abiTypes).at(0);
+		}
+		
+		void genDefaultMethod(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {
 			assert(parent != NULL);
 			assert(function->isMethod());
 			
 			llvm::Value* returnValue = nullptr;
 			
 			if (function->name().last() == "Create") {
-				returnValue = genDefaultConstructor(functionGenerator, parent, function);
+				returnValue = genDefaultConstructor(functionBuilder, parent, function);
 			} else if (function->name().last() == "implicitCopy") {
-				returnValue = genDefaultImplicitCopy(functionGenerator, parent, function);
+				returnValue = genDefaultImplicitCopy(functionBuilder, parent, function);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.",
 					function->name().toString().c_str()));
 			}
 			
-			if (functionGenerator.getArgInfo().hasReturnVarArgument()) {
+			if (functionBuilder.getArgInfo().hasReturnVarArgument()) {
 				// Store the return value into the return value pointer.
-				genStore(functionGenerator, returnValue, functionGenerator.getReturnVar(),
+				genStore(functionBuilder, returnValue, functionBuilder.getReturnVar(),
 					function->type()->getFunctionReturnType());
-				functionGenerator.getBuilder().CreateRetVoid();
+				functionBuilder.getBuilder().CreateRetVoid();
 			} else {
-				functionGenerator.getBuilder().CreateRet(returnValue);
+				auto returnABIType = genABIType(functionBuilder.module(), function->type()->getFunctionReturnType());
+				const auto encodedReturnValue = encodeReturnValue(functionBuilder, returnValue, std::move(returnABIType));
+				functionBuilder.getBuilder().CreateRet(encodedReturnValue);
 			}
 		}
 		

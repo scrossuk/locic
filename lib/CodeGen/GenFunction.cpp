@@ -41,7 +41,7 @@ namespace locic {
 			}
 			
 			void genFunctionVars(Function& functionGenerator, SEM::Function* function) {
-				auto& module = functionGenerator.getModule();
+				auto& module = functionGenerator.module();
 				auto& varMap = module.debugModule().varMap;
 				for (const auto paramVar: function->parameters()) {
 					// Create an alloca for this variable.

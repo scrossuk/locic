@@ -1,10 +1,16 @@
+add_subdirectory(llvm-abi)
+
+include_directories(llvm-abi/include)
+
 add_library(locic-codegen
 	CodeGen.cpp
 	Debug.cpp
 	DefaultMethods.cpp
 	Destructor.cpp
 	Exception.cpp
+	GenABIType.cpp
 	GenFunction.cpp
+	GenFunctionCall.cpp
 	GenStatement.cpp
 	GenType.cpp
 	GenTypeInstance.cpp
@@ -14,6 +20,7 @@ add_library(locic-codegen
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp
+	Module.cpp
 	Primitives.cpp
 	SizeOf.cpp
 	Support.cpp

@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/Debug.hpp>
@@ -18,133 +20,61 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		typedef Map<std::string, llvm::Function*> FunctionMap;
+		typedef Map<SEM::Var*, size_t> MemberVarMap;
+		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
+		typedef Map<std::string, llvm::StructType*> TypeMap;
+		
 		class Module {
 			public:
-				typedef Map<std::string, llvm::Function*> FunctionMap;
-				typedef Map<SEM::Var*, size_t> MemberVarMap;
-				typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
-				typedef Map<std::string, llvm::StructType*> TypeMap;
+				Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule);
 				
-				inline Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
-					: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
-					  targetInfo_(targetInfo), debugBuilder_(*this),
-					  debugModule_(pDebugModule) {
-					module_->setTargetTriple(targetInfo_.getTargetTriple());
-				}
+				void dump() const;
 				
-				inline void dump() const {
-					module_->dump();
-				}
+				void dumpToFile(const std::string& fileName) const;
 				
-				inline void dumpToFile(const std::string& fileName) const {
-					std::ofstream file(fileName.c_str());
-					llvm::raw_os_ostream ostream(file);
-					ostream << *(module_);
-				}
+				void writeBitCodeToFile(const std::string& fileName) const;
 				
-				inline void writeBitCodeToFile(const std::string& fileName) const {
-					std::ofstream file(fileName.c_str());
-					llvm::raw_os_ostream ostream(file);
-					llvm::WriteBitcodeToFile(module_.get(), ostream);
-				}
+				const TargetInfo& getTargetInfo() const;
 				
-				inline const TargetInfo& getTargetInfo() const {
-					return targetInfo_;
-				}
+				llvm_abi::ABI& abi();
 				
-				inline llvm::LLVMContext& getLLVMContext() const {
-					return module_->getContext();
-				}
+				llvm::LLVMContext& getLLVMContext() const;
 				
-				inline llvm::Module& getLLVMModule() const {
-					return *module_;
-				}
+				llvm::Module& getLLVMModule() const;
 				
-				inline llvm::Module* getLLVMModulePtr() const {
-					return module_.get();
-				}
+				llvm::Module* getLLVMModulePtr() const;
 				
-				inline FunctionMap& getFunctionMap() {
-					return functionMap_;
-				}
+				FunctionMap& getFunctionMap();
 				
-				inline const FunctionMap& getFunctionMap() const {
-					return functionMap_;
-				}
+				const FunctionMap& getFunctionMap() const;
 				
-				inline MemberVarMap& getMemberVarMap() {
-					return memberVarMap_;
-				}
+				MemberVarMap& getMemberVarMap();
 				
-				inline const MemberVarMap& getMemberVarMap() const {
-					return memberVarMap_;
-				}
+				const MemberVarMap& getMemberVarMap() const;
 				
-				inline void pushTemplateVarMap(const TemplateVarMap& templateVarMap) {
-					templateVarMapStack_.push_back(&templateVarMap);
-				}
+				void pushTemplateVarMap(const TemplateVarMap& templateVarMap);
 				
-				inline void popTemplateVarMap() {
-					templateVarMapStack_.pop_back();
-				}
+				void popTemplateVarMap();
 				
-				inline SEM::Type* resolveType(SEM::Type* type) const {
-					for(size_t i = 0; i < templateVarMapStack_.size(); i++) {
-						assert(type != NULL);
-						if (!type->isTemplateVar()) {
-							return type;
-						}
-						const TemplateVarMap* map = templateVarMapStack_.at(templateVarMapStack_.size() - i - 1);
-						assert(map != NULL);
-						const Optional<SEM::Type*> result = map->tryGet(type->getTemplateVar());
-						if (result.hasValue()) {
-							LOG(LOG_INFO, "Resolved %s -> %s.",
-								type->toString().c_str(),
-								result.getValue()->toString().c_str());
-							type = result.getValue();
-						}
-					}
-					
-					if (!type->isTemplateVar()) {
-						return type;
-					}
-					
-					LOG(LOG_INFO, "Failed to resolve type %s.",
-						type->toString().c_str());
-					
-					assert(false && "Failed to resolve type.");
-					
-					return NULL;
-				}
+				SEM::Type* resolveType(SEM::Type* type) const;
 				
-				inline TypeMap& getTypeMap() {
-					return typeMap_;
-				}
+				TypeMap& getTypeMap();
 				
-				inline const TypeMap& getTypeMap() const {
-					return typeMap_;
-				}
+				const TypeMap& getTypeMap() const;
 				
-				inline llvm::GlobalVariable* createConstGlobal(const std::string& name,
+				llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
-					llvm::Constant* value = NULL) {
-					const bool isConstant = true;
-					return new llvm::GlobalVariable(getLLVMModule(),
-						type, isConstant,
-						linkage, value, name);
-				}
+					llvm::Constant* value = nullptr);
 				
-				inline DebugBuilder& debugBuilder() {
-					return debugBuilder_;
-				}
+				DebugBuilder& debugBuilder();
 				
-				inline Debug::Module& debugModule() {
-					return debugModule_;
-				}
+				Debug::Module& debugModule();
 				
 			private:
 				std::unique_ptr<llvm::Module> module_;
 				TargetInfo targetInfo_;
+				std::unique_ptr<llvm_abi::ABI> abi_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
 				std::vector<const TemplateVarMap*> templateVarMapStack_;
@@ -156,12 +86,12 @@ namespace locic {
 		
 		class TemplateVarMapStackEntry {
 			public:
-				inline TemplateVarMapStackEntry(Module& module, const Module::TemplateVarMap& templateVarMap)
+				TemplateVarMapStackEntry(Module& module, const TemplateVarMap& templateVarMap)
 					: module_(module) {
 						module_.pushTemplateVarMap(templateVarMap);
 					}
 				
-				inline ~TemplateVarMapStackEntry() {
+				~TemplateVarMapStackEntry() {
 					module_.popTemplateVarMap();
 				}
 			

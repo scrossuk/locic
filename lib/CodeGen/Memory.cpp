@@ -16,7 +16,7 @@ namespace locic {
 		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto type = module.resolveType(unresolvedType);
 			
 			(void) function.getBuilder().CreateStore(
@@ -25,7 +25,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto rawType = genType(module, type);
 			
 			switch (type->kind()) {
@@ -65,7 +65,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto type = module.resolveType(unresolvedType);
 			
 			const auto alloca = genUnzeroedAlloca(function, type);
@@ -77,7 +77,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* unresolvedType) {
-			const auto type = function.getModule().resolveType(unresolvedType);
+			const auto type = function.module().resolveType(unresolvedType);
 			
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			
@@ -91,7 +91,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					if (isTypeSizeAlwaysKnown(function.getModule(), type)) {
+					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						return function.getBuilder().CreateLoad(var);
 					} else {
 						return var;
@@ -111,7 +111,7 @@ namespace locic {
 		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
 			assert(var->getType()->isPointerTy());
 			
-			const auto type = function.getModule().resolveType(unresolvedType);
+			const auto type = function.module().resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
@@ -124,13 +124,13 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					if (isTypeSizeAlwaysKnown(function.getModule(), type)) {
+					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
 						function.getBuilder().CreateStore(value, var);
 						return;
 					} else {	
-						if (isTypeSizeKnownInThisModule(function.getModule(), type)) {
+						if (isTypeSizeKnownInThisModule(function.module(), type)) {
 							// If the type size is known now, it's
 							// better to generate an explicit load
 							// and store (optimisations will be able
@@ -158,7 +158,7 @@ namespace locic {
 		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar) {
 			assert(semVar->isBasic());
 			
-			auto& module = function.getModule();
+			auto& module = function.module();
 			
 			const auto valueType = module.resolveType(semVar->constructType());
 			const auto varType = module.resolveType(semVar->type());

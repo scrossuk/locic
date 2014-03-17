@@ -64,7 +64,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genSizeOf(Function& function, SEM::Type* unresolvedType) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto& targetInfo = module.getTargetInfo();
 			
 			auto type = module.resolveType(unresolvedType);

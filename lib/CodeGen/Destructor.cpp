@@ -27,7 +27,7 @@ namespace locic {
 		}
 		
 		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			
 			const auto type = module.resolveType(unresolvedType);
 			if (!typeHasDestructor(module, type)) {
@@ -57,7 +57,7 @@ namespace locic {
 			uint8_t tag = 0;
 			for (auto variantTypeInstance: parent->getObjectType()->variants()) {
 				const auto matchBB = function.createBasicBlock("tagMatch");
-				const auto tagValue = ConstantGenerator(function.getModule()).getI8(tag++);
+				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
 				
 				switchInstruction->addCase(tagValue, matchBB);
 				
@@ -66,7 +66,7 @@ namespace locic {
 				// TODO: CodeGen shouldn't create SEM trees.
 				const auto variantType = SEM::Type::Object(variantTypeInstance, parent->templateArguments());
 				
-				const auto unionValueType = genType(function.getModule(), variantType);
+				const auto unionValueType = genType(function.module(), variantType);
 				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 				
 				genDestructorCall(function, variantType, castedUnionValuePtr);
@@ -183,7 +183,7 @@ namespace locic {
 					
 					if (!unwindAction.isDestructor()) continue;
 					
-					if (typeHasDestructor(function.getModule(), unwindAction.destroyType())) {
+					if (typeHasDestructor(function.module(), unwindAction.destroyType())) {
 						return true;
 					}
 				}

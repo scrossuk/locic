@@ -124,7 +124,7 @@ namespace locic {
 		}
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName());
 			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
 			const bool isParam = (varInfo.kind == Debug::VarInfo::VAR_ARG);

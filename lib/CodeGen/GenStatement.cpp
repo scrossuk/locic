@@ -11,6 +11,7 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -78,8 +79,14 @@ namespace locic {
 			}
 		}
 		
+		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
+			std::vector<llvm_abi::Type> abiTypes;
+			abiTypes.push_back(std::move(type));
+			return function.module().abi().encodeValues(function.getBuilder(), {value}, abiTypes).at(0);
+		}
+		
 		void genStatement(Function& function, SEM::Statement* statement) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			auto& statementMap = module.debugModule().statementMap;
 			const auto iterator = statementMap.find(statement);
 			const auto hasDebugInfo = (iterator != statementMap.end());
@@ -157,14 +164,14 @@ namespace locic {
 							tag++;
 						}
 						
-						const auto tagValue = ConstantGenerator(function.getModule()).getI8(tag);
+						const auto tagValue = ConstantGenerator(function.module()).getI8(tag);
 						const auto caseBB = function.createBasicBlock("switchCase");
 						
 						switchInstruction->addCase(tagValue, caseBB);
 						
 						function.selectBasicBlock(caseBB);
 						
-						const auto unionValueType = genType(function.getModule(), caseType);
+						const auto unionValueType = genType(function.module(), caseType);
 						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 						
 						{
@@ -217,7 +224,7 @@ namespace locic {
 				case SEM::Statement::RETURN: {
 					llvm::Instruction* returnInst = nullptr;
 					
-					if (statement->getReturnValue() != NULL
+					if (statement->getReturnValue() != nullptr
 						&& !statement->getReturnValue()->type()->isVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
 							const auto returnValue = genValue(function, statement->getReturnValue());
@@ -232,10 +239,12 @@ namespace locic {
 						} else {
 							const auto returnValue = genValue(function, statement->getReturnValue());
 							
+							const auto encodedReturnValue = encodeReturnValue(function, returnValue, genABIType(function.module(), statement->getReturnValue()->type()));
+							
 							// Call all destructors.
 							genAllScopeDestructorCalls(function);
 							
-							returnInst = function.getBuilder().CreateRet(returnValue);
+							returnInst = function.getBuilder().CreateRet(encodedReturnValue);
 						}
 					} else {
 						// Call all destructors.
@@ -304,7 +313,7 @@ namespace locic {
 						// If matched, execute catch block and then continue normal execution.
 						{
 							function.selectBasicBlock(executeCatchBlock);
-							const auto catchType = genType(function.getModule(), catchClause->var()->constructType());
+							const auto catchType = genType(function.module(), catchClause->var()->constructType());
 							const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
 							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
 							
@@ -373,8 +382,7 @@ namespace locic {
 				}
 				
 				default:
-					assert(false && "Unknown statement type");
-					break;
+					llvm_unreachable("Unknown statement type");
 			}
 		}
 		

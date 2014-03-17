@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -33,16 +34,13 @@ namespace locic {
 				returnType = TypeGenerator(module).getVoidType();
 			}
 			
-			if (contextPointerType != NULL) {
+			if (contextPointerType != nullptr) {
 				// If there's a context pointer (for non-static methods),
 				// add it before the other (normal) arguments.
 				paramTypes.push_back(contextPointerType);
 			}
 			
-			const auto& params = type->getFunctionParameterTypes();
-			
-			for (std::size_t i = 0; i < params.size(); i++) {
-				SEM::Type* paramType = params.at(i);
+			for (const auto paramType: type->getFunctionParameterTypes()) {
 				llvm::Type* rawType = genType(module, paramType);
 				
 				if (!isTypeSizeAlwaysKnown(module, paramType)) {
@@ -52,7 +50,8 @@ namespace locic {
 				paramTypes.push_back(rawType);
 			}
 			
-			return TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
+			const auto genericFunctionType = TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
+			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type, contextPointerType));
 		}
 		
 		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance,

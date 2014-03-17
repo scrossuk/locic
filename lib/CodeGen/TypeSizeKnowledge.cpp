@@ -10,7 +10,7 @@ namespace locic {
 	
 		namespace {
 			
-			bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType, const Module::TemplateVarMap& templateVarMap) {
+			bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType, const TemplateVarMap& templateVarMap) {
 				if (objectType->isStruct()) {
 					// Structs can only contain known size members.
 					return true;
@@ -83,6 +83,8 @@ namespace locic {
 						// Structs must always have a known size.
 						return true;
 					} else {
+						// TODO: datatypes containing known size types should
+						//       also have a known size.
 						return false;
 					}
 				case SEM::Type::TEMPLATEVAR:

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -75,26 +76,14 @@ namespace locic {
 				   methodName == "index";
 		}
 		
-		ArgInfo getPrimitiveMethodArgInfo(const std::string& methodName) {
-			assert(isConstructor(methodName) xor isUnaryOp(methodName) xor isBinaryOp(methodName));
-			
-			if (methodName == "Create" || methodName == "Null") {
-				return ArgInfo::None();
-			}
-			
-			const bool hasReturnVarArg = false;
-			const bool hasContextArg = true;
-			const size_t numStandardArguments =
-				isUnaryOp(methodName) ? 0 : 1;
-			return ArgInfo(hasReturnVarArg, hasContextArg, numStandardArguments);
-		}
-		
-		void createBoolPrimitiveMethod(Module& module, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createBoolPrimitiveMethod(Module& module, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			const auto methodName = semFunction->name().last();
 			
-			llvm::IRBuilder<>& builder = function.getBuilder();
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			
+			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
@@ -118,12 +107,14 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createSignedIntegerPrimitiveMethod(Module& module, const std::string& typeName, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createSignedIntegerPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			const auto methodName = semFunction->name().last();
 			
-			llvm::IRBuilder<>& builder = function.getBuilder();
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			
+			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
@@ -190,12 +181,14 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createFloatPrimitiveMethod(Module& module, const std::string& typeName, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createFloatPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			const auto methodName = semFunction->name().last();
 			
-			llvm::IRBuilder<>& builder = function.getBuilder();
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			
+			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
@@ -262,12 +255,13 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPtrPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createPtrPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
+			const auto methodName = semFunction->name().last();
 			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -306,12 +300,13 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPtrLvalPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createPtrLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
+			const auto methodName = semFunction->name().last();
 			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -342,12 +337,13 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createMemberLvalPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createMemberLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
+			const auto methodName = semFunction->name().last();
 			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getPrimitiveMethodArgInfo(methodName));
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -376,28 +372,13 @@ namespace locic {
 			function.verify();
 		}
 		
-		ArgInfo getValueLvalMethodArgInfo(Module& module, SEM::Type* targetType, const std::string& methodName) {
-			if (methodName == "Create") {
-				const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, targetType);
-				const bool hasContextArg = false;
-				const size_t numStandardArguments = 1;
-				return ArgInfo(hasReturnVarArg, hasContextArg, numStandardArguments);
-			} else if (methodName == "move") {
-				const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, targetType);
-				const bool hasContextArg = true;
-				const size_t numStandardArguments = 0;
-				return ArgInfo(hasReturnVarArg, hasContextArg, numStandardArguments);
-			}
-		
-			return getPrimitiveMethodArgInfo(methodName);
-		}
-		
-		void createValueLvalPrimitiveMethod(Module& module, SEM::Type* parent, const std::string& methodName, llvm::Function& llvmFunction) {
+		void createValueLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
+			const auto methodName = semFunction->name().last();
 			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getValueLvalMethodArgInfo(module, targetType, methodName));
+			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -498,22 +479,21 @@ namespace locic {
 		
 		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction) {
 			const auto typeName = parent->getObjectType()->name().last();
-			const auto methodName = function->name().last();
 			
 			if (typeName == "bool") {
-				createBoolPrimitiveMethod(module, methodName, llvmFunction);
+				createBoolPrimitiveMethod(module, function, llvmFunction);
 			} else if (isIntegerType(typeName)) {
-				createSignedIntegerPrimitiveMethod(module, typeName, methodName, llvmFunction);
+				createSignedIntegerPrimitiveMethod(module, typeName, function, llvmFunction);
 			} else if (isFloatType(typeName)) {
-				createFloatPrimitiveMethod(module, typeName, methodName, llvmFunction);
+				createFloatPrimitiveMethod(module, typeName, function, llvmFunction);
 			} else if(typeName == "ptr") {
-				createPtrPrimitiveMethod(module, parent, methodName, llvmFunction);
+				createPtrPrimitiveMethod(module, parent, function, llvmFunction);
 			} else if(typeName == "member_lval") {
-				createMemberLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
+				createMemberLvalPrimitiveMethod(module, parent, function, llvmFunction);
 			} else if(typeName == "ptr_lval") {
-				createPtrLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
+				createPtrLvalPrimitiveMethod(module, parent, function, llvmFunction);
 			} else if(typeName == "value_lval") {
-				createValueLvalPrimitiveMethod(module, parent, methodName, llvmFunction);
+				createValueLvalPrimitiveMethod(module, parent, function, llvmFunction);
 			} else {
 				throw std::runtime_error(makeString("Unknown primitive type '%s' for method generation.",
 					typeName.c_str()));
@@ -525,7 +505,7 @@ namespace locic {
 			// a boolean 'liveness' indicator, which records
 			// whether the lval currently holds a value.
 			
-			auto& module = functionGenerator.getModule();
+			auto& module = functionGenerator.module();
 			
 			const auto targetType = type->templateArguments().at(0);
 			
@@ -553,7 +533,7 @@ namespace locic {
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
 			assert(var->getType()->isPointerTy());
 			
-			auto& module = functionGenerator.getModule();
+			auto& module = functionGenerator.module();
 			
 			const auto type = module.resolveType(unresolvedType);
 			

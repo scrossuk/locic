@@ -104,7 +104,7 @@ namespace locic {
 		}
 		
 		void genLandingPad(Function& function) {
-			auto& module = function.getModule();
+			auto& module = function.module();
 			const auto& unwindStack = function.unwindStack();
 			
 			TypeGenerator typeGen(module);

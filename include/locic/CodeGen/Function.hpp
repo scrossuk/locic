@@ -30,9 +30,9 @@ namespace locic {
 			public:
 				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 				
-				inline Function(Module& module, llvm::Function& function, const ArgInfo& argInfo)
-					: module_(module), function_(function),
-					  builder_(module.getLLVMContext()), argInfo_(argInfo),
+				inline Function(Module& pModule, llvm::Function& function, ArgInfo argInfo)
+					: module_(pModule), function_(function),
+					  builder_(pModule.getLLVMContext()), argInfo_(std::move(argInfo)),
 					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
@@ -40,9 +40,17 @@ namespace locic {
 					selectBasicBlock(createBasicBlock(""));
 					
 					// Allocate exception information values.
-					TypeGenerator typeGen(module);
+					TypeGenerator typeGen(pModule);
 					const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI8PtrType(), typeGen.getI32Type()});
 					exceptionInfo_ = getBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
+					
+					std::vector<llvm::Value*> encodedArgValues;
+					
+					for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
+						encodedArgValues.push_back(arg);
+					}
+					
+					argValues_ = module_.abi().decodeValues(getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
 				}
 				
 				inline llvm::Function& getLLVMFunction() {
@@ -53,11 +61,11 @@ namespace locic {
 					return &function_;
 				}
 				
-				inline Module& getModule() {
+				inline Module& module() {
 					return module_;
 				}
 				
-				inline const Module& getModule() const {
+				inline const Module& module() const {
 					return module_;
 				}
 				
@@ -67,15 +75,7 @@ namespace locic {
 				
 				inline llvm::Value* getRawArg(size_t index) const {
 					assert(index < argInfo_.numArguments());
-					llvm::Function::arg_iterator arg = function_.arg_begin();
-					
-					for (size_t i = 0; i < index; i++) {
-						assert(arg != function_.arg_end());
-						arg++;
-					}
-					
-					assert(arg != function_.arg_end());
-					return arg;
+					return argValues_.at(index);
 				}
 				
 				inline llvm::Value* getArg(size_t index) const {
@@ -150,6 +150,7 @@ namespace locic {
 				UnwindStack unwindStack_;
 				llvm::Value* exceptionInfo_;
 				llvm::DISubprogram debugInfo_;
+				std::vector<llvm::Value*> argValues_;
 				
 		};
 		

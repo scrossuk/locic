@@ -1,6 +1,10 @@
 #include <vector>
 
+#include <llvm-abi/Type.hpp>
+
 #include <locic/SEM.hpp>
+
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -38,6 +42,17 @@ namespace locic {
 				return typeGen.getVoidFunctionType(argTypes);
 			}
 			
+			ArgInfo getStubArgInfo() {
+				const bool hasReturnVarArgument = true;
+				const bool hasContextArgument = true;
+				
+				std::vector<llvm_abi::Type> standardArguments;
+				standardArguments.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
+				standardArguments.push_back(llvm_abi::Type::Pointer());
+				
+				return ArgInfo(hasReturnVarArgument, hasContextArgument, std::move(standardArguments), {nullptr, nullptr});
+			}
+			
 			void setStubAttributes(llvm::Function* llvmFunction) {
 				{
 					// Return value pointer attributes.
@@ -56,7 +71,7 @@ namespace locic {
 			llvm::Value* makeArgsStruct(Function& function, const std::vector<SEM::Value*>& args) {
 				if (args.empty()) {
 					// Don't allocate struct when it's not needed.
-					return ConstantGenerator(function.getModule()).getNullPointer(TypeGenerator(function.getModule()).getI8PtrType());
+					return ConstantGenerator(function.module()).getNullPointer(TypeGenerator(function.module()).getI8PtrType());
 				}
 				
 				std::vector<llvm::Value*> llvmArgs;
@@ -69,7 +84,7 @@ namespace locic {
 					llvmArgsTypes.push_back(arg->getType());
 				}
 				
-				llvm::Type* llvmArgsStructType = TypeGenerator(function.getModule()).getStructType(llvmArgsTypes);
+				llvm::Type* llvmArgsStructType = TypeGenerator(function.module()).getStructType(llvmArgsTypes);
 				
 				llvm::Value* llvmArgsStructPtr = function.getBuilder().CreateAlloca(llvmArgsStructType);
 				for (size_t offset = 0; offset < args.size(); offset++) {
@@ -97,7 +112,7 @@ namespace locic {
 				llvm::Value* llvmMethodHashValue = function.getBuilder().CreateExtractValue(llvmMethodValue,
 											   std::vector<unsigned>(1, 1), "methodHash");
 											   
-				const ConstantGenerator constantGen(function.getModule());
+				const ConstantGenerator constantGen(function.module());
 				
 				// Calculate the slot for the virtual call.
 				llvm::Value* llvmVtableSizeValue =
@@ -120,13 +135,13 @@ namespace locic {
 					function.getBuilder().CreateLoad(llvmVtableEntryPointer, "methodFunctionPointer");
 				
 				// Cast the loaded pointer to the stub function type.
-				llvm::Type* llvmStubFunctionPtrType = getStubFunctionType(function.getModule())->getPointerTo();
+				llvm::Type* llvmStubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
 						 
 				llvm::Value* llvmCastedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
 					llvmMethodFunctionPointer, llvmStubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				// i8
-				auto i8PtrType = TypeGenerator(function.getModule()).getI8PtrType();
+				auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
 				
 				// Put together the arguments.
 				std::vector<llvm::Value*> parameters;
@@ -180,16 +195,10 @@ namespace locic {
 				
 				setStubAttributes(llvmFunction);
 				
-				const bool hasReturnVarArgument = true;
-				const bool hasContextArgument = true;
-				const size_t numStandardArguments = 2;
+				Function function(module, *llvmFunction, getStubArgInfo());
 				
-				auto argInfo = ArgInfo(hasReturnVarArgument, hasContextArgument, numStandardArguments);
-				
-				Function function(module, *llvmFunction, argInfo);
-				
-				llvm::Value* llvmHashValue = function.getArg(0);
-				llvm::Value* llvmOpaqueArgsStructPtr = function.getArg(1);
+				const auto llvmHashValue = function.getArg(0);
+				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
 				for (SEM::Function * semMethod : methods) {
 					auto callMethodBasicBlock = function.createBasicBlock("callMethod");

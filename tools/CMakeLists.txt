@@ -18,6 +18,7 @@ target_link_libraries(locic
 	locic-sem
 	locic-ast
 	locic-support
+	llvm-abi
 	${REQ_LIBS}
 	)
 
@@ -34,6 +35,7 @@ target_link_libraries(loci-test
 	locic-ast
 	locic-support
 	loci-runtime-exception
+	llvm-abi
 	${REQ_LIBS}
 	)
 
@@ -48,6 +50,7 @@ target_link_libraries(loci-vtable
 	locic-codegen
 	locic-sem
 	locic-support
+	llvm-abi
 	${REQ_LIBS}
 	)
 
