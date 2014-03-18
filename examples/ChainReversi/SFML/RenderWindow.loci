@@ -10,10 +10,10 @@ struct sfVideoMode {
 };
 
 struct sfColor {
-	char r;
-	char g;
-	char b;
-	char a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
 };
 
 void printf(const char* text, ...);
@@ -30,7 +30,7 @@ void sfRenderWindow_display(sfRenderWindow* renderWindow);
 
 namespace sf {
 	
-	datatype Color(char r, char g, char b, char a);
+	datatype Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	
 	class RenderWindow(sfRenderWindow* window) {
 		static Create (const char* title) {
@@ -38,7 +38,7 @@ namespace sf {
 			// (And 8 would give FullScreen...)
 			final int style = 7;
 			
-			printf("Got title=%s and style=%d.\n"C, title, style);
+			printf("Got title=%s and style=%d.\n", title, style);
 			
 			// TODO: make this user customisable.
 			return @(sfRenderWindow_create(sfVideoMode(800, 800, 32), title, style, null));

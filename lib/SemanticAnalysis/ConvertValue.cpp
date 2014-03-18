@@ -109,7 +109,7 @@ namespace locic {
 						
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = getBuiltInType(context, "char");
+						const auto charTypeInstance = getBuiltInType(context, "char_t");
 						const auto ptrTypeInstance = getBuiltInType(context, "ptr");
 						
 						// Generate type 'const char'.

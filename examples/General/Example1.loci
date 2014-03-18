@@ -6,7 +6,7 @@ class TestClass2(int i){
 	static Create = default;
 	
 	~ {
-		printf("Destructor for TestClass2 with value %d.\n"C, @i);
+		printf("Destructor for TestClass2 with value %d.\n", @i);
 	}
 	
 	int getValue() const {
@@ -14,7 +14,7 @@ class TestClass2(int i){
 	}
 	
 	void passTestClass2(TestClass2 value) {
-		printf("Received testclass2 value %d.\n"C, value.getValue());
+		printf("Received testclass2 value %d.\n", value.getValue());
 	}
 	
 	void doSomething() { }
@@ -58,7 +58,7 @@ class PolyClass(T v) {
 	}
 	
 	~{
-		printf("Destroying PolyClass.\n"C);
+		printf("Destroying PolyClass.\n");
 	}
 	
 	T function(T value) {
@@ -81,7 +81,7 @@ an_interface& getPtrAsInterfaceRef(TestClass2 * ptr){
 void function(TestClass2 * object){
 	const TestClass2& ptr = *object;
 	const TestClass2& ptr2 = ptr;
-	printf("Value from fn: %d\n"C, ptr.getValue());
+	printf("Value from fn: %d\n", ptr.getValue());
 }
 
 interface is_zero_interface {
@@ -121,7 +121,7 @@ class custom_lval(int i) {
 }
 
 void lvalFunc(lval<int> custom_lval& custLval) {
-	printf("Custom lval: %d\n"C, move custLval);
+	printf("Custom lval: %d\n", move custLval);
 }
 
 class count(int from, int to) {
@@ -144,16 +144,16 @@ class count(int from, int to) {
 
 void goGet(an_interface& interfaceRef, TestClass2 val) {
 	interfaceRef.passTestClass2(move val);
-	printf("Done goGet.\n"C);
+	printf("Done goGet.\n");
 }
 
 datatype Something(int a, int b);
 
 void datatypeDemo() {
 	const auto i = Something(41, 42);
-	printf("Something(%d, %d)\n"C, i.a, i.b);
+	printf("Something(%d, %d)\n", i.a, i.b);
 	const Something(int a, _) = move i;
-	printf("a = %d\n"C, a);
+	printf("a = %d\n", a);
 }
 
 // datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);
@@ -189,7 +189,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 				return @ptr[i];
 			}
 		}
-		printf("Out of bounds at index '%d'.\n"C, i);
+		printf("Out of bounds at index '%d'.\n", i);
 		@guardSlot = @emptyValue;
 		return *(&(@guardSlot));
 	}
@@ -215,7 +215,7 @@ Memory<int> createMemory() {
 
 int main(int argc, char ** argv){
 	if(argc < 2){
-		printf("Give me at least one argument...\n"C);
+		printf("Give me at least one argument...\n");
 		return 1;
 	}
 	
@@ -224,16 +224,16 @@ int main(int argc, char ** argv){
 	{
 		auto m = createMemory();
 		for (auto i: count(minus(5), m.size() + 5)) {
-			printf("m[%02d] = %d.\n"C, i, m[i]);
+			printf("m[%02d] = %d.\n", i, m[i]);
 		}
 	}
 	
 	char * programName = argv[0];
-	printf("Program name is %s.\n"C, programName);
+	printf("Program name is %s.\n", programName);
 	
 	int argIndex = 1;
 	while (argIndex < argc) {
-		printf("    Arg %d: %s\n"C, argIndex, argv[argIndex]);
+		printf("    Arg %d: %s\n", argIndex, argv[argIndex]);
 		argIndex += 1;
 	}
 	
@@ -249,15 +249,15 @@ int main(int argc, char ** argv){
 	
 	auto polyInst = PolyClass<int>(21);
 	const int res000 = polyInst.function(8);
-	printf("res000 = %d.\n"C, res000);
+	printf("res000 = %d.\n", res000);
 	
 	auto polyInst2 = PolyClass<double>(4.0);
 	const double res001 = polyInst2.function(16.0);
-	printf("res001 = %f.\n"C, res001);
+	printf("res001 = %f.\n", res001);
 	
 	auto polyInst3 = PolyClass<float>(4.0);
 	const float res002 = polyInst3.function(4.0);
-	printf("res002 = %f.\n"C, res002);
+	printf("res002 = %f.\n", res002);
 	
 	{
 		auto templatedInstancee = ExampleTemplatedClass0<int>();
@@ -268,7 +268,7 @@ int main(int argc, char ** argv){
 	
 	{
 		auto tmpValue = TestClass2(50).getValue();
-		printf("TMPVALUE: %d\n"C, tmpValue);
+		printf("TMPVALUE: %d\n", tmpValue);
 		auto toDestroy = TestClass2(99);
 	}
 	
@@ -278,22 +278,22 @@ int main(int argc, char ** argv){
 	
 	function(&testObject);
 	
-	printf("Value: %d\n"C, testObject.getValue());
+	printf("Value: %d\n", testObject.getValue());
 	
 	auto& interfaceRef = getPtrAsInterfaceRef(&testObject);
-	printf("Got interface ref: %d.\n"C, interfaceRef.getValue());
+	printf("Got interface ref: %d.\n", interfaceRef.getValue());
 	
 	auto newTestClass2 = TestClass2(1024);
 	goGet(interfaceRef, move newTestClass2);
 	
 	an_interface& interfaceObject = getPtrAsInterfaceRef(&testObject);
-	printf("Interface (2) value: %d\n"C, getValue(interfaceObject));
+	printf("Interface (2) value: %d\n", getValue(interfaceObject));
 	
 	{
 		final int potentially_zero_value = argc - 2;
 		final bool isZ = isZero(potentially_zero_value);
 		if(isZ){
-			printf("Is zero!\n"C);
+			printf("Is zero!\n");
 		}
 	}
 	
@@ -305,33 +305,33 @@ int main(int argc, char ** argv){
 	int i = 0;
 	int * j = &i;
 	while(i < argc){
-		printf("i = %d\n"C, i);
+		printf("i = %d\n", i);
 		*j += 1;
 	}
 	
 	if(i != (*j + 1)){
-		printf("%d != %d\n"C, i, *j + 1);
+		printf("%d != %d\n", i, *j + 1);
 	}
 	
 	float f = 3.141592653;
 	double d = 3.141592653;
-	printf("Float f = %.10f, Double d = %.10f\n"C, f, d);
+	printf("Float f = %.10f, Double d = %.10f\n", f, d);
 	
 	int loopCount = 0;
 	while(loopCount < 5) {
 		loopCount += 1;
 		f = f * f;
 		d = d * d;
-		printf("Float f = %.10f, Double d = %.10f\n"C, f, d);
+		printf("Float f = %.10f, Double d = %.10f\n", f, d);
 	}
 	
-	printf("Hello world!\n"C);
-	printf("This is Loci!\n"C);
+	printf("Hello world!\n");
+	printf("This is Loci!\n");
 	
 	if (argc == 2) {
-		printf("You gave me just 1 argument\n"C);
+		printf("You gave me just 1 argument\n");
 	} else {
-		printf("You gave me %d arguments\n"C, argc - 1);
+		printf("You gave me %d arguments\n", argc - 1);
 	}
 	
 	return 0;

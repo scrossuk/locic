@@ -4,12 +4,12 @@ void testPrint(const char * const str, ...);
 // Class definition.
 class TestClass(int value) {
 	static Null() {
-		testPrint("TestClass.Null"C);
+		testPrint("TestClass.Null");
 		return @(1);
 	}
 	
 	void printValue() {
-		testPrint("TestClass.printValue: Value = %d"C, @value);
+		testPrint("TestClass.printValue: Value = %d", @value);
 	}
 	
 }

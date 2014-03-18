@@ -5,30 +5,30 @@ void testPrint(const char * const str, ...);
 int testEntryPoint(int argc, char ** argv) {
 	int value = 1;
 	
-	testPrint("testEntryPoint: Value = %d."C, value);
+	testPrint("testEntryPoint: Value = %d.", value);
 	
 	lval<int> auto& valueLvalRef1 = value;
 	valueLvalRef1 = 11;
 	
-	testPrint("testEntryPoint: Value = %d."C, value);
+	testPrint("testEntryPoint: Value = %d.", value);
 	
 	lval<auto> auto& valueLvalRef2 = value;
 	valueLvalRef2 = 111;
 	
-	testPrint("testEntryPoint: Value = %d."C, value);
+	testPrint("testEntryPoint: Value = %d.", value);
 	
 	auto& valueRef = value;
 	
-	testPrint("testEntryPoint: Value ref = %d."C, valueRef);
+	testPrint("testEntryPoint: Value ref = %d.", valueRef);
 	
 	valueLvalRef1 = 1111;
 	
-	testPrint("testEntryPoint: Value = %d, Value ref = %d."C, value, valueRef);
+	testPrint("testEntryPoint: Value = %d, Value ref = %d.", value, valueRef);
 	
 	auto valueCopy = value;
 	valueCopy = 11111;
 	
-	testPrint("testEntryPoint: Value = %d."C, value);
+	testPrint("testEntryPoint: Value = %d.", value);
 	
 	return 0;
 }

@@ -3,17 +3,17 @@ void testPrint(const char * const str, ...);
 
 class TestClass (int first, int second) {
 	static Create(int first, int second) {
-		testPrint("TestClass.Create: First = %d, Second = %d"C, first, second);
+		testPrint("TestClass.Create: First = %d, Second = %d", first, second);
 		return @(first, second);
 	}
 	
 	int getFirst() {
-		testPrint("TestClass.getFirst: First = %d"C, @first);
+		testPrint("TestClass.getFirst: First = %d", @first);
 		return @first;
 	}
 	
 	int getSecond() {
-		testPrint("TestClass.getSecond: Second = %d"C, @second);
+		testPrint("TestClass.getSecond: Second = %d", @second);
 		return @second;
 	}
 	
@@ -35,18 +35,18 @@ interface TestInterfaceSecondOnly {
 
 void polymorphicPrintFirst(TestInterfaceFirstOnly& object) {
 	int value = object.getFirst();
-	testPrint("polymorphicPrintFirst: Value = %d"C, value);
+	testPrint("polymorphicPrintFirst: Value = %d", value);
 }
 
 void polymorphicPrintSecond(TestInterfaceSecondOnly& object) {
 	int value = object.getSecond();
-	testPrint("polymorphicPrintSecond: Value = %d"C, value);
+	testPrint("polymorphicPrintSecond: Value = %d", value);
 }
 
 void polymorphicPrintBoth(TestInterfaceBoth& object) {
 	int first = object.getFirst();
 	int second = object.getSecond();
-	testPrint("polymorphicPrintBoth: First = %d, Second = %d"C, first, second);
+	testPrint("polymorphicPrintBoth: First = %d, Second = %d", first, second);
 	
 	polymorphicPrintFirst(object);
 	polymorphicPrintSecond(object);

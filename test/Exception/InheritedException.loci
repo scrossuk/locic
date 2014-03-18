@@ -12,19 +12,19 @@ int testEntryPoint(int argc, char ** argv) {
 	try {
 		throw ChildException(1, 10, 100);
 	} catch (ChildException e) {
-		testPrint("Caught parent exception with values %d, %d and %d."C, e.value1, e.value2, e.value3);
+		testPrint("Caught parent exception with values %d, %d and %d.", e.value1, e.value2, e.value3);
 	}
 	
 	try {
 		throw ChildException(1, 10, 100);
 	} catch (ParentException e) {
-		testPrint("Caught parent exception with values %d and %d."C, e.value1, e.value2);
+		testPrint("Caught parent exception with values %d and %d.", e.value1, e.value2);
 	}
 	
 	try {
 		throw ChildException(1, 10, 100);
 	} catch (GrandParentException e) {
-		testPrint("Caught grand parent exception with value %d."C, e.value);
+		testPrint("Caught grand parent exception with value %d.", e.value);
 	}
 	return 0;
 }

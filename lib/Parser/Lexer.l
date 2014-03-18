@@ -50,9 +50,6 @@
 <STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
 <STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
 <STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
-<STRING_STATE>"\"C"           { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
-				BEGIN(INITIAL);
-				return CONSTANT; }
 <STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
@@ -98,8 +95,6 @@ static                  { return STATIC; }
 import                  { return IMPORT; }
 export                  { return EXPORT; }
 
-new                     { return NEW; }
-delete                  { return DELETE; }
 move                    { return MOVE; }
 sizeof                  { return SIZEOF; }
 
@@ -112,6 +107,12 @@ typeof                  { return TYPEOF; }
 typeid                  { return TYPEID; }
 
 void                    { return VOID; }
+signed                  { return SIGNED; }
+unsigned                { return UNSIGNED; }
+char                    { return CHAR; }
+short                   { return SHORT; }
+int                     { return INT; }
+long                    { return LONG; }
 
 null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }

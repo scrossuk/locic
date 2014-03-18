@@ -2,35 +2,35 @@
 void testPrint(const char * const str, ...);
 
 void assignFunction(lval<int> value_lval<int>& objectLval, int value) {
-	testPrint("assignFunction: Previous value = %d"C, objectLval);
+	testPrint("assignFunction: Previous value = %d", objectLval);
 	objectLval = value;
-	testPrint("assignFunction: New value = %d"C, objectLval);
+	testPrint("assignFunction: New value = %d", objectLval);
 }
 
 void moveFunction(lval<int> value_lval<int>& objectLval) {
-	testPrint("moveFunction: Previous value = %d"C, objectLval);
+	testPrint("moveFunction: Previous value = %d", objectLval);
 	int value = move objectLval;
-	testPrint("moveFunction: Moved value = %d"C, value);
-	testPrint("moveFunction: New value = %d"C, objectLval);
+	testPrint("moveFunction: Moved value = %d", value);
+	testPrint("moveFunction: New value = %d", objectLval);
 }
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
 	int value = 4;
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	assignFunction(value, 10);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	moveFunction(value);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	assignFunction(value, 20);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	return 0;
 }

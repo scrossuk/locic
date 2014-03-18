@@ -4,12 +4,12 @@ void testPrint(const char * const str, ...);
 // First interface implementation.
 class TestClass1 (int value) {
 	static Create(int value) {
-		testPrint("TestClass1.Create: Value = %d"C, value);
+		testPrint("TestClass1.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int getValue() {
-		testPrint("TestClass1.getValue: Value = %d"C, @value);
+		testPrint("TestClass1.getValue: Value = %d", @value);
 		return @value;
 	}
 	
@@ -18,12 +18,12 @@ class TestClass1 (int value) {
 // Second interface implementation.
 class TestClass2 (int value) {
 	static Create(int value) {
-		testPrint("TestClass2.Create: Value = %d"C, value);
+		testPrint("TestClass2.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int getValue() {
-		testPrint("TestClass2.getValue: Value = %d"C, @value);
+		testPrint("TestClass2.getValue: Value = %d", @value);
 		return @value;
 	}
 	
@@ -36,7 +36,7 @@ interface TestInterface {
 
 void polymorphicPrint(TestInterface& object) {
 	int value = object.getValue();
-	testPrint("polymorphicPrint: Value = %d"C, value);
+	testPrint("polymorphicPrint: Value = %d", value);
 }
 
 // Entry point.

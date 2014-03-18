@@ -32,99 +32,235 @@ __primitive bool {
 	bool not() const;
 }
 
-__primitive char {
-	static char integer_literal(integer_literal_t literal);
+__primitive char_t {
+	static char_t integer_literal(integer_literal_t literal);
 	
-	char implicitCopy() const;
+	char_t implicitCopy() const;
 	
-	char add(char v) const;
-	char subtract(char v) const;
-	char multiply(char v) const;
-	char divide(char v) const;
-	char modulo(char v) const;
+	char_t add(char_t v) const;
+	char_t subtract(char_t v) const;
+	char_t multiply(char_t v) const;
+	char_t divide(char_t v) const;
+	char_t modulo(char_t v) const;
 	
-	int compare(char v) const;
+	int_t compare(char_t v) const;
 	
 	bool isZero() const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
 }
 
-__primitive short {
-	static short integer_literal(integer_literal_t literal);
+__primitive short_t {
+	static short_t integer_literal(integer_literal_t literal);
 	
-	short implicitCopy() const;
+	short_t implicitCopy() const;
 	
-	short abs() const;
+	short_t abs() const;
 
-	short add(short v) const;
-	short subtract(short v) const;
-	short multiply(short v) const;
-	short divide(short v) const;
-	short modulo(short v) const;
+	short_t add(short_t v) const;
+	short_t subtract(short_t v) const;
+	short_t multiply(short_t v) const;
+	short_t divide(short_t v) const;
+	short_t modulo(short_t v) const;
 	
-	int compare(short v) const;
+	int_t compare(short_t v) const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
 }
 
-__primitive int {
-	static int integer_literal(integer_literal_t literal);
+__primitive int_t {
+	static int_t integer_literal(integer_literal_t literal);
 	
-	int implicitCopy() const;
+	int_t implicitCopy() const;
 	
-	int abs() const;
+	int_t abs() const;
 
-	int add(int v) const;
-	int subtract(int v) const;
-	int multiply(int v) const;
-	int divide(int v) const;
-	int modulo(int v) const;
+	int_t add(int_t v) const;
+	int_t subtract(int_t v) const;
+	int_t multiply(int_t v) const;
+	int_t divide(int_t v) const;
+	int_t modulo(int_t v) const;
 	
-	int compare(int v) const;
+	int_t compare(int_t v) const;
 	bool isZero() const;
 	bool isPositive() const;
 	bool isNegative() const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
 }
 
-__primitive long {
-	static long integer_literal(integer_literal_t literal);
+__primitive long_t {
+	static long_t integer_literal(integer_literal_t literal);
 	
-	long implicitCopy() const;
+	long_t implicitCopy() const;
 	
-	long abs() const;
+	long_t abs() const;
 
-	long add(long v) const;
-	long subtract(long v) const;
-	long multiply(long v) const;
-	long divide(long v) const;
-	long modulo(long v) const;
+	long_t add(long_t v) const;
+	long_t subtract(long_t v) const;
+	long_t multiply(long_t v) const;
+	long_t divide(long_t v) const;
+	long_t modulo(long_t v) const;
 	
-	int compare(long v) const;
+	int_t compare(long_t v) const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
+}
+
+__primitive int8_t {
+	static int8_t integer_literal(integer_literal_t literal);
+	
+	int8_t implicitCopy() const;
+	
+	int8_t abs() const;
+
+	int8_t add(int8_t v) const;
+	int8_t subtract(int8_t v) const;
+	int8_t multiply(int8_t v) const;
+	int8_t divide(int8_t v) const;
+	int8_t modulo(int8_t v) const;
+	
+	int_t compare(int8_t v) const;
+	bool isZero() const;
+	bool isPositive() const;
+	bool isNegative() const;
+}
+
+__primitive uint8_t {
+	static uint8_t integer_literal(integer_literal_t literal);
+	
+	uint8_t implicitCopy() const;
+
+	uint8_t add(uint8_t v) const;
+	uint8_t subtract(uint8_t v) const;
+	uint8_t multiply(uint8_t v) const;
+	uint8_t divide(uint8_t v) const;
+	uint8_t modulo(uint8_t v) const;
+	
+	int_t compare(uint8_t v) const;
+	bool isZero() const;
+}
+
+__primitive int16_t {
+	static int16_t integer_literal(integer_literal_t literal);
+	
+	int16_t implicitCopy() const;
+	
+	int16_t abs() const;
+
+	int16_t add(int16_t v) const;
+	int16_t subtract(int16_t v) const;
+	int16_t multiply(int16_t v) const;
+	int16_t divide(int16_t v) const;
+	int16_t modulo(int16_t v) const;
+	
+	int_t compare(int16_t v) const;
+	bool isZero() const;
+	bool isPositive() const;
+	bool isNegative() const;
+}
+
+__primitive uint16_t {
+	static uint16_t integer_literal(integer_literal_t literal);
+	
+	uint16_t implicitCopy() const;
+
+	uint16_t add(uint16_t v) const;
+	uint16_t subtract(uint16_t v) const;
+	uint16_t multiply(uint16_t v) const;
+	uint16_t divide(uint16_t v) const;
+	uint16_t modulo(uint16_t v) const;
+	
+	int_t compare(uint16_t v) const;
+	bool isZero() const;
+}
+
+__primitive int32_t {
+	static int32_t integer_literal(integer_literal_t literal);
+	
+	int32_t implicitCopy() const;
+	
+	int32_t abs() const;
+
+	int32_t add(int32_t v) const;
+	int32_t subtract(int32_t v) const;
+	int32_t multiply(int32_t v) const;
+	int32_t divide(int32_t v) const;
+	int32_t modulo(int32_t v) const;
+	
+	int_t compare(int32_t v) const;
+	bool isZero() const;
+	bool isPositive() const;
+	bool isNegative() const;
+}
+
+__primitive uint32_t {
+	static uint32_t integer_literal(integer_literal_t literal);
+	
+	uint32_t implicitCopy() const;
+
+	uint32_t add(uint32_t v) const;
+	uint32_t subtract(uint32_t v) const;
+	uint32_t multiply(uint32_t v) const;
+	uint32_t divide(uint32_t v) const;
+	uint32_t modulo(uint32_t v) const;
+	
+	int_t compare(uint32_t v) const;
+	bool isZero() const;
+}
+
+__primitive int64_t {
+	static int64_t integer_literal(integer_literal_t literal);
+	
+	int64_t implicitCopy() const;
+	
+	int64_t abs() const;
+
+	int64_t add(int64_t v) const;
+	int64_t subtract(int64_t v) const;
+	int64_t multiply(int64_t v) const;
+	int64_t divide(int64_t v) const;
+	int64_t modulo(int64_t v) const;
+	
+	int_t compare(int64_t v) const;
+	bool isZero() const;
+	bool isPositive() const;
+	bool isNegative() const;
+}
+
+__primitive uint64_t {
+	static uint64_t integer_literal(integer_literal_t literal);
+	
+	uint64_t implicitCopy() const;
+
+	uint64_t add(uint64_t v) const;
+	uint64_t subtract(uint64_t v) const;
+	uint64_t multiply(uint64_t v) const;
+	uint64_t divide(uint64_t v) const;
+	uint64_t modulo(uint64_t v) const;
+	
+	int_t compare(uint64_t v) const;
+	bool isZero() const;
 }
 
 __primitive float {
@@ -140,12 +276,12 @@ __primitive float {
 	float divide(float v) const;
 	float modulo(float v) const;
 	
-	int compare(float v) const;
+	int_t compare(float v) const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
 }
@@ -163,12 +299,12 @@ __primitive double {
 	double divide(double v) const;
 	double modulo(double v) const;
 	
-	int compare(double v) const;
+	int_t compare(double v) const;
 	
-	/*char toChar() const;
-	short toShort() const;
-	int toInt() const;
-	long toLong() const;
+	/*char_t toChar() const;
+	short_t toShort() const;
+	int_t toInt() const;
+	long_t toLong() const;
 	float toFloat() const;
 	double toDouble() const;*/
 }
@@ -181,7 +317,7 @@ __primitive ptr {
 	
 	lval<T> ptr_lval<T> deref();
 	
-	lval<T> ptr_lval<T> index(int index);
+	lval<T> ptr_lval<T> index(int_t index);
 }
 
 template <typename T>
@@ -234,7 +370,7 @@ __primitive method {
 
 interface None { }
 
-template <virtual typename Constraint = None>
+template <virtual typename Constraint_t = None>
 __primitive typename {
 	bool has_static_method(string name) const;
 	method get_static_method(string name) const;
@@ -259,7 +395,7 @@ __primitive typename {
 	}
 }
 
-template <virtual typename Constraint = None>
+template <virtual typename Constraint_t = None>
 __primitive virtual_typename {
 	bool has_static_method(string name) const;
 	method get_static_method(string name) const;

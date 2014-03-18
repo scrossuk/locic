@@ -68,17 +68,24 @@ namespace locic {
 				// 'short' values must be extended to 'int' values,
 				// and all 'float' values must be converted to 'double'
 				// values.
-				if (functionType->isFunctionVarArg()) {
+				if (functionType->isFunctionVarArg() && param->type()->isPrimitive()) {
+					const auto& typeName = param->type()->getObjectType()->name().last();
+					
 					const auto argType = argValue->getType();
 					const auto sizeInBits = argType->getPrimitiveSizeInBits();
 					
-					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int")) {
-						// Need to extend to int.
-						// TODO: this doesn't handle unsigned types; perhaps
-						// this code should be moved to semantic analysis.
-						argValue = function.getBuilder().CreateSExt(argValue,
-								   getPrimitiveType(module, "int", std::vector<llvm::Type*>()));
-						argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
+					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int_t")) {
+						if (isSignedIntegerType(typeName)) {
+							// Need to extend to int.
+							argValue = function.getBuilder().CreateSExt(argValue,
+									getPrimitiveType(module, "int_t", std::vector<llvm::Type*>()));
+							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
+						} else if (isUnsignedIntegerType(typeName)) {
+							// Need to extend to unsigned int.
+							argValue = function.getBuilder().CreateZExt(argValue,
+									getPrimitiveType(module, "uint_t", std::vector<llvm::Type*>()));
+							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
+						}
 					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 						// Need to extend to double.
 						argValue = function.getBuilder().CreateFPExt(argValue,

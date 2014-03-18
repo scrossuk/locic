@@ -12,6 +12,12 @@ namespace locic {
 	namespace CodeGen {
 		
 		class Function;
+		
+		bool isSignedIntegerType(const std::string& name);
+		
+		bool isUnsignedIntegerType(const std::string& name);
+		
+		bool isIntegerType(const std::string& name);
 	
 		void createPrimitiveSizeOf(Module& module, const std::string& name, const std::vector<SEM::Type*>& templateArguments, llvm::Function& llvmFunction);
 		

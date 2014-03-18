@@ -14,13 +14,19 @@ namespace locic {
 			if (!type->getObjectType()->isPrimitive()) return false;
 			if (type->isLval() || type->isRef()) return false;
 			
-			const std::string name = type->getObjectType()->name().first();
+			const auto name = type->getObjectType()->name().first();
 			
 			// TODO: find a better (cleaner) way to do this...
-			if (name == "char") return true;
-			if (name == "short") return true;
-			if (name == "int") return true;
-			if (name == "long") return true;
+			if (name == "char_t" || name == "uchar_t") return true;
+			if (name == "short_t" || name == "ushort_t") return true;
+			if (name == "int_t" || name == "uint_t") return true;
+			if (name == "long_t" || name == "ulong_t") return true;
+			
+			if (name == "int8_t" || name == "uint8_t") return true;
+			if (name == "int16_t" || name == "uint16_t") return true;
+			if (name == "int32_t" || name == "uint32_t") return true;
+			if (name == "int64_t" || name == "uint64_t") return true;
+			
 			if (name == "float") return true;
 			if (name == "double") return true;
 			if (name == "ptr") return true;

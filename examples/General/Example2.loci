@@ -2,15 +2,15 @@
 
 class TestClass(const char * const n, int i, int j){
 	static Null() {
-		return @("NULL"C, 0, 0);
+		return @("NULL", 0, 0);
 	}
 	
 	static Create(int v) {
-		return @("NON-NULL"C, v, v + 1);
+		return @("NON-NULL", v, v + 1);
 	}
 	
 	~ {
-		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n"C,
+		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n",
 			@n, @i, @j);
 	}
 

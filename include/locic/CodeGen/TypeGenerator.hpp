@@ -26,6 +26,10 @@ namespace locic {
 					return llvm::Type::getInt8Ty(module_.getLLVMContext());
 				}
 				
+				inline llvm::IntegerType* getI16Type() const {
+					return llvm::Type::getInt16Ty(module_.getLLVMContext());
+				}
+				
 				inline llvm::IntegerType* getI32Type() const {
 					return llvm::Type::getInt32Ty(module_.getLLVMContext());
 				}

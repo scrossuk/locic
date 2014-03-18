@@ -12,10 +12,10 @@ TestDatatype makeData() {
 void printData(UnionDataType data) {
 	switch (data) {
 		case TestDatatype(int a) {
-			testPrint("printData: TestDatatype(a = %d)"C, a);
+			testPrint("printData: TestDatatype(a = %d)", a);
 		}
 		case Test2Datatype(int a, int b) {
-			testPrint("printData: Test2Datatype(a = %d, b = %d)"C, a, b);
+			testPrint("printData: Test2Datatype(a = %d, b = %d)", a, b);
 		}
 	}
 }
@@ -24,7 +24,7 @@ void printData(UnionDataType data) {
 int testEntryPoint(int argc, char ** argv) {
 	TestDatatype data = makeData();
 	
-	testPrint("testEntryPoint: data = TestDatatype(a = %d)"C, data.a);
+	testPrint("testEntryPoint: data = TestDatatype(a = %d)", data.a);
 	
 	printData(data);
 	

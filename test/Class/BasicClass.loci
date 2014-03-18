@@ -3,17 +3,17 @@ void testPrint(const char * const str, ...);
 
 class TestClass(int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d"C, value);
+		testPrint("TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int getValue() {
-		testPrint("getValue: Value = %d"C, @value);
+		testPrint("getValue: Value = %d", @value);
 		return @value;
 	}
 	
 	void doSomething() {
-		testPrint("doSomething: Value = %d"C, @value);
+		testPrint("doSomething: Value = %d", @value);
 	}
 }
 

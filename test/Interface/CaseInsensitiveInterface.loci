@@ -3,12 +3,12 @@ void testPrint(const char * const str, ...);
 
 class TestClass (int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d"C, value);
+		testPrint("TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int getValue() {
-		testPrint("TestClass.getValue: Value = %d"C, @value);
+		testPrint("TestClass.getValue: Value = %d", @value);
 		return @value;
 	}
 	
@@ -23,7 +23,7 @@ interface TestInterface {
 
 void polymorphicPrint(TestInterface& object) {
 	int value = object.get_value();
-	testPrint("polymorphicPrint: Value = %d"C, value);
+	testPrint("polymorphicPrint: Value = %d", value);
 }
 
 // Entry point.

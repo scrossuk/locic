@@ -3,18 +3,18 @@ void testPrint(const char * const str, ...);
 
 class TestClass (int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d."C, value);
+		testPrint("TestClass.Create: Value = %d.", value);
 		return @(value);
 	}
 	
 	TestClass implicitCopy() {
 		int newValue = @value * 2;
-		testPrint("TestClass.implicitCopy: Previous value = %d, New value = %d."C, @value, newValue);
+		testPrint("TestClass.implicitCopy: Previous value = %d, New value = %d.", @value, newValue);
 		return @(newValue);
 	}
 	
 	int getValue() {
-		testPrint("TestClass.getValue: Value = %d."C, @value);
+		testPrint("TestClass.getValue: Value = %d.", @value);
 		return @value;
 	}
 }
@@ -22,11 +22,11 @@ class TestClass (int value) {
 TestClass& function(TestClass& object) {
 	auto& refObject = object;
 	
-	testPrint("function: Ref value = %d."C, refObject.getValue());
+	testPrint("function: Ref value = %d.", refObject.getValue());
 	
 	auto copyObject = object;
 	
-	testPrint("function: Copy value = %d."C, copyObject.getValue());
+	testPrint("function: Copy value = %d.", copyObject.getValue());
 	
 	return object;
 }
@@ -35,11 +35,11 @@ TestClass& function(TestClass& object) {
 int testEntryPoint(int argc, char ** argv) {
 	auto inst = TestClass(44);
 	
-	testPrint("testEntryPoint: Value = %d."C, inst.getValue());
+	testPrint("testEntryPoint: Value = %d.", inst.getValue());
 	
 	auto& inst2 = function(inst);
 	
-	testPrint("testEntryPoint: Value = %d."C, inst2.getValue());
+	testPrint("testEntryPoint: Value = %d.", inst2.getValue());
 	
 	return 0;
 }

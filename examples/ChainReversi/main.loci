@@ -4,17 +4,17 @@ void sleep(int seconds);
 
 // Entry point.
 int main() {
-	auto renderWindow = sf::RenderWindow("Chain Reversi"C);
+	auto renderWindow = sf::RenderWindow("Chain Reversi");
 	
 	renderWindow.setFramerateLimit(25);
 	
-	char i = 0;
+	uint8_t i = 0;
 	
 	printf("Start!\n");
 	
-	while (i < 127) {
-		printf("At index %d.\n", i);
-		renderWindow.clear(sf::Color(i * 2, i * 2, i * 2, 255));
+	while (i < 255) {
+		printf("At index %u.\n", i);
+		renderWindow.clear(sf::Color(i, i, i, 255));
 		renderWindow.display();
 		i = i + 1;
 	}

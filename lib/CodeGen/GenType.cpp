@@ -193,8 +193,8 @@ namespace locic {
 							return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
 						}
 						
-						if (objectType->name() == (Name::Absolute() + "int")) {
-							return module.debugBuilder().createIntType("int");
+						if (objectType->name() == (Name::Absolute() + "int_t")) {
+							return module.debugBuilder().createIntType("int_t");
 						}
 					}
 					

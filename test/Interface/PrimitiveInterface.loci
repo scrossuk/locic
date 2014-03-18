@@ -8,7 +8,7 @@ interface PrimitiveInterface {
 
 void polymorphicAddAndPrint(PrimitiveInterface<int>& value1, int value2) {
 	auto sum = value1.add(value2);
-	testPrint("polymorphicAddAndPrint: Sum = %d"C, sum);
+	testPrint("polymorphicAddAndPrint: Sum = %d", sum);
 }
 
 // Entry point.
@@ -16,8 +16,8 @@ int testEntryPoint(int argc, char ** argv) {
 	int value1 = 4;
 	int value2 = 5;
 	
-	testPrint("Value1 = %d"C, value1);
-	testPrint("Value2 = %d"C, value2);
+	testPrint("Value1 = %d", value1);
+	testPrint("Value2 = %d", value2);
 	
 	polymorphicAddAndPrint(value1, value2);
 	

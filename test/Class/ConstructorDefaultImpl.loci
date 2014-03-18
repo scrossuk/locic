@@ -5,7 +5,7 @@ class OtherClass(int a, int b, int c) {
 	static Create = default;
 	
 	void printValue() {
-		testPrint("OtherClass.printValue: a = %d, b = %d, c = %d"C, @a, @b, @c);
+		testPrint("OtherClass.printValue: a = %d, b = %d, c = %d", @a, @b, @c);
 	}
 }
 
@@ -13,7 +13,7 @@ class TestClass(OtherClass value) {
 	static Create = default;
 	
 	void printValue() {
-		testPrint("TestClass.printValue"C);
+		testPrint("TestClass.printValue");
 		@value.printValue();
 	}
 	

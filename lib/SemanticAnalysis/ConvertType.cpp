@@ -75,6 +75,22 @@ namespace locic {
 			return templateArguments;
 		}
 		
+		SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const std::string& nameString) {
+			// Unsigned types have 'u' prefix and all integer types
+			// have '_t' suffix (e.g. uint_t, short_t etc.).
+			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? makeString("u%s_t", nameString.c_str()) : makeString("%s_t", nameString.c_str());
+			
+			const auto name = Name::Absolute() + fullNameString;
+			const auto objectNode = context.lookupName(name);
+			
+			if (!objectNode.isTypeInstance()) {
+				throw TodoException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
+			}
+			
+			const auto typeInstance = objectNode.getSEMTypeInstance();
+			return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+		}
+		
 		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
@@ -125,6 +141,9 @@ namespace locic {
 				}
 				case AST::Type::VOID: {
 					return SEM::Type::Void();
+				}
+				case AST::Type::INTEGER: {
+					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
 				}
 				case AST::Type::OBJECT: {
 					return ConvertObjectType(context, type->objectType.symbol);

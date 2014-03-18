@@ -16,6 +16,12 @@ namespace locic {
 		class Symbol;
 		
 		struct Type {
+			enum SignedModifier {
+				NO_SIGNED,
+				SIGNED,
+				UNSIGNED
+			};
+			
 			enum TypeEnum {
 				NONE,
 				AUTO,
@@ -25,6 +31,7 @@ namespace locic {
 				BRACKET,
 				VOID,
 				NULLT,
+				INTEGER,
 				OBJECT,
 				REFERENCE,
 				FUNCTION
@@ -47,6 +54,11 @@ namespace locic {
 				Node<Type> targetType;
 				Node<Type> refType;
 			} refType;
+			
+			struct {
+				SignedModifier signedModifier;
+				std::string name;
+			} integerType;
 			
 			struct {
 				Node<Symbol> symbol;
@@ -97,6 +109,13 @@ namespace locic {
 				Type* type = new Type(REF);
 				type->refType.targetType = targetType;
 				type->refType.refType = refType;
+				return type;
+			}
+			
+			inline static Type* Integer(SignedModifier signedModifier, const std::string& name) {
+				Type* type = new Type(INTEGER);
+				type->integerType.signedModifier = signedModifier;
+				type->integerType.name = name;
 				return type;
 			}
 			
@@ -197,6 +216,20 @@ namespace locic {
 			inline Node<Type> getReferenceTarget() const {
 				assert(isReference());
 				return referenceType.targetType;
+			}
+			
+			inline bool isInteger() const {
+				return typeEnum == INTEGER;
+			}
+			
+			inline SignedModifier integerSignedModifier() const {
+				assert(isInteger());
+				return integerType.signedModifier;
+			}
+			
+			inline const std::string& integerName() const {
+				assert(isInteger());
+				return integerType.name;
 			}
 			
 			inline bool isObjectType() const {

@@ -3,27 +3,27 @@ void testPrint(const char * const str, ...);
 
 class custom_lval(int value) {
 	static Create(int value) {
-		testPrint("custom_lval.Create: Value = %d"C, value);
+		testPrint("custom_lval.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int* address() {
-		testPrint("custom_lval.address: Value = %d"C, @value);
+		testPrint("custom_lval.address: Value = %d", @value);
 		return &@value;
 	}
 
 	void assign(int value) {
-		testPrint("custom_lval.assign: Previous value = %d, New value = %d"C, @value, value);
+		testPrint("custom_lval.assign: Previous value = %d, New value = %d", @value, value);
 		@value = value;
 	}
 	
 	int& dissolve() {
-		testPrint("custom_lval.dissolve: Value = %d"C, @value);
+		testPrint("custom_lval.dissolve: Value = %d", @value);
 		return @value;
 	}
 	
 	int move() {
-		testPrint("custom_lval.move: Value = %d"C, @value);
+		testPrint("custom_lval.move: Value = %d", @value);
 		int value = @value;
 		@value = 0;
 		return value;
@@ -33,48 +33,48 @@ class custom_lval(int value) {
 void addressAssignFunction(lval<int> custom_lval& objectLval, int value) {
 	int* valuePtr = &objectLval;
 	
-	testPrint("addressAssignFunction: Previous value = %d"C, *valuePtr);
+	testPrint("addressAssignFunction: Previous value = %d", *valuePtr);
 	
 	*valuePtr = value;
 	
-	testPrint("addressAssignFunction: New value = %d"C, *valuePtr);
+	testPrint("addressAssignFunction: New value = %d", *valuePtr);
 }
 
 void assignFunction(lval<int> custom_lval& objectLval, int value) {
-	testPrint("assignFunction: Previous value = %d"C, objectLval);
+	testPrint("assignFunction: Previous value = %d", objectLval);
 	
 	objectLval = value;
 	
-	testPrint("assignFunction: New value = %d"C, objectLval);
+	testPrint("assignFunction: New value = %d", objectLval);
 }
 
 void moveFunction(lval<int> custom_lval& objectLval) {
-	testPrint("moveFunction: Previous value = %d"C, objectLval);
+	testPrint("moveFunction: Previous value = %d", objectLval);
 	
 	int value = move objectLval;
 	
-	testPrint("moveFunction: Moved value = %d"C, value);
+	testPrint("moveFunction: Moved value = %d", value);
 	
-	testPrint("moveFunction: New value = %d"C, objectLval);
+	testPrint("moveFunction: New value = %d", objectLval);
 }
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
 	lval<int> custom_lval value = lval<int>(custom_lval(4));
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	addressAssignFunction(value, 10);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	assignFunction(value, 20);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	moveFunction(value);
 	
-	testPrint("testEntryPoint: Value = %d"C, value);
+	testPrint("testEntryPoint: Value = %d", value);
 	
 	return 0;
 }

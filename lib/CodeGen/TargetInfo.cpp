@@ -44,16 +44,34 @@ namespace locic {
 			clang::TargetInfo* clangTargetInfo = clang::TargetInfo::CreateTargetInfo(ci.getDiagnostics(), &targetOptions);
 			
 			primitiveSizes_.insert("size_t", clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
+			primitiveSizes_.insert("ssize_t", clangTargetInfo->getTypeWidth(clangTargetInfo->getSizeType()));
+			
 			primitiveSizes_.insert("null_t", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("bool", clangTargetInfo->getCharWidth());
-			primitiveSizes_.insert("char", clangTargetInfo->getCharWidth());
-			primitiveSizes_.insert("short", clangTargetInfo->getShortWidth());
-			primitiveSizes_.insert("int", clangTargetInfo->getIntWidth());
-			primitiveSizes_.insert("long", clangTargetInfo->getLongWidth());
-			primitiveSizes_.insert("longlong", clangTargetInfo->getLongLongWidth());
+			
+			primitiveSizes_.insert("char_t", clangTargetInfo->getCharWidth());
+			primitiveSizes_.insert("uchar_t", clangTargetInfo->getCharWidth());
+			primitiveSizes_.insert("short_t", clangTargetInfo->getShortWidth());
+			primitiveSizes_.insert("ushort_t", clangTargetInfo->getShortWidth());
+			primitiveSizes_.insert("int_t", clangTargetInfo->getIntWidth());
+			primitiveSizes_.insert("uint_t", clangTargetInfo->getIntWidth());
+			primitiveSizes_.insert("long_t", clangTargetInfo->getLongWidth());
+			primitiveSizes_.insert("ulong_t", clangTargetInfo->getLongWidth());
+			primitiveSizes_.insert("longlong_t", clangTargetInfo->getLongLongWidth());
+			primitiveSizes_.insert("ulonglong_t", clangTargetInfo->getLongLongWidth());
+			
 			primitiveSizes_.insert("float", clangTargetInfo->getFloatWidth());
 			primitiveSizes_.insert("double", clangTargetInfo->getDoubleWidth());
 			primitiveSizes_.insert("ptr", clangTargetInfo->getPointerWidth(0));
+			
+			primitiveSizes_.insert("int8_t", 8);
+			primitiveSizes_.insert("uint8_t", 8);
+			primitiveSizes_.insert("int16_t", 16);
+			primitiveSizes_.insert("uint16_t", 16);
+			primitiveSizes_.insert("int32_t", 32);
+			primitiveSizes_.insert("uint32_t", 32);
+			primitiveSizes_.insert("int64_t", 64);
+			primitiveSizes_.insert("uint64_t", 64);
 		}
 		
 		TargetInfo::~TargetInfo() { }

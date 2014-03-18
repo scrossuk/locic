@@ -88,6 +88,9 @@ const T& GETSYM(T* value) {
 	// Names.
 	std::string* str;
 	
+	// Signed modifier.
+	locic::AST::Type::SignedModifier signedModifier;
+	
 	// Const modifier.
 	bool isConst;
 	
@@ -146,16 +149,22 @@ const T& GETSYM(T* value) {
 %token SEMICOLON
 %token NAMESPACE
 %token UNDERSCORE
+
 %token LCURLYBRACKET
 %token RCURLYBRACKET
 %token LSQUAREBRACKET
 %token RSQUAREBRACKET
+%token LROUNDBRACKET
+%token RROUNDBRACKET
+%token LTRIBRACKET
+%token RTRIBRACKET
+%token DOUBLE_LTRIBRACKET
+%token DOUBLE_RTRIBRACKET
+
 %token AUTO
 %token STATIC
 %token IMPORT
 %token EXPORT
-%token NEW
-%token DELETE
 %token MOVE
 %token LVAL
 %token FINAL
@@ -178,12 +187,19 @@ const T& GETSYM(T* value) {
 %token SIZEOF
 %token TYPEOF
 %token TYPEID
-%token LROUNDBRACKET
-%token RROUNDBRACKET
+
 %token PRIMITIVE
 %token STRUCT
 %token CLASS
 %token DATATYPE
+
+%token SIGNED
+%token UNSIGNED
+%token CHAR
+%token SHORT
+%token INT
+%token LONG
+
 %token COLON
 %token VOID
 %token CONST
@@ -193,24 +209,24 @@ const T& GETSYM(T* value) {
 %token ELSE
 %token FOR
 %token WHILE
+
 %token SETEQUAL
 %token ADDEQUAL
 %token SUBEQUAL
 %token MULEQUAL
 %token DIVEQUAL
 %token PERCENTEQUAL
+
 %token RETURN
 %token AT
 %token NULLVAL
+
 %token CONST_CAST
 %token STATIC_CAST
 %token DYNAMIC_CAST
 %token REINTERPRET_CAST
+
 %token IS_A
-%token LTRIBRACKET
-%token RTRIBRACKET
-%token DOUBLE_LTRIBRACKET
-%token DOUBLE_RTRIBRACKET
 %token DOT
 %token PTRACCESS
 %token PLUS
@@ -261,6 +277,8 @@ const T& GETSYM(T* value) {
 %type <type> objectType
 %type <type> constModifiedObjectType
 %type <type> pointerType
+%type <signedModifier> signedModifier
+%type <type> integerType
 
 %type <type> typePrecision4
 %type <type> typePrecision3
@@ -667,7 +685,58 @@ constModifiedObjectType:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
 	}
 	;
-	
+
+signedModifier:
+	/* empty */
+	{
+		$$ = locic::AST::Type::NO_SIGNED;
+	}
+	| SIGNED
+	{
+		$$ = locic::AST::Type::SIGNED;
+	}
+	| UNSIGNED
+	{
+		$$ = locic::AST::Type::UNSIGNED;
+	}
+	;
+
+optionalInt:
+	/* empty */
+	| INT
+	;
+
+integerType:
+	signedModifier CHAR
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "char")));
+	}
+	| signedModifier SHORT optionalInt
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "short")));
+	}
+	| signedModifier INT
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "int")));
+	}
+	| SIGNED
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::SIGNED, "int")));
+	}
+	| UNSIGNED
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "int")));
+	}
+	| signedModifier LONG optionalInt
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "long")));
+	}
+	| signedModifier LONG LONG optionalInt
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "longlong")));
+	}
+	;
+
 typePrecision4:
 	VOID
 	{
@@ -676,6 +745,10 @@ typePrecision4:
 	| AUTO
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
+	}
+	| integerType
+	{
+		$$ = $1;
 	}
 	| objectType
 	{

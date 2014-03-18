@@ -3,25 +3,25 @@ void testPrint(const char * const str, ...);
 
 class TestClass (int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d"C, value);
+		testPrint("TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	TestClass implicitCopy() {
 		int result = @value * 2;
-		testPrint("TestClass.implicitCopy: Value = %d, Copy value = %d"C, @value, result);
+		testPrint("TestClass.implicitCopy: Value = %d, Copy value = %d", @value, result);
 		return @(result);
 	}
 	
 	int getValue() {
-		testPrint("TestClass.getValue: Value = %d"C, @value);
+		testPrint("TestClass.getValue: Value = %d", @value);
 		return @value;
 	}
 	
 	TestClass combine(TestClass& arg) {
 		int argValue = arg.getValue();
 		int result = @value * argValue;
-		testPrint("TestClass.combine: Value = %d, Arg value = %d, Combined value = %d"C, @value, argValue, result);
+		testPrint("TestClass.combine: Value = %d, Arg value = %d, Combined value = %d", @value, argValue, result);
 		return @(result);
 	}
 }
@@ -50,21 +50,21 @@ int testEntryPoint(int argc, char ** argv) {
 	
 	TestClass combined = inst6.combine(inst7);
 	
-	testPrint("Inst1: Value = %d"C, inst1.getValue());
+	testPrint("Inst1: Value = %d", inst1.getValue());
 	
-	testPrint("Inst2: Value = %d"C, inst2.getValue());
+	testPrint("Inst2: Value = %d", inst2.getValue());
 	
-	testPrint("Inst3: Value = %d"C, inst3.getValue());
+	testPrint("Inst3: Value = %d", inst3.getValue());
 	
-	testPrint("Inst4: Value = %d"C, inst4.getValue());
+	testPrint("Inst4: Value = %d", inst4.getValue());
 	
-	testPrint("Inst5: Value = %d"C, inst5.getValue());
+	testPrint("Inst5: Value = %d", inst5.getValue());
 	
-	testPrint("Inst6: Value = %d"C, inst6.getValue());
+	testPrint("Inst6: Value = %d", inst6.getValue());
 	
-	testPrint("Inst7: Value = %d"C, inst7.getValue());
+	testPrint("Inst7: Value = %d", inst7.getValue());
 	
-	testPrint("Combined: Value = %d"C, combined.getValue());
+	testPrint("Combined: Value = %d", combined.getValue());
 	
 	return 0;
 }

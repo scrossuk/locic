@@ -29,23 +29,23 @@ class TestClass(T value, int extra) {
 int testEntryPoint(int argc, char ** argv) {
 	auto inst = TestClass<TestClass<TestClass<int>>>(TestClass<TestClass<int>>(TestClass<int>(1)));
 	
-	testPrint("testEntryPoint: Value = %d."C, inst.abs());
+	testPrint("testEntryPoint: Value = %d.", inst.abs());
 	
 	TestClass<auto>& instRef1 = inst;
 	
-	testPrint("testEntryPoint: Ref 1 = %d."C, instRef1.abs());
+	testPrint("testEntryPoint: Ref 1 = %d.", instRef1.abs());
 	
 	TestClass<TestClass<auto>>& instRef2 = inst;
 	
-	testPrint("testEntryPoint: Ref 2 = %d."C, instRef2.abs());
+	testPrint("testEntryPoint: Ref 2 = %d.", instRef2.abs());
 	
 	TestClass<TestClass<TestClass<auto>>>& instRef3 = inst;
 	
-	testPrint("testEntryPoint: Ref 3 = %d."C, instRef3.abs());
+	testPrint("testEntryPoint: Ref 3 = %d.", instRef3.abs());
 	
 	TestClass<auto> instCopy = inst;
 	
-	testPrint("testEntryPoint: Copy = %d."C, instCopy.abs());
+	testPrint("testEntryPoint: Copy = %d.", instCopy.abs());
 	
 	return 0;
 }

@@ -3,29 +3,29 @@ void testPrint(const char * const str, ...);
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
-	auto i = int::integer_literal(4);
+	auto i = int_t::integer_literal(4);
 	
-	testPrint("testEntryPoint: i = %d."C, i);
+	testPrint("testEntryPoint: i = %d.", i);
 	
 	auto j = i.abs() + 2;
 	
-	testPrint("testEntryPoint: i = %d, j = %d."C, i, j);
+	testPrint("testEntryPoint: i = %d, j = %d.", i, j);
 	
 	auto k = j;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	i = 1;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	j = 2;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	k = 3;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d."C, i, j, k);
+	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	return 0;
 }
