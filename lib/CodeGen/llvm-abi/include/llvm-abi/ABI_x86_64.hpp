@@ -23,6 +23,8 @@ namespace llvm_abi {
 			
 			size_t typeAlign(const Type& type);
 			
+			llvm::Type* longDoubleType() const;
+			
 			std::vector<llvm::Value*> encodeValues(llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes);
 			
 			std::vector<llvm::Value*> decodeValues(llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes);

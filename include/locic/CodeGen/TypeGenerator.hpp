@@ -55,7 +55,7 @@ namespace locic {
 				}
 				
 				inline llvm::Type* getLongDoubleType() const {
-					return llvm::Type::getFP128Ty(module_.getLLVMContext());
+					return module_.abi().longDoubleType();
 				}
 				
 				inline llvm::ArrayType* getArrayType(llvm::Type* elementType, size_t size) const {

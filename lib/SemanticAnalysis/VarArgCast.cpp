@@ -27,8 +27,9 @@ namespace locic {
 			if (name == "int32_t" || name == "uint32_t") return true;
 			if (name == "int64_t" || name == "uint64_t") return true;
 			
-			if (name == "float") return true;
-			if (name == "double") return true;
+			if (name == "float_t") return true;
+			if (name == "double_t") return true;
+			if (name == "longdouble_t") return true;
 			if (name == "ptr") return true;
 			
 			return false;

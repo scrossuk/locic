@@ -113,6 +113,8 @@ char                    { return CHAR; }
 short                   { return SHORT; }
 int                     { return INT; }
 long                    { return LONG; }
+float                   { return FLOAT; }
+double                  { return DOUBLE; }
 
 null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }

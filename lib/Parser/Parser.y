@@ -199,6 +199,8 @@ const T& GETSYM(T* value) {
 %token SHORT
 %token INT
 %token LONG
+%token FLOAT
+%token DOUBLE
 
 %token COLON
 %token VOID
@@ -278,7 +280,9 @@ const T& GETSYM(T* value) {
 %type <type> constModifiedObjectType
 %type <type> pointerType
 %type <signedModifier> signedModifier
+%type <signedModifier> optionalSignedModifier
 %type <type> integerType
+%type <type> floatType
 
 %type <type> typePrecision4
 %type <type> typePrecision3
@@ -687,11 +691,7 @@ constModifiedObjectType:
 	;
 
 signedModifier:
-	/* empty */
-	{
-		$$ = locic::AST::Type::NO_SIGNED;
-	}
-	| SIGNED
+	SIGNED
 	{
 		$$ = locic::AST::Type::SIGNED;
 	}
@@ -701,21 +701,32 @@ signedModifier:
 	}
 	;
 
+optionalSignedModifier:
+	/* empty */
+	{
+		$$ = locic::AST::Type::NO_SIGNED;
+	}
+	| signedModifier
+	{
+		$$ = $1;
+	}
+	;
+
 optionalInt:
 	/* empty */
 	| INT
 	;
 
 integerType:
-	signedModifier CHAR
+	optionalSignedModifier CHAR
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "char")));
 	}
-	| signedModifier SHORT optionalInt
+	| optionalSignedModifier SHORT optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "short")));
 	}
-	| signedModifier INT
+	| optionalSignedModifier INT
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "int")));
 	}
@@ -727,13 +738,40 @@ integerType:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "int")));
 	}
+	
+	// Handle ridiculous numbers of shift/reduce conflicts with
+	// 'long double' by splitting between cases where signed
+	// is and isn't specified (so that 'LONG' always means shift).
+	| LONG optionalInt
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::NO_SIGNED, "long")));
+	}
 	| signedModifier LONG optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "long")));
 	}
+	| LONG LONG optionalInt
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::NO_SIGNED, "longlong")));
+	}
 	| signedModifier LONG LONG optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "longlong")));
+	}
+	;
+
+floatType:
+	FLOAT
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Float("float")));
+	}
+	| DOUBLE
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Float("double")));
+	}
+	| LONG DOUBLE
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Float("longdouble")));
 	}
 	;
 
@@ -747,6 +785,10 @@ typePrecision4:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
 	}
 	| integerType
+	{
+		$$ = $1;
+	}
+	| floatType
 	{
 		$$ = $1;
 	}

@@ -60,7 +60,7 @@ namespace locic {
 			}
 			
 			if (name == "float_literal_t") {
-				return llvm_abi::Type::FloatingPoint(llvm_abi::Double);
+				return llvm_abi::Type::FloatingPoint(llvm_abi::LongDouble);
 			}
 			
 			if (name == "ptr" || name == "ptr_lval") {
@@ -91,15 +91,15 @@ namespace locic {
 				return llvm_abi::Type::Integer(llvm_abi::Int64);
 			}
 			
-			if (name == "size_t") {
+			if (name == "size_t" || name == "ssize_t") {
 				return llvm_abi::Type::Integer(llvm_abi::SizeT);
 			}
 			
-			if (name == "float") {
+			if (name == "float_t") {
 				return llvm_abi::Type::FloatingPoint(llvm_abi::Float);
-			} else if (name == "double") {
+			} else if (name == "double_t") {
 				return llvm_abi::Type::FloatingPoint(llvm_abi::Double);
-			} else if (name == "longdouble") {
+			} else if (name == "longdouble_t") {
 				return llvm_abi::Type::FloatingPoint(llvm_abi::LongDouble);
 			}
 			

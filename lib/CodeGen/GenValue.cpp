@@ -71,7 +71,7 @@ namespace locic {
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
-							return ConstantGenerator(module).getDouble(value->constant->getFloat());
+							return ConstantGenerator(module).getLongDouble(value->constant->getFloat());
 						}
 						
 						case locic::Constant::STRING: {

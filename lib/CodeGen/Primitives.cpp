@@ -56,7 +56,7 @@ namespace locic {
 		}
 		
 		bool isFloatType(const std::string& name) {
-			return name == "float" || name == "double" || name == "longdouble";
+			return name == "float_t" || name == "double_t" || name == "longdouble_t";
 		}
 		
 		bool isConstructor(const std::string& methodName) {
@@ -719,15 +719,15 @@ namespace locic {
 				return TypeGenerator(module).getIntType(module.getTargetInfo().getPrimitiveSize(name));
 			}
 			
-			if (name == "float") {
+			if (name == "float_t") {
 				return TypeGenerator(module).getFloatType();
 			}
 			
-			if (name == "double") {
+			if (name == "double_t") {
 				return TypeGenerator(module).getDoubleType();
 			}
 			
-			if (name == "longdouble") {
+			if (name == "longdouble_t") {
 				return TypeGenerator(module).getLongDoubleType();
 			}
 			
@@ -736,7 +736,7 @@ namespace locic {
 			}
 			
 			if (name == "float_literal_t") {
-				return TypeGenerator(module).getDoubleType();
+				return TypeGenerator(module).getLongDoubleType();
 			}
 			
 			if (name == "ptr" || name == "ptr_lval") {

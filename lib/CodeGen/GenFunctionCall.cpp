@@ -88,8 +88,7 @@ namespace locic {
 						}
 					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 						// Need to extend to double.
-						argValue = function.getBuilder().CreateFPExt(argValue,
-								   TypeGenerator(module).getDoubleType());
+						argValue = function.getBuilder().CreateFPExt(argValue, TypeGenerator(module).getDoubleType());
 						argABIType = llvm_abi::Type::FloatingPoint(llvm_abi::Double);
 					}
 				}

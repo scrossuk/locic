@@ -263,50 +263,52 @@ __primitive uint64_t {
 	bool isZero() const;
 }
 
-__primitive float {
-	static float float_literal(float_literal_t literal);
+__primitive float_t {
+	static float_t float_literal(float_literal_t literal);
 	
-	float implicitCopy() const;
+	float_t implicitCopy() const;
 
-	float abs() const;
+	float_t abs() const;
 
-	float add(float v) const;
-	float subtract(float v) const;
-	float multiply(float v) const;
-	float divide(float v) const;
-	float modulo(float v) const;
+	float_t add(float_t v) const;
+	float_t subtract(float_t v) const;
+	float_t multiply(float_t v) const;
+	float_t divide(float_t v) const;
+	float_t modulo(float_t v) const;
 	
-	int_t compare(float v) const;
-	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	int_t compare(float_t v) const;
 }
 
-__primitive double {
-	static double float_literal(float_literal_t literal);
+__primitive double_t {
+	static double_t float_literal(float_literal_t literal);
 	
-	double implicitCopy() const;
+	double_t implicitCopy() const;
 	
-	double abs() const;
+	double_t abs() const;
 
-	double add(double v) const;
-	double subtract(double v) const;
-	double multiply(double v) const;
-	double divide(double v) const;
-	double modulo(double v) const;
+	double_t add(double_t v) const;
+	double_t subtract(double_t v) const;
+	double_t multiply(double_t v) const;
+	double_t divide(double_t v) const;
+	double_t modulo(double_t v) const;
 	
-	int_t compare(double v) const;
+	int_t compare(double_t v) const;
+}
+
+__primitive longdouble_t {
+	static longdouble_t float_literal(float_literal_t literal);
 	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	longdouble_t implicitCopy() const;
+	
+	longdouble_t abs() const;
+
+	longdouble_t add(longdouble_t v) const;
+	longdouble_t subtract(longdouble_t v) const;
+	longdouble_t multiply(longdouble_t v) const;
+	longdouble_t divide(longdouble_t v) const;
+	longdouble_t modulo(longdouble_t v) const;
+	
+	int_t compare(longdouble_t v) const;
 }
 
 template <typename T>

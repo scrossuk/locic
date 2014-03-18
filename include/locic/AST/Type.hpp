@@ -32,6 +32,7 @@ namespace locic {
 				VOID,
 				NULLT,
 				INTEGER,
+				FLOAT,
 				OBJECT,
 				REFERENCE,
 				FUNCTION
@@ -59,6 +60,10 @@ namespace locic {
 				SignedModifier signedModifier;
 				std::string name;
 			} integerType;
+			
+			struct {
+				std::string name;
+			} floatType;
 			
 			struct {
 				Node<Symbol> symbol;
@@ -116,6 +121,12 @@ namespace locic {
 				Type* type = new Type(INTEGER);
 				type->integerType.signedModifier = signedModifier;
 				type->integerType.name = name;
+				return type;
+			}
+			
+			inline static Type* Float(const std::string& name) {
+				Type* type = new Type(FLOAT);
+				type->floatType.name = name;
 				return type;
 			}
 			
@@ -230,6 +241,15 @@ namespace locic {
 			inline const std::string& integerName() const {
 				assert(isInteger());
 				return integerType.name;
+			}
+			
+			inline bool isFloat() const {
+				return typeEnum == FLOAT;
+			}
+			
+			inline const std::string& floatName() const {
+				assert(isFloat());
+				return floatType.name;
 			}
 			
 			inline bool isObjectType() const {

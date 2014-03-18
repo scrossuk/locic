@@ -361,6 +361,10 @@ namespace llvm_abi {
 		return getTypeAlign(type);
 	}
 	
+	llvm::Type* ABI_x86_64::longDoubleType() const {
+		return llvm::Type::getX86_FP80Ty(llvmContext_);
+	}
+	
 	std::vector<llvm::Value*> ABI_x86_64::encodeValues(llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) {
 		assert(argValues.size() == argTypes.size());
 		

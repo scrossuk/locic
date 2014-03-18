@@ -49,6 +49,10 @@ namespace locic {
 			return *abi_;
 		}
 		
+		const llvm_abi::ABI& Module::abi() const {
+			return *abi_;
+		}
+		
 		llvm::LLVMContext& Module::getLLVMContext() const {
 			return module_->getContext();
 		}

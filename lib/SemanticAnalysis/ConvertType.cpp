@@ -91,6 +91,21 @@ namespace locic {
 			return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
 		}
 		
+		SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
+			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
+			const auto fullNameString = makeString("%s_t", nameString.c_str());
+			
+			const auto name = Name::Absolute() + fullNameString;
+			const auto objectNode = context.lookupName(name);
+			
+			if (!objectNode.isTypeInstance()) {
+				throw TodoException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
+			}
+			
+			const auto typeInstance = objectNode.getSEMTypeInstance();
+			return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+		}
+		
 		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
@@ -144,6 +159,9 @@ namespace locic {
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
+				}
+				case AST::Type::FLOAT: {
+					return ConvertFloatType(context, type->floatType.name);
 				}
 				case AST::Type::OBJECT: {
 					return ConvertObjectType(context, type->objectType.symbol);

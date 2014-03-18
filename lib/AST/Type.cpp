@@ -29,14 +29,18 @@ namespace locic {
 					return "null";
 				
 				case INTEGER: {
-					const auto signedString = (integerType.signedModifier == SIGNED ?
+					const auto signedString = (integerSignedModifier() == SIGNED ?
 						"signed" :
-							(integerType.signedModifier == UNSIGNED ?
+							(integerSignedModifier() == UNSIGNED ?
 								"unsigned" :
 								""
 							)
 						);
-					return std::string("[integer type: ") + signedString + " " + integerType.name + std::string("]");	
+					return std::string("[integer type: ") + signedString + " " + integerName() + std::string("]");	
+				}
+				
+				case FLOAT: {
+					return std::string("[float type: ") + floatName() + std::string("]");	
 				}
 				
 				case OBJECT:

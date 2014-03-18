@@ -64,23 +64,29 @@ namespace locic {
 					return getInt(primitiveWidth, intValue);
 				}
 				
-				inline llvm::ConstantFP* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const {
-					if (primitiveName == "float") {
+				inline llvm::Constant* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const {
+					if (primitiveName == "float_t") {
 						return getFloat(floatValue);
-					} else if(primitiveName == "double") {
+					} else if (primitiveName == "double_t") {
 						return getDouble(floatValue);
+					} else if (primitiveName == "longdouble_t") {
+						return getLongDouble(floatValue);
 					} else {
 						assert(false && "TODO");
 						return NULL;
 					}
 				}
 				
-				inline llvm::ConstantFP* getFloat(float value) const {
+				inline llvm::Constant* getFloat(float value) const {
 					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
 				}
 				
-				inline llvm::ConstantFP* getDouble(double value) const {
+				inline llvm::Constant* getDouble(double value) const {
 					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
+				}
+				
+				inline llvm::Constant* getLongDouble(long double value) const {
+					return llvm::ConstantFP::get(module_.abi().longDoubleType(), value);
 				}
 				
 				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, const std::vector<llvm::Constant*>& values) const {
