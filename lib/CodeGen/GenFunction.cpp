@@ -31,13 +31,13 @@ namespace locic {
 		
 		namespace {
 		
-			SEM::Function* getFunctionInParent(SEM::Type* unresolvedParent, const std::string& name) {
-				for (auto function: unresolvedParent->getObjectType()->functions()) {
+			SEM::Function* getFunctionInParent(SEM::Type* parent, const std::string& name) {
+				for (auto function: parent->getObjectType()->functions()) {
 					if (function->name().last() == name) {
 						return function;
 					}
 				}
-				return NULL;
+				llvm_unreachable("Failed to find function in parent.");
 			}
 			
 			void genFunctionVars(Function& functionGenerator, SEM::Function* function) {

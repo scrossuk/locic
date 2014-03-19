@@ -56,7 +56,7 @@ namespace locic {
 			}
 			
 			if (name == "integer_literal_t") {
-				return llvm_abi::Type::Integer(llvm_abi::Int64);
+				return llvm_abi::Type::Integer(llvm_abi::LongLong);
 			}
 			
 			if (name == "float_literal_t") {

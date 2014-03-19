@@ -1,5 +1,9 @@
 __primitive integer_literal_t {
-	// integer_literal_t implicitCopy() const;
+	integer_literal_t implicitCopy() const;
+	
+	integer_literal_t plus() const;
+	integer_literal_t minus() const;
+	integer_literal_t abs() const;
 	
 	/*
 	To be used when templated methods are supported:
@@ -12,7 +16,11 @@ __primitive integer_literal_t {
 }
 
 __primitive float_literal_t {
-	// float_literal_t implicitCopy() const;
+	float_literal_t implicitCopy() const;
+	
+	float_literal_t plus() const;
+	float_literal_t minus() const;
+	float_literal_t abs() const;
 	
 	/*
 	To be used when templated methods are supported:
@@ -37,6 +45,11 @@ __primitive char_t {
 	
 	char_t implicitCopy() const;
 	
+	char_t plus() const;
+	char_t minus() const;
+	
+	char_t abs() const;
+	
 	char_t add(char_t v) const;
 	char_t subtract(char_t v) const;
 	char_t multiply(char_t v) const;
@@ -46,19 +59,31 @@ __primitive char_t {
 	int_t compare(char_t v) const;
 	
 	bool isZero() const;
+}
+
+__primitive uchar_t {
+	static uchar_t integer_literal(integer_literal_t literal);
 	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	uchar_t implicitCopy() const;
+	
+	uchar_t add(uchar_t v) const;
+	uchar_t subtract(uchar_t v) const;
+	uchar_t multiply(uchar_t v) const;
+	uchar_t divide(uchar_t v) const;
+	uchar_t modulo(uchar_t v) const;
+	
+	int_t compare(uchar_t v) const;
+	
+	bool isZero() const;
 }
 
 __primitive short_t {
 	static short_t integer_literal(integer_literal_t literal);
 	
 	short_t implicitCopy() const;
+	
+	short_t plus() const;
+	short_t minus() const;
 	
 	short_t abs() const;
 
@@ -69,19 +94,31 @@ __primitive short_t {
 	short_t modulo(short_t v) const;
 	
 	int_t compare(short_t v) const;
+}
+
+__primitive ushort_t {
+	static ushort_t integer_literal(integer_literal_t literal);
 	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	ushort_t implicitCopy() const;
+	
+	ushort_t add(ushort_t v) const;
+	ushort_t subtract(ushort_t v) const;
+	ushort_t multiply(ushort_t v) const;
+	ushort_t divide(ushort_t v) const;
+	ushort_t modulo(ushort_t v) const;
+	
+	int_t compare(ushort_t v) const;
+	
+	bool isZero() const;
 }
 
 __primitive int_t {
 	static int_t integer_literal(integer_literal_t literal);
 	
 	int_t implicitCopy() const;
+	
+	int_t plus() const;
+	int_t minus() const;
 	
 	int_t abs() const;
 
@@ -95,19 +132,31 @@ __primitive int_t {
 	bool isZero() const;
 	bool isPositive() const;
 	bool isNegative() const;
+}
+
+__primitive uint_t {
+	static uint_t integer_literal(integer_literal_t literal);
 	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	uint_t implicitCopy() const;
+	
+	uint_t add(uint_t v) const;
+	uint_t subtract(uint_t v) const;
+	uint_t multiply(uint_t v) const;
+	uint_t divide(uint_t v) const;
+	uint_t modulo(uint_t v) const;
+	
+	int_t compare(uint_t v) const;
+	
+	bool isZero() const;
 }
 
 __primitive long_t {
 	static long_t integer_literal(integer_literal_t literal);
 	
 	long_t implicitCopy() const;
+	
+	long_t plus() const;
+	long_t minus() const;
 	
 	long_t abs() const;
 
@@ -118,19 +167,66 @@ __primitive long_t {
 	long_t modulo(long_t v) const;
 	
 	int_t compare(long_t v) const;
+}
+
+__primitive ulong_t {
+	static ulong_t integer_literal(integer_literal_t literal);
 	
-	/*char_t toChar() const;
-	short_t toShort() const;
-	int_t toInt() const;
-	long_t toLong() const;
-	float toFloat() const;
-	double toDouble() const;*/
+	ulong_t implicitCopy() const;
+	
+	ulong_t add(ulong_t v) const;
+	ulong_t subtract(ulong_t v) const;
+	ulong_t multiply(ulong_t v) const;
+	ulong_t divide(ulong_t v) const;
+	ulong_t modulo(ulong_t v) const;
+	
+	int_t compare(ulong_t v) const;
+	
+	bool isZero() const;
+}
+
+__primitive longlong_t {
+	static longlong_t integer_literal(integer_literal_t literal);
+	
+	longlong_t implicitCopy() const;
+	
+	longlong_t plus() const;
+	longlong_t minus() const;
+	
+	longlong_t abs() const;
+
+	longlong_t add(longlong_t v) const;
+	longlong_t subtract(longlong_t v) const;
+	longlong_t multiply(longlong_t v) const;
+	longlong_t divide(longlong_t v) const;
+	longlong_t modulo(longlong_t v) const;
+	
+	int_t compare(longlong_t v) const;
+}
+
+__primitive ulonglong_t {
+	static ulonglong_t integer_literal(integer_literal_t literal);
+	
+	ulonglong_t implicitCopy() const;
+	
+	ulonglong_t add(ulonglong_t v) const;
+	ulonglong_t subtract(ulonglong_t v) const;
+	ulonglong_t multiply(ulonglong_t v) const;
+	ulonglong_t divide(ulonglong_t v) const;
+	ulonglong_t modulo(ulonglong_t v) const;
+	
+	int_t compare(ulonglong_t v) const;
+	
+	bool isZero() const;
 }
 
 __primitive int8_t {
 	static int8_t integer_literal(integer_literal_t literal);
 	
 	int8_t implicitCopy() const;
+	
+	int8_t plus() const;
+	int8_t minus() const;
 	
 	int8_t abs() const;
 
@@ -166,6 +262,9 @@ __primitive int16_t {
 	
 	int16_t implicitCopy() const;
 	
+	int16_t plus() const;
+	int16_t minus() const;
+	
 	int16_t abs() const;
 
 	int16_t add(int16_t v) const;
@@ -199,6 +298,9 @@ __primitive int32_t {
 	static int32_t integer_literal(integer_literal_t literal);
 	
 	int32_t implicitCopy() const;
+	
+	int32_t plus() const;
+	int32_t minus() const;
 	
 	int32_t abs() const;
 
@@ -234,6 +336,9 @@ __primitive int64_t {
 	
 	int64_t implicitCopy() const;
 	
+	int64_t plus() const;
+	int64_t minus() const;
+	
 	int64_t abs() const;
 
 	int64_t add(int64_t v) const;
@@ -267,6 +372,9 @@ __primitive float_t {
 	static float_t float_literal(float_literal_t literal);
 	
 	float_t implicitCopy() const;
+	
+	float_t plus() const;
+	float_t minus() const;
 
 	float_t abs() const;
 
@@ -284,6 +392,9 @@ __primitive double_t {
 	
 	double_t implicitCopy() const;
 	
+	double_t plus() const;
+	double_t minus() const;
+	
 	double_t abs() const;
 
 	double_t add(double_t v) const;
@@ -299,6 +410,9 @@ __primitive longdouble_t {
 	static longdouble_t float_literal(float_literal_t literal);
 	
 	longdouble_t implicitCopy() const;
+	
+	longdouble_t plus() const;
+	longdouble_t minus() const;
 	
 	longdouble_t abs() const;
 

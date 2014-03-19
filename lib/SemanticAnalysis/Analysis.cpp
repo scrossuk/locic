@@ -194,10 +194,9 @@ namespace locic {
 			 		const Name specObjectName = context.name() + range.front().key() + "#spectype";
 			 		
 			 		// Create placeholder for the template type.
-			 		auto templateVarSpecObject =
-						new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE);
+			 		const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE);
 					
-					childNode.getSEMTemplateVar()->setSpecType(templateVarSpecObject);
+					childNode.getSEMTemplateVar()->setSpecTypeInstance(templateVarSpecObject);
 					
 					childNode.attach("#spectype", Node::TypeInstance(AST::Node<AST::TypeInstance>(), templateVarSpecObject));
 				}
@@ -436,15 +435,15 @@ namespace locic {
 			 		// leave the generated type instance empty.
 			 		if (astSpecType->isVoid()) continue;
 			 		
-			 		auto semSpecType = ConvertType(context, astSpecType);
+			 		const auto semSpecType = ConvertType(context, astSpecType);
 			 		
 			 		auto templateVarTypeInstanceNode = childNode.getChild("#spectype");
 					assert(templateVarTypeInstanceNode.isNotNone());
 					
-					auto semTemplateVar = childNode.getSEMTemplateVar();
-					(void) semTemplateVar;
-			 		assert(semTemplateVar->specType() != NULL);
-			 		assert(semTemplateVar->specType() == templateVarTypeInstanceNode.getSEMTypeInstance());
+					const auto semTemplateVar = childNode.getSEMTemplateVar();
+					semTemplateVar->setSpecType(semSpecType);
+			 		assert(semTemplateVar->specTypeInstance() != nullptr);
+			 		assert(semTemplateVar->specTypeInstance() == templateVarTypeInstanceNode.getSEMTypeInstance());
 					
 					CopyTemplateVarTypeInstance(semSpecType, templateVarTypeInstanceNode);
 				}

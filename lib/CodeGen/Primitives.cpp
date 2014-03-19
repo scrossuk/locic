@@ -42,7 +42,7 @@ namespace locic {
 		bool isSignedIntegerType(const std::string& name) {
 			return name == "int8_t" || name == "int16_t" || name == "int32_t" || name == "int64_t" ||
 				name == "char_t" || name == "short_t" || name == "int_t" || name == "long_t" ||
-				name == "longlong_t" || name == "ssize_t";
+				name == "longlong_t" || name == "ssize_t" || name == "integer_literal_t";
 		}
 		
 		bool isUnsignedIntegerType(const std::string& name) {
@@ -56,7 +56,8 @@ namespace locic {
 		}
 		
 		bool isFloatType(const std::string& name) {
-			return name == "float_t" || name == "double_t" || name == "longdouble_t";
+			return name == "float_t" || name == "double_t" || name == "longdouble_t" ||
+				name == "float_literal_t";
 		}
 		
 		bool isConstructor(const std::string& methodName) {
@@ -68,26 +69,28 @@ namespace locic {
 		
 		bool isUnaryOp(const std::string& methodName) {
 			return methodName == "implicitCopy" ||
-				   methodName == "not" ||
-				   methodName == "isZero" ||
-				   methodName == "isPositive" ||
-				   methodName == "isNegative" ||
-				   methodName == "abs" ||
-				   methodName == "address" ||
-				   methodName == "deref" ||
-				   methodName == "dissolve" ||
-				   methodName == "move";
+				methodName == "plus" ||
+				methodName == "minus" ||
+				methodName == "not" ||
+				methodName == "isZero" ||
+				methodName == "isPositive" ||
+				methodName == "isNegative" ||
+				methodName == "abs" ||
+				methodName == "address" ||
+				methodName == "deref" ||
+				methodName == "dissolve" ||
+				methodName == "move";
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
 			return methodName == "add" ||
-				   methodName == "subtract" ||
-				   methodName == "multiply" ||
-				   methodName == "divide" ||
-				   methodName == "modulo" ||
-				   methodName == "compare" ||
-				   methodName == "assign" ||
-				   methodName == "index";
+				methodName == "subtract" ||
+				methodName == "multiply" ||
+				methodName == "divide" ||
+				methodName == "modulo" ||
+				methodName == "compare" ||
+				methodName == "assign" ||
+				methodName == "index";
 		}
 		
 		void createBoolPrimitiveMethod(Module& module, SEM::Function* semFunction, llvm::Function& llvmFunction) {
@@ -146,6 +149,10 @@ namespace locic {
 				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
+				} else if (methodName == "plus") {
+					builder.CreateRet(methodOwner);
+				} else if (methodName == "minus") {
+					builder.CreateRet(builder.CreateNeg(methodOwner));
 				} else if (methodName == "isZero") {
 					builder.CreateRet(builder.CreateICmpEQ(methodOwner, zero));
 				} else if (methodName == "isPositive") {
@@ -290,6 +297,10 @@ namespace locic {
 				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
+				} else if (methodName == "plus") {
+					builder.CreateRet(methodOwner);
+				} else if (methodName == "minus") {
+					builder.CreateRet(builder.CreateFNeg(methodOwner));
 				} else if (methodName == "isZero") {
 					builder.CreateRet(builder.CreateFCmpOEQ(methodOwner, zero));
 				} else if (methodName == "isPositive") {
@@ -586,7 +597,7 @@ namespace locic {
 			} else if(typeName == "value_lval") {
 				createValueLvalPrimitiveMethod(module, parent, function, llvmFunction);
 			} else {
-				llvm_unreachable("Unknown primitive type '%s' for method generation.");
+				llvm_unreachable("Unknown primitive type for method generation.");
 			}
 		}
 		
@@ -729,10 +740,6 @@ namespace locic {
 			
 			if (name == "longdouble_t") {
 				return TypeGenerator(module).getLongDoubleType();
-			}
-			
-			if (name == "integer_literal_t") {
-				return TypeGenerator(module).getI64Type();
 			}
 			
 			if (name == "float_literal_t") {

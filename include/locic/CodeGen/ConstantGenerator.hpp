@@ -69,7 +69,7 @@ namespace locic {
 						return getFloat(floatValue);
 					} else if (primitiveName == "double_t") {
 						return getDouble(floatValue);
-					} else if (primitiveName == "longdouble_t") {
+					} else if (primitiveName == "longdouble_t" || primitiveName == "float_literal_t") {
 						return getLongDouble(floatValue);
 					} else {
 						assert(false && "TODO");

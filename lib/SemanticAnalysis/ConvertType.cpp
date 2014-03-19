@@ -5,6 +5,8 @@
 #include <locic/AST.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
+
+#include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -28,7 +30,7 @@ namespace locic {
 				
 				const Node objectNode = context.lookupName(name);
 				if (objectNode.isTypeInstance()) {
-					SEM::TypeInstance* typeInstance = objectNode.getSEMTypeInstance();
+					const auto typeInstance = objectNode.getSEMTypeInstance();
 					const size_t numTemplateVariables = typeInstance->templateVariables().size();
 					if (numTemplateVariables != numTemplateArguments) {
 						throw TodoException(makeString("Incorrect number of template "
@@ -38,8 +40,15 @@ namespace locic {
 							(unsigned long long) numTemplateArguments));
 					}
 					
+					// First generate template var -> type map.
 					for (size_t j = 0; j < numTemplateArguments; j++) {
-						SEM::Type* templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
+						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
+						templateVarMap.insert(typeInstance->templateVariables().at(j), templateTypeValue);
+					}
+					
+					// Then check all the types are valid parameters.
+					for (size_t j = 0; j < numTemplateArguments; j++) {
+						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
 						
 						if (templateTypeValue->isInterface()) {
 							throw TodoException(makeString("Cannot use abstract type '%s' "
@@ -48,8 +57,32 @@ namespace locic {
 								(unsigned long long) j, name.toString().c_str()));
 						}
 						
-						templateVarMap.insert(typeInstance->templateVariables().at(j),
-							templateTypeValue);
+						const auto templateVariable = typeInstance->templateVariables().at(j);
+						
+						if (templateVariable->specType() != nullptr) {
+							assert(templateVariable->specType()->isInterface());
+							
+							if (templateTypeValue->isAuto()) {
+								// Presumably auto will always work...
+								continue;
+							}
+							
+							if (!templateTypeValue->isObject()) {
+								throw TodoException(makeString("Non-object type '%s' cannot satisfy "
+									"constraint for template parameter %llu of type '%s'.",
+									templateTypeValue->toString().c_str(),
+									(unsigned long long) j, name.toString().c_str()));
+							}
+							
+							const auto specType = templateVariable->specType()->substitute(templateVarMap);
+							
+							if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
+								throw TodoException(makeString("Type '%s' does not satisfy "
+									"constraint for template parameter %llu of type '%s'.",
+									templateTypeValue->getObjectType()->name().toString().c_str(),
+									(unsigned long long) j, name.toString().c_str()));
+							}
+						}
 					}
 				} else {
 					if (numTemplateArguments > 0) {

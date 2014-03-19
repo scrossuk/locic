@@ -285,6 +285,10 @@ namespace locic {
 			return isClass() || isTemplateVar();
 		}
 		
+		bool Type::isObjectOrTemplateVar() const {
+			return isObject() || isTemplateVar();
+		}
+		
 		bool Type::isException() const {
 			if (!isObject()) {
 				return false;
@@ -401,7 +405,7 @@ namespace locic {
 					return getObjectType()->hasProperty("implicitCopy");
 					
 				case TEMPLATEVAR:
-					return getTemplateVar()->specType()->hasProperty("implicitCopy");
+					return getTemplateVar()->specTypeInstance()->hasProperty("implicitCopy");
 					
 				default:
 					assert(false && "Unknown SEM type enum");
@@ -424,7 +428,7 @@ namespace locic {
 					return getObjectType()->getProperty("implicitCopy")->type()->getFunctionReturnType()->substitute(generateTemplateVarMap());
 					
 				case TEMPLATEVAR:
-					return getTemplateVar()->specType()->getProperty("implicitCopy")->type()->getFunctionReturnType();
+					return getTemplateVar()->specTypeInstance()->getProperty("implicitCopy")->type()->getFunctionReturnType();
 					
 				default:
 					assert(false && "Unknown SEM type enum");

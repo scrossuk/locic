@@ -13,9 +13,18 @@ class TestClass(const char * const n, int i, int j){
 		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n",
 			@n, @i, @j);
 	}
+	
+	TestClass implicitCopy() const {
+		printf("Copy TestClass.\n");
+		return @("Copy", @i, @j);
+	}
 
 	int getValue() {
 		return 42;
+	}
+	
+	TestClass multiply(TestClass arg) const {
+		return @("Multiply", @i, @j);
 	}
 	
 	void doSomething() { }

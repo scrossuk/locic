@@ -5,6 +5,9 @@ void sleep(int seconds);
 // Entry point.
 int main() {
 	auto renderWindow = sf::RenderWindow("Chain Reversi");
+	auto circleShape = sf::CircleShape();
+	circleShape.setRadius(100.0);
+	circleShape.setPosition(sf::Vector2f(100.0, 100.0));
 	
 	renderWindow.setFramerateLimit(25);
 	
@@ -15,6 +18,9 @@ int main() {
 	while (i < 255) {
 		printf("At index %u.\n", i);
 		renderWindow.clear(sf::Color(i, i, i, 255));
+		
+		renderWindow.drawCircle(circleShape);
+		
 		renderWindow.display();
 		i = i + 1;
 	}

@@ -7,6 +7,7 @@ namespace locic {
 
 	namespace SEM {
 	
+		class Type;
 		class TypeInstance;
 		
 		enum TemplateVarType {
@@ -20,15 +21,20 @@ namespace locic {
 				
 				TemplateVarType type() const;
 				
-				void setSpecType(TypeInstance * spec);
+				void setSpecType(Type* spec);
 				
-				TypeInstance * specType() const;
+				Type* specType() const;
+				
+				void setSpecTypeInstance(TypeInstance* spec);
+				
+				TypeInstance* specTypeInstance() const;
 				
 				std::string toString() const;
 				
 			private:
 				TemplateVarType type_;
-				TypeInstance * specType_;
+				Type* specType_;
+				TypeInstance* specTypeInstance_;
 				
 		};
 		

@@ -31,6 +31,8 @@ namespace locic {
 		
 		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType);
 		
+		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType);
+		
 		class CastTypeMismatchException: public CastException {
 			public:
 				inline CastTypeMismatchException(SEM::Value* value, SEM::Type* sourceType, SEM::Type* destType)

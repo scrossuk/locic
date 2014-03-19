@@ -2,18 +2,12 @@
 // yet support opaque types.
 struct sfContextSettings { };
 struct sfRenderWindow { };
+struct sfRenderStates { };
 
 struct sfVideoMode {
 	int width;        ///< Video mode width, in pixels
 	int height;       ///< Video mode height, in pixels
 	int bitsPerPixel; ///< Video mode pixel depth, in bits per pixels
-};
-
-struct sfColor {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
 };
 
 void printf(const char* text, ...);
@@ -28,9 +22,9 @@ void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
 
 void sfRenderWindow_display(sfRenderWindow* renderWindow);
 
+void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
+
 namespace sf {
-	
-	datatype Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	
 	class RenderWindow(sfRenderWindow* window) {
 		static Create (const char* title) {
@@ -58,6 +52,10 @@ namespace sf {
 		
 		void display() {
 			sfRenderWindow_display(@window);
+		}
+		
+		void drawCircle(const CircleShape& shape) {
+			sfRenderWindow_drawCircleShape(@window, shape.raw(), null);
 		}
 		
 	}

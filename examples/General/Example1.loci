@@ -44,16 +44,15 @@ class ExampleTemplatedClass1{ }
 
 template <typename T>
 interface DefaultConstructInterface {
-	static T Create();
+	T implicitCopy() const;
 	
-	T implicitCopy();
-	
-	T multiply(T value);
+	T multiply(T value) const;
 }
 
 template <typename T: DefaultConstructInterface<T> >
 class PolyClass(T v) {
 	static Create(T value) {
+		printf("Create PolyClass.\n");
 		return @(value);
 	}
 	
@@ -62,6 +61,7 @@ class PolyClass(T v) {
 	}
 	
 	T function(T value) {
+		printf("Multiply PolyClass.\n");
 		return value * @v;
 	}
 };
@@ -200,14 +200,9 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 	
 }
 
-int minus(int value) {
-	int i = 0;
-	return i - value;
-}
-
 Memory<int> createMemory() {
-	auto m = Memory<int>(20, minus(1000000));
-	for (auto i: count(minus(5), 25)) {
+	auto m = Memory<int>(20, -1000000);
+	for (auto i: count(-5, 25)) {
 		m[i] = i + 42;
 	}
 	return move m;
@@ -223,7 +218,7 @@ int main(int argc, char ** argv){
 	
 	{
 		auto m = createMemory();
-		for (auto i: count(minus(5), m.size() + 5)) {
+		for (auto i: count(-5, m.size() + 5)) {
 			printf("m[%02d] = %d.\n", i, m[i]);
 		}
 	}
@@ -297,10 +292,11 @@ int main(int argc, char ** argv){
 		}
 	}
 	
-	/*{
+	{
 		auto t = PolyClass<TestClass>(TestClass(0));
 		auto t2 = t.function(TestClass(1));
-	}*/
+		printf("PolyClass<TestClass>\n");
+	}
 	
 	int i = 0;
 	int * j = &i;

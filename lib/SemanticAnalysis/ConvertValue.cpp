@@ -31,7 +31,7 @@ namespace locic {
 			
 			const auto typeInstance =
 				objectType->isTemplateVar() ?
-					objectType->getTemplateVar()->specType() :
+					objectType->getTemplateVar()->specTypeInstance() :
 					objectType->getObjectType();
 			assert(typeInstance != NULL);
 			
@@ -202,7 +202,7 @@ namespace locic {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = node.getSEMTemplateVar();
 						
-						const auto specTypeInstance = templateVar->specType();
+						const auto specTypeInstance = templateVar->specTypeInstance();
 						const auto defaultConstructor = specTypeInstance->getProperty("Create");
 						
 						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(templateVar),

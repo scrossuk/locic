@@ -220,59 +220,62 @@ namespace locic {
 			return CanonicalizeMethodName(first) == CanonicalizeMethodName(second);
 		}
 		
-		static SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
-			auto sourceType = value->type();
-			assert(sourceType->isRef() && destType->isRef());
+		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType) {
+			assert(objectType->isObject());
+			assert(interfaceType->isInterface());
 			
-			auto sourceTargetType = sourceType->refTarget();
-			auto destTargetType = destType->refTarget();
+			const auto objectInstance = objectType->getObjectType();
+			const auto interfaceInstance = interfaceType->getObjectType();
 			
-			assert(sourceTargetType->isObject());
-			assert(destTargetType->isInterface());
-			
-			auto sourceInstance = sourceTargetType->getObjectType();
-			auto destInstance = destTargetType->getObjectType();
-			
-			const auto sourceTemplateVarMap = sourceTargetType->generateTemplateVarMap();
-			const auto destTemplateVarMap = destTargetType->generateTemplateVarMap();
+			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();
+			const auto interfaceTemplateVarMap = interfaceType->generateTemplateVarMap();
 			
 			// NOTE: This code relies on the function arrays being sorted
 			//       (which is performed by an early Semantic Analysis pass).
-			for (size_t sourcePos = 0, destPos = 0; destPos < destInstance->functions().size(); sourcePos++) {
-				auto destFunction = destInstance->functions().at(destPos);
+			for (size_t objectPos = 0, interfacePos = 0; interfacePos < interfaceInstance->functions().size(); objectPos++) {
+				const auto interfaceFunction = interfaceInstance->functions().at(interfacePos);
 				
-				if (sourcePos >= sourceInstance->functions().size()) {
-					// If all the source methods have been considered, but
-					// there's still a destination method to consider, then
-					// that method must not be present in the source type.
-					// throw PolyCastMissingMethodException(sourceType, destType, destFunction);
-					return nullptr;
+				if (objectPos >= objectInstance->functions().size()) {
+					// If all the object methods have been considered, but
+					// there's still an interface method to consider, then
+					// that method must not be present in the object type.
+					return false;
 				}
 				
-				auto sourceFunction = sourceInstance->functions().at(sourcePos);
+				const auto objectFunction = objectInstance->functions().at(objectPos);
 				
-				if (!methodNamesMatch(sourceFunction->name().last(), destFunction->name().last())) continue;
+				if (!methodNamesMatch(objectFunction->name().last(), interfaceFunction->name().last())) continue;
 				
 				// Can't cast mutator method to const method.
-				if (!sourceFunction->isConstMethod() && destFunction->isConstMethod()) {
-					return nullptr;
+				if (!objectFunction->isConstMethod() && interfaceFunction->isConstMethod()) {
+					return false;
 				}
 					
 				// Substitute any template variables in the function types.
-				const auto sourceFunctionType = sourceFunction->type()->substitute(sourceTemplateVarMap);
-				const auto destFunctionType = destFunction->type()->substitute(destTemplateVarMap);
+				const auto objectFunctionType = objectFunction->type()->substitute(objectTemplateVarMap);
+				const auto interfaceFunctionType = interfaceFunction->type()->substitute(interfaceTemplateVarMap);
 				
 				// Function types must be equivalent.
-				if (*(sourceFunctionType) != *(destFunctionType)) {
-					/* throw PolyCastMethodMismatchException(sourceFunction->name(),
-						sourceType, destType, sourceFunctionType, destFunctionType); */
-					return nullptr;
+				if (*(objectFunctionType) != *(interfaceFunctionType)) {
+					return false;
 				}
 				
-				destPos++;
+				interfacePos++;
 			}
 			
-			return SEM::Value::PolyCast(destType, value);
+			return true;
+		}
+		
+		static SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
+			const auto sourceType = value->type();
+			assert(sourceType->isRef() && destType->isRef());
+			
+			const auto sourceTargetType = sourceType->refTarget();
+			const auto destTargetType = destType->refTarget();
+			
+			return TypeSatisfiesInterface(sourceTargetType, destTargetType) ?
+				SEM::Value::PolyCast(destType, value) :
+				nullptr;
 		}
 		
 		static bool isPrimitiveType(SEM::Type* type, const std::string& name) {
@@ -456,13 +459,13 @@ namespace locic {
 			if (sourceType->isRef() && !destType->isRef()) {
 				auto sourceDerefType = getDerefType(sourceType);
 				if (sourceDerefType->supportsImplicitCopy()) {
-					SEM::Value* copyValue = sourceDerefType->isObject() ?
+					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
 						CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
 						derefAll(value);
 					
-					auto convertCast = ImplicitCastConvert(copyValue, destType);
+					const auto convertCast = ImplicitCastConvert(copyValue, destType);
 					if (convertCast != nullptr) return convertCast;
-				} else if (sourceDerefType->isObject() && CanDoImplicitCast(sourceDerefType, destType)) {
+				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(sourceDerefType, destType)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
@@ -475,7 +478,7 @@ namespace locic {
 			}
 			
 			// Try to use implicitCopy to make a value non-const.
-			if (sourceType->isConst() && !destType->isConst() && sourceType->isObject() && sourceType->supportsImplicitCopy()) {
+			if (sourceType->isConst() && !destType->isConst() && sourceType->isObjectOrTemplateVar() && sourceType->supportsImplicitCopy()) {
 				SEM::Value* copyValue = CallPropertyMethod(value, "implicitCopy", std::vector<SEM::Value*>());
 				if (!copyValue->type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(copyValue, destType);

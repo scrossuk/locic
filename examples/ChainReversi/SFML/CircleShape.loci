@@ -1,0 +1,71 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfCircleShape { };
+
+sfCircleShape* sfCircleShape_create();
+
+sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
+
+void sfCircleShape_destroy(sfCircleShape* shape);
+
+struct sfVector2f {
+	float x;
+	float y;
+};
+
+void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
+
+void sfCircleShape_setRotation(sfCircleShape* shape, float angle);
+
+void sfCircleShape_setScale(sfCircleShape* shape, sfVector2f scale);
+
+void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color);
+
+void sfCircleShape_setRadius(sfCircleShape* shape, float radius);
+
+namespace sf {
+	
+	datatype Vector2f(float x, float y);
+	
+	class CircleShape(sfCircleShape* shape) {
+		static Create () {
+			return @(sfCircleShape_create());
+		}
+		
+		CircleShape copy() const {
+			return @(sfCircleShape_copy(@shape));
+		}
+		
+		~ {
+			sfCircleShape_destroy(@shape);
+		}
+		
+		sfCircleShape* const raw() const {
+			return @shape;
+		}
+		
+		void setPosition(Vector2f position) {
+			sfCircleShape_setPosition(@shape, sfVector2f(position.x, position.y));
+		}
+		
+		void setRotation(float angle) {
+			sfCircleShape_setRotation(@shape, angle);
+		}
+		
+		void setScale(Vector2f scale) {
+			sfCircleShape_setScale(@shape, sfVector2f(scale.x, scale.y));
+		}
+		
+		void setFillColor(Color color) {
+			sfCircleShape_setFillColor(@shape, sfColor(color.r, color.g, color.b, color.a));
+		}
+		
+		void setRadius(float radius) {
+			sfCircleShape_setRadius(@shape, radius);
+		}
+		
+	}
+	
+}
+
+
