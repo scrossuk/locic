@@ -12,8 +12,8 @@ class ExampleClass(int i) {
 	}
 }
 
-exception ExampleError(int value);
-exception ExampleError2(int value);
+exception ExampleError(long value);
+exception ExampleError2(long value);
 
 void throwFunction(bool throwFirst) {
 	auto value1 = ExampleClass(1);
@@ -27,7 +27,7 @@ void throwFunction(bool throwFirst) {
 			throw ExampleError2(212121);
 		}
 	} catch (ExampleError2 error) {
-		testPrint("Caught exception V2 with value %d!", error.value);
+		testPrint("Caught exception V2 with value %ld!", error.value);
 	}
 }
 
@@ -40,7 +40,7 @@ int testEntryPoint(int argc, char ** argv) {
 		throwFunction(true);
 	} catch (ExampleError error) {
 		auto value4 = ExampleClass(4);
-		testPrint("Caught exception with value %d!", error.value);
+		testPrint("Caught exception with value %ld!", error.value);
 	}
 	testPrint("Finished.");
 	return 0;

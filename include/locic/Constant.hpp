@@ -11,17 +11,27 @@ namespace locic{
 
 	class Constant{
 		public:
-			enum Type{
+			enum Kind {
 				NULLVAL,
 				BOOLEAN,
 				INTEGER,
 				FLOATINGPOINT,
 				STRING
 			};
+			
+			enum IntegerKind {
+				SIGNED,
+				UNSIGNED
+			};
+			
+			enum FloatKind {
+				FLOAT,
+				DOUBLE
+			};
 	
-			enum StringType{
-				CSTRING,
-				LOCISTRING
+			enum StringKind {
+				C_STRING,
+				LOCI_STRING
 			};
 			
 			typedef long long IntegerVal;
@@ -44,50 +54,68 @@ namespace locic{
 				return constant;
 			}
 			
-			static inline Constant * Integer(IntegerVal value){
+			static inline Constant * Integer(IntegerKind kind, IntegerVal value){
 				Constant * constant = new Constant(INTEGER);
+				constant->integerKind_ = kind;
 				constant->integer_ = value;
 				return constant;
 			}
 			
-			static inline Constant * Float(FloatVal value){
+			static inline Constant * Float(FloatKind kind, FloatVal value){
 				Constant * constant = new Constant(FLOATINGPOINT);
+				constant->floatKind_ = kind;
 				constant->float_ = value;
 				return constant;
 			}
 			
-			static inline Constant * String(const std::string& value){
+			static inline Constant * String(StringKind kind, const std::string& value){
 				Constant * constant = new Constant(STRING);
+				constant->stringKind_ = kind;
 				constant->string_ = value;
 				return constant;
 			}
 			
-			inline Type getType() const{
-				return type_;
+			inline Kind kind() const{
+				return kind_;
 			}
 			
-			inline bool getBool() const{
-				assert(type_ == BOOLEAN);
+			inline bool boolValue() const{
+				assert(kind_ == BOOLEAN);
 				return bool_;
 			}
 			
-			inline IntegerVal getInteger() const{
-				assert(type_ == INTEGER);
+			inline IntegerKind integerKind() const{
+				assert(kind_ == INTEGER);
+				return integerKind_;
+			}
+			
+			inline IntegerVal integerValue() const{
+				assert(kind_ == INTEGER);
 				return integer_;
 			}
 			
-			inline FloatVal getFloat() const{
-				assert(type_ == FLOATINGPOINT);
+			inline FloatKind floatKind() const{
+				assert(kind_ == FLOATINGPOINT);
+				return floatKind_;
+			}
+			
+			inline FloatVal floatValue() const{
+				assert(kind_ == FLOATINGPOINT);
 				return float_;
 			}
 			
-			inline std::string getString() const{
-				assert(type_ == STRING);
+			inline StringKind stringKind() const{
+				assert(kind_ == STRING);
+				return stringKind_;
+			}
+			
+			inline std::string stringValue() const{
+				assert(kind_ == STRING);
 				return string_;
 			}
 			
 			inline std::string getTypeName() const{
-				switch(type_){
+				switch(kind_){
 					case NULLVAL:
 						return "null_t";
 					case BOOLEAN:
@@ -105,33 +133,49 @@ namespace locic{
 			}
 			
 			std::string toString() const {
-				switch(type_){
+				switch (kind_) {
 					case NULLVAL:
 						return "NullConstant";
 					case BOOLEAN:
 						return makeString("BoolConstant(%s)", bool_ ? "true" : "false");
 					case INTEGER:
-						return makeString("IntegerConstant(%lld)", integer_);
+					{
+						const auto kindString = integerKind() == SIGNED ? "signed" : "unsigned";
+						return makeString("IntegerConstant(%s, %lld)", kindString, integerValue());
+					}
 					case FLOATINGPOINT:
-						return makeString("FloatConstant(%Lf)", float_);
+					{
+						const auto kindString = floatKind() == FLOAT ? "float" : "double";
+						return makeString("FloatConstant(%s, %Lf)", kindString, float_);
+					}
 					case STRING:
-						return makeString("StringConstant(\"%s\")", escapeString(string_).c_str());
+					{
+						const auto kindString = stringKind() == C_STRING ? "c_string" : "string";
+						return makeString("StringConstant(%s, \"%s\")", kindString, escapeString(string_).c_str());
+					}
 					default:
 						return "[UNKNOWN CONSTANT]";
 				}
 			}
 			
 		private:
-			inline Constant(Type type)
-				: type_(type){ }
+			inline Constant(Kind pKind)
+				: kind_(pKind) { }
 			
-			Type type_;
+			Kind kind_;
 		
+			union {
+				IntegerKind integerKind_;
+				FloatKind floatKind_;
+				StringKind stringKind_;
+			};
+			
 			union{
 				bool bool_;
 				IntegerVal integer_;
 				FloatVal float_;
 			};
+			
 			std::string string_;
 		
 	};

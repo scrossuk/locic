@@ -13,6 +13,8 @@ struct sfVector2f {
 	float y;
 };
 
+void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
+
 void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
 
 void sfCircleShape_setRotation(sfCircleShape* shape, float angle);
@@ -42,6 +44,10 @@ namespace sf {
 		
 		sfCircleShape* const raw() const {
 			return @shape;
+		}
+		
+		void setOrigin(Vector2f position) {
+			sfCircleShape_setOrigin(@shape, sfVector2f(position.x, position.y));
 		}
 		
 		void setPosition(Vector2f position) {

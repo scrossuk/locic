@@ -13,13 +13,13 @@ namespace CR {
 		Board copy() = default;
 		
 		bool isValid(Position position) const {
-			if (self[position] != CR::None) {
+			if (self[position] != None()) {
 				return false;
 			}
 			
-			for (signed int xi = -1; xi <= 1; xi++) {
-				for (signed int yi = -1; yi <= 1; yi++) {
-					if(xi == 0 && yi == 0) {
+			for (auto xi: std::counter<int>(-1, 1)) {
+				for (auto yi: std::counter<int>(-1, 1)) {
+					if (xi == 0 && yi == 0) {
 						continue;
 					}
 					
@@ -74,15 +74,15 @@ namespace CR {
 			while (hasChanged) {
 				hasChanged = false;
 				
-				for (size_t x = 0; x < @size.width; x++) {
-					for (size_t y = 0; y < @size.height_; y++) {
-						if(self[Position(x, y)] != player_) {
+				for (auto x: std::counter<size_t>(0, @size.width)) {
+					for (auto y: std::counter<size_t>(0, @size.height)) {
+						if(self[Position(x, y)] != self.currentPlayer()) {
 							continue;
 						}
 						
-						for(signed int xi = -1; xi <= 1; xi++) {
-							for(signed int yi = -1; yi <= 1; yi++) {
-								if(xi == 0 && yi == 0) {
+						for (auto xi: std::counter<ssize_t>(-1, 1)) {
+							for (auto yi: std::counter<ssize_t>(-1, 1)) {
+								if (xi == 0 && yi == 0) {
 									continue;
 								}
 								
@@ -98,10 +98,10 @@ namespace CR {
 		
 	}
 	
-	bool isValidForDirection(Board& board, size_t x, size_t y, signed int xi, signed int yi) const {
+	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) const {
 		bool flagOpponent = false;
 		
-		for (size_t cx = x + xi, cy = y + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
+		for (size_t cx = cast<ssize_t>(x) + xi, cy = cast<ssize_t>(y) + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
 			if (board[Position(cx, cy)] == board.opponent()) {
 				flagOpponent = true;
 			} else if(flagOpponent && board[Position(cx, cy)] == board.player()) {
@@ -114,13 +114,13 @@ namespace CR {
 		return false;
 	}
 	
-	bool updateForDirection(Board& board, size_t x, size_t y, signed int xi, signed int yi) {
+	bool updateForDirection(Board& board, size_t x, size_t y, size_t xi, signed int yi) {
 		if (!isValidForDirection(board, x, y, xi, yi)) {
 			return false;
 		}
 		
-		for (size_t cx = x + xi, cy = y + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
-			if(board[Position(cx, cy)] == board.opponent()) {
+		for (size_t cx = x + xi, cy = y + yi; cx < board.size().width && cy < board.size().height; cx += xi, cy += yi) {
+			if (board[Position(cx, cy)] == board.opponent()) {
 				board[Position(cx, cy)] = board.player();
 			} else {
 				break;

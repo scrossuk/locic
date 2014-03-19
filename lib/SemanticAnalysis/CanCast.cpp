@@ -282,6 +282,66 @@ namespace locic {
 			return type->isPrimitive() && type->getObjectType()->name().last() == name;
 		}
 		
+		// 'Promote' primitive types.
+		// Currently part of the compiler since method templates
+		// are not yet implemented.
+		SEM::Value* ImplicitPromoteCast(SEM::Value* value, SEM::Type* destType, const std::string& name) {
+			const auto sourceType = value->type();
+			
+			if (!isPrimitiveType(sourceType, name + "_t") || !destType->isObject()) {
+				return nullptr;
+			}
+			
+			const auto constructorName = name + "_cast";
+			
+			const auto typeInstance = destType->getObjectType();
+			if (typeInstance->hasProperty(constructorName)) {
+				const auto constructedValue = SEM::Value::FunctionCall(
+					SEM::Value::FunctionRef(destType, typeInstance->getProperty(constructorName), destType->generateTemplateVarMap()),
+					{ value });
+				
+				// There still might be some aspects to cast with the constructed type.
+				return ImplicitCastFormatOnly(constructedValue, destType);
+			} else {
+				throw TodoException(makeString("No '%s' constructor specified for type '%s'.",
+					constructorName.c_str(), destType->toString().c_str()));
+			}
+		}
+		
+		std::vector<std::string> integerTypes() {
+			std::vector<std::string> types;
+			types.push_back("int8");
+			types.push_back("int16");
+			types.push_back("int32");
+			types.push_back("int64");
+			
+			types.push_back("uint8");
+			types.push_back("uint16");
+			types.push_back("uint32");
+			types.push_back("uint64");
+			
+			types.push_back("char");
+			types.push_back("short");
+			types.push_back("int");
+			types.push_back("long");
+			types.push_back("longlong");
+			
+			types.push_back("uchar");
+			types.push_back("ushort");
+			types.push_back("uint");
+			types.push_back("ulong");
+			types.push_back("ulonglong");
+			return types;
+		}
+		
+		std::vector<std::string> floatTypes() {
+			std::vector<std::string> types;
+			types.push_back("float");
+			types.push_back("double");
+			types.push_back("longdouble");
+			return types;
+		}
+		
 		// Hard coded casts which will eventually be moved into
 		// Loci source (once templated methods are implemented).
 		SEM::Value* ImplicitCastUser(SEM::Value* value, SEM::Type* destType) {
@@ -297,7 +357,7 @@ namespace locic {
 							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
 							std::vector<SEM::Value*>());
 					
-					// There still might be some aspects to cast with the null constructed type.
+					// There still might be some aspects to cast with the constructed type.
 					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
 					if (castResult != nullptr) return castResult;
 				} else {
@@ -308,38 +368,16 @@ namespace locic {
 				}
 			}
 			
-			// Integer literal cast.
-			if (isPrimitiveType(sourceType, "integer_literal_t") && destType->isObject()) {
-				const auto typeInstance = destType->getObjectType();
-				if (typeInstance->hasProperty("integer_literal")) {
-					const auto constructedValue = SEM::Value::FunctionCall(
-						SEM::Value::FunctionRef(destType, typeInstance->getProperty("integer_literal"), destType->generateTemplateVarMap()),
-						{ value });
-					
-					// There still might be some aspects to cast with the null constructed type.
-					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
-					if (castResult != nullptr) return castResult;
-				} else {
-					throw TodoException(makeString("No integer_literal constructor specified for type '%s'.",
-						destType->toString().c_str()));
-				}
+			// Integer promotion.
+			for (const auto intName: integerTypes()) {
+				const auto castedValue = ImplicitPromoteCast(value, destType, intName);
+				if (castedValue != nullptr) return castedValue;
 			}
 			
-			// Float literal cast.
-			if (isPrimitiveType(sourceType, "float_literal_t") && destType->isObject()) {
-				const auto typeInstance = destType->getObjectType();
-				if (typeInstance->hasProperty("float_literal")) {
-					const auto constructedValue = SEM::Value::FunctionCall(
-						SEM::Value::FunctionRef(destType, typeInstance->getProperty("float_literal"), destType->generateTemplateVarMap()),
-						{ value });
-					
-					// There still might be some aspects to cast with the null constructed type.
-					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
-					if (castResult != nullptr) return castResult;
-				} else {
-					throw TodoException(makeString("No float_literal constructor specified for type '%s'.",
-						destType->toString().c_str()));
-				}
+			// Floating point promotion.
+			for (const auto floatName: floatTypes()) {
+				const auto castedValue = ImplicitPromoteCast(value, destType, floatName);
+				if (castedValue != nullptr) return castedValue;
 			}
 			
 			return nullptr;

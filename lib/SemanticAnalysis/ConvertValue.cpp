@@ -1,8 +1,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <limits>
 #include <list>
 #include <map>
+#include <stdexcept>
 #include <string>
 
 #include <locic/AST.hpp>
@@ -33,7 +35,7 @@ namespace locic {
 				objectType->isTemplateVar() ?
 					objectType->getTemplateVar()->specTypeInstance() :
 					objectType->getObjectType();
-			assert(typeInstance != NULL);
+			assert(typeInstance != nullptr);
 			
 			const Node typeNode = context.reverseLookup(typeInstance);
 			assert(typeNode.isNotNone());
@@ -96,44 +98,113 @@ namespace locic {
 			}
 		}
 		
+		std::string getIntegerConstantType(const Constant& constant) {
+			assert(constant.kind() == Constant::INTEGER);
+			
+			const auto integerValue = constant.integerValue();
+			
+			// TODO: use arbitary-precision arithmetic.
+			switch (constant.integerKind()) {
+				case Constant::SIGNED: {
+					if (integerValue <= std::numeric_limits<int8_t>::max()) {
+						return "int8_t";
+					} else if (integerValue <= std::numeric_limits<int16_t>::max()) {
+						return "int16_t";
+					} else if (integerValue < std::numeric_limits<int32_t>::max()) {
+						return "int32_t";
+					} else {
+						return "int64_t";
+					}
+				}
+				case Constant::UNSIGNED: {
+					if (integerValue <= std::numeric_limits<uint8_t>::max()) {
+						return "uint8_t";
+					} else if (integerValue <= std::numeric_limits<uint16_t>::max()) {
+						return "uint16_t";
+					} else if (integerValue <= std::numeric_limits<uint32_t>::max()) {
+						return "uint32_t";
+					} else {
+						return "uint64_t";
+					}
+				}
+				default:
+					throw std::runtime_error("Unknown integer constant kind.");
+			}
+		}
+		
+		std::string getFloatingPointConstantType(const Constant& constant) {
+			assert(constant.kind() == Constant::FLOATINGPOINT);
+			
+			switch (constant.floatKind()) {
+				case Constant::FLOAT: {
+					return "float_t";
+				}
+				case Constant::DOUBLE: {
+					return "double_t";
+				}
+				default:
+					throw std::runtime_error("Unknown floating point constant kind.");
+			}
+		}
+		
+		std::string getConstantType(const Constant& constant) {
+			switch (constant.kind()) {
+				case Constant::NULLVAL: {
+					return "null_t";
+				}
+				case Constant::BOOLEAN: {
+					return "bool";
+				}
+				case Constant::INTEGER: {
+					return getIntegerConstantType(constant);
+				}
+				case Constant::FLOATINGPOINT: {
+					return getFloatingPointConstantType(constant);
+				}
+				default:
+					throw std::runtime_error("Unknown constant kind.");
+			}
+		}
+		
 		SEM::Value* ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
-			assert(astValueNode.get() != NULL);
+			assert(astValueNode.get() != nullptr);
 			
 			switch (astValueNode->typeEnum) {
 				case AST::Value::BRACKET: {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::CONSTANT: {
-					if(astValueNode->constant->getType() == locic::Constant::STRING) {
-						// TODO: translate into string_literal_t here, rather than const char*.
-						
-						// C strings have the type 'const char * const', as opposed to just a
-						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = getBuiltInType(context, "char_t");
-						const auto ptrTypeInstance = getBuiltInType(context, "ptr");
-						
-						// Generate type 'const char'.
-						const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
-						
-						// Generate type 'const ptr<const char>'.
-						const auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
-						
-						return SEM::Value::Constant(astValueNode->constant.get(), constCharPtrType);
-					} else {
-						const auto typeName = astValueNode->constant->getTypeName();
-						
-						const auto typeInstance = getBuiltInType(context, typeName);
-						if (typeInstance == NULL) {
-							throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
-								typeName.c_str()));
+					auto& constant = *(astValueNode->constant);
+					switch (constant.kind()) {
+						case Constant::STRING: {
+							if (constant.stringKind() == Constant::C_STRING) {
+								// C strings have the type 'const char * const', as opposed to just a
+								// type name, so their type needs to be generated specially.
+								const auto charTypeInstance = getBuiltInType(context, "char_t");
+								const auto ptrTypeInstance = getBuiltInType(context, "ptr");
+								
+								// Generate type 'const char'.
+								const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+								
+								// Generate type 'const ptr<const char>'.
+								const auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
+								
+								return SEM::Value::Constant(&constant, constCharPtrType);
+							} else {
+								throw std::runtime_error("Only C strings are currently supported.");
+							}
 						}
-						
-						return SEM::Value::Constant(astValueNode->constant.get(),
-								SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType());
+						default: {
+							const auto typeName = getConstantType(constant);
+							const auto typeInstance = getBuiltInType(context, typeName);
+							if (typeInstance == nullptr) {
+								throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
+									typeName.c_str()));
+							}
+							
+							return SEM::Value::Constant(&constant, SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType());
+						}
 					}
-					
-					assert(false && "Invalid if fallthrough in ConvertValue for constant");
-					return NULL;
 				}
 				case AST::Value::SYMBOLREF: {
 					const auto& astSymbolNode = astValueNode->symbolRef.symbol;
@@ -219,7 +290,7 @@ namespace locic {
 					const auto& memberName = astValueNode->memberRef.name;
 					const auto semVar = getParentMemberVariable(context, memberName).getSEMVar();
 					
-					if(semVar == NULL) {
+					if(semVar == nullptr) {
 						throw TodoException(makeString("Member variable '@%s' not found.",
 								memberName.c_str()));
 					}

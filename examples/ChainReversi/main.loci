@@ -4,27 +4,41 @@ void print(const char* text);
 
 void sleep(int seconds);
 
+double sin(double angle);
+double cos(double angle);
+
 // Entry point.
 int main() {
-	auto renderWindow = sf::RenderWindow(sf::VideoMode(800, 800, 32), "Chain Reversi");
+	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), "Chain Reversi");
 	auto circleShape = sf::CircleShape();
-	circleShape.setRadius(100.0);
-	circleShape.setPosition(sf::Vector2f(100.0, 100.0));
+	circleShape.setRadius(100.0f);
+	circleShape.setOrigin(sf::Vector2f(100.0f, 100.0f));
+	circleShape.setFillColor(sf::Color(255u, 0u, 0u, 255u));
 	
 	renderWindow.setFramerateLimit(25);
 	
-	uint8_t i = 0;
+	uint8_t i = 0u;
+	
+	double orbitRadius = 200.0;
+	double angle = 0.0;
 	
 	printf("Start!\n");
 	
-	while (i < 255) {
+	while (i < 255u) {
 		printf("At index %u.\n", i);
-		renderWindow.clear(sf::Color(i, i, i, 255));
+		renderWindow.clear(sf::Color(i, i, i, 255u));
+		
+		angle = angle + 0.01;
+		
+		double xPos = cos(angle) * orbitRadius;
+		double yPos = sin(angle) * orbitRadius;
+		
+		circleShape.setPosition(sf::Vector2f(400.0f + xPos.toFloat(), 400.0f + yPos.toFloat()));
 		
 		renderWindow.drawCircle(circleShape);
 		
 		renderWindow.display();
-		i = i + 1;
+		i = i + 1u;
 	}
 	
 	printf("Terminating...\n");

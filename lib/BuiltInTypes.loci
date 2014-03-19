@@ -1,37 +1,3 @@
-__primitive integer_literal_t {
-	integer_literal_t implicitCopy() const;
-	
-	integer_literal_t plus() const;
-	integer_literal_t minus() const;
-	integer_literal_t abs() const;
-	
-	/*
-	To be used when templated methods are supported:
-	
-	template <typename T: ...>
-	T implicitCast() const {
-		return T.integer_literal(implicitCopy());
-	}
-	*/
-}
-
-__primitive float_literal_t {
-	float_literal_t implicitCopy() const;
-	
-	float_literal_t plus() const;
-	float_literal_t minus() const;
-	float_literal_t abs() const;
-	
-	/*
-	To be used when templated methods are supported:
-	
-	template <typename T: ...>
-	T implicitCast() const {
-		return T.float_literal(implicitCopy());
-	}
-	*/
-}
-
 __primitive null_t { }
 
 __primitive bool {
@@ -41,7 +7,7 @@ __primitive bool {
 }
 
 __primitive char_t {
-	static char_t integer_literal(integer_literal_t literal);
+	static char_t int8_cast(int8_t value);
 	
 	char_t implicitCopy() const;
 	
@@ -62,7 +28,7 @@ __primitive char_t {
 }
 
 __primitive uchar_t {
-	static uchar_t integer_literal(integer_literal_t literal);
+	static uchar_t uint8_cast(uint8_t value);
 	
 	uchar_t implicitCopy() const;
 	
@@ -78,7 +44,9 @@ __primitive uchar_t {
 }
 
 __primitive short_t {
-	static short_t integer_literal(integer_literal_t literal);
+	static short_t int8_cast(int8_t value);
+	static short_t int16_cast(int16_t value);
+	static short_t char_cast(char_t value);
 	
 	short_t implicitCopy() const;
 	
@@ -97,7 +65,9 @@ __primitive short_t {
 }
 
 __primitive ushort_t {
-	static ushort_t integer_literal(integer_literal_t literal);
+	static ushort_t uint8_cast(uint8_t value);
+	static ushort_t uint16_cast(uint16_t value);
+	static ushort_t uchar_cast(uchar_t value);
 	
 	ushort_t implicitCopy() const;
 	
@@ -113,7 +83,10 @@ __primitive ushort_t {
 }
 
 __primitive int_t {
-	static int_t integer_literal(integer_literal_t literal);
+	static int_t int8_cast(int8_t value);
+	static int_t int16_cast(int16_t value);
+	static int_t char_cast(char_t value);
+	static int_t short_cast(short_t value);
 	
 	int_t implicitCopy() const;
 	
@@ -135,7 +108,10 @@ __primitive int_t {
 }
 
 __primitive uint_t {
-	static uint_t integer_literal(integer_literal_t literal);
+	static uint_t uint8_cast(uint8_t value);
+	static uint_t uint16_cast(uint16_t value);
+	static uint_t uchar_cast(uchar_t value);
+	static uint_t ushort_cast(ushort_t value);
 	
 	uint_t implicitCopy() const;
 	
@@ -151,7 +127,12 @@ __primitive uint_t {
 }
 
 __primitive long_t {
-	static long_t integer_literal(integer_literal_t literal);
+	static long_t int8_cast(int8_t value);
+	static long_t int16_cast(int16_t value);
+	static long_t int32_cast(int32_t value);
+	static long_t char_cast(char_t value);
+	static long_t short_cast(short_t value);
+	static long_t int_cast(int_t value);
 	
 	long_t implicitCopy() const;
 	
@@ -170,7 +151,12 @@ __primitive long_t {
 }
 
 __primitive ulong_t {
-	static ulong_t integer_literal(integer_literal_t literal);
+	static ulong_t uint8_cast(uint8_t value);
+	static ulong_t uint16_cast(uint16_t value);
+	static ulong_t uint32_cast(uint32_t value);
+	static ulong_t uchar_cast(uchar_t value);
+	static ulong_t ushort_cast(ushort_t value);
+	static ulong_t uint_cast(uint_t value);
 	
 	ulong_t implicitCopy() const;
 	
@@ -186,7 +172,14 @@ __primitive ulong_t {
 }
 
 __primitive longlong_t {
-	static longlong_t integer_literal(integer_literal_t literal);
+	static longlong_t int8_cast(int8_t value);
+	static longlong_t int16_cast(int16_t value);
+	static longlong_t int32_cast(int32_t value);
+	static longlong_t int64_cast(int64_t value);
+	static longlong_t char_cast(char_t value);
+	static longlong_t short_cast(short_t value);
+	static longlong_t int_cast(int_t value);
+	static longlong_t long_cast(long_t value);
 	
 	longlong_t implicitCopy() const;
 	
@@ -205,7 +198,14 @@ __primitive longlong_t {
 }
 
 __primitive ulonglong_t {
-	static ulonglong_t integer_literal(integer_literal_t literal);
+	static ulonglong_t uint8_cast(uint8_t value);
+	static ulonglong_t uint16_cast(uint16_t value);
+	static ulonglong_t uint32_cast(uint32_t value);
+	static ulonglong_t uint64_cast(uint64_t value);
+	static ulonglong_t uchar_cast(uchar_t value);
+	static ulonglong_t ushort_cast(ushort_t value);
+	static ulonglong_t uint_cast(uint_t value);
+	static ulonglong_t ulong_cast(ulong_t value);
 	
 	ulonglong_t implicitCopy() const;
 	
@@ -221,8 +221,6 @@ __primitive ulonglong_t {
 }
 
 __primitive int8_t {
-	static int8_t integer_literal(integer_literal_t literal);
-	
 	int8_t implicitCopy() const;
 	
 	int8_t plus() const;
@@ -243,8 +241,6 @@ __primitive int8_t {
 }
 
 __primitive uint8_t {
-	static uint8_t integer_literal(integer_literal_t literal);
-	
 	uint8_t implicitCopy() const;
 
 	uint8_t add(uint8_t v) const;
@@ -258,8 +254,6 @@ __primitive uint8_t {
 }
 
 __primitive int16_t {
-	static int16_t integer_literal(integer_literal_t literal);
-	
 	int16_t implicitCopy() const;
 	
 	int16_t plus() const;
@@ -280,8 +274,6 @@ __primitive int16_t {
 }
 
 __primitive uint16_t {
-	static uint16_t integer_literal(integer_literal_t literal);
-	
 	uint16_t implicitCopy() const;
 
 	uint16_t add(uint16_t v) const;
@@ -295,8 +287,6 @@ __primitive uint16_t {
 }
 
 __primitive int32_t {
-	static int32_t integer_literal(integer_literal_t literal);
-	
 	int32_t implicitCopy() const;
 	
 	int32_t plus() const;
@@ -317,8 +307,6 @@ __primitive int32_t {
 }
 
 __primitive uint32_t {
-	static uint32_t integer_literal(integer_literal_t literal);
-	
 	uint32_t implicitCopy() const;
 
 	uint32_t add(uint32_t v) const;
@@ -332,8 +320,6 @@ __primitive uint32_t {
 }
 
 __primitive int64_t {
-	static int64_t integer_literal(integer_literal_t literal);
-	
 	int64_t implicitCopy() const;
 	
 	int64_t plus() const;
@@ -354,8 +340,6 @@ __primitive int64_t {
 }
 
 __primitive uint64_t {
-	static uint64_t integer_literal(integer_literal_t literal);
-	
 	uint64_t implicitCopy() const;
 
 	uint64_t add(uint64_t v) const;
@@ -369,8 +353,6 @@ __primitive uint64_t {
 }
 
 __primitive float_t {
-	static float_t float_literal(float_literal_t literal);
-	
 	float_t implicitCopy() const;
 	
 	float_t plus() const;
@@ -388,9 +370,11 @@ __primitive float_t {
 }
 
 __primitive double_t {
-	static double_t float_literal(float_literal_t literal);
+	static double_t float_cast(float_t value);
 	
 	double_t implicitCopy() const;
+	
+	float_t toFloat() const;
 	
 	double_t plus() const;
 	double_t minus() const;
@@ -407,7 +391,8 @@ __primitive double_t {
 }
 
 __primitive longdouble_t {
-	static longdouble_t float_literal(float_literal_t literal);
+	static longdouble_t float_cast(float_t value);
+	static longdouble_t double_cast(double_t value);
 	
 	longdouble_t implicitCopy() const;
 	

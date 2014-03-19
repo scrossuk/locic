@@ -42,7 +42,7 @@ namespace locic {
 		bool isSignedIntegerType(const std::string& name) {
 			return name == "int8_t" || name == "int16_t" || name == "int32_t" || name == "int64_t" ||
 				name == "char_t" || name == "short_t" || name == "int_t" || name == "long_t" ||
-				name == "longlong_t" || name == "ssize_t" || name == "integer_literal_t";
+				name == "longlong_t" || name == "ssize_t";
 		}
 		
 		bool isUnsignedIntegerType(const std::string& name) {
@@ -56,15 +56,21 @@ namespace locic {
 		}
 		
 		bool isFloatType(const std::string& name) {
-			return name == "float_t" || name == "double_t" || name == "longdouble_t" ||
-				name == "float_literal_t";
+			return name == "float_t" || name == "double_t" || name == "longdouble_t";
+		}
+		
+		bool hasEnding(const std::string& fullString, const std::string& ending) {
+			if (fullString.length() >= ending.length()) {
+				return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+			} else {
+				return false;
+			}
 		}
 		
 		bool isConstructor(const std::string& methodName) {
 			return methodName == "Create" ||
 				methodName == "Null" ||
-				methodName == "integer_literal" ||
-				methodName == "float_literal";
+				hasEnding(methodName, "_cast");
 		}
 		
 		bool isUnaryOp(const std::string& methodName) {
@@ -76,6 +82,7 @@ namespace locic {
 				methodName == "isPositive" ||
 				methodName == "isNegative" ||
 				methodName == "abs" ||
+				methodName == "toFloat" ||
 				methodName == "address" ||
 				methodName == "deref" ||
 				methodName == "dissolve" ||
@@ -141,9 +148,9 @@ namespace locic {
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
-			} else if (methodName == "integer_literal") {
+			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
-				builder.CreateRet(builder.CreateTrunc(operand, selfType));
+				builder.CreateRet(builder.CreateSExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				
@@ -225,9 +232,9 @@ namespace locic {
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
-			} else if (methodName == "integer_literal") {
+			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
-				builder.CreateRet(builder.CreateTrunc(operand, selfType));
+				builder.CreateRet(builder.CreateZExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				
@@ -285,13 +292,14 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
+			const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
+			
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				builder.CreateRet(zero);
-			} else if (methodName == "float_literal") {
-				const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
+			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
-				builder.CreateRet(builder.CreateFPTrunc(operand, selfType));
+				builder.CreateRet(builder.CreateFPExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				
@@ -311,6 +319,8 @@ namespace locic {
 					// Generates: (value < 0) ? -value : value.
 					const auto lessThanZero = builder.CreateFCmpOLT(methodOwner, zero);
 					builder.CreateRet(builder.CreateSelect(lessThanZero, builder.CreateFNeg(methodOwner), methodOwner));
+				} else if (methodName == "toFloat") {
+					builder.CreateRet(builder.CreateFPTrunc(methodOwner, TypeGenerator(module).getFloatType()));
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -739,10 +749,6 @@ namespace locic {
 			}
 			
 			if (name == "longdouble_t") {
-				return TypeGenerator(module).getLongDoubleType();
-			}
-			
-			if (name == "float_literal_t") {
 				return TypeGenerator(module).getLongDoubleType();
 			}
 			

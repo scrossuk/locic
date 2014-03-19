@@ -201,7 +201,7 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 }
 
 Memory<int> createMemory() {
-	auto m = Memory<int>(20, -1000000);
+	auto m = Memory<int>(20, -1000);
 	for (auto i: count(-5, 25)) {
 		m[i] = i + 42;
 	}
@@ -250,8 +250,8 @@ int main(int argc, char ** argv){
 	const double res001 = polyInst2.function(16.0);
 	printf("res001 = %f.\n", res001);
 	
-	auto polyInst3 = PolyClass<float>(4.0);
-	const float res002 = polyInst3.function(4.0);
+	auto polyInst3 = PolyClass<float>(4.0f);
+	const float res002 = polyInst3.function(4.0f);
 	printf("res002 = %f.\n", res002);
 	
 	{
@@ -309,7 +309,7 @@ int main(int argc, char ** argv){
 		printf("%d != %d\n", i, *j + 1);
 	}
 	
-	float f = 3.141592653;
+	float f = 3.141592653f;
 	double d = 3.141592653;
 	printf("Float f = %.10f, Double d = %.10f\n", f, d);
 	

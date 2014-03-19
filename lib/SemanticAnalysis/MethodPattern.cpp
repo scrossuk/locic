@@ -14,12 +14,8 @@ namespace locic {
 			return MethodPattern("Null", IS_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
-		MethodPattern FloatLiteralConstructorPattern() {
-			return MethodPattern("float_literal", IS_STATIC, CHECK_PARAM_COUNT, 1);
-		}
-		
-		MethodPattern IntegerLiteralConstructorPattern() {
-			return MethodPattern("integer_literal", IS_STATIC, CHECK_PARAM_COUNT, 1);
+		MethodPattern CastConstructorPattern(const std::string& name) {
+			return MethodPattern(name + "_cast", IS_STATIC, CHECK_PARAM_COUNT, 1);
 		}
 		
 		MethodPattern ImplicitCopyPattern() {
@@ -50,14 +46,38 @@ namespace locic {
 			std::vector<MethodPattern> patterns;
 			patterns.push_back(DefaultConstructorPattern());
 			patterns.push_back(NullConstructorPattern());
-			patterns.push_back(FloatLiteralConstructorPattern());
-			patterns.push_back(IntegerLiteralConstructorPattern());
 			patterns.push_back(ImplicitCopyPattern());
 			patterns.push_back(OpAddressPattern());
 			patterns.push_back(OpAssignPattern());
 			patterns.push_back(OpDissolvePattern());
 			patterns.push_back(OpMovePattern());
 			patterns.push_back(DestructorPattern());
+			
+			// TODO: Refactor!
+			patterns.push_back(CastConstructorPattern("float"));
+			patterns.push_back(CastConstructorPattern("double"));
+			
+			patterns.push_back(CastConstructorPattern("char"));
+			patterns.push_back(CastConstructorPattern("short"));
+			patterns.push_back(CastConstructorPattern("int"));
+			patterns.push_back(CastConstructorPattern("long"));
+			patterns.push_back(CastConstructorPattern("longlong"));
+			
+			patterns.push_back(CastConstructorPattern("uchar"));
+			patterns.push_back(CastConstructorPattern("ushort"));
+			patterns.push_back(CastConstructorPattern("uint"));
+			patterns.push_back(CastConstructorPattern("ulong"));
+			patterns.push_back(CastConstructorPattern("ulonglong"));
+			
+			patterns.push_back(CastConstructorPattern("int8"));
+			patterns.push_back(CastConstructorPattern("int16"));
+			patterns.push_back(CastConstructorPattern("int32"));
+			patterns.push_back(CastConstructorPattern("int64"));
+			
+			patterns.push_back(CastConstructorPattern("uint8"));
+			patterns.push_back(CastConstructorPattern("uint16"));
+			patterns.push_back(CastConstructorPattern("uint32"));
+			patterns.push_back(CastConstructorPattern("uint64"));
 			return patterns;
 		}
 	

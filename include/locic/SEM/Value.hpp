@@ -126,7 +126,7 @@ namespace locic {
 					std::vector<Value*> parameters;
 				} interfaceMethodCall;
 				
-				static Value* Constant(locic::Constant* constant, SEM::Type* type);
+				static Value* Constant(Constant* constant, SEM::Type* type);
 				
 				static Value* LocalVar(Var* var);
 				

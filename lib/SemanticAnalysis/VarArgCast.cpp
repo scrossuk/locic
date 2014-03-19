@@ -21,6 +21,7 @@ namespace locic {
 			if (name == "short_t" || name == "ushort_t") return true;
 			if (name == "int_t" || name == "uint_t") return true;
 			if (name == "long_t" || name == "ulong_t") return true;
+			if (name == "longlong_t" || name == "ulonglong_t") return true;
 			
 			if (name == "int8_t" || name == "uint8_t") return true;
 			if (name == "int16_t" || name == "uint16_t") return true;

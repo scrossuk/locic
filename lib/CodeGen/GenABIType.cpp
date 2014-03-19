@@ -55,14 +55,6 @@ namespace locic {
 				return llvm_abi::Type::Pointer();
 			}
 			
-			if (name == "integer_literal_t") {
-				return llvm_abi::Type::Integer(llvm_abi::LongLong);
-			}
-			
-			if (name == "float_literal_t") {
-				return llvm_abi::Type::FloatingPoint(llvm_abi::LongDouble);
-			}
-			
 			if (name == "ptr" || name == "ptr_lval") {
 				return llvm_abi::Type::Pointer();
 			}

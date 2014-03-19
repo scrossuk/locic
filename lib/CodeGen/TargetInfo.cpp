@@ -59,12 +59,10 @@ namespace locic {
 			primitiveSizes_.insert("ulong_t", clangTargetInfo->getLongWidth());
 			primitiveSizes_.insert("longlong_t", clangTargetInfo->getLongLongWidth());
 			primitiveSizes_.insert("ulonglong_t", clangTargetInfo->getLongLongWidth());
-			primitiveSizes_.insert("integer_literal_t", clangTargetInfo->getLongLongWidth());
 			
 			primitiveSizes_.insert("float_t", clangTargetInfo->getFloatWidth());
 			primitiveSizes_.insert("double_t", clangTargetInfo->getDoubleWidth());
 			primitiveSizes_.insert("longdouble_t", clangTargetInfo->getLongDoubleWidth());
-			primitiveSizes_.insert("float_literal_t", clangTargetInfo->getLongDoubleWidth());
 			
 			primitiveSizes_.insert("ptr", clangTargetInfo->getPointerWidth(0));
 			

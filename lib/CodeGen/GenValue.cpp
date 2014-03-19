@@ -58,24 +58,31 @@ namespace locic {
 			
 			switch (value->kind()) {
 				case SEM::Value::CONSTANT: {
-					switch (value->constant->getType()) {
+					switch (value->constant->kind()) {
 						case locic::Constant::NULLVAL:
-							return ConstantGenerator(module).getNullPointer(
-									   TypeGenerator(module).getI8PtrType());
+							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getI8PtrType());
 									   
 						case locic::Constant::BOOLEAN:
-							return ConstantGenerator(module).getI1(value->constant->getBool());
+							return ConstantGenerator(module).getI1(value->constant->boolValue());
 						
 						case locic::Constant::INTEGER: {
-							return ConstantGenerator(module).getI64(static_cast<int64_t>(value->constant->getInteger()));
+							assert(value->type()->isObject());
+							const auto integerValue = value->constant->integerValue();
+							return ConstantGenerator(module).getPrimitiveInt(value->type()->getObjectType()->name().last(), integerValue);
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
-							return ConstantGenerator(module).getLongDouble(value->constant->getFloat());
+							assert(value->type()->isObject());
+							const auto floatValue = value->constant->floatValue();
+							return ConstantGenerator(module).getPrimitiveFloat(value->type()->getObjectType()->name().last(), floatValue);
 						}
 						
 						case locic::Constant::STRING: {
-							const auto stringValue = value->constant->getString();
+							if (value->constant->stringKind() != Constant::C_STRING) {
+								llvm_unreachable("Only C strings supported.");
+							}
+							
+							const auto stringValue = value->constant->stringValue();
 							
 							const auto arrayType =
 								TypeGenerator(module).getArrayType(
@@ -92,7 +99,7 @@ namespace locic {
 						}
 						
 						default:
-							llvm_unreachable("Unknown constant type.");
+							llvm_unreachable("Unknown constant kind.");
 					}
 				}
 				

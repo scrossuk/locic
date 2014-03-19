@@ -11,7 +11,7 @@ int testEntryPoint(int argc, char ** argv) {
 			testPrint("1: Executing 0.");
 			try {
 				testPrint("0: Throwing.");
-				throw ExampleError(333333);
+				throw ExampleError(333);
 				testPrint("0: THROW ERROR!");
 			} catch (ExampleError error) {
 				testPrint("0: Caught error with value %d.", error.value);
@@ -19,7 +19,7 @@ int testEntryPoint(int argc, char ** argv) {
 			testPrint("1: Successfully finished 0.");
 			
 			testPrint("1: Throwing.");
-			throw ExampleError(444444);
+			throw ExampleError(444);
 			testPrint("1: THROW ERROR!");
 		} catch (ExampleError error) {
 			testPrint("1: Caught error with value %d.", error.value);
