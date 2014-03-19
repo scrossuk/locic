@@ -1,0 +1,25 @@
+// Chain Reversi Board Cell Value.
+
+namespace CR {
+
+	datatype Value =
+		None()
+		| Red()
+		| Blue();
+	
+	Value opposite(Value value) {
+		switch (value) {
+			case Red() {
+				return Blue();
+			}
+			case Blue() {
+				return Red();
+			}
+			case None() {
+				return None();
+			}
+		}
+	}
+	
+}
+

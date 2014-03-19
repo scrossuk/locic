@@ -1,0 +1,134 @@
+// Chain Reversi Board.
+
+namespace CR {
+
+	datatype Position(size_t x, size_t y);
+	datatype BoardSize(size_t width, size_t height);
+	
+	class Board(std::vector<Value> data, Value currentPlayer, BoardSize size) {
+		static Create(BoardSize size, Value initialPlayer) {
+			return @(std::vector<Value>(size.width * size.height, None()), initialPlayer, size);
+		}
+			
+		Board copy() = default;
+		
+		bool isValid(Position position) const {
+			if (self[position] != CR::None) {
+				return false;
+			}
+			
+			for (signed int xi = -1; xi <= 1; xi++) {
+				for (signed int yi = -1; yi <= 1; yi++) {
+					if(xi == 0 && yi == 0) {
+						continue;
+					}
+					
+					if (isValidForDirection(self, x, y, xi, yi)) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		}
+		
+		void placeMove(Position position) {
+			self[position] = player();
+			
+			self.update();
+			
+			@currentPlayer = opponent();
+		}
+		
+		Value currentPlayer() const {
+			return @currentPlayer;
+		}
+		
+		Value currentOpponent() const {
+			return opposite(@currentPlayer);
+		}
+		
+		BoardSize size() const {
+			return @size;
+		}
+		
+		bool isComplete() const {
+			for (size_t x = 0; x < @size.width; x++) {
+				for (size_t y = 0; y < @size.height; y++) {
+					if (self.isValid(Position(x, y))) {
+						return false;
+					}
+				}
+			}
+			
+			return true;
+		}
+		
+		Value& index(Position position) {
+			return @data[position.x + position.y * @size.width];
+		}
+		
+		void update() {
+			bool hasChanged = true;
+			
+			while (hasChanged) {
+				hasChanged = false;
+				
+				for (size_t x = 0; x < @size.width; x++) {
+					for (size_t y = 0; y < @size.height_; y++) {
+						if(self[Position(x, y)] != player_) {
+							continue;
+						}
+						
+						for(signed int xi = -1; xi <= 1; xi++) {
+							for(signed int yi = -1; yi <= 1; yi++) {
+								if(xi == 0 && yi == 0) {
+									continue;
+								}
+								
+								if (updateForDirection(self, x, y, xi, yi)) {
+									hasChanged = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+	}
+	
+	bool isValidForDirection(Board& board, size_t x, size_t y, signed int xi, signed int yi) const {
+		bool flagOpponent = false;
+		
+		for (size_t cx = x + xi, cy = y + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
+			if (board[Position(cx, cy)] == board.opponent()) {
+				flagOpponent = true;
+			} else if(flagOpponent && board[Position(cx, cy)] == board.player()) {
+				return true;
+			} else {
+				break;
+			}
+		}
+		
+		return false;
+	}
+	
+	bool updateForDirection(Board& board, size_t x, size_t y, signed int xi, signed int yi) {
+		if (!isValidForDirection(board, x, y, xi, yi)) {
+			return false;
+		}
+		
+		for (size_t cx = x + xi, cy = y + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
+			if(board[Position(cx, cy)] == board.opponent()) {
+				board[Position(cx, cy)] = board.player();
+			} else {
+				break;
+			}
+		}
+		
+		return true;
+	}
+	
+}
+

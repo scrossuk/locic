@@ -1,0 +1,14 @@
+// CSFML Video Mode.
+struct sfVideoMode {
+	unsigned int width;        ///< Video mode width, in pixels
+	unsigned int height;       ///< Video mode height, in pixels
+	unsigned int bitsPerPixel; ///< Video mode pixel depth, in bits per pixels
+};
+
+namespace sf {
+	
+	datatype VideoMode(unsigned int width, unsigned int height, unsigned int bitsPerPixel);
+	
+}
+
+

@@ -4,12 +4,6 @@ struct sfContextSettings { };
 struct sfRenderWindow { };
 struct sfRenderStates { };
 
-struct sfVideoMode {
-	int width;        ///< Video mode width, in pixels
-	int height;       ///< Video mode height, in pixels
-	int bitsPerPixel; ///< Video mode pixel depth, in bits per pixels
-};
-
 void printf(const char* text, ...);
 
 sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
@@ -27,15 +21,14 @@ void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircle
 namespace sf {
 	
 	class RenderWindow(sfRenderWindow* window) {
-		static Create (const char* title) {
+		static Create (VideoMode videoMode, const char* title) {
 			// TitleBar (1) + Resize (2) + Close (4)
 			// (And 8 would give FullScreen...)
 			final int style = 7;
 			
 			printf("Got title=%s and style=%d.\n", title, style);
 			
-			// TODO: make this user customisable.
-			return @(sfRenderWindow_create(sfVideoMode(800, 800, 32), title, style, null));
+			return @(sfRenderWindow_create(sfVideoMode(videoMode.width, videoMode.height, videoMode.bitsPerPixel), title, style, null));
 		}
 		
 		~ {
@@ -57,7 +50,6 @@ namespace sf {
 		void drawCircle(const CircleShape& shape) {
 			sfRenderWindow_drawCircleShape(@window, shape.raw(), null);
 		}
-		
 	}
 	
 }
