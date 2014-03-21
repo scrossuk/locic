@@ -2,21 +2,21 @@
 
 class TestClass(const char * const n, int i, int j){
 	static Null() {
-		return @("NULL", 0, 0);
+		return @(C"NULL", 0, 0);
 	}
 	
 	static Create(int v) {
-		return @("NON-NULL", v, v + 1);
+		return @(C"NON-NULL", v, v + 1);
 	}
 	
 	~ {
-		printf("Destroying TestClass(n: %s, i: %d, j: %d).\n",
+		printf(C"Destroying TestClass(n: %s, i: %d, j: %d).\n",
 			@n, @i, @j);
 	}
 	
 	TestClass implicitCopy() const {
-		printf("Copy TestClass.\n");
-		return @("Copy", @i, @j);
+		printf(C"Copy TestClass.\n");
+		return @(C"Copy", @i, @j);
 	}
 
 	int getValue() {
@@ -24,7 +24,7 @@ class TestClass(const char * const n, int i, int j){
 	}
 	
 	TestClass multiply(TestClass arg) const {
-		return @("Multiply", @i, @j);
+		return @(C"Multiply", @i, @j);
 	}
 	
 	void doSomething() { }

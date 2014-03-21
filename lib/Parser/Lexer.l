@@ -45,16 +45,13 @@
 <COMMENT_STATE>\n             { yyextra->resetColumn(); }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
 
-"\""                          { yyextra->resetStringConstant(); BEGIN(STRING_STATE); }
+"\""                          { yyextra->resetStringConstant(locic::Constant::LOCI_STRING); BEGIN(STRING_STATE); }
+"C\""                          { yyextra->resetStringConstant(locic::Constant::C_STRING); BEGIN(STRING_STATE); }
 <STRING_STATE>"\\\""          { yyextra->appendStringConstant("\""); }
 <STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
 <STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
 <STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
-<STRING_STATE>"\""            { // TODO: remove this temporary hack...
-				yylval->lexer_constant = locic::Constant::String(locic::Constant::C_STRING, yyextra->getStringConstant());
-				BEGIN(INITIAL);
-				return CONSTANT; }
-<STRING_STATE>"\"C"            { yylval->lexer_constant = locic::Constant::String(locic::Constant::C_STRING, yyextra->getStringConstant());
+<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringKind(), yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
 <STRING_STATE>.               { yyextra->appendStringConstant(yytext); }

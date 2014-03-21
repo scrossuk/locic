@@ -9,21 +9,21 @@ datatype Data2(int v, Data data);
 int testEntryPoint(int argc, char ** argv) {
 	Data data = Data(1, 2);
 	
-	testPrint("testEntryPoint: data = Data(a = %d, b = %d)",
+	testPrint(C"testEntryPoint: data = Data(a = %d, b = %d)",
 		data.a, data.b);
 	
 	Data(int a, int b) = move data;
 	
-	testPrint("testEntryPoint: Pattern match Data: a = %d, b = %d", a, b);
+	testPrint(C"testEntryPoint: Pattern match Data: a = %d, b = %d", a, b);
 	
 	Data2 data2 = Data2(40, Data(50, 60));
 	
-	testPrint("testEntryPoint: data2 = Data2(v = %d, data = Data(a = %d, b = %d))",
+	testPrint(C"testEntryPoint: data2 = Data2(v = %d, data = Data(a = %d, b = %d))",
 		data2.v, data2.data.a, data2.data.b);
 	
 	Data2(int v, Data(int dataA, int dataB)) = move data2;
 	
-	testPrint("testEntryPoint: Pattern match Data2: v = %d, data.a = %d, data.b = %d",
+	testPrint(C"testEntryPoint: Pattern match Data2: v = %d, data.a = %d, data.b = %d",
 		v, dataA, dataB);
 	
 	return 0;

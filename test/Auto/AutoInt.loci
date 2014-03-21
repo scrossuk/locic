@@ -5,27 +5,27 @@ void testPrint(const char * const str, ...);
 int testEntryPoint(int argc, char ** argv) {
 	int i = 4;
 	
-	testPrint("testEntryPoint: i = %d.", i);
+	testPrint(C"testEntryPoint: i = %d.", i);
 	
 	auto j = i.abs() + 2;
 	
-	testPrint("testEntryPoint: i = %d, j = %d.", i, j);
+	testPrint(C"testEntryPoint: i = %d, j = %d.", i, j);
 	
 	auto k = j;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
+	testPrint(C"testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	i = 1;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
+	testPrint(C"testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	j = 2;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
+	testPrint(C"testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	k = 3;
 	
-	testPrint("testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
+	testPrint(C"testEntryPoint: i = %d, j = %d, k = %d.", i, j, k);
 	
 	return 0;
 }

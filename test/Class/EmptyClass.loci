@@ -4,7 +4,7 @@ void testPrint(const char * const str, ...);
 // Class definition.
 class TestClass() {
 	static Create() {
-		testPrint("TestClass.Create");
+		testPrint(C"TestClass.Create");
 		return @();
 	}
 	

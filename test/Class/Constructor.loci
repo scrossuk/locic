@@ -4,12 +4,12 @@ void testPrint(const char * const str, ...);
 // Class definition.
 class TestClass(int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d", value);
+		testPrint(C"TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	static Other(int value) {
-		testPrint("TestClass.Other: Value = %d", value);
+		testPrint(C"TestClass.Other: Value = %d", value);
 		return @(value);
 	}
 }

@@ -4,13 +4,13 @@ void testPrint(const char * const str, ...);
 // Class definition.
 class TestClass(int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d", value);
+		testPrint(C"TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	TestClass implicitCopy() {
 		int newValue = @value + 1;
-		testPrint("TestClass.implicitCopy: Value = %d", newValue);
+		testPrint(C"TestClass.implicitCopy: Value = %d", newValue);
 		return @(newValue);
 	}
 	

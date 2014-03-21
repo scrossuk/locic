@@ -3,12 +3,12 @@ void testPrint(const char * const str, ...);
 
 class ExampleClass(int i) {
 	static Create(int i) {
-		testPrint("ExampleClass Constructor: %d.", i);
+		testPrint(C"ExampleClass Constructor: %d.", i);
 		return @(i);
 	}
 	
 	~ {
-		testPrint("ExampleClass Destructor: %d.", @i);
+		testPrint(C"ExampleClass Destructor: %d.", @i);
 	}
 }
 
@@ -27,22 +27,22 @@ void throwFunction(bool throwFirst) {
 			throw ExampleError2(212121);
 		}
 	} catch (ExampleError2 error) {
-		testPrint("Caught exception V2 with value %ld!", error.value);
+		testPrint(C"Caught exception V2 with value %ld!", error.value);
 	}
 }
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
-	testPrint("Started.");
+	testPrint(C"Started.");
 	try {
 		auto value0 = ExampleClass(0);
 		throwFunction(false);
 		throwFunction(true);
 	} catch (ExampleError error) {
 		auto value4 = ExampleClass(4);
-		testPrint("Caught exception with value %ld!", error.value);
+		testPrint(C"Caught exception with value %ld!", error.value);
 	}
-	testPrint("Finished.");
+	testPrint(C"Finished.");
 	return 0;
 }
 

@@ -8,19 +8,19 @@ int testEntryPoint(int argc, char ** argv) {
 	try {
 		throw ExampleError(1,2,3,4,5,6,7,8,9,10,11,12);
 	} catch (ExampleError error) {
-		testPrint("Caught exception!");
-		testPrint("    a = %d", error.a);
-		testPrint("    b = %d", error.b);
-		testPrint("    c = %d", error.c);
-		testPrint("    d = %d", error.d);
-		testPrint("    e = %d", error.e);
-		testPrint("    f = %d", error.f);
-		testPrint("    g = %d", error.g);
-		testPrint("    h = %d", error.h);
-		testPrint("    i = %d", error.i);
-		testPrint("    j = %d", error.j);
-		testPrint("    k = %d", error.k);
-		testPrint("    l = %d", error.l);
+		testPrint(C"Caught exception!");
+		testPrint(C"    a = %d", error.a);
+		testPrint(C"    b = %d", error.b);
+		testPrint(C"    c = %d", error.c);
+		testPrint(C"    d = %d", error.d);
+		testPrint(C"    e = %d", error.e);
+		testPrint(C"    f = %d", error.f);
+		testPrint(C"    g = %d", error.g);
+		testPrint(C"    h = %d", error.h);
+		testPrint(C"    i = %d", error.i);
+		testPrint(C"    j = %d", error.j);
+		testPrint(C"    k = %d", error.k);
+		testPrint(C"    l = %d", error.l);
 	}
 	return 0;
 }

@@ -18,6 +18,10 @@ void sfRenderWindow_display(sfRenderWindow* renderWindow);
 
 void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
 
+uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
+
+uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
+
 namespace sf {
 	
 	class RenderWindow(sfRenderWindow* window) {
@@ -26,13 +30,21 @@ namespace sf {
 			// (And 8 would give FullScreen...)
 			final int style = 7;
 			
-			printf("Got title=%s and style=%d.\n", title, style);
+			printf(C"Got title=%s and style=%d.\n", title, style);
 			
 			return @(sfRenderWindow_create(sfVideoMode(videoMode.width, videoMode.height, videoMode.bitsPerPixel), title, style, null));
 		}
 		
 		~ {
 			sfRenderWindow_destroy(@window);
+		}
+		
+		bool isOpen() const {
+			return sfWindow_isOpen(@window) != 0u;
+		}
+		
+		bool pollEvent(sfEvent* event) {
+			return sfWindow_pollEvent(@window, event) != 0u;
 		}
 		
 		void clear(Color color) {

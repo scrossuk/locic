@@ -9,7 +9,7 @@ double cos(double angle);
 
 // Entry point.
 int main() {
-	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), "Chain Reversi");
+	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
 	auto circleShape = sf::CircleShape();
 	circleShape.setRadius(100.0f);
 	circleShape.setOrigin(sf::Vector2f(100.0f, 100.0f));
@@ -22,10 +22,21 @@ int main() {
 	double orbitRadius = 200.0;
 	double angle = 0.0;
 	
-	printf("Start!\n");
+	printf(C"Start!\n");
 	
-	while (i < 255u) {
-		printf("At index %u.\n", i);
+	auto event = sfEvent(0, 0u);
+	
+	while (renderWindow.isOpen()) {
+		while (renderWindow.pollEvent(&event)) {
+			printf(C"Got event.\n");
+			if (event.type == 0) {
+				// renderWindow.close();
+				printf(C"Close requested...\n");
+				return 0;
+			}
+		}
+		
+		printf(C"At index %u.\n", i);
 		renderWindow.clear(sf::Color(i, i, i, 255u));
 		
 		angle = angle + 0.01;
@@ -38,10 +49,11 @@ int main() {
 		renderWindow.drawCircle(circleShape);
 		
 		renderWindow.display();
+		
 		i = i + 1u;
 	}
 	
-	printf("Terminating...\n");
+	printf(C"Terminating...\n");
 	
 	sleep(1);
 	

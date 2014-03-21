@@ -8,7 +8,7 @@ int testEntryPoint(int argc, char ** argv) {
 	try {
 		throw ExampleError(1024);
 	} catch (ExampleError error) {
-		testPrint("Caught exception with value %d!", error.value);
+		testPrint(C"Caught exception with value %d!", error.value);
 	}
 	return 0;
 }

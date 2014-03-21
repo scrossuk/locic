@@ -24,11 +24,11 @@ class test_range(int value, int position, int limit) {
 int testEntryPoint(int argc, char ** argv) {
 	
 	for (auto value: test_range(8)) {
-		testPrint("testEntryPoint(up to 2^8): value = %d", value);
+		testPrint(C"testEntryPoint(up to 2^8): value = %d", value);
 	}
 	
 	for (auto value: test_range(16)) {
-		testPrint("testEntryPoint(up to 2^16): value = %d", value);
+		testPrint(C"testEntryPoint(up to 2^16): value = %d", value);
 	}
 	
 	return 0;

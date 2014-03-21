@@ -8,7 +8,7 @@ TestDatatype makeData() {
 }
 
 void printData(TestDatatype& data) {
-	testPrint("printData: TestDatatype(a = %d, b = %d, c = %d)",
+	testPrint(C"printData: TestDatatype(a = %d, b = %d, c = %d)",
 		data.a, data.b, data.c);
 }
 
@@ -16,14 +16,14 @@ void printData(TestDatatype& data) {
 int testEntryPoint(int argc, char ** argv) {
 	TestDatatype data1 = TestDatatype(1, 2, 3);
 	
-	testPrint("testEntryPoint: data1 = TestDatatype(a = %d, b = %d, c = %d)",
+	testPrint(C"testEntryPoint: data1 = TestDatatype(a = %d, b = %d, c = %d)",
 		data1.a, data1.b, data1.c);
 	
 	printData(data1);
 	
 	TestDatatype data2 = makeData();
 	
-	testPrint("testEntryPoint: data2 = TestDatatype(a = %d, b = %d, c = %d)",
+	testPrint(C"testEntryPoint: data2 = TestDatatype(a = %d, b = %d, c = %d)",
 		data2.a, data2.b, data2.c);
 	
 	printData(data2);

@@ -8,7 +8,7 @@ int testEntryPoint(int argc, char ** argv) {
 	try {
 		throw ExampleEmptyError();
 	} catch (ExampleEmptyError error) {
-		testPrint("Caught empty exception!");
+		testPrint(C"Caught empty exception!");
 	}
 	return 0;
 }

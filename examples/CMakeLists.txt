@@ -15,6 +15,8 @@ function(loci_example name binary_name flags)
 		list(APPEND ${name}BuildSources ${CMAKE_CURRENT_BINARY_DIR}/${f})
 	endforeach(f)
 	
+	separate_arguments(flags)
+	
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised ast.txt sem.txt codegen.ll opt.ll clangopt.ll
 		COMMAND # Run compiler.
 			${LOCIC} -O3 -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&

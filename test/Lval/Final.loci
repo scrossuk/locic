@@ -3,12 +3,12 @@ void testPrint(const char * const str, ...);
 
 class TestClass (final int value) {
 	static Create(int value) {
-		testPrint("TestClass.Create: Value = %d", value);
+		testPrint(C"TestClass.Create: Value = %d", value);
 		return @(value);
 	}
 	
 	int getValue() {
-		testPrint("TestClass.getValue: Value = %d", @value);
+		testPrint(C"TestClass.getValue: Value = %d", @value);
 		return @value;
 	}
 }
@@ -17,19 +17,19 @@ class TestClass (final int value) {
 int testEntryPoint(int argc, char ** argv) {
 	int i = 4;
 	
-	testPrint("testEntryPoint: i = %d", i);
+	testPrint(C"testEntryPoint: i = %d", i);
 	
 	final int j = 5;
 	
-	testPrint("testEntryPoint: j = %d", j);
+	testPrint(C"testEntryPoint: j = %d", j);
 	
 	TestClass inst1 = TestClass(6);
 	
-	testPrint("testEntryPoint: inst1 = %d", inst1.getValue());
+	testPrint(C"testEntryPoint: inst1 = %d", inst1.getValue());
 	
 	TestClass inst2 = TestClass(inst1.getValue() * 2);
 	
-	testPrint("testEntryPoint: inst2 = %d", inst2.getValue());
+	testPrint(C"testEntryPoint: inst2 = %d", inst2.getValue());
 	
 	return 0;
 }

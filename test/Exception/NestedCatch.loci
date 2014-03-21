@@ -6,27 +6,27 @@ exception ExampleError(int value);
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {
 	try {
-		testPrint("2: Executing 1.");
+		testPrint(C"2: Executing 1.");
 		try {
-			testPrint("1: Executing 0.");
+			testPrint(C"1: Executing 0.");
 			try {
-				testPrint("0: Throwing.");
+				testPrint(C"0: Throwing.");
 				throw ExampleError(333);
-				testPrint("0: THROW ERROR!");
+				testPrint(C"0: THROW ERROR!");
 			} catch (ExampleError error) {
-				testPrint("0: Caught error with value %d.", error.value);
+				testPrint(C"0: Caught error with value %d.", error.value);
 			}
-			testPrint("1: Successfully finished 0.");
+			testPrint(C"1: Successfully finished 0.");
 			
-			testPrint("1: Throwing.");
+			testPrint(C"1: Throwing.");
 			throw ExampleError(444);
-			testPrint("1: THROW ERROR!");
+			testPrint(C"1: THROW ERROR!");
 		} catch (ExampleError error) {
-			testPrint("1: Caught error with value %d.", error.value);
+			testPrint(C"1: Caught error with value %d.", error.value);
 		}
-		testPrint("2: Successfully finished 1.");
+		testPrint(C"2: Successfully finished 1.");
 	} catch (ExampleError error) {
-		testPrint("2: Caught error with value %d.", error.value);
+		testPrint(C"2: Caught error with value %d.", error.value);
 	}
 	return 0;
 }

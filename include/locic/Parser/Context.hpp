@@ -4,7 +4,9 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+
 #include <locic/AST.hpp>
+#include <locic/Constant.hpp>
 #include <locic/Debug/SourceLocation.hpp>
 
 namespace locic{
@@ -23,6 +25,7 @@ namespace locic{
 			public:
 				inline Context(AST::NamespaceList& l, const std::string& n)
 					: rootNamespaceList_(l), fileName_(n),
+					stringKind_(locic::Constant::C_STRING),
 					nextAnonymousVariable_(0), column_(1) { }
 				
 				inline const std::string& fileName() const {
@@ -57,6 +60,10 @@ namespace locic{
 					column_ = 1;
 				}
 				
+				inline locic::Constant::StringKind getStringKind() const {
+					return stringKind_;
+				}
+				
 				inline const std::string& getStringConstant() const {
 					return stringConstant_;
 				}
@@ -65,7 +72,8 @@ namespace locic{
 					stringConstant_ += appendString;
 				}
 				
-				inline void resetStringConstant() {
+				inline void resetStringConstant(locic::Constant::StringKind stringKind) {
+					stringKind_ = stringKind;
 					stringConstant_ = "";
 				}
 				
@@ -73,6 +81,7 @@ namespace locic{
 				AST::NamespaceList& rootNamespaceList_;
 				std::string fileName_;
 				std::vector<Error> errors_;
+				locic::Constant::StringKind stringKind_;
 				std::string stringConstant_;
 				size_t nextAnonymousVariable_;
 				size_t column_;

@@ -1,0 +1,14 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfEvent {
+	int type;
+	unsigned long long data;
+};
+
+namespace sf {
+	
+	// ...
+	
+}
+
+
