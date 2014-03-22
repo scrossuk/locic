@@ -365,7 +365,7 @@ namespace llvm_abi {
 		return llvm::Type::getX86_FP80Ty(llvmContext_);
 	}
 	
-	std::vector<llvm::Value*> ABI_x86_64::encodeValues(llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) {
+	std::vector<llvm::Value*> ABI_x86_64::encodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		std::vector<llvm::Value*> encodedValues;
@@ -379,9 +379,9 @@ namespace llvm_abi {
 				continue;
 			}
 			
-			const auto argValuePtr = builder.CreateAlloca(argValue->getType());
+			const auto argValuePtr = entryBuilder.CreateAlloca(argValue->getType());
 			builder.CreateStore(argValue, argValuePtr);
-			const auto encodedValuePtr = builder.CreateAlloca(llvmAbiType);
+			const auto encodedValuePtr = entryBuilder.CreateAlloca(llvmAbiType);
 			builder.CreateMemCpy(encodedValuePtr, argValuePtr, getTypeSize(argType), getTypeAlign(argType));
 			
 			encodedValues.push_back(builder.CreateLoad(encodedValuePtr));
@@ -390,7 +390,7 @@ namespace llvm_abi {
 		return encodedValues;
 	}
 	
-	std::vector<llvm::Value*> ABI_x86_64::decodeValues(llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) {
+	std::vector<llvm::Value*> ABI_x86_64::decodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		std::vector<llvm::Value*> decodedValues;
@@ -404,9 +404,9 @@ namespace llvm_abi {
 				continue;
 			}
 			
-			const auto encodedValuePtr = builder.CreateAlloca(encodedValue->getType());
+			const auto encodedValuePtr = entryBuilder.CreateAlloca(encodedValue->getType());
 			builder.CreateStore(encodedValue, encodedValuePtr);
-			const auto argValuePtr = builder.CreateAlloca(llvmArgTypes.at(i));
+			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes.at(i));
 			builder.CreateMemCpy(argValuePtr, encodedValuePtr, getTypeSize(argType), getTypeAlign(argType));
 			
 			decodedValues.push_back(builder.CreateLoad(argValuePtr));

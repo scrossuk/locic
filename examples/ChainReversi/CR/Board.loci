@@ -17,8 +17,8 @@ namespace CR {
 				return false;
 			}
 			
-			for (auto xi: std::counter<int>(-1, 1)) {
-				for (auto yi: std::counter<int>(-1, 1)) {
+			for (auto xi: std::counter<ssize_t>(-1, 1)) {
+				for (auto yi: std::counter<ssize_t>(-1, 1)) {
 					if (xi == 0 && yi == 0) {
 						continue;
 					}

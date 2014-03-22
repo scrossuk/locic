@@ -51,7 +51,7 @@ namespace locic {
 		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(std::move(type));
-			return function.module().abi().encodeValues(function.getBuilder(), {value}, abiTypes).at(0);
+			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
 		}
 		
 		void genDefaultMethod(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {

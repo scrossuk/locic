@@ -74,14 +74,14 @@ int getValue(value_giving_interface& v){
 	return v.getValue();
 }
 
-an_interface& getPtrAsInterfaceRef(TestClass2 * ptr){
-	return *ptr;
+an_interface& getPtrAsInterfaceRef(TestClass2 * testClassPointer){
+	return *testClassPointer;
 }
 
 void function(TestClass2 * object){
-	const TestClass2& ptr = *object;
-	const TestClass2& ptr2 = ptr;
-	printf(C"Value from fn: %d\n", ptr.getValue());
+	const TestClass2& testClassRef = *object;
+	const TestClass2& testClassRef2 = testClassRef;
+	printf(C"Value from fn: %d\n", testClassRef.getValue());
 }
 
 interface is_zero_interface {

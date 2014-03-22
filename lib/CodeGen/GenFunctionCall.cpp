@@ -28,7 +28,7 @@ namespace locic {
 		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type, llvm::Type* llvmType) {
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(std::move(type));
-			return function.module().abi().decodeValues(function.getBuilder(), {value}, abiTypes, {llvmType}).at(0);
+			return function.module().abi().decodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes, {llvmType}).at(0);
 		}
 		
 		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
@@ -100,7 +100,7 @@ namespace locic {
 			const auto successPath = function.createBasicBlock("successPath");
 			const auto failPath = function.createBasicBlock("failPath");
 			
-			const auto encodedParameters = module.abi().encodeValues(function.getBuilder(), parameters, parameterABITypes);
+			const auto encodedParameters = module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
 			
 			const auto encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, encodedParameters), debugLoc);
 			

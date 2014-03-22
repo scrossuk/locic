@@ -15,28 +15,23 @@ int main() {
 	circleShape.setOrigin(sf::Vector2f(100.0f, 100.0f));
 	circleShape.setFillColor(sf::Color(255u, 0u, 0u, 255u));
 	
-	renderWindow.setFramerateLimit(25);
+	renderWindow.setFramerateLimit(30);
 	
 	uint8_t i = 0u;
 	
 	double orbitRadius = 200.0;
 	double angle = 0.0;
 	
-	printf(C"Start!\n");
-	
-	auto event = sfEvent(0, 0u);
-	
 	while (renderWindow.isOpen()) {
+		auto event = sfEvent(0, 0u);
+		
 		while (renderWindow.pollEvent(&event)) {
-			printf(C"Got event.\n");
 			if (event.type == 0) {
-				// renderWindow.close();
 				printf(C"Close requested...\n");
 				return 0;
 			}
 		}
 		
-		printf(C"At index %u.\n", i);
 		renderWindow.clear(sf::Color(i, i, i, 255u));
 		
 		angle = angle + 0.01;

@@ -15,6 +15,7 @@ add_library(locic-codegen
 	GenType.cpp
 	GenTypeInstance.cpp
 	GenValue.cpp
+	GenVar.cpp
 	GenVTable.cpp
 	Interpreter.cpp
 	Mangling.cpp
@@ -28,5 +29,6 @@ add_library(locic-codegen
 	TypeSizeKnowledge.cpp
 	UnwindAction.cpp
 	VTable.cpp
-	VirtualCall/VirtualCall-Default.cpp)
+	VirtualCall/VirtualCall-Default.cpp
+	)
 

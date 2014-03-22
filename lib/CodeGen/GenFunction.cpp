@@ -10,6 +10,7 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -38,30 +39,6 @@ namespace locic {
 					}
 				}
 				llvm_unreachable("Failed to find function in parent.");
-			}
-			
-			void genFunctionVars(Function& functionGenerator, SEM::Function* function) {
-				auto& module = functionGenerator.module();
-				auto& varMap = module.debugModule().varMap;
-				for (const auto paramVar: function->parameters()) {
-					// Create an alloca for this variable.
-					auto stackObject = genAlloca(functionGenerator, paramVar->type());
-					
-					// Generate debug information for the variable
-					// if any is available.
-					const auto iterator = varMap.find(paramVar);
-					if (iterator != varMap.end()) {
-						const auto& varInfo = iterator->second;
-						const auto debugDeclare = genDebugVar(functionGenerator, varInfo, genDebugType(module, paramVar->constructType()), stackObject);
-						
-						const auto varDeclStart = varInfo.declLocation.range().start();
-						debugDeclare->setDebugLoc(llvm::DebugLoc::get(varDeclStart.lineNumber(), varDeclStart.column(), functionGenerator.debugInfo()));
-					}
-					
-					// Add this to the local variable map, so that
-					// any SEM vars can be mapped to the actual value.
-					functionGenerator.getLocalVarMap().insert(paramVar, stackObject);
-				}
 			}
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
@@ -221,7 +198,10 @@ namespace locic {
 				functionGenerator.attachDebugInfo(debugSubprogram);
 			}
 			
-			genFunctionVars(functionGenerator, function);
+			// Generate allocas for parameters.
+			for (const auto paramVar: function->parameters()) {
+				genVarAlloca(functionGenerator, paramVar);
+			}
 			
 			if (function->hasDefaultImplementation()) {
 				assert(parent != NULL);

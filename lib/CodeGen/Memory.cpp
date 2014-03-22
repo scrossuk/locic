@@ -33,7 +33,7 @@ namespace locic {
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateAlloca(rawType);
+					return function.getEntryBuilder().CreateAlloca(rawType);
 				}
 				
 				case SEM::Type::OBJECT: {
@@ -43,13 +43,13 @@ namespace locic {
 					
 					if (typeInstance->isClassDecl()) {
 						const auto alloca =
-							function.getBuilder().CreateAlloca(
+							function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
 							rawType->getPointerTo());
 					} else {
-						return function.getBuilder().CreateAlloca(rawType);
+						return function.getEntryBuilder().CreateAlloca(rawType);
 					}
 				}
 				

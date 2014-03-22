@@ -86,7 +86,7 @@ namespace locic {
 				
 				llvm::Type* llvmArgsStructType = TypeGenerator(function.module()).getStructType(llvmArgsTypes);
 				
-				llvm::Value* llvmArgsStructPtr = function.getBuilder().CreateAlloca(llvmArgsStructType);
+				llvm::Value* llvmArgsStructPtr = function.getEntryBuilder().CreateAlloca(llvmArgsStructType);
 				for (size_t offset = 0; offset < args.size(); offset++) {
 					llvm::Value* argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
 						llvmArgsStructPtr, 0, offset);

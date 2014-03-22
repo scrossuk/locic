@@ -32,17 +32,31 @@ namespace locic {
 				
 				inline Function(Module& pModule, llvm::Function& function, ArgInfo argInfo)
 					: module_(pModule), function_(function),
-					  builder_(pModule.getLLVMContext()), argInfo_(std::move(argInfo)),
+					  entryBuilder_(pModule.getLLVMContext()),
+					  builder_(pModule.getLLVMContext()),
+					  argInfo_(std::move(argInfo)),
 					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 					
-					selectBasicBlock(createBasicBlock(""));
+					// Create an 'entry' basic block for holding
+					// instructions like allocas and debug_declares
+					// which must only be executed once per function.
+					const auto entryBB = createBasicBlock("");
+					const auto startBB = createBasicBlock("start");
+					
+					entryBuilder_.SetInsertPoint(entryBB);
+					const auto startBranch = entryBuilder_.CreateBr(startBB);
+					
+					// Insert entry instructions before the branch.
+					entryBuilder_.SetInsertPoint(startBranch);
+					
+					builder_.SetInsertPoint(startBB);
 					
 					// Allocate exception information values.
 					TypeGenerator typeGen(pModule);
 					const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI8PtrType(), typeGen.getI32Type()});
-					exceptionInfo_ = getBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
+					exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
 					
 					std::vector<llvm::Value*> encodedArgValues;
 					
@@ -50,7 +64,7 @@ namespace locic {
 						encodedArgValues.push_back(arg);
 					}
 					
-					argValues_ = module_.abi().decodeValues(getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
+					argValues_ = module_.abi().decodeValues(getEntryBuilder(), getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
 				}
 				
 				inline llvm::Function& getLLVMFunction() {
@@ -95,6 +109,12 @@ namespace locic {
 				
 				inline llvm::BasicBlock* createBasicBlock(const std::string& name) {
 					return llvm::BasicBlock::Create(module_.getLLVMContext(), name, &function_);
+				}
+				
+				// Returns an 'entry' builder for creating instructions
+				// in the first ('entry') basic block.
+				inline llvm::IRBuilder<>& getEntryBuilder() {
+					return entryBuilder_;
 				}
 				
 				inline llvm::IRBuilder<>& getBuilder() {
@@ -144,7 +164,7 @@ namespace locic {
 			private:
 				Module& module_;
 				llvm::Function& function_;
-				llvm::IRBuilder<> builder_;
+				llvm::IRBuilder<> entryBuilder_, builder_;
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
 				UnwindStack unwindStack_;

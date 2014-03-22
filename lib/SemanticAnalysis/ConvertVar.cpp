@@ -62,6 +62,10 @@ namespace locic {
 					case AST::TypeVar::NAMEDVAR: {
 						const auto& varName = astTypeVarNode->namedVar.name;
 						
+						if (!context.lookupName(Name::Relative() + varName).isNone()) {
+							throw TodoException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+						}
+						
 						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
 						
 						// Use cast to resolve any instances of
@@ -137,6 +141,10 @@ namespace locic {
 				
 				case AST::TypeVar::NAMEDVAR: {
 					const auto& varName = astTypeVarNode->namedVar.name;
+					
+					if (!context.lookupName(Name::Relative() + varName).isNone()) {
+						throw TodoException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+					}
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type);
 					

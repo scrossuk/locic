@@ -113,7 +113,9 @@ namespace locic {
 		}
 		
 		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue) {
-			return builder_.insertDeclare(varValue, variable, function.getSelectedBasicBlock());
+			const auto dbgDeclareIntrinsic = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::dbg_declare);
+			llvm::Value* args[] = { llvm::MDNode::get(varValue->getContext(), varValue), variable };
+			return function.getEntryBuilder().CreateCall(dbgDeclareIntrinsic, args);
 		}
 		
 		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function) {

@@ -14,6 +14,7 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenValue.hpp>
+#include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -23,66 +24,22 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genVar(Function& function, SEM::Var* var) {
-			if (var->isAny()) return;
-			
-			if (var->isBasic()) {
-				// Create an alloca for this variable.
-				const auto stackObject = genAlloca(function, var->type());
-				function.getLocalVarMap().forceInsert(var, stackObject);
-			} else if (var->isComposite()) {
-				// Generate child vars.
-				for (const auto childVar: var->children()) {
-					genVar(function, childVar);
-				}
-			} else {
-				throw std::runtime_error("Unknown var kind.");
-			}
-		}
-		
 		void genScope(Function& function, const SEM::Scope& scope) {
 			LifetimeScope lifetimeScope(function);
 			
-			for (std::size_t i = 0; i < scope.localVariables().size(); i++) {
-				const auto localVar = scope.localVariables().at(i);
-				genVar(function, localVar);
+			for (const auto localVar: scope.localVariables()) {
+				genVarAlloca(function, localVar);
 			}
 			
-			for (std::size_t i = 0; i < scope.statements().size(); i++) {
-				genStatement(function, scope.statements().at(i));
-			}
-		}
-		
-		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue) {
-			if (var->isAny()) {
-				// Casting to 'any', which means the destructor
-				// should be called for the value.
-				genDestructorCall(function, var->constructType(), initialiseValue);
-			} else if (var->isBasic()) {
-				const auto varValue = function.getLocalVarMap().get(var);
-				genStoreVar(function, initialiseValue, varValue, var);
-				
-				// Add this to the list of variables to be
-				// destroyed at the end of the function.
-				function.unwindStack().push_back(UnwindAction::Destroy(var->type(), varValue));
-			} else if (var->isComposite()) {
-				// For composite variables, extract each member of
-				// the type and assign it to its variable.
-				for (size_t i = 0; i < var->children().size(); i++) {
-					const auto childVar = var->children().at(i);
-					const auto childInitialiseValue = function.getBuilder().CreateConstInBoundsGEP2_32(initialiseValue, 0, i);
-					const auto loadedChildInitialiseValue = genLoad(function, childInitialiseValue, childVar->constructType());
-					genVarInitialise(function, childVar, loadedChildInitialiseValue);
-				}
-			} else {
-				throw std::runtime_error("Unknown var kind.");
+			for (const auto statement: scope.statements()) {
+				genStatement(function, statement);
 			}
 		}
 		
 		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(std::move(type));
-			return function.module().abi().encodeValues(function.getBuilder(), {value}, abiTypes).at(0);
+			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
 		}
 		
 		void genStatement(Function& function, SEM::Statement* statement) {
@@ -176,7 +133,7 @@ namespace locic {
 						
 						{
 							LifetimeScope lifetimeScope(function);
-							genVar(function, switchCase->var());
+							genVarAlloca(function, switchCase->var());
 							genVarInitialise(function, switchCase->var(), castedUnionValuePtr);
 							genScope(function, switchCase->scope());
 						}
@@ -197,7 +154,7 @@ namespace locic {
 					function.getBuilder().CreateBr(conditionBB);
 					function.selectBasicBlock(conditionBB);
 					
-					llvm::Value* condition = NULL;
+					llvm::Value* condition = nullptr;
 					
 					// Ensure destructors for conditional expression are generated
 					// before the branch instruction.
