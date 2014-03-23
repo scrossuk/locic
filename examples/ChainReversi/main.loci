@@ -15,7 +15,7 @@ int main() {
 	circleShape.setOrigin(sf::Vector2f(100.0f, 100.0f));
 	circleShape.setFillColor(sf::Color(255u, 0u, 0u, 255u));
 	
-	renderWindow.setFramerateLimit(30);
+	renderWindow.setFramerateLimit(25);
 	
 	uint8_t i = 0u;
 	
@@ -45,7 +45,11 @@ int main() {
 		
 		renderWindow.display();
 		
-		i = i + 1u;
+		if (i == 255u) {
+			i = 0u;
+		} else {
+			i = i + 1u;
+		}
 	}
 	
 	printf(C"Terminating...\n");

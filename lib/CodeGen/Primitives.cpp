@@ -131,6 +131,31 @@ namespace locic {
 			function.verify();
 		}
 		
+		void createTrap(Function& function) {
+			const auto intrinsicDeclaration = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::trap);
+			function.getBuilder().CreateCall(intrinsicDeclaration, std::vector<llvm::Value*>{});
+			function.getBuilder().CreateUnreachable();
+		}
+		
+		void createOverflowIntrinsic(Function& function, llvm::Intrinsic::ID id, const std::vector<llvm::Value*>& args) {
+			assert(args.size() == 2);
+			
+			auto& builder = function.getBuilder();
+			
+			const auto intrinsicTypes = std::vector<llvm::Type*>{ args.front()->getType() };
+			const auto addIntrinsic = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), id, intrinsicTypes);
+			const auto addResult = builder.CreateCall(addIntrinsic, args);
+			const auto addOverflow = builder.CreateExtractValue(addResult, std::vector<unsigned>{ 1 });
+			const auto overflowBB = function.createBasicBlock("overflow");
+			const auto normalBB = function.createBasicBlock("normal");
+			
+			builder.CreateCondBr(addOverflow, overflowBB, normalBB);
+			function.selectBasicBlock(overflowBB);
+			createTrap(function);
+			function.selectBasicBlock(normalBB);
+			builder.CreateRet(builder.CreateExtractValue(addResult, std::vector<unsigned>{ 0 }));
+		}
+		
 		void createSignedIntegerPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
@@ -144,16 +169,14 @@ namespace locic {
 			
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
+			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			
 			if (methodName == "Create") {
-				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
 			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
 				builder.CreateRet(builder.CreateSExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
-				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
-				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
 				} else if (methodName == "plus") {
@@ -175,32 +198,42 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				llvm::Value* operand = function.getArg(0);
+				const auto operand = function.getArg(0);
 				
 				if (methodName == "add") {
-					builder.CreateRet(
-						builder.CreateAdd(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::sadd_with_overflow, { methodOwner, operand });
 				} else if (methodName == "subtract") {
-					builder.CreateRet(
-						builder.CreateSub(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::ssub_with_overflow, { methodOwner, operand });
 				} else if (methodName == "multiply") {
-					builder.CreateRet(
-						builder.CreateMul(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::smul_with_overflow, { methodOwner, operand });
 				} else if (methodName == "divide") {
-					builder.CreateRet(
-						builder.CreateSDiv(methodOwner, operand));
+					// TODO: also check for case of MIN_INT / -1 leading to overflow.
+					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+					const auto isZeroBB = function.createBasicBlock("isZero");
+					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+					function.selectBasicBlock(isZeroBB);
+					createTrap(function);
+					function.selectBasicBlock(isNotZeroBB);
+					builder.CreateRet(builder.CreateSDiv(methodOwner, operand));
 				} else if (methodName == "modulo") {
-					builder.CreateRet(
-						builder.CreateSRem(methodOwner, operand));
+					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+					const auto isZeroBB = function.createBasicBlock("isZero");
+					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+					function.selectBasicBlock(isZeroBB);
+					createTrap(function);
+					function.selectBasicBlock(isNotZeroBB);
+					builder.CreateRet(builder.CreateSRem(methodOwner, operand));
 				} else if (methodName == "compare") {
-					llvm::Value* isLessThan = builder.CreateICmpSLT(methodOwner, operand);
-					llvm::Value* isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
-					llvm::Value* minusOne = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					llvm::Value* plusOne = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
-					llvm::Value* returnValue =
-						builder.CreateSelect(isLessThan, minusOne,
-							builder.CreateSelect(isGreaterThan, plusOne, zero));
+					const auto isLessThan = builder.CreateICmpSLT(methodOwner, operand);
+					const auto isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
+					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto returnValue =
+						builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 					builder.CreateRet(returnValue);
 				} else {
 					throw std::runtime_error("Unknown primitive binary op.");
@@ -228,16 +261,14 @@ namespace locic {
 			
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
+			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			
 			if (methodName == "Create") {
-				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 				builder.CreateRet(zero);
 			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
 				builder.CreateRet(builder.CreateZExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
-				llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
-				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
 				} else if (methodName == "isZero") {
@@ -246,27 +277,41 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				llvm::Value* operand = function.getArg(0);
+				const auto operand = function.getArg(0);
 				
 				if (methodName == "add") {
-					builder.CreateRet(builder.CreateAdd(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, { methodOwner, operand });
 				} else if (methodName == "subtract") {
-					builder.CreateRet(builder.CreateSub(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, { methodOwner, operand });
 				} else if (methodName == "multiply") {
-					builder.CreateRet(builder.CreateMul(methodOwner, operand));
+					createOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, { methodOwner, operand });
 				} else if (methodName == "divide") {
+					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+					const auto isZeroBB = function.createBasicBlock("isZero");
+					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+					function.selectBasicBlock(isZeroBB);
+					createTrap(function);
+					function.selectBasicBlock(isNotZeroBB);
 					builder.CreateRet(builder.CreateUDiv(methodOwner, operand));
 				} else if (methodName == "modulo") {
+					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+					const auto isZeroBB = function.createBasicBlock("isZero");
+					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+					function.selectBasicBlock(isZeroBB);
+					createTrap(function);
+					function.selectBasicBlock(isNotZeroBB);
 					builder.CreateRet(builder.CreateURem(methodOwner, operand));
 				} else if (methodName == "compare") {
-					llvm::Value* isLessThan = builder.CreateICmpULT(methodOwner, operand);
-					llvm::Value* isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					llvm::Value* minusOne = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					llvm::Value* zero = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					llvm::Value* plusOne = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
-					llvm::Value* returnValue =
-						builder.CreateSelect(isLessThan, minusOne,
-							builder.CreateSelect(isGreaterThan, plusOne, zero));
+					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
+					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
+					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto returnValue =
+						builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 					builder.CreateRet(returnValue);
 				} else {
 					throw std::runtime_error("Unknown primitive binary op.");
