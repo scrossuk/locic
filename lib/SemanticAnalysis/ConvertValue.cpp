@@ -98,33 +98,88 @@ namespace locic {
 			}
 		}
 		
-		std::string getIntegerConstantType(const Constant& constant) {
+		std::string integerPrefixType(const std::string& prefix) {
+			if (prefix == "i8") {
+				return "int8_t";
+			} else if (prefix == "i16") {
+				return "int16_t";
+			} else if (prefix == "i32") {
+				return "int32_t";
+			} else if (prefix == "i64") {
+				return "int64_t";
+			} else if (prefix == "u8") {
+				return "uint8_t";
+			} else if (prefix == "u16") {
+				return "uint16_t";
+			} else if (prefix == "u32") {
+				return "uint32_t";
+			} else if (prefix == "u64") {
+				return "uint64_t";
+			}
+			
+			throw TodoException(makeString("Invalid integer literal prefix '%s'.", prefix.c_str()));
+		}
+		
+		unsigned long long integerMax(const std::string& typeName) {
+			if (typeName == "int8_t") {
+				return std::numeric_limits<int8_t>::max();
+			} else if (typeName == "int16_t") {
+				return std::numeric_limits<int16_t>::max();
+			} else if (typeName == "int32_t") {
+				return std::numeric_limits<int32_t>::max();
+			} else if (typeName == "int64_t") {
+				return std::numeric_limits<int64_t>::max();
+			} else if (typeName == "uint8_t") {
+				return std::numeric_limits<uint8_t>::max();
+			} else if (typeName == "uint16_t") {
+				return std::numeric_limits<uint16_t>::max();
+			} else if (typeName == "uint32_t") {
+				return std::numeric_limits<uint32_t>::max();
+			} else if (typeName == "uint64_t") {
+				return std::numeric_limits<uint64_t>::max();
+			}
+			
+			throw std::runtime_error(makeString("Invalid integer type '%s'.", typeName.c_str()));
+		}
+		
+		std::string getIntegerConstantType(const std::string& prefix, const Constant& constant) {
 			assert(constant.kind() == Constant::INTEGER);
 			
 			const auto integerValue = constant.integerValue();
 			
+			// Use a prefix if available.
+			if (!prefix.empty()) {
+				const auto typeName = integerPrefixType(prefix);
+				const auto typeMax = integerMax(typeName);
+				if (integerValue > typeMax) {
+					throw TodoException(makeString("Integer literal '%llu' exceeds maximum of prefix '%s'.",
+						(unsigned long long) integerValue, prefix.c_str()));
+				}
+				return typeName;
+			}
+			
+			// Otherwise determine type based on value.
 			// TODO: use arbitary-precision arithmetic.
+			std::vector<std::string> types;
+			types.push_back("int8_t");
+			types.push_back("int16_t");
+			types.push_back("int32_t");
+			types.push_back("int64_t");
+			
 			switch (constant.integerKind()) {
 				case Constant::SIGNED: {
-					if (integerValue <= std::numeric_limits<int8_t>::max()) {
-						return "int8_t";
-					} else if (integerValue <= std::numeric_limits<int16_t>::max()) {
-						return "int16_t";
-					} else if (integerValue < std::numeric_limits<int32_t>::max()) {
-						return "int32_t";
-					} else {
-						return "int64_t";
+					for (const auto& typeName: types) {
+						if (integerValue <= integerMax(typeName)) {
+							return typeName;
+						}
 					}
 				}
 				case Constant::UNSIGNED: {
-					if (integerValue <= std::numeric_limits<uint8_t>::max()) {
-						return "uint8_t";
-					} else if (integerValue <= std::numeric_limits<uint16_t>::max()) {
-						return "uint16_t";
-					} else if (integerValue <= std::numeric_limits<uint32_t>::max()) {
-						return "uint32_t";
-					} else {
-						return "uint64_t";
+					for (const auto& typeName: types) {
+						const auto unsignedTypeName = std::string("u") + typeName;
+						if (integerValue <= integerMax(unsignedTypeName)) {
+							return unsignedTypeName;
+						}
 					}
 				}
 				default:
@@ -147,18 +202,27 @@ namespace locic {
 			}
 		}
 		
-		std::string getConstantType(const Constant& constant) {
+		std::string getConstantType(const std::string& prefix, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::NULLVAL: {
+					if (!prefix.empty()) {
+						throw TodoException("Cannot specify prefix for null constant.");
+					}
 					return "null_t";
 				}
 				case Constant::BOOLEAN: {
+					if (!prefix.empty()) {
+						throw TodoException("Cannot specify prefix for boolean constant.");
+					}
 					return "bool";
 				}
 				case Constant::INTEGER: {
-					return getIntegerConstantType(constant);
+					return getIntegerConstantType(prefix, constant);
 				}
 				case Constant::FLOATINGPOINT: {
+					if (!prefix.empty()) {
+						throw TodoException("Cannot specify prefix for floating point constant.");
+					}
 					return getFloatingPointConstantType(constant);
 				}
 				default:
@@ -174,7 +238,8 @@ namespace locic {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::CONSTANT: {
-					auto& constant = *(astValueNode->constant);
+					const auto& prefix = astValueNode->constant.prefix;
+					auto& constant = *(astValueNode->constant.constant);
 					switch (constant.kind()) {
 						case Constant::STRING: {
 							if (constant.stringKind() == Constant::C_STRING) {
@@ -195,7 +260,7 @@ namespace locic {
 							}
 						}
 						default: {
-							const auto typeName = getConstantType(constant);
+							const auto typeName = getConstantType(prefix, constant);
 							const auto typeInstance = getBuiltInType(context, typeName);
 							if (typeInstance == nullptr) {
 								throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",

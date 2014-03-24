@@ -35,7 +35,10 @@ namespace locic {
 				FUNCTIONCALL
 			} typeEnum;
 			
-			Node<Constant> constant;
+			struct {
+				std::string prefix;
+				Node<Constant> constant;
+			} constant;
 			
 			struct {
 				Node<Value> value;
@@ -101,9 +104,10 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* ConstantValue(const Node<Constant>& constant) {
+			inline static Value* ConstantValue(const std::string& prefix, const Node<Constant>& constant) {
 				Value* value = new Value(CONSTANT);
-				value->constant = constant;
+				value->constant.prefix = prefix;
+				value->constant.constant = constant;
 				return value;
 			}
 			

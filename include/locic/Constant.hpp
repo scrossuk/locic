@@ -34,8 +34,7 @@ namespace locic{
 				LOCI_STRING
 			};
 			
-			typedef long long IntegerVal;
-			typedef unsigned long long UintVal;
+			typedef unsigned long long IntegerVal;
 			typedef long double FloatVal;
 			
 			static inline Constant * Null(){
