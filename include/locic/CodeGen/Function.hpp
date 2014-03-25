@@ -23,8 +23,6 @@ namespace locic {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
-		typedef std::vector<UnwindAction> UnwindStack;
-		
 		// TODO: move method implementations to source file.
 		class Function {
 			public:

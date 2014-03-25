@@ -24,6 +24,13 @@ namespace locic {
 			return UnwindAction(UnwindAction::SCOPEMARKER);
 		}
 		
+		UnwindAction UnwindAction::ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock) {
+			UnwindAction action(UnwindAction::CONTROLFLOW);
+			action.actions_.controlFlowAction.breakBlock = breakBlock;
+			action.actions_.controlFlowAction.continueBlock = continueBlock;
+			return action;
+		}
+		
 		UnwindAction::Kind UnwindAction::kind() const {
 			return kind_;
 		}
@@ -38,6 +45,10 @@ namespace locic {
 		
 		bool UnwindAction::isScopeMarker() const {
 			return kind() == UnwindAction::SCOPEMARKER;
+		}
+		
+		bool UnwindAction::isControlFlow() const {
+			return kind() == UnwindAction::CONTROLFLOW;
 		}
 		
 		SEM::Type* UnwindAction::destroyType() const {
@@ -58,6 +69,16 @@ namespace locic {
 		llvm::Constant* UnwindAction::catchTypeInfo() const {
 			assert(isCatch());
 			return actions_.catchAction.typeInfo;
+		}
+		
+		llvm::BasicBlock* UnwindAction::breakBlock() const {
+			assert(isControlFlow());
+			return actions_.controlFlowAction.breakBlock;
+		}
+		
+		llvm::BasicBlock* UnwindAction::continueBlock() const {
+			assert(isControlFlow());
+			return actions_.controlFlowAction.continueBlock;
 		}
 		
 	}

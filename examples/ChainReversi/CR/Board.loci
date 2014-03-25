@@ -121,7 +121,7 @@ namespace CR {
 				
 				for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
 					for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
-						if(valueId(self[Position(x, y)]) != valueId(self.player())) {
+						if (valueId(self[Position(x, y)]) != valueId(self.player())) {
 							continue;
 						}
 						

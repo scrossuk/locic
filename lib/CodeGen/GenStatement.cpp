@@ -7,6 +7,7 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/ControlFlow.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
@@ -167,7 +168,11 @@ namespace locic {
 													   
 					// Create loop contents.
 					function.selectBasicBlock(insideLoopBB);
-					genScope(function, statement->getWhileScope());
+					
+					{
+						ControlFlowScope controlFlowScope(function.unwindStack(), afterLoopBB, conditionBB);
+						genScope(function, statement->getWhileScope());
+					}
 					
 					// At the end of a loop iteration, branch back
 					// to the start to re-check the condition.
@@ -339,12 +344,18 @@ namespace locic {
 				}
 				
 				case SEM::Statement::BREAK: {
-					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					genControlFlowBreak(function);
+					
+					// Basic block for any further instructions generated.
+					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				
 				case SEM::Statement::CONTINUE: {
-					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					genControlFlowContinue(function);
+					
+					// Basic block for any further instructions generated.
+					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				

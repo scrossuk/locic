@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_UNWINDACTION_HPP
 #define LOCIC_CODEGEN_UNWINDACTION_HPP
 
+#include <vector>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
@@ -15,10 +17,13 @@ namespace locic {
 				
 				static UnwindAction ScopeMarker();
 				
+				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
+				
 				enum Kind {
 					DESTRUCTOR,
 					CATCH,
-					SCOPEMARKER
+					SCOPEMARKER,
+					CONTROLFLOW
 				};
 				
 				Kind kind() const;
@@ -29,6 +34,8 @@ namespace locic {
 				
 				bool isScopeMarker() const;
 				
+				bool isControlFlow() const;
+				
 				SEM::Type* destroyType() const;
 				
 				llvm::Value* destroyValue() const;
@@ -36,6 +43,10 @@ namespace locic {
 				llvm::BasicBlock* catchBlock() const;
 				
 				llvm::Constant* catchTypeInfo() const;
+				
+				llvm::BasicBlock* breakBlock() const;
+				
+				llvm::BasicBlock* continueBlock() const;
 				
 			private:
 				inline UnwindAction(Kind pKind)
@@ -53,9 +64,16 @@ namespace locic {
 						llvm::BasicBlock* block;
 						llvm::Constant* typeInfo;
 					} catchAction;
+					
+					struct ControlFlowAction {
+						llvm::BasicBlock* breakBlock;
+						llvm::BasicBlock* continueBlock;
+					} controlFlowAction;
 				} actions_;
 				
 		};
+		
+		typedef std::vector<UnwindAction> UnwindStack;
 		
 	}
 	

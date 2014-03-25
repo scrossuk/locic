@@ -4,6 +4,7 @@ include_directories(llvm-abi/include)
 
 add_library(locic-codegen
 	CodeGen.cpp
+	ControlFlow.cpp
 	Debug.cpp
 	DefaultMethods.cpp
 	Destructor.cpp

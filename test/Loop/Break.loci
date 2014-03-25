@@ -1,0 +1,27 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	testPrint(C"testEntryPoint: START");
+	
+	int i = 0;
+	
+	while (i <= 8) {
+		testPrint(C"testEntryPoint: LOOP START i = %d", i);
+		
+		if (i >= 4) {
+			testPrint(C"testEntryPoint: break");
+			break;
+		}
+		
+		i += 1;
+		
+		testPrint(C"testEntryPoint: LOOP END i = %d", i);
+	}
+	
+	testPrint(C"testEntryPoint: END");
+	
+	return 0;
+}
+
