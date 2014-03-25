@@ -28,7 +28,9 @@ namespace locic {
 				ASSIGN,
 				RETURN,
 				RETURNVOID,
-				THROW
+				THROW,
+				BREAK,
+				CONTINUE
 			} typeEnum;
 			
 			struct {
@@ -150,6 +152,14 @@ namespace locic {
 				Statement* statement = new Statement(THROW);
 				statement->throwStmt.value = value;
 				return statement;
+			}
+			
+			inline static Statement* Break() {
+				return new Statement(BREAK);
+			}
+			
+			inline static Statement* Continue() {
+				return new Statement(CONTINUE);
 			}
 		};
 		

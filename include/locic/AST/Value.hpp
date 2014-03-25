@@ -22,8 +22,10 @@ namespace locic {
 		struct Value {
 			enum TypeEnum {
 				NONE,
+				SELF,
+				THIS,
 				BRACKET,
-				CONSTANT,
+				LITERAL,
 				SYMBOLREF,
 				MEMBERREF,
 				TERNARY,
@@ -36,9 +38,9 @@ namespace locic {
 			} typeEnum;
 			
 			struct {
-				std::string prefix;
+				std::string specifier;
 				Node<Constant> constant;
-			} constant;
+			} literal;
 			
 			struct {
 				Node<Value> value;
@@ -98,16 +100,24 @@ namespace locic {
 			
 			inline Value(TypeEnum e) : typeEnum(e) { }
 			
+			inline static Value* Self() {
+				return new Value(SELF);
+			}
+			
+			inline static Value* This() {
+				return new Value(THIS);
+			}
+			
 			inline static Value* Bracket(Node<Value> operand) {
 				Value* value = new Value(BRACKET);
 				value->bracket.value = operand;
 				return value;
 			}
 			
-			inline static Value* ConstantValue(const std::string& prefix, const Node<Constant>& constant) {
-				Value* value = new Value(CONSTANT);
-				value->constant.prefix = prefix;
-				value->constant.constant = constant;
+			inline static Value* Literal(const std::string& specifier, const Node<Constant>& constant) {
+				Value* value = new Value(LITERAL);
+				value->literal.specifier = specifier;
+				value->literal.constant = constant;
 				return value;
 			}
 			

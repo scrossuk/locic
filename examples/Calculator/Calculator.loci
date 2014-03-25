@@ -27,9 +27,9 @@ int main(int argc, char ** argv){
 		return 1;
 	}
 	
-	const char * const op = argv[1];
-	int arg1 = atoi(argv[2]);
-	int arg2 = atoi(argv[3]);
+	const char * const op = argv[1u];
+	int arg1 = atoi(argv[2u]);
+	int arg2 = atoi(argv[3u]);
 	
 	if (isStrEqual(op, C"add")) {
 		printf(C"%s: %d.\n", answerText, arg1 + arg2);

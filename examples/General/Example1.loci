@@ -124,17 +124,25 @@ void lvalFunc(lval<int> custom_lval& custLval) {
 	printf(C"Custom lval: %d\n", move custLval);
 }
 
-class count(int from, int to) {
-	static Create(int from, int to) {
-		return @(from, to);
-	}
+template <typename T>
+interface count_type {
+	T implicitCopy() const;
 	
-	int front() {
+	T add(T value) const;
+	
+	int compare(T other) const;
+}
+
+template <typename T: count_type<T>>
+class count(T unit, T from, T to) {
+	static Create = default;
+	
+	T front() {
 		return @from;
 	}
 	
 	void popFront() {
-		@from += 1;
+		@from += @unit;
 	}
 	
 	bool empty() {
@@ -158,7 +166,7 @@ void datatypeDemo() {
 
 // datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);
 
-void* malloc(int size);
+void* malloc(size_t size);
 void free(void* ptr);
 
 template <typename T>
@@ -167,12 +175,12 @@ interface Copyable {
 }
 
 template <typename T: Copyable<T>>
-class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
-	static Create(int size, T emptyValue) {
-		int sizeof_int = 4;
+class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
+	static Create(size_t size, T emptyValue) {
+		final auto sizeof_int = 4u;
 		auto inst = @(reinterpret_cast<void*, T*>(malloc(size * sizeof_int)), size, emptyValue, emptyValue);
 		
-		for (auto i: count(0, inst.size())) {
+		for (auto i: count<size_t>(1u, 0u, inst.size())) {
 			inst[i] = emptyValue;
 		}
 		
@@ -183,27 +191,25 @@ class Memory(T* ptr, int size, T emptyValue, T guardSlot) {
 		free(reinterpret_cast<T*, void*>(@ptr));
 	}
 	
-	lval<T> ptr_lval<T> index(int i) {
-		if (i >= 0) {
-			if (i < @size) {
-				return @ptr[i];
-			}
+	lval<T> ptr_lval<T> index(size_t i) {
+		if (i < @size) {
+			return @ptr[i];
 		}
-		printf(C"Out of bounds at index '%d'.\n", i);
+		printf(C"Out of bounds at index '%llu'.\n", i.toULongLong());
 		@guardSlot = @emptyValue;
 		return *(&(@guardSlot));
 	}
 	
-	int size() {
+	size_t size() {
 		return @size;
 	}
 	
 }
 
 Memory<int> createMemory() {
-	auto m = Memory<int>(20, -1000);
-	for (auto i: count(-5, 25)) {
-		m[i] = i + 42;
+	auto m = Memory<int>(20u, -1000);
+	for (auto i: count<int>(1, -5, 25)) {
+		m[i.toSizeT()] = i + 42;
 	}
 	return move m;
 }
@@ -218,17 +224,17 @@ int main(int argc, char ** argv){
 	
 	{
 		auto m = createMemory();
-		for (auto i: count(-5, m.size() + 5)) {
-			printf(C"m[%02d] = %d.\n", i, m[i]);
+		for (auto i: count<int>(1, -5, 25)) {
+			printf(C"m[%02d] = %d.\n", i, m[i.toSizeT()]);
 		}
 	}
 	
-	char * programName = argv[0];
+	char * programName = argv[0u];
 	printf(C"Program name is %s.\n", programName);
 	
 	int argIndex = 1;
 	while (argIndex < argc) {
-		printf(C"    Arg %d: %s\n", argIndex, argv[argIndex]);
+		printf(C"    Arg %d: %s\n", argIndex, argv[argIndex.toSizeT()]);
 		argIndex += 1;
 	}
 	

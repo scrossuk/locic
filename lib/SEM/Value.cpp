@@ -11,6 +11,14 @@ namespace locic {
 
 	namespace SEM {
 	
+		Value* Value::Self(Type* type) {
+			return new Value(SELF, type);
+		}
+		
+		Value* Value::This(Type* type) {
+			return new Value(THIS, type);
+		}
+		
 		Value* Value::Constant(locic::Constant* constant, SEM::Type* type) {
 			Value* value = new Value(CONSTANT, type);
 			value->constant = constant;
@@ -163,6 +171,10 @@ namespace locic {
 		
 		std::string Value::toString() const {
 			switch (kind()) {
+				case SELF:
+					return "self";
+				case THIS:
+					return "this";
 				case CONSTANT:
 					return makeString("Constant(%s)",
 									  constant->toString().c_str());

@@ -51,7 +51,15 @@ namespace locic {
 					return true;
 				}
 				case SEM::Statement::THROW: {
+					// TODO: doesn't seem correct...
 					return true;
+				}
+				case SEM::Statement::BREAK: {
+					// TODO: doesn't seem correct...
+					return true;
+				}
+				case SEM::Statement::CONTINUE: {
+					return false;
 				}
 				default: {
 					throw std::runtime_error("Unknown statement kind.");
@@ -87,7 +95,7 @@ namespace locic {
 					
 					const auto boolType = getBuiltInType(context, "bool");
 					
-					const auto boolValue = ImplicitCast(condition,
+					const auto boolValue = ImplicitCast(context, condition,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
 					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
@@ -154,7 +162,7 @@ namespace locic {
 					}
 					
 					// Case value to switch type.
-					const auto castValue = ImplicitCast(value,
+					const auto castValue = ImplicitCast(context, value,
 							SEM::Type::Object(switchTypeInstance, SEM::Type::NO_TEMPLATE_ARGS));
 					
 					return SEM::Statement::Switch(castValue, caseList);
@@ -165,7 +173,7 @@ namespace locic {
 					
 					const auto boolType = getBuiltInType(context, "bool");
 					
-					const auto boolValue = ImplicitCast(condition,
+					const auto boolValue = ImplicitCast(context, condition,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 					
 					return SEM::Statement::While(boolValue, whileTrue);
@@ -250,7 +258,7 @@ namespace locic {
 					// Cast the initialise value to the variable's type.
 					// (The variable conversion above should have ensured
 					// this will work.)
-					const auto semInitialiseValue = ImplicitCast(semValue, semVar->constructType());
+					const auto semInitialiseValue = ImplicitCast(context, semValue, semVar->constructType());
 					assert(!semInitialiseValue->type()->isVoid());
 					
 					// Add the variable to the SEM scope.
@@ -260,24 +268,25 @@ namespace locic {
 					// Generate the initialise statement.
 					return SEM::Statement::InitialiseStmt(semVar, semInitialiseValue);
 				}
-				case AST::Statement::RETURN: {
-					if (statement->returnStmt.value.get() == NULL) {
-						// Void return statement (i.e. return;)
-						if (!getParentFunctionReturnType(context)->isVoid()) {
-							throw TodoException(makeString("Cannot return void in function '%s' with non-void return type.",
-								lookupParentFunction(context).getSEMFunction()->name().toString().c_str()));
-						}
-						
-						return SEM::Statement::ReturnVoid();
-					} else {
-						const auto semValue = ConvertValue(context, statement->returnStmt.value);
-						
-						// Cast the return value to the function's
-						// specified return type.
-						const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context));
-						
-						return SEM::Statement::Return(castValue);
+				case AST::Statement::RETURNVOID: {
+					// Void return statement (i.e. return;)
+					if (!getParentFunctionReturnType(context)->isVoid()) {
+						throw TodoException(makeString("Cannot return void in function '%s' with non-void return type.",
+							lookupParentFunction(context).getSEMFunction()->name().toString().c_str()));
 					}
+					
+					return SEM::Statement::ReturnVoid();
+				}
+				case AST::Statement::RETURN: {
+					assert(statement->returnStmt.value.get() != nullptr);
+					
+					const auto semValue = ConvertValue(context, statement->returnStmt.value);
+					
+					// Cast the return value to the function's
+					// specified return type.
+					const auto castValue = ImplicitCast(context, semValue, getParentFunctionReturnType(context));
+					
+					return SEM::Statement::Return(castValue);
 				}
 				case AST::Statement::THROW: {
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
@@ -286,6 +295,14 @@ namespace locic {
 								semValue->toString().c_str()));
 					}
 					return SEM::Statement::Throw(semValue);
+				}
+				case AST::Statement::BREAK: {
+					// TODO: check that this is being used inside a loop or switch.
+					return SEM::Statement::Break();
+				}
+				case AST::Statement::CONTINUE: {
+					// TODO: check that this is being used inside a loop or switch.
+					return SEM::Statement::Continue();
 				}
 				default:
 					throw std::runtime_error("Unknown statement kind.");

@@ -1,0 +1,25 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Create = default;
+	
+	void printValue() {
+		testPrint(C"TestClass.printValue: Value = %d", @value);
+	}
+	
+	void printValueTwice() {
+		this->printValue();
+		this->printValue();
+	}
+	
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	auto testObject = TestClass(12123);
+	testObject.printValueTwice();
+	return 0;
+}
+

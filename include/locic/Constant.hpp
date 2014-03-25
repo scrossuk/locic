@@ -19,21 +19,6 @@ namespace locic{
 				STRING
 			};
 			
-			enum IntegerKind {
-				SIGNED,
-				UNSIGNED
-			};
-			
-			enum FloatKind {
-				FLOAT,
-				DOUBLE
-			};
-	
-			enum StringKind {
-				C_STRING,
-				LOCI_STRING
-			};
-			
 			typedef unsigned long long IntegerVal;
 			typedef long double FloatVal;
 			
@@ -53,23 +38,20 @@ namespace locic{
 				return constant;
 			}
 			
-			static inline Constant * Integer(IntegerKind kind, IntegerVal value){
+			static inline Constant * Integer(IntegerVal value){
 				Constant * constant = new Constant(INTEGER);
-				constant->integerKind_ = kind;
 				constant->integer_ = value;
 				return constant;
 			}
 			
-			static inline Constant * Float(FloatKind kind, FloatVal value){
+			static inline Constant * Float(FloatVal value){
 				Constant * constant = new Constant(FLOATINGPOINT);
-				constant->floatKind_ = kind;
 				constant->float_ = value;
 				return constant;
 			}
 			
-			static inline Constant * String(StringKind kind, const std::string& value){
+			static inline Constant * String(const std::string& value){
 				Constant * constant = new Constant(STRING);
-				constant->stringKind_ = kind;
 				constant->string_ = value;
 				return constant;
 			}
@@ -83,19 +65,9 @@ namespace locic{
 				return bool_;
 			}
 			
-			inline IntegerKind integerKind() const{
-				assert(kind_ == INTEGER);
-				return integerKind_;
-			}
-			
 			inline IntegerVal integerValue() const{
 				assert(kind_ == INTEGER);
 				return integer_;
-			}
-			
-			inline FloatKind floatKind() const{
-				assert(kind_ == FLOATINGPOINT);
-				return floatKind_;
 			}
 			
 			inline FloatVal floatValue() const{
@@ -103,32 +75,9 @@ namespace locic{
 				return float_;
 			}
 			
-			inline StringKind stringKind() const{
-				assert(kind_ == STRING);
-				return stringKind_;
-			}
-			
-			inline std::string stringValue() const{
+			inline const std::string& stringValue() const{
 				assert(kind_ == STRING);
 				return string_;
-			}
-			
-			inline std::string getTypeName() const{
-				switch(kind_){
-					case NULLVAL:
-						return "null_t";
-					case BOOLEAN:
-						return "bool";
-					case INTEGER:
-						return "integer_literal_t";
-					case FLOATINGPOINT:
-						return "float_literal_t";
-					case STRING:
-						return "string";
-					default:
-						assert(false && "Unknown constant type");
-						return "";
-				}
 			}
 			
 			std::string toString() const {
@@ -138,20 +87,11 @@ namespace locic{
 					case BOOLEAN:
 						return makeString("BoolConstant(%s)", bool_ ? "true" : "false");
 					case INTEGER:
-					{
-						const auto kindString = integerKind() == SIGNED ? "signed" : "unsigned";
-						return makeString("IntegerConstant(%s, %lld)", kindString, integerValue());
-					}
+						return makeString("IntegerConstant(%llu)", integerValue());
 					case FLOATINGPOINT:
-					{
-						const auto kindString = floatKind() == FLOAT ? "float" : "double";
-						return makeString("FloatConstant(%s, %Lf)", kindString, float_);
-					}
+						return makeString("FloatConstant(%Lf)", floatValue());
 					case STRING:
-					{
-						const auto kindString = stringKind() == C_STRING ? "c_string" : "string";
-						return makeString("StringConstant(%s, \"%s\")", kindString, escapeString(string_).c_str());
-					}
+						return makeString("StringConstant(\"%s\")", escapeString(stringValue()).c_str());
 					default:
 						return "[UNKNOWN CONSTANT]";
 				}
@@ -162,12 +102,6 @@ namespace locic{
 				: kind_(pKind) { }
 			
 			Kind kind_;
-		
-			union {
-				IntegerKind integerKind_;
-				FloatKind floatKind_;
-				StringKind stringKind_;
-			};
 			
 			union{
 				bool bool_;

@@ -22,7 +22,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* accessObject, const std::string& memberName) {
+		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* accessObject, const std::string& memberName, const Debug::SourceLocation& location) {
 			const auto object = derefValue(accessObject);
 			const auto objectType = getDerefType(accessObject->type());
 			
@@ -92,32 +92,34 @@ namespace locic {
 						memberName.c_str(), typeInstance->name().toString().c_str(),
 						object->toString().c_str()));
 				}
+			} else if (typeInstance->isUnionDatatype()) {
+				throw TodoException(makeString("Can't access member '%s' of union datatype value '%s' at %s.",
+					memberName.c_str(), object->toString().c_str(), location.toString().c_str()));
 			} else {
-				assert(false && "Invalid fall through in MakeMemberAccess.");
-				return NULL;
+				throw std::runtime_error(makeString("Invalid fall through in MakeMemberAccess for type '%s'.", objectType->toString().c_str()));
 			}
 		}
 		
-		std::string integerPrefixType(const std::string& prefix) {
-			if (prefix == "i8") {
+		std::string integerSpecifierType(const std::string& specifier) {
+			if (specifier == "i8") {
 				return "int8_t";
-			} else if (prefix == "i16") {
+			} else if (specifier == "i16") {
 				return "int16_t";
-			} else if (prefix == "i32") {
+			} else if (specifier == "i32") {
 				return "int32_t";
-			} else if (prefix == "i64") {
+			} else if (specifier == "i64") {
 				return "int64_t";
-			} else if (prefix == "u8") {
+			} else if (specifier == "u8") {
 				return "uint8_t";
-			} else if (prefix == "u16") {
+			} else if (specifier == "u16") {
 				return "uint16_t";
-			} else if (prefix == "u32") {
+			} else if (specifier == "u32") {
 				return "uint32_t";
-			} else if (prefix == "u64") {
+			} else if (specifier == "u64") {
 				return "uint64_t";
 			}
 			
-			throw TodoException(makeString("Invalid integer literal prefix '%s'.", prefix.c_str()));
+			throw TodoException(makeString("Invalid integer literal specifier '%s'.", specifier.c_str()));
 		}
 		
 		unsigned long long integerMax(const std::string& typeName) {
@@ -142,91 +144,114 @@ namespace locic {
 			throw std::runtime_error(makeString("Invalid integer type '%s'.", typeName.c_str()));
 		}
 		
-		std::string getIntegerConstantType(const std::string& prefix, const Constant& constant) {
+		std::string getIntegerConstantType(const std::string& specifier, const Constant& constant) {
 			assert(constant.kind() == Constant::INTEGER);
 			
 			const auto integerValue = constant.integerValue();
 			
-			// Use a prefix if available.
-			if (!prefix.empty()) {
-				const auto typeName = integerPrefixType(prefix);
+			// Use a specifier if available.
+			if (!specifier.empty() && specifier != "u") {
+				const auto typeName = integerSpecifierType(specifier);
 				const auto typeMax = integerMax(typeName);
 				if (integerValue > typeMax) {
-					throw TodoException(makeString("Integer literal '%llu' exceeds maximum of prefix '%s'.",
-						(unsigned long long) integerValue, prefix.c_str()));
+					throw TodoException(makeString("Integer literal '%llu' exceeds maximum of specifier '%s'.",
+						(unsigned long long) integerValue, specifier.c_str()));
 				}
 				return typeName;
 			}
 			
 			// Otherwise determine type based on value.
-			// TODO: use arbitary-precision arithmetic.
 			std::vector<std::string> types;
 			types.push_back("int8_t");
 			types.push_back("int16_t");
 			types.push_back("int32_t");
 			types.push_back("int64_t");
 			
-			switch (constant.integerKind()) {
-				case Constant::SIGNED: {
-					for (const auto& typeName: types) {
-						if (integerValue <= integerMax(typeName)) {
-							return typeName;
-						}
-					}
+			for (const auto& typeName: types) {
+				const auto specTypeName = specifier + typeName;
+				// TODO: use arbitary-precision arithmetic.
+				if (integerValue <= integerMax(specTypeName)) {
+					return specTypeName;
 				}
-				case Constant::UNSIGNED: {
-					for (const auto& typeName: types) {
-						const auto unsignedTypeName = std::string("u") + typeName;
-						if (integerValue <= integerMax(unsignedTypeName)) {
-							return unsignedTypeName;
-						}
-					}
-				}
-				default:
-					throw std::runtime_error("Unknown integer constant kind.");
 			}
+			
+			throw TodoException(makeString("Integer literal '%llu' is too large to be represented in a fixed width type.",
+				integerValue));
 		}
 		
-		std::string getFloatingPointConstantType(const Constant& constant) {
+		std::string getFloatingPointConstantType(const std::string& specifier, const Constant& constant) {
 			assert(constant.kind() == Constant::FLOATINGPOINT);
 			
-			switch (constant.floatKind()) {
-				case Constant::FLOAT: {
-					return "float_t";
-				}
-				case Constant::DOUBLE: {
-					return "double_t";
-				}
-				default:
-					throw std::runtime_error("Unknown floating point constant kind.");
+			if (specifier == "f") {
+				return "float_t";
+			} else if (specifier.empty() || specifier == "d") {
+				return "double_t";
+			} else {
+				throw TodoException(makeString("Invalid floating point literal specifier '%s'.",
+					specifier.c_str()));
 			}
 		}
 		
-		std::string getConstantType(const std::string& prefix, const Constant& constant) {
+		std::string getLiteralTypeName(const std::string& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::NULLVAL: {
-					if (!prefix.empty()) {
-						throw TodoException("Cannot specify prefix for null constant.");
+					if (specifier.empty()) {
+						return "null_t";
+					} else {
+						throw TodoException(makeString("Invalid null literal specifier '%s'.",
+							specifier.c_str()));
 					}
-					return "null_t";
 				}
 				case Constant::BOOLEAN: {
-					if (!prefix.empty()) {
-						throw TodoException("Cannot specify prefix for boolean constant.");
+					if (specifier.empty()) {
+						return "bool";
+					} else {
+						throw TodoException(makeString("Invalid boolean literal specifier '%s'.",
+							specifier.c_str()));
 					}
-					return "bool";
 				}
 				case Constant::INTEGER: {
-					return getIntegerConstantType(prefix, constant);
+					return getIntegerConstantType(specifier, constant);
 				}
 				case Constant::FLOATINGPOINT: {
-					if (!prefix.empty()) {
-						throw TodoException("Cannot specify prefix for floating point constant.");
-					}
-					return getFloatingPointConstantType(constant);
+					return getFloatingPointConstantType(specifier, constant);
 				}
 				default:
 					throw std::runtime_error("Unknown constant kind.");
+			}
+		}
+		
+		SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
+			switch (constant.kind()) {
+				case Constant::STRING: {
+					if (specifier.empty()) {
+						throw TodoException("Loci strings are not currently supported; add 'C' specifier to use C strings (e.g. C\"example\").");
+					} else if (specifier == "C") {
+						// C strings have the type 'const char * const', as opposed to just a
+						// type name, so their type needs to be generated specially.
+						const auto charTypeInstance = getBuiltInType(context, "char_t");
+						const auto ptrTypeInstance = getBuiltInType(context, "ptr");
+						
+						// Generate type 'const char'.
+						const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+						
+						// Generate type 'const ptr<const char>'.
+						return SEM::Type::Object(ptrTypeInstance, { constCharType })->createConstType();
+					} else {
+						throw TodoException(makeString("Invalid string literal specifier '%s'.",
+							specifier.c_str()));
+					}
+				}
+				default: {
+					const auto typeName = getLiteralTypeName(specifier, constant);
+					const auto typeInstance = getBuiltInType(context, typeName);
+					if (typeInstance == nullptr) {
+						throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
+							typeName.c_str()));
+					}
+					
+					return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+				}
 			}
 		}
 		
@@ -237,39 +262,39 @@ namespace locic {
 				case AST::Value::BRACKET: {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
-				case AST::Value::CONSTANT: {
-					const auto& prefix = astValueNode->constant.prefix;
-					auto& constant = *(astValueNode->constant.constant);
-					switch (constant.kind()) {
-						case Constant::STRING: {
-							if (constant.stringKind() == Constant::C_STRING) {
-								// C strings have the type 'const char * const', as opposed to just a
-								// type name, so their type needs to be generated specially.
-								const auto charTypeInstance = getBuiltInType(context, "char_t");
-								const auto ptrTypeInstance = getBuiltInType(context, "ptr");
-								
-								// Generate type 'const char'.
-								const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
-								
-								// Generate type 'const ptr<const char>'.
-								const auto constCharPtrType = SEM::Type::Object(ptrTypeInstance, std::vector<SEM::Type*>(1, constCharType))->createConstType();
-								
-								return SEM::Value::Constant(&constant, constCharPtrType);
-							} else {
-								throw std::runtime_error("Only C strings are currently supported.");
-							}
-						}
-						default: {
-							const auto typeName = getConstantType(prefix, constant);
-							const auto typeInstance = getBuiltInType(context, typeName);
-							if (typeInstance == nullptr) {
-								throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
-									typeName.c_str()));
-							}
-							
-							return SEM::Value::Constant(&constant, SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType());
-						}
+				case AST::Value::SELF: {
+					const Node thisTypeNode = lookupParentType(context);
+					
+					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
+					
+					if (thisTypeNode.isNone()) {
+						throw TodoException(makeString("Cannot access 'self' in non-method at %s.",
+							astValueNode.location().toString().c_str()));
 					}
+					
+					// TODO: make const type when in const methods.
+					const auto selfType = thisTypeNode.getSEMTypeInstance()->selfType();
+					return SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
+				}
+				case AST::Value::THIS: {
+					const Node thisTypeNode = lookupParentType(context);
+					
+					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
+					
+					if (thisTypeNode.isNone()) {
+						throw TodoException(makeString("Cannot access 'this' in non-method at %s.",
+							astValueNode.location().toString().c_str()));
+					}
+					
+					// TODO: make const type when in const methods.
+					const auto selfType = thisTypeNode.getSEMTypeInstance()->selfType();
+					const auto ptrTypeInstance = getBuiltInType(context, "ptr");
+					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfType })->createConstType());
+				}
+				case AST::Value::LITERAL: {
+					const auto& specifier = astValueNode->literal.specifier;
+					auto& constant = *(astValueNode->literal.constant);
+					return SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
 				}
 				case AST::Value::SYMBOLREF: {
 					const auto& astSymbolNode = astValueNode->symbolRef.symbol;
@@ -339,6 +364,11 @@ namespace locic {
 						const auto templateVar = node.getSEMTemplateVar();
 						
 						const auto specTypeInstance = templateVar->specTypeInstance();
+						if (!specTypeInstance->hasProperty("Create")) {
+							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
+								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+						}
+						
 						const auto defaultConstructor = specTypeInstance->getProperty("Create");
 						
 						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(templateVar),
@@ -365,16 +395,16 @@ namespace locic {
 					
 					const auto boolType = getBuiltInType(context, "bool");
 					
-					const auto boolValue = ImplicitCast(cond,
+					const auto boolValue = ImplicitCast(context, cond,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
 							
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
-					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
+					const auto targetType = UnifyTypes(context, ifTrue->type(), ifFalse->type());
 					
-					const auto castIfTrue = ImplicitCast(ifTrue, targetType);
-					const auto castIfFalse = ImplicitCast(ifFalse, targetType);
+					const auto castIfTrue = ImplicitCast(context, ifTrue, targetType);
+					const auto castIfFalse = ImplicitCast(context, ifFalse, targetType);
 					
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
@@ -384,8 +414,9 @@ namespace locic {
 					const auto targetType = ConvertType(context, astValueNode->cast.targetType);
 					
 					switch(astValueNode->cast.castKind) {
-						case AST::Value::CAST_STATIC:
+						case AST::Value::CAST_STATIC: {
 							throw TodoException("static_cast not yet implemented.");
+						}
 						case AST::Value::CAST_CONST:
 							throw TodoException("const_cast not yet implemented.");
 						case AST::Value::CAST_DYNAMIC:
@@ -397,7 +428,7 @@ namespace locic {
 									"in cast from value %s of type %s to type %s.", sourceValue->toString().c_str(),
 									sourceType->toString().c_str(), targetType->toString().c_str()));
 							}
-							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType), targetType);
+							return SEM::Value::Reinterpret(ImplicitCast(context, sourceValue, sourceType), targetType);
 						default:
 							throw std::runtime_error("Unknown cast kind.");
 					}
@@ -439,8 +470,12 @@ namespace locic {
 					
 					const Node thisTypeNode = lookupParentType(context);
 					
-					// TODO: throw an exception.
-					assert(thisTypeNode.isTypeInstance());
+					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
+					
+					if (thisTypeNode.isNone()) {
+						throw TodoException(makeString("Cannot call internal constructor in non-method at %s.",
+							astValueNode.location().toString().c_str()));
+					}
 					
 					const auto thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
@@ -456,7 +491,7 @@ namespace locic {
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
 						SEM::Type* constructType = thisTypeInstance->constructTypes().at(i);
 						SEM::Value* semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						SEM::Value* semParam = ImplicitCast(semValue, constructType);
+						SEM::Value* semParam = ImplicitCast(context, semValue, constructType);
 						semValues.push_back(semParam);
 					}
 					
@@ -471,7 +506,7 @@ namespace locic {
 						object = tryDissolveValue(object);
 					}
 					
-					return MakeMemberAccess(context, object, memberName);
+					return MakeMemberAccess(context, object, memberName, astValueNode.location());
 				}
 				case AST::Value::FUNCTIONCALL: {
 					assert(astValueNode->functionCall.functionValue.get() != NULL && "Cannot call NULL function value");
@@ -510,7 +545,7 @@ namespace locic {
 								// one of the allowed types (since there's no specific
 								// destination type).
 								const auto param = (i < typeList.size()) ?
-										ImplicitCast(semArgValue, typeList.at(i)) :
+										ImplicitCast(context, semArgValue, typeList.at(i)) :
 										VarArgCast(semArgValue);
 										
 								semValueList.push_back(param);
@@ -536,7 +571,7 @@ namespace locic {
 							
 							for (size_t i = 0; i < astValueList->size(); i++) {
 								const auto semArgValue = ConvertValue(context, astValueList->at(i));
-								const auto param = ImplicitCast(semArgValue, typeList.at(i));
+								const auto param = ImplicitCast(context, semArgValue, typeList.at(i));
 								semValueList.push_back(param);
 							}
 							
@@ -560,7 +595,7 @@ namespace locic {
 							
 							for (size_t i = 0; i < astValueList->size(); i++) {
 								const auto semArgValue = ConvertValue(context, astValueList->at(i));
-								const auto param = ImplicitCast(semArgValue, typeList.at(i));
+								const auto param = ImplicitCast(context, semArgValue, typeList.at(i));
 								semValueList.push_back(param);
 							}
 							

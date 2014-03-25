@@ -76,6 +76,8 @@ namespace locic {
 				bool isTemplateVar() const;
 				TemplateVar* getTemplateVar() const;
 				
+				SEM::TypeInstance* getObjectOrSpecType() const;
+				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
 				bool isClassDecl() const;
 				bool isClassDef() const;

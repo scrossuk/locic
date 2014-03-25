@@ -26,7 +26,9 @@ namespace locic {
 					WHILE,
 					TRY,
 					RETURN,
-					THROW
+					THROW,
+					BREAK,
+					CONTINUE
 				};
 				
 				static Statement* ValueStmt(Value* value);
@@ -48,6 +50,10 @@ namespace locic {
 				static Statement* Return(Value* value);
 				
 				static Statement* Throw(Value* value);
+				
+				static Statement* Break();
+				
+				static Statement* Continue();
 				
 				Kind kind() const;
 				
@@ -100,6 +106,10 @@ namespace locic {
 				bool isThrowStatement() const;
 				
 				Value* getThrowValue() const;
+				
+				bool isBreakStatement() const;
+				
+				bool isContinueStatement() const;
 				
 				std::string toString() const;
 				

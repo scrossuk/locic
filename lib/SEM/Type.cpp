@@ -205,6 +205,15 @@ namespace locic {
 			return objectType_.templateArguments;
 		}
 		
+		SEM::TypeInstance* Type::getObjectOrSpecType() const {
+			assert(isObject() || isTemplateVar());
+			if (isObject()) {
+				return getObjectType();
+			} else {
+				return getTemplateVar()->specTypeInstance();
+			}
+		}
+		
 		bool Type::isTypeInstance(const TypeInstance* typeInstance) const {
 			if (!isObject()) {
 				return false;

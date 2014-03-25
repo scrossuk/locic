@@ -83,6 +83,14 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement* Statement::Break() {
+			return new Statement(BREAK);
+		}
+		
+		Statement* Statement::Continue() {
+			return new Statement(CONTINUE);
+		}
+		
 		Statement::Statement(Kind k)
 			: kind_(k) { }
 			
@@ -208,6 +216,14 @@ namespace locic {
 			return throwStmt_.value;
 		}
 		
+		bool Statement::isBreakStatement() const {
+			return kind() == BREAK;
+		}
+		
+		bool Statement::isContinueStatement() const {
+			return kind() == CONTINUE;
+		}
+		
 		std::string Statement::toString() const {
 			switch (kind_) {
 				case VALUE: {
@@ -260,6 +276,14 @@ namespace locic {
 				case THROW: {
 					return makeString("ThrowStatement(value: %s)",
 									  throwStmt_.value->toString().c_str());
+				}
+				
+				case BREAK: {
+					return "BreakStatement";
+				}
+				
+				case CONTINUE: {
+					return "ContinueStatement";
 				}
 				
 				default:

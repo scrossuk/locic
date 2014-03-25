@@ -45,13 +45,12 @@
 <COMMENT_STATE>\n             { yyextra->resetColumn(); }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
 
-"\""                          { yyextra->resetStringConstant(locic::Constant::LOCI_STRING); BEGIN(STRING_STATE); }
-"C\""                          { yyextra->resetStringConstant(locic::Constant::C_STRING); BEGIN(STRING_STATE); }
+"\""                          { yyextra->resetStringConstant(); BEGIN(STRING_STATE); }
 <STRING_STATE>"\\\""          { yyextra->appendStringConstant("\""); }
 <STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
 <STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
 <STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
-<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringKind(), yyextra->getStringConstant());
+<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
 <STRING_STATE>.               { yyextra->appendStringConstant(yytext); }
@@ -76,6 +75,9 @@ template                { return TEMPLATE; }
 typename                { return TYPENAME; }
 virtual                 { return VIRTUAL; }
 
+self                    { return SELF; }
+this                    { return THIS; }
+
 struct                  { return STRUCT; }
 enum                    { return ENUM; }
 union                   { return UNION; }
@@ -99,6 +101,7 @@ export                  { return EXPORT; }
 move                    { return MOVE; }
 sizeof                  { return SIZEOF; }
 
+cast                    { return CAST; }
 const_cast              { return CONST_CAST; }
 static_cast             { return STATIC_CAST; }
 reinterpret_cast        { return REINTERPRET_CAST; }
@@ -120,10 +123,8 @@ double                  { return DOUBLE; }
 null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }
 false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
-[0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(locic::Constant::SIGNED, atol(yytext)); return CONSTANT; }
-[0-9]+u                 { yylval->lexer_constant = locic::Constant::Integer(locic::Constant::UNSIGNED, atol(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+f         { yylval->lexer_constant = locic::Constant::Float(locic::Constant::FLOAT, atof(yytext)); return CONSTANT; }
-[0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(locic::Constant::DOUBLE, atof(yytext)); return CONSTANT; }
+[0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }
+[0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(atof(yytext)); return CONSTANT; }
 
 "_"                     { return UNDERSCORE; }
 

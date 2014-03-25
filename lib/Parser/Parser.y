@@ -223,6 +223,7 @@ const T& GETSYM(T* value) {
 %token AT
 %token NULLVAL
 
+%token CAST
 %token CONST_CAST
 %token STATIC_CAST
 %token DYNAMIC_CAST
@@ -246,6 +247,9 @@ const T& GETSYM(T* value) {
 %token LESSOREQUAL
 %token QUESTIONMARK
 %token TILDA
+
+%token SELF
+%token THIS
 
 // ================ Non-Terminals ================
 %type <nameSpace> rootNamespace
@@ -329,6 +333,7 @@ const T& GETSYM(T* value) {
 %type <value> precision5
 %type <value> precision6
 %type <value> precision7
+%type <value> precision8
 
 // ================ Rules ================
 %%
@@ -1196,7 +1201,7 @@ normalStatement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))))))));
 	}
-	| precision4 PERCENTEQUAL precision5
+	| precision5 PERCENTEQUAL precision6
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))))))));
 	}
@@ -1220,6 +1225,14 @@ normalStatement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Throw(GETSYM($2))));
 	}
+	| CONTINUE
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Continue()));
+	}
+	| BREAK
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Break()));
+	}
 	;
 
 constant:
@@ -1230,7 +1243,11 @@ constant:
 	;
 
 castKind:
-	STATIC_CAST
+	CAST
+	{
+		$$ = locic::AST::Value::CAST_STATIC;
+	}
+	| STATIC_CAST
 	{
 		$$ = locic::AST::Value::CAST_STATIC;
 	}
@@ -1248,7 +1265,7 @@ castKind:
 	}
 	;
 	
-precision7:
+precision8:
 	LROUNDBRACKET precision0 RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Bracket(GETSYM($2))));
@@ -1267,11 +1284,15 @@ precision7:
 	}
 	| constant
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::ConstantValue("", GETSYM($1))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Literal("", GETSYM($1))));
 	}
 	| NAME constant
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::ConstantValue(GETSYM($1), GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Literal(GETSYM($1), GETSYM($2))));
+	}
+	| constant NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Literal(GETSYM($2), GETSYM($1))));
 	}
 	| castKind LTRIBRACKET type COMMA type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
@@ -1285,6 +1306,38 @@ precision7:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ref(GETSYM($3), GETSYM($6))));
 	}
+	| SELF
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Self()));
+	}
+	| THIS
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::This()));
+	}
+	;
+	
+precision7:
+	precision8
+	{
+		$$ = $1;
+	}
+	| precision7 DOT NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
+	}
+	| precision7 PTRACCESS NAME
+	{
+		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, GETSYM($3))));
+	}
+	| precision7 LROUNDBRACKET valueList RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
+	}
+	| precision7 LSQUAREBRACKET value RSQUAREBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("index", GETSYM($1), GETSYM($3))));
+	}
 	;
 	
 precision6:
@@ -1292,22 +1345,29 @@ precision6:
 	{
 		$$ = $1;
 	}
-	| precision6 DOT NAME
+	| PLUS precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
 	}
-	| precision6 PTRACCESS NAME
+	| MINUS precision6
 	{
-		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
 	}
-	| precision6 LROUNDBRACKET valueList RROUNDBRACKET
+	| EXCLAIMMARK precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
 	}
-	| precision6 LSQUAREBRACKET value RSQUAREBRACKET
+	| AMPERSAND precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("index", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
+	}
+	| STAR precision6
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
+	}
+	| MOVE precision6
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
 	}
 	;
 	
@@ -1316,29 +1376,17 @@ precision5:
 	{
 		$$ = $1;
 	}
-	| PLUS precision5
+	| precision5 STAR precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))));
 	}
-	| MINUS precision5
+	| precision5 FORWARDSLASH precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))));
 	}
-	| EXCLAIMMARK precision5
+	| precision5 PERCENT precision6
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
-	}
-	| AMPERSAND precision5
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
-	}
-	| STAR precision5
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
-	}
-	| MOVE precision5
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1347,17 +1395,13 @@ precision4:
 	{
 		$$ = $1;
 	}
-	| precision4 STAR precision5
+	| precision4 PLUS precision5
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))));
 	}
-	| precision4 FORWARDSLASH precision5
+	| precision4 MINUS precision5
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))));
-	}
-	| precision4 PERCENT precision5
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1366,58 +1410,54 @@ precision3:
 	{
 		$$ = $1;
 	}
-	| precision3 PLUS precision4
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))));
-	}
-	| precision3 MINUS precision4
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))));
-	}
-	;
-	
-precision2:
-	precision3
-	{
-		$$ = $1;
-	}
-	| precision3 ISEQUAL precision3
+	| precision4 ISEQUAL precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
-	| precision3 NOTEQUAL precision3
+	| precision4 NOTEQUAL precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
 			locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
-	| precision3 LTRIBRACKET precision3
+	| precision4 LTRIBRACKET precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
-	| precision3 RTRIBRACKET precision3
+	| precision4 RTRIBRACKET precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
-	| precision3 LESSOREQUAL precision3
+	| precision4 LESSOREQUAL precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
 			locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
-	| precision3 GREATEROREQUAL precision3
+	| precision4 GREATEROREQUAL precision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
 			locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
 	}
 	;
-	
+
+precision2:
+	precision3
+	{
+		$$ = $1;
+	}
+	| precision2 DOUBLE_AMPERSAND precision3
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("logicalAnd", GETSYM($1), GETSYM($3))));
+	}
+	;
+
 precision1:
 	precision2
 	{
 		$$ = $1;
 	}
-	| precision2 QUESTIONMARK precision1 COLON precision1
+	| precision1 DOUBLE_VERTICAL_BAR precision2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("logicalOr", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
@@ -1425,6 +1465,10 @@ precision0:
 	precision1
 	{
 		$$ = $1;
+	}
+	| precision1 QUESTIONMARK precision0 COLON precision0
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
 	;
 	

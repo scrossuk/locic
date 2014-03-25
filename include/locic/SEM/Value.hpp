@@ -21,6 +21,8 @@ namespace locic {
 			public:
 				enum Kind {
 					NONE,
+					SELF,
+					THIS,
 					CONSTANT,
 					LOCALVAR,
 					MEMBERVAR,
@@ -126,7 +128,11 @@ namespace locic {
 					std::vector<Value*> parameters;
 				} interfaceMethodCall;
 				
-				static Value* Constant(Constant* constant, SEM::Type* type);
+				static Value* Self(Type* type);
+				
+				static Value* This(Type* type);
+				
+				static Value* Constant(Constant* constant, Type* type);
 				
 				static Value* LocalVar(Var* var);
 				

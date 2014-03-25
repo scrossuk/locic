@@ -338,6 +338,16 @@ namespace locic {
 					break;
 				}
 				
+				case SEM::Statement::BREAK: {
+					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					break;
+				}
+				
+				case SEM::Statement::CONTINUE: {
+					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					break;
+				}
+				
 				default:
 					llvm_unreachable("Unknown statement type");
 			}

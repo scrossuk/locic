@@ -59,6 +59,14 @@ namespace locic {
 			return name == "float_t" || name == "double_t" || name == "longdouble_t";
 		}
 		
+		bool hasStart(const std::string& fullString, const std::string& start) {
+			if (fullString.length() >= start.length()) {
+				return (0 == fullString.compare(0, start.length(), start));
+			} else {
+				return false;
+			}
+		}
+		
 		bool hasEnding(const std::string& fullString, const std::string& ending) {
 			if (fullString.length() >= ending.length()) {
 				return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
@@ -70,6 +78,7 @@ namespace locic {
 		bool isConstructor(const std::string& methodName) {
 			return methodName == "Create" ||
 				methodName == "Null" ||
+				methodName == "unit" ||
 				hasEnding(methodName, "_cast");
 		}
 		
@@ -86,7 +95,10 @@ namespace locic {
 				methodName == "address" ||
 				methodName == "deref" ||
 				methodName == "dissolve" ||
-				methodName == "move";
+				methodName == "move" ||
+				methodName == "signedValue" ||
+				methodName == "unsignedValue" ||
+				hasStart(methodName, "to");
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
@@ -97,7 +109,9 @@ namespace locic {
 				methodName == "modulo" ||
 				methodName == "compare" ||
 				methodName == "assign" ||
-				methodName == "index";
+				methodName == "index" ||
+				methodName == "logicalAnd" ||
+				methodName == "logicalOr";
 		}
 		
 		void createBoolPrimitiveMethod(Module& module, SEM::Function* semFunction, llvm::Function& llvmFunction) {
@@ -121,10 +135,20 @@ namespace locic {
 				} else {
 					throw std::runtime_error("Unknown bool unary op.");
 				}
+			} else if (isBinaryOp(methodName)) {
+				const auto operand = function.getArg(0);
+				
+				if (methodName == "logicalAnd") {
+					builder.CreateRet(builder.CreateAnd(methodOwner, operand));
+				} else if (methodName == "logicalOr") {
+					builder.CreateRet(builder.CreateOr(methodOwner, operand));
+				} else {
+					throw std::runtime_error("Unknown bool binary op.");
+				}
 			} else {
 				LOG(LOG_INFO, "Unknown bool method: %s.",
 					methodName.c_str());
-				throw std::runtime_error("Unknown bool method.");
+				throw std::runtime_error(makeString("Unknown bool method '%s'.", methodName.c_str()));
 			}
 			
 			// Check the generated function is correct.
@@ -170,9 +194,12 @@ namespace locic {
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
+			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
 			if (methodName == "Create") {
 				builder.CreateRet(zero);
+			} else if (methodName == "unit") {
+				builder.CreateRet(unit);
 			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
 				builder.CreateRet(builder.CreateSExt(operand, selfType));
@@ -189,11 +216,15 @@ namespace locic {
 					builder.CreateRet(builder.CreateICmpSGT(methodOwner, zero));
 				} else if (methodName == "isNegative") {
 					builder.CreateRet(builder.CreateICmpSLT(methodOwner, zero));
+				} else if (methodName == "unsignedValue") {
+					builder.CreateRet(methodOwner);
 				} else if (methodName == "abs") {
 					// Generates: (value < 0) ? -value : value.
 					llvm::Value* lessThanZero = builder.CreateICmpSLT(methodOwner, zero);
 					builder.CreateRet(
 						builder.CreateSelect(lessThanZero, builder.CreateNeg(methodOwner), methodOwner));
+				} else if (hasStart(methodName, "to")) {
+					builder.CreateRet(builder.CreateSExtOrTrunc(methodOwner, genType(module, semFunction->type()->getFunctionReturnType())));
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -241,7 +272,7 @@ namespace locic {
 			} else {
 				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
 					typeName.c_str(), methodName.c_str());
-				throw std::runtime_error("Unknown primitive method.");
+				throw std::runtime_error(makeString("Unknown primitive method '%s'.", methodName.c_str()));
 			}
 			
 			// Check the generated function is correct.
@@ -262,9 +293,12 @@ namespace locic {
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
+			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
 			if (methodName == "Create") {
 				builder.CreateRet(zero);
+			} else if (methodName == "unit") {
+				builder.CreateRet(unit);
 			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
 				builder.CreateRet(builder.CreateZExt(operand, selfType));
@@ -273,6 +307,10 @@ namespace locic {
 					builder.CreateRet(methodOwner);
 				} else if (methodName == "isZero") {
 					builder.CreateRet(builder.CreateICmpEQ(methodOwner, zero));
+				} else if (methodName == "signedValue") {
+					builder.CreateRet(methodOwner);
+				} else if (hasStart(methodName, "to")) {
+					builder.CreateRet(builder.CreateZExtOrTrunc(methodOwner, genType(module, semFunction->type()->getFunctionReturnType())));
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -319,7 +357,7 @@ namespace locic {
 			} else {
 				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
 					typeName.c_str(), methodName.c_str());
-				throw std::runtime_error("Unknown primitive method.");
+				throw std::runtime_error(makeString("Unknown primitive method '%s'.", methodName.c_str()));
 			}
 			
 			// Check the generated function is correct.

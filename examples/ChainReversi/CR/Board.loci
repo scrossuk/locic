@@ -1,29 +1,74 @@
 // Chain Reversi Board.
 
+void* malloc(size_t size);
+void free(void* ptr);
+
+// TODO: replace this with actual standard library.
+namespace std {
+
+	template <typename T>
+	interface counter_type {
+		T implicitCopy() const;
+		
+		int compare(T value) const;
+		
+		T add(T value) const;
+	}
+	
+	template <typename T: counter_type<T>>
+	class counter (T increment, T begin, T end) {
+		static Create = default;
+		
+		T front() {
+			return @begin;
+		}
+		
+		void popFront() {
+			@begin += @increment;
+		}
+		
+		bool empty() {
+			return @begin >= @end;
+		}
+	}
+
+}
+
 namespace CR {
 
 	datatype Position(size_t x, size_t y);
 	datatype BoardSize(size_t width, size_t height);
 	
-	class Board(std::vector<Value> data, Value currentPlayer, BoardSize size) {
+	class Board(Value* data, Value currentPlayer, BoardSize size) {
 		static Create(BoardSize size, Value initialPlayer) {
-			return @(std::vector<Value>(size.width * size.height, None()), initialPlayer, size);
-		}
+			// TODO: this is probably not right...
+			final size_t sizeValue = 1u;
+			void* dataPtr = malloc(sizeValue * size.width * size.height);
+			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
 			
-		Board copy() = default;
+			for (auto p: std::counter<size_t>(1u, 0u, size.width * size.height)) {
+				data[p] = None();
+			}
+			
+			return @(data, initialPlayer, size);
+		}
+		
+		~ {
+			free(reinterpret_cast<Value*, void*>(@data));
+		}
 		
 		bool isValid(Position position) const {
-			if (self[position] != None()) {
+			if (valueId(self[position]) != 0u) {
 				return false;
 			}
 			
-			for (auto xi: std::counter<ssize_t>(-1, 1)) {
-				for (auto yi: std::counter<ssize_t>(-1, 1)) {
+			for (auto xi: std::counter<ssize_t>(1, -1, 1)) {
+				for (auto yi: std::counter<ssize_t>(1, -1, 1)) {
 					if (xi == 0 && yi == 0) {
 						continue;
 					}
 					
-					if (isValidForDirection(self, x, y, xi, yi)) {
+					if (isValidForDirection(self, position.x, position.y, xi, yi)) {
 						return true;
 					}
 				}
@@ -33,18 +78,18 @@ namespace CR {
 		}
 		
 		void placeMove(Position position) {
-			self[position] = player();
+			self[position] = self.player();
 			
 			self.update();
 			
-			@currentPlayer = opponent();
+			@currentPlayer = self.opponent();
 		}
 		
-		Value currentPlayer() const {
+		Value player() const {
 			return @currentPlayer;
 		}
 		
-		Value currentOpponent() const {
+		Value opponent() const {
 			return opposite(@currentPlayer);
 		}
 		
@@ -53,8 +98,8 @@ namespace CR {
 		}
 		
 		bool isComplete() const {
-			for (size_t x = 0; x < @size.width; x++) {
-				for (size_t y = 0; y < @size.height; y++) {
+			for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
+				for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
 					if (self.isValid(Position(x, y))) {
 						return false;
 					}
@@ -64,7 +109,7 @@ namespace CR {
 			return true;
 		}
 		
-		Value& index(Position position) {
+		lval<Value> ptr_lval<Value> index(Position position) {
 			return @data[position.x + position.y * @size.width];
 		}
 		
@@ -74,14 +119,14 @@ namespace CR {
 			while (hasChanged) {
 				hasChanged = false;
 				
-				for (auto x: std::counter<size_t>(0, @size.width)) {
-					for (auto y: std::counter<size_t>(0, @size.height)) {
-						if(self[Position(x, y)] != self.currentPlayer()) {
+				for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
+					for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
+						if(valueId(self[Position(x, y)]) != valueId(self.player())) {
 							continue;
 						}
 						
-						for (auto xi: std::counter<ssize_t>(-1, 1)) {
-							for (auto yi: std::counter<ssize_t>(-1, 1)) {
+						for (auto xi: std::counter<ssize_t>(1, -1, 1)) {
+							for (auto yi: std::counter<ssize_t>(1, -1, 1)) {
 								if (xi == 0 && yi == 0) {
 									continue;
 								}
@@ -98,30 +143,46 @@ namespace CR {
 		
 	}
 	
-	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) const {
+	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) {
 		bool flagOpponent = false;
 		
-		for (size_t cx = cast<ssize_t>(x) + xi, cy = cast<ssize_t>(y) + yi; cx >= 0 && cx < board.size().width && cy >= 0 && cy < board.size().height; cx += xi, cy += yi) {
-			if (board[Position(cx, cy)] == board.opponent()) {
+		ssize_t cx = x.signedValue() + xi;
+		ssize_t cy = y.signedValue() + yi;
+		
+		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
+			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
+			
+			if (valueId(board[position]) == valueId(board.opponent())) {
 				flagOpponent = true;
-			} else if(flagOpponent && board[Position(cx, cy)] == board.player()) {
-				return true;
+				cx += xi;
+				cy += yi;
 			} else {
-				break;
+				if (flagOpponent && valueId(board[position]) == valueId(board.player())) {
+					return true;
+				} else {
+					break;
+				}
 			}
 		}
 		
 		return false;
 	}
 	
-	bool updateForDirection(Board& board, size_t x, size_t y, size_t xi, signed int yi) {
+	bool updateForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) {
 		if (!isValidForDirection(board, x, y, xi, yi)) {
 			return false;
 		}
 		
-		for (size_t cx = x + xi, cy = y + yi; cx < board.size().width && cy < board.size().height; cx += xi, cy += yi) {
-			if (board[Position(cx, cy)] == board.opponent()) {
-				board[Position(cx, cy)] = board.player();
+		ssize_t cx = x.signedValue() + xi;
+		ssize_t cy = y.signedValue() + yi;
+		
+		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
+			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
+			
+			if (valueId(board[position]) == valueId(board.opponent())) {
+				board[position] = board.player();
+				cx += xi;
+				cy += yi;
 			} else {
 				break;
 			}

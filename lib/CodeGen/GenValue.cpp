@@ -57,6 +57,10 @@ namespace locic {
 			const auto debugLoc = getDebugLocation(function, value);
 			
 			switch (value->kind()) {
+				case SEM::Value::SELF:
+				case SEM::Value::THIS: {
+					return function.getContextValue();
+				}
 				case SEM::Value::CONSTANT: {
 					switch (value->constant->kind()) {
 						case locic::Constant::NULLVAL:
@@ -78,10 +82,6 @@ namespace locic {
 						}
 						
 						case locic::Constant::STRING: {
-							if (value->constant->stringKind() != Constant::C_STRING) {
-								llvm_unreachable("Only C strings supported.");
-							}
-							
 							const auto stringValue = value->constant->stringValue();
 							
 							const auto arrayType =
