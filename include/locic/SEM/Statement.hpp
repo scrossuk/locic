@@ -23,7 +23,7 @@ namespace locic {
 					INITIALISE,
 					IF,
 					SWITCH,
-					WHILE,
+					LOOP,
 					TRY,
 					RETURN,
 					THROW,
@@ -41,7 +41,7 @@ namespace locic {
 				
 				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList);
 				
-				static Statement* While(Value* condition, Scope* whileTrue);
+				static Statement* Loop(Value* condition, Scope* iterationScope, Scope* advanceScope);
 				
 				static Statement* Try(Scope* scope, const std::vector<CatchClause*>& catchList);
 				
@@ -87,11 +87,13 @@ namespace locic {
 				
 				const std::vector<SwitchCase*>& getSwitchCaseList() const;
 				
-				bool isWhileStatement() const;
+				bool isLoopStatement() const;
 				
-				Value* getWhileCondition() const;
+				Value* getLoopCondition() const;
 				
-				Scope& getWhileScope() const;
+				Scope& getLoopIterationScope() const;
+				
+				Scope& getLoopAdvanceScope() const;
 				
 				bool isTryStatement() const;
 				
@@ -143,8 +145,9 @@ namespace locic {
 				
 				struct {
 					Value* condition;
-					Scope* whileTrue;
-				} whileStmt_;
+					Scope* iterationScope;
+					Scope* advanceScope;
+				} loopStmt_;
 				
 				struct {
 					Scope* scope;

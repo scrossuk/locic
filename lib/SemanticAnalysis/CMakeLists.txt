@@ -4,6 +4,7 @@ add_library(locic-semanalysis
 	Context.cpp
 	ConvertClassDef.cpp
 	ConvertException.cpp
+	ConvertForLoop.cpp
 	ConvertFunctionDecl.cpp
 	ConvertFunctionDef.cpp
 	ConvertNamespace.cpp

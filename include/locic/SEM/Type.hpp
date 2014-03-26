@@ -43,9 +43,11 @@ namespace locic {
 				bool isConst() const;
 				bool isLval() const;
 				bool isRef() const;
+				bool isLvalOrRef() const;
 				
 				Type* lvalTarget() const;
 				Type* refTarget() const;
+				Type* lvalOrRefTarget() const;
 				
 				Type* createConstType() const;
 				Type* createLvalType(Type* targetType) const;

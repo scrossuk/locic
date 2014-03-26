@@ -1086,68 +1086,7 @@ scopedStatement:
 	}
 	| FOR LROUNDBRACKET typeVar COLON value RROUNDBRACKET scope
 	{
-		/**
-		 * This code converts:
-		 * for (type value_var: range_value) {
-		 *     //...
-		 * }
-		 * 
-		 * ...to:
-		 * 
-		 * {
-		 *     auto anon_var = range_value;
-		 *     while (!anon_var.empty()) {
-		 *         type value_var = anon_var.front();
-		 *         {
-		 *             //...
-		 *         }
-		 *         anon_var.popFront();
-		 *     }
-		 * }
-		 *
-		 * HOWEVER, this should REALLY be done in Semantic Analysis,
-		 * particularly since this doesn't handle break/continue
-		 * correctly and the location information generated is nonsense.
-		 */
-		
-		const std::string anonVariableName = parserContext->getAnonymousVariableName();
-		const auto emptyTypeList = locic::AST::makeNode(LOC(&@$), new locic::AST::TypeList());
-		const auto anonVariableSymbolElement = locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement(anonVariableName, emptyTypeList));
-		const auto anonVariableSymbol = locic::AST::makeNode(LOC(&@$), new locic::AST::Symbol(locic::AST::Symbol::Relative() + anonVariableSymbolElement));
-		
-		// {
-		std::vector<locic::AST::Node<locic::AST::Statement>> statements;
-		
-		//     auto anon_var = range_value;
-		locic::AST::Node<locic::AST::TypeVar> anonVarTypeVar = locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()), anonVariableName));
-		statements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(anonVarTypeVar, GETSYM($5))));
-		
-		//     while (!anon_var.empty()) {
-		locic::AST::Node<locic::AST::Value> condition = locic::AST::makeNode(LOC(&@$), UnaryOp("not", locic::AST::makeNode(LOC(&@$), UnaryOp("empty", locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(anonVariableSymbol))))));
-		std::vector<locic::AST::Node<locic::AST::Statement>> whileLoopStatements;
-		
-		//         type value_var = anon_var.front();
-		whileLoopStatements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(GETSYM($3), locic::AST::makeNode(LOC(&@$), UnaryOp("front", locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(anonVariableSymbol)))))));
-		
-		//         {
-		//             //...
-		//         }
-		whileLoopStatements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ScopeStmt(GETSYM($7))));
-		
-		//         anon_var.popFront();
-		const auto anonVariableSymbolRef = locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(anonVariableSymbol));
-		const auto popFrontValue = locic::AST::makeNode(LOC(&@$), UnaryOp("popFront", anonVariableSymbolRef));
-		whileLoopStatements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(popFrontValue)));
-		
-		//     }
-		const auto whileLoopStatementsNode = locic::AST::makeNode(LOC(&@$), new locic::AST::StatementList(whileLoopStatements));
-		const auto whileScopeNode = locic::AST::makeNode(LOC(&@$), new locic::AST::Scope(whileLoopStatementsNode));
-		statements.push_back(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::While(condition, whileScopeNode)));
-		
-		// }
-		const auto statementsNode = locic::AST::makeNode(LOC(&@$), new locic::AST::StatementList(statements));
-		const auto scopeNode = locic::AST::makeNode(LOC(&@$), new locic::AST::Scope(statementsNode));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ScopeStmt(scopeNode)));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::For(GETSYM($3), GETSYM($5), GETSYM($7))));
 	}
 	| WHILE LROUNDBRACKET value RROUNDBRACKET scope
 	{

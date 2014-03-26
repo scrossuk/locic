@@ -94,6 +94,10 @@ namespace locic {
 			return refTarget_ != NULL;
 		}
 		
+		bool Type::isLvalOrRef() const {
+			return isLval() || isRef();
+		}
+		
 		Type* Type::lvalTarget() const {
 			assert(isLval());
 			return lvalTarget_;
@@ -102,6 +106,11 @@ namespace locic {
 		Type* Type::refTarget() const {
 			assert(isRef());
 			return refTarget_;
+		}
+		
+		Type* Type::lvalOrRefTarget() const {
+			assert(isLvalOrRef());
+			return isLval() ? lvalTarget() : refTarget();
 		}
 		
 		Type* Type::createConstType() const {

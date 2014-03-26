@@ -7,18 +7,21 @@ class test_range(int value, int position, int limit) {
 	}
 	
 	int front() {
+		testPrint(C"test_range: front");
 		return @value;
 	}
 	
 	void popFront() {
+		testPrint(C"test_range: popFront");
 		@position += 1;
 		@value *= 2;
 	}
 	
 	bool empty() {
+		testPrint(C"test_range: empty");
 		return @position > @limit;
 	}
-};
+}
 
 // Entry point.
 int testEntryPoint(int argc, char ** argv) {

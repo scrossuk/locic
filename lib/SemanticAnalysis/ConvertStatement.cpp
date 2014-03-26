@@ -8,6 +8,7 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertForLoop.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
@@ -40,8 +41,8 @@ namespace locic {
 					}
 					return true;
 				}
-				case SEM::Statement::WHILE: {
-					return WillScopeReturn(statement->getWhileScope());
+				case SEM::Statement::LOOP: {
+					return WillScopeReturn(statement->getLoopIterationScope());
 				}
 				case SEM::Statement::TRY: {
 					// TODO: also consider catch blocks?
@@ -169,14 +170,15 @@ namespace locic {
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
-					const auto whileTrue = ConvertScope(context, statement->whileStmt.whileTrue);
-					
-					const auto boolType = getBuiltInType(context, "bool");
-					
-					const auto boolValue = ImplicitCast(context, condition,
-							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
-					
-					return SEM::Statement::While(boolValue, whileTrue);
+					const auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
+					const auto advanceScope = new SEM::Scope();
+					const auto loopCondition = ImplicitCast(context, condition, getBuiltInType(context, "bool")->selfType());
+					return SEM::Statement::Loop(loopCondition, iterationScope, advanceScope);
+				}
+				case AST::Statement::FOR: {
+					const auto& forStmt = statement->forStmt;
+					const auto loopScope = ConvertForLoop(context, forStmt.typeVar, forStmt.initValue, forStmt.scope);
+					return SEM::Statement::ScopeStmt(loopScope);
 				}
 				case AST::Statement::TRY: {
 					const auto tryScope = ConvertScope(context, statement->tryStmt.scope);
@@ -213,37 +215,6 @@ namespace locic {
 					
 					return SEM::Statement::Try(tryScope, catchList);
 				}
-				// TODO: replace code in parser with this.
-				/*case AST::Statement::FOR: {
-					AST::TypeVar* astTypeVar = statement->forStmt.typeVar;
-					AST::Node<AST::Value> astRangeValue = statement->forStmt.rangeValue;
-					
-					SEM::Value* semRangeValue = ConvertValue(context, astRangeValue);
-					
-					// Create an anonymous variable to hold the range.
-					SEM::Var* rangeVar = SEM::Var::Local(semRangeValue->type());
-					
-					// Start off by assigning the range value to the variable.
-					SEM::Statement* setRangeVar = SEM::Statement::InitialiseStmt(rangeVar, semRangeValue);
-					
-					
-					
-					// Check whether a type annotation has been used.
-					const bool autoType = (astTypeVar->type == NULL);
-					
-					// If type is 'auto', infer it from type value.
-					SEM::Type* varType = autoType ? semValue->type() : ConvertType(context, astTypeVar->type);
-					
-					assert(varType != NULL);
-					if (varType->isVoid()) {
-						printf("Semantic Analysis Error: Local variable cannot have void type.\n");
-						// TODO: throw exception.
-						assert(false);
-						return NULL;
-					}
-					
-					return SEM::Statement::ScopeStmt(
-				}*/
 				case AST::Statement::VARDECL: {
 					const auto& astTypeVarNode = statement->varDecl.typeVar;
 					const auto& astInitialValueNode = statement->varDecl.value;

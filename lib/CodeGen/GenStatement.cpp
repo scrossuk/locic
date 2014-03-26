@@ -146,14 +146,15 @@ namespace locic {
 					break;
 				}
 				
-				case SEM::Statement::WHILE: {
-					const auto conditionBB = function.createBasicBlock("whileConditionLoop");
-					const auto insideLoopBB = function.createBasicBlock("whileInsideLoop");
-					const auto afterLoopBB = function.createBasicBlock("whileAfterLoop");
+				case SEM::Statement::LOOP: {
+					const auto loopConditionBB = function.createBasicBlock("loopCondition");
+					const auto loopIterationBB = function.createBasicBlock("loopIteration");
+					const auto loopAdvanceBB = function.createBasicBlock("loopAdvance");
+					const auto loopEndBB = function.createBasicBlock("loopEnd");
 					
 					// Execution starts in the condition block.
-					function.getBuilder().CreateBr(conditionBB);
-					function.selectBasicBlock(conditionBB);
+					function.getBuilder().CreateBr(loopConditionBB);
+					function.selectBasicBlock(loopConditionBB);
 					
 					llvm::Value* condition = nullptr;
 					
@@ -161,25 +162,33 @@ namespace locic {
 					// before the branch instruction.
 					{
 						LifetimeScope conditionLifetimeScope(function);
-						condition = genValue(function, statement->getWhileCondition());
+						condition = genValue(function, statement->getLoopCondition());
 					}
 					
-					function.getBuilder().CreateCondBr(condition, insideLoopBB, afterLoopBB);
-													   
+					function.getBuilder().CreateCondBr(condition, loopIterationBB, loopEndBB);
+					
 					// Create loop contents.
-					function.selectBasicBlock(insideLoopBB);
+					function.selectBasicBlock(loopIterationBB);
 					
 					{
-						ControlFlowScope controlFlowScope(function.unwindStack(), afterLoopBB, conditionBB);
-						genScope(function, statement->getWhileScope());
+						ControlFlowScope controlFlowScope(function.unwindStack(), loopEndBB, loopAdvanceBB);
+						genScope(function, statement->getLoopIterationScope());
 					}
 					
-					// At the end of a loop iteration, branch back
-					// to the start to re-check the condition.
-					function.getBuilder().CreateBr(conditionBB);
+					// At the end of a loop iteration, branch to
+					// the advance block to update any data for
+					// the next iteration.
+					function.getBuilder().CreateBr(loopAdvanceBB);
+					
+					function.selectBasicBlock(loopAdvanceBB);
+					
+					genScope(function, statement->getLoopAdvanceScope());
+					
+					// Now branch back to the start to re-check the condition.
+					function.getBuilder().CreateBr(loopConditionBB);
 													   
 					// Create after loop basic block (which is where execution continues).
-					function.selectBasicBlock(afterLoopBB);
+					function.selectBasicBlock(loopEndBB);
 					break;
 				}
 				

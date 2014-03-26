@@ -23,6 +23,7 @@ namespace locic {
 				IF,
 				SWITCH,
 				WHILE,
+				FOR,
 				TRY,
 				VARDECL,
 				ASSIGN,
@@ -58,12 +59,17 @@ namespace locic {
 			} whileStmt;
 			
 			struct {
+				Node<TypeVar> typeVar;
+				Node<Value> initValue;
+				Node<Scope> scope;
+			} forStmt;
+			
+			struct {
 				Node<Scope> scope;
 				Node<CatchClauseList> catchList;
 			} tryStmt;
 			
 			struct {
-				bool isLval;
 				Node<TypeVar> typeVar;
 				Node<Value> value;
 			} varDecl;
@@ -121,6 +127,14 @@ namespace locic {
 				Statement* statement = new Statement(WHILE);
 				statement->whileStmt.condition = condition;
 				statement->whileStmt.whileTrue = whileTrue;
+				return statement;
+			}
+			
+			inline static Statement* For(const Node<TypeVar>& typeVar, const Node<Value>& initValue, const Node<Scope>& scope) {
+				Statement* statement = new Statement(FOR);
+				statement->forStmt.typeVar = typeVar;
+				statement->forStmt.initValue = initValue;
+				statement->forStmt.scope = scope;
 				return statement;
 			}
 			

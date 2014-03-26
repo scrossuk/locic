@@ -1,0 +1,44 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+class test_range(int i) {
+	static Create() {
+		return @(0);
+	}
+	
+	int front() {
+		testPrint(C"test_range: front");
+		return @i;
+	}
+	
+	void popFront() {
+		testPrint(C"test_range: popFront");
+		@i += 1;
+	}
+	
+	bool empty() {
+		testPrint(C"test_range: empty");
+		return @i > 8;
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	testPrint(C"testEntryPoint: START");
+	
+	for (auto i: test_range()) {
+		testPrint(C"testEntryPoint: LOOP START i = %d", i);
+		
+		if (i >= 4) {
+			testPrint(C"testEntryPoint: break");
+			break;
+		}
+		
+		testPrint(C"testEntryPoint: LOOP END i = %d", i);
+	}
+	
+	testPrint(C"testEntryPoint: END");
+	
+	return 0;
+}
+

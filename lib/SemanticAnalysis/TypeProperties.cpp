@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <locic/SEM.hpp>
+#include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/MethodPattern.hpp>
 #include <locic/SemanticAnalysis/Node.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
@@ -13,10 +14,17 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		SEM::Value* CallPropertyFunction(SEM::Type* type, const std::string& propertyName, const std::vector<SEM::Value*>& args) {
-			assert(type->isObjectOrTemplateVar());
+			if (!type->isObjectOrTemplateVar()) {
+				throw TodoException(makeString("Cannot call property '%s' on non-object type '%s'.",
+					propertyName.c_str(), type->toString().c_str()));
+			}
 			
 			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
-			assert(typeInstance->hasProperty(propertyName));
+			
+			if (!typeInstance->hasProperty(propertyName)) {
+				throw TodoException(makeString("Type '%s' does not support property '%s'.",
+					typeInstance->refToString().c_str(), propertyName.c_str()));
+			}
 			
 			const auto function = typeInstance->getProperty(propertyName);
 			const auto functionRef = SEM::Value::FunctionRef(type, function, type->generateTemplateVarMap());
@@ -25,11 +33,18 @@ namespace locic {
 		
 		SEM::Value* CallPropertyMethod(SEM::Value* value, const std::string& propertyName, const std::vector<SEM::Value*>& args) {
 			const auto type = getDerefType(value->type());
-			assert(type->isObjectOrTemplateVar());
+			
+			if (!type->isObjectOrTemplateVar()) {
+				throw TodoException(makeString("Cannot call property '%s' on non-object type '%s'.",
+					propertyName.c_str(), type->toString().c_str()));
+			}
 			
 			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
 			
-			assert(typeInstance->hasProperty(propertyName));
+			if (!typeInstance->hasProperty(propertyName)) {
+				throw TodoException(makeString("Type '%s' does not support property '%s'.",
+					typeInstance->refToString().c_str(), propertyName.c_str()));
+			}
 			
 			const auto function = typeInstance->getProperty(propertyName);
 			

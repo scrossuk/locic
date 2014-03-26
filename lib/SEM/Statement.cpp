@@ -51,10 +51,11 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::While(Value* condition, Scope* whileTrue) {
-			Statement* statement = new Statement(WHILE);
-			statement->whileStmt_.condition = condition;
-			statement->whileStmt_.whileTrue = whileTrue;
+		Statement* Statement::Loop(Value* condition, Scope* iterationScope, Scope* advanceScope) {
+			Statement* statement = new Statement(LOOP);
+			statement->loopStmt_.condition = condition;
+			statement->loopStmt_.iterationScope = iterationScope;
+			statement->loopStmt_.advanceScope = advanceScope;
 			return statement;
 		}
 		
@@ -170,18 +171,23 @@ namespace locic {
 			return switchStmt_.caseList;
 		}
 		
-		bool Statement::isWhileStatement() const {
-			return kind() == WHILE;
+		bool Statement::isLoopStatement() const {
+			return kind() == LOOP;
 		}
 		
-		Value* Statement::getWhileCondition() const {
-			assert(isWhileStatement());
-			return whileStmt_.condition;
+		Value* Statement::getLoopCondition() const {
+			assert(isLoopStatement());
+			return loopStmt_.condition;
 		}
 		
-		Scope& Statement::getWhileScope() const {
-			assert(isWhileStatement());
-			return *(whileStmt_.whileTrue);
+		Scope& Statement::getLoopIterationScope() const {
+			assert(isLoopStatement());
+			return *(loopStmt_.iterationScope);
+		}
+		
+		Scope& Statement::getLoopAdvanceScope() const {
+			assert(isLoopStatement());
+			return *(loopStmt_.advanceScope);
 		}
 		
 		bool Statement::isTryStatement() const {
@@ -255,10 +261,11 @@ namespace locic {
 									  makeArrayString(switchStmt_.caseList).c_str());
 				}
 				
-				case WHILE: {
-					return makeString("WhileStatement(condition: %s, whileTrue: %s)",
-									  whileStmt_.condition->toString().c_str(),
-									  whileStmt_.whileTrue->toString().c_str());
+				case LOOP: {
+					return makeString("LoopStatement(condition: %s, iteration: %s, advance: %s)",
+									  loopStmt_.condition->toString().c_str(),
+									  loopStmt_.iterationScope->toString().c_str(),
+									  loopStmt_.advanceScope->toString().c_str());
 				}
 				
 				case TRY: {

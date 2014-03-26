@@ -42,6 +42,22 @@ namespace locic {
 			return MethodPattern("__destructor", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
 		}
 		
+		MethodPattern IsEmptyPattern() {
+			return MethodPattern("empty", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern FrontPattern() {
+			return MethodPattern("front", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern PopFrontPattern() {
+			return MethodPattern("popFront", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
+		MethodPattern NotPattern() {
+			return MethodPattern("not", IS_NOT_STATIC, CHECK_PARAM_COUNT, 0);
+		}
+		
 		std::vector<MethodPattern> GetStandardPatterns() {
 			std::vector<MethodPattern> patterns;
 			patterns.push_back(DefaultConstructorPattern());
@@ -52,6 +68,11 @@ namespace locic {
 			patterns.push_back(OpDissolvePattern());
 			patterns.push_back(OpMovePattern());
 			patterns.push_back(DestructorPattern());
+			
+			patterns.push_back(IsEmptyPattern());
+			patterns.push_back(FrontPattern());
+			patterns.push_back(PopFrontPattern());
+			patterns.push_back(NotPattern());
 			
 			// TODO: Refactor!
 			patterns.push_back(CastConstructorPattern("float"));
