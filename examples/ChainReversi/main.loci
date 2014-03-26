@@ -59,7 +59,7 @@ int main() {
 	bool currentPlayer = Random() > 0.5;
 	
 	auto player0 = CR::HumanPlayer(renderWindow);
-	auto player1 = CR::HumanPlayer(renderWindow);
+	auto player1 = CR::AIPlayer(renderWindow);
 	
 	/*auto font = sf::Font();
 	if (!font.loadFromFile("Data/font.ttf")) {

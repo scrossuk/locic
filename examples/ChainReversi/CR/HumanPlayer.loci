@@ -5,7 +5,7 @@ namespace CR {
 	class HumanPlayer (sf::RenderWindow& window) {
 		static Create = default;
 		
-		OptionalPosition performMove(Board& board) {
+		OptionalPosition performMove(const Board& board) {
 			const auto leftButton = 0;
 			if (sf::Mouse::isButtonPressed(leftButton)) {
 				final auto mousePos = sf::Mouse::getPosition(@window);

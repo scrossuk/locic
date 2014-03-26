@@ -19,6 +19,8 @@ namespace llvm_abi {
 			
 			std::string name() const;
 			
+			const llvm::DataLayout& dataLayout() const;
+			
 			size_t typeSize(const Type& type);
 			
 			size_t typeAlign(const Type& type);
@@ -33,6 +35,7 @@ namespace llvm_abi {
 			
 		private:
 			llvm::LLVMContext& llvmContext_;
+			llvm::DataLayout dataLayout_;
 		
 	};
 

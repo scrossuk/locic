@@ -5,7 +5,7 @@ namespace CR {
 	datatype OptionalPosition = Some(Position position) | None();
 	
 	interface Player {
-		OptionalPosition performMove(Board& board);
+		OptionalPosition performMove(const Board& board);
 		
 		void gameOver(bool win);
 	}

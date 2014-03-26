@@ -1,0 +1,107 @@
+// Chain Reversi Board Analysis.
+
+namespace CR {
+
+	class BoardAnalysis (const Board& board) {
+		static Create = default;
+		
+		unsigned long countAll(Value player) const {
+			unsigned long count = 0u;
+			for (auto x: std::counter<size_t>(1u, 0u, @board.size().width)) {
+				for (auto y: std::counter<size_t>(1u, 0u, @board.size().height)) {
+					if (valueId(@board[Position(x, y)]) == valueId(player)) {
+						count += 1u;
+					}
+				}
+			}
+			return count;
+		}
+		
+		unsigned long countCorners(Value player) const {
+			unsigned long count = 0u;
+			
+			if (valueId(@board[Position(0u, 0u)]) == valueId(player)) {
+				count += 1u;
+			}
+			
+			if (valueId(@board[Position(0u, @board.size().height - 1u)]) == valueId(player)) {
+				count += 1u;
+			}
+			
+			if (valueId(@board[Position(@board.size().width - 1u, 0u)]) == valueId(player)) {
+				count += 1u;
+			}
+			
+			if (valueId(@board[Position(@board.size().width - 1u, @board.size().height - 1u)]) == valueId(player)) {
+				count += 1u;
+			}
+			
+			return count;
+		}
+		
+		unsigned long reachableCorners() const {
+			unsigned long count = 0u;
+			
+			if (@board.isValid(Position(0u, 0u))) {
+				count += 1u;
+			}
+			
+			if (@board.isValid(Position(0u, @board.size().height - 1u))) {
+				count += 1u;
+			}
+			
+			if (@board.isValid(Position(@board.size().width - 1u, 0u))) {
+				count += 1u;
+			}
+			
+			if (@board.isValid(Position(@board.size().width - 1u, @board.size().height - 1u))) {
+				count += 1u;
+			}
+			
+			return count;
+		}
+		
+		bool hasWinner() const {
+			for (auto x: std::counter<size_t>(1u, 0u, @board.size().width)) {
+				for (auto y: std::counter<size_t>(1u, 0u, @board.size().height)) {
+					final auto position = Position(x, y);
+					if (!@board.isValid(position)) {
+						continue;
+					}
+					
+					final auto boardCopy = @board.copy();
+					boardCopy.placeMove(position);
+					if (boardCopy.isComplete()) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		}
+		
+		/*std::vector<Position> getWinners() const {
+			final auto winners = std::vector<Position>();
+			
+			for (auto x: std::counter<size_t>(1u, 0u, @board.size().width)) {
+				for (auto y: std::counter<size_t>(1u, 0u, @board.size().height)) {
+					final auto position = Position(x, y);
+					if (!@board.isValid(position)) {
+						continue;
+					}
+					
+					final auto boardCopy = @board.copy();
+					boardCopy.placeMove(position);
+					if (boardCopy.isComplete()) {
+						winners.push_back(position);
+					}
+				}
+			}
+			
+			return move winners;
+		}*/
+		
+	}
+	
+}
+

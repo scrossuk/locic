@@ -22,6 +22,7 @@ namespace locic {
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_->getContext(), targetInfo_.getTargetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
+			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
 		}
 		

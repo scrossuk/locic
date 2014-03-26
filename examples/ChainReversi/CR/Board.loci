@@ -56,7 +56,7 @@ namespace CR {
 	datatype Position(size_t x, size_t y);
 	datatype BoardSize(size_t width, size_t height);
 	
-	class Board(Value* data, Value currentPlayer, BoardSize size) {
+	class Board (Value* data, Value currentPlayer, BoardSize size) {
 		static Create(BoardSize size, Value initialPlayer) {
 			// TODO: this is probably not right...
 			final size_t sizeValue = 1u;
@@ -72,6 +72,19 @@ namespace CR {
 		
 		~ {
 			free(reinterpret_cast<Value*, void*>(@data));
+		}
+		
+		Board copy() const {
+			// TODO: this is probably not right...
+			final size_t sizeValue = 1u;
+			void* dataPtr = malloc(sizeValue * @size.width * @size.height);
+			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
+			
+			for (auto p: std::counter<size_t>(1u, 0u, @size.width * @size.height)) {
+				data[p] = @data[p];
+			}
+			
+			return @(data, @currentPlayer, @size);
 		}
 		
 		bool isValid(Position position) const {
@@ -126,7 +139,7 @@ namespace CR {
 			return true;
 		}
 		
-		lval<Value> ptr_lval<Value> index(Position position) {
+		lval<Value> ptr_lval<Value> index(Position position) const {
 			return @data[position.x + position.y * @size.width];
 		}
 		

@@ -24,6 +24,8 @@ namespace llvm_abi {
 			
 			virtual std::string name() const = 0;
 			
+			virtual const llvm::DataLayout& dataLayout() const = 0;
+			
 			virtual size_t typeSize(const Type& type) = 0;
 			
 			virtual size_t typeAlign(const Type& type) = 0;

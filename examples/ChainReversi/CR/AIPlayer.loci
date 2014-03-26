@@ -2,76 +2,80 @@
 
 namespace CR {
 
-	class AIPlayer (sf::RenderWindow& window) {
-		static Create = default;
+	class AIPlayer (sf::RenderWindow& window, bool isWaiting/*, sf::Clock clock*/) {
+		static Create(sf::RenderWindow& window) {
+			return @(window, false/*, sf::Clock()*/);
+		}
 		
-		OptionalPosition performMove(Board& board) {
-			// This AI is very fast; too fast!
+		OptionalPosition performMove(const Board& board) {
+			/*// This AI is very fast; too fast!
 			// Hence it must wait for half a
 			// second before playing each move.
-			if (!isWaiting_) {
-				clock_.restart();
-				isWaiting_ = true;
-				return boost::optional<Position>();
-			}
-			
-			if (clock_.getElapsedTime().asSeconds() < 0.5) {
+			if (!@isWaiting) {
+				@clock.restart();
+				@isWaiting = true;
 				return None();
 			}
 			
-			isWaiting_ = false;
+			if (@clock.getElapsedTime().asSeconds() < 0.5) {
+				return None();
+			}*/
 			
-			size_t bestQuality = 0u;
-			size_t bestX = 0u;
-			size_t bestY = 0u;
+			@isWaiting = false;
 			
-			BoardAnalysis analysis(board);
+			unsigned long bestQuality = 0u;
+			auto bestPosition = Position(0u, 0u);
+			
+			final auto analysis = BoardAnalysis(board);
 			
 			for (auto xi: std::counter<size_t>(1u, 0u, 8u)) {
 				for (auto yi: std::counter<size_t>(1u, 0u, 8u)) {
-					if (board.isValid(xi, yi)) {
-						Board copy(board);
-						
-						copy.placeMove(xi, yi);
-						
-						std::size_t quality = 10000;
-						
-						BoardAnalysis copyAnalysis(copy);
-						
-						if(copyAnalysis.hasWinner()){
-							// Opponent has a winner -> this move is bad.
-							quality = 1;
-						}else if(copy.isComplete()){
+					final auto position = Position(xi, yi);
+					if (!board.isValid(position)) {
+						continue;
+					}
+					
+					final auto boardCopy = board.copy();
+					boardCopy.placeMove(position);
+					
+					unsigned long quality = 10000u;
+					
+					final auto copyAnalysis = BoardAnalysis(boardCopy);
+					
+					if (copyAnalysis.hasWinner()) {
+						// Opponent has a winner -> this move is bad.
+						quality = 1u;
+					} else {
+						if (boardCopy.isComplete()) {
 							// This move is a winner -> this move is very good.
-							quality = 100000;
-						}else{
+							quality = 100000u;
+						} else {
 							// Edges are good.
-							if(xi == 0 || yi == 0 || xi == 7 || yi == 7) {
-								quality += 10;
+							if (xi == 0u || yi == 0u || xi == 7u || yi == 7u) {
+								quality += 10u;
 							}
 							
 							// Diagonals are very good.
-							if(xi == yi || xi == (7 - yi)) {
-								quality += 50;
+							if (xi == yi || (xi + yi) == 7u) {
+								quality += 50u;
 							}
 							
 							// Corners are fantastic.
-							quality += 1000 * (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player()));
+							quality += (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player())) * 1000u;
 							
 							// Opponents getting corners is very bad.
-							quality -= 1000 * (copyAnalysis.reachableCorners());
+							quality -= copyAnalysis.reachableCorners() * 1000u;
 						}
-						
-						if(quality >= bestQuality) {
-							bestQuality = quality;
-							bestX = xi;
-							bestY = yi;
-						}
+					}
+					
+					if (quality >= bestQuality) {
+						bestQuality = quality;
+						bestPosition = position;
 					}
 				}
 			}
 			
-			return Some(Position(bestX, bestY));
+			return Some(bestPosition);
 		}
 		
 		void gameOver(bool win) { }
