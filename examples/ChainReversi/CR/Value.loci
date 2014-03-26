@@ -3,7 +3,7 @@
 namespace CR {
 
 	datatype Value =
-		None()
+		Empty()
 		| Red()
 		| Blue();
 	
@@ -15,15 +15,15 @@ namespace CR {
 			case Blue() {
 				return Red();
 			}
-			case None() {
-				return None();
+			case Empty() {
+				return Empty();
 			}
 		}
 	}
 	
 	uint8_t valueId(Value value) {
 		switch (value) {
-			case None() {
+			case Empty() {
 				return 0u;
 			}
 			case Red() {

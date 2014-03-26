@@ -1,0 +1,81 @@
+// Chain Reversi Human Player.
+
+namespace CR {
+
+	class AIPlayer (sf::RenderWindow& window) {
+		static Create = default;
+		
+		OptionalPosition performMove(Board& board) {
+			// This AI is very fast; too fast!
+			// Hence it must wait for half a
+			// second before playing each move.
+			if (!isWaiting_) {
+				clock_.restart();
+				isWaiting_ = true;
+				return boost::optional<Position>();
+			}
+			
+			if (clock_.getElapsedTime().asSeconds() < 0.5) {
+				return None();
+			}
+			
+			isWaiting_ = false;
+			
+			size_t bestQuality = 0u;
+			size_t bestX = 0u;
+			size_t bestY = 0u;
+			
+			BoardAnalysis analysis(board);
+			
+			for (auto xi: std::counter<size_t>(1u, 0u, 8u)) {
+				for (auto yi: std::counter<size_t>(1u, 0u, 8u)) {
+					if (board.isValid(xi, yi)) {
+						Board copy(board);
+						
+						copy.placeMove(xi, yi);
+						
+						std::size_t quality = 10000;
+						
+						BoardAnalysis copyAnalysis(copy);
+						
+						if(copyAnalysis.hasWinner()){
+							// Opponent has a winner -> this move is bad.
+							quality = 1;
+						}else if(copy.isComplete()){
+							// This move is a winner -> this move is very good.
+							quality = 100000;
+						}else{
+							// Edges are good.
+							if(xi == 0 || yi == 0 || xi == 7 || yi == 7) {
+								quality += 10;
+							}
+							
+							// Diagonals are very good.
+							if(xi == yi || xi == (7 - yi)) {
+								quality += 50;
+							}
+							
+							// Corners are fantastic.
+							quality += 1000 * (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player()));
+							
+							// Opponents getting corners is very bad.
+							quality -= 1000 * (copyAnalysis.reachableCorners());
+						}
+						
+						if(quality >= bestQuality) {
+							bestQuality = quality;
+							bestX = xi;
+							bestY = yi;
+						}
+					}
+				}
+			}
+			
+			return Some(Position(bestX, bestY));
+		}
+		
+		void gameOver(bool win) { }
+	}
+	
+}
+

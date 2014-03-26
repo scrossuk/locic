@@ -252,6 +252,8 @@ __primitive ssize_t {
 	bool isNegative() const;
 	
 	size_t unsignedValue() const;
+	
+	longlong_t toLongLong() const;
 }
 
 __primitive size_t {
@@ -277,6 +279,8 @@ __primitive size_t {
 	ssize_t signedValue() const;
 	
 	ulonglong_t toULongLong() const;
+	
+	float_t toFloat() const;
 }
 
 __primitive int8_t {

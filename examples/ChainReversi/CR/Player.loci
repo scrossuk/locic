@@ -1,0 +1,14 @@
+// Chain Reversi Human Player.
+
+namespace CR {
+
+	datatype OptionalPosition = Some(Position position) | None();
+	
+	interface Player {
+		OptionalPosition performMove(Board& board);
+		
+		void gameOver(bool win);
+	}
+	
+}
+

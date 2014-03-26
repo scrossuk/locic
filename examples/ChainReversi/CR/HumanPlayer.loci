@@ -1,0 +1,38 @@
+// Chain Reversi Human Player.
+
+namespace CR {
+
+	class HumanPlayer (sf::RenderWindow& window) {
+		static Create = default;
+		
+		OptionalPosition performMove(Board& board) {
+			const auto leftButton = 0;
+			if (sf::Mouse::isButtonPressed(leftButton)) {
+				final auto mousePos = sf::Mouse::getPosition(@window);
+				
+				if (mousePos.x < 0 || mousePos.y < 0) {
+					return None();
+				}
+				
+				final auto x = mousePos.x.toSizeT() / 100u;
+				final auto y = mousePos.y.toSizeT() / 100u;
+				
+				if (x >= board.size().width || y >= board.size().height) {
+					return None();
+				}
+				
+				final auto position = Position(x, y);
+				
+				if (board.isValid(position)) {
+					return Some(position);
+				}
+			}
+			
+			return None();
+		}
+		
+		void gameOver(bool win) { }
+	}
+	
+}
+

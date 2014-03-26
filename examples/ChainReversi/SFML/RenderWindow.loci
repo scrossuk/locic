@@ -22,6 +22,8 @@ uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
 
 uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
 
+void sfWindow_close(sfRenderWindow* window);
+
 namespace sf {
 	
 	class RenderWindow(sfRenderWindow* window) {
@@ -29,8 +31,6 @@ namespace sf {
 			// TitleBar (1) + Resize (2) + Close (4)
 			// (And 8 would give FullScreen...)
 			final int style = 7;
-			
-			printf(C"Got title=%s and style=%d.\n", title, style);
 			
 			return @(sfRenderWindow_create(sfVideoMode(videoMode.width, videoMode.height, videoMode.bitsPerPixel), title, style, null));
 		}
@@ -41,6 +41,10 @@ namespace sf {
 		
 		bool isOpen() const {
 			return sfWindow_isOpen(@window) != 0u;
+		}
+		
+		void close() {
+			sfWindow_close(@window);
 		}
 		
 		bool pollEvent(sfEvent* event) {
@@ -61,6 +65,10 @@ namespace sf {
 		
 		void drawCircle(const CircleShape& shape) {
 			sfRenderWindow_drawCircleShape(@window, shape.raw(), null);
+		}
+		
+		const sfRenderWindow* const windowPointer() const {
+			return @window;
 		}
 	}
 	

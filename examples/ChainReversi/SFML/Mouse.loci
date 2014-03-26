@@ -1,0 +1,24 @@
+// SFML Mouse.
+
+uint8_t sfMouse_isButtonPressed(int button);
+
+sfVector2i sfMouse_getPosition(const sfRenderWindow* const relativeTo);
+
+namespace sf {
+	
+	namespace Mouse {
+	
+		bool isButtonPressed(int button) {
+			return sfMouse_isButtonPressed(button) != 0u;
+		}
+		
+		Vector2i getPosition(const RenderWindow& window) {
+			const auto position = sfMouse_getPosition(window.windowPointer());
+			return Vector2i(position.x, position.y);
+		}
+	
+	}
+	
+}
+
+

@@ -224,7 +224,12 @@ namespace locic {
 					builder.CreateRet(
 						builder.CreateSelect(lessThanZero, builder.CreateNeg(methodOwner), methodOwner));
 				} else if (hasStart(methodName, "to")) {
-					builder.CreateRet(builder.CreateSExtOrTrunc(methodOwner, genType(module, semFunction->type()->getFunctionReturnType())));
+					const auto targetType = genType(module, semFunction->type()->getFunctionReturnType());
+					if (targetType->isFloatTy()) {
+						builder.CreateRet(builder.CreateSIToFP(methodOwner, targetType));
+					} else {
+						builder.CreateRet(builder.CreateSExtOrTrunc(methodOwner, targetType));
+					}
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -310,7 +315,12 @@ namespace locic {
 				} else if (methodName == "signedValue") {
 					builder.CreateRet(methodOwner);
 				} else if (hasStart(methodName, "to")) {
-					builder.CreateRet(builder.CreateZExtOrTrunc(methodOwner, genType(module, semFunction->type()->getFunctionReturnType())));
+					const auto targetType = genType(module, semFunction->type()->getFunctionReturnType());
+					if (targetType->isFloatTy()) {
+						builder.CreateRet(builder.CreateUIToFP(methodOwner, targetType));
+					} else {
+						builder.CreateRet(builder.CreateZExtOrTrunc(methodOwner, targetType));
+					}
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}

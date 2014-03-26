@@ -1,60 +1,207 @@
 // Program entry point.
 
-void print(const char* text);
+double Random(){
+	// return double(rand()) / (double(RAND_MAX) + 1.0);
+	// TODO!!!
+	return 0.0;
+}
 
-void sleep(int seconds);
+double SRandom(){
+	return 2.0 * Random() - 1.0;
+}
 
-double sin(double angle);
-double cos(double angle);
+// TODO: fix ternary operator so this isn't needed.
+CR::Value ternaryValue(bool val, CR::Value first, CR::Value second) {
+	// return val ? first : second;
+	if (val) {
+		return first;
+	} else {
+		return second;
+	}
+}
+
+void initializeBoard(CR::Board& board){
+	for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
+		for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
+			board[CR::Position(x, y)] = CR::Empty();
+		}
+	}
+	
+	const bool position = (Random() > 0.5);
+	
+	final auto width = board.size().width;
+	final auto height = board.size().height;
+
+	// Add initial positions.
+	board[CR::Position(width / 2u - 1u, height / 2u - 1u)] = ternaryValue(position, CR::Red(), CR::Blue());
+	board[CR::Position(width / 2u, height / 2u)]           = ternaryValue(position, CR::Red(), CR::Blue());
+	board[CR::Position(width / 2u - 1u, height / 2u)]      = ternaryValue(position, CR::Blue(), CR::Red());
+	board[CR::Position(width / 2u, height / 2u - 1u)]      = ternaryValue(position, CR::Blue(), CR::Red());
+}
 
 // Entry point.
 int main() {
-	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
-	auto circleShape = sf::CircleShape();
-	circleShape.setRadius(100.0f);
-	circleShape.setOrigin(sf::Vector2f(100.0f, 100.0f));
-	circleShape.setFillColor(sf::Color(255u, 0u, 0u, 255u));
+	final auto boardSize = CR::BoardSize(8u, 8u);
+	final auto initialColour = ternaryValue(Random() > 0.5, CR::Red(), CR::Blue());
+	final auto board = CR::Board(boardSize, initialColour);
 	
+	CR::Value lastWinner = CR::Red();
+	
+	initializeBoard(board);
+	
+	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
 	renderWindow.setFramerateLimit(25);
 	
-	uint8_t i = 0u;
+	// Whether a game is currently active.
+	bool playing = true;
 	
-	double orbitRadius = 200.0;
-	double angle = 0.0;
+	// Whether p0 (false) or p1 (true) is the current player.
+	bool currentPlayer = Random() > 0.5;
+	
+	auto player0 = CR::HumanPlayer(renderWindow);
+	auto player1 = CR::HumanPlayer(renderWindow);
+	
+	/*auto font = sf::Font();
+	if (!font.loadFromFile("Data/font.ttf")) {
+		printf(C"ERROR: Failed to load 'font.ttf' (should be in Data folder).\n");
+		return 1;
+	}*/
 	
 	while (renderWindow.isOpen()) {
 		auto event = sfEvent(0, 0u);
 		
 		while (renderWindow.pollEvent(&event)) {
 			if (event.type == 0) {
-				printf(C"Close requested...\n");
-				return 0;
+				renderWindow.close();
 			}
 		}
 		
-		renderWindow.clear(sf::Color(i, i, i, 255u));
+		if (playing) {
+			if (!board.isComplete()) {
+				if (!currentPlayer) {
+					auto optionalPosition = player0.performMove(board);
+					
+					switch (optionalPosition) {
+						case CR::Some(CR::Position position) {
+							board.placeMove(position);
+							currentPlayer = true;
+						}
+						case CR::None() { }
+					}
+				} else {
+					auto optionalPosition = player1.performMove(board);
+					
+					switch (optionalPosition) {
+						case CR::Some(CR::Position position) {
+							board.placeMove(position);
+							currentPlayer = false;
+						}
+						case CR::None() { }
+					}
+				}
+			} else {
+				// Indicate the result to players.
+				if (!currentPlayer) {
+					player0.gameOver(false);
+					player1.gameOver(true);
+				} else {
+					
+					player0.gameOver(true);
+					player1.gameOver(false);
+				}
+				
+				playing = false;
+				lastWinner = board.opponent();
+			}
+			// clock.restart();
+		}/* else if(clock.getElapsedTime().asSeconds() > 5.0) {
+			playing = true;
+			initializeBoard(board);
+		}*/
 		
-		angle = angle + 0.01;
+		// Clear screen to black.
+		renderWindow.clear(sf::Color(0u, 0u, 0u, 255u));
 		
-		double xPos = cos(angle) * orbitRadius;
-		double yPos = sin(angle) * orbitRadius;
+		for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
+			for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
+				auto backgroundCircle = sf::CircleShape();
+				backgroundCircle.setRadius(45.0f);
+				backgroundCircle.setFillColor(sf::Color(20u, 20u, 20u, 255u));
+				backgroundCircle.setPosition(sf::Vector2f(x.toFloat() * 100.0f + 5.0f, y.toFloat() * 100.0f + 5.0f));
+				renderWindow.drawCircle(backgroundCircle);
+				
+				auto position = CR::Position(x, y);
+				
+				auto foregroundCircle = sf::CircleShape();
+				foregroundCircle.setRadius(40.0f);
+				
+				switch (board[position]) {
+					case CR::Red() {
+						if (playing) {
+							foregroundCircle.setFillColor(sf::Color(255u, 0u, 0u, 255u));
+						} else {
+							foregroundCircle.setFillColor(sf::Color(150u, 0u, 0u, 255u));
+						}
+					}
+					case CR::Blue() {
+						if (playing) {
+							foregroundCircle.setFillColor(sf::Color(0u, 0u, 255u, 255u));
+						} else {
+							foregroundCircle.setFillColor(sf::Color(0u, 0u, 150u, 255u));
+						}
+					}
+					case CR::Empty() {
+						if (board.isValid(position)) {
+							foregroundCircle.setFillColor(sf::Color(70u, 70u, 70u, 255u));
+						} else {
+							foregroundCircle.setFillColor(sf::Color(30u, 30u, 30u, 255u));
+						}
+					}
+				}
+				
+				foregroundCircle.setPosition(sf::Vector2f(x.toFloat() * 100.0f + 10.0f, y.toFloat() * 100.0f + 10.0f));
+				renderWindow.drawCircle(foregroundCircle);
+			}
+		}
 		
-		circleShape.setPosition(sf::Vector2f(400.0f + xPos.toFloat(), 400.0f + yPos.toFloat()));
-		
-		renderWindow.drawCircle(circleShape);
+		/*if (!playing) {
+			auto winnerText = sf::Text();
+			winnerText.setFont(font);
+			winnerText.setCharacterSize(100);
+			winnerText.setColor(sf::Color(255u, 255u, 255u, 255u));
+			
+			switch (lastWinner) {
+				case CR::Red() {
+					winnerText.setString(C"Red wins!");
+				}
+				case CR::Blue() {
+					winnerText.setString(C"Blue wins!");
+				}
+				case CR::Empty() {
+				}
+			}
+			
+			const sf::FloatRect textLocalRect = winnerText.getLocalBounds();
+			winnerText.setOrigin(textLocalRect.left + textLocalRect.width/2.0f,
+					textLocalRect.top + textLocalRect.height/2.0f);
+			
+			winnerText.setPosition(400.0, 400.0);
+			
+			const sf::FloatRect textGlobalRect = winnerText.getGlobalBounds();
+			
+			const float extraWidth = textGlobalRect.width * 0.5f;
+			const float extraHeight = textGlobalRect.height * 0.5f;
+			
+			sf::RectangleShape winnerTextBackground(sf::Vector2f(textGlobalRect.width + extraWidth, textGlobalRect.height + extraHeight));
+			winnerTextBackground.setPosition(textGlobalRect.left - (extraWidth/2.0f), textGlobalRect.top - (extraHeight/2.0f));
+			winnerTextBackground.setFillColor(sf::Color(0, 0, 0, 200));
+			renderWindow.draw(winnerTextBackground);
+			
+			renderWindow.draw(winnerText);
+		}*/
 		
 		renderWindow.display();
-		
-		if (i == 255u) {
-			i = 0u;
-		} else {
-			i = i + 1u;
-		}
 	}
-	
-	printf(C"Terminating...\n");
-	
-	sleep(1);
 	
 	return 0;
 }

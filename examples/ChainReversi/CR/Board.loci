@@ -31,6 +31,23 @@ namespace std {
 			return @begin >= @end;
 		}
 	}
+	
+	template <typename T: counter_type<T>>
+	class counter_incl (T increment, T begin, T end) {
+		static Create = default;
+		
+		T front() {
+			return @begin;
+		}
+		
+		void popFront() {
+			@begin += @increment;
+		}
+		
+		bool empty() {
+			return @begin > @end;
+		}
+	}
 
 }
 
@@ -47,7 +64,7 @@ namespace CR {
 			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
 			
 			for (auto p: std::counter<size_t>(1u, 0u, size.width * size.height)) {
-				data[p] = None();
+				data[p] = Empty();
 			}
 			
 			return @(data, initialPlayer, size);
@@ -62,8 +79,8 @@ namespace CR {
 				return false;
 			}
 			
-			for (auto xi: std::counter<ssize_t>(1, -1, 1)) {
-				for (auto yi: std::counter<ssize_t>(1, -1, 1)) {
+			for (auto xi: std::counter_incl<ssize_t>(1, -1, 1)) {
+				for (auto yi: std::counter_incl<ssize_t>(1, -1, 1)) {
 					if (xi == 0 && yi == 0) {
 						continue;
 					}
@@ -125,8 +142,8 @@ namespace CR {
 							continue;
 						}
 						
-						for (auto xi: std::counter<ssize_t>(1, -1, 1)) {
-							for (auto yi: std::counter<ssize_t>(1, -1, 1)) {
+						for (auto xi: std::counter_incl<ssize_t>(1, -1, 1)) {
+							for (auto yi: std::counter_incl<ssize_t>(1, -1, 1)) {
 								if (xi == 0 && yi == 0) {
 									continue;
 								}
