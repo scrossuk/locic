@@ -112,6 +112,8 @@ __primitive int_t {
 	bool isNegative() const;
 	
 	size_t toSizeT() const;
+	
+	float_t toFloat() const;
 }
 
 __primitive uint_t {

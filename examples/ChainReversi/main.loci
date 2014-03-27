@@ -1,9 +1,10 @@
 // Program entry point.
 
+int rand();
+
 double Random(){
-	// return double(rand()) / (double(RAND_MAX) + 1.0);
-	// TODO!!!
-	return 0.0;
+	// Not a great random number generator...
+	return (rand() % 100).toFloat() / 100.0f;
 }
 
 double SRandom(){
@@ -104,6 +105,7 @@ int main() {
 			clock.restart();
 		} else if(clock.getElapsedTime().asSeconds() > 5.0f) {
 			playing = true;
+			currentPlayer = Random() > 0.5;
 			initializeBoard(board);
 		}
 		
