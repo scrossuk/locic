@@ -492,6 +492,16 @@ namespace locic {
 					const auto i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
 					const auto castPtr = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					builder.CreateRet(castPtr);
+				} else if (methodName == "compare") {
+					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
+					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
+					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto returnValue =
+						builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
+					builder.CreateRet(returnValue);
 				} else {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}

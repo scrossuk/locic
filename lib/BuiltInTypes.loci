@@ -502,6 +502,8 @@ __primitive ptr {
 	
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> index(size_t index) const;
+	
+	int compare(ptr<T> value) const;
 }
 
 template <typename T>

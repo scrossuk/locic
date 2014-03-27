@@ -51,11 +51,9 @@ int main() {
 	auto player0 = CR::HumanPlayer(renderWindow);
 	auto player1 = CR::AIPlayer(renderWindow);
 	
-	/*auto font = sf::Font();
-	if (!font.loadFromFile("Data/font.ttf")) {
-		printf(C"ERROR: Failed to load 'font.ttf' (should be in Data folder).\n");
-		return 1;
-	}*/
+	auto clock = sf::Clock();
+	
+	final auto font = sf::Font(C"Data/font.ttf");
 	
 	while (renderWindow.isOpen()) {
 		auto event = sfEvent(0, 0u);
@@ -103,11 +101,11 @@ int main() {
 				playing = false;
 				lastWinner = board.opponent();
 			}
-			// clock.restart();
-		}/* else if(clock.getElapsedTime().asSeconds() > 5.0) {
+			clock.restart();
+		} else if(clock.getElapsedTime().asSeconds() > 5.0f) {
 			playing = true;
 			initializeBoard(board);
-		}*/
+		}
 		
 		// Clear screen to black.
 		renderWindow.clear(sf::Color(0u, 0u, 0u, 255u));
@@ -154,10 +152,10 @@ int main() {
 			}
 		}
 		
-		/*if (!playing) {
+		if (!playing) {
 			auto winnerText = sf::Text();
 			winnerText.setFont(font);
-			winnerText.setCharacterSize(100);
+			winnerText.setCharacterSize(100u);
 			winnerText.setColor(sf::Color(255u, 255u, 255u, 255u));
 			
 			switch (lastWinner) {
@@ -171,24 +169,24 @@ int main() {
 				}
 			}
 			
-			const sf::FloatRect textLocalRect = winnerText.getLocalBounds();
-			winnerText.setOrigin(textLocalRect.left + textLocalRect.width/2.0f,
-					textLocalRect.top + textLocalRect.height/2.0f);
+			final const auto textLocalRect = winnerText.getLocalBounds();
+			winnerText.setOrigin(sf::Vector2f(textLocalRect.topLeft.x + textLocalRect.size.x / 2.0f,
+					textLocalRect.topLeft.y + textLocalRect.size.y / 2.0f));
 			
-			winnerText.setPosition(400.0, 400.0);
+			winnerText.setPosition(sf::Vector2f(400.0f, 400.0f));
 			
-			const sf::FloatRect textGlobalRect = winnerText.getGlobalBounds();
+			/*final const auto textGlobalRect = winnerText.getGlobalBounds();
 			
-			const float extraWidth = textGlobalRect.width * 0.5f;
-			const float extraHeight = textGlobalRect.height * 0.5f;
+			const float extraWidth = textGlobalRect.size.x * 0.5f;
+			const float extraHeight = textGlobalRect.size.y * 0.5f;
 			
-			sf::RectangleShape winnerTextBackground(sf::Vector2f(textGlobalRect.width + extraWidth, textGlobalRect.height + extraHeight));
-			winnerTextBackground.setPosition(textGlobalRect.left - (extraWidth/2.0f), textGlobalRect.top - (extraHeight/2.0f));
-			winnerTextBackground.setFillColor(sf::Color(0, 0, 0, 200));
-			renderWindow.draw(winnerTextBackground);
+			sf::RectangleShape winnerTextBackground(sf::Vector2f(textGlobalRect.size.x + extraWidth, textGlobalRect.size.y + extraHeight));
+			winnerTextBackground.setPosition(textGlobalRect.topLeft.x - (extraWidth/2.0f), textGlobalRect.topLeft.y - (extraHeight/2.0f));
+			winnerTextBackground.setFillColor(sf::Color(0u, 0u, 0u, 200u));
+			renderWindow.draw(winnerTextBackground);*/
 			
-			renderWindow.draw(winnerText);
-		}*/
+			renderWindow.drawText(winnerText);
+		}
 		
 		renderWindow.display();
 	}

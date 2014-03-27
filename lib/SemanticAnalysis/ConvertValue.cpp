@@ -249,6 +249,7 @@ namespace locic {
 		
 		SEM::Value* ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
+			const auto& location = astValueNode.location();
 			
 			switch (astValueNode->typeEnum) {
 				case AST::Value::BRACKET: {
@@ -275,7 +276,7 @@ namespace locic {
 					
 					if (thisTypeNode.isNone()) {
 						throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
-							astValueNode.location().toString().c_str()));
+							location.toString().c_str()));
 					}
 					
 					// TODO: make const type when in const methods.
@@ -300,10 +301,10 @@ namespace locic {
 					
 					if (node.isNone()) {
 						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
-							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+							name.toString().c_str(), location.toString().c_str()));
 					} else if (node.isNamespace()) {
 						throw ErrorException(makeString("Namespace '%s' is not a valid value at %s.",
-							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+							name.toString().c_str(), location.toString().c_str()));
 					} else if (node.isFunction()) {
 						const auto function = node.getSEMFunction();
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
@@ -311,7 +312,7 @@ namespace locic {
 						if (function->isMethod()) {
 							if (!function->isStaticMethod()) {
 								throw ErrorException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
-									name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+									name.toString().c_str(), location.toString().c_str()));
 							}
 							
 							const Node typeNode = context.lookupName(name.getPrefix());
@@ -330,12 +331,12 @@ namespace locic {
 						
 						if (typeInstance->isInterface()) {
 							throw ErrorException(makeString("Can't construct interface type '%s' at %s.",
-								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+								name.toString().c_str(), location.toString().c_str()));
 						}
 						
 						if (!typeInstance->hasProperty("Create")) {
 							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
-								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+								name.toString().c_str(), location.toString().c_str()));
 						}
 						
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
@@ -358,7 +359,7 @@ namespace locic {
 						const auto specTypeInstance = templateVar->specTypeInstance();
 						if (!specTypeInstance->hasProperty("Create")) {
 							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
-								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
+								name.toString().c_str(), location.toString().c_str()));
 						}
 						
 						const auto defaultConstructor = specTypeInstance->getProperty("Create");
@@ -373,14 +374,19 @@ namespace locic {
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
-					const auto semVar = getParentMemberVariable(context, memberName).getSEMVar();
 					
-					if (semVar == nullptr) {
-						throw ErrorException(makeString("Member variable '@%s' not found.",
-								memberName.c_str()));
+					const auto typeNode = lookupParentType(context);
+					assert(typeNode.isTypeInstance());
+					
+					const auto varNode = typeNode.getChild("#__ivar_" + memberName);
+					
+					if (varNode.isNone()) {
+						throw ErrorException(makeString("Member variable '@%s' not found at position %s.",
+							memberName.c_str(), location.toString().c_str()));
 					}
 					
-					return SEM::Value::MemberVar(semVar);
+					assert(varNode.isVariable());
+					return SEM::Value::MemberVar(varNode.getSEMVar());
 				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
@@ -415,8 +421,9 @@ namespace locic {
 							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr"
 								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr") {
 								throw ErrorException(makeString("reinterpret_cast currently only supports ptr<T>, "
-									"in cast from value %s of type %s to type %s.", sourceValue->toString().c_str(),
-									sourceType->toString().c_str(), targetType->toString().c_str()));
+									"in cast from value %s of type %s to type %s at position %s.",
+									sourceValue->toString().c_str(), sourceType->toString().c_str(),
+									targetType->toString().c_str(), location.toString().c_str()));
 							}
 							return SEM::Value::Reinterpret(ImplicitCast(context, sourceValue, sourceType), targetType);
 						default:
@@ -427,13 +434,13 @@ namespace locic {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
 					
 					if (sourceValue->type()->isLval()) {
-						throw ErrorException(makeString("Can't create lval of value that is already a lval, for value '%s'.",
-							sourceValue->toString().c_str()));
+						throw ErrorException(makeString("Can't create lval of value that is already a lval, for value '%s' at position %s.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
 					}
 					
 					if (sourceValue->type()->isRef()) {
-						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
-							sourceValue->toString().c_str()));
+						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s' at position %s.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
 					}
 					
 					const auto targetType = ConvertType(context, astValueNode->makeLval.targetType);
@@ -443,13 +450,13 @@ namespace locic {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
 					
 					if (sourceValue->type()->isLval()) {
-						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
-							sourceValue->toString().c_str()));
+						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s' at position %s.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
 					}
 					
 					if (sourceValue->type()->isRef()) {
-						throw ErrorException(makeString("Can't create ref of value that is already a ref, for value '%s'.",
-							sourceValue->toString().c_str()));
+						throw ErrorException(makeString("Can't create ref of value that is already a ref, for value '%s' at position %s.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
 					}
 					
 					const auto targetType = ConvertType(context, astValueNode->makeRef.targetType);
@@ -463,17 +470,18 @@ namespace locic {
 					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
 					
 					if (thisTypeNode.isNone()) {
-						throw ErrorException(makeString("Cannot call internal constructor in non-method at %s.",
-							astValueNode.location().toString().c_str()));
+						throw ErrorException(makeString("Cannot call internal constructor in non-method at position %s.",
+							location.toString().c_str()));
 					}
 					
 					const auto thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
 						throw ErrorException(makeString("Internal constructor called "
-							   "with wrong number of arguments; received %llu, expected %llu.",
+							   "with wrong number of arguments; received %llu, expected %llu at position %s.",
 							(unsigned long long) astParameterValueNodes->size(),
-							(unsigned long long) thisTypeInstance->variables().size()));
+							(unsigned long long) thisTypeInstance->variables().size(),
+							location.toString().c_str()));
 					}
 					
 					std::vector<SEM::Value*> semValues;
@@ -509,17 +517,21 @@ namespace locic {
 							
 							if (functionValue->type()->isFunctionVarArg()) {
 								if(astValueList->size() < typeList.size()) {
-									throw ErrorException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
+									throw ErrorException(makeString("Var Arg Function [%s] called with %llu number "
+										"of parameters; expected at least %llu at position %s.",
 										functionValue->toString().c_str(),
 										(unsigned long long) astValueList->size(),
-										(unsigned long long) typeList.size()));
+										(unsigned long long) typeList.size(),
+										location.toString().c_str()));
 								}
 							} else {
 								if(astValueList->size() != typeList.size()) {
-									throw ErrorException(makeString("Function [%s] called with %llu number of parameters; expected %llu.",
+									throw ErrorException(makeString("Function [%s] called with %llu number of "
+										"parameters; expected %llu at position %s.",
 										functionValue->toString().c_str(),
 										(unsigned long long) astValueList->size(),
-										(unsigned long long) typeList.size()));
+										(unsigned long long) typeList.size(),
+										location.toString().c_str()));
 								}
 							}
 							
@@ -552,9 +564,12 @@ namespace locic {
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
 							if (typeList.size() != astValueList->size()) {
-								throw ErrorException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+								throw ErrorException(makeString("Method [%s] called with %llu number of "
+									"parameters; expected %llu at position %s.",
 									functionValue->toString().c_str(),
-									astValueList->size(), typeList.size()));
+									(unsigned long long) astValueList->size(),
+									(unsigned long long) typeList.size(),
+									location.toString().c_str()));
 							}
 							
 							std::vector<SEM::Value*> semValueList;
@@ -576,9 +591,12 @@ namespace locic {
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
 							if (typeList.size() != astValueList->size()) {
-								throw ErrorException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+								throw ErrorException(makeString("Method [%s] called with %llu number of "
+									"parameters; expected %llu at position %s.",
 									functionValue->toString().c_str(),
-									astValueList->size(), typeList.size()));
+									(unsigned long long) astValueList->size(),
+									(unsigned long long) typeList.size(),
+									location.toString().c_str()));
 							}
 							
 							std::vector<SEM::Value*> semValueList;
@@ -592,8 +610,8 @@ namespace locic {
 							return SEM::Value::InterfaceMethodCall(functionValue, semValueList);
 						}
 						default: {
-							throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method.",
-								functionValue->toString().c_str()));
+							throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
+								functionValue->toString().c_str(), location.toString().c_str()));
 						}
 					}
 				}

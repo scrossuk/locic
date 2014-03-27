@@ -1,0 +1,99 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfText { };
+
+sfText* sfText_create();
+
+sfText* sfText_copy(const sfText* const text);
+
+void sfText_destroy(sfText* text);
+
+void sfText_setPosition(sfText* text, sfVector2f position);
+
+void sfText_setRotation(sfText* text, float angle);
+
+void sfText_setColor(sfText* text, sfColor color);
+
+void sfText_setCharacterSize(sfText* text, unsigned int size);
+
+void sfText_setString(sfText* text, const char* const string);
+
+void sfText_setOrigin(sfText* text, sfVector2f position);
+
+void sfText_setFont(sfText* text, const sfFont* const font);
+
+sfFloatRect sfText_getLocalBounds(const sfText* const text);
+
+sfFloatRect sfText_getGlobalBounds(const sfText* const text);
+
+struct sfFloatRect {
+	float left;
+	float top;
+	float width;
+	float height;
+};
+
+namespace sf {
+	
+	datatype FloatRect(Vector2f topLeft, Vector2f size);
+	
+	class Text(sfText* text) {
+		static Create () {
+			return @(sfText_create());
+		}
+		
+		Text copy() const {
+			return @(sfText_copy(@text));
+		}
+		
+		~ {
+			sfText_destroy(@text);
+		}
+		
+		const sfText* const raw() const {
+			return @text;
+		}
+		
+		void setPosition(Vector2f position) {
+			sfText_setPosition(@text, sfVector2f(position.x, position.y));
+		}
+		
+		void setRotation(float rotation) {
+			sfText_setRotation(@text, rotation);
+		}
+		
+		void setColor(Color color) {
+			sfText_setColor(@text, sfColor(color.r, color.g, color.b, color.a));
+		}
+		
+		void setCharacterSize(unsigned int size) {
+			sfText_setCharacterSize(@text, size);
+		}
+		
+		void setString(const char* const string) {
+			sfText_setString(@text, string);
+		}
+		
+		void setOrigin(Vector2f position) {
+			sfText_setOrigin(@text, sfVector2f(position.x, position.y));
+		}
+		
+		void setFont(const Font& font) {
+			sfText_setFont(@text, font.raw());
+		}
+		
+		FloatRect getLocalBounds() const {
+			final auto rect = sfText_getLocalBounds(@text);
+			return FloatRect(Vector2f(rect.left, rect.top), Vector2f(rect.width, rect.height));
+		}
+		
+		FloatRect getGlobalBounds() const {
+			final auto rect = sfText_getGlobalBounds(@text);
+			return FloatRect(Vector2f(rect.left, rect.top), Vector2f(rect.width, rect.height));
+		}
+		
+	}
+	
+}
+
+

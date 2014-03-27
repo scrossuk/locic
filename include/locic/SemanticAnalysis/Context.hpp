@@ -91,8 +91,6 @@ namespace locic {
 		
 		Node lookupParentType(const Context& context);
 		
-		Node getParentMemberVariable(const Context& context, const std::string& varName);
-		
 		Node lookupParentFunction(const Context& context);
 		
 		SEM::Type * getParentFunctionReturnType(const Context& context);

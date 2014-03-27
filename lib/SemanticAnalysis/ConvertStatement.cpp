@@ -73,19 +73,21 @@ namespace locic {
 		}
 		
 		SEM::Statement* ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
-			switch(statement->typeEnum) {
+			const auto& location = statement.location();
+			
+			switch (statement->typeEnum) {
 				case AST::Statement::VALUE: {
 					const auto value = ConvertValue(context, statement->valueStmt.value);
 					if (statement->valueStmt.hasVoidCast) {
 						if (value->type()->isVoid()) {
-							throw ErrorException(makeString("Void explicitly ignored in expression '%s'.",
-								value->toString().c_str()));
+							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
+								value->toString().c_str(), location.toString().c_str()));
 						}
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(SEM::Type::Void(), value));
 					} else {
 						if (!value->type()->isVoid()) {
-							throw ErrorException(makeString("Non-void value result ignored in expression '%s'.",
-								value->toString().c_str()));
+							throw ErrorException(makeString("Non-void value result ignored in expression '%s' at position %s.",
+								value->toString().c_str(), location.toString().c_str()));
 						}
 						return SEM::Statement::ValueStmt(value);
 					}
@@ -130,13 +132,15 @@ namespace locic {
 						
 						// Check for duplicate cases.
 						if (!insertResult.second) {
-							throw ErrorException(makeString("Duplicate switch case for type '%s'.",
-								(*(insertResult.first))->refToString().c_str()));
+							throw ErrorException(makeString("Duplicate switch case for type '%s' at position %s.",
+								(*(insertResult.first))->refToString().c_str(),
+								location.toString().c_str()));
 						}
 					}
 					
 					if (caseList.empty()) {
-						throw ErrorException("Switch statement must contain at least one case.");
+						throw ErrorException(makeString("Switch statement must contain at least one case at position %s.",
+							location.toString().c_str()));
 					}
 					
 					// Check that all switch cases are based
@@ -146,14 +150,16 @@ namespace locic {
 						auto caseTypeInstanceParent = caseTypeInstance->parent();
 						
 						if (caseTypeInstanceParent == nullptr) {
-							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype.",
-								caseTypeInstance->refToString().c_str()));
+							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
+								caseTypeInstance->refToString().c_str(),
+								location.toString().c_str()));
 						}
 						
 						if (caseTypeInstanceParent != switchTypeInstance) {
-							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s'.",
+							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
 								caseTypeInstance->refToString().c_str(),
-								(*(switchCaseTypeInstances.begin()))->refToString().c_str()));
+								(*(switchCaseTypeInstances.begin()))->refToString().c_str(),
+								location.toString().c_str()));
 						}
 					}
 					
@@ -164,8 +170,8 @@ namespace locic {
 						// Check all cases are handled.
 						for (auto variantTypeInstance: switchTypeInstance->variants()) {
 							if (switchCaseTypeInstances.find(variantTypeInstance) == switchCaseTypeInstances.end()) {
-								throw ErrorException(makeString("Union datatype member '%s' not handled in switch.",
-									variantTypeInstance->refToString().c_str()));
+								throw ErrorException(makeString("Union datatype member '%s' not handled in switch at position %s.",
+									variantTypeInstance->refToString().c_str(), location.toString().c_str()));
 							}
 						}
 					}
@@ -201,7 +207,9 @@ namespace locic {
 						const auto& astVar = astCatch->var;
 						
 						if (astVar->kind != AST::TypeVar::NAMEDVAR) {
-							throw ErrorException("Try statement catch clauses may only contain named variables (no pattern matching).");
+							throw ErrorException(makeString("Try statement catch clauses may only "
+								"contain named variables (no pattern matching) at position %s.",
+								location.toString().c_str()));
 						}
 						
 						// Special case handling for catch variables,
@@ -209,7 +217,8 @@ namespace locic {
 						const auto varType = ConvertType(context, astVar->namedVar.type);
 						if (!varType->isException()) {
 							throw ErrorException(makeString("Type '%s' is not an exception type and therefore "
-								"cannot be used in a catch clause.", varType->toString().c_str()));
+								"cannot be used in a catch clause at position %s.",
+								varType->toString().c_str(), location.toString().c_str()));
 						}
 						
 						const auto semVar = SEM::Var::Basic(varType, varType);
@@ -250,8 +259,9 @@ namespace locic {
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
 					if (!getParentFunctionReturnType(context)->isVoid()) {
-						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type.",
-							lookupParentFunction(context).getSEMFunction()->name().toString().c_str()));
+						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
+							lookupParentFunction(context).getSEMFunction()->name().toString().c_str(),
+							location.toString().c_str()));
 					}
 					
 					return SEM::Statement::ReturnVoid();
@@ -270,8 +280,8 @@ namespace locic {
 				case AST::Statement::THROW: {
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
 					if (!semValue->type()->isObject() || !semValue->type()->getObjectType()->isException()) {
-						throw ErrorException(makeString("Cannot throw non-exception value '%s'.",
-								semValue->toString().c_str()));
+						throw ErrorException(makeString("Cannot throw non-exception value '%s' at position %s.",
+								semValue->toString().c_str(), location.toString().c_str()));
 					}
 					return SEM::Statement::Throw(semValue);
 				}

@@ -2,13 +2,13 @@
 
 namespace CR {
 
-	class AIPlayer (sf::RenderWindow& window, bool isWaiting/*, sf::Clock clock*/) {
+	class AIPlayer (sf::RenderWindow& window, bool isWaiting, sf::Clock clock) {
 		static Create(sf::RenderWindow& window) {
-			return @(window, false/*, sf::Clock()*/);
+			return @(window, false, sf::Clock());
 		}
 		
 		OptionalPosition performMove(const Board& board) {
-			/*// This AI is very fast; too fast!
+			// This AI is very fast; too fast!
 			// Hence it must wait for half a
 			// second before playing each move.
 			if (!@isWaiting) {
@@ -17,9 +17,9 @@ namespace CR {
 				return None();
 			}
 			
-			if (@clock.getElapsedTime().asSeconds() < 0.5) {
+			if (@clock.getElapsedTime().asSeconds() < 0.5f) {
 				return None();
-			}*/
+			}
 			
 			@isWaiting = false;
 			

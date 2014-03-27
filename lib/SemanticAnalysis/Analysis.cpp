@@ -490,8 +490,8 @@ namespace locic {
 				node.attach("Create", Node::Function(AST::Node<AST::Function>(), constructor));
 			}
 			
-			// Add default implicit copy for datatypes if available.
-			if ((semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
+			// Add default implicit copy if available.
+			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
 				const auto implicitCopy = CreateDefaultImplicitCopy(semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("implicitCopy", implicitCopy));
 				

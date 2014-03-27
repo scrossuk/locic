@@ -147,14 +147,6 @@ namespace locic {
 			return Node::None();
 		}
 		
-		Node getParentMemberVariable(const Context& context, const std::string& varName) {
-			const Node typeNode = lookupParentType(context);
-			assert(typeNode.isTypeInstance());
-			const Node varNode = typeNode.getChild("#__ivar_" + varName);
-			assert(varNode.isVariable());
-			return varNode;
-		}
-		
 		Node lookupParentFunction(const Context& context) {
 			const Context* currentContext = &context;
 			

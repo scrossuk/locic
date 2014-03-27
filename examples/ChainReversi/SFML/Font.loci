@@ -1,0 +1,39 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfFont { };
+
+sfFont* sfFont_createFromFile(const char* const filename);
+
+sfFont* sfFont_copy(const sfFont* const font);
+
+void sfFont_destroy(sfFont* font);
+
+namespace sf {
+	
+	exception FontLoadError();
+	
+	class Font(sfFont* font) {
+		static Create(const char* const filename) {
+			final auto font = sfFont_createFromFile(filename);
+			if (font == null) {
+				throw FontLoadError();
+			}
+			return @(font);
+		}
+		
+		Font copy() const {
+			return @(sfFont_copy(@font));
+		}
+		
+		~ {
+			sfFont_destroy(@font);
+		}
+		
+		const sfFont* const raw() const {
+			return @font;
+		}
+	}
+	
+}
+
+

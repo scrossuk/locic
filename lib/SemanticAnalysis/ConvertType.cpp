@@ -16,6 +16,8 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+			const auto& location = astSymbol.location();
+			
 			const Name fullName = astSymbol->createName();
 			assert(fullName.size() == astSymbol->size());
 			
@@ -35,9 +37,11 @@ namespace locic {
 					if (numTemplateVariables != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
 							"arguments provided for type '%s'; %llu were required, "
-							"but %llu were provided.", name.toString().c_str(),
+							"but %llu were provided at position %s.",
+							name.toString().c_str(),
 							(unsigned long long) numTemplateVariables,
-							(unsigned long long) numTemplateArguments));
+							(unsigned long long) numTemplateArguments,
+							location.toString().c_str()));
 					}
 					
 					// First generate template var -> type map.
@@ -52,9 +56,11 @@ namespace locic {
 						
 						if (templateTypeValue->isInterface()) {
 							throw ErrorException(makeString("Cannot use abstract type '%s' "
-								"as template parameter %llu for type '%s'.",
+								"as template parameter %llu for type '%s' at position %s.",
 								templateTypeValue->getObjectType()->name().toString().c_str(),
-								(unsigned long long) j, name.toString().c_str()));
+								(unsigned long long) j,
+								name.toString().c_str(),
+								location.toString().c_str()));
 						}
 						
 						const auto templateVariable = typeInstance->templateVariables().at(j);
@@ -69,27 +75,33 @@ namespace locic {
 							
 							if (!templateTypeValue->isObject()) {
 								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
-									"constraint for template parameter %llu of type '%s'.",
+									"constraint for template parameter %llu of type '%s' at position %s.",
 									templateTypeValue->toString().c_str(),
-									(unsigned long long) j, name.toString().c_str()));
+									(unsigned long long) j,
+									name.toString().c_str(),
+									location.toString().c_str()));
 							}
 							
 							const auto specType = templateVariable->specType()->substitute(templateVarMap);
 							
 							if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
 								throw ErrorException(makeString("Type '%s' does not satisfy "
-									"constraint for template parameter %llu of type '%s'.",
+									"constraint for template parameter %llu of type '%s' at position %s.",
 									templateTypeValue->getObjectType()->name().toString().c_str(),
-									(unsigned long long) j, name.toString().c_str()));
+									(unsigned long long) j,
+									name.toString().c_str(),
+									location.toString().c_str()));
 							}
 						}
 					}
 				} else {
 					if (numTemplateArguments > 0) {
 						throw ErrorException(makeString("%llu template "
-							"arguments provided for non-type node '%s'; none should be provided.",
+							"arguments provided for non-type node '%s'; "
+							"none should be provided at position %s.",
 							(unsigned long long) numTemplateArguments,
-							name.toString().c_str()));
+							name.toString().c_str(),
+							location.toString().c_str()));
 					}
 				}
 			}
@@ -164,7 +176,8 @@ namespace locic {
 				const auto templateVar = objectNode.getSEMTemplateVar();
 				return SEM::Type::TemplateVarRef(templateVar);
 			} else {
-				throw ErrorException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
+				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
+					name.toString().c_str(), symbol.location().toString().c_str()));
 			}
 		}
 		
