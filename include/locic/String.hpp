@@ -1,6 +1,7 @@
 #ifndef LOCIC_STRING_HPP
 #define LOCIC_STRING_HPP
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -11,14 +12,37 @@ namespace locic{
 	
 	template <typename T>
 	std::string makeArrayString(const std::vector<T>& array){
-		std::string s = makeString("Array[size = %llu]{",
-			(unsigned long long) array.size());;
+		auto s = makeString("Array [size = %llu] {",
+			(unsigned long long) array.size());
 		
 		for(size_t i = 0; i < array.size(); i++){
 			if(i > 0) s += ", ";
 			s += makeString("%llu: %s",
 				(unsigned long long) i,
 				array.at(i)->toString().c_str());
+		}
+		
+		s += "}";
+		
+		return s;
+	}
+	
+	template <typename T>
+	std::string makeMapString(const std::map<std::string, T>& map){
+		auto s = makeString("Map [size = %llu] {",
+			(unsigned long long) map.size());
+		
+		bool isFirst = true;
+		for (const auto& pair: map) {
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				s += ", ";
+			}
+			
+			s += makeString("%s: %s",
+				pair.first.c_str(),
+				pair.second->toString().c_str());
 		}
 		
 		s += "}";

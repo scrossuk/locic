@@ -58,7 +58,7 @@ namespace locic {
 					const auto destNumArgs = destType->templateArguments().size();
 					
 					if (sourceNumArgs != destNumArgs) {
-						// throw TodoException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
+						// throw ErrorException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
 						//	sourceType->toString().c_str(), destType->toString().c_str()));
 						return nullptr;
 					}
@@ -120,7 +120,7 @@ namespace locic {
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
-						throw TodoException(makeString("Can't cast from template type '%s' to template type '%s'.",
+						throw ErrorException(makeString("Can't cast from template type '%s' to template type '%s'.",
 							sourceType->toString().c_str(), destType->toString().c_str()));
 					}
 					return sourceType->withoutTags();
@@ -242,21 +242,24 @@ namespace locic {
 			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();
 			const auto interfaceTemplateVarMap = interfaceType->generateTemplateVarMap();
 			
-			// NOTE: This code relies on the function arrays being sorted
-			//       (which is performed by an early Semantic Analysis pass).
-			for (size_t objectPos = 0, interfacePos = 0; interfacePos < interfaceInstance->functions().size(); objectPos++) {
-				const auto interfaceFunction = interfaceInstance->functions().at(interfacePos);
+			auto objectIterator = objectInstance->functions().begin();
+			auto interfaceIterator = interfaceInstance->functions().begin();
+			
+			for (; interfaceIterator != interfaceInstance->functions().end(); ++objectIterator) {
+				const auto interfaceFunction = interfaceIterator->second;
 				
-				if (objectPos >= objectInstance->functions().size()) {
+				if (objectIterator == objectInstance->functions().end()) {
 					// If all the object methods have been considered, but
 					// there's still an interface method to consider, then
 					// that method must not be present in the object type.
 					return false;
 				}
 				
-				const auto objectFunction = objectInstance->functions().at(objectPos);
+				const auto objectFunction = objectIterator->second;
 				
-				if (!methodNamesMatch(objectFunction->name().last(), interfaceFunction->name().last())) continue;
+				if (!methodNamesMatch(objectFunction->name().last(), interfaceFunction->name().last())) {
+					continue;
+				}
 				
 				// Can't cast mutator method to const method.
 				if (!objectFunction->isConstMethod() && interfaceFunction->isConstMethod()) {
@@ -272,7 +275,7 @@ namespace locic {
 					return false;
 				}
 				
-				interfacePos++;
+				++interfaceIterator;
 			}
 			
 			return true;
@@ -316,7 +319,7 @@ namespace locic {
 				return ImplicitCastFormatOnly(constructedValue, destType);
 			} else {
 				const auto positionString = getValuePositionString(context, value);
-				throw TodoException(makeString("No '%s' constructor specified for type '%s'%s.",
+				throw ErrorException(makeString("No '%s' constructor specified for type '%s'%s.",
 					constructorName.c_str(), destType->toString().c_str(), positionString.c_str()));
 			}
 		}
@@ -376,7 +379,7 @@ namespace locic {
 				} else {
 					// There's no other way to make 'null' into an object,
 					// so just throw an exception here.
-					throw TodoException(makeString("No null constructor specified for type '%s'.",
+					throw ErrorException(makeString("No null constructor specified for type '%s'.",
 						destType->toString().c_str()));
 				}
 			}
@@ -404,7 +407,7 @@ namespace locic {
 				if (castResult != nullptr) {
 					return castResult;
 				} else if (formatOnly) {
-					throw TodoException(makeString("Format only cast failed from type %s to type %s.",
+					throw ErrorException(makeString("Format only cast failed from type %s to type %s.",
 						value->type()->toString().c_str(), destType->toString().c_str()));
 				}
 			}
@@ -508,10 +511,10 @@ namespace locic {
 			// Try to use implicitCopy-by-reference to turn a
 			// reference into a basic value.
 			if (sourceType->isRef() && !destType->isRef()) {
-				auto sourceDerefType = getDerefType(sourceType);
-				if (sourceDerefType->supportsImplicitCopy()) {
+				const auto sourceDerefType = getDerefType(sourceType);
+				if (supportsImplicitCopy(sourceDerefType)) {
 					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
+						CallPropertyMethod(derefValue(value), "implicitCopy", {}) :
 						derefAll(value);
 					
 					const auto convertCast = ImplicitCastConvert(context, copyValue, destType);
@@ -520,7 +523,7 @@ namespace locic {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
-					throw TodoException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
+					throw ErrorException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
 							"in cast from type %s to type %s.",
 						sourceDerefType->nameToString().c_str(),
 						sourceType->toString().c_str(),
@@ -529,7 +532,7 @@ namespace locic {
 			}
 			
 			// Try to use implicitCopy to make a value non-const.
-			if (sourceType->isConst() && !destType->isConst() && sourceType->isObjectOrTemplateVar() && sourceType->supportsImplicitCopy()) {
+			if (sourceType->isConst() && !destType->isConst() && sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(sourceType)) {
 				SEM::Value* copyValue = CallPropertyMethod(value, "implicitCopy", std::vector<SEM::Value*>());
 				if (!copyValue->type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(context, copyValue, destType);
@@ -547,11 +550,11 @@ namespace locic {
 			const auto positionString = getValuePositionString(context, value);
 			
 			if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {
-				throw TodoException(makeString("Can't implicitly cast type '%s' to type '%s'.",
+				throw ErrorException(makeString("Can't implicitly cast type '%s' to type '%s'.",
 					value->type()->toString().c_str(),
 					destType->toString().c_str()));
 			} else {
-				throw TodoException(makeString("Can't implicitly cast value '%s' to type '%s'%s.",
+				throw ErrorException(makeString("Can't implicitly cast value '%s' to type '%s'%s.",
 					value->toString().c_str(),
 					destType->toString().c_str(),
 					positionString.c_str()));
@@ -564,15 +567,39 @@ namespace locic {
 			return result != nullptr;
 		}
 		
+		namespace {
+			
+			SEM::Type* getUnionDatatypeParent(SEM::Type* type) {
+				while (type->isLvalOrRef()) {
+					type = type->lvalOrRefTarget();
+				}
+				
+				if (!type->isDatatype()) {
+					return nullptr;
+				}
+				
+				const auto parent = type->getObjectType()->parent();
+				if (parent == nullptr) {
+					return nullptr;
+				}
+				
+				return SEM::Type::Object(parent, type->templateArguments());
+			}
+			
+		}
+		
 		SEM::Type* UnifyTypes(Context& context, SEM::Type* first, SEM::Type* second) {
-			// A little simplistic, given that this assumes types
-			// can only be unified by one type being converted to
-			// another (and ignores the possibility of both types
-			// being converted to a seperate third type).
+			// Try to convert both types to their parent (if any).
+			const auto firstParent = getUnionDatatypeParent(first);
+			if (firstParent != nullptr &&
+				CanDoImplicitCast(context, first, firstParent) &&
+				CanDoImplicitCast(context, second, firstParent)) {
+				return firstParent;
+			}
+			
 			if (CanDoImplicitCast(context, first, second)) {
 				return second;
 			} else {
-				(void) ImplicitCast(context, SEM::Value::CastDummy(second), first);
 				return first;
 			}
 		}

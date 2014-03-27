@@ -45,27 +45,25 @@ namespace CR {
 					if (copyAnalysis.hasWinner()) {
 						// Opponent has a winner -> this move is bad.
 						quality = 1u;
+					} else if (boardCopy.isComplete()) {
+						// This move is a winner -> this move is very good.
+						quality = 100000u;
 					} else {
-						if (boardCopy.isComplete()) {
-							// This move is a winner -> this move is very good.
-							quality = 100000u;
-						} else {
-							// Edges are good.
-							if (xi == 0u || yi == 0u || xi == 7u || yi == 7u) {
-								quality += 10u;
-							}
-							
-							// Diagonals are very good.
-							if (xi == yi || (xi + yi) == 7u) {
-								quality += 50u;
-							}
-							
-							// Corners are fantastic.
-							quality += (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player())) * 1000u;
-							
-							// Opponents getting corners is very bad.
-							quality -= copyAnalysis.reachableCorners() * 1000u;
+						// Edges are good.
+						if (xi == 0u || yi == 0u || xi == 7u || yi == 7u) {
+							quality += 10u;
 						}
+						
+						// Diagonals are very good.
+						if (xi == yi || (xi + yi) == 7u) {
+							quality += 50u;
+						}
+						
+						// Corners are fantastic.
+						quality += (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player())) * 1000u;
+						
+						// Opponents getting corners is very bad.
+						quality -= copyAnalysis.reachableCorners() * 1000u;
 					}
 					
 					if (quality >= bestQuality) {

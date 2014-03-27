@@ -220,13 +220,13 @@ namespace locic {
 				
 		};
 		
-		class TodoException: public Exception {
+		class ErrorException: public Exception {
 			public:
-				inline TodoException(const std::string& message)
+				inline ErrorException(const std::string& message)
 					: message_(message) { }
 					
 				inline std::string toString() const {
-					return makeString("[TODO EXCEPTION] %s", message_.c_str());
+					return message_;
 				}
 				
 			private:

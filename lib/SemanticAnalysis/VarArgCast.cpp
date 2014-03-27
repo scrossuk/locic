@@ -1,4 +1,5 @@
 #include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
@@ -57,7 +58,7 @@ namespace locic {
 				if (result != NULL) return result;
 			}
 			
-			if (value->type()->isRef() && derefType->supportsImplicitCopy()) {
+			if (value->type()->isRef() && supportsImplicitCopy(derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
 					CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
@@ -76,7 +77,7 @@ namespace locic {
 		SEM::Value* VarArgCast(SEM::Value* value) {
 			auto result = VarArgCastSearch(value);
 			if (result == NULL) {
-				throw TodoException(makeString("Var arg parameter '%s' has invalid type '%s'.",
+				throw ErrorException(makeString("Var arg parameter '%s' has invalid type '%s'.",
 					value->toString().c_str(), value->type()->toString().c_str()));
 			}
 			return result;

@@ -33,7 +33,7 @@ namespace locic {
 					const auto typeInstance = objectNode.getSEMTypeInstance();
 					const size_t numTemplateVariables = typeInstance->templateVariables().size();
 					if (numTemplateVariables != numTemplateArguments) {
-						throw TodoException(makeString("Incorrect number of template "
+						throw ErrorException(makeString("Incorrect number of template "
 							"arguments provided for type '%s'; %llu were required, "
 							"but %llu were provided.", name.toString().c_str(),
 							(unsigned long long) numTemplateVariables,
@@ -51,7 +51,7 @@ namespace locic {
 						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
 						
 						if (templateTypeValue->isInterface()) {
-							throw TodoException(makeString("Cannot use abstract type '%s' "
+							throw ErrorException(makeString("Cannot use abstract type '%s' "
 								"as template parameter %llu for type '%s'.",
 								templateTypeValue->getObjectType()->name().toString().c_str(),
 								(unsigned long long) j, name.toString().c_str()));
@@ -68,7 +68,7 @@ namespace locic {
 							}
 							
 							if (!templateTypeValue->isObject()) {
-								throw TodoException(makeString("Non-object type '%s' cannot satisfy "
+								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
 									"constraint for template parameter %llu of type '%s'.",
 									templateTypeValue->toString().c_str(),
 									(unsigned long long) j, name.toString().c_str()));
@@ -77,7 +77,7 @@ namespace locic {
 							const auto specType = templateVariable->specType()->substitute(templateVarMap);
 							
 							if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
-								throw TodoException(makeString("Type '%s' does not satisfy "
+								throw ErrorException(makeString("Type '%s' does not satisfy "
 									"constraint for template parameter %llu of type '%s'.",
 									templateTypeValue->getObjectType()->name().toString().c_str(),
 									(unsigned long long) j, name.toString().c_str()));
@@ -86,7 +86,7 @@ namespace locic {
 					}
 				} else {
 					if (numTemplateArguments > 0) {
-						throw TodoException(makeString("%llu template "
+						throw ErrorException(makeString("%llu template "
 							"arguments provided for non-type node '%s'; none should be provided.",
 							(unsigned long long) numTemplateArguments,
 							name.toString().c_str()));
@@ -117,7 +117,7 @@ namespace locic {
 			const auto objectNode = context.lookupName(name);
 			
 			if (!objectNode.isTypeInstance()) {
-				throw TodoException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
+				throw ErrorException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
 			}
 			
 			const auto typeInstance = objectNode.getSEMTypeInstance();
@@ -132,7 +132,7 @@ namespace locic {
 			const auto objectNode = context.lookupName(name);
 			
 			if (!objectNode.isTypeInstance()) {
-				throw TodoException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
+				throw ErrorException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
 			}
 			
 			const auto typeInstance = objectNode.getSEMTypeInstance();
@@ -164,7 +164,7 @@ namespace locic {
 				const auto templateVar = objectNode.getSEMTemplateVar();
 				return SEM::Type::TemplateVarRef(templateVar);
 			} else {
-				throw TodoException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
+				throw ErrorException(makeString("Unknown type with name '%s'.", name.toString().c_str()));
 			}
 		}
 		
@@ -213,7 +213,7 @@ namespace locic {
 						SEM::Type* paramType = ConvertType(context, astParamType);
 						
 						if(paramType->isVoid()) {
-							throw TodoException("Parameter type (inside function type) cannot be void.");
+							throw ErrorException("Parameter type (inside function type) cannot be void.");
 						}
 						
 						parameterTypes.push_back(paramType);

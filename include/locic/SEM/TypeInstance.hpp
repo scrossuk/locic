@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_TYPEINSTANCE_HPP
 #define LOCIC_SEM_TYPEINSTANCE_HPP
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -78,6 +79,7 @@ namespace locic {
 				 * 
 				 */
 				Type* selfType() const;
+				std::vector<Type*> selfTemplateArgs() const;
 				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
@@ -88,8 +90,8 @@ namespace locic {
 				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
 				
-				std::vector<Function*>& functions();
-				const std::vector<Function*>& functions() const;
+				std::map<std::string, Function*>& functions();
+				const std::map<std::string, Function*>& functions() const;
 				
 				std::vector<Type*>& constructTypes();
 				const std::vector<Type*>& constructTypes() const;
@@ -120,7 +122,7 @@ namespace locic {
 				std::vector<TemplateVar*> templateVariables_;
 				std::vector<TypeInstance*> variants_;
 				std::vector<Var*> variables_;
-				std::vector<Function*> functions_;
+				std::map<std::string, Function*> functions_;
 				std::vector<Type*> constructTypes_;
 				
 		};

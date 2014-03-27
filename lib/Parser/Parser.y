@@ -128,6 +128,10 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::SwitchCase>* switchCase;
 	locic::AST::Node<locic::AST::SwitchCaseList>* switchCaseList;
 	
+	// If clause.
+	locic::AST::Node<locic::AST::IfClause>* ifClause;
+	locic::AST::Node<locic::AST::IfClauseList>* ifClauseList;
+	
 	// Program code.
 	locic::AST::Node<locic::AST::Scope>* scope;
 	locic::AST::Node<locic::AST::Statement>* statement;
@@ -313,6 +317,10 @@ const T& GETSYM(T* value) {
 
 %type <switchCase> switchCase
 %type <switchCaseList> switchCaseList
+
+%type <ifClause> ifClause
+%type <ifClauseList> ifClauseList
+%type <statement> ifStatement
 
 %type <scope> scope
 %type <statementList> statementList
@@ -1066,19 +1074,44 @@ catchClauseList:
 	}
 	;
 	
+ifClause:
+	IF LROUNDBRACKET value RROUNDBRACKET scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::IfClause(GETSYM($3), GETSYM($5))));
+	}
+	;
+	
+ifClauseList:
+	ifClause
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::IfClauseList(1, GETSYM($1))));
+	}
+	| ifClauseList ELSE ifClause
+	{
+		(GETSYM($1))->push_back(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+	
+ifStatement:
+	ifClauseList
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::If(GETSYM($1), locic::AST::makeNode(LOC(&@1), new locic::AST::Scope()))));
+	}
+	| ifClauseList ELSE scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::If(GETSYM($1), GETSYM($3))));
+	}
+	;
+	
 scopedStatement:
 	scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ScopeStmt(GETSYM($1))));
 	}
-	| IF LROUNDBRACKET value RROUNDBRACKET scope
+	| ifStatement
 	{
-		// One sided if statement (i.e. nothing happens in 'else' case).
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::If(GETSYM($3), GETSYM($5), locic::AST::makeNode(LOC(&@1), new locic::AST::Scope()))));
-	}
-	| IF LROUNDBRACKET value RROUNDBRACKET scope ELSE scope
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::If(GETSYM($3), GETSYM($5), GETSYM($7))));
+		$$ = $1;
 	}
 	| SWITCH LROUNDBRACKET value RROUNDBRACKET LCURLYBRACKET switchCaseList RCURLYBRACKET
 	{

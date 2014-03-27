@@ -9,6 +9,7 @@ namespace locic {
 	namespace SEM {
 	
 		class CatchClause;
+		class IfClause;
 		class Scope;
 		class SwitchCase;
 		class Type;
@@ -37,7 +38,7 @@ namespace locic {
 				
 				static Statement* InitialiseStmt(Var* var, Value* value);
 				
-				static Statement* If(Value* condition, Scope* ifTrue, Scope* ifFalse);
+				static Statement* If(const std::vector<IfClause*>& ifClauses, Scope* elseScope);
 				
 				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList);
 				
@@ -73,13 +74,9 @@ namespace locic {
 				
 				bool isIfStatement() const;
 				
-				Value* getIfCondition() const;
+				const std::vector<IfClause*>& getIfClauseList() const;
 				
-				Scope& getIfTrueScope() const;
-				
-				bool hasIfFalseScope() const;
-				
-				Scope& getIfFalseScope() const;
+				Scope& getIfElseScope() const;
 				
 				bool isSwitchStatement() const;
 				
@@ -134,8 +131,8 @@ namespace locic {
 				} initialiseStmt_;
 				
 				struct {
-					Value* condition;
-					Scope* ifTrue, * ifFalse;
+					std::vector<IfClause*> clauseList;
+					Scope* elseScope;
 				} ifStmt_;
 				
 				struct {

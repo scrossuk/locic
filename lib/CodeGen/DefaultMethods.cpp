@@ -15,6 +15,9 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		// TODO: move all of this into Semantic Analysis
+		// (i.e. generate SEM trees for default methods).
+		
 		namespace {
 			
 			llvm::Value* genDefaultConstructor(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {
@@ -46,6 +49,21 @@ namespace locic {
 				return genLoad(functionBuilder, functionBuilder.getContextValue(), parent);
 			}
 			
+			/*llvm::Value* genDefaultCompare(Function& functionBuilder, SEM::Type* parent, SEM::Function* function) {
+				assert(function->isMethod() && !function->isStaticMethod());
+				(void) function;
+				
+				assert(parent->isObject());
+				assert(parent->isUnionDatatype());
+				
+				// TODO: this code should call compare method of children.
+				
+				const auto rawOperand = functionBuilder.getArg(0);
+				const auto operand = isTypeSizeKnownInThisModule
+				
+				return genLoad(functionBuilder, functionBuilder.getContextValue(), parent);
+			}*/
+			
 		}
 		
 		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
@@ -64,6 +82,8 @@ namespace locic {
 				returnValue = genDefaultConstructor(functionBuilder, parent, function);
 			} else if (function->name().last() == "implicitCopy") {
 				returnValue = genDefaultImplicitCopy(functionBuilder, parent, function);
+			//} else if (function->name().last() == "compare") {
+			//	returnValue = genDefaultImplicitCopy(functionBuilder, parent, function);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.",
 					function->name().toString().c_str()));

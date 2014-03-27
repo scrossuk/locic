@@ -97,10 +97,6 @@ namespace locic {
 				
 				Type* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
 				
-				bool supportsImplicitCopy() const;
-				
-				Type* getImplicitCopyType() const;
-				
 				std::string nameToString() const;
 				
 				std::string basicToString() const;

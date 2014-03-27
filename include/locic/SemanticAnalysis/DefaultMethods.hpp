@@ -4,6 +4,8 @@
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/Context.hpp>
+
 namespace locic {
 
 	namespace SemanticAnalysis {
@@ -14,7 +16,9 @@ namespace locic {
 		
 		SEM::Function* CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
 		
-		SEM::Function* CreateDefaultMethod(SEM::TypeInstance* typeInstance, bool isStatic, const Name& name);
+		SEM::Function* CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance);
+		
+		SEM::Function* CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name);
 		
 	}
 	

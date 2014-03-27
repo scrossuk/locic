@@ -1,0 +1,9 @@
+testEntryPoint: START
+testEntryPoint: i = 98
+testEntryPoint: i = 99
+testEntryPoint: i = 100
+testEntryPoint: i = 10
+testEntryPoint: i = 49
+testEntryPoint: i = 98
+testEntryPoint: i = 99
+testEntryPoint: END

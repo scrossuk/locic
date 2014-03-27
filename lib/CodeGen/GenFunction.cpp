@@ -33,7 +33,8 @@ namespace locic {
 		namespace {
 		
 			SEM::Function* getFunctionInParent(SEM::Type* parent, const std::string& name) {
-				for (auto function: parent->getObjectType()->functions()) {
+				for (const auto functionPair: parent->getObjectType()->functions()) {
+					const auto function = functionPair.second;
 					if (function->name().last() == name) {
 						return function;
 					}

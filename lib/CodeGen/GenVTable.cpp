@@ -16,15 +16,14 @@ namespace locic {
 		Map<MethodHash, SEM::Function*> CreateFunctionHashMap(SEM::TypeInstance* typeInstance) {
 			Map<MethodHash, SEM::Function*> hashMap;
 			
-			const std::vector<SEM::Function*>& functions = typeInstance->functions();
+			const auto& functions = typeInstance->functions();
 			
-			for (size_t i = 0; i < functions.size(); i++) {
-				SEM::Function* function = functions.at(i);
-				if (function->name().last().find("__") == 0) {
+			for (const auto functionPair: functions) {
+				if (functionPair.first.find("__") == 0) {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
-				hashMap.insert(CreateMethodNameHash(function->name().last()), function);
+				hashMap.insert(CreateMethodNameHash(functionPair.first), functionPair.second);
 			}
 			
 			return hashMap;

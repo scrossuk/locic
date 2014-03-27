@@ -30,8 +30,12 @@ namespace locic {
 					return false;
 				}
 				case SEM::Statement::IF: {
-					return WillScopeReturn(statement->getIfTrueScope()) &&
-						   WillScopeReturn(statement->getIfFalseScope());
+					for (const auto ifClause: statement->getIfClauseList()) {
+						if (!WillScopeReturn(ifClause->scope())) {
+							return false;
+						}
+					}
+					return WillScopeReturn(statement->getIfElseScope());
 				}
 				case SEM::Statement::SWITCH: {
 					for (auto switchCase: statement->getSwitchCaseList()) {
@@ -74,13 +78,13 @@ namespace locic {
 					const auto value = ConvertValue(context, statement->valueStmt.value);
 					if (statement->valueStmt.hasVoidCast) {
 						if (value->type()->isVoid()) {
-							throw TodoException(makeString("Void explicitly ignored in expression '%s'.",
+							throw ErrorException(makeString("Void explicitly ignored in expression '%s'.",
 								value->toString().c_str()));
 						}
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(SEM::Type::Void(), value));
 					} else {
 						if (!value->type()->isVoid()) {
-							throw TodoException(makeString("Non-void value result ignored in expression '%s'.",
+							throw ErrorException(makeString("Non-void value result ignored in expression '%s'.",
 								value->toString().c_str()));
 						}
 						return SEM::Statement::ValueStmt(value);
@@ -90,16 +94,20 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto condition = ConvertValue(context, statement->ifStmt.condition);
-					const auto ifTrue = ConvertScope(context, statement->ifStmt.ifTrue);
-					const auto ifFalse = ConvertScope(context, statement->ifStmt.ifFalse);
-					
 					const auto boolType = getBuiltInType(context, "bool");
 					
-					const auto boolValue = ImplicitCast(context, condition,
+					std::vector<SEM::IfClause*> clauseList;
+					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
+						const auto condition = ConvertValue(context, astIfClause->condition);
+						const auto boolValue = ImplicitCast(context, condition,
 							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
-							
-					return SEM::Statement::If(boolValue, ifTrue, ifFalse);
+						const auto ifTrueScope = ConvertScope(context, astIfClause->scope);
+						clauseList.push_back(new SEM::IfClause(boolValue, ifTrueScope));
+					}
+					
+					const auto elseScope = ConvertScope(context, statement->ifStmt.elseScope);
+					
+					return SEM::Statement::If(clauseList, elseScope);
 				}
 				case AST::Statement::SWITCH: {
 					auto value = ConvertValue(context, statement->switchStmt.value);
@@ -122,13 +130,13 @@ namespace locic {
 						
 						// Check for duplicate cases.
 						if (!insertResult.second) {
-							throw TodoException(makeString("Duplicate switch case for type '%s'.",
+							throw ErrorException(makeString("Duplicate switch case for type '%s'.",
 								(*(insertResult.first))->refToString().c_str()));
 						}
 					}
 					
 					if (caseList.empty()) {
-						throw TodoException("Switch statement must contain at least one case.");
+						throw ErrorException("Switch statement must contain at least one case.");
 					}
 					
 					// Check that all switch cases are based
@@ -138,12 +146,12 @@ namespace locic {
 						auto caseTypeInstanceParent = caseTypeInstance->parent();
 						
 						if (caseTypeInstanceParent == nullptr) {
-							throw TodoException(makeString("Switch case type '%s' is not a member of a union datatype.",
+							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype.",
 								caseTypeInstance->refToString().c_str()));
 						}
 						
 						if (caseTypeInstanceParent != switchTypeInstance) {
-							throw TodoException(makeString("Switch case type '%s' does not share the same parent as type '%s'.",
+							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s'.",
 								caseTypeInstance->refToString().c_str(),
 								(*(switchCaseTypeInstances.begin()))->refToString().c_str()));
 						}
@@ -156,7 +164,7 @@ namespace locic {
 						// Check all cases are handled.
 						for (auto variantTypeInstance: switchTypeInstance->variants()) {
 							if (switchCaseTypeInstances.find(variantTypeInstance) == switchCaseTypeInstances.end()) {
-								throw TodoException(makeString("Union datatype member '%s' not handled in switch.",
+								throw ErrorException(makeString("Union datatype member '%s' not handled in switch.",
 									variantTypeInstance->refToString().c_str()));
 							}
 						}
@@ -193,14 +201,14 @@ namespace locic {
 						const auto& astVar = astCatch->var;
 						
 						if (astVar->kind != AST::TypeVar::NAMEDVAR) {
-							throw TodoException("Try statement catch clauses may only contain named variables (no pattern matching).");
+							throw ErrorException("Try statement catch clauses may only contain named variables (no pattern matching).");
 						}
 						
 						// Special case handling for catch variables,
 						// since they don't use lvalues.
 						const auto varType = ConvertType(context, astVar->namedVar.type);
 						if (!varType->isException()) {
-							throw TodoException(makeString("Type '%s' is not an exception type and therefore "
+							throw ErrorException(makeString("Type '%s' is not an exception type and therefore "
 								"cannot be used in a catch clause.", varType->toString().c_str()));
 						}
 						
@@ -242,7 +250,7 @@ namespace locic {
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
 					if (!getParentFunctionReturnType(context)->isVoid()) {
-						throw TodoException(makeString("Cannot return void in function '%s' with non-void return type.",
+						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type.",
 							lookupParentFunction(context).getSEMFunction()->name().toString().c_str()));
 					}
 					
@@ -262,7 +270,7 @@ namespace locic {
 				case AST::Statement::THROW: {
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
 					if (!semValue->type()->isObject() || !semValue->type()->getObjectType()->isException()) {
-						throw TodoException(makeString("Cannot throw non-exception value '%s'.",
+						throw ErrorException(makeString("Cannot throw non-exception value '%s'.",
 								semValue->toString().c_str()));
 					}
 					return SEM::Statement::Throw(semValue);

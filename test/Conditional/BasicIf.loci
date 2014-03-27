@@ -1,0 +1,18 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	int i = 321;
+	
+	testPrint(C"testEntryPoint: START");
+	
+	if (i == 321) {
+		testPrint(C"testEntryPoint: i == 321");
+	}
+	
+	testPrint(C"testEntryPoint: END");
+	
+	return 0;
+}
+

@@ -14,6 +14,8 @@ namespace locic {
 		
 		SEM::Value* CallPropertyMethod(SEM::Value* value, const std::string& propertyName, const std::vector<SEM::Value*>& args);
 		
+		bool supportsImplicitCopy(SEM::Type* type);
+		
 	}
 	
 }

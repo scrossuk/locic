@@ -72,28 +72,28 @@ namespace locic {
 				}
 				
 				case SEM::Statement::IF: {
-					const auto conditionBB = function.createBasicBlock("ifCondition");
-					const auto thenBB = function.createBasicBlock("ifThen");
-					const auto elseBB = function.createBasicBlock("ifElse");
 					const auto mergeBB = function.createBasicBlock("ifMerge");
 					
-					function.getBuilder().CreateBr(conditionBB);
-					function.selectBasicBlock(conditionBB);
+					assert(!statement->getIfClauseList().empty());
 					
-					function.getBuilder().CreateCondBr(genValue(function, statement->getIfCondition()),
-													   thenBB, elseBB);
-													   
-					// Create 'then'.
-					function.selectBasicBlock(thenBB);
-					genScope(function, statement->getIfTrueScope());
-					function.getBuilder().CreateBr(mergeBB);
-					
-					// Create 'else'.
-					function.selectBasicBlock(elseBB);
-					
-					if (statement->hasIfFalseScope()) {
-						genScope(function, statement->getIfFalseScope());
+					for (const auto ifClause: statement->getIfClauseList()) {
+						const auto conditionValue = genValue(function, ifClause->condition());
+						
+						const auto thenBB = function.createBasicBlock("ifThen");
+						const auto elseBB = function.createBasicBlock("ifElse");
+						
+						function.getBuilder().CreateCondBr(conditionValue, thenBB, elseBB);
+						
+						// Create 'then'.
+						function.selectBasicBlock(thenBB);
+						genScope(function, ifClause->scope());
+						function.getBuilder().CreateBr(mergeBB);
+						
+						// Create 'else'.
+						function.selectBasicBlock(elseBB);
 					}
+					
+					genScope(function, statement->getIfElseScope());
 					
 					function.getBuilder().CreateBr(mergeBB);
 					

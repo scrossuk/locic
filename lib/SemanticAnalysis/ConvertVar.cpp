@@ -34,7 +34,7 @@ namespace locic {
 			const bool attachResult = context.node().tryAttach(name, localVarNode);
 			
 			if (!attachResult) {
-				throw TodoException(makeString("Variable name '%s' already exists.", name.c_str()));
+				throw ErrorException(makeString("Variable name '%s' already exists.", name.c_str()));
 			}
 			
 			// TODO: add support for member and parameter variables.
@@ -63,7 +63,7 @@ namespace locic {
 						const auto& varName = astTypeVarNode->namedVar.name;
 						
 						if (!context.lookupName(Name::Relative() + varName).isNone()) {
-							throw TodoException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+							throw ErrorException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
 						}
 						
 						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
@@ -73,7 +73,7 @@ namespace locic {
 						const auto varType = CastType(context, initialiseType, varDeclType, isTopLevel);
 						
 						if (varType->isVoid()) {
-							throw TodoException(makeString("Variable '%s' cannot have void type.",
+							throw ErrorException(makeString("Variable '%s' cannot have void type.",
 									astTypeVarNode->namedVar.name.c_str()));
 						}
 						
@@ -91,7 +91,7 @@ namespace locic {
 						const auto varDeclType = ConvertType(context, astTypeVarNode->patternVar.type);
 						
 						if (!varDeclType->isDatatype()) {
-							throw TodoException(makeString("Can't pattern match for non-datatype '%s'.",
+							throw ErrorException(makeString("Can't pattern match for non-datatype '%s'.",
 									varDeclType->toString().c_str()));
 						}
 						
@@ -103,7 +103,7 @@ namespace locic {
 						const auto& typeChildVars = varType->getObjectType()->variables();
 						
 						if (astChildTypeVars->size() != typeChildVars.size()) {
-							throw TodoException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
+							throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
 									(unsigned long long) astChildTypeVars->size(),
 									(unsigned long long) typeChildVars.size(),
 									varType->toString().c_str()));
@@ -136,20 +136,20 @@ namespace locic {
 		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			switch (astTypeVarNode->kind) {
 				case AST::TypeVar::ANYVAR: {
-					throw TodoException("'Any' vars not yet implemented for uninitialised variables.");
+					throw ErrorException("'Any' vars not yet implemented for uninitialised variables.");
 				}
 				
 				case AST::TypeVar::NAMEDVAR: {
 					const auto& varName = astTypeVarNode->namedVar.name;
 					
 					if (!context.lookupName(Name::Relative() + varName).isNone()) {
-						throw TodoException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+						throw ErrorException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
 					}
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					if (varType->isVoid()) {
-						throw TodoException(makeString("Variable '%s' cannot have void type.", varName.c_str()));
+						throw ErrorException(makeString("Variable '%s' cannot have void type.", varName.c_str()));
 					}
 					
 					// 'final' keyword makes the default lval const.
@@ -166,7 +166,7 @@ namespace locic {
 					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type);
 					
 					if (!varType->isDatatype()) {
-						throw TodoException(makeString("Can't pattern match for non-datatype '%s'.",
+						throw ErrorException(makeString("Can't pattern match for non-datatype '%s'.",
 								varType->toString().c_str()));
 					}
 					
@@ -174,7 +174,7 @@ namespace locic {
 					const auto& typeChildVars = varType->getObjectType()->variables();
 					
 					if (astChildTypeVars->size() != typeChildVars.size()) {
-						throw TodoException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
+						throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
 								(unsigned long long) astChildTypeVars->size(),
 								(unsigned long long) typeChildVars.size(),
 								varType->toString().c_str()));

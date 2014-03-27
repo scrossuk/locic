@@ -10,16 +10,6 @@ double SRandom(){
 	return 2.0 * Random() - 1.0;
 }
 
-// TODO: fix ternary operator so this isn't needed.
-CR::Value ternaryValue(bool val, CR::Value first, CR::Value second) {
-	// return val ? first : second;
-	if (val) {
-		return first;
-	} else {
-		return second;
-	}
-}
-
 void initializeBoard(CR::Board& board){
 	for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
 		for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
@@ -33,16 +23,16 @@ void initializeBoard(CR::Board& board){
 	final auto height = board.size().height;
 
 	// Add initial positions.
-	board[CR::Position(width / 2u - 1u, height / 2u - 1u)] = ternaryValue(position, CR::Red(), CR::Blue());
-	board[CR::Position(width / 2u, height / 2u)]           = ternaryValue(position, CR::Red(), CR::Blue());
-	board[CR::Position(width / 2u - 1u, height / 2u)]      = ternaryValue(position, CR::Blue(), CR::Red());
-	board[CR::Position(width / 2u, height / 2u - 1u)]      = ternaryValue(position, CR::Blue(), CR::Red());
+	board[CR::Position(width / 2u - 1u, height / 2u - 1u)] = position ? CR::Red() : CR::Blue();
+	board[CR::Position(width / 2u, height / 2u)]           = position ? CR::Red() : CR::Blue();
+	board[CR::Position(width / 2u - 1u, height / 2u)]      = position ? CR::Blue() : CR::Red();
+	board[CR::Position(width / 2u, height / 2u - 1u)]      = position ? CR::Blue() : CR::Red();
 }
 
 // Entry point.
 int main() {
 	final auto boardSize = CR::BoardSize(8u, 8u);
-	final auto initialColour = ternaryValue(Random() > 0.5, CR::Red(), CR::Blue());
+	final auto initialColour = Random() > 0.5 ? CR::Red() : CR::Blue();
 	final auto board = CR::Board(boardSize, initialColour);
 	
 	CR::Value lastWinner = CR::Red();
@@ -130,7 +120,7 @@ int main() {
 				backgroundCircle.setPosition(sf::Vector2f(x.toFloat() * 100.0f + 5.0f, y.toFloat() * 100.0f + 5.0f));
 				renderWindow.drawCircle(backgroundCircle);
 				
-				auto position = CR::Position(x, y);
+				final const auto position = CR::Position(x, y);
 				
 				auto foregroundCircle = sf::CircleShape();
 				foregroundCircle.setRadius(40.0f);

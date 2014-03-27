@@ -1,0 +1,52 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+int testVal(int value) {
+	if (value >= 100) {
+		return value / 10;
+	} else if (value == 10) {
+		return 49;
+	} else if (value < 50) {
+		return value * 2;
+	}
+	
+	return value + 1;
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	int i = 98;
+	
+	testPrint(C"testEntryPoint: START");
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	i = testVal(i);
+	
+	testPrint(C"testEntryPoint: i = %d", i);
+	
+	testPrint(C"testEntryPoint: END");
+	
+	return 0;
+}
+

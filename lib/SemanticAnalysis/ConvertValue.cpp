@@ -27,7 +27,7 @@ namespace locic {
 			const auto objectType = getDerefType(accessObject->type());
 			
 			if (!objectType->isObject() && !objectType->isTemplateVar()) {
-				throw TodoException(makeString("Can't access member of non-object value '%s' of type '%s'.",
+				throw ErrorException(makeString("Can't access member of non-object value '%s' of type '%s'.",
 					object->toString().c_str(), objectType->toString().c_str()));
 			}
 			
@@ -40,64 +40,56 @@ namespace locic {
 			const Node typeNode = context.reverseLookup(typeInstance);
 			assert(typeNode.isNotNone());
 			
-			if (typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isException()) {
-				// Look for variables.
-				const Node varNode = typeNode.getChild("#__ivar_" + memberName);
+			// Look for methods.
+			const Node childNode = typeNode.getChild(memberName);
+			
+			if (childNode.isFunction()) {
+				const auto function = childNode.getSEMFunction();
 				
-				if (varNode.isNotNone()) {
-					assert(varNode.isVariable());
-					const auto var = varNode.getSEMVar();
-					auto memberType = var->type();
-					
-					if (objectType->isConst()) {
-						// If the type instance is const, then
-						// the members must also be.
-						memberType = memberType->createConstType();
-					}
-					
-					return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType)->createRefType(memberType));
-				} else {
-					throw TodoException(makeString("Can't access struct member '%s' in type '%s'.",
-						memberName.c_str(), typeInstance->name().toString().c_str()));
-				}
-			} else if (typeInstance->isClass() || typeInstance->isTemplateType() || typeInstance->isPrimitive() || typeInstance->isInterface()) {
-				// Look for methods.
-				const Node childNode = typeNode.getChild(memberName);
+				assert(function->isMethod());
 				
-				if (childNode.isFunction()) {
-					const auto function = childNode.getSEMFunction();
-					
-					assert(function->isMethod());
-					
-					if (function->isStaticMethod()) {
-						throw TodoException(makeString("Cannot call static function '%s' in type '%s'.",
-							function->name().toString().c_str(), typeInstance->name().toString().c_str()));
-					}
-					
-					if (objectType->isConst() && !function->isConstMethod()) {
-						throw TodoException(makeString("Cannot refer to mutator method '%s' from const object '%s' of type '%s'.",
-							function->name().toString().c_str(), accessObject->toString().c_str(),
-							objectType->toString().c_str()));
-					}
-					
-					const auto functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
-					
-					if (typeInstance->isInterface()) {
-						return SEM::Value::InterfaceMethodObject(functionRef, object);
-					} else {
-						return SEM::Value::MethodObject(functionRef, object);
-					}
-				} else {
-					throw TodoException(makeString("Can't find method '%s' in type '%s' with value %s.",
-						memberName.c_str(), typeInstance->name().toString().c_str(),
-						object->toString().c_str()));
+				if (function->isStaticMethod()) {
+					throw ErrorException(makeString("Cannot call static function '%s' in type '%s' at location %s.",
+						function->name().toString().c_str(), typeInstance->name().toString().c_str(),
+						location.toString().c_str()));
 				}
-			} else if (typeInstance->isUnionDatatype()) {
-				throw TodoException(makeString("Can't access member '%s' of union datatype value '%s' at %s.",
-					memberName.c_str(), object->toString().c_str(), location.toString().c_str()));
-			} else {
-				throw std::runtime_error(makeString("Invalid fall through in MakeMemberAccess for type '%s'.", objectType->toString().c_str()));
+				
+				if (objectType->isConst() && !function->isConstMethod()) {
+					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object '%s' of type '%s' at location %s.",
+						function->name().toString().c_str(), accessObject->toString().c_str(),
+						objectType->toString().c_str(), location.toString().c_str()));
+				}
+				
+				const auto functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
+				
+				if (typeInstance->isInterface()) {
+					return SEM::Value::InterfaceMethodObject(functionRef, object);
+				} else {
+					return SEM::Value::MethodObject(functionRef, object);
+				}
 			}
+			
+			// TODO: this should be replaced by falling back on 'property' methods.
+			
+			// Look for variables.
+			const Node varNode = typeNode.getChild("#__ivar_" + memberName);
+			
+			if (varNode.isNotNone()) {
+				assert(varNode.isVariable());
+				const auto var = varNode.getSEMVar();
+				auto memberType = var->type();
+				
+				if (objectType->isConst()) {
+					// If the type instance is const, then
+					// the members must also be.
+					memberType = memberType->createConstType();
+				}
+				
+				return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType)->createRefType(memberType));
+			}
+			
+			throw ErrorException(makeString("Can't access member '%s' in type '%s' at location %s.",
+				memberName.c_str(), typeInstance->name().toString().c_str(), location.toString().c_str()));
 		}
 		
 		std::string integerSpecifierType(const std::string& specifier) {
@@ -119,7 +111,7 @@ namespace locic {
 				return "uint64_t";
 			}
 			
-			throw TodoException(makeString("Invalid integer literal specifier '%s'.", specifier.c_str()));
+			throw ErrorException(makeString("Invalid integer literal specifier '%s'.", specifier.c_str()));
 		}
 		
 		unsigned long long integerMax(const std::string& typeName) {
@@ -154,7 +146,7 @@ namespace locic {
 				const auto typeName = integerSpecifierType(specifier);
 				const auto typeMax = integerMax(typeName);
 				if (integerValue > typeMax) {
-					throw TodoException(makeString("Integer literal '%llu' exceeds maximum of specifier '%s'.",
+					throw ErrorException(makeString("Integer literal '%llu' exceeds maximum of specifier '%s'.",
 						(unsigned long long) integerValue, specifier.c_str()));
 				}
 				return typeName;
@@ -175,7 +167,7 @@ namespace locic {
 				}
 			}
 			
-			throw TodoException(makeString("Integer literal '%llu' is too large to be represented in a fixed width type.",
+			throw ErrorException(makeString("Integer literal '%llu' is too large to be represented in a fixed width type.",
 				integerValue));
 		}
 		
@@ -187,7 +179,7 @@ namespace locic {
 			} else if (specifier.empty() || specifier == "d") {
 				return "double_t";
 			} else {
-				throw TodoException(makeString("Invalid floating point literal specifier '%s'.",
+				throw ErrorException(makeString("Invalid floating point literal specifier '%s'.",
 					specifier.c_str()));
 			}
 		}
@@ -198,7 +190,7 @@ namespace locic {
 					if (specifier.empty()) {
 						return "null_t";
 					} else {
-						throw TodoException(makeString("Invalid null literal specifier '%s'.",
+						throw ErrorException(makeString("Invalid null literal specifier '%s'.",
 							specifier.c_str()));
 					}
 				}
@@ -206,7 +198,7 @@ namespace locic {
 					if (specifier.empty()) {
 						return "bool";
 					} else {
-						throw TodoException(makeString("Invalid boolean literal specifier '%s'.",
+						throw ErrorException(makeString("Invalid boolean literal specifier '%s'.",
 							specifier.c_str()));
 					}
 				}
@@ -225,7 +217,7 @@ namespace locic {
 			switch (constant.kind()) {
 				case Constant::STRING: {
 					if (specifier.empty()) {
-						throw TodoException("Loci strings are not currently supported; add 'C' specifier to use C strings (e.g. C\"example\").");
+						throw ErrorException("Loci strings are not currently supported; add 'C' specifier to use C strings (e.g. C\"example\").");
 					} else if (specifier == "C") {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
@@ -238,7 +230,7 @@ namespace locic {
 						// Generate type 'const ptr<const char>'.
 						return SEM::Type::Object(ptrTypeInstance, { constCharType })->createConstType();
 					} else {
-						throw TodoException(makeString("Invalid string literal specifier '%s'.",
+						throw ErrorException(makeString("Invalid string literal specifier '%s'.",
 							specifier.c_str()));
 					}
 				}
@@ -246,7 +238,7 @@ namespace locic {
 					const auto typeName = getLiteralTypeName(specifier, constant);
 					const auto typeInstance = getBuiltInType(context, typeName);
 					if (typeInstance == nullptr) {
-						throw TodoException(makeString("Couldn't find constant type '%s' when generating value constant.",
+						throw ErrorException(makeString("Couldn't find constant type '%s' when generating value constant.",
 							typeName.c_str()));
 					}
 					
@@ -268,7 +260,7 @@ namespace locic {
 					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
 					
 					if (thisTypeNode.isNone()) {
-						throw TodoException(makeString("Cannot access 'self' in non-method at %s.",
+						throw ErrorException(makeString("Cannot access 'self' in non-method at %s.",
 							astValueNode.location().toString().c_str()));
 					}
 					
@@ -282,7 +274,7 @@ namespace locic {
 					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
 					
 					if (thisTypeNode.isNone()) {
-						throw TodoException(makeString("Cannot access 'this' in non-method at %s.",
+						throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
 							astValueNode.location().toString().c_str()));
 					}
 					
@@ -307,10 +299,10 @@ namespace locic {
 					const auto templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
 					
 					if (node.isNone()) {
-						throw TodoException(makeString("Couldn't find symbol or value '%s' at %s.",
+						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
 							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 					} else if (node.isNamespace()) {
-						throw TodoException(makeString("Namespace '%s' is not a valid value at %s.",
+						throw ErrorException(makeString("Namespace '%s' is not a valid value at %s.",
 							name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 					} else if (node.isFunction()) {
 						const auto function = node.getSEMFunction();
@@ -318,7 +310,7 @@ namespace locic {
 						
 						if (function->isMethod()) {
 							if (!function->isStaticMethod()) {
-								throw TodoException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
+								throw ErrorException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
 									name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 							}
 							
@@ -337,12 +329,12 @@ namespace locic {
 						const auto typeInstance = node.getSEMTypeInstance();
 						
 						if (typeInstance->isInterface()) {
-							throw TodoException(makeString("Can't construct interface type '%s' at %s.",
+							throw ErrorException(makeString("Can't construct interface type '%s' at %s.",
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
 						if (!typeInstance->hasProperty("Create")) {
-							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
+							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
@@ -365,7 +357,7 @@ namespace locic {
 						
 						const auto specTypeInstance = templateVar->specTypeInstance();
 						if (!specTypeInstance->hasProperty("Create")) {
-							throw TodoException(makeString("Couldn't find default constructor for type '%s' at %s.",
+							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
 								name.toString().c_str(), astSymbolNode.location().toString().c_str()));
 						}
 						
@@ -384,7 +376,7 @@ namespace locic {
 					const auto semVar = getParentMemberVariable(context, memberName).getSEMVar();
 					
 					if (semVar == nullptr) {
-						throw TodoException(makeString("Member variable '@%s' not found.",
+						throw ErrorException(makeString("Member variable '@%s' not found.",
 								memberName.c_str()));
 					}
 					
@@ -394,10 +386,8 @@ namespace locic {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = getBuiltInType(context, "bool");
+					const auto boolValue = ImplicitCast(context, cond, boolType->selfType());
 					
-					const auto boolValue = ImplicitCast(context, cond,
-							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
-							
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
@@ -415,16 +405,16 @@ namespace locic {
 					
 					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_STATIC: {
-							throw TodoException("static_cast not yet implemented.");
+							throw ErrorException("static_cast not yet implemented.");
 						}
 						case AST::Value::CAST_CONST:
-							throw TodoException("const_cast not yet implemented.");
+							throw ErrorException("const_cast not yet implemented.");
 						case AST::Value::CAST_DYNAMIC:
-							throw TodoException("dynamic_cast not yet implemented.");
+							throw ErrorException("dynamic_cast not yet implemented.");
 						case AST::Value::CAST_REINTERPRET:
 							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr"
 								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr") {
-								throw TodoException(makeString("reinterpret_cast currently only supports ptr<T>, "
+								throw ErrorException(makeString("reinterpret_cast currently only supports ptr<T>, "
 									"in cast from value %s of type %s to type %s.", sourceValue->toString().c_str(),
 									sourceType->toString().c_str(), targetType->toString().c_str()));
 							}
@@ -437,12 +427,12 @@ namespace locic {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
 					
 					if (sourceValue->type()->isLval()) {
-						throw TodoException(makeString("Can't create lval of value that is already a lval, for value '%s'.",
+						throw ErrorException(makeString("Can't create lval of value that is already a lval, for value '%s'.",
 							sourceValue->toString().c_str()));
 					}
 					
 					if (sourceValue->type()->isRef()) {
-						throw TodoException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
+						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
 							sourceValue->toString().c_str()));
 					}
 					
@@ -453,12 +443,12 @@ namespace locic {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
 					
 					if (sourceValue->type()->isLval()) {
-						throw TodoException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
+						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s'.",
 							sourceValue->toString().c_str()));
 					}
 					
 					if (sourceValue->type()->isRef()) {
-						throw TodoException(makeString("Can't create ref of value that is already a ref, for value '%s'.",
+						throw ErrorException(makeString("Can't create ref of value that is already a ref, for value '%s'.",
 							sourceValue->toString().c_str()));
 					}
 					
@@ -473,14 +463,14 @@ namespace locic {
 					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
 					
 					if (thisTypeNode.isNone()) {
-						throw TodoException(makeString("Cannot call internal constructor in non-method at %s.",
+						throw ErrorException(makeString("Cannot call internal constructor in non-method at %s.",
 							astValueNode.location().toString().c_str()));
 					}
 					
 					const auto thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
-						throw TodoException(makeString("Internal constructor called "
+						throw ErrorException(makeString("Internal constructor called "
 							   "with wrong number of arguments; received %llu, expected %llu.",
 							(unsigned long long) astParameterValueNodes->size(),
 							(unsigned long long) thisTypeInstance->variables().size()));
@@ -519,14 +509,14 @@ namespace locic {
 							
 							if (functionValue->type()->isFunctionVarArg()) {
 								if(astValueList->size() < typeList.size()) {
-									throw TodoException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
+									throw ErrorException(makeString("Var Arg Function [%s] called with %llu number of parameters; expected at least %llu.",
 										functionValue->toString().c_str(),
 										(unsigned long long) astValueList->size(),
 										(unsigned long long) typeList.size()));
 								}
 							} else {
 								if(astValueList->size() != typeList.size()) {
-									throw TodoException(makeString("Function [%s] called with %llu number of parameters; expected %llu.",
+									throw ErrorException(makeString("Function [%s] called with %llu number of parameters; expected %llu.",
 										functionValue->toString().c_str(),
 										(unsigned long long) astValueList->size(),
 										(unsigned long long) typeList.size()));
@@ -562,7 +552,7 @@ namespace locic {
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
 							if (typeList.size() != astValueList->size()) {
-								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+								throw ErrorException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
 									functionValue->toString().c_str(),
 									astValueList->size(), typeList.size()));
 							}
@@ -586,7 +576,7 @@ namespace locic {
 							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
 							
 							if (typeList.size() != astValueList->size()) {
-								throw TodoException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
+								throw ErrorException(makeString("Method [%s] called with %lu number of parameters; expected %lu.",
 									functionValue->toString().c_str(),
 									astValueList->size(), typeList.size()));
 							}
@@ -602,7 +592,7 @@ namespace locic {
 							return SEM::Value::InterfaceMethodCall(functionValue, semValueList);
 						}
 						default: {
-							throw TodoException(makeString("Can't call value '%s' that isn't a function or a method.",
+							throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method.",
 								functionValue->toString().c_str()));
 						}
 					}

@@ -51,17 +51,17 @@ namespace locic {
 			const auto type = getDerefType(value->type());
 			
 			if (!type->isLval()) {
-				throw TodoException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
+				throw ErrorException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
 					type->toString().c_str()));
 			}
 			
 			if (!type->isObject()) {
-				throw TodoException(makeString("Type '%s' is not an object type and hence it cannot be dissolved.",
+				throw ErrorException(makeString("Type '%s' is not an object type and hence it cannot be dissolved.",
 					type->toString().c_str()));
 			}
 			
 			if (!type->getObjectType()->hasProperty("dissolve")) {
-				throw TodoException(makeString("Type '%s' does not support 'dissolve'.",
+				throw ErrorException(makeString("Type '%s' does not support 'dissolve'.",
 					type->toString().c_str()));
 			}
 			

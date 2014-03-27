@@ -6,6 +6,7 @@
 #include <locic/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
+#include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
@@ -36,11 +37,11 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::If(Value* condition, Scope* ifTrue, Scope* ifFalse) {
+		Statement* Statement::If(const std::vector<IfClause*>& ifClauses, Scope* elseScope) {
+			assert(elseScope != nullptr);
 			Statement* statement = new Statement(IF);
-			statement->ifStmt_.condition = condition;
-			statement->ifStmt_.ifTrue = ifTrue;
-			statement->ifStmt_.ifFalse = ifFalse;
+			statement->ifStmt_.clauseList = ifClauses;
+			statement->ifStmt_.elseScope = elseScope;
 			return statement;
 		}
 		
@@ -135,26 +136,14 @@ namespace locic {
 			return kind() == IF;
 		}
 		
-		Value* Statement::getIfCondition() const {
+		const std::vector<IfClause*>& Statement::getIfClauseList() const {
 			assert(isIfStatement());
-			return ifStmt_.condition;
+			return ifStmt_.clauseList;
 		}
 		
-		Scope& Statement::getIfTrueScope() const {
+		Scope& Statement::getIfElseScope() const {
 			assert(isIfStatement());
-			assert(ifStmt_.ifTrue != NULL);
-			return *(ifStmt_.ifTrue);
-		}
-		
-		bool Statement::hasIfFalseScope() const {
-			assert(isIfStatement());
-			return ifStmt_.ifFalse != NULL;
-		}
-		
-		Scope& Statement::getIfFalseScope() const {
-			assert(isIfStatement());
-			assert(hasIfFalseScope());
-			return *(ifStmt_.ifFalse);
+			return *(ifStmt_.elseScope);
 		}
 		
 		bool Statement::isSwitchStatement() const {
@@ -249,10 +238,9 @@ namespace locic {
 				}
 				
 				case IF: {
-					return makeString("IfStatement(condition: %s, ifTrue: %s, ifFalse: %s)",
-									  ifStmt_.condition->toString().c_str(),
-									  ifStmt_.ifTrue->toString().c_str(),
-									  ifStmt_.ifFalse->toString().c_str());
+					return makeString("IfStatement(clauseList: %s, elseScope: %s)",
+									  makeArrayString(ifStmt_.clauseList).c_str(),
+									  ifStmt_.elseScope->toString().c_str());
 				}
 				
 				case SWITCH: {

@@ -8,6 +8,7 @@ endmacro(test_check_output)
 
 add_subdirectory(Auto)
 add_subdirectory(Class)
+add_subdirectory(Conditional)
 add_subdirectory(Datatype)
 add_subdirectory(Exception)
 add_subdirectory(Interface)

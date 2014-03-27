@@ -226,7 +226,7 @@ namespace locic {
 						const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
 						
 						if (!semType->isException()) {
-							throw TodoException(makeString("Exception parent type '%s' is not an exception type.",
+							throw ErrorException(makeString("Exception parent type '%s' is not an exception type.",
 								semType->toString().c_str()));
 						}
 						
@@ -308,9 +308,9 @@ namespace locic {
 				const auto typeInstance = node.getSEMTypeInstance();
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethod(typeInstance, astFunctionNode->isStaticMethod(), fullName);
+				const auto semFunction = CreateDefaultMethod(context, typeInstance, astFunctionNode->isStaticMethod(), fullName);
 				
-				typeInstance->functions().push_back(semFunction);
+				typeInstance->functions().insert(std::make_pair(name, semFunction));
 				
 				// Attach function node to type.
 				auto functionNode = Node::Function(astFunctionNode, semFunction);
@@ -353,13 +353,8 @@ namespace locic {
 			if (node.isNamespace()) {
 				node.getSEMNamespace()->functions().push_back(semFunction);
 			} else {
-				node.getSEMTypeInstance()->functions().push_back(semFunction);
+				node.getSEMTypeInstance()->functions().insert(std::make_pair(name, semFunction));
 			}
-		}
-		
-		static bool methodCompare(SEM::Function* f0, SEM::Function* f1){
-			assert(f0 != NULL && f1 != NULL);
-			return f0->name().last() < f1->name().last();
 		}
 		
 		void AddFunctionDeclsPass(Context& context) {
@@ -385,11 +380,6 @@ namespace locic {
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddFunctionDecl(context, astFunctionNode);
 				}
-				
-				// Sort type instance methods.
-				std::sort(semTypeInstance->functions().begin(),
-					semTypeInstance->functions().end(),
-					methodCompare);
 			}
 		}
 		
@@ -406,18 +396,17 @@ namespace locic {
 			auto srcTypeInstance = srcType->getObjectType();
 			auto destTypeInstance = destTypeInstanceNode.getSEMTypeInstance();
 			
-			for (auto srcFunction: srcTypeInstance->functions()) {
+			for (const auto& functionPair: srcTypeInstance->functions()) {
+				const auto& name = functionPair.first;
+				const auto srcFunction = functionPair.second;
 				// The specification type may contain template arguments,
 				// so this code does the necessary substitution. For example:
 				// 
 				//        template <typename T: SPEC_TYPE<T>>
 				// 
-				auto destFunction =
-					srcFunction->createDecl()->fullSubstitute(
-						destTypeInstance->name() + srcFunction->name().last(),
-						templateVarMap);
-				destTypeInstance->functions().push_back(destFunction);
-				destTypeInstanceNode.attach(destFunction->name().last(), Node::Function(AST::Node<AST::Function>(), destFunction));
+				const auto destFunction = srcFunction->createDecl()->fullSubstitute(destTypeInstance->name() + name, templateVarMap);
+				destTypeInstance->functions().insert(std::make_pair(name, destFunction));
+				destTypeInstanceNode.attach(name, Node::Function(AST::Node<AST::Function>(), destFunction));
 			}
 		}
 		
@@ -455,6 +444,7 @@ namespace locic {
 			}
 		}
 		
+		// TODO: replace pass with 'GenerateDefaultMethods'.
 		void AddTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
 			const auto& astTypeInstanceNode = node.getASTTypeInstance();
 			const auto semTypeInstance = node.getSEMTypeInstance();
@@ -495,7 +485,7 @@ namespace locic {
 					semTypeInstance->isException() ?
 						CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance) :
 						CreateDefaultConstructor(semTypeInstance);
-				semTypeInstance->functions().push_back(constructor);
+				semTypeInstance->functions().insert(std::make_pair("Create", constructor));
 				
 				node.attach("Create", Node::Function(AST::Node<AST::Function>(), constructor));
 			}
@@ -503,15 +493,18 @@ namespace locic {
 			// Add default implicit copy for datatypes if available.
 			if ((semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
 				const auto implicitCopy = CreateDefaultImplicitCopy(semTypeInstance);
-				semTypeInstance->functions().push_back(implicitCopy);
-				
-				// Re-sort type instance methods.
-				std::sort(semTypeInstance->functions().begin(),
-					semTypeInstance->functions().end(),
-					methodCompare);
+				semTypeInstance->functions().insert(std::make_pair("implicitCopy", implicitCopy));
 				
 				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
+			
+			/*// Add default compare for datatypes.
+			// TODO: check if this is actually valid!
+			if (semTypeInstance->isUnionDatatype()) {
+				const auto implicitCopy = CreateDefaultCompare(context, semTypeInstance);
+				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
+				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));
+			}*/
 			
 			// Find all the standard patterns, and add
 			// them to the type instance.

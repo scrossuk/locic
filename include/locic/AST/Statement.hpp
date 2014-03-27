@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/AST/CatchClause.hpp>
+#include <locic/AST/IfClause.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
@@ -44,8 +45,8 @@ namespace locic {
 			} scopeStmt;
 			
 			struct {
-				Node<Value> condition;
-				Node<Scope> ifTrue, ifFalse;
+				Node<IfClauseList> clauseList;
+				Node<Scope> elseScope;
 			} ifStmt;
 			
 			struct {
@@ -108,11 +109,10 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* If(const Node<Value>& condition, const Node<Scope>& ifTrue, const Node<Scope>& ifFalse) {
+			inline static Statement* If(const Node<IfClauseList>& clauseList, const Node<Scope>& elseScope) {
 				Statement* statement = new Statement(IF);
-				statement->ifStmt.condition = condition;
-				statement->ifStmt.ifTrue = ifTrue;
-				statement->ifStmt.ifFalse = ifFalse;
+				statement->ifStmt.clauseList = clauseList;
+				statement->ifStmt.elseScope = elseScope;
 				return statement;
 			}
 			

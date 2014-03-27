@@ -68,6 +68,7 @@ namespace locic {
 		}
 		
 		// Queries whether all methods are const.
+		// TODO: move into Semantic Analysis
 		bool TypeInstance::isConstType() const {
 			// TODO: actually detect this.
 			return isPrimitive() && name_.last() != "value_lval" && name_.last() != "ptr"
@@ -75,15 +76,19 @@ namespace locic {
 		}
 		
 		Type* TypeInstance::selfType() const {
-			std::vector<SEM::Type*> templateVars;
+			// TODO: remove const_cast.
+			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());
+		}
+		
+		std::vector<Type*> TypeInstance::selfTemplateArgs() const {
+			std::vector<SEM::Type*> templateArgs;
 			
 			for (const auto templateVar: templateVariables()) {
 				// Refer to the template variables of this type instance.
-				templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
+				templateArgs.push_back(SEM::Type::TemplateVarRef(templateVar));
 			}
 			
-			// TODO: remove const_cast.
-			return SEM::Type::Object(const_cast<TypeInstance*>(this), templateVars);
+			return templateArgs;
 		}
 		
 		std::vector<TemplateVar*>& TypeInstance::templateVariables() {
@@ -110,11 +115,11 @@ namespace locic {
 			return variables_;
 		}
 		
-		std::vector<Function*>& TypeInstance::functions() {
+		std::map<std::string, Function*>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const std::vector<Function*>& TypeInstance::functions() const {
+		const std::map<std::string, Function*>& TypeInstance::functions() const {
 			return functions_;
 		}
 		
@@ -198,7 +203,7 @@ namespace locic {
 							  refToString().c_str(),
 							  makeArrayString(templateVariables_).c_str(),
 							  makeArrayString(variables_).c_str(),
-							  makeArrayString(functions_).c_str());
+							  makeMapString(functions_).c_str());
 		}
 		
 	}

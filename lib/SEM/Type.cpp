@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -322,8 +323,8 @@ namespace locic {
 				return Map<TemplateVar*, Type*>();
 			}
 			
-			const std::vector<TemplateVar*>& templateVars = getObjectType()->templateVariables();
-			const std::vector<Type*>& templateArgs = templateArguments();
+			const auto& templateVars = getObjectType()->templateVariables();
+			const auto& templateArgs = templateArguments();
 			
 			assert(templateVars.size() == templateArgs.size());
 			
@@ -365,25 +366,22 @@ namespace locic {
 							args.push_back(paramType->substitute(templateVarMap));
 						}
 						
-						Type* returnType = type->getFunctionReturnType()->substitute(templateVarMap);
-						
+						const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
 						return Type::Function(type->isFunctionVarArg(), returnType, args);
 					}
 					
 					case Type::METHOD: {
-						Type* functionType = type->getMethodFunctionType()->substitute(templateVarMap);
-						
+						const auto functionType = type->getMethodFunctionType()->substitute(templateVarMap);
 						return Type::Method(functionType);
 					}
 					
 					case Type::INTERFACEMETHOD: {
-						Type* functionType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
-						
+						const auto functionType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
 						return Type::InterfaceMethod(functionType);
 					}
 					
 					case Type::TEMPLATEVAR: {
-						Optional<Type*> substituteType = templateVarMap.tryGet(type->getTemplateVar());
+						const auto substituteType = templateVarMap.tryGet(type->getTemplateVar());
 						
 						if (substituteType.hasValue()) {
 							return substituteType.getValue();
@@ -393,8 +391,7 @@ namespace locic {
 					}
 					
 					default:
-						assert(false && "Unknown type enum for template var substitution.");
-						return NULL;
+						throw std::runtime_error("Unknown type kind for template var substitution.");
 				}
 			}
 			
@@ -406,52 +403,6 @@ namespace locic {
 			auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
 			auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
 			return refType;
-		}
-		
-		bool Type::supportsImplicitCopy() const {
-			switch (kind()) {
-				case VOID:
-				case REFERENCE:
-				case FUNCTION:
-				case METHOD:
-				case INTERFACEMETHOD:
-					// Built-in types can be copied implicitly.
-					return true;
-					
-				case OBJECT:
-					// Named types must have a method for implicit copying.
-					return getObjectType()->hasProperty("implicitCopy");
-					
-				case TEMPLATEVAR:
-					return getTemplateVar()->specTypeInstance()->hasProperty("implicitCopy");
-					
-				default:
-					assert(false && "Unknown SEM type enum");
-					return false;
-			}
-		}
-		
-		Type* Type::getImplicitCopyType() const {
-			switch (kind()) {
-				case VOID:
-				case REFERENCE:
-				case FUNCTION:
-				case METHOD: {
-					// Built in types retain their 'constness' in copying.
-					return new Type(*this);
-				}
-				
-				case OBJECT:
-					// Object types may or may not retain 'constness'.
-					return getObjectType()->getProperty("implicitCopy")->type()->getFunctionReturnType()->substitute(generateTemplateVarMap());
-					
-				case TEMPLATEVAR:
-					return getTemplateVar()->specTypeInstance()->getProperty("implicitCopy")->type()->getFunctionReturnType();
-					
-				default:
-					assert(false && "Unknown SEM type enum");
-					return NULL;
-			}
 		}
 		
 		std::string Type::nameToString() const {
