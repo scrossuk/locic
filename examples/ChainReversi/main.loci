@@ -175,15 +175,17 @@ int main() {
 			
 			winnerText.setPosition(sf::Vector2f(400.0f, 400.0f));
 			
-			/*final const auto textGlobalRect = winnerText.getGlobalBounds();
+			final const auto textGlobalRect = winnerText.getGlobalBounds();
 			
 			const float extraWidth = textGlobalRect.size.x * 0.5f;
 			const float extraHeight = textGlobalRect.size.y * 0.5f;
 			
-			sf::RectangleShape winnerTextBackground(sf::Vector2f(textGlobalRect.size.x + extraWidth, textGlobalRect.size.y + extraHeight));
-			winnerTextBackground.setPosition(textGlobalRect.topLeft.x - (extraWidth/2.0f), textGlobalRect.topLeft.y - (extraHeight/2.0f));
+			final auto winnerTextBackground = sf::RectangleShape();
+			winnerTextBackground.setSize(sf::Vector2f(textGlobalRect.size.x + extraWidth, textGlobalRect.size.y + extraHeight));
+			winnerTextBackground.setPosition(sf::Vector2f(textGlobalRect.topLeft.x - extraWidth / 2.0f,
+				textGlobalRect.topLeft.y - extraHeight / 2.0f));
 			winnerTextBackground.setFillColor(sf::Color(0u, 0u, 0u, 200u));
-			renderWindow.draw(winnerTextBackground);*/
+			renderWindow.drawRectangle(winnerTextBackground);
 			
 			renderWindow.drawText(winnerText);
 		}

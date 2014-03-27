@@ -1,0 +1,70 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfRectangleShape { };
+
+sfRectangleShape* sfRectangleShape_create();
+
+sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* const shape);
+
+void sfRectangleShape_destroy(sfRectangleShape* shape);
+
+void sfRectangleShape_setOrigin(sfRectangleShape* shape, sfVector2f origin);
+
+void sfRectangleShape_setPosition(sfRectangleShape* shape, sfVector2f position);
+
+void sfRectangleShape_setRotation(sfRectangleShape* shape, float angle);
+
+void sfRectangleShape_setScale(sfRectangleShape* shape, sfVector2f scale);
+
+void sfRectangleShape_setFillColor(sfRectangleShape* shape, sfColor color);
+
+void sfRectangleShape_setSize(sfRectangleShape* shape, sfVector2f size);
+
+namespace sf {
+	
+	class RectangleShape(sfRectangleShape* shape) {
+		static Create () {
+			return @(sfRectangleShape_create());
+		}
+		
+		RectangleShape copy() const {
+			return @(sfRectangleShape_copy(@shape));
+		}
+		
+		~ {
+			sfRectangleShape_destroy(@shape);
+		}
+		
+		sfRectangleShape* const raw() const {
+			return @shape;
+		}
+		
+		void setOrigin(Vector2f position) {
+			sfRectangleShape_setOrigin(@shape, sfVector2f(position.x, position.y));
+		}
+		
+		void setPosition(Vector2f position) {
+			sfRectangleShape_setPosition(@shape, sfVector2f(position.x, position.y));
+		}
+		
+		void setRotation(float angle) {
+			sfRectangleShape_setRotation(@shape, angle);
+		}
+		
+		void setScale(Vector2f scale) {
+			sfRectangleShape_setScale(@shape, sfVector2f(scale.x, scale.y));
+		}
+		
+		void setFillColor(Color color) {
+			sfRectangleShape_setFillColor(@shape, sfColor(color.r, color.g, color.b, color.a));
+		}
+		
+		void setSize(Vector2f size) {
+			sfRectangleShape_setSize(@shape, sfVector2f(size.x, size.y));
+		}
+		
+	}
+	
+}
+
+

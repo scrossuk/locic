@@ -18,6 +18,8 @@ void sfRenderWindow_display(sfRenderWindow* renderWindow);
 
 void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
 
+void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states);
+
 void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states);
 
 uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
@@ -67,6 +69,10 @@ namespace sf {
 		
 		void drawCircle(const CircleShape& shape) {
 			sfRenderWindow_drawCircleShape(@window, shape.raw(), null);
+		}
+		
+		void drawRectangle(const RectangleShape& shape) {
+			sfRenderWindow_drawRectangleShape(@window, shape.raw(), null);
 		}
 		
 		void drawText(const Text& text) {

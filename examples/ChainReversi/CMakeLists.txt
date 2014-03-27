@@ -14,6 +14,7 @@ loci_example(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-
 	SFML/Event.loci
 	SFML/Font.loci
 	SFML/Mouse.loci
+	SFML/RectangleShape.loci
 	SFML/RenderWindow.loci
 	SFML/Text.loci
 	SFML/VideoMode.loci
