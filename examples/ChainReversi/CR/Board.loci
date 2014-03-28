@@ -88,7 +88,7 @@ namespace CR {
 		}
 		
 		bool isValid(Position position) const {
-			if (valueId(self[position]) != 0u) {
+			if (self[position] != Empty()) {
 				return false;
 			}
 			
@@ -151,7 +151,7 @@ namespace CR {
 				
 				for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
 					for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
-						if (valueId(self[Position(x, y)]) != valueId(self.player())) {
+						if (self[Position(x, y)] != self.player()) {
 							continue;
 						}
 						
@@ -182,12 +182,12 @@ namespace CR {
 		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
 			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
 			
-			if (valueId(board[position]) == valueId(board.opponent())) {
+			if (board[position] == board.opponent()) {
 				flagOpponent = true;
 				cx += xi;
 				cy += yi;
 			} else {
-				if (flagOpponent && valueId(board[position]) == valueId(board.player())) {
+				if (flagOpponent && board[position] == board.player()) {
 					return true;
 				} else {
 					break;
@@ -209,7 +209,7 @@ namespace CR {
 		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
 			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
 			
-			if (valueId(board[position]) == valueId(board.opponent())) {
+			if (board[position] == board.opponent()) {
 				board[position] = board.player();
 				cx += xi;
 				cy += yi;

@@ -10,9 +10,11 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Value* CallPropertyFunction(SEM::Type* type, const std::string& propertyName, const std::vector<SEM::Value*>& args);
+		SEM::Value* GetStaticMethod(SEM::Type* type, const std::string& methodName);
 		
-		SEM::Value* CallPropertyMethod(SEM::Value* value, const std::string& propertyName, const std::vector<SEM::Value*>& args);
+		SEM::Value* GetMethod(SEM::Value* value, const std::string& methodName);
+		
+		SEM::Value* CallValue(SEM::Value* value, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location);
 		
 		bool supportsImplicitCopy(SEM::Type* type);
 		

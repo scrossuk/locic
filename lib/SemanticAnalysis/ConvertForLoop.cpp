@@ -41,6 +41,9 @@ namespace locic {
 		 */
 		
 		SEM::Scope* ConvertForLoop(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode) {
+			// TODO: fix this to be the correct location.
+			const auto& location = astScopeNode.location();
+			
 			const auto outerScope = new SEM::Scope();
 			
 			const auto initValue = ConvertValue(context, astInitValueNode);
@@ -52,11 +55,11 @@ namespace locic {
 			const auto initVar = SEM::Var::Basic(initVarType, initVarType);
 			outerScope->localVariables().push_back(initVar);
 			
-			outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(context, initValue, initVarType)));
+			outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(initValue, initVarType)));
 			
-			const auto isEmpty = CallPropertyMethod(SEM::Value::LocalVar(initVar), "empty", {});
-			const auto isNotEmpty = CallPropertyMethod(isEmpty, "not", {});
-			const auto loopCondition = ImplicitCast(context, isNotEmpty, getBuiltInType(context, "bool")->selfType());
+			const auto isEmpty = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "empty"), {}, location);
+			const auto isNotEmpty = CallValue(GetMethod(isEmpty, "not"), {}, location);
+			const auto loopCondition = ImplicitCast(isNotEmpty, getBuiltInType(context, "bool")->selfType());
 			
 			const auto iterationScope = new SEM::Scope();
 			auto scopeNode = Node::Scope(astScopeNode, iterationScope);
@@ -64,18 +67,18 @@ namespace locic {
 			
 			const bool isMember = false;
 			
-			const auto currentValue = CallPropertyMethod(SEM::Value::LocalVar(initVar), "front", {});
+			const auto currentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "front"), {}, location);
 			const auto loopVar = ConvertInitialisedVar(scopeContext, isMember, astTypeVarNode, currentValue->type());
 			iterationScope->localVariables().push_back(loopVar);
 			
-			iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar, ImplicitCast(context, currentValue, loopVar->constructType())));
+			iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar, ImplicitCast(currentValue, loopVar->constructType())));
 			
 			const auto innerScope = ConvertScope(scopeContext, astScopeNode);
 			
 			iterationScope->statements().push_back(SEM::Statement::ScopeStmt(innerScope));
 			
 			const auto advanceScope = new SEM::Scope();
-			const auto advanceCurrentValue = CallPropertyMethod(SEM::Value::LocalVar(initVar), "popFront", {});
+			const auto advanceCurrentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "popFront"), {}, location);
 			advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
 			
 			outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, iterationScope, advanceScope));

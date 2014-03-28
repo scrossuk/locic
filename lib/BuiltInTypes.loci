@@ -3,6 +3,8 @@ __primitive null_t { }
 __primitive bool {
 	bool implicitCopy() const;
 	
+	int compare(bool value) const;
+	
 	bool not() const;
 	
 	bool logicalAnd(bool value) const;

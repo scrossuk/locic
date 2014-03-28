@@ -1,0 +1,32 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+datatype TestData =
+	TestData1() |
+	TestData2(bool v);
+
+void checkValue(TestData data) {
+	if (data == TestData1()) {
+		testPrint(C"checkValue: TestData1()");
+		return;
+	}
+	
+	if (data == TestData2(false)) {
+		testPrint(C"checkValue: TestData2(false)");
+		return;
+	}
+	
+	if (data == TestData2(true)) {
+		testPrint(C"checkValue: TestData2(true)");
+		return;
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	checkValue(TestData1());
+	checkValue(TestData2(false));
+	checkValue(TestData2(true));
+	return 0;
+}
+

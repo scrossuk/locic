@@ -97,6 +97,8 @@ namespace locic {
 		
 		SEM::TypeInstance* getBuiltInType(const Context& context, const std::string& typeName);
 		
+		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location);
+		
 	}
 	
 }

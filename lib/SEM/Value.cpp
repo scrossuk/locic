@@ -31,12 +31,6 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::MemberVar(Var* var) {
-			Value* value = new Value(MEMBERVAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
-			value->memberVar.var = var;
-			return value;
-		}
-		
 		Value* Value::Reinterpret(Value* operand, Type* type) {
 			Value* value = new Value(REINTERPRET, type);
 			value->reinterpretValue.value = operand;
@@ -92,23 +86,32 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::MemberAccess(Value* object, Var* var, Type* type) {
-			Value* value = new Value(MEMBERACCESS, type);
+		Value* Value::MemberAccess(Value* object, Var* var) {
+			// If the object type is const, then
+			// the members must also be.
+			const auto derefType = object->type()->isRef() ? object->type()->refTarget() : object->type();
+			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
+			Value* value = new Value(MEMBERACCESS, SEM::Type::Reference(memberType)->createRefType(memberType));
 			value->memberAccess.object = object;
 			value->memberAccess.memberVar = var;
 			return value;
 		}
 		
 		Value* Value::FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
-			assert(functionValue->type()->isFunction());
-			Value* value = new Value(FUNCTIONCALL, functionValue->type()->getFunctionReturnType());
+			const auto type = functionValue->type();
+			const auto functionType =
+				type->isFunction() ?
+					type :
+					(type->isMethod() ?
+						type->getMethodFunctionType() :
+						type->getInterfaceMethodFunctionType());
+			Value* value = new Value(FUNCTIONCALL, functionType->getFunctionReturnType());
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;
 			return value;
 		}
 		
-		Value* Value::FunctionRef(Type* parentType, Function* function,
-								  const Map<TemplateVar*, Type*>& templateVarMap) {
+		Value* Value::FunctionRef(Type* parentType, Function* function, const Map<TemplateVar*, Type*>& templateVarMap) {
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
 			value->functionRef.parentType = parentType;
 			value->functionRef.function = function;
@@ -117,45 +120,23 @@ namespace locic {
 		
 		Value* Value::MethodObject(Value* method, Value* methodOwner) {
 			assert(method->type()->isFunction());
-			Value* value = new Value(METHODOBJECT,
-									 SEM::Type::Method(method->type()));
+			Value* value = new Value(METHODOBJECT, SEM::Type::Method(method->type()));
 			value->methodObject.method = method;
 			value->methodObject.methodOwner = methodOwner;
 			return value;
 		}
 		
-		Value* Value::MethodCall(Value* methodValue, const std::vector<Value*>& parameters) {
-			assert(methodValue->type()->isMethod());
-			Value* value = new Value(METHODCALL,
-									 methodValue->type()->getMethodFunctionType()->getFunctionReturnType());
-			value->methodCall.methodValue = methodValue;
-			value->methodCall.parameters = parameters;
-			return value;
-		}
-		
 		Value* Value::InterfaceMethodObject(Value* method, Value* methodOwner) {
 			assert(method->type()->isFunction());
-			Value* value = new Value(INTERFACEMETHODOBJECT,
-									 SEM::Type::InterfaceMethod(method->type()));
+			Value* value = new Value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method->type()));
 			value->interfaceMethodObject.method = method;
 			value->interfaceMethodObject.methodOwner = methodOwner;
-			return value;
-		}
-		
-		Value* Value::InterfaceMethodCall(Value* methodValue, const std::vector<Value*>& parameters) {
-			assert(methodValue->type()->isInterfaceMethod());
-			Value* value = new Value(INTERFACEMETHODCALL,
-									 methodValue->type()->getInterfaceMethodFunctionType()->getFunctionReturnType());
-			value->interfaceMethodCall.methodValue = methodValue;
-			value->interfaceMethodCall.parameters = parameters;
 			return value;
 		}
 		
 		Value* Value::CastDummy(Type* type) {
 			return new Value(CASTDUMMYOBJECT, type);
 		}
-		
-		// Value::Value() : kind_(NONE), type_(Type::Void()) { }
 		
 		Value::Value(Kind k, Type* t) : kind_(k), type_(t) {
 			assert(type_ != NULL);
@@ -182,10 +163,6 @@ namespace locic {
 				case LOCALVAR:
 					return makeString("LocalVar(%s)",
 									  localVar.var->toString().c_str());
-									  
-				case MEMBERVAR:
-					return makeString("MemberVar(%s)",
-									  memberVar.var->toString().c_str());
 				
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)",
@@ -247,20 +224,10 @@ namespace locic {
 									  methodObject.method->toString().c_str(),
 									  methodObject.methodOwner->toString().c_str());
 									  
-				case METHODCALL:
-					return makeString("MethodCall(methodObject: %s, args: %s)",
-									  methodCall.methodValue->toString().c_str(),
-									  makeArrayString(methodCall.parameters).c_str());
-									  
 				case INTERFACEMETHODOBJECT:
 					return makeString("InterfaceMethodObject(method: %s, object: %s)",
 									  interfaceMethodObject.method->toString().c_str(),
 									  interfaceMethodObject.methodOwner->toString().c_str());
-									  
-				case INTERFACEMETHODCALL:
-					return makeString("InterfaceMethodCall(methodObject: %s, args: %s)",
-									  interfaceMethodCall.methodValue->toString().c_str(),
-									  makeArrayString(interfaceMethodCall.parameters).c_str());
 									  
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",

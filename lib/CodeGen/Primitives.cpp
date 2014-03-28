@@ -142,6 +142,16 @@ namespace locic {
 					builder.CreateRet(builder.CreateAnd(methodOwner, operand));
 				} else if (methodName == "logicalOr") {
 					builder.CreateRet(builder.CreateOr(methodOwner, operand));
+				} else if (methodName == "compare") {
+					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
+					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
+					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto returnValue =
+						builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
+					builder.CreateRet(returnValue);
 				} else {
 					throw std::runtime_error("Unknown bool binary op.");
 				}

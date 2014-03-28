@@ -21,11 +21,9 @@ namespace locic {
 			return new Function(isMethod, isStatic, isConst, defaultImplementation, type, name, parameters, scope);
 		}
 		
-		Function* Function::DefDefault(bool isStatic, Type* type, const Name& name) {
+		Function* Function::DefDefault(bool isStatic, bool isConst, Type* type, const Name& name) {
 			// Only methods can have default implementations.
 			const bool isMethod = true;
-			
-			const bool isConst = false;
 			
 			const bool defaultImplementation = true;
 			

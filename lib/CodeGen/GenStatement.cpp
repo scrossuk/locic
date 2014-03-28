@@ -115,7 +115,7 @@ namespace locic {
 					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, statement->getSwitchCaseList().size());
 					
 					for (auto switchCase: statement->getSwitchCaseList()) {
-						auto caseType = switchCase->var()->constructType();
+						const auto caseType = switchCase->var()->constructType();
 						uint8_t tag = 0;
 						for (auto variantTypeInstance: switchType->getObjectType()->variants()) {
 							if (variantTypeInstance == caseType->getObjectType()) break;

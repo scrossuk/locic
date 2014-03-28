@@ -25,7 +25,6 @@ namespace locic {
 					THIS,
 					CONSTANT,
 					LOCALVAR,
-					MEMBERVAR,
 					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -38,9 +37,7 @@ namespace locic {
 					FUNCTIONCALL,
 					FUNCTIONREF,
 					METHODOBJECT,
-					METHODCALL,
 					INTERFACEMETHODOBJECT,
-					INTERFACEMETHODCALL,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -52,10 +49,6 @@ namespace locic {
 				struct {
 					Var* var;
 				} localVar;
-				
-				struct {
-					Var* var;
-				} memberVar;
 				
 				struct {
 					Value* value;
@@ -136,8 +129,6 @@ namespace locic {
 				
 				static Value* LocalVar(Var* var);
 				
-				static Value* MemberVar(Var* var);
-				
 				static Value* Reinterpret(Value* operand, Type* type);
 				
 				static Value* DerefReference(Value* operand);
@@ -154,20 +145,15 @@ namespace locic {
 				
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				
-				static Value* MemberAccess(Value* object, Var* var, Type* type);
+				static Value* MemberAccess(Value* object, Var* var);
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
-				static Value* FunctionRef(Type* parentType, Function* function,
-					const Map<TemplateVar*, Type*>& templateVarMap);
+				static Value* FunctionRef(Type* parentType, Function* function, const Map<TemplateVar*, Type*>& templateVarMap);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				
-				static Value* MethodCall(Value* methodValue, const std::vector<Value*>& parameters);
-				
 				static Value* InterfaceMethodObject(Value* method, Value* methodOwner);
-				
-				static Value* InterfaceMethodCall(Value* methodValue, const std::vector<Value*>& parameters);
 				
 				static Value* CastDummy(Type* type);
 				

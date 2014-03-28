@@ -301,6 +301,7 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 		struct _Unwind_Exception* exceptionObject) {
 	assert(exceptionObject != NULL);
 	assert(exceptionClass == __loci_exception_class);
+	(void) exceptionClass;
 	
 	// Extract information about exception being thrown.
 	const __loci_exception_t* const exception = GET_EXCEPTION(exceptionObject);

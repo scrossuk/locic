@@ -107,6 +107,14 @@ namespace locic {
 			return variants_;
 		}
 		
+		std::map<std::string, Var*>& TypeInstance::namedVariables() {
+			return namedVariables_;
+		}
+		
+		const std::map<std::string, Var*>& TypeInstance::namedVariables() const {
+			return namedVariables_;
+		}
+		
 		std::vector<Var*>& TypeInstance::variables() {
 			return variables_;
 		}
@@ -123,12 +131,12 @@ namespace locic {
 			return functions_;
 		}
 		
-		std::vector<Type*>& TypeInstance::constructTypes() {
-			return constructTypes_;
-		}
-		
-		const std::vector<Type*>& TypeInstance::constructTypes() const {
-			return constructTypes_;
+		std::vector<Type*> TypeInstance::constructTypes() const {
+			std::vector<Type*> types;
+			for (const auto var: variables()) {
+				types.push_back(var->constructType());
+			}
+			return types;
 		}
 		
 		void TypeInstance::setParent(TypeInstance* pParent) {

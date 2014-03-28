@@ -108,13 +108,6 @@ namespace locic {
 					return function.getLocalVarMap().get(var);
 				}
 				
-				case SEM::Value::MEMBERVAR: {
-					const auto var = value->memberVar.var;
-					return function.getBuilder().CreateConstInBoundsGEP2_32(
-							function.getContextValue(), 0,
-							module.getMemberVarMap().get(var));
-				}
-				
 				case SEM::Value::REINTERPRET: {
 					const auto sourceValue = genValue(function, value->reinterpretValue.value);
 					const auto targetType = genType(module, value->type());
@@ -278,19 +271,42 @@ namespace locic {
 				case SEM::Value::MEMBERACCESS: {
 					const auto offset = module.getMemberVarMap().get(value->memberAccess.memberVar);
 					
-					return function.getBuilder().CreateConstInBoundsGEP2_32(
-						genValue(function, value->memberAccess.object), 0, offset);
+					const auto dataValue = value->memberAccess.object;
+					const auto llvmDataValue = genValue(function, dataValue);
+					
+					// Members must have a pointer to the object, which
+					// may require generating a fresh 'alloca'.
+					const bool isValuePtr = dataValue->type()->isReference() ||
+						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
+					
+					return function.getBuilder().CreateConstInBoundsGEP2_32(dataPointer, 0, offset);
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {
+					const auto semFunctionValue = value->functionCall.functionValue;
+					const auto& semArgumentValues = value->functionCall.parameters;
+					
 					LOG(LOG_EXCESSIVE, "Generating function call value %s.",
-						value->functionCall.functionValue->toString().c_str());
-						
-					const auto functionValue = genValue(function, value->functionCall.functionValue);
-					const auto contextPointer = nullptr;
+						semFunctionValue->toString().c_str());
+					
+					if (semFunctionValue->type()->isInterfaceMethod()) {
+						return VirtualCall::generateCall(function, semFunctionValue, semArgumentValues);
+					}
+					
+					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
+					
+					const auto callValue = genValue(function, semFunctionValue);
+					
+					const auto functionValue = semFunctionValue->type()->isMethod() ?
+						function.getBuilder().CreateExtractValue(callValue, std::vector<unsigned>(1, 0)) :
+						callValue;
+					const auto contextPointer = semFunctionValue->type()->isMethod() ?
+						function.getBuilder().CreateExtractValue(callValue, std::vector<unsigned>(1, 1)) :
+						nullptr;
 					const auto returnType = value->type();
 					
-					return genFunctionCall(function, functionValue, contextPointer, returnType, value->functionCall.parameters, debugLoc);
+					return genFunctionCall(function, functionValue, contextPointer, returnType, semArgumentValues, debugLoc);
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
@@ -327,19 +343,6 @@ namespace locic {
 					return methodValue;
 				}
 				
-				case SEM::Value::METHODCALL: {
-					LOG(LOG_EXCESSIVE, "Generating method call value %s.",
-						value->methodCall.methodValue->toString().c_str());
-						
-					const auto method = genValue(function, value->methodCall.methodValue);
-					const auto functionValue = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 0));
-					const auto contextPointer = function.getBuilder().CreateExtractValue(method, std::vector<unsigned>(1, 1));
-					
-					const auto returnType = value->type();
-					
-					return genFunctionCall(function, functionValue, contextPointer, returnType, value->methodCall.parameters, debugLoc);
-				}
-				
 				case SEM::Value::INTERFACEMETHODOBJECT: {
 					const auto method = value->interfaceMethodObject.method;
 					const auto methodOwner = genValue(function, value->interfaceMethodObject.methodOwner);
@@ -357,13 +360,6 @@ namespace locic {
 					const auto methodValue = function.getBuilder().CreateInsertValue(methodValueWithOwner, methodHashValue, std::vector<unsigned>(1, 1));
 					
 					return methodValue;
-				}
-				
-				case SEM::Value::INTERFACEMETHODCALL: {
-					const auto method = value->interfaceMethodCall.methodValue;
-					const auto& paramList = value->interfaceMethodCall.parameters;
-					
-					return VirtualCall::generateCall(function, method, paramList);
 				}
 				
 				default:

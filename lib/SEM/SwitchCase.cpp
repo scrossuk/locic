@@ -13,6 +13,9 @@ namespace locic {
 		SwitchCase::SwitchCase()
 			: var_(nullptr), scope_(nullptr) { }
 		
+		SwitchCase::SwitchCase(Var* pVar, Scope* pScope)
+			: var_(pVar), scope_(pScope) { }
+		
 		void SwitchCase::setVar(Var* pVar) {
 			assert(pVar != nullptr);
 			var_ = pVar;

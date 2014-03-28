@@ -8,7 +8,7 @@ class TestClass(int value) {
 		return @(value);
 	}
 	
-	TestClass implicitCopy() {
+	TestClass implicitCopy() const {
 		int newValue = @value + 1;
 		testPrint(C"TestClass.implicitCopy: Value = %d", newValue);
 		return @(newValue);

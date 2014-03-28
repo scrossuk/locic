@@ -1,10 +1,12 @@
 #include <string>
 
+#include <locic/Debug.hpp>
 #include <locic/Log.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Node.hpp>
 
 namespace locic {
@@ -169,6 +171,21 @@ namespace locic {
 		
 		SEM::TypeInstance* getBuiltInType(const Context& context, const std::string& typeName) {
 			return context.lookupName(Name::Absolute() + typeName).getSEMTypeInstance();
+		}
+		
+		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {
+			const Node thisTypeNode = lookupParentType(context);
+			
+			assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
+			
+			if (thisTypeNode.isNone()) {
+				throw ErrorException(makeString("Cannot access 'self' in non-method at %s.",
+					location.toString().c_str()));
+			}
+			
+			// TODO: make const type when in const methods.
+			const auto selfType = thisTypeNode.getSEMTypeInstance()->selfType();
+			return SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
 		}
 		
 	}

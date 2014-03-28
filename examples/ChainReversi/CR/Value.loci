@@ -21,19 +21,5 @@ namespace CR {
 		}
 	}
 	
-	uint8_t valueId(Value value) {
-		switch (value) {
-			case Empty() {
-				return 0u;
-			}
-			case Red() {
-				return 1u;
-			}
-			case Blue() {
-				return 2u;
-			}
-		}
-	}
-	
 }
 

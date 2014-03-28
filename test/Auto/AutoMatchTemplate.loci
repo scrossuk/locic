@@ -3,7 +3,7 @@ void testPrint(const char * const str, ...);
 
 template <typename T>
 interface copyable {
-	T implicitCopy();
+	T implicitCopy() const;
 	
 	int abs();
 }
@@ -14,7 +14,7 @@ class TestClass(T value, int extra) {
 		return @(move value, 1);
 	}
 	
-	TestClass<T> implicitCopy() {
+	TestClass<T> implicitCopy() const {
 		return @(@value, 1);
 	}
 	

@@ -26,7 +26,7 @@ namespace locic {
 				static Function* Def(bool isMethod, bool isStatic, bool isConst, Type* type,
 					const Name& name, const std::vector<Var*>& parameters, Scope* scope);
 				
-				static Function* DefDefault(bool isStatic, Type* type, const Name& name);
+				static Function* DefDefault(bool isStatic, bool isConst, Type* type, const Name& name);
 				
 				const Name& name() const;
 				

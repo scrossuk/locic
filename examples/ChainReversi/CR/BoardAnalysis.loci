@@ -9,7 +9,7 @@ namespace CR {
 			unsigned long count = 0u;
 			for (auto x: std::counter<size_t>(1u, 0u, @board.size().width)) {
 				for (auto y: std::counter<size_t>(1u, 0u, @board.size().height)) {
-					if (valueId(@board[Position(x, y)]) == valueId(player)) {
+					if (@board[Position(x, y)] == player) {
 						count += 1u;
 					}
 				}
@@ -20,19 +20,19 @@ namespace CR {
 		unsigned long countCorners(Value player) const {
 			unsigned long count = 0u;
 			
-			if (valueId(@board[Position(0u, 0u)]) == valueId(player)) {
+			if (@board[Position(0u, 0u)] == player) {
 				count += 1u;
 			}
 			
-			if (valueId(@board[Position(0u, @board.size().height - 1u)]) == valueId(player)) {
+			if (@board[Position(0u, @board.size().height - 1u)] == player) {
 				count += 1u;
 			}
 			
-			if (valueId(@board[Position(@board.size().width - 1u, 0u)]) == valueId(player)) {
+			if (@board[Position(@board.size().width - 1u, 0u)] == player) {
 				count += 1u;
 			}
 			
-			if (valueId(@board[Position(@board.size().width - 1u, @board.size().height - 1u)]) == valueId(player)) {
+			if (@board[Position(@board.size().width - 1u, @board.size().height - 1u)] == player) {
 				count += 1u;
 			}
 			

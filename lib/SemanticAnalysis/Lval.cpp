@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -42,9 +44,40 @@ namespace locic {
 			return count;
 		}
 		
+		bool supportsDissolve(SEM::Type* type) {
+			switch (type->kind()) {
+				case SEM::Type::VOID:
+				case SEM::Type::REFERENCE:
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+					return false;
+					
+				case SEM::Type::OBJECT: {
+					const auto typeInstance = type->getObjectType();
+					const auto methodIterator = typeInstance->functions().find("dissolve");
+					if (methodIterator == typeInstance->functions().end()) return false;
+					
+					const auto function = methodIterator->second;
+					if (function->type()->isFunctionVarArg()) return false;
+					if (!function->isMethod()) return false;
+					if (function->isStaticMethod()) return false;
+					if (!function->parameters().empty()) return false;
+					
+					return true;
+				}
+				
+				case SEM::Type::TEMPLATEVAR:
+					return supportsDissolve(type->getTemplateVar()->specTypeInstance()->selfType());
+					
+				default:
+					throw std::runtime_error("Unknown SEM type kind.");
+			}
+		}
+		
 		bool canDissolveValue(SEM::Value* value) {
-			auto type = getDerefType(value->type());
-			return type->isLval() && type->isObject() && type->getObjectType()->hasProperty("dissolve");
+			const auto type = getDerefType(value->type());
+			return type->isLval() && type->isObject() && supportsDissolve(type);
 		}
 		
 		SEM::Value* dissolveLval(SEM::Value* value) {
@@ -60,12 +93,13 @@ namespace locic {
 					type->toString().c_str()));
 			}
 			
-			if (!type->getObjectType()->hasProperty("dissolve")) {
+			if (!supportsDissolve(type)) {
 				throw ErrorException(makeString("Type '%s' does not support 'dissolve'.",
 					type->toString().c_str()));
 			}
 			
-			return CallPropertyMethod(derefValue(value), "dissolve", std::vector<SEM::Value*>());
+			// TODO: fix location.
+			return CallValue(GetMethod(value, "dissolve"), {}, Debug::SourceLocation::Null());
 		}
 		
 		SEM::Value* tryDissolveValue(SEM::Value* value) {

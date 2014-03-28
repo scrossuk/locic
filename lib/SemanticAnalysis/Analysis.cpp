@@ -253,15 +253,11 @@ namespace locic {
 					
 					const auto var = SEM::Var::Basic(semType, lvalType);
 					
-					const auto memberNode = Node::Variable(astTypeVarNode, var);
+					// Add mapping from name to variable.
+					semTypeInstance->namedVariables().insert(std::make_pair(astTypeVarNode->namedVar.name, var));
 					
-					if (!node.tryAttach("#__ivar_" + astTypeVarNode->namedVar.name, memberNode)) {
-						throw MemberVariableClashException(context.name() + astTypeInstanceNode->name,
-							astTypeVarNode->namedVar.name);
-					}
-					
+					// Add mapping from position to variable.
 					semTypeInstance->variables().push_back(var);
-					semTypeInstance->constructTypes().push_back(semType);
 				}
 			} else {
 				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
@@ -373,9 +369,7 @@ namespace locic {
 				}
 			} else if (node.isTypeInstance()) {
 				const auto& astTypeInstanceNode = node.getASTTypeInstance();
-				const auto semTypeInstance = node.getSEMTypeInstance();
-				
-				assert(semTypeInstance->functions().empty());
+				assert(node.getSEMTypeInstance()->functions().empty());
 				
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddFunctionDecl(context, astFunctionNode);
@@ -454,10 +448,11 @@ namespace locic {
 			
 			completedTypes.insert(semTypeInstance);
 			
-			// Nasty hack to ensure value_lval has been processed.
-			// TODO: move value_lval dependent code (e.g. generating
+			// Nasty hack to ensure lvals have been processed.
+			// TODO: move lval dependent code (e.g. generating
 			//       exception default constructor) out of this pass.
 			AddTypeProperties(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
+			AddTypeProperties(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
 			
 			// Get type properties for types that this
 			// type depends on, since this is needed for
@@ -498,13 +493,13 @@ namespace locic {
 				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
 			
-			/*// Add default compare for datatypes.
+			// Add default compare for datatypes.
 			// TODO: check if this is actually valid!
-			if (semTypeInstance->isUnionDatatype()) {
+			if (semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
 				const auto implicitCopy = CreateDefaultCompare(context, semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));
-			}*/
+			}
 			
 			// Find all the standard patterns, and add
 			// them to the type instance.

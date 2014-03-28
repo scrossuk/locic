@@ -17,6 +17,19 @@ namespace locic {
 	
 		namespace {
 			
+			std::vector<SEM::Type*> getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
+				std::vector<SEM::Type*> types;
+				bool isFirst = true;
+				for (const auto var: variables) {
+					if (isFirst) {
+						isFirst = false;
+						continue;
+					}
+					types.push_back(var->constructType());
+				}
+				return types;
+			}
+			
 			std::vector<SEM::Var*> getParameters(Context& context, const std::vector<SEM::Type*>& constructTypes) {
 				std::vector<SEM::Var*> parameters;
 				for (const auto varType: constructTypes) {
@@ -48,20 +61,26 @@ namespace locic {
 		
 		SEM::Function* CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance) {
 			const auto& initializerNode = astTypeInstanceNode->initializer;
+			const auto& location = astTypeInstanceNode.location();
 			
 			const bool isVarArg = false;
 			const bool isStatic = true;
 			const bool isMethod = true;
 			const bool isConst = false;
 			
-			const auto functionType = SEM::Type::Function(isVarArg, semTypeInstance->selfType(), semTypeInstance->constructTypes());
+			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
+			
+			// Filter out first variable from construct types
+			// since the first variable will store the parent.
+			const auto constructTypes = hasParent ? getFilteredConstructTypes(semTypeInstance->variables()) : semTypeInstance->constructTypes();
+			
+			const auto functionType = SEM::Type::Function(isVarArg, semTypeInstance->selfType(), constructTypes);
 			const auto fullName = semTypeInstance->name() + "Create";
 			
-			if (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
+			if (hasParent) {
 				assert(semTypeInstance->parent() != nullptr);
-				assert((semTypeInstance->constructTypes().size() + 1) == semTypeInstance->variables().size());
 				
-				const auto parameters = getParameters(context, semTypeInstance->constructTypes());
+				const auto parameters = getParameters(context, constructTypes);
 				const auto function = SEM::Function::Decl(isMethod, isStatic, isConst, functionType, fullName, parameters);
 				
 				// Create node for function.
@@ -83,14 +102,14 @@ namespace locic {
 				// Call parent constructor.
 				// TODO: should provide template arguments.
 				const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-				constructValues.push_back(CallPropertyFunction(parentType, "Create", parentArguments));
+				constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create"), parentArguments, location));
 				
 				// Initialise variables.
 				for (const auto semVar: parameters) {
 					const auto varValue = SEM::Value::LocalVar(semVar);
 					
 					// Move from each value_lval into the internal constructor.
-					constructValues.push_back(CallPropertyMethod(varValue, "move", {}));
+					constructValues.push_back(CallValue(GetMethod(varValue, "move"), {}, location));
 				}
 				
 				const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);
@@ -103,7 +122,7 @@ namespace locic {
 			} else {
 				assert(semTypeInstance->parent() == nullptr);
 				// No parent, so just create a normal default constructor.
-				return SEM::Function::DefDefault(isStatic, functionType, fullName);
+				return SEM::Function::DefDefault(isStatic, isConst, functionType, fullName);
 			}
 		}
 		

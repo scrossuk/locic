@@ -16,79 +16,35 @@
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
-#include <locic/SemanticAnalysis/VarArgCast.hpp>
+#include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* accessObject, const std::string& memberName, const Debug::SourceLocation& location) {
-			const auto object = derefValue(accessObject);
-			const auto objectType = getDerefType(accessObject->type());
+		SEM::Value* MakeMemberAccess(SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
+			const auto derefType = getDerefType(value->type());
 			
-			if (!objectType->isObject() && !objectType->isTemplateVar()) {
-				throw ErrorException(makeString("Can't access member of non-object value '%s' of type '%s'.",
-					object->toString().c_str(), objectType->toString().c_str()));
+			if (!derefType->isObjectOrTemplateVar()) {
+				throw ErrorException(makeString("Can't access member '%s' of type '%s' at position %s.",
+					memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance =
-				objectType->isTemplateVar() ?
-					objectType->getTemplateVar()->specTypeInstance() :
-					objectType->getObjectType();
-			assert(typeInstance != nullptr);
-			
-			const Node typeNode = context.reverseLookup(typeInstance);
-			assert(typeNode.isNotNone());
+			const auto typeInstance = derefType->getObjectOrSpecType();
 			
 			// Look for methods.
-			const Node childNode = typeNode.getChild(memberName);
-			
-			if (childNode.isFunction()) {
-				const auto function = childNode.getSEMFunction();
-				
-				assert(function->isMethod());
-				
-				if (function->isStaticMethod()) {
-					throw ErrorException(makeString("Cannot call static function '%s' in type '%s' at location %s.",
-						function->name().toString().c_str(), typeInstance->name().toString().c_str(),
-						location.toString().c_str()));
-				}
-				
-				if (objectType->isConst() && !function->isConstMethod()) {
-					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object '%s' of type '%s' at location %s.",
-						function->name().toString().c_str(), accessObject->toString().c_str(),
-						objectType->toString().c_str(), location.toString().c_str()));
-				}
-				
-				const auto functionRef = SEM::Value::FunctionRef(objectType, function, objectType->generateTemplateVarMap());
-				
-				if (typeInstance->isInterface()) {
-					return SEM::Value::InterfaceMethodObject(functionRef, object);
-				} else {
-					return SEM::Value::MethodObject(functionRef, object);
-				}
+			if (typeInstance->functions().find(memberName) != typeInstance->functions().end()) {
+				return GetMethod(value, memberName);
 			}
 			
 			// TODO: this should be replaced by falling back on 'property' methods.
-			
 			// Look for variables.
-			const Node varNode = typeNode.getChild("#__ivar_" + memberName);
-			
-			if (varNode.isNotNone()) {
-				assert(varNode.isVariable());
-				const auto var = varNode.getSEMVar();
-				auto memberType = var->type();
-				
-				if (objectType->isConst()) {
-					// If the type instance is const, then
-					// the members must also be.
-					memberType = memberType->createConstType();
-				}
-				
-				return SEM::Value::MemberAccess(object, var, SEM::Type::Reference(memberType)->createRefType(memberType));
+			const auto variableIterator = typeInstance->namedVariables().find(memberName);
+			if (variableIterator != typeInstance->namedVariables().end()) {
+				return SEM::Value::MemberAccess(derefValue(value), variableIterator->second);
 			}
 			
-			throw ErrorException(makeString("Can't access member '%s' in type '%s' at location %s.",
+			throw ErrorException(makeString("Can't access member '%s' in type '%s' at position %s.",
 				memberName.c_str(), typeInstance->name().toString().c_str(), location.toString().c_str()));
 		}
 		
@@ -173,6 +129,7 @@ namespace locic {
 		
 		std::string getFloatingPointConstantType(const std::string& specifier, const Constant& constant) {
 			assert(constant.kind() == Constant::FLOATINGPOINT);
+			(void) constant;
 			
 			if (specifier == "f") {
 				return "float_t";
@@ -256,18 +213,7 @@ namespace locic {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::SELF: {
-					const Node thisTypeNode = lookupParentType(context);
-					
-					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
-					
-					if (thisTypeNode.isNone()) {
-						throw ErrorException(makeString("Cannot access 'self' in non-method at %s.",
-							astValueNode.location().toString().c_str()));
-					}
-					
-					// TODO: make const type when in const methods.
-					const auto selfType = thisTypeNode.getSEMTypeInstance()->selfType();
-					return SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
+					return getSelfValue(context, location);
 				}
 				case AST::Value::THIS: {
 					const Node thisTypeNode = lookupParentType(context);
@@ -374,33 +320,32 @@ namespace locic {
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
+					const auto selfValue = getSelfValue(context, location);
+					assert(getDerefType(selfValue->type())->isObject());
 					
-					const auto typeNode = lookupParentType(context);
-					assert(typeNode.isTypeInstance());
+					const auto typeInstance = getDerefType(selfValue->type())->getObjectType();
+					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					
-					const auto varNode = typeNode.getChild("#__ivar_" + memberName);
-					
-					if (varNode.isNone()) {
+					if (variableIterator == typeInstance->namedVariables().end()) {
 						throw ErrorException(makeString("Member variable '@%s' not found at position %s.",
 							memberName.c_str(), location.toString().c_str()));
 					}
 					
-					assert(varNode.isVariable());
-					return SEM::Value::MemberVar(varNode.getSEMVar());
+					return SEM::Value::MemberAccess(selfValue, variableIterator->second);
 				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = getBuiltInType(context, "bool");
-					const auto boolValue = ImplicitCast(context, cond, boolType->selfType());
+					const auto boolValue = ImplicitCast(cond, boolType->selfType());
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
-					const auto targetType = UnifyTypes(context, ifTrue->type(), ifFalse->type());
+					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
 					
-					const auto castIfTrue = ImplicitCast(context, ifTrue, targetType);
-					const auto castIfFalse = ImplicitCast(context, ifFalse, targetType);
+					const auto castIfTrue = ImplicitCast(ifTrue, targetType);
+					const auto castIfFalse = ImplicitCast(ifFalse, targetType);
 					
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
@@ -425,7 +370,7 @@ namespace locic {
 									sourceValue->toString().c_str(), sourceType->toString().c_str(),
 									targetType->toString().c_str(), location.toString().c_str()));
 							}
-							return SEM::Value::Reinterpret(ImplicitCast(context, sourceValue, sourceType), targetType);
+							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType), targetType);
 						default:
 							throw std::runtime_error("Unknown cast kind.");
 					}
@@ -487,9 +432,9 @@ namespace locic {
 					std::vector<SEM::Value*> semValues;
 					
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
-						SEM::Type* constructType = thisTypeInstance->constructTypes().at(i);
-						SEM::Value* semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						SEM::Value* semParam = ImplicitCast(context, semValue, constructType);
+						const auto semVar = thisTypeInstance->variables().at(i);
+						const auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
+						const auto semParam = ImplicitCast(semValue, semVar->constructType());
 						semValues.push_back(semParam);
 					}
 					
@@ -504,116 +449,18 @@ namespace locic {
 						object = tryDissolveValue(object);
 					}
 					
-					return MakeMemberAccess(context, object, memberName, astValueNode.location());
+					return MakeMemberAccess(object, memberName, astValueNode.location());
 				}
 				case AST::Value::FUNCTIONCALL: {
-					assert(astValueNode->functionCall.functionValue.get() != NULL && "Cannot call NULL function value");
 					const auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);
 					
-					switch (functionValue->type()->kind()) {
-						case SEM::Type::FUNCTION: {
-							const auto& typeList = functionValue->type()->getFunctionParameterTypes();
-							const auto& astValueList = astValueNode->functionCall.parameters;
-							
-							if (functionValue->type()->isFunctionVarArg()) {
-								if(astValueList->size() < typeList.size()) {
-									throw ErrorException(makeString("Var Arg Function [%s] called with %llu number "
-										"of parameters; expected at least %llu at position %s.",
-										functionValue->toString().c_str(),
-										(unsigned long long) astValueList->size(),
-										(unsigned long long) typeList.size(),
-										location.toString().c_str()));
-								}
-							} else {
-								if(astValueList->size() != typeList.size()) {
-									throw ErrorException(makeString("Function [%s] called with %llu number of "
-										"parameters; expected %llu at position %s.",
-										functionValue->toString().c_str(),
-										(unsigned long long) astValueList->size(),
-										(unsigned long long) typeList.size(),
-										location.toString().c_str()));
-								}
-							}
-							
-							assert(astValueList->size() >= typeList.size());
-							
-							std::vector<SEM::Value*> semValueList;
-							
-							for(std::size_t i = 0; i < astValueList->size(); i++) {
-								const auto semArgValue = ConvertValue(context, astValueList->at(i));
-								
-								// Cast arguments to the function type's corresponding
-								// argument type; var-arg arguments should be cast to
-								// one of the allowed types (since there's no specific
-								// destination type).
-								const auto param = (i < typeList.size()) ?
-										ImplicitCast(context, semArgValue, typeList.at(i)) :
-										VarArgCast(semArgValue);
-										
-								semValueList.push_back(param);
-							}
-							
-							return SEM::Value::FunctionCall(functionValue, semValueList);
-						}
-						case SEM::Type::METHOD: {
-							const auto functionType = functionValue->type()->getMethodFunctionType();
-							
-							const auto& typeList = functionType->getFunctionParameterTypes();
-							const auto& astValueList = astValueNode->functionCall.parameters;
-							
-							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
-							
-							if (typeList.size() != astValueList->size()) {
-								throw ErrorException(makeString("Method [%s] called with %llu number of "
-									"parameters; expected %llu at position %s.",
-									functionValue->toString().c_str(),
-									(unsigned long long) astValueList->size(),
-									(unsigned long long) typeList.size(),
-									location.toString().c_str()));
-							}
-							
-							std::vector<SEM::Value*> semValueList;
-							
-							for (size_t i = 0; i < astValueList->size(); i++) {
-								const auto semArgValue = ConvertValue(context, astValueList->at(i));
-								const auto param = ImplicitCast(context, semArgValue, typeList.at(i));
-								semValueList.push_back(param);
-							}
-							
-							return SEM::Value::MethodCall(functionValue, semValueList);
-						}
-						case SEM::Type::INTERFACEMETHOD: {
-							const auto functionType = functionValue->type()->getInterfaceMethodFunctionType();
-							
-							const auto& typeList = functionType->getFunctionParameterTypes();
-							const auto& astValueList = astValueNode->functionCall.parameters;
-							
-							assert(!functionType->isFunctionVarArg() && "Methods cannot be var args");
-							
-							if (typeList.size() != astValueList->size()) {
-								throw ErrorException(makeString("Method [%s] called with %llu number of "
-									"parameters; expected %llu at position %s.",
-									functionValue->toString().c_str(),
-									(unsigned long long) astValueList->size(),
-									(unsigned long long) typeList.size(),
-									location.toString().c_str()));
-							}
-							
-							std::vector<SEM::Value*> semValueList;
-							
-							for (size_t i = 0; i < astValueList->size(); i++) {
-								const auto semArgValue = ConvertValue(context, astValueList->at(i));
-								const auto param = ImplicitCast(context, semArgValue, typeList.at(i));
-								semValueList.push_back(param);
-							}
-							
-							return SEM::Value::InterfaceMethodCall(functionValue, semValueList);
-						}
-						default: {
-							throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
-								functionValue->toString().c_str(), location.toString().c_str()));
-						}
+					std::vector<SEM::Value*> argumentValues;
+					
+					for (const auto& astArgumentValueNode: *(astValueNode->functionCall.parameters)) {
+						argumentValues.push_back(ConvertValue(context, astArgumentValueNode));
 					}
+					
+					return CallValue(functionValue, argumentValues, location);
 				}
 				default:
 					throw std::runtime_error("Unknown AST::Value kind.");

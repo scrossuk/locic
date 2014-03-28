@@ -13,6 +13,7 @@ namespace locic {
 		class SwitchCase {
 			public:
 				SwitchCase();
+				SwitchCase(Var* var, Scope* scope);
 				
 				void setVar(Var* var);
 				

@@ -55,28 +55,28 @@ namespace locic {
 				// a valid var arg value.
 				auto result = VarArgCastSearch(dissolvedValue);
 				
-				if (result != NULL) return result;
+				if (result != nullptr) return result;
 			}
 			
 			if (value->type()->isRef() && supportsImplicitCopy(derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallPropertyMethod(derefValue(value), "implicitCopy", std::vector<SEM::Value*>()) :
+					CallValue(GetMethod(value, "implicitCopy"), {}, Debug::SourceLocation::Null()) :
 					derefAll(value);
 				
 				// See if this results in
 				// a valid var arg value.
 				auto result = VarArgCastSearch(copyValue);
 				
-				if (result != NULL) return result;
+				if (result != nullptr) return result;
 			}
 			
-			return NULL;
+			return nullptr;
 		}
 		
 		SEM::Value* VarArgCast(SEM::Value* value) {
 			auto result = VarArgCastSearch(value);
-			if (result == NULL) {
+			if (result == nullptr) {
 				throw ErrorException(makeString("Var arg parameter '%s' has invalid type '%s'.",
 					value->toString().c_str(), value->type()->toString().c_str()));
 			}
