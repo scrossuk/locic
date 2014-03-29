@@ -6,6 +6,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 
 namespace locic {
@@ -15,12 +16,16 @@ namespace locic {
 		void ConvertFunctionDef(Context& context) {
 			const auto& functionNode = context.node();
 			
-			// Look through all the AST functions corresponding to
-			// this function to find the definition.
 			const auto& astFunctionNode = functionNode.getASTFunction();
+			const auto semFunction = functionNode.getSEMFunction();
 			
-			if (astFunctionNode->isDefaultDefinition()) {
+			// Function should currently be a declaration
+			// (it is about to be made into a definition).
+			assert(semFunction->isDeclaration());
+			
+			if (astFunctionNode.isNull() || astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
+				CreateDefaultMethod(context, lookupParentType(context).getSEMTypeInstance(), semFunction);
 				return;
 			}
 			
@@ -28,12 +33,6 @@ namespace locic {
 				// Only a declaration.
 				return;
 			}
-			
-			const auto semFunction = functionNode.getSEMFunction();
-			
-			// Function should currently be a declaration
-			// (it is about to be made into a definition).
-			assert(semFunction->isDeclaration());
 			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)

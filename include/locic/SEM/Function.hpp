@@ -26,8 +26,6 @@ namespace locic {
 				static Function* Def(bool isMethod, bool isStatic, bool isConst, Type* type,
 					const Name& name, const std::vector<Var*>& parameters, Scope* scope);
 				
-				static Function* DefDefault(bool isStatic, bool isConst, Type* type, const Name& name);
-				
 				const Name& name() const;
 				
 				Type* type() const;
@@ -42,8 +40,6 @@ namespace locic {
 				
 				bool isConstMethod() const;
 				
-				bool hasDefaultImplementation() const;
-				
 				const std::vector<Var*>& parameters() const;
 				
 				const Scope& scope() const;
@@ -57,10 +53,9 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Function(bool isM, bool isS, bool isC, bool hasD, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s);
+				Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s);
 				
 				bool isMethod_, isStatic_, isConst_;
-				bool hasDefaultImplementation_;
 				Type* type_;
 				Name name_;
 				std::vector<Var*> parameters_;

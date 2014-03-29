@@ -6,6 +6,7 @@
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
+#include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Node.hpp>
@@ -35,8 +36,7 @@ namespace locic {
 				for (const auto varType: constructTypes) {
 					const bool isLvalConst = false;
 					const auto lvalType = makeValueLvalType(context, isLvalConst, varType);
-					const auto var = SEM::Var::Basic(varType, lvalType);
-					parameters.push_back(var);
+					parameters.push_back(SEM::Var::Basic(varType, lvalType));
 				}
 				return parameters;
 			}
@@ -59,9 +59,8 @@ namespace locic {
 			
 		}
 		
-		SEM::Function* CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance) {
+		SEM::Function* CreateExceptionConstructorDecl(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance) {
 			const auto& initializerNode = astTypeInstanceNode->initializer;
-			const auto& location = astTypeInstanceNode.location();
 			
 			const bool isVarArg = false;
 			const bool isStatic = true;
@@ -69,61 +68,80 @@ namespace locic {
 			const bool isConst = false;
 			
 			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
+			if (!hasParent) {
+				// No parent, so just create a normal default constructor.
+				return CreateDefaultConstructorDecl(context, semTypeInstance);
+			}
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
-			const auto constructTypes = hasParent ? getFilteredConstructTypes(semTypeInstance->variables()) : semTypeInstance->constructTypes();
+			const auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			
 			const auto functionType = SEM::Type::Function(isVarArg, semTypeInstance->selfType(), constructTypes);
-			const auto fullName = semTypeInstance->name() + "Create";
+			const auto parameters = getParameters(context, constructTypes);
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "Create", parameters);
+		}
+		
+		void CreateExceptionConstructor(Context& context, SEM::Function* function) {
+			const auto& node = context.node();
+			assert(node.isFunction());
 			
-			if (hasParent) {
-				assert(semTypeInstance->parent() != nullptr);
-				
-				const auto parameters = getParameters(context, constructTypes);
-				const auto function = SEM::Function::Decl(isMethod, isStatic, isConst, functionType, fullName, parameters);
-				
-				// Create node for function.
-				auto functionNode = Node::Function(AST::Node<AST::Function>(), function);
-				
-				// Attach parameters to the function node.
-				attachParameters(functionNode, astTypeInstanceNode->variables, parameters);
-				
-				// Create context for function (to resolve references to parameters).
-				NodeContext functionContext(context, "Create", functionNode);
-				
-				std::vector<SEM::Value*> parentArguments;
-				for (const auto& astValueNode: *(initializerNode->valueList)) {
-					parentArguments.push_back(ConvertValue(functionContext, astValueNode));
-				}
-				
-				std::vector<SEM::Value*> constructValues;
-				
-				// Call parent constructor.
-				// TODO: should provide template arguments.
-				const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-				constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create", location), parentArguments, location));
-				
-				// Initialise variables.
-				for (const auto semVar: parameters) {
-					const auto varValue = SEM::Value::LocalVar(semVar);
-					
-					// Move from each value_lval into the internal constructor.
-					constructValues.push_back(CallValue(GetMethod(varValue, "move", location), {}, location));
-				}
-				
-				const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);
-				
-				const auto scope = new SEM::Scope();
-				scope->statements().push_back(SEM::Statement::Return(returnValue));
-				function->setScope(scope);
-				
-				return function;
-			} else {
+			const auto parentNode = lookupParentType(context);
+			assert(parentNode.isTypeInstance());
+			
+			const auto& astTypeInstanceNode = parentNode.getASTTypeInstance();
+			const auto semTypeInstance = parentNode.getSEMTypeInstance();
+			
+			assert(semTypeInstance->isException());
+			
+			const auto& initializerNode = astTypeInstanceNode->initializer;
+			const auto& location = astTypeInstanceNode.location();
+			
+			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
+			
+			if (!hasParent) {
 				assert(semTypeInstance->parent() == nullptr);
+				
 				// No parent, so just create a normal default constructor.
-				return SEM::Function::DefDefault(isStatic, isConst, functionType, fullName);
+				CreateDefaultConstructor(semTypeInstance, function);
+				return;
 			}
+			
+			assert(semTypeInstance->parent() != nullptr);
+			
+			// Create node for function.
+			auto functionNode = Node::Function(AST::Node<AST::Function>(), function);
+			
+			// Attach parameters to the function node.
+			attachParameters(functionNode, astTypeInstanceNode->variables, function->parameters());
+			
+			// Create context for function (to resolve references to parameters).
+			NodeContext functionContext(context, "Create", functionNode);
+			
+			std::vector<SEM::Value*> parentArguments;
+			for (const auto& astValueNode: *(initializerNode->valueList)) {
+				parentArguments.push_back(ConvertValue(functionContext, astValueNode));
+			}
+			
+			std::vector<SEM::Value*> constructValues;
+			
+			// Call parent constructor.
+			// TODO: should provide template arguments.
+			const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
+			constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create", location), parentArguments, location));
+			
+			for (const auto semVar: function->parameters()) {
+				const auto varValue = SEM::Value::LocalVar(semVar);
+				
+				// Move from each value_lval into the internal constructor.
+				constructValues.push_back(CallValue(GetMethod(varValue, "move", location), {}, location));
+			}
+			
+			const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);
+			
+			const auto scope = new SEM::Scope();
+			scope->statements().push_back(SEM::Statement::Return(returnValue));
+			function->setScope(scope);
 		}
 		
 	}

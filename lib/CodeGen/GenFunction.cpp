@@ -4,7 +4,6 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
-#include <locic/CodeGen/DefaultMethods.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -204,17 +203,12 @@ namespace locic {
 				genVarAlloca(functionGenerator, paramVar);
 			}
 			
-			if (function->hasDefaultImplementation()) {
-				assert(parent != NULL);
-				genDefaultMethod(functionGenerator, parent, function);
-			} else {
-				genFunctionCode(functionGenerator, function);
-				
-				// Need to terminate the final basic block.
-				// (just make it loop to itself - this will
-				// be removed by dead code elimination)
-				functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
-			}
+			genFunctionCode(functionGenerator, function);
+			
+			// Need to terminate the final basic block.
+			// (just make it loop to itself - this will
+			// be removed by dead code elimination)
+			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			
 			// LOG(LOG_INFO, "Function definition is:");
 			// llvmFunction->dump();

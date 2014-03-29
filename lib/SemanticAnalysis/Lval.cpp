@@ -15,13 +15,13 @@ namespace locic {
 	
 		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
 			const auto lvalTypeInstance = getBuiltInType(context, "value_lval");
-			const auto lvalType = SEM::Type::Object(lvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
+			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
 			const auto lvalTypeInstance = getBuiltInType(context, "member_lval");
-			const auto lvalType = SEM::Type::Object(lvalTypeInstance, std::vector<SEM::Type*>(1, valueType))->createLvalType(valueType);
+			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		

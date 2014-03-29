@@ -20,14 +20,12 @@ namespace locic {
 			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 				const Node& childNode = range.front().value();
 				NodeContext newContext(context, range.front().key(), childNode);
-				if(childNode.isFunction()){
+				if (childNode.isFunction()) {
 					ConvertFunctionDef(newContext);
-				}else if(childNode.isNamespace()){
+				} else if(childNode.isNamespace()) {
 					ConvertNamespace(newContext);
-				}else if(childNode.isTypeInstance()){
-					if(childNode.getSEMTypeInstance()->isClassDef()){
-						ConvertClassDef(newContext);
-					}
+				} else if(childNode.isTypeInstance()) {
+					ConvertClassDef(newContext);
 				}
 			}
 		}

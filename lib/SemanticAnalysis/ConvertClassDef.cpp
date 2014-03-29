@@ -8,11 +8,11 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		// TODO: rename to 'ConvertTypeInstance'.
 		void ConvertClassDef(Context& context) {
 			Node& node = context.node();
 			
 			assert(node.isTypeInstance());
-			assert(node.getSEMTypeInstance()->isClassDef());
 			
 			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
 				const Node& childNode = range.front().value();

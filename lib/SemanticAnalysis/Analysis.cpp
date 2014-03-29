@@ -304,7 +304,7 @@ namespace locic {
 				const auto typeInstance = node.getSEMTypeInstance();
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethod(context, typeInstance, astFunctionNode->isStaticMethod(), fullName);
+				const auto semFunction = CreateDefaultMethodDecl(context, typeInstance, astFunctionNode->isStaticMethod(), fullName);
 				
 				typeInstance->functions().insert(std::make_pair(name, semFunction));
 				
@@ -477,8 +477,8 @@ namespace locic {
 				// for datatypes and structs, just add a default constructor.
 				const auto constructor =
 					semTypeInstance->isException() ?
-						CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance) :
-						CreateDefaultConstructor(semTypeInstance);
+						CreateExceptionConstructorDecl(context, astTypeInstanceNode, semTypeInstance) :
+						CreateDefaultConstructorDecl(context, semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("Create", constructor));
 				
 				node.attach("Create", Node::Function(AST::Node<AST::Function>(), constructor));
@@ -486,7 +486,7 @@ namespace locic {
 			
 			// Add default implicit copy if available.
 			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
-				const auto implicitCopy = CreateDefaultImplicitCopy(semTypeInstance);
+				const auto implicitCopy = CreateDefaultImplicitCopyDecl(semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("implicitCopy", implicitCopy));
 				
 				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
@@ -495,7 +495,7 @@ namespace locic {
 			// Add default compare for datatypes.
 			// TODO: check if this is actually valid!
 			if (semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
-				const auto implicitCopy = CreateDefaultCompare(context, semTypeInstance);
+				const auto implicitCopy = CreateDefaultCompareDecl(context, semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}

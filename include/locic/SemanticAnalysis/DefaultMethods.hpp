@@ -10,15 +10,23 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* CreateDefaultConstructor(SEM::TypeInstance* typeInstance);
+		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance);
+		
+		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance);
+		
+		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance);
+		
+		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name);
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
 		
-		SEM::Function* CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
+		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
-		SEM::Function* CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance);
+		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
-		SEM::Function* CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name);
+		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function);
+		
+		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
 	}
 	

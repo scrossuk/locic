@@ -1,10 +1,14 @@
+#include <stdexcept>
 #include <vector>
+
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
@@ -12,13 +16,57 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		// TODO: actually generate the code here (i.e. move it out of CodeGen).
-		SEM::Function* CreateDefaultConstructor(SEM::TypeInstance* typeInstance) {
+		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance) {
 			const bool isVarArg = false;
+			const bool isMethod = true;
 			const bool isStatic = true;
 			const bool isConst = false;
-			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), typeInstance->constructTypes());
-			return SEM::Function::DefDefault(isStatic, isConst, functionType, typeInstance->name() + "Create");
+			
+			const auto constructTypes = typeInstance->constructTypes();
+			
+			std::vector<SEM::Var*> argVars;
+			for (const auto constructType: constructTypes) {
+				const bool isLvalConst = false;
+				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
+				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
+			}
+			
+			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), constructTypes);
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "Create", argVars);
+		}
+		
+		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance) {
+			const bool isVarArg = false;
+			const bool isMethod = true;
+			const bool isStatic = false;
+			const bool isConst = true;
+			
+			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), {});
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitCopy", {});
+		}
+		
+		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance) {
+			const bool isVarArg = false;
+			const bool isMethod = true;
+			const bool isStatic = false;
+			const bool isConst = true;
+			
+			const auto selfType = typeInstance->selfType();
+			const auto intType = getBuiltInType(context, "int_t")->selfType();
+			const auto functionType = SEM::Type::Function(isVarArg, intType, { selfType });
+			const auto operandVar = SEM::Var::Basic(selfType, selfType);
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar });
+		}
+		
+		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name) {
+			if (isStatic && name.last() == "Create") {
+				return CreateDefaultConstructorDecl(context, typeInstance);
+			} if (!isStatic && name.last() == "implicitCopy" && HasDefaultImplicitCopy(typeInstance)) {
+				return CreateDefaultImplicitCopyDecl(typeInstance);
+			}
+			
+			throw ErrorException(makeString("%s method '%s' does not have a default implementation.",
+				isStatic ? "Static" : "Non-static", name.toString().c_str()));
 		}
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
@@ -39,31 +87,76 @@ namespace locic {
 			}
 		}
 		
-		// TODO: actually generate the code here (i.e. move it out of CodeGen).
-		SEM::Function* CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
-			const bool isVarArg = false;
-			const bool isStatic = false;
-			const bool isConst = true;
-			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), {});
-			return SEM::Function::DefDefault(isStatic, isConst, functionType, typeInstance->name() + "implicitCopy");
-		}
-		
-		SEM::Function* CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance) {
+		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			// TODO: fix location.
 			const auto location = Debug::SourceLocation::Null();
 			
-			const bool isVarArg = false;
-			const bool isMethod = true;
-			const bool isStatic = false;
-			const bool isConst = true;
+			const auto functionScope = new SEM::Scope();
+			
+			assert(!typeInstance->isUnionDatatype());
+			
+			std::vector<SEM::Value*> constructValues;
+			for (const auto argVar: function->parameters()) {
+				const auto argVarValue = SEM::Value::LocalVar(argVar);
+				constructValues.push_back(CallValue(GetMethod(argVarValue, "move", location), {}, location));
+			}
+			
+			const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, constructValues);
+			functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
+			
+			function->setScope(functionScope);
+		}
+		
+		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			// TODO: fix location.
+			const auto location = Debug::SourceLocation::Null();
+			
+			const auto selfType = typeInstance->selfType();
+			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
+			
+			const auto functionScope = new SEM::Scope();
+			
+			if (typeInstance->isUnionDatatype()) {
+				std::vector<SEM::SwitchCase*> switchCases;
+				for (const auto variantTypeInstance: typeInstance->variants()) {
+					const auto variantType = variantTypeInstance->selfType();
+					const auto caseVar = SEM::Var::Basic(variantType, variantType);
+					const auto caseVarValue = SEM::Value::LocalVar(caseVar);
+					
+					const auto caseScope = new SEM::Scope();
+					const auto copyResult = CallValue(GetMethod(caseVarValue, "implicitCopy", location), {}, location);
+					const auto copyResultCast = SEM::Value::Cast(selfType, copyResult);
+					caseScope->statements().push_back(SEM::Statement::Return(copyResultCast));
+					
+					switchCases.push_back(new SEM::SwitchCase(caseVar, caseScope));
+				}
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases));
+			} else {
+				std::vector<SEM::Value*> copyValues;
+				
+				for (const auto memberVar: typeInstance->variables()) {
+					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
+					const auto copyResult = CallValue(GetMethod(selfMember, "implicitCopy", location), {}, location);
+					copyValues.push_back(copyResult);
+				}
+				
+				const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, copyValues);
+				functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
+			}
+			
+			function->setScope(functionScope);
+		}
+		
+		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			// TODO: fix location.
+			const auto location = Debug::SourceLocation::Null();
 			
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
 			
 			const auto intType = getBuiltInType(context, "int_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, intType, { selfType });
 			
-			const auto operandVar = SEM::Var::Basic(selfType, selfType);
+			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = SEM::Value::LocalVar(operandVar);
 			
 			const auto functionScope = new SEM::Scope();
@@ -131,18 +224,23 @@ namespace locic {
 				currentScope->statements().push_back(SEM::Statement::Return(zeroConstant));
 			}
 			
-			return SEM::Function::Def(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar }, functionScope);
+			function->setScope(functionScope);
 		}
 		
-		SEM::Function* CreateDefaultMethod(Context&, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name) {
-			if (isStatic && name.last() == "Create") {
-				return CreateDefaultConstructor(typeInstance);
-			} if (!isStatic && name.last() == "implicitCopy" && HasDefaultImplicitCopy(typeInstance)) {
-				return CreateDefaultImplicitCopy(typeInstance);
+		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			if (function->name().last() == "Create") {
+				if (typeInstance->isException()) {
+					CreateExceptionConstructor(context, function);
+				} else {
+					CreateDefaultConstructor(typeInstance, function);
+				}
+			} else if (function->name().last() == "implicitCopy") {
+				CreateDefaultImplicitCopy(typeInstance, function);
+			} else if (function->name().last() == "compare") {
+				CreateDefaultCompare(context, typeInstance, function);
+			} else {
+				throw std::runtime_error(makeString("Unknown default method '%s'.", function->name().toString().c_str()));
 			}
-			
-			throw ErrorException(makeString("%s method '%s' does not have a default implementation.",
-				isStatic ? "Static" : "Non-static", name.toString().c_str()));
 		}
 		
 	}

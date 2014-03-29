@@ -265,7 +265,7 @@ namespace locic {
 						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterVars.at(i));
 					}
 					
-					return objectValue;
+					return genLoad(function, objectValue, value->type());
 				}
 				
 				case SEM::Value::MEMBERACCESS: {

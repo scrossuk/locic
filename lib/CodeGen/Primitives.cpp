@@ -595,6 +595,12 @@ namespace locic {
 			function.verify();
 		}
 		
+		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
+			std::vector<llvm_abi::Type> abiTypes;
+			abiTypes.push_back(std::move(type));
+			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
+		}
+		
 		void createValueLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
@@ -660,7 +666,7 @@ namespace locic {
 						// also reset the liveness indicator.
 						genZero(function, parent, function.getContextValue());
 						
-						builder.CreateRet(loadedValue);
+						builder.CreateRet(encodeReturnValue(function, loadedValue, genABIType(function.module(), targetType)));
 					}
 				} else if (methodName == "dissolve") {
 					// TODO: check liveness indicator (?).
