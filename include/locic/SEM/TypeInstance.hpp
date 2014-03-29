@@ -102,14 +102,6 @@ namespace locic {
 				void setParent(TypeInstance* parent);
 				TypeInstance* parent() const;
 				
-				// TODO: 'type properties' should be moved out of SEM tree
-				//       representation into Semantic Analysis nodes.
-				bool hasProperty(const std::string& propertyName) const;
-				
-				Function* getProperty(const std::string& propertyName) const;
-				
-				void addProperty(const std::string& propertyName, Function* function);
-				
 				std::string refToString() const;
 				
 				std::string toString() const;
@@ -119,8 +111,6 @@ namespace locic {
 				Kind kind_;
 				
 				TypeInstance* parent_;
-				
-				Map<std::string, Function*> typeProperties_;
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::vector<TypeInstance*> variants_;

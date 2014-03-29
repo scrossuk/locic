@@ -34,7 +34,8 @@ namespace locic {
 			const bool attachResult = context.node().tryAttach(name, localVarNode);
 			
 			if (!attachResult) {
-				throw ErrorException(makeString("Variable name '%s' already exists.", name.c_str()));
+				throw ErrorException(makeString("Variable name '%s' already exists at position %s.",
+					name.c_str(), astTypeVarNode.location().toString().c_str()));
 			}
 			
 			// TODO: add support for member and parameter variables.
@@ -44,16 +45,18 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::Type* CastType(SEM::Type* sourceType, SEM::Type* destType, bool isTopLevel) {
+			SEM::Type* CastType(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
 				// Pattern matched members are restricted
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
 				
-				const auto value = ImplicitCast(SEM::Value::CastDummy(sourceType), destType, formatOnly);
+				const auto value = ImplicitCast(SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
 				return value->type();
 			}
 			
 			SEM::Var* ConvertInitialisedVarRecurse(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Type* initialiseType, bool isTopLevel) {
+				const auto& location = astTypeVarNode.location();
+				
 				switch (astTypeVarNode->kind) {
 					case AST::TypeVar::ANYVAR: {
 						return SEM::Var::Any(initialiseType);
@@ -63,18 +66,19 @@ namespace locic {
 						const auto& varName = astTypeVarNode->namedVar.name;
 						
 						if (!context.lookupName(Name::Relative() + varName).isNone()) {
-							throw ErrorException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
+								varName.c_str(), location.toString().c_str()));
 						}
 						
 						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
-						const auto varType = CastType(initialiseType, varDeclType, isTopLevel);
+						const auto varType = CastType(initialiseType, varDeclType, location, isTopLevel);
 						
 						if (varType->isVoid()) {
-							throw ErrorException(makeString("Variable '%s' cannot have void type.",
-									astTypeVarNode->namedVar.name.c_str()));
+							throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
+								astTypeVarNode->namedVar.name.c_str(), location.toString().c_str()));
 						}
 						
 						// 'final' keyword makes the default lval const.
@@ -91,22 +95,23 @@ namespace locic {
 						const auto varDeclType = ConvertType(context, astTypeVarNode->patternVar.type);
 						
 						if (!varDeclType->isDatatype()) {
-							throw ErrorException(makeString("Can't pattern match for non-datatype '%s'.",
-									varDeclType->toString().c_str()));
+							throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
+								varDeclType->toString().c_str(), location.toString().c_str()));
 						}
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
-						const auto varType = CastType(initialiseType, varDeclType, isTopLevel);
+						const auto varType = CastType(initialiseType, varDeclType, location, isTopLevel);
 						
 						const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
 						const auto& typeChildVars = varType->getObjectType()->variables();
 						
 						if (astChildTypeVars->size() != typeChildVars.size()) {
-							throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
+							throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
 									(unsigned long long) astChildTypeVars->size(),
 									(unsigned long long) typeChildVars.size(),
-									varType->toString().c_str()));
+									varType->toString().c_str(),
+									location.toString().c_str()));
 						}
 						
 						const auto templateVarMap = varType->generateTemplateVarMap();
@@ -134,6 +139,8 @@ namespace locic {
 		}
 		
 		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+			const auto& location = astTypeVarNode.location();
+			
 			switch (astTypeVarNode->kind) {
 				case AST::TypeVar::ANYVAR: {
 					throw ErrorException("'Any' vars not yet implemented for uninitialised variables.");
@@ -143,13 +150,15 @@ namespace locic {
 					const auto& varName = astTypeVarNode->namedVar.name;
 					
 					if (!context.lookupName(Name::Relative() + varName).isNone()) {
-						throw ErrorException(makeString("Variable '%s' shadows existing object.", varName.c_str()));
+						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
+							varName.c_str(), location.toString().c_str()));
 					}
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
 					if (varType->isVoid()) {
-						throw ErrorException(makeString("Variable '%s' cannot have void type.", varName.c_str()));
+						throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
+							varName.c_str(), location.toString().c_str()));
 					}
 					
 					// 'final' keyword makes the default lval const.
@@ -166,18 +175,19 @@ namespace locic {
 					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type);
 					
 					if (!varType->isDatatype()) {
-						throw ErrorException(makeString("Can't pattern match for non-datatype '%s'.",
-								varType->toString().c_str()));
+						throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
+							varType->toString().c_str(), location.toString().c_str()));
 					}
 					
 					const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
 					const auto& typeChildVars = varType->getObjectType()->variables();
 					
 					if (astChildTypeVars->size() != typeChildVars.size()) {
-						throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s').",
+						throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
 								(unsigned long long) astChildTypeVars->size(),
 								(unsigned long long) typeChildVars.size(),
-								varType->toString().c_str()));
+								varType->toString().c_str(),
+								location.toString().c_str()));
 					}
 					
 					const auto templateVarMap = varType->generateTemplateVarMap();

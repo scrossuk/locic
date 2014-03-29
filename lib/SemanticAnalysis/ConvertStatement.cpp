@@ -101,8 +101,7 @@ namespace locic {
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
 						const auto condition = ConvertValue(context, astIfClause->condition);
-						const auto boolValue = ImplicitCast(condition,
-							SEM::Type::Object(boolType, SEM::Type::NO_TEMPLATE_ARGS));
+						const auto boolValue = ImplicitCast(condition, boolType->selfType(), location);
 						const auto ifTrueScope = ConvertScope(context, astIfClause->scope);
 						clauseList.push_back(new SEM::IfClause(boolValue, ifTrueScope));
 					}
@@ -178,7 +177,7 @@ namespace locic {
 					
 					// Case value to switch type.
 					// TODO: fix the template arguments for the switch type.
-					const auto castValue = ImplicitCast(value, switchTypeInstance->selfType());
+					const auto castValue = ImplicitCast(value, switchTypeInstance->selfType(), location);
 					
 					return SEM::Statement::Switch(castValue, caseList);
 				}
@@ -186,7 +185,7 @@ namespace locic {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
 					const auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					const auto advanceScope = new SEM::Scope();
-					const auto loopCondition = ImplicitCast(condition, getBuiltInType(context, "bool")->selfType());
+					const auto loopCondition = ImplicitCast(condition, getBuiltInType(context, "bool")->selfType(), location);
 					return SEM::Statement::Loop(loopCondition, iterationScope, advanceScope);
 				}
 				case AST::Statement::FOR: {
@@ -246,7 +245,7 @@ namespace locic {
 					// Cast the initialise value to the variable's type.
 					// (The variable conversion above should have ensured
 					// this will work.)
-					const auto semInitialiseValue = ImplicitCast(semValue, semVar->constructType());
+					const auto semInitialiseValue = ImplicitCast(semValue, semVar->constructType(), location);
 					assert(!semInitialiseValue->type()->isVoid());
 					
 					// Add the variable to the SEM scope.
@@ -273,7 +272,7 @@ namespace locic {
 					
 					// Cast the return value to the function's
 					// specified return type.
-					const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context));
+					const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context), location);
 					
 					return SEM::Statement::Return(castValue);
 				}

@@ -88,14 +88,14 @@ namespace locic {
 						const auto subCaseScope = new SEM::Scope();
 						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), intType);
 						if (i < j) {
-							const auto minusOneConstant = CallValue(GetMethod(plusOneConstant, "minus"), {}, location);
+							const auto minusOneConstant = CallValue(GetMethod(plusOneConstant, "minus", location), {}, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(minusOneConstant));
 						} else if (i > j) {
 							subCaseScope->statements().push_back(SEM::Statement::Return(plusOneConstant));
 						} else {
 							// TODO: Either there needs to be an implicit copy here,
 							// or 'compare' should accept its argument by reference.
-							const auto compareResult = CallValue(GetMethod(caseVarValue, "compare"), { subCaseVarValue }, location);
+							const auto compareResult = CallValue(GetMethod(caseVarValue, "compare", location), { subCaseVarValue }, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(compareResult));
 						}
 						
@@ -114,8 +114,8 @@ namespace locic {
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
 					const auto operandMember = SEM::Value::MemberAccess(derefValue(operandValue), memberVar);
-					const auto compareResult = CallValue(GetMethod(selfMember, "compare"), { operandMember }, location);
-					const auto isZero = CallValue(GetMethod(compareResult, "isZero"), {}, location);
+					const auto compareResult = CallValue(GetMethod(selfMember, "compare", location), { operandMember }, location);
+					const auto isZero = CallValue(GetMethod(compareResult, "isZero", location), {}, location);
 					
 					const auto ifTrueScope = new SEM::Scope();
 					const auto ifFalseScope = new SEM::Scope();

@@ -1,6 +1,8 @@
 #include <stdexcept>
 
+#include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -80,30 +82,29 @@ namespace locic {
 			return type->isLval() && type->isObject() && supportsDissolve(type);
 		}
 		
-		SEM::Value* dissolveLval(SEM::Value* value) {
+		SEM::Value* dissolveLval(SEM::Value* value, const Debug::SourceLocation& location) {
 			const auto type = getDerefType(value->type());
 			
 			if (!type->isLval()) {
-				throw ErrorException(makeString("Type '%s' is not an lval and hence it cannot be dissolved.",
-					type->toString().c_str()));
+				throw ErrorException(makeString("Type '%s' is not an lval and hence it cannot be dissolved at position %s.",
+					type->toString().c_str(), location.toString().c_str()));
 			}
 			
 			if (!type->isObject()) {
-				throw ErrorException(makeString("Type '%s' is not an object type and hence it cannot be dissolved.",
-					type->toString().c_str()));
+				throw ErrorException(makeString("Type '%s' is not an object type and hence it cannot be dissolved at position %s.",
+					type->toString().c_str(), location.toString().c_str()));
 			}
 			
 			if (!supportsDissolve(type)) {
-				throw ErrorException(makeString("Type '%s' does not support 'dissolve'.",
-					type->toString().c_str()));
+				throw ErrorException(makeString("Type '%s' does not support 'dissolve' at position %s.",
+					type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			// TODO: fix location.
-			return CallValue(GetMethod(value, "dissolve"), {}, Debug::SourceLocation::Null());
+			return CallValue(GetMethod(value, "dissolve", location), {}, location);
 		}
 		
-		SEM::Value* tryDissolveValue(SEM::Value* value) {
-			return canDissolveValue(value) ? dissolveLval(value) : value;
+		SEM::Value* tryDissolveValue(SEM::Value* value, const Debug::SourceLocation& location) {
+			return canDissolveValue(value) ? dissolveLval(value, location) : value;
 		}
 		
 	}

@@ -19,7 +19,7 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value*> CastFunctionArguments(const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types) {
+			std::vector<SEM::Value*> CastFunctionArguments(const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types, const Debug::SourceLocation& location) {
 				std::vector<SEM::Value*> castValues;
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
@@ -30,8 +30,8 @@ namespace locic {
 					// one of the allowed types (since there's no specific
 					// destination type).
 					const auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(argumentValue, types.at(i)) :
-						VarArgCast(argumentValue);
+						ImplicitCast(argumentValue, types.at(i), location) :
+						VarArgCast(argumentValue, location);
 					
 					castValues.push_back(castArgumentValue);
 				}
@@ -46,7 +46,7 @@ namespace locic {
 					case SEM::Type::INTERFACEMETHOD:
 						return true;
 					default:
-						throw false;
+						return false;
 				}
 			}
 			
@@ -63,9 +63,9 @@ namespace locic {
 				}
 			}
 			
-			SEM::Value* dissolveObject(SEM::Value* object, const std::string& methodName) {
+			SEM::Value* dissolveObject(SEM::Value* object, const std::string& methodName, const Debug::SourceLocation& location) {
 				if (methodName != "address" && methodName != "assign" && methodName != "dissolve" && methodName != "move") {
-					return tryDissolveValue(object);
+					return tryDissolveValue(object, location);
 				} else {
 					return object;
 				}
@@ -73,10 +73,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Value* GetStaticMethod(SEM::Type* type, const std::string& methodName) {
-			// TODO: fix location!
-			const auto location = Debug::SourceLocation::Null();
-			
+		SEM::Value* GetStaticMethod(SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -87,7 +84,7 @@ namespace locic {
 			const auto methodIterator = typeInstance->functions().find(methodName);
 			
 			if (methodIterator == typeInstance->functions().end()) {
-				throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
+				throw ErrorException(makeString("Cannot find static method '%s' for type '%s' at position %s.",
 					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
 			}
 			
@@ -102,11 +99,8 @@ namespace locic {
 			return SEM::Value::FunctionRef(type, function, type->generateTemplateVarMap());
 		}
 		
-		SEM::Value* GetMethod(SEM::Value* rawValue, const std::string& methodName) {
-			// TODO: fix location!
-			const auto location = Debug::SourceLocation::Null();
-			
-			const auto value = dissolveObject(rawValue, methodName);
+		SEM::Value* GetMethod(SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			const auto value = dissolveObject(rawValue, methodName, location);
 			const auto type = getDerefType(value->type());
 			
 			if (!type->isObjectOrTemplateVar()) {
@@ -158,8 +152,8 @@ namespace locic {
 			
 			if (functionType->isFunctionVarArg()) {
 				if (args.size() < typeList.size()) {
-					throw ErrorException(makeString("Var Arg Function [%s] called with %llu number "
-						"of parameters; expected at least %llu at position %s.",
+					throw ErrorException(makeString("Var Arg Function [%s] called with %llu "
+						"parameters; expected at least %llu at position %s.",
 						value->toString().c_str(),
 						(unsigned long long) args.size(),
 						(unsigned long long) typeList.size(),
@@ -167,7 +161,7 @@ namespace locic {
 				}
 			} else {
 				if (args.size() != typeList.size()) {
-					throw ErrorException(makeString("Function [%s] called with %llu number of "
+					throw ErrorException(makeString("Function [%s] called with %llu "
 						"parameters; expected %llu at position %s.",
 						value->toString().c_str(),
 						(unsigned long long) args.size(),
@@ -176,7 +170,77 @@ namespace locic {
 				}
 			}
 			
-			return SEM::Value::FunctionCall(value, CastFunctionArguments(args, typeList));
+			return SEM::Value::FunctionCall(value, CastFunctionArguments(args, typeList, location));
+		}
+		
+		bool supportsNullConstruction(SEM::Type* type) {
+			switch (type->kind()) {
+				case SEM::Type::VOID:
+				case SEM::Type::REFERENCE:
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+					return false;
+					
+				case SEM::Type::OBJECT: {
+					const auto typeInstance = type->getObjectType();
+					const auto methodIterator = typeInstance->functions().find("Null");
+					if (methodIterator == typeInstance->functions().end()) return false;
+					
+					const auto function = methodIterator->second;
+					if (function->type()->isFunctionVarArg()) return false;
+					if (!function->isMethod()) return false;
+					if (!function->isStaticMethod()) return false;
+					if (function->isConstMethod()) return false;
+					if (!function->parameters().empty()) return false;
+					
+					return true;
+				}
+				
+				case SEM::Type::TEMPLATEVAR:
+					return supportsNullConstruction(type->getTemplateVar()->specTypeInstance()->selfType());
+					
+				default:
+					throw std::runtime_error("Unknown SEM type kind.");
+			}
+		}
+		
+		bool supportsPrimitiveCast(SEM::Type* type, const std::string& primitiveName) {
+			switch (type->kind()) {
+				case SEM::Type::VOID:
+				case SEM::Type::REFERENCE:
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+					return false;
+					
+				case SEM::Type::OBJECT: {
+					const auto typeInstance = type->getObjectType();
+					const auto methodIterator = typeInstance->functions().find(primitiveName + "_cast");
+					if (methodIterator == typeInstance->functions().end()) return false;
+					
+					const auto function = methodIterator->second;
+					if (function->type()->isFunctionVarArg()) return false;
+					if (!function->isMethod()) return false;
+					if (!function->isStaticMethod()) return false;
+					if (function->isConstMethod()) return false;
+					if (function->parameters().size() != 1) return false;
+					
+					const auto operandType = function->parameters().at(0)->constructType();
+					if (!operandType->isObject()) return false;
+					
+					if (!operandType->getObjectType()->isPrimitive()) return false;
+					if (operandType->getObjectType()->name().last() != primitiveName + "_t") return false;
+					
+					return true;
+				}
+				
+				case SEM::Type::TEMPLATEVAR:
+					return supportsPrimitiveCast(type->getTemplateVar()->specTypeInstance()->selfType(), primitiveName);
+					
+				default:
+					throw std::runtime_error("Unknown SEM type kind.");
+			}
 		}
 		
 		bool supportsImplicitCopy(SEM::Type* type) {

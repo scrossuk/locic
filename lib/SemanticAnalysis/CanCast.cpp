@@ -18,9 +18,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain);
+		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location);
 		
-		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain) {
+		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
 			if (destType->isAuto()) {
 				// 'auto' is pattern matching, so in this
 				// case it can match the source type.
@@ -60,7 +60,7 @@ namespace locic {
 						const auto sourceTemplateArg = sourceType->templateArguments().at(i);
 						const auto destTemplateArg = destType->templateArguments().at(i);
 						
-						auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg, destTemplateArg, hasConstChain);
+						auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg, destTemplateArg, hasConstChain, location);
 						if (templateArg == nullptr) return nullptr;
 						
 						templateArgs.push_back(templateArg);
@@ -71,13 +71,13 @@ namespace locic {
 				case SEM::Type::REFERENCE: {
 					auto sourceTarget = sourceType->getReferenceTarget();
 					auto destTarget = destType->getReferenceTarget();
-					auto target = ImplicitCastTypeFormatOnlyChain(sourceTarget, destTarget, hasConstChain);
+					auto target = ImplicitCastTypeFormatOnlyChain(sourceTarget, destTarget, hasConstChain, location);
 					if (target == nullptr) return nullptr;
 					return SEM::Type::Reference(target);
 				}
 				case SEM::Type::FUNCTION: {
 					// Check return type.
-					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain);
+					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain, location);
 					if (returnType == nullptr) return nullptr;
 					
 					const auto& sourceList = sourceType->getFunctionParameterTypes();
@@ -92,7 +92,7 @@ namespace locic {
 					
 					// Check contra-variance for argument types.
 					for (std::size_t i = 0; i < sourceList.size(); i++) {
-						auto paramType = ImplicitCastTypeFormatOnlyChain(sourceList.at(i), destList.at(i), hasConstChain);
+						auto paramType = ImplicitCastTypeFormatOnlyChain(sourceList.at(i), destList.at(i), hasConstChain, location);
 						if (paramType == nullptr) return nullptr;
 						paramTypes.push_back(paramType);
 					}
@@ -105,7 +105,7 @@ namespace locic {
 					return SEM::Type::Function(sourceType->isFunctionVarArg(), returnType, paramTypes);
 				}
 				case SEM::Type::METHOD: {
-					auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain);
+					auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);
 					if (functionType == nullptr) return nullptr;
 					return SEM::Type::Method(functionType);
 				}
@@ -122,7 +122,7 @@ namespace locic {
 			}
 		}
 		
-		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain) {
+		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location) {
 			// Can't cast const to non-const, unless the destination type is
 			// 'auto', since that can match 'const T'.
 			if (sourceType->isConst() && !destType->isConst() && !destType->isAuto()) {
@@ -152,7 +152,7 @@ namespace locic {
 				}
 				
 				// Must perform substitutions for the lval target type.
-				lvalTarget = ImplicitCastTypeFormatOnlyChain(sourceType->lvalTarget(), destType->lvalTarget(), hasConstChain);
+				lvalTarget = ImplicitCastTypeFormatOnlyChain(sourceType->lvalTarget(), destType->lvalTarget(), hasConstChain, location);
 				if (lvalTarget == nullptr) return nullptr;
 			}
 			
@@ -165,7 +165,7 @@ namespace locic {
 				}
 				
 				// Must perform substitutions for the ref target type.
-				refTarget = ImplicitCastTypeFormatOnlyChain(sourceType->refTarget(), destType->refTarget(), hasConstChain);
+				refTarget = ImplicitCastTypeFormatOnlyChain(sourceType->refTarget(), destType->refTarget(), hasConstChain, location);
 				if (refTarget == nullptr) return nullptr;
 			}
 			
@@ -173,7 +173,7 @@ namespace locic {
 			assert(lvalTarget == nullptr || refTarget == nullptr);
 			
 			// Generate the 'untagged' type.
-			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(sourceType, destType, hasConstChain);
+			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(sourceType, destType, hasConstChain, location);
 			if (resultType == nullptr) return nullptr;
 			
 			// Add the substituted tags.
@@ -193,21 +193,21 @@ namespace locic {
 			return isConst ? resultType->createConstType() : resultType;
 		}
 		
-		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain) {
-			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain);
+		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location) {
+			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location);
 		}
 		
-		static SEM::Type* ImplicitCastTypeFormatOnly(SEM::Type* sourceType, SEM::Type* destType) {
+		static SEM::Type* ImplicitCastTypeFormatOnly(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
 			// is root there is a valid chain of (zero) const parent types.
 			const bool hasParentConstChain = true;
 			
-			return ImplicitCastTypeFormatOnlyChain(sourceType, destType, hasParentConstChain);
+			return ImplicitCastTypeFormatOnlyChain(sourceType, destType, hasParentConstChain, location);
 		}
 		
-		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType) {
-			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType);
+		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
+			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType, location);
 			if (resultType == nullptr) return nullptr;
 			
 			// The value's type needs to reflect the successful cast, however
@@ -291,7 +291,7 @@ namespace locic {
 		// 'Promote' primitive types.
 		// Currently part of the compiler since method templates
 		// are not yet implemented.
-		SEM::Value* ImplicitPromoteCast(SEM::Value* value, SEM::Type* destType, const std::string& name) {
+		SEM::Value* ImplicitPromoteCast(SEM::Value* value, SEM::Type* destType, const std::string& name, const Debug::SourceLocation& location) {
 			const auto sourceType = value->type();
 			
 			if (!isPrimitiveType(sourceType, name + "_t") || !destType->isObjectOrTemplateVar()) {
@@ -299,19 +299,14 @@ namespace locic {
 			}
 			
 			const auto constructorName = name + "_cast";
-			
-			const auto typeInstance = destType->getObjectOrSpecType();
-			if (typeInstance->hasProperty(constructorName)) {
-				const auto constructedValue = SEM::Value::FunctionCall(
-					SEM::Value::FunctionRef(destType, typeInstance->getProperty(constructorName), destType->generateTemplateVarMap()),
-					{ value });
-				
+			if (supportsPrimitiveCast(destType, name)) {
+				const auto constructedValue = CallValue(GetStaticMethod(destType, constructorName, location), { value }, location);
 				// There still might be some aspects to cast with the constructed type.
-				return ImplicitCastFormatOnly(constructedValue, destType);
+				return ImplicitCastFormatOnly(constructedValue, destType, location);
 			} else {
-				// TODO: add location information.
-				throw ErrorException(makeString("No '%s' constructor specified for type '%s'.",
-					constructorName.c_str(), destType->toString().c_str()));
+				throw ErrorException(makeString("No '%s' constructor specified for type '%s' at position %s.",
+					(name + "_cast").c_str(), destType->toString().c_str(),
+					location.toString().c_str()));
 			}
 		}
 		
@@ -351,21 +346,18 @@ namespace locic {
 		
 		// Hard coded casts which will eventually be moved into
 		// Loci source (once templated methods are implemented).
-		SEM::Value* ImplicitCastUser(SEM::Value* value, SEM::Type* destType) {
+		SEM::Value* ImplicitCastUser(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto sourceType = value->type();
 			
 			// Null literal cast.
-			if (isPrimitiveType(sourceType, "null_t") && destType->isObject()) {
-				const auto typeInstance = destType->getObjectType();
+			if (isPrimitiveType(sourceType, "null_t") && destType->isObjectOrTemplateVar()) {
 				// Casting null to object type invokes the null constructor,
 				// assuming one exists.
-				if (typeInstance->hasProperty("Null")) {
-					const auto constructedValue = SEM::Value::FunctionCall(
-							SEM::Value::FunctionRef(destType, typeInstance->getProperty("Null"), destType->generateTemplateVarMap()),
-							std::vector<SEM::Value*>());
+				if (supportsNullConstruction(destType)) {
+					const auto constructedValue = CallValue(GetStaticMethod(destType, "Null", location), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
-					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType);
+					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType, location);
 					if (castResult != nullptr) return castResult;
 				} else {
 					// There's no other way to make 'null' into an object,
@@ -377,24 +369,24 @@ namespace locic {
 			
 			// Integer promotion.
 			for (const auto intName: integerTypes()) {
-				const auto castedValue = ImplicitPromoteCast(value, destType, intName);
+				const auto castedValue = ImplicitPromoteCast(value, destType, intName, location);
 				if (castedValue != nullptr) return castedValue;
 			}
 			
 			// Floating point promotion.
 			for (const auto floatName: floatTypes()) {
-				const auto castedValue = ImplicitPromoteCast(value, destType, floatName);
+				const auto castedValue = ImplicitPromoteCast(value, destType, floatName, location);
 				if (castedValue != nullptr) return castedValue;
 			}
 			
 			return nullptr;
 		}
 		
-		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType, bool formatOnly = false) {
+		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
-				auto castResult = ImplicitCastFormatOnly(value, destType);
+				auto castResult = ImplicitCastFormatOnly(value, destType, location);
 				if (castResult != nullptr) {
 					return castResult;
 				} else if (formatOnly) {
@@ -427,7 +419,7 @@ namespace locic {
 			
 			// Try a user cast.
 			{
-				const auto castResult = ImplicitCastUser(value, destType);
+				const auto castResult = ImplicitCastUser(value, destType, location);
 				if (castResult != nullptr) {
 					return castResult;
 				}
@@ -449,13 +441,7 @@ namespace locic {
 						reducedValue = derefOne(reducedValue);
 					}
 					
-					LOG(LOG_EXCESSIVE, "Reducing ref %s by %llu times produced value %s of type %s.",
-						value->toString().c_str(),
-						(unsigned long long) numReduce,
-						reducedValue->toString().c_str(),
-						reducedValue->type()->toString().c_str());
-					
-					auto castResult = ImplicitCastConvert(reducedValue, destType);
+					auto castResult = ImplicitCastConvert(reducedValue, destType, location);
 					if (castResult != nullptr) return castResult;
 				}
 			}
@@ -470,16 +456,10 @@ namespace locic {
 					
 					const auto numReduce = sourceCount - destCount;
 					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = dissolveLval(reducedValue);
+						reducedValue = dissolveLval(reducedValue, location);
 					}
 					
-					LOG(LOG_EXCESSIVE, "Dissolving lval %s by %llu times produced value %s of type %s.",
-						value->toString().c_str(),
-						(unsigned long long) numReduce,
-						reducedValue->toString().c_str(),
-						reducedValue->type()->toString().c_str());
-					
-					auto castResult = ImplicitCastConvert(reducedValue, destType);
+					auto castResult = ImplicitCastConvert(reducedValue, destType, location);
 					if (castResult != nullptr) return castResult;
 				}
 			}
@@ -506,29 +486,30 @@ namespace locic {
 				if (supportsImplicitCopy(sourceDerefType)) {
 					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
 						// TODO: fix location.
-						CallValue(GetMethod(derefValue(value), "implicitCopy"), {}, Debug::SourceLocation::Null()) :
+						CallValue(GetMethod(derefValue(value), "implicitCopy", location), {}, location) :
 						derefAll(value);
 					
-					const auto convertCast = ImplicitCastConvert(copyValue, destType);
+					const auto convertCast = ImplicitCastConvert(copyValue, destType, location);
 					if (convertCast != nullptr) return convertCast;
-				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(sourceDerefType, destType)) {
+				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(sourceDerefType, destType, location)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
 					throw ErrorException(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
-							"in cast from type %s to type %s.",
+							"in cast from type %s to type %s at position %s.",
 						sourceDerefType->nameToString().c_str(),
 						sourceType->toString().c_str(),
-						destType->toString().c_str()));
+						destType->toString().c_str(),
+						location.toString().c_str()));
 				}
 			}
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (sourceType->isConst() && !destType->isConst() && sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(sourceType)) {
 				// TODO: fix location.
-				const auto copyValue = CallValue(GetMethod(value, "implicitCopy"), {}, Debug::SourceLocation::Null());
+				const auto copyValue = CallValue(GetMethod(value, "implicitCopy", location), {}, location);
 				if (!copyValue->type()->isConst()) {
-					auto convertCast = ImplicitCastConvert(copyValue, destType);
+					auto convertCast = ImplicitCastConvert(copyValue, destType, location);
 					if (convertCast != nullptr) return convertCast;
 				}
 			}
@@ -536,24 +517,26 @@ namespace locic {
 			return nullptr;
 		}
 		
-		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType, bool formatOnly) {
-			auto result = ImplicitCastConvert(value, destType, formatOnly);
+		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+			auto result = ImplicitCastConvert(value, destType, location, formatOnly);
 			if (result != nullptr) return result;
 			
 			if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {
-				throw ErrorException(makeString("Can't implicitly cast type '%s' to type '%s'.",
+				throw ErrorException(makeString("Can't implicitly cast type '%s' to type '%s' at position %s.",
 					value->type()->toString().c_str(),
-					destType->toString().c_str()));
+					destType->toString().c_str(),
+					location.toString().c_str()));
 			} else {
-				throw ErrorException(makeString("Can't implicitly cast value '%s' to type '%s'.",
+				throw ErrorException(makeString("Can't implicitly cast value '%s' to type '%s' at position %s.",
 					value->toString().c_str(),
-					destType->toString().c_str()));
+					destType->toString().c_str(),
+					location.toString().c_str()));
 			}
 		}
 		
-		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType) {
+		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto formatOnly = false;
-			const auto result = ImplicitCastConvert(SEM::Value::CastDummy(sourceType), destType, formatOnly);
+			const auto result = ImplicitCastConvert(SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
 			return result != nullptr;
 		}
 		
@@ -578,16 +561,16 @@ namespace locic {
 			
 		}
 		
-		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second) {
+		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location) {
 			// Try to convert both types to their parent (if any).
 			const auto firstParent = getUnionDatatypeParent(first);
 			if (firstParent != nullptr &&
-				CanDoImplicitCast(first, firstParent) &&
-				CanDoImplicitCast(second, firstParent)) {
+				CanDoImplicitCast(first, firstParent, location) &&
+				CanDoImplicitCast(second, firstParent, location)) {
 				return firstParent;
 			}
 			
-			if (CanDoImplicitCast(first, second)) {
+			if (CanDoImplicitCast(first, second, location)) {
 				return second;
 			} else {
 				return first;

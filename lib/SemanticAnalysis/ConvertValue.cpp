@@ -34,14 +34,16 @@ namespace locic {
 			
 			// Look for methods.
 			if (typeInstance->functions().find(memberName) != typeInstance->functions().end()) {
-				return GetMethod(value, memberName);
+				return GetMethod(value, memberName, location);
 			}
 			
 			// TODO: this should be replaced by falling back on 'property' methods.
 			// Look for variables.
-			const auto variableIterator = typeInstance->namedVariables().find(memberName);
-			if (variableIterator != typeInstance->namedVariables().end()) {
-				return SEM::Value::MemberAccess(derefValue(value), variableIterator->second);
+			if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct()) {
+				const auto variableIterator = typeInstance->namedVariables().find(memberName);
+				if (variableIterator != typeInstance->namedVariables().end()) {
+					return SEM::Value::MemberAccess(derefValue(value), variableIterator->second);
+				}
 			}
 			
 			throw ErrorException(makeString("Can't access member '%s' in type '%s' at position %s.",
@@ -280,16 +282,8 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						if (!typeInstance->hasProperty("Create")) {
-							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
-								name.toString().c_str(), location.toString().c_str()));
-						}
-						
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
-						
-						const auto defaultConstructor = typeInstance->getProperty("Create");
-						
-						return SEM::Value::FunctionRef(parentType, defaultConstructor, templateVarMap);
+						return GetStaticMethod(parentType, "Create", location);
 					} else if (node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
@@ -301,17 +295,7 @@ namespace locic {
 					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = node.getSEMTemplateVar();
-						
-						const auto specTypeInstance = templateVar->specTypeInstance();
-						if (!specTypeInstance->hasProperty("Create")) {
-							throw ErrorException(makeString("Couldn't find default constructor for type '%s' at %s.",
-								name.toString().c_str(), location.toString().c_str()));
-						}
-						
-						const auto defaultConstructor = specTypeInstance->getProperty("Create");
-						
-						return SEM::Value::FunctionRef(SEM::Type::TemplateVarRef(templateVar),
-							defaultConstructor, Map<SEM::TemplateVar*, SEM::Type*>());
+						return GetStaticMethod(SEM::Type::TemplateVarRef(templateVar), "Create", location);
 					} else {
 						throw std::runtime_error("Unknown node for name reference.");
 					}
@@ -337,15 +321,15 @@ namespace locic {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = getBuiltInType(context, "bool");
-					const auto boolValue = ImplicitCast(cond, boolType->selfType());
+					const auto boolValue = ImplicitCast(cond, boolType->selfType(), location);
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
-					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type());
+					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type(), location);
 					
-					const auto castIfTrue = ImplicitCast(ifTrue, targetType);
-					const auto castIfFalse = ImplicitCast(ifFalse, targetType);
+					const auto castIfTrue = ImplicitCast(ifTrue, targetType, location);
+					const auto castIfFalse = ImplicitCast(ifFalse, targetType, location);
 					
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
@@ -370,7 +354,7 @@ namespace locic {
 									sourceValue->toString().c_str(), sourceType->toString().c_str(),
 									targetType->toString().c_str(), location.toString().c_str()));
 							}
-							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType), targetType);
+							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType, location), targetType);
 						default:
 							throw std::runtime_error("Unknown cast kind.");
 					}
@@ -434,7 +418,7 @@ namespace locic {
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
 						const auto semVar = thisTypeInstance->variables().at(i);
 						const auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						const auto semParam = ImplicitCast(semValue, semVar->constructType());
+						const auto semParam = ImplicitCast(semValue, semVar->constructType(), location);
 						semValues.push_back(semParam);
 					}
 					
@@ -446,7 +430,7 @@ namespace locic {
 					SEM::Value* object = ConvertValue(context, astValueNode->memberAccess.object);
 					
 					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
-						object = tryDissolveValue(object);
+						object = tryDissolveValue(object, location);
 					}
 					
 					return MakeMemberAccess(object, memberName, astValueNode.location());

@@ -438,8 +438,7 @@ namespace locic {
 			}
 		}
 		
-		// TODO: replace pass with 'GenerateDefaultMethods'.
-		void AddTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
+		void GenerateTypeDefaultMethods(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
 			const auto& astTypeInstanceNode = node.getASTTypeInstance();
 			const auto semTypeInstance = node.getSEMTypeInstance();
 			if (completedTypes.find(semTypeInstance) != completedTypes.end()) {
@@ -451,24 +450,24 @@ namespace locic {
 			// Nasty hack to ensure lvals have been processed.
 			// TODO: move lval dependent code (e.g. generating
 			//       exception default constructor) out of this pass.
-			AddTypeProperties(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
-			AddTypeProperties(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
+			GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
+			GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
 			
 			// Get type properties for types that this
 			// type depends on, since this is needed for
 			// default method generation.
 			if (semTypeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: semTypeInstance->variants()) {
-					AddTypeProperties(context, completedTypes, context.reverseLookup(variantTypeInstance));
+					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(variantTypeInstance));
 				}
 			} else {
 				if (semTypeInstance->isException() && semTypeInstance->parent() != nullptr) {
-					AddTypeProperties(context, completedTypes, context.reverseLookup(semTypeInstance->parent()));
+					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(semTypeInstance->parent()));
 				}
 				
 				for (auto var: semTypeInstance->variables()) {
 					if (!var->constructType()->isObject()) continue;
-					AddTypeProperties(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
+					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
 				}
 			}
 			
@@ -500,38 +499,26 @@ namespace locic {
 				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
-			
-			// Find all the standard patterns, and add
-			// them to the type instance.
-			const auto standardPatterns = GetStandardPatterns();
-			
-			for (auto pattern: standardPatterns) {
-				const Node functionNode = FindMethodPattern(pattern, node);
-				if (functionNode.isNotNone()) {
-					SEM::Function* function = functionNode.getSEMFunction();
-					semTypeInstance->addProperty(function->name().last(), function);
-				}
-			}
 		}
 		
-		void IdentifyTypeProperties(Context& context, std::set<SEM::TypeInstance*>& completedTypes) {
+		void GenerateDefaultMethods(Context& context, std::set<SEM::TypeInstance*>& completedTypes) {
 			Node& node = context.node();
 			
 			if (node.isTypeInstance()) {
-				AddTypeProperties(context, completedTypes, node);
+				GenerateTypeDefaultMethods(context, completedTypes, node);
 			}
 			
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 	NodeContext newContext(context, range.front().key(), range.front().value());
 			 	LOG(LOG_INFO, "Getting properties for '%s'.",
 			 		newContext.name().toString().c_str());
-				IdentifyTypeProperties(newContext, completedTypes);
+				GenerateDefaultMethods(newContext, completedTypes);
 			}
 		}
 		
-		void IdentifyTypePropertiesPass(Context& context) {
+		void GenerateDefaultMethodsPass(Context& context) {
 			std::set<SEM::TypeInstance*> completedTypes;
-			IdentifyTypeProperties(context, completedTypes);
+			GenerateDefaultMethods(context, completedTypes);
 		}
 		
 		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module& debugModule) {
@@ -566,8 +553,8 @@ namespace locic {
 				// ---- Pass 7: Complete template type variable requirements.
 				CompleteTemplateVariableRequirementsPass(rootContext);
 				
-				// ---- Pass 8: Identify type properties.
-				IdentifyTypePropertiesPass(rootContext);
+				// ---- Pass 8: Generate default methods.
+				GenerateDefaultMethodsPass(rootContext);
 				
 				// ---- Pass 9: Fill in function code.
 				ConvertNamespace(rootContext);

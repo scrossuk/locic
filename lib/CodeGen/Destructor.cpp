@@ -147,8 +147,9 @@ namespace locic {
 			assert(parent->isClassDef() || parent->isDatatype());
 			
 			// Call the custom destructor function, if one exists.
-			if (parent->getObjectType()->hasProperty("__destructor")) {
-				const auto customDestructor = genFunction(module, parent, parent->getObjectType()->getProperty("__destructor"));
+			const auto methodIterator = parent->getObjectType()->functions().find("__destructor");
+			if (methodIterator != parent->getObjectType()->functions().end()) {
+				const auto customDestructor = genFunction(module, parent, methodIterator->second);
 				function.getBuilder().CreateCall(customDestructor, function.getContextValue());
 			}
 			

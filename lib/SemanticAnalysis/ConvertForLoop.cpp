@@ -55,11 +55,11 @@ namespace locic {
 			const auto initVar = SEM::Var::Basic(initVarType, initVarType);
 			outerScope->localVariables().push_back(initVar);
 			
-			outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(initValue, initVarType)));
+			outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(initValue, initVarType, location)));
 			
-			const auto isEmpty = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "empty"), {}, location);
-			const auto isNotEmpty = CallValue(GetMethod(isEmpty, "not"), {}, location);
-			const auto loopCondition = ImplicitCast(isNotEmpty, getBuiltInType(context, "bool")->selfType());
+			const auto isEmpty = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "empty", location), {}, location);
+			const auto isNotEmpty = CallValue(GetMethod(isEmpty, "not", location), {}, location);
+			const auto loopCondition = ImplicitCast(isNotEmpty, getBuiltInType(context, "bool")->selfType(), location);
 			
 			const auto iterationScope = new SEM::Scope();
 			auto scopeNode = Node::Scope(astScopeNode, iterationScope);
@@ -67,18 +67,18 @@ namespace locic {
 			
 			const bool isMember = false;
 			
-			const auto currentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "front"), {}, location);
+			const auto currentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "front", location), {}, location);
 			const auto loopVar = ConvertInitialisedVar(scopeContext, isMember, astTypeVarNode, currentValue->type());
 			iterationScope->localVariables().push_back(loopVar);
 			
-			iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar, ImplicitCast(currentValue, loopVar->constructType())));
+			iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar, ImplicitCast(currentValue, loopVar->constructType(), location)));
 			
 			const auto innerScope = ConvertScope(scopeContext, astScopeNode);
 			
 			iterationScope->statements().push_back(SEM::Statement::ScopeStmt(innerScope));
 			
 			const auto advanceScope = new SEM::Scope();
-			const auto advanceCurrentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "popFront"), {}, location);
+			const auto advanceCurrentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "popFront", location), {}, location);
 			advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
 			
 			outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, iterationScope, advanceScope));

@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEMANTICANALYSIS_LVAL_HPP
 #define LOCIC_SEMANTICANALYSIS_LVAL_HPP
 
+#include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 
@@ -21,9 +22,9 @@ namespace locic {
 		
 		bool canDissolveValue(SEM::Value* value);
 		
-		SEM::Value* dissolveLval(SEM::Value* lvalValue);
+		SEM::Value* dissolveLval(SEM::Value* lvalValue, const Debug::SourceLocation& location);
 		
-		SEM::Value* tryDissolveValue(SEM::Value* value);
+		SEM::Value* tryDissolveValue(SEM::Value* value, const Debug::SourceLocation& location);
 		
 	}
 	

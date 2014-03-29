@@ -102,14 +102,14 @@ namespace locic {
 				// Call parent constructor.
 				// TODO: should provide template arguments.
 				const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-				constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create"), parentArguments, location));
+				constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create", location), parentArguments, location));
 				
 				// Initialise variables.
 				for (const auto semVar: parameters) {
 					const auto varValue = SEM::Value::LocalVar(semVar);
 					
 					// Move from each value_lval into the internal constructor.
-					constructValues.push_back(CallValue(GetMethod(varValue, "move"), {}, location));
+					constructValues.push_back(CallValue(GetMethod(varValue, "move", location), {}, location));
 				}
 				
 				const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);

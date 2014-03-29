@@ -147,20 +147,6 @@ namespace locic {
 			return parent_;
 		}
 		
-		// TODO: 'type properties' should be moved out of SEM tree
-		//       representation into Semantic Analysis nodes.
-		bool TypeInstance::hasProperty(const std::string& propertyName) const {
-			return typeProperties_.has(propertyName);
-		}
-		
-		Function* TypeInstance::getProperty(const std::string& propertyName) const {
-			return typeProperties_.get(propertyName);
-		}
-		
-		void TypeInstance::addProperty(const std::string& propertyName, Function* function) {
-			typeProperties_.insert(propertyName, function);
-		}
-		
 		std::string TypeInstance::refToString() const {
 			switch (kind()) {
 				case PRIMITIVE:
