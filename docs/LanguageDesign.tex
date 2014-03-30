@@ -171,20 +171,18 @@ As mentioned previously, Loci is highly related and compatible with C. It theref
 \subsubsection{Syntax}
 
 \paragraph{}
-There are however, some minor syntactic changes. For example, like C++, struct type names do not need need to be prefixed with the struct name except when they are defined:
+There are however, some minor syntactic changes. For example, struct type names should not be prefixed with the keyword `struct' (except in their definition):
 
 \begin{lstlisting}
-struct A{
+struct ExampleType {
 	int v;
 };
 
-void function(){
-	// Valid, but `struct' keyword is unnecessary.
-	struct A a;
-	
-	// Valid, and same as above.
-	A a;
-}
+// Invalid.
+struct ExampleType function();
+
+// Valid.
+ExampleType function();
 \end{lstlisting}
 
 \paragraph{}
@@ -206,7 +204,7 @@ void function(){
 \end{lstlisting}
 
 \paragraph{}
-The new syntax is much clearer, helping readers to understand exactly what value is being cast, since the precedence of the type cast may not be obvious\footnote{Few programmers remember all (or close to all) of their language's operator precedences.} Consider this example:
+The new syntax is much clearer, helping readers to understand exactly what value is being cast, since the precedence of the type cast may not be obvious\footnote{Few programmers remember all (or close to all) of their language's operator precedences.} Consider this example in C++:
 
 \begin{lstlisting}
 void function(Type * ptr, Type::*function()){
@@ -222,7 +220,7 @@ void function(Type * ptr, Type::*function()){
 	// ...is equivalent to this.
 	int i = ((int) ptr->member) + 1;
 	
-	// And this (C++ code)...
+	// And this...
 	int i = (int) ptr->*function();
 	
 	// ...would be equivalent to this.
@@ -253,7 +251,7 @@ void function(){
 	int * intPtr = malloc(sizeof(int));
 	
 	// Valid.
-	int * intPtr = reinterpret_cast<int *>(malloc(sizeof(int)));
+	int * intPtr = reinterpret_cast<int*>(malloc(sizeof(int)));
 	
 	
 }
@@ -268,13 +266,11 @@ In this case, the intention is to make it clear to a reader when values are bein
 \subsection{Type Syntax}
 
 \paragraph{}
-Loci strictly follows the following structure for all typed variables declarations:
-
+Loci follows the following structure for all typed variable declarations:
 
 \begin{lstlisting}
-[TYPE] [NAME]
+varDecl ::= TYPE NAME
 \end{lstlisting}
-
 
 \paragraph{}
 This differs significantly from C, in which types and names can overlap in confusing ways, such as in function pointer types:
@@ -300,6 +296,34 @@ typedef ReturnType (*NewName)(ParamType param); // C
 typedef *(ReturnType)(ParamType) NewName; // Loci
 \end{lstlisting}
 
+\paragraph{}
+Some types (such as structs and datatypes) also support pattern matching, with the following structure:
+
+\begin{lstlisting}
+pattern ::= '_' /* wildcard */
+pattern ::= varDecl
+pattern ::= NAME '(' patternList ')'
+
+nonEmptyPatternList ::= pattern
+nonEmptyPatternList ::= nonEmptyPatternList ',' pattern
+
+patternList ::= /* empty */
+patternList ::= nonEmptyPatternList
+\end{lstlisting}
+
+\paragraph{}
+This facilities code like the following:
+
+\begin{lstlisting}
+struct Example {
+	int x;
+	int y;
+};
+
+void function(Example value) {
+	Example(int x, _) = value;
+}
+\end{lstlisting}
 
 \clearpage
 
@@ -476,17 +500,67 @@ Put simply, this is exactly what happens in Loci. When you compile source files,
 Note that this solution isn't complete, since libraries and executables do need to handle shared data structures and functions. For example, a library may define a specific API for use by the executable, but the library code should be compiled separately to the executable code.
 
 \paragraph{}
-Some sort of header files are needed for this case, which in Loci are simply normal `.loci' files that contain declarations as opposed to definitions. The particularly helpful aspect, in contrast to C or C++, is that Loci has tools to generate these `header files' for the developer.
+Some sort of header files are needed for this case, which in Loci are simply normal `.loci' files that contain declarations as opposed to definitions. It is planned in future\footnote{This is likely to be completed in Locic v1.2.} that, in contrast to C or C++, is that Loci has tools to generate these `header files' for the developer.
 
 \clearpage
 
 \subsection{References}
 
 \paragraph{}
-TODO: UPDATE!
+Loci references are in many ways similar to C++ references. The key differences between C++ and Loci references from the point of view of developers are that:
+
+\begin{itemize}
+\item References cannot be used to assign to the referred-to value; lvals should be used for this.
+\item References can be used inside containers, since they are assignable.
+\end{itemize}
 
 \paragraph{}
-Loci references are in almost all ways identical to C++ references. The example below shows the syntax and semantics if the reader is unfamiliar:
+References are implemented in Loci based on the `ref' type attribute\footnote{`lval' is a similar type attribute.}, which specifies that the value should be treated with special rules. For example, consider the following code:
+
+\begin{lstlisting}
+IntRefType getNonRef();
+
+ref<int> IntRefType getRef();
+
+void function() {
+	// Invalid: "Type 'IntRefType' doesn't have a method named 'abs'."
+	int a = getNonRef().abs();
+	
+	// Valid; implicitly dereferences 'IntRefType' to call method 'abs'.
+	int b = getRef().abs();
+}
+\end{lstlisting}
+
+\paragraph{}
+Here you can see that implicit conversion operations between types are able to use the information provided by the `ref' attribute to generate implicit dereference operations. Note that the first point above isn't entirely true; `ref' and `lval' can be combined to achieve this:
+
+\begin{lstlisting}
+ref<lval<int> IntLvalType> IntLvalRefType getLvalRef();
+
+void function() {
+	// Implicitly dereferences 'IntLvalRefType' to call method 'assign'.
+	getLvalRef() = 44;
+}
+\end{lstlisting}
+
+\paragraph{}
+Of course, the `ref' syntax is quite verbose, and `normal' references (i.e. as opposed to user-defined reference types) can be used with this C++-like syntax:
+
+\begin{lstlisting}
+int f(int& value) {
+	return value.abs();
+}
+
+int f(ref<int> ref_t<int> value) {
+	return value.abs();
+}
+\end{lstlisting}
+
+\paragraph{}
+Both functions are equivalent; the compiler automatically turns the ampersand into the `ref' attribute applied to the primitive type `ref_t'. This is very similar to the compiler's automatic translation of C pointer syntax into `ptr_t' with a template argument.
+
+\paragraph{}
+Here are some more examples of references:
 
 \begin{lstlisting}
 void function(int data, int * pointer){
@@ -512,20 +586,16 @@ void function(int data, int * pointer){
 		// Valid - making reference of 'data'.
 		int& reference = data;
 	
-		// Valid - updating lvalue referred to
-		// by 'reference', which in this case
-		// would be 'data'...
+		// Invalid - cannot assign since referred-to
+		// type is not an lval.
 		reference = 1;
 		
-		// ...so this is equivalent.
-		data = 1;
-		
-		// Invalid - type 'int' has no overload for
+		// Invalid - type 'ref_t' has no overload for
 		// the dereference operator.
 		*reference = 2;
 		
-		// Valid - copying reference lvalue to rvalue,
-		// adding 5, and placing it into lvalue 'newData'.
+		// Valid - this will dereference the value and
+		// then call '.add(5)'.
 		int newData = reference + 5;
 	}
 	
@@ -537,7 +607,7 @@ void function(int data, int * pointer){
 	
 	{	
 		// Valid - uses a special cast from rvalue to const
-		// lvalue reference...
+		// reference...
 		const int& reference = 5;
 		
 		// ...which is basically equivalent to this.
