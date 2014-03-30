@@ -1,0 +1,40 @@
+// Workaround for the fact locic doesn't
+// yet support opaque types.
+struct sfView { };
+
+sfView* sfView_create();
+
+sfView* sfView_createFromRect(sfFloatRect rectangle);
+
+sfView* sfView_copy(const sfView* const view);
+
+void sfView_destroy(sfView* view);
+
+namespace sf {
+	
+	class View (sfView* view) {
+		static Create () {
+			return @(sfView_create());
+		}
+		
+		static FromRect(FloatRect rect) {
+			return @(sfView_createFromRect(rectToRaw(rect)));
+		}
+		
+		View copy() const {
+			return @(sfView_copy(@view));
+		}
+		
+		~ {
+			sfView_destroy(@view);
+		}
+		
+		sfView* const raw() const {
+			return @view;
+		}
+		
+	}
+	
+}
+
+

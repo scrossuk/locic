@@ -4,15 +4,21 @@ struct sfContextSettings { };
 struct sfRenderWindow { };
 struct sfRenderStates { };
 
-void printf(const char* text, ...);
-
 sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
 
 void sfRenderWindow_destroy(sfRenderWindow* renderWindow);
 
 void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
 
+sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow);
+
 void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
+
+void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view);
+
+const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow);
+
+sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view);
 
 void sfRenderWindow_display(sfRenderWindow* renderWindow);
 
@@ -49,6 +55,22 @@ namespace sf {
 		
 		void close() {
 			sfWindow_close(@window);
+		}
+		
+		Vector2i getSize() const {
+			final auto size = sfRenderWindow_getSize(@window);
+			return Vector2i(size.x, size.y);
+		}
+		
+		void setView(const View& view) {
+			sfRenderWindow_setView(@window, view.raw());
+		}
+		
+		Vector2f mapPixelToCoords(Vector2i position) const {
+			final auto pixelPosition = sfVector2i(position.x, position.y);
+			final auto view = sfRenderWindow_getView(@window);
+			final auto coordsPosition = sfRenderWindow_mapPixelToCoords(@window, pixelPosition, view);
+			return Vector2f(coordsPosition.x, coordsPosition.y);
 		}
 		
 		bool pollEvent(sfEvent* event) {

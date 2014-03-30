@@ -8,16 +8,6 @@ sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
 
 void sfCircleShape_destroy(sfCircleShape* shape);
 
-struct sfVector2i {
-	int x;
-	int y;
-};
-
-struct sfVector2f {
-	float x;
-	float y;
-};
-
 void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
 
 void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
@@ -31,9 +21,6 @@ void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color);
 void sfCircleShape_setRadius(sfCircleShape* shape, float radius);
 
 namespace sf {
-	
-	datatype Vector2i(int x, int y);
-	datatype Vector2f(float x, float y);
 	
 	class CircleShape(sfCircleShape* shape) {
 		static Create () {

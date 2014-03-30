@@ -1,0 +1,20 @@
+// CSFML Rect.
+
+struct sfFloatRect {
+	float left;
+	float top;
+	float width;
+	float height;
+};
+
+namespace sf {
+	
+	datatype FloatRect(Vector2f topLeft, Vector2f size);
+	
+	sfFloatRect rectToRaw(FloatRect rect) {
+		return sfFloatRect(rect.topLeft.x, rect.topLeft.y, rect.size.x, rect.size.y);
+	}
+	
+}
+
+

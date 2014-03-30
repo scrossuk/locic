@@ -8,16 +8,19 @@ namespace CR {
 		OptionalPosition performMove(const Board& board) {
 			const auto leftButton = 0;
 			if (sf::Mouse::isButtonPressed(leftButton)) {
-				final auto mousePos = sf::Mouse::getPosition(@window);
+				final auto mousePixelPos = sf::Mouse::getPosition(@window);
+				final auto mouseCoordsPos = @window.mapPixelToCoords(mousePixelPos);
+				final auto mousePos = sf::Vector2f(mouseCoordsPos.x / 800.0f, mouseCoordsPos.y / 800.0f);
 				
-				if (mousePos.x < 0 || mousePos.y < 0) {
+				if (mousePos.x <= 0.0f || mousePos.y <= 0.0f || mousePos.x >= 1.0f || mousePos.y >= 1.0f) {
 					return None();
 				}
 				
-				final auto x = mousePos.x.toSizeT() / 100u;
-				final auto y = mousePos.y.toSizeT() / 100u;
+				final auto x = (mousePos.x * board.size().width.toFloat()).toSizeT();
+				final auto y = (mousePos.y * board.size().height.toFloat()).toSizeT();
 				
 				if (x >= board.size().width || y >= board.size().height) {
+					// Just in case...
 					return None();
 				}
 				

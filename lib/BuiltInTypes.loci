@@ -451,6 +451,8 @@ __primitive float_t {
 	float_t divide(float_t v) const;
 	float_t modulo(float_t v) const;
 	
+	size_t toSizeT() const;
+	
 	int_t compare(float_t v) const;
 }
 

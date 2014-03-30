@@ -2,6 +2,10 @@
 
 int rand();
 
+int strcmp(const char* const first, const char* const second);
+
+void printf(const char* text, ...);
+
 double Random(){
 	// Not a great random number generator...
 	return (rand() % 100).toFloat() / 100.0f;
@@ -30,8 +34,7 @@ void initializeBoard(CR::Board& board){
 	board[CR::Position(width / 2u, height / 2u - 1u)]      = position ? CR::Blue() : CR::Red();
 }
 
-// Entry point.
-int main() {
+void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& player1) {
 	final auto boardSize = CR::BoardSize(8u, 8u);
 	final auto initialColour = Random() > 0.5 ? CR::Red() : CR::Blue();
 	final auto board = CR::Board(boardSize, initialColour);
@@ -40,17 +43,11 @@ int main() {
 	
 	initializeBoard(board);
 	
-	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
-	renderWindow.setFramerateLimit(25);
-	
 	// Whether a game is currently active.
 	bool playing = true;
 	
 	// Whether p0 (false) or p1 (true) is the current player.
 	bool currentPlayer = Random() > 0.5;
-	
-	auto player0 = CR::HumanPlayer(renderWindow);
-	auto player1 = CR::AIPlayer(renderWindow);
 	
 	auto clock = sf::Clock();
 	
@@ -193,6 +190,48 @@ int main() {
 		}
 		
 		renderWindow.display();
+	}
+}
+
+exception InvalidPlayerError(const char* const name);
+
+CR::Player& getPlayer(const char* const playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
+	if (strcmp(playerString, C"ai") == 0) {
+		return aiPlayer;
+	} else if (strcmp(playerString, C"human") == 0) {
+		return humanPlayer;
+	} else {
+		throw InvalidPlayerError(playerString);
+	}
+}
+
+// Entry point.
+int main(int argc, char ** argv) {
+	const char * const usage = C"chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
+	
+	if (argc != 3) {
+		printf(C"Incorrect number of arguments! You need to give 2 arguments:\n");
+		printf(C"    %s\n", usage);
+		return 1;
+	}
+	
+	try {
+		auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
+		renderWindow.setFramerateLimit(25);
+		
+		const auto view = sf::View::FromRect(sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(800.0f, 800.0f)));
+		renderWindow.setView(view);
+		
+		auto humanPlayer = CR::HumanPlayer(renderWindow);
+		auto aiPlayer = CR::AIPlayer(renderWindow);
+		
+		final auto& player0 = getPlayer(argv[1u], aiPlayer, humanPlayer);
+		final auto& player1 = getPlayer(argv[2u], aiPlayer, humanPlayer);
+		
+		playGame(renderWindow, player0, player1);
+	} catch (InvalidPlayerError error) {
+		printf(C"ERROR: Invalid player name '%s'.\n", error.name);
+		return 1;
 	}
 	
 	return 0;

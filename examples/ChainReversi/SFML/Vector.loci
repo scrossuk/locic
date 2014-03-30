@@ -1,0 +1,20 @@
+// CSFML Vector.
+
+struct sfVector2i {
+	int x;
+	int y;
+};
+
+struct sfVector2f {
+	float x;
+	float y;
+};
+
+namespace sf {
+	
+	datatype Vector2i(int x, int y);
+	datatype Vector2f(float x, float y);
+	
+}
+
+

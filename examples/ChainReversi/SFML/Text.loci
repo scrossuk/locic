@@ -26,16 +26,7 @@ sfFloatRect sfText_getLocalBounds(const sfText* const text);
 
 sfFloatRect sfText_getGlobalBounds(const sfText* const text);
 
-struct sfFloatRect {
-	float left;
-	float top;
-	float width;
-	float height;
-};
-
 namespace sf {
-	
-	datatype FloatRect(Vector2f topLeft, Vector2f size);
 	
 	class Text(sfText* text) {
 		static Create () {

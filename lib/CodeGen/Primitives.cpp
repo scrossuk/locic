@@ -415,6 +415,15 @@ namespace locic {
 					builder.CreateRet(builder.CreateSelect(lessThanZero, builder.CreateFNeg(methodOwner), methodOwner));
 				} else if (methodName == "toFloat") {
 					builder.CreateRet(builder.CreateFPTrunc(methodOwner, TypeGenerator(module).getFloatType()));
+				} else if (hasStart(methodName, "to")) {
+					const auto targetType = genType(module, semFunction->type()->getFunctionReturnType());
+					if (targetType->isFloatTy()) {
+						builder.CreateRet(builder.CreateFPTrunc(methodOwner, targetType));
+					} else if (methodName == "toSizeT" || hasStart(methodName, "toU")) {
+						builder.CreateRet(builder.CreateFPToUI(methodOwner, targetType));
+					} else {
+						builder.CreateRet(builder.CreateFPToSI(methodOwner, targetType));
+					}
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
