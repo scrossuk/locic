@@ -76,5 +76,54 @@ namespace locic {
 		return resultString;
 	}
 	
+	static std::string createTabs(size_t numTabs){
+		std::string s;
+		for(size_t i = 0; i < numTabs; i++){
+			s += '\t';
+		}
+		return s;
+	}
+	
+	std::string formatMessage(const std::string& message){
+		size_t tabLevel = 1;
+		std::string resultString;
+		char prevChar = 0x00;
+		
+		for(size_t i = 0; i < message.size(); i++){
+			const char c = message.at(i);
+			switch(c){
+				case '{':
+				case '(':
+					tabLevel++;
+					resultString += c;
+					resultString += '\n';
+					resultString += createTabs(tabLevel);
+					break;
+				case '}':
+				case ')':
+					if(tabLevel >= 2) tabLevel--;
+					resultString += '\n';
+					resultString += createTabs(tabLevel);
+					resultString += c;
+					break;
+				case ',':
+					resultString += ",\n";
+					resultString += createTabs(tabLevel);
+					break;
+				case ' ':
+					if(prevChar != ','){
+						resultString += ' ';
+					}
+					break;
+				default:
+					resultString += c;
+					break;
+			}
+			prevChar = c;
+		}
+		
+		return resultString;
+	}
+	
 }
 	

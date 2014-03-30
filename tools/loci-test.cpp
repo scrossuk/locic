@@ -11,7 +11,6 @@
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
-#include <locic/Log.hpp>
 
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGen.hpp>
@@ -91,8 +90,6 @@ FORCE_UNDEFINED_SYMBOL(__loci_end_catch)
 FORCE_UNDEFINED_SYMBOL(__loci_personality_v0)
 
 int main(int argc, char* argv[]) {
-	setLogDisplayLevel(LOG_INFO);
-	
 	try {
 		if (argc < 1) return -1;
 		const auto programName = boost::filesystem::path(argv[0]).stem().string();
@@ -209,6 +206,7 @@ int main(int argc, char* argv[]) {
 		// Perform code generation.
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule);
+		
 		codeGenerator.genNamespace(rootSEMNamespace);
 		
 		// Dump LLVM IR.

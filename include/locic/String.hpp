@@ -68,6 +68,8 @@ namespace locic{
 	}
 	
 	std::string escapeString(const std::string& string);
+	
+	std::string formatMessage(const std::string& message);
 
 }
 

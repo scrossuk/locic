@@ -91,9 +91,6 @@ namespace locic {
 		}
 		
 		size_t TargetInfo::getPrimitiveSize(const std::string& name) const {
-			if (!primitiveSizes_.has(name)) {
-				LOG(LOG_CRITICAL, "Can't find primitive type '%s'.", name.c_str());
-			}
 			return primitiveSizes_.get(name);
 		}
 		

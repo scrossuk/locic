@@ -105,10 +105,7 @@ namespace locic {
 		llvm::Type* genType(Module& module, SEM::Type* unresolvedType) {
 			assert(unresolvedType != NULL);
 			
-			SEM::Type* type = module.resolveType(unresolvedType);
-			
-			LOG(LOG_INFO, "genType(type: %s, mangledType: %s)",
-				type->toString().c_str(), mangleType(module, type).c_str());
+			const auto type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
@@ -173,9 +170,6 @@ namespace locic {
 			assert(unresolvedType != NULL);
 			
 			const auto type = module.resolveType(unresolvedType);
-			
-			LOG(LOG_INFO, "genDebugType(type: %s, mangledType: %s)",
-				type->toString().c_str(), mangleType(module, type).c_str());
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {

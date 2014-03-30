@@ -26,9 +26,6 @@ namespace locic {
 			
 			Function function(module, llvmFunction, ArgInfo::None());
 			
-			LOG(LOG_INFO, "Generating sizeof() for primitive type '%s'.",
-				name.c_str());
-			
 			if (name == "member_lval" || name == "value_lval") {
 				// The size of a built-in lvalue is entirely dependent
 				// on the size of its target type.
@@ -156,8 +153,6 @@ namespace locic {
 					throw std::runtime_error("Unknown bool binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown bool method: %s.",
-					methodName.c_str());
 				throw std::runtime_error(makeString("Unknown bool method '%s'.", methodName.c_str()));
 			}
 			
@@ -285,8 +280,6 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
-					typeName.c_str(), methodName.c_str());
 				throw std::runtime_error(makeString("Unknown primitive method '%s'.", methodName.c_str()));
 			}
 			
@@ -375,8 +368,6 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
-					typeName.c_str(), methodName.c_str());
 				throw std::runtime_error(makeString("Unknown primitive method '%s'.", methodName.c_str()));
 			}
 			
@@ -459,8 +450,6 @@ namespace locic {
 					throw std::runtime_error("Unknown primitive binary op.");
 				}
 			} else {
-				LOG(LOG_INFO, "Unknown primitive method: %s::%s.",
-					typeName.c_str(), methodName.c_str());
 				throw std::runtime_error("Unknown primitive method.");
 			}
 			

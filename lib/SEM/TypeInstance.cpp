@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <string>
 
-#include <locic/Log.hpp>
 #include <locic/Map.hpp>
 #include <locic/Name.hpp>
 #include <locic/String.hpp>

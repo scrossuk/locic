@@ -7,7 +7,6 @@
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
-#include <locic/Log.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
@@ -510,8 +509,6 @@ namespace locic {
 			
 			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
 			 	NodeContext newContext(context, range.front().key(), range.front().value());
-			 	LOG(LOG_INFO, "Getting properties for '%s'.",
-			 		newContext.name().toString().c_str());
 				GenerateDefaultMethods(newContext, completedTypes);
 			}
 		}

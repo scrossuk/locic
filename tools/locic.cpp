@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
 		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
 		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
-		("verbose,v", "Enable verbose logging")
 		;
 		
 		po::options_description hiddenOptions;
@@ -111,10 +110,6 @@ int main(int argc, char* argv[]) {
 			printf("Usage: %s [options] file...\n", programName.c_str());
 			std::cout << visibleOptions << std::endl;
 			return 1;
-		}
-		
-		if (!variableMap["verbose"].empty()) {
-			setLogDisplayLevel(LOG_EXCESSIVE);
 		}
 		
 		if (inputFileNames.empty()) {

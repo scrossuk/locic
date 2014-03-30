@@ -113,9 +113,6 @@ namespace locic {
 			
 			const auto type = module.resolveType(unresolvedType);
 			
-			LOG(LOG_INFO, "genType(type: %s, mangledType: %s)",
-				type->toString().c_str(), mangleType(module, type).c_str());
-			
 			if (!isTypeSizeAlwaysKnown(module, type)) {
 				// For types with sizes that aren't
 				// known in all modules (e.g. classes),

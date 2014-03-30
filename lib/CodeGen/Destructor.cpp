@@ -86,16 +86,10 @@ namespace locic {
 			assert(parent->isClass() || parent->isPrimitive() || parent->isDatatype() || parent->isUnionDatatype());
 			
 			const auto mangledName = mangleDestructorName(module, parent);
-			LOG(LOG_INFO, "Generating destructor for type '%s' (mangled as '%s').",
-				parent->toString().c_str(),
-				mangledName.c_str());
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
-				LOG(LOG_INFO, "Destructor for type '%s' (mangled as '%s') already exists.",
-					parent->toString().c_str(),
-					mangledName.c_str());
 				return result.getValue();
 			}
 			

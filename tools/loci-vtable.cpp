@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include <locic/Log.hpp>
 #include <locic/Map.hpp>
+#include <locic/String.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 using namespace locic::CodeGen;
@@ -23,10 +23,7 @@ int main(int argc, char * argv[]){
 		methodNames.push_back(std::string(argv[i]));
 	}
 	
-	printf("Given %llu method names.\n",
-		(unsigned long long) methodNames.size());
-	
-	printf("\n");
+	printf("Given %llu method names.\n\n", (unsigned long long) methodNames.size());
 	
 	locic::Map<MethodHash, std::string> namesMap;
 	

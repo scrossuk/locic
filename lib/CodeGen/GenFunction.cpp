@@ -94,11 +94,6 @@ namespace locic {
 			
 			if (function->isMethod()) {
 				assert(parent != NULL);
-				LOG(LOG_INFO, "Function unresolved parent is %s.",
-					unresolvedParent->toString().c_str());
-				
-				LOG(LOG_INFO, "Function resolved parent is %s.",
-					parent->toString().c_str());
 				assert(parent->isObject());
 			} else {
 				assert(parent == NULL);
@@ -109,19 +104,9 @@ namespace locic {
 					mangleMethodName(module, parent, function->name().last()) :
 					mangleFunctionName(module, function->name());
 			
-			LOG(LOG_INFO, "Generating %s %s '%s' (mangled as '%s').",
-				function->isMethod() ? "method" : "function",
-				function->isDefinition() ? "definition" : "declaration",
-				function->name().toString().c_str(),
-				mangledName.c_str());
-			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
-				LOG(LOG_INFO, "%s '%s' (mangled as '%s') already exists.",
-					function->isMethod() ? "Method" : "Function",
-					function->name().toString().c_str(),
-					mangledName.c_str());
 				return result.getValue();
 			}
 			
@@ -171,7 +156,6 @@ namespace locic {
 				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
 			}
 			
-			// LOG(LOG_INFO, "Declaration is:");
 			// llvmFunction->dump();
 			
 			// --- Generate function code.
@@ -210,7 +194,6 @@ namespace locic {
 			// be removed by dead code elimination)
 			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			
-			// LOG(LOG_INFO, "Function definition is:");
 			// llvmFunction->dump();
 			
 			// Check the generated function is correct.

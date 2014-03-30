@@ -100,9 +100,6 @@ namespace locic {
 				const auto result = map->tryGet(type->getTemplateVar());
 				
 				if (result.hasValue()) {
-					LOG(LOG_INFO, "Resolved %s -> %s.",
-						type->toString().c_str(),
-						result.getValue()->toString().c_str());
 					type = result.getValue();
 				}
 			}
@@ -111,9 +108,6 @@ namespace locic {
 				return type;
 			}
 			
-			LOG(LOG_INFO, "Failed to resolve type %s.",
-				type->toString().c_str());
-				
 			assert(false && "Failed to resolve type.");
 			
 			return nullptr;

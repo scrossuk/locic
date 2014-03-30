@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <llvm/ExecutionEngine/MCJIT.h>
+
 #include <locic/CodeGen/Interpreter.hpp>
 #include <locic/CodeGen/Module.hpp>
 
@@ -14,8 +16,13 @@ namespace locic {
 		Interpreter::Interpreter(Module& module)
 			: module_(module),
 			executionEngine_(NULL) {
+				llvm::InitializeNativeTarget();
+				llvm::InitializeNativeTargetAsmPrinter();
+				
 				llvm::TargetOptions targetOptions;
+#ifdef LLVM_3_3
 				targetOptions.JITExceptionHandling = true;
+#endif
 				
 				llvm::EngineBuilder engineBuilder(module.getLLVMModulePtr());
 				
@@ -37,6 +44,9 @@ namespace locic {
 			if (function == NULL) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}
+			
+			executionEngine_->finalizeObject();
+			
 			return executionEngine_->getPointerToFunction(function);
 		}
 		
@@ -45,6 +55,9 @@ namespace locic {
 			if (function == NULL) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}
+			
+			executionEngine_->finalizeObject();
+			
 			return executionEngine_->runFunctionAsMain(function, args, NULL);
 		}
 		

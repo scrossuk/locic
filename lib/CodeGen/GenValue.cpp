@@ -50,9 +50,6 @@ namespace locic {
 		}
 		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
-			LOG(LOG_INFO, "Generating value %s.",
-				value->toString().c_str());
-			
 			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
 			
@@ -137,9 +134,6 @@ namespace locic {
 						   && "Types must be in the same group for cast, or "
 						   "it should be a cast from null, or a cast to void");
 						   
-					LOG(LOG_INFO, "Generating cast from type %s to type %s.",
-						sourceType->toString().c_str(), destType->toString().c_str());
-					
 					if (destType->isVoid()) {
 						// Call destructor for the value.
 						genDestructorCall(function, sourceType, codeValue);
@@ -286,9 +280,6 @@ namespace locic {
 				case SEM::Value::FUNCTIONCALL: {
 					const auto semFunctionValue = value->functionCall.functionValue;
 					const auto& semArgumentValues = value->functionCall.parameters;
-					
-					LOG(LOG_EXCESSIVE, "Generating function call value %s.",
-						semFunctionValue->toString().c_str());
 					
 					if (semFunctionValue->type()->isInterfaceMethod()) {
 						return VirtualCall::generateCall(function, semFunctionValue, semArgumentValues);

@@ -1,7 +1,6 @@
 #include <string>
 
 #include <locic/Debug.hpp>
-#include <locic/Log.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 

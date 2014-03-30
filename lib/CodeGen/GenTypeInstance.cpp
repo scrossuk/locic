@@ -21,9 +21,6 @@ namespace locic {
 			const Optional<llvm::StructType*> result = module.getTypeMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
-				LOG(LOG_INFO, "Type '%s' (mangled as '%s') already exists.",
-					typeInstance->name().toString().c_str(),
-					mangledName.c_str());
 				return result.getValue();
 			}
 			
@@ -72,10 +69,6 @@ namespace locic {
 				structVariables.push_back(genType(module, var->type()));
 				module.getMemberVarMap().forceInsert(var, i);
 			}
-			
-			LOG(LOG_INFO, "Set %llu struct variables for type '%s' (mangled as '%s').",
-				(unsigned long long) structVariables.size(), typeInstance->name().toString().c_str(),
-				mangledName.c_str());
 			
 			structType->setBody(structVariables);
 			

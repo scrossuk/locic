@@ -62,7 +62,8 @@ namespace locic {
 			const bool isOptimised = false;
 			
 			return builder_.createFunction(file, name.toString(false), "",
-				file, lineNumber, functionType, isLocalToUnit, isDefinition, scopeLine,
+				file, lineNumber, llvm::DICompositeType(functionType),
+				isLocalToUnit, isDefinition, scopeLine,
 				flags, isOptimised, function);
 		}
 		
@@ -76,7 +77,11 @@ namespace locic {
 		}
 		
 		llvm::DIType DebugBuilder::createNullType() {
+#if defined(LLVM_3_3)
 			return builder_.createNullPtrType("null");
+#elif defined(LLVM_3_4)
+			return builder_.createNullPtrType();
+#endif
 		}
 		
 		llvm::DIType DebugBuilder::createReferenceType(llvm::DIType type) {

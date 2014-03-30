@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 #include <locic/Debug.hpp>
-#include <locic/Log.hpp>
 #include <locic/Name.hpp>
 #include <locic/String.hpp>
 #include <locic/SEM.hpp>
@@ -18,7 +17,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location);
+		static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location);
 		
 		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
 			if (destType->isAuto()) {

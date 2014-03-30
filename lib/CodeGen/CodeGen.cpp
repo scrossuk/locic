@@ -9,7 +9,6 @@
 #include <vector>
 
 #include <locic/Debug.hpp>
-#include <locic/Log.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/String.hpp>
@@ -43,9 +42,7 @@ namespace locic {
 			
 			const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
 			
-			for (size_t i = 0; i < typeInstances.size(); i++) {
-				SEM::TypeInstance* typeInstance = typeInstances.at(i);
-				
+			for (const auto typeInstance: typeInstances) {
 				if (!typeInstance->templateVariables().empty()) {
 					// Can't generate types with template arguments.
 					return;
@@ -61,7 +58,7 @@ namespace locic {
 					return;
 				}
 				
-				(void) genTypeInstance(module, typeInstance, std::vector<SEM::Type*>());
+				(void) genTypeInstance(module, typeInstance, {});
 			}
 		}
 		
