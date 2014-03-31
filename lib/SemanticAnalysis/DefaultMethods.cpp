@@ -61,8 +61,10 @@ namespace locic {
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name) {
 			if (isStatic && name.last() == "Create") {
 				return CreateDefaultConstructorDecl(context, typeInstance);
-			} if (!isStatic && name.last() == "implicitCopy" && HasDefaultImplicitCopy(typeInstance)) {
+			} else if (!isStatic && name.last() == "implicitCopy" && HasDefaultImplicitCopy(typeInstance)) {
 				return CreateDefaultImplicitCopyDecl(typeInstance);
+			} else if (!isStatic && name.last() == "compare" && HasDefaultCompare(typeInstance)) {
+				return CreateDefaultCompareDecl(context, typeInstance);
 			}
 			
 			throw ErrorException(makeString("%s method '%s' does not have a default implementation.",
@@ -80,6 +82,24 @@ namespace locic {
 			} else {
 				for (auto var: typeInstance->variables()) {
 					if (!supportsImplicitCopy(var->constructType())) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		
+		bool HasDefaultCompare(SEM::TypeInstance* typeInstance) {
+			if (typeInstance->isUnionDatatype()) {
+				for (auto variantTypeInstance: typeInstance->variants()) {
+					if (!supportsCompare(variantTypeInstance->selfType())) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				for (auto var: typeInstance->variables()) {
+					if (!supportsCompare(var->constructType())) {
 						return false;
 					}
 				}

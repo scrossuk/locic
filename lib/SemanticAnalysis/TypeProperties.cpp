@@ -8,7 +8,6 @@
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/MethodPattern.hpp>
 #include <locic/SemanticAnalysis/Node.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
@@ -271,6 +270,41 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR:
 					return supportsImplicitCopy(type->getTemplateVar()->specTypeInstance()->selfType());
+					
+				default:
+					throw std::runtime_error("Unknown SEM type kind.");
+			}
+		}
+		
+		bool supportsCompare(SEM::Type* type) {
+			switch (type->kind()) {
+				case SEM::Type::VOID:
+				case SEM::Type::REFERENCE:
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+					return false;
+					
+				case SEM::Type::OBJECT: {
+					const auto typeInstance = type->getObjectType();
+					const auto methodIterator = typeInstance->functions().find("compare");
+					if (methodIterator == typeInstance->functions().end()) return false;
+					
+					const auto function = methodIterator->second;
+					if (function->type()->isFunctionVarArg()) return false;
+					if (!function->isMethod()) return false;
+					if (function->isStaticMethod()) return false;
+					if (!function->isConstMethod()) return false;
+					if (function->parameters().size() != 1) return false;
+					
+					const auto firstArg = function->parameters().at(0);
+					if (*(firstArg->constructType()) != *type) return false;
+					
+					return true;
+				}
+				
+				case SEM::Type::TEMPLATEVAR:
+					return supportsCompare(type->getTemplateVar()->specTypeInstance()->selfType());
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");

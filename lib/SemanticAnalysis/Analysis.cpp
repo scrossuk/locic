@@ -19,7 +19,6 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/MethodPattern.hpp>
 
 namespace locic {
 
@@ -491,9 +490,8 @@ namespace locic {
 				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
 			
-			// Add default compare for datatypes.
-			// TODO: check if this is actually valid!
-			if (semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
+			// Add default compare for datatypes if available.
+			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultCompare(semTypeInstance)) {
 				const auto implicitCopy = CreateDefaultCompareDecl(context, semTypeInstance);
 				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));

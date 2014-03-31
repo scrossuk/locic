@@ -20,6 +20,8 @@ namespace locic {
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
 		
+		bool HasDefaultCompare(SEM::TypeInstance* typeInstance);
+		
 		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
 		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function);

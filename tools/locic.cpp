@@ -131,11 +131,10 @@ int main(int argc, char* argv[]) {
 		AST::NamespaceList astRootNamespaceList;
 		
 		// Parse all source files.
-		for (std::size_t i = 0; i < inputFileNames.size(); i++) {
-			const std::string filename = inputFileNames.at(i);
-			FILE* file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
+		for (const auto& filename: inputFileNames) {
+			const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
 			
-			if (file == NULL) {
+			if (file == nullptr) {
 				printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
 				return 1;
 			}
