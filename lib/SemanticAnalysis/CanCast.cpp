@@ -223,10 +223,10 @@ namespace locic {
 		}
 		
 		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType) {
-			assert(objectType->isObject());
+			assert(objectType->isObjectOrTemplateVar());
 			assert(interfaceType->isInterface());
 			
-			const auto objectInstance = objectType->getObjectType();
+			const auto objectInstance = objectType->getObjectOrSpecType();
 			const auto interfaceInstance = interfaceType->getObjectType();
 			
 			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();

@@ -47,41 +47,22 @@ namespace locic {
 			}
 		}
 		
-		// Get all type names, and build initial type instance structures.
-		void AddNamespacesPass(Context& context) {
-			Node& node = context.node();
-			
-			assert(node.isNamespace());
-			
-			// Breadth-first: add all the namespaces at this level before going deeper.
-			
-			// Multiple AST namespace trees correspond to one SEM namespace,
-			// so loop through all the AST namespaces.
-			for (auto astNamespaceNode: node.getASTNamespaceList()) {
-				auto astNamespaceDataNode = astNamespaceNode->data;
-				for (auto astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-					const std::string& childNamespaceName = astChildNamespaceNode->name;
-					Node existingChildNode = node.getChild(childNamespaceName);
-					if (existingChildNode.isNone()) {
-						SEM::Namespace* semChildNamespace = new SEM::Namespace(childNamespaceName);
-						node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
-						const Node childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
-						node.attach(childNamespaceName, childNode);
-					} else {
-						existingChildNode.getASTNamespaceList().push_back(astChildNamespaceNode);
-					}
-				}
-			}
-			
-			// This level is complete; now go to the deeper levels of namespaces.
-			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
-				AddNamespacesPass(childNamespaceContext);
+		SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
+			switch (kind) {
+				case AST::TemplateTypeVar::TYPENAME:
+					return SEM::TEMPLATEVAR_TYPENAME;
+				case AST::TemplateTypeVar::POLYMORPHIC:
+					return SEM::TEMPLATEVAR_POLYMORPHIC;
+				default:
+					assert(false && "Unknown template var kind.");
+					return SEM::TEMPLATEVAR_TYPENAME;
 			}
 		}
 		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			Node& node = context.node();
+			
+			assert(node.isNamespace());
 			
 			const auto& typeInstanceName = astTypeInstanceNode->name;
 			
@@ -105,7 +86,7 @@ namespace locic {
 			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind);
 			node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
 			
-			const Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
+			Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
 			node.attach(typeInstanceName, typeInstanceNode);
 			
 			if (semTypeInstance->isUnionDatatype()) {
@@ -116,93 +97,64 @@ namespace locic {
 				}
 			}
 			
+			// Add template variables.
+			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind));
+				
+				Node templateNode = Node::TemplateVar(astTemplateVarNode, semTemplateVar);
+				
+				if (!typeInstanceNode.tryAttach(templateVarName, templateNode)) {
+					throw TemplateVariableClashException(fullTypeName, templateVarName);
+				}
+				
+				// Create placeholder for the template type.
+				const Name specObjectName = fullTypeName + templateVarName + "#spectype";
+				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE);
+				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
+				templateNode.attach("#spectype", Node::TypeInstance(AST::Node<AST::TypeInstance>(), templateVarSpecObject));
+				
+				semTypeInstance->templateVariables().push_back(semTemplateVar);
+			}
+			
 			return semTypeInstance;
 		}
 		
-		// Get all type names, and build initial type instance structures.
-		void AddTypeInstancesPass(Context& context) {
-			auto& node = context.node();
+		// Get all namespaces and type names, and build initial type instance structures.
+		void AddGlobalStructuresPass(Context& context) {
+			Node& node = context.node();
 			
 			if (!node.isNamespace()) return;
 			
-			//-- Look through child namespaces for type instances.
-			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
-				AddTypeInstancesPass(childNamespaceContext);
-			}
+			// Breadth-first: add all the namespaces at this level before going deeper.
 			
 			// Multiple AST namespace trees correspond to one SEM namespace,
 			// so loop through all the AST namespaces.
-			for (const auto& astNamespaceNode: node.getASTNamespaceList()) {
-				auto astNamespaceDataNode = astNamespaceNode->data;
+			for (auto astNamespaceNode: node.getASTNamespaceList()) {
+				const auto& astNamespaceDataNode = astNamespaceNode->data;
+				
+				for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
+					const std::string& childNamespaceName = astChildNamespaceNode->name;
+					Node existingChildNode = node.getChild(childNamespaceName);
+					if (existingChildNode.isNone()) {
+						const auto semChildNamespace = new SEM::Namespace(childNamespaceName);
+						node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
+						const Node childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
+						node.attach(childNamespaceName, childNode);
+					} else {
+						existingChildNode.getASTNamespaceList().push_back(astChildNamespaceNode);
+					}
+				}
+				
 				for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 					(void) AddTypeInstance(context, astTypeInstanceNode);
 				}
 			}
-		}
-		
-		SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
-			switch (kind) {
-				case AST::TemplateTypeVar::TYPENAME:
-					return SEM::TEMPLATEVAR_TYPENAME;
-				case AST::TemplateTypeVar::POLYMORPHIC:
-					return SEM::TEMPLATEVAR_POLYMORPHIC;
-				default:
-					assert(false && "Unknown template var kind.");
-					return SEM::TEMPLATEVAR_TYPENAME;
-			}
-		}
-		
-		void AddTemplateVariablesPass(Context& context){
-			Node& node = context.node();
 			
-			if (node.isTypeInstance()) {
-				auto astTypeInstanceNode = node.getASTTypeInstance();
-				auto semTypeInstance = node.getSEMTypeInstance();
-				
-				for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-					const std::string& varName = astTemplateVarNode->name;
-					
-					auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind));
-					
-					const Node templateNode = Node::TemplateVar(astTemplateVarNode, semTemplateVar);
-					
-					if (!node.tryAttach(varName, templateNode)) {
-						throw TemplateVariableClashException(context.name(), varName);
-					}
-					
-					semTypeInstance->templateVariables().push_back(semTemplateVar);
-				}
-			} else {
-				for(StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()){
-			 		NodeContext newContext(context, range.front().key(), range.front().value());
-					AddTemplateVariablesPass(newContext);
-				}
-			}
-		}
-		
-		void AddTemplateVariableRequirementsPass(Context& context){
-			Node& node = context.node();
-			
-			if (node.isTypeInstance()) {
-				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		Node childNode = range.front().value();
-			 		if (!childNode.isTemplateVar()) continue;
-			 		
-			 		const Name specObjectName = context.name() + range.front().key() + "#spectype";
-			 		
-			 		// Create placeholder for the template type.
-			 		const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE);
-					
-					childNode.getSEMTemplateVar()->setSpecTypeInstance(templateVarSpecObject);
-					
-					childNode.attach("#spectype", Node::TypeInstance(AST::Node<AST::TypeInstance>(), templateVarSpecObject));
-				}
-			} else {
-				for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
-			 		NodeContext newContext(context, range.front().key(), range.front().value());
-					AddTemplateVariableRequirementsPass(newContext);
-				}
+			// This level is complete; now go to the deeper levels.
+			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
+			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
+				AddGlobalStructuresPass(childNamespaceContext);
 			}
 		}
 		
@@ -528,31 +480,22 @@ namespace locic {
 				// Root context is the 'top of the stack'.
 				RootContext rootContext(rootNode, debugModule);
 				
-				// ---- Pass 1: Create namespaces.
-				AddNamespacesPass(rootContext);
+				// ---- Pass 1: Add namespaces, type names and template variables.
+				AddGlobalStructuresPass(rootContext);
 				
-				// ---- Pass 2: Create type names.
-				AddTypeInstancesPass(rootContext);
-				
-				// ---- Pass 3: Add template type variables.
-				AddTemplateVariablesPass(rootContext);
-				
-				// ---- Pass 4: Add template type variable requirements.
-				AddTemplateVariableRequirementsPass(rootContext);
-				
-				// ---- Pass 5: Add type member variables.
+				// ---- Pass 2: Add type member variables.
 				AddTypeMemberVariablesPass(rootContext);
 				
-				// ---- Pass 6: Create function declarations.
+				// ---- Pass 3: Create function declarations.
 				AddFunctionDeclsPass(rootContext);
 				
-				// ---- Pass 7: Complete template type variable requirements.
+				// ---- Pass 4: Complete template type variable requirements.
 				CompleteTemplateVariableRequirementsPass(rootContext);
 				
-				// ---- Pass 8: Generate default methods.
+				// ---- Pass 5: Generate default methods.
 				GenerateDefaultMethodsPass(rootContext);
 				
-				// ---- Pass 9: Fill in function code.
+				// ---- Pass 6: Fill in function code.
 				ConvertNamespace(rootContext);
 				
 				return rootSEMNamespace;

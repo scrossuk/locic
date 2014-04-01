@@ -52,35 +52,35 @@ int testEntryPoint(int argc, char ** argv) {
 	object.printValue();
 	
 	testPrint(C"testEntryPoint: Compare with (0, 0, 0)");
-	if (data == TestClass(0, 0, 0)) {
+	if (object == TestClass(0, 0, 0)) {
 		testPrint(C"testEntryPoint: Is EQUAL.");
 	} else {
 		testPrint(C"testEntryPoint: Is NOT EQUAL.");
 	}
 	
 	testPrint(C"testEntryPoint: Compare with (10, 10, 10)");
-	if (data == TestClass(10, 10, 10)) {
+	if (object == TestClass(10, 10, 10)) {
 		testPrint(C"testEntryPoint: Is EQUAL.");
 	} else {
 		testPrint(C"testEntryPoint: Is NOT EQUAL.");
 	}
 	
 	testPrint(C"testEntryPoint: Compare with (10, 20, 30)");
-	if (data == TestClass(10, 20, 30)) {
+	if (object == TestClass(10, 20, 30)) {
 		testPrint(C"testEntryPoint: Is EQUAL.");
 	} else {
 		testPrint(C"testEntryPoint: Is NOT EQUAL.");
 	}
 	
 	testPrint(C"testEntryPoint: Compare with (20, 20, 30)");
-	if (data == TestClass(20, 20, 30)) {
+	if (object == TestClass(20, 20, 30)) {
 		testPrint(C"testEntryPoint: Is EQUAL.");
 	} else {
 		testPrint(C"testEntryPoint: Is NOT EQUAL.");
 	}
 	
 	testPrint(C"testEntryPoint: Compare with (-10, -20, -30)");
-	if (data == TestClass(-10, -20, -30)) {
+	if (object == TestClass(-10, -20, -30)) {
 		testPrint(C"testEntryPoint: Is EQUAL.");
 	} else {
 		testPrint(C"testEntryPoint: Is NOT EQUAL.");

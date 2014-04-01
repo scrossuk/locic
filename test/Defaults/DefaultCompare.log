@@ -1,4 +1,20 @@
-testEntryPoint: data1 = TestDatatype(a = 1, b = 2, c = 3)
-printData: TestDatatype(a = 1, b = 2, c = 3)
-testEntryPoint: data2 = TestDatatype(a = 10, b = 20, c = 30)
-printData: TestDatatype(a = 10, b = 20, c = 30)
+testEntryPoint: data = TestDatatype(a = 1, b = 2, c = 3)
+testEntryPoint: Compare with (1, 2, 3)
+testEntryPoint: Is EQUAL.
+testEntryPoint: Compare with (2, 2, 3)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: Compare with (3, 2, 1)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: Compare with (0, 0, 0)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: object = TestClass(a = 10, b = 20, c = 30)
+testEntryPoint: Compare with (0, 0, 0)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: Compare with (10, 10, 10)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: Compare with (10, 20, 30)
+testEntryPoint: Is EQUAL.
+testEntryPoint: Compare with (20, 20, 30)
+testEntryPoint: Is NOT EQUAL.
+testEntryPoint: Compare with (-10, -20, -30)
+testEntryPoint: Is NOT EQUAL.

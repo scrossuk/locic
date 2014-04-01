@@ -72,20 +72,10 @@ namespace locic {
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				if (!HasDefaultImplicitCopy(typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
-				}
-				
 				return CreateDefaultImplicitCopyDecl(typeInstance);
 			} else if (name.last() == "compare") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
-				}
-				
-				if (!HasDefaultCompare(typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
@@ -264,18 +254,29 @@ namespace locic {
 		}
 		
 		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			if (function->name().last() == "Create") {
+			const auto& name = function->name();
+			if (name.last() == "Create") {
 				if (typeInstance->isException()) {
 					CreateExceptionConstructor(context, function);
 				} else {
 					CreateDefaultConstructor(typeInstance, function, location);
 				}
-			} else if (function->name().last() == "implicitCopy") {
+			} else if (name.last() == "implicitCopy") {
+				if (!HasDefaultImplicitCopy(typeInstance)) {
+					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
 				CreateDefaultImplicitCopy(typeInstance, function, location);
-			} else if (function->name().last() == "compare") {
+			} else if (name.last() == "compare") {
+				if (!HasDefaultCompare(typeInstance)) {
+					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
 				CreateDefaultCompare(context, typeInstance, function, location);
 			} else {
-				throw std::runtime_error(makeString("Unknown default method '%s'.", function->name().toString().c_str()));
+				throw std::runtime_error(makeString("Unknown default method '%s'.", name.toString().c_str()));
 			}
 		}
 		

@@ -1,0 +1,6 @@
+# Template tests.
+
+test_check_output(BasicTemplate)
+test_check_output(MemberTemplate)
+test_check_output(RecursiveTemplate)
+

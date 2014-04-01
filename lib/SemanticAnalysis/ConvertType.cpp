@@ -73,7 +73,7 @@ namespace locic {
 								continue;
 							}
 							
-							if (!templateTypeValue->isObject()) {
+							if (!templateTypeValue->isObjectOrTemplateVar()) {
 								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
 									"constraint for template parameter %llu of type '%s' at position %s.",
 									templateTypeValue->toString().c_str(),

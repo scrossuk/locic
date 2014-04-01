@@ -1,0 +1,48 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+interface Printable {
+	void print();
+}
+
+class InnerClass(int value) {
+	static Create(int value) {
+		return @(move value);
+	}
+	
+	void print() {
+		testPrint(C"        InnerClass.printValue: value = %d", @value);
+	}
+}
+
+template <typename T: Printable>
+class MiddleClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	void print() {
+		testPrint(C"    MiddleClass.printValue");
+		@value.print();
+	}
+}
+
+class OuterClass(MiddleClass<InnerClass> value) {
+	static Create(MiddleClass<InnerClass> value) {
+		return @(move value);
+	}
+	
+	void print() {
+		testPrint(C"OuterClass.printValue");
+		@value.print();
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	OuterClass object = OuterClass(MiddleClass<InnerClass>(InnerClass(2014)));
+	object.print();
+	
+	return 0;
+}
+

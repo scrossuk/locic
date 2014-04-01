@@ -1,0 +1,88 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+datatype TestDatatype(int a, int b, int c);
+
+class TestClass (TestDatatype data) {
+	static Create = default;
+	
+	implicitCopy = default;
+	
+	compare = default;
+	
+	void printValue() const {
+		testPrint(C"TestClass(data = TestDatatype(a = %d, b = %d, c = %d))",
+			@data.a, @data.b, @data.c);
+	}
+}
+
+class TestMemberClass1 (int value) {
+	static Create(int value) {
+		testPrint(C"TestMemberClass1.Create(%d)", value);
+		return @(value);
+	}
+	
+	TestMemberClass1 implicitCopy() const {
+		testPrint(C"TestMemberClass1.implicitCopy() : @value = %d", @value);
+		return @(@value);
+	}
+	
+	int compare(TestMemberClass1 other) const {
+		testPrint(C"TestMemberClass1.compare() : @value = %d, other.getValue() = %d",
+			@value, other.getValue());
+		return @value.compare(other.getValue());
+	}
+	
+	int getValue() const {
+		return @value;
+	}
+	
+	void printValue() const {
+		testPrint(C"    TestMemberClass1(value = %d)", @value);
+	}
+}
+
+class TestMemberClass2 (TestMemberClass1 object) {
+	static Create = default;
+	
+	implicitCopy = default;
+	
+	compare = default;
+	
+	void printValue() const {
+		testPrint(C"TestMemberClass2.printValue()");
+		@object.printValue();
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass object = TestClass(TestDatatype(44, 55, 66));
+	object.printValue();
+	
+	TestClass objectCopy = object;
+	objectCopy.printValue();
+	
+	testPrint(C"testEntryPoint: Compare with its copy...");
+	if (object == objectCopy) {
+		testPrint(C"testEntryPoint: Is EQUAL.");
+	} else {
+		testPrint(C"testEntryPoint: Is NOT EQUAL.");
+	}
+	
+	TestMemberClass2 memberObject = TestMemberClass2(TestMemberClass1(101));
+	memberObject.printValue();
+	
+	TestMemberClass2 memberObjectCopy = memberObject;
+	memberObjectCopy.printValue();
+	
+	testPrint(C"testEntryPoint: Compare with its copy...");
+	if (memberObject == memberObjectCopy) {
+		testPrint(C"testEntryPoint: Is EQUAL.");
+	} else {
+		testPrint(C"testEntryPoint: Is NOT EQUAL.");
+	}
+	
+	return 0;
+}
+

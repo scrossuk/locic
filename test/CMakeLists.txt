@@ -15,4 +15,5 @@ add_subdirectory(Exception)
 add_subdirectory(Interface)
 add_subdirectory(Loop)
 add_subdirectory(Lval)
+add_subdirectory(Templates)
 

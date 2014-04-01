@@ -1,0 +1,3 @@
+OuterClass.printValue
+    MiddleClass.printValue
+        InnerClass.printValue: value = 2014

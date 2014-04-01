@@ -1,0 +1,29 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+template <typename T>
+class TestClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	T& getValue() {
+		return @value;
+	}
+	
+	void setValue(T newValue) {
+		@value = move newValue;
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass<int> object = TestClass<int>(200);
+	testPrint(C"object.getValue() = %d", object.getValue());
+	
+	object.setValue(400);
+	testPrint(C"object.getValue() = %d", object.getValue());
+	
+	return 0;
+}
+
