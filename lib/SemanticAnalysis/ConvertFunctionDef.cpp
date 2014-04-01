@@ -25,7 +25,7 @@ namespace locic {
 			
 			if (astFunctionNode.isNull() || astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
-				CreateDefaultMethod(context, lookupParentType(context).getSEMTypeInstance(), semFunction);
+				CreateDefaultMethod(context, lookupParentType(context).getSEMTypeInstance(), semFunction, astFunctionNode.location());
 				return;
 			}
 			

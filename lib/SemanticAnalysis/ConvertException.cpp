@@ -103,7 +103,7 @@ namespace locic {
 				assert(semTypeInstance->parent() == nullptr);
 				
 				// No parent, so just create a normal default constructor.
-				CreateDefaultConstructor(semTypeInstance, function);
+				CreateDefaultConstructor(semTypeInstance, function, location);
 				return;
 			}
 			

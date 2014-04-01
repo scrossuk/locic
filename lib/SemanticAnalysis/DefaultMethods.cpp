@@ -58,17 +58,42 @@ namespace locic {
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar });
 		}
 		
-		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name) {
-			if (isStatic && name.last() == "Create") {
+		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
+			if (name.last() == "Create") {
+				if (!isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
 				return CreateDefaultConstructorDecl(context, typeInstance);
-			} else if (!isStatic && name.last() == "implicitCopy" && HasDefaultImplicitCopy(typeInstance)) {
+			} else if (name.last() == "implicitCopy") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				if (!HasDefaultImplicitCopy(typeInstance)) {
+					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
 				return CreateDefaultImplicitCopyDecl(typeInstance);
-			} else if (!isStatic && name.last() == "compare" && HasDefaultCompare(typeInstance)) {
+			} else if (name.last() == "compare") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				if (!HasDefaultCompare(typeInstance)) {
+					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
 				return CreateDefaultCompareDecl(context, typeInstance);
 			}
 			
-			throw ErrorException(makeString("%s method '%s' does not have a default implementation.",
-				isStatic ? "Static" : "Non-static", name.toString().c_str()));
+			throw ErrorException(makeString("Unknown default method '%s' at position %s.",
+				name.toString().c_str(), location.toString().c_str()));
 		}
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
@@ -107,10 +132,7 @@ namespace locic {
 			}
 		}
 		
-		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			// TODO: fix location.
-			const auto location = Debug::SourceLocation::Null();
-			
+		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto functionScope = new SEM::Scope();
 			
 			assert(!typeInstance->isUnionDatatype());
@@ -127,10 +149,7 @@ namespace locic {
 			function->setScope(functionScope);
 		}
 		
-		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			// TODO: fix location.
-			const auto location = Debug::SourceLocation::Null();
-			
+		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
 			
@@ -167,10 +186,7 @@ namespace locic {
 			function->setScope(functionScope);
 		}
 		
-		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			// TODO: fix location.
-			const auto location = Debug::SourceLocation::Null();
-			
+		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
 			
@@ -247,17 +263,17 @@ namespace locic {
 			function->setScope(functionScope);
 		}
 		
-		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			if (function->name().last() == "Create") {
 				if (typeInstance->isException()) {
 					CreateExceptionConstructor(context, function);
 				} else {
-					CreateDefaultConstructor(typeInstance, function);
+					CreateDefaultConstructor(typeInstance, function, location);
 				}
 			} else if (function->name().last() == "implicitCopy") {
-				CreateDefaultImplicitCopy(typeInstance, function);
+				CreateDefaultImplicitCopy(typeInstance, function, location);
 			} else if (function->name().last() == "compare") {
-				CreateDefaultCompare(context, typeInstance, function);
+				CreateDefaultCompare(context, typeInstance, function, location);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.", function->name().toString().c_str()));
 			}

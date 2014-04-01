@@ -302,7 +302,8 @@ namespace locic {
 				const auto typeInstance = node.getSEMTypeInstance();
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethodDecl(context, typeInstance, astFunctionNode->isStaticMethod(), fullName);
+				const auto semFunction = CreateDefaultMethodDecl(context, typeInstance, astFunctionNode->isStaticMethod(),
+					fullName, astFunctionNode.location());
 				
 				typeInstance->functions().insert(std::make_pair(name, semFunction));
 				
