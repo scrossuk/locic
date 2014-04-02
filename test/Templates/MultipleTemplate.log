@@ -1,0 +1,6 @@
+TestClassInt: value = 99
+TestClassInt: value = 100
+TestClassInt: value = 102
+TestClassFloat: value = 99.000000
+TestClassFloat: value = 100.000000
+TestClassFloat: value = 102.000000
