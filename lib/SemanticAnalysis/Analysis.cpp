@@ -234,6 +234,7 @@ namespace locic {
 			assert(node.isNamespace() || node.isTypeInstance());
 			
 			const auto& name = astFunctionNode->name();
+			const auto canonicalMethodName = CanonicalizeMethodName(name);
 			const auto fullName = context.name() + name;
 			
 			// Check that no other node exists with this name.
@@ -257,22 +258,21 @@ namespace locic {
 				const auto semFunction = CreateDefaultMethodDecl(context, typeInstance, astFunctionNode->isStaticMethod(),
 					fullName, astFunctionNode.location());
 				
-				typeInstance->functions().insert(std::make_pair(name, semFunction));
+				typeInstance->functions().insert(std::make_pair(canonicalMethodName, semFunction));
 				
 				// Attach function node to type.
 				auto functionNode = Node::Function(astFunctionNode, semFunction);
-				node.attach(name, functionNode);
+				node.attach(canonicalMethodName, functionNode);
 				
 				return;
 			}
 			
-			auto semFunction = ConvertFunctionDecl(context, astFunctionNode);
-			assert(semFunction != NULL);
+			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode);
 			
 			auto functionNode = Node::Function(astFunctionNode, semFunction);
 			
 			// Attach function node to parent.
-			node.attach(name, functionNode);
+			node.attach(canonicalMethodName, functionNode);
 			
 			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
 			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
@@ -300,7 +300,7 @@ namespace locic {
 			if (node.isNamespace()) {
 				node.getSEMNamespace()->functions().push_back(semFunction);
 			} else {
-				node.getSEMTypeInstance()->functions().insert(std::make_pair(name, semFunction));
+				node.getSEMTypeInstance()->functions().insert(std::make_pair(CanonicalizeMethodName(name), semFunction));
 			}
 		}
 		
@@ -430,17 +430,17 @@ namespace locic {
 					semTypeInstance->isException() ?
 						CreateExceptionConstructorDecl(context, astTypeInstanceNode, semTypeInstance) :
 						CreateDefaultConstructorDecl(context, semTypeInstance);
-				semTypeInstance->functions().insert(std::make_pair("Create", constructor));
+				semTypeInstance->functions().insert(std::make_pair("create", constructor));
 				
-				node.attach("Create", Node::Function(AST::Node<AST::Function>(), constructor));
+				node.attach("create", Node::Function(AST::Node<AST::Function>(), constructor));
 			}
 			
 			// Add default implicit copy if available.
 			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
 				const auto implicitCopy = CreateDefaultImplicitCopyDecl(semTypeInstance);
-				semTypeInstance->functions().insert(std::make_pair("implicitCopy", implicitCopy));
+				semTypeInstance->functions().insert(std::make_pair("implicitcopy", implicitCopy));
 				
-				node.attach("implicitCopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
+				node.attach("implicitcopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
 			}
 			
 			// Add default compare for datatypes if available.

@@ -304,7 +304,7 @@ namespace locic {
 				return ImplicitCastFormatOnly(constructedValue, destType, location);
 			} else {
 				throw ErrorException(makeString("No '%s' constructor specified for type '%s' at position %s.",
-					(name + "_cast").c_str(), destType->toString().c_str(),
+					constructorName.c_str(), destType->toString().c_str(),
 					location.toString().c_str()));
 			}
 		}

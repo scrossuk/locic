@@ -33,7 +33,7 @@ namespace locic {
 			const auto typeInstance = derefType->getObjectOrSpecType();
 			
 			// Look for methods.
-			if (typeInstance->functions().find(memberName) != typeInstance->functions().end()) {
+			if (typeInstance->functions().find(CanonicalizeMethodName(memberName)) != typeInstance->functions().end()) {
 				return GetMethod(value, memberName, location);
 			}
 			
@@ -206,6 +206,23 @@ namespace locic {
 			}
 		}
 		
+		static Name getCanonicalName(const Name& name) {
+			return name.getPrefix() + CanonicalizeMethodName(name.last());
+		}
+		
+		static Node performSymbolLookup(Context& context, const Name& name) {
+			const auto node = context.lookupName(name);
+			if (!node.isNone()) return node;
+			
+			// Fall back on looking for canonicalized static method names.
+			const auto functionNode = context.lookupName(getCanonicalName(name));
+			if (!functionNode.isFunction()) {
+				return Node::None();
+			}
+			
+			return functionNode;
+		}
+		
 		SEM::Value* ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
 			const auto& location = astValueNode.location();
@@ -242,7 +259,7 @@ namespace locic {
 					const Name name = astSymbolNode->createName();
 					
 					// Not a local variable => do a symbol lookup.
-					const Node node = context.lookupName(name);
+					const auto node = performSymbolLookup(context, name);
 					
 					// Get a map from template variables to their values (i.e. types).
 					const auto templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
@@ -283,7 +300,7 @@ namespace locic {
 						}
 						
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
-						return GetStaticMethod(parentType, "Create", location);
+						return GetStaticMethod(parentType, "create", location);
 					} else if (node.isVariable()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
@@ -295,7 +312,7 @@ namespace locic {
 					} else if (node.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = node.getSEMTemplateVar();
-						return GetStaticMethod(SEM::Type::TemplateVarRef(templateVar), "Create", location);
+						return GetStaticMethod(SEM::Type::TemplateVarRef(templateVar), "create", location);
 					} else {
 						throw std::runtime_error("Unknown node for name reference.");
 					}

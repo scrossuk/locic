@@ -32,7 +32,7 @@ namespace locic {
 			}
 			
 			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), constructTypes);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "Create", argVars);
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "create", argVars);
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance) {
@@ -42,7 +42,7 @@ namespace locic {
 			const bool isConst = true;
 			
 			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), {});
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitCopy", {});
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitcopy", {});
 		}
 		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance) {
@@ -59,21 +59,22 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
-			if (name.last() == "Create") {
+			const auto canonicalName = CanonicalizeMethodName(name.last());
+			if (canonicalName == "create") {
 				if (!isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be static at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
 				return CreateDefaultConstructorDecl(context, typeInstance);
-			} else if (name.last() == "implicitCopy") {
+			} else if (canonicalName == "implicitcopy") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
 				return CreateDefaultImplicitCopyDecl(typeInstance);
-			} else if (name.last() == "compare") {
+			} else if (canonicalName == "compare") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
@@ -153,7 +154,7 @@ namespace locic {
 					const auto caseVarValue = SEM::Value::LocalVar(caseVar);
 					
 					const auto caseScope = new SEM::Scope();
-					const auto copyResult = CallValue(GetMethod(caseVarValue, "implicitCopy", location), {}, location);
+					const auto copyResult = CallValue(GetMethod(caseVarValue, "implicitcopy", location), {}, location);
 					const auto copyResultCast = SEM::Value::Cast(selfType, copyResult);
 					caseScope->statements().push_back(SEM::Statement::Return(copyResultCast));
 					
@@ -165,7 +166,7 @@ namespace locic {
 				
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
-					const auto copyResult = CallValue(GetMethod(selfMember, "implicitCopy", location), {}, location);
+					const auto copyResult = CallValue(GetMethod(selfMember, "implicitcopy", location), {}, location);
 					copyValues.push_back(copyResult);
 				}
 				
@@ -234,7 +235,7 @@ namespace locic {
 					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
 					const auto operandMember = SEM::Value::MemberAccess(derefValue(operandValue), memberVar);
 					const auto compareResult = CallValue(GetMethod(selfMember, "compare", location), { operandMember }, location);
-					const auto isZero = CallValue(GetMethod(compareResult, "isZero", location), {}, location);
+					const auto isZero = CallValue(GetMethod(compareResult, "iszero", location), {}, location);
 					
 					const auto ifTrueScope = new SEM::Scope();
 					const auto ifFalseScope = new SEM::Scope();
@@ -255,20 +256,21 @@ namespace locic {
 		
 		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto& name = function->name();
-			if (name.last() == "Create") {
+			const auto canonicalName = CanonicalizeMethodName(name.last());
+			if (canonicalName == "create") {
 				if (typeInstance->isException()) {
 					CreateExceptionConstructor(context, function);
 				} else {
 					CreateDefaultConstructor(typeInstance, function, location);
 				}
-			} else if (name.last() == "implicitCopy") {
+			} else if (canonicalName == "implicitcopy") {
 				if (!HasDefaultImplicitCopy(typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
 				CreateDefaultImplicitCopy(typeInstance, function, location);
-			} else if (name.last() == "compare") {
+			} else if (canonicalName == "compare") {
 				if (!HasDefaultCompare(typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));

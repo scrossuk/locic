@@ -72,7 +72,7 @@ const T& GETSYM(T* value) {
 
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
-%expect 5
+%expect 7
 %expect-rr 3
 
 %lex-param {void * scanner}
@@ -428,6 +428,10 @@ functionName:
 	{
 		$$ = MAKESYM(std::string("move"));
 	}
+	| NULLVAL
+	{
+		$$ = MAKESYM(std::string("null"));
+	}
 	;
 	
 functionDecl:
@@ -474,7 +478,7 @@ constModifier:
 	;
 
 staticMethodDecl:
-	STATIC type NAME LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
+	STATIC type functionName LROUNDBRACKET typeVarList RROUNDBRACKET SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::StaticMethodDecl(GETSYM($2), GETSYM($3), GETSYM($5))));
 	}
@@ -515,11 +519,11 @@ staticMethodReturn:
 	;
 	
 staticMethodDef:
-	STATIC NAME SETEQUAL DEFAULT SEMICOLON
+	STATIC functionName SETEQUAL DEFAULT SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultStaticMethodDef(GETSYM($2))));
 	}
-	| STATIC staticMethodReturn NAME LROUNDBRACKET typeVarList RROUNDBRACKET scope
+	| STATIC staticMethodReturn functionName LROUNDBRACKET typeVarList RROUNDBRACKET scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::StaticMethodDef(GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7))));
 	}
@@ -534,7 +538,7 @@ methodDef:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Destructor(GETSYM($2))));
 	}
-	| NAME SETEQUAL DEFAULT SEMICOLON
+	| functionName SETEQUAL DEFAULT SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultMethodDef(GETSYM($1))));
 	}
@@ -1211,6 +1215,10 @@ constant:
 	CONSTANT
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), $1));
+	}
+	| NULLVAL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::Constant::Null()));
 	}
 	;
 

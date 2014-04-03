@@ -1,6 +1,8 @@
 # Class tests.
 
 test_check_output(BasicClass)
+test_check_output(CanonicalizeConstructorName)
+test_check_output(CanonicalizeMethodName)
 test_check_output(Constructor)
 test_check_output(Destructor)
 test_check_output(EmptyClass)

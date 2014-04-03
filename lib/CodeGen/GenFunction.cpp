@@ -1,6 +1,7 @@
 #include <vector>
 
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
@@ -32,13 +33,13 @@ namespace locic {
 		namespace {
 		
 			SEM::Function* getFunctionInParent(SEM::Type* parent, const std::string& name) {
-				for (const auto functionPair: parent->getObjectType()->functions()) {
-					const auto function = functionPair.second;
-					if (function->name().last() == name) {
-						return function;
-					}
+				const auto& typeInstance = parent->getObjectType();
+				const auto iterator = typeInstance->functions().find(CanonicalizeMethodName(name));
+				if (iterator == typeInstance->functions().end()) {
+					llvm_unreachable("Failed to find function in parent.");
 				}
-				llvm_unreachable("Failed to find function in parent.");
+				
+				return iterator->second;
 			}
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {

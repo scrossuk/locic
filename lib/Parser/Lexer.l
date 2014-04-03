@@ -120,7 +120,7 @@ long                    { return LONG; }
 float                   { return FLOAT; }
 double                  { return DOUBLE; }
 
-null                    { yylval->lexer_constant = locic::Constant::Null(); return CONSTANT; }
+null                    { return NULLVAL; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }
 false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
 [0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }

@@ -25,7 +25,7 @@ namespace locic {
 					parentTypeNode.getSEMTypeInstance() :
 					NULL;
 			
-			const auto& name = astFunctionNode->name();
+			const auto name = astFunctionNode->name();
 			const auto fullName = context.name() + name;
 			
 			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {

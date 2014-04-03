@@ -199,6 +199,11 @@ namespace locic{
 	};
 	
 	inline std::string CanonicalizeMethodName(const std::string& name) {
+		if (name.size() >= 2 && name.at(0) == '_' && name.at(1) == '_') {
+			// Preserve names that start with two underscores.
+			return name;
+		}
+		
 		std::string canonicalName;
 		
 		for (size_t i = 0; i < name.size(); i++) {

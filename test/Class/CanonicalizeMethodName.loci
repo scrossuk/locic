@@ -1,0 +1,37 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		testPrint(C"TestClass.Create: Value = %d", value);
+		return @(value);
+	}
+	
+	TestClass implicit_copy() const {
+		testPrint(C"TestClass.implicit_copy: @value = %d", @value);
+		return @(@value + 5);
+	}
+	
+	TestClass make_copy() const {
+		testPrint(C"TestClass.make_copy: @value = %d", @value);
+		return @(@value + 10);
+	}
+	
+	void print() {
+		testPrint(C"TestClass.print: @value = %d", @value);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	TestClass object = TestClass::Create(50);
+	
+	TestClass objectCopy = object;
+	objectCopy.print();
+	
+	TestClass objectCopy2 = object.makeCopy();
+	objectCopy2.print();
+	return 0;
+}
+

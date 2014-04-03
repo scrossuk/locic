@@ -1,0 +1,38 @@
+// Test output.
+void testPrint(const char * const str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static create(int value) {
+		testPrint(C"TestClass.create: Value = %d", value);
+		return @(value);
+	}
+	
+	static null() {
+		testPrint(C"TestClass.null");
+		return @(48);
+	}
+	
+	static another_constructor() {
+		testPrint(C"TestClass.another_constructor");
+		return @(45);
+	}
+	
+	void print() {
+		testPrint(C"TestClass: @value = %d", @value);
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	(void) TestClass(50);
+	(void) TestClass::create(49);
+	
+	TestClass nullObject = null;
+	nullObject.print();
+	
+	TestClass object = TestClass::AnotherConstructor();
+	object.print();
+	return 0;
+}
+

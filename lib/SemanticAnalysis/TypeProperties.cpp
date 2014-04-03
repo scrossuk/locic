@@ -80,7 +80,8 @@ namespace locic {
 			
 			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
 			
-			const auto methodIterator = typeInstance->functions().find(methodName);
+			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
+			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
 			
 			if (methodIterator == typeInstance->functions().end()) {
 				throw ErrorException(makeString("Cannot find static method '%s' for type '%s' at position %s.",
@@ -109,7 +110,8 @@ namespace locic {
 			
 			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
 			
-			const auto methodIterator = typeInstance->functions().find(methodName);
+			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
+			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
 			
 			if (methodIterator == typeInstance->functions().end()) {
 				throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
@@ -183,7 +185,7 @@ namespace locic {
 					
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("Null");
+					const auto methodIterator = typeInstance->functions().find("null");
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
@@ -215,7 +217,8 @@ namespace locic {
 					
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find(primitiveName + "_cast");
+					const auto canonicalMethodName = CanonicalizeMethodName(primitiveName + "_cast");
+					const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
@@ -255,7 +258,7 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					// Named types must have a method for implicit copying.
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("implicitCopy");
+					const auto methodIterator = typeInstance->functions().find("implicitcopy");
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
