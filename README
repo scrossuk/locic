@@ -29,8 +29,8 @@ This release of LOCIC depends on the following:
 * CMake (build system) [debian package: cmake]
 * Boost Filesystem [debian package: libboost-filesystem-dev]
 * Boost System [debian package: libboost-system-dev]
-* LLVM 3.3 (build with instructions below)
-* Clang 3.3 (build with instructions below)
+* LLVM 3.3/3.4 (build with instructions below)
+* Clang 3.3/3.4 (build with instructions below)
 
 Specific versions of LLVM and Clang are given since their
 API tends to be incompatible between releases.

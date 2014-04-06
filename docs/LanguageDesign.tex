@@ -16,9 +16,9 @@
 	float=t}
 
 \lstloadlanguages{
-         C,
-         C++,
-         Java
+		 C,
+		 C++,
+		 Java
  }
 
 
@@ -504,121 +504,6 @@ Some sort of header files are needed for this case, which in Loci are simply nor
 
 \clearpage
 
-\subsection{References}
-
-\paragraph{}
-Loci references are in many ways similar to C++ references. The key differences between C++ and Loci references from the point of view of developers are that:
-
-\begin{itemize}
-\item References cannot be used to assign to the referred-to value; lvals should be used for this.
-\item References can be used inside containers, since they are assignable.
-\end{itemize}
-
-\paragraph{}
-References are implemented in Loci based on the `ref' type attribute\footnote{`lval' is a similar type attribute.}, which specifies that the value should be treated with special rules. For example, consider the following code:
-
-\begin{lstlisting}
-IntRefType getNonRef();
-
-ref<int> IntRefType getRef();
-
-void function() {
-	// Invalid: "Type 'IntRefType' doesn't have a method named 'abs'."
-	int a = getNonRef().abs();
-	
-	// Valid; implicitly dereferences 'IntRefType' to call method 'abs'.
-	int b = getRef().abs();
-}
-\end{lstlisting}
-
-\paragraph{}
-Here you can see that implicit conversion operations between types are able to use the information provided by the `ref' attribute to generate implicit dereference operations. Note that the first point above isn't entirely true; `ref' and `lval' can be combined to achieve this:
-
-\begin{lstlisting}
-ref<lval<int> IntLvalType> IntLvalRefType getLvalRef();
-
-void function() {
-	// Implicitly dereferences 'IntLvalRefType' to call method 'assign'.
-	getLvalRef() = 44;
-}
-\end{lstlisting}
-
-\paragraph{}
-Of course, the `ref' syntax is quite verbose, and `normal' references (i.e. as opposed to user-defined reference types) can be used with this C++-like syntax:
-
-\begin{lstlisting}
-int f(int& value) {
-	return value.abs();
-}
-
-int f(ref<int> ref_t<int> value) {
-	return value.abs();
-}
-\end{lstlisting}
-
-\paragraph{}
-Both functions are equivalent; the compiler automatically turns the ampersand into the `ref' attribute applied to the primitive type `ref\_t'. This is very similar to the compiler's automatic translation of C pointer syntax into `ptr\_t' with a template argument.
-
-\paragraph{}
-Here are some more examples of references:
-
-\begin{lstlisting}
-void function(int data, int * pointer){
-	{
-		// Invalid - no implicit cast from
-		// pointer type to reference type.
-		int& reference = pointer;
-	}
-	
-	{
-		// Valid - using dereference operator
-		// to cast from pointer to reference.
-		int& reference = *pointer;
-	}
-	
-	{
-		// Invalid - again, no implicit cast
-		// from pointer type to reference type.
-		int& reference = &data;
-	}
-	
-	{
-		// Valid - making reference of 'data'.
-		int& reference = data;
-	
-		// Invalid - cannot assign since referred-to
-		// type is not an lval.
-		reference = 1;
-		
-		// Invalid - type 'ref_t' has no overload for
-		// the dereference operator.
-		*reference = 2;
-		
-		// Valid - this will dereference the value and
-		// then call '.add(5)'.
-		int newData = reference + 5;
-	}
-	
-	{
-		// Invalid - can't convert rvalue to non-const
-		// lvalue reference.
-		int& reference = 1;
-	}
-	
-	{	
-		// Valid - uses a special cast from rvalue to const
-		// reference...
-		const int& reference = 5;
-		
-		// ...which is basically equivalent to this.
-		const int __unnamed_value = 5;
-		const int& reference = __unamed_value;
-	}
-}
-\end{lstlisting}
-
-\clearpage
-
 \subsection{Classes}
 
 \paragraph{}
@@ -843,27 +728,540 @@ void function(){
 
 \clearpage
 
+\subsection{Move vs Copy}
+
+\paragraph{}
+C++ copies objects by default, through the use of copy constructors. These can be implicitly generated, so copying can only be prevented by marking the copy constructor as private or (in C++11 only) removing it entirely by the delete keyword. C++11 also adds support for move operations, through a complex theory which extends lvalues and rvalues with prvalues, xvalues and glvalues, but which must be enabled for each type by the programmer.
+
+\paragraph{}
+C++ can therefore be considered to use copy by default, move by choice.
+
+\paragraph{}
+Loci reverses this: it uses move by default, copy by choice.
+
+\subsubsection{Move by default}
+
+\paragraph{}
+Here’s an example of ``move by default":
+
+\begin{lstlisting}
+class Resource(size_t size, void* ptr) {
+	static Create(size_t size) {
+		return @(size, malloc(size));
+	}
+	
+	~ {
+		free(@ptr);
+	}
+	
+	size_t size() const {
+		return @size;
+	}
+}
+
+void f() {
+	auto resource = Resource(100);
+	g(move resource);
+}
+
+void g(Resource resource) {
+	std::println("Resource size: %0".format(resource.size()));
+}
+\end{lstlisting}
+
+\paragraph{}
+As well as demonstrating some interesting features of Loci, this example shows a use of the move operator. This operator is actually a method call on an lvalue type, and extracts the contents of an lvalue and returns it as an rvalue. Note that the programmer doesn’t need to do any work to enable move operations for the class type.
+
+\paragraph{}
+The clear practical benefit in the example is that the Resource instance can be trivially passed between the functions f() and g() without any copying; both the constructor and destructor will be called exactly once.
+
+\subsubsection{Copy by choice}
+
+\paragraph{}
+Here’s an example of ``copy by choice":
+
+\begin{lstlisting}
+class Resource(size_t size, void* ptr) {
+	static Create(size_t size) {
+		return @(size, malloc(size));
+	}
+	
+	~ {
+		free(@ptr);
+	}
+	
+	Resource copy() const {
+		return @(size, malloc(@size));
+	}
+	
+	size_t size() const {
+		return @size;
+	}
+}
+
+void f() {
+	auto resource = Resource(100);
+	g(resource.copy());
+}
+
+void g(Resource resource) {
+	std::println("Resource size: %0".format(resource.size()));
+}
+\end{lstlisting}
+
+\paragraph{}
+Here the programmer of the class has decided to include a copy method, which makes it possible to create a copy of the Resource instance. This example therefore shows the creation of two instances.
+
+\subsubsection{Implicit copy}
+
+\paragraph{}
+The above example shows the creation of an explicit copy method. However, there are many types (e.g. a 2D vector of ints) that are cheap to copy and therefore justify an implicit copy mechanism.
+
+\paragraph{}
+Loci supports this through a method named `implicitCopy'; here’s an example:
+
+\begin{lstlisting}
+class Vector2D(int x, int y) {
+	static Create = default;
+	
+	Vector2D implicitCopy() const {
+		return @(@x, @y);
+	}
+}
+
+void f(Vector2D v) {
+	Vector2D w = v;
+	Vector2D x = w;
+	// etc..
+}
+\end{lstlisting}
+
+\paragraph{}
+This seems like a lot of work for such a simple type, and it is; a 2D Vector is better suited to algebraic datatypes (discussed later):
+
+\begin{lstlisting}
+datatype Vector2D(int x, int y);
+
+void f(Vector2D v) {
+	Vector2D w = v;
+	Vector2D x = w;
+	// etc..
+}
+\end{lstlisting}
+
+\paragraph{}
+Algebraic datatypes are also just class types, but in this case an implicitCopy method is automatically generated if all the datatype's children support implicit copy.
+
+\subsubsection{So, why move by default?}
+
+\paragraph{}
+Move operations are almost always cheaper than copy operations, often to a great extent (consider a variable sized heap allocated array). Having move operations enabled for all types gives a great deal of flexibility to programmers for a very small (generally negligible) cost.
+
+\paragraph{}
+In comparison, C++03 (and earlier) programs that disabled copy operations were then forced to pin objects into a single position in memory. To get around this restriction some types tried to implement move operations in terms of copy operations, a notable example being std::auto\_ptr (which is now deprecated in favour of the move-operation-based std::unique\_ptr).
+
+\subsubsection{Why not copy by default?}
+
+\paragraph{}
+For many types copying is expensive. More importantly, the implicitly generated copy constructor may be incorrect (e.g. performing a shallow copy of a pointer rather than a necessary deep copy), leading to subtle program bugs. Even more importantly, some types do not have a useful meaning for a copy operation.
+
+\paragraph{}
+Loci requires programmers to specify copy methods (for class types) to ensure that copy operations are always meaningful; C++ programmers can easily forget to delete the copy constructor. Note that programmers must also handle the assignment operator in C++ on a per-type basis; in Loci this is handled by lvalue types.
+
+\clearpage
+
+\subsection{Lvalues and Rvalues}
+
+\paragraph{}
+Developers from many programming languages will be familiar with the concept of lvalues and rvalues. Here’s a rough definition of these terms:
+
+\begin{lstlisting}
+	lvalue – a slot that holds a value
+	rvalue – a value in transit between slots
+\end{lstlisting}
+
+\paragraph{}
+If you're a C or C++ developer, you’ll be familiar with the idea that an lvalue represents a location in memory. For example, consider the following C code:
+
+\begin{lstlisting}
+void f() {
+	int a = 1;
+ 
+	// Valid - 'a' is an lvalue, so can assign.
+	a = 2
+ 
+	// Value - 'a' is an lvalue, so can take address.
+	int* b = &a;
+ 
+	// Valid - '*b' is an lvalue, so can assign.
+	*b = 3;
+ 
+	// INVALID - '1' is an rvalue, so CANNOT assign.
+	1 = 2;
+ 
+	// INVALID - '1' is an rvalue, so CANNOT take address.
+	int* c = &1;
+}
+\end{lstlisting}
+
+\paragraph{}
+The rules demonstrated above should feel intuitive to many programmers, and it’s simple to understand how this works for primitive types such as int.
+
+\subsubsection{Custom Lvalues}
+
+\paragraph{}
+Loci significantly extends the above by allowing custom lvalue types to be created. Here’s an example:
+
+\begin{lstlisting}
+class CustomLval(int v) {
+	static Create = default;
+	
+	void assign(int v) {
+		@v = v;
+	}
+	
+	int* address() {
+		return &@v;
+	}
+	
+	int& dissolve() {
+		return @v;
+	}
+	
+	int move() {
+		int tmp = @v;
+		@v = 0;
+		return tmp;
+	}
+}
+ 
+void f(lval<int> CustomLval value) {
+	// Calls CustomLval::address.
+	int* intPointer = &value;
+	
+	// Calls CustomLval::move.
+	int intMovedValue = move value;
+	
+	// Calls (implicitly) CustomLval::dissolve.
+	int& dissolvedReference = value;
+	
+	// Calls CustomLval::assign.
+	value = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+Here the CustomLval appears to be an ordinary class type. However the `lval' keyword allows the CustomLval instance to be used as an lvalue directly, meaning that all lvalue-specific operations (such as assignment and taking the address) are translated into method calls.
+
+\subsubsection{Primitive Lvalues}
+
+\paragraph{}
+The above code raises the question of the behaviour when using a normal type without the lval keyword. For example, consider the following:
+
+\begin{lstlisting}
+void f(int value) {
+	// Calls value_lval<int>::address.
+	int* intPointer = &value;
+	
+	// Calls value_lval<int>::move.
+	int intMovedValue = move value;
+	
+	// Calls (implicitly) value_lval<int>::dissolve.
+	int& dissolvedReference = value;
+	
+	// Calls value_lval<int>::assign.
+	value = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+As the comments suggest, there’s a primitive type called `value\_lval' being generated implicitly, that has trivial (and intuitive) implementations of the lvalue methods.
+
+\subsubsection{Lvalues and Memory Management Classes}
+
+\paragraph{}
+Consider this Loci class definition:
+
+\begin{lstlisting}
+class SomeType(int * p) {
+	static SomeType(int value) {
+		return @(std::new_raw<int>(value));
+	}
+	
+	~ {
+		std::delete_raw<int>(@p);
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+This is essentially\footnote{Of course, additional methods could add functionality (e.g. set the integer value pointed to).} a complete implementation of a class that manages a pointer to an integer; the destructor will be run exactly once for each call to the constructor.
+
+\paragraph{}
+Ensuring this simple invariant in C++11\footnote{Note that C++03 is substantially more complex, and in fact does not support move operations.} is surprisingly difficult:
+
+\begin{lstlisting}
+// This is C++ code!
+class SomeType{
+	public:
+		SomeType(int value)
+			: p_(new int(value)) { }
+		
+		SomeType(SomeType&& t) 
+			: p_(nullptr) {
+			std::swap(p_, t.p_);
+		}
+		
+		SomeType& operator=(SomeType t) {
+			std::swap(p_, t.p_);
+			return *this;
+		}
+		
+		~SomeType(){
+			delete p_;
+		}
+	
+	private:
+		int * p_;
+	
+};
+\end{lstlisting}
+
+\paragraph{}
+While the Loci code is very clear, the C++ code is much less clear and requires the careful attention of the developer to ensure correctness.
+
+\paragraph{}
+It's actually even more complex than it first appears, since C++ essentially requires the creation of separate dead states for objects (note the `nullptr' initialisation in the move constructor), while in Loci developers only need to consider an object's valid states. Note in particular that the destructor of the Loci class will always be run with a non-null value for `@p', whereas the C++ class will sometimes be run in a `dead state' (i.e. `p\_' being NULL).
+
+\paragraph{}
+The key reason for this difference is that lvalues are a separate object to the value they hold in Loci, following the Single Responsibility Principle (SRP)\footnote{The SRP says every class should have a single responsibility, and that responsibility should be entirely encapsulated by the class.}. Hence developers only have to handle behaviour such as address, assignment, move etc. in these lval classes (this also provides substantial freedom to customise lvals), allowing non-lval objects to focus on their own responsibilities.
+
+\paragraph{}
+The consequence of the above is that C++ developers must rewrite the same code multiple times (violating DRP\footnote{`Don't repeat yourself.'}) to ensure classes are used safely, following procedures such as the rule of three \footnote{If a class defines one of a copy constructor, destructor or copy assignment operator, it should almost always implement all three. In C++11 this can potentially become the rule of five, including a move constructor and move assignment operator.}. In Loci this isn't necessary, since the design of the language has eliminated this repetition.
+
+\clearpage
+
+\subsection{References}
+
+\paragraph{}
+Loci references are in many ways similar to C++ references. The key differences between C++ and Loci references from the point of view of developers are that:
+
+\begin{itemize}
+\item References cannot be used to assign to the referred-to value; lvals should be used for this.
+\item References can be used inside containers, since they are assignable.
+\end{itemize}
+
+\paragraph{}
+References are implemented in Loci based on the `ref' type attribute\footnote{`lval' is a similar type attribute.}, which specifies that the value should be treated with special rules. For example, consider the following code:
+
+\begin{lstlisting}
+IntRefType getNonRef();
+
+ref<int> IntRefType getRef();
+
+void function() {
+	// Invalid: "Type 'IntRefType' doesn't have a method named 'abs'."
+	int a = getNonRef().abs();
+	
+	// Valid; implicitly dereferences 'IntRefType' to call method 'abs'.
+	int b = getRef().abs();
+}
+\end{lstlisting}
+
+\paragraph{}
+Here you can see that implicit conversion operations between types are able to use the information provided by the `ref' attribute to generate implicit dereference operations. Note that the first point above isn't entirely true; `ref' and `lval' can be combined to achieve this:
+
+\begin{lstlisting}
+ref<lval<int> IntLvalType> IntLvalRefType getLvalRef();
+
+void function() {
+	// Implicitly dereferences 'IntLvalRefType' to call method 'assign'.
+	getLvalRef() = 44;
+}
+\end{lstlisting}
+
+\paragraph{}
+Of course, the `ref' syntax is quite verbose, and `normal' references (i.e. as opposed to user-defined reference types) can be used with this C++-like syntax:
+
+\begin{lstlisting}
+int f(int& value) {
+	return value.abs();
+}
+
+int f(ref<int> ref_t<int> value) {
+	return value.abs();
+}
+\end{lstlisting}
+
+\paragraph{}
+Both functions are equivalent; the compiler automatically turns the ampersand into the `ref' attribute applied to the primitive type `ref\_t'. This is very similar to the compiler's automatic translation of C pointer syntax into `ptr\_t' with a template argument.
+
+\paragraph{}
+Here are some more examples of references:
+
+\begin{lstlisting}
+void function(int data, int * pointer){
+	{
+		// Invalid - no implicit cast from
+		// pointer type to reference type.
+		int& reference = pointer;
+	}
+	
+	{
+		// Valid - using dereference operator
+		// to cast from pointer to reference.
+		int& reference = *pointer;
+	}
+	
+	{
+		// Invalid - again, no implicit cast
+		// from pointer type to reference type.
+		int& reference = &data;
+	}
+	
+	{
+		// Valid - making reference of 'data'.
+		int& reference = data;
+	
+		// Invalid - cannot assign since referred-to
+		// type is not an lval.
+		reference = 1;
+		
+		// Invalid - type 'ref_t' has no overload for
+		// the dereference operator.
+		*reference = 2;
+		
+		// Valid - this will dereference the value and
+		// then call '.add(5)'.
+		int newData = reference + 5;
+	}
+	
+	{
+		// Invalid - can't convert rvalue to non-const
+		// lvalue reference.
+		int& reference = 1;
+	}
+	
+	{	
+		// Valid - uses a special cast from rvalue to const
+		// reference...
+		const int& reference = 5;
+		
+		// ...which is basically equivalent to this.
+		const int __unnamed_value = 5;
+		const int& reference = __unamed_value;
+	}
+}
+\end{lstlisting}
+
+\clearpage
+
 \subsection{Const}
 
 \paragraph{}
-The `const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides `const', but with syntactic and semantic changes.
+The `const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides `const', but with some syntactic and semantic changes.
 
-\subsubsection{Transitivity}
+\subsubsection{Const and Final}
 
 \paragraph{}
-`const' is transitive in Loci, meaning that marking pointers or references as const also requires that the data they point to is marked const. This is embodied in a much cleaner and simpler syntax for denoting `const':
+One of the most notable changes for programming languages, which ties in with the concept of `lvals', is a modification in the application of `const' so it (generally) only applies to `r-values' and not to `l-values'. Consider the following example in C:
 
 \begin{lstlisting}
-// Valid.
-const int ** pointerToPointerToConstInt;
-const(int) ** pointerToPointerToConstInt;
-const(int *) * pointerToConstPointerToConstInt;
-const(int **) constPointerToConstPointerToConstInt;
+void function() {
+	const int i = 0;
+	i = 1;
+}
+\end{lstlisting}
 
-// Invalid.
-int const ** p;
-int * const * p;
-int ** const p;
+\paragraph{}
+This is invalid C code, since the assignment is attempting to assign to a variable declared `const'. In constrast, this code is valid in Loci, and the `const' is essentially meaningless, since it applies to the `int' type rather than the `lval' that holds the `int'. To make this clearer, here is an equivalent example with explicit lval types:
+
+\begin{lstlisting}
+void function() {
+	lval<const int> value_lval<const int> i = lval<const int>(value_lval<const int>(0));
+	i = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+It's then clearer in this case that while `int' is declared as const, the implicitly generated `value\_lval' is not (and so its non-const `assign' method can be called). The correct solution to this problem in Loci is to use `final':
+
+\begin{lstlisting}
+void function() {
+	final int i = 0;
+	i = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+This has the desired result of generating a suitable compile time error for the assignment. Again, for clarity, here's the explicit form:
+
+\begin{lstlisting}
+void function() {
+	lval<int> const value_lval<int> i = lval<int>(value_lval<int>(0));
+	i = 1;
+}
+\end{lstlisting}
+
+\paragraph{}
+So `final' provides a way to specify that the implicitly generated lval is const. To understand the rationale for this decision, consider:
+
+\begin{lstlisting}
+class ExampleClass {
+	static Create();
+	void modify();
+}
+
+void function(final const ExampleClass * const examplePtr) {
+	examplePtr = null;
+	*examplePtr = ExampleClass();
+	examplePtr->modify();
+}
+\end{lstlisting}
+
+\paragraph{}
+Each statement in `function' tests a different `node' in the type tree, and are allowable or not dependent on whether that node is const. Each statement in the function generates a compile-time error, since:
+
+\begin{itemize}
+\item The application of `final' means the lval is const, hence the variable can't be re-assigned.
+\item The application of `const' after the asterisk means the pointer is const, hence its `deref' method generates a const lval (in this case, a `ptr\_lval') and so the value it points-to cannot be re-assigned.
+\item The application of `const' before `ExampleClass' means the object being pointed to is also const, and therefore also cannot be modified. This prevents any calls to non-const methods (such as `modify').
+\end{itemize}
+
+\subsubsection{Const Chains}
+
+\paragraph{}
+Const implicit casting rules follow a concept of `const chains', meaning that a type node may only become const when all its parent nodes have become const (i.e. there is a chain from the `root' to the type node of const types). Here's an example:
+
+\begin{lstlisting}
+Valid:   int ** -> int ** const
+
+Invalid: int ** -> int * const *
+
+Valid:   int ** const -> int * const * const
+
+Invalid: int ** const -> int const ** const
+
+Valid:   int ** const -> int const * const * const
+
+Valid:   int ** -> int const * const * const
+
+Invalid: int * const * -> int const * const *
+
+Valid:   int * const * -> int const * const * const
+\end{lstlisting}
+
+\paragraph{}
+Note that, in the last case, a type such as `int* const *' can be achieved by code such as following:
+
+\begin{lstlisting}
+void function() {
+	int i = 0;
+	int* j = &i;
+	int* const k = j;
+	int* const * l = &k;
+	// etc.
+}
 \end{lstlisting}
 
 \subsubsection{Logical Const}
@@ -896,10 +1294,12 @@ Here `\_copy\_of\_var\_' means a simple byte-for-byte copy of variable `var' tha
 Compilers are allowed to optimise\footnote{Note also that optimisations can only be performed where the compiler can prove that it has the only (const) reference to an object, otherwise other parts of the program may have non-const references to the object and thereby modify it in parallel, or as part of, the execution of the function with the const reference.} based on the validity of this transformation. This optimisation requires that `f' and `g' operate within type rules and don't use `const\_cast', and this is a requirement that the developer must follow. Consider, for example:
 
 \begin{lstlisting}
+// A type alias. Note that 'const CString' is actually 'char* const'.
 using CString = char *;
+
 void unknownStringOperation(const CString string);
 void printSize(size_t size);
-void printStringLength(const CString string){
+void printStringLength(const CString string) {
 	size_t length = 0;
 	CString ptr = string;
 	while(*ptr != 0x00){
@@ -909,7 +1309,7 @@ void printStringLength(const CString string){
 	printSize(length);
 }
 
-void function(){
+void function() {
 	// Prefix 'C' means 'C string'; this is explained later.
 	const CString string = C"This is a string";
 	unknownStringOperation(string);
@@ -923,7 +1323,7 @@ By the above equivalence, the compiler can assume this is equivalent to:
 \begin{lstlisting}
 // ... as above ...
 
-void function(){
+void function() {
 	unknownStringOperation(C"This is a string");
 	printStringLength(C"This is a string");
 }
@@ -933,11 +1333,13 @@ void function(){
 Which, in combination with other transformations (such as inlining), leads to the optimised code:
 
 \begin{lstlisting}
+// A type alias. Note that 'const CString' is actually 'char* const'.
 using CString = char *;
+
 void unknownStringOperation(const CString string);
 void printSize(size_t size);
 
-void function(){
+void function() {
 	unknownStringOperation(C"This is a string");
 	printSize(cast<size_t>(16));
 }
@@ -1040,7 +1442,7 @@ void oldAPI(int * i){
 	doSomething(*i);
 }
 
-void f(const int * i){
+void f(const int * const i){
 	oldAPI(const_cast<int *>(i));
 }
 \end{lstlisting}
@@ -1082,6 +1484,94 @@ These modifications turn the primitive types into object types from the develope
 
 \paragraph{}
 Syntactically, the change is quite significant, but there is also a considerable semantic difference since primitive references can be interface types, and primitives can satisfy template requirements that are based on their methods. Unlike C++, and surprisingly even Java, Loci provides a neat way to integrate primitives with other object types.
+
+\clearpage
+
+\subsection{Literals}
+
+\paragraph{}
+Literals provide a convenient way for developers to specify constants or initialisers for standard or custom types. Consider the following simple example:
+
+\begin{lstlisting}
+void function() {
+	char c = 127;
+	short s = 32767;
+	int i = 32767;
+	long l = 2147483647;
+	// etc.
+	
+	unsigned char uc = 255u;
+	unsigned short us = 65535u;
+	unsigned int ui = 65535u;
+	unsigned long ul = 4294967295u;
+	// etc.
+	
+	float f = 1.0f;
+	double d = 1.0;
+}
+\end{lstlisting}
+
+\paragraph{}
+This example appears quite trivial, but it's worth noting the automatic types given to these literals. The rules for \emph{signed} integer literals are:
+
+\begin{itemize}
+\item If less than or equal to maximum for int8\_t (127), type is int8\_t.
+\item If less than or equal to maximum for int16\_t (32767), type is int16\_t.
+\item etc.
+\end{itemize}
+
+\paragraph{}
+The rules are similar for unsigned types. In the example above each integer variable is assigned its maximum literal; consider this:
+
+\begin{lstlisting}
+void function() {
+	// ERROR: no cast from 'int16_t' to 'char'.
+	char c = 128;
+	
+	// ERROR: no cast from 'int32_t' to 'short'.
+	short s = 32768;
+	
+	// ERROR: no cast from 'int32_t' to 'int'.
+	int i = 32767;
+	
+	// ERROR: no cast from 'int64_t' to 'long'.
+	long l = 2147483648;
+	
+	// etc.
+}
+\end{lstlisting}
+
+\paragraph{}
+The errors might appear invalid, since many programmers may expect int to be 32 bits. However, the C standard specifies that:
+
+\begin{itemize}
+\item `short' must be an integer type of at least 16 bits.
+\item `int' must be an integer type of at least 16 bits which is also at least as large as `short'.
+\item `long' must be an integer type of at least 32 bits which is also at least as large as `int'.
+\item etc.
+\end{itemize}
+
+\paragraph{}
+Loci is compatible with these rules, and therefore aims to enhance cross-architecture compatibility by preventing any casts which cannot be guaranteed to be valid across all compliant architectures. This means that semantic analysis of Loci code is completely independent of the target, and so provides a much more robust error checking procedure. It's rare that it's ever justified to use an undersized types; developers can simply use a larger type (or rely on fixed sized types such as `int32\_t'.
+
+\subsubsection{Literal Specifiers}
+
+\paragraph{}
+In order to make literals more useful Loci supports literal specifiers, which are names that can be used as either a prefix or suffix of a literal to generate a custom value related to that literal. For example:
+
+\begin{lstlisting}
+Complex integer_literal_i (int32_t value);
+
+Mass float_literal_kg (double value);
+
+void function() {
+	Complex value = 10i;
+	// ...
+	
+	Mass oneKg = 1.0kg;
+	// ...
+}
+\end{lstlisting}
 
 \clearpage
 
@@ -1154,7 +1644,7 @@ interface AbsInteger {
 }
 
 void f(const AbsInteger& value) {
-	if(value.abs() > 0){
+	if (value.abs() > 0) {
 		//...
 	}
 }
@@ -1173,7 +1663,7 @@ The Implementation section discusses how this feature is implemented efficiently
 \subsection{Heap Allocation}
 
 \paragraph{}
-Unlike C++, Loci does not provide `new' or `delete' operators. Instead standard library functions are provided to allocate objects on the heap by various strategies.
+Unlike C++, Loci does not provide `new' or `delete' operators. Instead standard library functions are provided to allocate objects on the heap that follow various strategies (e.g. unique ownership versus reference counting).
 
 
 \begin{lstlisting}
@@ -1227,7 +1717,7 @@ The previous sample code showed `raw' allocations, in which allocation and const
 
 
 \begin{lstlisting}
-void function(){
+void function() {
 	// Automatically freed when leaving scope,
 	// but only one instance can exist.
 	std::unique_ptr<Type> uniquePtr = new_unique<Type>(Type(0));
@@ -1321,268 +1811,6 @@ void function(){
 }
 \end{lstlisting}
 
-
-\clearpage
-
-\subsection{L-values and R-values}
-
-\paragraph{}
-Loci uses the concept of L-values and R-values to provide a very simple way to implement move semantics. C++ supports copying as the primary operation for replicating values, however Loci instead uses move semantics by default. The latest version of C++ adds support for move operations, however this must be implemented on a per-type basis; Loci has no such complexities.
-
-\paragraph{}
-What this means for the programmer is that it is possible to easily prevent copies of class-types, because they are not copyable by default. There are many examples where such behaviour is desirable, including unique smart pointer types, socket types, mutex types, stream types etc.
-
-\paragraph{}
-L-values can be considered as actual storage locations, on either the heap or the stack. On the other hand, R-values are values `in-transit' and can be captured into an L-value. For example some variable `v' is an L-value, whereas the expression `v + 1' is an R-value.
-
-\paragraph{}
-This section also discusses `nullable objects', which have particularly expressive move semantics.
-
-\paragraph{}
-Here's an example of the move semantics in Loci:
-
-\begin{lstlisting}
-class SomeType(int * p){
-	~SomeType(){
-		// This destructor is only run
-		// if the object is non-empty.
-		delete<raw> @p;
-	}
-}
-
-SomeType f(){
-	// Return r-value.
-	return SomeType(new<raw> 1);
-}
-
-SomeType function(){
-	// Constructor called, and value moved into stack.
-	// (Would be optimised to in-place construction on the stack.)
-	SomeType a = SomeType(new<raw> 2);
-	
-	// Nullable type.
-	SomeType? b = ?(SomeType(new<raw> 3));
-	
-	// Existing value in 'a' destroyed (destructor called),
-	// value in 'b' moved into 'a', and 'b' is now left empty.
-	a = b.extract();
-	
-	// Again, the value in 'a' is destroyed, and replaced
-	// with the r-value result of calling function 'f'.
-	a = f();
-	
-	// This will (typically) trigger an exception,
-	// since the variable 'b' is empty.
-	b->method();
-	
-	// R-Value returned from 'f' moved into empty lvalue 'b',
-	// which then becomes non-empty.
-	b = f();
-	
-	// This is only allowed if the compiler can statically
-	// determine that the lvalue 'a' is being destroyed as
-	// this point, and therefore can legitimately be cast
-	// to an rvalue and returned instead.
-	return a;
-}
-\end{lstlisting}
-
-
-\subsubsection{Extracting L-Values}
-
-\paragraph{}
-
-
-\subsubsection{Nullable Types}
-
-\paragraph{}
-Loci has built-in support for `nullable' types, denoted by a question mark following the type name, which can be set to null, or compared with null, and also filled with non-null values of that type. Null objects can also be obtained by giving a nullable L-value a non-null value, and then extracting that value (with `extract').
-
-\paragraph{}
-The results of calling a method on a null object or casting it to a non-nullable type are defined to be throwing an exception of type `EmptyObjectException', but compilers are also allowed (and encouraged) to detect errors of this kind statically if possible and hence produce compile-time errors.
-
-\paragraph{}
-`extract' is the extraction operator, which causes the value within a nullable L-value to be extracted, turning it into a (nullable) R-value, and making the L-value empty. Extracting a nullable L-value that already has a null value is valid, and simply produces a null R-value\footnote{Therefore, extracted R-values are of `nullable' type themselves.}. For example:
-
-\begin{lstlisting}
-void f(){
-	ObjectType? a = null;
-	ObjectType? b = extract a;
-	
-	assert(a == null);
-	assert(b == null);
-}
-\end{lstlisting}
-
-\paragraph{}
-Note that if an R-value is not captured into an L-value then it will be destroyed at the end of the statement, so extract can be used to destroy the value in a nullable L-value.
-
-\paragraph{}
-There is also the assignment statement of the form `v = expr;', in which the current value in L-value `v' is destroyed, and the R-value `expr' is moved into `v'. However, if there is no value currently in the lvalue prior to the assignment, then the destructor will not be called, as developers would expect.
-
-\paragraph{}
-Nullable types are built-in for a number of reasons, but most significantly because they depend on providing special behaviour the assignment statement. Unlike C++, Loci does not provide operator overloading for assignment, since the assignment operation behaviour is auto-generated outside of the object, and developers should find this behaviour much easier to handle.
-
-\subsubsection{Non-nullable Types}
-
-\paragraph{}
-Without resorting to unsafe operators, non-nullable objects are considerably more limited than nullable objects. One limitation is that the extraction operator cannot be applied to non-nullable types, since doing so would put the objects in a undefined state and `extract' is a safe operator (unsafe operators are described later). Furthermore, non-nullable objects cannot be set or compared with null.
-
-\paragraph{}
-For this loss of functionality there is, however, a gain in speed since all checks are eliminated, and a reduction in size since nullable objects must have an extra field indicating whether they are null. Also, assignment is valid for non-nullable objects, and will always call the destructor of the L-value (since it cannot be null) and move the R-value into the L-value.
-
-\subsubsection{Compared to C++}
-
-\paragraph{}
-This previous code showed the move semantics applied to a type `SomeType', for which the user has specified no special methods. In fact, `SomeType' is almost the complete implementation of `UPtr'\footnote{It is missing a trivial `Create' constructor implementation.}.
-
-\paragraph{}
-Additionally, the developer writing the class doesn't need to worry to about objects having a null state, since nullable types provide this, reliably and automatically producing the correct code for assignment and extraction.
-
-\paragraph{}
-In contract, the equivalent code in C++ would require manually defining a copy constructor (or a move constructor in the latest version) and an assignment method, which might look similar to the following:
-
-\begin{lstlisting}
-// This is C++ code!
-class SomeType{
-	public:
-		SomeType(int * p){
-			p_ = p;
-		}
-		
-		SomeType(SomeType& t){
-			p_ = t.p_;
-			
-			// Need to zero out state in previous copy.
-			t.p_ = 0;
-		}
-		
-		SomeType& operator=(const SomeType& t){
-			// Avoid self-assignment.
-			if(&t != this){
-				// Destroy existing local state.
-				delete p_;
-				
-				// Copy state.
-				p_ = t.p_;
-				
-				// Zero state in 't'.
-				t.p_ = 0;
-			}
-			return *this;
-		}
-		
-		~SomeType(){
-			// Check whether the object is empty.
-			if(p_ == 0){
-				delete p_;
-			}
-		}
-	
-	private:
-		int * p_;
-	
-};
-\end{lstlisting}
-
-
-\paragraph{}
-Clearly, C++ requires a large amount of code to produce similar semantics; Loci generates this code on behalf of the user, saving the programmer time in terms of both development and testing.
-
-\clearpage
-
-\subsection{Unsafe Move Operations}
-
-\paragraph{}
-The previous section discusses how to safely move objects, but there are cases where it's necessary to use unsafe operations. A good example is an array class in which, from the point of view of the client of the class, objects are never empty and safe move semantics are followed strictly.
-
-\paragraph{}
-However, internally an array class will allocate memory to store the objects, and after the initial allocation the objects within the array are in an `undefined state'\footnote{The Loci standard library memory allocator `std::alloc' initialises all allocated memory to zero by default, but objects are only in a defined state if their constructors have been run.}. This means that running a method on an object before it has been initialised properly can lead to undefined results that depend on the structure of the class and the method called.
-
-\paragraph{}
-After allocating the memory, the array will move R-values given to it into the memory allocated using an unsafe operator. Here's an example:
-
-\begin{lstlisting}
-// Admittedly this implementation is of low quality, but it is simple.
-class ObjectArray(size_t size, ObjectType * memory){
-	static Create(){
-		return @(0, NULL);
-	}
-	
-	void push_back(ObjectType object){
-		@size++;
-		const size_t lastIndex = @size - 1;
-		@memory = reinterpret_cast<ObjectType *>(std::realloc(@memory, @size));
-		
-		// Note that the compiler must be able to
-		// conclude that the L-value 'object' can
-		// be safely automatically extracted.
-		new<unsafe>(@memory[lastIndex]) object;
-	}
-	
-	void pop_back(){
-		const size_t lastIndex = @size - 1;
-		@size--;
-		delete<unsafe>(@memory[@lastIndex]);
-	}
-	
-	// A non-standard method to demonstrate.
-	ObjectType pop_back_and_return(){
-		const size_t lastIndex = @size - 1;
-		@size--;
-		return extract<unsafe>(@memory[lastIndex]);
-	}
-}
-\end{lstlisting}
-
-\paragraph{}
-As you can see, the `new', `delete' and `extract' operations all have unsafe forms.
-
-\subsubsection{new}
-
-\paragraph{}
-The unsafe form of `new' moves the R-value given to it into the L-value reference given to it, but never calls the destructor on the reference, unlike the safe assignment operation `v = expr;'. It therefore has some similarity to a memcpy:
-
-\begin{lstlisting}
-void f(ObjectType object, ObjectType * memory){
-	// This...
-	new<unsafe>(@memory[0]) object;
-	
-	// ...would be equivalent to this...
-	memcpy(&@memory[0], &object, sizeof(ObjectType));
-	
-	// ...except that the destructor for 'object'
-	// will be run at the end of this function.
-}
-\end{lstlisting}
-
-\paragraph{}
-This example shows that using memcpy will fail to prevent local variables being destroyed; it would work correctly if copying between two allocated blocks of memory, assuming that objects owning those memory blocks knew to not call their destructors.
-
-\subsubsection{delete}
-
-\paragraph{}
-The unsafe form of `delete' calls the destructor, providing the reference given to it as the `this' pointer that the destructor is intended to destroy. After the destructor has run, the memory is written to zeroes\footnote{Although it should be possible to disable this behaviour via compiler options if needed.}.
-
-\paragraph{}
-This operation returns no value (i.e. `void'), since the value at the reference given is now destroyed.
-
-\subsubsection{extract}
-
-\paragraph{}
-`extract', in this case, is again very closely related to a memcpy in the opposite direction (from the heap to the stack), but memcpy would effectively have the opposite problem as with `new'; any stack objects used would have to be constructed, and copying into them would erase that previous instance without properly destroying it.
-
-\paragraph{}
-The behaviour is very simply: unsafe `extract' copies the data from the reference given to the stack as an R-value, and then writes zeroes to the memory block\footnote{Again, this behaviour can be disabled.}.
-
-\subsubsection{Debugging}
-
-\paragraph{}
-Clearly code isn't written perfectly the first time, so it's likely that errors are made when using the unsafe operations. If the errors are not detected, they could lead to surprisingly results in the program or visible problems long after the actual error occurred.
-
-\paragraph{}
-Hence if a compiler is compiling in debug mode it should add an internal field to each object, that indicates whether that object contains a value (a zero value indicating it is empty); this enables the compiler to generate run-time checks to ensure that the unsafe operations are used correctly.
-
 \clearpage
 
 \subsection{Vector Types}
@@ -1614,7 +1842,7 @@ The ternary operator also provides some interesting behaviour for vectorised typ
 void function(){
 	int!4 a = {0, 1, 2, 3};
 	int!4 b = {4, 5, 6, 7};
-	bool!4 c = {true, false, true, false}
+	bool!4 c = {true, false, true, false};
 	
 	int!4 d = c ? a : b;
 	
@@ -1633,24 +1861,11 @@ void function(){
 \paragraph{}
 Functional languages such as ML and Haskell provide algebraic data types as a mechanism for holding information, which may itself be of a number of different types. The following is a clear example of such a case, implemented in Loci:
 
-
 \begin{lstlisting}
-datatype BinaryTree{
-	Leaf(int v){
-		String toString(){
-			return "Leaf(" + @v.toString() + ")";
-		}
-	}
-	
-	Node(BinaryTree& left, BinaryTree& right){
-		String toString(){
-			return "Node(" + @left.toString() +
-				", " + @right.toString() + ")";
-		}
-	}
-};
+datatype BinaryTree =
+	Leaf(int v) |
+	Node(BinaryTree& left, BinaryTree& right);
 \end{lstlisting}
-
 
 \paragraph{}
 In this case, a binary tree element is either a Leaf which contains only an integer value, or a Node that contains two trees as its left and right children.
@@ -1674,14 +1889,13 @@ union UnionType{
 \paragraph{}
 Defining the structure isn't useful alone, and Loci expands on the existing `switch' statement to allow accessing and handling the contents of a data type.
 
-
 \begin{lstlisting}
-int getLeftMostValue(const BinaryTree& tree){
-	switch(tree){
-		case Leaf(int v){
+int getLeftMostValue(const BinaryTree& tree) {
+	switch (tree) {
+		case Leaf (int v) {
 			return v;
 		}
-		case Node(BinaryTree& left, _){
+		case Node (BinaryTree& left, _) {
 			return getLeftMostValue(left);
 		}
 	}
@@ -1708,13 +1922,13 @@ This statement has some specific semantics:
 Algebraic datatypes are clearly a concept that has been adopted from functional languages such as ML and Haskell. Additionally, Loci supports extracting the members of these data types by binding them through pattern matching:
 
 \begin{lstlisting}
-data Pair(int l, int r);
+datatype Pair(int l, int r);
 
-Pair f(){
+Pair f() {
 	return Pair(1, 2);
 }
 
-void g(){
+void g() {
 	Pair(a, b) = f();
 	//...
 }
@@ -1730,34 +1944,36 @@ In this example, the types of binding variables `a' and `b' are not required, an
 \paragraph{}
 Loci supports operator overloading as a useful way to provide a clean syntax for manipulating standard library or user defined types such as strings, vectors, matrices and arrays. Unlike C++, Loci uses normal function names to define methods that can be used in operator overloading:
 
-
 \begin{lstlisting}
-interface A{
+interface A {
 	int compare(const A&) const;
 	A add(const A&) const;
 	A substract(const A&) const;
-};
+}
 
 interface IntArray{
-	int indexGet(size_t index);
-	void indexSet(size_t index, int value);
-};
+	// Arrays should return an lval for array members to
+	// allow various lval operations; custom lval types
+	// can be defined for special behaviour (or to eliminate
+	// some operations).
+	lval<int> value_lval<int>& index(size_t index);
+}
 
-void function(const A& a0, const A& a1, IntArray& array){
+void function(const A& a0, const A& a1, IntArray& array) {
 	// All following pairs are equivalent...
 	bool compare = a0.compare(a1) < 0;
 	bool compare = a0 < a1;
 	
-	A a2 = a0.opPlus(a1);
+	A a2 = a0.add(a1);
 	A a2 = a0 + a1;
 	
-	A a3 = a0.opMinus(a1);
+	A a3 = a0.subtract(a1);
 	A a3 = a0 - a1;
 	
-	array.indexSet(0, 5);
+	array.index(0).assign(5);
 	array[0] = 5;
 	
-	int i = array.indexGet(0);
+	int i = array.index(0).dissolve().implicitCopy();
 	int i = array[0];
 }
 \end{lstlisting}
@@ -1775,22 +1991,19 @@ This functionality can avoid double comparisons (i.e. two applications of the le
 \paragraph{}
 There are often cases where it is difficult to ascertain the purpose of parameters passed to a function, or where it is difficult to remember the order of parameters to a function. For example:
 
-
 \begin{lstlisting}
-void function1(Renderer& renderer, Circle& circle){
+void function1(Renderer& renderer, Circle& circle) {
 	circle.draw(renderer, true);
 }
 \end{lstlisting}
 
-
 \paragraph{}
 In this case, the meaning of the second argument to the method, `true', is unclear. Similarly in the following case it is difficult to identify the order of parameters:
 
-
 \begin{lstlisting}
 void function2(){
-	String haystack = "Hello world!";
-	String needle = "world";
+	std::string haystack = "Hello world!";
+	std::string needle = "world";
 	
 	// Is it...
 	bool found = canFindString(needle, haystack);
@@ -1800,10 +2013,8 @@ void function2(){
 }
 \end{lstlisting}
 
-
 \paragraph{}
 Named parameters are a feature that aims to assist code documentation, as well as calling functions by the names of their parameters rather than the order, which in some cases is more meaningful. The two examples above can therefore be expressed clearly with this feature:
-
 
 \begin{lstlisting}
 void function1(Renderer& renderer, Circle& circle){
@@ -1815,10 +2026,8 @@ void function2(){
 }
 \end{lstlisting}
 
-
 \paragraph{}
 This is facilitated by the ability to type named function pointers, which can be implicitly cast to ordered function pointers:
-
 
 \begin{lstlisting}
 void f(int first, int second);
@@ -1832,7 +2041,6 @@ void function(){
 }
 \end{lstlisting}
 
-
 \clearpage
 
 \subsection{Exceptions}
@@ -1843,21 +2051,9 @@ There has been (and is continuing to be) much debate on the relative merits of `
 \paragraph{}
 Based on an assessment of the implementations of exceptions in languages such as Java (checked), and C++ and C\# (unchecked), Loci uses unchecked exceptions as a standard method for functions to report some form of failure, since these trigger fewer architectural maintenance problems\footnote{Also, greater compatibility with C, since no extra information must be added to functions.}.
 
-
 \begin{lstlisting}
-interface AbstractException{
-	std::string what() const;
-}
-
-class RealException(std::string what, int i){
-	static Create(std::string what, int i){
-		return @(what, i);
-	}
-
-	std::string what() const{
-		return @what;
-	}
-}
+exception GenericException(std::string what);
+exception RealException(std::string what, int i) : GenericException(what);
 
 void f(int i){
 	if(i < 0){
@@ -1865,16 +2061,15 @@ void f(int i){
 	}
 }
 
-String caller(){
-	try{
+String caller() {
+	try {
 		f(-1);
-	}catch(const AbstractException& exception){
-		std::string reason = exception.what();
+	} catch (GenericException exception) {
+		std::string reason = exception.what;
 		//...
 	}
 }
 \end{lstlisting}
-
 
 \paragraph{}
 A stack trace is also constructed while these exceptions are in flight, and in the case that the exception reaches the top level of the program (i.e. the main function), the stack trace is printed along with the contents of the exception type.
@@ -1892,8 +2087,8 @@ Loci provides far more comprehensive run-time type information than C++, giving 
 This supports checking whether the actual type (which is known only at run-time, unless A is a class type) of a reference or pointer conforms to a given target type (B in this example).
 
 \begin{lstlisting}
-void f(A& object){
-	if(is_a<B&>(object)){
+void f(A& object) {
+	if (is_a<B&>(object)) {
 		//...
 	}
 }
@@ -1915,7 +2110,7 @@ The performance for each case (depending on types of A and B) is:
 This operates just like C++:
 
 \begin{lstlisting}
-int f(A& object){
+int f(A& object) {
 	B& castObject = dynamic_cast<B&>(object);
 	return castObject.method();
 }
@@ -1930,12 +2125,12 @@ This is effectively just the equivalent of calling is\_a to check the types are 
 This allows access to information about a type from a reference or pointer to an instance of it:
 
 \begin{lstlisting}
-void f(T& a, T& b){
+void f(T& a, T& b) {
 	rtti::type_info typeInfo = typeid(a);
 	
 	// type_info structures can be compared,
 	// but is_a is likely to be more efficient.
-	if(typeInfo == typeid(b)){
+	if (typeInfo == typeid(b)) {
 		//...
 	}
 	
@@ -1948,7 +2143,7 @@ void f(T& a, T& b){
 	// Get the type's size.
 	size_t typeSize = typeInfo.size;
 	
-	for(size_t i = 0; i < typeInfo.methods.size(); i++){
+	for (final auto i: std::counter<size_t>(0, typeInfo.methods.size())) {
 		rtti::method_info methodInfo = typeInfo.methods[i];
 		
 		// Get method name.
@@ -1961,108 +2156,59 @@ void f(T& a, T& b){
 
 \clearpage
 
-\subsection{Faults}
-
-\paragraph{}
-Unlike C or C++ (but a lot like Java), Loci converts program errors such as SEGFAULTs into exceptions, to take advantage of the ability to catch exceptions and produce stack traces.
-
-
-\begin{lstlisting}
-int f(int * i){
-	return *i;
-}
-
-int g(int[4] v, int i){
-	return v[i];
-}
-
-void h(int v){
-	assert(v >= 0);
-}
-
-void caller(){
-	try{
-		int i = f(null);
-	}catch(NullPointerException e){
-		//...
-	}
-	
-	try{
-		int[4] v = int[]{0, 1, 2, 3};
-		int i = g(v, 100);
-	}catch(VectorIndexOutOfBoundsException e){
-		//...
-	}
-	
-	try{
-		h(-1);
-	}catch(AssertionFailedException e){
-		//...
-	}
-}
-\end{lstlisting}
-
-
-\clearpage
-
 \subsection{Templates}
 
 \paragraph{}
-Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things). The syntax is slightly simpler than C++:
+Loci implements templates, to provide parametric polymorphism, which is useful for defining the types of collections (along with many other things). The syntax is extremely similar to C++:
 
 \begin{lstlisting}
-template <T>
-class Class(T v){ }
+template <typename T>
+class Class(T v) { }
 \end{lstlisting}
 
+\paragraph{}
+Note that `typename' is the only valid specifier for a type; `class' is not valid in Loci.
 
 \subsubsection{Type Properties}
 
 \paragraph{}
 Loci allows type properties to be expressed through the use of interfaces. For example:
 
-
 \begin{lstlisting}
-template <T>
-interface Comparable{
-	ConstructFromInt(int i);
-
+template <typename T>
+interface Comparable {
 	int compare(const T& v) const;
 }
 
-template <T: Comparable<T>>
-class Class(T v0, T v1){
-	static Create(T v0, T v1){
+template <typename T: Comparable<T>>
+class Class(T v0, T v1) {
+	static Create(T v0, T v1) {
 		return @(v0, v1);
 	}
-
-	bool lessThan() const{
+	
+	bool lessThan() const {
 		return @v0 < @v1;
 	}
-};
+}
 \end{lstlisting}
 
-
 \paragraph{}
-The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the constructor and comparison operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself outside of a template.
+The interface, which is itself templated, requires that the parameter type `T' to class `Class' has the comparison operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless\footnote{And will cause a compile-time error.} to attempt to construct an interface itself outside of a template.
 
 \paragraph{}
 Since primitive types are modelled as objects, even with their implementation being identical to C, they can also be used as template parameters:
 
-
 \begin{lstlisting}
 void function(){
-	Class<int> cInt(1, 2);
+	auto cInt = Class<int>(1, 2);
 	assert(cInt.lessThan());
 }
 \end{lstlisting}
-
 
 \subsubsection{Instances}
 
 \paragraph{}
 The above code shows the creation of a class that has a type parameter `T'. In C++, instances of this class would be generated by the compiler for each type given as type `T'. So the following C++ code would generate four different classes in the object code produced by the compiler:
-
 
 \begin{lstlisting}
 Class<int> cInt;
@@ -2076,7 +2222,7 @@ Class<StructType *> cSPtr;
 
 
 \paragraph{}
-In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing\footnote{Without the need to perform a heap allocation.} for primitive types, which is potentially slow, so it's possible to instruct the compiler to create particular instances of a templated class or function, using code such as the following\footnote{Which is essentially identical to the C++ syntax for explicit instantiation.}:
+In Loci the compiler only creates one instance of the class, which works correctly for all possible types for T. However this requires something similar to auto-boxing (without the need to perform a heap allocation) for primitive types, which is potentially slow, so it's possible to instruct the compiler to create particular instances of a templated class or function, using code such as the following\footnote{Which is essentially identical to the C++ syntax for explicit instantiation.}:
 
 
 \begin{lstlisting}
@@ -2092,6 +2238,9 @@ template class Class<StructType *>;
 
 \paragraph{}
 This then creates the generic version of the class by default, but if the type is int, float, StructType or StructType*, the corresponding specialised (and therefore presumably faster) type is used. There's also a lot of capacity implementation-wise for compilers to improve the performance without breaking the functionality.
+
+\paragraph{}
+However, developers can achieve particular effective optimisation of templated code by linking template uses and definitions into the same module, allowing link-time optimisations to determine whether inlining and function replication are likely to improve performance and to perform them automatically.
 
 \clearpage
 
@@ -2175,15 +2324,14 @@ Strings are used in Loci as the default way to handle character sequences, mostl
 \subsubsection{Literals}
 
 \paragraph{}
-Loci breaks away from C by making string literals be of type `string', rather than type `const char *'. However C string literals can be declared by simply prefixing the double quotes with `C':
-
+Loci breaks away from C by making string literals (without specifiers) be of type `string', rather than type `char * const'. However C string literals can be declared using the string literal specifier 'C':
 
 \begin{lstlisting}
-void f(const char * cString){
+void f(char * const cString) {
 	printf("%s", cString);
 }
 
-void function(){
+void function() {
 	// Invalid - no implicit cast from String to char *.
 	f("Hello world!");
 	
@@ -2191,7 +2339,6 @@ void function(){
 	f(C"Hello world!");
 }
 \end{lstlisting}
-
 
 \subsubsection{I/O}
 
@@ -2239,7 +2386,7 @@ This example shows the creation of a 3-tuple, returning it from a function, and 
 \subsection{Initializer Lists}
 
 \paragraph{}
-
+To be specified...
 
 \cleardoublepage
 
@@ -2298,7 +2445,7 @@ class Example(int i) {
 		return @(i);
 	}
 	
-	~{
+	~ {
 		printf("Value is %d.\n", @i);
 	}
 }
