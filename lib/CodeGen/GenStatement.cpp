@@ -9,7 +9,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
 #include <locic/CodeGen/Debug.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -18,6 +17,7 @@
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -203,8 +203,8 @@ namespace locic {
 							// Store the return value into the return value pointer.
 							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							
-							// Call all destructors.
-							genAllScopeDestructorCalls(function);
+							// Perform all exit actions.
+							genAllScopeExitActions(function);
 							
 							returnInst = function.getBuilder().CreateRetVoid();
 						} else {
@@ -212,14 +212,14 @@ namespace locic {
 							
 							const auto encodedReturnValue = encodeReturnValue(function, returnValue, genABIType(function.module(), statement->getReturnValue()->type()));
 							
-							// Call all destructors.
-							genAllScopeDestructorCalls(function);
+							// Perform all exit actions.
+							genAllScopeExitActions(function);
 							
 							returnInst = function.getBuilder().CreateRet(encodedReturnValue);
 						}
 					} else {
-						// Call all destructors.
-						genAllScopeDestructorCalls(function);
+						// Perform all exit actions.
+						genAllScopeExitActions(function);
 						
 						returnInst = function.getBuilder().CreateRetVoid();
 					}
@@ -349,6 +349,20 @@ namespace locic {
 					
 					// Basic block for any further instructions generated.
 					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
+					break;
+				}
+				
+				case SEM::Statement::SCOPEEXIT: {
+					ScopeExitState state = SCOPEEXIT_ALWAYS;
+					if (statement->getScopeExitState() == "exit") {
+						state = SCOPEEXIT_ALWAYS;
+					} else if (statement->getScopeExitState() == "success") {
+						state = SCOPEEXIT_SUCCESS;
+					} else if (statement->getScopeExitState() == "failure") {
+						state = SCOPEEXIT_FAILURE;
+					}
+					
+					function.unwindStack().push_back(UnwindAction::ScopeExit(state, &(statement->getScopeExitScope())));
 					break;
 				}
 				

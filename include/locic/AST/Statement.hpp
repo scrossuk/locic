@@ -26,6 +26,7 @@ namespace locic {
 				WHILE,
 				FOR,
 				TRY,
+				SCOPEEXIT,
 				VARDECL,
 				ASSIGN,
 				RETURN,
@@ -69,6 +70,11 @@ namespace locic {
 				Node<Scope> scope;
 				Node<CatchClauseList> catchList;
 			} tryStmt;
+			
+			struct {
+				std::string state;
+				Node<Scope> scope;
+			} scopeExitStmt;
 			
 			struct {
 				Node<TypeVar> typeVar;
@@ -142,6 +148,13 @@ namespace locic {
 				Statement* statement = new Statement(TRY);
 				statement->tryStmt.scope = scope;
 				statement->tryStmt.catchList = catchList;
+				return statement;
+			}
+			
+			inline static Statement* ScopeExit(const std::string& state, const Node<Scope>& scope) {
+				Statement* statement = new Statement(SCOPEEXIT);
+				statement->scopeExitStmt.state = state;
+				statement->scopeExitStmt.scope = scope;
 				return statement;
 			}
 			

@@ -6,7 +6,7 @@ sfFont* sfFont_createFromFile(const char* const filename);
 
 sfFont* sfFont_copy(const sfFont* const font);
 
-void sfFont_destroy(sfFont* font);
+void sfFont_destroy(sfFont* font) noexcept;
 
 namespace sf {
 	

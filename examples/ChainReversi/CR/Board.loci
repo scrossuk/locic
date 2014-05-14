@@ -1,7 +1,7 @@
 // Chain Reversi Board.
 
-void* malloc(size_t size);
-void free(void* ptr);
+void* malloc(size_t size) noexcept;
+void free(void* ptr) noexcept;
 
 // TODO: replace this with actual standard library.
 namespace std {

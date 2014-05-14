@@ -6,7 +6,7 @@ sfClock* sfClock_create();
 
 sfClock* sfClock_copy(const sfClock* const clock);
 
-void sfClock_destroy(sfClock* clock);
+void sfClock_destroy(sfClock* clock) noexcept;
 
 sfTime sfClock_getElapsedTime(const sfClock* const clock);
 

@@ -52,6 +52,9 @@ namespace locic {
 					// TODO: also consider catch blocks?
 					return WillScopeReturn(statement->getTryScope());
 				}
+				case SEM::Statement::SCOPEEXIT: {
+					return false;
+				}
 				case SEM::Statement::RETURN: {
 					return true;
 				}
@@ -62,6 +65,68 @@ namespace locic {
 				case SEM::Statement::BREAK: {
 					// TODO: doesn't seem correct...
 					return true;
+				}
+				case SEM::Statement::CONTINUE: {
+					return false;
+				}
+				default: {
+					throw std::runtime_error("Unknown statement kind.");
+				}
+			}
+		}
+		
+		bool CanStatementThrow(SEM::Statement* statement) {
+			switch(statement->kind()) {
+				case SEM::Statement::VALUE: {
+					return CanValueThrow(statement->getValue());
+				}
+				case SEM::Statement::SCOPE: {
+					return CanScopeThrow(statement->getScope());
+				}
+				case SEM::Statement::INITIALISE: {
+					return false;
+				}
+				case SEM::Statement::IF: {
+					for (const auto ifClause: statement->getIfClauseList()) {
+						if (CanValueThrow(ifClause->condition()) || CanScopeThrow(ifClause->scope())) {
+							return true;
+						}
+					}
+					return CanScopeThrow(statement->getIfElseScope());
+				}
+				case SEM::Statement::SWITCH: {
+					for (auto switchCase: statement->getSwitchCaseList()) {
+						if (CanScopeThrow(switchCase->scope())) {
+							return true;
+						}
+					}
+					return CanValueThrow(statement->getSwitchValue());
+				}
+				case SEM::Statement::LOOP: {
+					return CanValueThrow(statement->getLoopCondition()) ||
+						CanScopeThrow(statement->getLoopIterationScope()) ||
+						CanScopeThrow(statement->getLoopAdvanceScope());
+				}
+				case SEM::Statement::TRY: {
+					for (auto catchClause: statement->getTryCatchList()) {
+						if (CanScopeThrow(catchClause->scope())) {
+							return true;
+						}
+					}
+					return CanScopeThrow(statement->getTryScope());
+				}
+				case SEM::Statement::SCOPEEXIT: {
+					// TODO: handle scope(success) which is allowed to throw.
+					return false;
+				}
+				case SEM::Statement::RETURN: {
+					return false;
+				}
+				case SEM::Statement::THROW: {
+					return true;
+				}
+				case SEM::Statement::BREAK: {
+					return false;
 				}
 				case SEM::Statement::CONTINUE: {
 					return false;
@@ -230,6 +295,22 @@ namespace locic {
 					}
 					
 					return SEM::Statement::Try(tryScope, catchList);
+				}
+				case AST::Statement::SCOPEEXIT: {
+					const auto& scopeExitState = statement->scopeExitStmt.state;
+					if (scopeExitState != "exit" && scopeExitState != "success" && scopeExitState != "failure") {
+						throw ErrorException(makeString("Unknown scope-exit state '%s' at position %s.",
+								scopeExitState.c_str(), location.toString().c_str()));
+					}
+					
+					const auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
+					
+					if (CanScopeThrow(*scopeExitScope)) {
+						throw ErrorException(makeString("scope(%s) can throw, at position %s.",
+								scopeExitState.c_str(), location.toString().c_str()));
+					}
+					
+					return SEM::Statement::ScopeExit(scopeExitState, scopeExitScope);
 				}
 				case AST::Statement::VARDECL: {
 					const auto& astTypeVarNode = statement->varDecl.typeVar;

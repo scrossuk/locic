@@ -8,7 +8,7 @@ sfView* sfView_createFromRect(sfFloatRect rectangle);
 
 sfView* sfView_copy(const sfView* const view);
 
-void sfView_destroy(sfView* view);
+void sfView_destroy(sfView* view) noexcept;
 
 namespace sf {
 	

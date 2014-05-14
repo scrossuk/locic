@@ -70,6 +70,8 @@ exception               { return EXCEPTION; }
 throw                   { return THROW; }
 try                     { return TRY; }
 catch                   { return CATCH; }
+scope                   { return SCOPE; }
+noexcept                { return NOEXCEPT; }
 
 template                { return TEMPLATE; }
 typename                { return TYPENAME; }

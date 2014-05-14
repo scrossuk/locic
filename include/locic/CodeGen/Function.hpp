@@ -1,6 +1,7 @@
 #ifndef LOCIC_CODEGEN_FUNCTION_HPP
 #define LOCIC_CODEGEN_FUNCTION_HPP
 
+#include <stack>
 #include <string>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
@@ -36,6 +37,9 @@ namespace locic {
 					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
 					assert(function.isDeclaration());
 					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
+					
+					// Add a bottom level unwind stack.
+					unwindStackStack_.push(UnwindStack());
 					
 					// Create an 'entry' basic block for holding
 					// instructions like allocas and debug_declares
@@ -139,12 +143,20 @@ namespace locic {
 					return localVarMap_;
 				}
 				
+				inline void pushUnwindStack() {
+					unwindStackStack_.push(UnwindStack());
+				}
+				
+				inline void popUnwindStack() {
+					unwindStackStack_.pop();
+				}
+				
 				inline UnwindStack& unwindStack() {
-					return unwindStack_;
+					return unwindStackStack_.top();
 				}
 				
 				inline const UnwindStack& unwindStack() const {
-					return unwindStack_;
+					return unwindStackStack_.top();
 				}
 				
 				inline llvm::Value* exceptionInfo() const {
@@ -165,7 +177,10 @@ namespace locic {
 				llvm::IRBuilder<> entryBuilder_, builder_;
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
-				UnwindStack unwindStack_;
+				
+				// A 'stack' of unwind stacks.
+				std::stack<UnwindStack> unwindStackStack_;
+				
 				llvm::Value* exceptionInfo_;
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;

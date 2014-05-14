@@ -6,7 +6,7 @@ struct sfRenderStates { };
 
 sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
 
-void sfRenderWindow_destroy(sfRenderWindow* renderWindow);
+void sfRenderWindow_destroy(sfRenderWindow* renderWindow) noexcept;
 
 void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
 

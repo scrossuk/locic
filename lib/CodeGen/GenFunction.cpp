@@ -5,7 +5,6 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
@@ -14,6 +13,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
 namespace locic {

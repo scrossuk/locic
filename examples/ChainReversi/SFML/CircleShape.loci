@@ -6,7 +6,7 @@ sfCircleShape* sfCircleShape_create();
 
 sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
 
-void sfCircleShape_destroy(sfCircleShape* shape);
+void sfCircleShape_destroy(sfCircleShape* shape) noexcept;
 
 void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
 

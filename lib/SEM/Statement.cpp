@@ -67,6 +67,13 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement* Statement::ScopeExit(const std::string& state, Scope* scope) {
+			Statement* statement = new Statement(SCOPEEXIT);
+			statement->scopeExitStmt_.state = state;
+			statement->scopeExitStmt_.scope = scope;
+			return statement;
+		}
+		
 		Statement* Statement::ReturnVoid() {
 			Statement* statement = new Statement(RETURN);
 			statement->returnStmt_.value = NULL;
@@ -193,6 +200,20 @@ namespace locic {
 			return tryStmt_.catchList;
 		}
 		
+		bool Statement::isScopeExitStatement() const {
+			return kind() == SCOPEEXIT;
+		}
+		
+		const std::string& Statement::getScopeExitState() const {
+			assert(isScopeExitStatement());
+			return scopeExitStmt_.state;
+		}
+		
+		Scope& Statement::getScopeExitScope() const {
+			assert(isScopeExitStatement());
+			return *(scopeExitStmt_.scope);
+		}
+		
 		bool Statement::isReturnStatement() const {
 			return kind() == RETURN;
 		}
@@ -260,6 +281,12 @@ namespace locic {
 					return makeString("TryStatement(scope: %s, catchList: %s)",
 									  tryStmt_.scope->toString().c_str(),
 									  makeArrayString(tryStmt_.catchList).c_str());
+				}
+				
+				case SCOPEEXIT: {
+					return makeString("ScopeExitStatement(state: %s, scope: %s)",
+									  getScopeExitState().c_str(),
+									  getScopeExitScope().toString().c_str());
 				}
 				
 				case RETURN: {

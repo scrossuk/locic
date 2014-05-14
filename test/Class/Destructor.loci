@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+void testPrint(const char * const str, ...) noexcept;
 
 // Class definition.
 class TestClass(int value) {

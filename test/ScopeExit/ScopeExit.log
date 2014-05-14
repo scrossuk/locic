@@ -1,0 +1,6 @@
+testEntryPoint: Add outer scope exit #1
+testEntryPoint: Add inner scope exit
+testEntryPoint: Inner scope exit
+testEntryPoint: Add outer scope exit #2
+testEntryPoint: Outer scope exit #2
+testEntryPoint: Outer scope exit #1

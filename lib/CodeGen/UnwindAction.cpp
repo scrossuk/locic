@@ -31,6 +31,13 @@ namespace locic {
 			return action;
 		}
 		
+		UnwindAction UnwindAction::ScopeExit(ScopeExitState state, SEM::Scope* scope) {
+			UnwindAction action(UnwindAction::SCOPEEXIT);
+			action.actions_.scopeExitAction.state = state;
+			action.actions_.scopeExitAction.scope = scope;
+			return action;
+		}
+		
 		UnwindAction::Kind UnwindAction::kind() const {
 			return kind_;
 		}
@@ -49,6 +56,10 @@ namespace locic {
 		
 		bool UnwindAction::isControlFlow() const {
 			return kind() == UnwindAction::CONTROLFLOW;
+		}
+		
+		bool UnwindAction::isScopeExit() const {
+			return kind() == UnwindAction::SCOPEEXIT;
 		}
 		
 		SEM::Type* UnwindAction::destroyType() const {
@@ -79,6 +90,16 @@ namespace locic {
 		llvm::BasicBlock* UnwindAction::continueBlock() const {
 			assert(isControlFlow());
 			return actions_.controlFlowAction.continueBlock;
+		}
+		
+		ScopeExitState UnwindAction::scopeExitState() const {
+			assert(isScopeExit());
+			return actions_.scopeExitAction.state;
+		}
+		
+		SEM::Scope* UnwindAction::scopeExitScope() const {
+			assert(isScopeExit());
+			return actions_.scopeExitAction.scope;
 		}
 		
 	}

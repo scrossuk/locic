@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-void printf(const char * const str, ...);
+void printf(const char * const str, ...) noexcept;
 
 class TestClass2(int i){
 	static Create = default;
@@ -166,8 +166,8 @@ void datatypeDemo() {
 
 // datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);
 
-void* malloc(size_t size);
-void free(void* ptr);
+void* malloc(size_t size) noexcept;
+void free(void* ptr) noexcept;
 
 template <typename T>
 interface Copyable {

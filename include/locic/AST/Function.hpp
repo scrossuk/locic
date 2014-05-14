@@ -14,13 +14,13 @@ namespace locic {
 	
 		struct Function {
 			public:
-				static Function* Decl(bool isVarArg, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				static Function* Decl(bool isVarArg, bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
 				
-				static Function* Def(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				static Function* Def(bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
 				
-				static Function* StaticMethodDecl(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				static Function* StaticMethodDecl(bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
 				
-				static Function* MethodDecl(bool isConstMethod, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
+				static Function* MethodDecl(bool isConstMethod, bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters);
 				
 				static Function* DefaultStaticMethodDef(const std::string& name);
 				
@@ -28,9 +28,9 @@ namespace locic {
 				
 				static Function* Destructor(const Node<Scope>& scope);
 				
-				static Function* StaticMethodDef(const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				static Function* StaticMethodDef(bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
 				
-				static Function* MethodDef(bool isConstMethod, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
+				static Function* MethodDef(bool isConstMethod, bool isNoExcept, const Node<Type>& returnType, const std::string& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
 				
 				bool isDeclaration() const;
 				bool isDefinition() const;
@@ -41,6 +41,7 @@ namespace locic {
 				bool isStaticMethod() const;
 				
 				bool isVarArg() const;
+				bool isNoExcept() const;
 				
 				const std::string& name() const;
 				
@@ -55,6 +56,7 @@ namespace locic {
 				
 				bool isDefinition_, isDefaultDefinition_, isVarArg_;
 				bool isMethod_, isConstMethod_, isStaticMethod_;
+				bool isNoExcept_;
 				
 				std::string name_;
 				

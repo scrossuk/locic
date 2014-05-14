@@ -20,6 +20,16 @@ namespace locic {
 			return false;
 		}
 		
+		bool CanScopeThrow(const SEM::Scope& scope) {
+			for(std::size_t i = 0; i < scope.statements().size(); i++) {
+				if (CanStatementThrow(scope.statements().at(i))) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
 		SEM::Scope* ConvertScope(Context& context, AST::Node<AST::Scope> astScope) {
 			assert(astScope.get() != nullptr);
 			

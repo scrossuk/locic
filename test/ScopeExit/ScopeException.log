@@ -1,0 +1,17 @@
+testFunction: Throw
+testFunction: Function failure
+testFunction: Function exit
+testEntryPoint: Scope failure
+testEntryPoint: Scope exit
+testEntryPoint: Catch TestError
+testEntryPoint: Loop end
+testEntryPoint: Loop exit
+testFunction: Return
+testFunction: Function success
+testFunction: Function exit
+testEntryPoint: Function didn't throw
+testEntryPoint: Scope success
+testEntryPoint: Scope exit
+testEntryPoint: Loop end
+testEntryPoint: Loop exit
+testEntryPoint: Program exit

@@ -1,11 +1,11 @@
 #include <vector>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -151,11 +151,8 @@ namespace locic {
 					break;
 				}
 				
-				if (!action.isDestructor()) {
-					continue;
-				}
-				
-				genDestructorCall(function, action.destroyType(), action.destroyValue());
+				const bool isExceptionState = true;
+				performScopeExitAction(function, action, isExceptionState);
 			}
 			
 			if (catchBlock != nullptr) {

@@ -23,6 +23,7 @@ add_library(locic-codegen
 	Memory.cpp
 	Module.cpp
 	Primitives.cpp
+	ScopeExitActions.cpp
 	SizeOf.cpp
 	Support.cpp
 	TargetInfo.cpp

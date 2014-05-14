@@ -2,10 +2,10 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -27,11 +27,8 @@ namespace locic {
 					break;
 				}
 				
-				if (!action.isDestructor()) {
-					continue;
-				}
-				
-				genDestructorCall(function, action.destroyType(), action.destroyValue());
+				const bool isExceptionState = false;
+				performScopeExitAction(function, action, isExceptionState);
 			}
 			
 			assert(breakBlock != nullptr);
@@ -43,7 +40,7 @@ namespace locic {
 			const auto& unwindStack = function.unwindStack();
 			llvm::BasicBlock* continueBlock = nullptr;
 			
-			// Call all destructors until the next control flow point.
+			// Perform all exit actions until the next control flow point.
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				const size_t pos = unwindStack.size() - i - 1;
 				const auto& action = unwindStack.at(pos);
@@ -53,11 +50,8 @@ namespace locic {
 					break;
 				}
 				
-				if (!action.isDestructor()) {
-					continue;
-				}
-				
-				genDestructorCall(function, action.destroyType(), action.destroyValue());
+				const bool isExceptionState = false;
+				performScopeExitAction(function, action, isExceptionState);
 			}
 			
 			assert(continueBlock != nullptr);

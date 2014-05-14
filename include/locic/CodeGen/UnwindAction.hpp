@@ -4,11 +4,18 @@
 #include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/SEM.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
+		enum ScopeExitState {
+			SCOPEEXIT_ALWAYS,
+			SCOPEEXIT_SUCCESS,
+			SCOPEEXIT_FAILURE
+		};
+		
 		class UnwindAction {
 			public:
 				static UnwindAction Destroy(SEM::Type* type, llvm::Value* value);
@@ -19,11 +26,14 @@ namespace locic {
 				
 				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
 				
+				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
+				
 				enum Kind {
 					DESTRUCTOR,
 					CATCH,
 					SCOPEMARKER,
-					CONTROLFLOW
+					CONTROLFLOW,
+					SCOPEEXIT
 				};
 				
 				Kind kind() const;
@@ -36,6 +46,8 @@ namespace locic {
 				
 				bool isControlFlow() const;
 				
+				bool isScopeExit() const;
+				
 				SEM::Type* destroyType() const;
 				
 				llvm::Value* destroyValue() const;
@@ -47,6 +59,10 @@ namespace locic {
 				llvm::BasicBlock* breakBlock() const;
 				
 				llvm::BasicBlock* continueBlock() const;
+				
+				ScopeExitState scopeExitState() const;
+				
+				SEM::Scope* scopeExitScope() const;
 				
 			private:
 				inline UnwindAction(Kind pKind)
@@ -69,6 +85,11 @@ namespace locic {
 						llvm::BasicBlock* breakBlock;
 						llvm::BasicBlock* continueBlock;
 					} controlFlowAction;
+					
+					struct ScopeExitAction {
+						ScopeExitState state;
+						SEM::Scope* scope;
+					} scopeExitAction;
 				} actions_;
 				
 		};

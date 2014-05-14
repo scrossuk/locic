@@ -50,6 +50,11 @@ namespace locic {
 				semScope->statements().push_back(SEM::Statement::ReturnVoid());
 			}
 			
+			if (semFunction->type()->isFunctionNoExcept() && CanScopeThrow(*semScope)) {
+				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw.",
+					semFunction->name().toString().c_str()));
+			}
+			
 			semFunction->setScope(semScope);
 		}
 		

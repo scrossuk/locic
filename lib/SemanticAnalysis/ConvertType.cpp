@@ -232,7 +232,10 @@ namespace locic {
 						parameterTypes.push_back(paramType);
 					}
 					
-					return SEM::Type::Function(type->functionType.isVarArg, returnType, parameterTypes);
+					// Currently no syntax exists to express a type with 'noexcept'.
+					const bool isNoExcept = false;
+					
+					return SEM::Type::Function(type->functionType.isVarArg, isNoExcept, returnType, parameterTypes);
 				}
 				default:
 					throw std::runtime_error("Unknown AST::Node<AST::Type> type enum.");

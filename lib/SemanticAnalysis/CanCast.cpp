@@ -101,7 +101,11 @@ namespace locic {
 						return nullptr;
 					}
 					
-					return SEM::Type::Function(sourceType->isFunctionVarArg(), returnType, paramTypes);
+					if (!sourceType->isFunctionNoExcept() && destType->isFunctionNoExcept()) {
+						return nullptr;
+					}
+					
+					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionNoExcept(), returnType, paramTypes);
 				}
 				case SEM::Type::METHOD: {
 					auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);

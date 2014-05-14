@@ -22,6 +22,10 @@ namespace locic {
 			const bool isStatic = true;
 			const bool isConst = false;
 			
+			// Default constructor only moves, and since moves never
+			// throw the constructor never throws.
+			const bool isNoExcept = true;
+			
 			const auto constructTypes = typeInstance->constructTypes();
 			
 			std::vector<SEM::Var*> argVars;
@@ -31,7 +35,7 @@ namespace locic {
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
 			}
 			
-			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), constructTypes);
+			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), constructTypes);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "create", argVars);
 		}
 		
@@ -41,7 +45,11 @@ namespace locic {
 			const bool isStatic = false;
 			const bool isConst = true;
 			
-			const auto functionType = SEM::Type::Function(isVarArg, typeInstance->selfType(), {});
+			// Default copy constructor may throw since it
+			// may call child copy constructors that throw.
+			const bool isNoExcept = false;
+			
+			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), {});
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitcopy", {});
 		}
 		
@@ -51,9 +59,13 @@ namespace locic {
 			const bool isStatic = false;
 			const bool isConst = true;
 			
+			// Default compare method may throw since it
+			// may call child compare methods that throw.
+			const bool isNoExcept = false;
+			
 			const auto selfType = typeInstance->selfType();
 			const auto intType = getBuiltInType(context, "int_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, intType, { selfType });
+			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, intType, { selfType });
 			const auto operandVar = SEM::Var::Basic(selfType, selfType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar });
 		}

@@ -63,6 +63,7 @@ namespace locic {
 			const auto& initializerNode = astTypeInstanceNode->initializer;
 			
 			const bool isVarArg = false;
+			const bool isNoExcept = false;
 			const bool isStatic = true;
 			const bool isMethod = true;
 			const bool isConst = false;
@@ -77,7 +78,7 @@ namespace locic {
 			// since the first variable will store the parent.
 			const auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			
-			const auto functionType = SEM::Type::Function(isVarArg, semTypeInstance->selfType(), constructTypes);
+			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, semTypeInstance->selfType(), constructTypes);
 			const auto parameters = getParameters(context, constructTypes);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "Create", parameters);
 		}

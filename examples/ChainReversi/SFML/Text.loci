@@ -6,7 +6,7 @@ sfText* sfText_create();
 
 sfText* sfText_copy(const sfText* const text);
 
-void sfText_destroy(sfText* text);
+void sfText_destroy(sfText* text) noexcept;
 
 void sfText_setPosition(sfText* text, sfVector2f position);
 

@@ -26,6 +26,7 @@ namespace locic {
 					SWITCH,
 					LOOP,
 					TRY,
+					SCOPEEXIT,
 					RETURN,
 					THROW,
 					BREAK,
@@ -45,6 +46,8 @@ namespace locic {
 				static Statement* Loop(Value* condition, Scope* iterationScope, Scope* advanceScope);
 				
 				static Statement* Try(Scope* scope, const std::vector<CatchClause*>& catchList);
+				
+				static Statement* ScopeExit(const std::string& state, Scope* scope);
 				
 				static Statement* ReturnVoid();
 				
@@ -98,6 +101,12 @@ namespace locic {
 				
 				const std::vector<CatchClause*>& getTryCatchList() const;
 				
+				bool isScopeExitStatement() const;
+				
+				const std::string& getScopeExitState() const;
+				
+				Scope& getScopeExitScope() const;
+				
 				bool isReturnStatement() const;
 				
 				Value* getReturnValue() const;
@@ -150,6 +159,11 @@ namespace locic {
 					Scope* scope;
 					std::vector<CatchClause*> catchList;
 				} tryStmt_;
+				
+				struct {
+					std::string state;
+					Scope* scope;
+				} scopeExitStmt_;
 				
 				struct {
 					Value* value;

@@ -1,0 +1,67 @@
+// Test output.
+void testPrint(const char * const str, ...) noexcept;
+
+exception TestError();
+
+void testFunction(int i) {
+	scope (exit) {
+		testPrint(C"testFunction: Function exit");
+	}
+	
+	scope (success) {
+		testPrint(C"testFunction: Function success");
+	}
+	
+	scope (failure) {
+		testPrint(C"testFunction: Function failure");
+	}
+	
+	if (i == 0) {
+		testPrint(C"testFunction: Throw");
+		throw TestError();
+	} else {
+		testPrint(C"testFunction: Return");
+	}
+}
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	scope (exit) {
+		testPrint(C"testEntryPoint: Program exit");
+	}
+	
+	int i = 0;
+	
+	while (i < 2) {
+		scope (exit) {
+			testPrint(C"testEntryPoint: Loop exit");
+		}
+		
+		try {
+			scope (exit) {
+				testPrint(C"testEntryPoint: Scope exit");
+			}
+			
+			scope (success) {
+				testPrint(C"testEntryPoint: Scope success");
+			}
+			
+			scope (failure) {
+				testPrint(C"testEntryPoint: Scope failure");
+			}
+			
+			testFunction(i);
+			
+			testPrint(C"testEntryPoint: Function didn't throw");
+		} catch (TestError error) {
+			testPrint(C"testEntryPoint: Catch TestError");
+		}
+		
+		i += 1;
+		
+		testPrint(C"testEntryPoint: Loop end");
+	}
+	
+	return 0;
+}
+

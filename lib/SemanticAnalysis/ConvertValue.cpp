@@ -22,6 +22,16 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
+		bool CanValueThrow(SEM::Value* value) {
+			// TODO...
+			if (value->kind() == SEM::Value::FUNCTIONCALL) {
+				const auto functionValue = value->functionCall.functionValue;
+				return !functionValue->type()->isFunctionNoExcept();
+			} else {
+				return false;
+			}
+		}
+		
 		SEM::Value* MakeMemberAccess(SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
 			const auto derefType = getDerefType(value->type());
 			

@@ -6,7 +6,7 @@ sfRectangleShape* sfRectangleShape_create();
 
 sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* const shape);
 
-void sfRectangleShape_destroy(sfRectangleShape* shape);
+void sfRectangleShape_destroy(sfRectangleShape* shape) noexcept;
 
 void sfRectangleShape_setOrigin(sfRectangleShape* shape, sfVector2f origin);
 

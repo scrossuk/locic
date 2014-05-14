@@ -10,6 +10,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		bool CanValueThrow(SEM::Value* value);
+		
 		SEM::Value* ConvertValue(Context& context, const AST::Node<AST::Value>& value);
 		
 		class BuiltInTypeMissingException: public Exception {

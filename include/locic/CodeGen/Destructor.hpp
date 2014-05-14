@@ -15,20 +15,6 @@ namespace locic {
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::Type* parent);
 		
-		void genScopeDestructorCalls(Function& function, const UnwindStack& unwindStack, size_t scopeId);
-		
-		void genAllScopeDestructorCalls(Function& function);
-		
-		class LifetimeScope {
-			public:
-				LifetimeScope(Function& function);
-				~LifetimeScope();
-				
-			private:
-				Function& function_;
-			
-		};
-		
 	}
 	
 }
