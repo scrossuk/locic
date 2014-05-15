@@ -116,8 +116,8 @@ namespace locic {
 					return CanScopeThrow(statement->getTryScope());
 				}
 				case SEM::Statement::SCOPEEXIT: {
-					// TODO: handle scope(success) which is allowed to throw.
-					return false;
+					// scope(success) is allowed to throw.
+					return statement->getScopeExitState() == "success" && CanScopeThrow(statement->getScopeExitScope());
 				}
 				case SEM::Statement::RETURN: {
 					return false;
@@ -248,7 +248,8 @@ namespace locic {
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
-					const auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
+					NodeContext loopContext(context, "##loop", Node::Loop());
+					const auto iterationScope = ConvertScope(loopContext, statement->whileStmt.whileTrue);
 					const auto advanceScope = new SEM::Scope();
 					const auto loopCondition = ImplicitCast(condition, getBuiltInType(context, "bool")->selfType(), location);
 					return SEM::Statement::Loop(loopCondition, iterationScope, advanceScope);
@@ -303,10 +304,12 @@ namespace locic {
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
 					
-					const auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
+					NodeContext scopeExitContext(context, "##scopeexit", Node::ScopeExit(scopeExitState));
+					const auto scopeExitScope = ConvertScope(scopeExitContext, statement->scopeExitStmt.scope);
 					
-					if (CanScopeThrow(*scopeExitScope)) {
-						throw ErrorException(makeString("scope(%s) can throw, at position %s.",
+					// scope(success) is allowed to throw.
+					if (scopeExitState != "success" && CanScopeThrow(*scopeExitScope)) {
+						throw ErrorException(makeString("Scope exit action (for state '%s') can throw, at position %s.",
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
 					
@@ -349,6 +352,17 @@ namespace locic {
 				case AST::Statement::RETURN: {
 					assert(statement->returnStmt.value.get() != nullptr);
 					
+					// Check this is not being used inside a scope-exit action.
+					const Context* currentContext = &context;
+					while (currentContext != nullptr) {
+						if (currentContext->node().isScopeExit()) {
+							throw ErrorException(makeString("Cannot 'return' in scope exit action at position %s.",
+								location.toString().c_str()));
+						}
+						
+						currentContext = currentContext->parent();
+					}
+					
 					const auto semValue = ConvertValue(context, statement->returnStmt.value);
 					
 					// Cast the return value to the function's
@@ -358,6 +372,18 @@ namespace locic {
 					return SEM::Statement::Return(castValue);
 				}
 				case AST::Statement::THROW: {
+					// Check this is not being used inside a scope-exit action
+					// (apart from inside scope(success), which is allowed).
+					const Context* currentContext = &context;
+					while (currentContext != nullptr) {
+						if (currentContext->node().isScopeExit() && currentContext->node().getScopeExitState() != "success") {
+							throw ErrorException(makeString("Cannot 'throw' in scope exit action with state '%s' at position %s.",
+								currentContext->node().getScopeExitState().c_str(), location.toString().c_str()));
+						}
+						
+						currentContext = currentContext->parent();
+					}
+					
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
 					if (!semValue->type()->isObject() || !semValue->type()->getObjectType()->isException()) {
 						throw ErrorException(makeString("Cannot throw non-exception value '%s' at position %s.",
@@ -366,11 +392,51 @@ namespace locic {
 					return SEM::Statement::Throw(semValue);
 				}
 				case AST::Statement::BREAK: {
-					// TODO: check that this is being used inside a loop or switch.
+					// Check this is being used inside a loop, and
+					// would not leave a scope-exit action.
+					const Context* currentContext = &context;
+					while (currentContext != nullptr) {
+						if (currentContext->node().isLoop()) {
+							break;
+						}
+						
+						if (currentContext->node().isScopeExit()) {
+							throw ErrorException(makeString("Cannot 'break' from scope exit action at position %s.",
+								location.toString().c_str()));
+						}
+						
+						currentContext = currentContext->parent();
+					}
+					
+					if (currentContext == nullptr) {
+						throw ErrorException(makeString("Cannot 'break' outside any control flow statements at position %s.",
+							location.toString().c_str()));
+					}
+					
 					return SEM::Statement::Break();
 				}
 				case AST::Statement::CONTINUE: {
-					// TODO: check that this is being used inside a loop or switch.
+					// Check this is being used inside a loop, and
+					// would not leave a scope-exit action.
+					const Context* currentContext = &context;
+					while (currentContext != nullptr) {
+						if (currentContext->node().isLoop()) {
+							break;
+						}
+						
+						if (currentContext->node().isScopeExit()) {
+							throw ErrorException(makeString("Cannot 'continue' in scope exit action at position %s.",
+								location.toString().c_str()));
+						}
+						
+						currentContext = currentContext->parent();
+					}
+					
+					if (currentContext == nullptr) {
+						throw ErrorException(makeString("Cannot 'continue' outside any control flow statements at position %s.",
+							location.toString().c_str()));
+					}
+					
 					return SEM::Statement::Continue();
 				}
 				default:

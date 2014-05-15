@@ -61,6 +61,7 @@ extern "C" void testPrint(const char* format, ...) {
 		if (needed <= (int)bufferSize && needed >= 0) {
 			testOutput += std::string(buffer, (size_t) needed);
 			testOutput += "\n";
+			printf("%s\n", std::string(buffer, (size_t) needed).c_str());
 			return;
 		}
 		
@@ -218,6 +219,7 @@ int main(int argc, char* argv[]) {
 		
 		// Treat entry point function as if it is 'main'.
 		programArgs.insert(programArgs.begin(), "testProgram");
+		
 		const int result = interpreter.runAsMain(entryPointName, programArgs);
 		
 		if (result != expectedResult) {

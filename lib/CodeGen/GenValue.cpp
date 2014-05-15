@@ -295,9 +295,10 @@ namespace locic {
 					const auto contextPointer = semFunctionValue->type()->isMethod() ?
 						function.getBuilder().CreateExtractValue(callValue, std::vector<unsigned>(1, 1)) :
 						nullptr;
-					const auto returnType = value->type();
+					const auto functionType = semFunctionValue->type()->isMethod() ?
+						semFunctionValue->type()->getMethodFunctionType() : semFunctionValue->type();
 					
-					return genFunctionCall(function, functionValue, contextPointer, returnType, semArgumentValues, debugLoc);
+					return genFunctionCall(function, functionValue, contextPointer, functionType, semArgumentValues, debugLoc);
 				}
 				
 				case SEM::Value::FUNCTIONREF: {

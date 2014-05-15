@@ -1,0 +1,5 @@
+testEntryPoint: Returning 1.
+testEntryPoint: Success case #2; throwing exception.
+testEntryPoint: Failure case #1.
+testEntryPoint: Exiting try scope.
+testEntryPoint: Caught exception; returning 0.

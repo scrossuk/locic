@@ -140,6 +140,10 @@ namespace locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
+			if (function->type()->isFunctionNoExcept()) {
+				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
+			}
+			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller

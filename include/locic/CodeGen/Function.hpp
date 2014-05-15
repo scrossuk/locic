@@ -143,8 +143,8 @@ namespace locic {
 					return localVarMap_;
 				}
 				
-				inline void pushUnwindStack() {
-					unwindStackStack_.push(UnwindStack());
+				inline void pushUnwindStack(size_t position) {
+					unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
 				}
 				
 				inline void popUnwindStack() {

@@ -8,7 +8,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void performScopeExitAction(Function& function, const UnwindAction& unwindAction, bool isExceptionState);
+		void performScopeExitAction(Function& function, size_t position, bool isExceptionState);
 		
 		void genScopeExitActions(Function& function, bool isExceptionState = false);
 		

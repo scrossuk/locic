@@ -75,7 +75,9 @@ namespace locic {
 			
 		}
 		
-		void performScopeExitAction(Function& function, const UnwindAction& unwindAction, bool isExceptionState) {
+		void performScopeExitAction(Function& function, size_t position, bool isExceptionState) {
+			const auto& unwindAction = function.unwindStack().at(position);
+			
 			if (!isActiveAction(unwindAction, isExceptionState)) {
 				return;
 			}
@@ -83,7 +85,7 @@ namespace locic {
 			if (unwindAction.isDestructor()) {
 				genDestructorCall(function, unwindAction.destroyType(), unwindAction.destroyValue());
 			} else if (unwindAction.isScopeExit()) {
-				function.pushUnwindStack();
+				function.pushUnwindStack(position);
 				genScope(function, *(unwindAction.scopeExitScope()));
 				function.popUnwindStack();
 			}
@@ -108,7 +110,7 @@ namespace locic {
 				const auto& unwindAction = unwindStack.at(pos);
 				if (unwindAction.isScopeMarker()) break;
 				
-				performScopeExitAction(function, unwindAction, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState);
 			}
 			
 			// ...and another to make it clear where it ends.
@@ -128,9 +130,7 @@ namespace locic {
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				// Perform actions in reverse order (i.e. as a stack).
 				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				
-				performScopeExitAction(function, unwindAction, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState);
 			}
 		}
 		

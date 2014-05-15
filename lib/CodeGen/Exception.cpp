@@ -141,7 +141,7 @@ namespace locic {
 			const auto& unwindStack = function.unwindStack();
 			llvm::BasicBlock* catchBlock = nullptr;
 			
-			// Call all destructors until the next catch block.
+			// Perform all scope exit actions until the next catch block.
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				const size_t pos = unwindStack.size() - i - 1;
 				const auto& action = unwindStack.at(pos);
@@ -152,7 +152,7 @@ namespace locic {
 				}
 				
 				const bool isExceptionState = true;
-				performScopeExitAction(function, action, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState);
 			}
 			
 			if (catchBlock != nullptr) {

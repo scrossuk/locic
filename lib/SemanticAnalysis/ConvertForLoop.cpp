@@ -73,7 +73,8 @@ namespace locic {
 			
 			iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar, ImplicitCast(currentValue, loopVar->constructType(), location)));
 			
-			const auto innerScope = ConvertScope(scopeContext, astScopeNode);
+			NodeContext loopScopeContext(scopeContext, "##loop", Node::Loop());
+			const auto innerScope = ConvertScope(loopScopeContext, astScopeNode);
 			
 			iterationScope->statements().push_back(SEM::Statement::ScopeStmt(innerScope));
 			

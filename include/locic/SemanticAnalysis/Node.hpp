@@ -26,7 +26,9 @@ namespace locic {
 					SCOPE,
 					VARIABLE,
 					SWITCHCASE,
-					CATCHCLAUSE
+					CATCHCLAUSE,
+					LOOP,
+					SCOPEEXIT
 				};
 				
 				inline static Node None() {
@@ -54,38 +56,48 @@ namespace locic {
 					return node;
 				}
 				
-				inline static Node TemplateVar(const AST::Node<AST::TemplateTypeVar>& ast, SEM::TemplateVar * sem){
+				inline static Node TemplateVar(const AST::Node<AST::TemplateTypeVar>& ast, SEM::TemplateVar * sem) {
 					Node node(TEMPLATEVAR);
 					node.data_->ast.templateVar = ast;
 					node.data_->sem.templateVar = sem;
 					return node;
 				}
 				
-				inline static Node Scope(const AST::Node<AST::Scope>& ast, SEM::Scope * sem){
+				inline static Node Scope(const AST::Node<AST::Scope>& ast, SEM::Scope * sem) {
 					Node node(SCOPE);
 					node.data_->ast.scope = ast;
 					node.data_->sem.scope = sem;
 					return node;
 				}
 				
-				inline static Node Variable(const AST::Node<AST::TypeVar>& ast, SEM::Var * sem){
+				inline static Node Variable(const AST::Node<AST::TypeVar>& ast, SEM::Var * sem) {
 					Node node(VARIABLE);
 					node.data_->ast.var = ast;
 					node.data_->sem.var = sem;
 					return node;
 				}
 				
-				inline static Node SwitchCase(const AST::Node<AST::SwitchCase>& ast, SEM::SwitchCase * sem){
+				inline static Node SwitchCase(const AST::Node<AST::SwitchCase>& ast, SEM::SwitchCase * sem) {
 					Node node(SWITCHCASE);
 					node.data_->ast.switchCase = ast;
 					node.data_->sem.switchCase = sem;
 					return node;
 				}
 				
-				inline static Node CatchClause(const AST::Node<AST::CatchClause>& ast, SEM::CatchClause * sem){
+				inline static Node CatchClause(const AST::Node<AST::CatchClause>& ast, SEM::CatchClause * sem) {
 					Node node(CATCHCLAUSE);
 					node.data_->ast.catchClause = ast;
 					node.data_->sem.catchClause = sem;
+					return node;
+				}
+				
+				inline static Node Loop() {
+					return Node(LOOP);
+				}
+				
+				inline static Node ScopeExit(const std::string& state) {
+					Node node(SCOPEEXIT);
+					node.data_->scopeExitState = state;
 					return node;
 				}
 				
@@ -156,6 +168,14 @@ namespace locic {
 				
 				inline bool isCatchClause() const {
 					return kind() == CATCHCLAUSE;
+				}
+				
+				inline bool isLoop() const {
+					return kind() == LOOP;
+				}
+				
+				inline bool isScopeExit() const {
+					return kind() == SCOPEEXIT;
 				}
 				
 				inline AST::NamespaceList& getASTNamespaceList() {
@@ -233,6 +253,11 @@ namespace locic {
 					return data_->sem.catchClause;
 				}
 				
+				inline const std::string& getScopeExitState() const {
+					assert(isScopeExit());
+					return data_->scopeExitState;
+				}
+				
 				inline std::string toString() const {
 					switch(kind()){
 						case NONE:
@@ -259,6 +284,11 @@ namespace locic {
 						case CATCHCLAUSE:
 							return makeString("Node[CatchClause](%s)",
 								getSEMCatchClause()->toString().c_str());
+						case LOOP:
+							return "Node[Loop]()";
+						case SCOPEEXIT:
+							return makeString("Node[ScopeExit](state = %s)",
+								getScopeExitState().c_str());
 						default:
 							assert(false && "Unknown node type.");
 							return "Node([INVALID])";
@@ -293,6 +323,8 @@ namespace locic {
 						SEM::SwitchCase* switchCase;
 						SEM::CatchClause* catchClause;
 					} sem;
+					
+					std::string scopeExitState;
 					
 					inline NodeData(Kind k)
 						: kind(k) { }

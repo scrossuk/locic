@@ -1,0 +1,24 @@
+// Test output.
+void testPrint(const char * const str, ...) noexcept;
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	scope (exit) {
+		scope (exit) {
+			scope (exit) {
+				scope (exit) {
+					scope (exit) {
+						testPrint(C"testEntryPoint: #1");
+					}
+					testPrint(C"testEntryPoint: #2");
+				}
+				testPrint(C"testEntryPoint: #3");
+			}
+			testPrint(C"testEntryPoint: #4");
+		}
+		testPrint(C"testEntryPoint: #5");
+	}
+	
+	return 0;
+}
+

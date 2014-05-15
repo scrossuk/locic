@@ -21,6 +21,7 @@ void testFunction(int i) {
 		throw TestError();
 	} else {
 		testPrint(C"testFunction: Return");
+		return;
 	}
 }
 

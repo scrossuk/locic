@@ -1,0 +1,37 @@
+// Test output.
+void testPrint(const char * const str, ...) noexcept;
+
+exception TestError();
+
+// Entry point.
+int testEntryPoint(int argc, char ** argv) {
+	try {
+		scope (exit) {
+			testPrint(C"testEntryPoint: Exiting try scope.");
+		}
+		
+		scope (success) {
+			testPrint(C"testEntryPoint: Success case #1.");
+		}
+		
+		scope (failure) {
+			testPrint(C"testEntryPoint: Failure case #1.");
+		}
+		
+		scope (success) {
+			testPrint(C"testEntryPoint: Success case #2; throwing exception.");
+			throw TestError();
+		}
+		
+		scope (failure) {
+			testPrint(C"testEntryPoint: Failure case #2.");
+		}
+		
+		testPrint(C"testEntryPoint: Returning 1.");
+		return 1;
+	} catch (TestError e) {
+		testPrint(C"testEntryPoint: Caught exception; returning 0.");
+		return 0;
+	}
+}
+

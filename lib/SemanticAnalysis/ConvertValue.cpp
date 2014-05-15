@@ -26,7 +26,9 @@ namespace locic {
 			// TODO...
 			if (value->kind() == SEM::Value::FUNCTIONCALL) {
 				const auto functionValue = value->functionCall.functionValue;
-				return !functionValue->type()->isFunctionNoExcept();
+				const auto functionType = functionValue->type()->isMethod() ?
+					functionValue->type()->getMethodFunctionType() : functionValue->type();
+				return !functionType->isFunctionNoExcept();
 			} else {
 				return false;
 			}

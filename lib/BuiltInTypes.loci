@@ -1,539 +1,539 @@
 __primitive null_t { }
 
 __primitive bool {
-	bool implicitCopy() const;
+	bool implicitCopy() const noexcept;
 	
-	int compare(bool value) const;
+	int compare(bool value) const noexcept;
 	
-	bool not() const;
+	bool not() const noexcept;
 	
-	bool logicalAnd(bool value) const;
-	bool logicalOr(bool value) const;
+	bool logicalAnd(bool value) const noexcept;
+	bool logicalOr(bool value) const noexcept;
 }
 
 __primitive char_t {
-	static char_t int8_cast(int8_t value);
+	static char_t int8_cast(int8_t value) noexcept;
 	
-	char_t implicitCopy() const;
+	char_t implicitCopy() const noexcept;
 	
-	char_t plus() const;
-	char_t minus() const;
+	char_t plus() const noexcept;
+	char_t minus() const noexcept;
 	
-	char_t abs() const;
+	char_t abs() const noexcept;
 	
-	char_t add(char_t v) const;
-	char_t subtract(char_t v) const;
-	char_t multiply(char_t v) const;
-	char_t divide(char_t v) const;
-	char_t modulo(char_t v) const;
+	char_t add(char_t v) const noexcept;
+	char_t subtract(char_t v) const noexcept;
+	char_t multiply(char_t v) const noexcept;
+	char_t divide(char_t v) const noexcept;
+	char_t modulo(char_t v) const noexcept;
 	
-	int_t compare(char_t v) const;
+	int_t compare(char_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive uchar_t {
-	static uchar_t uint8_cast(uint8_t value);
+	static uchar_t uint8_cast(uint8_t value) noexcept;
 	
-	uchar_t implicitCopy() const;
+	uchar_t implicitCopy() const noexcept;
 	
-	uchar_t add(uchar_t v) const;
-	uchar_t subtract(uchar_t v) const;
-	uchar_t multiply(uchar_t v) const;
-	uchar_t divide(uchar_t v) const;
-	uchar_t modulo(uchar_t v) const;
+	uchar_t add(uchar_t v) const noexcept;
+	uchar_t subtract(uchar_t v) const noexcept;
+	uchar_t multiply(uchar_t v) const noexcept;
+	uchar_t divide(uchar_t v) const noexcept;
+	uchar_t modulo(uchar_t v) const noexcept;
 	
-	int_t compare(uchar_t v) const;
+	int_t compare(uchar_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive short_t {
-	static short_t int8_cast(int8_t value);
-	static short_t int16_cast(int16_t value);
-	static short_t char_cast(char_t value);
+	static short_t int8_cast(int8_t value) noexcept;
+	static short_t int16_cast(int16_t value) noexcept;
+	static short_t char_cast(char_t value) noexcept;
 	
-	short_t implicitCopy() const;
+	short_t implicitCopy() const noexcept;
 	
-	short_t plus() const;
-	short_t minus() const;
+	short_t plus() const noexcept;
+	short_t minus() const noexcept;
 	
-	short_t abs() const;
+	short_t abs() const noexcept;
 
-	short_t add(short_t v) const;
-	short_t subtract(short_t v) const;
-	short_t multiply(short_t v) const;
-	short_t divide(short_t v) const;
-	short_t modulo(short_t v) const;
+	short_t add(short_t v) const noexcept;
+	short_t subtract(short_t v) const noexcept;
+	short_t multiply(short_t v) const noexcept;
+	short_t divide(short_t v) const noexcept;
+	short_t modulo(short_t v) const noexcept;
 	
-	int_t compare(short_t v) const;
+	int_t compare(short_t v) const noexcept;
 }
 
 __primitive ushort_t {
-	static ushort_t uint8_cast(uint8_t value);
-	static ushort_t uint16_cast(uint16_t value);
-	static ushort_t uchar_cast(uchar_t value);
+	static ushort_t uint8_cast(uint8_t value) noexcept;
+	static ushort_t uint16_cast(uint16_t value) noexcept;
+	static ushort_t uchar_cast(uchar_t value) noexcept;
 	
-	ushort_t implicitCopy() const;
+	ushort_t implicitCopy() const noexcept;
 	
-	ushort_t add(ushort_t v) const;
-	ushort_t subtract(ushort_t v) const;
-	ushort_t multiply(ushort_t v) const;
-	ushort_t divide(ushort_t v) const;
-	ushort_t modulo(ushort_t v) const;
+	ushort_t add(ushort_t v) const noexcept;
+	ushort_t subtract(ushort_t v) const noexcept;
+	ushort_t multiply(ushort_t v) const noexcept;
+	ushort_t divide(ushort_t v) const noexcept;
+	ushort_t modulo(ushort_t v) const noexcept;
 	
-	int_t compare(ushort_t v) const;
+	int_t compare(ushort_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive int_t {
-	static int_t unit();
+	static int_t unit() noexcept;
 	
-	static int_t int8_cast(int8_t value);
-	static int_t int16_cast(int16_t value);
-	static int_t char_cast(char_t value);
-	static int_t short_cast(short_t value);
+	static int_t int8_cast(int8_t value) noexcept;
+	static int_t int16_cast(int16_t value) noexcept;
+	static int_t char_cast(char_t value) noexcept;
+	static int_t short_cast(short_t value) noexcept;
 	
-	int_t implicitCopy() const;
+	int_t implicitCopy() const noexcept;
 	
-	int_t plus() const;
-	int_t minus() const;
+	int_t plus() const noexcept;
+	int_t minus() const noexcept;
 	
-	int_t abs() const;
+	int_t abs() const noexcept;
 
-	int_t add(int_t v) const;
-	int_t subtract(int_t v) const;
-	int_t multiply(int_t v) const;
-	int_t divide(int_t v) const;
-	int_t modulo(int_t v) const;
+	int_t add(int_t v) const noexcept;
+	int_t subtract(int_t v) const noexcept;
+	int_t multiply(int_t v) const noexcept;
+	int_t divide(int_t v) const noexcept;
+	int_t modulo(int_t v) const noexcept;
 	
-	int_t compare(int_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(int_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 	
-	size_t toSizeT() const;
+	size_t toSizeT() const noexcept;
 	
-	float_t toFloat() const;
+	float_t toFloat() const noexcept;
 }
 
 __primitive uint_t {
-	static uint_t uint8_cast(uint8_t value);
-	static uint_t uint16_cast(uint16_t value);
-	static uint_t uchar_cast(uchar_t value);
-	static uint_t ushort_cast(ushort_t value);
+	static uint_t uint8_cast(uint8_t value) noexcept;
+	static uint_t uint16_cast(uint16_t value) noexcept;
+	static uint_t uchar_cast(uchar_t value) noexcept;
+	static uint_t ushort_cast(ushort_t value) noexcept;
 	
-	uint_t implicitCopy() const;
+	uint_t implicitCopy() const noexcept;
 	
-	uint_t add(uint_t v) const;
-	uint_t subtract(uint_t v) const;
-	uint_t multiply(uint_t v) const;
-	uint_t divide(uint_t v) const;
-	uint_t modulo(uint_t v) const;
+	uint_t add(uint_t v) const noexcept;
+	uint_t subtract(uint_t v) const noexcept;
+	uint_t multiply(uint_t v) const noexcept;
+	uint_t divide(uint_t v) const noexcept;
+	uint_t modulo(uint_t v) const noexcept;
 	
-	int_t compare(uint_t v) const;
+	int_t compare(uint_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive long_t {
-	static long_t int8_cast(int8_t value);
-	static long_t int16_cast(int16_t value);
-	static long_t int32_cast(int32_t value);
-	static long_t char_cast(char_t value);
-	static long_t short_cast(short_t value);
-	static long_t int_cast(int_t value);
+	static long_t int8_cast(int8_t value) noexcept;
+	static long_t int16_cast(int16_t value) noexcept;
+	static long_t int32_cast(int32_t value) noexcept;
+	static long_t char_cast(char_t value) noexcept;
+	static long_t short_cast(short_t value) noexcept;
+	static long_t int_cast(int_t value) noexcept;
 	
-	long_t implicitCopy() const;
+	long_t implicitCopy() const noexcept;
 	
-	long_t plus() const;
-	long_t minus() const;
+	long_t plus() const noexcept;
+	long_t minus() const noexcept;
 	
-	long_t abs() const;
+	long_t abs() const noexcept;
 
-	long_t add(long_t v) const;
-	long_t subtract(long_t v) const;
-	long_t multiply(long_t v) const;
-	long_t divide(long_t v) const;
-	long_t modulo(long_t v) const;
+	long_t add(long_t v) const noexcept;
+	long_t subtract(long_t v) const noexcept;
+	long_t multiply(long_t v) const noexcept;
+	long_t divide(long_t v) const noexcept;
+	long_t modulo(long_t v) const noexcept;
 	
-	int_t compare(long_t v) const;
+	int_t compare(long_t v) const noexcept;
 }
 
 __primitive ulong_t {
-	static ulong_t uint8_cast(uint8_t value);
-	static ulong_t uint16_cast(uint16_t value);
-	static ulong_t uint32_cast(uint32_t value);
-	static ulong_t uchar_cast(uchar_t value);
-	static ulong_t ushort_cast(ushort_t value);
-	static ulong_t uint_cast(uint_t value);
+	static ulong_t uint8_cast(uint8_t value) noexcept;
+	static ulong_t uint16_cast(uint16_t value) noexcept;
+	static ulong_t uint32_cast(uint32_t value) noexcept;
+	static ulong_t uchar_cast(uchar_t value) noexcept;
+	static ulong_t ushort_cast(ushort_t value) noexcept;
+	static ulong_t uint_cast(uint_t value) noexcept;
 	
-	ulong_t implicitCopy() const;
+	ulong_t implicitCopy() const noexcept;
 	
-	ulong_t add(ulong_t v) const;
-	ulong_t subtract(ulong_t v) const;
-	ulong_t multiply(ulong_t v) const;
-	ulong_t divide(ulong_t v) const;
-	ulong_t modulo(ulong_t v) const;
+	ulong_t add(ulong_t v) const noexcept;
+	ulong_t subtract(ulong_t v) const noexcept;
+	ulong_t multiply(ulong_t v) const noexcept;
+	ulong_t divide(ulong_t v) const noexcept;
+	ulong_t modulo(ulong_t v) const noexcept;
 	
-	int_t compare(ulong_t v) const;
+	int_t compare(ulong_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive longlong_t {
-	static longlong_t int8_cast(int8_t value);
-	static longlong_t int16_cast(int16_t value);
-	static longlong_t int32_cast(int32_t value);
-	static longlong_t int64_cast(int64_t value);
-	static longlong_t char_cast(char_t value);
-	static longlong_t short_cast(short_t value);
-	static longlong_t int_cast(int_t value);
-	static longlong_t long_cast(long_t value);
+	static longlong_t int8_cast(int8_t value) noexcept;
+	static longlong_t int16_cast(int16_t value) noexcept;
+	static longlong_t int32_cast(int32_t value) noexcept;
+	static longlong_t int64_cast(int64_t value) noexcept;
+	static longlong_t char_cast(char_t value) noexcept;
+	static longlong_t short_cast(short_t value) noexcept;
+	static longlong_t int_cast(int_t value) noexcept;
+	static longlong_t long_cast(long_t value) noexcept;
 	
-	longlong_t implicitCopy() const;
+	longlong_t implicitCopy() const noexcept;
 	
-	longlong_t plus() const;
-	longlong_t minus() const;
+	longlong_t plus() const noexcept;
+	longlong_t minus() const noexcept;
 	
-	longlong_t abs() const;
+	longlong_t abs() const noexcept;
 
-	longlong_t add(longlong_t v) const;
-	longlong_t subtract(longlong_t v) const;
-	longlong_t multiply(longlong_t v) const;
-	longlong_t divide(longlong_t v) const;
-	longlong_t modulo(longlong_t v) const;
+	longlong_t add(longlong_t v) const noexcept;
+	longlong_t subtract(longlong_t v) const noexcept;
+	longlong_t multiply(longlong_t v) const noexcept;
+	longlong_t divide(longlong_t v) const noexcept;
+	longlong_t modulo(longlong_t v) const noexcept;
 	
-	int_t compare(longlong_t v) const;
+	int_t compare(longlong_t v) const noexcept;
 }
 
 __primitive ulonglong_t {
-	static ulonglong_t uint8_cast(uint8_t value);
-	static ulonglong_t uint16_cast(uint16_t value);
-	static ulonglong_t uint32_cast(uint32_t value);
-	static ulonglong_t uint64_cast(uint64_t value);
-	static ulonglong_t uchar_cast(uchar_t value);
-	static ulonglong_t ushort_cast(ushort_t value);
-	static ulonglong_t uint_cast(uint_t value);
-	static ulonglong_t ulong_cast(ulong_t value);
+	static ulonglong_t uint8_cast(uint8_t value) noexcept;
+	static ulonglong_t uint16_cast(uint16_t value) noexcept;
+	static ulonglong_t uint32_cast(uint32_t value) noexcept;
+	static ulonglong_t uint64_cast(uint64_t value) noexcept;
+	static ulonglong_t uchar_cast(uchar_t value) noexcept;
+	static ulonglong_t ushort_cast(ushort_t value) noexcept;
+	static ulonglong_t uint_cast(uint_t value) noexcept;
+	static ulonglong_t ulong_cast(ulong_t value) noexcept;
 	
-	ulonglong_t implicitCopy() const;
+	ulonglong_t implicitCopy() const noexcept;
 	
-	ulonglong_t add(ulonglong_t v) const;
-	ulonglong_t subtract(ulonglong_t v) const;
-	ulonglong_t multiply(ulonglong_t v) const;
-	ulonglong_t divide(ulonglong_t v) const;
-	ulonglong_t modulo(ulonglong_t v) const;
+	ulonglong_t add(ulonglong_t v) const noexcept;
+	ulonglong_t subtract(ulonglong_t v) const noexcept;
+	ulonglong_t multiply(ulonglong_t v) const noexcept;
+	ulonglong_t divide(ulonglong_t v) const noexcept;
+	ulonglong_t modulo(ulonglong_t v) const noexcept;
 	
-	int_t compare(ulonglong_t v) const;
+	int_t compare(ulonglong_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 }
 
 __primitive ssize_t {
-	static ssize_t int8_cast(int8_t value);
-	static ssize_t int16_cast(int16_t value);
-	static ssize_t char_cast(char_t value);
-	static ssize_t short_cast(short_t value);
+	static ssize_t int8_cast(int8_t value) noexcept;
+	static ssize_t int16_cast(int16_t value) noexcept;
+	static ssize_t char_cast(char_t value) noexcept;
+	static ssize_t short_cast(short_t value) noexcept;
 	
-	ssize_t implicitCopy() const;
+	ssize_t implicitCopy() const noexcept;
 	
-	ssize_t plus() const;
-	ssize_t minus() const;
+	ssize_t plus() const noexcept;
+	ssize_t minus() const noexcept;
 	
-	ssize_t abs() const;
+	ssize_t abs() const noexcept;
 
-	ssize_t add(ssize_t v) const;
-	ssize_t subtract(ssize_t v) const;
-	ssize_t multiply(ssize_t v) const;
-	ssize_t divide(ssize_t v) const;
-	ssize_t modulo(ssize_t v) const;
+	ssize_t add(ssize_t v) const noexcept;
+	ssize_t subtract(ssize_t v) const noexcept;
+	ssize_t multiply(ssize_t v) const noexcept;
+	ssize_t divide(ssize_t v) const noexcept;
+	ssize_t modulo(ssize_t v) const noexcept;
 	
-	int_t compare(ssize_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(ssize_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 	
-	size_t unsignedValue() const;
+	size_t unsignedValue() const noexcept;
 	
-	longlong_t toLongLong() const;
+	longlong_t toLongLong() const noexcept;
 }
 
 __primitive size_t {
-	static size_t unit();
+	static size_t unit() noexcept;
 	
-	static size_t uint8_cast(uint8_t value);
-	static size_t uint16_cast(uint16_t value);
-	static size_t uchar_cast(uchar_t value);
-	static size_t ushort_cast(ushort_t value);
+	static size_t uint8_cast(uint8_t value) noexcept;
+	static size_t uint16_cast(uint16_t value) noexcept;
+	static size_t uchar_cast(uchar_t value) noexcept;
+	static size_t ushort_cast(ushort_t value) noexcept;
 	
-	size_t implicitCopy() const;
+	size_t implicitCopy() const noexcept;
 	
-	size_t add(size_t v) const;
-	size_t subtract(size_t v) const;
-	size_t multiply(size_t v) const;
-	size_t divide(size_t v) const;
-	size_t modulo(size_t v) const;
+	size_t add(size_t v) const noexcept;
+	size_t subtract(size_t v) const noexcept;
+	size_t multiply(size_t v) const noexcept;
+	size_t divide(size_t v) const noexcept;
+	size_t modulo(size_t v) const noexcept;
 	
-	int_t compare(size_t v) const;
+	int_t compare(size_t v) const noexcept;
 	
-	bool isZero() const;
+	bool isZero() const noexcept;
 	
-	ssize_t signedValue() const;
+	ssize_t signedValue() const noexcept;
 	
-	ulonglong_t toULongLong() const;
+	ulonglong_t toULongLong() const noexcept;
 	
-	float_t toFloat() const;
+	float_t toFloat() const noexcept;
 }
 
 __primitive int8_t {
-	int8_t implicitCopy() const;
+	int8_t implicitCopy() const noexcept;
 	
-	int8_t plus() const;
-	int8_t minus() const;
+	int8_t plus() const noexcept;
+	int8_t minus() const noexcept;
 	
-	int8_t abs() const;
+	int8_t abs() const noexcept;
 
-	int8_t add(int8_t v) const;
-	int8_t subtract(int8_t v) const;
-	int8_t multiply(int8_t v) const;
-	int8_t divide(int8_t v) const;
-	int8_t modulo(int8_t v) const;
+	int8_t add(int8_t v) const noexcept;
+	int8_t subtract(int8_t v) const noexcept;
+	int8_t multiply(int8_t v) const noexcept;
+	int8_t divide(int8_t v) const noexcept;
+	int8_t modulo(int8_t v) const noexcept;
 	
-	int_t compare(int8_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(int8_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 }
 
 __primitive uint8_t {
-	uint8_t implicitCopy() const;
+	uint8_t implicitCopy() const noexcept;
 
-	uint8_t add(uint8_t v) const;
-	uint8_t subtract(uint8_t v) const;
-	uint8_t multiply(uint8_t v) const;
-	uint8_t divide(uint8_t v) const;
-	uint8_t modulo(uint8_t v) const;
+	uint8_t add(uint8_t v) const noexcept;
+	uint8_t subtract(uint8_t v) const noexcept;
+	uint8_t multiply(uint8_t v) const noexcept;
+	uint8_t divide(uint8_t v) const noexcept;
+	uint8_t modulo(uint8_t v) const noexcept;
 	
-	int_t compare(uint8_t v) const;
-	bool isZero() const;
+	int_t compare(uint8_t v) const noexcept;
+	bool isZero() const noexcept;
 }
 
 __primitive int16_t {
-	static int16_t int8_cast(int8_t value);
+	static int16_t int8_cast(int8_t value) noexcept;
 	
-	int16_t implicitCopy() const;
+	int16_t implicitCopy() const noexcept;
 	
-	int16_t plus() const;
-	int16_t minus() const;
+	int16_t plus() const noexcept;
+	int16_t minus() const noexcept;
 	
-	int16_t abs() const;
+	int16_t abs() const noexcept;
 
-	int16_t add(int16_t v) const;
-	int16_t subtract(int16_t v) const;
-	int16_t multiply(int16_t v) const;
-	int16_t divide(int16_t v) const;
-	int16_t modulo(int16_t v) const;
+	int16_t add(int16_t v) const noexcept;
+	int16_t subtract(int16_t v) const noexcept;
+	int16_t multiply(int16_t v) const noexcept;
+	int16_t divide(int16_t v) const noexcept;
+	int16_t modulo(int16_t v) const noexcept;
 	
-	int_t compare(int16_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(int16_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 }
 
 __primitive uint16_t {
-	static uint16_t uint8_cast(uint8_t value);
+	static uint16_t uint8_cast(uint8_t value) noexcept;
 	
-	uint16_t implicitCopy() const;
+	uint16_t implicitCopy() const noexcept;
 
-	uint16_t add(uint16_t v) const;
-	uint16_t subtract(uint16_t v) const;
-	uint16_t multiply(uint16_t v) const;
-	uint16_t divide(uint16_t v) const;
-	uint16_t modulo(uint16_t v) const;
+	uint16_t add(uint16_t v) const noexcept;
+	uint16_t subtract(uint16_t v) const noexcept;
+	uint16_t multiply(uint16_t v) const noexcept;
+	uint16_t divide(uint16_t v) const noexcept;
+	uint16_t modulo(uint16_t v) const noexcept;
 	
-	int_t compare(uint16_t v) const;
-	bool isZero() const;
+	int_t compare(uint16_t v) const noexcept;
+	bool isZero() const noexcept;
 }
 
 __primitive int32_t {
-	static int32_t int8_cast(int8_t value);
-	static int32_t int16_cast(int16_t value);
+	static int32_t int8_cast(int8_t value) noexcept;
+	static int32_t int16_cast(int16_t value) noexcept;
 	
-	int32_t implicitCopy() const;
+	int32_t implicitCopy() const noexcept;
 	
-	int32_t plus() const;
-	int32_t minus() const;
+	int32_t plus() const noexcept;
+	int32_t minus() const noexcept;
 	
-	int32_t abs() const;
+	int32_t abs() const noexcept;
 
-	int32_t add(int32_t v) const;
-	int32_t subtract(int32_t v) const;
-	int32_t multiply(int32_t v) const;
-	int32_t divide(int32_t v) const;
-	int32_t modulo(int32_t v) const;
+	int32_t add(int32_t v) const noexcept;
+	int32_t subtract(int32_t v) const noexcept;
+	int32_t multiply(int32_t v) const noexcept;
+	int32_t divide(int32_t v) const noexcept;
+	int32_t modulo(int32_t v) const noexcept;
 	
-	int_t compare(int32_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(int32_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 }
 
 __primitive uint32_t {
-	static uint32_t uint8_cast(uint8_t value);
-	static uint32_t uint16_cast(uint16_t value);
+	static uint32_t uint8_cast(uint8_t value) noexcept;
+	static uint32_t uint16_cast(uint16_t value) noexcept;
 	
-	uint32_t implicitCopy() const;
+	uint32_t implicitCopy() const noexcept;
 
-	uint32_t add(uint32_t v) const;
-	uint32_t subtract(uint32_t v) const;
-	uint32_t multiply(uint32_t v) const;
-	uint32_t divide(uint32_t v) const;
-	uint32_t modulo(uint32_t v) const;
+	uint32_t add(uint32_t v) const noexcept;
+	uint32_t subtract(uint32_t v) const noexcept;
+	uint32_t multiply(uint32_t v) const noexcept;
+	uint32_t divide(uint32_t v) const noexcept;
+	uint32_t modulo(uint32_t v) const noexcept;
 	
-	int_t compare(uint32_t v) const;
-	bool isZero() const;
+	int_t compare(uint32_t v) const noexcept;
+	bool isZero() const noexcept;
 }
 
 __primitive int64_t {
-	static int64_t int8_cast(int8_t value);
-	static int64_t int16_cast(int16_t value);
-	static int64_t int32_cast(int32_t value);
+	static int64_t int8_cast(int8_t value) noexcept;
+	static int64_t int16_cast(int16_t value) noexcept;
+	static int64_t int32_cast(int32_t value) noexcept;
 	
-	int64_t implicitCopy() const;
+	int64_t implicitCopy() const noexcept;
 	
-	int64_t plus() const;
-	int64_t minus() const;
+	int64_t plus() const noexcept;
+	int64_t minus() const noexcept;
 	
-	int64_t abs() const;
+	int64_t abs() const noexcept;
 
-	int64_t add(int64_t v) const;
-	int64_t subtract(int64_t v) const;
-	int64_t multiply(int64_t v) const;
-	int64_t divide(int64_t v) const;
-	int64_t modulo(int64_t v) const;
+	int64_t add(int64_t v) const noexcept;
+	int64_t subtract(int64_t v) const noexcept;
+	int64_t multiply(int64_t v) const noexcept;
+	int64_t divide(int64_t v) const noexcept;
+	int64_t modulo(int64_t v) const noexcept;
 	
-	int_t compare(int64_t v) const;
-	bool isZero() const;
-	bool isPositive() const;
-	bool isNegative() const;
+	int_t compare(int64_t v) const noexcept;
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
 }
 
 __primitive uint64_t {
-	static uint64_t uint8_cast(uint8_t value);
-	static uint64_t uint16_cast(uint16_t value);
-	static uint64_t uint32_cast(uint32_t value);
+	static uint64_t uint8_cast(uint8_t value) noexcept;
+	static uint64_t uint16_cast(uint16_t value) noexcept;
+	static uint64_t uint32_cast(uint32_t value) noexcept;
 	
-	uint64_t implicitCopy() const;
+	uint64_t implicitCopy() const noexcept;
 
-	uint64_t add(uint64_t v) const;
-	uint64_t subtract(uint64_t v) const;
-	uint64_t multiply(uint64_t v) const;
-	uint64_t divide(uint64_t v) const;
-	uint64_t modulo(uint64_t v) const;
+	uint64_t add(uint64_t v) const noexcept;
+	uint64_t subtract(uint64_t v) const noexcept;
+	uint64_t multiply(uint64_t v) const noexcept;
+	uint64_t divide(uint64_t v) const noexcept;
+	uint64_t modulo(uint64_t v) const noexcept;
 	
-	int_t compare(uint64_t v) const;
-	bool isZero() const;
+	int_t compare(uint64_t v) const noexcept;
+	bool isZero() const noexcept;
 }
 
 __primitive float_t {
-	float_t implicitCopy() const;
+	float_t implicitCopy() const noexcept;
 	
-	float_t plus() const;
-	float_t minus() const;
+	float_t plus() const noexcept;
+	float_t minus() const noexcept;
 
-	float_t abs() const;
+	float_t abs() const noexcept;
 
-	float_t add(float_t v) const;
-	float_t subtract(float_t v) const;
-	float_t multiply(float_t v) const;
-	float_t divide(float_t v) const;
-	float_t modulo(float_t v) const;
+	float_t add(float_t v) const noexcept;
+	float_t subtract(float_t v) const noexcept;
+	float_t multiply(float_t v) const noexcept;
+	float_t divide(float_t v) const noexcept;
+	float_t modulo(float_t v) const noexcept;
 	
-	size_t toSizeT() const;
+	size_t toSizeT() const noexcept;
 	
-	int_t compare(float_t v) const;
+	int_t compare(float_t v) const noexcept;
 }
 
 __primitive double_t {
-	static double_t float_cast(float_t value);
+	static double_t float_cast(float_t value) noexcept;
 	
-	double_t implicitCopy() const;
+	double_t implicitCopy() const noexcept;
 	
-	float_t toFloat() const;
+	float_t toFloat() const noexcept;
 	
-	double_t plus() const;
-	double_t minus() const;
+	double_t plus() const noexcept;
+	double_t minus() const noexcept;
 	
-	double_t abs() const;
+	double_t abs() const noexcept;
 
-	double_t add(double_t v) const;
-	double_t subtract(double_t v) const;
-	double_t multiply(double_t v) const;
-	double_t divide(double_t v) const;
-	double_t modulo(double_t v) const;
+	double_t add(double_t v) const noexcept;
+	double_t subtract(double_t v) const noexcept;
+	double_t multiply(double_t v) const noexcept;
+	double_t divide(double_t v) const noexcept;
+	double_t modulo(double_t v) const noexcept;
 	
-	int_t compare(double_t v) const;
+	int_t compare(double_t v) const noexcept;
 }
 
 __primitive longdouble_t {
-	static longdouble_t float_cast(float_t value);
-	static longdouble_t double_cast(double_t value);
+	static longdouble_t float_cast(float_t value) noexcept;
+	static longdouble_t double_cast(double_t value) noexcept;
 	
-	longdouble_t implicitCopy() const;
+	longdouble_t implicitCopy() const noexcept;
 	
-	longdouble_t plus() const;
-	longdouble_t minus() const;
+	longdouble_t plus() const noexcept;
+	longdouble_t minus() const noexcept;
 	
-	longdouble_t abs() const;
+	longdouble_t abs() const noexcept;
 
-	longdouble_t add(longdouble_t v) const;
-	longdouble_t subtract(longdouble_t v) const;
-	longdouble_t multiply(longdouble_t v) const;
-	longdouble_t divide(longdouble_t v) const;
-	longdouble_t modulo(longdouble_t v) const;
+	longdouble_t add(longdouble_t v) const noexcept;
+	longdouble_t subtract(longdouble_t v) const noexcept;
+	longdouble_t multiply(longdouble_t v) const noexcept;
+	longdouble_t divide(longdouble_t v) const noexcept;
+	longdouble_t modulo(longdouble_t v) const noexcept;
 	
-	int_t compare(longdouble_t v) const;
+	int_t compare(longdouble_t v) const noexcept;
 }
 
 template <typename T>
 __primitive ptr {
-	static ptr<T> Null();
+	static ptr<T> Null() noexcept;
 	
-	ptr<T> implicitCopy() const;
-	
-	// TODO: this should be const-templated once the compiler supports that.
-	lval<T> ptr_lval<T> deref() const;
+	ptr<T> implicitCopy() const noexcept;
 	
 	// TODO: this should be const-templated once the compiler supports that.
-	lval<T> ptr_lval<T> index(size_t index) const;
+	lval<T> ptr_lval<T> deref() const noexcept;
 	
-	int compare(ptr<T> value) const;
+	// TODO: this should be const-templated once the compiler supports that.
+	lval<T> ptr_lval<T> index(size_t index) const noexcept;
+	
+	int compare(ptr<T> value) const noexcept;
 }
 
 template <typename T>
 __primitive ptr_lval {
-	T* address();
-	void assign(T value);
-	T& dissolve() const;
+	T* address() noexcept;
+	void assign(T value) noexcept;
+	T& dissolve() const noexcept;
 }
 
 template <typename T>
 __primitive value_lval {
-	static value_lval<T> Create(T value);
-	T* address();
-	void assign(T value);
-	T& dissolve() const;
-	T move();
+	static value_lval<T> Create(T value) noexcept;
+	T* address() noexcept;
+	void assign(T value) noexcept;
+	T& dissolve() const noexcept;
+	T move() noexcept;
 }
 
 template <typename T>
 __primitive member_lval {
-	static member_lval<T> Create(T value);
-	T* address();
-	void assign(T value);
-	T& dissolve() const;
+	static member_lval<T> Create(T value) noexcept;
+	T* address() noexcept;
+	void assign(T value) noexcept;
+	T& dissolve() const noexcept;
 }
 
 /*
@@ -542,39 +542,39 @@ has been implemented). For now, this stuff is still built-in to the compiler.
 
 template <virtual typename T>
 __primitive ref {
-	ref<T> implicitCopy() const;
-	T implicitDeepCopy() const;
+	ref<T> implicitCopy() const noexcept;
+	T implicitDeepCopy() const noexcept;
 	
 	do (synthesizer) {
 		// Add any methods from the referred-to type
 		// that aren't part of this type.
 		for (auto method: T.dynamic_methods()) {
 			if (synthesizer.has_dynamic_method(method.name())) break;
-			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const;
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const noexcept;
 		}
 	}
 }
 
 __primitive method {
-	typename returnType() const;
-	typename[] paramTypes() const;
+	typename returnType() const noexcept;
+	typename[] paramTypes() const noexcept;
 }
 
 interface None { }
 
 template <virtual typename Constraint_t = None>
 __primitive typename {
-	bool has_static_method(string name) const;
-	method get_static_method(string name) const;
+	bool has_static_method(string name) const noexcept;
+	method get_static_method(string name) const noexcept;
 	
-	bool has_dynamic_method(string name) const;
-	method get_dynamic_method(string name) const;
+	bool has_dynamic_method(string name) const noexcept;
+	method get_dynamic_method(string name) const noexcept;
 	
 	do (synthesizer) {
 		// 'call' calls the default constructor, if any exists.
 		if (!Constraint.has_static_method("default")) break;
-		auto method = Constraint.get_static_method("default") const;
-		synthesizer.add_dynamic_method(method.returnType(), "call", method.argTypes()) const;
+		auto method = Constraint.get_static_method("default") const noexcept;
+		synthesizer.add_dynamic_method(method.returnType(), "call", method.argTypes()) const noexcept;
 	}
 	
 	do (synthesizer) {
@@ -582,34 +582,34 @@ __primitive typename {
 		// name, as methods of this object.
 		for (auto method: Constraint.static_methods()) {
 			if (synthesizer.has_method(method.name())) break;
-			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const;
+			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const noexcept;
 		}
 	}
 }
 
 template <virtual typename Constraint_t = None>
 __primitive virtual_typename {
-	bool has_static_method(string name) const;
-	method get_static_method(string name) const;
+	bool has_static_method(string name) const noexcept;
+	method get_static_method(string name) const noexcept;
 	
-	bool has_dynamic_method(string name) const;
-	method get_dynamic_method(string name) const;
+	bool has_dynamic_method(string name) const noexcept;
+	method get_dynamic_method(string name) const noexcept;
 }
 
 template <typename T, typename Ret, typename[] Param>
 class interface_method(T* objectPtr, void* vtable, uint32_t value) {
 	static Create(T* objectPtr, void* vtable, uint32_t value) {
-		return @(objectPtr, vtable, value) const;
+		return @(objectPtr, vtable, value) const noexcept;
 	}
 	
 	interface_method<T, Ret, Param> implicitCopy() const {
-		return interface_method(@objectPtr, @vtable, @value) const;
+		return interface_method(@objectPtr, @vtable, @value) const noexcept;
 	}
 	
 	Ret call(Param args[]) const {
-		auto vtableArray = static_array<void *>(@vtable) const;
+		auto vtableArray = static_array<void *>(@vtable) const noexcept;
 		auto f = function_ptr<Ret, {T*} + Param>(
-		f(@objectPtr, args) const;
+		f(@objectPtr, args) const noexcept;
 	}
 }*/
 

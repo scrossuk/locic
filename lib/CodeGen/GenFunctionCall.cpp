@@ -32,13 +32,15 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
-				SEM::Type* returnType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+				SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
 			auto& module = function.module();
 			
 			assert(functionValue->getType()->isPointerTy());
 			
-			const auto functionType = functionValue->getType()->getPointerElementType();
-			assert(functionType->isFunctionTy());
+			const auto returnType = functionType->getFunctionReturnType();
+			
+			const auto llvmFunctionType = functionValue->getType()->getPointerElementType();
+			assert(llvmFunctionType->isFunctionTy());
 			
 			std::vector<llvm::Value*> parameters;
 			std::vector<llvm_abi::Type> parameterABITypes;
@@ -68,7 +70,7 @@ namespace locic {
 				// 'short' values must be extended to 'int' values,
 				// and all 'float' values must be converted to 'double'
 				// values.
-				if (functionType->isFunctionVarArg() && param->type()->isPrimitive()) {
+				if (llvmFunctionType->isFunctionVarArg() && param->type()->isPrimitive()) {
 					const auto& typeName = param->type()->getObjectType()->name().last();
 					
 					const auto argType = argValue->getType();
@@ -97,19 +99,25 @@ namespace locic {
 				parameterABITypes.push_back(std::move(argABIType));
 			}
 			
-			const auto successPath = function.createBasicBlock("successPath");
-			const auto failPath = function.createBasicBlock("failPath");
-			
 			const auto encodedParameters = module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
 			
-			const auto encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, encodedParameters), debugLoc);
+			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			// Fail path.
-			function.selectBasicBlock(failPath);
-			genLandingPad(function);
-			
-			// Success path.
-			function.selectBasicBlock(successPath);
+			if (!functionType->isFunctionNoExcept()) {
+				const auto successPath = function.createBasicBlock("successPath");
+				const auto failPath = function.createBasicBlock("failPath");
+				
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, encodedParameters), debugLoc);
+				
+				// Fail path.
+				function.selectBasicBlock(failPath);
+				genLandingPad(function);
+				
+				// Success path.
+				function.selectBasicBlock(successPath);
+			} else {
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionValue, encodedParameters), debugLoc);
+			}
 			
 			if (returnVarValue != nullptr) {
 				// As above, if the return value pointer is used,
