@@ -2,13 +2,17 @@
 
 %{
 
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+#include <stdio.h>
+
 #include <list>
 #include <string>
 #include <vector>
+
 #include <locic/AST.hpp>
 #include <locic/Name.hpp>
+#include <locic/Version.hpp>
+
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Parser/Context.hpp>
 
@@ -84,9 +88,14 @@ const T& GETSYM(T* value) {
 	// Lexer.
 	std::string* lexer_str;
 	locic::Constant* lexer_constant;
+	locic::Version* lexer_version;
 	
 	// Names.
 	std::string* str;
+	locic::AST::Node<std::string>* string;
+	locic::AST::Node<locic::AST::StringList>* stringList;
+	
+	locic::AST::Node<locic::Version>* version;
 	
 	// Signed modifier.
 	locic::AST::Type::SignedModifier signedModifier;
@@ -104,6 +113,7 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::TypeInstanceList>* typeInstanceList;
 	locic::AST::Node<locic::AST::Function>* function;
 	locic::AST::Node<locic::AST::FunctionList>* functionList;
+	locic::AST::Node<locic::AST::ModuleScope>* moduleScope;
 	
 	// Exception initializer.
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
@@ -145,6 +155,7 @@ const T& GETSYM(T* value) {
 
 // ================ Terminals ================
 %token <lexer_str> NAME
+%token <lexer_version> VERSION
 %token <lexer_constant> CONSTANT
 
 %token UNKNOWN
@@ -262,6 +273,11 @@ const T& GETSYM(T* value) {
 %type <nameSpace> rootNamespace
 %type <namespaceData> namespaceData
 %type <nameSpace> nameSpace
+
+%type <string> moduleNameComponent
+%type <stringList> moduleName
+%type <version> moduleVersion
+%type <moduleScope> moduleScope
 
 %type <typeInstance> unionDatatypeEntry
 %type <typeInstanceList> unionDatatypeEntryList
@@ -392,10 +408,60 @@ namespaceData:
 		(GETSYM($1))->namespaces.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
+	| namespaceData moduleScope
+	{
+		(GETSYM($1))->moduleScopes.push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
 	| namespaceData error
 	{
 		parserContext->error("Invalid struct, class, function or other.", LOC(&@2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+moduleNameComponent:
+	NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), $1));
+	}
+	;
+
+moduleName:
+	moduleNameComponent
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::StringList(1, GETSYM($1))));
+	}
+	| moduleName DOT moduleNameComponent
+	{
+		(GETSYM($1))->push_back(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+moduleVersion:
+	VERSION
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), $1));
+	}
+	;
+
+moduleScope:
+	IMPORT LCURLYBRACKET namespaceData RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ModuleScope::Import(GETSYM($3))));
+	}
+	| EXPORT LCURLYBRACKET namespaceData RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ModuleScope::Export(GETSYM($3))));
+	}
+	| IMPORT moduleName moduleVersion LCURLYBRACKET namespaceData RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ModuleScope::NamedImport(GETSYM($2), GETSYM($3), GETSYM($5))));
+	}
+	| EXPORT moduleName moduleVersion LCURLYBRACKET namespaceData RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ModuleScope::NamedExport(GETSYM($2), GETSYM($3), GETSYM($5))));
 	}
 	;
 

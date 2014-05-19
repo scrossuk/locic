@@ -36,7 +36,7 @@ namespace locic {
 			}
 			
 			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), constructTypes);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "create", argVars);
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "create", argVars, typeInstance->moduleScope());
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance) {
@@ -50,7 +50,7 @@ namespace locic {
 			const bool isNoExcept = false;
 			
 			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), {});
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitcopy", {});
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitcopy", {}, typeInstance->moduleScope());
 		}
 		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance) {
@@ -67,7 +67,7 @@ namespace locic {
 			const auto intType = getBuiltInType(context, "int_t")->selfType();
 			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, intType, { selfType });
 			const auto operandVar = SEM::Var::Basic(selfType, selfType);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar });
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar }, typeInstance->moduleScope());
 		}
 		
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {

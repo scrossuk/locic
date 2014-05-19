@@ -13,6 +13,7 @@ namespace locic {
 	namespace SEM {
 	
 		class Function;
+		class ModuleScope;
 		class TemplateVar;
 		class Var;
 		
@@ -30,11 +31,13 @@ namespace locic {
 					TEMPLATETYPE
 				};
 				
-				TypeInstance(const Name& n, Kind k);
-					
+				TypeInstance(const Name& n, Kind k, SEM::ModuleScope* m);
+				
 				const Name& name() const;
 				
 				Kind kind() const;
+				
+				SEM::ModuleScope* moduleScope() const;
 				
 				bool isPrimitive() const;
 				
@@ -109,6 +112,7 @@ namespace locic {
 			private:
 				Name name_;
 				Kind kind_;
+				SEM::ModuleScope* moduleScope_;
 				
 				TypeInstance* parent_;
 				

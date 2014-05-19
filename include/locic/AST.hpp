@@ -5,10 +5,12 @@
 #include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/IfClause.hpp>
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Statement.hpp>
+#include <locic/AST/StringList.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>

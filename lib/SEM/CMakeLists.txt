@@ -2,6 +2,7 @@ add_library(locic-sem
 	CatchClause.cpp
 	Function.cpp
 	IfClause.cpp
+	ModuleScope.cpp
 	Namespace.cpp
 	Scope.cpp
 	Statement.cpp

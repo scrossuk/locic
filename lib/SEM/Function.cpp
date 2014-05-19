@@ -10,21 +10,18 @@ namespace locic {
 	namespace SEM {
 	
 		Function* Function::Decl(bool isMethod, bool isStatic, bool isConst, Type* type,
-				const Name& name, const std::vector<Var*>& parameters) {
-			return new Function(isMethod, isStatic, isConst, type, name, parameters, NULL);
+				const Name& name, const std::vector<Var*>& parameters, ModuleScope* moduleScope) {
+			return new Function(isMethod, isStatic, isConst, type, name, parameters, moduleScope, nullptr);
 		}
 		
-		Function* Function::Def(bool isMethod, bool isStatic, bool isConst, Type* type,
-				const Name& name, const std::vector<Var*>& parameters, Scope* scope) {
-			return new Function(isMethod, isStatic, isConst, type, name, parameters, scope);
-		}
-		
-		Function::Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s)
+		Function::Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, ModuleScope* m, Scope* s)
 			: isMethod_(isM),
 			  isStatic_(isS),
 			  isConst_(isC),
 			  type_(t), name_(n),
-			  parameters_(p), scope_(s) {
+			  parameters_(p),
+			  moduleScope_(m),
+			  scope_(s) {
 			assert(type_ != nullptr);
 		}
 		
@@ -34,6 +31,10 @@ namespace locic {
 		
 		Type* Function::type() const {
 			return type_;
+		}
+		
+		ModuleScope* Function::moduleScope() const {
+			return moduleScope_;
 		}
 		
 		bool Function::isDeclaration() const {
@@ -66,7 +67,7 @@ namespace locic {
 		}
 		
 		Function* Function::createDecl() const {
-			return Decl(isMethod(), isStaticMethod(), isConstMethod(), type(), name(), parameters());
+			return Decl(isMethod(), isStaticMethod(), isConstMethod(), type(), name(), parameters(), moduleScope());
 		}
 		
 		Function* Function::fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const {
@@ -81,13 +82,13 @@ namespace locic {
 			
 			return Decl(isMethod(), isStaticMethod(), isConstMethod(),
 						type()->substitute(templateVarMap),
-						declName, substitutedParam);
+						declName, substitutedParam, moduleScope());
 		}
 		
 		void Function::setScope(Scope* newScope) {
-			assert(scope_ == NULL);
+			assert(scope_ == nullptr);
 			scope_ = newScope;
-			assert(scope_ != NULL);
+			assert(scope_ != nullptr);
 		}
 		
 		std::string Function::toString() const {

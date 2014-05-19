@@ -106,7 +106,7 @@ namespace locic {
 				TypeGenerator(module).getVoidFunctionType(
 					std::vector<llvm::Type*>(1, contextPtrType));
 			
-			const auto linkage = getFunctionLinkage(parent->getObjectType());
+			const auto linkage = getFunctionLinkage(parent->getObjectType(), parent->getObjectType()->moduleScope());
 			
 			const auto llvmFunction =
 				createLLVMFunction(module,

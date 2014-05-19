@@ -59,7 +59,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::ModuleScope* moduleScope) {
 			Node& node = context.node();
 			
 			assert(node.isNamespace());
@@ -83,7 +83,7 @@ namespace locic {
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
 			
 			// Create a placeholder type instance.
-			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind);
+			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind, moduleScope);
 			node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
 			
 			Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
@@ -91,7 +91,7 @@ namespace locic {
 			
 			if (semTypeInstance->isUnionDatatype()) {
 				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode);
+					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
 					variantTypeInstance->setParent(semTypeInstance);
 					semTypeInstance->variants().push_back(variantTypeInstance);
 				}
@@ -110,7 +110,7 @@ namespace locic {
 				
 				// Create placeholder for the template type.
 				const Name specObjectName = fullTypeName + templateVarName + "#spectype";
-				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE);
+				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
 				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 				templateNode.attach("#spectype", Node::TypeInstance(AST::Node<AST::TypeInstance>(), templateVarSpecObject));
 				
@@ -120,41 +120,70 @@ namespace locic {
 			return semTypeInstance;
 		}
 		
+		Name stringListToName(const AST::Node<AST::StringList>& astStringListNode) {
+			Name name = Name::Absolute();
+			for (const auto& stringNode: *astStringListNode) {
+				name = name + *stringNode;
+			}
+			return name;
+		}
+		
+		SEM::ModuleScope* ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode) {
+			if (astModuleScopeNode->kind == AST::ModuleScope::IMPORT) {
+				if (astModuleScopeNode->isNamed) {
+					return SEM::ModuleScope::Import(stringListToName(astModuleScopeNode->moduleName), *(astModuleScopeNode->version));
+				} else {
+					return SEM::ModuleScope::Import(Name::Absolute(), Version(0, 0, 0));
+				}
+			} else {
+				if (astModuleScopeNode->isNamed) {
+					return SEM::ModuleScope::Export(stringListToName(astModuleScopeNode->moduleName), *(astModuleScopeNode->version));
+				} else {
+					return SEM::ModuleScope::Export(Name::Absolute(), Version(0, 0, 0));
+				}
+			}
+		}
+		
+		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
+			Node& node = context.node();
+			
+			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto& childNamespaceName = astChildNamespaceNode->name;
+				Node childNode = node.getChild(childNamespaceName);
+				if (childNode.isNone()) {
+					const auto semChildNamespace = new SEM::Namespace(childNamespaceName);
+					node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
+					childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
+					node.attach(childNamespaceName, childNode);
+				} else {
+					childNode.getASTNamespaceList().push_back(astChildNamespaceNode);
+				}
+				
+				NodeContext childNamespaceContext(context, childNamespaceName, childNode);
+				AddNamespaceData(childNamespaceContext, astChildNamespaceNode->data, moduleScope);
+			}
+			
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				if (moduleScope != nullptr) {
+					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
+						astModuleScopeNode.location().toString().c_str()));
+				}
+				AddNamespaceData(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
+			}
+			
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				(void) AddTypeInstance(context, astTypeInstanceNode, moduleScope);
+			}
+		}
+		
 		// Get all namespaces and type names, and build initial type instance structures.
 		void AddGlobalStructuresPass(Context& context) {
 			Node& node = context.node();
 			
-			if (!node.isNamespace()) return;
-			
-			// Breadth-first: add all the namespaces at this level before going deeper.
-			
 			// Multiple AST namespace trees correspond to one SEM namespace,
 			// so loop through all the AST namespaces.
 			for (auto astNamespaceNode: node.getASTNamespaceList()) {
-				const auto& astNamespaceDataNode = astNamespaceNode->data;
-				
-				for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-					const std::string& childNamespaceName = astChildNamespaceNode->name;
-					Node existingChildNode = node.getChild(childNamespaceName);
-					if (existingChildNode.isNone()) {
-						const auto semChildNamespace = new SEM::Namespace(childNamespaceName);
-						node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
-						const Node childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
-						node.attach(childNamespaceName, childNode);
-					} else {
-						existingChildNode.getASTNamespaceList().push_back(astChildNamespaceNode);
-					}
-				}
-				
-				for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-					(void) AddTypeInstance(context, astTypeInstanceNode);
-				}
-			}
-			
-			// This level is complete; now go to the deeper levels.
-			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	NodeContext childNamespaceContext(context, range.front().key(), range.front().value());
-				AddGlobalStructuresPass(childNamespaceContext);
+				AddNamespaceData(context, astNamespaceNode->data, nullptr);
 			}
 		}
 		
@@ -228,7 +257,7 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			auto& node = context.node();
 			
 			assert(node.isNamespace() || node.isTypeInstance());
@@ -249,6 +278,28 @@ namespace locic {
 			
 			assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
 			
+			if (fullName.size() == 1 && fullName.at(0) == "main") {
+				// Main function is always exported.
+				moduleScope = SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
+			}
+			
+			if (moduleScope == nullptr) {
+				if (!(node.isTypeInstance() && node.getSEMTypeInstance()->isPrimitive()) && astFunctionNode->isDeclaration()) {
+					// Treat declaration-only internal functions as imported.
+					moduleScope = SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
+				}
+			} else if (moduleScope->isImport()) {
+				if (!astFunctionNode->isDeclaration()) {
+					throw ErrorException(makeString("Implementation not allowed of imported function '%s', at location %s.",
+						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+				}
+			} else if (moduleScope->isExport()) {
+				if (astFunctionNode->isDeclaration()) {
+					throw ErrorException(makeString("Definition required for exported function '%s', at location %s.",
+						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+				}
+			}
+			
 			if (astFunctionNode->isDefaultDefinition()) {
 				assert(node.isTypeInstance());
 				
@@ -267,7 +318,7 @@ namespace locic {
 				return;
 			}
 			
-			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode);
+			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope);
 			
 			auto functionNode = Node::Function(astFunctionNode, semFunction);
 			
@@ -304,27 +355,34 @@ namespace locic {
 			}
 		}
 		
+		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
+			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+				AddFunctionDecl(context, astFunctionNode, moduleScope);
+			}
+			
+			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				assert(moduleScope == nullptr);
+				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
+			}
+			
+			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+				NodeContext childContext(context, astNamespaceNode->name, context.node().getChild(astNamespaceNode->name));
+				AddNamespaceDataFunctionDecls(childContext, astNamespaceNode->data, moduleScope);
+			}
+			
+			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				NodeContext childContext(context, astTypeInstanceNode->name, context.node().getChild(astTypeInstanceNode->name));
+				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
+					AddFunctionDecl(childContext, astFunctionNode, moduleScope);
+				}
+			}
+		}
+		
 		void AddFunctionDeclsPass(Context& context) {
 			Node& node = context.node();
 			
-			if (node.isNamespace()) {
-				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		NodeContext newContext(context, range.front().key(), range.front().value());
-					AddFunctionDeclsPass(newContext);
-				}
-				
-				for (auto astNamespaceNode: node.getASTNamespaceList()) {
-					for (auto astFunctionNode: astNamespaceNode->data->functions) {
-						AddFunctionDecl(context, astFunctionNode);
-					}
-				}
-			} else if (node.isTypeInstance()) {
-				const auto& astTypeInstanceNode = node.getASTTypeInstance();
-				assert(node.getSEMTypeInstance()->functions().empty());
-				
-				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
-					AddFunctionDecl(context, astFunctionNode);
-				}
+			for (auto astNamespaceNode: node.getASTNamespaceList()) {
+				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, nullptr);
 			}
 		}
 		

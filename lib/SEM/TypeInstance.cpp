@@ -6,6 +6,7 @@
 #include <locic/String.hpp>
 
 #include <locic/SEM/Function.hpp>
+#include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -15,8 +16,8 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(const Name& n, Kind k)
-			: name_(n), kind_(k), parent_(nullptr) { }
+		TypeInstance::TypeInstance(const Name& n, Kind k, ModuleScope* m)
+			: name_(n), kind_(k), moduleScope_(m), parent_(nullptr) { }
 			
 		const Name& TypeInstance::name() const {
 			return name_;
@@ -24,6 +25,10 @@ namespace locic {
 		
 		TypeInstance::Kind TypeInstance::kind() const {
 			return kind_;
+		}
+		
+		SEM::ModuleScope* TypeInstance::moduleScope() const {
+			return moduleScope_;
 		}
 		
 		bool TypeInstance::isPrimitive() const {

@@ -13,6 +13,7 @@ namespace locic {
 
 	namespace SEM {
 	
+		class ModuleScope;
 		class Scope;
 		class TemplateVar;
 		class Type;
@@ -21,14 +22,13 @@ namespace locic {
 		class Function {
 			public:
 				static Function* Decl(bool isMethod, bool isStatic, bool isConst, Type* type,
-					const Name& name, const std::vector<Var*>& parameters);
-				
-				static Function* Def(bool isMethod, bool isStatic, bool isConst, Type* type,
-					const Name& name, const std::vector<Var*>& parameters, Scope* scope);
+					const Name& name, const std::vector<Var*>& parameters, ModuleScope* moduleScope);
 				
 				const Name& name() const;
 				
 				Type* type() const;
+				
+				ModuleScope* moduleScope() const;
 				
 				bool isDeclaration() const;
 				
@@ -53,12 +53,13 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, Scope* s);
+				Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, ModuleScope* m, Scope* s);
 				
 				bool isMethod_, isStatic_, isConst_;
 				Type* type_;
 				Name name_;
 				std::vector<Var*> parameters_;
+				ModuleScope* moduleScope_;
 				Scope* scope_;
 				
 		};

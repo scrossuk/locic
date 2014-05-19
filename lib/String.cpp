@@ -1,7 +1,10 @@
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
+
 #include <string>
 #include <vector>
+
 #include <locic/String.hpp>
 
 namespace locic {
@@ -123,6 +126,29 @@ namespace locic {
 		}
 		
 		return resultString;
+	}
+	
+	std::vector<std::string> splitString(const std::string& str, const std::string& separator) {
+		std::vector<std::string> stringComponents;
+		
+		size_t currentPosition = 0;
+		while (true) {
+			const size_t matchPosition = str.find_first_of(separator, currentPosition);
+			if (matchPosition == std::string::npos) {
+				if (currentPosition != str.size()) {
+					stringComponents.push_back(str.substr(currentPosition, str.size() - currentPosition));
+				}
+				break;
+			}
+			
+			assert(currentPosition <= matchPosition);
+			if (currentPosition != matchPosition) {
+				stringComponents.push_back(str.substr(currentPosition, matchPosition - currentPosition));
+			}
+			currentPosition = matchPosition + separator.size();
+		}
+		
+		return stringComponents;
 	}
 	
 }

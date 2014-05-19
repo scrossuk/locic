@@ -1,7 +1,9 @@
 %{
 
 #include <string>
+
 #include <locic/AST.hpp>
+#include <locic/Version.hpp>
 #include <locic/Parser/Context.hpp>
 
 #include "Lexer.hpp"
@@ -127,6 +129,8 @@ true                    { yylval->lexer_constant = locic::Constant::True(); retu
 false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
 [0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }
 [0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(atof(yytext)); return CONSTANT; }
+
+[0-9]+\.[0-9]+.[0-9]+   { yylval->lexer_version = new locic::Version(locic::Version::FromString(yytext)); return VERSION; }
 
 "_"                     { return UNDERSCORE; }
 

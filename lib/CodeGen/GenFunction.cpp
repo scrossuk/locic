@@ -20,8 +20,12 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* parentType) {
-			if (parentType == NULL) {
+		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* parentType, SEM::ModuleScope* moduleScope) {
+			if (moduleScope == nullptr) {
+				return llvm::Function::LinkOnceODRLinkage;
+			}
+			
+			if (parentType == nullptr) {
 				return llvm::Function::ExternalLinkage;
 			}
 			
@@ -129,9 +133,9 @@ namespace locic {
 			const auto functionType = genFunctionType(module, function->type(), contextPtrType);
 			
 			const auto linkage = getFunctionLinkage(
-				parent != NULL ?
+				parent != nullptr ?
 					parent->getObjectType() :
-					NULL);
+					nullptr, function->moduleScope());
 			
 			const auto llvmFunction =
 				createLLVMFunction(module,

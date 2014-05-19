@@ -25,5 +25,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c
 add_library(locic-support
 	BuiltInTypes.loci.c
 	String.cpp
+	Version.cpp
 	)
 

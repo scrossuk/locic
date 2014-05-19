@@ -70,6 +70,8 @@ namespace locic{
 	std::string escapeString(const std::string& string);
 	
 	std::string formatMessage(const std::string& message);
+	
+	std::vector<std::string> splitString(const std::string& str, const std::string& separator);
 
 }
 

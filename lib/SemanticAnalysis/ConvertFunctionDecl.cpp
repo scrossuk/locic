@@ -13,7 +13,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
 			SEM::Type* semReturnType = NULL;
@@ -77,7 +77,7 @@ namespace locic {
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), astFunctionNode->isNoExcept(), semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(astFunctionNode->isMethod(), astFunctionNode->isStaticMethod(),
-				astFunctionNode->isConstMethod(), functionType, fullName, parameterVars);
+				astFunctionNode->isConstMethod(), functionType, fullName, parameterVars, moduleScope);
 		}
 		
 	}
