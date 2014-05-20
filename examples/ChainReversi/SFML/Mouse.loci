@@ -1,8 +1,12 @@
 // SFML Mouse.
 
-uint8_t sfMouse_isButtonPressed(int button);
-
-sfVector2i sfMouse_getPosition(const sfRenderWindow* const relativeTo);
+import {
+	
+	uint8_t sfMouse_isButtonPressed(int button);
+	
+	sfVector2i sfMouse_getPosition(const sfRenderWindow* const relativeTo);
+	
+}
 
 namespace sf {
 	

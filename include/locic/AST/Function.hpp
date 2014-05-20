@@ -42,12 +42,17 @@ namespace locic {
 				
 				bool isVarArg() const;
 				bool isNoExcept() const;
+				bool isImported() const;
+				bool isExported() const;
 				
 				const std::string& name() const;
 				
 				const Node<Type>& returnType() const;
 				const Node<TypeVarList>& parameters() const;
 				const Node<Scope>& scope() const;
+				
+				void setImport();
+				void setExport();
 				
 				std::string toString() const;
 				
@@ -56,7 +61,7 @@ namespace locic {
 				
 				bool isDefinition_, isDefaultDefinition_, isVarArg_;
 				bool isMethod_, isConstMethod_, isStaticMethod_;
-				bool isNoExcept_;
+				bool isNoExcept_, isImported_, isExported_;
 				
 				std::string name_;
 				

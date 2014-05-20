@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...) noexcept;
+import void testPrint(const char * const str, ...) noexcept;
 
 // Class definition.
 class TestClass(int value) {
@@ -15,7 +15,7 @@ class TestClass(int value) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	auto testInstance1 = TestClass(1);
 	auto testInstance2 = TestClass(2);
 	

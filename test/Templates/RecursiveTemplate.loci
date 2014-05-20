@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 interface Printable {
 	void print();
@@ -103,7 +103,7 @@ class OuterClass(T& valueRef, MiddleClass<T> value) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	TestClass testObject = TestClass(1900);
 	OuterClass<TestClass> object = OuterClass<TestClass>(testObject);
 	object.print();

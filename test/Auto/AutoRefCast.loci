@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 class TestClass (int value) {
 	static Create(int value) {
@@ -32,7 +32,7 @@ TestClass& function(TestClass& object) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	auto inst = TestClass(44);
 	
 	testPrint(C"testEntryPoint: Value = %d.", inst.getValue());

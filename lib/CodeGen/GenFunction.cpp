@@ -22,7 +22,7 @@ namespace locic {
 	
 		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* parentType, SEM::ModuleScope* moduleScope) {
 			if (moduleScope == nullptr) {
-				return llvm::Function::LinkOnceODRLinkage;
+				return llvm::Function::PrivateLinkage;
 			}
 			
 			if (parentType == nullptr) {

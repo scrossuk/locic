@@ -393,9 +393,21 @@ namespaceData:
 		(GETSYM($1))->functions.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
+	| namespaceData IMPORT functionDecl
+	{
+		(GETSYM($1))->functions.push_back(GETSYM($3));
+		GETSYM($3)->setImport();
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
 	| namespaceData functionDef
 	{
 		(GETSYM($1))->functions.push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	| namespaceData EXPORT functionDef
+	{
+		(GETSYM($1))->functions.push_back(GETSYM($3));
+		GETSYM($3)->setExport();
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData typeInstance
@@ -514,7 +526,7 @@ noexceptSpecifier:
 		$$ = true;
 	}
 	;
-	
+
 functionDecl:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET noexceptSpecifier SEMICOLON
 	{
@@ -539,7 +551,7 @@ functionDecl:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, false, GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	;
-	
+
 functionDef:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET noexceptSpecifier scope
 	{

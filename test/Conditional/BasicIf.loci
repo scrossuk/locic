@@ -1,8 +1,8 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	int i = 321;
 	
 	testPrint(C"testEntryPoint: START");

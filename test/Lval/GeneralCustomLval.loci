@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 interface serializable {
 	const char * const toCString();
@@ -87,7 +87,7 @@ void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	lval<TestClass> custom_lval<TestClass> value = lval<TestClass>(custom_lval<TestClass>(TestClass(2, 2)));
 	
 	testPrint(C"testEntryPoint: Value = %s", value.toCString());

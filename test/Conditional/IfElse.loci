@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 int testVal(int value) {
 	if (value > 10) {
@@ -10,7 +10,7 @@ int testVal(int value) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	int i = 8;
 	
 	testPrint(C"testEntryPoint: START");

@@ -150,6 +150,7 @@ namespace locic {
 			isDefinition_(false), isDefaultDefinition_(false),
 			isMethod_(false), isConstMethod_(false),
 			isStaticMethod_(false), isNoExcept_(false),
+			isImported_(false), isExported_(false),
 			name_(pName) { }
 		
 		bool Function::isDeclaration() const {
@@ -184,6 +185,14 @@ namespace locic {
 			return isNoExcept_;
 		}
 		
+		bool Function::isImported() const {
+			return isImported_;
+		}
+		
+		bool Function::isExported() const {
+			return isExported_;
+		}
+		
 		const std::string& Function::name() const {
 			return name_;
 		}
@@ -201,6 +210,14 @@ namespace locic {
 		const Node<Scope>& Function::scope() const {
 			assert(isDefinition() && !isDefaultDefinition());
 			return scope_;
+		}
+		
+		void Function::setImport() {
+			isImported_ = true;
+		}
+		
+		void Function::setExport() {
+			isExported_ = true;
 		}
 		
 		std::string Function::toString() const {

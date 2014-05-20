@@ -278,15 +278,16 @@ namespace locic {
 			
 			assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
 			
-			if (fullName.size() == 1 && fullName.at(0) == "main") {
-				// Main function is always exported.
+			if (astFunctionNode->isImported()) {
+				moduleScope = SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
+			} else if (astFunctionNode->isExported()) {
 				moduleScope = SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
 			}
 			
 			if (moduleScope == nullptr) {
-				if (!(node.isTypeInstance() && node.getSEMTypeInstance()->isPrimitive()) && astFunctionNode->isDeclaration()) {
-					// Treat declaration-only internal functions as imported.
-					moduleScope = SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
+				if (!(node.isTypeInstance() && (node.getSEMTypeInstance()->isPrimitive() || node.getSEMTypeInstance()->isInterface())) && astFunctionNode->isDeclaration()) {
+					throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
+						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 				}
 			} else if (moduleScope->isImport()) {
 				if (!astFunctionNode->isDeclaration()) {

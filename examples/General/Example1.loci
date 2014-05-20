@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-void printf(const char * const str, ...) noexcept;
+import void printf(const char * const str, ...) noexcept;
 
 class TestClass2(int i){
 	static Create = default;
@@ -166,8 +166,8 @@ void datatypeDemo() {
 
 // datatype Tree = Node(Tree* left, Tree* right) | Leaf(int value);
 
-void* malloc(size_t size) noexcept;
-void free(void* ptr) noexcept;
+import void* malloc(size_t size) noexcept;
+import void free(void* ptr) noexcept;
 
 template <typename T>
 interface Copyable {
@@ -214,7 +214,7 @@ Memory<int> createMemory() {
 	return move m;
 }
 
-int main(int argc, char ** argv){
+export int main(int argc, char ** argv){
 	if(argc < 2){
 		printf(C"Give me at least one argument...\n");
 		return 1;

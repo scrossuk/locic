@@ -2,25 +2,29 @@
 // yet support opaque types.
 struct sfClock { };
 
-sfClock* sfClock_create();
-
-sfClock* sfClock_copy(const sfClock* const clock);
-
-void sfClock_destroy(sfClock* clock) noexcept;
-
-sfTime sfClock_getElapsedTime(const sfClock* const clock);
-
-sfTime sfClock_restart(sfClock* clock);
-
-struct sfTime {
-    int64_t microseconds;
-};
-
-float sfTime_asSeconds(sfTime time);
-
-int32_t sfTime_asMilliseconds(sfTime time);
-
-int64_t sfTime_asMicroseconds(sfTime time);
+import {
+	
+	sfClock* sfClock_create();
+	
+	sfClock* sfClock_copy(const sfClock* const clock);
+	
+	void sfClock_destroy(sfClock* clock) noexcept;
+	
+	sfTime sfClock_getElapsedTime(const sfClock* const clock);
+	
+	sfTime sfClock_restart(sfClock* clock);
+	
+	struct sfTime {
+		int64_t microseconds;
+	};
+	
+	float sfTime_asSeconds(sfTime time);
+	
+	int32_t sfTime_asMilliseconds(sfTime time);
+	
+	int64_t sfTime_asMicroseconds(sfTime time);
+	
+}
 
 namespace sf {
 	

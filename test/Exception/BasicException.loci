@@ -1,10 +1,10 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 exception ExampleError(int value);
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	try {
 		throw ExampleError(1024);
 	} catch (ExampleError error) {

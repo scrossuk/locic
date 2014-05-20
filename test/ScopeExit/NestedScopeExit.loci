@@ -1,8 +1,8 @@
 // Test output.
-void testPrint(const char * const str, ...) noexcept;
+import void testPrint(const char * const str, ...) noexcept;
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	scope (exit) {
 		scope (exit) {
 			scope (exit) {

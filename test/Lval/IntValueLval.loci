@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 void assignFunction(lval<int> value_lval<int>& objectLval, int value) {
 	testPrint(C"assignFunction: Previous value = %d", objectLval);
@@ -15,7 +15,7 @@ void moveFunction(lval<int> value_lval<int>& objectLval) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	int value = 4;
 	
 	testPrint(C"testEntryPoint: Value = %d", value);

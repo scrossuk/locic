@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 class TestClass (int first, int second) {
 	static Create(int first, int second) {
@@ -53,7 +53,7 @@ void polymorphicPrintBoth(TestInterfaceBoth& object) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	auto testInstance = TestClass(5, 6);
 	
 	polymorphicPrintBoth(testInstance);

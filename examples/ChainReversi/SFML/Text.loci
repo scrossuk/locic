@@ -2,29 +2,33 @@
 // yet support opaque types.
 struct sfText { };
 
-sfText* sfText_create();
-
-sfText* sfText_copy(const sfText* const text);
-
-void sfText_destroy(sfText* text) noexcept;
-
-void sfText_setPosition(sfText* text, sfVector2f position);
-
-void sfText_setRotation(sfText* text, float angle);
-
-void sfText_setColor(sfText* text, sfColor color);
-
-void sfText_setCharacterSize(sfText* text, unsigned int size);
-
-void sfText_setString(sfText* text, const char* const string);
-
-void sfText_setOrigin(sfText* text, sfVector2f position);
-
-void sfText_setFont(sfText* text, const sfFont* const font);
-
-sfFloatRect sfText_getLocalBounds(const sfText* const text);
-
-sfFloatRect sfText_getGlobalBounds(const sfText* const text);
+import {
+	
+	sfText* sfText_create();
+	
+	sfText* sfText_copy(const sfText* const text);
+	
+	void sfText_destroy(sfText* text) noexcept;
+	
+	void sfText_setPosition(sfText* text, sfVector2f position);
+	
+	void sfText_setRotation(sfText* text, float angle);
+	
+	void sfText_setColor(sfText* text, sfColor color);
+	
+	void sfText_setCharacterSize(sfText* text, unsigned int size);
+	
+	void sfText_setString(sfText* text, const char* const string);
+	
+	void sfText_setOrigin(sfText* text, sfVector2f position);
+	
+	void sfText_setFont(sfText* text, const sfFont* const font);
+	
+	sfFloatRect sfText_getLocalBounds(const sfText* const text);
+	
+	sfFloatRect sfText_getGlobalBounds(const sfText* const text);
+	
+}
 
 namespace sf {
 	

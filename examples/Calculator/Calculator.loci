@@ -1,15 +1,15 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-void printf(const char * const str, ...);
+import void printf(const char * const str, ...);
 
-int atoi(const char * const str);
-int strcmp(const char * const s1, const char * const s2);
+import int atoi(const char * const str);
+import int strcmp(const char * const s1, const char * const s2);
 
 bool isStrEqual(const char * const s1, const char * const s2) {
 	return strcmp(s1, s2) == 0;
 }
 
-int main(int argc, char ** argv){
+export int main(int argc, char ** argv) {
 	printf(C"* Welcome to Calculator! *\n");
 	
 	const char * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";

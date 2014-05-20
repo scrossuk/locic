@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 struct StructType2 {
 	int var1;
@@ -30,7 +30,7 @@ class TestClass(OtherClass value) {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	StructType1 structType = StructType1(1, StructType2(2, 3));
 	testPrint(C"StructType1(%d, StructType2(%d, %d))", structType.var1, structType.var2.var1, structType.var2.var2);
 	

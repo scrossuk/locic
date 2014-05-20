@@ -4,35 +4,39 @@ struct sfContextSettings { };
 struct sfRenderWindow { };
 struct sfRenderStates { };
 
-sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
-
-void sfRenderWindow_destroy(sfRenderWindow* renderWindow) noexcept;
-
-void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
-
-sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow);
-
-void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
-
-void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view);
-
-const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow);
-
-sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view);
-
-void sfRenderWindow_display(sfRenderWindow* renderWindow);
-
-void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
-
-void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states);
-
-void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states);
-
-uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
-
-uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
-
-void sfWindow_close(sfRenderWindow* window);
+import {
+	
+	sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
+	
+	void sfRenderWindow_destroy(sfRenderWindow* renderWindow) noexcept;
+	
+	void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
+	
+	sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow);
+	
+	void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
+	
+	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view);
+	
+	const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow);
+	
+	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view);
+	
+	void sfRenderWindow_display(sfRenderWindow* renderWindow);
+	
+	void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
+	
+	void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states);
+	
+	void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states);
+	
+	uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
+	
+	uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
+	
+	void sfWindow_close(sfRenderWindow* window);
+	
+}
 
 namespace sf {
 	

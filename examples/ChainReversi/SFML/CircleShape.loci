@@ -2,23 +2,29 @@
 // yet support opaque types.
 struct sfCircleShape { };
 
-sfCircleShape* sfCircleShape_create();
+import {
+	
+	sfCircleShape* sfCircleShape_create();
+	
+	sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
+	
+	void sfCircleShape_destroy(sfCircleShape* shape) noexcept;
+	
+	void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
+	
+	void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
+	
+	void sfCircleShape_setRotation(sfCircleShape* shape, float angle);
+	
+	void sfCircleShape_setScale(sfCircleShape* shape, sfVector2f scale);
+	
+	void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color);
+	
+	void sfCircleShape_setRadius(sfCircleShape* shape, float radius);
+	
+}
 
-sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
-
-void sfCircleShape_destroy(sfCircleShape* shape) noexcept;
-
-void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
-
-void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
-
-void sfCircleShape_setRotation(sfCircleShape* shape, float angle);
-
-void sfCircleShape_setScale(sfCircleShape* shape, sfVector2f scale);
-
-void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color);
-
-void sfCircleShape_setRadius(sfCircleShape* shape, float radius);
+export {
 
 namespace sf {
 	
@@ -65,6 +71,8 @@ namespace sf {
 		
 	}
 	
+}
+
 }
 
 

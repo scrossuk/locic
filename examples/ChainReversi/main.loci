@@ -1,10 +1,10 @@
 // Program entry point.
 
-int rand();
+import int rand();
 
-int strcmp(const char* const first, const char* const second);
+import int strcmp(const char* const first, const char* const second);
 
-void printf(const char* text, ...);
+import void printf(const char* text, ...);
 
 double Random(){
 	// Not a great random number generator...
@@ -206,7 +206,7 @@ CR::Player& getPlayer(const char* const playerString, CR::AIPlayer& aiPlayer, CR
 }
 
 // Entry point.
-int main(int argc, char ** argv) {
+export int main(int argc, char ** argv) {
 	const char * const usage = C"chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
 	
 	if (argc != 3) {

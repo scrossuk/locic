@@ -2,13 +2,17 @@
 // yet support opaque types.
 struct sfView { };
 
-sfView* sfView_create();
-
-sfView* sfView_createFromRect(sfFloatRect rectangle);
-
-sfView* sfView_copy(const sfView* const view);
-
-void sfView_destroy(sfView* view) noexcept;
+import {
+	
+	sfView* sfView_create();
+	
+	sfView* sfView_createFromRect(sfFloatRect rectangle);
+	
+	sfView* sfView_copy(const sfView* const view);
+	
+	void sfView_destroy(sfView* view) noexcept;
+	
+}
 
 namespace sf {
 	

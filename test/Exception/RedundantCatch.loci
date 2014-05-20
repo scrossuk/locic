@@ -1,5 +1,5 @@
 // Test output.
-void testPrint(const char * const str, ...);
+import void testPrint(const char * const str, ...);
 
 exception ExampleError(int value);
 
@@ -38,7 +38,7 @@ void throwFunction2() {
 }
 
 // Entry point.
-int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, char ** argv) {
 	throwFunction2();
 	return 0;
 }
