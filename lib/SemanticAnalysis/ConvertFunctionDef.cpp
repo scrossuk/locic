@@ -13,19 +13,16 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertFunctionDef(Context& context) {
-			const auto& functionNode = context.node();
-			
-			const auto& astFunctionNode = functionNode.getASTFunction();
-			const auto semFunction = functionNode.getSEMFunction();
+		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+			const auto semFunction = context.scopeStack().back().function();
 			
 			// Function should currently be a declaration
 			// (it is about to be made into a definition).
 			assert(semFunction->isDeclaration());
 			
-			if (astFunctionNode.isNull() || astFunctionNode->isDefaultDefinition()) {
+			if (astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
-				CreateDefaultMethod(context, lookupParentType(context).getSEMTypeInstance(), semFunction, astFunctionNode.location());
+				CreateDefaultMethod(context, lookupParentType(context.scopeStack()), semFunction, astFunctionNode.location());
 				return;
 			}
 			
@@ -43,7 +40,7 @@ namespace locic {
 			if (!returnType->isVoid()) {
 				// Functions with non-void return types must return a value.
 				if (!WillScopeReturn(*semScope)) {
-					throw MissingReturnStatementException(context.name());
+					throw MissingReturnStatementException(semFunction->name());
 				}
 			} else {
 				// Need to add a void return statement in case the program didn't.

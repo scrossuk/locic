@@ -103,6 +103,14 @@ namespace locic {
 			return templateVariables_;
 		}
 		
+		std::map<std::string, TemplateVar*>& TypeInstance::namedTemplateVariables() {
+			return namedTemplateVariables_;
+		}
+		
+		const std::map<std::string, TemplateVar*>& TypeInstance::namedTemplateVariables() const {
+			return namedTemplateVariables_;
+		}
+		
 		std::vector<TypeInstance*>& TypeInstance::variants() {
 			return variants_;
 		}

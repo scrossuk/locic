@@ -60,34 +60,30 @@ namespace locic {
 		}
 		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::ModuleScope* moduleScope) {
-			Node& node = context.node();
-			
-			assert(node.isNamespace());
+			const auto parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& typeInstanceName = astTypeInstanceNode->name;
 			
-			const Name fullTypeName = context.name() + typeInstanceName;
+			const Name fullTypeName = parentNamespace->name() + typeInstanceName;
 			
 			// Check if there's anything with the same name.
-			Node existingNode = node.getChild(typeInstanceName);
-			if (existingNode.isTypeInstance()) {
-				throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
-			} else if (existingNode.isNamespace()) {
-				throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE, fullTypeName);
+			const auto iterator = parentNamespace->items().find(typeInstanceName);
+			if (iterator != parentNamespace->items().end()) {
+				if (iterator->second.isTypeInstance()) {
+					throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
+				} else if (iterator->second.isNamespace()) {
+					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE, fullTypeName);
+				}
+				assert(false &&
+					"Functions shouldn't be added at this point, so anything "
+					"that isn't a namespace or a type instance should be 'none'.");
 			}
-			
-			assert(existingNode.isNone() &&
-				"Functions shouldn't be added at this point, so anything "
-				"that isn't a namespace or a type instance should be 'none'.");
 			
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
 			
 			// Create a placeholder type instance.
 			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind, moduleScope);
-			node.getSEMNamespace()->typeInstances().push_back(semTypeInstance);
-			
-			Node typeInstanceNode = Node::TypeInstance(astTypeInstanceNode, semTypeInstance);
-			node.attach(typeInstanceName, typeInstanceNode);
+			parentNamespace->items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(semTypeInstance)));
 			
 			if (semTypeInstance->isUnionDatatype()) {
 				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
@@ -102,9 +98,8 @@ namespace locic {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind));
 				
-				Node templateNode = Node::TemplateVar(astTemplateVarNode, semTemplateVar);
-				
-				if (!typeInstanceNode.tryAttach(templateVarName, templateNode)) {
+				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
+				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {
 					throw TemplateVariableClashException(fullTypeName, templateVarName);
 				}
 				
@@ -112,9 +107,9 @@ namespace locic {
 				const Name specObjectName = fullTypeName + templateVarName + "#spectype";
 				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
 				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
-				templateNode.attach("#spectype", Node::TypeInstance(AST::Node<AST::TypeInstance>(), templateVarSpecObject));
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
+				semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 			}
 			
 			return semTypeInstance;
@@ -145,22 +140,23 @@ namespace locic {
 		}
 		
 		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
-			Node& node = context.node();
+			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				const auto& childNamespaceName = astChildNamespaceNode->name;
-				Node childNode = node.getChild(childNamespaceName);
-				if (childNode.isNone()) {
-					const auto semChildNamespace = new SEM::Namespace(childNamespaceName);
-					node.getSEMNamespace()->namespaces().push_back(semChildNamespace);
-					childNode = Node::Namespace(AST::NamespaceList(1, astChildNamespaceNode), semChildNamespace);
-					node.attach(childNamespaceName, childNode);
+				
+				SEM::Namespace* semChildNamespace = nullptr;
+				
+				const auto iterator = semNamespace->items().find(childNamespaceName);
+				if (iterator == semNamespace->items().end()) {
+					semChildNamespace = new SEM::Namespace(semNamespace->name() + childNamespaceName);
+					semNamespace->items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(semChildNamespace)));
 				} else {
-					childNode.getASTNamespaceList().push_back(astChildNamespaceNode);
+					semChildNamespace = iterator->second.nameSpace();
 				}
 				
-				NodeContext childNamespaceContext(context, childNamespaceName, childNode);
-				AddNamespaceData(childNamespaceContext, astChildNamespaceNode->data, moduleScope);
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				AddNamespaceData(context, astChildNamespaceNode->data, moduleScope);
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -177,72 +173,86 @@ namespace locic {
 		}
 		
 		// Get all namespaces and type names, and build initial type instance structures.
-		void AddGlobalStructuresPass(Context& context) {
-			Node& node = context.node();
-			
-			// Multiple AST namespace trees correspond to one SEM namespace,
-			// so loop through all the AST namespaces.
-			for (auto astNamespaceNode: node.getASTNamespaceList()) {
+		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceData(context, astNamespaceNode->data, nullptr);
 			}
 		}
 		
 		// Fill in type instance structures with member variable information.
-		void AddTypeMemberVariablesPass(Context& context) {
-			Node& node = context.node();
+		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+			const auto semTypeInstance = context.scopeStack().back().typeInstance();
 			
-			if (node.isTypeInstance()) {
-				auto astTypeInstanceNode = node.getASTTypeInstance();
-				auto semTypeInstance = node.getSEMTypeInstance();
-				
-				assert(semTypeInstance->variables().empty());
-				assert(semTypeInstance->constructTypes().empty());
-				
-				if (semTypeInstance->isException()) {
-					// Add exception type parent using initializer.
-					const auto& astInitializerNode = astTypeInstanceNode->initializer;
-					if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
-						const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
-						
-						if (!semType->isException()) {
-							throw ErrorException(makeString("Exception parent type '%s' is not an exception type.",
-								semType->toString().c_str()));
-						}
-						
-						// TODO: also handle template parameters?
-						semTypeInstance->setParent(semType->getObjectType());
-						
-						// Also add parent as first member variable.
-						const auto var = SEM::Var::Basic(semType, semType);
-						semTypeInstance->variables().push_back(var);
+			assert(semTypeInstance->variables().empty());
+			assert(semTypeInstance->constructTypes().empty());
+			
+			if (semTypeInstance->isException()) {
+				// Add exception type parent using initializer.
+				const auto& astInitializerNode = astTypeInstanceNode->initializer;
+				if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
+					const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
+					
+					if (!semType->isException()) {
+						throw ErrorException(makeString("Exception parent type '%s' is not an exception type.",
+							semType->toString().c_str()));
 					}
-				}
-				
-				for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
-					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					
-					const auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
+					// TODO: also handle template parameters?
+					semTypeInstance->setParent(semType->getObjectType());
 					
-					const bool isMemberVar = true;
-					
-					// 'final' keyword makes the default lval const.
-					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
-					
-					const auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
-					
-					const auto var = SEM::Var::Basic(semType, lvalType);
-					
-					// Add mapping from name to variable.
-					semTypeInstance->namedVariables().insert(std::make_pair(astTypeVarNode->namedVar.name, var));
-					
-					// Add mapping from position to variable.
+					// Also add parent as first member variable.
+					const auto var = SEM::Var::Basic(semType, semType);
 					semTypeInstance->variables().push_back(var);
 				}
-			} else {
-				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		NodeContext newContext(context, range.front().key(), range.front().value());
-					AddTypeMemberVariablesPass(newContext);
-				}
+			}
+			
+			for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
+				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+				
+				const auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
+				
+				const bool isMemberVar = true;
+				
+				// 'final' keyword makes the default lval const.
+				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
+				
+				const auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
+				
+				const auto var = SEM::Var::Basic(semType, lvalType);
+				
+				// Add mapping from name to variable.
+				semTypeInstance->namedVariables().insert(std::make_pair(astTypeVarNode->namedVar.name, var));
+				
+				// Add mapping from position to variable.
+				semTypeInstance->variables().push_back(var);
+			}
+		}
+		
+		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astChildNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data);
+			}
+			
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				AddNamespaceDataTypeMemberVariables(context, astModuleScopeNode->data);
+			}
+			
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				AddTypeInstanceMemberVariables(context, astTypeInstanceNode);
+			}
+		}
+		
+		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
+				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data);
 			}
 		}
 		
@@ -257,26 +267,8 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		void AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
-			auto& node = context.node();
-			
-			assert(node.isNamespace() || node.isTypeInstance());
-			
-			const auto& name = astFunctionNode->name();
-			const auto canonicalMethodName = CanonicalizeMethodName(name);
-			const auto fullName = context.name() + name;
-			
-			// Check that no other node exists with this name.
-			const Node existingNode = node.getChild(name);
-			if (existingNode.isNamespace()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullName);
-			} else if (existingNode.isTypeInstance()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullName);
-			} else if (existingNode.isFunction()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
-			}
-			
-			assert(existingNode.isNone() && "Node is not function, type instance, or namespace, so it must be 'none'");
+		SEM::Function* AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, SEM::ModuleScope* moduleScope) {
+			const auto& topElement = context.scopeStack().back();
 			
 			if (astFunctionNode->isImported()) {
 				moduleScope = SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
@@ -285,7 +277,7 @@ namespace locic {
 			}
 			
 			if (moduleScope == nullptr) {
-				if (!(node.isTypeInstance() && (node.getSEMTypeInstance()->isPrimitive() || node.getSEMTypeInstance()->isInterface())) && astFunctionNode->isDeclaration()) {
+				if (!(topElement.isTypeInstance() && (topElement.typeInstance()->isPrimitive() || topElement.typeInstance()->isInterface())) && astFunctionNode->isDeclaration()) {
 					throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
 						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 				}
@@ -302,29 +294,14 @@ namespace locic {
 			}
 			
 			if (astFunctionNode->isDefaultDefinition()) {
-				assert(node.isTypeInstance());
-				
-				const auto typeInstance = node.getSEMTypeInstance();
+				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethodDecl(context, typeInstance, astFunctionNode->isStaticMethod(),
+				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStaticMethod(),
 					fullName, astFunctionNode.location());
-				
-				typeInstance->functions().insert(std::make_pair(canonicalMethodName, semFunction));
-				
-				// Attach function node to type.
-				auto functionNode = Node::Function(astFunctionNode, semFunction);
-				node.attach(canonicalMethodName, functionNode);
-				
-				return;
 			}
 			
 			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope);
-			
-			auto functionNode = Node::Function(astFunctionNode, semFunction);
-			
-			// Attach function node to parent.
-			node.attach(canonicalMethodName, functionNode);
 			
 			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
 			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
@@ -333,32 +310,73 @@ namespace locic {
 			
 			assert(astParametersNode->size() == semFunction->parameters().size());
 			
-			// Attach parameter variable nodes to the function node.
 			for (size_t i = 0; i < astParametersNode->size(); i++) {
 				const auto& astTypeVarNode = astParametersNode->at(i);
 				const auto& semVar = semFunction->parameters().at(i);
 				
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 				
-				const Node paramNode = Node::Variable(astTypeVarNode, semVar);
-				if (!functionNode.tryAttach(astTypeVarNode->namedVar.name, paramNode)) {
-					throw ParamVariableClashException(fullName, astTypeVarNode->namedVar.name);
+				const auto& varName = astTypeVarNode->namedVar.name;
+				
+				const auto iterator = semFunction->namedVariables().find(varName);
+				if (iterator != semFunction->namedVariables().end()) {
+					throw ParamVariableClashException(fullName, varName);
 				}
+				
+				semFunction->namedVariables().insert(std::make_pair(varName, semVar));
 				
 				const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_ARG, astTypeVarNode);
 				context.debugModule().varMap.insert(std::make_pair(semVar, varInfo));
 			}
 			
-			if (node.isNamespace()) {
-				node.getSEMNamespace()->functions().push_back(semFunction);
-			} else {
-				node.getSEMTypeInstance()->functions().insert(std::make_pair(CanonicalizeMethodName(name), semFunction));
+			return semFunction;
+		}
+		
+		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
+			const auto parentNamespace = context.scopeStack().back().nameSpace();
+			
+			const auto& name = astFunctionNode->name();
+			const auto fullName = parentNamespace->name() + name;
+			
+			const auto iterator = parentNamespace->items().find(name);
+			if (iterator != parentNamespace->items().end()) {
+				if (iterator->second.isTypeInstance()) {
+					throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullName);
+				} else if (iterator->second.isFunction()) {
+					throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
+				} else if (iterator->second.isNamespace()) {
+					throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullName);
+				}
+				assert(false && "Node is not function, type instance, or namespace, so it must be 'none'");
 			}
+			
+			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
+			
+			parentNamespace->items().insert(std::make_pair(name, SEM::NamespaceItem::Function(semFunction)));
+		}
+		
+		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
+			const auto parentType = context.scopeStack().back().typeInstance();
+			
+			const auto& name = astFunctionNode->name();
+			const auto canonicalMethodName = CanonicalizeMethodName(name);
+			const auto fullName = parentType->name() + name;
+			
+			const auto iterator = parentType->functions().find(canonicalMethodName);
+			if (iterator != parentType->functions().end()) {
+				throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
+			}
+			
+			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
+			
+			parentType->functions().insert(std::make_pair(canonicalMethodName, semFunction));
 		}
 		
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
-				AddFunctionDecl(context, astFunctionNode, moduleScope);
+				AddNamespaceFunctionDecl(context, astFunctionNode, moduleScope);
 			}
 			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -367,22 +385,24 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				NodeContext childContext(context, astNamespaceNode->name, context.node().getChild(astNamespaceNode->name));
-				AddNamespaceDataFunctionDecls(childContext, astNamespaceNode->data, moduleScope);
+				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, moduleScope);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				NodeContext childContext(context, astTypeInstanceNode->name, context.node().getChild(astTypeInstanceNode->name));
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
-					AddFunctionDecl(childContext, astFunctionNode, moduleScope);
+					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
 				}
 			}
 		}
 		
-		void AddFunctionDeclsPass(Context& context) {
-			Node& node = context.node();
-			
-			for (auto astNamespaceNode: node.getASTNamespaceList()) {
+		void AddFunctionDeclsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, nullptr);
 			}
 		}
@@ -392,13 +412,13 @@ namespace locic {
 		// 
 		//        template <typename T: SPEC_TYPE>
 		// 
-		void CopyTemplateVarTypeInstance(SEM::Type* srcType, Node& destTypeInstanceNode) {
+		void CopyTemplateVarTypeInstance(SEM::Type* srcType, SEM::TypeInstance* destTypeInstance) {
 			assert(srcType->isObject());
+			assert(destTypeInstance != nullptr);
 			
 			const auto templateVarMap = srcType->generateTemplateVarMap();
 			
-			auto srcTypeInstance = srcType->getObjectType();
-			auto destTypeInstance = destTypeInstanceNode.getSEMTypeInstance();
+			const auto srcTypeInstance = srcType->getObjectType();
 			
 			for (const auto& functionPair: srcTypeInstance->functions()) {
 				const auto& name = functionPair.first;
@@ -410,152 +430,159 @@ namespace locic {
 				// 
 				const auto destFunction = srcFunction->createDecl()->fullSubstitute(destTypeInstance->name() + name, templateVarMap);
 				destTypeInstance->functions().insert(std::make_pair(name, destFunction));
-				destTypeInstanceNode.attach(name, Node::Function(AST::Node<AST::Function>(), destFunction));
 			}
 		}
 		
-		void CompleteTemplateVariableRequirementsPass(Context& context){
-			Node& node = context.node();
+		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+			const auto typeInstance = context.scopeStack().back().typeInstance();
 			
-			if (node.isTypeInstance()) {
-				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		const Node& childNode = range.front().value();
-			 		if (!childNode.isTemplateVar()) continue;
-			 		
-			 		const auto& astSpecType = childNode.getASTTemplateVar()->specType;
-			 		
-			 		// If the specification type is void, then just
-			 		// leave the generated type instance empty.
-			 		if (astSpecType->isVoid()) continue;
-			 		
-			 		const auto semSpecType = ConvertType(context, astSpecType);
-			 		
-			 		auto templateVarTypeInstanceNode = childNode.getChild("#spectype");
-					assert(templateVarTypeInstanceNode.isNotNone());
-					
-					const auto semTemplateVar = childNode.getSEMTemplateVar();
-					semTemplateVar->setSpecType(semSpecType);
-			 		assert(semTemplateVar->specTypeInstance() != nullptr);
-			 		assert(semTemplateVar->specTypeInstance() == templateVarTypeInstanceNode.getSEMTypeInstance());
-					
-					CopyTemplateVarTypeInstance(semSpecType, templateVarTypeInstanceNode);
-				}
-			} else {
-				for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 		NodeContext newContext(context, range.front().key(), range.front().value());
-					CompleteTemplateVariableRequirementsPass(newContext);
-				}
+			// Add template variables.
+			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = typeInstance->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astSpecType = astTemplateVarNode->specType;
+				
+				// If the specification type is void, then just
+			 	// leave the generated type instance empty.
+			 	if (astSpecType->isVoid()) continue;
+			 	
+			 	const auto semSpecType = ConvertType(context, astSpecType);
+			 	
+			 	semTemplateVar->setSpecType(semSpecType);
+			 	
+			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
 			}
 		}
 		
-		void GenerateTypeDefaultMethods(Context& context, std::set<SEM::TypeInstance*>& completedTypes, Node node) {
-			const auto& astTypeInstanceNode = node.getASTTypeInstance();
-			const auto semTypeInstance = node.getSEMTypeInstance();
-			if (completedTypes.find(semTypeInstance) != completedTypes.end()) {
+		void CompleteNamespaceDataTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				CompleteNamespaceDataTemplateVariableRequirements(context, astModuleScopeNode->data);
+			}
+			
+			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
+			}
+			
+			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				CompleteTypeInstanceTemplateVariableRequirements(context, astTypeInstanceNode);
+			}
+		}
+		
+		void CompleteTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
+				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
+			}
+		}
+		
+		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance* typeInstance, std::set<SEM::TypeInstance*>& completedTypes) {
+			if (completedTypes.find(typeInstance) != completedTypes.end()) {
 				return;
 			}
 			
-			completedTypes.insert(semTypeInstance);
+			completedTypes.insert(typeInstance);
 			
 			// Nasty hack to ensure lvals have been processed.
 			// TODO: move lval dependent code (e.g. generating
 			//       exception default constructor) out of this pass.
-			GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
-			GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
+			//GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
+			//GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
 			
 			// Get type properties for types that this
 			// type depends on, since this is needed for
 			// default method generation.
-			if (semTypeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: semTypeInstance->variants()) {
-					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(variantTypeInstance));
+			if (typeInstance->isUnionDatatype()) {
+				for (auto variantTypeInstance: typeInstance->variants()) {
+					GenerateTypeDefaultMethods(context, variantTypeInstance, completedTypes);
 				}
 			} else {
-				if (semTypeInstance->isException() && semTypeInstance->parent() != nullptr) {
-					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(semTypeInstance->parent()));
+				if (typeInstance->isException() && typeInstance->parent() != nullptr) {
+					GenerateTypeDefaultMethods(context, typeInstance->parent(), completedTypes);
 				}
 				
-				for (auto var: semTypeInstance->variables()) {
+				for (const auto var: typeInstance->variables()) {
 					if (!var->constructType()->isObject()) continue;
-					GenerateTypeDefaultMethods(context, completedTypes, context.reverseLookup(var->constructType()->getObjectType()));
+					GenerateTypeDefaultMethods(context, var->constructType()->getObjectType(), completedTypes);
 				}
 			}
 			
 			// Add default constructor.
-			if (semTypeInstance->isDatatype() || semTypeInstance->isStruct() || semTypeInstance->isException()) {
+			if (typeInstance->isDatatype() || typeInstance->isStruct() || typeInstance->isException()) {
 				// Add constructor for exception types using initializer;
 				// for datatypes and structs, just add a default constructor.
 				const auto constructor =
-					semTypeInstance->isException() ?
-						CreateExceptionConstructorDecl(context, astTypeInstanceNode, semTypeInstance) :
-						CreateDefaultConstructorDecl(context, semTypeInstance);
-				semTypeInstance->functions().insert(std::make_pair("create", constructor));
-				
-				node.attach("create", Node::Function(AST::Node<AST::Function>(), constructor));
+					typeInstance->isException() ?
+						CreateExceptionConstructorDecl(context, typeInstance) :
+						CreateDefaultConstructorDecl(context, typeInstance);
+				typeInstance->functions().insert(std::make_pair("create", constructor));
 			}
 			
 			// Add default implicit copy if available.
-			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(semTypeInstance)) {
-				const auto implicitCopy = CreateDefaultImplicitCopyDecl(semTypeInstance);
-				semTypeInstance->functions().insert(std::make_pair("implicitcopy", implicitCopy));
-				
-				node.attach("implicitcopy", Node::Function(AST::Node<AST::Function>(), implicitCopy));
+			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(typeInstance)) {
+				const auto implicitCopy = CreateDefaultImplicitCopyDecl(typeInstance);
+				typeInstance->functions().insert(std::make_pair("implicitcopy", implicitCopy));
 			}
 			
 			// Add default compare for datatypes if available.
-			if ((semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && HasDefaultCompare(semTypeInstance)) {
-				const auto implicitCopy = CreateDefaultCompareDecl(context, semTypeInstance);
-				semTypeInstance->functions().insert(std::make_pair("compare", implicitCopy));
-				node.attach("compare", Node::Function(AST::Node<AST::Function>(), implicitCopy));
+			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultCompare(typeInstance)) {
+				const auto implicitCopy = CreateDefaultCompareDecl(context, typeInstance);
+				typeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 			}
 		}
 		
-		void GenerateDefaultMethods(Context& context, std::set<SEM::TypeInstance*>& completedTypes) {
-			Node& node = context.node();
-			
-			if (node.isTypeInstance()) {
-				GenerateTypeDefaultMethods(context, completedTypes, node);
-			}
-			
-			for (auto range = node.children().range(); !range.empty(); range.popFront()) {
-			 	NodeContext newContext(context, range.front().key(), range.front().value());
-				GenerateDefaultMethods(newContext, completedTypes);
+		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace* nameSpace, std::set<SEM::TypeInstance*>& completedTypes) {
+			for (const auto& itemPair: nameSpace->items()) {
+				const auto& item = itemPair.second;
+				if (item.isNamespace()) {
+					GenerateNamespaceDefaultMethods(context, item.nameSpace(), completedTypes);
+				} else if (item.isTypeInstance()) {
+					GenerateTypeDefaultMethods(context, item.typeInstance(), completedTypes);
+				}
 			}
 		}
 		
 		void GenerateDefaultMethodsPass(Context& context) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
 			std::set<SEM::TypeInstance*> completedTypes;
-			GenerateDefaultMethods(context, completedTypes);
+			GenerateNamespaceDefaultMethods(context, semNamespace, completedTypes);
 		}
 		
 		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module& debugModule) {
 			try {
 				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
-				auto rootSEMNamespace = new SEM::Namespace("");
+				const auto rootSEMNamespace = new SEM::Namespace(Name::Absolute());
 				
-				// Create the root namespace node.
-				auto rootNode = Node::Namespace(rootASTNamespaces, rootSEMNamespace);
+				// Create 'context' to hold information about code structures.
+				Context context(debugModule);
 				
-				// Root context is the 'top of the stack'.
-				RootContext rootContext(rootNode, debugModule);
+				// Push root namespace on to the stack.
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(rootSEMNamespace));
 				
 				// ---- Pass 1: Add namespaces, type names and template variables.
-				AddGlobalStructuresPass(rootContext);
+				AddGlobalStructuresPass(context, rootASTNamespaces);
 				
 				// ---- Pass 2: Add type member variables.
-				AddTypeMemberVariablesPass(rootContext);
+				AddTypeMemberVariablesPass(context, rootASTNamespaces);
 				
 				// ---- Pass 3: Create function declarations.
-				AddFunctionDeclsPass(rootContext);
+				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
 				// ---- Pass 4: Complete template type variable requirements.
-				CompleteTemplateVariableRequirementsPass(rootContext);
+				CompleteTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
 				// ---- Pass 5: Generate default methods.
-				GenerateDefaultMethodsPass(rootContext);
+				GenerateDefaultMethodsPass(context);
 				
 				// ---- Pass 6: Fill in function code.
-				ConvertNamespace(rootContext);
+				ConvertNamespace(context, rootASTNamespaces);
 				
 				return rootSEMNamespace;
 			} catch(const Exception& e) {

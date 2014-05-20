@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_FUNCTION_HPP
 #define LOCIC_SEM_FUNCTION_HPP
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -42,6 +43,9 @@ namespace locic {
 				
 				const std::vector<Var*>& parameters() const;
 				
+				std::map<std::string, Var*>& namedVariables();
+				const std::map<std::string, Var*>& namedVariables() const;
+				
 				const Scope& scope() const;
 				
 				Function* createDecl() const;
@@ -59,6 +63,7 @@ namespace locic {
 				Type* type_;
 				Name name_;
 				std::vector<Var*> parameters_;
+				std::map<std::string, Var*> namedVariables_;
 				ModuleScope* moduleScope_;
 				Scope* scope_;
 				

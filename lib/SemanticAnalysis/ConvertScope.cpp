@@ -11,7 +11,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		bool WillScopeReturn(const SEM::Scope& scope) {
-			for(std::size_t i = 0; i < scope.statements().size(); i++) {
+			for (size_t i = 0; i < scope.statements().size(); i++) {
 				if (WillStatementReturn(scope.statements().at(i))) {
 					return true;
 				}
@@ -21,7 +21,7 @@ namespace locic {
 		}
 		
 		bool CanScopeThrow(const SEM::Scope& scope) {
-			for(std::size_t i = 0; i < scope.statements().size(); i++) {
+			for (size_t i = 0; i < scope.statements().size(); i++) {
 				if (CanStatementThrow(scope.statements().at(i))) {
 					return true;
 				}
@@ -30,17 +30,16 @@ namespace locic {
 			return false;
 		}
 		
-		SEM::Scope* ConvertScope(Context& context, AST::Node<AST::Scope> astScope) {
+		SEM::Scope* ConvertScope(Context& context, const AST::Node<AST::Scope>& astScope) {
 			assert(astScope.get() != nullptr);
 			
 			const auto semScope = new SEM::Scope();
 			
-			auto scopeNode = Node::Scope(astScope, semScope);
-			NodeContext scopeContext(context, "##scope", scopeNode);
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Scope(semScope));
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
 			for (const auto& astStatementNode: *(astScope->statements)) {
-				const auto statement = ConvertStatement(scopeContext, astStatementNode);
+				const auto statement = ConvertStatement(context, astStatementNode);
 				assert(statement != nullptr);
 				
 				semScope->statements().push_back(statement);

@@ -12,21 +12,38 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertNamespace(Context& context) {
-			Node& node = context.node();
+		void ConvertNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
-			assert(node.isNamespace());
+			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+				const auto semChildFunction = semNamespace->items().at(astFunctionNode->name()).function();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				ConvertFunctionDef(context, astFunctionNode);
+			}
 			
-			for (StringMap<Node>::Range range = node.children().range(); !range.empty(); range.popFront()) {
-				const Node& childNode = range.front().value();
-				NodeContext newContext(context, range.front().key(), childNode);
-				if (childNode.isFunction()) {
-					ConvertFunctionDef(newContext);
-				} else if(childNode.isNamespace()) {
-					ConvertNamespace(newContext);
-				} else if(childNode.isTypeInstance()) {
-					ConvertClassDef(newContext);
-				}
+			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				ConvertNamespaceData(context, astModuleScopeNode->data);
+			}
+			
+			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				ConvertNamespaceData(context, astNamespaceNode->data);
+			}
+			
+			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				ConvertClassDef(context, astTypeInstanceNode);
+			}
+		}
+		
+		void ConvertNamespace(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
+				ConvertNamespaceData(context, astNamespaceNode->data);
 			}
 		}
 		

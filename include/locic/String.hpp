@@ -42,6 +42,29 @@ namespace locic{
 			
 			s += makeString("%s: %s",
 				pair.first.c_str(),
+				pair.second.toString().c_str());
+		}
+		
+		s += "}";
+		
+		return s;
+	}
+	
+	template <typename T>
+	std::string makeMapString(const std::map<std::string, T*>& map){
+		auto s = makeString("Map [size = %llu] {",
+			(unsigned long long) map.size());
+		
+		bool isFirst = true;
+		for (const auto& pair: map) {
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				s += ", ";
+			}
+			
+			s += makeString("%s: %s",
+				pair.first.c_str(),
 				pair.second->toString().c_str());
 		}
 		

@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <vector>
 
@@ -13,12 +14,20 @@ namespace locic {
 	
 		Scope::Scope() { }
 		
-		std::vector<Var*>& Scope::localVariables() {
-			return localVariables_;
+		std::vector<Var*>& Scope::variables() {
+			return variables_;
 		}
 		
-		const std::vector<Var*>& Scope::localVariables() const {
-			return localVariables_;
+		const std::vector<Var*>& Scope::variables() const {
+			return variables_;
+		}
+		
+		std::map<std::string, Var*>& Scope::namedVariables() {
+			return namedVariables_;
+		}
+		
+		const std::map<std::string, Var*>& Scope::namedVariables() const {
+			return namedVariables_;
 		}
 		
 		std::vector<Statement*>& Scope::statements() {
@@ -31,8 +40,8 @@ namespace locic {
 		
 		std::string Scope::toString() const {
 			return makeString("Scope(vars: %s, statements: %s)",
-							  makeArrayString(localVariables_).c_str(),
-							  makeArrayString(statementList_).c_str());
+					makeArrayString(variables_).c_str(),
+					makeArrayString(statementList_).c_str());
 		}
 		
 	}

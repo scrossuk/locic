@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertNamespace(Context& context);
+		void ConvertNamespace(Context& context, const AST::NamespaceList& rootASTNamespaces);
 		
 	}
 	

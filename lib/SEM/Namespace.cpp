@@ -11,45 +11,91 @@ namespace locic {
 
 	namespace SEM {
 	
-		Namespace::Namespace(const std::string& n)
+		NamespaceItem NamespaceItem::Function(SEM::Function* function) {
+			NamespaceItem item(FUNCTION);
+			item.data_.function = function;
+			return item;
+		}
+		
+		NamespaceItem NamespaceItem::Namespace(SEM::Namespace* nameSpace) {
+			NamespaceItem item(NAMESPACE);
+			item.data_.nameSpace = nameSpace;
+			return item;
+		}
+		
+		NamespaceItem NamespaceItem::TypeInstance(SEM::TypeInstance* typeInstance) {
+			NamespaceItem item(TYPEINSTANCE);
+			item.data_.typeInstance = typeInstance;
+			return item;
+		}
+		
+		NamespaceItem::Kind NamespaceItem::kind() const {
+			return kind_;
+		}
+		
+		bool NamespaceItem::isFunction() const {
+			return kind() == FUNCTION;
+		}
+		
+		bool NamespaceItem::isNamespace() const {
+			return kind() == NAMESPACE;
+		}
+		
+		bool NamespaceItem::isTypeInstance() const {
+			return kind() == TYPEINSTANCE;
+		}
+		
+		Function* NamespaceItem::function() const {
+			assert(isFunction());
+			return data_.function;
+		}
+		
+		Namespace* NamespaceItem::nameSpace() const {
+			assert(isNamespace());
+			return data_.nameSpace;
+		}
+		
+		TypeInstance* NamespaceItem::typeInstance() const {
+			assert(isTypeInstance());
+			return data_.typeInstance;
+		}
+		
+		std::string NamespaceItem::toString() const {
+			switch (kind()) {
+				case FUNCTION:
+					return function()->toString();
+				case NAMESPACE:
+					return nameSpace()->toString();
+				case TYPEINSTANCE:
+					return typeInstance()->toString();
+				default:
+					return "";
+			}
+		}
+		
+		NamespaceItem::NamespaceItem(Kind pKind)
+			: kind_(pKind) {
+				data_.ptr = nullptr;
+			}
+		
+		Namespace::Namespace(const Name& n)
 			: name_(n) { }
 			
-		const std::string& Namespace::name() const {
+		const Name& Namespace::name() const {
 			return name_;
 		}
 		
-		std::vector<Namespace*>& Namespace::namespaces() {
-			return namespaces_;
+		std::map<std::string, NamespaceItem>& Namespace::items() {
+			return items_;
 		}
 		
-		const std::vector<Namespace*>& Namespace::namespaces() const {
-			return namespaces_;
-		}
-		
-		std::vector<TypeInstance*>& Namespace::typeInstances() {
-			return typeInstances_;
-		}
-		
-		const std::vector<TypeInstance*>& Namespace::typeInstances() const {
-			return typeInstances_;
-		}
-		
-		std::vector<Function*>& Namespace::functions() {
-			return functions_;
-		}
-		
-		const std::vector<Function*>& Namespace::functions() const {
-			return functions_;
+		const std::map<std::string, NamespaceItem>& Namespace::items() const {
+			return items_;
 		}
 		
 		std::string Namespace::toString() const {
-			return makeString("NameSpace(name: %s, "
-							  "namespaces: %s, typeInstances: %s, "
-							  "functions: %s)",
-							  name().c_str(),
-							  makeArrayString(namespaces_).c_str(),
-							  makeArrayString(typeInstances_).c_str(),
-							  makeArrayString(functions_).c_str());
+			return makeString("Namespace(name: %s, items: %s)",
+				name().toString().c_str(), makeMapString(items_).c_str());
 		}
 		
 	}

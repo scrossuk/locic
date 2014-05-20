@@ -18,21 +18,16 @@ namespace locic {
 			
 			SEM::Type* semReturnType = NULL;
 			
-			const Node parentTypeNode = lookupParentType(context);
-			
-			const auto thisTypeInstance =
-				parentTypeNode.isTypeInstance() ?
-					parentTypeNode.getSEMTypeInstance() :
-					NULL;
+			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			const auto name = astFunctionNode->name();
-			const auto fullName = context.name() + name;
+			const auto fullName = getCurrentName(context.scopeStack()) + name;
 			
 			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
-				assert(thisTypeInstance != NULL);
+				assert(thisTypeInstance != nullptr);
 				assert(astFunctionNode->isDefinition());
 				assert(astFunctionNode->isStaticMethod());
 				

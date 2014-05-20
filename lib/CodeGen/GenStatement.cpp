@@ -28,7 +28,7 @@ namespace locic {
 		void genScope(Function& function, const SEM::Scope& scope) {
 			LifetimeScope lifetimeScope(function);
 			
-			for (const auto localVar: scope.localVariables()) {
+			for (const auto localVar: scope.variables()) {
 				genVarAlloca(function, localVar);
 			}
 			

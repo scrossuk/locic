@@ -41,8 +41,7 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(Node& functionNode, const AST::Node<AST::TypeVarList>& astParametersNode, const std::vector<SEM::Var*>& semParameters) {
-				assert(functionNode.isFunction());
+			void attachParameters(SEM::Function* function, const AST::Node<AST::TypeVarList>& astParametersNode, const std::vector<SEM::Var*>& semParameters) {
 				assert(astParametersNode->size() == semParameters.size());
 				
 				for (size_t i = 0; i < astParametersNode->size(); i++) {
@@ -50,26 +49,25 @@ namespace locic {
 					const auto& semVar = semParameters.at(i);
 					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 					
-					const Node paramNode = Node::Variable(astTypeVarNode, semVar);
-					if (!functionNode.tryAttach(astTypeVarNode->namedVar.name, paramNode)) {
-						throw ParamVariableClashException(functionNode.getSEMFunction()->name(), astTypeVarNode->namedVar.name);
+					const auto& varName = astTypeVarNode->namedVar.name;
+					
+					const auto insertResult = function->namedVariables().insert(std::make_pair(varName, semVar));
+					if (!insertResult.second) {
+						throw ParamVariableClashException(function->name(), varName);
 					}
 				}
 			}
 			
 		}
 		
-		SEM::Function* CreateExceptionConstructorDecl(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance) {
-			const auto& initializerNode = astTypeInstanceNode->initializer;
-			
+		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance) {
 			const bool isVarArg = false;
 			const bool isNoExcept = false;
 			const bool isStatic = true;
 			const bool isMethod = true;
 			const bool isConst = false;
 			
-			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
-			if (!hasParent) {
+			if (semTypeInstance->parent() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return CreateDefaultConstructorDecl(context, semTypeInstance);
 			}
@@ -83,16 +81,7 @@ namespace locic {
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "Create", parameters, semTypeInstance->moduleScope());
 		}
 		
-		void CreateExceptionConstructor(Context& context, SEM::Function* function) {
-			const auto& node = context.node();
-			assert(node.isFunction());
-			
-			const auto parentNode = lookupParentType(context);
-			assert(parentNode.isTypeInstance());
-			
-			const auto& astTypeInstanceNode = parentNode.getASTTypeInstance();
-			const auto semTypeInstance = parentNode.getSEMTypeInstance();
-			
+		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance, SEM::Function* function) {
 			assert(semTypeInstance->isException());
 			
 			const auto& initializerNode = astTypeInstanceNode->initializer;
@@ -110,18 +99,15 @@ namespace locic {
 			
 			assert(semTypeInstance->parent() != nullptr);
 			
-			// Create node for function.
-			auto functionNode = Node::Function(AST::Node<AST::Function>(), function);
+			// Attach parameters to the function.
+			attachParameters(function, astTypeInstanceNode->variables, function->parameters());
 			
-			// Attach parameters to the function node.
-			attachParameters(functionNode, astTypeInstanceNode->variables, function->parameters());
-			
-			// Create context for function (to resolve references to parameters).
-			NodeContext functionContext(context, "Create", functionNode);
+			// Push function on to scope stack (to resolve references to parameters).
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
 			
 			std::vector<SEM::Value*> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {
-				parentArguments.push_back(ConvertValue(functionContext, astValueNode));
+				parentArguments.push_back(ConvertValue(context, astValueNode));
 			}
 			
 			std::vector<SEM::Value*> constructValues;

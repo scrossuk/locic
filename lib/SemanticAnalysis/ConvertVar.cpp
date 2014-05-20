@@ -30,10 +30,9 @@ namespace locic {
 		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
 			assert(var->isBasic());
 			
-			const Node localVarNode = Node::Variable(astTypeVarNode, var);
-			const bool attachResult = context.node().tryAttach(name, localVarNode);
-			
-			if (!attachResult) {
+			const auto semScope = context.scopeStack().back().scope();
+			const auto insertResult = semScope->namedVariables().insert(std::make_pair(name, var));
+			if (!insertResult.second) {
 				throw ErrorException(makeString("Variable name '%s' already exists at position %s.",
 					name.c_str(), astTypeVarNode.location().toString().c_str()));
 			}
@@ -65,7 +64,7 @@ namespace locic {
 					case AST::TypeVar::NAMEDVAR: {
 						const auto& varName = astTypeVarNode->namedVar.name;
 						
-						if (!context.lookupName(Name::Relative() + varName).isNone()) {
+						if (!performSearch(context.scopeStack(), Name::Relative() + varName).isNone()) {
 							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 								varName.c_str(), location.toString().c_str()));
 						}
@@ -149,7 +148,7 @@ namespace locic {
 				case AST::TypeVar::NAMEDVAR: {
 					const auto& varName = astTypeVarNode->namedVar.name;
 					
-					if (!context.lookupName(Name::Relative() + varName).isNone()) {
+					if (!performSearch(context.scopeStack(), Name::Relative() + varName).isNone()) {
 						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}

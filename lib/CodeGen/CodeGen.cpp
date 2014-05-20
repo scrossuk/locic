@@ -34,31 +34,30 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genNamespaceTypes(Module& module, SEM::Namespace* nameSpace) {
-			const std::vector<SEM::Namespace*>& namespaces = nameSpace->namespaces();
-			
-			for (size_t i = 0; i < namespaces.size(); i++) {
-				genNamespaceTypes(module, namespaces.at(i));
-			}
-			
-			const std::vector<SEM::TypeInstance*>& typeInstances = nameSpace->typeInstances();
-			
-			for (const auto typeInstance: typeInstances) {
-				if (!typeInstance->templateVariables().empty()) {
-					// Can't generate types with template arguments.
-					return;
+			for (const auto& itemPair: nameSpace->items()) {
+				const auto& item = itemPair.second;
+				if (item.isNamespace()) {
+					genNamespaceTypes(module, item.nameSpace());
+				} else if (item.isTypeInstance()) {
+					const auto typeInstance = item.typeInstance();
+					
+					if (!typeInstance->templateVariables().empty()) {
+						// Can't generate types with template arguments.
+						return;
+					}
+					
+					if (typeInstance->isPrimitive()) {
+						// Can't generate primitive types.
+						return;
+					}
+					
+					if (typeInstance->isInterface()) {
+						// Can't generate interface types.
+						return;
+					}
+					
+					(void) genTypeInstance(module, typeInstance, {});
 				}
-				
-				if (typeInstance->isPrimitive()) {
-					// Can't generate primitive types.
-					return;
-				}
-				
-				if (typeInstance->isInterface()) {
-					// Can't generate interface types.
-					return;
-				}
-				
-				(void) genTypeInstance(module, typeInstance, {});
 			}
 		}
 		
@@ -84,17 +83,16 @@ namespace locic {
 		}
 		
 		void genNamespaceFunctions(Module& module, SEM::Namespace* nameSpace) {
-			for (const auto childNamespace: nameSpace->namespaces()) {
-				genNamespaceFunctions(module, childNamespace);
-			}
-			
-			for (const auto typeInstance: nameSpace->typeInstances()) {
-				genTypeInstanceFunctions(module, typeInstance);
-			}
-			
-			for (const auto function: nameSpace->functions()) {
-				const auto parent = nullptr;
-				(void) genFunction(module, parent, function);
+			for (const auto& itemPair: nameSpace->items()) {
+				const auto& item = itemPair.second;
+				if (item.isFunction()) {
+					const auto parent = nullptr;
+					(void) genFunction(module, parent, item.function());
+				} else if (item.isFunction()) {
+					genTypeInstanceFunctions(module, item.typeInstance());
+				} else if (item.isNamespace()) {
+					genNamespaceFunctions(module, item.nameSpace());
+				}
 			}
 		}
 		

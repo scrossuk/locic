@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void ConvertClassDef(Context& context);
+		void ConvertClassDef(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode);
 		
 	}
 	

@@ -13,7 +13,7 @@ namespace locic {
 		
 		bool CanScopeThrow(const SEM::Scope& scope);
 		
-		SEM::Scope* ConvertScope(Context& context, AST::Node<AST::Scope> astScope);
+		SEM::Scope* ConvertScope(Context& context, const AST::Node<AST::Scope>& astScopeNode);
 		
 	}
 	

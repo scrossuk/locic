@@ -161,7 +161,7 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context, "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
@@ -182,13 +182,15 @@ namespace locic {
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
-						auto semCase = new SEM::SwitchCase();
-						auto switchCaseNode = Node::SwitchCase(astCase, semCase);
-						NodeContext switchCaseContext(context, "#switchcase", switchCaseNode);
+						const auto semCase = new SEM::SwitchCase();
 						
-						const bool isMember = false;
-						semCase->setVar(ConvertVar(switchCaseContext, isMember, astCase->var));
-						semCase->setScope(ConvertScope(switchCaseContext, astCase->scope));
+						{
+							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(semCase));
+							
+							const bool isMember = false;
+							semCase->setVar(ConvertVar(context, isMember, astCase->var));
+							semCase->setScope(ConvertScope(context, astCase->scope));
+						}
 						
 						caseList.push_back(semCase);
 						
@@ -248,10 +250,12 @@ namespace locic {
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);
-					NodeContext loopContext(context, "##loop", Node::Loop());
-					const auto iterationScope = ConvertScope(loopContext, statement->whileStmt.whileTrue);
+					
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Loop());
+					
+					const auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					const auto advanceScope = new SEM::Scope();
-					const auto loopCondition = ImplicitCast(condition, getBuiltInType(context, "bool")->selfType(), location);
+					const auto loopCondition = ImplicitCast(condition, getBuiltInType(context.scopeStack(), "bool")->selfType(), location);
 					return SEM::Statement::Loop(loopCondition, iterationScope, advanceScope);
 				}
 				case AST::Statement::FOR: {
@@ -265,9 +269,9 @@ namespace locic {
 					std::vector<SEM::CatchClause*> catchList;
 					
 					for (const auto& astCatch: *(statement->tryStmt.catchList)) {
-						auto semCatch = new SEM::CatchClause();
-						auto catchClauseNode = Node::CatchClause(astCatch, semCatch);
-						NodeContext catchClauseContext(context, "#catchclause", catchClauseNode);
+						const auto semCatch = new SEM::CatchClause();
+						
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(semCatch));
 						
 						const auto& astVar = astCatch->var;
 						
@@ -287,10 +291,10 @@ namespace locic {
 						}
 						
 						const auto semVar = SEM::Var::Basic(varType, varType);
-						attachVar(catchClauseContext, astVar->namedVar.name, astVar, semVar);
+						attachVar(context, astVar->namedVar.name, astVar, semVar);
 						
 						semCatch->setVar(semVar);
-						semCatch->setScope(ConvertScope(catchClauseContext, astCatch->scope));
+						semCatch->setScope(ConvertScope(context, astCatch->scope));
 						
 						catchList.push_back(semCatch);
 					}
@@ -304,8 +308,9 @@ namespace locic {
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
 					
-					NodeContext scopeExitContext(context, "##scopeexit", Node::ScopeExit(scopeExitState));
-					const auto scopeExitScope = ConvertScope(scopeExitContext, statement->scopeExitStmt.scope);
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
+					
+					const auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
 					
 					// scope(success) is allowed to throw.
 					if (scopeExitState != "success" && CanScopeThrow(*scopeExitScope)) {
@@ -333,17 +338,17 @@ namespace locic {
 					assert(!semInitialiseValue->type()->isVoid());
 					
 					// Add the variable to the SEM scope.
-					const auto semScope = context.node().getSEMScope();
-					semScope->localVariables().push_back(semVar);
+					const auto semScope = context.scopeStack().back().scope();
+					semScope->variables().push_back(semVar);
 					
 					// Generate the initialise statement.
 					return SEM::Statement::InitialiseStmt(semVar, semInitialiseValue);
 				}
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
-					if (!getParentFunctionReturnType(context)->isVoid()) {
+					if (!getParentFunctionReturnType(context.scopeStack())->isVoid()) {
 						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
-							lookupParentFunction(context).getSEMFunction()->name().toString().c_str(),
+							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
 							location.toString().c_str()));
 					}
 					
@@ -352,36 +357,34 @@ namespace locic {
 				case AST::Statement::RETURN: {
 					assert(statement->returnStmt.value.get() != nullptr);
 					
-					// Check this is not being used inside a scope-exit action.
-					const Context* currentContext = &context;
-					while (currentContext != nullptr) {
-						if (currentContext->node().isScopeExit()) {
-							throw ErrorException(makeString("Cannot 'return' in scope exit action at position %s.",
+					// Check this is not being used inside a scope action.
+					for (size_t i = 0; i < context.scopeStack().size(); i++) {
+						const auto pos = context.scopeStack().size() - i - 1;
+						const auto& element = context.scopeStack().at(pos);
+						if (element.isScopeAction()) {
+							throw ErrorException(makeString("Cannot 'return' in scope action at position %s.",
 								location.toString().c_str()));
 						}
-						
-						currentContext = currentContext->parent();
 					}
 					
 					const auto semValue = ConvertValue(context, statement->returnStmt.value);
 					
 					// Cast the return value to the function's
 					// specified return type.
-					const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context), location);
+					const auto castValue = ImplicitCast(semValue, getParentFunctionReturnType(context.scopeStack()), location);
 					
 					return SEM::Statement::Return(castValue);
 				}
 				case AST::Statement::THROW: {
-					// Check this is not being used inside a scope-exit action
+					// Check this is not being used inside a scope action
 					// (apart from inside scope(success), which is allowed).
-					const Context* currentContext = &context;
-					while (currentContext != nullptr) {
-						if (currentContext->node().isScopeExit() && currentContext->node().getScopeExitState() != "success") {
-							throw ErrorException(makeString("Cannot 'throw' in scope exit action with state '%s' at position %s.",
-								currentContext->node().getScopeExitState().c_str(), location.toString().c_str()));
+					for (size_t i = 0; i < context.scopeStack().size(); i++) {
+						const auto pos = context.scopeStack().size() - i - 1;
+						const auto& element = context.scopeStack().at(pos);
+						if (element.isScopeAction() && element.scopeActionState() != "success") {
+							throw ErrorException(makeString("Cannot 'throw' in scope action with state '%s' at position %s.",
+								element.scopeActionState().c_str(), location.toString().c_str()));
 						}
-						
-						currentContext = currentContext->parent();
 					}
 					
 					const auto semValue = ConvertValue(context, statement->throwStmt.value);
@@ -394,21 +397,20 @@ namespace locic {
 				case AST::Statement::BREAK: {
 					// Check this is being used inside a loop, and
 					// would not leave a scope-exit action.
-					const Context* currentContext = &context;
-					while (currentContext != nullptr) {
-						if (currentContext->node().isLoop()) {
+					bool foundLoop = false;
+					for (size_t i = 0; i < context.scopeStack().size(); i++) {
+						const auto pos = context.scopeStack().size() - i - 1;
+						const auto& element = context.scopeStack().at(pos);
+						if (element.isLoop()) {
+							foundLoop = true;
 							break;
-						}
-						
-						if (currentContext->node().isScopeExit()) {
+						} else if (element.isScopeAction()) {
 							throw ErrorException(makeString("Cannot 'break' from scope exit action at position %s.",
 								location.toString().c_str()));
 						}
-						
-						currentContext = currentContext->parent();
 					}
 					
-					if (currentContext == nullptr) {
+					if (!foundLoop) {
 						throw ErrorException(makeString("Cannot 'break' outside any control flow statements at position %s.",
 							location.toString().c_str()));
 					}
@@ -418,21 +420,20 @@ namespace locic {
 				case AST::Statement::CONTINUE: {
 					// Check this is being used inside a loop, and
 					// would not leave a scope-exit action.
-					const Context* currentContext = &context;
-					while (currentContext != nullptr) {
-						if (currentContext->node().isLoop()) {
+					bool foundLoop = false;
+					for (size_t i = 0; i < context.scopeStack().size(); i++) {
+						const auto pos = context.scopeStack().size() - i - 1;
+						const auto& element = context.scopeStack().at(pos);
+						if (element.isLoop()) {
+							foundLoop = true;
 							break;
-						}
-						
-						if (currentContext->node().isScopeExit()) {
+						} else if (element.isScopeAction()) {
 							throw ErrorException(makeString("Cannot 'continue' in scope exit action at position %s.",
 								location.toString().c_str()));
 						}
-						
-						currentContext = currentContext->parent();
 					}
 					
-					if (currentContext == nullptr) {
+					if (!foundLoop) {
 						throw ErrorException(makeString("Cannot 'continue' outside any control flow statements at position %s.",
 							location.toString().c_str()));
 					}

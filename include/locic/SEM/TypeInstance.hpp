@@ -84,11 +84,14 @@ namespace locic {
 				Type* selfType() const;
 				std::vector<Type*> selfTemplateArgs() const;
 				
+				std::vector<TypeInstance*>& variants();
+				const std::vector<TypeInstance*>& variants() const;
+				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
-				std::vector<TypeInstance*>& variants();
-				const std::vector<TypeInstance*>& variants() const;
+				std::map<std::string, TemplateVar*>& namedTemplateVariables();
+				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
 				
 				// TODO: replace with 'property' methods.
 				std::map<std::string, Var*>& namedVariables();
@@ -116,10 +119,14 @@ namespace locic {
 				
 				TypeInstance* parent_;
 				
-				std::vector<TemplateVar*> templateVariables_;
 				std::vector<TypeInstance*> variants_;
+				
+				std::vector<TemplateVar*> templateVariables_;
+				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				
 				std::vector<Var*> variables_;
 				std::map<std::string, Var*> namedVariables_;
+				
 				std::map<std::string, Function*> functions_;
 				std::vector<Type*> constructTypes_;
 				

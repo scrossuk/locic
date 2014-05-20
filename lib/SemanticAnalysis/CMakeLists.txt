@@ -16,6 +16,8 @@ add_library(locic-semanalysis
 	DefaultMethods.cpp
 	Lval.cpp
 	Ref.cpp
+	ScopeElement.cpp
+	ScopeStack.cpp
 	TypeProperties.cpp
 	VarArgCast.cpp)
 

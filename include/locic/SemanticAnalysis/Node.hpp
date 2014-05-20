@@ -264,7 +264,7 @@ namespace locic {
 							return "Node[None]()";
 						case NAMESPACE:
 							return makeString("Node[Namespace](%s)",
-								getSEMNamespace()->name().c_str());
+								getSEMNamespace()->name().toString().c_str());
 						case TYPEINSTANCE:
 							return makeString("Node[TypeInstance](%s)",
 								getSEMTypeInstance()->toString().c_str());

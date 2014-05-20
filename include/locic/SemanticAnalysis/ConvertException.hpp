@@ -9,9 +9,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* CreateExceptionConstructorDecl(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance);
+		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance);
 		
-		void CreateExceptionConstructor(Context& context, SEM::Function* function);
+		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance, SEM::Function* function);
 		
 	}
 	

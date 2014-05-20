@@ -1,11 +1,11 @@
 #include <stdexcept>
 #include <vector>
 
+#include <locic/Constant.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -64,7 +64,7 @@ namespace locic {
 			const bool isNoExcept = false;
 			
 			const auto selfType = typeInstance->selfType();
-			const auto intType = getBuiltInType(context, "int_t")->selfType();
+			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
 			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, intType, { selfType });
 			const auto operandVar = SEM::Var::Basic(selfType, selfType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar }, typeInstance->moduleScope());
@@ -193,7 +193,7 @@ namespace locic {
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
 			
-			const auto intType = getBuiltInType(context, "int_t")->selfType();
+			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
 			
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = SEM::Value::LocalVar(operandVar);
@@ -267,14 +267,13 @@ namespace locic {
 		}
 		
 		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			assert(function->isDeclaration());
+			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "create") {
-				if (typeInstance->isException()) {
-					CreateExceptionConstructor(context, function);
-				} else {
-					CreateDefaultConstructor(typeInstance, function, location);
-				}
+				assert(!typeInstance->isException());
+				CreateDefaultConstructor(typeInstance, function, location);
 			} else if (canonicalName == "implicitcopy") {
 				if (!HasDefaultImplicitCopy(typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",

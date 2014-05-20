@@ -30,9 +30,11 @@ namespace locic {
 				
 				const Name name = fullName.substr(i + 1);
 				
-				const Node objectNode = context.lookupName(name);
-				if (objectNode.isTypeInstance()) {
-					const auto typeInstance = objectNode.getSEMTypeInstance();
+				const auto searchResult = performSearch(context.scopeStack(), name);
+				
+				if (searchResult.isTypeInstance()) {
+					const auto typeInstance = searchResult.typeInstance();
+					
 					const size_t numTemplateVariables = typeInstance->templateVariables().size();
 					if (numTemplateVariables != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
@@ -124,43 +126,26 @@ namespace locic {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
 			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? makeString("u%s_t", nameString.c_str()) : makeString("%s_t", nameString.c_str());
-			
-			const auto name = Name::Absolute() + fullNameString;
-			const auto objectNode = context.lookupName(name);
-			
-			if (!objectNode.isTypeInstance()) {
-				throw ErrorException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
-			}
-			
-			const auto typeInstance = objectNode.getSEMTypeInstance();
-			return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+			return SEM::Type::Object(getBuiltInType(context.scopeStack(), fullNameString), SEM::Type::NO_TEMPLATE_ARGS);
 		}
 		
 		SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = makeString("%s_t", nameString.c_str());
-			
-			const auto name = Name::Absolute() + fullNameString;
-			const auto objectNode = context.lookupName(name);
-			
-			if (!objectNode.isTypeInstance()) {
-				throw ErrorException(makeString("Failed to find primitive type '%s'!", name.toString().c_str()));
-			}
-			
-			const auto typeInstance = objectNode.getSEMTypeInstance();
-			return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
+			return SEM::Type::Object(getBuiltInType(context.scopeStack(), fullNameString), SEM::Type::NO_TEMPLATE_ARGS);
 		}
 		
 		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
 			const Name name = symbol->createName();
-			const Node objectNode = context.lookupName(name);
+			
+			const auto searchResult = performSearch(context.scopeStack(), name);
 			
 			const auto templateVarMap = GenerateTemplateVarMap(context, symbol);
 			
-			if (objectNode.isTypeInstance()) {
-				const auto typeInstance = objectNode.getSEMTypeInstance();
+			if (searchResult.isTypeInstance()) {
+				const auto typeInstance = searchResult.typeInstance();
 				
 				assert(templateVarMap.size() == typeInstance->templateVariables().size());
 				
@@ -170,11 +155,10 @@ namespace locic {
 				}
 				
 				return SEM::Type::Object(typeInstance, templateArguments);
-			} else if(objectNode.isTemplateVar()) {
+			} else if(searchResult.isTemplateVar()) {
 				assert(templateVarMap.empty());
 				
-				const auto templateVar = objectNode.getSEMTemplateVar();
-				return SEM::Type::TemplateVarRef(templateVar);
+				return SEM::Type::TemplateVarRef(searchResult.templateVar());
 			} else {
 				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
 					name.toString().c_str(), symbol.location().toString().c_str()));
