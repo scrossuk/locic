@@ -49,7 +49,7 @@ namespace locic {
 		std::string mangleType(const Module& module, SEM::Type* unresolvedType) {
 			assert(unresolvedType != NULL);
 			
-			SEM::Type* type = module.resolveType(unresolvedType);
+			const auto type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
@@ -57,15 +57,13 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					SEM::TypeInstance* typeInstance = type->getObjectType();
+					const auto typeInstance = type->getObjectType();
 					return mangleObjectType(module, typeInstance, type->templateArguments());
 				}
 				
 				case SEM::Type::REFERENCE: {
-					const std::string typeListMangle =
-						mangleTypeList(module, std::vector<SEM::Type*>(1, type->getReferenceTarget()));
-					return makeString("T1N5__ref%s",
-									  typeListMangle.c_str());
+					const auto typeListMangle = mangleTypeList(module, { type->getReferenceTarget() });
+					return makeString("T1N5__ref%s", typeListMangle.c_str());
 				}
 				
 				case SEM::Type::FUNCTION: {
@@ -91,7 +89,7 @@ namespace locic {
 		}
 		
 		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
-			assert(typeInstance != NULL);
+			assert(typeInstance != nullptr);
 			return makeString("%s%s", mangleTypeName(module, typeInstance->name()).c_str(),
 				mangleTypeList(module, templateArguments).c_str());
 		}
@@ -101,8 +99,7 @@ namespace locic {
 				return "";
 			}
 			
-			std::string s = makeString("L%llu",
-									   (unsigned long long) typeList.size());
+			std::string s = makeString("L%llu", (unsigned long long) typeList.size());
 									   
 			for (size_t i = 0; i < typeList.size(); i++) {
 				const std::string typeMangle = mangleType(module, typeList.at(i));
@@ -116,6 +113,30 @@ namespace locic {
 		
 		std::string mangleTypeName(const Module& module, const Name& name) {
 			return mangleName(module, "T", name);
+		}
+		
+		namespace {
+			
+			std::string valToString(size_t val) {
+				return makeString("%llu", (unsigned long long) val);
+			}
+			
+		}
+		
+		std::string mangleModuleScopeFields(const Module& module, const Name& name, const Version& version) {
+			if (name.empty()) return "";
+			
+			const auto versionString =
+				valToString(version.majorVersion()) + "_" +
+				valToString(version.minorVersion()) + "_" +
+				valToString(version.buildVersion()) + "_";
+			
+			return mangleName(module, "P", name) + "V" + versionString;
+		}
+		
+		std::string mangleModuleScope(const Module& module, SEM::ModuleScope* moduleScope) {
+			if (moduleScope == nullptr) return "";
+			return mangleModuleScopeFields(module, moduleScope->moduleName(), moduleScope->moduleVersion());
 		}
 		
 	}

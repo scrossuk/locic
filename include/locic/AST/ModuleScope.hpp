@@ -35,14 +35,14 @@ namespace locic {
 			}
 			
 			inline static ModuleScope* NamedImport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(IMPORT, false, pData);
+				const auto moduleScope = new ModuleScope(IMPORT, true, pData);
 				moduleScope->moduleName = moduleName;
 				moduleScope->version = version;
 				return moduleScope;
 			}
 			
 			inline static ModuleScope* NamedExport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(EXPORT, false, pData);
+				const auto moduleScope = new ModuleScope(EXPORT, true, pData);
 				moduleScope->moduleName = moduleName;
 				moduleScope->version = version;
 				return moduleScope;

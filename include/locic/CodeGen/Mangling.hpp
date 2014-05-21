@@ -6,6 +6,7 @@
 
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
+#include <locic/Version.hpp>
 
 #include <locic/CodeGen/Module.hpp>
 
@@ -26,6 +27,10 @@ namespace locic {
 		std::string mangleTypeList(const Module& module, const std::vector<SEM::Type*> typeList);
 		
 		std::string mangleTypeName(const Module& module, const Name& name);
+		
+		std::string mangleModuleScopeFields(const Module& module, const Name& name, const Version& version);
+		
+		std::string mangleModuleScope(const Module& module, SEM::ModuleScope* moduleScope);
 		
 	}
 	
