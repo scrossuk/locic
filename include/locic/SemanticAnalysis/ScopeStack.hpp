@@ -6,7 +6,6 @@
 
 #include <locic/Debug.hpp>
 #include <locic/Name.hpp>
-#include <locic/Optional.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
@@ -36,8 +35,6 @@ namespace locic {
 				ScopeStack& stack_;
 				
 		};
-		
-		Optional<ScopeElement> findElement(const ScopeStack& scopeStack, const Name& name);
 		
 		Name getCurrentName(const ScopeStack& scopeStack);
 		

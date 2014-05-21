@@ -10,6 +10,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/NameSearch.hpp>
 
 namespace locic {
 
@@ -30,7 +31,7 @@ namespace locic {
 				
 				const Name name = fullName.substr(i + 1);
 				
-				const auto searchResult = performSearch(context.scopeStack(), name);
+				const auto searchResult = performSearch(context, name);
 				
 				if (searchResult.isTypeInstance()) {
 					const auto typeInstance = searchResult.typeInstance();
@@ -140,7 +141,7 @@ namespace locic {
 			
 			const Name name = symbol->createName();
 			
-			const auto searchResult = performSearch(context.scopeStack(), name);
+			const auto searchResult = performSearch(context, name);
 			
 			const auto templateVarMap = GenerateTemplateVarMap(context, symbol);
 			

@@ -15,9 +15,11 @@ add_library(locic-semanalysis
 	ConvertVar.cpp
 	DefaultMethods.cpp
 	Lval.cpp
+	NameSearch.cpp
 	Ref.cpp
 	ScopeElement.cpp
 	ScopeStack.cpp
+	SearchResult.cpp
 	TypeProperties.cpp
 	VarArgCast.cpp)
 

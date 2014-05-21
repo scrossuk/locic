@@ -10,11 +10,13 @@
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
@@ -192,11 +194,11 @@ namespace locic {
 					} else if (specifier == "C") {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = getBuiltInType(context, "char_t");
-						const auto ptrTypeInstance = getBuiltInType(context, "ptr");
+						const auto charTypeInstance = getBuiltInType(context.scopeStack(), "char_t");
+						const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "ptr");
 						
 						// Generate type 'const char'.
-						const auto constCharType = SEM::Type::Object(charTypeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+						const auto constCharType = charTypeInstance->selfType()->createConstType();
 						
 						// Generate type 'const ptr<const char>'.
 						return SEM::Type::Object(ptrTypeInstance, { constCharType })->createConstType();
@@ -207,7 +209,7 @@ namespace locic {
 				}
 				default: {
 					const auto typeName = getLiteralTypeName(specifier, constant);
-					const auto typeInstance = getBuiltInType(context, typeName);
+					const auto typeInstance = getBuiltInType(context.scopeStack(), typeName);
 					if (typeInstance == nullptr) {
 						throw ErrorException(makeString("Couldn't find constant type '%s' when generating value constant.",
 							typeName.c_str()));
@@ -222,17 +224,17 @@ namespace locic {
 			return name.getPrefix() + CanonicalizeMethodName(name.last());
 		}
 		
-		static Node performSymbolLookup(Context& context, const Name& name) {
-			const auto node = context.lookupName(name);
-			if (!node.isNone()) return node;
+		static SearchResult performSymbolLookup(Context& context, const Name& name) {
+			const auto searchResult = performSearch(context, name);
+			if (!searchResult.isNone()) return searchResult;
 			
 			// Fall back on looking for canonicalized static method names.
-			const auto functionNode = context.lookupName(getCanonicalName(name));
-			if (!functionNode.isFunction()) {
-				return Node::None();
+			const auto functionSearchResult = performSearch(context, getCanonicalName(name));
+			if (!functionSearchResult.isFunction()) {
+				return SearchResult::None();
 			}
 			
-			return functionNode;
+			return functionSearchResult;
 		}
 		
 		SEM::Value* ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
@@ -244,21 +246,19 @@ namespace locic {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::SELF: {
-					return getSelfValue(context, location);
+					return getSelfValue(context.scopeStack(), location);
 				}
 				case AST::Value::THIS: {
-					const Node thisTypeNode = lookupParentType(context);
+					const auto thisTypeInstance = lookupParentType(context.scopeStack());
 					
-					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
-					
-					if (thisTypeNode.isNone()) {
+					if (thisTypeInstance == nullptr) {
 						throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
 							location.toString().c_str()));
 					}
 					
 					// TODO: make const type when in const methods.
-					const auto selfType = thisTypeNode.getSEMTypeInstance()->selfType();
-					const auto ptrTypeInstance = getBuiltInType(context, "ptr");
+					const auto selfType = thisTypeInstance->selfType();
+					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "ptr");
 					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfType })->createConstType());
 				}
 				case AST::Value::LITERAL: {
@@ -271,19 +271,16 @@ namespace locic {
 					const Name name = astSymbolNode->createName();
 					
 					// Not a local variable => do a symbol lookup.
-					const auto node = performSymbolLookup(context, name);
+					const auto searchResult = performSymbolLookup(context, name);
 					
 					// Get a map from template variables to their values (i.e. types).
 					const auto templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
 					
-					if (node.isNone()) {
+					if (searchResult.isNone()) {
 						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
 							name.toString().c_str(), location.toString().c_str()));
-					} else if (node.isNamespace()) {
-						throw ErrorException(makeString("Namespace '%s' is not a valid value at %s.",
-							name.toString().c_str(), location.toString().c_str()));
-					} else if (node.isFunction()) {
-						const auto function = node.getSEMFunction();
+					} else if (searchResult.isFunction()) {
+						const auto function = searchResult.function();
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
 						if (function->isMethod()) {
@@ -292,10 +289,10 @@ namespace locic {
 									name.toString().c_str(), location.toString().c_str()));
 							}
 							
-							const Node typeNode = context.lookupName(name.getPrefix());
-							assert(typeNode.isTypeInstance());
+							const auto typeSearchResult = performSearch(context, name.getPrefix());
+							assert(typeSearchResult.isTypeInstance());
 							
-							const auto typeInstance = typeNode.getSEMTypeInstance();
+							const auto typeInstance = typeSearchResult.typeInstance();
 							
 							const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 							
@@ -303,8 +300,8 @@ namespace locic {
 						} else {
 							return SEM::Value::FunctionRef(nullptr, function, templateVarMap);
 						}
-					} else if (node.isTypeInstance()) {
-						const auto typeInstance = node.getSEMTypeInstance();
+					} else if (searchResult.isTypeInstance()) {
+						const auto typeInstance = searchResult.typeInstance();
 						
 						if (typeInstance->isInterface()) {
 							throw ErrorException(makeString("Can't construct interface type '%s' at %s.",
@@ -313,27 +310,27 @@ namespace locic {
 						
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
 						return GetStaticMethod(parentType, "create", location);
-					} else if (node.isVariable()) {
+					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
 						// TODO: make these throw exceptions.
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						return SEM::Value::LocalVar(node.getSEMVar());
-					} else if (node.isTemplateVar()) {
+						return SEM::Value::LocalVar(searchResult.var());
+					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
-						const auto templateVar = node.getSEMTemplateVar();
+						const auto templateVar = searchResult.templateVar();
 						return GetStaticMethod(SEM::Type::TemplateVarRef(templateVar), "create", location);
 					} else {
-						throw std::runtime_error("Unknown node for name reference.");
+						throw std::runtime_error("Unknown search result for name reference.");
 					}
 					
 					throw std::runtime_error("Invalid if-statement fallthrough in ConvertValue for name reference.");
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
-					const auto selfValue = getSelfValue(context, location);
+					const auto selfValue = getSelfValue(context.scopeStack(), location);
 					assert(getDerefType(selfValue->type())->isObject());
 					
 					const auto typeInstance = getDerefType(selfValue->type())->getObjectType();
@@ -349,7 +346,7 @@ namespace locic {
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					const auto boolType = getBuiltInType(context, "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
 					const auto boolValue = ImplicitCast(cond, boolType->selfType(), location);
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
@@ -423,16 +420,12 @@ namespace locic {
 				case AST::Value::INTERNALCONSTRUCT: {
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					
-					const Node thisTypeNode = lookupParentType(context);
+					const auto thisTypeInstance = lookupParentType(context.scopeStack());
 					
-					assert(thisTypeNode.isNone() || thisTypeNode.isTypeInstance());
-					
-					if (thisTypeNode.isNone()) {
+					if (thisTypeInstance == nullptr) {
 						throw ErrorException(makeString("Cannot call internal constructor in non-method at position %s.",
 							location.toString().c_str()));
 					}
-					
-					const auto thisTypeInstance = thisTypeNode.getSEMTypeInstance();
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
 						throw ErrorException(makeString("Internal constructor called "

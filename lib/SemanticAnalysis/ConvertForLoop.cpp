@@ -6,7 +6,6 @@
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
-#include <locic/SemanticAnalysis/Node.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {

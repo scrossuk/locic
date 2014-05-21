@@ -8,6 +8,7 @@
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/NameSearch.hpp>
 
 namespace locic {
 
@@ -26,13 +27,29 @@ namespace locic {
 			return varInfo;
 		}
 		
+		namespace {
+			
+			bool insertVar(const ScopeElement& element, const std::string& name, SEM::Var* var) {
+				if (element.isScope()) {
+					return element.scope()->namedVariables().insert(std::make_pair(name, var)).second;
+				} else if (element.isSwitchCase()) {
+					return element.switchCase()->namedVariables().insert(std::make_pair(name, var)).second;
+				} else if (element.isCatchClause()) {
+					return element.catchClause()->namedVariables().insert(std::make_pair(name, var)).second;
+				} else {
+					assert(false && "Invalid element kind for inserting var.");
+					return false;
+				}
+			}
+			
+		}
+		
 		// Attach the variable to the SemanticAnalysis node tree.
 		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
 			assert(var->isBasic());
 			
-			const auto semScope = context.scopeStack().back().scope();
-			const auto insertResult = semScope->namedVariables().insert(std::make_pair(name, var));
-			if (!insertResult.second) {
+			const auto insertResult = insertVar(context.scopeStack().back(), name, var);
+			if (!insertResult) {
 				throw ErrorException(makeString("Variable name '%s' already exists at position %s.",
 					name.c_str(), astTypeVarNode.location().toString().c_str()));
 			}
@@ -64,7 +81,7 @@ namespace locic {
 					case AST::TypeVar::NAMEDVAR: {
 						const auto& varName = astTypeVarNode->namedVar.name;
 						
-						if (!performSearch(context.scopeStack(), Name::Relative() + varName).isNone()) {
+						if (!performSearch(context, Name::Relative() + varName).isNone()) {
 							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 								varName.c_str(), location.toString().c_str()));
 						}
@@ -148,7 +165,7 @@ namespace locic {
 				case AST::TypeVar::NAMEDVAR: {
 					const auto& varName = astTypeVarNode->namedVar.name;
 					
-					if (!performSearch(context.scopeStack(), Name::Relative() + varName).isNone()) {
+					if (!performSearch(context, Name::Relative() + varName).isNone()) {
 						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}

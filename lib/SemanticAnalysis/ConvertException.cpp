@@ -9,7 +9,6 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/Node.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {

@@ -8,7 +8,6 @@
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/Node.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 

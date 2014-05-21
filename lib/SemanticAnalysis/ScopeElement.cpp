@@ -15,13 +15,13 @@ namespace locic {
 		}
 		
 		ScopeElement ScopeElement::TypeInstance(SEM::TypeInstance* typeInstance) {
-			ScopeElement element(NAMESPACE);
+			ScopeElement element(TYPEINSTANCE);
 			element.data_.typeInstance = typeInstance;
 			return element;
 		}
 		
 		ScopeElement ScopeElement::Function(SEM::Function* function) {
-			ScopeElement element(NAMESPACE);
+			ScopeElement element(FUNCTION);
 			element.data_.function = function;
 			return element;
 		}
@@ -127,7 +127,7 @@ namespace locic {
 		}
 		
 		bool ScopeElement::hasName() const {
-			return isNamespace() || isTypeInstance() || isFunction();
+			return (isNamespace() && !nameSpace()->name().empty()) || isTypeInstance() || isFunction();
 		}
 		
 		std::string ScopeElement::name() const {

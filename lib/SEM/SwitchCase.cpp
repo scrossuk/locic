@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <map>
+
 #include <locic/String.hpp>
 
 #include <locic/SEM/Scope.hpp>
@@ -28,6 +30,14 @@ namespace locic {
 		
 		Var* SwitchCase::var() const {
 			return var_;
+		}
+		
+		std::map<std::string, Var*>& SwitchCase::namedVariables() {
+			return namedVariables_;
+		}
+		
+		const std::map<std::string, Var*>& SwitchCase::namedVariables() const {
+			return namedVariables_;
 		}
 		
 		Scope& SwitchCase::scope() const {

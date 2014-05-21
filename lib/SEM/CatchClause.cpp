@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <map>
+
 #include <locic/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
@@ -25,6 +27,14 @@ namespace locic {
 		
 		Var* CatchClause::var() const {
 			return var_;
+		}
+		
+		std::map<std::string, Var*>& CatchClause::namedVariables() {
+			return namedVariables_;
+		}
+		
+		const std::map<std::string, Var*>& CatchClause::namedVariables() const {
+			return namedVariables_;
 		}
 		
 		Scope& CatchClause::scope() const {

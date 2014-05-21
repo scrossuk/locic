@@ -61,6 +61,14 @@ namespace locic {
 			return parameters_;
 		}
 		
+		std::map<std::string, Var*>& Function::namedVariables() {
+			return namedVariables_;
+		}
+		
+		const std::map<std::string, Var*>& Function::namedVariables() const {
+			return namedVariables_;
+		}
+		
 		const Scope& Function::scope() const {
 			assert(isDefinition());
 			return *scope_;

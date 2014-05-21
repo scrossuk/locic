@@ -245,8 +245,19 @@ namespace locic {
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				AddTypeInstanceMemberVariables(context, astTypeInstanceNode);
+				{
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+					AddTypeInstanceMemberVariables(context, astTypeInstanceNode);
+				}
+				
+				if (semChildTypeInstance->isUnionDatatype()) {
+					for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+						const auto semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
+						
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
+						AddTypeInstanceMemberVariables(context, astVariantNode);
+					}
+				}
 			}
 		}
 		

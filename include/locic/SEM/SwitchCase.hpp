@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_SWITCHCASE_HPP
 #define LOCIC_SEM_SWITCHCASE_HPP
 
+#include <map>
 #include <string>
 
 namespace locic {
@@ -21,12 +22,16 @@ namespace locic {
 				
 				Var* var() const;
 				
+				std::map<std::string, Var*>& namedVariables();
+				const std::map<std::string, Var*>& namedVariables() const;
+				
 				Scope& scope() const;
 				
 				std::string toString() const;
 				
 			private:
 				Var* var_;
+				std::map<std::string, Var*> namedVariables_;
 				Scope* scope_;
 				
 		};
