@@ -28,12 +28,15 @@ namespace locic {
 				
 				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
 				
+				static UnwindAction CatchBlock(llvm::Value* exceptionValue);
+				
 				enum Kind {
 					DESTRUCTOR,
 					CATCH,
 					SCOPEMARKER,
 					CONTROLFLOW,
-					SCOPEEXIT
+					SCOPEEXIT,
+					CATCHBLOCK
 				};
 				
 				Kind kind() const;
@@ -47,6 +50,8 @@ namespace locic {
 				bool isControlFlow() const;
 				
 				bool isScopeExit() const;
+				
+				bool isCatchBlock() const;
 				
 				SEM::Type* destroyType() const;
 				
@@ -63,6 +68,8 @@ namespace locic {
 				ScopeExitState scopeExitState() const;
 				
 				SEM::Scope* scopeExitScope() const;
+				
+				llvm::Value* catchExceptionValue() const;
 				
 			private:
 				inline UnwindAction(Kind pKind)
@@ -90,6 +97,10 @@ namespace locic {
 						ScopeExitState state;
 						SEM::Scope* scope;
 					} scopeExitAction;
+					
+					struct CatchBlock {
+						llvm::Value* exceptionValue;
+					} catchBlock;
 				} actions_;
 				
 		};

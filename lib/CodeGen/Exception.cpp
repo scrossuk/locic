@@ -31,6 +31,24 @@ namespace locic {
 			return function;
 		}
 		
+		llvm::Function* getExceptionFreeFunction(Module& module) {
+			const std::string functionName = "__loci_free_exception";
+			const auto result = module.getFunctionMap().tryGet(functionName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			TypeGenerator typeGen(module);
+			const auto functionType = typeGen.getFunctionType(typeGen.getVoidType(), std::vector<llvm::Type*> { typeGen.getI8PtrType() });
+			
+			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
+			
+			module.getFunctionMap().insert(functionName, function);
+			
+			return function;
+		}
+		
 		llvm::Function* getExceptionThrowFunction(Module& module) {
 			const std::string functionName = "__loci_throw";
 			const auto result = module.getFunctionMap().tryGet(functionName);
@@ -67,8 +85,8 @@ namespace locic {
 			return function;
 		}
 		
-		llvm::Function* getBeginCatchFunction(Module& module) {
-			const std::string functionName = "__loci_begin_catch";
+		llvm::Function* getExceptionPtrFunction(Module& module) {
+			const std::string functionName = "__loci_get_exception";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
 			if (result.hasValue()) {
@@ -77,24 +95,6 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			const auto functionType = typeGen.getFunctionType(typeGen.getI8PtrType(), std::vector<llvm::Type*>{typeGen.getI8PtrType()});
-			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			
-			module.getFunctionMap().insert(functionName, function);
-			
-			return function;
-		}
-		
-		llvm::Function* getEndCatchFunction(Module& module) {
-			const std::string functionName = "__loci_end_catch";
-			const auto result = module.getFunctionMap().tryGet(functionName);
-			
-			if (result.hasValue()) {
-				return result.getValue();
-			}
-			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>{});
 			
 			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
 			
@@ -134,10 +134,11 @@ namespace locic {
 			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
 			
 			// Unwind stack due to exception.
-			genExceptionUnwind(function);
+			const bool isRethrow = false;
+			genExceptionUnwind(function, isRethrow);
 		}
 		
-		void genExceptionUnwind(Function& function) {
+		void genExceptionUnwind(Function& function, bool isRethrow) {
 			const auto& unwindStack = function.unwindStack();
 			llvm::BasicBlock* catchBlock = nullptr;
 			
@@ -152,7 +153,7 @@ namespace locic {
 				}
 				
 				const bool isExceptionState = true;
-				performScopeExitAction(function, pos, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
 			}
 			
 			if (catchBlock != nullptr) {

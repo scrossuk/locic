@@ -86,8 +86,7 @@ extern "C" void testPrint(const char* format, ...) {
 FORCE_UNDEFINED_SYMBOL(__loci_allocate_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_free_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_throw)
-FORCE_UNDEFINED_SYMBOL(__loci_begin_catch)
-FORCE_UNDEFINED_SYMBOL(__loci_end_catch)
+FORCE_UNDEFINED_SYMBOL(__loci_get_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_personality_v0)
 
 int main(int argc, char* argv[]) {

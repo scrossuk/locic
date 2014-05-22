@@ -38,6 +38,12 @@ namespace locic {
 			return action;
 		}
 		
+		UnwindAction UnwindAction::CatchBlock(llvm::Value* exceptionValue) {
+			UnwindAction action(UnwindAction::CATCHBLOCK);
+			action.actions_.catchBlock.exceptionValue = exceptionValue;
+			return action;
+		}
+		
 		UnwindAction::Kind UnwindAction::kind() const {
 			return kind_;
 		}
@@ -60,6 +66,10 @@ namespace locic {
 		
 		bool UnwindAction::isScopeExit() const {
 			return kind() == UnwindAction::SCOPEEXIT;
+		}
+		
+		bool UnwindAction::isCatchBlock() const {
+			return kind() == UnwindAction::CATCHBLOCK;
 		}
 		
 		SEM::Type* UnwindAction::destroyType() const {
@@ -100,6 +110,11 @@ namespace locic {
 		SEM::Scope* UnwindAction::scopeExitScope() const {
 			assert(isScopeExit());
 			return actions_.scopeExitAction.scope;
+		}
+		
+		llvm::Value* UnwindAction::catchExceptionValue() const {
+			assert(isCatchBlock());
+			return actions_.catchBlock.exceptionValue;
 		}
 		
 	}

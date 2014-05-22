@@ -5,6 +5,7 @@
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
+#include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -17,7 +18,8 @@ namespace locic {
 	
 		namespace {
 			
-			bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState) {
+			bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow) {
+				assert(isExceptionState || !isRethrow);
 				if (unwindAction.isDestructor()) {
 					// Destructors are always executed when exiting a scope.
 					return true;
@@ -26,6 +28,8 @@ namespace locic {
 					const bool supportsExceptionState = (unwindAction.scopeExitState() != SCOPEEXIT_SUCCESS);
 					const bool supportsNormalState = (unwindAction.scopeExitState() != SCOPEEXIT_FAILURE);
 					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
+				} else if (unwindAction.isCatchBlock()) {
+					return !isRethrow;
 				} else {
 					// Everything else is just a placeholder so doesn't
 					// actually generate code when leaving a scope.
@@ -33,7 +37,7 @@ namespace locic {
 				}
 			}
 			
-			bool scopeHasExitAction(Function& function, bool isExceptionState) {
+			bool scopeHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
 				const auto& unwindStack = function.unwindStack();
 				
 				for (size_t i = 0; i < unwindStack.size(); i++) {
@@ -43,7 +47,7 @@ namespace locic {
 						return false;
 					}
 					
-					if (isActiveAction(unwindAction, isExceptionState)) {
+					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
 						return true;
 					}
 				}
@@ -75,10 +79,10 @@ namespace locic {
 			
 		}
 		
-		void performScopeExitAction(Function& function, size_t position, bool isExceptionState) {
+		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow) {
 			const auto& unwindAction = function.unwindStack().at(position);
 			
-			if (!isActiveAction(unwindAction, isExceptionState)) {
+			if (!isActiveAction(unwindAction, isExceptionState, isRethrow)) {
 				return;
 			}
 			
@@ -88,14 +92,16 @@ namespace locic {
 				function.pushUnwindStack(position);
 				genScope(function, *(unwindAction.scopeExitScope()));
 				function.popUnwindStack();
+			} else if (unwindAction.isCatchBlock()) {
+				function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), std::vector<llvm::Value*>{ unwindAction.catchExceptionValue() });
 			}
 		}
 		
-		void genScopeExitActions(Function& function, bool isExceptionState) {
+		void genScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
 			const auto& unwindStack = function.unwindStack();
 			
 			// Only generate this code if there are actually actions to perform.
-			if (!scopeHasExitAction(function, isExceptionState)) return;
+			if (!scopeHasExitAction(function, isExceptionState, isRethrow)) return;
 			
 			const auto scopeLevel = getScopeLevel(unwindStack);
 			
@@ -110,7 +116,7 @@ namespace locic {
 				const auto& unwindAction = unwindStack.at(pos);
 				if (unwindAction.isScopeMarker()) break;
 				
-				performScopeExitAction(function, pos, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
 			}
 			
 			// ...and another to make it clear where it ends.
@@ -119,7 +125,7 @@ namespace locic {
 			function.selectBasicBlock(scopeDestroyEndBB);
 		}
 		
-		void genAllScopeExitActions(Function& function, bool isExceptionState) {
+		void genAllScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
 			const auto& unwindStack = function.unwindStack();
 			
 			// Create a new basic block to make this clearer.
@@ -130,7 +136,7 @@ namespace locic {
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				// Perform actions in reverse order (i.e. as a stack).
 				const size_t pos = unwindStack.size() - i - 1;
-				performScopeExitAction(function, pos, isExceptionState);
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
 			}
 		}
 		
@@ -146,7 +152,8 @@ namespace locic {
 		
 		LifetimeScope::~LifetimeScope() {
 			const bool isExceptionState = false;
-			genScopeExitActions(function_, isExceptionState);
+			const bool isRethrow = false;
+			genScopeExitActions(function_, isExceptionState, isRethrow);
 			popScope(function_.unwindStack());
 			
 			const size_t scopeLevel = function_.unwindStack().size();

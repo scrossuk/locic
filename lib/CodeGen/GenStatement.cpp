@@ -285,15 +285,20 @@ namespace locic {
 						{
 							function.selectBasicBlock(executeCatchBlock);
 							const auto catchType = genType(function.module(), catchClause->var()->constructType());
-							const auto exceptionDataValue = function.getBuilder().CreateCall(getBeginCatchFunction(module), std::vector<llvm::Value*>{thrownExceptionValue});
-							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionDataValue, catchType->getPointerTo());
+							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module),
+								std::vector<llvm::Value*>{ thrownExceptionValue });
+							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionPtrValue, catchType->getPointerTo());
 							
 							assert(catchClause->var()->isBasic());
 							function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
-							genScope(function, catchClause->scope());
 							
-							// TODO: make sure this gets called if an exception is thrown in the handler!
-							function.getBuilder().CreateCall(getEndCatchFunction(module), std::vector<llvm::Value*>{});
+							{
+								// Make sure the exception object is freed at the end
+								// of the catch block (unless it is rethrown).
+								LifetimeScope lifetimeScope(function);
+								function.unwindStack().push_back(UnwindAction::CatchBlock(exceptionPtrValue));
+								genScope(function, catchClause->scope());
+							}
 							
 							// Exception was handled, so re-commence normal execution.
 							function.getBuilder().CreateBr(afterCatchBlock);
@@ -303,7 +308,8 @@ namespace locic {
 					}
 					
 					// If not matched, keep unwinding.
-					genExceptionUnwind(function);
+					const bool isRethrow = false;
+					genExceptionUnwind(function, isRethrow);
 					
 					function.selectBasicBlock(afterCatchBlock);
 					break;
@@ -351,6 +357,14 @@ namespace locic {
 					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
+				
+				/*
+				case SEM::Statement::RETHROW: {
+					const bool isRethrow = true;
+					genExceptionUnwind(function, isRethrow);
+					break;
+				}
+				*/
 				
 				case SEM::Statement::SCOPEEXIT: {
 					ScopeExitState state = SCOPEEXIT_ALWAYS;

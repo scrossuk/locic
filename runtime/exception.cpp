@@ -22,6 +22,7 @@ typedef struct __loci_throw_type_t {
 typedef struct __loci_exception_t {
 	// Loci data.
 	const __loci_throw_type_t* type;
+	void (*destructor)(void*);
 	
 	// Unwind exception.
 	_Unwind_Exception unwindException;
@@ -53,7 +54,7 @@ static __loci_exception_t* GET_EXCEPTION_HEADER(void* exception) {
 }
 
 static void* GET_EXCEPTION_DATA(__loci_exception_t* exception) {
-	return (uint8_t*) (exception + 1);
+	return exception + 1;
 }
 
 static bool canCatch(const __loci_catch_type_t* catchType, const __loci_throw_type_t* throwType) {
@@ -91,21 +92,27 @@ enum {
 	DW_EH_PE_indirect = 0x80
 };
 
-extern "C" void* __loci_allocate_exception(size_t value) {
-	return ((uint8_t*) malloc(sizeof(__loci_exception_t) + value)) + sizeof(__loci_exception_t);
+extern "C" void* __loci_allocate_exception(size_t exceptionSize) {
+	return GET_EXCEPTION_DATA(static_cast<__loci_exception_t*>(malloc(sizeof(__loci_exception_t) + exceptionSize)));
 }
 
-extern "C" void __loci_free_exception(void* ptr) {
-	free(ptr);
-}
-
-extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* destructor) {
-	(void) destructor;
+extern "C" void __loci_free_exception(void* exceptionPtr) {
+	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
 	
+	if (header->destructor != NULL) {
+		header->destructor(exceptionPtr);
+	}
+	
+	free(header);
+}
+
+extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void (*destructor)(void*)) {
 	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
 	
 	header->type = (const __loci_throw_type_t*) exceptionType;
 	assert(header->type->length > 0);
+	
+	header->destructor = destructor;
 	
 	header->unwindException.exception_class = __loci_exception_class;
 	
@@ -122,13 +129,9 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void* dest
 	abort();
 }
 
-extern "C" void* __loci_begin_catch(_Unwind_Exception* unwindException) {
+extern "C" void* __loci_get_exception(_Unwind_Exception* unwindException) {
 	__loci_exception_t* const exception = GET_EXCEPTION(unwindException);
 	return GET_EXCEPTION_DATA(exception);
-}
-
-extern "C" void __loci_end_catch() {
-	// TODO
 }
 
 // Decode uleb128 value.

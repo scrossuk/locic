@@ -28,7 +28,8 @@ namespace locic {
 				}
 				
 				const bool isExceptionState = false;
-				performScopeExitAction(function, pos, isExceptionState);
+				const bool isRethrow = false;
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
 			}
 			
 			assert(breakBlock != nullptr);
@@ -51,7 +52,8 @@ namespace locic {
 				}
 				
 				const bool isExceptionState = false;
-				performScopeExitAction(function, pos, isExceptionState);
+				const bool isRethrow = false;
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
 			}
 			
 			assert(continueBlock != nullptr);

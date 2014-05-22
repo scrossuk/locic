@@ -8,11 +8,11 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void performScopeExitAction(Function& function, size_t position, bool isExceptionState);
+		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
 		
-		void genScopeExitActions(Function& function, bool isExceptionState = false);
+		void genScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
 		
-		void genAllScopeExitActions(Function& function, bool isExceptionState = false);
+		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
 		
 		class LifetimeScope {
 			public:
