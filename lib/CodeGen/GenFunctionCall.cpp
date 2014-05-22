@@ -111,7 +111,8 @@ namespace locic {
 				
 				// Fail path.
 				function.selectBasicBlock(failPath);
-				genLandingPad(function);
+				const bool isRethrow = false;
+				genLandingPad(function, isRethrow);
 				
 				// Success path.
 				function.selectBasicBlock(successPath);

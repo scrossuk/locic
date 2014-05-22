@@ -106,16 +106,7 @@ extern "C" void __loci_free_exception(void* exceptionPtr) {
 	free(header);
 }
 
-extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void (*destructor)(void*)) {
-	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
-	
-	header->type = (const __loci_throw_type_t*) exceptionType;
-	assert(header->type->length > 0);
-	
-	header->destructor = destructor;
-	
-	header->unwindException.exception_class = __loci_exception_class;
-	
+static inline void raiseException(__loci_exception_t* const header) {
 	const _Unwind_Reason_Code result = _Unwind_RaiseException(&(header->unwindException));
 	
 	// 'RaiseException' ONLY returns if there is an error;
@@ -127,6 +118,24 @@ extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void (*des
 	}
 	
 	abort();
+}
+
+extern "C" void __loci_throw(void* exceptionPtr, void* exceptionType, void (*destructor)(void*)) {
+	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
+	
+	header->type = (const __loci_throw_type_t*) exceptionType;
+	assert(header->type->length > 0);
+	
+	header->destructor = destructor;
+	
+	header->unwindException.exception_class = __loci_exception_class;
+	
+	raiseException(header);
+}
+
+extern "C" void __loci_rethrow(void* exceptionPtr) {
+	__loci_exception_t* const header = GET_EXCEPTION_HEADER(exceptionPtr);
+	raiseException(header);
 }
 
 extern "C" void* __loci_get_exception(_Unwind_Exception* unwindException) {
@@ -175,7 +184,7 @@ static uintptr_t readSLEB128(const uint8_t** data) {
 	return result;
 }
 
-unsigned int getEncodingSize(uint8_t encoding) {
+static unsigned int getEncodingSize(uint8_t encoding) {
 	if (encoding == DW_EH_PE_omit) {
 		return 0;
 	}
@@ -209,7 +218,7 @@ unsigned int getEncodingSize(uint8_t encoding) {
 }
 
 template <typename T>
-inline T readValue(const uint8_t*& ptr) {
+static inline T readValue(const uint8_t*& ptr) {
 	T value = 0;
 	memcpy(&value, ptr, sizeof(value));
 	ptr += sizeof(value);
@@ -239,10 +248,9 @@ static uintptr_t readEncodedPointer(const uint8_t** data, uint8_t encoding) {
 			result = readSLEB128(&nextPtr);
 			break;
 			
-		case DW_EH_PE_udata2: {
+		case DW_EH_PE_udata2:
 			result = readValue<uint16_t>(nextPtr);
 			break;
-		}
 		
 		case DW_EH_PE_udata4:
 			result = readValue<uint32_t>(nextPtr);
@@ -309,6 +317,7 @@ static uint64_t handleAction(uint8_t typeTableEncoding, const uint8_t* classInfo
 	// Extract information about exception being thrown.
 	const __loci_exception_t* const exception = GET_EXCEPTION(exceptionObject);
 	const __loci_throw_type_t* const exceptionThrowType = exception->type;
+	assert(exceptionThrowType != NULL);
 	
 	const uint8_t* actionPos = (uint8_t*) actionEntry;
 	
@@ -423,9 +432,10 @@ extern "C" _Unwind_Reason_Code __loci_personality_v0(
 			// Look for a CATCH handler in the action table.
 			const uint64_t actionValue = actionEntryPointer != 0 ?
 				handleAction(typeTableEncoding, classInfo, actionEntryPointer,
-						exceptionClass, exceptionObject) : false;
+						exceptionClass, exceptionObject) : 0;
 			
 			const bool isSearchPhase = (actions & _UA_SEARCH_PHASE) != 0;
+			
 			if (isSearchPhase) {
 				if (actionValue > 0) {
 					// Only mark CATCH handlers as found; any clean-up

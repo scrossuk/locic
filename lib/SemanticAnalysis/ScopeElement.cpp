@@ -45,14 +45,17 @@ namespace locic {
 		}
 		
 		ScopeElement ScopeElement::Loop() {
-			ScopeElement element(LOOP);
-			return element;
+			return ScopeElement(LOOP);
 		}
 		
 		ScopeElement ScopeElement::ScopeAction(const std::string& state) {
 			ScopeElement element(SCOPEACTION);
 			element.scopeActionState_ = state;
 			return element;
+		}
+		
+		ScopeElement ScopeElement::TryScope() {
+			return ScopeElement(TRYSCOPE);
 		}
 		
 		ScopeElement::Kind ScopeElement::kind() const {
@@ -89,6 +92,10 @@ namespace locic {
 		
 		bool ScopeElement::isScopeAction() const {
 			return kind() == SCOPEACTION;
+		}
+		
+		bool ScopeElement::isTryScope() const {
+			return kind() == TRYSCOPE;
 		}
 		
 		SEM::Namespace* ScopeElement::nameSpace() const {

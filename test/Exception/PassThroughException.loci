@@ -1,0 +1,24 @@
+// Test output.
+import void testPrint(const char * const str, ...) noexcept;
+
+exception ExampleError(int value);
+
+void functionThatThrows() {
+	testPrint(C"functionThatThrows: Throwing exception.");
+	throw ExampleError(8000);
+}
+
+void intermediateFunction() {
+	functionThatThrows();
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	try {
+		intermediateFunction();
+	} catch (ExampleError error) {
+		testPrint(C"testEntryPoint: Caught exception with value %d!", error.value);
+	}
+	return 0;
+}
+

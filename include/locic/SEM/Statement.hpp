@@ -29,6 +29,7 @@ namespace locic {
 					SCOPEEXIT,
 					RETURN,
 					THROW,
+					RETHROW,
 					BREAK,
 					CONTINUE
 				};
@@ -54,6 +55,8 @@ namespace locic {
 				static Statement* Return(Value* value);
 				
 				static Statement* Throw(Value* value);
+				
+				static Statement* Rethrow();
 				
 				static Statement* Break();
 				
@@ -114,6 +117,8 @@ namespace locic {
 				bool isThrowStatement() const;
 				
 				Value* getThrowValue() const;
+				
+				bool isRethrowStatement() const;
 				
 				bool isBreakStatement() const;
 				

@@ -92,6 +92,10 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement* Statement::Rethrow() {
+			return new Statement(RETHROW);
+		}
+		
 		Statement* Statement::Break() {
 			return new Statement(BREAK);
 		}
@@ -232,6 +236,10 @@ namespace locic {
 			return throwStmt_.value;
 		}
 		
+		bool Statement::isRethrowStatement() const {
+			return kind() == RETHROW;
+		}
+		
 		bool Statement::isBreakStatement() const {
 			return kind() == BREAK;
 		}
@@ -298,6 +306,10 @@ namespace locic {
 				case THROW: {
 					return makeString("ThrowStatement(value: %s)",
 									  throwStmt_.value->toString().c_str());
+				}
+				
+				case RETHROW: {
+					return "RethrowStatement";
 				}
 				
 				case BREAK: {

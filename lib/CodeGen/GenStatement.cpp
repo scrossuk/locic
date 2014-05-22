@@ -309,7 +309,7 @@ namespace locic {
 					
 					// If not matched, keep unwinding.
 					const bool isRethrow = false;
-					genExceptionUnwind(function, isRethrow);
+					genExceptionUnwind(function, exceptionInfo, isRethrow);
 					
 					function.selectBasicBlock(afterCatchBlock);
 					break;
@@ -351,20 +351,56 @@ namespace locic {
 					
 					// ==== 'throw' function DOES throw: Landing pad for running destructors/catch blocks.
 					function.selectBasicBlock(throwPath);
-					genLandingPad(function);
+					const bool isRethrow = false;
+					genLandingPad(function, isRethrow);
 					
 					// Basic block for any further instructions generated.
 					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				
-				/*
 				case SEM::Statement::RETHROW: {
+					llvm::Value* exceptionValue = nullptr;
+					
+					const auto& unwindStack = function.unwindStack();
+					for (size_t i = 0; i < unwindStack.size(); i++) {
+						const auto pos = unwindStack.size() - i - 1;
+						const auto& unwindElement = unwindStack.at(pos);
+						
+						if (unwindElement.isCatchBlock()) {
+							exceptionValue = unwindElement.catchExceptionValue();
+							break;
+						}
+					}
+					
+					assert(exceptionValue != nullptr);
+					
+					const auto noThrowPath = function.createBasicBlock("throwFail");
+					const auto throwPath = function.createBasicBlock("throwLandingPad");
+					
+					// Call 'rethrow' function.
+					const auto rethrowFunction = getExceptionRethrowFunction(module);
+					
+					const auto rethrowInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath,
+						std::vector<llvm::Value*>{ exceptionValue });
+					
+					if (hasDebugInfo) {
+						rethrowInvoke->setDebugLoc(debugLocation);
+					}
+					
+					// ==== 'rethrow' function doesn't throw: Should never happen.
+					function.selectBasicBlock(noThrowPath);
+					function.getBuilder().CreateUnreachable();
+					
+					// ==== 'rethrow' function DOES throw: Landing pad for running destructors/catch blocks.
+					function.selectBasicBlock(throwPath);
 					const bool isRethrow = true;
-					genExceptionUnwind(function, isRethrow);
+					genLandingPad(function, isRethrow);
+					
+					// Basic block for any further instructions generated.
+					function.selectBasicBlock(function.createBasicBlock("afterRethrow"));
 					break;
 				}
-				*/
 				
 				case SEM::Statement::SCOPEEXIT: {
 					ScopeExitState state = SCOPEEXIT_ALWAYS;

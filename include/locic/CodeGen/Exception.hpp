@@ -17,13 +17,15 @@ namespace locic {
 		
 		llvm::Function* getExceptionThrowFunction(Module& module);
 		
+		llvm::Function* getExceptionRethrowFunction(Module& module);
+		
 		llvm::Function* getExceptionPersonalityFunction(Module& module);
 		
 		llvm::Function* getExceptionPtrFunction(Module& module);
 		
-		void genLandingPad(Function& function);
+		void genLandingPad(Function& function, bool isRethrow);
 		
-		void genExceptionUnwind(Function& function, bool isRethrow);
+		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow);
 		
 		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance);
 		

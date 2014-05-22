@@ -264,7 +264,12 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(loopScope);
 				}
 				case AST::Statement::TRY: {
-					const auto tryScope = ConvertScope(context, statement->tryStmt.scope);
+					SEM::Scope* tryScope = nullptr;
+					
+					{
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TryScope());
+						tryScope = ConvertScope(context, statement->tryStmt.scope);
+					}
 					
 					std::vector<SEM::CatchClause*> catchList;
 					
@@ -393,6 +398,33 @@ namespace locic {
 								semValue->toString().c_str(), location.toString().c_str()));
 					}
 					return SEM::Statement::Throw(semValue);
+				}
+				case AST::Statement::RETHROW: {
+					// Check this is being used inside a catch clause, and
+					// is not inside a try clause or a scope action.
+					bool foundCatchClause = false;
+					
+					for (size_t i = 0; i < context.scopeStack().size(); i++) {
+						const auto pos = context.scopeStack().size() - i - 1;
+						const auto& element = context.scopeStack().at(pos);
+						
+						if (element.isCatchClause()) {
+							foundCatchClause = true;
+						} else if (element.isTryScope() && !foundCatchClause) {
+							throw ErrorException(makeString("Cannot re-throw exception in try scope (within the relevant catch clause) at position %s.",
+								location.toString().c_str()));
+						} else if (element.isScopeAction() && element.scopeActionState() != "success") {
+							throw ErrorException(makeString("Cannot re-throw exception in scope action with state '%s' at position %s.",
+								element.scopeActionState().c_str(), location.toString().c_str()));
+						}
+					}
+					
+					if (!foundCatchClause) {
+						throw ErrorException(makeString("Cannot re-throw exception outside of catch clause at position %s.",
+							location.toString().c_str()));
+					}
+					
+					return SEM::Statement::Rethrow();
 				}
 				case AST::Statement::BREAK: {
 					// Check this is being used inside a loop, and

@@ -19,7 +19,8 @@ namespace locic {
 					SWITCHCASE,
 					CATCHCLAUSE,
 					LOOP,
-					SCOPEACTION
+					SCOPEACTION,
+					TRYSCOPE
 				};
 				
 				static ScopeElement Namespace(SEM::Namespace* nameSpace);
@@ -38,6 +39,8 @@ namespace locic {
 				
 				static ScopeElement ScopeAction(const std::string& state);
 				
+				static ScopeElement TryScope();
+				
 				Kind kind() const;
 				
 				bool isNamespace() const;
@@ -48,6 +51,7 @@ namespace locic {
 				bool isCatchClause() const;
 				bool isLoop() const;
 				bool isScopeAction() const;
+				bool isTryScope() const;
 				
 				SEM::Namespace* nameSpace() const;
 				SEM::TypeInstance* typeInstance() const;

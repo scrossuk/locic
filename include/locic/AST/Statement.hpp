@@ -32,6 +32,7 @@ namespace locic {
 				RETURN,
 				RETURNVOID,
 				THROW,
+				RETHROW,
 				BREAK,
 				CONTINUE
 			} typeEnum;
@@ -179,6 +180,10 @@ namespace locic {
 				Statement* statement = new Statement(THROW);
 				statement->throwStmt.value = value;
 				return statement;
+			}
+			
+			inline static Statement* Rethrow() {
+				return new Statement(RETHROW);
 			}
 			
 			inline static Statement* Break() {
