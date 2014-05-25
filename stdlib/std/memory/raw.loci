@@ -1,0 +1,22 @@
+export std.memory 1.0.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		T* new_raw(T value) {
+			void* ptr = std::alloc(sizeof(T));
+			T* castPtr = reinterpret_cast<void*, T*>(ptr);
+			castPtr.lval().__assign(move value);
+			return castPtr;
+		}
+		
+		template <typename T>
+		void delete_raw(T* ptr) {
+			ptr.lval().__clear();
+			std::free(reinterpret_cast<T*, void*>(ptr));
+		}
+		
+	}
+	
+}
+

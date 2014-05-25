@@ -1,0 +1,50 @@
+import size_t strlen(char* const stringConstant) noexcept;
+
+import char* strcpy(char* dest, char* const src) noexcept;
+
+export std.memory 1.0.0 {
+	
+	std::string string_literal(const char* stringConstant) {
+		return std::string::cstring(stringConstant);
+	}
+	
+	namespace std {
+		
+		exception out_of_range();
+		
+		class string(size_t size, char* ptr) {
+			static create() {
+				return @(0, null);
+			}
+			
+			static cstring(char* const stringConstant) {
+				final auto length = strlen(stringConstant);
+				final auto ptr = std::alloc(length + 1);
+				return @(length, strcpy(ptr, stringConstant));
+			}
+			
+			~ {
+				if (@ptr != null) {
+					std::free(@ptr);
+				}
+			}
+			
+			size_t size() const noexcept {
+				return @size;
+			}
+			
+			unichar at(size_t index) const {
+				if (index >= @size) {
+					throw out_of_range();
+				}
+				return ptr[index];
+			}
+			
+			
+			
+		}
+		
+	}
+	
+}
+

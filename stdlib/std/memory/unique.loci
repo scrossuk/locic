@@ -1,0 +1,29 @@
+export std.memory 1.0.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		class unique_ptr(T* ptr) {
+			static create(T value) {
+				return @(std::new_raw<T>(move value));
+			}
+			
+			static null() {
+				return @(null);
+			}
+			
+			~ {
+				if (@ptr != null) {
+					std::delete_raw(@ptr);
+				}
+			}
+			
+			lval<T> ptr_lval<T> deref() const {
+				return *@ptr;
+			}
+		}
+		
+	}
+	
+}
+

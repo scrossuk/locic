@@ -1,0 +1,25 @@
+import void* calloc(size_t num, size_t size) noexcept;
+import void free(void* ptr) noexcept;
+
+export std.memory 1.0.0 {
+	
+	namespace std {
+		
+		exception bad_alloc();
+		
+		void* alloc(size_t size) {
+			final auto ptr = ::calloc(1, size);
+			if (ptr == null) {
+				throw bad_alloc();
+			}
+			return ptr;
+		}
+		
+		void free(void* ptr) noexcept {
+			::free(ptr);
+		}
+		
+	}
+	
+}
+
