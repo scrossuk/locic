@@ -466,7 +466,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPtrPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createPtrPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
@@ -521,7 +521,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPtrLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createPtrLvalPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
@@ -558,7 +558,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createMemberLvalPrimitiveMethod(Module& module, SEM::TypeInstance* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createMemberLvalPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
@@ -599,7 +599,7 @@ namespace locic {
 			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
 		}
 		
-		void createValueLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createValueLvalPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
@@ -692,7 +692,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction) {
+		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction) {
 			const auto typeName = parent->getObjectType()->name().last();
 			
 			if (typeName == "bool") {
@@ -886,14 +886,14 @@ namespace locic {
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(type->isPrimitive());
-			const auto name = type->getObjectType()->name().first();
-			return (name != "member_lval" && name != "value_lval") || isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
+			const auto name = typeInstance->name().first();
+			return name != "member_lval" && name != "value_lval";
 		}
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
-			const auto name = type->getObjectType()->name().first();
-			return (name != "member_lval" && name != "value_lval") || isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
+			const auto name = typeInstance->name().first();
+			return name != "member_lval" && name != "value_lval";
 		}
 		
 	}

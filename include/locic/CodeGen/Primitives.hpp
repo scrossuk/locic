@@ -18,15 +18,15 @@ namespace locic {
 		bool isUnsignedIntegerType(const std::string& name);
 		
 		bool isIntegerType(const std::string& name);
-	
-		void createPrimitiveSizeOf(Module& module, const std::string& name, const std::vector<SEM::Type*>& templateArguments, llvm::Function& llvmFunction);
 		
-		void createPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* function, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, const std::string& name, llvm::Function& llvmFunction);
 		
-		void createPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction);
+		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
-								   
+		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance);
+		
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type);

@@ -37,8 +37,8 @@ namespace locic {
 			function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>(1, value));
 		}
 		
-		void genUnionDestructor(Function& function, SEM::Type* parent) {
-			assert(parent->isUnionDatatype());
+		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {
+			assert(typeInstance->isUnionDatatype());
 			
 			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
 			const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
@@ -46,12 +46,12 @@ namespace locic {
 			const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
 			
 			const auto endBB = function.createBasicBlock("end");
-			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, parent->getObjectType()->variants().size());
+			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
 			
 			std::vector<llvm::BasicBlock*> caseBlocks;
 			
 			uint8_t tag = 0;
-			for (auto variantTypeInstance: parent->getObjectType()->variants()) {
+			for (const auto variantTypeInstance: typeInstance->variants()) {
 				const auto matchBB = function.createBasicBlock("tagMatch");
 				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
 				
@@ -60,7 +60,7 @@ namespace locic {
 				function.selectBasicBlock(matchBB);
 				
 				// TODO: CodeGen shouldn't create SEM trees.
-				const auto variantType = SEM::Type::Object(variantTypeInstance, parent->templateArguments());
+				const auto variantType = SEM::Type::Object(variantTypeInstance, {});
 				
 				const auto unionValueType = genType(function.module(), variantType);
 				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
@@ -103,7 +103,7 @@ namespace locic {
 			
 			assert(typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			if (typeInstance->getObjectType()->isClassDecl()) {
+			if (typeInstance->isClassDecl()) {
 				return llvmFunction;
 			}
 			

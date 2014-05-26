@@ -70,18 +70,17 @@ namespace locic {
 			
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::Type* parent, SEM::Function* function) {
+		llvm::Function* genFunction(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			if (function->isMethod()) {
-				assert(parent != NULL);
-				assert(parent->isObject());
+				assert(typeInstance != nullptr);
 			} else {
-				assert(parent == NULL);
+				assert(typeInstance == nullptr);
 			}
 			
 			const auto mangledName =
 				mangleModuleScope(module, function->moduleScope()) +
 				(function->isMethod() ?
-					mangleMethodName(module, parent, function->name().last()) :
+					mangleMethodName(module, typeInstance, function->name().last()) :
 					mangleFunctionName(module, function->name()));
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
@@ -90,27 +89,15 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			// --- Add parent template mapping to module.
-			const auto templateVarMap =
-				parent != NULL ?
-					parent->generateTemplateVarMap() :
-					Map<SEM::TemplateVar*, SEM::Type*>();
-			
-			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
-			
 			// --- Generate function declaration.
-			auto contextPtrType =
+			const auto contextPtrType =
 				function->isMethod() && !function->isStaticMethod() ?
-					getTypeInstancePointer(module, parent->getObjectType(),
-						parent->templateArguments()) :
-					NULL;
+					getTypeInstancePointer(module, typeInstance) :
+					nullptr;
 			
 			const auto functionType = genFunctionType(module, function->type(), contextPtrType);
 			
-			const auto linkage = getFunctionLinkage(
-				parent != nullptr ?
-					parent->getObjectType() :
-					nullptr, function->moduleScope());
+			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
 			
 			const auto llvmFunction =
 				createLLVMFunction(module,
@@ -144,9 +131,9 @@ namespace locic {
 			
 			// --- Generate function code.
 			
-			if (parent != nullptr && parent->getObjectType()->isPrimitive()) {
+			if (typeInstance != nullptr && typeInstance->isPrimitive()) {
 				// This is a primitive method; needs special code generation.
-				createPrimitiveMethod(module, parent, function, *llvmFunction);
+				createPrimitiveMethod(module, typeInstance, function, *llvmFunction);
 				return llvmFunction;
 			}
 			

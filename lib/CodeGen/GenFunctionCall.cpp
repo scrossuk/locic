@@ -79,13 +79,11 @@ namespace locic {
 					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int_t")) {
 						if (isSignedIntegerType(typeName)) {
 							// Need to extend to int.
-							argValue = function.getBuilder().CreateSExt(argValue,
-									getPrimitiveType(module, "int_t", std::vector<llvm::Type*>()));
+							argValue = function.getBuilder().CreateSExt(argValue, getPrimitiveType(module, "int_t"));
 							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
 						} else if (isUnsignedIntegerType(typeName)) {
 							// Need to extend to unsigned int.
-							argValue = function.getBuilder().CreateZExt(argValue,
-									getPrimitiveType(module, "uint_t", std::vector<llvm::Type*>()));
+							argValue = function.getBuilder().CreateZExt(argValue, getPrimitiveType(module, "uint_t"));
 							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
 						}
 					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
