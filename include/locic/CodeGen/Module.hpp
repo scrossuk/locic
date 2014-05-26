@@ -55,12 +55,6 @@ namespace locic {
 				
 				const MemberVarMap& getMemberVarMap() const;
 				
-				void pushTemplateVarMap(const TemplateVarMap& templateVarMap);
-				
-				void popTemplateVarMap();
-				
-				SEM::Type* resolveType(SEM::Type* type) const;
-				
 				TypeMap& getTypeMap();
 				
 				const TypeMap& getTypeMap() const;
@@ -79,26 +73,9 @@ namespace locic {
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
-				std::vector<const TemplateVarMap*> templateVarMapStack_;
 				TypeMap typeMap_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
-				
-		};
-		
-		class TemplateVarMapStackEntry {
-			public:
-				TemplateVarMapStackEntry(Module& module, const TemplateVarMap& templateVarMap)
-					: module_(module) {
-						module_.pushTemplateVarMap(templateVarMap);
-					}
-				
-				~TemplateVarMapStackEntry() {
-					module_.popTemplateVarMap();
-				}
-			
-			private:
-				Module& module_;
 				
 		};
 		

@@ -88,8 +88,7 @@ namespace locic {
 				case SEM::Type::TEMPLATEVAR:
 					return false;
 				default:
-					assert(false && "Unknown SEM type kind enum");
-					return false;
+					llvm_unreachable("Unknown SEM type kind enum");
 			}
 		}
 		

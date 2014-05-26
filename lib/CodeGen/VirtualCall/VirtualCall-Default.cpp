@@ -96,30 +96,13 @@ namespace locic {
 				return llvmArgsStructPtr;
 			}
 			
-			llvm::Value* generateCall(Function& function, SEM::Value* methodValue, const std::vector<SEM::Value*>& args) {
-				llvm::Value* llvmMethodValue = genValue(function, methodValue);
-				
-				// Extract the elements of the InterfaceMethod struct.
-				llvm::Value* llvmContextValue = function.getBuilder().CreateExtractValue(llvmMethodValue,
-											std::vector<unsigned>(1, 0), "context");
-											
-				llvm::Value* llvmObjectPointer = function.getBuilder().CreateExtractValue(llvmContextValue,
-											 std::vector<unsigned>(1, 0), "object");
-											 
-				llvm::Value* llvmVtablePointer = function.getBuilder().CreateExtractValue(llvmContextValue,
-											 std::vector<unsigned>(1, 1), "vtable");
-											 
-				llvm::Value* llvmMethodHashValue = function.getBuilder().CreateExtractValue(llvmMethodValue,
-											   std::vector<unsigned>(1, 1), "methodHash");
-											   
-				const ConstantGenerator constantGen(function.module());
+			llvm::Value* generateCall(Function& function, llvm::Value* objectPtr, llvm::Value* vtablePtr, llvm::Value* hashValue, const std::vector<llvm::Value*>& args) {
+				ConstantGenerator constantGen(function.module());
 				
 				// Calculate the slot for the virtual call.
-				llvm::Value* llvmVtableSizeValue =
-					constantGen.getI64(VTABLE_SIZE);
+				const auto vtableSizeValue = constantGen.getI64(VTABLE_SIZE);
 				
-				llvm::Value* llvmVtableOffsetValue =
-					function.getBuilder().CreateURem(llvmMethodHashValue, llvmVtableSizeValue, "vtableOffset");
+				const auto vtableOffsetValue = function.getBuilder().CreateURem(methodHashValue, vtableSizeValue, "vtableOffset");
 				
 				// Get a pointer to the slot.
 				std::vector<llvm::Value*> vtableEntryGEP;
@@ -127,21 +110,19 @@ namespace locic {
 				vtableEntryGEP.push_back(constantGen.getI32(2));
 				vtableEntryGEP.push_back(llvmVtableOffsetValue);
 				
-				llvm::Value* llvmVtableEntryPointer =
-					function.getBuilder().CreateInBoundsGEP(llvmVtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
 				// Load the slot.
-				llvm::Value* llvmMethodFunctionPointer =
-					function.getBuilder().CreateLoad(llvmVtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer =
+					function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
 				
 				// Cast the loaded pointer to the stub function type.
-				llvm::Type* llvmStubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
+				const auto stubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
 						 
-				llvm::Value* llvmCastedMethodFunctionPointer = function.getBuilder().CreatePointerCast(
-					llvmMethodFunctionPointer, llvmStubFunctionPtrType, "castedMethodFunctionPointer");
+				const auto castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				// i8
-				auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
 				
 				// Put together the arguments.
 				std::vector<llvm::Value*> parameters;
@@ -150,10 +131,10 @@ namespace locic {
 				SEM::Type* returnType = functionType->getFunctionReturnType();
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
-				llvm::Value* llvmReturnVarValue = NULL;
+				llvm::Value* returnVarValue = nullptr;
 				if (!returnType->isVoid()) {
-					llvmReturnVarValue = genAlloca(function, returnType);
-					parameters.push_back(function.getBuilder().CreatePointerCast(llvmReturnVarValue, i8PtrType, "castedReturnVarPtr"));
+					returnVarValue = genAlloca(function, returnType);
+					parameters.push_back(function.getBuilder().CreatePointerCast(returnVarValue, i8PtrType, "castedReturnVarPtr"));
 				} else {
 					parameters.push_back(constantGen.getNullPointer(i8PtrType));
 				}
@@ -162,18 +143,18 @@ namespace locic {
 				parameters.push_back(function.getBuilder().CreatePointerCast(llvmObjectPointer, i8PtrType, "castedObjectPtr"));
 				
 				// Pass in the method hash value.
-				parameters.push_back(llvmMethodHashValue);
+				parameters.push_back(methodHashValue);
 				
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
-				llvm::Value* llvmArgsStructPtr = makeArgsStruct(function, args);
-				parameters.push_back(function.getBuilder().CreatePointerCast(llvmArgsStructPtr, i8PtrType, "castedArgsStructPtr"));
+				const auto argsStructPtr = makeArgsStruct(function, args);
+				parameters.push_back(function.getBuilder().CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				llvm::Value* llvmCallReturnValue = function.getBuilder().CreateCall(llvmCastedMethodFunctionPointer, parameters);
+				const auto callReturnValue = function.getBuilder().CreateCall(castedMethodFunctionPointer, parameters);
 				
 				// If the return type isn't void, load the return value from the stack.
-				if (llvmReturnVarValue != NULL) {
+				if (returnVarValue != NULL) {
 					return genLoad(function, llvmReturnVarValue, returnType);
 				} else {
 					return llvmCallReturnValue;
@@ -200,18 +181,18 @@ namespace locic {
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
-				for (SEM::Function * semMethod : methods) {
+				for (const auto semMethod : methods) {
 					auto callMethodBasicBlock = function.createBasicBlock("callMethod");
 					auto tryNextMethodBasicBlock = function.createBasicBlock("tryNextMethod");
 					
 					const auto methodHash = CreateMethodNameHash(semMethod->name().last());
 					
-					auto cmpValue = function.getBuilder().CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
+					const auto cmpValue = function.getBuilder().CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
 					function.getBuilder().CreateCondBr(cmpValue, callMethodBasicBlock, tryNextMethodBasicBlock);
 					
 					function.selectBasicBlock(callMethodBasicBlock);
 					
-					llvm::Function* llvmMethod = genFunction(module, parentType, semMethod);
+					const auto llvmMethod = genFunction(module, parentType, semMethod);
 					
 					SEM::Type* functionType = semMethod->type();
 					SEM::Type* returnType = functionType->getFunctionReturnType();
@@ -262,8 +243,8 @@ namespace locic {
 					
 					// Store return value.
 					if (isTypeSizeAlwaysKnown(module, returnType) && !returnType->isVoid()) {
-						llvm::Type* returnValuePointerType = llvmMethod->getFunctionType()->getReturnType()->getPointerTo();
-						llvm::Value* llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
+						const auto returnValuePointerType = llvmMethod->getFunctionType()->getReturnType()->getPointerTo();
+						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
 						function.getBuilder().CreateStore(llvmCallReturnValue, llvmCastReturnVar);
 					}
 					

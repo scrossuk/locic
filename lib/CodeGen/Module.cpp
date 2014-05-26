@@ -17,7 +17,7 @@
 namespace locic {
 
 	namespace CodeGen {
-	
+		
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_->getContext(), targetInfo_.getTargetTriple())),
@@ -80,37 +80,6 @@ namespace locic {
 		
 		const MemberVarMap& Module::getMemberVarMap() const {
 			return memberVarMap_;
-		}
-		
-		void Module::pushTemplateVarMap(const TemplateVarMap& templateVarMap) {
-			templateVarMapStack_.push_back(&templateVarMap);
-		}
-		
-		void Module::popTemplateVarMap() {
-			templateVarMapStack_.pop_back();
-		}
-		
-		SEM::Type* Module::resolveType(SEM::Type* type) const {
-			for (size_t i = 0; i < templateVarMapStack_.size(); i++) {
-				if (!type->isTemplateVar()) {
-					return type;
-				}
-				
-				const auto map = templateVarMapStack_.at(templateVarMapStack_.size() - i - 1);
-				const auto result = map->tryGet(type->getTemplateVar());
-				
-				if (result.hasValue()) {
-					type = result.getValue();
-				}
-			}
-			
-			if (!type->isTemplateVar()) {
-				return type;
-			}
-			
-			assert(false && "Failed to resolve type.");
-			
-			return nullptr;
 		}
 		
 		TypeMap& Module::getTypeMap() {

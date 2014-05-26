@@ -7,7 +7,11 @@
 #include <string>
 #include <vector>
 
+#include <locic/CodeGen/LLVMIncludes.hpp>
+
 #include <locic/Map.hpp>
+
+#include <locic/CodeGen/Module.hpp>
 
 namespace locic {
 
@@ -23,6 +27,8 @@ namespace locic {
 		typedef uint64_t MethodHash;
 		
 		MethodHash CreateMethodNameHash(const std::string& methodName);
+		
+		llvm::Value* CreateHashValue(Module& module, const std::string& methodName);
 		
 		class VirtualTable {
 			public:

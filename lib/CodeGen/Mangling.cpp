@@ -88,10 +88,9 @@ namespace locic {
 			}
 		}
 		
-		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
+		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance != nullptr);
-			return makeString("%s%s", mangleTypeName(module, typeInstance->name()).c_str(),
-				mangleTypeList(module, templateArguments).c_str());
+			return mangleTypeName(module, typeInstance->name());
 		}
 		
 		std::string mangleTypeList(const Module& module, const std::vector<SEM::Type*> typeList) {

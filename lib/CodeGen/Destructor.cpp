@@ -15,9 +15,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasDestructor(Module& module, SEM::Type* unresolvedType) {
-			auto type = module.resolveType(unresolvedType);
-			
+		bool typeHasDestructor(Module& module, SEM::Type* type) {
 			if (type->isPrimitive()) {
 				return primitiveTypeHasDestructor(module, type);
 			}
@@ -25,10 +23,9 @@ namespace locic {
 			return type->isClass() || type->isDatatype() || type->isUnionDatatype();
 		}
 		
-		void genDestructorCall(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
+		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
-			const auto type = module.resolveType(unresolvedType);
 			if (!typeHasDestructor(module, type)) {
 				return;
 			}
@@ -76,15 +73,10 @@ namespace locic {
 			function.selectBasicBlock(endBB);
 		}
 		
-		llvm::Function* genDestructorFunction(Module& module, SEM::Type* unresolvedParent) {
-			assert(unresolvedParent != NULL);
+		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+			assert(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			auto parent = module.resolveType(unresolvedParent);
-			
-			assert(parent->isObject());
-			assert(parent->isClass() || parent->isPrimitive() || parent->isDatatype() || parent->isUnionDatatype());
-			
-			const auto mangledName = mangleDestructorName(module, parent);
+			const auto mangledName = mangleDestructorName(module, typeInstance);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
@@ -92,52 +84,40 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			// --- Add parent template mapping to module.
-			const auto templateVarMap = (parent != NULL) ? parent->generateTemplateVarMap() : Map<SEM::TemplateVar*, SEM::Type*>();
-			
-			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
-			
 			// --- Generate function declaration.
-			const auto contextPtrType =
-				getTypeInstancePointer(module, parent->getObjectType(),
-					parent->templateArguments());
+			const auto contextPtrType = getTypeInstancePointer(module, typeInstance);
 			
-			const auto functionType =
-				TypeGenerator(module).getVoidFunctionType(
-					std::vector<llvm::Type*>(1, contextPtrType));
+			const auto functionType = TypeGenerator(module).getVoidFunctionType({ contextPtrType });
 			
-			const auto linkage = getFunctionLinkage(parent->getObjectType(), parent->getObjectType()->moduleScope());
+			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
-			const auto llvmFunction =
-				createLLVMFunction(module,
-					functionType, linkage,
-					mangledName);
+			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, mangledName);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
-			if (parent->getObjectType()->isPrimitive()) {
+			if (typeInstance->isPrimitive()) {
 				// This is a primitive method; needs special code generation.
-				createPrimitiveDestructor(module, parent, *llvmFunction);
+				createPrimitiveDestructor(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
-			assert(parent->isClass() || parent->isDatatype() || parent->isUnionDatatype());
+			assert(typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			if (parent->getObjectType()->isClassDecl()) {
+			if (typeInstance->getObjectType()->isClassDecl()) {
 				return llvmFunction;
 			}
 			
-			assert(parent->isClassDef() || parent->isDatatype() || parent->isUnionDatatype());
+			assert(typeInstance->isClassDef() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
 			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
 			
-			if (parent->isUnionDatatype()) {
-				genUnionDestructor(function, parent);
+			if (typeInstance->isUnionDatatype()) {
+				genUnionDestructor(function, typeInstance);
 				function.getBuilder().CreateRetVoid();
 				return llvmFunction;
 			}
 			
-			assert(parent->isClassDef() || parent->isDatatype());
+			assert(typeInstance->isClassDef() || typeInstance->isDatatype());
 			
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = parent->getObjectType()->functions().find("__destructor");

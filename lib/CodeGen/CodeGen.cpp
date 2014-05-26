@@ -41,11 +41,6 @@ namespace locic {
 				} else if (item.isTypeInstance()) {
 					const auto typeInstance = item.typeInstance();
 					
-					if (!typeInstance->templateVariables().empty()) {
-						// Can't generate types with template arguments.
-						return;
-					}
-					
 					if (typeInstance->isPrimitive()) {
 						// Can't generate primitive types.
 						return;
@@ -56,17 +51,12 @@ namespace locic {
 						return;
 					}
 					
-					(void) genTypeInstance(module, typeInstance, {});
+					(void) genTypeInstance(module, typeInstance);
 				}
 			}
 		}
 		
 		void genTypeInstanceFunctions(Module& module, SEM::TypeInstance* typeInstance) {
-			if (!typeInstance->templateVariables().empty()) {
-				// Can't generate types with template arguments.
-				return;
-			}
-			
 			if (typeInstance->isInterface()) {
 				// Can't generate interface types.
 				return;

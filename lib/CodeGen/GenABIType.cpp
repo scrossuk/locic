@@ -108,11 +108,7 @@ namespace locic {
 			llvm_unreachable("Unknown primitive ABI type.");
 		}
 		
-		llvm_abi::Type genABIType(Module& module, SEM::Type* unresolvedType) {
-			assert(unresolvedType != NULL);
-			
-			const auto type = module.resolveType(unresolvedType);
-			
+		llvm_abi::Type genABIType(Module& module, SEM::Type* type) {
 			if (!isTypeSizeAlwaysKnown(module, type)) {
 				// For types with sizes that aren't
 				// known in all modules (e.g. classes),

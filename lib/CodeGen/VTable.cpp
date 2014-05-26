@@ -5,9 +5,14 @@
 #include <string>
 #include <vector>
 
+#include <locic/CodeGen/LLVMIncludes.hpp>
+
 #include <locic/Name.hpp>
 #include <locic/String.hpp>
+
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/md5.h>
+#include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
@@ -21,6 +26,10 @@ namespace locic {
 		MethodHash CreateMethodNameHash(const std::string& methodName) {
 			const std::string md5Hash = md5(CanonicalizeMethodName(methodName));
 			return getMethodHash(md5Hash);
+		}
+		
+		llvm::Value* CreateHashValue(Module& module, const std::string& methodName) {
+			return ConstantGenerator(module).getI64(CreateMethodNameHash(methodName));
 		}
 		
 		VirtualTable VirtualTable::CalculateFromHashes(const std::vector<MethodHash>& methods) {

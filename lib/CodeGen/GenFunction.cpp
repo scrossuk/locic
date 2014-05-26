@@ -35,16 +35,6 @@ namespace locic {
 		}
 		
 		namespace {
-		
-			SEM::Function* getFunctionInParent(SEM::Type* parent, const std::string& name) {
-				const auto& typeInstance = parent->getObjectType();
-				const auto iterator = typeInstance->functions().find(CanonicalizeMethodName(name));
-				if (iterator == typeInstance->functions().end()) {
-					llvm_unreachable("Failed to find function in parent.");
-				}
-				
-				return iterator->second;
-			}
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
 				LifetimeScope lifetimeScope(functionGenerator);
@@ -80,23 +70,7 @@ namespace locic {
 			
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::Type* unresolvedParent, SEM::Function* unresolvedFunction) {
-			assert(unresolvedFunction != NULL);
-			
-			// Resolve parent type, by replacing any template variables
-			// with their mapped values.
-			auto parent =
-				unresolvedParent != NULL ?
-					module.resolveType(unresolvedParent) :
-					NULL;
-			
-			// Similarly, for template variables refer to the
-			// method of the actual mapped type.
-			auto function =
-				unresolvedParent != NULL && unresolvedParent->isTemplateVar() ?
-					getFunctionInParent(parent, unresolvedFunction->name().last()) :
-					unresolvedFunction;
-			
+		llvm::Function* genFunction(Module& module, SEM::Type* parent, SEM::Function* function) {
 			if (function->isMethod()) {
 				assert(parent != NULL);
 				assert(parent->isObject());

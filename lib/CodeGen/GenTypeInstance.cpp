@@ -9,16 +9,12 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance,
-			const std::vector<SEM::Type*>& templateArguments) {
-			
-			assert(typeInstance->templateVariables().size() == templateArguments.size()
-				&& "Number of template arguments provided must match number required.");
+		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype() || typeInstance->isException());
 			
-			const std::string mangledName = mangleObjectType(module, typeInstance, templateArguments);
+			const auto mangledName = mangleObjectType(module, typeInstance);
 			
-			const Optional<llvm::StructType*> result = module.getTypeMap().tryGet(mangledName);
+			const auto result = module.getTypeMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
 				return result.getValue();
@@ -37,7 +33,7 @@ namespace locic {
 				
 				size_t unionSize = 0;
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					auto variantStructType = genTypeInstance(module, variantTypeInstance, templateArguments);
+					const auto variantStructType = genTypeInstance(module, variantTypeInstance);
 					unionSize = std::max<size_t>(unionSize, dataLayout.getTypeAllocSize(variantStructType));
 				}
 				
@@ -47,11 +43,6 @@ namespace locic {
 				structType->setBody(structMembers);
 				return structType;
 			}
-			
-			// TODO: Remove this, since CodeGen should not generate any SEM trees.
-			const auto templateVarMap = SEM::Type::Object(typeInstance, templateArguments)->generateTemplateVarMap();
-			
-			TemplateVarMapStackEntry templateVarMapStackEntry(module, templateVarMap);
 			
 			// Generating the type for a class or struct definition, so
 			// the size and contents of the type instance is known and

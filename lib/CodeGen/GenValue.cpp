@@ -282,7 +282,22 @@ namespace locic {
 					const auto& semArgumentValues = value->functionCall.parameters;
 					
 					if (semFunctionValue->type()->isInterfaceMethod()) {
-						return VirtualCall::generateCall(function, semFunctionValue, semArgumentValues);
+						auto& builder = function.getBuilder();
+						
+						const auto methodValue = genValue(function, semFunctionValue);
+						
+						// Extract the components of the interface method struct.
+						const auto contextValue = builder.CreateExtractValue(methodValue, { 0 }, "context");
+						const auto objectPointer = builder.CreateExtractValue(contextValue, { 0 }, "object");
+						const auto vtablePointer = builder.CreateExtractValue(contextValue, { 1 }, "vtable");
+						const auto methodHashValue = builder.CreateExtractValue(methodValue, { 1 }, "methodHash");
+						
+						std::vector<llvm::Value*> llvmArgs;
+						for (const auto& arg: semArgumentValues) {
+							llvmArgs.push_back(genValue(function, arg));
+						}
+						
+						return VirtualCall::generateCall(function, objectPointer, vtablePointer, methodHashValue, llvmArgs);
 					}
 					
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());

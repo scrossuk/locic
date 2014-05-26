@@ -495,7 +495,7 @@ namespace locic {
 				if (methodName == "index") {
 					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
 					const auto targetSize = genSizeOf(function, targetType);
-					const auto offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()), true);
+					const auto offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t", {}), true);
 					const auto adjustedOffset = builder.CreateMul(offset, targetSize);
 					const auto i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
 					const auto castPtr = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
@@ -558,7 +558,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createMemberLvalPrimitiveMethod(Module& module, SEM::Type* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createMemberLvalPrimitiveMethod(Module& module, SEM::TypeInstance* parent, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
@@ -643,29 +643,17 @@ namespace locic {
 				} else if (methodName == "move") {
 					// TODO: check liveness indicator (?).
 					
-					if (function.getArgInfo().hasReturnVarArgument()) {
-						// For types where the size isn't always known
-						// (i.e. non-primitives), a pointer to the return
-						// value (the 'return var') will be passed, so
-						// just store into that.
-						genStore(function, ptrToValue, function.getReturnVar(), targetType);
-						
-						// Zero out the entire lval, which will
-						// also reset the liveness indicator.
-						genZero(function, parent, function.getContextValue());
-						
-						builder.CreateRetVoid();
-					} else {
-						// For types where the size is always known,
-						// just load the value and return it.
-						const auto loadedValue = builder.CreateLoad(ptrToValue);
-						
-						// Zero out the entire lval, which will
-						// also reset the liveness indicator.
-						genZero(function, parent, function.getContextValue());
-						
-						builder.CreateRet(encodeReturnValue(function, loadedValue, genABIType(function.module(), targetType)));
-					}
+					// For types where the size isn't always known
+					// (i.e. non-primitives), a pointer to the return
+					// value (the 'return var') will be passed, so
+					// just store into that.
+					genStore(function, ptrToValue, function.getReturnVar(), targetType);
+					
+					// Zero out the entire lval, which will
+					// also reset the liveness indicator.
+					genZero(function, parent, function.getContextValue());
+					
+					builder.CreateRetVoid();
 				} else if (methodName == "dissolve") {
 					// TODO: check liveness indicator (?).
 					
@@ -728,7 +716,7 @@ namespace locic {
 			}
 		}
 		
-		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			// A value lval contains the target type and
 			// a boolean 'liveness' indicator, which records
 			// whether the lval currently holds a value.
@@ -751,21 +739,17 @@ namespace locic {
 			genStore(functionGenerator, value, ptrToValue, targetType);
 		}
 		
-		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			// A member lval just contains its target type,
 			// so just store that directly.
 			const auto targetType = type->templateArguments().at(0);
 			genStore(functionGenerator, value, var, targetType);
 		}
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			assert(var->getType()->isPointerTy());
 			
-			auto& module = functionGenerator.module();
-			
-			const auto type = module.resolveType(unresolvedType);
-			
-			const std::string typeName = type->getObjectType()->name().last();
+			const auto typeName = type->getObjectType()->name().last();
 			if (typeName == "value_lval") {
 				genStoreValueLval(functionGenerator, value, var, type);
 			} else if (typeName == "member_lval") {
@@ -775,7 +759,7 @@ namespace locic {
 			}
 		}
 		
-		void createMemberLvalPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
+		void createMemberLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto targetType = parent->templateArguments().at(0);
@@ -790,10 +774,8 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createValueLvalPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
+		void createValueLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
-			
-			const auto targetType = parent->templateArguments().at(0);
 			
 			Function function(module, llvmFunction, ArgInfo::ContextOnly());
 			
@@ -814,7 +796,10 @@ namespace locic {
 			// If it is live, run the child value's destructor.
 			function.selectBasicBlock(isLiveBB);
 			const auto ptrToValue = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
-			genDestructorCall(function, targetType, ptrToValue);
+			
+			VirtualCall::generateCall(function, ptrToValue, function.templateVTable(0), 
+			
+			genDestructorCall(function, , ptrToValue);
 			function.getBuilder().CreateRetVoid();
 			
 			// Check the generated function is correct.
@@ -833,18 +818,18 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createPrimitiveDestructor(Module& module, SEM::Type* parent, llvm::Function& llvmFunction) {
-			const std::string typeName = parent->getObjectType()->name().last();
+		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+			const auto typeName = typeInstance->name().last();
 			if (typeName == "member_lval") {
-				createMemberLvalPrimitiveDestructor(module, parent, llvmFunction);
+				createMemberLvalPrimitiveDestructor(module, typeInstance, llvmFunction);
 			} else if (typeName == "value_lval") {
-				createValueLvalPrimitiveDestructor(module, parent, llvmFunction);
+				createValueLvalPrimitiveDestructor(module, typeInstance, llvmFunction);
 			} else {
 				createVoidPrimitiveDestructor(module, llvmFunction);
 			}
 		}
 		
-		llvm::Type* getPrimitiveType(const Module& module, const std::string& name, const std::vector<llvm::Type*>& templateArguments) {
+		llvm::Type* getPrimitiveType(const Module& module, const std::string& name) {
 			if (name == "null_t") {
 				return TypeGenerator(module).getI8PtrType();
 			}
@@ -870,20 +855,10 @@ namespace locic {
 			}
 			
 			if (name == "ptr" || name == "ptr_lval") {
-				assert(templateArguments.size() == 1);
-				const auto targetType = templateArguments.at(0);
-				if (targetType->isVoidTy()) {
-					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-					return TypeGenerator(module).getI8PtrType();
-				} else {
-					return targetType->getPointerTo();
-				}
+				return TypeGenerator(module).getI8PtrType();
 			}
 			
 			if (name == "value_lval") {
-				assert(templateArguments.size() == 1);
-				const auto targetType = templateArguments.at(0);
-				
 				std::vector<llvm::Type*> structVariables;
 				
 				// Add child value.
@@ -896,28 +871,27 @@ namespace locic {
 			}
 			
 			if (name == "member_lval") {
-				assert(templateArguments.size() == 1);
 				// Member lval only contains its target type.
-				return templateArguments.at(0);
+				return TypeGenerator(module).getOpaqueStructType();
 			}
 			
 			throw std::runtime_error(makeString("Unrecognised primitive type '%s'.", name.c_str()));
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type) {
+		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(type->isPrimitive());
 			const auto name = type->getObjectType()->name().first();
 			return (name == "member_lval" || name == "value_lval") && typeHasDestructor(module, type->templateArguments().at(0));
 		}
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(type->isPrimitive());
 			const auto name = type->getObjectType()->name().first();
 			return (name != "member_lval" && name != "value_lval") || isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
 		}
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {
-			assert(type->isPrimitive());
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* typeInstance) {
+			assert(typeInstance->isPrimitive());
 			const auto name = type->getObjectType()->name().first();
 			return (name != "member_lval" && name != "value_lval") || isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
 		}

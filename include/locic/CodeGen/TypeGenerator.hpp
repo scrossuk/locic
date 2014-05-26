@@ -80,6 +80,10 @@ namespace locic {
 					return llvm::StructType::get(module_.getLLVMContext(), members);
 				}
 				
+				inline llvm::StructType* getOpaqueStructType() const {
+					return llvm::StructType::create(module_.getLLVMContext());
+				}
+				
 				inline llvm::StructType* getForwardDeclaredStructType(const std::string& name) const {
 					return llvm::StructType::create(module_.getLLVMContext(), name);
 				}

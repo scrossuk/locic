@@ -18,11 +18,11 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
-			assert(type != NULL && "Generating a function type requires a non-NULL SEM Type object");
+			assert(type != nullptr && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
 			
-			SEM::Type* semReturnType = type->getFunctionReturnType();
-			assert(semReturnType != NULL && "Generating function return type requires a non-NULL SEM return type");
+			const auto semReturnType = type->getFunctionReturnType();
+			assert(semReturnType != nullptr && "Generating function return type requires a non-NULL SEM return type");
 			
 			llvm::Type* returnType = genType(module, semReturnType);
 			std::vector<llvm::Type*> paramTypes;
@@ -54,25 +54,20 @@ namespace locic {
 			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type, contextPointerType));
 		}
 		
-		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance,
-			const std::vector<SEM::Type*>& templateArguments) {
+		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
-				std::vector<llvm::Type*> generatedArguments;
-				for (size_t i = 0; i < templateArguments.size(); i++) {
-					generatedArguments.push_back(genType(module, templateArguments.at(i)));
-				}
-				return getPrimitiveType(module, typeInstance->name().last(), generatedArguments);
+				return getPrimitiveType(module, typeInstance->name().last());
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by reference");
-				return genTypeInstance(module, typeInstance, templateArguments);
+				return genTypeInstance(module, typeInstance);
 			}
 		}
 		
 		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
-				return getTypeInstancePointer(module, targetType->getObjectType(), targetType->templateArguments());
+				return getTypeInstancePointer(module, targetType->getObjectType());
 			} else {
-				llvm::Type* pointerType = genType(module, targetType);
+				const auto pointerType = genType(module, targetType);
 				
 				if (pointerType->isVoidTy()) {
 					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
@@ -94,27 +89,22 @@ namespace locic {
 			return TypeGenerator(module).getStructType(types);
 		}
 		
-		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Type*>& templateArguments) {
+		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isInterface()) {
 				return getInterfaceStruct(module);
 			} else {
-				return genObjectType(module, typeInstance, templateArguments)->getPointerTo();
+				return genObjectType(module, typeInstance)->getPointerTo();
 			}
 		}
 		
-		llvm::Type* genType(Module& module, SEM::Type* unresolvedType) {
-			assert(unresolvedType != NULL);
-			
-			const auto type = module.resolveType(unresolvedType);
-			
+		llvm::Type* genType(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
 					return TypeGenerator(module).getVoidType();
 				}
 				
 				case SEM::Type::OBJECT: {
-					return genObjectType(module, type->getObjectType(),
-						type->templateArguments());
+					return genObjectType(module, type->getObjectType());
 				}
 				
 				case SEM::Type::REFERENCE: {
@@ -166,11 +156,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genDebugType(Module& module, SEM::Type* unresolvedType) {
-			assert(unresolvedType != NULL);
-			
-			const auto type = module.resolveType(unresolvedType);
-			
+		llvm::DIType genDebugType(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
 					return module.debugBuilder().createVoidType();

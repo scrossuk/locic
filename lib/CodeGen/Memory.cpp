@@ -13,11 +13,10 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		void genZero(Function& function, SEM::Type* unresolvedType, llvm::Value* value) {
+		void genZero(Function& function, SEM::Type* type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
 			auto& module = function.module();
-			const auto type = module.resolveType(unresolvedType);
 			
 			(void) function.getBuilder().CreateStore(
 				ConstantGenerator(module).getNull(genType(module, type)),
@@ -36,12 +35,9 @@ namespace locic {
 					return function.getEntryBuilder().CreateAlloca(rawType);
 				}
 				
-				case SEM::Type::OBJECT: {
-					const auto typeInstance = type->getObjectType();
-					
-					assert(!typeInstance->isInterface());
-					
-					if (typeInstance->isClassDecl()) {
+				case SEM::Type::OBJECT:
+				case SEM::Type::TEMPLATEVAR: {
+					if (isTypeSizeKnownInThisModule(function.module(), type)) {
 						const auto alloca =
 							function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
@@ -53,20 +49,13 @@ namespace locic {
 					}
 				}
 				
-				case SEM::Type::TEMPLATEVAR: {
-					throw std::runtime_error("Can't alloca template var.");
-				}
-				
 				default: {
 					throw std::runtime_error("Unknown type enum for generating alloca.");
 				}
 			}
 		}
 		
-		llvm::Value* genAlloca(Function& function, SEM::Type* unresolvedType) {
-			auto& module = function.module();
-			const auto type = module.resolveType(unresolvedType);
-			
+		llvm::Value* genAlloca(Function& function, SEM::Type* type) {
 			const auto alloca = genUnzeroedAlloca(function, type);
 			
 			// Zero allocated memory.
@@ -88,16 +77,13 @@ namespace locic {
 					return function.getBuilder().CreateLoad(var);
 				}
 				
-				case SEM::Type::OBJECT: {
+				case SEM::Type::OBJECT:
+				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						return function.getBuilder().CreateLoad(var);
 					} else {
 						return var;
 					}
-				}
-				
-				case SEM::Type::TEMPLATEVAR: {
-					throw std::runtime_error("Can't load template var.");
 				}
 				
 				default: {
@@ -120,7 +106,8 @@ namespace locic {
 					return;
 				}
 				
-				case SEM::Type::OBJECT: {
+				case SEM::Type::OBJECT:
+				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
@@ -140,10 +127,6 @@ namespace locic {
 						}
 						return;
 					}
-				}
-				
-				case SEM::Type::TEMPLATEVAR: {
-					throw std::runtime_error("Can't store template var.");
 				}
 				
 				default: {
