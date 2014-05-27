@@ -317,7 +317,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					return genFunction(module, value->functionRef.parentType, value->functionRef.function);
+					return genFunction(module, value->functionRef.parentType->getObjectType(), value->functionRef.function);
 				}
 				
 				case SEM::Value::METHODOBJECT: {

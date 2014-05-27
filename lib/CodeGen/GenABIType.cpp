@@ -16,6 +16,14 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		llvm_abi::Type templateGeneratorABIType() {
+			return llvm_abi::Type::PaddedStruct({ llvm_abi::Type::Pointer(), llvm_abi::Type::Integer(llvm_abi::Int32)});
+		}
+		
+		llvm_abi::Type typeInfoABIType() {
+			return llvm_abi::Type::PaddedStruct({ llvm_abi::Type::Pointer(), llvm_abi::Type::Pointer(), llvm_abi::Type::Integer(llvm_abi::Int32)});
+		}
+		
 		size_t roundUpToAlign(size_t position, size_t align) {
 			assert(align >= 1);
 			const auto roundedUpPosition = position + (align - 1);

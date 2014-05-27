@@ -15,26 +15,30 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasDestructor(Module& module, SEM::Type* type) {
-			if (type->isPrimitive()) {
-				return primitiveTypeHasDestructor(module, type);
+		bool typeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+			if (typeInstance->isPrimitive()) {
+				return primitiveTypeHasDestructor(module, typeInstance);
 			}
 			
-			return type->isClass() || type->isDatatype() || type->isUnionDatatype();
+			return typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype();
 		}
 		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
-			if (!typeHasDestructor(module, type)) {
-				return;
-			}
-			
 			assert(value->getType()->isPointerTy());
 			
-			// Call destructor.
-			const auto destructorFunction = genDestructorFunction(module, type);
-			function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>(1, value));
+			if (type->isObject()) {
+				if (!typeHasDestructor(module, type->getObjectType())) {
+					return;
+				}
+				
+				// Call destructor.
+				const auto destructorFunction = genDestructorFunction(module, type->getObjectType());
+				function.getBuilder().CreateCall(destructorFunction, { value });
+			} else if (type->isTemplateVar()) {
+				
+			}
 		}
 		
 		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {
@@ -120,13 +124,13 @@ namespace locic {
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype());
 			
 			// Call the custom destructor function, if one exists.
-			const auto methodIterator = parent->getObjectType()->functions().find("__destructor");
-			if (methodIterator != parent->getObjectType()->functions().end()) {
-				const auto customDestructor = genFunction(module, parent, methodIterator->second);
+			const auto methodIterator = typeInstance->functions().find("__destructor");
+			if (methodIterator != typeInstance->functions().end()) {
+				const auto customDestructor = genFunction(module, typeInstance, methodIterator->second);
 				function.getBuilder().CreateCall(customDestructor, function.getContextValue());
 			}
 			
-			const auto& memberVars = parent->getObjectType()->variables();
+			const auto& memberVars = typeInstance->variables();
 			
 			// Call destructors for all objects within the
 			// parent object, in *reverse order*.

@@ -610,7 +610,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			if (methodName == "Create") {
-				const auto stackObject = genAlloca(function, parent);
+				const auto stackObject = genAlloca(function, typeInstance->selfType());
 				
 				// Store the object.
 				const auto objectPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 0);
@@ -693,7 +693,7 @@ namespace locic {
 		}
 		
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction) {
-			const auto typeName = parent->getObjectType()->name().last();
+			const auto typeName = typeInstance->name().last();
 			
 			if (typeName == "bool") {
 				createBoolPrimitiveMethod(module, function, llvmFunction);
@@ -704,13 +704,13 @@ namespace locic {
 			} else if (isFloatType(typeName)) {
 				createFloatPrimitiveMethod(module, typeName, function, llvmFunction);
 			} else if(typeName == "ptr") {
-				createPtrPrimitiveMethod(module, parent, function, llvmFunction);
+				createPtrPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if(typeName == "member_lval") {
-				createMemberLvalPrimitiveMethod(module, parent, function, llvmFunction);
+				createMemberLvalPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if(typeName == "ptr_lval") {
-				createPtrLvalPrimitiveMethod(module, parent, function, llvmFunction);
+				createPtrLvalPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if(typeName == "value_lval") {
-				createValueLvalPrimitiveMethod(module, parent, function, llvmFunction);
+				createValueLvalPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else {
 				llvm_unreachable("Unknown primitive type for method generation.");
 			}
@@ -723,8 +723,6 @@ namespace locic {
 			
 			auto& module = functionGenerator.module();
 			
-			const auto targetType = type->templateArguments().at(0);
-			
 			// Get a pointer to the value.
 			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
 			
@@ -736,24 +734,23 @@ namespace locic {
 			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
 			
 			// Store the new child value.
-			genStore(functionGenerator, value, ptrToValue, targetType);
+			genStore(functionGenerator, value, ptrToValue, SEM::Type::TemplateVarRef(typeInstance->templateVariables.at(0)));
 		}
 		
 		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			// A member lval just contains its target type,
 			// so just store that directly.
-			const auto targetType = type->templateArguments().at(0);
-			genStore(functionGenerator, value, var, targetType);
+			genStore(functionGenerator, value, var, SEM::Type::TemplateVarRef(typeInstance->templateVariables.at(0)));
 		}
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			assert(var->getType()->isPointerTy());
 			
-			const auto typeName = type->getObjectType()->name().last();
+			const auto typeName = typeInstance->name().last();
 			if (typeName == "value_lval") {
-				genStoreValueLval(functionGenerator, value, var, type);
+				genStoreValueLval(functionGenerator, value, var, typeInstance);
 			} else if (typeName == "member_lval") {
-				genStoreMemberLval(functionGenerator, value, var, type);
+				genStoreMemberLval(functionGenerator, value, var, typeInstance);
 			} else {
 				throw std::runtime_error("Unknown primitive lval kind.");
 			}

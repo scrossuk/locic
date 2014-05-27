@@ -38,7 +38,7 @@ namespace locic {
 		
 		std::string mangleMethodName(const Module& module, SEM::TypeInstance* typeInstance, const std::string& methodName) {
 			return makeString("M%s%s",
-				mangleType(module, typeInstance).c_str(),
+				mangleObjectType(module, typeInstance).c_str(),
 				mangleName(module, "F", Name::Absolute() + methodName).c_str());
 		}
 		

@@ -64,11 +64,8 @@ namespace locic {
 			
 			const auto& functions = typeInstance->functions();
 			
-			// TODO: Remove this, since CodeGen should not generate any SEM trees.
-			const auto objectType = typeInstance->selfType();
-			
 			for (const auto functionPair: functions) {
-				(void) genFunction(module, objectType, functionPair.second);
+				(void) genFunction(module, typeInstance, functionPair.second);
 			}
 		}
 		

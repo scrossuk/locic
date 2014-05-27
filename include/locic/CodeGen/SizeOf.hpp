@@ -9,9 +9,13 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type);
+		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance);
 		
 		llvm::Value* genSizeOf(Function& function, SEM::Type* type);
+		
+		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance);
+		
+		llvm::Value* genAlignOf(Function& function, SEM::Type* type);
 		
 	}
 	

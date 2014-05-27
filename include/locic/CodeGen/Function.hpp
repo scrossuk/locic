@@ -99,9 +99,14 @@ namespace locic {
 					return getRawArg(argInfo_.standardArgumentOffset() + index);
 				}
 				
+				inline llvm::Value* getTemplateGenerator() const {
+					assert(argInfo_.hasTemplateGeneratorArgument());
+					return getRawArg(argInfo_.templateGeneratorArgumentOffset());
+				}
+				
 				inline llvm::Value* getReturnVar() const {
 					assert(argInfo_.hasReturnVarArgument());
-					return getRawArg(0);
+					return getRawArg(argInfo_.returnVarArgumentOffset());
 				}
 				
 				inline llvm::Value* getContextValue() const {

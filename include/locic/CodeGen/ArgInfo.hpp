@@ -20,21 +20,32 @@ namespace locic {
 		class ArgInfo {
 			public:
 				inline static ArgInfo None() {
-					return ArgInfo(false, false, {}, {});
+					return ArgInfo(false, false, false, {}, {});
 				}
 				
 				inline static ArgInfo ContextOnly() {
-					return ArgInfo(false, true, {}, {});
+					return ArgInfo(false, false, true, {}, {});
 				}
 				
-				inline ArgInfo(bool hRVA, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
+				inline static ArgInfo Basic(std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
+					return ArgInfo(false, false, false, std::move(standardArguments), argTypes);
+				}
+				
+				inline ArgInfo(bool hRVA, bool hasTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
 					: hasReturnVarArgument_(hRVA),
+					  hasTemplateGeneratorArgument_(hTG),
 					  hasContextArgument_(hCA),
 					  numStandardArguments_(standardArguments.size()) {
 						if (hasReturnVarArgument_) {
 							abiTypes_.push_back(llvm_abi::Type::Pointer());
 							abiLLVMTypes_.push_back(nullptr);
 						}
+						
+						if (hasTemplateGeneratorArgument_) {
+							abiTypes_.push_back(templateGeneratorABIType());
+							abiLLVMTypes_.push_back(nullptr);
+						}
+						
 						if (hasContextArgument_) {
 							abiTypes_.push_back(llvm_abi::Type::Pointer());
 							abiLLVMTypes_.push_back(nullptr);
@@ -48,22 +59,34 @@ namespace locic {
 					}
 				
 				ArgInfo(ArgInfo&&) = default;
+				ArgInfo& operator=(ArgInfo&&) = default;
 					  
 				bool hasReturnVarArgument() const {
 					return hasReturnVarArgument_;
+				}
+				
+				bool hasTemplateGeneratorArgument() const {
+					return hasTemplateGeneratorArgument_;
 				}
 				
 				bool hasContextArgument() const {
 					return hasContextArgument_;
 				}
 				
-				size_t contextArgumentOffset() const {
+				size_t returnVarArgumentOffset() const {
+					return 0;
+				}
+				
+				size_t templateGeneratorArgumentOffset() const {
 					return hasReturnVarArgument() ? 1 : 0;
 				}
 				
+				size_t contextArgumentOffset() const {
+					return templateGeneratorArgumentOffset() + (hasTemplateGeneratorArgument() ? 1 : 0);
+				}
+				
 				size_t standardArgumentOffset() const {
-					return contextArgumentOffset() +
-						   (hasContextArgument() ? 1 : 0);
+					return contextArgumentOffset() + (hasContextArgument() ? 1 : 0);
 				}
 				
 				size_t numStandardArguments() const {
@@ -71,8 +94,7 @@ namespace locic {
 				}
 				
 				size_t numArguments() const {
-					return standardArgumentOffset() +
-						   numStandardArguments();
+					return standardArgumentOffset() + numStandardArguments();
 				}
 				
 				const std::vector<llvm_abi::Type>& abiTypes() const {
@@ -86,7 +108,7 @@ namespace locic {
 			private:
 				// Non-copyable.
 				ArgInfo(const ArgInfo&) = delete;
-				ArgInfo& operator=(ArgInfo) = delete;
+				ArgInfo& operator=(const ArgInfo&) = delete;
 				
 				bool hasReturnVarArgument_;
 				bool hasContextArgument_;
@@ -96,8 +118,9 @@ namespace locic {
 				
 		};
 		
-		inline ArgInfo getArgInfo(Module& module, SEM::Function* function) {
+		inline ArgInfo getArgInfo(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
+			const bool hasTemplateGeneratorArg = (typeInstance != nullptr && !typeInstance->templateVariables().empty());
 			const bool hasContextArg = function->isMethod() && !function->isStaticMethod();
 			
 			std::vector<llvm_abi::Type> abiArgTypes;
@@ -107,7 +130,7 @@ namespace locic {
 				abiLLVMArgTypes.push_back(genType(module, paramType));
 			}
 			
-			return ArgInfo(hasReturnVarArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
+			return ArgInfo(hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
 		}
 		
 	}

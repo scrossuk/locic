@@ -81,9 +81,21 @@ namespace llvm_abi {
 			static Type Complex(FloatingPointKind kind);
 			
 			/**
-			 * \brief Struct Type
+			 * \brief Packed Struct Type
+			 * 
+			 * The byte offet of each member can be specified
+			 * for each member.
 			 */
-			static Type Struct(std::vector<struct StructMember> members);
+			static Type PackedStruct(std::vector<struct StructMember> members);
+			
+			/**
+			 * \brief Padded Struct Type
+			 * 
+			 * The byte offsets of each member are automatically
+			 * calculated by the ABI based on its alignment
+			 * rules/preferences.
+			 */
+			static Type PaddedStruct(std::vector<Type> members);
 			
 			/**
 			 * \brief Array Type
@@ -114,9 +126,13 @@ namespace llvm_abi {
 			
 			FloatingPointKind complexKind() const;
 						
-			bool isStruct() const;
+			bool isPackedStruct() const;
 			
-			const std::vector<StructMember>& structMembers() const;
+			const std::vector<StructMember>& packedStructMembers() const;
+			
+			bool isPaddedStruct() const;
+			
+			const std::vector<Type>& paddedStructMembers() const;
 			
 			bool isArray() const;
 			

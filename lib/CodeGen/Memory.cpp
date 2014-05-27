@@ -38,14 +38,14 @@ namespace locic {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
+						return function.getEntryBuilder().CreateAlloca(rawType);
+					} else {
 						const auto alloca =
 							function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
 							rawType->getPointerTo());
-					} else {
-						return function.getEntryBuilder().CreateAlloca(rawType);
 					}
 				}
 				
@@ -64,9 +64,7 @@ namespace locic {
 			return alloca;
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* unresolvedType) {
-			const auto type = function.module().resolveType(unresolvedType);
-			
+		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* type) {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			
 			switch (type->kind()) {
@@ -92,10 +90,8 @@ namespace locic {
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
-			
-			const auto type = function.module().resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
@@ -113,7 +109,7 @@ namespace locic {
 						// rather than pointers.
 						function.getBuilder().CreateStore(value, var);
 						return;
-					} else {	
+					} else {
 						if (isTypeSizeKnownInThisModule(function.module(), type)) {
 							// If the type size is known now, it's
 							// better to generate an explicit load
@@ -138,18 +134,16 @@ namespace locic {
 		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar) {
 			assert(semVar->isBasic());
 			
-			auto& module = function.module();
+			const auto valueType = semVar->constructType();
+			const auto varType = semVar->type();
 			
-			const auto valueType = module.resolveType(semVar->constructType());
-			const auto varType = module.resolveType(semVar->type());
-			
-			// If the variable type wasn't actually an lval
-			// (very likely), then a value_lval will be created
-			// to hold it, and this needs to be constructed.
 			if (*(valueType) == *(varType)) {
 				genStore(function, value, var, varType);
 			} else {
-				genStorePrimitiveLval(function, value, var, varType);
+				// If the variable type wasn't actually an lval
+				// (very likely), then a value_lval will be created
+				// to hold it, and this needs to be constructed.
+				genStorePrimitiveLval(function, value, var, varType->getObjectType());
 			}
 		}
 		

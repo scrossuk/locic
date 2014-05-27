@@ -11,18 +11,13 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
-			assert(type->isObject());
+		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			
-			auto functionType = TypeGenerator(module).getFunctionType(
-					getPrimitiveType(module, "size_t", std::vector<llvm::Type*>()),
-					std::vector<llvm::Type*>());
-					
-			auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::InternalLinkage, NO_FUNCTION_NAME);
+			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), hasTemplate ? { templateGeneratorType(module) } : {});
+			
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
-			
-			auto typeInstance = type->getObjectType();
-			assert(typeInstance->templateVariables().size() == type->templateArguments().size());
 			
 			assert(!typeInstance->isInterface());
 			
@@ -32,27 +27,24 @@ namespace locic {
 			
 			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, typeInstance->name().last(), type->templateArguments(), *llvmFunction);
+				createPrimitiveSizeOf(module, typeInstance->name().last(), *llvmFunction);
 				return llvmFunction;
 			}
 			
 			// Since the member variables are known, generate
 			// the contents of the sizeof() function to sum
 			// their sizes.
-			Function function(module, *llvmFunction, ArgInfo::None());
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			auto zero = ConstantGenerator(module).getSizeTValue(0);
 			auto one = ConstantGenerator(module).getSizeTValue(1);
 			llvm::Value* classSize = zero;
 			
-			const auto templateVarMap = type->generateTemplateVarMap();
-			
 			// Add up all member variable sizes.
 			const auto& variables = typeInstance->variables();
 			
 			for (const auto& var: variables) {
-				classSize = function.getBuilder().CreateAdd(classSize,
-						genSizeOf(function, var->type()->substitute(templateVarMap)));
+				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()));
 			}
 			
 			// Class sizes must be at least one byte.
@@ -63,11 +55,9 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOf(Function& function, SEM::Type* unresolvedType) {
+		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
 			auto& module = function.module();
 			const auto& targetInfo = module.getTargetInfo();
-			
-			auto type = module.resolveType(unresolvedType);
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
@@ -93,8 +83,91 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					assert(false && "Can't generate sizeof template var.");
-					return NULL;
+					const auto typeInfo = function.getTemplateVarTypeInfo(type->templateVar());
+					return VirtualCall::generateTypeInfoCall(function, typeInfo, "sizeof", {});
+				}
+				
+				default: {
+					llvm_unreachable("Unknown type enum for generating sizeof.");
+				}
+			}
+		}
+		
+		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			
+			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), hasTemplate ? { templateGeneratorType(module) } : {});
+			
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			llvmFunction->setDoesNotAccessMemory();
+			
+			assert(!typeInstance->isInterface());
+			
+			// For class declarations, the alignof() function
+			// will be implemented in another module.
+			if (typeInstance->isClassDecl()) return llvmFunction;
+			
+			if (typeInstance->isPrimitive()) {
+				createPrimitiveAlignOf(module, typeInstance->name().last(), *llvmFunction);
+				return llvmFunction;
+			}
+			
+			// Since the member variables are known, generate
+			// the contents of the alignof() function to max
+			// their required alignments.
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
+			
+			llvm::Value* classAlign = ConstantGenerator(module).getSizeTValue(1);
+			
+			const auto& variables = typeInstance->variables();
+			
+			// Calculate maximum alignment of all variables.
+			for (const auto& var: variables) {
+				const auto varAlign = genAlignOf(function, var->type());
+				const auto compareResult = function.getBuilder().CreateICmpUGT(classAlign, varAlign);
+				classAlign = function.getBuilder().CreateSelect(compareResult, classAlign, varAlign);
+			}
+			
+			function.getBuilder().CreateRet(classAlign);
+			
+			return llvmFunction;
+		}
+		
+		llvm::Value* genAlignOf(Function& function, SEM::Type* type) {
+			auto& module = function.module();
+			const auto& targetInfo = module.getTargetInfo();
+			
+			switch (type->kind()) {
+				case SEM::Type::VOID: {
+					// Void has zero size.
+					return ConstantGenerator(module).getSizeTValue(0);
+				}
+				
+				case SEM::Type::OBJECT: {
+					if (type->templateArguments().empty()) {
+						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
+					} else {
+						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
+							{ computeTemplateGenerator(function, type->templateArguments()) });
+					}
+				}
+				
+				case SEM::Type::REFERENCE: {
+					const size_t multiplier = type->getReferenceTarget()->isInterface() ? 2 : 1;
+					return ConstantGenerator(module).getSizeTValue(multiplier * targetInfo.getPointerSizeInBytes());
+				}
+				
+				case SEM::Type::FUNCTION: {
+					return ConstantGenerator(module).getSizeTValue(targetInfo.getPointerSizeInBytes());
+				}
+				
+				case SEM::Type::METHOD: {
+					return ConstantGenerator(module).getSizeTValue(2 * targetInfo.getPointerSizeInBytes());
+				}
+				
+				case SEM::Type::TEMPLATEVAR: {
+					const auto typeInfo = function.getTemplateVarTypeInfo(type->templateVar());
+					return VirtualCall::generateTypeInfoCall(function, typeInfo, "alignof", {});
 				}
 				
 				default: {

@@ -142,7 +142,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function functionGenerator(module, *llvmFunction, getArgInfo(module, function));
+			Function functionGenerator(module, *llvmFunction, getArgInfo(module, typeInstance, function));
 			
 			const auto& functionMap = module.debugModule().functionMap;
 			const auto iterator = functionMap.find(function);
