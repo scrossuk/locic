@@ -31,6 +31,15 @@ namespace locic {
 			const auto functionType = typeGen.getFunctionType(typeInfoArrayType, { pathType } );
 			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, NO_FUNCTION_NAME);
 			
+			Function function(module, llvmFunction, ArgInfo(...));
+			
+			llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType);
+			
+			for (size_t i = 0; i < templateArguments.size(); i++) {
+				const auto& templateArg = templateArguments.at(i);
+				
+			}
+			
 			/* TODO: generate code similar to:
 			Type[8] rootFn(uint32_t path) {
 				Types[8] types;
@@ -53,7 +62,25 @@ namespace locic {
 			return power;
 		}
 		
-		llvm::Function* genTemplateIntermediateFunction(Module& module, const std::vector<SEM::TemplateVar*>& templateVars, const std::vector<SEM::Type*>& templateUses) {
+		void addUseSet(size_t& currentId, std::map<SEM::Type*, size_t>& currentMap, SEM::Type* type) {
+			assert(type->isObjectType());
+			currentMap.insert(std::make_pair(type, currentId++));
+			for (const auto& arg: type->templateArguments()) {
+				if (!arg->isObjectType()) continue;
+				addUseSet(currentId, currentMap, arg);
+			}
+		}
+		
+		std::map<SEM::Type*, size_t> createUseSet(const std::vector<SEM::Type*>& templateUses) {
+			size_t currentId = 0;
+			std::map<SEM::Type*, size_t> currentMap;
+			for (const auto arg: templateUses) {
+				addUseSet(currentId, currentMap, arg);
+			}
+			return currentMap;
+		}
+		
+		llvm::Function* genTemplateIntermediateFunction(Module& module, const std::map<SEM::TemplateVar*, size_t>& templateVarMap, const std::vector<SEM::Type*>& templateUses) {
 			assert(!templateVars.empty() && !templateUses.empty());
 			
 			TypeGenerator typeGen(module);
@@ -65,44 +92,63 @@ namespace locic {
 			
 			const auto bitsRequired = getNextPowerOfTwo(templateUses.size());
 			
+			ConstantGenerator constGen(module);
+			
+			Function function(module, llvmFunction, ArgInfo(...));
+			
 			const auto typesArg = function.getArg(0);
 			const auto rootFnArg = function.getArg(1);
 			const auto pathArg = function.getArg(2);
 			const auto positionArg = function.getArg(3);
 			
-			ConstantGenerator constGen(module);
-			const auto subPath = function.getBuilder().CreateLShr(pathArg, positionArg);
+			auto& builder = function.getBuilder();
 			
-			const auto pathEndBB = function.createBasicBlock();
-			const auto processSubpathBB = function.createBasicBlock();
+			const auto subPath = builder.CreateLShr(pathArg, positionArg);
 			
-			const auto compareValue = function.getBuilder().CreateICmpEq(subPath, constGen.getI32(1));
-			function.getBuilder().CreateCondBr(compareValue, pathEndBB, processSubpathBB);
+			const auto pathEndBB = function.createBasicBlock("pathEnd");
+			const auto processSubpathBB = function.createBasicBlock("processSubpath");
+			
+			const auto compareValue = builder.CreateICmpEq(subPath, constGen.getI32(1));
+			builder.CreateCondBr(compareValue, pathEndBB, processSubpathBB);
 			
 			function.selectBasicBlock(pathEndBB);
-			function.getBuilder().CreateRet(typesArg);
+			builder.CreateRet(typesArg);
 			
 			function.selectBasicBlock(processSubpathBB);
 			
-			const auto component = function.getBuilder().CreateAnd(subPath, constGen.getI32((1 << bitsRequired) - 1));
-			const auto mask = function.getBuilder().CreateSub(function.getBuilder().CreateShl(constGen.getI32(1), positionArg), constGen.getI32(1));
+			const auto component = builder.CreateAnd(subPath, constGen.getI32((1 << bitsRequired) - 1));
+			const auto mask = builder.CreateSub(builder.CreateShl(constGen.getI32(1), positionArg), constGen.getI32(1));
+			
+			const auto templateUseMap = createTemplateUseMap(templateUses);
 			
 			for (size_t i = 0; i < templateUses.size(); i++) {
-				const auto foundComponentEntryBB = function.createBasicBlock();
-				const auto tryNextComponentEntryBB = function.createBasicBlock();
-				const auto componentCompareValue = function.getBuilder().CreateICmpEq(component, constGen.getI32(i));
-				function.getBuilder().CreateCondBr(componentCompareValue, foundComponentEntryBB, tryNextComponentEntryBB);
+				const auto foundComponentEntryBB = function.createBasicBlock("foundComponentEntry");
+				const auto tryNextComponentEntryBB = function.createBasicBlock("tryNextComponentEntry");
+				const auto componentCompareValue = builder.CreateICmpEq(component, constGen.getI32(i));
+				builder.CreateCondBr(componentCompareValue, foundComponentEntryBB, tryNextComponentEntryBB);
 				
 				function.selectBasicBlock(foundComponentEntryBB);
 				
 				const auto& templateUse = templateUses.at(i);
 				
+				llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType);
+				
+				for (size_t j = 0; j < templateUse->templateArguments().size(); j++) {
+					const auto& templateUseArg = templateUse->templateArguments().at(j);
+					if (templateUseArg->isTemplateVar()) {
+						const auto templateVarOffset = templateVarMap.at(templateUseArg.templateVar());
+						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarOffset);
+						newTypesValue = builder.CreateInsertValue(newTypesValue, templateVarValue);
+					} else {
+						
+					}
+				}
 				
 				function.selectBasicBlock(tryNextComponentEntryBB);
 			}
 			
 			// Path is not valid...
-			function.getBuilder().CreateUnreachable();
+			builder.CreateUnreachable();
 			
 			/* TODO: generate code similar to:
 			Type[8] getTypeF(Type[8] types, RootFn rootFn, uint32_t path, uint8_t position) {
