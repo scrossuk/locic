@@ -9,11 +9,11 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasDestructor(Module& module, SEM::Type* type);
+		bool typeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
 		
-		llvm::Function* genDestructorFunction(Module& module, SEM::Type* parent);
+		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance);
 		
 	}
 	

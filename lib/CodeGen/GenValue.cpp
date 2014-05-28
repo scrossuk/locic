@@ -228,10 +228,10 @@ namespace locic {
 								TypeGenerator(module).getI8PtrType());
 					
 					// Generate the vtable.
-					const auto vtablePointer = genVTable(module, sourceTarget);
+					const auto vtablePointer = genVTable(module, sourceTarget->getObjectType());
 						
 					// Build the new interface pointer struct with these values.
-					const auto interfaceValueEmpty = llvm::UndefValue::get(genType(module, destType));
+					const auto interfaceValueEmpty = ConstantGenerator(module).getUndef(genType(module, destType));
 					const auto interfaceValuePartial = function.getBuilder().CreateInsertValue(interfaceValueEmpty, objectPointer,
 										 std::vector<unsigned>(1, 0));
 					const auto interfaceValue = function.getBuilder().CreateInsertValue(interfaceValuePartial, vtablePointer,

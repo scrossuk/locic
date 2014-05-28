@@ -21,15 +21,17 @@ namespace llvm_abi {
 			
 			const llvm::DataLayout& dataLayout() const;
 			
-			size_t typeSize(const Type& type);
+			size_t typeSize(const Type& type) const;
 			
-			size_t typeAlign(const Type& type);
+			size_t typeAlign(const Type& type) const;
+			
+			std::vector<size_t> calculateStructOffsets(const std::vector<StructMember>& structMembers) const;
 			
 			llvm::Type* longDoubleType() const;
 			
-			std::vector<llvm::Value*> encodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes);
+			std::vector<llvm::Value*> encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes);
 			
-			std::vector<llvm::Value*> decodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes);
+			std::vector<llvm::Value*> decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes);
 			
 			llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType);
 			

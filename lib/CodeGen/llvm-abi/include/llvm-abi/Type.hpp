@@ -52,6 +52,9 @@ namespace llvm_abi {
 		ArrayType
 	};
 	
+	// Forward declaration.
+	class StructMember;
+	
 	/**
 	 * \brief ABI Type
 	 * 
@@ -81,21 +84,14 @@ namespace llvm_abi {
 			static Type Complex(FloatingPointKind kind);
 			
 			/**
-			 * \brief Packed Struct Type
-			 * 
-			 * The byte offet of each member can be specified
-			 * for each member.
+			 * \brief Struct Type
 			 */
-			static Type PackedStruct(std::vector<struct StructMember> members);
+			static Type Struct(std::vector<StructMember> members);
 			
 			/**
-			 * \brief Padded Struct Type
-			 * 
-			 * The byte offsets of each member are automatically
-			 * calculated by the ABI based on its alignment
-			 * rules/preferences.
+			 * \brief Auto-aligned Struct Type
 			 */
-			static Type PaddedStruct(std::vector<Type> members);
+			static Type AutoStruct(std::vector<Type> memberTypes);
 			
 			/**
 			 * \brief Array Type
@@ -125,14 +121,10 @@ namespace llvm_abi {
 			bool isComplex() const;
 			
 			FloatingPointKind complexKind() const;
-						
-			bool isPackedStruct() const;
 			
-			const std::vector<StructMember>& packedStructMembers() const;
+			bool isStruct() const;
 			
-			bool isPaddedStruct() const;
-			
-			const std::vector<Type>& paddedStructMembers() const;
+			const std::vector<StructMember>& structMembers() const;
 			
 			bool isArray() const;
 			
@@ -147,12 +139,35 @@ namespace llvm_abi {
 		
 	};
 	
-	struct StructMember {
-		Type type;
-		size_t offset;
-		
-		inline StructMember(Type pType, size_t pOffset)
-			: type(std::move(pType)), offset(pOffset) { }
+	class StructMember {
+		public:
+			inline static StructMember AutoOffset(Type type) {
+				return StructMember(std::move(type), 0);
+			}
+			
+			inline static StructMember ForceOffset(Type type, size_t offset) {
+				return StructMember(std::move(type), offset);
+			}
+			
+			inline const Type& type() const {
+				return type_;
+			}
+			
+			inline Type& type() {
+				return type_;
+			}
+			
+			inline size_t offset() const {
+				return offset_;
+			}
+			
+		private:
+			inline StructMember(Type&& pType, size_t pOffset)
+				: type_(std::move(pType)), offset_(pOffset) { }
+			
+			Type type_;
+			size_t offset_;
+			
 	};
 	
 }

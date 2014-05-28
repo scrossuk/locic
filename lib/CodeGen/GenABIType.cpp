@@ -17,40 +17,25 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm_abi::Type templateGeneratorABIType() {
-			return llvm_abi::Type::PaddedStruct({ llvm_abi::Type::Pointer(), llvm_abi::Type::Integer(llvm_abi::Int32)});
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
+			return llvm_abi::Type::AutoStruct(std::move(types));
 		}
 		
 		llvm_abi::Type typeInfoABIType() {
-			return llvm_abi::Type::PaddedStruct({ llvm_abi::Type::Pointer(), llvm_abi::Type::Pointer(), llvm_abi::Type::Integer(llvm_abi::Int32)});
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
+			return llvm_abi::Type::AutoStruct(std::move(types));
 		}
 		
-		size_t roundUpToAlign(size_t position, size_t align) {
-			assert(align >= 1);
-			const auto roundedUpPosition = position + (align - 1);
-			return roundedUpPosition - (roundedUpPosition % align);
-		}
-		
-		llvm_abi::Type makeAlignedStructType(llvm_abi::ABI& abi, std::vector<llvm_abi::Type> memberTypes) {
-			std::vector<llvm_abi::StructMember> members;
-			size_t offset = 0;
-			for (auto& memberType: memberTypes) {
-				const auto typeSize = abi.typeSize(memberType);
-				const auto typeAlign = abi.typeAlign(memberType);
-				
-				offset = roundUpToAlign(offset, typeAlign);
-				
-				members.push_back(llvm_abi::StructMember(std::move(memberType), offset));
-				
-				offset += typeSize;
-			}
-			return llvm_abi::Type::Struct(std::move(members));
-		}
-		
-		llvm_abi::Type makePointerPairType(llvm_abi::ABI& abi) {
-			std::vector<llvm_abi::Type> memberTypes;
-			memberTypes.push_back(llvm_abi::Type::Pointer());
-			memberTypes.push_back(llvm_abi::Type::Pointer());
-			return makeAlignedStructType(abi, std::move(memberTypes));
+		llvm_abi::Type makePointerPairType() {
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(llvm_abi::Type::Pointer());
+			return llvm_abi::Type::AutoStruct(std::move(types));
 		}
 		
 		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type) {
@@ -109,7 +94,7 @@ namespace locic {
 				std::vector<llvm_abi::Type> members;
 				members.push_back(genABIType(module, type->templateArguments().at(0)));
 				members.push_back(llvm_abi::Type::Integer(llvm_abi::Bool));
-				return makeAlignedStructType(module.abi(), std::move(members));
+				return llvm_abi::Type::AutoStruct(std::move(members));
 			}
 			
 			// TODO: more types to be handled here.
@@ -144,7 +129,8 @@ namespace locic {
 						for (const auto var: typeInstance->variables()) {
 							members.push_back(genABIType(module, var->type()));
 						}
-						return makeAlignedStructType(module.abi(), std::move(members));
+						
+						return llvm_abi::Type::AutoStruct(std::move(members));
 					}
 					llvm_unreachable("Unknown object ABI type with known size.");
 				}
@@ -153,7 +139,7 @@ namespace locic {
 					if (type->getReferenceTarget()->isInterface()) {
 						// Interface references are actually two pointers:
 						// one to the class, and one to the class vtable.
-						return makePointerPairType(module.abi());
+						return makePointerPairType();
 					} else {
 						return llvm_abi::Type::Pointer();
 					}
@@ -171,7 +157,7 @@ namespace locic {
 							RetType (*func)(i8*, ArgTypes)
 						};
 					*/
-					return makePointerPairType(module.abi());
+					return makePointerPairType();
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
@@ -185,9 +171,9 @@ namespace locic {
 						};
 					*/
 					std::vector<llvm_abi::Type> members;
-					members.push_back(makePointerPairType(module.abi()));
+					members.push_back(makePointerPairType());
 					members.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
-					return makeAlignedStructType(module.abi(), std::move(members));
+					return llvm_abi::Type::AutoStruct(std::move(members));
 				}
 				
 				default: {

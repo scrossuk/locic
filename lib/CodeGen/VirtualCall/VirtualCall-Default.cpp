@@ -161,7 +161,7 @@ namespace locic {
 				}
 			}
 			
-			llvm::Constant* generateVTableSlot(Module& module, SEM::Type* parentType, const std::vector<SEM::Function*>& methods) {
+			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
 				ConstantGenerator constGen(module);
 				
 				if (methods.empty()) {
@@ -182,8 +182,8 @@ namespace locic {
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
 				for (const auto semMethod : methods) {
-					auto callMethodBasicBlock = function.createBasicBlock("callMethod");
-					auto tryNextMethodBasicBlock = function.createBasicBlock("tryNextMethod");
+					const auto callMethodBasicBlock = function.createBasicBlock("callMethod");
+					const auto tryNextMethodBasicBlock = function.createBasicBlock("tryNextMethod");
 					
 					const auto methodHash = CreateMethodNameHash(semMethod->name().last());
 					
@@ -192,54 +192,52 @@ namespace locic {
 					
 					function.selectBasicBlock(callMethodBasicBlock);
 					
-					const auto llvmMethod = genFunction(module, parentType, semMethod);
+					const auto llvmMethod = genFunction(module, typeInstance, semMethod);
 					
-					SEM::Type* functionType = semMethod->type();
-					SEM::Type* returnType = functionType->getFunctionReturnType();
+					const auto functionType = semMethod->type();
+					const auto returnType = functionType->getFunctionReturnType();
 					
 					std::vector<llvm::Value*> parameters;
 					
 					// If the function uses a return value pointer, just pass
 					// the pointer we received from our caller.
 					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						llvm::Type* returnVarPointerType = llvmMethod->getFunctionType()->getParamType(0);
-						llvm::Value* llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnVarPointerType, "castedReturnVar");
+						const auto returnVarPointerType = llvmMethod->getFunctionType()->getParamType(0);
+						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnVarPointerType, "castedReturnVar");
 						parameters.push_back(llvmCastReturnVar);
 					}
 					
 					// If this is not a static method, pass the object pointer.
 					if (!semMethod->isStaticMethod()) {
-						const size_t objectPointerOffset = parameters.size();
-						llvm::Type* objectPointerType = llvmMethod->getFunctionType()->getParamType(objectPointerOffset);
+						const auto objectPointerOffset = parameters.size();
+						const auto objectPointerType = llvmMethod->getFunctionType()->getParamType(objectPointerOffset);
 						parameters.push_back(function.getBuilder().CreatePointerCast(function.getContextValue(), objectPointerType));
 					}
 					
-					const size_t numArgs = functionType->getFunctionParameterTypes().size();
-					const size_t rawArgsOffset = parameters.size();
+					const auto numArgs = functionType->getFunctionParameterTypes().size();
+					const auto rawArgsOffset = parameters.size();
 					
 					// Build the args struct type.
 					std::vector<llvm::Type*> llvmArgsTypes;
 					for (size_t offset = 0; offset < numArgs; offset++) {
 						assert(offset < llvmMethod->getFunctionType()->getNumParams());
-						const size_t rawOffset = rawArgsOffset + offset;
+						const auto rawOffset = rawArgsOffset + offset;
 						llvmArgsTypes.push_back(llvmMethod->getFunctionType()->getParamType(rawOffset));
 					}
 					
-					llvm::Type* llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
+					const auto llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
 					
 					// Cast the args struct pointer.
-					llvm::Value* llvmArgsStructPtr =
-						function.getBuilder().CreatePointerCast(llvmOpaqueArgsStructPtr, llvmArgsStructPtrType, "castedArgsStructPtr");
+					const auto llvmArgsStructPtr = function.getBuilder().CreatePointerCast(llvmOpaqueArgsStructPtr, llvmArgsStructPtrType, "castedArgsStructPtr");
 					
 					// Extract the arguments.
 					for (size_t offset = 0; offset < numArgs; offset++) {
-						llvm::Value* argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
-							llvmArgsStructPtr, 0, offset);
+						const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(llvmArgsStructPtr, 0, offset);
 						parameters.push_back(function.getBuilder().CreateLoad(argPtr, "extractedArg"));
 					}
 					
 					// Call the method.
-					llvm::Value* llvmCallReturnValue = function.getBuilder().CreateCall(llvmMethod, parameters);
+					const auto llvmCallReturnValue = function.getBuilder().CreateCall(llvmMethod, parameters);
 					
 					// Store return value.
 					if (isTypeSizeAlwaysKnown(module, returnType) && !returnType->isVoid()) {

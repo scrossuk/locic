@@ -29,11 +29,11 @@ namespace locic {
 		
 		llvm::Type* getPrimitiveType(const Module& module, const std::string& name);
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type);
+		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance);
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* typeInstance);
 		
 	}
 	

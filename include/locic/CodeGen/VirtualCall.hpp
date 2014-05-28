@@ -14,7 +14,7 @@ namespace locic {
 		
 		namespace VirtualCall {
 		
-			llvm::Constant* generateVTableSlot(Module& module, SEM::Type* parentType, const std::vector<SEM::Function*>& methods);
+			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods);
 			
 			llvm::Value* generateCall(Function& function, llvm::Value* objectPtr, llvm::Value* vtablePtr, llvm::Value* hashValue, const std::vector<llvm::Value*>& args);
 			

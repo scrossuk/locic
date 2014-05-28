@@ -27,11 +27,15 @@ namespace locic {
 					return ArgInfo(false, false, true, {}, {});
 				}
 				
+				inline static ArgInfo TemplateOnly() {
+					return ArgInfo(false, true, false, {}, {});
+				}
+				
 				inline static ArgInfo Basic(std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
 					return ArgInfo(false, false, false, std::move(standardArguments), argTypes);
 				}
 				
-				inline ArgInfo(bool hRVA, bool hasTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
+				inline ArgInfo(bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
 					: hasReturnVarArgument_(hRVA),
 					  hasTemplateGeneratorArgument_(hTG),
 					  hasContextArgument_(hCA),
@@ -111,6 +115,7 @@ namespace locic {
 				ArgInfo& operator=(const ArgInfo&) = delete;
 				
 				bool hasReturnVarArgument_;
+				bool hasTemplateGeneratorArgument_;
 				bool hasContextArgument_;
 				size_t numStandardArguments_;
 				std::vector<llvm_abi::Type> abiTypes_;

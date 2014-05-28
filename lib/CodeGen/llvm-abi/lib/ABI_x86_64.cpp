@@ -75,11 +75,15 @@ namespace llvm_abi {
 				size_t size = 0;
 				
 				for (const auto& member: type.structMembers()) {
-					// Add necessary padding before this member.
-					size = roundUpToAlign(size, getTypeAlign(member.type));
+					if (member.offset() < size) {
+						// Add necessary padding before this member.
+						size = roundUpToAlign(size, getTypeAlign(member.type()));
+					} else {
+						size = member.offset();
+					}
 					
 					// Add the member's size.
-					size += getTypeSize(member.type);
+					size += getTypeSize(member.type());
 				}
 				
 				// Add any final padding.
@@ -92,7 +96,7 @@ namespace llvm_abi {
 			if (type.isStruct()) {
 				size_t mostStrictAlign = 1;
 				for (const auto& member: type.structMembers()) {
-					const size_t align = getTypeAlign(member.type);
+					const size_t align = getTypeAlign(member.type());
 					mostStrictAlign = std::max<size_t>(mostStrictAlign, align);
 				}
 				
@@ -106,6 +110,27 @@ namespace llvm_abi {
 			}
 		}
 		
+		std::vector<size_t> getStructOffsets(const std::vector<StructMember>& structMembers) {
+			std::vector<size_t> offsets;
+			
+			size_t offset = 0;
+			for (const auto& member: structMembers) {
+				if (member.offset() < offset) {
+					// Add necessary padding before this member.
+					offset = roundUpToAlign(offset, getTypeAlign(member.type()));
+				} else {
+					offset = member.offset();
+				}
+				
+				offsets.push_back(offset);
+				
+				// Add the member's size.
+				offset += getTypeSize(member.type());
+			}
+			
+			return offsets;
+		}
+		
 		bool hasUnalignedFields(const Type& type) {
 			if (!type.isStruct()) return false;
 			
@@ -113,14 +138,14 @@ namespace llvm_abi {
 			
 			for (const auto& member: type.structMembers()) {
 				// Add necessary padding before this member.
-				offset = roundUpToAlign(offset, getTypeAlign(member.type));
+				offset = roundUpToAlign(offset, getTypeAlign(member.type()));
 				
-				if (member.offset != offset || hasUnalignedFields(member.type)) {
+				if (member.offset() != offset || hasUnalignedFields(member.type())) {
 					return true;
 				}
 				
 				// Add the member's size.
-				offset += getTypeSize(member.type);
+				offset += getTypeSize(member.type());
 			}
 			
 			return false;
@@ -235,9 +260,10 @@ namespace llvm_abi {
 				}
 			} else if (type.isStruct()) {
 				const auto& structMembers = type.structMembers();
+				const auto memberOffsets = getStructOffsets(structMembers);
 				
-				for (const auto& member: structMembers) {
-					classifyType(classification, member.type, offset + member.offset);
+				for (size_t i = 0; i < structMembers.size(); i++) {
+					classifyType(classification, structMembers.at(i).type(), memberOffsets.at(i));
 				}
 			} else {
 				llvm_unreachable("Unknown type kind.");
@@ -360,19 +386,23 @@ namespace llvm_abi {
 		return dataLayout_;
 	}
 	
-	size_t ABI_x86_64::typeSize(const Type& type) {
+	size_t ABI_x86_64::typeSize(const Type& type) const {
 		return getTypeSize(type);
 	}
 	
-	size_t ABI_x86_64::typeAlign(const Type& type) {
+	size_t ABI_x86_64::typeAlign(const Type& type) const {
 		return getTypeAlign(type);
+	}
+	
+	std::vector<size_t> ABI_x86_64::calculateStructOffsets(const std::vector<StructMember>& structMembers) const {
+		return getStructOffsets(structMembers);
 	}
 	
 	llvm::Type* ABI_x86_64::longDoubleType() const {
 		return llvm::Type::getX86_FP80Ty(llvmContext_);
 	}
 	
-	std::vector<llvm::Value*> ABI_x86_64::encodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) {
+	std::vector<llvm::Value*> ABI_x86_64::encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		std::vector<llvm::Value*> encodedValues;

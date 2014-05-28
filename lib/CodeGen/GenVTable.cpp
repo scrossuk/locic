@@ -43,31 +43,27 @@ namespace locic {
 			return hashArray;
 		}
 		
-		llvm::GlobalVariable* genVTable(Module& module, SEM::Type* type) {
-			assert(type->isObject());
-			
-			SEM::TypeInstance* typeInstance = type->getObjectType();
-			
-			llvm::GlobalVariable* globalVariable = module.createConstGlobal("__type_vtable",
+		llvm::GlobalVariable* genVTable(Module& module, SEM::TypeInstance* typeInstance) {
+			const auto globalVariable = module.createConstGlobal("__type_vtable",
 				getVTableType(module.getTargetInfo()), llvm::Function::InternalLinkage);
-					
+			
 			// Generate the vtable.
-			const Map<MethodHash, SEM::Function*> functionHashMap = CreateFunctionHashMap(typeInstance);
-			std::vector<MethodHash> hashArray = CreateHashArray(functionHashMap);
+			const auto functionHashMap = CreateFunctionHashMap(typeInstance);
+			const auto hashArray = CreateHashArray(functionHashMap);
 			
-			const VirtualTable virtualTable = VirtualTable::CalculateFromHashes(hashArray);
+			const auto virtualTable = VirtualTable::CalculateFromHashes(hashArray);
 			
-			llvm::PointerType* i8PtrType = TypeGenerator(module).getI8PtrType();
+			const auto i8PtrType = TypeGenerator(module).getI8PtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
 			
 			// Destructor.
 			llvm::PointerType* destructorType =
-				TypeGenerator(module).getVoidFunctionType(std::vector<llvm::Type*>(1, i8PtrType))->getPointerTo();
+				TypeGenerator(module).getVoidFunctionType({ i8PtrType })->getPointerTo();
 			vtableStructElements.push_back(ConstantGenerator(module).getNullPointer(destructorType));
 			
 			// Sizeof.
-			vtableStructElements.push_back(genSizeOfFunction(module, type));
+			vtableStructElements.push_back(genSizeOfFunction(module, typeInstance));
 			
 			// Method slots.
 			std::vector<llvm::Constant*> methodSlotElements;
@@ -80,20 +76,16 @@ namespace locic {
 					methods.push_back(functionHashMap.get(methodHash));
 				}
 				
-				llvm::Constant* slotValue = VirtualCall::generateVTableSlot(module, type, methods);
-				
+				const auto slotValue = VirtualCall::generateVTableSlot(module, typeInstance, methods);
 				methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(slotValue, i8PtrType));
 			}
 			
-			llvm::ArrayType* slotTableType =
-				TypeGenerator(module).getArrayType(i8PtrType, VTABLE_SIZE);
+			const auto slotTableType = TypeGenerator(module).getArrayType(i8PtrType, VTABLE_SIZE);
 												 
-			llvm::Constant* methodSlotTable =
-				ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
+			const auto methodSlotTable = ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
-			llvm::Constant* vtableStruct =
-				ConstantGenerator(module).getStruct(getVTableType(module.getTargetInfo()), vtableStructElements);
+			const auto vtableStruct = ConstantGenerator(module).getStruct(getVTableType(module.getTargetInfo()), vtableStructElements);
 				
 			globalVariable->setInitializer(vtableStruct);
 			

@@ -58,10 +58,18 @@ namespace llvm_abi {
 		return Type(std::move(typeImpl));
 	}
 	
-	Type Type::Struct(std::vector<struct StructMember> members) {
+	Type Type::Struct(std::vector<StructMember> members) {
 		auto typeImpl = make_unique<TypeImpl>(StructType);
 		typeImpl->structType.members = std::move(members);
 		return Type(std::move(typeImpl));
+	}
+	
+	Type Type::AutoStruct(std::vector<Type> memberTypes) {
+		std::vector<StructMember> members;
+		for (auto& memberType: memberTypes) {
+			members.push_back(StructMember::AutoOffset(std::move(memberType)));
+		}
+		return Type::Struct(std::move(members));
 	}
 	
 	Type Type::Array(size_t elementCount, Type elementType) {
