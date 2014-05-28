@@ -21,18 +21,43 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveSizeOf(Module& module, const std::string& name, const std::vector<SEM::Type*>& templateArguments, llvm::Function& llvmFunction) {
+		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			Function function(module, llvmFunction, ArgInfo::None());
 			
-			if (name == "member_lval" || name == "value_lval") {
-				// The size of a built-in lvalue is entirely dependent
-				// on the size of its target type.
-				function.getBuilder().CreateRet(genSizeOf(function, templateArguments.at(0)));
+			const auto& name = typeInstance->name().first();
+			
+			if (name == "member_lval") {
+				// member_lval is struct { T value; }.
+				// Hence:
+				//     sizeof(member_lval) = sizeof(T).
+				function.getBuilder().CreateRet(genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+			} else if (name == "value_lval") {
+				// value_lval is struct { bool isLive; T value; }.
+				// Hence:
+				//     sizeof(value_lval) = makealigned(sizeof(bool), alignof(T)) + sizeof(T)
+				// 
+				// and given sizeof(bool) = 1:
+				//     sizeof(value_lval) = makealigned(1, alignof(T)) + sizeof(T)
+				// 
+				// and given that:
+				//     makealigned(position, align) = (position + (align - 1)) & (~(align - 1));
+				// 
+				// so that:
+				//     makealigned(1, align) = (align) & (~(align - 1));
+				// 
+				// hence (since align is power of 2):
+				//     makealigned(1, align) = align
+				// 
+				// so this can be reduced to:
+				//     sizeof(value_lval) = alignof(T) + sizeof(T).
+				const auto templateVarAlign = genAlignOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
+				const auto templateVarSize = genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
+				function.getBuilder().CreateRet(function.getBuilder().CreateAdd(templateVarAlign, templateVarSize));
 			} else {
-				function.getBuilder().CreateRet(
-					ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveSizeInBytes(name)));
+				// Everything else already has a known size.
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveSizeInBytes(name)));
 			}
 		}
 		
@@ -111,12 +136,12 @@ namespace locic {
 				methodName == "logicalOr";
 		}
 		
-		void createBoolPrimitiveMethod(Module& module, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createBoolPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -185,12 +210,13 @@ namespace locic {
 			builder.CreateRet(builder.CreateExtractValue(addResult, std::vector<unsigned>{ 0 }));
 		}
 		
-		void createSignedIntegerPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createSignedIntegerPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto methodName = semFunction->name().last();
+			const auto& typeName = typeInstance->name().first();
+			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -287,10 +313,11 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createUnsignedIntegerPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createUnsignedIntegerPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto methodName = semFunction->name().last();
+			const auto& typeName = typeInstance->name().first();
+			const auto& methodName = semFunction->name().last();
 			
 			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
@@ -375,10 +402,11 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createFloatPrimitiveMethod(Module& module, const std::string& typeName, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createFloatPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto methodName = semFunction->name().last();
+			const auto& typeName = typeInstance->name().first();
+			const auto& methodName = semFunction->name().last();
 			
 			Function function(module, llvmFunction, getArgInfo(module, semFunction));
 			
@@ -855,19 +883,7 @@ namespace locic {
 				return TypeGenerator(module).getI8PtrType();
 			}
 			
-			if (name == "value_lval") {
-				std::vector<llvm::Type*> structVariables;
-				
-				// Add child value.
-				structVariables.push_back(targetType);
-				
-				// Add 'live' indicator (to determine whether child destructor is run).
-				structVariables.push_back(TypeGenerator(module).getI1Type());
-				
-				return TypeGenerator(module).getStructType(structVariables);
-			}
-			
-			if (name == "member_lval") {
+			if (name == "value_lval" || name == "member_lval") {
 				// Member lval only contains its target type.
 				return TypeGenerator(module).getOpaqueStructType();
 			}
@@ -876,13 +892,13 @@ namespace locic {
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
-			assert(type->isPrimitive());
+			assert(typeInstance->isPrimitive());
 			const auto name = type->getObjectType()->name().first();
-			return (name == "member_lval" || name == "value_lval") && typeHasDestructor(module, type->templateArguments().at(0));
+			return (name == "member_lval" || name == "value_lval");
 		}
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance) {
-			assert(type->isPrimitive());
+			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
 			return name != "member_lval" && name != "value_lval";
 		}

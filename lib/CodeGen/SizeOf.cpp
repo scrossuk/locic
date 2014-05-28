@@ -66,7 +66,12 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					return function.getBuilder().CreateCall(genSizeOfFunction(module, type));
+					if (type->templateArguments().empty()) {
+						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
+					} else {
+						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
+							{ computeTemplateGenerator(function, type->templateArguments()) });
+					}
 				}
 				
 				case SEM::Type::REFERENCE: {
@@ -83,7 +88,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getTemplateVarTypeInfo(type->templateVar());
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->templateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, typeInfo, "sizeof", {});
 				}
 				
@@ -139,34 +144,35 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
-					// Void has zero size.
-					return ConstantGenerator(module).getSizeTValue(0);
+					return ConstantGenerator(module).getSizeTValue(1);
 				}
 				
 				case SEM::Type::OBJECT: {
 					if (type->templateArguments().empty()) {
-						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
+						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), {});
 					} else {
-						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
+						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
 							{ computeTemplateGenerator(function, type->templateArguments()) });
 					}
 				}
 				
 				case SEM::Type::REFERENCE: {
-					const size_t multiplier = type->getReferenceTarget()->isInterface() ? 2 : 1;
-					return ConstantGenerator(module).getSizeTValue(multiplier * targetInfo.getPointerSizeInBytes());
+					// TODO...
+					return ConstantGenerator(module).getSizeTValue(targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::FUNCTION: {
+					// TODO...
 					return ConstantGenerator(module).getSizeTValue(targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::METHOD: {
-					return ConstantGenerator(module).getSizeTValue(2 * targetInfo.getPointerSizeInBytes());
+					// TODO...
+					return ConstantGenerator(module).getSizeTValue(targetInfo.getPointerSizeInBytes());
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getTemplateVarTypeInfo(type->templateVar());
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->templateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, typeInfo, "alignof", {});
 				}
 				

@@ -8,6 +8,7 @@ add_library(locic-codegen
 	Debug.cpp
 	Destructor.cpp
 	Exception.cpp
+	Function.cpp
 	GenABIType.cpp
 	GenFunction.cpp
 	GenFunctionCall.cpp

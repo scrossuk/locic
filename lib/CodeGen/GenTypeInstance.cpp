@@ -12,7 +12,7 @@ namespace locic {
 		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype() || typeInstance->isException());
 			
-			const auto mangledName = mangleObjectType(module, typeInstance);
+			const auto mangledName = mangleObjectType(typeInstance);
 			
 			const auto result = module.getTypeMap().tryGet(mangledName);
 			

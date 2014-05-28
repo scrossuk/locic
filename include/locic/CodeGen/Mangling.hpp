@@ -8,25 +8,25 @@
 #include <locic/SEM.hpp>
 #include <locic/Version.hpp>
 
-#include <locic/CodeGen/Module.hpp>
-
 namespace locic {
 
 	namespace CodeGen {
 	
-		std::string mangleFunctionName(const Module& module, const Name& name);
+		std::string mangleFunctionName(const Name& name);
 		
-		std::string mangleMethodName(const Module& module, SEM::TypeInstance* typeInstance, const std::string& methodName);
+		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName);
 		
-		std::string mangleDestructorName(const Module& module, SEM::TypeInstance* typeInstance);
+		std::string mangleDestructorName(SEM::TypeInstance* typeInstance);
 		
-		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance);
+		std::string mangleObjectType(SEM::TypeInstance* typeInstance);
 		
-		std::string mangleTypeName(const Module& module, const Name& name);
+		std::string mangleTypeName(const Name& name);
 		
-		std::string mangleModuleScopeFields(const Module& module, const Name& name, const Version& version);
+		std::string mangleModuleScopeFields(const Name& name, const Version& version);
 		
-		std::string mangleModuleScope(const Module& module, SEM::ModuleScope* moduleScope);
+		std::string mangleModuleScope(SEM::ModuleScope* moduleScope);
+		
+		std::string mangleTemplateGenerator(SEM::TypeInstance* typeInstance);
 		
 	}
 	

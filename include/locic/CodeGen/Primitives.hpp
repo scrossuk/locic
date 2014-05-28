@@ -19,7 +19,7 @@ namespace locic {
 		
 		bool isIntegerType(const std::string& name);
 		
-		void createPrimitiveSizeOf(Module& module, const std::string& name, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		

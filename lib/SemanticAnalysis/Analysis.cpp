@@ -94,9 +94,10 @@ namespace locic {
 			}
 			
 			// Add template variables.
+			size_t templateVarIndex = 0;
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind));
+				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {

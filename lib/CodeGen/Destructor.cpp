@@ -80,7 +80,7 @@ namespace locic {
 		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			const auto mangledName = mangleDestructorName(module, typeInstance);
+			const auto mangledName = mangleDestructorName(typeInstance);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			

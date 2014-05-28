@@ -8,10 +8,13 @@ namespace llvm_abi {
 
 	namespace {
 	
+		bool isPowerOf2(size_t value) {
+			return value != 0 && (value & (value - 1)) == 0;
+		}
+		
 		size_t roundUpToAlign(size_t position, size_t align) {
-			assert(align >= 1);
-			const auto roundedUpPosition = position + (align - 1);
-			return roundedUpPosition - (roundedUpPosition % align);
+			assert(isPowerOf2(align));
+			return (position + (align - 1)) & (~(align - 1));
 		}
 		
 		size_t getTypeAlign(const Type& type);

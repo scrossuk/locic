@@ -1,16 +1,15 @@
 #include <string>
 
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
+
 #include <locic/CodeGen/Mangling.hpp>
-#include <locic/CodeGen/Module.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
-		std::string mangleName(const Module& module, const std::string& prefix, const Name& name) {
-			(void) module;
-			
+		std::string mangleName(const std::string& prefix, const Name& name) {
 			assert(!name.empty());
 			assert(name.isAbsolute());
 			
@@ -27,32 +26,32 @@ namespace locic {
 			return s;
 		}
 		
-		std::string mangleFunctionName(const Module& module, const Name& name) {
+		std::string mangleFunctionName(const Name& name) {
 			if (name.size() == 1) {
 				// Special case for compatibility with C functions.
 				return name.last();
 			}
 			
-			return mangleName(module, "F", name);
+			return mangleName("F", name);
 		}
 		
-		std::string mangleMethodName(const Module& module, SEM::TypeInstance* typeInstance, const std::string& methodName) {
+		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName) {
 			return makeString("M%s%s",
-				mangleObjectType(module, typeInstance).c_str(),
-				mangleName(module, "F", Name::Absolute() + methodName).c_str());
+				mangleObjectType(typeInstance).c_str(),
+				mangleName("F", Name::Absolute() + methodName).c_str());
 		}
 		
-		std::string mangleDestructorName(const Module& module, SEM::TypeInstance* typeInstance) {
-			return mangleMethodName(module, typeInstance, "__destroy");
+		std::string mangleDestructorName(SEM::TypeInstance* typeInstance) {
+			return mangleMethodName(typeInstance, "__destroy");
 		}
 		
-		std::string mangleObjectType(const Module& module, SEM::TypeInstance* typeInstance) {
+		std::string mangleObjectType(SEM::TypeInstance* typeInstance) {
 			assert(typeInstance != nullptr);
-			return mangleTypeName(module, typeInstance->name());
+			return mangleTypeName(typeInstance->name());
 		}
 		
-		std::string mangleTypeName(const Module& module, const Name& name) {
-			return mangleName(module, "T", name);
+		std::string mangleTypeName(const Name& name) {
+			return mangleName("T", name);
 		}
 		
 		namespace {
@@ -63,7 +62,7 @@ namespace locic {
 			
 		}
 		
-		std::string mangleModuleScopeFields(const Module& module, const Name& name, const Version& version) {
+		std::string mangleModuleScopeFields(const Name& name, const Version& version) {
 			if (name.empty()) return "";
 			
 			const auto versionString =
@@ -71,12 +70,16 @@ namespace locic {
 				valToString(version.minorVersion()) + "_" +
 				valToString(version.buildVersion()) + "_";
 			
-			return mangleName(module, "P", name) + "V" + versionString;
+			return mangleName("P", name) + "V" + versionString;
 		}
 		
-		std::string mangleModuleScope(const Module& module, SEM::ModuleScope* moduleScope) {
+		std::string mangleModuleScope(SEM::ModuleScope* moduleScope) {
 			if (moduleScope == nullptr) return "";
-			return mangleModuleScopeFields(module, moduleScope->moduleName(), moduleScope->moduleVersion());
+			return mangleModuleScopeFields(moduleScope->moduleName(), moduleScope->moduleVersion());
+		}
+		
+		std::string mangleTemplateGenerator(SEM::TypeInstance* typeInstance) {
+			return makeString("TPLGEN%s", mangleObjectType(typeInstance).c_str());
 		}
 		
 	}

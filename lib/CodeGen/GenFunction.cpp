@@ -78,10 +78,10 @@ namespace locic {
 			}
 			
 			const auto mangledName =
-				mangleModuleScope(module, function->moduleScope()) +
+				mangleModuleScope(function->moduleScope()) +
 				(function->isMethod() ?
-					mangleMethodName(module, typeInstance, function->name().last()) :
-					mangleFunctionName(module, function->name()));
+					mangleMethodName(typeInstance, function->name().last()) :
+					mangleFunctionName(function->name()));
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			

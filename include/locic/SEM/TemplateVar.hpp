@@ -17,9 +17,11 @@ namespace locic {
 		
 		class TemplateVar {
 			public:
-				TemplateVar(TemplateVarType t);
+				TemplateVar(TemplateVarType t, size_t i);
 				
 				TemplateVarType type() const;
+				
+				size_t index() const;
 				
 				void setSpecType(Type* spec);
 				
@@ -33,6 +35,7 @@ namespace locic {
 				
 			private:
 				TemplateVarType type_;
+				size_t index_;
 				Type* specType_;
 				TypeInstance* specTypeInstance_;
 				

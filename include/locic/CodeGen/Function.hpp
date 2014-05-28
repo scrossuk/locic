@@ -19,164 +19,88 @@ namespace locic {
 	
 		static const std::string NO_FUNCTION_NAME = "";
 		
-		inline llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
-				llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
-			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
-		}
+		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
+				llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
 		
-		// TODO: move method implementations to source file.
 		class Function {
 			public:
 				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 				
-				inline Function(Module& pModule, llvm::Function& function, ArgInfo argInfo)
-					: module_(pModule), function_(function),
-					  entryBuilder_(pModule.getLLVMContext()),
-					  builder_(pModule.getLLVMContext()),
-					  argInfo_(std::move(argInfo)),
-					  exceptionInfo_(nullptr), debugInfo_(nullptr) {
-					assert(function.isDeclaration());
-					assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
-					
-					// Add a bottom level unwind stack.
-					unwindStackStack_.push(UnwindStack());
-					
-					// Create an 'entry' basic block for holding
-					// instructions like allocas and debug_declares
-					// which must only be executed once per function.
-					const auto entryBB = createBasicBlock("");
-					const auto startBB = createBasicBlock("start");
-					
-					entryBuilder_.SetInsertPoint(entryBB);
-					const auto startBranch = entryBuilder_.CreateBr(startBB);
-					
-					// Insert entry instructions before the branch.
-					entryBuilder_.SetInsertPoint(startBranch);
-					
-					builder_.SetInsertPoint(startBB);
-					
-					// Allocate exception information values.
-					TypeGenerator typeGen(pModule);
-					const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*>{typeGen.getI8PtrType(), typeGen.getI32Type()});
-					exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
-					
-					std::vector<llvm::Value*> encodedArgValues;
-					
-					for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
-						encodedArgValues.push_back(arg);
-					}
-					
-					argValues_ = module_.abi().decodeValues(getEntryBuilder(), getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
-				}
+				Function(Module& pModule, llvm::Function& function, ArgInfo argInfo);
 				
-				inline llvm::Function& getLLVMFunction() {
-					return function_;
-				}
+				llvm::Function& getLLVMFunction();
 				
-				inline llvm::Function* getLLVMFunctionPtr() {
-					return &function_;
-				}
+				llvm::Function* getLLVMFunctionPtr();
 				
-				inline Module& module() {
-					return module_;
-				}
+				Module& module();
 				
-				inline const Module& module() const {
-					return module_;
-				}
+				const Module& module() const;
 				
-				inline const ArgInfo& getArgInfo() const {
-					return argInfo_;
-				}
+				const ArgInfo& getArgInfo() const;
 				
-				inline llvm::Value* getRawArg(size_t index) const {
-					assert(index < argInfo_.numArguments());
-					return argValues_.at(index);
-				}
+				llvm::Value* getRawArg(size_t index) const;
 				
-				inline llvm::Value* getArg(size_t index) const {
-					assert(index < argInfo_.numStandardArguments());
-					return getRawArg(argInfo_.standardArgumentOffset() + index);
-				}
+				llvm::Value* getArg(size_t index) const;
 				
-				inline llvm::Value* getTemplateGenerator() const {
-					assert(argInfo_.hasTemplateGeneratorArgument());
-					return getRawArg(argInfo_.templateGeneratorArgumentOffset());
-				}
+				llvm::Value* getTemplateGenerator() const;
 				
-				inline llvm::Value* getReturnVar() const {
-					assert(argInfo_.hasReturnVarArgument());
-					return getRawArg(argInfo_.returnVarArgumentOffset());
-				}
+				llvm::Value* getTemplateArgs() const;
 				
-				inline llvm::Value* getContextValue() const {
-					assert(argInfo_.hasContextArgument());
-					return getRawArg(argInfo_.contextArgumentOffset());
-				}
+				llvm::Value* getReturnVar() const;
 				
-				inline llvm::BasicBlock* createBasicBlock(const std::string& name) {
-					return llvm::BasicBlock::Create(module_.getLLVMContext(), name, &function_);
-				}
+				llvm::Value* getContextValue() const;
+				
+				llvm::BasicBlock* createBasicBlock(const std::string& name);
 				
 				// Returns an 'entry' builder for creating instructions
 				// in the first ('entry') basic block.
-				inline llvm::IRBuilder<>& getEntryBuilder() {
-					return entryBuilder_;
-				}
+				llvm::IRBuilder<>& getEntryBuilder();
 				
-				inline llvm::IRBuilder<>& getBuilder() {
-					return builder_;
-				}
+				llvm::IRBuilder<>& getBuilder();
 				
-				inline llvm::BasicBlock* getSelectedBasicBlock() const {
-					return builder_.GetInsertBlock();
-				}
+				llvm::BasicBlock* getSelectedBasicBlock() const;
 				
-				inline void selectBasicBlock(llvm::BasicBlock* basicBlock) {
-					builder_.SetInsertPoint(basicBlock);
-				}
+				void selectBasicBlock(llvm::BasicBlock* basicBlock);
 				
-				inline void verify() const {
-					(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
-				}
+				void verify() const;
 				
-				inline LocalVarMap& getLocalVarMap() {
-					return localVarMap_;
-				}
+				LocalVarMap& getLocalVarMap();
 				
-				inline const LocalVarMap& getLocalVarMap() const {
-					return localVarMap_;
-				}
+				const LocalVarMap& getLocalVarMap() const;
 				
-				inline void pushUnwindStack(size_t position) {
-					unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
-				}
+				/**
+				 * \brief Push a new unwind stack on the stack of unwind stacks.
+				 * 
+				 * This will copy the top unwind stack up to the position
+				 * specified to a new unwind stack which is then pushed on
+				 * to the stack of unwind stacks.
+				 * 
+				 * This is used for scope exit actions, since they need a new
+				 * partial unwind stack when their code is being generated,
+				 * since a scope(success) block is allowed to throw.
+				 */
+				void pushUnwindStack(size_t position);
 				
-				inline void popUnwindStack() {
-					unwindStackStack_.pop();
-				}
+				/**
+				 * \brief Pop an unwind stack previous pushed.
+				 */
+				void popUnwindStack();
 				
-				inline UnwindStack& unwindStack() {
-					return unwindStackStack_.top();
-				}
+				UnwindStack& unwindStack();
 				
-				inline const UnwindStack& unwindStack() const {
-					return unwindStackStack_.top();
-				}
+				const UnwindStack& unwindStack() const;
 				
-				inline llvm::Value* exceptionInfo() const {
-					return exceptionInfo_;
-				}
+				llvm::Value* exceptionInfo() const;
 				
-				inline void attachDebugInfo(llvm::DISubprogram subprogram) {
-					debugInfo_ = subprogram;
-				}
+				void attachDebugInfo(llvm::DISubprogram subprogram);
 				
-				inline llvm::DISubprogram debugInfo() const {
-					return debugInfo_;
-				}
+				llvm::DISubprogram debugInfo() const;
 				
 			private:
+				// Non-copyable.
+				Function(const Function&) = delete;
+				Function& operator=(const Function&) = delete;
+				
 				Module& module_;
 				llvm::Function& function_;
 				llvm::IRBuilder<> entryBuilder_, builder_;
@@ -189,6 +113,7 @@ namespace locic {
 				llvm::Value* exceptionInfo_;
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;
+				llvm::Value* templateArgs_;
 				
 		};
 		
