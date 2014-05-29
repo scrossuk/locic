@@ -99,10 +99,7 @@ namespace locic {
 			
 			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
 			
-			const auto llvmFunction =
-				createLLVMFunction(module,
-					functionType, linkage,
-					mangledName);
+			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, mangledName);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
@@ -126,8 +123,6 @@ namespace locic {
 				// Callee must not capture the pointer.
 				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
 			}
-			
-			// llvmFunction->dump();
 			
 			// --- Generate function code.
 			
@@ -164,8 +159,6 @@ namespace locic {
 			// (just make it loop to itself - this will
 			// be removed by dead code elimination)
 			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
-			
-			// llvmFunction->dump();
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();

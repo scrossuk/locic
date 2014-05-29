@@ -10,7 +10,7 @@
 namespace locic {
 
 	namespace CodeGen {
-	
+		
 		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			

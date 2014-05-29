@@ -319,7 +319,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -408,7 +408,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -498,16 +498,15 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
-			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
 			
 			if (methodName == "Null") {
-				builder.CreateRet(ConstantGenerator(module).getNull(genType(module, parent)));
+				builder.CreateRet(ConstantGenerator(module).getNull(genType(module, typeInstance->selfType())));
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
@@ -522,8 +521,9 @@ namespace locic {
 				
 				if (methodName == "index") {
 					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 					const auto targetSize = genSizeOf(function, targetType);
-					const auto offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t", {}), true);
+					const auto offset = builder.CreateIntCast(operand, getPrimitiveType(module, "size_t"), true);
 					const auto adjustedOffset = builder.CreateMul(offset, targetSize);
 					const auto i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
 					const auto castPtr = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
@@ -553,9 +553,8 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
-			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -573,6 +572,7 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
+					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 					genStore(function, operand, methodOwner, targetType);
 					builder.CreateRetVoid();
 				} else {
@@ -590,9 +590,8 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
-			const auto targetType = parent->templateArguments().at(0);
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -608,6 +607,7 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
+					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 					genStore(function, operand, function.getContextValue(), targetType);
 					builder.CreateRetVoid();
 				} else {
@@ -621,19 +621,14 @@ namespace locic {
 			function.verify();
 		}
 		
-		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
-			std::vector<llvm_abi::Type> abiTypes;
-			abiTypes.push_back(std::move(type));
-			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
-		}
-		
 		void createValueLvalPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
-			const auto targetType = parent->templateArguments().at(0);
+			const auto parent = typeInstance->selfType();
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, getArgInfo(module, semFunction));
+			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -648,17 +643,11 @@ namespace locic {
 				const auto livenessIndicatorPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 1);
 				builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicatorPtr);
 				
-				if (function.getArgInfo().hasReturnVarArgument()) {
-					genStore(function, genLoad(function, stackObject, parent), function.getReturnVar(), parent);
-					builder.CreateRetVoid();
-				} else {
-					const auto loadedValue = builder.CreateLoad(stackObject);
-					builder.CreateRet(loadedValue);
-				}
+				genStore(function, genLoad(function, stackObject, parent), function.getReturnVar(), parent);
+				builder.CreateRetVoid();
 				
 				// Check the generated function is correct.
 				function.verify();
-				
 				return;
 			}
 			
@@ -724,13 +713,13 @@ namespace locic {
 			const auto typeName = typeInstance->name().last();
 			
 			if (typeName == "bool") {
-				createBoolPrimitiveMethod(module, function, llvmFunction);
+				createBoolPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (isSignedIntegerType(typeName)) {
-				createSignedIntegerPrimitiveMethod(module, typeName, function, llvmFunction);
+				createSignedIntegerPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (isUnsignedIntegerType(typeName)) {
-				createUnsignedIntegerPrimitiveMethod(module, typeName, function, llvmFunction);
+				createUnsignedIntegerPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (isFloatType(typeName)) {
-				createFloatPrimitiveMethod(module, typeName, function, llvmFunction);
+				createFloatPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if(typeName == "ptr") {
 				createPtrPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if(typeName == "member_lval") {
@@ -762,13 +751,13 @@ namespace locic {
 			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
 			
 			// Store the new child value.
-			genStore(functionGenerator, value, ptrToValue, SEM::Type::TemplateVarRef(typeInstance->templateVariables.at(0)));
+			genStore(functionGenerator, value, ptrToValue, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
 		}
 		
 		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
 			// A member lval just contains its target type,
 			// so just store that directly.
-			genStore(functionGenerator, value, var, SEM::Type::TemplateVarRef(typeInstance->templateVariables.at(0)));
+			genStore(functionGenerator, value, var, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
 		}
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
@@ -787,7 +776,7 @@ namespace locic {
 		void createMemberLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto targetType = parent->templateArguments().at(0);
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
 			Function function(module, llvmFunction, ArgInfo::ContextOnly());
 			
@@ -820,11 +809,10 @@ namespace locic {
 			
 			// If it is live, run the child value's destructor.
 			function.selectBasicBlock(isLiveBB);
+			
 			const auto ptrToValue = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
-			
-			VirtualCall::generateCall(function, ptrToValue, function.templateVTable(0), 
-			
-			genDestructorCall(function, , ptrToValue);
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
+			genDestructorCall(function, targetType, ptrToValue);
 			function.getBuilder().CreateRetVoid();
 			
 			// Check the generated function is correct.
@@ -891,19 +879,19 @@ namespace locic {
 			throw std::runtime_error(makeString("Unrecognised primitive type '%s'.", name.c_str()));
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+		bool primitiveTypeHasDestructor(Module&, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
-			const auto name = type->getObjectType()->name().first();
+			const auto name = typeInstance->name().first();
 			return (name == "member_lval" || name == "value_lval");
 		}
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance) {
+		bool isPrimitiveTypeSizeAlwaysKnown(Module&, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
 			return name != "member_lval" && name != "value_lval";
 		}
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* typeInstance) {
+		bool isPrimitiveTypeSizeKnownInThisModule(Module&, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
 			return name != "member_lval" && name != "value_lval";
