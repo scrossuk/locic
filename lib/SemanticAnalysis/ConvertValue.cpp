@@ -270,7 +270,6 @@ namespace locic {
 					const auto& astSymbolNode = astValueNode->symbolRef.symbol;
 					const Name name = astSymbolNode->createName();
 					
-					// Not a local variable => do a symbol lookup.
 					const auto searchResult = performSymbolLookup(context, name);
 					
 					// Get a map from template variables to their values (i.e. types).

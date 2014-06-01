@@ -89,7 +89,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "sizeof", {});
 				}
 				
@@ -171,7 +171,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "alignof", {});
 				}
 				

@@ -12,6 +12,7 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -75,7 +76,7 @@ namespace locic {
 		
 		llvm::Type* typeInfoType(Module& module) {
 			TypeGenerator typeGen(module);
-			return typeGen.getStructType({ typeGen.getI8PtrType(), templateGeneratorType(module) });
+			return typeGen.getStructType({ getVTableType(module.getTargetInfo())->getPointerTo(), templateGeneratorType(module) });
 		}
 		
 		llvm::Type* typeInfoArrayType(Module& module) {
@@ -104,7 +105,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			const auto generatorRootFn = builder.CreateExtractValue(generatorValue, { 0 }, "rootFn");
-			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 0 }, "path");
+			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 1 }, "path");
 			
 			const auto functionType = rootFunctionType(function.module());
 			const auto castRootFn = builder.CreateBitCast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
@@ -124,13 +125,13 @@ namespace locic {
 			if (type->isObject() && type->templateArguments().empty()) {
 				llvm::Value* typeInfo = constGen.getUndef(templateGeneratorType(module));
 				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getNull(rootFunctionType(module)), { 0 });
-				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(0), { 0 });
+				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(0), { 1 });
 				return typeInfo;
 			} else if (isRootTypeList(type->templateArguments())) {
 				const auto rootFunction = genTemplateRootFunction(module, type);
 				llvm::Value* typeInfo = constGen.getUndef(templateGeneratorType(module));
 				typeInfo = builder.CreateInsertValue(typeInfo, rootFunction, { 0 });
-				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(1), { 0 });
+				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(1), { 1 });
 				return typeInfo;
 			} else {
 				// const auto entryId = function.addIntermediateTemplateUse(type);
@@ -178,7 +179,7 @@ namespace locic {
 				}
 				
 				typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
-				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { i });
+				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 			}
 			
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz);
@@ -317,7 +318,7 @@ namespace locic {
 						// from the types provided to us by the caller.
 						const auto templateVarIndex = templateUseArg->getTemplateVar()->index();
 						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarIndex);
-						newTypesValue = builder.CreateInsertValue(newTypesValue, templateVarValue, { i });
+						newTypesValue = builder.CreateInsertValue(newTypesValue, templateVarValue, { (unsigned int) i });
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
@@ -345,7 +346,7 @@ namespace locic {
 							typeInfo = builder.CreateInsertValue(typeInfo, argFullPath, { 2 });
 						}
 						
-						newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { i });
+						newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 					}
 				}
 				

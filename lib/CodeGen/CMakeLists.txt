@@ -1,7 +1,5 @@
 add_subdirectory(llvm-abi)
 
-include_directories(llvm-abi/include)
-
 add_library(locic-codegen
 	CodeGen.cpp
 	ControlFlow.cpp

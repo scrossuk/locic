@@ -196,6 +196,12 @@ namespace locic {
 				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
 			}
 			
+			if (functionType->isFunctionTemplatedMethod()) {
+				// Add template generator arguments for methods of
+				// templated types.
+				abiFunctionType.argTypes.push_back(templateGeneratorABIType());
+			}
+			
 			if (contextPointerType != nullptr) {
 				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
 			}

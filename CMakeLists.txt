@@ -89,6 +89,7 @@ set(CLANG_REQ_LIBS clangFrontend clangParse clangSema clangEdit clangAnalysis cl
 # All headers are in the /include directory.
 include_directories (
 	"${CMAKE_SOURCE_DIR}/include"
+	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
 	)
 
 # Documentation.

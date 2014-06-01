@@ -36,6 +36,12 @@ namespace locic {
 				returnType = TypeGenerator(module).getVoidType();
 			}
 			
+			if (type->isFunctionTemplatedMethod()) {
+				// Add template generator arguments for methods of
+				// templated types.
+				paramTypes.push_back(templateGeneratorType(module));
+			}
+			
 			if (contextPointerType != nullptr) {
 				// If there's a context pointer (for non-static methods),
 				// add it before the other (normal) arguments.
@@ -114,6 +120,8 @@ namespace locic {
 				}
 				
 				case SEM::Type::FUNCTION: {
+					// TODO: generate struct of function pointer and template
+					// generator if function type is templated method.
 					return genFunctionType(module, type)->getPointerTo();
 				}
 				

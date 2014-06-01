@@ -24,7 +24,8 @@ namespace locic {
 		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, ArgInfo::None());
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -53,7 +54,8 @@ namespace locic {
 		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, ArgInfo::None());
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
 			

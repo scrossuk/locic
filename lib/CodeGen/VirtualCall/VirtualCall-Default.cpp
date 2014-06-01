@@ -137,7 +137,7 @@ namespace locic {
 				std::vector<llvm::Value*> parameters;
 				
 				// Pass in the return var pointer.
-				parameters.push_back(returnVarPointer);
+				parameters.push_back(builder.CreatePointerCast(returnVarPointer, i8PtrType, "castedReturnVarPtr"));
 				
 				// Pass in the template generator.
 				parameters.push_back(templateGeneratorValue);

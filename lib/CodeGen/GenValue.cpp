@@ -308,7 +308,17 @@ namespace locic {
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					return genFunction(module, value->functionRef.parentType->getObjectType(), value->functionRef.function);
+					const auto parentType = value->functionRef.parentType;
+					const auto objectType = parentType != nullptr ? parentType->getObjectType() : nullptr;
+					
+					const auto functionPtr = genFunction(module, objectType, value->functionRef.function);
+					
+					if (value->type()->isFunctionTemplatedMethod()) {
+						// TODO: return struct of function pointer and template generator.
+						return functionPtr;
+					} else {
+						return functionPtr;
+					}
 				}
 				
 				case SEM::Value::METHODOBJECT: {

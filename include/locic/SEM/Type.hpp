@@ -62,6 +62,7 @@ namespace locic {
 				
 				bool isFunction() const;
 				bool isFunctionVarArg() const;
+				bool isFunctionTemplatedMethod() const;
 				bool isFunctionNoExcept() const;
 				Type* getFunctionReturnType() const;
 				const std::vector<Type*>& getFunctionParameterTypes() const;
