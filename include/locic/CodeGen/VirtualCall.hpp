@@ -18,7 +18,7 @@ namespace locic {
 			
 			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args);
 			
-			llvm::Value* generateTypeInfoCall(Function& function, llvm::Value* typeInfo, const std::string& name, const std::vector<llvm::Value*>& args);
+			llvm::Value* generateTypeInfoCall(Function& function, llvm::Type* returnType, llvm::Value* typeInfo, const std::string& name, const std::vector<llvm::Value*>& args);
 			
 		}
 	}

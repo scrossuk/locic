@@ -39,14 +39,12 @@ namespace locic {
 			// their sizes.
 			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
-			auto zero = ConstantGenerator(module).getSizeTValue(0);
-			auto one = ConstantGenerator(module).getSizeTValue(1);
-			llvm::Value* classSize = zero;
+			const auto zero = ConstantGenerator(module).getSizeTValue(0);
+			const auto one = ConstantGenerator(module).getSizeTValue(1);
 			
 			// Add up all member variable sizes.
-			const auto& variables = typeInstance->variables();
-			
-			for (const auto& var: variables) {
+			llvm::Value* classSize = zero;
+			for (const auto& var: typeInstance->variables()) {
 				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()));
 			}
 			
@@ -92,7 +90,7 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
-					return VirtualCall::generateTypeInfoCall(function, typeInfo, "sizeof", {});
+					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "sizeof", {});
 				}
 				
 				default: {
@@ -126,12 +124,9 @@ namespace locic {
 			// their required alignments.
 			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
-			llvm::Value* classAlign = ConstantGenerator(module).getSizeTValue(1);
-			
-			const auto& variables = typeInstance->variables();
-			
 			// Calculate maximum alignment of all variables.
-			for (const auto& var: variables) {
+			llvm::Value* classAlign = ConstantGenerator(module).getSizeTValue(1);
+			for (const auto& var: typeInstance->variables()) {
 				const auto varAlign = genAlignOf(function, var->type());
 				const auto compareResult = function.getBuilder().CreateICmpUGT(classAlign, varAlign);
 				classAlign = function.getBuilder().CreateSelect(compareResult, classAlign, varAlign);
@@ -177,7 +172,7 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
-					return VirtualCall::generateTypeInfoCall(function, typeInfo, "alignof", {});
+					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "alignof", {});
 				}
 				
 				default: {

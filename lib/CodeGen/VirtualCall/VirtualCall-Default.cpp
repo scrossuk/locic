@@ -9,6 +9,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenValue.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -96,7 +97,7 @@ namespace locic {
 				return argsStructPtr;
 			}
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
+			void generateCallWithReturnVar(Function& function, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
 				auto& builder = function.getBuilder();
 				
 				// Extract the components of the interface method struct.
@@ -126,7 +127,7 @@ namespace locic {
 				
 				// Cast the loaded pointer to the stub function type.
 				const auto stubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
-						 
+				
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				// i8
@@ -135,16 +136,8 @@ namespace locic {
 				// Put together the arguments.
 				std::vector<llvm::Value*> parameters;
 				
-				const auto returnType = functionType->getFunctionReturnType();
-				
-				// If the return type isn't void, allocate space on the stack for the return value.
-				llvm::Value* returnVarValue = nullptr;
-				if (!returnType->isVoid()) {
-					returnVarValue = genAlloca(function, returnType);
-					parameters.push_back(builder.CreatePointerCast(returnVarValue, i8PtrType, "castedReturnVarPtr"));
-				} else {
-					parameters.push_back(constantGen.getNullPointer(i8PtrType));
-				}
+				// Pass in the return var pointer.
+				parameters.push_back(returnVarPointer);
 				
 				// Pass in the template generator.
 				parameters.push_back(templateGeneratorValue);
@@ -162,24 +155,49 @@ namespace locic {
 				
 				// Call the stub function.
 				// TODO: exception handling!
-				const auto callReturnValue = builder.CreateCall(castedMethodFunctionPointer, parameters);
+				(void) builder.CreateCall(castedMethodFunctionPointer, parameters);
+			}
+			
+			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
+				const auto returnType = functionType->getFunctionReturnType();
+				const bool hasReturnVar = !returnType->isVoid();
+				
+				ConstantGenerator constGen(function.module());
+				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+				
+				// If the return type isn't void, allocate space on the stack for the return value.
+				const auto returnVarValue = hasReturnVar ? genAlloca(function, returnType) : constGen.getNullPointer(i8PtrType);
+				
+				generateCallWithReturnVar(function, returnVarValue, interfaceMethodValue, args);
 				
 				// If the return type isn't void, load the return value from the stack.
-				if (returnVarValue != NULL) {
-					return genLoad(function, returnVarValue, returnType);
-				} else {
-					return callReturnValue;
-				}
+				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : nullptr;
+			}
+			
+			llvm::Value* generateTypeInfoCall(Function& function, llvm::Type* returnType, llvm::Value* typeInfoValue, const std::string& name, const std::vector<llvm::Value*>& args) {
+				ConstantGenerator constGen(function.module());
+				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+				const auto objectPointer = constGen.getNullPointer(i8PtrType);
+				
+				const auto interfaceValue = makeInterfaceStructValue(function, objectPointer, typeInfoValue);
+				const auto hashValue = ConstantGenerator(function.module()).getI64(CreateMethodNameHash(name));
+				const auto interfaceMethodValue = makeInterfaceMethodValue(function, interfaceValue, hashValue);
+				
+				const auto returnVarValue = returnType != nullptr ? static_cast<llvm::Value*>(function.getEntryBuilder().CreateAlloca(returnType)) :
+					constGen.getNullPointer(i8PtrType);
+				
+				generateCallWithReturnVar(function, returnVarValue, interfaceMethodValue, args);
+				
+				return returnType != nullptr ? function.getBuilder().CreateLoad(returnVarValue) : nullptr;
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
 				ConstantGenerator constGen(module);
+				TypeGenerator typeGen(module);
 				
 				if (methods.empty()) {
-					return constGen.getNullPointer(TypeGenerator(module).getI8PtrType());
+					return constGen.getNullPointer(typeGen.getI8PtrType());
 				}
-				
-				TypeGenerator typeGen(module);
 				
 				const auto linkage = llvm::Function::PrivateLinkage;
 				
