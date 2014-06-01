@@ -15,11 +15,13 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
@@ -227,16 +229,12 @@ namespace locic {
 					const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
 								TypeGenerator(module).getI8PtrType());
 					
-					// Generate the vtable.
+					// Generate the vtable and template generator.
 					const auto vtablePointer = genVTable(module, sourceTarget->getObjectType());
-						
-					// Build the new interface pointer struct with these values.
-					const auto interfaceValueEmpty = ConstantGenerator(module).getUndef(genType(module, destType));
-					const auto interfaceValuePartial = function.getBuilder().CreateInsertValue(interfaceValueEmpty, objectPointer,
-										 std::vector<unsigned>(1, 0));
-					const auto interfaceValue = function.getBuilder().CreateInsertValue(interfaceValuePartial, vtablePointer,
-										 std::vector<unsigned>(1, 1));
-					return interfaceValue;
+					const auto templateGenerator = computeTemplateGenerator(function, sourceTarget);
+					
+					// Build the new interface struct with these values.
+					return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));
 				}
 				
 				case SEM::Value::LVAL: {
@@ -282,22 +280,15 @@ namespace locic {
 					const auto& semArgumentValues = value->functionCall.parameters;
 					
 					if (semFunctionValue->type()->isInterfaceMethod()) {
-						auto& builder = function.getBuilder();
-						
 						const auto methodValue = genValue(function, semFunctionValue);
-						
-						// Extract the components of the interface method struct.
-						const auto contextValue = builder.CreateExtractValue(methodValue, { 0 }, "context");
-						const auto objectPointer = builder.CreateExtractValue(contextValue, { 0 }, "object");
-						const auto vtablePointer = builder.CreateExtractValue(contextValue, { 1 }, "vtable");
-						const auto methodHashValue = builder.CreateExtractValue(methodValue, { 1 }, "methodHash");
 						
 						std::vector<llvm::Value*> llvmArgs;
 						for (const auto& arg: semArgumentValues) {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						return VirtualCall::generateCall(function, objectPointer, vtablePointer, methodHashValue, llvmArgs);
+						const auto functionType = semFunctionValue->type()->getInterfaceMethodFunctionType();
+						return VirtualCall::generateCall(function, functionType, methodValue, llvmArgs);
 					}
 					
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
@@ -358,20 +349,12 @@ namespace locic {
 					
 					const auto interfaceFunction = method->functionRef.function;
 					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
-					
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
-					
-					const auto methodValueUndef = ConstantGenerator(module).getUndef(genType(module, value->type()));
-					
-					const auto methodValueWithOwner = function.getBuilder().CreateInsertValue(methodValueUndef, methodOwner, std::vector<unsigned>(1, 0));
-					const auto methodValue = function.getBuilder().CreateInsertValue(methodValueWithOwner, methodHashValue, std::vector<unsigned>(1, 1));
-					
-					return methodValue;
+					return makeInterfaceMethodValue(function, methodOwner, methodHashValue);
 				}
 				
 				default:
-					assert(false && "Unknown value enum.");
-					return nullptr;
+					llvm_unreachable("Unknown value enum.");
 			}
 		}
 		

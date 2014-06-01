@@ -18,6 +18,7 @@ add_library(locic-codegen
 	GenValue.cpp
 	GenVar.cpp
 	GenVTable.cpp
+	Interface.cpp
 	Interpreter.cpp
 	Mangling.cpp
 	md5.cpp
@@ -28,6 +29,7 @@ add_library(locic-codegen
 	SizeOf.cpp
 	Support.cpp
 	TargetInfo.cpp
+	Template.cpp
 	TypeSizeKnowledge.cpp
 	UnwindAction.cpp
 	VTable.cpp

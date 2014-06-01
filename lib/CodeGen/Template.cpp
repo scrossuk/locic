@@ -9,17 +9,18 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SizeOf.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
+		
+		bool isRootTypeList(const std::vector<SEM::Type*>& templateArguments);
 		
 		bool isRootType(SEM::Type* type) {
 			switch (type->kind()) {
@@ -67,18 +68,25 @@ namespace locic {
 		
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
 		
+		llvm::Type* templateGeneratorType(Module& module) {
+			TypeGenerator typeGen(module);
+			return typeGen.getStructType({ typeGen.getI8PtrType(), typeGen.getI32Type() });
+		}
+		
 		llvm::Type* typeInfoType(Module& module) {
 			TypeGenerator typeGen(module);
-			return typeGen.getStructType({ typeGen.getI8PtrType(), typeGen.getI8PtrType(), typeGen.getI32Type() });
+			return typeGen.getStructType({ typeGen.getI8PtrType(), templateGeneratorType(module) });
 		}
 		
 		llvm::Type* typeInfoArrayType(Module& module) {
 			TypeGenerator typeGen(module);
-			return typeGen.getArrayType(TYPE_INFO_ARRAY_SIZE, typeInfoType(module));
+			return typeGen.getArrayType(typeInfoType(module), TYPE_INFO_ARRAY_SIZE);
 		}
 		
 		std::vector<llvm_abi::Type> rootFunctionABIArgumentTypes() {
-			return { llvm_abi::Type::Integer(llvm_abi::Int32) };
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
+			return types;
 		}
 		
 		std::vector<llvm::Type*> rootFunctionArgumentTypes(Module& module) {
@@ -99,7 +107,7 @@ namespace locic {
 			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 0 }, "path");
 			
 			const auto functionType = rootFunctionType(function.module());
-			const auto castRootFn = builder.CreateBitcast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
+			const auto castRootFn = builder.CreateBitCast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
 			const auto callInstruction = builder.CreateCall(castRootFn, { generatorPath }, "templateArgs");
 			callInstruction->setDoesNotAccessMemory();
 			return callInstruction;
@@ -110,60 +118,75 @@ namespace locic {
 			
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
+			
 			ConstantGenerator constGen(module);
 			
-			if (isRootTypeList(type->templateArguments())) {
+			if (type->isObject() && type->templateArguments().empty()) {
+				llvm::Value* typeInfo = constGen.getUndef(templateGeneratorType(module));
+				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getNull(rootFunctionType(module)), { 0 });
+				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(0), { 0 });
+				return typeInfo;
+			} else if (isRootTypeList(type->templateArguments())) {
 				const auto rootFunction = genTemplateRootFunction(module, type);
-				llvm::Value* typeInfo = constGen.createUndef(templateGeneratorType(module));
+				llvm::Value* typeInfo = constGen.getUndef(templateGeneratorType(module));
 				typeInfo = builder.CreateInsertValue(typeInfo, rootFunction, { 0 });
 				typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI8(1), { 0 });
 				return typeInfo;
 			} else {
-				const auto entryId = function.addIntermediateTemplateUse(type);
+				// const auto entryId = function.addIntermediateTemplateUse(type);
 				// TODO...
+				llvm_unreachable("Intermediate template uses not implemented...");
+				return nullptr;
 			}
 		}
 		
 		llvm::Function* genTemplateRootFunction(Module& module, SEM::Type* type) {
-			assert(isRootTypeList(templateArguments));
+			assert(isRootType(type));
 			
 			const auto llvmFunction = createLLVMFunction(module, rootFunctionType(module), llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
 			
-			Function function(module, llvmFunction, ArgInfo::Basic(rootFunctionABIArgumentTypes(), rootFunctionArgumentTypes(module)));
+			Function function(module, *llvmFunction, ArgInfo::Basic(rootFunctionABIArgumentTypes(), rootFunctionArgumentTypes(module)));
 			
-			llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType);
+			auto& builder = function.getBuilder();
+			
+			ConstantGenerator constGen(module);
+			llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType(module));
 			
 			for (size_t i = 0; i < type->templateArguments().size(); i++) {
 				const auto& templateArg = type->templateArguments().at(i);
 				const auto vtablePointer = genVTable(module, templateArg->getObjectType());
 				
-				// Create { vtablePtr, rootFn, path } type info struct.
-				llvm::Value* typeInfo = constGen.createUndef(typeInfoType(module));
+				// Create type info struct.
+				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module));
 				typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+				
+				llvm::Value* generator = constGen.getUndef(templateGeneratorType(module));
 				
 				if (templateArg->templateArguments().empty()) {
 					// If the type doesn't have any template arguments, then
 					// provide a 'null' root function.
-					typeInfo = builder.CreateInsertValue(typeInfo, constGen.getNull(rootFunctionType(module)), { 1 });
-					typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI32(0), { 2 });
+					generator = builder.CreateInsertValue(generator, constGen.getNull(rootFunctionType(module)), { 0 });
+					generator = builder.CreateInsertValue(generator, constGen.getI32(0), { 1 });
 				} else {
-					// If there are arguments, also generate a root generate
+					// If there are arguments, also generate a root generator
 					// function for them and use path of '1' to only pick up
 					// the top level argument values.
 					const auto subRootFunction = genTemplateRootFunction(module, templateArg);
-					typeInfo = builder.CreateInsertValue(typeInfo, subRootFunction, { 1 });
-					typeInfo = builder.CreateInsertValue(typeInfo, constGen.getI32(1), { 2 });
+					generator = builder.CreateInsertValue(generator, subRootFunction, { 0 });
+					generator = builder.CreateInsertValue(generator, constGen.getI32(1), { 1 });
 				}
 				
-				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo);
+				typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
+				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { i });
 			}
 			
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz);
+			const auto pathArg = function.getArg(0);
 			const auto startPosition = builder.CreateSub(constGen.getI8(31), builder.CreateCall(countLeadingZerosFunction, { pathArg }));
 			
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, type->getObjectType());
-			builder.CreateRet(builder.CreateCall(nextFunction, { newTypesValue, llvmFunction, pathArg, startPosition }));
+			builder.CreateRet(builder.CreateCall(nextFunction, std::vector<llvm::Value*>{ newTypesValue, llvmFunction, pathArg, startPosition }));
 			
 			return llvmFunction;
 		}
@@ -178,9 +201,9 @@ namespace locic {
 		}
 		
 		void addUseSet(size_t& currentId, std::map<SEM::Type*, size_t>& currentMap, SEM::Type* type) {
-			assert(type->isObjectType());
+			assert(type->isObject());
 			
-			if (arg->templateArguments.empty()) {
+			if (type->templateArguments().empty()) {
 				// Don't add entries for types with no template arguments.
 				return;
 			}
@@ -189,7 +212,7 @@ namespace locic {
 			currentMap.insert(std::make_pair(type, currentId++));
 			
 			for (const auto& arg: type->templateArguments()) {
-				if (arg->isObjectType()) {
+				if (arg->isObject()) {
 					addUseSet(currentId, currentMap, arg);
 				}
 			}
@@ -247,7 +270,7 @@ namespace locic {
 			ConstantGenerator constGen(module);
 			
 			const auto llvmFunction = genTemplateIntermediateFunctionDecl(module, parentType);
-			Function function(module, llvmFunction, ArgInfo::Basic(intermediateFunctionABIArgumentTypes(), intermediateFunctionArgumentTypes(module)));
+			Function function(module, *llvmFunction, ArgInfo::Basic(intermediateFunctionABIArgumentTypes(), intermediateFunctionArgumentTypes(module)));
 			
 			const auto typesArg = function.getArg(0);
 			const auto rootFnArg = function.getArg(1);
@@ -259,7 +282,7 @@ namespace locic {
 			const auto pathEndBB = function.createBasicBlock("pathEnd");
 			const auto processSubpathBB = function.createBasicBlock("processSubpath");
 			
-			const auto compareValue = builder.CreateICmpEq(position, constGen.getI8(0));
+			const auto compareValue = builder.CreateICmpEQ(positionArg, constGen.getI8(0));
 			builder.CreateCondBr(compareValue, pathEndBB, processSubpathBB);
 			
 			function.selectBasicBlock(pathEndBB);
@@ -279,33 +302,31 @@ namespace locic {
 				
 				const auto foundComponentEntryBB = function.createBasicBlock("foundComponentEntry");
 				const auto tryNextComponentEntryBB = function.createBasicBlock("tryNextComponentEntry");
-				const auto componentCompareValue = builder.CreateICmpEq(component, constGen.getI32(templateUseComponent));
+				const auto componentCompareValue = builder.CreateICmpEQ(component, constGen.getI32(templateUseComponent));
 				builder.CreateCondBr(componentCompareValue, foundComponentEntryBB, tryNextComponentEntryBB);
 				
 				function.selectBasicBlock(foundComponentEntryBB);
 				
-				const auto& templateUse = templateUses.at(i);
-				
-				llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType);
+				llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType(module));
 				
 				// Loop through each template argument and generate it.
 				for (size_t i = 0; i < templateUseType->templateArguments().size(); i++) {
-					const auto& templateUseArg = templateUse->templateArguments().at(i);
+					const auto& templateUseArg = templateUseType->templateArguments().at(i);
 					if (templateUseArg->isTemplateVar()) {
 						// For template variables, just copy across the existing type
 						// from the types provided to us by the caller.
-						const auto templateVarOffset = templateVarOffsetMap.at(templateUseArg.templateVar());
-						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarOffset);
+						const auto templateVarIndex = templateUseArg->getTemplateVar()->index();
+						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarIndex);
 						newTypesValue = builder.CreateInsertValue(newTypesValue, templateVarValue, { i });
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
 						const auto vtablePointer = genVTable(module, templateUseArg->getObjectType());
 						
-						llvm::Value* typeInfo = constGen.createUndef(typeInfoType);
+						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module));
 						typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
 						
-						if (templateArg->templateArguments().empty()) {
+						if (templateUseArg->templateArguments().empty()) {
 							// If the type doesn't have any template arguments, then
 							// provide a 'null' root function.
 							typeInfo = builder.CreateInsertValue(typeInfo, constGen.getNull(rootFunctionType(module)), { 1 });
@@ -330,7 +351,7 @@ namespace locic {
 				
 				// Call the next intermediate function.
 				const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseType->getObjectType());
-				builder.CreateRet(builder.CreateCall(nextFunction, { newTypesValue, rootFnArg, pathArg, nextPosition }));
+				builder.CreateRet(builder.CreateCall(nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, nextPosition }));
 				
 				function.selectBasicBlock(tryNextComponentEntryBB);
 			}

@@ -11,6 +11,20 @@ namespace locic {
 	namespace CodeGen {
 		
 		/**
+		 * \brief Template generate type.
+		 * 
+		 * Generates struct { void* rootFn; uint32_t path; }.
+		 */
+		llvm::Type* templateGeneratorType(Module& module);
+		
+		/**
+		 * \brief Type info type.
+		 * 
+		 * Generates struct { void* vtable; struct { void* rootFn, uint32_t path; } generator; }.
+		 */
+		llvm::Type* typeInfoType(Module& module);
+		
+		/**
 		 * \brief Obtain template arguments from a generator pair.
 		 * 
 		 * This splits a pair of { rootFunction, path } apart and

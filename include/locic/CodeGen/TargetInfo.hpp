@@ -29,6 +29,14 @@ namespace locic {
 					return size / 8;
 				}
 				
+				size_t getPrimitiveAlign(const std::string& name) const;
+				
+				inline size_t getPrimitiveAlignInBytes(const std::string& name) const {
+					const size_t size = getPrimitiveAlign(name);
+					assert((size % 8) == 0);
+					return size / 8;
+				}
+				
 				size_t getPrimitiveSize(const std::string& name) const;
 				
 				inline size_t getPrimitiveSizeInBytes(const std::string& name) const {
@@ -36,8 +44,6 @@ namespace locic {
 					assert((size % 8) == 0);
 					return size / 8;
 				}
-				
-				size_t getPrimitiveAlign(const std::string& name) const;
 				
 			private:
 				Map<std::string, size_t> primitiveSizes_;

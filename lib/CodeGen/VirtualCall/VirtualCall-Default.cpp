@@ -11,6 +11,7 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
@@ -30,6 +31,9 @@ namespace locic {
 				// any possible return type).
 				argTypes.push_back(typeGen.getI8PtrType());
 				
+				// Template generator type.
+				argTypes.push_back(templateGeneratorType(module));
+				
 				// Class pointer type.
 				argTypes.push_back(typeGen.getI8PtrType());
 				
@@ -44,13 +48,14 @@ namespace locic {
 			
 			ArgInfo getStubArgInfo() {
 				const bool hasReturnVarArgument = true;
+				const bool hasTemplateGenerator = true;
 				const bool hasContextArgument = true;
 				
 				std::vector<llvm_abi::Type> standardArguments;
 				standardArguments.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
 				standardArguments.push_back(llvm_abi::Type::Pointer());
 				
-				return ArgInfo(hasReturnVarArgument, hasContextArgument, std::move(standardArguments), {nullptr, nullptr});
+				return ArgInfo(hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, std::move(standardArguments), {nullptr, nullptr});
 			}
 			
 			void setStubAttributes(llvm::Function* llvmFunction) {
@@ -68,58 +73,61 @@ namespace locic {
 				}
 			}
 			
-			llvm::Value* makeArgsStruct(Function& function, const std::vector<SEM::Value*>& args) {
+			llvm::Value* makeArgsStruct(Function& function, const std::vector<llvm::Value*>& args) {
 				if (args.empty()) {
 					// Don't allocate struct when it's not needed.
 					return ConstantGenerator(function.module()).getNullPointer(TypeGenerator(function.module()).getI8PtrType());
 				}
 				
-				std::vector<llvm::Value*> llvmArgs;
+				std::vector<llvm::Type*> argTypes;
 				for (auto arg: args) {
-					llvmArgs.push_back(genValue(function, arg));
+					argTypes.push_back(arg->getType());
 				}
 				
-				std::vector<llvm::Type*> llvmArgsTypes;
-				for (auto arg: llvmArgs) {
-					llvmArgsTypes.push_back(arg->getType());
-				}
+				const auto argsStructType = TypeGenerator(function.module()).getStructType(argTypes);
 				
-				llvm::Type* llvmArgsStructType = TypeGenerator(function.module()).getStructType(llvmArgsTypes);
-				
-				llvm::Value* llvmArgsStructPtr = function.getEntryBuilder().CreateAlloca(llvmArgsStructType);
+				const auto argsStructPtr = function.getEntryBuilder().CreateAlloca(argsStructType);
 				for (size_t offset = 0; offset < args.size(); offset++) {
-					llvm::Value* argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
-						llvmArgsStructPtr, 0, offset);
-					function.getBuilder().CreateStore(llvmArgs.at(offset), argPtr);
+					const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
+						argsStructPtr, 0, offset);
+					function.getBuilder().CreateStore(args.at(offset), argPtr);
 				}
 				
-				return llvmArgsStructPtr;
+				return argsStructPtr;
 			}
 			
-			llvm::Value* generateCall(Function& function, llvm::Value* objectPtr, llvm::Value* vtablePtr, llvm::Value* hashValue, const std::vector<llvm::Value*>& args) {
-				ConstantGenerator constantGen(function.module());
+			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
+				auto& builder = function.getBuilder();
+				
+				// Extract the components of the interface method struct.
+				const auto interfaceValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "interface");
+				const auto objectPointer = builder.CreateExtractValue(interfaceValue, { 0 }, "object");
+				const auto typeInfoValue = builder.CreateExtractValue(interfaceValue, { 1 }, "typeInfo");
+				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+				const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
 				
 				// Calculate the slot for the virtual call.
+				ConstantGenerator constantGen(function.module());
 				const auto vtableSizeValue = constantGen.getI64(VTABLE_SIZE);
 				
-				const auto vtableOffsetValue = function.getBuilder().CreateURem(methodHashValue, vtableSizeValue, "vtableOffset");
+				const auto vtableOffsetValue = builder.CreateURem(hashValue, vtableSizeValue, "vtableOffset");
 				
 				// Get a pointer to the slot.
 				std::vector<llvm::Value*> vtableEntryGEP;
 				vtableEntryGEP.push_back(constantGen.getI32(0));
 				vtableEntryGEP.push_back(constantGen.getI32(2));
-				vtableEntryGEP.push_back(llvmVtableOffsetValue);
+				vtableEntryGEP.push_back(vtableOffsetValue);
 				
-				const auto vtableEntryPointer = function.getBuilder().CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
 				// Load the slot.
-				const auto methodFunctionPointer =
-					function.getBuilder().CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
 				
 				// Cast the loaded pointer to the stub function type.
 				const auto stubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
 						 
-				const auto castedMethodFunctionPointer = function.getBuilder().CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
+				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				// i8
 				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
@@ -127,37 +135,40 @@ namespace locic {
 				// Put together the arguments.
 				std::vector<llvm::Value*> parameters;
 				
-				SEM::Type* functionType = methodValue->type()->getInterfaceMethodFunctionType();
-				SEM::Type* returnType = functionType->getFunctionReturnType();
+				const auto returnType = functionType->getFunctionReturnType();
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
 				llvm::Value* returnVarValue = nullptr;
 				if (!returnType->isVoid()) {
 					returnVarValue = genAlloca(function, returnType);
-					parameters.push_back(function.getBuilder().CreatePointerCast(returnVarValue, i8PtrType, "castedReturnVarPtr"));
+					parameters.push_back(builder.CreatePointerCast(returnVarValue, i8PtrType, "castedReturnVarPtr"));
 				} else {
 					parameters.push_back(constantGen.getNullPointer(i8PtrType));
 				}
 				
+				// Pass in the template generator.
+				parameters.push_back(templateGeneratorValue);
+				
 				// Pass in the object pointer.
-				parameters.push_back(function.getBuilder().CreatePointerCast(llvmObjectPointer, i8PtrType, "castedObjectPtr"));
+				parameters.push_back(builder.CreatePointerCast(objectPointer, i8PtrType, "castedObjectPtr"));
 				
 				// Pass in the method hash value.
-				parameters.push_back(methodHashValue);
+				parameters.push_back(hashValue);
 				
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
 				const auto argsStructPtr = makeArgsStruct(function, args);
-				parameters.push_back(function.getBuilder().CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
+				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				const auto callReturnValue = function.getBuilder().CreateCall(castedMethodFunctionPointer, parameters);
+				// TODO: exception handling!
+				const auto callReturnValue = builder.CreateCall(castedMethodFunctionPointer, parameters);
 				
 				// If the return type isn't void, load the return value from the stack.
 				if (returnVarValue != NULL) {
-					return genLoad(function, llvmReturnVarValue, returnType);
+					return genLoad(function, returnVarValue, returnType);
 				} else {
-					return llvmCallReturnValue;
+					return callReturnValue;
 				}
 			}
 			
@@ -205,6 +216,11 @@ namespace locic {
 						const auto returnVarPointerType = llvmMethod->getFunctionType()->getParamType(0);
 						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnVarPointerType, "castedReturnVar");
 						parameters.push_back(llvmCastReturnVar);
+					}
+					
+					// If type is templated, pass the template generator.
+					if (!typeInstance->templateVariables().empty()) {
+						parameters.push_back(function.getTemplateGenerator());
 					}
 					
 					// If this is not a static method, pass the object pointer.

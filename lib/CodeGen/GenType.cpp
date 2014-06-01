@@ -6,10 +6,12 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
@@ -118,35 +120,24 @@ namespace locic {
 				case SEM::Type::METHOD: {
 					/* Method type is:
 						struct {
-							i8* context,
-							RetType (*func)(i8*, ArgTypes)
+							i8* context;
+							RetType (*func)(i8*, ArgTypes);
+							struct {
+								void* rootFn;
+								uint32_t path;
+							} templateGenerator;
 						};
 					*/
 					std::vector<llvm::Type*> types;
-					llvm::Type* contextPtrType = TypeGenerator(module).getI8PtrType();
-					types.push_back(genFunctionType(module, type->getMethodFunctionType(),
-							contextPtrType)->getPointerTo());
+					const auto contextPtrType = TypeGenerator(module).getI8PtrType();
 					types.push_back(contextPtrType);
+					types.push_back(genFunctionType(module, type->getMethodFunctionType(), contextPtrType)->getPointerTo());
+					types.push_back(templateGeneratorType(module));
 					return TypeGenerator(module).getStructType(types);
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
-					/* Interface method type is:
-						struct {
-							struct {
-								i8* context,
-								__vtable_type* vtable
-							},
-							i64 methodHash
-						};
-					*/
-					std::vector<llvm::Type*> interfaceMethodTypes;
-					interfaceMethodTypes.push_back(
-						getInterfaceStruct(module));
-					interfaceMethodTypes.push_back(
-						TypeGenerator(module).getI64Type());
-					
-					return TypeGenerator(module).getStructType(interfaceMethodTypes);
+					return interfaceMethodType(module);
 				}
 				
 				default: {

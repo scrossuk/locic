@@ -21,6 +21,35 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			Function function(module, llvmFunction, ArgInfo::None());
+			
+			const auto& name = typeInstance->name().first();
+			
+			if (name == "member_lval") {
+				// member_lval is struct { T value; }.
+				// Hence:
+				//     alignof(member_lval) = alignof(T).
+				function.getBuilder().CreateRet(genAlignOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+			} else if (name == "value_lval") {
+				// value_lval is struct { bool isLive; T value; }.
+				// Hence:
+				//     alignof(value_lval) = max(alignof(bool), alignof(T))
+				// 
+				// and given alignof(bool) = 1:
+				//     alignof(value_lval) = max(1, alignof(T))
+				// 
+				// and given alignof(T) >= 1:
+				//     alignof(value_lval) = alignof(T).
+				function.getBuilder().CreateRet(genAlignOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+			} else {
+				// Everything else already has a known size.
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveAlignInBytes(name)));
+			}
+		}
+		
 		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			

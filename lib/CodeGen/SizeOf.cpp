@@ -5,7 +5,9 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {
 
@@ -14,7 +16,8 @@ namespace locic {
 		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			
-			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), hasTemplate ? { templateGeneratorType(module) } : {});
+			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
+			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
 			
 			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
@@ -27,7 +30,7 @@ namespace locic {
 			
 			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, typeInstance->name().last(), *llvmFunction);
+				createPrimitiveSizeOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -70,7 +73,7 @@ namespace locic {
 						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
 					} else {
 						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type->templateArguments()) });
+							{ computeTemplateGenerator(function, type) });
 					}
 				}
 				
@@ -88,7 +91,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->templateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, typeInfo, "sizeof", {});
 				}
 				
@@ -101,7 +104,8 @@ namespace locic {
 		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			
-			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), hasTemplate ? { templateGeneratorType(module) } : {});
+			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
+			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
 			
 			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
@@ -113,7 +117,7 @@ namespace locic {
 			if (typeInstance->isClassDecl()) return llvmFunction;
 			
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveAlignOf(module, typeInstance->name().last(), *llvmFunction);
+				createPrimitiveAlignOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -152,7 +156,7 @@ namespace locic {
 						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), {});
 					} else {
 						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type->templateArguments()) });
+							{ computeTemplateGenerator(function, type) });
 					}
 				}
 				
@@ -172,7 +176,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->templateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { type->getTemplateVar()->index() });
 					return VirtualCall::generateTypeInfoCall(function, typeInfo, "alignof", {});
 				}
 				
