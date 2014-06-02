@@ -143,7 +143,6 @@ namespace locic {
 		
 		llvm::Function* genTemplateRootFunction(Module& module, SEM::Type* type) {
 			assert(isRootType(type));
-			
 			const auto llvmFunction = createLLVMFunction(module, rootFunctionType(module), llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotAccessMemory();
 			
@@ -167,7 +166,7 @@ namespace locic {
 				if (templateArg->templateArguments().empty()) {
 					// If the type doesn't have any template arguments, then
 					// provide a 'null' root function.
-					generator = builder.CreateInsertValue(generator, constGen.getNull(rootFunctionType(module)), { 0 });
+					generator = builder.CreateInsertValue(generator, constGen.getNull(rootFunctionType(module)->getPointerTo()), { 0 });
 					generator = builder.CreateInsertValue(generator, constGen.getI32(0), { 1 });
 				} else {
 					// If there are arguments, also generate a root generator
@@ -182,7 +181,8 @@ namespace locic {
 				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 			}
 			
-			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz);
+			const auto ctlzTypes = std::vector<llvm::Type*>{ TypeGenerator(module).getI32Type() };
+			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
 			const auto pathArg = function.getArg(0);
 			const auto startPosition = builder.CreateSub(constGen.getI8(31), builder.CreateCall(countLeadingZerosFunction, { pathArg }));
 			

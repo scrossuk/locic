@@ -69,7 +69,10 @@ namespace locic {
 				parameterVars.push_back(SEM::Var::Basic(semParamType, lvalType));
 			}
 			
-			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), astFunctionNode->isNoExcept(), semReturnType, parameterTypes);
+			const bool isTemplatedMethod = thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty();
+			
+			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(), isTemplatedMethod,
+				astFunctionNode->isNoExcept(), semReturnType, parameterTypes);
 			
 			return SEM::Function::Decl(astFunctionNode->isMethod(), astFunctionNode->isStaticMethod(),
 				astFunctionNode->isConstMethod(), functionType, fullName, parameterVars, moduleScope);

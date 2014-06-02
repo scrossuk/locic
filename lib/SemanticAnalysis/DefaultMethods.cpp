@@ -21,6 +21,7 @@ namespace locic {
 			const bool isMethod = true;
 			const bool isStatic = true;
 			const bool isConst = false;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Default constructor only moves, and since moves never
 			// throw the constructor never throws.
@@ -35,7 +36,7 @@ namespace locic {
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
 			}
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), constructTypes);
+			const auto functionType = SEM::Type::Function(isVarArg, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "create", argVars, typeInstance->moduleScope());
 		}
 		
@@ -44,12 +45,13 @@ namespace locic {
 			const bool isMethod = true;
 			const bool isStatic = false;
 			const bool isConst = true;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Default copy constructor may throw since it
 			// may call child copy constructors that throw.
 			const bool isNoExcept = false;
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, typeInstance->selfType(), {});
+			const auto functionType = SEM::Type::Function(isVarArg, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {});
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "implicitcopy", {}, typeInstance->moduleScope());
 		}
 		
@@ -58,6 +60,7 @@ namespace locic {
 			const bool isMethod = true;
 			const bool isStatic = false;
 			const bool isConst = true;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Default compare method may throw since it
 			// may call child compare methods that throw.
@@ -65,7 +68,7 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, intType, { selfType });
+			const auto functionType = SEM::Type::Function(isVarArg, isTemplatedMethod, isNoExcept, intType, { selfType });
 			const auto operandVar = SEM::Var::Basic(selfType, selfType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, typeInstance->name() + "compare", { operandVar }, typeInstance->moduleScope());
 		}

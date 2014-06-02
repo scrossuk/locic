@@ -34,12 +34,17 @@ namespace locic {
 		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
 				SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
 			auto& module = function.module();
+			auto& builder = function.getBuilder();
 			
 			assert(functionValue->getType()->isPointerTy());
 			
 			const auto returnType = functionType->getFunctionReturnType();
+			const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
 			
-			const auto llvmFunctionType = functionValue->getType()->getPointerElementType();
+			const auto functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
+			const auto templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
+			
+			const auto llvmFunctionType = functionPtr->getType()->getPointerElementType();
 			assert(llvmFunctionType->isFunctionTy());
 			
 			std::vector<llvm::Value*> parameters;
@@ -55,6 +60,11 @@ namespace locic {
 				returnVarValue = genAlloca(function, returnType);
 				parameters.push_back(returnVarValue);
 				parameterABITypes.push_back(llvm_abi::Type::Pointer());
+			}
+			
+			if (templateGenerator != nullptr) {
+				parameters.push_back(templateGenerator);
+				parameterABITypes.push_back(templateGeneratorABIType());
 			}
 			
 			if (contextPointer != nullptr) {

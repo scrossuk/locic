@@ -30,10 +30,6 @@ namespace locic {
 			  debugInfo_(nullptr),
 			  templateArgs_(nullptr) {
 			assert(function.isDeclaration());
-			function.dump();
-			printf("%llu vs %llu\n",
-				(unsigned long long) argInfo_.numArguments(),
-				(unsigned long long) function_.getFunctionType()->getNumParams());
 			assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 			
 			// Add a bottom level unwind stack.

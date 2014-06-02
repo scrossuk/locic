@@ -74,6 +74,8 @@ namespace locic {
 		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
 				return getTypeInstancePointer(module, targetType->getObjectType());
+			} else if (targetType->isTemplateVar()) {
+				return TypeGenerator(module).getI8PtrType();
 			} else {
 				const auto pointerType = genType(module, targetType);
 				
@@ -86,20 +88,9 @@ namespace locic {
 			}
 		}
 		
-		llvm::StructType* getInterfaceStruct(Module& module) {
-			// Interface references are actually two pointers:
-			// one to the class, and one to the class vtable.
-			std::vector<llvm::Type*> types;
-			// Class pointer.
-			types.push_back(TypeGenerator(module).getI8PtrType());
-			// Vtable pointer.
-			types.push_back(getVTableType(module.getTargetInfo())->getPointerTo());
-			return TypeGenerator(module).getStructType(types);
-		}
-		
 		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isInterface()) {
-				return getInterfaceStruct(module);
+				return interfaceStructType(module);
 			} else {
 				return genObjectType(module, typeInstance)->getPointerTo();
 			}
@@ -120,27 +111,34 @@ namespace locic {
 				}
 				
 				case SEM::Type::FUNCTION: {
-					// TODO: generate struct of function pointer and template
+					// Generate struct of function pointer and template
 					// generator if function type is templated method.
-					return genFunctionType(module, type)->getPointerTo();
+					const auto functionPtrType = genFunctionType(module, type)->getPointerTo();
+					if (type->isFunctionTemplatedMethod()) {
+						return TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module) });
+					} else {
+						return functionPtrType;
+					}
 				}
 				
 				case SEM::Type::METHOD: {
 					/* Method type is:
 						struct {
 							i8* context;
-							RetType (*func)(i8*, ArgTypes);
 							struct {
-								void* rootFn;
-								uint32_t path;
-							} templateGenerator;
+								RetType (*func)(i8*, ArgTypes);
+								struct {
+									void* rootFn;
+									uint32_t path;
+								} templateGenerator;
+							};
 						};
 					*/
 					std::vector<llvm::Type*> types;
 					const auto contextPtrType = TypeGenerator(module).getI8PtrType();
 					types.push_back(contextPtrType);
-					types.push_back(genFunctionType(module, type->getMethodFunctionType(), contextPtrType)->getPointerTo());
-					types.push_back(templateGeneratorType(module));
+					const auto functionPtrType = genFunctionType(module, type->getMethodFunctionType(), contextPtrType)->getPointerTo();
+					types.push_back(TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module) }));
 					return TypeGenerator(module).getStructType(types);
 				}
 				
@@ -149,8 +147,7 @@ namespace locic {
 				}
 				
 				default: {
-					assert(false && "Unknown type enum for generating type");
-					return TypeGenerator(module).getVoidType();
+					llvm_unreachable("Unknown type enum for generating type.");
 				}
 			}
 		}

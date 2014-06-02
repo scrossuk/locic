@@ -60,22 +60,23 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance) {
-			const bool isVarArg = false;
-			const bool isNoExcept = false;
-			const bool isStatic = true;
-			const bool isMethod = true;
-			const bool isConst = false;
-			
 			if (semTypeInstance->parent() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return CreateDefaultConstructorDecl(context, semTypeInstance);
 			}
 			
+			const bool isVarArg = false;
+			const bool isTemplatedMethod = !semTypeInstance->templateVariables().empty();
+			const bool isNoExcept = false;
+			const bool isStatic = true;
+			const bool isMethod = true;
+			const bool isConst = false;
+			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
 			const auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isNoExcept, semTypeInstance->selfType(), constructTypes);
+			const auto functionType = SEM::Type::Function(isVarArg, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), constructTypes);
 			const auto parameters = getParameters(context, constructTypes);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "Create", parameters, semTypeInstance->moduleScope());
 		}

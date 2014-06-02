@@ -65,21 +65,36 @@ namespace locic {
 				//     sizeof(member_lval) = sizeof(T).
 				function.getBuilder().CreateRet(genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
 			} else if (name == "value_lval") {
-				// value_lval is struct { bool isLive; T value; }.
+				// value_lval is struct { T value; bool isLive; }.
 				// Hence:
-				//     sizeof(value_lval) = makealigned(sizeof(bool), alignof(T)) + sizeof(T)
+				//     sizeof(value_lval) = makealigned(makealigned(sizeof(T), alignof(bool)) + sizeof(bool), alignof(T))
 				// 
 				// and given sizeof(bool) = 1:
-				//     sizeof(value_lval) = makealigned(1, alignof(T)) + sizeof(T)
+				//     sizeof(value_lval) = makealigned(makealigned(sizeof(T), 1) + sizeof(bool), alignof(T))
+				// 
+				// so:
+				//     sizeof(value_lval) = makealigned(sizeof(T) + 1, alignof(T))
 				// 
 				// and given that:
-				//     makealigned(position, align) = (position + (align - 1)) & (~(align - 1));
+				//     makealigned(position, align) = align * ((position + (align - 1)) div align)
 				// 
 				// so that:
-				//     makealigned(1, align) = (align) & (~(align - 1));
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((sizeof(T) + 1 + (alignof(T) - 1)) div alignof(T))
 				// 
-				// hence (since align is power of 2):
-				//     makealigned(1, align) = align
+				// and:
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((sizeof(T) + alignof(T)) div alignof(T))
+				// 
+				// let sizeof(T) = M * alignof(T) where M is integer >= 1:
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((M * alignof(T) + alignof(T)) div alignof(T))
+				// 
+				// so:
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * (((M + 1) * alignof(T)) div alignof(T))
+				// 
+				// hence:
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * (M + 1)
+				// 
+				// so...:
+				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) + M * alignof(T)
 				// 
 				// so this can be reduced to:
 				//     sizeof(value_lval) = alignof(T) + sizeof(T).
@@ -664,17 +679,16 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			if (methodName == "Create") {
-				const auto stackObject = genAlloca(function, typeInstance->selfType());
+				const auto returnVar = function.getReturnVar();
 				
 				// Store the object.
-				const auto objectPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 0);
-				genStore(function, function.getArg(0), objectPtr, targetType);
+				genStore(function, function.getArg(0), returnVar, targetType);
 				
 				// Set the liveness indicator.
-				const auto livenessIndicatorPtr = builder.CreateConstInBoundsGEP2_32(stackObject, 0, 1);
-				builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicatorPtr);
+				const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(returnVar, genSizeOf(function, targetType));
+				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+				builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 				
-				genStore(function, genLoad(function, stackObject, parent), function.getReturnVar(), parent);
 				builder.CreateRetVoid();
 				
 				// Check the generated function is correct.
@@ -683,18 +697,16 @@ namespace locic {
 			}
 			
 			// Get a pointer to the value.
-			const auto ptrToValue = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
+			const auto ptrToValue = function.getContextValue();
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
-					builder.CreateRet(ptrToValue);
+					const auto castPtrToValue = builder.CreatePointerCast(ptrToValue, TypeGenerator(module).getI8PtrType());
+					builder.CreateRet(castPtrToValue);
 				} else if (methodName == "move") {
 					// TODO: check liveness indicator (?).
 					
-					// For types where the size isn't always known
-					// (i.e. non-primitives), a pointer to the return
-					// value (the 'return var') will be passed, so
-					// just store into that.
+					// Store into return var.
 					genStore(function, ptrToValue, function.getReturnVar(), targetType);
 					
 					// Zero out the entire lval, which will
@@ -704,8 +716,8 @@ namespace locic {
 					builder.CreateRetVoid();
 				} else if (methodName == "dissolve") {
 					// TODO: check liveness indicator (?).
-					
-					builder.CreateRet(ptrToValue);
+					const auto castPtrToValue = builder.CreatePointerCast(ptrToValue, TypeGenerator(module).getI8PtrType());
+					builder.CreateRet(castPtrToValue);
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -718,22 +730,20 @@ namespace locic {
 					// check the liveness indicator).
 					genDestructorCall(function, parent, function.getContextValue());
 					
-					// Get a pointer to the liveness indicator,
-					// which is just after the value.
-					const auto livenessIndicator = builder.CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
-					
 					// Set the liveness indicator.
-					builder.CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
+					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(ptrToValue, genSizeOf(function, targetType));
+					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+					builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 					
 					// Store the new child value.
 					genStore(function, operand, ptrToValue, targetType);
 					
 					builder.CreateRetVoid();
 				} else {
-					throw std::runtime_error("Unknown primitive binary op.");
+					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else {
-				throw std::runtime_error("Unknown primitive method.");
+				llvm_unreachable("Unknown primitive method.");
 			}
 			
 			// Check the generated function is correct.
@@ -764,43 +774,40 @@ namespace locic {
 			}
 		}
 		
-		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
+		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
 			// A value lval contains the target type and
 			// a boolean 'liveness' indicator, which records
 			// whether the lval currently holds a value.
 			
 			auto& module = functionGenerator.module();
-			
-			// Get a pointer to the value.
-			const auto ptrToValue = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 0);
-			
-			// Get a pointer to the liveness indicator,
-			// which is just after the value.
-			const auto livenessIndicator = functionGenerator.getBuilder().CreateConstInBoundsGEP2_32(var, 0, 1);
+			auto& builder = functionGenerator.getBuilder();
 			
 			// Set the liveness indicator.
-			functionGenerator.getBuilder().CreateStore(ConstantGenerator(module).getI1(true), livenessIndicator);
+			const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8Type()->getPointerTo());
+			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType));
+			const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+			builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 			
 			// Store the new child value.
-			genStore(functionGenerator, value, ptrToValue, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
+			genStore(functionGenerator, value, var, varType);
 		}
 		
-		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
+		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
 			// A member lval just contains its target type,
 			// so just store that directly.
-			genStore(functionGenerator, value, var, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
+			genStore(functionGenerator, value, var, varType);
 		}
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::TypeInstance* typeInstance) {
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
-			const auto typeName = typeInstance->name().last();
+			const auto typeName = varType->getObjectType()->name().last();
 			if (typeName == "value_lval") {
-				genStoreValueLval(functionGenerator, value, var, typeInstance);
+				genStoreValueLval(functionGenerator, value, var, varType);
 			} else if (typeName == "member_lval") {
-				genStoreMemberLval(functionGenerator, value, var, typeInstance);
+				genStoreMemberLval(functionGenerator, value, var, varType);
 			} else {
-				throw std::runtime_error("Unknown primitive lval kind.");
+				llvm_unreachable("Unknown primitive lval kind.");
 			}
 		}
 		

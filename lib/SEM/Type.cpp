@@ -48,9 +48,10 @@ namespace locic {
 			return type;
 		}
 		
-		Type* Type::Function(bool isVarArg, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
+		Type* Type::Function(bool isVarArg, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION);
 			type->functionType_.isVarArg = isVarArg;
+			type->functionType_.isTemplatedMethod = isTemplatedMethod;
 			type->functionType_.isNoExcept = isNoExcept;
 			type->functionType_.returnType = returnType;
 			type->functionType_.parameterTypes = parameterTypes;
@@ -162,6 +163,11 @@ namespace locic {
 		bool Type::isFunctionVarArg() const {
 			assert(isFunction());
 			return functionType_.isVarArg;
+		}
+		
+		bool Type::isFunctionTemplatedMethod() const {
+			assert(isFunction());
+			return functionType_.isTemplatedMethod;
 		}
 		
 		bool Type::isFunctionNoExcept() const {
@@ -373,7 +379,8 @@ namespace locic {
 						}
 						
 						const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
-						return Type::Function(type->isFunctionVarArg(), type->isFunctionNoExcept(), returnType, args);
+						return Type::Function(type->isFunctionVarArg(), type->isFunctionTemplatedMethod(),
+							type->isFunctionNoExcept(), returnType, args);
 					}
 					
 					case Type::METHOD: {

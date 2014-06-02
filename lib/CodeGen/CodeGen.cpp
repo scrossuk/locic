@@ -115,7 +115,6 @@ namespace locic {
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
 			genNamespaceTypes(*module_, nameSpace);
 			genNamespaceFunctions(*module_, nameSpace);
-			
 			module_->debugBuilder().finalize();
 		}
 		

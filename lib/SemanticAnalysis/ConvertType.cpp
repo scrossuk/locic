@@ -217,10 +217,13 @@ namespace locic {
 						parameterTypes.push_back(paramType);
 					}
 					
+					// Currently no syntax exists to express a templated method function type.
+					const bool isTemplatedMethod = false;
+					
 					// Currently no syntax exists to express a type with 'noexcept'.
 					const bool isNoExcept = false;
 					
-					return SEM::Type::Function(type->functionType.isVarArg, isNoExcept, returnType, parameterTypes);
+					return SEM::Type::Function(type->functionType.isVarArg, isTemplatedMethod, isNoExcept, returnType, parameterTypes);
 				}
 				default:
 					throw std::runtime_error("Unknown AST::Node<AST::Type> type enum.");

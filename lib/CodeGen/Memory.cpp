@@ -143,7 +143,7 @@ namespace locic {
 				// If the variable type wasn't actually an lval
 				// (very likely), then a value_lval will be created
 				// to hold it, and this needs to be constructed.
-				genStorePrimitiveLval(function, value, var, varType->getObjectType());
+				genStorePrimitiveLval(function, value, var, varType);
 			}
 		}
 		

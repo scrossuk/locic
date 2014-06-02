@@ -295,12 +295,12 @@ namespace locic {
 					
 					const auto callValue = genValue(function, semFunctionValue);
 					
-					const auto functionValue = semFunctionValue->type()->isMethod() ?
-						function.getBuilder().CreateExtractValue(callValue, std::vector<unsigned>(1, 0)) :
-						callValue;
 					const auto contextPointer = semFunctionValue->type()->isMethod() ?
-						function.getBuilder().CreateExtractValue(callValue, std::vector<unsigned>(1, 1)) :
+						function.getBuilder().CreateExtractValue(callValue, { 0 }) :
 						nullptr;
+					const auto functionValue = semFunctionValue->type()->isMethod() ?
+						function.getBuilder().CreateExtractValue(callValue, { 1 }) :
+						callValue;
 					const auto functionType = semFunctionValue->type()->isMethod() ?
 						semFunctionValue->type()->getMethodFunctionType() : semFunctionValue->type();
 					
@@ -314,8 +314,11 @@ namespace locic {
 					const auto functionPtr = genFunction(module, objectType, value->functionRef.function);
 					
 					if (value->type()->isFunctionTemplatedMethod()) {
-						// TODO: return struct of function pointer and template generator.
-						return functionPtr;
+						assert(parentType != nullptr);
+						llvm::Value* functionValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, functionPtr, { 0 });
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, computeTemplateGenerator(function, parentType), { 1 });
+						return functionValue;
 					} else {
 						return functionPtr;
 					}
