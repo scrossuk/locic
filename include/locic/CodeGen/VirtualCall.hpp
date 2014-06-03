@@ -20,6 +20,13 @@ namespace locic {
 			
 			llvm::Value* generateTypeInfoCall(Function& function, llvm::Type* returnType, llvm::Value* typeInfo, const std::string& name, const std::vector<llvm::Value*>& args);
 			
+			enum CountFnKind {
+				ALIGNOF,
+				SIZEOF
+			};
+			
+			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind);
+			
 		}
 	}
 	

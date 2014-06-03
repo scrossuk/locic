@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
@@ -21,7 +22,7 @@ namespace locic {
 		
 		llvm::PointerType* i8PtrType();
 		
-		llvm::StructType* getVTableType(const TargetInfo& targetInfo);
+		llvm::StructType* vtableType(Module& module);
 		
 	}
 	

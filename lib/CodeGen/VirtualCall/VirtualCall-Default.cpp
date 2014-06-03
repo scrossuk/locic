@@ -12,6 +12,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
@@ -117,6 +118,7 @@ namespace locic {
 				// Get a pointer to the slot.
 				std::vector<llvm::Value*> vtableEntryGEP;
 				vtableEntryGEP.push_back(constantGen.getI32(0));
+				
 				vtableEntryGEP.push_back(constantGen.getI32(2));
 				vtableEntryGEP.push_back(vtableOffsetValue);
 				
@@ -191,6 +193,35 @@ namespace locic {
 				return returnType != nullptr ? function.getBuilder().CreateLoad(returnVarValue) : nullptr;
 			}
 			
+			llvm::FunctionType* getCountFunctionType(Module& module) {
+				TypeGenerator typeGen(module);
+				return typeGen.getFunctionType(getPrimitiveType(module, "size_t"), { templateGeneratorType(module) });
+			}
+			
+			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
+				auto& module = function.module();
+				auto& builder = function.getBuilder();
+				
+				// Extract vtable and template generator.
+				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+				
+				// Get a pointer to the slot.
+				ConstantGenerator constGen(module);
+				std::vector<llvm::Value*> vtableEntryGEP;
+				vtableEntryGEP.push_back(constGen.getI32(0));
+				vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 1 : 2));
+				
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				
+				// Load the slot.
+				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto stubFunctionPtrType = getCountFunctionType(module)->getPointerTo();
+				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
+				
+				return builder.CreateCall(castedMethodFunctionPointer, { templateGeneratorValue });
+			}
+			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
 				ConstantGenerator constGen(module);
 				TypeGenerator typeGen(module);
@@ -243,9 +274,7 @@ namespace locic {
 					
 					// If this is not a static method, pass the object pointer.
 					if (!semMethod->isStaticMethod()) {
-						const auto objectPointerOffset = parameters.size();
-						const auto objectPointerType = llvmMethod->getFunctionType()->getParamType(objectPointerOffset);
-						parameters.push_back(function.getBuilder().CreatePointerCast(function.getContextValue(), objectPointerType));
+						parameters.push_back(function.getRawContextValue());
 					}
 					
 					const auto numArgs = functionType->getFunctionParameterTypes().size();

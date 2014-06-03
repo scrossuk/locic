@@ -90,6 +90,14 @@ namespace locic {
 			return typeMap_;
 		}
 		
+		TemplateGeneratorMap& Module::getTemplateGeneratorMap() {
+			return templateGeneratorMap_;
+		}
+		
+		const TemplateGeneratorMap& Module::getTemplateGeneratorMap() const {
+			return templateGeneratorMap_;
+		}
+		
 		llvm::GlobalVariable* Module::createConstGlobal(const std::string& name,
 				llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
 				llvm::Constant* value) {

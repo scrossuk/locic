@@ -1,10 +1,14 @@
 #include <locic/SEM.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
@@ -44,8 +48,16 @@ namespace locic {
 		}
 		
 		llvm::GlobalVariable* genVTable(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto globalVariable = module.createConstGlobal("__type_vtable",
-				getVTableType(module.getTargetInfo()), llvm::Function::InternalLinkage);
+			const auto mangledName = std::string("__type_vtable_") + mangleObjectType(typeInstance);
+			
+			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName);
+			if (existingGlobal != nullptr) {
+				return existingGlobal;
+			}
+			
+			TypeGenerator typeGen(module);
+			
+			const auto globalVariable = module.createConstGlobal(mangledName, vtableType(module), llvm::Function::PrivateLinkage);
 			
 			// Generate the vtable.
 			const auto functionHashMap = CreateFunctionHashMap(typeInstance);
@@ -53,17 +65,18 @@ namespace locic {
 			
 			const auto virtualTable = VirtualTable::CalculateFromHashes(hashArray);
 			
-			const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+			const auto i8PtrType = typeGen.getI8PtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
 			
 			// Destructor.
-			llvm::PointerType* destructorType =
-				TypeGenerator(module).getVoidFunctionType({ i8PtrType })->getPointerTo();
-			vtableStructElements.push_back(ConstantGenerator(module).getNullPointer(destructorType));
+			vtableStructElements.push_back(ConstantGenerator(module).getNullPointer(typeGen.getI8PtrType()));
+			
+			// Alignof.
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignOfFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Sizeof.
-			vtableStructElements.push_back(genSizeOfFunction(module, typeInstance));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Method slots.
 			std::vector<llvm::Constant*> methodSlotElements;
@@ -85,7 +98,7 @@ namespace locic {
 			const auto methodSlotTable = ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
-			const auto vtableStruct = ConstantGenerator(module).getStruct(getVTableType(module.getTargetInfo()), vtableStructElements);
+			const auto vtableStruct = ConstantGenerator(module).getStruct(vtableType(module), vtableStructElements);
 				
 			globalVariable->setInitializer(vtableStruct);
 			

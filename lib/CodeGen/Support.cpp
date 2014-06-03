@@ -1,6 +1,9 @@
 #include <vector>
 
+#include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
@@ -28,33 +31,36 @@ namespace locic {
 			return i8Type()->getPointerTo();
 		}
 		
-		llvm::StructType* createVTableType(const TargetInfo& targetInfo) {
-			std::vector<llvm::Type*> structElements;
+		llvm::StructType* vtableType(Module& module) {
+			const auto name = "__vtable";
 			
-			const bool NO_VAR_ARG = false;
-			
-			// Destructor.
-			structElements.push_back(llvm::FunctionType::get(voidType(), std::vector<llvm::Type*>(1, i8PtrType()), NO_VAR_ARG)
-									 ->getPointerTo());
-									 
-			// Sizeof.
-			structElements.push_back(llvm::FunctionType::get(getSizeType(targetInfo), std::vector<llvm::Type*>(), NO_VAR_ARG)
-									 ->getPointerTo());
-									 
-			// Hash table.
-			structElements.push_back(llvm::ArrayType::get(i8PtrType(), VTABLE_SIZE));
-			
-			return llvm::StructType::create(llvm::getGlobalContext(), structElements, "__vtable_type");
-		}
-		
-		llvm::StructType* getVTableType(const TargetInfo& targetInfo) {
-			static llvm::StructType* type = NULL;
-			
-			if (type == NULL) {
-				type = createVTableType(targetInfo);
+			const auto result = module.getTypeMap().tryGet(name);
+			if (result.hasValue()) {
+				return result.getValue();
 			}
 			
-			return type;
+			TypeGenerator typeGen(module);
+			const auto structType = typeGen.getForwardDeclaredStructType(name);
+			
+			module.getTypeMap().insert(name, structType);
+			
+			std::vector<llvm::Type*> structElements;
+			
+			// Destructor.
+			structElements.push_back(typeGen.getI8PtrType());
+			
+			// Alignof.
+			structElements.push_back(typeGen.getI8PtrType());
+									 
+			// Sizeof.
+			structElements.push_back(typeGen.getI8PtrType());
+									 
+			// Hash table.
+			structElements.push_back(typeGen.getArrayType(typeGen.getI8PtrType(), VTABLE_SIZE));
+			
+			structType->setBody(structElements);
+			
+			return structType;
 		}
 		
 	}

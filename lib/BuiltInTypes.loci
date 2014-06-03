@@ -530,7 +530,6 @@ __primitive value_lval {
 
 template <typename T>
 __primitive member_lval {
-	static member_lval<T> Create(T value) noexcept;
 	T* address() noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;

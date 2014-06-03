@@ -31,6 +31,10 @@ namespace locic {
 					return ArgInfo(false, true, false, {}, {});
 				}
 				
+				inline static ArgInfo TemplateAndContext() {
+					return ArgInfo(false, true, true, {}, {});
+				}
+				
 				inline static ArgInfo Basic(std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
 					return ArgInfo(false, false, false, std::move(standardArguments), argTypes);
 				}
@@ -132,7 +136,7 @@ namespace locic {
 			std::vector<llvm::Type*> abiLLVMArgTypes;
 			for (const auto paramType:  function->type()->getFunctionParameterTypes()) {
 				abiArgTypes.push_back(genABIType(module, paramType));
-				abiLLVMArgTypes.push_back(genType(module, paramType));
+				abiLLVMArgTypes.push_back(genArgType(module, paramType));
 			}
 			
 			return ArgInfo(hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);

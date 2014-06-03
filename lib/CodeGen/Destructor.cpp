@@ -9,6 +9,7 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
 namespace locic {
@@ -26,7 +27,7 @@ namespace locic {
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
-			assert(value->getType()->isPointerTy());
+			const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 			
 			if (type->isObject()) {
 				if (!typeHasDestructor(module, type->getObjectType())) {
@@ -35,19 +36,26 @@ namespace locic {
 				
 				// Call destructor.
 				const auto destructorFunction = genDestructorFunction(module, type->getObjectType());
-				function.getBuilder().CreateCall(destructorFunction, { value });
-			} else if (type->isTemplateVar()) {
 				
+				if (type->templateArguments().empty()) {
+					function.getBuilder().CreateCall(destructorFunction, { castValue });
+				} else {
+					function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), castValue });
+				}
+			} else if (type->isTemplateVar()) {
+				// TODO!!
 			}
 		}
 		
 		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isUnionDatatype());
 			
-			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
+			const auto contextValue = function.getContextValue(typeInstance);
+			
+			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, 0);
 			const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
 			
-			const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1);
+			const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, 1);
 			
 			const auto endBB = function.createBasicBlock("end");
 			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
@@ -63,9 +71,7 @@ namespace locic {
 				
 				function.selectBasicBlock(matchBB);
 				
-				// TODO: CodeGen shouldn't create SEM trees.
-				const auto variantType = SEM::Type::Object(variantTypeInstance, {});
-				
+				const auto variantType = variantTypeInstance->selfType();
 				const auto unionValueType = genType(function.module(), variantType);
 				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 				
@@ -75,6 +81,15 @@ namespace locic {
 			}
 			
 			function.selectBasicBlock(endBB);
+		}
+		
+		llvm::FunctionType* destructorFunctionType(Module& module, SEM::TypeInstance* typeInstance) {
+			TypeGenerator typeGen(module);
+			if (typeInstance->templateVariables().empty()) {
+				return typeGen.getVoidFunctionType({ typeGen.getI8PtrType() });
+			} else {
+				return typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
+			}
 		}
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
@@ -89,9 +104,7 @@ namespace locic {
 			}
 			
 			// --- Generate function declaration.
-			const auto contextPtrType = getTypeInstancePointer(module, typeInstance);
-			
-			const auto functionType = TypeGenerator(module).getVoidFunctionType({ contextPtrType });
+			const auto functionType = destructorFunctionType(module, typeInstance);
 			
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
@@ -123,11 +136,13 @@ namespace locic {
 			
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype());
 			
+			const auto contextValue = function.getContextValue(typeInstance);
+			
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = typeInstance->functions().find("__destructor");
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunction(module, typeInstance, methodIterator->second);
-				function.getBuilder().CreateCall(customDestructor, function.getContextValue());
+				function.getBuilder().CreateCall(customDestructor, contextValue);
 			}
 			
 			const auto& memberVars = typeInstance->variables();
@@ -138,7 +153,7 @@ namespace locic {
 				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 				const size_t offset = module.getMemberVarMap().get(memberVar);
 				const auto ptrToMember =
-					function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, offset);
+					function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, offset);
 				genDestructorCall(function, memberVar->type(), ptrToMember);
 			}
 			

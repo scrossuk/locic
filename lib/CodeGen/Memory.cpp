@@ -18,34 +18,38 @@ namespace locic {
 			
 			auto& module = function.module();
 			
-			(void) function.getBuilder().CreateStore(
-				ConstantGenerator(module).getNull(genType(module, type)),
-				value);
+			if (isTypeSizeKnownInThisModule(module, type)) {
+				(void) function.getBuilder().CreateStore(
+					ConstantGenerator(module).getNull(genType(module, type)),
+					value);
+			} else {
+				(void) function.getBuilder().CreateMemSet(
+					value, ConstantGenerator(module).getI8(0),
+					genSizeOf(function, type), 1);
+			}
 		}
 		
 		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
 			auto& module = function.module();
-			const auto rawType = genType(module, type);
-			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getEntryBuilder().CreateAlloca(rawType);
+					return function.getEntryBuilder().CreateAlloca(genType(module, type));
 				}
 				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
-						return function.getEntryBuilder().CreateAlloca(rawType);
+						return function.getEntryBuilder().CreateAlloca(genType(module, type));
 					} else {
 						const auto alloca =
 							function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
 						return function.getBuilder().CreatePointerCast(alloca,
-							rawType->getPointerTo());
+							genPointerType(module, type));
 					}
 				}
 				
@@ -92,13 +96,14 @@ namespace locic {
 		
 		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
+			const auto castVar = function.getBuilder().CreatePointerCast(var, genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
 				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					function.getBuilder().CreateStore(value, var);
+					function.getBuilder().CreateStore(value, castVar);
 					return;
 				}
 				
@@ -107,7 +112,7 @@ namespace locic {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
-						function.getBuilder().CreateStore(value, var);
+						function.getBuilder().CreateStore(value, castVar);
 						return;
 					} else {
 						if (isTypeSizeKnownInThisModule(function.module(), type)) {
@@ -115,11 +120,11 @@ namespace locic {
 							// better to generate an explicit load
 							// and store (optimisations will be able
 							// to make more sense of this).
-							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
+							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), castVar);
 						} else {
 							// If the type size isn't known, then
 							// a memcpy is unavoidable.
-							function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1);
+							function.getBuilder().CreateMemCpy(castVar, value, genSizeOf(function, type), 1);
 						}
 						return;
 					}

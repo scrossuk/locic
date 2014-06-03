@@ -2,6 +2,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -14,13 +15,22 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			const auto mangledName = mangleMethodName(typeInstance, "sizeof");
+			const auto result = module.getFunctionMap().tryGet(mangledName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
 			
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, mangledName);
 			llvmFunction->setDoesNotAccessMemory();
+			
+			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
 			
@@ -67,11 +77,12 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					if (type->templateArguments().empty()) {
-						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
-					} else {
-						return function.getBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
+					const bool hasTemplate = /*!type->templateArguments().empty()*/ true;
+					if (hasTemplate) {
+						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
 							{ computeTemplateGenerator(function, type) });
+					} else {
+						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
 					}
 				}
 				
@@ -89,8 +100,8 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "sizeof", {});
+					const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::SIZEOF);
 				}
 				
 				default: {
@@ -100,13 +111,22 @@ namespace locic {
 		}
 		
 		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			const auto mangledName = mangleMethodName(typeInstance, "alignof");
+			const auto result = module.getFunctionMap().tryGet(mangledName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
 			
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, mangledName);
 			llvmFunction->setDoesNotAccessMemory();
+			
+			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
 			
@@ -147,11 +167,12 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					if (type->templateArguments().empty()) {
-						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), {});
-					} else {
-						return function.getBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
+					const bool hasTemplate = /*!type->templateArguments().empty()*/ true;
+					if (hasTemplate) {
+						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
 							{ computeTemplateGenerator(function, type) });
+					} else {
+						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), {});
 					}
 				}
 				
@@ -171,8 +192,8 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					return VirtualCall::generateTypeInfoCall(function, getPrimitiveType(module, "size_t"), typeInfo, "alignof", {});
+					const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::ALIGNOF);
 				}
 				
 				default: {

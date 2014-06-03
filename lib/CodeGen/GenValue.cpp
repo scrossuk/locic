@@ -58,7 +58,7 @@ namespace locic {
 			switch (value->kind()) {
 				case SEM::Value::SELF:
 				case SEM::Value::THIS: {
-					return function.getContextValue();
+					return function.getContextValue(value->type()->getObjectType());
 				}
 				case SEM::Value::CONSTANT: {
 					switch (value->constant->kind()) {
@@ -311,7 +311,9 @@ namespace locic {
 					const auto parentType = value->functionRef.parentType;
 					const auto objectType = parentType != nullptr ? parentType->getObjectType() : nullptr;
 					
-					const auto functionPtr = genFunction(module, objectType, value->functionRef.function);
+					const auto functionRefPtr = genFunction(module, objectType, value->functionRef.function);
+					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					const auto functionPtr = function.getBuilder().CreatePointerCast(functionRefPtr, functionPtrType);
 					
 					if (value->type()->isFunctionTemplatedMethod()) {
 						assert(parentType != nullptr);
@@ -341,16 +343,11 @@ namespace locic {
 					
 					assert(value->type()->isMethod());
 					
-					const auto functionPtr =
-						function.getBuilder().CreatePointerCast(functionValue,
-								genFunctionType(module, value->type()->getMethodFunctionType(), i8PtrType())->getPointerTo(),
-								"dynamic_method_function_ptr");
+					const auto contextPtr = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType(), "this_ptr_cast_to_void_ptr");
 					
-					const auto contextPtr = function.getBuilder().CreatePointerCast(dataPointer, i8PtrType(), "this_ptr_cast_to_void_ptr");
-					
-					const auto methodValueUndef = ConstantGenerator(module).getUndef(genType(module, value->type()));
-					const auto methodValueWithFunction = function.getBuilder().CreateInsertValue(methodValueUndef, functionPtr, std::vector<unsigned>(1, 0));
-					const auto methodValue = function.getBuilder().CreateInsertValue(methodValueWithFunction, contextPtr, std::vector<unsigned>(1, 1));
+					llvm::Value* methodValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
+					methodValue = function.getBuilder().CreateInsertValue(methodValue, contextPtr, { 0 });
+					methodValue = function.getBuilder().CreateInsertValue(methodValue, functionValue, { 1 });
 					return methodValue;
 				}
 				

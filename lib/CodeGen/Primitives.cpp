@@ -24,7 +24,7 @@ namespace locic {
 		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
 			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
@@ -54,7 +54,7 @@ namespace locic {
 		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
+			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
 			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
@@ -191,7 +191,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			if (methodName == "Create") {
 				builder.CreateRet(ConstantGenerator(module).getI1(false));
@@ -266,7 +266,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
@@ -369,7 +369,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
@@ -458,7 +458,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
 			
@@ -549,7 +549,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			if (methodName == "Null") {
 				builder.CreateRet(ConstantGenerator(module).getNull(genType(module, typeInstance->selfType())));
@@ -604,7 +604,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = builder.CreateLoad(function.getContextValue());
+			const auto methodOwner = builder.CreateLoad(function.getContextValue(typeInstance));
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
@@ -636,6 +636,7 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
 			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
 			
@@ -643,9 +644,9 @@ namespace locic {
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
-					builder.CreateRet(function.getContextValue());
+					builder.CreateRet(builder.CreatePointerCast(function.getRawContextValue(), genPointerType(module, targetType)));
 				} else if (methodName == "dissolve") {
-					builder.CreateRet(function.getContextValue());
+					builder.CreateRet(builder.CreatePointerCast(function.getRawContextValue(), genPointerType(module, targetType)));
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -653,8 +654,7 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
-					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
-					genStore(function, operand, function.getContextValue(), targetType);
+					genStore(function, operand, function.getRawContextValue(), targetType);
 					builder.CreateRetVoid();
 				} else {
 					throw std::runtime_error("Unknown primitive binary op.");
@@ -671,7 +671,6 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto methodName = semFunction->name().last();
-			const auto parent = typeInstance->selfType();
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
 			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
@@ -679,7 +678,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			if (methodName == "Create") {
-				const auto returnVar = function.getReturnVar();
+				const auto returnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), TypeGenerator(module).getI8PtrType());
 				
 				// Store the object.
 				genStore(function, function.getArg(0), returnVar, targetType);
@@ -696,28 +695,24 @@ namespace locic {
 				return;
 			}
 			
-			// Get a pointer to the value.
-			const auto ptrToValue = function.getContextValue();
-			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
-					const auto castPtrToValue = builder.CreatePointerCast(ptrToValue, TypeGenerator(module).getI8PtrType());
-					builder.CreateRet(castPtrToValue);
+					builder.CreateRet(function.getRawContextValue());
 				} else if (methodName == "move") {
 					// TODO: check liveness indicator (?).
 					
-					// Store into return var.
-					genStore(function, ptrToValue, function.getReturnVar(), targetType);
+					// Zero out the value.
+					genZero(function, targetType, function.getRawContextValue());
 					
-					// Zero out the entire lval, which will
-					// also reset the liveness indicator.
-					genZero(function, parent, function.getContextValue());
+					// Reset the liveness indicator.
+					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(function.getRawContextValue(), genSizeOf(function, targetType));
+					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+					builder.CreateStore(ConstantGenerator(module).getI1(false), castLivenessIndicatorPtr);
 					
 					builder.CreateRetVoid();
 				} else if (methodName == "dissolve") {
 					// TODO: check liveness indicator (?).
-					const auto castPtrToValue = builder.CreatePointerCast(ptrToValue, TypeGenerator(module).getI8PtrType());
-					builder.CreateRet(castPtrToValue);
+					builder.CreateRet(function.getRawContextValue());
 				} else {
 					throw std::runtime_error("Unknown primitive unary op.");
 				}
@@ -725,18 +720,27 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
-					// Destroy any existing value. (This calls
-					// the destructor of value_lval, which will
-					// check the liveness indicator).
-					genDestructorCall(function, parent, function.getContextValue());
-					
-					// Set the liveness indicator.
-					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(ptrToValue, genSizeOf(function, targetType));
+					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(function.getRawContextValue(), genSizeOf(function, targetType));
 					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+					
+					// Check if there is an existing value.
+					const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
+					const auto isLiveBB = function.createBasicBlock("is_live");
+					const auto setValueBB = function.createBasicBlock("set_value");
+					
+					builder.CreateCondBr(isLive, isLiveBB, setValueBB);
+					
+					// If there is an existing value, run its destructor.
+					function.selectBasicBlock(isLiveBB);
+					genDestructorCall(function, targetType, function.getRawContextValue());
+					builder.CreateBr(setValueBB);
+					
+					// Now set the liveness indicator and store the value.
+					function.selectBasicBlock(setValueBB);
 					builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 					
 					// Store the new child value.
-					genStore(function, operand, ptrToValue, targetType);
+					genStore(function, operand, function.getRawContextValue(), targetType);
 					
 					builder.CreateRetVoid();
 				} else {
@@ -783,19 +787,23 @@ namespace locic {
 			auto& builder = functionGenerator.getBuilder();
 			
 			// Set the liveness indicator.
-			const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8Type()->getPointerTo());
+			const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8PtrType());
 			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType));
 			const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
 			builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 			
+			value->dump();
+			var->dump();
+			printf("%s\n", varType->toString().c_str());
+			
 			// Store the new child value.
-			genStore(functionGenerator, value, var, varType);
+			genStore(functionGenerator, value, var, varType->lvalTarget());
 		}
 		
 		void genStoreMemberLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
 			// A member lval just contains its target type,
 			// so just store that directly.
-			genStore(functionGenerator, value, var, varType);
+			genStore(functionGenerator, value, var, varType->lvalTarget());
 		}
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
@@ -816,10 +824,10 @@ namespace locic {
 			
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, ArgInfo::ContextOnly());
+			Function function(module, llvmFunction, ArgInfo::TemplateAndContext());
 			
 			// Run the child value's destructor.
-			genDestructorCall(function, targetType, function.getContextValue());
+			genDestructorCall(function, targetType, function.getRawContextValue());
 			function.getBuilder().CreateRetVoid();
 			
 			// Check the generated function is correct.
@@ -829,29 +837,32 @@ namespace locic {
 		void createValueLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, ArgInfo::ContextOnly());
+			Function function(module, llvmFunction, ArgInfo::TemplateAndContext());
+			
+			auto& builder = function.getBuilder();
+			
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
 			// Check the 'liveness indicator' which indicates whether
 			// child value's destructor should be run.
-			const auto isLive = function.getBuilder().CreateLoad(
-				function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 1));
+			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(function.getRawContextValue(), genSizeOf(function, targetType));
+			const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+			const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
 			
 			const auto isLiveBB = function.createBasicBlock("is_live");
 			const auto isNotLiveBB = function.createBasicBlock("is_not_live");
 			
-			function.getBuilder().CreateCondBr(isLive, isLiveBB, isNotLiveBB);
+			builder.CreateCondBr(isLive, isLiveBB, isNotLiveBB);
 			
 			// If it's not live, do nothing.
 			function.selectBasicBlock(isNotLiveBB);
-			function.getBuilder().CreateRetVoid();
+			builder.CreateRetVoid();
 			
 			// If it is live, run the child value's destructor.
 			function.selectBasicBlock(isLiveBB);
 			
-			const auto ptrToValue = function.getBuilder().CreateConstInBoundsGEP2_32(function.getContextValue(), 0, 0);
-			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
-			genDestructorCall(function, targetType, ptrToValue);
-			function.getBuilder().CreateRetVoid();
+			genDestructorCall(function, targetType, function.getRawContextValue());
+			builder.CreateRetVoid();
 			
 			// Check the generated function is correct.
 			function.verify();

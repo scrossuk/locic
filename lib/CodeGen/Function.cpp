@@ -7,6 +7,7 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -114,9 +115,13 @@ namespace locic {
 			return getRawArg(argInfo_.returnVarArgumentOffset());
 		}
 		
-		llvm::Value* Function::getContextValue() const {
+		llvm::Value* Function::getRawContextValue() const {
 			assert(argInfo_.hasContextArgument());
 			return getRawArg(argInfo_.contextArgumentOffset());
+		}
+		
+		llvm::Value* Function::getContextValue(SEM::TypeInstance* typeInstance) {
+			return getBuilder().CreatePointerCast(getRawContextValue(), getTypeInstancePointer(module(), typeInstance));
 		}
 		
 		llvm::BasicBlock* Function::createBasicBlock(const std::string& name) {

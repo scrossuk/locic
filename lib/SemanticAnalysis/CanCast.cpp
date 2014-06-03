@@ -105,7 +105,16 @@ namespace locic {
 						return nullptr;
 					}
 					
-					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionTemplatedMethod(),
+					if (!sourceType->isFunctionMethod() && destType->isFunctionMethod()) {
+						return nullptr;
+					}
+					
+					if (!sourceType->isFunctionTemplatedMethod() && destType->isFunctionTemplatedMethod()) {
+						return nullptr;
+					}
+					
+					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionMethod(),
+						sourceType->isFunctionTemplatedMethod(),
 						sourceType->isFunctionNoExcept(), returnType, paramTypes);
 				}
 				case SEM::Type::METHOD: {

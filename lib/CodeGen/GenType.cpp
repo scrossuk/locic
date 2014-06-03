@@ -19,20 +19,30 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type, llvm::Type* contextPointerType) {
+		llvm::Type* genArgType(Module& module, SEM::Type* type) {
+			if (isTypeSizeAlwaysKnown(module, type)) {
+				return genType(module, type);
+			} else {
+				return genPointerType(module, type);
+			}
+		}
+		
+		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type) {
 			assert(type != nullptr && "Generating a function type requires a non-NULL SEM Type object");
 			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
 			
 			const auto semReturnType = type->getFunctionReturnType();
 			assert(semReturnType != nullptr && "Generating function return type requires a non-NULL SEM return type");
 			
-			llvm::Type* returnType = genType(module, semReturnType);
+			llvm::Type* returnType = nullptr;
 			std::vector<llvm::Type*> paramTypes;
 			
-			if (!isTypeSizeAlwaysKnown(module, semReturnType)) {
+			if (isTypeSizeAlwaysKnown(module, semReturnType)) {
+				returnType = genType(module, semReturnType);
+			} else {
 				// Unknown size return values are constructed on the caller's
 				// stack, and given to the callee as a pointer.
-				paramTypes.push_back(returnType->getPointerTo());
+				paramTypes.push_back(genPointerType(module, semReturnType));
 				returnType = TypeGenerator(module).getVoidType();
 			}
 			
@@ -42,24 +52,18 @@ namespace locic {
 				paramTypes.push_back(templateGeneratorType(module));
 			}
 			
-			if (contextPointerType != nullptr) {
+			if (type->isFunctionMethod()) {
 				// If there's a context pointer (for non-static methods),
 				// add it before the other (normal) arguments.
-				paramTypes.push_back(contextPointerType);
+				paramTypes.push_back(TypeGenerator(module).getI8PtrType());
 			}
 			
 			for (const auto paramType: type->getFunctionParameterTypes()) {
-				llvm::Type* rawType = genType(module, paramType);
-				
-				if (!isTypeSizeAlwaysKnown(module, paramType)) {
-					rawType = rawType->getPointerTo();
-				}
-				
-				paramTypes.push_back(rawType);
+				paramTypes.push_back(genArgType(module, paramType));
 			}
 			
 			const auto genericFunctionType = TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
-			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type, contextPointerType));
+			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type));
 		}
 		
 		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance) {
@@ -122,9 +126,10 @@ namespace locic {
 				}
 				
 				case SEM::Type::METHOD: {
-					/* Method type is:
+					/* Method type is (roughly):
 						struct {
 							i8* context;
+							// If is templated method:
 							struct {
 								RetType (*func)(i8*, ArgTypes);
 								struct {
@@ -132,13 +137,13 @@ namespace locic {
 									uint32_t path;
 								} templateGenerator;
 							};
+							// Otherwise:
+							RetType (*func)(i8*, ArgTypes);
 						};
 					*/
 					std::vector<llvm::Type*> types;
-					const auto contextPtrType = TypeGenerator(module).getI8PtrType();
-					types.push_back(contextPtrType);
-					const auto functionPtrType = genFunctionType(module, type->getMethodFunctionType(), contextPtrType)->getPointerTo();
-					types.push_back(TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module) }));
+					types.push_back(TypeGenerator(module).getI8PtrType());
+					types.push_back(genType(module, type->getMethodFunctionType()));
 					return TypeGenerator(module).getStructType(types);
 				}
 				

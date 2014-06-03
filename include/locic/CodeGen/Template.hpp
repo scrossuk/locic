@@ -34,6 +34,11 @@ namespace locic {
 		llvm::Value* computeTemplateArguments(Function& function, llvm::Value* generatorValue);
 		
 		/**
+		 * \brief Null template generator.
+		 */
+		llvm::Value* nullTemplateGenerator(Function& function);
+		
+		/**
 		 * \brief Obtain a template generator for a type with
 		 *        template arguments.
 		 * 
@@ -82,12 +87,12 @@ namespace locic {
 		 * This generates code like the following:
 		 * 
 		 * Type[8] typeIntermediateFunction(Type[8] types, void* rootFn, uint32_t path, uint8_t position) {
-		 *     if (position == 0) return;
+		 *     if (position == 0) return types;
 		 *     
 		 *     const auto subPath = (path >> position);
 		 *     const auto component = (subPath & 3);
 		 *     const auto mask = (1 << position) - 1;
-		 *     Type[8] newTypes = types;
+		 *     Type[8] newTypes;
 		 *     
 		 *     if (component == 0) {
 		 *         newTypes[0] = { pairType, rootFn, (mask & path) | (0x2 << position) | (0x1 << (position + 2)) };
@@ -109,7 +114,7 @@ namespace locic {
 		 * intermediate function, in order to set its own template arguments
 		 * based on the arguments provided to it.
 		 */
-		llvm::Function* genTemplateIntermediateFunction(Module& module, llvm::Function* llvmFunction, SEM::TypeInstance* parentType, const std::map<SEM::Type*, size_t>& templateUses);
+		llvm::Function* genTemplateIntermediateFunction(Module& module, SEM::TypeInstance* parentType, const std::map<SEM::Type*, size_t>& templateUses);
 		
 	}
 	

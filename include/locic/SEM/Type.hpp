@@ -34,7 +34,7 @@ namespace locic {
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
 				static Type* Reference(Type* targetType);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
-				static Type* Function(bool isVarArg, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
+				static Type* Function(bool isVarArg, bool isMethod, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
 				static Type* Method(Type* functionType);
 				static Type* InterfaceMethod(Type* functionType);
 				
@@ -62,6 +62,7 @@ namespace locic {
 				
 				bool isFunction() const;
 				bool isFunctionVarArg() const;
+				bool isFunctionMethod() const;
 				bool isFunctionTemplatedMethod() const;
 				bool isFunctionNoExcept() const;
 				Type* getFunctionReturnType() const;
@@ -130,6 +131,7 @@ namespace locic {
 				
 				struct FunctionType {
 					bool isVarArg;
+					bool isMethod;
 					bool isTemplatedMethod;
 					bool isNoExcept;
 					Type* returnType;

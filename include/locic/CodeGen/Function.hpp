@@ -48,7 +48,9 @@ namespace locic {
 				
 				llvm::Value* getReturnVar() const;
 				
-				llvm::Value* getContextValue() const;
+				llvm::Value* getRawContextValue() const;
+				
+				llvm::Value* getContextValue(SEM::TypeInstance* typeInstance);
 				
 				llvm::BasicBlock* createBasicBlock(const std::string& name);
 				

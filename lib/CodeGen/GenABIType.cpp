@@ -182,7 +182,7 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType, llvm::Type* contextPointerType) {
+		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType) {
 			assert(functionType->isFunction());
 			
 			llvm_abi::FunctionType abiFunctionType;
@@ -202,7 +202,7 @@ namespace locic {
 				abiFunctionType.argTypes.push_back(templateGeneratorABIType());
 			}
 			
-			if (contextPointerType != nullptr) {
+			if (functionType->isFunctionMethod()) {
 				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
 			}
 			

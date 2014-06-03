@@ -36,8 +36,6 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			assert(functionValue->getType()->isPointerTy());
-			
 			const auto returnType = functionType->getFunctionReturnType();
 			const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
 			
@@ -115,7 +113,7 @@ namespace locic {
 				const auto successPath = function.createBasicBlock("successPath");
 				const auto failPath = function.createBasicBlock("failPath");
 				
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionValue, successPath, failPath, encodedParameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
 				
 				// Fail path.
 				function.selectBasicBlock(failPath);
@@ -125,7 +123,7 @@ namespace locic {
 				// Success path.
 				function.selectBasicBlock(successPath);
 			} else {
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionValue, encodedParameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionPtr, encodedParameters), debugLoc);
 			}
 			
 			if (returnVarValue != nullptr) {

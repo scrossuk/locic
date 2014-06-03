@@ -26,6 +26,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -67,6 +68,10 @@ namespace locic {
 			for (const auto functionPair: functions) {
 				(void) genFunction(module, typeInstance, functionPair.second);
 			}
+			
+			if (!typeInstance->templateVariables().empty()) {
+				(void) genTemplateIntermediateFunction(module, typeInstance, {});
+			}
 		}
 		
 		void genNamespaceFunctions(Module& module, SEM::Namespace* nameSpace) {
@@ -75,7 +80,7 @@ namespace locic {
 				if (item.isFunction()) {
 					const auto parent = nullptr;
 					(void) genFunction(module, parent, item.function());
-				} else if (item.isFunction()) {
+				} else if (item.isTypeInstance()) {
 					genTypeInstanceFunctions(module, item.typeInstance());
 				} else if (item.isNamespace()) {
 					genNamespaceFunctions(module, item.nameSpace());

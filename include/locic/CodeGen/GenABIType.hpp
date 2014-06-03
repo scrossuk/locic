@@ -18,7 +18,7 @@ namespace locic {
 		
 		llvm_abi::Type genABIType(Module& module, SEM::Type* type);
 		
-		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType, llvm::Type* contextPointerType);
+		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType);
 		
 	}
 	

@@ -24,6 +24,7 @@ namespace locic {
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
+		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
 		
 		class Module {
 			public:
@@ -59,6 +60,10 @@ namespace locic {
 				
 				const TypeMap& getTypeMap() const;
 				
+				TemplateGeneratorMap& getTemplateGeneratorMap();
+				
+				const TemplateGeneratorMap& getTemplateGeneratorMap() const;
+				
 				llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
 					llvm::Constant* value = nullptr);
@@ -74,6 +79,7 @@ namespace locic {
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
 				TypeMap typeMap_;
+				TemplateGeneratorMap templateGeneratorMap_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				

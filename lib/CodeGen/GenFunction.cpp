@@ -90,12 +90,7 @@ namespace locic {
 			}
 			
 			// --- Generate function declaration.
-			const auto contextPtrType =
-				function->isMethod() && !function->isStaticMethod() ?
-					getTypeInstancePointer(module, typeInstance) :
-					nullptr;
-			
-			const auto functionType = genFunctionType(module, function->type(), contextPtrType);
+			const auto functionType = genFunctionType(module, function->type());
 			
 			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
 			
@@ -159,6 +154,8 @@ namespace locic {
 			// (just make it loop to itself - this will
 			// be removed by dead code elimination)
 			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
+			
+			llvmFunction->dump();
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();
