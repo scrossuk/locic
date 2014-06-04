@@ -29,7 +29,7 @@ namespace locic {
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
 		
-		llvm::Type* getPrimitiveType(const Module& module, const std::string& name);
+		llvm::Type* getPrimitiveType(Module& module, const std::string& name);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		

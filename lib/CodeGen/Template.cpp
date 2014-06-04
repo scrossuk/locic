@@ -159,14 +159,14 @@ namespace locic {
 		}
 		
 		llvm::Value* computeTemplateGenerator(Function& function, SEM::Type* type) {
-			assert(!type->templateArguments().empty());
+			assert(type->isObject());
 			
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			ConstantGenerator constGen(module);
 			
-			if (type->isObject() && type->templateArguments().empty()) {
+			if (type->templateArguments().empty()) {
 				return nullTemplateGenerator(function);
 			} else if (isRootTypeList(type->templateArguments())) {
 				const auto rootFunction = genTemplateRootFunction(module, type);
@@ -236,7 +236,7 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			const auto ctlzTypes = std::vector<llvm::Type*>{ typeGen.getI32Type(), typeGen.getI1Type() };
+			const auto ctlzTypes = std::vector<llvm::Type*>{ typeGen.getI32Type() };
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
 			const auto pathArg = function.getArg(0);
 			const auto numLeadingZeroes = builder.CreateCall(countLeadingZerosFunction, std::vector<llvm::Value*>{ pathArg, constGen.getI1(true) });

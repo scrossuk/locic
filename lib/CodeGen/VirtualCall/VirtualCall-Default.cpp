@@ -70,8 +70,8 @@ namespace locic {
 				
 				{
 					// Arguments struct pointer attributes.
-					llvmFunction->addAttribute(4, llvm::Attribute::NoAlias);
-					llvmFunction->addAttribute(4, llvm::Attribute::NoCapture);
+					llvmFunction->addAttribute(5, llvm::Attribute::NoAlias);
+					llvmFunction->addAttribute(5, llvm::Attribute::NoCapture);
 				}
 			}
 			

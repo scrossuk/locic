@@ -22,7 +22,7 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
@@ -77,12 +77,13 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					const bool hasTemplate = /*!type->templateArguments().empty()*/ true;
+					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
+					const bool hasTemplate = !type->templateArguments().empty();
 					if (hasTemplate) {
 						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type) });
+							{ computeTemplateGenerator(function, type) }, callName);
 					} else {
-						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), {});
+						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), callName);
 					}
 				}
 				
@@ -118,7 +119,7 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getPrimitiveType(module, "size_t"), functionArgs);
@@ -167,12 +168,13 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					const bool hasTemplate = /*!type->templateArguments().empty()*/ true;
+					const auto callName = makeString("alignof__%s", type->getObjectType()->name().last().c_str());
+					const bool hasTemplate = !type->templateArguments().empty();
 					if (hasTemplate) {
 						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type) });
+							{ computeTemplateGenerator(function, type) }, callName);
 					} else {
-						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), {});
+						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), callName);
 					}
 				}
 				

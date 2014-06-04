@@ -155,8 +155,6 @@ namespace locic {
 			// be removed by dead code elimination)
 			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			
-			llvmFunction->dump();
-			
 			// Check the generated function is correct.
 			functionGenerator.verify();
 			

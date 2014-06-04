@@ -24,7 +24,7 @@ namespace locic {
 		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
@@ -54,7 +54,7 @@ namespace locic {
 		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = /*!typeInstance->templateVariables().empty()*/ true;
+			const auto hasTemplate = !typeInstance->templateVariables().empty();
 			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
 			
 			const auto& name = typeInstance->name().first();
@@ -788,13 +788,9 @@ namespace locic {
 			
 			// Set the liveness indicator.
 			const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8PtrType());
-			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType));
+			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType->lvalTarget()));
 			const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
 			builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
-			
-			value->dump();
-			var->dump();
-			printf("%s\n", varType->toString().c_str());
 			
 			// Store the new child value.
 			genStore(functionGenerator, value, var, varType->lvalTarget());
@@ -891,7 +887,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getPrimitiveType(const Module& module, const std::string& name) {
+		llvm::Type* getPrimitiveType(Module& module, const std::string& name) {
 			if (name == "null_t") {
 				return TypeGenerator(module).getI8PtrType();
 			}
@@ -921,8 +917,14 @@ namespace locic {
 			}
 			
 			if (name == "value_lval" || name == "member_lval") {
-				// Member lval only contains its target type.
-				return TypeGenerator(module).getOpaqueStructType();
+				const auto existingType = module.getTypeMap().tryGet(name);
+				if (existingType.hasValue()) {
+					return existingType.getValue();
+				}
+				
+				const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
+				module.getTypeMap().insert(name, type);
+				return type;
 			}
 			
 			throw std::runtime_error(makeString("Unrecognised primitive type '%s'.", name.c_str()));
