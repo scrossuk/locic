@@ -11,6 +11,7 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
@@ -135,7 +136,7 @@ namespace locic {
 			std::vector<llvm_abi::Type> abiArgTypes;
 			std::vector<llvm::Type*> abiLLVMArgTypes;
 			for (const auto paramType:  function->type()->getFunctionParameterTypes()) {
-				abiArgTypes.push_back(genABIType(module, paramType));
+				abiArgTypes.push_back(genABIArgType(module, paramType));
 				abiLLVMArgTypes.push_back(genArgType(module, paramType));
 			}
 			

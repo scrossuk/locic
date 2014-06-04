@@ -11,6 +11,7 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 
 namespace locic {
 
@@ -54,6 +55,8 @@ namespace locic {
 		}
 		
 		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue) {
+			auto& module = function.module();
+			
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
 				// should be called for the value.
@@ -66,12 +69,16 @@ namespace locic {
 				// destroyed at the end of the function.
 				function.unwindStack().push_back(UnwindAction::Destroy(var->type(), varValue));
 			} else if (var->isComposite()) {
+				const auto castInitialiseValue = function.getBuilder().CreatePointerCast(initialiseValue, TypeGenerator(module).getI8PtrType());
+				
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.
 				for (size_t i = 0; i < var->children().size(); i++) {
 					const auto childVar = var->children().at(i);
-					const auto childInitialiseValue = function.getBuilder().CreateConstInBoundsGEP2_32(initialiseValue, 0, i);
-					const auto loadedChildInitialiseValue = genLoad(function, childInitialiseValue, childVar->constructType());
+					const auto memberOffsetValue = genMemberOffset(function, var->constructType(), i);
+					const auto childInitialiseValue = function.getBuilder().CreateInBoundsGEP(castInitialiseValue, memberOffsetValue);
+					const auto castChildInitialiseValue = function.getBuilder().CreatePointerCast(childInitialiseValue, genPointerType(module, childVar->constructType()));
+					const auto loadedChildInitialiseValue = genLoad(function, castChildInitialiseValue, childVar->constructType());
 					genVarInitialise(function, childVar, loadedChildInitialiseValue);
 				}
 			} else {

@@ -66,37 +66,30 @@ namespace locic {
 			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type));
 		}
 		
-		llvm::Type* genObjectType(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Type* genObjectType(Module& module, SEM::Type* type) {
+			const auto typeInstance = type->getObjectType();
 			if (typeInstance->isPrimitive()) {
-				return getPrimitiveType(module, typeInstance->name().last());
+				return getPrimitiveType(module, type);
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by reference");
-				return genTypeInstance(module, typeInstance);
+				return genTypeInstance(module, type->getObjectType());
 			}
 		}
 		
 		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
-				return getTypeInstancePointer(module, targetType->getObjectType());
+				assert(!targetType->isInterface());
+				return genObjectType(module, targetType)->getPointerTo();
 			} else if (targetType->isTemplateVar()) {
 				return TypeGenerator(module).getI8PtrType();
 			} else {
 				const auto pointerType = genType(module, targetType);
-				
 				if (pointerType->isVoidTy()) {
 					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
 					return TypeGenerator(module).getI8PtrType();
 				} else {
 					return pointerType->getPointerTo();
 				}
-			}
-		}
-		
-		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isInterface()) {
-				return interfaceStructType(module);
-			} else {
-				return genObjectType(module, typeInstance)->getPointerTo();
 			}
 		}
 		
@@ -107,11 +100,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::OBJECT: {
-					return genObjectType(module, type->getObjectType());
-				}
-				
-				case SEM::Type::REFERENCE: {
-					return genPointerType(module, type->getReferenceTarget());
+					return genObjectType(module, type);
 				}
 				
 				case SEM::Type::FUNCTION: {
@@ -177,6 +166,10 @@ namespace locic {
 						if (objectType->name() == (Name::Absolute() + "int_t")) {
 							return module.debugBuilder().createIntType("int_t");
 						}
+						
+						if (objectType->name() == (Name::Absolute() + "__ref")) {
+							return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front()));
+						}
 					}
 					
 					// TODO!
@@ -184,10 +177,6 @@ namespace locic {
 					const auto lineNumber = 12;
 					
 					return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
-				}
-				
-				case SEM::Type::REFERENCE: {
-					return module.debugBuilder().createReferenceType(genDebugType(module, type->getReferenceTarget()));
 				}
 				
 				case SEM::Type::FUNCTION: {

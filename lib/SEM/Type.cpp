@@ -34,14 +34,6 @@ namespace locic {
 			return typeInstance->isConstType() ? type->createConstType() : type;
 		}
 		
-		Type* Type::Reference(Type* targetType) {
-			Type* type = new Type(REFERENCE);
-			type->referenceType_.targetType = targetType;
-			
-			// Reference is always const.
-			return type->createConstType();
-		}
-		
 		Type* Type::TemplateVarRef(TemplateVar* templateVar) {
 			Type* type = new Type(TEMPLATEVAR);
 			type->templateVarRef_.templateVar = templateVar;
@@ -153,8 +145,8 @@ namespace locic {
 			return kind() == AUTO;
 		}
 		
-		bool Type::isReference() const {
-			return kind() == REFERENCE;
+		bool Type::isBuiltInReference() const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
 		}
 		
 		bool Type::isFunction() const {
@@ -207,11 +199,6 @@ namespace locic {
 		Type* Type::getInterfaceMethodFunctionType() const {
 			assert(isInterfaceMethod());
 			return interfaceMethodType_.functionType;
-		}
-		
-		Type* Type::getReferenceTarget() const {
-			assert(isReference() && "Cannot get target type of non-reference type.");
-			return referenceType_.targetType;
 		}
 		
 		TemplateVar* Type::getTemplateVar() const {
@@ -373,10 +360,6 @@ namespace locic {
 						return Type::Object(type->getObjectType(), templateArgs);
 					}
 					
-					case Type::REFERENCE: {
-						return Type::Reference(type->getReferenceTarget()->substitute(templateVarMap));
-					}
-					
 					case Type::FUNCTION: {
 						std::vector<Type*> args;
 						
@@ -438,10 +421,6 @@ namespace locic {
 									  getObjectType()->name().toString().c_str(),
 									  makeNameArrayString(templateArguments()).c_str());
 									  
-				case REFERENCE:
-					return makeString("ReferenceType(%s)",
-									  getReferenceTarget()->nameToString().c_str());
-									  
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
 									  getFunctionReturnType()->nameToString().c_str(),
@@ -472,10 +451,6 @@ namespace locic {
 					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
 									  getObjectType()->name().toString().c_str(),
 									  makeArrayString(templateArguments()).c_str());
-									  
-				case REFERENCE:
-					return makeString("ReferenceType(%s)",
-									  getReferenceTarget()->toString().c_str());
 									  
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
@@ -532,10 +507,6 @@ namespace locic {
 				
 				case OBJECT: {
 					return getObjectType() == type.getObjectType();
-				}
-				
-				case REFERENCE: {
-					return *(getReferenceTarget()) == *(type.getReferenceTarget());
 				}
 				
 				case FUNCTION: {

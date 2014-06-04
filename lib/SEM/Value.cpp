@@ -19,14 +19,15 @@ namespace locic {
 			return new Value(THIS, type);
 		}
 		
-		Value* Value::Constant(locic::Constant* constant, SEM::Type* type) {
+		Value* Value::Constant(locic::Constant* constant, Type* type) {
 			Value* value = new Value(CONSTANT, type);
 			value->constant = constant;
 			return value;
 		}
 		
-		Value* Value::LocalVar(Var* var) {
-			Value* value = new Value(LOCALVAR, SEM::Type::Reference(var->type())->createRefType(var->type()));
+		Value* Value::LocalVar(Var* var, Type* type) {
+			assert(type->isRef() && type->isBuiltInReference());
+			Value* value = new Value(LOCALVAR, type);
 			value->localVar.var = var;
 			return value;
 		}
@@ -38,7 +39,8 @@ namespace locic {
 		}
 		
 		Value* Value::DerefReference(Value* operand) {
-			Value* value = new Value(DEREF_REFERENCE, operand->type()->getReferenceTarget());
+			assert(operand->type()->isRef() && operand->type()->isBuiltInReference());
+			Value* value = new Value(DEREF_REFERENCE, operand->type()->refTarget());
 			value->derefReference.value = operand;
 			return value;
 		}
@@ -86,12 +88,14 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::MemberAccess(Value* object, Var* var) {
+		Value* Value::MemberAccess(Value* object, Var* var, Type* type) {
+			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
 			// the members must also be.
-			const auto derefType = object->type()->isRef() ? object->type()->refTarget() : object->type();
-			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
-			Value* value = new Value(MEMBERACCESS, SEM::Type::Reference(memberType)->createRefType(memberType));
+			//const auto derefType = object->type()->isRef() ? object->type()->refTarget() : object->type();
+			//const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
+			//SEM::Type::Reference(memberType)->createRefType(memberType)
+			Value* value = new Value(MEMBERACCESS, type);
 			value->memberAccess.object = object;
 			value->memberAccess.memberVar = var;
 			return value;

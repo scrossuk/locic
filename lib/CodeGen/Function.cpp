@@ -121,7 +121,7 @@ namespace locic {
 		}
 		
 		llvm::Value* Function::getContextValue(SEM::TypeInstance* typeInstance) {
-			return getBuilder().CreatePointerCast(getRawContextValue(), getTypeInstancePointer(module(), typeInstance));
+			return getBuilder().CreatePointerCast(getRawContextValue(), genPointerType(module(), typeInstance->selfType()));
 		}
 		
 		llvm::BasicBlock* Function::createBasicBlock(const std::string& name) {

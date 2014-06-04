@@ -3,6 +3,8 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/Context.hpp>
+
 namespace locic {
 
 	namespace SemanticAnalysis {
@@ -16,6 +18,14 @@ namespace locic {
 		SEM::Value* derefValue(SEM::Value* value);
 		
 		SEM::Value* derefAll(SEM::Value* value);
+		
+		SEM::Type* createReferenceType(Context& context, SEM::Type* varType);
+		
+		SEM::Value* createSelfRef(Context& context, SEM::Type* selfType);
+		
+		SEM::Value* createLocalVarRef(Context& context, SEM::Var* var);
+		
+		SEM::Value* createMemberVarRef(Context& context, SEM::Value* object, SEM::Var* var);
 		
 	}
 	

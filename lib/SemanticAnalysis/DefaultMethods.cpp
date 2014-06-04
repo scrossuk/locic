@@ -141,14 +141,14 @@ namespace locic {
 			}
 		}
 		
-		void CreateDefaultConstructor(SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto functionScope = new SEM::Scope();
 			
 			assert(!typeInstance->isUnionDatatype());
 			
 			std::vector<SEM::Value*> constructValues;
 			for (const auto argVar: function->parameters()) {
-				const auto argVarValue = SEM::Value::LocalVar(argVar);
+				const auto argVarValue = createLocalVarRef(context, argVar);
 				constructValues.push_back(CallValue(GetMethod(argVarValue, "move", location), {}, location));
 			}
 			
@@ -158,9 +158,9 @@ namespace locic {
 			function->setScope(functionScope);
 		}
 		
-		void CreateDefaultImplicitCopy(SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		void CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
-			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
+			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
 			const auto functionScope = new SEM::Scope();
 			
@@ -169,7 +169,7 @@ namespace locic {
 				for (const auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantType = variantTypeInstance->selfType();
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					const auto caseVarValue = SEM::Value::LocalVar(caseVar);
+					const auto caseVarValue = createLocalVarRef(context, caseVar);
 					
 					const auto caseScope = new SEM::Scope();
 					const auto copyResult = CallValue(GetMethod(caseVarValue, "implicitcopy", location), {}, location);
@@ -183,7 +183,7 @@ namespace locic {
 				std::vector<SEM::Value*> copyValues;
 				
 				for (const auto memberVar: typeInstance->variables()) {
-					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
+					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
 					const auto copyResult = CallValue(GetMethod(selfMember, "implicitcopy", location), {}, location);
 					copyValues.push_back(copyResult);
 				}
@@ -196,13 +196,12 @@ namespace locic {
 		}
 		
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			const auto selfType = typeInstance->selfType();
-			const auto selfValue = SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
+			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
 			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
 			
 			const auto operandVar = function->parameters().at(0);
-			const auto operandValue = SEM::Value::LocalVar(operandVar);
+			const auto operandValue = createLocalVarRef(context, operandVar);
 			
 			const auto functionScope = new SEM::Scope();
 			
@@ -212,7 +211,7 @@ namespace locic {
 					const auto variantTypeInstance = typeInstance->variants().at(i);
 					const auto variantType = variantTypeInstance->selfType();
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					const auto caseVarValue = SEM::Value::LocalVar(caseVar);
+					const auto caseVarValue = createLocalVarRef(context, caseVar);
 					
 					const auto caseScope = new SEM::Scope();
 					
@@ -221,7 +220,7 @@ namespace locic {
 						const auto subVariantTypeInstance = typeInstance->variants().at(j);
 						const auto subVariantType = subVariantTypeInstance->selfType();
 						const auto subCaseVar = SEM::Var::Basic(subVariantType, subVariantType);
-						const auto subCaseVarValue = SEM::Value::LocalVar(subCaseVar);
+						const auto subCaseVarValue = createLocalVarRef(context, subCaseVar);
 						
 						const auto subCaseScope = new SEM::Scope();
 						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), intType);
@@ -250,8 +249,8 @@ namespace locic {
 				auto currentScope = functionScope;
 				
 				for (const auto memberVar: typeInstance->variables()) {
-					const auto selfMember = SEM::Value::MemberAccess(derefValue(selfValue), memberVar);
-					const auto operandMember = SEM::Value::MemberAccess(derefValue(operandValue), memberVar);
+					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
+					const auto operandMember = createMemberVarRef(context, operandValue, memberVar);
 					const auto compareResult = CallValue(GetMethod(selfMember, "compare", location), { operandMember }, location);
 					const auto isZero = CallValue(GetMethod(compareResult, "iszero", location), {}, location);
 					
@@ -279,14 +278,14 @@ namespace locic {
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "create") {
 				assert(!typeInstance->isException());
-				CreateDefaultConstructor(typeInstance, function, location);
+				CreateDefaultConstructor(context, typeInstance, function, location);
 			} else if (canonicalName == "implicitcopy") {
 				if (!HasDefaultImplicitCopy(typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				CreateDefaultImplicitCopy(typeInstance, function, location);
+				CreateDefaultImplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "compare") {
 				if (!HasDefaultCompare(typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",

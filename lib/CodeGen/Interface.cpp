@@ -20,6 +20,13 @@ namespace locic {
 			return typeGen.getStructType({ typeGen.getI8PtrType(), typeInfoType(module) });
 		}
 		
+		llvm_abi::Type interfaceStructABIType() {
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(typeInfoABIType());
+			return llvm_abi::Type::AutoStruct(std::move(types));
+		}
+		
 		llvm::Value* makeInterfaceStructValue(Function& function, llvm::Value* contextPointer, llvm::Value* typeInfoValue) {
 			llvm::Value* interfaceValue = ConstantGenerator(function.module()).getUndef(interfaceStructType(function.module()));
 			interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, contextPointer, { 0 });
@@ -30,6 +37,13 @@ namespace locic {
 		llvm::Type* interfaceMethodType(Module& module) {
 			TypeGenerator typeGen(module);
 			return typeGen.getStructType({ interfaceStructType(module), typeGen.getI64Type() });
+		}
+		
+		llvm_abi::Type interfaceMethodABIType() {
+			std::vector<llvm_abi::Type> types;
+			types.push_back(interfaceStructABIType());
+			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
+			return llvm_abi::Type::AutoStruct(std::move(types));
 		}
 		
 		llvm::Value* makeInterfaceMethodValue(Function& function, llvm::Value* interfaceStructValue, llvm::Value* hashValue) {

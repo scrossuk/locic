@@ -11,6 +11,7 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 
 namespace locic {
 
@@ -198,8 +199,8 @@ namespace locic {
 					return ConvertObjectType(context, type->objectType.symbol);
 				}
 				case AST::Type::REFERENCE: {
-					const auto refType = ConvertType(context, type->getReferenceTarget());
-					return SEM::Type::Reference(refType)->createRefType(refType);
+					const auto targetType = ConvertType(context, type->getReferenceTarget());
+					return createReferenceType(context, targetType);
 				}
 				case AST::Type::FUNCTION: {
 					const auto returnType = ConvertType(context, type->functionType.returnType);

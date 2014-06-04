@@ -12,7 +12,20 @@ namespace locic {
 		
 		llvm::Value* makeTypeInfoValue(Function& function, llvm::Value* vtablePointer, llvm::Value* templateGenerator);
 		
+		/* Interface struct type is:
+			struct {
+				i8* context;
+				struct {
+					__vtable_type* vtable;
+					struct {
+						void* rootFn;
+						uint32_t path;
+					} templateGenerator;
+				} typeInfo;
+			};
+		*/
 		llvm::Type* interfaceStructType(Module& module);
+		llvm_abi::Type interfaceStructABIType();
 		
 		llvm::Value* makeInterfaceStructValue(Function& function, llvm::Value* contextPointer, llvm::Value* typeInfoValue);
 		
@@ -32,6 +45,7 @@ namespace locic {
 			};
 		*/
 		llvm::Type* interfaceMethodType(Module& module);
+		llvm_abi::Type interfaceMethodABIType();
 		
 		llvm::Value* makeInterfaceMethodValue(Function& function, llvm::Value* interfaceStructValue, llvm::Value* hashValue);
 	}

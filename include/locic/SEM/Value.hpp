@@ -127,7 +127,7 @@ namespace locic {
 				
 				static Value* Constant(Constant* constant, Type* type);
 				
-				static Value* LocalVar(Var* var);
+				static Value* LocalVar(Var* var, Type* type);
 				
 				static Value* Reinterpret(Value* operand, Type* type);
 				
@@ -145,7 +145,7 @@ namespace locic {
 				
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				
-				static Value* MemberAccess(Value* object, Var* var);
+				static Value* MemberAccess(Value* object, Var* var, Type* type);
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				

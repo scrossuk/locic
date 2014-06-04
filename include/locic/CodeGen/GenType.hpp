@@ -15,8 +15,6 @@ namespace locic {
 		
 		llvm::Type* genPointerType(Module& module, SEM::Type* targetType);
 		
-		llvm::Type* getTypeInstancePointer(Module& module, SEM::TypeInstance* typeInstance);
-	
 		llvm::Type* genType(Module& module, SEM::Type* type);
 		
 		llvm::DIType genDebugType(Module& module, SEM::Type* type);

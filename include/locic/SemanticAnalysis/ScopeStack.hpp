@@ -46,8 +46,6 @@ namespace locic {
 		
 		SEM::TypeInstance* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName);
 		
-		SEM::Value* getSelfValue(ScopeStack& scopeStack, const Debug::SourceLocation& location);
-		
 	}
 	
 }

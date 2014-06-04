@@ -36,7 +36,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* MakeMemberAccess(SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
+		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
 			const auto derefType = getDerefType(value->type());
 			
 			if (!derefType->isObjectOrTemplateVar()) {
@@ -56,7 +56,7 @@ namespace locic {
 			if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct()) {
 				const auto variableIterator = typeInstance->namedVariables().find(memberName);
 				if (variableIterator != typeInstance->namedVariables().end()) {
-					return SEM::Value::MemberAccess(derefValue(value), variableIterator->second);
+					return createMemberVarRef(context, value, variableIterator->second);
 				}
 			}
 			
@@ -246,7 +246,7 @@ namespace locic {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
 				case AST::Value::SELF: {
-					return getSelfValue(context.scopeStack(), location);
+					return getSelfValue(context, location);
 				}
 				case AST::Value::THIS: {
 					const auto thisTypeInstance = lookupParentType(context.scopeStack());
@@ -316,7 +316,9 @@ namespace locic {
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						return SEM::Value::LocalVar(searchResult.var());
+						const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");
+						const auto var = searchResult.var();
+						return SEM::Value::LocalVar(var, SEM::Type::Object(referenceTypeInst, { var->type() })->createRefType(var->type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = searchResult.templateVar();
@@ -329,10 +331,12 @@ namespace locic {
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
-					const auto selfValue = getSelfValue(context.scopeStack(), location);
-					assert(getDerefType(selfValue->type())->isObject());
+					const auto selfValue = getSelfValue(context, location);
 					
-					const auto typeInstance = getDerefType(selfValue->type())->getObjectType();
+					const auto derefType = getDerefType(selfValue->type());
+					assert(derefType->isObject());
+					
+					const auto typeInstance = derefType->getObjectType();
 					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					
 					if (variableIterator == typeInstance->namedVariables().end()) {
@@ -340,7 +344,7 @@ namespace locic {
 							memberName.c_str(), location.toString().c_str()));
 					}
 					
-					return SEM::Value::MemberAccess(selfValue, variableIterator->second);
+					return createMemberVarRef(context, selfValue, variableIterator->second);
 				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
@@ -454,7 +458,7 @@ namespace locic {
 						object = tryDissolveValue(object, location);
 					}
 					
-					return MakeMemberAccess(object, memberName, astValueNode.location());
+					return MakeMemberAccess(context, object, memberName, astValueNode.location());
 				}
 				case AST::Value::FUNCTIONCALL: {
 					const auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);

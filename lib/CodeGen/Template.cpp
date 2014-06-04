@@ -33,11 +33,6 @@ namespace locic {
 					return isRootTypeList(type->templateArguments());
 				}
 				
-				case SEM::Type::REFERENCE: {
-					// TODO?
-					return true;
-				}
-				
 				case SEM::Type::FUNCTION: {
 					return isRootType(type->getFunctionReturnType()) && isRootTypeList(type->getFunctionParameterTypes());
 				}
@@ -90,6 +85,13 @@ namespace locic {
 			return structType;
 		}
 		
+		llvm_abi::Type templateGeneratorABIType() {
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
+			return llvm_abi::Type::AutoStruct(std::move(types));
+		}
+		
 		llvm::Type* typeInfoType(Module& module) {
 			const auto name = "__type_info";
 			
@@ -109,6 +111,13 @@ namespace locic {
 			
 			structType->setBody(structMembers);
 			return structType;
+		}
+		
+		llvm_abi::Type typeInfoABIType() {
+			std::vector<llvm_abi::Type> types;
+			types.push_back(llvm_abi::Type::Pointer());
+			types.push_back(templateGeneratorABIType());
+			return llvm_abi::Type::AutoStruct(std::move(types));
 		}
 		
 		llvm::Type* typeInfoArrayType(Module& module) {

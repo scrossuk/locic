@@ -16,6 +16,7 @@ namespace locic {
 		 * Generates struct { void* rootFn; uint32_t path; }.
 		 */
 		llvm::Type* templateGeneratorType(Module& module);
+		llvm_abi::Type templateGeneratorABIType();
 		
 		/**
 		 * \brief Type info type.
@@ -23,6 +24,7 @@ namespace locic {
 		 * Generates struct { void* vtable; struct { void* rootFn, uint32_t path; } generator; }.
 		 */
 		llvm::Type* typeInfoType(Module& module);
+		llvm_abi::Type typeInfoABIType();
 		
 		/**
 		 * \brief Obtain template arguments from a generator pair.

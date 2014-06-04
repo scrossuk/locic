@@ -33,7 +33,6 @@ namespace locic {
 			auto& module = function.module();
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return function.getEntryBuilder().CreateAlloca(genType(module, type));
@@ -73,7 +72,6 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return function.getBuilder().CreateLoad(var);
@@ -100,7 +98,6 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					function.getBuilder().CreateStore(value, castVar);

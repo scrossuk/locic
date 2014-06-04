@@ -67,13 +67,6 @@ namespace locic {
 					
 					return SEM::Type::Object(sourceType->getObjectType(), templateArgs);
 				}
-				case SEM::Type::REFERENCE: {
-					auto sourceTarget = sourceType->getReferenceTarget();
-					auto destTarget = destType->getReferenceTarget();
-					auto target = ImplicitCastTypeFormatOnlyChain(sourceTarget, destTarget, hasConstChain, location);
-					if (target == nullptr) return nullptr;
-					return SEM::Type::Reference(target);
-				}
 				case SEM::Type::FUNCTION: {
 					// Check return type.
 					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain, location);
@@ -480,7 +473,7 @@ namespace locic {
 			// Try to use a polymorphic ref cast.
 			if (sourceType->isRef() && destType->isRef() && sourceType->refTarget()->isObject() && destType->refTarget()->isInterface()) {
 				// TODO: add support for custom ref types.
-				if (sourceType->isReference() && destType->isReference()) {
+				if (sourceType->isBuiltInReference() && destType->isBuiltInReference()) {
 					// SEM::Type* sourceTarget = sourceType->refTarget();
 					// SEM::Type* destTarget = destType->refTarget();
 					

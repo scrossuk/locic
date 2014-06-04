@@ -20,7 +20,6 @@ namespace locic {
 					VOID,
 					AUTO,
 					OBJECT,
-					REFERENCE,
 					FUNCTION,
 					METHOD,
 					INTERFACEMETHOD,
@@ -32,7 +31,6 @@ namespace locic {
 				static Type* Void();
 				static Type* Auto();
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
-				static Type* Reference(Type* targetType);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
 				static Type* Function(bool isVarArg, bool isMethod, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
 				static Type* Method(Type* functionType);
@@ -57,8 +55,7 @@ namespace locic {
 				bool isVoid() const;
 				bool isAuto() const;
 				
-				bool isReference() const;
-				Type* getReferenceTarget() const;
+				bool isBuiltInReference() const;
 				
 				bool isFunction() const;
 				bool isFunctionVarArg() const;
@@ -124,10 +121,6 @@ namespace locic {
 					TypeInstance* typeInstance;
 					std::vector<Type*> templateArguments;
 				} objectType_;
-				
-				struct {
-					Type* targetType;
-				} referenceType_;
 				
 				struct FunctionType {
 					bool isVarArg;

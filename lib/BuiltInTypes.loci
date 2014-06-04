@@ -535,6 +535,11 @@ __primitive member_lval {
 	T& dissolve() const noexcept;
 }
 
+template <typename T>
+__primitive __ref {
+	__ref<T> implicitCopy() const noexcept;
+}
+
 /*
 Eventually the following will be adopted for use (once compile-time evaluation
 has been implemented). For now, this stuff is still built-in to the compiler.

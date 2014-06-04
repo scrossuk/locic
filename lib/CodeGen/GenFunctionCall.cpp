@@ -72,7 +72,7 @@ namespace locic {
 			
 			for (const auto param: args) {
 				llvm::Value* argValue = genValue(function, param);
-				llvm_abi::Type argABIType = genABIType(module, param->type());
+				llvm_abi::Type argABIType = genABIArgType(module, param->type());
 				
 				// When calling var-args functions, all 'char' and
 				// 'short' values must be extended to 'int' values,
@@ -87,11 +87,11 @@ namespace locic {
 					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int_t")) {
 						if (isSignedIntegerType(typeName)) {
 							// Need to extend to int.
-							argValue = function.getBuilder().CreateSExt(argValue, getPrimitiveType(module, "int_t"));
+							argValue = function.getBuilder().CreateSExt(argValue, getNamedPrimitiveType(module, "int_t"));
 							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
 						} else if (isUnsignedIntegerType(typeName)) {
 							// Need to extend to unsigned int.
-							argValue = function.getBuilder().CreateZExt(argValue, getPrimitiveType(module, "uint_t"));
+							argValue = function.getBuilder().CreateZExt(argValue, getNamedPrimitiveType(module, "uint_t"));
 							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
 						}
 					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {

@@ -9,6 +9,7 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -27,8 +28,6 @@ namespace locic {
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
-			const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
-			
 			if (type->isObject()) {
 				if (!typeHasDestructor(module, type->getObjectType())) {
 					return;
@@ -36,6 +35,8 @@ namespace locic {
 				
 				// Call destructor.
 				const auto destructorFunction = genDestructorFunction(module, type->getObjectType());
+				
+				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				
 				if (type->templateArguments().empty()) {
 					function.getBuilder().CreateCall(destructorFunction, { castValue });
@@ -136,7 +137,7 @@ namespace locic {
 			
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype());
 			
-			const auto contextValue = function.getContextValue(typeInstance);
+			const auto contextValue = function.getRawContextValue();
 			
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = typeInstance->functions().find("__destructor");
@@ -151,9 +152,9 @@ namespace locic {
 			// parent object, in *reverse order*.
 			for (size_t i = 0; i < memberVars.size(); i++) {
 				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
-				const size_t offset = module.getMemberVarMap().get(memberVar);
-				const auto ptrToMember =
-					function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, offset);
+				const size_t memberIndex = module.getMemberVarMap().get(memberVar);
+				const auto memberOffsetValue = genMemberOffset(function, typeInstance->selfType(), memberIndex);
+				const auto ptrToMember = function.getBuilder().CreateInBoundsGEP(contextValue, memberOffsetValue);
 				genDestructorCall(function, memberVar->type(), ptrToMember);
 			}
 			

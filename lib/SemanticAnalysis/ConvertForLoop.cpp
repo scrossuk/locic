@@ -6,6 +6,7 @@
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -51,7 +52,7 @@ namespace locic {
 				const auto initValue = ConvertValue(context, astInitValueNode);
 				
 				const auto initVarType = (initValue->type()->isLvalOrRef()) ?
-						SEM::Type::Reference(initValue->type()->lvalOrRefTarget())->createRefType(initValue->type()->lvalOrRefTarget()) :
+						createReferenceType(context, initValue->type()->lvalOrRefTarget()) :
 						initValue->type();
 				
 				const auto initVar = SEM::Var::Basic(initVarType, initVarType);
@@ -62,7 +63,7 @@ namespace locic {
 				{
 					PushScopeElement pushLoop(context.scopeStack(), ScopeElement::Loop());
 					
-					const auto isEmpty = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "empty", location), {}, location);
+					const auto isEmpty = CallValue(GetMethod(createLocalVarRef(context, initVar), "empty", location), {}, location);
 					const auto isNotEmpty = CallValue(GetMethod(isEmpty, "not", location), {}, location);
 					const auto loopCondition = ImplicitCast(isNotEmpty, getBuiltInType(context.scopeStack(), "bool")->selfType(), location);
 					
@@ -71,7 +72,7 @@ namespace locic {
 					{
 						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope));
 						
-						const auto currentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "front", location), {}, location);
+						const auto currentValue = CallValue(GetMethod(createLocalVarRef(context, initVar), "front", location), {}, location);
 						
 						const bool isMember = false;
 						const auto loopVar = ConvertInitialisedVar(context, isMember, astTypeVarNode, currentValue->type());
@@ -85,7 +86,7 @@ namespace locic {
 					}
 					
 					const auto advanceScope = new SEM::Scope();
-					const auto advanceCurrentValue = CallValue(GetMethod(SEM::Value::LocalVar(initVar), "popFront", location), {}, location);
+					const auto advanceCurrentValue = CallValue(GetMethod(createLocalVarRef(context, initVar), "popFront", location), {}, location);
 					advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
 					
 					outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, iterationScope, advanceScope));

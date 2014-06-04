@@ -20,6 +20,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -31,7 +32,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		static llvm::Value* makePtr(Function& function, llvm::Value* value, SEM::Type* type) {
-			assert(isTypeSizeAlwaysKnown(function.module(), type) && !type->isReference());
+			assert(isTypeSizeAlwaysKnown(function.module(), type) && !type->isBuiltInReference());
 			
 			const auto ptrValue = genAlloca(function, type);
 			genStore(function, value, ptrValue, type);
@@ -51,14 +52,102 @@ namespace locic {
 			}
 		}
 		
+		llvm::Function* genFunctionPtrStub(Module& module, llvm::Function* functionRefPtr, llvm::FunctionType* newFunctionType) {
+			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
+			
+			const auto llvmFunction = createLLVMFunction(module, newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub");
+			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
+			llvm::IRBuilder<> builder(module.getLLVMContext());
+			builder.SetInsertPoint(entryBB);
+			
+			assert(oldFunctionType->getNumParams() == newFunctionType->getNumParams() ||
+				oldFunctionType->getNumParams() == (newFunctionType->getNumParams() + 1));
+			
+			const bool needsReturnVar = (oldFunctionType->getNumParams() != newFunctionType->getNumParams());
+			
+			const auto returnVar = needsReturnVar ? builder.CreateAlloca(newFunctionType->getReturnType()) : nullptr;
+			
+			std::vector<llvm::Value*> args;
+			
+			if (needsReturnVar) {
+				args.push_back(builder.CreatePointerCast(returnVar, TypeGenerator(module).getI8PtrType()));
+			}
+			
+			size_t offset = needsReturnVar ? 1 : 0;
+			
+			for (auto it = llvmFunction->arg_begin(); it != llvmFunction->arg_end(); ++it) {
+				const auto oldParamType = oldFunctionType->getParamType(offset);
+				const auto newParamType = it->getType();
+				
+				if (oldParamType->isPointerTy() && !newParamType->isPointerTy()) {
+					const auto argAlloca = builder.CreateAlloca(newParamType);
+					builder.CreateStore(it, argAlloca);
+					args.push_back(builder.CreatePointerCast(argAlloca, TypeGenerator(module).getI8PtrType()));
+				} else {
+					args.push_back(it);
+				}
+				offset++;
+			}
+			
+			const auto result = builder.CreateCall(functionRefPtr, args);
+			
+			if (needsReturnVar) {
+				builder.CreateRet(builder.CreateLoad(returnVar));
+			} else {
+				if (newFunctionType->getReturnType()->isVoidTy()) {
+					builder.CreateRetVoid();
+				} else {
+					builder.CreateRet(result);
+				}
+			}
+			
+			return llvmFunction;
+		}
+		
+		bool doFunctionTypesMatch(llvm::FunctionType* firstType, llvm::FunctionType* secondType) {
+			if (firstType->getNumParams() != secondType->getNumParams()) {
+				return false;
+			}
+			
+			for (unsigned int i = 0; i < firstType->getNumParams(); i++) {
+				const auto firstParamType = firstType->getParamType(i);
+				const auto secondParamType = secondType->getParamType(i);
+				
+				if (firstParamType->isPointerTy() != secondParamType->isPointerTy()) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
+		llvm::Value* genFunctionPtr(Function& function, llvm::Function* functionRefPtr, llvm::Type* functionPtrType) {
+			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
+			const auto newFunctionType = llvm::cast<llvm::FunctionType>(functionPtrType->getPointerElementType());
+			
+			if (doFunctionTypesMatch(oldFunctionType, newFunctionType)) {
+				return function.getBuilder().CreatePointerCast(functionRefPtr, functionPtrType);
+			} else {
+				// This case means that the function is templated on the
+				// return type and a primitive has been passed for that
+				// type argument, so the original function will have accepted
+				// a return var but the function reference expects it
+				// to return the primitive directly. We need to fix this
+				// by creating a stub that translates between them.
+				return genFunctionPtrStub(function.module(), functionRefPtr, newFunctionType);
+			}
+		}
+		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
 			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
 			
 			switch (value->kind()) {
-				case SEM::Value::SELF:
+				case SEM::Value::SELF: {
+					return function.getContextValue(value->type()->refTarget()->getObjectType());
+				}
 				case SEM::Value::THIS: {
-					return function.getContextValue(value->type()->getObjectType());
+					return function.getContextValue(value->type()->templateArguments().at(0)->getObjectType());
 				}
 				case SEM::Value::CONSTANT: {
 					switch (value->constant->kind()) {
@@ -185,10 +274,6 @@ namespace locic {
 							return nullptr;
 						}
 						
-						case SEM::Type::REFERENCE: {
-							return function.getBuilder().CreatePointerCast(codeValue, genType(module, destType));
-						}
-						
 						case SEM::Type::FUNCTION: {
 							return codeValue;
 						}
@@ -212,11 +297,11 @@ namespace locic {
 					const auto sourceType = value->polyCast.value->type();
 					const auto destType = value->type();
 					
-					assert(sourceType->isReference()  && "Polycast source type must be reference.");
-					assert(destType->isReference() && "Polycast dest type must be reference.");
-					assert(destType->getReferenceTarget()->isInterface() && "Polycast dest target type must be interface");
+					assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
+					assert(destType->isBuiltInReference() && "Polycast dest type must be reference.");
+					assert(destType->refTarget()->isInterface() && "Polycast dest target type must be interface");
 					
-					const auto sourceTarget = sourceType->getReferenceTarget();
+					const auto sourceTarget = sourceType->refTarget();
 					
 					if (sourceTarget->isInterface()) {
 						// Since the vtable is a hash table and it has
@@ -249,30 +334,37 @@ namespace locic {
 					const auto& parameterValues = value->internalConstruct.parameters;
 					const auto& parameterVars = value->type()->getObjectType()->variables();
 					
-					const auto objectValue = genAlloca(function, value->type());
+					const auto type = value->type();
+					const auto objectValue = genAlloca(function, type);
+					const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
 					
 					for (size_t i = 0; i < parameterValues.size(); i++) {
 						const auto llvmParamValue = genValue(function, parameterValues.at(i));
-						const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+						const auto memberOffset = genMemberOffset(function, type, i);
+						const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, memberOffset);
 						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterVars.at(i));
 					}
 					
-					return genLoad(function, objectValue, value->type());
+					return genLoad(function, objectValue, type);
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const auto offset = module.getMemberVarMap().get(value->memberAccess.memberVar);
+					const auto memberIndex = module.getMemberVarMap().get(value->memberAccess.memberVar);
 					
 					const auto dataValue = value->memberAccess.object;
 					const auto llvmDataValue = genValue(function, dataValue);
 					
 					// Members must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
-					const bool isValuePtr = dataValue->type()->isReference() ||
+					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
 						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
+					const auto castDataPointer = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType());
 					
-					return function.getBuilder().CreateConstInBoundsGEP2_32(dataPointer, 0, offset);
+					const auto type = dataValue->type()->isBuiltInReference() ? dataValue->type()->refTarget() : dataValue->type();
+					const auto memberOffset = genMemberOffset(function, type, memberIndex);
+					
+					return function.getBuilder().CreateInBoundsGEP(castDataPointer, memberOffset);
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {
@@ -313,7 +405,7 @@ namespace locic {
 					
 					const auto functionRefPtr = genFunction(module, objectType, value->functionRef.function);
 					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
-					const auto functionPtr = function.getBuilder().CreatePointerCast(functionRefPtr, functionPtrType);
+					const auto functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
 					if (value->type()->isFunctionTemplatedMethod()) {
 						assert(parentType != nullptr);
@@ -335,7 +427,7 @@ namespace locic {
 					
 					// Methods must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
-					const bool isValuePtr = dataValue->type()->isReference() ||
+					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
 						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
 					

@@ -70,19 +70,6 @@ namespace locic {
 			return iterator->second.typeInstance();
 		}
 		
-		SEM::Value* getSelfValue(ScopeStack& scopeStack, const Debug::SourceLocation& location) {
-			const auto thisTypeInstance = lookupParentType(scopeStack);
-			
-			if (thisTypeInstance == nullptr) {
-				throw ErrorException(makeString("Cannot access 'self' in non-method at %s.",
-												location.toString().c_str()));
-			}
-			
-			// TODO: make const type when in const methods.
-			const auto selfType = thisTypeInstance->selfType();
-			return SEM::Value::Self(SEM::Type::Reference(selfType)->createRefType(selfType));
-		}
-		
 	}
 	
 }

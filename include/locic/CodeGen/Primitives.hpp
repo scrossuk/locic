@@ -29,13 +29,15 @@ namespace locic {
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
 		
-		llvm::Type* getPrimitiveType(Module& module, const std::string& name);
+		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type);
+		
+		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* typeInstance);
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* typeInstance);
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
 		
 	}
 	

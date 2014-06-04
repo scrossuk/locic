@@ -1,5 +1,7 @@
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/Context.hpp>
+
 namespace locic {
 
 	namespace SemanticAnalysis {
@@ -40,6 +42,27 @@ namespace locic {
 				value = SEM::Value::DerefReference(value);
 			}
 			return value;
+		}
+		
+		SEM::Type* createReferenceType(Context& context, SEM::Type* varType) {
+			const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");
+			return SEM::Type::Object(referenceTypeInst, { varType})->createRefType(varType);
+		}
+		
+		SEM::Value* createSelfRef(Context& context, SEM::Type* selfType) {
+			return SEM::Value::Self(createReferenceType(context, selfType));
+		}
+		
+		SEM::Value* createLocalVarRef(Context& context, SEM::Var* var) {
+			return SEM::Value::LocalVar(var, createReferenceType(context, var->type()));
+		}
+		
+		SEM::Value* createMemberVarRef(Context& context, SEM::Value* object, SEM::Var* var) {
+			// If the object type is const, then
+			// the members must also be.
+			const auto derefType = getDerefType(object->type());
+			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
+			return SEM::Value::MemberAccess(derefValue(object), var, createReferenceType(context, memberType));
 		}
 		
 	}

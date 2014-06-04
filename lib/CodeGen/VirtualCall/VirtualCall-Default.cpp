@@ -195,7 +195,7 @@ namespace locic {
 			
 			llvm::FunctionType* getCountFunctionType(Module& module) {
 				TypeGenerator typeGen(module);
-				return typeGen.getFunctionType(getPrimitiveType(module, "size_t"), { templateGeneratorType(module) });
+				return typeGen.getFunctionType(getNamedPrimitiveType(module, "size_t"), { templateGeneratorType(module) });
 			}
 			
 			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {

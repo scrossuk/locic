@@ -6,40 +6,59 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/CodeGen/GenABIType.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
-	
-		llvm_abi::Type templateGeneratorABIType() {
-			std::vector<llvm_abi::Type> types;
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
-			return llvm_abi::Type::AutoStruct(std::move(types));
+		
+		llvm_abi::Type genABIArgType(Module& module, SEM::Type* type) {
+			if (isTypeSizeAlwaysKnown(module, type)) {
+				return genABIType(module, type);
+			} else {
+				return llvm_abi::Type::Pointer();
+			}
 		}
 		
-		llvm_abi::Type typeInfoABIType() {
-			std::vector<llvm_abi::Type> types;
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
-			return llvm_abi::Type::AutoStruct(std::move(types));
-		}
-		
-		llvm_abi::Type makePointerPairType() {
-			std::vector<llvm_abi::Type> types;
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(llvm_abi::Type::Pointer());
-			return llvm_abi::Type::AutoStruct(std::move(types));
+		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType) {
+			assert(functionType->isFunction());
+			
+			llvm_abi::FunctionType abiFunctionType;
+			
+			if (isTypeSizeAlwaysKnown(module, functionType->getFunctionReturnType())) {
+				abiFunctionType.returnType = genABIType(module, functionType->getFunctionReturnType());
+			} else {
+				// If type is not known in all modules,
+				// return via a pointer argument.
+				abiFunctionType.returnType = llvm_abi::Type::Struct({});
+				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
+			}
+			
+			if (functionType->isFunctionTemplatedMethod()) {
+				// Add template generator arguments for methods of
+				// templated types.
+				abiFunctionType.argTypes.push_back(templateGeneratorABIType());
+			}
+			
+			if (functionType->isFunctionMethod()) {
+				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
+			}
+			
+			for (const auto paramType: functionType->getFunctionParameterTypes()) {
+				abiFunctionType.argTypes.push_back(genABIArgType(module, paramType));
+			}
+			
+			return abiFunctionType;
 		}
 		
 		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type) {
-			assert(isTypeSizeAlwaysKnown(module, type));
+			assert(isTypeSizeKnownInThisModule(module, type));
 			
 			const auto typeInstance = type->getObjectType();
 			const auto& name = typeInstance->name().last();
@@ -97,18 +116,19 @@ namespace locic {
 				return llvm_abi::Type::AutoStruct(std::move(members));
 			}
 			
+			if (name == "__ref") {
+				if (type->templateArguments().at(0)->isInterface()) {
+					return interfaceStructABIType();
+				} else {
+					return llvm_abi::Type::Pointer();
+				}
+			}
+			
 			// TODO: more types to be handled here.
 			llvm_unreachable("Unknown primitive ABI type.");
 		}
 		
 		llvm_abi::Type genABIType(Module& module, SEM::Type* type) {
-			if (!isTypeSizeAlwaysKnown(module, type)) {
-				// For types with sizes that aren't
-				// known in all modules (e.g. classes),
-				// pass by pointer.
-				return llvm_abi::Type::Pointer();
-			}
-			
 			switch (type->kind()) {
 				case SEM::Type::VOID: {
 					// TODO: use a void type?
@@ -135,82 +155,35 @@ namespace locic {
 					llvm_unreachable("Unknown object ABI type with known size.");
 				}
 				
-				case SEM::Type::REFERENCE: {
-					if (type->getReferenceTarget()->isInterface()) {
-						// Interface references are actually two pointers:
-						// one to the class, and one to the class vtable.
-						return makePointerPairType();
+				case SEM::Type::FUNCTION: {
+					// Generate struct of function pointer and template
+					// generator if function type is templated method.
+					if (type->isFunctionTemplatedMethod()) {
+						std::vector<llvm_abi::Type> types;
+						types.push_back(llvm_abi::Type::Pointer());
+						types.push_back(templateGeneratorABIType());
+						return llvm_abi::Type::AutoStruct(std::move(types));
 					} else {
 						return llvm_abi::Type::Pointer();
 					}
 				}
 				
-				case SEM::Type::FUNCTION: {
-					// Function type is just a pointer.
-					return llvm_abi::Type::Pointer();
-				}
-				
 				case SEM::Type::METHOD: {
-					/* Method type is:
-						struct {
-							i8* context,
-							RetType (*func)(i8*, ArgTypes)
-						};
-					*/
-					return makePointerPairType();
+					std::vector<llvm_abi::Type> types;
+					types.push_back(llvm_abi::Type::Pointer());
+					types.push_back(genABIType(module, type->getMethodFunctionType()));
+					return llvm_abi::Type::AutoStruct(std::move(types));
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
-					/* Interface method type is:
-						struct {
-							struct {
-								i8* context,
-								__vtable_type* vtable
-							},
-							i64 methodHash
-						};
-					*/
-					std::vector<llvm_abi::Type> members;
-					members.push_back(makePointerPairType());
-					members.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
-					return llvm_abi::Type::AutoStruct(std::move(members));
+					return interfaceMethodABIType();
 				}
 				
 				default: {
+					printf("%s\n", type->toString().c_str());
 					llvm_unreachable("Unknown type kind for generating ABI type.");
 				}
 			}
-		}
-		
-		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType) {
-			assert(functionType->isFunction());
-			
-			llvm_abi::FunctionType abiFunctionType;
-			
-			if (isTypeSizeAlwaysKnown(module, functionType->getFunctionReturnType())) {
-				abiFunctionType.returnType = genABIType(module, functionType->getFunctionReturnType());
-			} else {
-				// If type is not known in all modules,
-				// return via a pointer argument.
-				abiFunctionType.returnType = llvm_abi::Type::Struct({});
-				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
-			}
-			
-			if (functionType->isFunctionTemplatedMethod()) {
-				// Add template generator arguments for methods of
-				// templated types.
-				abiFunctionType.argTypes.push_back(templateGeneratorABIType());
-			}
-			
-			if (functionType->isFunctionMethod()) {
-				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
-			}
-			
-			for (const auto paramType: functionType->getFunctionParameterTypes()) {
-				abiFunctionType.argTypes.push_back(genABIType(module, paramType));
-			}
-			
-			return abiFunctionType;
 		}
 		
 	}

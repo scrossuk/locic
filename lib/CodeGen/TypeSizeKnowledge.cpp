@@ -40,15 +40,13 @@ namespace locic {
 		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 					return true;
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
-						// Not all primitives have a known size (e.g. value_lval).
-						return isPrimitiveTypeSizeKnownInThisModule(module, objectType);
+						return isPrimitiveTypeSizeKnownInThisModule(module, type);
 					} else {
 						return isObjectTypeSizeKnownInThisModule(module, objectType);
 					}
@@ -63,14 +61,12 @@ namespace locic {
 		bool isTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::VOID:
-				case SEM::Type::REFERENCE:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 					return true;
 				case SEM::Type::OBJECT:
 					if (type->isPrimitive()) {
-						// Not all primitives have a known size (e.g. value_lval).
-						return isPrimitiveTypeSizeAlwaysKnown(module, type->getObjectType());
+						return isPrimitiveTypeSizeAlwaysKnown(module, type);
 					} else if (type->isStruct()) {
 						// Structs must always have a known size.
 						return true;
