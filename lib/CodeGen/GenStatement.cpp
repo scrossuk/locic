@@ -13,6 +13,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/Memory.hpp>

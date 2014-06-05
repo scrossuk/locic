@@ -74,8 +74,8 @@ namespace locic {
 			return *scope_;
 		}
 		
-		Function* Function::createDecl() const {
-			return Decl(isMethod(), isStaticMethod(), isConstMethod(), type(), name(), parameters(), moduleScope());
+		Function* Function::createTemplatedDecl() const {
+			return Decl(isMethod(), isStaticMethod(), isConstMethod(), type()->makeTemplatedMethod(), name(), parameters(), moduleScope());
 		}
 		
 		Function* Function::fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const {

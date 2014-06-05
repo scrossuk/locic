@@ -1,6 +1,7 @@
 add_subdirectory(llvm-abi)
 
 add_library(locic-codegen
+	ArgInfo.cpp
 	CodeGen.cpp
 	ControlFlow.cpp
 	Debug.cpp

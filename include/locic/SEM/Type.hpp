@@ -96,6 +96,7 @@ namespace locic {
 				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
 				
 				Type* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
+				Type* makeTemplatedMethod() const;
 				
 				std::string nameToString() const;
 				
@@ -108,6 +109,8 @@ namespace locic {
 				inline bool operator!=(const Type& type) const {
 					return !(*this == type);
 				}
+				
+				bool operator<(const Type& type) const;
 				
 			private:
 				Type(Kind k);

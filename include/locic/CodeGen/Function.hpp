@@ -1,6 +1,7 @@
 #ifndef LOCIC_CODEGEN_FUNCTION_HPP
 #define LOCIC_CODEGEN_FUNCTION_HPP
 
+#include <map>
 #include <stack>
 #include <string>
 
@@ -22,9 +23,17 @@ namespace locic {
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
 				llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
 		
+		typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
+		typedef std::pair<SEM::Type*, size_t> OffsetPair;
+		typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
+		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
+		
 		class Function {
 			public:
 				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
+				typedef std::pair<SEM::Type*, size_t> OffsetPair;
+				typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
+				typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
 				
 				Function(Module& pModule, llvm::Function& function, ArgInfo argInfo);
 				
@@ -41,6 +50,8 @@ namespace locic {
 				llvm::Value* getRawArg(size_t index) const;
 				
 				llvm::Value* getArg(size_t index) const;
+				
+				std::vector<llvm::Value*> getArgList() const;
 				
 				llvm::Value* getTemplateGenerator() const;
 				
@@ -69,6 +80,10 @@ namespace locic {
 				LocalVarMap& getLocalVarMap();
 				
 				const LocalVarMap& getLocalVarMap() const;
+				
+				MemberOffsetMap& getMemberOffsetMap();
+				
+				SizeOfMap& getSizeOfMap();
 				
 				/**
 				 * \brief Push a new unwind stack on the stack of unwind stacks.
@@ -108,6 +123,8 @@ namespace locic {
 				llvm::IRBuilder<> entryBuilder_, builder_;
 				ArgInfo argInfo_;
 				LocalVarMap localVarMap_;
+				MemberOffsetMap memberOffsetMap_;
+				SizeOfMap sizeOfMap_;
 				
 				// A 'stack' of unwind stacks.
 				std::stack<UnwindStack> unwindStackStack_;

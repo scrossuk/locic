@@ -22,11 +22,22 @@ namespace locic {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
+		bool isOffsetPairLessThan(const OffsetPair& first, const OffsetPair& second) {
+			const bool result = compareTypes(first.first, second.first);
+			if (result != COMPARE_EQUAL) {
+				return result == COMPARE_LESS;
+			}
+			
+			return first.second < second.second;
+		}
+		
 		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo)
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
 			  builder_(pModule.getLLVMContext()),
 			  argInfo_(std::move(argInfo)),
+			  memberOffsetMap_(isOffsetPairLessThan),
+			  sizeOfMap_(isTypeLessThan),
 			  exceptionInfo_(nullptr),
 			  debugInfo_(nullptr),
 			  templateArgs_(nullptr) {
@@ -100,6 +111,14 @@ namespace locic {
 			return getRawArg(argInfo_.standardArgumentOffset() + index);
 		}
 		
+		std::vector<llvm::Value*> Function::getArgList() const {
+			std::vector<llvm::Value*> argList;
+			for (size_t i = 0; i < argInfo_.numStandardArguments(); i++) {
+				argList.push_back(getArg(i));
+			}
+			return argList;
+		}
+		
 		llvm::Value* Function::getTemplateGenerator() const {
 			assert(argInfo_.hasTemplateGeneratorArgument());
 			return getRawArg(argInfo_.templateGeneratorArgumentOffset());
@@ -156,6 +175,14 @@ namespace locic {
 		
 		const Function::LocalVarMap& Function::getLocalVarMap() const {
 			return localVarMap_;
+		}
+		
+		Function::MemberOffsetMap& Function::getMemberOffsetMap() {
+			return memberOffsetMap_;
+		}
+		
+		Function::SizeOfMap& Function::getSizeOfMap() {
+			return sizeOfMap_;
 		}
 		
 		void Function::pushUnwindStack(size_t position) {

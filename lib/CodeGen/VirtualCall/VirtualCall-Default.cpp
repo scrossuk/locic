@@ -15,6 +15,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -100,6 +101,7 @@ namespace locic {
 			
 			void generateCallWithReturnVar(Function& function, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
 				auto& builder = function.getBuilder();
+				auto& module = function.module();
 				
 				// Extract the components of the interface method struct.
 				const auto interfaceValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "interface");
@@ -114,13 +116,13 @@ namespace locic {
 				const auto vtableSizeValue = constantGen.getI64(VTABLE_SIZE);
 				
 				const auto vtableOffsetValue = builder.CreateURem(hashValue, vtableSizeValue, "vtableOffset");
+				const auto castVTableOffsetValue = builder.CreateTrunc(vtableOffsetValue, TypeGenerator(module).getI32Type());
 				
 				// Get a pointer to the slot.
 				std::vector<llvm::Value*> vtableEntryGEP;
 				vtableEntryGEP.push_back(constantGen.getI32(0));
-				
-				vtableEntryGEP.push_back(constantGen.getI32(2));
-				vtableEntryGEP.push_back(vtableOffsetValue);
+				vtableEntryGEP.push_back(constantGen.getI32(3));
+				vtableEntryGEP.push_back(castVTableOffsetValue);
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				

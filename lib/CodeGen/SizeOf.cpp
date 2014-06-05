@@ -1,6 +1,8 @@
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
+#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -8,6 +10,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {
@@ -15,7 +18,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "alignmask");
+			const auto mangledName = mangleMethodName(typeInstance, "__alignmask");
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -27,7 +30,7 @@ namespace locic {
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getNamedPrimitiveType(module, "size_t"), functionArgs);
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -103,7 +106,7 @@ namespace locic {
 		}
 		
 		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "sizeof");
+			const auto mangledName = mangleMethodName(typeInstance, "__sizeof");
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -115,7 +118,7 @@ namespace locic {
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
 			const auto functionType = TypeGenerator(module).getFunctionType(getNamedPrimitiveType(module, "size_t"), functionArgs);
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -165,7 +168,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
+		llvm::Value* genSizeOfValue(Function& function, SEM::Type* type) {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
@@ -202,6 +205,18 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
+			auto& sizeOfMap = function.getSizeOfMap();
+			const auto it = sizeOfMap.find(type);
+			if (it != sizeOfMap.end()) {
+				return it->second;
+			}
+			
+			const auto sizeOfValue = genSizeOfValue(function, type);
+			sizeOfMap.insert(std::make_pair(type, sizeOfValue));
+			return sizeOfValue;
+		}
+		
 		llvm::Value* makeAligned(Function& function, llvm::Value* size, llvm::Value* alignMask) {
 			const auto sizePlusMask = function.getBuilder().CreateAdd(size, alignMask, "sizePlusMask");
 			const auto inverseMask = function.getBuilder().CreateNot(alignMask, "inverseMask");
@@ -223,7 +238,7 @@ namespace locic {
 		 * }
 		 */
 		llvm::Value* genMemberOffsetFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "memberoffset");
+			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -237,8 +252,9 @@ namespace locic {
 			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module), sizeType } : std::vector<llvm::Type*>{ sizeType };
 			const auto functionType = TypeGenerator(module).getFunctionType(sizeType, functionArgs);
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
+			llvmFunction->setDoesNotThrow();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
@@ -283,8 +299,17 @@ namespace locic {
 		}
 		
 		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex) {
-			auto& module = function.module();
 			assert(type->isObject());
+			
+			const auto offsetPair = std::make_pair(type, memberIndex);
+			
+			auto& memberOffsetMap = function.getMemberOffsetMap();
+			const auto it = memberOffsetMap.find(offsetPair);
+			if (it != memberOffsetMap.end()) {
+				return it->second;
+			}
+			
+			auto& module = function.module();
 			
 			const auto callName = makeString("memberoffset_%llu__%s", (unsigned long long) memberIndex,
 				type->getObjectType()->name().last().c_str());
@@ -293,13 +318,22 @@ namespace locic {
 			
 			const auto memberIndexValue = ConstantGenerator(module).getSizeTValue(memberIndex);
 			
+			llvm::CallInst* callInst = nullptr;
+			
 			if (hasTemplate) {
-				return function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
+				callInst = function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
 					std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), memberIndexValue }, callName);
 			} else {
-				return function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
+				callInst = function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
 					std::vector<llvm::Value*>{ memberIndexValue }, callName);
 			}
+			
+			callInst->setDoesNotAccessMemory();
+			callInst->setDoesNotThrow();
+			
+			memberOffsetMap.insert(std::make_pair(offsetPair, callInst));
+			
+			return callInst;
 		}
 		
 	}

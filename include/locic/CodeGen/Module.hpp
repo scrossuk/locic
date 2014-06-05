@@ -20,6 +20,18 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		enum CompareResult {
+			COMPARE_EQUAL,
+			COMPARE_LESS,
+			COMPARE_MORE
+		};
+		
+		CompareResult compareTypes(SEM::Type* const first, SEM::Type* const second);
+		
+		inline bool isTypeLessThan(SEM::Type* first, SEM::Type* second) {
+			return compareTypes(first, second) == COMPARE_LESS;
+		}
+		
 		typedef Map<std::string, llvm::Function*> FunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;

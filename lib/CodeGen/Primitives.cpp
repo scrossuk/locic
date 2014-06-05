@@ -194,7 +194,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -269,7 +269,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -372,7 +372,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -461,7 +461,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -552,7 +552,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -607,7 +607,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -645,7 +645,7 @@ namespace locic {
 			const auto methodName = semFunction->name().last();
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -680,7 +680,7 @@ namespace locic {
 			const auto methodName = semFunction->name().last();
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			
@@ -772,7 +772,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
 			
 			auto& builder = function.getBuilder();
 			

@@ -408,6 +408,13 @@ namespace locic {
 			return refType;
 		}
 		
+		Type* Type::makeTemplatedMethod() const {
+			assert(isFunction());
+			const bool isTemplatedMethod = true;
+			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplatedMethod,
+				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes());
+		}
+		
 		std::string Type::nameToString() const {
 			switch (kind()) {
 				case VOID:

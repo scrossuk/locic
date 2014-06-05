@@ -9,10 +9,13 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Template.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 

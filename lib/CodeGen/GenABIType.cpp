@@ -180,7 +180,6 @@ namespace locic {
 				}
 				
 				default: {
-					printf("%s\n", type->toString().c_str());
 					llvm_unreachable("Unknown type kind for generating ABI type.");
 				}
 			}

@@ -48,7 +48,7 @@ namespace locic {
 				
 				const Scope& scope() const;
 				
-				Function* createDecl() const;
+				Function* createTemplatedDecl() const;
 				
 				Function* fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const;
 				

@@ -14,6 +14,8 @@ namespace locic {
 		
 		llvm::Function* genFunction(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, SEM::Function* function);
+		
 	}
 	
 }

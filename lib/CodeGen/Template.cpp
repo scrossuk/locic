@@ -8,6 +8,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -152,6 +153,7 @@ namespace locic {
 			const auto castRootFn = builder.CreateBitCast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
 			const auto callInstruction = builder.CreateCall(castRootFn, { generatorPath }, "templateArgs");
 			callInstruction->setDoesNotAccessMemory();
+			callInstruction->setDoesNotThrow();
 			return callInstruction;
 		}
 		
@@ -204,6 +206,7 @@ namespace locic {
 			
 			const auto llvmFunction = createLLVMFunction(module, rootFunctionType(module), llvm::Function::PrivateLinkage, "template_root");
 			llvmFunction->setDoesNotAccessMemory();
+			llvmFunction->setDoesNotThrow();
 			
 			module.getTemplateGeneratorMap().insert(type, llvmFunction);
 			
@@ -339,7 +342,7 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionType(module), llvm::Function::ExternalLinkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionType(module), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -381,8 +384,8 @@ namespace locic {
 			const auto bitsRequired = getNextPowerOfTwo(templateUses.size());
 			
 			const auto subPath = builder.CreateLShr(pathArg, positionArg);
-			const auto component = builder.CreateAnd(subPath, constGen.getI32((1 << bitsRequired) - 1));
-			const auto mask = builder.CreateSub(builder.CreateShl(constGen.getI32(1), positionArg), constGen.getI32(1));
+			const auto mask = constGen.getI32((1 << bitsRequired) - 1);
+			const auto component = builder.CreateAnd(subPath, mask);
 			const auto nextPosition = builder.CreateSub(positionArg, constGen.getI8(bitsRequired));
 			
 			// Generate the component entry for each template use.
@@ -424,12 +427,10 @@ namespace locic {
 						} else {
 							// If there are arguments, refer to the component for them
 							// by adding the correct component in the path by computing
-							// (0x1 << (position + 2)) | (<their component> << position) | (mask & path).
+							// (subPath & ~mask) | <their component>.
 							const auto argComponent = templateUses.at(templateUseArg);
-							const auto pathStart = builder.CreateShl(constGen.getI32(1), nextPosition);
-							const auto argSubPath = builder.CreateShl(constGen.getI32(argComponent), positionArg);
-							const auto parentPath = builder.CreateAnd(pathArg, mask);
-							const auto argFullPath = builder.CreateOr(pathStart, builder.CreateOr(argSubPath, parentPath));
+							const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
+							const auto argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent));
 							
 							typeInfo = builder.CreateInsertValue(typeInfo, rootFnArg, { 1 });
 							typeInfo = builder.CreateInsertValue(typeInfo, argFullPath, { 2 });

@@ -92,15 +92,15 @@ namespace locic {
 		 *     if (position == 0) return types;
 		 *     
 		 *     const auto subPath = (path >> position);
-		 *     const auto component = (subPath & 3);
-		 *     const auto mask = (1 << position) - 1;
+		 *     const auto mask = 0x3;
+		 *     const auto component = (subPath & mask);
 		 *     Type[8] newTypes;
 		 *     
 		 *     if (component == 0) {
-		 *         newTypes[0] = { pairType, rootFn, (mask & path) | (0x2 << position) | (0x1 << (position + 2)) };
+		 *         newTypes[0] = { pairType, rootFn, (subPath & ~mask) | 0x2 };
 		 *         return firstChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     } else if (component == 1) {
-		 *         newTypes[0] = { vectorType, rootFn, (mask & path) | (0x3 << position) | (0x1 << (position + 2)) };
+		 *         newTypes[0] = { vectorType, rootFn, (subPath & ~mask) | 0x3 };
 		 *         return secondChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     } else if (component == 2) {
 		 *         newTypes[0] = types[0];

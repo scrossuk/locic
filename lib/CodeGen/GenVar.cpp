@@ -7,6 +7,7 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>

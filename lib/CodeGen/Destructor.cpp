@@ -7,6 +7,7 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -96,7 +97,37 @@ namespace locic {
 			}
 		}
 		
+		llvm::Function* getNullDestructorFunction(Module& module) {
+			const auto mangledName = "__null_destructor";
+			
+			const auto result = module.getFunctionMap().tryGet(mangledName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			TypeGenerator typeGen(module);
+			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
+			
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, mangledName);
+			llvmFunction->setDoesNotThrow();
+			llvmFunction->setDoesNotAccessMemory();
+			
+			module.getFunctionMap().insert(mangledName, llvmFunction);
+			
+			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
+			llvm::IRBuilder<> builder(module.getLLVMContext());
+			builder.SetInsertPoint(entryBB);
+			builder.CreateRetVoid();
+			
+			return llvmFunction;
+		}
+		
 		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+			if (!typeHasDestructor(module, typeInstance)) {
+				return getNullDestructorFunction(module);
+			}
+			
 			const auto destructorFunction = genDestructorFunction(module, typeInstance);
 			if (!typeInstance->templateVariables().empty()) {
 				return destructorFunction;

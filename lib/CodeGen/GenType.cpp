@@ -203,6 +203,15 @@ namespace locic {
 					return module.debugBuilder().createNullType();
 				}
 				
+				case SEM::Type::TEMPLATEVAR: {
+					// TODO!
+					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
+					const auto lineNumber = 12;
+					const auto name = Name::Absolute() + "T";
+					
+					return module.debugBuilder().createObjectType(file, lineNumber, name);
+				}
+				
 				default: {
 					throw std::runtime_error("Unknown type enum for generating type.");
 				}

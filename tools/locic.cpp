@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -60,8 +61,25 @@ static FILE* builtInTypesFile() {
 	return file;
 }
 
+class Timer {
+	public:
+		Timer()
+			: start_(std::chrono::steady_clock::now()) { }
+			
+		double getTime() const {
+			const auto end = std::chrono::steady_clock::now();
+			return double(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start_).count()) / 1000000000.0;
+		}
+		
+	private:
+		std::chrono::steady_clock::time_point start_;
+	
+};
+
 int main(int argc, char* argv[]) {
 	try {
+		Timer totalTimer;
+		
 		if (argc < 1) return -1;
 		const auto programName = boost::filesystem::path(argv[0]).stem().string();
 		
@@ -130,32 +148,40 @@ int main(int argc, char* argv[]) {
 		
 		AST::NamespaceList astRootNamespaceList;
 		
-		// Parse all source files.
-		for (const auto& filename: inputFileNames) {
-			const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
+		{
+			Timer timer;
 			
-			if (file == nullptr) {
-				printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
-				return 1;
-			}
-			
-			Parser::DefaultParser parser(astRootNamespaceList, file, filename);
-			
-			if (!parser.parseFile()) {
-				const auto errors = parser.getErrors();
-				assert(!errors.empty());
+			// Parse all source files.
+			for (const auto& filename: inputFileNames) {
+				const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
 				
-				printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
-				
-				for (const auto & error : errors) {
-					printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
+				if (file == nullptr) {
+					printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
+					return 1;
 				}
 				
-				return 1;
+				Parser::DefaultParser parser(astRootNamespaceList, file, filename);
+				
+				if (!parser.parseFile()) {
+					const auto errors = parser.getErrors();
+					assert(!errors.empty());
+					
+					printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
+					
+					for (const auto & error : errors) {
+						printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
+					}
+					
+					return 1;
+				}
 			}
+			
+			printf("Parser: %f seconds.\n", timer.getTime());
 		}
 		
 		if (!astDebugFileName.empty()) {
+			Timer timer;
+			
 			// If requested, dump AST tree information.
 			std::ofstream ofs(astDebugFileName.c_str(), std::ios_base::binary);
 			
@@ -168,19 +194,32 @@ int main(int argc, char* argv[]) {
 				ofs << formatMessage(astRootNamespaceList.at(i).toString());
 				ofs << std::endl << std::endl;
 			}
+			
+			printf("Dump AST: %f seconds.\n", timer.getTime());
 		}
 		
 		// Debug information.
 		Debug::Module debugModule;
 		
 		// Perform semantic analysis.
-		const auto rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
+		SEM::Namespace* rootSEMNamespace = nullptr;
+		
+		{
+			Timer timer;
+			rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
+			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
+		}
+		
 		assert(rootSEMNamespace != nullptr);
 		
 		if (!semDebugFileName.empty()) {
+			Timer timer;
+			
 			// If requested, dump SEM tree information.
 			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
 			ofs << formatMessage(rootSEMNamespace->toString());
+			
+			printf("Dump SEM: %f seconds.\n", timer.getTime());
 		}
 		
 		// TODO: name this based on output file name.
@@ -188,22 +227,44 @@ int main(int argc, char* argv[]) {
 		
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName, debugModule);
-		codeGenerator.genNamespace(rootSEMNamespace);
+		
+		{
+			Timer timer;
+			codeGenerator.genNamespace(rootSEMNamespace);
+			printf("Code Generation: %f seconds.\n", timer.getTime());
+		}
 		
 		if (!codeGenDebugFileName.empty()) {
+			Timer timer;
+			
 			// If requested, dump LLVM IR prior to optimisation.
 			codeGenerator.dumpToFile(codeGenDebugFileName);
+			
+			printf("Dump LLVM IR (pre optimisation): %f seconds.\n", timer.getTime());
 		}
 		
-		codeGenerator.applyOptimisations(optimisationLevel);
+		{
+			Timer timer;
+			codeGenerator.applyOptimisations(optimisationLevel);
+			printf("Optimisation: %f seconds.\n", timer.getTime());
+		}
 		
 		if (!optDebugFileName.empty()) {
+			Timer timer;
+			
 			// If requested, dump LLVM IR after optimisation.
 			codeGenerator.dumpToFile(optDebugFileName);
+			
+			printf("Dump LLVM IR (post optimisation): %f seconds.\n", timer.getTime());
 		}
 		
-		codeGenerator.writeToFile(outputFileName);
+		{
+			Timer timer;
+			codeGenerator.writeToFile(outputFileName);
+			printf("Write Bitcode: %f seconds.\n", timer.getTime());
+		}
 		
+		printf("--- Total time: %f seconds.\n", totalTimer.getTime());
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
 		return 1;

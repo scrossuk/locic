@@ -24,6 +24,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -135,6 +136,18 @@ namespace locic {
 				// to return the primitive directly. We need to fix this
 				// by creating a stub that translates between them.
 				return genFunctionPtrStub(function.module(), functionRefPtr, newFunctionType);
+			}
+		}
+		
+		llvm::Function* genFunctionRef(Module& module, SEM::Type* parentType, SEM::Function* function) {
+			if (parentType == nullptr) {
+				return genFunction(module, nullptr, function);
+			} else if (parentType->isObject()) {
+				return genFunction(module, parentType->getObjectType(), function);
+			} else if (parentType->isTemplateVar()) {
+				return genTemplateFunctionStub(module, parentType->getTemplateVar(), function);
+			} else {
+				llvm_unreachable("Unknown parent type in function ref.");
 			}
 		}
 		
@@ -401,9 +414,7 @@ namespace locic {
 				
 				case SEM::Value::FUNCTIONREF: {
 					const auto parentType = value->functionRef.parentType;
-					const auto objectType = parentType != nullptr ? parentType->getObjectType() : nullptr;
-					
-					const auto functionRefPtr = genFunction(module, objectType, value->functionRef.function);
+					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
 					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
 					const auto functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
@@ -411,7 +422,11 @@ namespace locic {
 						assert(parentType != nullptr);
 						llvm::Value* functionValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
 						functionValue = function.getBuilder().CreateInsertValue(functionValue, functionPtr, { 0 });
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, computeTemplateGenerator(function, parentType), { 1 });
+						if (parentType->isTemplateVar()) {
+							functionValue = function.getBuilder().CreateInsertValue(functionValue, function.getTemplateGenerator(), { 1 });
+						} else {
+							functionValue = function.getBuilder().CreateInsertValue(functionValue, computeTemplateGenerator(function, parentType), { 1 });
+						}
 						return functionValue;
 					} else {
 						return functionPtr;

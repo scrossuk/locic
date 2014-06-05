@@ -4,17 +4,22 @@
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVar.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
 
@@ -132,7 +137,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function functionGenerator(module, *llvmFunction, getArgInfo(module, typeInstance, function));
+			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, typeInstance, function));
 			
 			const auto& functionMap = module.debugModule().functionMap;
 			const auto iterator = functionMap.find(function);
@@ -154,6 +159,67 @@ namespace locic {
 			// (just make it loop to itself - this will
 			// be removed by dead code elimination)
 			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
+			
+			// Check the generated function is correct.
+			functionGenerator.verify();
+			
+			return llvmFunction;
+		}
+		
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, SEM::Function* function) {
+			assert(function->isMethod());
+			
+			// --- Generate function declaration.
+			const auto functionType = genFunctionType(module, function->type());
+			
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, "templateFunctionStub");
+			
+			if (function->type()->isFunctionNoExcept()) {
+				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
+			}
+			
+			const bool hasReturnVar = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
+			
+			if (hasReturnVar) {
+				// Class return values are allocated by the caller,
+				// which passes a pointer to the callee. The caller
+				// and callee must, for the sake of optimisation,
+				// ensure that the following attributes hold...
+				
+				// Caller must ensure pointer is always valid.
+				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
+				
+				// Caller must ensure pointer does not alias with
+				// any other arguments.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
+				
+				// Callee must not capture the pointer.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
+			}
+			
+			// --- Generate function code.
+			
+			Function functionGenerator(module, *llvmFunction, getTemplateVarFunctionStubArgInfo(module, function));
+			
+			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
+			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, functionGenerator.getRawContextValue(), typeInfoValue);
+			
+			const auto methodHash = CreateMethodNameHash(function->name().last());
+			const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
+			const auto interfaceMethodValue = makeInterfaceMethodValue(functionGenerator, interfaceStructValue, methodHashValue);
+			
+			const auto argList = functionGenerator.getArgList();
+			
+			const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
+			
+			if (hasReturnVar) {
+				genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
+				functionGenerator.getBuilder().CreateRetVoid();
+			} else if (result->getType()->isVoidTy()) {
+				functionGenerator.getBuilder().CreateRetVoid();
+			} else {
+				functionGenerator.getBuilder().CreateRet(result);
+			}
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();

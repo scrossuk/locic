@@ -440,7 +440,7 @@ namespace locic {
 				// 
 				//        template <typename T: SPEC_TYPE<T>>
 				// 
-				const auto destFunction = srcFunction->createDecl()->fullSubstitute(destTypeInstance->name() + name, templateVarMap);
+				const auto destFunction = srcFunction->createTemplatedDecl()->fullSubstitute(destTypeInstance->name() + name, templateVarMap);
 				destTypeInstance->functions().insert(std::make_pair(name, destFunction));
 			}
 		}
