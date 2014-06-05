@@ -70,7 +70,7 @@ namespace locic {
 			std::vector<llvm::Constant*> vtableStructElements;
 			
 			// Destructor.
-			vtableStructElements.push_back(ConstantGenerator(module).getNullPointer(typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Alignof.
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignOfFunction(module, typeInstance), typeGen.getI8PtrType()));

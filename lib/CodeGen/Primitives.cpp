@@ -904,10 +904,10 @@ namespace locic {
 			function.verify();
 		}
 		
-		void createVoidPrimitiveDestructor(Module& module, llvm::Function& llvmFunction) {
+		void createVoidPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, ArgInfo::ContextOnly());
+			Function function(module, llvmFunction, !typeInstance->templateVariables().empty() ? ArgInfo::TemplateAndContext() : ArgInfo::ContextOnly());
 			
 			// Nothing to do; just return.
 			function.getBuilder().CreateRetVoid();
@@ -923,7 +923,7 @@ namespace locic {
 			} else if (typeName == "value_lval") {
 				createValueLvalPrimitiveDestructor(module, typeInstance, llvmFunction);
 			} else {
-				createVoidPrimitiveDestructor(module, llvmFunction);
+				createVoidPrimitiveDestructor(module, typeInstance, llvmFunction);
 			}
 		}
 		

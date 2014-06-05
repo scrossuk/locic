@@ -219,7 +219,40 @@ namespace locic {
 				const auto stubFunctionPtrType = getCountFunctionType(module)->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				return builder.CreateCall(castedMethodFunctionPointer, { templateGeneratorValue });
+				const auto callInst = builder.CreateCall(castedMethodFunctionPointer, { templateGeneratorValue });
+				callInst->setDoesNotThrow();
+				callInst->setDoesNotAccessMemory();
+				return callInst;
+			}
+			
+			llvm::FunctionType* getDestructorFunctionType(Module& module) {
+				TypeGenerator typeGen(module);
+				return typeGen.getVoidFunctionType({ templateGeneratorType(module), typeGen.getI8PtrType() });
+			}
+			
+			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue) {
+				auto& module = function.module();
+				auto& builder = function.getBuilder();
+				
+				// Extract vtable and template generator.
+				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+				
+				// Get a pointer to the slot.
+				ConstantGenerator constGen(module);
+				std::vector<llvm::Value*> vtableEntryGEP;
+				vtableEntryGEP.push_back(constGen.getI32(0));
+				vtableEntryGEP.push_back(constGen.getI32(0));
+				
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				
+				// Load the slot.
+				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto stubFunctionPtrType = getDestructorFunctionType(module)->getPointerTo();
+				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
+				
+				const auto callInst = builder.CreateCall(castedMethodFunctionPointer, std::vector<llvm::Value*>{ templateGeneratorValue, objectValue });
+				callInst->setDoesNotThrow();
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {

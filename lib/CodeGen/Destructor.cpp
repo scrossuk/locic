@@ -12,6 +12,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {
 
@@ -44,7 +45,9 @@ namespace locic {
 					function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), castValue });
 				}
 			} else if (type->isTemplateVar()) {
-				// TODO!!
+				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				VirtualCall::generateDestructorCall(function, typeInfo, castValue);
 			}
 		}
 		
@@ -93,6 +96,33 @@ namespace locic {
 			}
 		}
 		
+		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+			const auto destructorFunction = genDestructorFunction(module, typeInstance);
+			if (!typeInstance->templateVariables().empty()) {
+				return destructorFunction;
+			}
+			
+			TypeGenerator typeGen(module);
+			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
+			
+			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			llvmFunction->setDoesNotThrow();
+			
+			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
+			llvm::IRBuilder<> builder(module.getLLVMContext());
+			builder.SetInsertPoint(entryBB);
+			
+			auto it = llvmFunction->arg_begin();
+			++it;
+			
+			const auto callInst = builder.CreateCall(destructorFunction, std::vector<llvm::Value*>{ it });
+			callInst->setDoesNotThrow();
+			
+			builder.CreateRetVoid();
+			
+			return llvmFunction;
+		}
+		
 		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
@@ -110,6 +140,7 @@ namespace locic {
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
 			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, mangledName);
+			llvmFunction->setDoesNotThrow();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
