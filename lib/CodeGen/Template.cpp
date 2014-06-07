@@ -376,12 +376,13 @@ namespace locic {
 			const auto typesArg = function.getArg(0);
 			const auto rootFnArg = function.getArg(1);
 			const auto pathArg = function.getArg(2);
-			const auto positionArg = function.getArg(3);
+			const auto parentPositionArg = function.getArg(3);
 			
 			auto& builder = function.getBuilder();
 			
-			const auto castPositionArg = builder.CreateZExt(positionArg, TypeGenerator(module).getI32Type());
-			const auto subPath = builder.CreateLShr(pathArg, castPositionArg);
+			const auto position = builder.CreateSub(parentPositionArg, constGen.getI8(templateBuilder.bitsRequired()));
+			const auto castPosition = builder.CreateZExt(position, TypeGenerator(module).getI32Type());
+			const auto subPath = builder.CreateLShr(pathArg, castPosition);
 			const auto mask = constGen.getI32((1 << templateBuilder.bitsRequired()) - 1);
 			const auto component = builder.CreateAnd(subPath, mask);
 			
@@ -445,7 +446,7 @@ namespace locic {
 				const auto pathEndBB = function.createBasicBlock("pathEnd");
 				const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
 				
-				const auto compareValue = builder.CreateICmpEQ(positionArg, constGen.getI8(0));
+				const auto compareValue = builder.CreateICmpEQ(position, constGen.getI8(0));
 				builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
 				
 				function.selectBasicBlock(pathEndBB);
@@ -455,8 +456,7 @@ namespace locic {
 				
 				// Call the next intermediate function.
 				const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseType->getObjectType());
-				const auto nextPosition = builder.CreateSub(positionArg, constGen.getI8(templateBuilder.bitsRequired()));
-				builder.CreateRet(builder.CreateCall(nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, nextPosition }));
+				builder.CreateRet(builder.CreateCall(nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, position }));
 				
 				function.selectBasicBlock(tryNextComponentEntryBB);
 			}

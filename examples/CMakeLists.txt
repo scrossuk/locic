@@ -19,7 +19,7 @@ function(loci_example name binary_name flags)
 	
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised ast.txt sem.txt codegen.ll opt.ll clangopt.ll
 		COMMAND # Run compiler.
-			${LOCIC} -O3 -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&
+			${LOCIC} -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&
 			
 			# Run 'opt' multiple times for maximum optimisation.
 			opt -S -O3 codegen.ll -o opt0.ll &&
@@ -30,7 +30,7 @@ function(loci_example name binary_name flags)
 			clang -o ${binary_name} codegen.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags} &&
 			
 			# Use clang to generate optimised platform binary.
-			clang -o ${binary_name}_optimised opt_final.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
+			clang -o ${binary_name}_optimised opt0.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
 		DEPENDS ${LOCIC} ${${name}BuildSources} loci-runtime-exception
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	

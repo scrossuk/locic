@@ -95,7 +95,8 @@ namespace locic {
 		 * 
 		 * This generates code like the following:
 		 * 
-		 * Type[8] typeIntermediateFunction(Type[8] types, void* rootFn, uint32_t path, uint8_t position) {
+		 * Type[8] typeIntermediateFunction(Type[8] types, void* rootFn, uint32_t path, uint8_t parentPosition) {
+		 *     const auto position = parentPosition - 2;
 		 *     const auto subPath = (path >> position);
 		 *     const auto mask = 0x3;
 		 *     const auto component = (subPath & mask);
@@ -104,20 +105,20 @@ namespace locic {
 		 *     if (component == 0) {
 		 *         newTypes[0] = { pairType, rootFn, (subPath & ~mask) | 0x2 };
 		 *         if (position == 0) return newTypes;
-		 *         return firstChildIntermediateFunction(newTypes, rootFn, path, position - 2);
+		 *         return firstChildIntermediateFunction(newTypes, rootFn, path, position);
 		 *     } else if (component == 1) {
 		 *         newTypes[0] = { vectorType, rootFn, (subPath & ~mask) | 0x3 };
 		 *         if (position == 0) return newTypes;
-		 *         return secondChildIntermediateFunction(newTypes, rootFn, path, position - 2);
+		 *         return secondChildIntermediateFunction(newTypes, rootFn, path, position);
 		 *     } else if (component == 2) {
 		 *         newTypes[0] = types[0];
 		 *         newTypes[1] = types[0];
 		 *         if (position == 0) return newTypes;
-		 *         return thirdChildIntermediateFunction(newTypes, rootFn, path, position - 2);
+		 *         return thirdChildIntermediateFunction(newTypes, rootFn, path, position);
 		 *     } else {
 		 *         newTypes[0] = types[0];
 		 *         if (position == 0) return newTypes;
-		 *         return fourthChildIntermediateFunction(newTypes, rootFn, path, position - 2);
+		 *         return fourthChildIntermediateFunction(newTypes, rootFn, path, position);
 		 *     }
 		 * }
 		 * 
