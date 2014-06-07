@@ -175,7 +175,7 @@ namespace locic {
 				generateCallWithReturnVar(function, returnVarValue, interfaceMethodValue, args);
 				
 				// If the return type isn't void, load the return value from the stack.
-				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : nullptr;
+				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
 			}
 			
 			llvm::FunctionType* getCountFunctionType(Module& module) {

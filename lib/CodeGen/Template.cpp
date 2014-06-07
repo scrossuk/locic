@@ -424,12 +424,13 @@ namespace locic {
 							// If there are arguments, refer to the component for them
 							// by adding the correct component in the path by computing
 							// (subPath & ~mask) | <their component>.
+							const auto castRootFunction = builder.CreatePointerCast(rootFnArg, TypeGenerator(module).getI8PtrType());
 							const auto argComponent = templateBuilder.templateUseMap().at(templateUseArg);
 							const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
 							const auto argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent));
 							
 							llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module));
-							templateGenerator = builder.CreateInsertValue(templateGenerator, rootFnArg, { 0 });
+							templateGenerator = builder.CreateInsertValue(templateGenerator, castRootFunction, { 0 });
 							templateGenerator = builder.CreateInsertValue(templateGenerator, argFullPath, { 1 });
 							typeInfo = builder.CreateInsertValue(typeInfo, templateGenerator, { 1 });
 						}

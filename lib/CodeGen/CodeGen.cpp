@@ -44,12 +44,12 @@ namespace locic {
 					
 					if (typeInstance->isPrimitive()) {
 						// Can't generate primitive types.
-						return;
+						continue;
 					}
 					
 					if (typeInstance->isInterface()) {
 						// Can't generate interface types.
-						return;
+						continue;
 					}
 					
 					(void) genTypeInstance(module, typeInstance);

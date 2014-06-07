@@ -4,6 +4,7 @@
 #include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
@@ -44,21 +45,30 @@ namespace locic {
 				return structType;
 			}
 			
+			// Add member variables.
+			const auto& variables = typeInstance->variables();
+			
+			// Create mapping between member variables and their
+			// indexes within their parent.
+			for (size_t i = 0; i < variables.size(); i++) {
+				const auto var = variables.at(i);
+				module.getMemberVarMap().forceInsert(var, i);
+			}
+			
 			// Generating the type for a class or struct definition, so
 			// the size and contents of the type instance is known and
 			// hence the contents can be specified.
 			std::vector<llvm::Type*> structVariables;
 			
-			// Add member variables.
-			const auto& variables = typeInstance->variables();
-			
-			// In future this should try to rearrange the
-			// member variables to minimise the class size
-			// (by dealing with alignment issues).
 			for (size_t i = 0; i < variables.size(); i++) {
 				const auto var = variables.at(i);
+				if (!isTypeSizeKnownInThisModule(module, var->type())) {
+					// If a member variable has unknown size,
+					// just return an opaque struct.
+					return structType;
+				}
+				
 				structVariables.push_back(genType(module, var->type()));
-				module.getMemberVarMap().forceInsert(var, i);
 			}
 			
 			structType->setBody(structVariables);
