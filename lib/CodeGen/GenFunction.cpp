@@ -137,7 +137,14 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, typeInstance, function));
+			const auto templateBuilder = typeInstance != nullptr ? &(module.typeTemplateBuilder(typeInstance)) : nullptr;
+			
+			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, typeInstance, function), templateBuilder);
+			
+			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {
+				// Always inline if possible for templated functions.
+				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			}
 			
 			const auto& functionMap = module.debugModule().functionMap;
 			const auto iterator = functionMap.find(function);
@@ -178,6 +185,9 @@ namespace locic {
 				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
 			}
 			
+			// Always inline template function stubs.
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
 			const bool hasReturnVar = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
 			
 			if (hasReturnVar) {
@@ -199,7 +209,7 @@ namespace locic {
 			
 			// --- Generate function code.
 			
-			Function functionGenerator(module, *llvmFunction, getTemplateVarFunctionStubArgInfo(module, function));
+			Function functionGenerator(module, *llvmFunction, getTemplateVarFunctionStubArgInfo(module, function), nullptr);
 			
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
 			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, functionGenerator.getRawContextValue(), typeInfoValue);

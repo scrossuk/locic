@@ -70,7 +70,9 @@ namespace locic {
 			}
 			
 			if (!typeInstance->templateVariables().empty()) {
-				(void) genTemplateIntermediateFunction(module, typeInstance, {});
+				auto& templateBuilder = module.typeTemplateBuilder(typeInstance);
+				(void) genTemplateIntermediateFunction(module, typeInstance, templateBuilder);
+				(void) genBitsRequiredFunction(module, templateBuilder);
 			}
 		}
 		

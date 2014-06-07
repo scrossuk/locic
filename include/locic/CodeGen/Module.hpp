@@ -2,6 +2,7 @@
 #define LOCIC_CODEGEN_MODULE_HPP
 
 #include <fstream>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
+#include <locic/CodeGen/TemplateBuilder.hpp>
 
 namespace locic {
 
@@ -34,9 +36,11 @@ namespace locic {
 		
 		typedef Map<std::string, llvm::Function*> FunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
+		typedef std::map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
+		typedef std::map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
+		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
-		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
 		
 		class Module {
 			public:
@@ -68,13 +72,17 @@ namespace locic {
 				
 				const MemberVarMap& getMemberVarMap() const;
 				
-				TypeMap& getTypeMap();
+				TemplateBuilder& typeTemplateBuilder(SEM::TypeInstance* typeInstance);
 				
-				const TypeMap& getTypeMap() const;
+				TemplateBuilderFunctionMap& templateBuilderFunctionMap();
 				
 				TemplateGeneratorMap& getTemplateGeneratorMap();
 				
 				const TemplateGeneratorMap& getTemplateGeneratorMap() const;
+				
+				TypeMap& getTypeMap();
+				
+				const TypeMap& getTypeMap() const;
 				
 				llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
@@ -90,8 +98,10 @@ namespace locic {
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
-				TypeMap typeMap_;
+				TemplateBuilderMap templateBuilderMap_;
+				TemplateBuilderFunctionMap templateBuilderFunctionMap_;
 				TemplateGeneratorMap templateGeneratorMap_;
+				TypeMap typeMap_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				

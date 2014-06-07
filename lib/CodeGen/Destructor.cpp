@@ -189,7 +189,8 @@ namespace locic {
 			
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			Function function(module, *llvmFunction, ArgInfo::ContextOnly());
+			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
+			Function function(module, *llvmFunction, hasTemplateArgs ? ArgInfo::TemplateAndContext() : ArgInfo::ContextOnly(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			if (typeInstance->isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);

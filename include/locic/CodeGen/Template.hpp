@@ -4,7 +4,9 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/SEM.hpp>
+
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/TemplateBuilder.hpp>
 
 namespace locic {
 
@@ -50,6 +52,10 @@ namespace locic {
 		 */
 		llvm::Value* computeTemplateGenerator(Function& function, SEM::Type* type);
 		
+		llvm::Function* genBitsRequiredFunctionDecl(Module& module, TemplateBuilder& templateBuilder);
+		
+		llvm::Function* genBitsRequiredFunction(Module& module, TemplateBuilder& templateBuilder);
+		
 		/**
 		 * \brief Generate a root template argument generator function.
 		 * 
@@ -60,6 +66,7 @@ namespace locic {
 		 *     types[0] = { firstTypeVTablePtr, NULL, 0 };
 		 *     types[1] = { secondTypeVTablePtr, NULL, 0 };
 		 *     // etc.
+		 *     if (path == 1) return types;
 		 *     return childFn(types, rootFn, path, 31 - ctlz(path));
 		 * }
 		 * 
@@ -89,8 +96,6 @@ namespace locic {
 		 * This generates code like the following:
 		 * 
 		 * Type[8] typeIntermediateFunction(Type[8] types, void* rootFn, uint32_t path, uint8_t position) {
-		 *     if (position == 0) return types;
-		 *     
 		 *     const auto subPath = (path >> position);
 		 *     const auto mask = 0x3;
 		 *     const auto component = (subPath & mask);
@@ -98,16 +103,20 @@ namespace locic {
 		 *     
 		 *     if (component == 0) {
 		 *         newTypes[0] = { pairType, rootFn, (subPath & ~mask) | 0x2 };
+		 *         if (position == 0) return newTypes;
 		 *         return firstChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     } else if (component == 1) {
 		 *         newTypes[0] = { vectorType, rootFn, (subPath & ~mask) | 0x3 };
+		 *         if (position == 0) return newTypes;
 		 *         return secondChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     } else if (component == 2) {
 		 *         newTypes[0] = types[0];
 		 *         newTypes[1] = types[0];
+		 *         if (position == 0) return newTypes;
 		 *         return thirdChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     } else {
 		 *         newTypes[0] = types[0];
+		 *         if (position == 0) return newTypes;
 		 *         return fourthChildIntermediateFunction(newTypes, rootFn, path, position - 2);
 		 *     }
 		 * }
@@ -116,7 +125,7 @@ namespace locic {
 		 * intermediate function, in order to set its own template arguments
 		 * based on the arguments provided to it.
 		 */
-		llvm::Function* genTemplateIntermediateFunction(Module& module, SEM::TypeInstance* parentType, const std::map<SEM::Type*, size_t>& templateUses);
+		llvm::Function* genTemplateIntermediateFunction(Module& module, SEM::TypeInstance* parentType, const TemplateBuilder& templateBuilder);
 		
 	}
 	

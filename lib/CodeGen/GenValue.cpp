@@ -57,6 +57,10 @@ namespace locic {
 			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
 			
 			const auto llvmFunction = createLLVMFunction(module, newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub");
+			
+			// Always inline if possible.
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
 			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
 			llvm::IRBuilder<> builder(module.getLLVMContext());
 			builder.SetInsertPoint(entryBB);

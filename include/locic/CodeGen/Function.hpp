@@ -11,6 +11,7 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/TemplateBuilder.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 
@@ -35,7 +36,7 @@ namespace locic {
 				typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
 				typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
 				
-				Function(Module& pModule, llvm::Function& function, ArgInfo argInfo);
+				Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* templateBuilder);
 				
 				llvm::Function& getLLVMFunction();
 				
@@ -62,6 +63,8 @@ namespace locic {
 				llvm::Value* getRawContextValue() const;
 				
 				llvm::Value* getContextValue(SEM::TypeInstance* typeInstance);
+				
+				TemplateBuilder& templateBuilder();
 				
 				llvm::BasicBlock* createBasicBlock(const std::string& name);
 				
@@ -122,6 +125,8 @@ namespace locic {
 				llvm::Function& function_;
 				llvm::IRBuilder<> entryBuilder_, builder_;
 				ArgInfo argInfo_;
+				TemplateBuilder* templateBuilder_;
+				
 				LocalVarMap localVarMap_;
 				MemberOffsetMap memberOffsetMap_;
 				SizeOfMap sizeOfMap_;

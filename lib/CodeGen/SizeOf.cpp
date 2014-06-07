@@ -41,12 +41,15 @@ namespace locic {
 			// will be implemented in another module.
 			if (typeInstance->isClassDecl()) return llvmFunction;
 			
+			// Always inline this function.
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
 			if (typeInstance->isPrimitive()) {
 				createPrimitiveAlignOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			// Calculate maximum alignment mask of all variables,
 			// which is just a matter of OR-ing them together.
@@ -57,6 +60,8 @@ namespace locic {
 			}
 			
 			function.getBuilder().CreateRet(classAlignMask);
+			
+			function.verify();
 			
 			return llvmFunction;
 		}
@@ -129,6 +134,9 @@ namespace locic {
 			// will be implemented in another module.
 			if (typeInstance->isClassDecl()) return llvmFunction;
 			
+			// Always inline this function.
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
 			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
 				createPrimitiveSizeOf(module, typeInstance, *llvmFunction);
@@ -138,7 +146,7 @@ namespace locic {
 			// Since the member variables are known, generate
 			// the contents of the sizeof() function to sum
 			// their sizes.
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			const auto one = ConstantGenerator(module).getSizeTValue(1);
@@ -164,6 +172,8 @@ namespace locic {
 			classSize = function.getBuilder().CreateSelect(isZero, one, classSize);
 			
 			function.getBuilder().CreateRet(makeAligned(function, classSize, classAlignMask));
+			
+			function.verify();
 			
 			return llvmFunction;
 		}
@@ -258,12 +268,15 @@ namespace locic {
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
+			// Always inline this function.
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
 			assert(!typeInstance->isInterface() && !typeInstance->isClassDecl() && !typeInstance->isPrimitive());
 			
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(llvm_abi::Type::Integer(llvm_abi::SizeT));
 			
-			Function function(module, *llvmFunction, ArgInfo(false, hasTemplate, false, std::move(abiTypes), { sizeType }));
+			Function function(module, *llvmFunction, ArgInfo(false, hasTemplate, false, std::move(abiTypes), { sizeType }), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& typeVars = typeInstance->variables();
 			
@@ -277,8 +290,8 @@ namespace locic {
 				
 				offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 				
-				const auto nextBB = function.createBasicBlock("next");
 				const auto exitBB = function.createBasicBlock("exit");
+				const auto nextBB = function.createBasicBlock("next");
 				
 				const auto varIndexValue = ConstantGenerator(module).getSizeTValue(i);
 				const auto compareResult = function.getBuilder().CreateICmpEQ(memberIndexValue, varIndexValue);
@@ -288,7 +301,10 @@ namespace locic {
 				function.getBuilder().CreateRet(offsetValue);
 				
 				function.selectBasicBlock(nextBB);
-				offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+				
+				if (i != typeVars.size() - 1) {
+					offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+				}
 			}
 			
 			function.getBuilder().CreateUnreachable();

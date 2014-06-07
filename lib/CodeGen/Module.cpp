@@ -82,12 +82,12 @@ namespace locic {
 			return memberVarMap_;
 		}
 		
-		TypeMap& Module::getTypeMap() {
-			return typeMap_;
+		TemplateBuilder& Module::typeTemplateBuilder(SEM::TypeInstance* typeInstance) {
+			return templateBuilderMap_[typeInstance];
 		}
 		
-		const TypeMap& Module::getTypeMap() const {
-			return typeMap_;
+		TemplateBuilderFunctionMap& Module::templateBuilderFunctionMap() {
+			return templateBuilderFunctionMap_;
 		}
 		
 		TemplateGeneratorMap& Module::getTemplateGeneratorMap() {
@@ -96,6 +96,14 @@ namespace locic {
 		
 		const TemplateGeneratorMap& Module::getTemplateGeneratorMap() const {
 			return templateGeneratorMap_;
+		}
+		
+		TypeMap& Module::getTypeMap() {
+			return typeMap_;
+		}
+		
+		const TypeMap& Module::getTypeMap() const {
+			return typeMap_;
 		}
 		
 		llvm::GlobalVariable* Module::createConstGlobal(const std::string& name,

@@ -31,11 +31,12 @@ namespace locic {
 			return first.second < second.second;
 		}
 		
-		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo)
+		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* templateBuilder)
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
 			  builder_(pModule.getLLVMContext()),
 			  argInfo_(std::move(argInfo)),
+			  templateBuilder_(templateBuilder),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
 			  exceptionInfo_(nullptr),
@@ -141,6 +142,11 @@ namespace locic {
 		
 		llvm::Value* Function::getContextValue(SEM::TypeInstance* typeInstance) {
 			return getBuilder().CreatePointerCast(getRawContextValue(), genPointerType(module(), typeInstance->selfType()));
+		}
+		
+		TemplateBuilder& Function::templateBuilder() {
+			assert(templateBuilder_ != nullptr);
+			return *templateBuilder_;
 		}
 		
 		llvm::BasicBlock* Function::createBasicBlock(const std::string& name) {

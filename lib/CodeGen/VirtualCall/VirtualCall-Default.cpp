@@ -178,23 +178,6 @@ namespace locic {
 				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : nullptr;
 			}
 			
-			llvm::Value* generateTypeInfoCall(Function& function, llvm::Type* returnType, llvm::Value* typeInfoValue, const std::string& name, const std::vector<llvm::Value*>& args) {
-				ConstantGenerator constGen(function.module());
-				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
-				const auto objectPointer = constGen.getNullPointer(i8PtrType);
-				
-				const auto interfaceValue = makeInterfaceStructValue(function, objectPointer, typeInfoValue);
-				const auto hashValue = ConstantGenerator(function.module()).getI64(CreateMethodNameHash(name));
-				const auto interfaceMethodValue = makeInterfaceMethodValue(function, interfaceValue, hashValue);
-				
-				const auto returnVarValue = returnType != nullptr ? static_cast<llvm::Value*>(function.getEntryBuilder().CreateAlloca(returnType)) :
-					constGen.getNullPointer(i8PtrType);
-				
-				generateCallWithReturnVar(function, returnVarValue, interfaceMethodValue, args);
-				
-				return returnType != nullptr ? function.getBuilder().CreateLoad(returnVarValue) : nullptr;
-			}
-			
 			llvm::FunctionType* getCountFunctionType(Module& module) {
 				TypeGenerator typeGen(module);
 				return typeGen.getFunctionType(getNamedPrimitiveType(module, "size_t"), { templateGeneratorType(module) });
@@ -202,7 +185,7 @@ namespace locic {
 			
 			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
 				auto& module = function.module();
-				auto& builder = function.getBuilder();
+				auto& builder = function.getEntryBuilder();
 				
 				// Extract vtable and template generator.
 				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
@@ -271,7 +254,7 @@ namespace locic {
 				
 				setStubAttributes(llvmFunction);
 				
-				Function function(module, *llvmFunction, getStubArgInfo());
+				Function function(module, *llvmFunction, getStubArgInfo(), nullptr);
 				
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);

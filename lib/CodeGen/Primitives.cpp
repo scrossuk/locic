@@ -26,7 +26,7 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
+			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -59,7 +59,7 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None());
+			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -194,7 +194,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -269,7 +269,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -372,7 +372,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -461,7 +461,7 @@ namespace locic {
 			const auto& typeName = typeInstance->name().first();
 			const auto& methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -552,7 +552,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -607,7 +607,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -645,7 +645,7 @@ namespace locic {
 			const auto methodName = semFunction->name().last();
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -680,7 +680,7 @@ namespace locic {
 			const auto methodName = semFunction->name().last();
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -772,7 +772,7 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction));
+			Function function(module, llvmFunction, getFunctionArgInfo(module, typeInstance, semFunction), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -860,7 +860,7 @@ namespace locic {
 			
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, ArgInfo::TemplateAndContext());
+			Function function(module, llvmFunction, ArgInfo::TemplateAndContext(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			// Run the child value's destructor.
 			genDestructorCall(function, targetType, function.getRawContextValue());
@@ -873,7 +873,7 @@ namespace locic {
 		void createValueLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, ArgInfo::TemplateAndContext());
+			Function function(module, llvmFunction, ArgInfo::TemplateAndContext(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -907,7 +907,7 @@ namespace locic {
 		void createVoidPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, !typeInstance->templateVariables().empty() ? ArgInfo::TemplateAndContext() : ArgInfo::ContextOnly());
+			Function function(module, llvmFunction, !typeInstance->templateVariables().empty() ? ArgInfo::TemplateAndContext() : ArgInfo::ContextOnly(), &(module.typeTemplateBuilder(typeInstance)));
 			
 			// Nothing to do; just return.
 			function.getBuilder().CreateRetVoid();

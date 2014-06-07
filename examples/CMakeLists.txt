@@ -21,15 +21,16 @@ function(loci_example name binary_name flags)
 		COMMAND # Run compiler.
 			${LOCIC} -O3 -o ${binary_name}.bc --ast-debug-file=ast.txt --sem-debug-file=sem.txt --codegen-debug-file=codegen.ll --opt-debug-file=opt.ll ${${name}BuildSources} &&
 			
-			# Use clang to optimise, since it currently does
-			# much better than locic.
-			clang -S -emit-llvm -O3 -o clangopt.ll codegen.ll &&
+			# Run 'opt' multiple times for maximum optimisation.
+			opt -S -O3 codegen.ll -o opt0.ll &&
+			opt -S -O3 opt0.ll -o opt1.ll &&
+			opt -S -O3 opt1.ll -o opt_final.ll &&
 			
 			# Use clang to generate non-optimised platform binary.
 			clang -o ${binary_name} codegen.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags} &&
 			
 			# Use clang to generate optimised platform binary.
-			clang -o ${binary_name}_optimised clangopt.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
+			clang -o ${binary_name}_optimised opt_final.ll -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
 		DEPENDS ${LOCIC} ${${name}BuildSources} loci-runtime-exception
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
