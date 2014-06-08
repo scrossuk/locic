@@ -31,12 +31,12 @@ namespace locic {
 			return first.second < second.second;
 		}
 		
-		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* templateBuilder)
+		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* pTemplateBuilder)
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
 			  builder_(pModule.getLLVMContext()),
 			  argInfo_(std::move(argInfo)),
-			  templateBuilder_(templateBuilder),
+			  templateBuilder_(pTemplateBuilder),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
 			  debugInfo_(nullptr),
