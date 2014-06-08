@@ -229,7 +229,11 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					return first->getTemplateVar() < second->getTemplateVar() ? COMPARE_LESS : COMPARE_MORE;
+					if (first->getTemplateVar() != second->getTemplateVar()) {
+						return first->getTemplateVar() < second->getTemplateVar() ? COMPARE_LESS : COMPARE_MORE;
+					}
+					
+					return COMPARE_EQUAL;
 				}
 				
 				default: {

@@ -39,8 +39,8 @@ namespace locic {
 			  templateBuilder_(templateBuilder),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
-			  exceptionInfo_(nullptr),
 			  debugInfo_(nullptr),
+			  exceptionInfo_(nullptr),
 			  templateArgs_(nullptr) {
 			assert(function.isDeclaration());
 			assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
@@ -62,11 +62,6 @@ namespace locic {
 			
 			builder_.SetInsertPoint(startBB);
 			
-			// Allocate exception information values.
-			TypeGenerator typeGen(pModule);
-			const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
-			exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
-			
 			// Decode arguments according to ABI.
 			std::vector<llvm::Value*> encodedArgValues;
 			
@@ -75,11 +70,6 @@ namespace locic {
 			}
 			
 			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
-			
-			// Obtain template arguments (if applicable).
-			if (argInfo_.hasTemplateGeneratorArgument()) {
-				templateArgs_ = computeTemplateArguments(*this, getRawArg(argInfo_.templateGeneratorArgumentOffset()));
-			}
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
@@ -125,8 +115,11 @@ namespace locic {
 			return getRawArg(argInfo_.templateGeneratorArgumentOffset());
 		}
 		
-		llvm::Value* Function::getTemplateArgs() const {
-			assert(templateArgs_ != nullptr);
+		llvm::Value* Function::getTemplateArgs() {
+			assert(argInfo_.hasTemplateGeneratorArgument());
+			if (templateArgs_ == nullptr) {
+				templateArgs_ = computeTemplateArguments(*this, getRawArg(argInfo_.templateGeneratorArgumentOffset()));
+			}
 			return templateArgs_;
 		}
 		
@@ -207,7 +200,13 @@ namespace locic {
 			return unwindStackStack_.top();
 		}
 		
-		llvm::Value* Function::exceptionInfo() const {
+		llvm::Value* Function::exceptionInfo() {
+			if (exceptionInfo_ == nullptr) {
+				// Allocate exception information values.
+				TypeGenerator typeGen(module());
+				const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
+				exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
+			}
 			return exceptionInfo_;
 		}
 		

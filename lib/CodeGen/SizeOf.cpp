@@ -317,6 +317,10 @@ namespace locic {
 		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex) {
 			assert(type->isObject());
 			
+			if (memberIndex == 0) {
+				return ConstantGenerator(function.module()).getSizeTValue(0);
+			}
+			
 			const auto offsetPair = std::make_pair(type, memberIndex);
 			
 			auto& memberOffsetMap = function.getMemberOffsetMap();

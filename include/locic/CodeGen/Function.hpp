@@ -56,7 +56,7 @@ namespace locic {
 				
 				llvm::Value* getTemplateGenerator() const;
 				
-				llvm::Value* getTemplateArgs() const;
+				llvm::Value* getTemplateArgs();
 				
 				llvm::Value* getReturnVar() const;
 				
@@ -110,7 +110,7 @@ namespace locic {
 				
 				const UnwindStack& unwindStack() const;
 				
-				llvm::Value* exceptionInfo() const;
+				llvm::Value* exceptionInfo();
 				
 				void attachDebugInfo(llvm::DISubprogram subprogram);
 				
@@ -134,9 +134,10 @@ namespace locic {
 				// A 'stack' of unwind stacks.
 				std::stack<UnwindStack> unwindStackStack_;
 				
-				llvm::Value* exceptionInfo_;
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;
+				
+				llvm::Value* exceptionInfo_;
 				llvm::Value* templateArgs_;
 				
 		};
