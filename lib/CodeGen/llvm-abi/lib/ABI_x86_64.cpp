@@ -143,7 +143,9 @@ namespace llvm_abi {
 				// Add necessary padding before this member.
 				offset = roundUpToAlign(offset, getTypeAlign(member.type()));
 				
-				if (member.offset() != offset || hasUnalignedFields(member.type())) {
+				const auto memberOffset = member.offset() == 0 ? offset : member.offset();
+				
+				if (memberOffset != offset || hasUnalignedFields(member.type())) {
 					return true;
 				}
 				
@@ -266,7 +268,7 @@ namespace llvm_abi {
 				const auto memberOffsets = getStructOffsets(structMembers);
 				
 				for (size_t i = 0; i < structMembers.size(); i++) {
-					classifyType(classification, structMembers.at(i).type(), memberOffsets.at(i));
+					classifyType(classification, structMembers.at(i).type(), offset + memberOffsets.at(i));
 				}
 			} else {
 				llvm_unreachable("Unknown type kind.");
@@ -446,6 +448,8 @@ namespace llvm_abi {
 			
 			const auto encodedValuePtr = entryBuilder.CreateAlloca(encodedValue->getType());
 			builder.CreateStore(encodedValue, encodedValuePtr);
+			
+			assert(llvmArgTypes.at(i) != nullptr);
 			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes.at(i));
 			builder.CreateMemCpy(argValuePtr, encodedValuePtr, getTypeSize(argType), getTypeAlign(argType));
 			

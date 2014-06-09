@@ -1,3 +1,5 @@
+__primitive void_t { }
+
 __primitive null_t { }
 
 __primitive bool {

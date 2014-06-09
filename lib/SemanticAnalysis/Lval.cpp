@@ -48,7 +48,6 @@ namespace locic {
 		
 		bool supportsDissolve(SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:

@@ -69,7 +69,7 @@ namespace locic {
 				encodedArgValues.push_back(arg);
 			}
 			
-			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
+			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {

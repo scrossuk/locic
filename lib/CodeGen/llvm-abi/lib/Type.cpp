@@ -153,5 +153,79 @@ namespace llvm_abi {
 		return impl_->arrayType.elementType;
 	}
 	
+	static std::string intKindToString(IntegerKind kind) {
+		switch (kind) {
+			case Bool:
+				return "Bool";
+			case Char:
+				return "Char";
+			case Short:
+				return "Short";
+			case Int:
+				return "Int";
+			case Long:
+				return "Long";
+			case LongLong:
+				return "LongLong";
+			case Int8:
+				return "Int8";
+			case Int16:
+				return "Int16";
+			case Int32:
+				return "Int32";
+			case Int64:
+				return "Int64";
+			case Int128:
+				return "Int128";
+			case SizeT:
+				return "SizeT";
+			default:
+				return "[UNKNOWN]";
+		}
+	}
+	
+	static std::string floatKindToString(FloatingPointKind kind) {
+		switch (kind) {
+			case Float:
+				return "Float";
+			case Double:
+				return "Double";
+			case LongDouble:
+				return "LongDouble";
+			case Float128:
+				return "Float128";
+			default:
+				return "[UNKNOWN]";
+		}
+	}
+	
+	std::string Type::toString() const {
+		switch (kind()) {
+			case PointerType:
+				return "Pointer";
+			case IntegerType:
+				return std::string("Integer(") + intKindToString(integerKind()) + ")";
+			case FloatingPointType:
+				return std::string("FloatingPoint(") + floatKindToString(floatingPointKind()) + ")";
+			case ComplexType:
+				return std::string("Complex(") + floatKindToString(complexKind()) + ")";
+			case StructType: {
+				std::string s = "Struct(";
+				const auto& members = structMembers();
+				for (size_t i = 0; i < members.size(); i++) {
+					if (i > 0) {
+						s += ", ";
+					}
+					s += std::string("StructMember(") + members.at(i).type().toString() + ")";
+				}
+				return s + ")";
+			}
+			case ArrayType:
+				return std::string("Array(") + arrayElementType().toString() + ")";
+			default:
+				return "[UNKNOWN]";
+		}
+	}
+	
 }
 

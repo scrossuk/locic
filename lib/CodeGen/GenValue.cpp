@@ -238,11 +238,11 @@ namespace locic {
 					const auto destType = value->type();
 					assert((sourceType->kind() == destType->kind()
 							|| (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t")
-							|| destType->isVoid())
+							|| destType->isBuiltInVoid())
 						   && "Types must be in the same group for cast, or "
 						   "it should be a cast from null, or a cast to void");
 						   
-					if (destType->isVoid()) {
+					if (destType->isBuiltInVoid()) {
 						// Call destructor for the value.
 						genDestructorCall(function, sourceType, codeValue);
 						
@@ -251,10 +251,6 @@ namespace locic {
 					}
 					
 					switch (sourceType->kind()) {
-						case SEM::Type::VOID: {
-							return codeValue;
-						}
-						
 						case SEM::Type::OBJECT: {
 							if (sourceType->getObjectType() == destType->getObjectType()) {
 								return codeValue;

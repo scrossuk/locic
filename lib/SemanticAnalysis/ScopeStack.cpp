@@ -16,8 +16,7 @@ namespace locic {
 			Name name = Name::Absolute();
 			
 			for (size_t i = 0; i < scopeStack.size(); i++) {
-				const auto pos = scopeStack.size() - i - 1;
-				const auto& element = scopeStack.at(pos);
+				const auto& element = scopeStack.at(i);
 				
 				if (element.hasName()) {
 					name = name + element.name();

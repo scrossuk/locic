@@ -92,7 +92,7 @@ namespace locic {
 						// 'auto' in the variable's type.
 						const auto varType = CastType(initialiseType, varDeclType, location, isTopLevel);
 						
-						if (varType->isVoid()) {
+						if (varType->isBuiltInVoid()) {
 							throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
 								astTypeVarNode->namedVar.name.c_str(), location.toString().c_str()));
 						}
@@ -172,7 +172,7 @@ namespace locic {
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type);
 					
-					if (varType->isVoid()) {
+					if (varType->isBuiltInVoid()) {
 						throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}

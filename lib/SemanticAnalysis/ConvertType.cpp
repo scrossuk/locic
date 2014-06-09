@@ -58,6 +58,20 @@ namespace locic {
 					for (size_t j = 0; j < numTemplateArguments; j++) {
 						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
 						
+						if (templateTypeValue->isAuto()) {
+							// Presumably auto will always work...
+							continue;
+						}
+						
+						if (!templateTypeValue->isObjectOrTemplateVar()) {
+							throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
+								"as template parameter %llu for type '%s' at position %s.",
+								templateTypeValue->toString().c_str(),
+								(unsigned long long) j,
+								name.toString().c_str(),
+								location.toString().c_str()));
+						}
+						
 						if (templateTypeValue->isInterface()) {
 							throw ErrorException(makeString("Cannot use abstract type '%s' "
 								"as template parameter %llu for type '%s' at position %s.",
@@ -71,11 +85,6 @@ namespace locic {
 						
 						if (templateVariable->specType() != nullptr) {
 							assert(templateVariable->specType()->isInterface());
-							
-							if (templateTypeValue->isAuto()) {
-								// Presumably auto will always work...
-								continue;
-							}
 							
 							if (!templateTypeValue->isObjectOrTemplateVar()) {
 								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
@@ -187,7 +196,7 @@ namespace locic {
 					return ConvertType(context, type->getRefType())->createRefType(targetType);
 				}
 				case AST::Type::VOID: {
-					return SEM::Type::Void();
+					return SEM::Type::Object(getBuiltInType(context.scopeStack(), "void_t"), SEM::Type::NO_TEMPLATE_ARGS);
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
@@ -211,7 +220,7 @@ namespace locic {
 					for (const auto& astParamType: *astParameterTypes) {
 						SEM::Type* paramType = ConvertType(context, astParamType);
 						
-						if(paramType->isVoid()) {
+						if(paramType->isBuiltInVoid()) {
 							throw ErrorException("Parameter type (inside function type) cannot be void.");
 						}
 						

@@ -32,10 +32,6 @@ namespace locic {
 			}
 			
 			switch (destType->kind()) {
-				case SEM::Type::VOID: {
-					// Void can be cast to void...
-					return sourceType->withoutTags();
-				}
 				case SEM::Type::OBJECT: {
 					// Objects can only be cast to the same object type.
 					if (sourceType->getObjectType() != destType->getObjectType()) {
@@ -399,11 +395,6 @@ namespace locic {
 					throw ErrorException(makeString("Format only cast failed from type %s to type %s.",
 						value->type()->toString().c_str(), destType->toString().c_str()));
 				}
-			}
-			
-			if (destType->isVoid()) {
-				// Everything can be cast to void.
-				return SEM::Value::Cast(destType, value);
 			}
 			
 			auto sourceType = value->type();

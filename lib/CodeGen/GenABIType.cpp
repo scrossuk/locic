@@ -63,6 +63,11 @@ namespace locic {
 			const auto typeInstance = type->getObjectType();
 			const auto& name = typeInstance->name().last();
 			
+			if (name == "void_t") {
+				// TODO: use a void type?
+				return llvm_abi::Type::Struct({});
+			}
+			
 			if (name == "null_t") {
 				return llvm_abi::Type::Pointer();
 			}
@@ -130,13 +135,9 @@ namespace locic {
 		
 		llvm_abi::Type genABIType(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID: {
-					// TODO: use a void type?
-					return llvm_abi::Type::Struct({});
-				}
-				
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
+					
 					if (typeInstance->isPrimitive()) {
 						return getPrimitiveABIType(module, type);
 					} else {
@@ -152,7 +153,6 @@ namespace locic {
 						
 						return llvm_abi::Type::AutoStruct(std::move(members));
 					}
-					llvm_unreachable("Unknown object ABI type with known size.");
 				}
 				
 				case SEM::Type::FUNCTION: {

@@ -10,50 +10,51 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Template.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
-		ArgInfo ArgInfo::None() {
-			return ArgInfo(false, false, false, {}, {});
+		ArgInfo ArgInfo::None(Module& module) {
+			return ArgInfo(module, false, false, false, {}, {});
 		}
 		
-		ArgInfo ArgInfo::ContextOnly() {
-			return ArgInfo(false, false, true, {}, {});
+		ArgInfo ArgInfo::ContextOnly(Module& module) {
+			return ArgInfo(module, false, false, true, {}, {});
 		}
 		
-		ArgInfo ArgInfo::TemplateOnly() {
-			return ArgInfo(false, true, false, {}, {});
+		ArgInfo ArgInfo::TemplateOnly(Module& module) {
+			return ArgInfo(module, false, true, false, {}, {});
 		}
 		
-		ArgInfo ArgInfo::TemplateAndContext() {
-			return ArgInfo(false, true, true, {}, {});
+		ArgInfo ArgInfo::TemplateAndContext(Module& module) {
+			return ArgInfo(module, false, true, true, {}, {});
 		}
 		
-		ArgInfo ArgInfo::Basic(std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
-			return ArgInfo(false, false, false, std::move(standardArguments), argTypes);
+		ArgInfo ArgInfo::Basic(Module& module, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
+			return ArgInfo(module, false, false, false, std::move(standardArguments), argTypes);
 		}
 		
-		ArgInfo::ArgInfo(bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
+		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
 			: hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),
 			  hasContextArgument_(hCA),
 			  numStandardArguments_(standardArguments.size()) {
 			if (hasReturnVarArgument_) {
 				abiTypes_.push_back(llvm_abi::Type::Pointer());
-				abiLLVMTypes_.push_back(nullptr);
+				abiLLVMTypes_.push_back(TypeGenerator(module).getI8PtrType());
 			}
 			
 			if (hasTemplateGeneratorArgument_) {
 				abiTypes_.push_back(templateGeneratorABIType());
-				abiLLVMTypes_.push_back(nullptr);
+				abiLLVMTypes_.push_back(templateGeneratorType(module));
 			}
 			
 			if (hasContextArgument_) {
 				abiTypes_.push_back(llvm_abi::Type::Pointer());
-				abiLLVMTypes_.push_back(nullptr);
+				abiLLVMTypes_.push_back(TypeGenerator(module).getI8PtrType());
 			}
 			
 			size_t i = 0;
@@ -108,20 +109,21 @@ namespace locic {
 			return abiLLVMTypes_;
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
-			const bool hasTemplateGeneratorArg = (typeInstance != nullptr && !typeInstance->templateVariables().empty());
-			const bool hasContextArg = function->isMethod() && !function->isStaticMethod();
+		ArgInfo getFunctionArgInfo(Module& module, SEM::Type* functionType) {
+			assert(functionType->isFunction());
+			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, functionType->getFunctionReturnType());
+			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplatedMethod();
+			const bool hasContextArg = functionType->isFunctionMethod();
 			
 			std::vector<llvm_abi::Type> abiArgTypes;
 			std::vector<llvm::Type*> abiLLVMArgTypes;
 			
-			for (const auto paramType :  function->type()->getFunctionParameterTypes()) {
+			for (const auto paramType: functionType->getFunctionParameterTypes()) {
 				abiArgTypes.push_back(genABIArgType(module, paramType));
 				abiLLVMArgTypes.push_back(genArgType(module, paramType));
 			}
 			
-			return ArgInfo(hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
 		}
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function) {
@@ -137,7 +139,7 @@ namespace locic {
 				abiLLVMArgTypes.push_back(genArgType(module, paramType));
 			}
 			
-			return ArgInfo(hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
 		}
 		
 	}

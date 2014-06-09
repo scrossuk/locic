@@ -1,0 +1,63 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+template <typename T>
+interface Comparable {
+	T implicitCopy() const;
+	
+	int compare(T other) const;
+}
+
+template <typename T: Comparable<T>>
+class TestClass(T value0, T value1) {
+	static Create(T value0, T value1) {
+		return @(move value0, move value1);
+	}
+	
+	bool isEqual() const {
+		return @value0 == @value1;
+	}
+}
+
+class CustomType(int value) {
+	static Create(int value) {
+		return @(value);
+	}
+	
+	CustomType implicitCopy() const {
+		return @(@value);
+	}
+	
+	int value() const {
+		return @value;
+	}
+	
+	int compare(CustomType other) const {
+		testPrint(C"CustomType.compare: %d vs %d", @value, other.value());
+		return @value.compare(other.value());
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	TestClass<int> object0 = TestClass<int>(0, 0);
+	testPrint(C"object0.isEqual = %s", object0.isEqual() ? C"YES" : C"NO");
+	
+	TestClass<int> object1 = TestClass<int>(0, 1);
+	testPrint(C"object1.isEqual = %s", object1.isEqual() ? C"YES" : C"NO");
+	
+	TestClass<int> object2 = TestClass<int>(-1, 1);
+	testPrint(C"object2.isEqual = %s", object2.isEqual() ? C"YES" : C"NO");
+	
+	TestClass<CustomType> object3 = TestClass<CustomType>(CustomType(0), CustomType(0));
+	testPrint(C"object3.isEqual = %s", object3.isEqual() ? C"YES" : C"NO");
+	
+	TestClass<CustomType> object4 = TestClass<CustomType>(CustomType(0), CustomType(1));
+	testPrint(C"object4.isEqual = %s", object4.isEqual() ? C"YES" : C"NO");
+	
+	TestClass<CustomType> object5 = TestClass<CustomType>(CustomType(-1), CustomType(1));
+	testPrint(C"object5.isEqual = %s", object5.isEqual() ? C"YES" : C"NO");
+	
+	return 0;
+}
+

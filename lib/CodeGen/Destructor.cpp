@@ -190,7 +190,8 @@ namespace locic {
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
 			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
-			Function function(module, *llvmFunction, hasTemplateArgs ? ArgInfo::TemplateAndContext() : ArgInfo::ContextOnly(), &(module.typeTemplateBuilder(typeInstance)));
+			auto argInfo = hasTemplateArgs ? ArgInfo::TemplateAndContext(module) : ArgInfo::ContextOnly(module);
+			Function function(module, *llvmFunction, std::move(argInfo), &(module.typeTemplateBuilder(typeInstance)));
 			
 			if (typeInstance->isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);
@@ -206,7 +207,11 @@ namespace locic {
 			const auto methodIterator = typeInstance->functions().find("__destructor");
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunction(module, typeInstance, methodIterator->second);
-				function.getBuilder().CreateCall(customDestructor, contextValue);
+				if (hasTemplateArgs) {
+					function.getBuilder().CreateCall(customDestructor, std::vector<llvm::Value*>{ function.getTemplateGenerator(), contextValue });
+				} else {
+					function.getBuilder().CreateCall(customDestructor, contextValue);
+				}
 			}
 			
 			const auto& memberVars = typeInstance->variables();

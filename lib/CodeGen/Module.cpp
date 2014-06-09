@@ -157,9 +157,6 @@ namespace locic {
 			}
 			
 			switch (first->kind()) {
-				case SEM::Type::VOID:
-					return COMPARE_EQUAL;
-				
 				case SEM::Type::OBJECT: {
 					if (first->getObjectType() != second->getObjectType()) {
 						return first->getObjectType() < second->getObjectType() ? COMPARE_LESS : COMPARE_MORE;

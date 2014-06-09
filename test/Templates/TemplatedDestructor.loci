@@ -1,0 +1,35 @@
+// Test output.
+import void testPrint(const char * const str, ...) noexcept;
+
+class DestroyNotifier() {
+	static Create() {
+		return @();
+	}
+	
+	void onDestroy() noexcept {
+		testPrint(C"onDestroy!");
+	}
+}
+
+interface Destroyable {
+	void onDestroy() noexcept;
+}
+
+template <typename T: Destroyable>
+class TestClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	~ {
+		@value.onDestroy();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	TestClass<DestroyNotifier> object = TestClass<DestroyNotifier>(DestroyNotifier());
+	
+	return 0;
+}
+

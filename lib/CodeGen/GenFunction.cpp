@@ -139,7 +139,7 @@ namespace locic {
 			
 			const auto templateBuilder = typeInstance != nullptr ? &(module.typeTemplateBuilder(typeInstance)) : nullptr;
 			
-			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, typeInstance, function), templateBuilder);
+			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, function->type()), templateBuilder);
 			
 			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {
 				// Always inline if possible for templated functions.

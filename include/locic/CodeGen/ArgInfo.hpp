@@ -16,17 +16,17 @@ namespace locic {
 	
 		class ArgInfo {
 			public:
-				static ArgInfo None();
+				static ArgInfo None(Module& module);
 				
-				static ArgInfo ContextOnly();
+				static ArgInfo ContextOnly(Module& module);
 				
-				static ArgInfo TemplateOnly();
+				static ArgInfo TemplateOnly(Module& module);
 				
-				static ArgInfo TemplateAndContext();
+				static ArgInfo TemplateAndContext(Module& module);
 				
-				static ArgInfo Basic(std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes);
+				static ArgInfo Basic(Module& module, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes);
 				
-				ArgInfo(bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes);
+				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes);
 				
 				ArgInfo(ArgInfo&&) = default;
 				ArgInfo& operator=(ArgInfo&&) = default;
@@ -67,7 +67,7 @@ namespace locic {
 				
 		};
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
+		ArgInfo getFunctionArgInfo(Module& module, SEM::Type* functionType);
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function);
 		

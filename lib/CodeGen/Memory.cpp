@@ -33,7 +33,6 @@ namespace locic {
 		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
 			auto& module = function.module();
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return function.getEntryBuilder().CreateAlloca(genType(module, type));
@@ -72,7 +71,6 @@ namespace locic {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return function.getBuilder().CreateLoad(var);
@@ -98,7 +96,6 @@ namespace locic {
 			const auto castVar = function.getBuilder().CreatePointerCast(var, genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					function.getBuilder().CreateStore(value, castVar);

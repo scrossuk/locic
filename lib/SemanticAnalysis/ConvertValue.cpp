@@ -24,12 +24,24 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
+		SEM::Type* getFunctionType(SEM::Type* type) {
+			if (type->isInterfaceMethod()) {
+				return type->getInterfaceMethodFunctionType();
+			}
+			
+			if (type->isMethod()) {
+				return type->getMethodFunctionType();
+			}
+			
+			return type;
+		}
+		
 		bool CanValueThrow(SEM::Value* value) {
 			// TODO...
 			if (value->kind() == SEM::Value::FUNCTIONCALL) {
 				const auto functionValue = value->functionCall.functionValue;
-				const auto functionType = functionValue->type()->isMethod() ?
-					functionValue->type()->getMethodFunctionType() : functionValue->type();
+				const auto functionType = getFunctionType(functionValue->type());
+				assert(functionType->isFunction());
 				return !functionType->isFunctionNoExcept();
 			} else {
 				return false;

@@ -2,6 +2,7 @@
 #define LLVMABI_ABITYPE_HPP
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace llvm_abi {
@@ -131,6 +132,8 @@ namespace llvm_abi {
 			size_t arrayElementCount() const;
 			
 			const Type& arrayElementType() const;
+			
+			std::string toString() const;
 			
 		private:
 			Type(std::unique_ptr<struct TypeImpl>&&);

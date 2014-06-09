@@ -55,7 +55,7 @@ namespace locic {
 			
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
-					assert(statement->getValue()->type()->isVoid());
+					assert(statement->getValue()->type()->isBuiltInVoid());
 					(void) genValue(function, statement->getValue());
 					break;
 				}
@@ -196,8 +196,7 @@ namespace locic {
 				case SEM::Statement::RETURN: {
 					llvm::Instruction* returnInst = nullptr;
 					
-					if (statement->getReturnValue() != nullptr
-						&& !statement->getReturnValue()->type()->isVoid()) {
+					if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
 							const auto returnValue = genValue(function, statement->getReturnValue());
 							

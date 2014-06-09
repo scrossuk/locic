@@ -144,13 +144,14 @@ namespace locic {
 				case AST::Statement::VALUE: {
 					const auto value = ConvertValue(context, statement->valueStmt.value);
 					if (statement->valueStmt.hasVoidCast) {
-						if (value->type()->isVoid()) {
+						if (value->type()->isBuiltInVoid()) {
 							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
 								value->toString().c_str(), location.toString().c_str()));
 						}
-						return SEM::Statement::ValueStmt(SEM::Value::Cast(SEM::Type::Void(), value));
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t")->selfType();
+						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, value));
 					} else {
-						if (!value->type()->isVoid()) {
+						if (!value->type()->isBuiltInVoid()) {
 							throw ErrorException(makeString("Non-void value result ignored in expression '%s' at position %s.",
 								value->toString().c_str(), location.toString().c_str()));
 						}
@@ -340,7 +341,7 @@ namespace locic {
 					// (The variable conversion above should have ensured
 					// this will work.)
 					const auto semInitialiseValue = ImplicitCast(semValue, semVar->constructType(), location);
-					assert(!semInitialiseValue->type()->isVoid());
+					assert(!semInitialiseValue->type()->isBuiltInVoid());
 					
 					// Add the variable to the SEM scope.
 					const auto semScope = context.scopeStack().back().scope();
@@ -351,7 +352,7 @@ namespace locic {
 				}
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
-					if (!getParentFunctionReturnType(context.scopeStack())->isVoid()) {
+					if (!getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
 						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
 							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
 							location.toString().c_str()));

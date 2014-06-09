@@ -16,11 +16,6 @@ namespace locic {
 	
 		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
 		
-		Type* Type::Void() {
-			// Void is always const.
-			return (new Type(VOID))->createConstType();
-		}
-		
 		Type* Type::Auto() {
 			return new Type(AUTO);
 		}
@@ -137,12 +132,12 @@ namespace locic {
 			return type;
 		}
 		
-		bool Type::isVoid() const {
-			return kind() == VOID;
-		}
-		
 		bool Type::isAuto() const {
 			return kind() == AUTO;
+		}
+		
+		bool Type::isBuiltInVoid() const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "void_t";
 		}
 		
 		bool Type::isBuiltInReference() const {
@@ -346,10 +341,6 @@ namespace locic {
 		
 			Type* doSubstitute(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
 				switch (type->kind()) {
-					case Type::VOID: {
-						return Type::Void();
-					}
-					
 					case Type::OBJECT: {
 						std::vector<Type*> templateArgs;
 						
@@ -417,9 +408,6 @@ namespace locic {
 		
 		std::string Type::nameToString() const {
 			switch (kind()) {
-				case VOID:
-					return "VoidType";
-					
 				case AUTO:
 					return "Auto";
 					
@@ -448,9 +436,6 @@ namespace locic {
 		
 		std::string Type::basicToString() const {
 			switch (kind()) {
-				case VOID:
-					return "VoidType";
-					
 				case AUTO:
 					return "Auto";
 					
@@ -509,9 +494,6 @@ namespace locic {
 			}
 			
 			switch (kind_) {
-				case VOID:
-					return true;
-				
 				case OBJECT: {
 					return getObjectType() == type.getObjectType();
 				}

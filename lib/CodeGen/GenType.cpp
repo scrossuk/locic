@@ -95,10 +95,6 @@ namespace locic {
 		
 		llvm::Type* genType(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID: {
-					return TypeGenerator(module).getVoidType();
-				}
-				
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type);
 				}
@@ -148,13 +144,13 @@ namespace locic {
 		
 		llvm::DIType genDebugType(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID: {
-					return module.debugBuilder().createVoidType();
-				}
-				
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
+						if (objectType->name() == (Name::Absolute() + "void")) {
+							return module.debugBuilder().createVoidType();
+						}
+						
 						if (objectType->name() == (Name::Absolute() + "null_t")) {
 							return module.debugBuilder().createNullType();
 						}

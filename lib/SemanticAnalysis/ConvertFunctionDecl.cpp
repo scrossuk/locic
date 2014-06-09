@@ -53,7 +53,7 @@ namespace locic {
 				
 				const auto semParamType = ConvertType(context, astParamTypeNode);
 				
-				if (semParamType->isVoid()) {
+				if (semParamType->isBuiltInVoid()) {
 					throw ParamVoidTypeException(fullName, astTypeVarNode->namedVar.name);
 				}
 				

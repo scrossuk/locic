@@ -49,7 +49,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
 			
 			// Calculate maximum alignment mask of all variables,
 			// which is just a matter of OR-ing them together.
@@ -77,7 +77,6 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					// Subtract 1 because this is producing a mask.
@@ -146,7 +145,7 @@ namespace locic {
 			// Since the member variables are known, generate
 			// the contents of the sizeof() function to sum
 			// their sizes.
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly() : ArgInfo::None(), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			const auto one = ConstantGenerator(module).getSizeTValue(1);
@@ -183,7 +182,6 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
@@ -276,7 +274,7 @@ namespace locic {
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(llvm_abi::Type::Integer(llvm_abi::SizeT));
 			
-			Function function(module, *llvmFunction, ArgInfo(false, hasTemplate, false, std::move(abiTypes), { sizeType }), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, ArgInfo(module, false, hasTemplate, false, std::move(abiTypes), { sizeType }), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& typeVars = typeInstance->variables();
 			

@@ -175,7 +175,6 @@ namespace locic {
 		
 		bool supportsNullConstruction(SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
@@ -206,7 +205,6 @@ namespace locic {
 		
 		bool supportsPrimitiveCast(SEM::Type* type, const std::string& primitiveName) {
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
@@ -244,7 +242,6 @@ namespace locic {
 		
 		bool supportsImplicitCopy(SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
@@ -277,7 +274,6 @@ namespace locic {
 		
 		bool supportsCompare(SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::VOID:
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:

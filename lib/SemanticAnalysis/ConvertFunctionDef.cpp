@@ -37,7 +37,7 @@ namespace locic {
 			
 			const auto returnType = semFunction->type()->getFunctionReturnType();
 			
-			if (!returnType->isVoid()) {
+			if (!returnType->isBuiltInVoid()) {
 				// Functions with non-void return types must return a value.
 				if (!WillScopeReturn(*semScope)) {
 					throw MissingReturnStatementException(semFunction->name());
