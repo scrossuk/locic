@@ -3,6 +3,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -17,7 +18,28 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo alignMaskArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+			return !typeInstance->templateVariables().empty() ?
+				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
+				ArgInfo::Basic(module, sizeTypePair(module), {});
+		}
+		
+		ArgInfo sizeOfArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+			return !typeInstance->templateVariables().empty() ?
+				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
+				ArgInfo::Basic(module, sizeTypePair(module), {});
+		}
+		
+		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+			std::vector<TypePair> argTypes;
+			argTypes.push_back(sizeTypePair(module));
+			
+			return !typeInstance->templateVariables().empty() ?
+				ArgInfo::Templated(module, sizeTypePair(module), std::move(argTypes)) :
+				ArgInfo::Basic(module, sizeTypePair(module), std::move(argTypes));
+		}
+		
+		llvm::Function* genAlignMaskFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto mangledName = mangleMethodName(typeInstance, "__alignmask");
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
@@ -25,12 +47,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			
-			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
-			const auto functionType = TypeGenerator(module).getFunctionType(getNamedPrimitiveType(module, "size_t"), functionArgs);
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto argInfo = alignMaskArgInfo(module, typeInstance);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -49,17 +67,35 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
-			// Calculate maximum alignment mask of all variables,
-			// which is just a matter of OR-ing them together.
-			llvm::Value* classAlignMask = ConstantGenerator(module).getSizeTValue(0);
-			for (const auto& var: typeInstance->variables()) {
-				const auto varAlignMask = genAlignMask(function, var->type());
-				classAlignMask = function.getBuilder().CreateOr(classAlignMask, varAlignMask);
+			const auto zero = ConstantGenerator(module).getSizeTValue(0);
+			
+			if (typeInstance->isUnionDatatype()) {
+				// Calculate maximum alignment mask of all variants,
+				// which is just a matter of OR-ing them together
+				// (the tag byte has an alignment of 1 and hence an
+				// alignment mask of 0).
+				llvm::Value* maxVariantAlignMask = zero;
+				
+				for (const auto variantTypeInstance: typeInstance->variants()) {
+					const auto variantAlignMask = genAlignMask(function, variantTypeInstance->selfType());
+					maxVariantAlignMask = function.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
+				}
+				
+				function.getBuilder().CreateRet(maxVariantAlignMask);
+			} else {
+				// Calculate maximum alignment mask of all variables,
+				// which is just a matter of OR-ing them together.
+				llvm::Value* classAlignMask = zero;
+				
+				for (const auto& var: typeInstance->variables()) {
+					const auto varAlignMask = genAlignMask(function, var->type());
+					classAlignMask = function.getBuilder().CreateOr(classAlignMask, varAlignMask);
+				}
+				
+				function.getBuilder().CreateRet(classAlignMask);
 			}
-			
-			function.getBuilder().CreateRet(classAlignMask);
 			
 			function.verify();
 			
@@ -73,6 +109,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genAlignMask(Function& function, SEM::Type* type) {
+			SetUseEntryBuilder setUseEntryBuilder(function);
+			
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
@@ -89,17 +127,18 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
+					const bool canThrow = false;
+					const auto alignMaskFunction = genAlignMaskFunction(module, type->getObjectType());
+					
 					const bool hasTemplate = !type->templateArguments().empty();
-					if (hasTemplate) {
-						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type) }, callName);
-					} else {
-						return function.getEntryBuilder().CreateCall(genAlignOfFunction(module, type->getObjectType()), callName);
-					}
+					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
+					const auto callResult = genRawFunctionCall(function, alignMaskArgInfo(module, type->getObjectType()), canThrow, alignMaskFunction, args);
+					callResult->setName(callName);
+					return callResult;
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::ALIGNOF);
 				}
 				
@@ -117,12 +156,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			
-			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module) } : std::vector<llvm::Type*>{};
-			const auto functionType = TypeGenerator(module).getFunctionType(getNamedPrimitiveType(module, "size_t"), functionArgs);
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto argInfo = sizeOfArgInfo(module, typeInstance);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -145,32 +180,58 @@ namespace locic {
 			// Since the member variables are known, generate
 			// the contents of the sizeof() function to sum
 			// their sizes.
-			Function function(module, *llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			const auto one = ConstantGenerator(module).getSizeTValue(1);
 			
-			// Add up all member variable sizes.
-			llvm::Value* classSize = zero;
-			
-			// Also need to calculate class alignment so the
-			// correct amount of padding is added at the end.
-			llvm::Value* classAlignMask = zero;
-			
-			for (const auto& var: typeInstance->variables()) {
-				const auto memberAlignMask = genAlignMask(function, var->type());
+			if (typeInstance->isUnionDatatype()) {
+				// Calculate maximum alignment and size of all variants.
+				llvm::Value* maxVariantAlignMask = zero;
+				llvm::Value* maxVariantSize = zero;
 				
-				classAlignMask = function.getBuilder().CreateOr(classAlignMask, memberAlignMask);
+				for (const auto variantTypeInstance: typeInstance->variants()) {
+					const auto variantAlignMask = genAlignMask(function, variantTypeInstance->selfType());
+					const auto variantSize = genSizeOf(function, variantTypeInstance->selfType());
+					
+					maxVariantAlignMask = function.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
+					
+					const auto compareResult = function.getBuilder().CreateICmpUGT(variantSize, maxVariantSize);
+					maxVariantSize = function.getBuilder().CreateSelect(compareResult, variantSize, maxVariantSize);
+				}
 				
-				classSize = makeAligned(function, classSize, memberAlignMask);
-				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()));
+				// Add one byte for the tag.
+				llvm::Value* classSize = one;
+				
+				// Align for most alignment variant type.
+				classSize = makeAligned(function, classSize, maxVariantAlignMask);
+				
+				classSize = function.getBuilder().CreateAdd(classSize, maxVariantSize);
+				
+				function.getBuilder().CreateRet(makeAligned(function, classSize, maxVariantAlignMask));
+			} else {
+				// Add up all member variable sizes.
+				llvm::Value* classSize = zero;
+				
+				// Also need to calculate class alignment so the
+				// correct amount of padding is added at the end.
+				llvm::Value* classAlignMask = zero;
+				
+				for (const auto& var: typeInstance->variables()) {
+					const auto memberAlignMask = genAlignMask(function, var->type());
+					
+					classAlignMask = function.getBuilder().CreateOr(classAlignMask, memberAlignMask);
+					
+					classSize = makeAligned(function, classSize, memberAlignMask);
+					classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()));
+				}
+				
+				// Class sizes must be at least one byte.
+				const auto isZero = function.getBuilder().CreateICmpEQ(classSize, zero);
+				classSize = function.getBuilder().CreateSelect(isZero, one, classSize);
+				
+				function.getBuilder().CreateRet(makeAligned(function, classSize, classAlignMask));
 			}
-			
-			// Class sizes must be at least one byte.
-			auto isZero = function.getBuilder().CreateICmpEQ(classSize, zero);
-			classSize = function.getBuilder().CreateSelect(isZero, one, classSize);
-			
-			function.getBuilder().CreateRet(makeAligned(function, classSize, classAlignMask));
 			
 			function.verify();
 			
@@ -178,6 +239,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genSizeOfValue(Function& function, SEM::Type* type) {
+			SetUseEntryBuilder setUseEntryBuilder(function);
+			
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
@@ -193,17 +256,18 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
+					const bool canThrow = false;
+					const auto sizeOfFunction = genSizeOfFunction(module, type->getObjectType());
+					
 					const bool hasTemplate = !type->templateArguments().empty();
-					if (hasTemplate) {
-						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()),
-							{ computeTemplateGenerator(function, type) }, callName);
-					} else {
-						return function.getEntryBuilder().CreateCall(genSizeOfFunction(module, type->getObjectType()), callName);
-					}
+					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
+					const auto callResult = genRawFunctionCall(function, sizeOfArgInfo(module, type->getObjectType()), canThrow, sizeOfFunction, args);
+					callResult->setName(callName);
+					return callResult;
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::SIZEOF);
 				}
 				
@@ -253,14 +317,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto sizeType = getNamedPrimitiveType(module, "size_t");
-			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			
-			const auto functionArgs = hasTemplate ? std::vector<llvm::Type*>{ templateGeneratorType(module), sizeType } : std::vector<llvm::Type*>{ sizeType };
-			const auto functionType = TypeGenerator(module).getFunctionType(sizeType, functionArgs);
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			llvmFunction->setDoesNotThrow();
 			
@@ -274,7 +332,7 @@ namespace locic {
 			std::vector<llvm_abi::Type> abiTypes;
 			abiTypes.push_back(llvm_abi::Type::Integer(llvm_abi::SizeT));
 			
-			Function function(module, *llvmFunction, ArgInfo(module, false, hasTemplate, false, std::move(abiTypes), { sizeType }), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& typeVars = typeInstance->variables();
 			
@@ -319,6 +377,8 @@ namespace locic {
 				return ConstantGenerator(function.module()).getSizeTValue(0);
 			}
 			
+			SetUseEntryBuilder setUseEntryBuilder(function);
+			
 			const auto offsetPair = std::make_pair(type, memberIndex);
 			
 			auto& memberOffsetMap = function.getMemberOffsetMap();
@@ -332,26 +392,23 @@ namespace locic {
 			const auto callName = makeString("memberoffset_%llu__%s", (unsigned long long) memberIndex,
 				type->getObjectType()->name().last().c_str());
 			
-			const bool hasTemplate = !type->templateArguments().empty();
-			
 			const auto memberIndexValue = ConstantGenerator(module).getSizeTValue(memberIndex);
 			
-			llvm::CallInst* callInst = nullptr;
+			const auto memberOffsetFunction = genMemberOffsetFunction(module, type->getObjectType());
 			
-			if (hasTemplate) {
-				callInst = function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
-					std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), memberIndexValue }, callName);
-			} else {
-				callInst = function.getEntryBuilder().CreateCall(genMemberOffsetFunction(module, type->getObjectType()),
-					std::vector<llvm::Value*>{ memberIndexValue }, callName);
-			}
+			const bool hasTemplate = !type->templateArguments().empty();
+			const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type), memberIndexValue } : std::vector<llvm::Value*>{ memberIndexValue };
+			const bool canThrow = false;
+			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), canThrow, memberOffsetFunction, args);
+			callResult->setName(callName);
 			
-			callInst->setDoesNotAccessMemory();
-			callInst->setDoesNotThrow();
+			// TODO: add these to ArgInfo:
+			// callInst->setDoesNotAccessMemory();
+			// callInst->setDoesNotThrow();
 			
-			memberOffsetMap.insert(std::make_pair(offsetPair, callInst));
+			memberOffsetMap.insert(std::make_pair(offsetPair, callResult));
 			
-			return callInst;
+			return callResult;
 		}
 		
 	}

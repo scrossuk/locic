@@ -7,29 +7,48 @@ interface serializable {
 
 template <typename T: serializable>
 // Use a 'value_lval' since it supports move operations.
-class custom_lval(lval<T> value_lval<T> value) {
+class custom_lval(bool hasValue, lval<T> value_lval<T> value) {
 	static Create(T value) {
 		testPrint(C"custom_lval.Create: Value = %s", value.toCString());
-		return @(lval<T>(value_lval<T>(move value)));
+		return @(true, lval<T>(value_lval<T>(move value)));
 	}
 	
 	T* address() {
+		if (!@hasValue) {
+			testPrint(C"INVALID!");
+		}
+		
 		testPrint(C"custom_lval.address: Value = %s", @value.toCString());
 		return &@value;
 	}
 
 	void assign(T value) {
-		testPrint(C"custom_lval.assign: Previous value = %s, New value = %s", @value.toCString(), value.toCString());
+		if (@hasValue) {
+			testPrint(C"custom_lval.assign: Previous value = %s", @value.toCString());
+		} else {
+			testPrint(C"custom_lval.assign: Previous value = [NONE]");
+		}
+		testPrint(C"custom_lval.assign: New value = %s", value.toCString());
 		@value = move value;
+		@hasValue = true;
 	}
 	
 	T& dissolve() {
+		if (!@hasValue) {
+			testPrint(C"INVALID!");
+		}
+		
 		testPrint(C"custom_lval.dissolve: Value = %s", @value.toCString());
 		return @value;
 	}
 	
 	T move() {
+		if (!@hasValue) {
+			testPrint(C"INVALID!");
+		}
+		
 		testPrint(C"custom_lval.move: Value = %s", @value.toCString());
+		@hasValue = false;
 		return move @value;
 	}
 }
@@ -82,6 +101,8 @@ void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
 	TestClass value = move objectLval;
 	
 	testPrint(C"moveFunction: Moved value = %s", value.toCString());
+	
+	objectLval = TestClass(0, 0);
 	
 	testPrint(C"moveFunction: New value = %s", objectLval.toCString());
 }

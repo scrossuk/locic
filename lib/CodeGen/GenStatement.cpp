@@ -107,10 +107,19 @@ namespace locic {
 					const auto switchValue = genValue(function, statement->getSwitchValue());
 					const auto switchType = statement->getSwitchValue()->type();
 					
-					const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValue, 0, 0);
+					llvm::Value* switchValuePtr = nullptr;
+					
+					if (!switchValue->getType()->isPointerTy()) {
+						switchValuePtr = genAlloca(function, statement->getSwitchValue()->type());
+						genStore(function, switchValue, switchValuePtr, statement->getSwitchValue()->type());
+					} else {
+						switchValuePtr = switchValue;
+					}
+					
+					const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValuePtr, 0, 0);
 					const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
 					
-					const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValue, 0, 1);
+					const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValuePtr, 0, 1);
 					
 					const auto endBB = function.createBasicBlock("switchEnd");
 					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, statement->getSwitchCaseList().size());
@@ -136,7 +145,7 @@ namespace locic {
 						{
 							LifetimeScope lifetimeScope(function);
 							genVarAlloca(function, switchCase->var());
-							genVarInitialise(function, switchCase->var(), castedUnionValuePtr);
+							genVarInitialise(function, switchCase->var(), genLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
 						}
 						

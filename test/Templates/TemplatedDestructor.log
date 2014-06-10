@@ -1,2 +1,4 @@
-object.getValue() = 200
-object.getValue() = 400
+DestroyNotifier.Create
+TestClass.Create
+TestClass.~
+DestroyNotifier.onDestroy

@@ -28,42 +28,7 @@ namespace locic {
 		}
 		
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type) {
-			assert(type != nullptr && "Generating a function type requires a non-NULL SEM Type object");
-			assert(type->isFunction() && "Type must be a function type for it to be generated as such");
-			
-			const auto semReturnType = type->getFunctionReturnType();
-			assert(semReturnType != nullptr && "Generating function return type requires a non-NULL SEM return type");
-			
-			llvm::Type* returnType = nullptr;
-			std::vector<llvm::Type*> paramTypes;
-			
-			if (isTypeSizeAlwaysKnown(module, semReturnType)) {
-				returnType = genType(module, semReturnType);
-			} else {
-				// Unknown size return values are constructed on the caller's
-				// stack, and given to the callee as a pointer.
-				paramTypes.push_back(genPointerType(module, semReturnType));
-				returnType = TypeGenerator(module).getVoidType();
-			}
-			
-			if (type->isFunctionTemplatedMethod()) {
-				// Add template generator arguments for methods of
-				// templated types.
-				paramTypes.push_back(templateGeneratorType(module));
-			}
-			
-			if (type->isFunctionMethod()) {
-				// If there's a context pointer (for non-static methods),
-				// add it before the other (normal) arguments.
-				paramTypes.push_back(TypeGenerator(module).getI8PtrType());
-			}
-			
-			for (const auto paramType: type->getFunctionParameterTypes()) {
-				paramTypes.push_back(genArgType(module, paramType));
-			}
-			
-			const auto genericFunctionType = TypeGenerator(module).getFunctionType(returnType, paramTypes, type->isFunctionVarArg());
-			return module.abi().rewriteFunctionType(genericFunctionType, genABIFunctionType(module, type));
+			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
 		llvm::Type* genObjectType(Module& module, SEM::Type* type) {
@@ -104,7 +69,7 @@ namespace locic {
 					// generator if function type is templated method.
 					const auto functionPtrType = genFunctionType(module, type)->getPointerTo();
 					if (type->isFunctionTemplatedMethod()) {
-						return TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module) });
+						return TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module).second });
 					} else {
 						return functionPtrType;
 					}
@@ -133,7 +98,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
-					return interfaceMethodType(module);
+					return interfaceMethodType(module).second;
 				}
 				
 				default: {

@@ -59,13 +59,13 @@ namespace locic {
 			
 			if (!isTypeSizeAlwaysKnown(module, returnType)) {
 				returnVarValue = genAlloca(function, returnType);
-				parameters.push_back(returnVarValue);
+				parameters.push_back(function.getBuilder().CreatePointerCast(returnVarValue, TypeGenerator(module).getI8PtrType()));
 				parameterABITypes.push_back(llvm_abi::Type::Pointer());
 			}
 			
 			if (templateGenerator != nullptr) {
 				parameters.push_back(templateGenerator);
-				parameterABITypes.push_back(templateGeneratorABIType());
+				parameterABITypes.push_back(std::move(templateGeneratorType(module).first));
 			}
 			
 			if (contextPointer != nullptr) {
@@ -136,6 +136,47 @@ namespace locic {
 			} else {
 				return decodeReturnValue(function, encodedCallReturnValue, genABIType(function.module(), returnType), genType(function.module(), returnType));
 			}
+		}
+		
+		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, bool canThrow, llvm::Value* functionPtr,
+				const std::vector<llvm::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+			
+			assert(args.size() == argInfo.argumentTypes().size());
+			
+			const auto llvmFunctionType = functionPtr->getType()->getPointerElementType();
+			assert(llvmFunctionType->isFunctionTy());
+			
+			std::vector<llvm_abi::Type> argABITypes;
+			for (const auto& typePair: argInfo.argumentTypes()) {
+				argABITypes.push_back(typePair.first.copy());
+			}
+			
+			// Parameters need to be encoded according to the ABI.
+			const auto encodedParameters = function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), args, argABITypes);
+			
+			llvm::Value* encodedCallReturnValue = nullptr;
+			
+			if (canThrow) {
+				const auto successPath = function.createBasicBlock("successPath");
+				const auto failPath = function.createBasicBlock("failPath");
+				
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
+				
+				// Fail path.
+				function.selectBasicBlock(failPath);
+				const bool isRethrow = false;
+				genLandingPad(function, isRethrow);
+				
+				// Success path.
+				function.selectBasicBlock(successPath);
+			} else {
+				const auto callInst = function.getBuilder().CreateCall(functionPtr, encodedParameters);
+				callInst->setDoesNotThrow();
+				encodedCallReturnValue = addDebugLoc(callInst, debugLoc);
+			}
+			
+			// Return values need to be decoded according to the ABI.
+			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first.copy(), argInfo.returnType().second);
 		}
 		
 	}

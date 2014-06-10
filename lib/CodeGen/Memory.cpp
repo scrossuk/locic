@@ -14,34 +14,20 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		void genZero(Function& function, SEM::Type* type, llvm::Value* value) {
-			assert(value->getType()->isPointerTy());
+		llvm::Value* genAlloca(Function& function, SEM::Type* type) {
+			SetUseEntryBuilder setUseEntryBuilder(function);
 			
-			auto& module = function.module();
-			
-			if (isTypeSizeKnownInThisModule(module, type)) {
-				(void) function.getBuilder().CreateStore(
-					ConstantGenerator(module).getNull(genType(module, type)),
-					value);
-			} else {
-				(void) function.getBuilder().CreateMemSet(
-					value, ConstantGenerator(module).getI8(0),
-					genSizeOf(function, type), 1);
-			}
-		}
-		
-		llvm::Value* genUnzeroedAlloca(Function& function, SEM::Type* type) {
 			auto& module = function.module();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getEntryBuilder().CreateAlloca(genType(module, type));
+					return function.getBuilder().CreateAlloca(genType(module, type));
 				}
 				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
-						return function.getEntryBuilder().CreateAlloca(genType(module, type));
+						return function.getBuilder().CreateAlloca(genType(module, type));
 					} else {
 						const auto alloca =
 							function.getEntryBuilder().CreateAlloca(
@@ -56,15 +42,6 @@ namespace locic {
 					throw std::runtime_error("Unknown type enum for generating alloca.");
 				}
 			}
-		}
-		
-		llvm::Value* genAlloca(Function& function, SEM::Type* type) {
-			const auto alloca = genUnzeroedAlloca(function, type);
-			
-			// Zero allocated memory.
-			genZero(function, type, alloca);
-			
-			return alloca;
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* type) {

@@ -7,6 +7,7 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -27,8 +28,15 @@ namespace locic {
 			return typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype();
 		}
 		
+		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
+			return hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
+		}
+		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
+			
+			const bool canThrow = false;
 			
 			if (type->isObject()) {
 				if (!typeHasDestructor(module, type->getObjectType())) {
@@ -36,15 +44,14 @@ namespace locic {
 				}
 				
 				// Call destructor.
+				const auto argInfo = destructorArgInfo(module, type->getObjectType());
 				const auto destructorFunction = genDestructorFunction(module, type->getObjectType());
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				const auto args = !type->templateArguments().empty() ?
+					std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), castValue } : std::vector<llvm::Value*>{ castValue };
 				
-				if (type->templateArguments().empty()) {
-					function.getBuilder().CreateCall(destructorFunction, { castValue });
-				} else {
-					function.getBuilder().CreateCall(destructorFunction, std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), castValue });
-				}
+				(void) genRawFunctionCall(function, argInfo, canThrow, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
@@ -88,37 +95,24 @@ namespace locic {
 			function.selectBasicBlock(endBB);
 		}
 		
-		llvm::FunctionType* destructorFunctionType(Module& module, SEM::TypeInstance* typeInstance) {
-			TypeGenerator typeGen(module);
-			if (typeInstance->templateVariables().empty()) {
-				return typeGen.getVoidFunctionType({ typeGen.getI8PtrType() });
-			} else {
-				return typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
-			}
-		}
-		
 		llvm::Function* getNullDestructorFunction(Module& module) {
 			const auto mangledName = "__null_destructor";
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
-			
 			if (result.hasValue()) {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, mangledName);
+			const auto argInfo = ArgInfo::VoidTemplateAndContext(module);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, mangledName);
 			llvmFunction->setDoesNotThrow();
 			llvmFunction->setDoesNotAccessMemory();
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
-			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
-			llvm::IRBuilder<> builder(module.getLLVMContext());
-			builder.SetInsertPoint(entryBB);
-			builder.CreateRetVoid();
+			Function function(module, *llvmFunction, argInfo);
+			function.getBuilder().CreateRetVoid();
 			
 			return llvmFunction;
 		}
@@ -133,23 +127,18 @@ namespace locic {
 				return destructorFunction;
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>{ templateGeneratorType(module), typeGen.getI8PtrType() });
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			// Create stub to call destructor with no template generator.
+			const auto argInfo = ArgInfo::VoidTemplateAndContext(module);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->setDoesNotThrow();
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
-			llvm::IRBuilder<> builder(module.getLLVMContext());
-			builder.SetInsertPoint(entryBB);
+			Function function(module, *llvmFunction, argInfo);
 			
-			auto it = llvmFunction->arg_begin();
-			++it;
+			const bool canThrow = false;
+			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), canThrow, destructorFunction, std::vector<llvm::Value*>{ function.getRawContextValue() });
 			
-			const auto callInst = builder.CreateCall(destructorFunction, std::vector<llvm::Value*>{ it });
-			callInst->setDoesNotThrow();
-			
-			builder.CreateRetVoid();
+			function.getBuilder().CreateRetVoid();
 			
 			return llvmFunction;
 		}
@@ -166,12 +155,16 @@ namespace locic {
 			}
 			
 			// --- Generate function declaration.
-			const auto functionType = destructorFunctionType(module, typeInstance);
-			
+			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
 			llvmFunction->setDoesNotThrow();
+			
+			if (argInfo.hasTemplateGeneratorArgument()) {
+				// Always inline templated destructors.
+				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			}
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
@@ -189,9 +182,7 @@ namespace locic {
 			
 			assert(typeInstance->isClassDef() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
-			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
-			auto argInfo = hasTemplateArgs ? ArgInfo::TemplateAndContext(module) : ArgInfo::ContextOnly(module);
-			Function function(module, *llvmFunction, std::move(argInfo), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
 			if (typeInstance->isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);
@@ -207,11 +198,11 @@ namespace locic {
 			const auto methodIterator = typeInstance->functions().find("__destructor");
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunction(module, typeInstance, methodIterator->second);
-				if (hasTemplateArgs) {
-					function.getBuilder().CreateCall(customDestructor, std::vector<llvm::Value*>{ function.getTemplateGenerator(), contextValue });
-				} else {
-					function.getBuilder().CreateCall(customDestructor, contextValue);
-				}
+				const bool canThrow = false;
+				const auto args = argInfo.hasTemplateGeneratorArgument() ?
+					std::vector<llvm::Value*>{ function.getTemplateGenerator(), contextValue } : std::vector<llvm::Value*>{ contextValue };
+				
+				(void) genRawFunctionCall(function, argInfo, canThrow, customDestructor, args);
 			}
 			
 			const auto& memberVars = typeInstance->variables();

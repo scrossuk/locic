@@ -9,6 +9,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -27,43 +28,30 @@ namespace locic {
 	
 		namespace VirtualCall {
 		
-			llvm::FunctionType* getStubFunctionType(Module& module) {
-				TypeGenerator typeGen(module);
-				
-				std::vector<llvm::Type*> argTypes;
-				
-				// Return value pointer type (to handle
-				// any possible return type).
-				argTypes.push_back(typeGen.getI8PtrType());
-				
-				// Template generator type.
-				argTypes.push_back(templateGeneratorType(module));
-				
-				// Class pointer type.
-				argTypes.push_back(typeGen.getI8PtrType());
-				
-				// Hash value type.
-				argTypes.push_back(typeGen.getI64Type());
-				
-				// Arguments struct pointer type.
-				argTypes.push_back(typeGen.getI8PtrType());
-				
-				return typeGen.getVoidFunctionType(argTypes);
-			}
-			
 			ArgInfo getStubArgInfo(Module& module) {
 				const bool hasReturnVarArgument = true;
 				const bool hasTemplateGenerator = true;
 				const bool hasContextArgument = true;
+				const bool isVarArg = false;
 				
-				std::vector<llvm_abi::Type> standardArguments;
-				standardArguments.push_back(llvm_abi::Type::Integer(llvm_abi::Int64));
-				standardArguments.push_back(llvm_abi::Type::Pointer());
+				TypeGenerator typeGen(module);
 				
-				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, std::move(standardArguments), {nullptr, nullptr});
+				std::vector<TypePair> arguments;
+				
+				// Hash value type.
+				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(llvm_abi::Int64), typeGen.getI64Type()));
+				
+				// Arguments struct pointer type.
+				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(), typeGen.getI8PtrType()));
+				
+				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, isVarArg,
+					voidTypePair(module), std::move(arguments));
 			}
 			
 			void setStubAttributes(llvm::Function* llvmFunction) {
+				// Always inline stubs.
+				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+				
 				{
 					// Return value pointer attributes.
 					llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
@@ -141,8 +129,10 @@ namespace locic {
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
 				
+				const auto argInfo = getStubArgInfo(function.module());
+				
 				// Cast the loaded pointer to the stub function type.
-				const auto stubFunctionPtrType = getStubFunctionType(function.module())->getPointerTo();
+				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
@@ -170,8 +160,8 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				// TODO: exception handling!
-				(void) builder.CreateCall(castedMethodFunctionPointer, parameters);
+				const bool canThrow = true;
+				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, parameters);
 			}
 			
 			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
@@ -190,14 +180,9 @@ namespace locic {
 				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
 			}
 			
-			llvm::FunctionType* getCountFunctionType(Module& module) {
-				TypeGenerator typeGen(module);
-				return typeGen.getFunctionType(getNamedPrimitiveType(module, "size_t"), { templateGeneratorType(module) });
-			}
-			
 			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
 				auto& module = function.module();
-				auto& builder = function.getEntryBuilder();
+				auto& builder = function.getBuilder();
 				
 				// Extract vtable and template generator.
 				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
@@ -211,20 +196,24 @@ namespace locic {
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
+				const auto argInfo = ArgInfo::TemplateOnly(module, sizeTypePair(module));
+				
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
-				const auto stubFunctionPtrType = getCountFunctionType(module)->getPointerTo();
+				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				const auto callInst = builder.CreateCall(castedMethodFunctionPointer, { templateGeneratorValue });
-				callInst->setDoesNotThrow();
-				callInst->setDoesNotAccessMemory();
-				return callInst;
+				const bool canThrow = false;
+				const auto callResult = genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, { templateGeneratorValue });
+				
+				// TODO: add this to ArgInfo:
+				// callInst->setDoesNotAccessMemory();
+				
+				return callResult;
 			}
 			
-			llvm::FunctionType* getDestructorFunctionType(Module& module) {
-				TypeGenerator typeGen(module);
-				return typeGen.getVoidFunctionType({ templateGeneratorType(module), typeGen.getI8PtrType() });
+			ArgInfo virtualDestructorArgInfo(Module& module) {
+				return ArgInfo::VoidTemplateAndContext(module);
 			}
 			
 			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue) {
@@ -243,13 +232,15 @@ namespace locic {
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
+				const auto argInfo = virtualDestructorArgInfo(module);
+				
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
-				const auto stubFunctionPtrType = getDestructorFunctionType(module)->getPointerTo();
+				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				const auto callInst = builder.CreateCall(castedMethodFunctionPointer, std::vector<llvm::Value*>{ templateGeneratorValue, objectValue });
-				callInst->setDoesNotThrow();
+				const bool canThrow = false;
+				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, { templateGeneratorValue, objectValue });
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
@@ -260,13 +251,14 @@ namespace locic {
 					return constGen.getNullPointer(typeGen.getI8PtrType());
 				}
 				
+				const auto stubArgInfo = getStubArgInfo(module);
 				const auto linkage = llvm::Function::PrivateLinkage;
 				
-				llvm::Function* llvmFunction = createLLVMFunction(module, getStubFunctionType(module), linkage, "__slot_conflict_resolution_stub");
+				llvm::Function* llvmFunction = createLLVMFunction(module, stubArgInfo.makeFunctionType(), linkage, "__slot_conflict_resolution_stub");
 				
 				setStubAttributes(llvmFunction);
 				
-				Function function(module, *llvmFunction, getStubArgInfo(module), nullptr);
+				Function function(module, *llvmFunction, stubArgInfo);
 				
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
@@ -282,6 +274,7 @@ namespace locic {
 					
 					function.selectBasicBlock(callMethodBasicBlock);
 					
+					const auto argInfo = getFunctionArgInfo(module, semMethod->type());
 					const auto llvmMethod = genFunction(module, typeInstance, semMethod);
 					
 					const auto functionType = semMethod->type();
@@ -289,27 +282,21 @@ namespace locic {
 					const auto& paramTypes = functionType->getFunctionParameterTypes();
 					
 					std::vector<llvm::Value*> parameters;
-					std::vector<llvm_abi::Type> parameterABITypes;
 					
 					// If the function uses a return value pointer, just pass
 					// the pointer we received from our caller.
-					if (!isTypeSizeAlwaysKnown(module, returnType)) {
-						const auto returnVarPointerType = llvmMethod->getFunctionType()->getParamType(0);
-						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnVarPointerType, "castedReturnVar");
-						parameters.push_back(llvmCastReturnVar);
-						parameterABITypes.push_back(llvm_abi::Type::Pointer());
+					if (argInfo.hasReturnVarArgument()) {
+						parameters.push_back(function.getReturnVar());
 					}
 					
 					// If type is templated, pass the template generator.
-					if (!typeInstance->templateVariables().empty()) {
+					if (argInfo.hasTemplateGeneratorArgument()) {
 						parameters.push_back(function.getTemplateGenerator());
-						parameterABITypes.push_back(templateGeneratorABIType());
 					}
 					
 					// If this is not a static method, pass the object pointer.
-					if (!semMethod->isStaticMethod()) {
+					if (argInfo.hasContextArgument()) {
 						parameters.push_back(function.getRawContextValue());
-						parameterABITypes.push_back(llvm_abi::Type::Pointer());
 					}
 					
 					const auto numArgs = functionType->getFunctionParameterTypes().size();
@@ -336,19 +323,15 @@ namespace locic {
 						} else {
 							parameters.push_back(castArgPtr);
 						}
-						
-						parameterABITypes.push_back(genABIArgType(module, paramType));
 					}
 					
-					// Encode parameters according to ABI.
-					const auto encodedParameters = module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
-					
 					// Call the method.
-					const auto llvmCallReturnValue = function.getBuilder().CreateCall(llvmMethod, encodedParameters);
+					const bool canThrow = true;
+					const auto llvmCallReturnValue = genRawFunctionCall(function, argInfo, canThrow, llvmMethod, parameters);
 					
 					// Store return value.
-					if (isTypeSizeAlwaysKnown(module, returnType) && !returnType->isBuiltInVoid()) {
-						const auto returnValuePointerType = llvmMethod->getFunctionType()->getReturnType()->getPointerTo();
+					if (!argInfo.hasReturnVarArgument() && !returnType->isBuiltInVoid()) {
+						const auto returnValuePointerType = llvmCallReturnValue->getType()->getPointerTo();
 						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
 						function.getBuilder().CreateStore(llvmCallReturnValue, llvmCastReturnVar);
 					}

@@ -34,6 +34,8 @@ import {
 	
 	uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
 	
+	void sfWindow_setVisible(sfRenderWindow* window, uint8_t visible);
+	
 	void sfWindow_close(sfRenderWindow* window);
 	
 }
@@ -51,6 +53,10 @@ namespace sf {
 		
 		~ {
 			sfRenderWindow_destroy(@window);
+		}
+		
+		void setVisible(bool visible) {
+			sfWindow_setVisible(@window, visible ? 1u : 0u);
 		}
 		
 		bool isOpen() const {

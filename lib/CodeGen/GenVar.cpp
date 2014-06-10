@@ -70,6 +70,12 @@ namespace locic {
 				// destroyed at the end of the function.
 				function.unwindStack().push_back(UnwindAction::Destroy(var->type(), varValue));
 			} else if (var->isComposite()) {
+				if (!initialiseValue->getType()->isPointerTy()) {
+					const auto initialisePtr = genAlloca(function, var->constructType());
+					genStore(function, initialiseValue, initialisePtr, var->constructType());
+					initialiseValue = initialisePtr;
+				}
+				
 				const auto castInitialiseValue = function.getBuilder().CreatePointerCast(initialiseValue, TypeGenerator(module).getI8PtrType());
 				
 				// For composite variables, extract each member of

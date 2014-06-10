@@ -16,6 +16,9 @@ namespace locic {
 		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
 			SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc);
 		
+		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, bool canThrow, llvm::Value* functionPtr,
+			const std::vector<llvm::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc = boost::none);
+		
 	}
 	
 }

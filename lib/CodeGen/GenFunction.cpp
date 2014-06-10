@@ -95,11 +95,11 @@ namespace locic {
 			}
 			
 			// --- Generate function declaration.
-			const auto functionType = genFunctionType(module, function->type());
+			const auto argInfo = getFunctionArgInfo(module, function->type());
 			
 			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
 			
-			const auto llvmFunction = createLLVMFunction(module, functionType, linkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
@@ -139,7 +139,7 @@ namespace locic {
 			
 			const auto templateBuilder = typeInstance != nullptr ? &(module.typeTemplateBuilder(typeInstance)) : nullptr;
 			
-			Function functionGenerator(module, *llvmFunction, getFunctionArgInfo(module, function->type()), templateBuilder);
+			Function functionGenerator(module, *llvmFunction, argInfo, templateBuilder);
 			
 			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {
 				// Always inline if possible for templated functions.
@@ -177,9 +177,8 @@ namespace locic {
 			assert(function->isMethod());
 			
 			// --- Generate function declaration.
-			const auto functionType = genFunctionType(module, function->type());
-			
-			const auto llvmFunction = createLLVMFunction(module, functionType, llvm::Function::PrivateLinkage, "templateFunctionStub");
+			const auto argInfo = getTemplateVarFunctionStubArgInfo(module, function);
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, "templateFunctionStub");
 			
 			if (function->type()->isFunctionNoExcept()) {
 				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
@@ -209,7 +208,7 @@ namespace locic {
 			
 			// --- Generate function code.
 			
-			Function functionGenerator(module, *llvmFunction, getTemplateVarFunctionStubArgInfo(module, function), nullptr);
+			Function functionGenerator(module, *llvmFunction, argInfo);
 			
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
 			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, functionGenerator.getRawContextValue(), typeInfoValue);

@@ -12,6 +12,8 @@ namespace locic {
 	
 		bool typeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
+		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
 		
 		llvm::FunctionType* destructorFunctionType(Module& module, SEM::TypeInstance* typeInstance);

@@ -24,8 +24,7 @@ namespace locic {
 				} typeInfo;
 			};
 		*/
-		llvm::Type* interfaceStructType(Module& module);
-		llvm_abi::Type interfaceStructABIType();
+		TypePair interfaceStructType(Module& module);
 		
 		llvm::Value* makeInterfaceStructValue(Function& function, llvm::Value* contextPointer, llvm::Value* typeInfoValue);
 		
@@ -44,8 +43,7 @@ namespace locic {
 				i64 methodHash;
 			};
 		*/
-		llvm::Type* interfaceMethodType(Module& module);
-		llvm_abi::Type interfaceMethodABIType();
+		TypePair interfaceMethodType(Module& module);
 		
 		llvm::Value* makeInterfaceMethodValue(Function& function, llvm::Value* interfaceStructValue, llvm::Value* hashValue);
 	}

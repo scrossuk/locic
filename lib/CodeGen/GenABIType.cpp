@@ -26,37 +26,6 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::FunctionType genABIFunctionType(Module& module, SEM::Type* functionType) {
-			assert(functionType->isFunction());
-			
-			llvm_abi::FunctionType abiFunctionType;
-			
-			if (isTypeSizeAlwaysKnown(module, functionType->getFunctionReturnType())) {
-				abiFunctionType.returnType = genABIType(module, functionType->getFunctionReturnType());
-			} else {
-				// If type is not known in all modules,
-				// return via a pointer argument.
-				abiFunctionType.returnType = llvm_abi::Type::Struct({});
-				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
-			}
-			
-			if (functionType->isFunctionTemplatedMethod()) {
-				// Add template generator arguments for methods of
-				// templated types.
-				abiFunctionType.argTypes.push_back(templateGeneratorABIType());
-			}
-			
-			if (functionType->isFunctionMethod()) {
-				abiFunctionType.argTypes.push_back(llvm_abi::Type::Pointer());
-			}
-			
-			for (const auto paramType: functionType->getFunctionParameterTypes()) {
-				abiFunctionType.argTypes.push_back(genABIArgType(module, paramType));
-			}
-			
-			return abiFunctionType;
-		}
-		
 		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type) {
 			assert(isTypeSizeKnownInThisModule(module, type));
 			
@@ -123,7 +92,7 @@ namespace locic {
 			
 			if (name == "__ref") {
 				if (type->templateArguments().at(0)->isInterface()) {
-					return interfaceStructABIType();
+					return std::move(interfaceStructType(module).first);
 				} else {
 					return llvm_abi::Type::Pointer();
 				}
@@ -145,10 +114,30 @@ namespace locic {
 						
 						if (typeInstance->isUnionDatatype()) {
 							members.push_back(llvm_abi::Type::Integer(llvm_abi::Int8));
-						}
-						
-						for (const auto var: typeInstance->variables()) {
-							members.push_back(genABIType(module, var->type()));
+							
+							llvm_abi::Type maxStructType = llvm_abi::Type::AutoStruct({});
+							size_t maxStructSize = 0;
+							size_t maxStructAlign = 0;
+							
+							for (auto variantTypeInstance: typeInstance->variants()) {
+								auto variantStructType = genABIType(module, variantTypeInstance->selfType());
+								const auto variantStructSize = module.abi().typeSize(variantStructType);
+								const auto variantStructAlign = module.abi().typeAlign(variantStructType);
+								
+								if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
+									maxStructType = std::move(variantStructType);
+									maxStructSize = variantStructSize;
+									maxStructAlign = variantStructAlign;
+								} else {
+									assert(variantStructAlign <= maxStructAlign && variantStructSize <= maxStructSize);
+								}
+							}
+							
+							members.push_back(std::move(maxStructType));
+						} else {
+							for (const auto var: typeInstance->variables()) {
+								members.push_back(genABIType(module, var->type()));
+							}
 						}
 						
 						return llvm_abi::Type::AutoStruct(std::move(members));
@@ -161,7 +150,7 @@ namespace locic {
 					if (type->isFunctionTemplatedMethod()) {
 						std::vector<llvm_abi::Type> types;
 						types.push_back(llvm_abi::Type::Pointer());
-						types.push_back(templateGeneratorABIType());
+						types.push_back(std::move(templateGeneratorType(module).first));
 						return llvm_abi::Type::AutoStruct(std::move(types));
 					} else {
 						return llvm_abi::Type::Pointer();
@@ -176,7 +165,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
-					return interfaceMethodABIType();
+					return std::move(interfaceMethodType(module).first);
 				}
 				
 				default: {

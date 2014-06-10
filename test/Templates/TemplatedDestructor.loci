@@ -3,11 +3,12 @@ import void testPrint(const char * const str, ...) noexcept;
 
 class DestroyNotifier() {
 	static Create() {
+		testPrint(C"DestroyNotifier.Create");
 		return @();
 	}
 	
 	void onDestroy() noexcept {
-		testPrint(C"onDestroy!");
+		testPrint(C"DestroyNotifier.onDestroy");
 	}
 }
 
@@ -18,10 +19,12 @@ interface Destroyable {
 template <typename T: Destroyable>
 class TestClass(T value) {
 	static Create(T value) {
+		testPrint(C"TestClass.Create");
 		return @(move value);
 	}
 	
 	~ {
+		testPrint(C"TestClass.~");
 		@value.onDestroy();
 	}
 }

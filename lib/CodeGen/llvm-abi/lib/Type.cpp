@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <llvm/Support/ErrorHandling.h>
+
 #include <llvm-abi/Type.hpp>
 
 namespace llvm_abi {
@@ -94,6 +96,32 @@ namespace llvm_abi {
 	}
 		
 	Type::~Type() { }
+	
+	Type Type::copy() const {
+		switch (kind()) {
+			case PointerType:
+				return Pointer();
+			case IntegerType:
+				return Integer(integerKind());
+			case FloatingPointType:
+				return FloatingPoint(floatingPointKind());
+			case ComplexType:
+				return Complex(complexKind());
+			case StructType: {
+				std::vector<StructMember> structMembersCopy;
+				
+				for (const auto& member: structMembers()) {
+					structMembersCopy.push_back(member.copy());
+				}
+				
+				return Struct(std::move(structMembersCopy));
+			}
+			case ArrayType:
+				return Array(arrayElementCount(), arrayElementType().copy());
+			default:
+				llvm_unreachable("Unknown ABI Type kind in copy().");
+		}
+	}
 	
 	TypeKind Type::kind() const {
 		return impl_->kind;

@@ -280,7 +280,7 @@ namespace locic {
 								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 								genStore(function, codeValue, castedUnionValuePtr, sourceType);
 								
-								return unionValue;
+								return genLoad(function, unionValue, destType);
 							}
 							
 							assert(false && "Casts between named types not implemented.");

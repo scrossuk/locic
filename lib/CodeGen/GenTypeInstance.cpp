@@ -40,17 +40,31 @@ namespace locic {
 			if (typeInstance->isUnionDatatype()) {
 				llvm::DataLayout dataLayout(module.getLLVMModulePtr());
 				
-				size_t unionSize = 0;
-				size_t unionAlign = 1;
+				assert(!typeInstance->variants().empty());
+				
+				llvm::Type* maxStructType = nullptr;
+				size_t maxStructSize = 0;
+				size_t maxStructAlign = 0;
+				
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantStructType = genTypeInstance(module, variantTypeInstance);
-					unionSize = std::max<size_t>(unionSize, dataLayout.getTypeAllocSize(variantStructType));
-					unionAlign = std::max<size_t>(unionAlign, dataLayout.getABITypeAlignment(variantStructType));
+					const auto variantStructSize = dataLayout.getTypeAllocSize(variantStructType);
+					const auto variantStructAlign = dataLayout.getABITypeAlignment(variantStructType);
+					
+					if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
+						maxStructType = variantStructType;
+						maxStructSize = variantStructSize;
+						maxStructAlign = variantStructAlign;
+					} else {
+						assert(variantStructAlign <= maxStructAlign && variantStructSize <= maxStructSize);
+					}
 				}
+				
+				assert(maxStructType != nullptr);
 				
 				std::vector<llvm::Type*> structMembers;
 				structMembers.push_back(TypeGenerator(module).getI8Type());
-				structMembers.push_back(TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), unionSize));
+				structMembers.push_back(maxStructType);
 				structType->setBody(structMembers);
 				return structType;
 			} else {

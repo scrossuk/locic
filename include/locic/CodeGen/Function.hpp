@@ -36,7 +36,7 @@ namespace locic {
 				typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
 				typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
 				
-				Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* templateBuilder);
+				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
 				llvm::Function& getLLVMFunction();
 				
@@ -73,6 +73,8 @@ namespace locic {
 				llvm::IRBuilder<>& getEntryBuilder();
 				
 				llvm::IRBuilder<>& getBuilder();
+				
+				bool setUseEntryBuilder(bool useEntryBuilder);
 				
 				llvm::BasicBlock* getSelectedBasicBlock() const;
 				
@@ -123,8 +125,11 @@ namespace locic {
 				
 				Module& module_;
 				llvm::Function& function_;
+				
 				llvm::IRBuilder<> entryBuilder_, builder_;
-				ArgInfo argInfo_;
+				bool useEntryBuilder_;
+				
+				const ArgInfo& argInfo_;
 				TemplateBuilder* templateBuilder_;
 				
 				LocalVarMap localVarMap_;
@@ -139,6 +144,23 @@ namespace locic {
 				
 				llvm::Value* exceptionInfo_;
 				llvm::Value* templateArgs_;
+				
+		};
+		
+		class SetUseEntryBuilder {
+			public:
+				inline SetUseEntryBuilder(Function& function)
+					: function_(function) {
+						previousValue_ = function_.setUseEntryBuilder(true);
+					}
+				
+				inline ~SetUseEntryBuilder() {
+					(void) function_.setUseEntryBuilder(previousValue_);
+				}
+				
+			private:
+				Function& function_;
+				bool previousValue_;
 				
 		};
 		

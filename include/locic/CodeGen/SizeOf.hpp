@@ -2,6 +2,8 @@
 #define LOCIC_CODEGEN_SIZEOF_HPP
 
 #include <locic/SEM.hpp>
+
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
 
@@ -9,7 +11,13 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Function* genAlignOfFunction(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo alignMaskArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		
+		ArgInfo sizeOfArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		
+		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		
+		llvm::Function* genAlignMaskFunction(Module& module, SEM::TypeInstance* typeInstance);
 		
 		llvm::Value* genAlignOf(Function& function, SEM::Type* type);
 		

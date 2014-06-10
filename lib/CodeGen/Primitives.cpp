@@ -25,8 +25,7 @@ namespace locic {
 		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, alignMaskArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -58,8 +57,7 @@ namespace locic {
 		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			const auto hasTemplate = !typeInstance->templateVariables().empty();
-			Function function(module, llvmFunction, hasTemplate ? ArgInfo::TemplateOnly(module) : ArgInfo::None(module), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, sizeOfArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -714,9 +712,6 @@ namespace locic {
 					// Copy the object's target value into the return value.
 					genStore(function, function.getRawContextValue(), returnVar, targetType);
 					
-					// Zero out the object's target value.
-					genZero(function, targetType, function.getRawContextValue());
-					
 					// Reset the objects' liveness indicator.
 					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(function.getRawContextValue(), objectSize);
 					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
@@ -855,27 +850,19 @@ namespace locic {
 			}
 		}
 		
-		void createMemberLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
-			assert(llvmFunction.isDeclaration());
+		void createMemberLvalPrimitiveDestructor(Function& function, SEM::TypeInstance* typeInstance) {
+			auto& builder = function.getBuilder();
 			
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
-			Function function(module, llvmFunction, ArgInfo::TemplateAndContext(module), &(module.typeTemplateBuilder(typeInstance)));
-			
 			// Run the child value's destructor.
 			genDestructorCall(function, targetType, function.getRawContextValue());
-			function.getBuilder().CreateRetVoid();
-			
-			// Check the generated function is correct.
-			function.verify();
+			builder.CreateRetVoid();
 		}
 		
-		void createValueLvalPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
-			assert(llvmFunction.isDeclaration());
-			
-			Function function(module, llvmFunction, ArgInfo::TemplateAndContext(module), &(module.typeTemplateBuilder(typeInstance)));
-			
+		void createValueLvalPrimitiveDestructor(Function& function, SEM::TypeInstance* typeInstance) {
 			auto& builder = function.getBuilder();
+			auto& module = function.module();
 			
 			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
@@ -899,33 +886,25 @@ namespace locic {
 			
 			genDestructorCall(function, targetType, function.getRawContextValue());
 			builder.CreateRetVoid();
-			
-			// Check the generated function is correct.
-			function.verify();
-		}
-		
-		void createVoidPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
-			assert(llvmFunction.isDeclaration());
-			
-			auto argInfo = !typeInstance->templateVariables().empty() ? ArgInfo::TemplateAndContext(module) : ArgInfo::ContextOnly(module);
-			Function function(module, llvmFunction, std::move(argInfo), &(module.typeTemplateBuilder(typeInstance)));
-			
-			// Nothing to do; just return.
-			function.getBuilder().CreateRetVoid();
-			
-			// Check the generated function is correct.
-			function.verify();
 		}
 		
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
+			
 			const auto typeName = typeInstance->name().last();
 			if (typeName == "member_lval") {
-				createMemberLvalPrimitiveDestructor(module, typeInstance, llvmFunction);
+				createMemberLvalPrimitiveDestructor(function, typeInstance);
 			} else if (typeName == "value_lval") {
-				createValueLvalPrimitiveDestructor(module, typeInstance, llvmFunction);
+				createValueLvalPrimitiveDestructor(function, typeInstance);
 			} else {
-				createVoidPrimitiveDestructor(module, typeInstance, llvmFunction);
+				// Nothing to do...
+				function.getBuilder().CreateRetVoid();
 			}
+			
+			// Check the generated function is correct.
+			function.verify();
 		}
 		
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type) {
@@ -933,7 +912,7 @@ namespace locic {
 			
 			if (name == "__ref") {
 				if (type->templateArguments().at(0)->isInterface()) {
-					return interfaceStructType(module);
+					return interfaceStructType(module).second;
 				} else {
 					return genPointerType(module, type->templateArguments().at(0));
 				}

@@ -9,6 +9,7 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -17,52 +18,88 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		ArgInfo ArgInfo::None(Module& module) {
-			return ArgInfo(module, false, false, false, {}, {});
+		TypePair voidTypePair(Module& module) {
+			return std::make_pair(llvm_abi::Type::AutoStruct({}), TypeGenerator(module).getVoidType());
 		}
 		
-		ArgInfo ArgInfo::ContextOnly(Module& module) {
-			return ArgInfo(module, false, false, true, {}, {});
+		TypePair sizeTypePair(Module& module) {
+			return std::make_pair(llvm_abi::Type::Integer(llvm_abi::SizeT), getNamedPrimitiveType(module, "size_t"));
 		}
 		
-		ArgInfo ArgInfo::TemplateOnly(Module& module) {
-			return ArgInfo(module, false, true, false, {}, {});
+		TypePair pointerTypePair(Module& module) {
+			return std::make_pair(llvm_abi::Type::Pointer(), TypeGenerator(module).getI8PtrType());
 		}
 		
-		ArgInfo ArgInfo::TemplateAndContext(Module& module) {
-			return ArgInfo(module, false, true, true, {}, {});
+		ArgInfo ArgInfo::VoidNone(Module& module) {
+			return ArgInfo(module, false, false, false, false, voidTypePair(module), {});
 		}
 		
-		ArgInfo ArgInfo::Basic(Module& module, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes) {
-			return ArgInfo(module, false, false, false, std::move(standardArguments), argTypes);
+		ArgInfo ArgInfo::VoidContextOnly(Module& module) {
+			return ArgInfo(module, false, false, true, false, voidTypePair(module), {});
 		}
 		
-		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, std::vector<llvm_abi::Type> standardArguments, const std::vector<llvm::Type*>& argTypes)
-			: hasReturnVarArgument_(hRVA),
+		ArgInfo ArgInfo::VoidTemplateOnly(Module& module) {
+			return ArgInfo(module, false, true, false, false, voidTypePair(module), {});
+		}
+		
+		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes) {
+			return ArgInfo(module, false, true, false, false, std::move(returnType), std::move(argumentTypes));
+		}
+		
+		ArgInfo ArgInfo::TemplateOnly(Module& module, TypePair returnType) {
+			return ArgInfo(module, false, true, false, false, std::move(returnType), {});
+		}
+		
+		ArgInfo ArgInfo::VoidTemplateAndContext(Module& module) {
+			return ArgInfo(module, false, true, true, false, voidTypePair(module), {});
+		}
+		
+		ArgInfo ArgInfo::TemplateAndContext(Module& module, TypePair returnType) {
+			return ArgInfo(module, false, true, true, false, std::move(returnType), {});
+		}
+		
+		ArgInfo ArgInfo::Basic(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes) {
+			return ArgInfo(module, false, false, false, false, std::move(returnType), std::move(argumentTypes));
+		}
+		
+		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, std::vector<TypePair> pArgumentTypes)
+			: module_(module),
+			  hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),
 			  hasContextArgument_(hCA),
-			  numStandardArguments_(standardArguments.size()) {
+			  isVarArg_(pIsVarArg),
+			  numStandardArguments_(pArgumentTypes.size()),
+			  returnType_(std::move(pReturnType)) {
 			if (hasReturnVarArgument_) {
-				abiTypes_.push_back(llvm_abi::Type::Pointer());
-				abiLLVMTypes_.push_back(TypeGenerator(module).getI8PtrType());
+				argumentTypes_.push_back(pointerTypePair(module));
 			}
 			
 			if (hasTemplateGeneratorArgument_) {
-				abiTypes_.push_back(templateGeneratorABIType());
-				abiLLVMTypes_.push_back(templateGeneratorType(module));
+				argumentTypes_.push_back(templateGeneratorType(module));
 			}
 			
 			if (hasContextArgument_) {
-				abiTypes_.push_back(llvm_abi::Type::Pointer());
-				abiLLVMTypes_.push_back(TypeGenerator(module).getI8PtrType());
+				argumentTypes_.push_back(pointerTypePair(module));
 			}
 			
-			size_t i = 0;
-			
-			for (auto& abiType : standardArguments) {
-				abiTypes_.push_back(std::move(abiType));
-				abiLLVMTypes_.push_back(argTypes.at(i++));
+			for (auto& argType: pArgumentTypes) {
+				argumentTypes_.push_back(std::move(argType));
 			}
+		}
+		
+		llvm::FunctionType* ArgInfo::makeFunctionType() const {
+			llvm_abi::FunctionType abiFunctionType;
+			abiFunctionType.returnType = returnType().first.copy();
+			
+			std::vector<llvm::Type*> paramTypes;
+			
+			for (const auto& typePair: argumentTypes()) {
+				abiFunctionType.argTypes.push_back(typePair.first.copy());
+				paramTypes.push_back(typePair.second);
+			}
+			
+			const auto genericFunctionType = TypeGenerator(module_).getFunctionType(returnType().second, paramTypes, isVarArg());
+			return module_.abi().rewriteFunctionType(genericFunctionType, abiFunctionType);
 		}
 		
 		bool ArgInfo::hasReturnVarArgument() const {
@@ -75,6 +112,10 @@ namespace locic {
 		
 		bool ArgInfo::hasContextArgument() const {
 			return hasContextArgument_;
+		}
+		
+		bool ArgInfo::isVarArg() const {
+			return isVarArg_;
 		}
 		
 		size_t ArgInfo::returnVarArgumentOffset() const {
@@ -101,45 +142,53 @@ namespace locic {
 			return standardArgumentOffset() + numStandardArguments();
 		}
 		
-		const std::vector<llvm_abi::Type>& ArgInfo::abiTypes() const {
-			return abiTypes_;
+		const TypePair& ArgInfo::returnType() const {
+			return returnType_;
 		}
 		
-		const std::vector<llvm::Type*>& ArgInfo::abiLLVMTypes() const {
-			return abiLLVMTypes_;
+		const std::vector<TypePair>& ArgInfo::argumentTypes() const {
+			return argumentTypes_;
 		}
 		
 		ArgInfo getFunctionArgInfo(Module& module, SEM::Type* functionType) {
 			assert(functionType->isFunction());
-			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, functionType->getFunctionReturnType());
+			
+			const auto semReturnType = functionType->getFunctionReturnType();
+			
+			const bool isVarArg = functionType->isFunctionVarArg();
+			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, semReturnType);
 			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplatedMethod();
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			std::vector<llvm_abi::Type> abiArgTypes;
-			std::vector<llvm::Type*> abiLLVMArgTypes;
+			TypePair returnType = hasReturnVarArg ? voidTypePair(module) : std::make_pair(genABIType(module, semReturnType), genType(module, semReturnType));
+			
+			std::vector<TypePair> argTypes;
 			
 			for (const auto paramType: functionType->getFunctionParameterTypes()) {
-				abiArgTypes.push_back(genABIArgType(module, paramType));
-				abiLLVMArgTypes.push_back(genArgType(module, paramType));
+				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, std::move(returnType), std::move(argTypes));
 		}
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function) {
-			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
+			const auto functionType = function->type();
+			const auto semReturnType = functionType->getFunctionReturnType();
+			
+			const bool isVarArg = functionType->isFunctionVarArg();
+			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, semReturnType);
 			const bool hasTemplateGeneratorArg = true;
-			const bool hasContextArg = function->isMethod() && !function->isStaticMethod();
+			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			std::vector<llvm_abi::Type> abiArgTypes;
-			std::vector<llvm::Type*> abiLLVMArgTypes;
+			TypePair returnType = hasReturnVarArg ? voidTypePair(module) : std::make_pair(genABIType(module, semReturnType), genType(module, semReturnType));
 			
-			for (const auto paramType :  function->type()->getFunctionParameterTypes()) {
-				abiArgTypes.push_back(genABIArgType(module, paramType));
-				abiLLVMArgTypes.push_back(genArgType(module, paramType));
+			std::vector<TypePair> argTypes;
+			
+			for (const auto paramType: functionType->getFunctionParameterTypes()) {
+				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, std::move(abiArgTypes), abiLLVMArgTypes);
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, std::move(returnType), std::move(argTypes));
 		}
 		
 	}

@@ -107,6 +107,8 @@ namespace llvm_abi {
 			
 			~Type();
 			
+			Type copy() const;
+			
 			TypeKind kind() const;
 			
 			bool isPointer() const;
@@ -150,6 +152,10 @@ namespace llvm_abi {
 			
 			inline static StructMember ForceOffset(Type type, size_t offset) {
 				return StructMember(std::move(type), offset);
+			}
+			
+			inline StructMember copy() const {
+				return StructMember(type().copy(), offset());
 			}
 			
 			inline const Type& type() const {

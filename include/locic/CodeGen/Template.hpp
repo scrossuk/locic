@@ -5,6 +5,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
 
@@ -17,16 +18,24 @@ namespace locic {
 		 * 
 		 * Generates struct { void* rootFn; uint32_t path; }.
 		 */
-		llvm::Type* templateGeneratorType(Module& module);
-		llvm_abi::Type templateGeneratorABIType();
+		TypePair templateGeneratorType(Module& module);
 		
 		/**
 		 * \brief Type info type.
 		 * 
 		 * Generates struct { void* vtable; struct { void* rootFn, uint32_t path; } generator; }.
 		 */
-		llvm::Type* typeInfoType(Module& module);
-		llvm_abi::Type typeInfoABIType();
+		TypePair typeInfoType(Module& module);
+		
+		/**
+		 * \brief Root function arg info.
+		 */
+		ArgInfo rootFunctionArgInfo(Module& module);
+		
+		/**
+		 * \brief Intermediate function arg info.
+		 */
+		ArgInfo intermediateFunctionArgInfo(Module& module);
 		
 		/**
 		 * \brief Obtain template arguments from a generator pair.

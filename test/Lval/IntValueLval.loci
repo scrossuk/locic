@@ -11,6 +11,7 @@ void moveFunction(lval<int> value_lval<int>& objectLval) {
 	testPrint(C"moveFunction: Previous value = %d", objectLval);
 	int value = move objectLval;
 	testPrint(C"moveFunction: Moved value = %d", value);
+	objectLval = 0;
 	testPrint(C"moveFunction: New value = %d", objectLval);
 }
 

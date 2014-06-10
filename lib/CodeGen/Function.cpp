@@ -31,11 +31,12 @@ namespace locic {
 			return first.second < second.second;
 		}
 		
-		Function::Function(Module& pModule, llvm::Function& function, ArgInfo argInfo, TemplateBuilder* pTemplateBuilder)
+		Function::Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* pTemplateBuilder)
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
 			  builder_(pModule.getLLVMContext()),
-			  argInfo_(std::move(argInfo)),
+			  useEntryBuilder_(false),
+			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
@@ -69,7 +70,14 @@ namespace locic {
 				encodedArgValues.push_back(arg);
 			}
 			
-			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), encodedArgValues, argInfo_.abiTypes(), argInfo_.abiLLVMTypes());
+			std::vector<llvm_abi::Type> argABITypes;
+			std::vector<llvm::Type*> argLLVMTypes;
+			for (const auto& typePair: argInfo.argumentTypes()) {
+				argABITypes.push_back(typePair.first.copy());
+				argLLVMTypes.push_back(typePair.second);
+			}
+			
+			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), encodedArgValues, argABITypes, argLLVMTypes);
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
@@ -118,6 +126,7 @@ namespace locic {
 		llvm::Value* Function::getTemplateArgs() {
 			assert(argInfo_.hasTemplateGeneratorArgument());
 			if (templateArgs_ == nullptr) {
+				SetUseEntryBuilder useEntryBuilder(*this);
 				templateArgs_ = computeTemplateArguments(*this, getRawArg(argInfo_.templateGeneratorArgumentOffset()));
 			}
 			return templateArgs_;
@@ -153,7 +162,13 @@ namespace locic {
 		}
 		
 		llvm::IRBuilder<>& Function::getBuilder() {
-			return builder_;
+			return useEntryBuilder_ ? entryBuilder_ : builder_;
+		}
+		
+		bool Function::setUseEntryBuilder(bool useEntryBuilder) {
+			const bool previous = useEntryBuilder_;
+			useEntryBuilder_ = useEntryBuilder;
+			return previous;
 		}
 		
 		llvm::BasicBlock* Function::getSelectedBasicBlock() const {

@@ -53,6 +53,31 @@ namespace locic {
 			}
 		}
 		
+		bool isObjectTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* objectType) {
+			if (objectType->isStruct()) {
+				// Structs can only contain known size members.
+				return true;
+			} else if (objectType->isDatatype() || objectType->isException()) {
+				// All members of the type must have a known size
+				// for it to have a known size.
+				for (auto var: objectType->variables()) {
+					if (!isTypeSizeAlwaysKnown(module, var->type())) {
+						return false;
+					}
+				}
+				return true;
+			} else if (objectType->isUnionDatatype()) {
+				for (auto variantTypeInstance: objectType->variants()) {
+					if (!isObjectTypeSizeAlwaysKnown(module, variantTypeInstance)) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
 		bool isTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -61,13 +86,8 @@ namespace locic {
 				case SEM::Type::OBJECT:
 					if (type->isPrimitive()) {
 						return isPrimitiveTypeSizeAlwaysKnown(module, type);
-					} else if (type->isStruct()) {
-						// Structs must always have a known size.
-						return true;
 					} else {
-						// TODO: datatypes containing known size types should
-						//       also have a known size.
-						return false;
+						return isObjectTypeSizeAlwaysKnown(module, type->getObjectType());
 					}
 				case SEM::Type::TEMPLATEVAR:
 					return false;
