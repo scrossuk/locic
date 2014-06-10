@@ -8,33 +8,29 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		namespace {
-			
-			bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType) {
-				if (objectType->isStruct()) {
-					// Structs can only contain known size members.
-					return true;
-				} else if (objectType->isClassDef() || objectType->isDatatype() || objectType->isException()) {
-					// All members of the type must have a known size
-					// for it to have a known size.
-					for (auto var: objectType->variables()) {
-						if (!isTypeSizeKnownInThisModule(module, var->type())) {
-							return false;
-						}
+		bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType) {
+			if (objectType->isStruct()) {
+				// Structs can only contain known size members.
+				return true;
+			} else if (objectType->isClassDef() || objectType->isDatatype() || objectType->isException()) {
+				// All members of the type must have a known size
+				// for it to have a known size.
+				for (auto var: objectType->variables()) {
+					if (!isTypeSizeKnownInThisModule(module, var->type())) {
+						return false;
 					}
-					return true;
-				} else if (objectType->isUnionDatatype()) {
-					for (auto variantTypeInstance: objectType->variants()) {
-						if (!isObjectTypeSizeKnownInThisModule(module, variantTypeInstance)) {
-							return false;
-						}
-					}
-					return true;
-				} else {
-					return false;
 				}
+				return true;
+			} else if (objectType->isUnionDatatype()) {
+				for (auto variantTypeInstance: objectType->variants()) {
+					if (!isObjectTypeSizeKnownInThisModule(module, variantTypeInstance)) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				return false;
 			}
-			
 		}
 		
 		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {

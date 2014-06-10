@@ -25,17 +25,27 @@ namespace locic {
 			
 			module.getTypeMap().insert(mangledName, structType);
 			
-			// Member variables are not known for class declarations,
-			// hence return an empty struct.
-			if (typeInstance->isClassDecl()) return structType;
+			// Create mapping between member variables and their
+			// indexes within their parent.
+			for (size_t i = 0; i < typeInstance->variables().size(); i++) {
+				const auto var = typeInstance->variables().at(i);
+				module.getMemberVarMap().forceInsert(var, i);
+			}
+			
+			// If the size isn't known then just return an opaque struct.
+			if (!isObjectTypeSizeKnownInThisModule(module, typeInstance)) {
+				return structType;
+			}
 			
 			if (typeInstance->isUnionDatatype()) {
 				llvm::DataLayout dataLayout(module.getLLVMModulePtr());
 				
 				size_t unionSize = 0;
+				size_t unionAlign = 1;
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantStructType = genTypeInstance(module, variantTypeInstance);
 					unionSize = std::max<size_t>(unionSize, dataLayout.getTypeAllocSize(variantStructType));
+					unionAlign = std::max<size_t>(unionAlign, dataLayout.getABITypeAlignment(variantStructType));
 				}
 				
 				std::vector<llvm::Type*> structMembers;
@@ -43,35 +53,18 @@ namespace locic {
 				structMembers.push_back(TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), unionSize));
 				structType->setBody(structMembers);
 				return structType;
-			}
-			
-			// Add member variables.
-			const auto& variables = typeInstance->variables();
-			
-			// Create mapping between member variables and their
-			// indexes within their parent.
-			for (size_t i = 0; i < variables.size(); i++) {
-				const auto var = variables.at(i);
-				module.getMemberVarMap().forceInsert(var, i);
-			}
-			
-			// Generating the type for a class or struct definition, so
-			// the size and contents of the type instance is known and
-			// hence the contents can be specified.
-			std::vector<llvm::Type*> structVariables;
-			
-			for (size_t i = 0; i < variables.size(); i++) {
-				const auto var = variables.at(i);
-				if (!isTypeSizeKnownInThisModule(module, var->type())) {
-					// If a member variable has unknown size,
-					// just return an opaque struct.
-					return structType;
+			} else {
+				// Generating the type for a class or struct definition, so
+				// the size and contents of the type instance is known and
+				// hence the contents can be specified.
+				std::vector<llvm::Type*> structVariables;
+				
+				for (const auto& var: typeInstance->variables()) {
+					structVariables.push_back(genType(module, var->type()));
 				}
 				
-				structVariables.push_back(genType(module, var->type()));
+				structType->setBody(structVariables);
 			}
-			
-			structType->setBody(structVariables);
 			
 			return structType;
 		}

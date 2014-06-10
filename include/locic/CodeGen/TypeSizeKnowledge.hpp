@@ -9,6 +9,8 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType);
+		
 		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
 		
 		bool isTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
