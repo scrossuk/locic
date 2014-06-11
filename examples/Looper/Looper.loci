@@ -1,0 +1,29 @@
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+import void printf(const char * const str, ...);
+
+size_t makeSum(size_t val) {
+	size_t i = 0u;
+	size_t counter = 0u;
+	
+	while (i < 100u) {
+		counter = counter + val;
+		i = i + 1u;
+	}
+	
+	return counter;
+}
+
+export int main(int argc, char ** argv) {
+	size_t i = 0u;
+	size_t j = 0u;
+	
+	while (i < 50000u) {
+		j = j + makeSum(i);
+		i = i + 1u;
+	}
+	
+	printf(C"Done: %llu\n", j.toULongLong());
+	return 0;
+}
+

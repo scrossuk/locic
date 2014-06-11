@@ -1,0 +1,66 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+interface Printable {
+	void print();
+}
+
+class FirstClass(int i) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"FirstClass: %d", @i);
+	}
+}
+
+class SecondClass(int i) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"SecondClass: %d", @i);
+	}
+}
+
+template <typename A : Printable, typename B : Printable>
+class TestClass(A a, B b) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"TestClass -> print A");
+		@a.print();
+		testPrint(C"TestClass -> print B");
+		@b.print();
+	}
+}
+
+void polymorphicPrint(Printable& printable) {
+	testPrint(C"polymorphicPrint()");
+	printable.print();
+}
+
+class PolymorphicClass(Printable& printable) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"PolymorphicClass.print()");
+		@printable.print();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	FirstClass a = FirstClass(100);
+	SecondClass b = SecondClass(200);
+	
+	TestClass<FirstClass, SecondClass> testClass = TestClass<FirstClass, SecondClass>(move a, move b);
+	polymorphicPrint(testClass);
+	
+	PolymorphicClass polyClass = PolymorphicClass(testClass);
+	polymorphicPrint(polyClass);
+	
+	//PolymorphicClass polyClass2 = PolymorphicClass(polyClass);
+	//polymorphicPrint(polyClass2);
+	
+	return 0;
+}
+

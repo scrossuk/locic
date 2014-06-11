@@ -8,6 +8,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -22,8 +23,10 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+		void createPrimitiveAlignOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
+			
+			const auto typeInstance = type->getObjectType();
 			
 			Function function(module, llvmFunction, alignMaskArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
 			
@@ -46,16 +49,29 @@ namespace locic {
 				//     alignof(value_lval) = alignof(T).
 				function.getBuilder().CreateRet(genAlignMask(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
 			} else if (name == "__ref") {
-				// TODO: handle cases where type parameter is an interface!
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveAlignInBytes("ptr") - 1));
+				size_t align = 0;
+				if (hasVirtualTypeArgument(type)) {
+					// If it has a virtual argument, then it will store
+					// the type information internally.
+					align = module.abi().typeAlign(interfaceStructType(module).first);
+				} else {
+					// If the argument is statically known, then the
+					// type information is provided via template generators.
+					align = module.abi().typeAlign(llvm_abi::Type::Pointer());
+				}
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(align - 1));
 			} else {
-				// Everything else already has a known size.
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveAlignInBytes(name) - 1));
+				// Everything else already has a known alignment.
+				const auto abiType = genABIType(module, type);
+				const auto align = module.abi().typeAlign(abiType);
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(align - 1));
 			}
 		}
 		
-		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+		void createPrimitiveSizeOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
+			
+			const auto typeInstance = type->getObjectType();
 			
 			Function function(module, llvmFunction, sizeOfArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
 			
@@ -104,11 +120,22 @@ namespace locic {
 				const auto templateVarSize = genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
 				function.getBuilder().CreateRet(function.getBuilder().CreateAdd(templateVarAlign, templateVarSize));
 			} else if (name == "__ref") {
-				// TODO: handle cases where type parameter is an interface!
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveSizeInBytes("ptr")));
+				size_t size = 0;
+				if (hasVirtualTypeArgument(type)) {
+					// If it has a virtual argument, then it will store
+					// the type information internally.
+					size = module.abi().typeSize(interfaceStructType(module).first);
+				} else {
+					// If the argument is statically known, then the
+					// type information is provided via template generators.
+					size = module.abi().typeSize(llvm_abi::Type::Pointer());
+				}
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(size));
 			} else {
 				// Everything else already has a known size.
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(module.getTargetInfo().getPrimitiveSizeInBytes(name)));
+				const auto abiType = genABIType(module, type);
+				const auto size = module.abi().typeSize(abiType);
+				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(size));
 			}
 		}
 		
@@ -659,7 +686,12 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
+					// Destroy existing value.
+					genDestructorCall(function, targetType, function.getRawContextValue());
+					
+					// Assign new value.
 					genStore(function, operand, function.getRawContextValue(), targetType);
+					
 					builder.CreateRetVoid();
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");

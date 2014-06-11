@@ -328,7 +328,7 @@ namespace locic {
 								TypeGenerator(module).getI8PtrType());
 					
 					// Generate the vtable and template generator.
-					const auto vtablePointer = genVTable(module, sourceTarget->getObjectType());
+					const auto vtablePointer = genVTable(module, sourceTarget);
 					const auto templateGenerator = computeTemplateGenerator(function, sourceTarget);
 					
 					// Build the new interface struct with these values.

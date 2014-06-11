@@ -62,7 +62,7 @@ namespace locic {
 		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance) {
 			if (semTypeInstance->parent() == nullptr) {
 				// No parent, so just create a normal default constructor.
-				return CreateDefaultConstructorDecl(context, semTypeInstance);
+				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + "create");
 			}
 			
 			const bool isVarArg = false;
@@ -79,7 +79,7 @@ namespace locic {
 			
 			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), constructTypes);
 			const auto parameters = getParameters(context, constructTypes);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "Create", parameters, semTypeInstance->moduleScope());
+			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "create", parameters, semTypeInstance->moduleScope());
 		}
 		
 		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance, SEM::Function* function) {
@@ -116,7 +116,7 @@ namespace locic {
 			// Call parent constructor.
 			// TODO: should provide template arguments.
 			const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-			constructValues.push_back(CallValue(GetStaticMethod(parentType, "Create", location), parentArguments, location));
+			constructValues.push_back(CallValue(GetStaticMethod(parentType, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {
 				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");

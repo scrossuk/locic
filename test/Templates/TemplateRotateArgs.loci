@@ -1,0 +1,95 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+interface Printable {
+	void print();
+}
+
+class FirstClass(int i) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"      FirstClass: %d", @i);
+	}
+}
+
+class SecondClass(int i) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"      SecondClass: %d", @i);
+	}
+}
+
+class ThirdClass(int i) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"      ThirdClass: %d", @i);
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class InnerClass (R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(r, s, t);
+	}
+	
+	void print() {
+		testPrint(C"    InnerClass -> print R");
+		@r.print();
+		testPrint(C"    InnerClass -> print S");
+		@s.print();
+		testPrint(C"    InnerClass -> print T");
+		@t.print();
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class MiddleClass (InnerClass<S, T, R> member, R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(InnerClass<S, T, R>(s, t, r), r, s, t);
+	}
+	
+	void print() {
+		testPrint(C"  MiddleClass -> print InnerClass");
+		@member.print();
+		testPrint(C"  MiddleClass -> print R");
+		@r.print();
+		testPrint(C"  MiddleClass -> print S");
+		@s.print();
+		testPrint(C"  MiddleClass -> print T");
+		@t.print();
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class OuterClass (MiddleClass<S, T, R> member, R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(MiddleClass<S, T, R>(s, t, r), r, s, t);
+	}
+	
+	void print() {
+		testPrint(C"OuterClass -> print MiddleClass");
+		@member.print();
+		testPrint(C"OuterClass -> print R");
+		@r.print();
+		testPrint(C"OuterClass -> print S");
+		@s.print();
+		testPrint(C"OuterClass -> print T");
+		@t.print();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	FirstClass r = FirstClass(1);
+	SecondClass s = SecondClass(2);
+	ThirdClass t = ThirdClass(3);
+	
+	OuterClass<FirstClass, SecondClass, ThirdClass> outerClass = OuterClass<FirstClass, SecondClass, ThirdClass>(r, s, t);
+	outerClass.print();
+	
+	return 0;
+}
+

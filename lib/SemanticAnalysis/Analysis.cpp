@@ -83,6 +83,24 @@ namespace locic {
 			
 			// Create a placeholder type instance.
 			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind, moduleScope);
+			
+			if (moduleScope == nullptr) {
+				if (semTypeInstance->isClassDecl()) {
+					throw ErrorException(makeString("Definition required for internal class '%s', at location %s.",
+						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				}
+			} else if (moduleScope->isImport()) {
+				if (semTypeInstance->isClassDef()) {
+					throw ErrorException(makeString("Implementation not allowed of imported class '%s', at location %s.",
+						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				}
+			} else if (moduleScope->isExport()) {
+				if (semTypeInstance->isClassDecl()) {
+					throw ErrorException(makeString("Definition required for exported class '%s', at location %s.",
+						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				}
+			}
+			
 			parentNamespace->items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(semTypeInstance)));
 			
 			if (semTypeInstance->isUnionDatatype()) {
@@ -288,18 +306,21 @@ namespace locic {
 				moduleScope = SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
 			}
 			
+			const bool isParentInterface = topElement.isTypeInstance() && topElement.typeInstance()->isInterface();
+			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance()->isPrimitive();
+			
 			if (moduleScope == nullptr) {
-				if (!(topElement.isTypeInstance() && (topElement.typeInstance()->isPrimitive() || topElement.typeInstance()->isInterface())) && astFunctionNode->isDeclaration()) {
+				if (!isParentInterface && !isParentPrimitive && astFunctionNode->isDeclaration()) {
 					throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
 						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 				}
 			} else if (moduleScope->isImport()) {
-				if (!astFunctionNode->isDeclaration()) {
+				if (!isParentInterface && !astFunctionNode->isDeclaration()) {
 					throw ErrorException(makeString("Implementation not allowed of imported function '%s', at location %s.",
 						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 				}
 			} else if (moduleScope->isExport()) {
-				if (astFunctionNode->isDeclaration()) {
+				if (!isParentInterface && astFunctionNode->isDeclaration()) {
 					throw ErrorException(makeString("Definition required for exported function '%s', at location %s.",
 						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 				}
@@ -533,19 +554,19 @@ namespace locic {
 				const auto constructor =
 					typeInstance->isException() ?
 						CreateExceptionConstructorDecl(context, typeInstance) :
-						CreateDefaultConstructorDecl(context, typeInstance);
+						CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + "create");
 				typeInstance->functions().insert(std::make_pair("create", constructor));
 			}
 			
 			// Add default implicit copy if available.
 			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(typeInstance)) {
-				const auto implicitCopy = CreateDefaultImplicitCopyDecl(typeInstance);
+				const auto implicitCopy = CreateDefaultImplicitCopyDecl(typeInstance, typeInstance->name() + "implicitcopy");
 				typeInstance->functions().insert(std::make_pair("implicitcopy", implicitCopy));
 			}
 			
 			// Add default compare for datatypes if available.
 			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultCompare(typeInstance)) {
-				const auto implicitCopy = CreateDefaultCompareDecl(context, typeInstance);
+				const auto implicitCopy = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
 				typeInstance->functions().insert(std::make_pair("compare", implicitCopy));
 			}
 		}

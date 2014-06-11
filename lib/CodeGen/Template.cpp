@@ -12,6 +12,7 @@
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -58,19 +59,6 @@ namespace locic {
 				if (!isRootType(arg)) return false;
 			}
 			return true;
-		}
-		
-		bool hasVirtualTypeArgument(SEM::Type* type) {
-			assert(type->isObject());
-			assert(!type->isInterface());
-			
-			for (const auto arg: type->templateArguments()) {
-				if (arg->isInterface()) {
-					return true;
-				}
-			}
-			
-			return false;
 		}
 		
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
@@ -308,7 +296,7 @@ namespace locic {
 			
 			for (size_t i = 0; i < type->templateArguments().size(); i++) {
 				const auto& templateArg = type->templateArguments().at(i);
-				const auto vtablePointer = genVTable(module, templateArg->getObjectType());
+				const auto vtablePointer = genVTable(module, templateArg);
 				
 				// Create type info struct.
 				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
@@ -384,6 +372,11 @@ namespace locic {
 			
 			const auto argInfo = intermediateFunctionArgInfo(module);
 			const auto llvmFunction = genTemplateIntermediateFunctionDecl(module, parentType);
+			
+			if (parentType->isClassDecl()) {
+				return llvmFunction;
+			}
+			
 			Function function(module, *llvmFunction, argInfo);
 			
 			// Always inline template generators.
@@ -428,7 +421,7 @@ namespace locic {
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
-						const auto vtablePointer = genVTable(module, templateUseArg->getObjectType());
+						const auto vtablePointer = genVTable(module, templateUseArg);
 						
 						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 						typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });

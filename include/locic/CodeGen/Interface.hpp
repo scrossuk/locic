@@ -10,6 +10,8 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		bool hasVirtualTypeArgument(SEM::Type* type);
+		
 		llvm::Value* makeTypeInfoValue(Function& function, llvm::Value* vtablePointer, llvm::Value* templateGenerator);
 		
 		/* Interface struct type is:

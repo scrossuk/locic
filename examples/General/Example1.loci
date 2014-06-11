@@ -39,9 +39,6 @@ class ExampleTemplatedClass0(){
 	}
 }
 
-template <typename T: an_interface>
-class ExampleTemplatedClass1{ }
-
 template <typename T>
 interface DefaultConstructInterface {
 	T implicitCopy() const;

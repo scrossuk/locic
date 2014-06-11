@@ -19,9 +19,9 @@ namespace locic {
 		
 		bool isIntegerType(const std::string& name);
 		
-		void createPrimitiveAlignOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void createPrimitiveAlignOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction);
 		
-		void createPrimitiveSizeOf(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		

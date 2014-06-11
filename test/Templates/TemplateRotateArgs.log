@@ -1,0 +1,20 @@
+OuterClass -> print MiddleClass
+  MiddleClass -> print InnerClass
+    InnerClass -> print R
+      ThirdClass: 3
+    InnerClass -> print S
+      FirstClass: 1
+    InnerClass -> print T
+      SecondClass: 2
+  MiddleClass -> print R
+      SecondClass: 2
+  MiddleClass -> print S
+      ThirdClass: 3
+  MiddleClass -> print T
+      FirstClass: 1
+OuterClass -> print R
+      FirstClass: 1
+OuterClass -> print S
+      SecondClass: 2
+OuterClass -> print T
+      ThirdClass: 3

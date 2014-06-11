@@ -1,0 +1,4 @@
+TestClass.Create()
+BuildClass.Create(): 42
+TestClass.print()
+BuildClass.print(): 42

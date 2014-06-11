@@ -144,9 +144,7 @@ namespace locic {
 		}
 		
 		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			assert(typeInstance->isClass() || typeInstance->isPrimitive() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
-			
-			const auto mangledName = mangleDestructorName(typeInstance);
+			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
@@ -174,13 +172,9 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			assert(typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
-			
 			if (typeInstance->isClassDecl()) {
 				return llvmFunction;
 			}
-			
-			assert(typeInstance->isClassDef() || typeInstance->isDatatype() || typeInstance->isUnionDatatype());
 			
 			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
@@ -189,8 +183,6 @@ namespace locic {
 				function.getBuilder().CreateRetVoid();
 				return llvmFunction;
 			}
-			
-			assert(typeInstance->isClassDef() || typeInstance->isDatatype());
 			
 			const auto contextValue = function.getRawContextValue();
 			

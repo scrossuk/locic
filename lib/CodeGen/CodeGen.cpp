@@ -15,6 +15,7 @@
 
 #include <locic/CodeGen/CodeGen.hpp>
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
@@ -24,6 +25,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Optimisations.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -68,6 +70,10 @@ namespace locic {
 			for (const auto functionPair: functions) {
 				(void) genFunction(module, typeInstance, functionPair.second);
 			}
+			
+			(void) genDestructorFunction(module, typeInstance);
+			(void) genAlignMaskFunction(module, typeInstance->selfType());
+			(void) genSizeOfFunction(module, typeInstance->selfType());
 			
 			if (!typeInstance->templateVariables().empty()) {
 				auto& templateBuilder = module.typeTemplateBuilder(typeInstance);

@@ -1,0 +1,11 @@
+polymorphicPrint()
+TestClass -> print A
+FirstClass: 100
+TestClass -> print B
+SecondClass: 200
+polymorphicPrint()
+PolymorphicClass.print()
+TestClass -> print A
+FirstClass: 100
+TestClass -> print B
+SecondClass: 200

@@ -5,6 +5,7 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -39,8 +40,10 @@ namespace locic {
 				ArgInfo::Basic(module, sizeTypePair(module), std::move(argTypes));
 		}
 		
-		llvm::Function* genAlignMaskFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "__alignmask");
+		llvm::Function* genAlignMaskFunction(Module& module, SEM::Type* type) {
+			const auto typeInstance = type->getObjectType();
+			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
+				mangleMethodName(typeInstance, std::string("__alignmask") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -63,7 +66,7 @@ namespace locic {
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveAlignOf(module, typeInstance, *llvmFunction);
+				createPrimitiveAlignOf(module, type, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -128,7 +131,7 @@ namespace locic {
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
 					const bool canThrow = false;
-					const auto alignMaskFunction = genAlignMaskFunction(module, type->getObjectType());
+					const auto alignMaskFunction = genAlignMaskFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
@@ -148,8 +151,10 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "__sizeof");
+		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
+			const auto typeInstance = type->getObjectType();
+			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
+				mangleMethodName(typeInstance, std::string("__sizeof") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -173,7 +178,7 @@ namespace locic {
 			
 			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, typeInstance, *llvmFunction);
+				createPrimitiveSizeOf(module, type, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -257,7 +262,7 @@ namespace locic {
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
 					const bool canThrow = false;
-					const auto sizeOfFunction = genSizeOfFunction(module, type->getObjectType());
+					const auto sizeOfFunction = genSizeOfFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};

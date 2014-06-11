@@ -1,0 +1,26 @@
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+import void printf(const char * const str, ...);
+
+export B 1.0.0 {
+
+	interface Printable {
+		void print();
+	}
+	
+	template <typename T: Printable>
+	class TestClass(T value) {
+		static Create = default;
+		
+		void print() {
+			printf(C"TestClass.print()\n");
+			@value.print();
+		}
+		
+		void setValue(T value) {
+			@value = move value;
+		}
+	}
+
+}
+

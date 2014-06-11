@@ -47,7 +47,8 @@ namespace locic {
 			return hashArray;
 		}
 		
-		llvm::GlobalVariable* genVTable(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::GlobalVariable* genVTable(Module& module, SEM::Type* type) {
+			const auto typeInstance = type->getObjectType();
 			const auto mangledName = std::string("__type_vtable_") + mangleObjectType(typeInstance);
 			
 			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName);
@@ -73,10 +74,10 @@ namespace locic {
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Alignmask.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunction(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunction(module, type), typeGen.getI8PtrType()));
 			
 			// Sizeof.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunction(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunction(module, type), typeGen.getI8PtrType()));
 			
 			// Method slots.
 			std::vector<llvm::Constant*> methodSlotElements;

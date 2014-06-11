@@ -17,13 +17,13 @@ namespace locic {
 		
 		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genAlignMaskFunction(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genAlignMaskFunction(Module& module, SEM::Type* type);
 		
 		llvm::Value* genAlignOf(Function& function, SEM::Type* type);
 		
 		llvm::Value* genAlignMask(Function& function, SEM::Type* type);
 		
-		llvm::Function* genSizeOfFunction(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type);
 		
 		llvm::Value* genSizeOf(Function& function, SEM::Type* type);
 		

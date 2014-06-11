@@ -8,6 +8,19 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		bool hasVirtualTypeArgument(SEM::Type* type) {
+			assert(type->isObject());
+			assert(!type->isInterface());
+			
+			for (const auto arg: type->templateArguments()) {
+				if (arg->isInterface()) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
 		llvm::Value* makeTypeInfoValue(Function& function, llvm::Value* vtablePointer, llvm::Value* templateGenerator) {
 			llvm::Value* typeInfoValue = ConstantGenerator(function.module()).getUndef(typeInfoType(function.module()).second);
 			typeInfoValue = function.getBuilder().CreateInsertValue(typeInfoValue, vtablePointer, { 0 });

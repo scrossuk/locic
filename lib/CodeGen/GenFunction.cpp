@@ -211,7 +211,10 @@ namespace locic {
 			Function functionGenerator(module, *llvmFunction, argInfo);
 			
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
-			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, functionGenerator.getRawContextValue(), typeInfoValue);
+			
+			const auto i8PtrT = TypeGenerator(module).getI8PtrType();
+			const auto context = argInfo.hasContextArgument() ? functionGenerator.getRawContextValue() : ConstantGenerator(module).getNull(i8PtrT);
+			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, context, typeInfoValue);
 			
 			const auto methodHash = CreateMethodNameHash(function->name().last());
 			const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
