@@ -59,7 +59,7 @@ namespace locic {
 			
 			if (!isTypeSizeAlwaysKnown(module, returnType)) {
 				returnVarValue = genAlloca(function, returnType);
-				parameters.push_back(function.getBuilder().CreatePointerCast(returnVarValue, TypeGenerator(module).getI8PtrType()));
+				parameters.push_back(returnVarValue);
 				parameterABITypes.push_back(llvm_abi::Type::Pointer());
 			}
 			

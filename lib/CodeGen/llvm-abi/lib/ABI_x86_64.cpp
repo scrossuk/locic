@@ -321,10 +321,25 @@ namespace llvm_abi {
 					break;
 				}
 				
-				case Sse:
-					parts.push_back(size <= 4 ? llvm::Type::getFloatTy(context) : llvm::Type::getDoubleTy(context));
+				case Sse: {
+					if (size <= 4) {
+						parts.push_back(llvm::Type::getFloatTy(context));
+					} else {
+						if (type.isStruct()) {
+							const auto& structMembers = type.structMembers();
+							const auto& firstMember = structMembers.at(0).type();
+							if (firstMember.isFloatingPoint() && firstMember.floatingPointKind() == Float) {
+								parts.push_back(llvm::VectorType::get(llvm::Type::getFloatTy(context), 2));
+							} else {
+								parts.push_back(llvm::Type::getDoubleTy(context));
+							}
+						} else {
+							parts.push_back(llvm::Type::getDoubleTy(context));
+						}
+					}
 					break;
-					
+				}
+				
 				case X87:
 					assert(classification.classes[1] == X87Up && "Upper half of real not X87Up?");
 					/// The type only contains a single real/ireal field,

@@ -71,7 +71,11 @@ namespace locic {
 			  numStandardArguments_(pArgumentTypes.size()),
 			  returnType_(std::move(pReturnType)) {
 			if (hasReturnVarArgument_) {
-				argumentTypes_.push_back(pointerTypePair(module));
+				if (returnType().second->isPointerTy()) {
+					argumentTypes_.push_back(std::make_pair(llvm_abi::Type::Pointer(), returnType().second));
+				} else {
+					argumentTypes_.push_back(pointerTypePair(module));
+				}
 			}
 			
 			if (hasTemplateGeneratorArgument_) {
@@ -88,8 +92,11 @@ namespace locic {
 		}
 		
 		llvm::FunctionType* ArgInfo::makeFunctionType() const {
+			const auto voidPair = voidTypePair(module_);
+			const auto& returnTypeRef = hasReturnVarArgument() ? voidPair : returnType();
+			
 			llvm_abi::FunctionType abiFunctionType;
-			abiFunctionType.returnType = returnType().first.copy();
+			abiFunctionType.returnType = returnTypeRef.first.copy();
 			
 			std::vector<llvm::Type*> paramTypes;
 			
@@ -98,7 +105,7 @@ namespace locic {
 				paramTypes.push_back(typePair.second);
 			}
 			
-			const auto genericFunctionType = TypeGenerator(module_).getFunctionType(returnType().second, paramTypes, isVarArg());
+			const auto genericFunctionType = TypeGenerator(module_).getFunctionType(returnTypeRef.second, paramTypes, isVarArg());
 			return module_.abi().rewriteFunctionType(genericFunctionType, abiFunctionType);
 		}
 		
@@ -160,7 +167,7 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplatedMethod();
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			TypePair returnType = hasReturnVarArg ? voidTypePair(module) : std::make_pair(genABIType(module, semReturnType), genType(module, semReturnType));
+			TypePair returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
 			
 			std::vector<TypePair> argTypes;
 			
@@ -180,7 +187,7 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = true;
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			TypePair returnType = hasReturnVarArg ? voidTypePair(module) : std::make_pair(genABIType(module, semReturnType), genType(module, semReturnType));
+			TypePair returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
 			
 			std::vector<TypePair> argTypes;
 			

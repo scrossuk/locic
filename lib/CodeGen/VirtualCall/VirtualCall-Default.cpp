@@ -263,14 +263,16 @@ namespace locic {
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
+				auto& builder = function.getBuilder();
+				
 				for (const auto semMethod : methods) {
 					const auto callMethodBasicBlock = function.createBasicBlock("callMethod");
 					const auto tryNextMethodBasicBlock = function.createBasicBlock("tryNextMethod");
 					
 					const auto methodHash = CreateMethodNameHash(semMethod->name().last());
 					
-					const auto cmpValue = function.getBuilder().CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
-					function.getBuilder().CreateCondBr(cmpValue, callMethodBasicBlock, tryNextMethodBasicBlock);
+					const auto cmpValue = builder.CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
+					builder.CreateCondBr(cmpValue, callMethodBasicBlock, tryNextMethodBasicBlock);
 					
 					function.selectBasicBlock(callMethodBasicBlock);
 					
@@ -286,7 +288,9 @@ namespace locic {
 					// If the function uses a return value pointer, just pass
 					// the pointer we received from our caller.
 					if (argInfo.hasReturnVarArgument()) {
-						parameters.push_back(function.getReturnVar());
+						const auto returnVarType = genPointerType(module, returnType);
+						const auto castReturnVar = builder.CreatePointerCast(function.getReturnVar(), returnVarType, "castReturnVar");
+						parameters.push_back(castReturnVar);
 					}
 					
 					// If type is templated, pass the template generator.
@@ -308,18 +312,18 @@ namespace locic {
 					const auto llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
 					
 					// Cast the args struct pointer.
-					const auto llvmArgsStructPtr = function.getBuilder().CreatePointerCast(llvmOpaqueArgsStructPtr, llvmArgsStructPtrType, "castedArgsStructPtr");
+					const auto llvmArgsStructPtr = builder.CreatePointerCast(llvmOpaqueArgsStructPtr, llvmArgsStructPtrType, "castedArgsStructPtr");
 					
 					// Extract the arguments.
 					for (size_t offset = 0; offset < numArgs; offset++) {
 						const auto& paramType = paramTypes.at(offset);
 						
-						const auto argPtrPtr = function.getBuilder().CreateConstInBoundsGEP2_32(llvmArgsStructPtr, 0, offset);
-						const auto argPtr = function.getBuilder().CreateLoad(argPtrPtr, "argPtr");
-						const auto castArgPtr = function.getBuilder().CreatePointerCast(argPtr, genPointerType(module, paramType));
+						const auto argPtrPtr = builder.CreateConstInBoundsGEP2_32(llvmArgsStructPtr, 0, offset);
+						const auto argPtr = builder.CreateLoad(argPtrPtr, "argPtr");
+						const auto castArgPtr = builder.CreatePointerCast(argPtr, genPointerType(module, paramType));
 						
 						if (isTypeSizeAlwaysKnown(module, paramType)) {
-							parameters.push_back(function.getBuilder().CreateLoad(castArgPtr));
+							parameters.push_back(builder.CreateLoad(castArgPtr));
 						} else {
 							parameters.push_back(castArgPtr);
 						}
@@ -332,11 +336,11 @@ namespace locic {
 					// Store return value.
 					if (!argInfo.hasReturnVarArgument() && !returnType->isBuiltInVoid()) {
 						const auto returnValuePointerType = llvmCallReturnValue->getType()->getPointerTo();
-						const auto llvmCastReturnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
-						function.getBuilder().CreateStore(llvmCallReturnValue, llvmCastReturnVar);
+						const auto llvmCastReturnVar = builder.CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
+						builder.CreateStore(llvmCallReturnValue, llvmCastReturnVar);
 					}
 					
-					function.getBuilder().CreateRetVoid();
+					builder.CreateRetVoid();
 					
 					function.selectBasicBlock(tryNextMethodBasicBlock);
 				}
@@ -344,7 +348,7 @@ namespace locic {
 				// Terminate function with unreachable
 				// (notifies optimiser that this should
 				// never be reached...).
-				function.getBuilder().CreateUnreachable();
+				builder.CreateUnreachable();
 				
 				return llvmFunction;
 			}
