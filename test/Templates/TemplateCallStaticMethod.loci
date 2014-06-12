@@ -1,42 +1,33 @@
 // Test output.
 import void testPrint(const char * const str, ...) noexcept;
 
-class BuildClass(int value) {
-	static Create(int value) {
-		testPrint(C"BuildClass.Create(): %d", value);
-		return @(value);
+class StaticMethodClass() {
+	static int makeInt() {
+		return 1000;
 	}
 	
-	void print() {
-		testPrint(C"BuildClass.print(): %d", @value);
+	static float makeFloat() {
+		return 2000.0f;
 	}
 }
 
-template <typename T>
-interface Constructible {
-	static T Create(int value);
+interface StaticMethodAPI {
+	static int makeInt();
 	
-	void print();
+	static float makeFloat();
 }
 
-template <typename T: Constructible<T>>
-class TestClass(T value) {
-	static Create(int value) {
-		testPrint(C"TestClass.Create()");
-		return @(T(value));
-	}
-	
-	void print() {
-		testPrint(C"TestClass.print()");
-		@value.print();
+template <typename T: StaticMethodAPI>
+class TestClass() {
+	static void print() {
+		testPrint(C"TestClass.print(): makeInt() = %d", T.makeInt());
+		testPrint(C"TestClass.print(): makeFloat() = %f", T.makeFloat());
 	}
 }
 
 // Entry point.
 export int testEntryPoint(int argc, char ** argv) {
-	TestClass<BuildClass> testClass = TestClass<BuildClass>(42);
-	testClass.print();
-	
+	TestClass<StaticMethodClass>::print();
 	return 0;
 }
 

@@ -1,0 +1,42 @@
+// Test output.
+import void testPrint(const char * const str, ...) noexcept;
+
+class BuildClass(int value) {
+	static Create(int value) {
+		testPrint(C"BuildClass.Create(): %d", value);
+		return @(value);
+	}
+	
+	void print() {
+		testPrint(C"BuildClass.print(): %d", @value);
+	}
+}
+
+template <typename T>
+interface Constructible {
+	static T Create(int value);
+	
+	void print();
+}
+
+template <typename T: Constructible<T>>
+class TestClass(T value) {
+	static Create(int value) {
+		testPrint(C"TestClass.Create()");
+		return @(T(value));
+	}
+	
+	void print() {
+		testPrint(C"TestClass.print()");
+		@value.print();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	TestClass<BuildClass> testClass = TestClass<BuildClass>(42);
+	testClass.print();
+	
+	return 0;
+}
+

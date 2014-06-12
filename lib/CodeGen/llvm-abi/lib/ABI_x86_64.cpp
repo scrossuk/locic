@@ -289,6 +289,10 @@ namespace llvm_abi {
 			return classification;
 		}
 		
+		static bool isFloat32(const Type& type) {
+			return type.isFloatingPoint() && type.floatingPointKind() == Float;
+		}
+		
 		/// Returns the type to pass as, or null if no transformation is needed.
 		llvm::Type* getAbiType(llvm::LLVMContext& context, const Type& type) {
 			if (!((type.isComplex() && type.complexKind() == Float) || type.isStruct())) {
@@ -364,10 +368,31 @@ namespace llvm_abi {
 					break;
 				}
 				
-				case Sse:
-					parts.push_back(size <= 12 ? llvm::Type::getFloatTy(context) : llvm::Type::getDoubleTy(context));
+				case Sse: {
+					if (size <= 12) {
+						parts.push_back(llvm::Type::getFloatTy(context));
+					} else {
+						if (type.isStruct()) {
+							const auto& structMembers = type.structMembers();
+							const auto memberOffsets = getStructOffsets(structMembers);
+							
+							size_t memberIndex = 0;
+							while (memberIndex < structMembers.size() && memberOffsets.at(memberIndex) < 8) {
+								memberIndex++;
+							}
+							
+							if (memberIndex != structMembers.size() && isFloat32(structMembers.at(memberIndex).type())) {
+								parts.push_back(llvm::VectorType::get(llvm::Type::getFloatTy(context), 2));
+							} else {
+								parts.push_back(llvm::Type::getDoubleTy(context));
+							}
+						} else {
+							parts.push_back(llvm::Type::getDoubleTy(context));
+						}
+					}
 					break;
-					
+				}
+				
 				case X87Up:
 					if (classification.classes[0] == X87) {
 						// This won't happen: it was short-circuited while

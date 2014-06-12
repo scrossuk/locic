@@ -98,6 +98,10 @@ namespace locic {
 				}
 			}
 			
+			if (name == "typename_t") {
+				return std::move(typeInfoType(module).first);
+			}
+			
 			// TODO: more types to be handled here.
 			llvm_unreachable("Unknown primitive ABI type.");
 		}

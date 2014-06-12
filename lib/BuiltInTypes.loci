@@ -542,24 +542,14 @@ __primitive __ref {
 	__ref<T> implicitCopy() const noexcept;
 }
 
+template <typename T>
+__primitive typename_t {
+	typename_t<T> implicitCopy() const noexcept;
+}
+
 /*
 Eventually the following will be adopted for use (once compile-time evaluation
 has been implemented). For now, this stuff is still built-in to the compiler.
-
-template <virtual typename T>
-__primitive ref {
-	ref<T> implicitCopy() const noexcept;
-	T implicitDeepCopy() const noexcept;
-	
-	do (synthesizer) {
-		// Add any methods from the referred-to type
-		// that aren't part of this type.
-		for (auto method: T.dynamic_methods()) {
-			if (synthesizer.has_dynamic_method(method.name())) break;
-			synthesizer.add_dynamic_method(method.returnType(), method.name(), method.argTypes()) const noexcept;
-		}
-	}
-}
 
 __primitive method {
 	typename returnType() const noexcept;

@@ -1,5 +1,5 @@
 
-loci_build(A.bc "" A.loci)
-loci_build(B.bc "" B.loci)
-loci_make_executable(splitModule "" A.bc B.bc)
+loci_module(ModuleA A.bc "" A.loci)
+loci_module(ModuleB B.bc "" B.loci)
+loci_link(SplitModule splitModule "" A.bc B.bc)
 

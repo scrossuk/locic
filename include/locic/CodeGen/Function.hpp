@@ -38,6 +38,8 @@ namespace locic {
 				
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
+				void returnValue(llvm::Value* value);
+				
 				llvm::Function& getLLVMFunction();
 				
 				llvm::Function* getLLVMFunctionPtr();

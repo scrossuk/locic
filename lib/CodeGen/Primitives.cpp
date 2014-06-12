@@ -16,6 +16,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
@@ -799,7 +800,8 @@ namespace locic {
 			
 			const auto methodName = semFunction->name().last();
 			
-			Function function(module, llvmFunction, getFunctionArgInfo(module, semFunction->type()), &(module.typeTemplateBuilder(typeInstance)));
+			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
+			Function function(module, llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
 			auto& builder = function.getBuilder();
 			
@@ -807,7 +809,33 @@ namespace locic {
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "implicitCopy") {
-					builder.CreateRet(methodOwner);
+					function.returnValue(methodOwner);
+				} else {
+					llvm_unreachable("Unknown primitive unary op.");
+				}
+			} else {
+				llvm_unreachable("Unknown primitive method.");
+			}
+			
+			// Check the generated function is correct.
+			function.verify();
+		}
+		
+		void createTypenamePrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			const auto methodName = semFunction->name().last();
+			
+			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
+			Function function(module, llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
+			
+			auto& builder = function.getBuilder();
+			
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
+			
+			if (isUnaryOp(methodName)) {
+				if (methodName == "implicitCopy") {
+					function.returnValue(methodOwner);
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
@@ -840,6 +868,8 @@ namespace locic {
 				createValueLvalPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (typeName == "__ref") {
 				createRefPrimitiveMethod(module, typeInstance, function, llvmFunction);
+			} else if (typeName == "typename_t") {
+				createTypenamePrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else {
 				llvm_unreachable("Unknown primitive type for method generation.");
 			}
@@ -1007,6 +1037,10 @@ namespace locic {
 				const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
 				module.getTypeMap().insert(name, type);
 				return type;
+			}
+			
+			if (name == "typename_t") {
+				return typeInfoType(module).second;
 			}
 			
 			llvm_unreachable("Unrecognised primitive type.");

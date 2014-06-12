@@ -80,6 +80,14 @@ namespace locic {
 			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), encodedArgValues, argABITypes, argLLVMTypes);
 		}
 		
+		void Function::returnValue(llvm::Value* value) {
+			// Encode return value according to ABI.
+			std::vector<llvm_abi::Type> abiTypes;
+			abiTypes.push_back(getArgInfo().returnType().first.copy());
+			const auto encodedValue = module().abi().encodeValues(getEntryBuilder(), getBuilder(), { value }, abiTypes).at(0);
+			getBuilder().CreateRet(encodedValue);
+		}
+		
 		llvm::Function& Function::getLLVMFunction() {
 			return function_;
 		}
