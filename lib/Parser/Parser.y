@@ -114,6 +114,7 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::Function>* function;
 	locic::AST::Node<locic::AST::FunctionList>* functionList;
 	locic::AST::Node<locic::AST::ModuleScope>* moduleScope;
+	locic::AST::Node<locic::AST::TypeAlias>* typeAlias;
 	
 	// Exception initializer.
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
@@ -274,6 +275,8 @@ const T& GETSYM(T* value) {
 %type <namespaceData> namespaceData
 %type <nameSpace> nameSpace
 
+%type <typeAlias> typeAlias
+
 %type <string> moduleNameComponent
 %type <stringList> moduleName
 %type <version> moduleVersion
@@ -410,6 +413,11 @@ namespaceData:
 		GETSYM($3)->setExport();
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
+	| namespaceData typeAlias
+	{
+		(GETSYM($1))->typeAliases.push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
 	| namespaceData typeInstance
 	{
 		(GETSYM($1))->typeInstances.push_back(GETSYM($2));
@@ -481,6 +489,13 @@ nameSpace:
 	NAMESPACE NAME LCURLYBRACKET namespaceData RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Namespace(GETSYM($2), GETSYM($4))));
+	}
+	;
+
+typeAlias:
+	USING NAME SETEQUAL type SEMICOLON
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeAlias(GETSYM($2), GETSYM($4))));
 	}
 	;
 

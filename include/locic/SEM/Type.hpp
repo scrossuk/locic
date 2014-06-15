@@ -12,12 +12,14 @@ namespace locic {
 	namespace SEM {
 	
 		class TemplateVar;
+		class TypeAlias;
 		class TypeInstance;
 		
 		class Type {
 			public:
 				enum Kind {
 					AUTO,
+					ALIAS,
 					OBJECT,
 					FUNCTION,
 					METHOD,
@@ -28,6 +30,7 @@ namespace locic {
 				static const std::vector<Type*> NO_TEMPLATE_ARGS;
 				
 				static Type* Auto();
+				static Type* Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments);
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
 				static Type* Function(bool isVarArg, bool isMethod, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
@@ -51,6 +54,7 @@ namespace locic {
 				Type* withoutTags() const;
 				
 				bool isAuto() const;
+				bool isAlias() const;
 				
 				bool isBuiltInVoid() const;
 				bool isBuiltInReference() const;
@@ -117,6 +121,11 @@ namespace locic {
 				bool isConst_;
 				Type* lvalTarget_;
 				Type* refTarget_;
+				
+				struct {
+					TypeAlias* typeAlias;
+					std::vector<Type*> templateArguments;
+				} aliasType_;
 				
 				struct {
 					TypeInstance* typeInstance;

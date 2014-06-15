@@ -143,8 +143,7 @@ namespace locic {
 			
 			assert(args.size() == argInfo.argumentTypes().size());
 			
-			const auto llvmFunctionType = functionPtr->getType()->getPointerElementType();
-			assert(llvmFunctionType->isFunctionTy());
+			assert(functionPtr->getType()->getPointerElementType()->isFunctionTy());
 			
 			std::vector<llvm_abi::Type> argABITypes;
 			for (const auto& typePair: argInfo.argumentTypes()) {

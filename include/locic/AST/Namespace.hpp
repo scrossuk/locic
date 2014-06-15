@@ -14,12 +14,14 @@ namespace locic {
 		struct Function;
 		struct ModuleScope;
 		struct Namespace;
+		struct TypeAlias;
 		struct TypeInstance;
 		
 		struct NamespaceData {
 			std::vector< AST::Node<Function> > functions;
 			std::vector< AST::Node<ModuleScope> > moduleScopes;
 			std::vector< AST::Node<Namespace> > namespaces;
+			std::vector< AST::Node<TypeAlias> > typeAliases;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
 			std::string toString() const;

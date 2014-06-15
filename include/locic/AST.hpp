@@ -14,6 +14,7 @@
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeAlias.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>

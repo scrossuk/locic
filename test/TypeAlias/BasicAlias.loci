@@ -1,0 +1,20 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+class TestClass() {
+	static Create = default;
+	
+	void print() {
+		testPrintf(C"TestClass.print()");
+	}
+}
+
+using TestClassAlias = TestClass;
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	TestClassAlias object = TestClassAlias();
+	object.print();
+	return 0;
+}
+

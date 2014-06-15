@@ -5,6 +5,7 @@
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
+#include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
@@ -20,6 +21,12 @@ namespace locic {
 		NamespaceItem NamespaceItem::Namespace(SEM::Namespace* nameSpace) {
 			NamespaceItem item(NAMESPACE);
 			item.data_.nameSpace = nameSpace;
+			return item;
+		}
+		
+		NamespaceItem NamespaceItem::TypeAlias(SEM::TypeAlias* typeAlias) {
+			NamespaceItem item(TYPEALIAS);
+			item.data_.typeAlias = typeAlias;
 			return item;
 		}
 		
@@ -41,6 +48,10 @@ namespace locic {
 			return kind() == NAMESPACE;
 		}
 		
+		bool NamespaceItem::isTypeAlias() const {
+			return kind() == TYPEALIAS;
+		}
+		
 		bool NamespaceItem::isTypeInstance() const {
 			return kind() == TYPEINSTANCE;
 		}
@@ -55,6 +66,11 @@ namespace locic {
 			return data_.nameSpace;
 		}
 		
+		TypeAlias* NamespaceItem::typeAlias() const {
+			assert(isTypeAlias());
+			return data_.typeAlias;
+		}
+		
 		TypeInstance* NamespaceItem::typeInstance() const {
 			assert(isTypeInstance());
 			return data_.typeInstance;
@@ -66,6 +82,8 @@ namespace locic {
 					return function()->toString();
 				case NAMESPACE:
 					return nameSpace()->toString();
+				case TYPEALIAS:
+					return typeAlias()->toString();
 				case TYPEINSTANCE:
 					return typeInstance()->toString();
 				default:

@@ -8,6 +8,7 @@
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
+#include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
@@ -18,6 +19,15 @@ namespace locic {
 		
 		Type* Type::Auto() {
 			return new Type(AUTO);
+		}
+		
+		Type* Type::Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments) {
+			//assert(typeAlias->templateVariables().size() == templateArguments.size());
+			
+			Type* type = new Type(ALIAS);
+			type->aliasType_.typeAlias = typeAlias;
+			type->aliasType_.templateArguments = templateArguments;
+			return type;
 		}
 		
 		Type* Type::Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments) {
@@ -134,6 +144,10 @@ namespace locic {
 		
 		bool Type::isAuto() const {
 			return kind() == AUTO;
+		}
+		
+		bool Type::isAlias() const {
+			return kind() == ALIAS;
 		}
 		
 		bool Type::isBuiltInVoid() const {

@@ -186,6 +186,18 @@ namespace locic {
 				AddNamespaceData(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
 			
+			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
+				const auto& typeAliasName = astTypeAliasNode->name;
+				const auto fullTypeName = semNamespace->name() + typeAliasName;
+				const auto iterator = semNamespace->items().find(typeAliasName);
+				if (iterator != semNamespace->items().end()) {
+					throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
+				}
+				
+				const auto semTypeAlias = new SEM::TypeAlias(fullTypeName);
+				semNamespace->items().insert(std::make_pair(typeAliasName, SEM::NamespaceItem::TypeAlias(semTypeAlias)));
+			}
+			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				(void) AddTypeInstance(context, astTypeInstanceNode, moduleScope);
 			}

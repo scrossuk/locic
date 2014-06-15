@@ -9,6 +9,7 @@ add_library(locic-sem
 	SwitchCase.cpp
 	TemplateVar.cpp
 	Type.cpp
+	TypeAlias.cpp
 	TypeInstance.cpp
 	Value.cpp
 	Var.cpp)

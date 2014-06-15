@@ -17,4 +17,5 @@ add_subdirectory(Loop)
 add_subdirectory(Lval)
 add_subdirectory(ScopeExit)
 add_subdirectory(Templates)
+add_subdirectory(TypeAlias)
 

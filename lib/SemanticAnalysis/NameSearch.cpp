@@ -19,6 +19,14 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
+		SearchResult performTypeAliasSearch(SEM::TypeAlias* typeAlias, const Name& name, size_t pos) {
+			const auto size = name.size() - pos;
+			
+			if (size == 0) return SearchResult::TypeAlias(typeAlias);
+			
+			return SearchResult::None();
+		}
+		
 		SearchResult performTypeInstanceSearch(SEM::TypeInstance* typeInstance, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
@@ -48,6 +56,8 @@ namespace locic {
 					return performFunctionSearch(item.function(), name, pos + 1);
 				} else if (item.isNamespace()) {
 					return performNamespaceSearch(item.nameSpace(), name, pos + 1);
+				} else if (item.isTypeAlias()) {
+					return performTypeAliasSearch(item.typeAlias(), name, pos + 1);
 				} else if (item.isTypeInstance()) {
 					return performTypeInstanceSearch(item.typeInstance(), name, pos + 1);
 				}

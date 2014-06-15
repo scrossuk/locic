@@ -3,7 +3,6 @@
 
 #include <map>
 #include <string>
-#include <vector>
 
 #include <locic/Name.hpp>
 
@@ -13,13 +12,15 @@ namespace locic {
 		
 		class Function;
 		class Namespace;
+		class TypeAlias;
 		class TypeInstance;
-	
+		
 		class NamespaceItem {
 			public:
 				enum Kind {
 					FUNCTION,
 					NAMESPACE,
+					TYPEALIAS,
 					TYPEINSTANCE
 				};
 				
@@ -27,16 +28,20 @@ namespace locic {
 				
 				static NamespaceItem Namespace(Namespace* nameSpace);
 				
+				static NamespaceItem TypeAlias(TypeAlias* typeAlias);
+				
 				static NamespaceItem TypeInstance(TypeInstance* typeInstance);
 				
 				Kind kind() const;
 				
 				bool isFunction() const;
 				bool isNamespace() const;
+				bool isTypeAlias() const;
 				bool isTypeInstance() const;
 				
 				SEM::Function* function() const;
 				SEM::Namespace* nameSpace() const;
+				SEM::TypeAlias* typeAlias() const;
 				SEM::TypeInstance* typeInstance() const;
 				
 				std::string toString() const;
@@ -50,6 +55,7 @@ namespace locic {
 					void* ptr;
 					SEM::Function* function;
 					SEM::Namespace* nameSpace;
+					SEM::TypeAlias* typeAlias;
 					SEM::TypeInstance* typeInstance;
 				} data_;
 				
@@ -69,9 +75,6 @@ namespace locic {
 			private:
 				Name name_;
 				std::map<std::string, NamespaceItem> items_;
-				std::vector<Namespace *> namespaces_;
-				std::vector<TypeInstance *> typeInstances_;
-				std::vector<Function *> functions_;
 				
 		};
 		

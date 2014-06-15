@@ -4,6 +4,7 @@ add_library(locic-ast
 	Namespace.cpp
 	Symbol.cpp
 	Type.cpp
+	TypeAlias.cpp
 	TypeInstance.cpp
 	TypeVar.cpp)
 

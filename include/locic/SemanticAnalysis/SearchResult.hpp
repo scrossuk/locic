@@ -11,34 +11,39 @@ namespace locic {
 			public:
 				enum Kind {
 					NONE,
-					TYPEINSTANCE,
 					FUNCTION,
-					VAR,
-					TEMPLATEVAR
+					TEMPLATEVAR,
+					TYPEALIAS,
+					TYPEINSTANCE,
+					VAR
 				};
 				
 				static SearchResult None();
 				
-				static SearchResult TypeInstance(SEM::TypeInstance* typeInstance);
-				
 				static SearchResult Function(SEM::Function* function);
 				
-				static SearchResult Var(SEM::Var* var);
-				
 				static SearchResult TemplateVar(SEM::TemplateVar* templateVar);
+				
+				static SearchResult TypeAlias(SEM::TypeAlias* typeAlias);
+				
+				static SearchResult TypeInstance(SEM::TypeInstance* typeInstance);
+				
+				static SearchResult Var(SEM::Var* var);
 				
 				Kind kind() const;
 				
 				bool isNone() const;
-				bool isTypeInstance() const;
 				bool isFunction() const;
-				bool isVar() const;
 				bool isTemplateVar() const;
+				bool isTypeAlias() const;
+				bool isTypeInstance() const;
+				bool isVar() const;
 				
-				SEM::TypeInstance* typeInstance() const;
 				SEM::Function* function() const;
-				SEM::Var* var() const;
 				SEM::TemplateVar* templateVar() const;
+				SEM::TypeAlias* typeAlias() const;
+				SEM::TypeInstance* typeInstance() const;
+				SEM::Var* var() const;
 				
 			private:
 				SearchResult(Kind pKind);
@@ -47,10 +52,11 @@ namespace locic {
 				
 				union {
 					void* ptr;
-					SEM::TypeInstance* typeInstance;
 					SEM::Function* function;
-					SEM::Var* var;
 					SEM::TemplateVar* templateVar;
+					SEM::TypeAlias* typeAlias;
+					SEM::TypeInstance* typeInstance;
+					SEM::Var* var;
 				} data_;
 				
 		};

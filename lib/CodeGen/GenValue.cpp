@@ -309,6 +309,7 @@ namespace locic {
 					const auto rawValue = genValue(function, value->polyCast.value);
 					const auto sourceType = value->polyCast.value->type();
 					const auto destType = value->type();
+					(void) destType;
 					
 					assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
 					assert(destType->isBuiltInReference() && "Polycast dest type must be reference.");
