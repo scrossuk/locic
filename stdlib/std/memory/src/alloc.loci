@@ -1,7 +1,7 @@
 import void* calloc(size_t num, size_t size) noexcept;
 import void free(void* ptr) noexcept;
 
-export std.memory 1.0.0 {
+export std.memory 0.1.0 {
 	
 	namespace std {
 		

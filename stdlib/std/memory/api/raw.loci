@@ -1,0 +1,14 @@
+import std.memory 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		T* new_raw(T value);
+		
+		template <typename T>
+		void delete_raw(T* ptr);
+		
+	}
+	
+}
+

@@ -226,6 +226,10 @@ namespace locic {
 					return genLoad(function, refValue, value->type());
 				}
 				
+				case SEM::Value::SIZEOF: {
+					return genSizeOf(function, value->sizeOf.targetType);
+				}
+				
 				case SEM::Value::TERNARY: {
 					return function.getBuilder().CreateSelect(genValue(function, value->ternary.condition),
 							genValue(function, value->ternary.ifTrue),

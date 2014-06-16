@@ -1,0 +1,14 @@
+import std.memory 0.1.0 {
+	
+	namespace std {
+		
+		exception bad_alloc();
+		
+		void* alloc(size_t size);
+		
+		void free(void* ptr) noexcept;
+		
+	}
+	
+}
+

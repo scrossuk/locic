@@ -25,6 +25,7 @@ namespace locic {
 					THIS,
 					CONSTANT,
 					LOCALVAR,
+					SIZEOF,
 					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -49,6 +50,10 @@ namespace locic {
 				struct {
 					Var* var;
 				} localVar;
+				
+				struct {
+					Type* targetType;
+				} sizeOf;
 				
 				struct {
 					Value* value;
@@ -128,6 +133,8 @@ namespace locic {
 				static Value* Constant(Constant* constant, Type* type);
 				
 				static Value* LocalVar(Var* var, Type* type);
+				
+				static Value* SizeOf(Type* targetType, Type* sizeType);
 				
 				static Value* Reinterpret(Value* operand, Type* type);
 				

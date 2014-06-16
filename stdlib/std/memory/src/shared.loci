@@ -1,15 +1,15 @@
-export std.memory 1.0.0 {
+export std.memory 0.1.0 {
 	
 	namespace std {
 		
 		template <typename T>
 		class shared_ptr(size_t* countField, T* ptr) {
 			static create(T value) {
-				return @(std::new_raw<size_t>(1), std::new_raw<T>(move value));
+				return @(new_raw<size_t>(1), std::new_raw<T>(move value));
 			}
 			
 			static from_ptr(T* ptr) {
-				return @(std::new_raw<size_t>(1), ptr);
+				return @(new_raw<size_t>(1), ptr);
 			}
 			
 			static null() {
@@ -28,12 +28,12 @@ export std.memory 1.0.0 {
 				}
 			}
 			
-			const shared_ptr<T> implicitCopy() const {
+			shared_ptr<T> implicitCopy() {
 				(*@countField)++;
 				return @(@countField, @ptr);
 			}
 			
-			lval<T> const ptr_lval<T> deref() const {
+			lval<T> ptr_lval<T> deref() const {
 				return *@ptr;
 			}
 		}

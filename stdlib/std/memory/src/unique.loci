@@ -1,4 +1,4 @@
-export std.memory 1.0.0 {
+export std.memory 0.1.0 {
 	
 	namespace std {
 		

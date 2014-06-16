@@ -58,9 +58,7 @@ namespace CR {
 	
 	class Board (Value* data, Value currentPlayer, BoardSize size) {
 		static Create(BoardSize size, Value initialPlayer) {
-			// TODO: this is probably not right...
-			final size_t sizeValue = 1u;
-			void* dataPtr = malloc(sizeValue * size.width * size.height);
+			void* dataPtr = malloc(sizeof(Value) * size.width * size.height);
 			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
 			
 			for (auto p: std::counter<size_t>(1u, 0u, size.width * size.height)) {
@@ -75,9 +73,7 @@ namespace CR {
 		}
 		
 		Board copy() const {
-			// TODO: this is probably not right...
-			final size_t sizeValue = 1u;
-			void* dataPtr = malloc(sizeValue * @size.width * @size.height);
+			void* dataPtr = malloc(sizeof(Value) * @size.width * @size.height);
 			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
 			
 			for (auto p: std::counter<size_t>(1u, 0u, @size.width * @size.height)) {

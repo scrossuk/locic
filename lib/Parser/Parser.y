@@ -1410,6 +1410,10 @@ precision8:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::This()));
 	}
+	| SIZEOF LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::SizeOf(GETSYM($3))));
+	}
 	;
 	
 precision7:

@@ -1,0 +1,17 @@
+import std.memory 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		class unique_ptr {
+			static unique_ptr<T> create(T value);
+			
+			static unique_ptr<T> null();
+			
+			lval<T> ptr_lval<T> deref() const;
+		}
+		
+	}
+	
+}
+

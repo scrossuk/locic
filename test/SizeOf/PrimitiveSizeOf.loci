@@ -1,0 +1,16 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	testPrint(C"sizeof(char) = %llu", sizeof(char).toULongLong());
+	testPrint(C"sizeof(short) = %llu", sizeof(short).toULongLong());
+	testPrint(C"sizeof(int) = %llu", sizeof(int).toULongLong());
+	testPrint(C"sizeof(long) = %llu", sizeof(long).toULongLong());
+	testPrint(C"sizeof(long long) = %llu", sizeof(long long).toULongLong());
+	
+	testPrint(C"sizeof(float) = %llu", sizeof(float).toULongLong());
+	testPrint(C"sizeof(double) = %llu", sizeof(double).toULongLong());
+	return 0;
+}
+

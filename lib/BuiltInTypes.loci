@@ -519,6 +519,10 @@ __primitive ptr_lval {
 	T* address() noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
+	
+	//void __set_value(T value) noexcept;
+	//T __extract_value() noexcept;
+	//void destroy_value() noexcept;
 }
 
 template <typename T>

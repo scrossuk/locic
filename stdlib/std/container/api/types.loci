@@ -1,0 +1,13 @@
+import std.container 0.1.0 {
+
+	namespace std {
+	
+		template <typename T>
+		interface copyable {
+			T copy() const;
+		}
+		
+	}
+	
+}
+

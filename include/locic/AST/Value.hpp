@@ -28,6 +28,7 @@ namespace locic {
 				LITERAL,
 				SYMBOLREF,
 				MEMBERREF,
+				SIZEOF,
 				TERNARY,
 				CAST,
 				LVAL,
@@ -53,6 +54,10 @@ namespace locic {
 			struct {
 				std::string name;
 			} memberRef;
+			
+			struct {
+				Node<Type> type;
+			} sizeOf;
 			
 			struct {
 				Node<Value> condition, ifTrue, ifFalse;
@@ -130,6 +135,12 @@ namespace locic {
 			inline static Value* MemberRef(const std::string& name) {
 				Value* value = new Value(MEMBERREF);
 				value->memberRef.name = name;
+				return value;
+			}
+			
+			inline static Value* SizeOf(const Node<Type>& type) {
+				Value* value = new Value(SIZEOF);
+				value->sizeOf.type = type;
 				return value;
 			}
 			

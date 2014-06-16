@@ -1,0 +1,105 @@
+
+// TODO: replace this with actual standard library.
+namespace std {
+	
+	template <typename T>
+	interface counter_type {
+		T implicitCopy() const;
+		
+		int compare(T value) const;
+		
+		T add(T value) const;
+	}
+	
+	template <typename T: counter_type<T>>
+	class counter (T increment, T begin, T end) {
+		static Create = default;
+		
+		T front() {
+			return @begin;
+		}
+		
+		void popFront() {
+			@begin += @increment;
+		}
+		
+		bool empty() {
+			return @begin >= @end;
+		}
+	}
+	
+}
+
+export std.container 0.1.0 {
+	
+	namespace std {
+	
+		/**
+		 * \brief Resizable array.
+		 */
+		template <typename T>
+		class varray(size_t size, size_t capacity, T* data) {
+			static create() {
+				return @(0u, 0u, null);
+			}
+			
+			~ {
+				for (auto i: counter<size_t>(1u, 0u, @size)) {
+					@data[i].__destroy_value();
+				}
+				
+				free(reinterpret_cast<T*, void*>(@data));
+			}
+			
+			void reserve(size_t size) {
+				if (size <= @capacity) {
+					return;
+				}
+				
+				T* newData = reinterpret_cast<void*, T*>(alloc(size * sizeof(T)));
+				
+				for (auto i: counter<size_t>(1u, 0u, @size)) {
+					newData[i].__set_value(@data[i].__extract_value());
+				}
+				
+				free(reinterpret_cast<T*, void*>(@data));
+				
+				@data = newData;
+				@capacity = size;
+			}
+			
+			size_t capacity() const {
+				return @capacity;
+			}
+			
+			void resize(size_t size) {
+				reserve(size);
+				for (auto i: counter<size_t>(size, @size)) {
+					@data[i].__destroy_value();
+				}
+				@size = size;
+			}
+			
+			size_t size() const {
+				return @size;
+			}
+			
+			lval<T> ptr_lval<T> index(size_t index) const {
+				return @data[index];
+			}
+			
+			/*varray<T> copy() const <T: copyable<T>> {
+				auto array = varray<T>();
+				array.resize(@size);
+				for (auto i: counter<size_t>(0, @size)) {
+					array[i].__set_value(self[i].copy());
+				}
+				return array;
+			}*/
+			
+		}
+		
+	}
+	
+}
+

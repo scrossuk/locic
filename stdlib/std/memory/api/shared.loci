@@ -1,0 +1,21 @@
+import std.memory 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		class shared_ptr {
+			static shared_ptr<T> create(T value);
+			
+			static shared_ptr<T> from_ptr(T* ptr);
+			
+			static shared_ptr<T> null();
+			
+			shared_ptr<T> implicitCopy();
+			
+			lval<T> ptr_lval<T> deref() const;
+		}
+		
+	}
+	
+}
+

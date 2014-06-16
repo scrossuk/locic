@@ -358,6 +358,9 @@ namespace locic {
 					
 					return createMemberVarRef(context, selfValue, variableIterator->second);
 				}
+				case AST::Value::SIZEOF: {
+					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t")->selfType());
+				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					

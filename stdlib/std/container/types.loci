@@ -1,5 +1,0 @@
-template <typename T>
-interface copyable {
-	T copy() const;
-}
-

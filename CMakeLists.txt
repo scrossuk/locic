@@ -104,6 +104,9 @@ add_subdirectory(lib)
 # Language runtime.
 add_subdirectory(runtime)
 
+# Standard library.
+add_subdirectory(stdlib)
+
 # Compiler tests.
 add_subdirectory(test)
 

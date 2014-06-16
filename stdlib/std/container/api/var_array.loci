@@ -1,0 +1,30 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+	
+		/**
+		 * \brief Resizable array.
+		 */
+		template <typename T>
+		class varray {
+			static varray<T> create();
+			
+			void reserve(size_t size);
+			
+			size_t capacity() const;
+			
+			void resize(size_t size);
+			
+			size_t size() const;
+			
+			lval<T> ptr_lval<T> index(size_t index) const;
+			
+			// varray<T> copy() const <T: copyable<T>>;
+			
+		}
+		
+	}
+	
+}
+

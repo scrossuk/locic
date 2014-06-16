@@ -32,6 +32,12 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::SizeOf(Type* targetType, Type* sizeType) {
+			Value* value = new Value(SIZEOF, sizeType);
+			value->sizeOf.targetType = targetType;
+			return value;
+		}
+		
 		Value* Value::Reinterpret(Value* operand, Type* type) {
 			Value* value = new Value(REINTERPRET, type);
 			value->reinterpretValue.value = operand;
@@ -167,6 +173,9 @@ namespace locic {
 				case LOCALVAR:
 					return makeString("LocalVar(%s)",
 									  localVar.var->toString().c_str());
+				
+				case SIZEOF:
+					return makeString("SizeOf(type: %s)", sizeOf.targetType->toString().c_str());
 				
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)",

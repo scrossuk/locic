@@ -1,0 +1,70 @@
+// Test output.
+import void testPrint(const char * const str, ...);
+
+struct A {
+	char a;
+};
+
+struct B {
+	char a;
+	short b;
+};
+
+struct C {
+	char a;
+	short b;
+	int c;
+};
+
+struct D {
+	char a;
+	short b;
+	int c;
+	long d;
+};
+
+struct E {
+	char a;
+	short b;
+	int c;
+	long d;
+	long long e;
+};
+
+struct F {
+	float a;
+};
+
+struct G {
+	float a;
+	double b;
+};
+
+struct H {
+	char a;
+	long long b;
+	char c;
+	long long d;
+};
+
+struct I {
+	char a;
+	char b;
+	long long c;
+	long long d;
+};
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	testPrint(C"sizeof(A) = %llu", sizeof(A).toULongLong());
+	testPrint(C"sizeof(B) = %llu", sizeof(B).toULongLong());
+	testPrint(C"sizeof(C) = %llu", sizeof(C).toULongLong());
+	testPrint(C"sizeof(D) = %llu", sizeof(D).toULongLong());
+	testPrint(C"sizeof(E) = %llu", sizeof(E).toULongLong());
+	testPrint(C"sizeof(F) = %llu", sizeof(F).toULongLong());
+	testPrint(C"sizeof(G) = %llu", sizeof(G).toULongLong());
+	testPrint(C"sizeof(H) = %llu", sizeof(H).toULongLong());
+	testPrint(C"sizeof(I) = %llu", sizeof(I).toULongLong());
+	return 0;
+}
+

@@ -1,0 +1,40 @@
+import std.container 0.1.0 {
+
+	namespace std {
+		
+		template <typename T>
+		interface forward_range {
+			bool empty() const;
+			
+			void popFront();
+			
+			lval<T> value_lval<T> front() const;
+		}
+		
+		template <typename T>
+		interface backward_range {
+			bool empty() const;
+			
+			void popBack();
+			
+			lval<T> value_lval<T> back() const;
+		}
+		
+		template <typename T>
+		interface bidirectional_range {
+			bool empty() const;
+			
+			void popFront();
+			
+			lval<T> value_lval<T> front() const;
+			
+			void popBack();
+			
+			lval<T> value_lval<T> back() const;
+		}
+		
+	}
+	
+}
+		
+		
