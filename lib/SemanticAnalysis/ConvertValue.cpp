@@ -207,7 +207,7 @@ namespace locic {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
 						const auto charTypeInstance = getBuiltInType(context.scopeStack(), "char_t");
-						const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "ptr");
+						const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
 						
 						// Generate type 'const char'.
 						const auto constCharType = charTypeInstance->selfType()->createConstType();
@@ -270,7 +270,7 @@ namespace locic {
 					
 					// TODO: make const type when in const methods.
 					const auto selfType = thisTypeInstance->selfType();
-					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "ptr");
+					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
 					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfType })->createConstType());
 				}
 				case AST::Value::LITERAL: {
@@ -391,8 +391,8 @@ namespace locic {
 						case AST::Value::CAST_DYNAMIC:
 							throw ErrorException("dynamic_cast not yet implemented.");
 						case AST::Value::CAST_REINTERPRET:
-							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr"
-								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr") {
+							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "__ptr"
+								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "__ptr") {
 								throw ErrorException(makeString("reinterpret_cast currently only supports ptr<T>, "
 									"in cast from value %s of type %s to type %s at position %s.",
 									sourceValue->toString().c_str(), sourceType->toString().c_str(),
@@ -419,6 +419,16 @@ namespace locic {
 					const auto targetType = ConvertType(context, astValueNode->makeLval.targetType);
 					return SEM::Value::Lval(targetType, sourceValue);
 				}
+				case AST::Value::NOLVAL: {
+					const auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
+					
+					if (!sourceValue->type()->isLval()) {
+						throw ErrorException(makeString("Can't use 'nolval' operator on non-lval value '%s' at position '%s'.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
+					}
+					
+					return SEM::Value::NoLval(sourceValue);
+				}
 				case AST::Value::REF: {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
 					
@@ -434,6 +444,16 @@ namespace locic {
 					
 					const auto targetType = ConvertType(context, astValueNode->makeRef.targetType);
 					return SEM::Value::Ref(targetType, sourceValue);
+				}
+				case AST::Value::NOREF: {
+					const auto sourceValue = ConvertValue(context, astValueNode->makeNoRef.value);
+					
+					if (!sourceValue->type()->isRef()) {
+						throw ErrorException(makeString("Can't use 'noref' operator on non-ref value '%s' at position '%s'.",
+							sourceValue->toString().c_str(), location.toString().c_str()));
+					}
+					
+					return SEM::Value::NoRef(sourceValue);
 				}
 				case AST::Value::INTERNALCONSTRUCT: {
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
@@ -467,7 +487,7 @@ namespace locic {
 				case AST::Value::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;
 					
-					SEM::Value* object = ConvertValue(context, astValueNode->memberAccess.object);
+					auto object = ConvertValue(context, astValueNode->memberAccess.object);
 					
 					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
 						object = tryDissolveValue(object, location);

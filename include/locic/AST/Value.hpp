@@ -32,7 +32,9 @@ namespace locic {
 				TERNARY,
 				CAST,
 				LVAL,
+				NOLVAL,
 				REF,
+				NOREF,
 				INTERNALCONSTRUCT,
 				MEMBERACCESS,
 				FUNCTIONCALL
@@ -83,9 +85,17 @@ namespace locic {
 			} makeLval;
 			
 			struct {
+				Node<Value> value;
+			} makeNoLval;
+			
+			struct {
 				Node<Type> targetType;
 				Node<Value> value;
 			} makeRef;
+			
+			struct {
+				Node<Value> value;
+			} makeNoRef;
 			
 			struct {
 				Node<ValueList> parameters;
@@ -168,10 +178,22 @@ namespace locic {
 				return value;
 			}
 			
+			inline static Value* NoLval(const Node<Value>& operand) {
+				Value* value = new Value(NOLVAL);
+				value->makeNoLval.value = operand;
+				return value;
+			}
+			
 			inline static Value* Ref(const Node<Type>& targetType, const Node<Value>& operand) {
 				Value* value = new Value(REF);
 				value->makeRef.targetType = targetType;
 				value->makeRef.value = operand;
+				return value;
+			}
+			
+			inline static Value* NoRef(const Node<Value>& operand) {
+				Value* value = new Value(NOREF);
+				value->makeNoRef.value = operand;
 				return value;
 			}
 			

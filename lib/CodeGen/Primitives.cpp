@@ -638,6 +638,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = builder.CreateLoad(function.getContextValue(typeInstance));
+			const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address") {
@@ -651,12 +652,35 @@ namespace locic {
 				const auto operand = function.getArg(0);
 				
 				if (methodName == "assign") {
-					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
+					// Destroy existing value.
+					genDestructorCall(function, targetType, methodOwner);
+					
+					// Assign new value.
 					genStore(function, operand, methodOwner, targetType);
+					
 					builder.CreateRetVoid();
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
+			} else if (methodName == "__set_value") {
+				const auto operand = function.getArg(0);
+				
+				// Assign new value.
+				genStore(function, operand, methodOwner, targetType);
+				
+				builder.CreateRetVoid();
+			} else if (methodName == "__extract_value") {
+				const auto returnVar = function.getBuilder().CreatePointerCast(function.getReturnVar(), TypeGenerator(module).getI8PtrType());
+				
+				// Copy the object's target value into the return value.
+				genStore(function, methodOwner, returnVar, targetType);
+				
+				builder.CreateRetVoid();
+			} else if (methodName == "__destroy_value") {
+				// Destroy existing value.
+				genDestructorCall(function, targetType, methodOwner);
+				
+				builder.CreateRetVoid();
 			} else {
 				llvm_unreachable("Unknown primitive method.");
 			}
@@ -858,7 +882,7 @@ namespace locic {
 				createUnsignedIntegerPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (isFloatType(typeName)) {
 				createFloatPrimitiveMethod(module, typeInstance, function, llvmFunction);
-			} else if (typeName == "ptr") {
+			} else if (typeName == "__ptr") {
 				createPtrPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (typeName == "member_lval") {
 				createMemberLvalPrimitiveMethod(module, typeInstance, function, llvmFunction);
@@ -978,7 +1002,7 @@ namespace locic {
 				} else {
 					return genPointerType(module, type->templateArguments().at(0));
 				}
-			} else if (name == "ptr" || name == "ptr_lval") {
+			} else if (name == "__ptr" || name == "ptr_lval") {
 				return genPointerType(module, type->templateArguments().at(0));
 			}
 			
@@ -1024,7 +1048,7 @@ namespace locic {
 				return TypeGenerator(module).getLongDoubleType();
 			}
 			
-			if (name == "ptr" || name == "ptr_lval") {
+			if (name == "__ptr" || name == "ptr_lval") {
 				return TypeGenerator(module).getI8PtrType();
 			}
 			

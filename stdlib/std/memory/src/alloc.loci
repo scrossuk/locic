@@ -8,7 +8,7 @@ export std.memory 0.1.0 {
 		exception bad_alloc();
 		
 		void* alloc(size_t size) {
-			final auto ptr = ::calloc(1, size);
+			final auto ptr = ::calloc(1u, size);
 			if (ptr == null) {
 				throw bad_alloc();
 			}

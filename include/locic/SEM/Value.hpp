@@ -32,7 +32,9 @@ namespace locic {
 					CAST,
 					POLYCAST,
 					LVAL,
+					NOLVAL,
 					REF,
+					NOREF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
 					FUNCTIONCALL,
@@ -83,9 +85,17 @@ namespace locic {
 				} makeLval;
 				
 				struct {
+					Value* value;
+				} makeNoLval;
+				
+				struct {
 					Type* targetType;
 					Value* value;
 				} makeRef;
+				
+				struct {
+					Value* value;
+				} makeNoRef;
 				
 				struct {
 					std::vector<Value*> parameters;
@@ -148,7 +158,11 @@ namespace locic {
 				
 				static Value* Lval(Type* targetType, Value* operand);
 				
+				static Value* NoLval(Value* operand);
+				
 				static Value* Ref(Type* targetType, Value* operand);
+				
+				static Value* NoRef(Value* operand);
 				
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				

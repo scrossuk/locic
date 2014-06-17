@@ -2,7 +2,7 @@ import size_t strlen(char* const stringConstant) noexcept;
 
 import char* strcpy(char* dest, char* const src) noexcept;
 
-export std.memory 1.0.0 {
+export std.string 0.1.0 {
 	
 	std::string string_literal(const char* stringConstant) {
 		return std::string::cstring(stringConstant);
@@ -39,7 +39,6 @@ export std.memory 1.0.0 {
 				}
 				return ptr[index];
 			}
-			
 			
 			
 		}

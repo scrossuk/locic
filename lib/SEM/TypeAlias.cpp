@@ -21,7 +21,7 @@ namespace locic {
 		
 		void TypeAlias::setValue(Type* pValue) {
 			assert(value_ == nullptr);
-			assert(pValue_ != nullptr);
+			assert(pValue != nullptr);
 			value_ = pValue;
 		}
 		

@@ -95,7 +95,9 @@ auto                    { return AUTO; }
 const                   { return CONST; }
 final                   { return FINAL; }
 lval                    { return LVAL; }
+nolval                  { return NOLVAL; }
 ref                     { return REF; }
+noref                   { return NOREF; }
 
 using                   { return USING; }
 static                  { return STATIC; }

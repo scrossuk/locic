@@ -15,15 +15,15 @@ namespace std {
 	class counter (T increment, T begin, T end) {
 		static Create = default;
 		
-		T front() {
+		T front() noexcept {
 			return @begin;
 		}
 		
-		void popFront() {
+		void popFront() noexcept {
 			@begin += @increment;
 		}
 		
-		bool empty() {
+		bool empty() noexcept {
 			return @begin >= @end;
 		}
 	}
@@ -45,7 +45,7 @@ export std.container 0.1.0 {
 			
 			~ {
 				for (auto i: counter<size_t>(1u, 0u, @size)) {
-					@data[i].__destroy_value();
+					nolval(@data[i]).__destroy_value();
 				}
 				
 				free(reinterpret_cast<T*, void*>(@data));
@@ -59,7 +59,7 @@ export std.container 0.1.0 {
 				T* newData = reinterpret_cast<void*, T*>(alloc(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(1u, 0u, @size)) {
-					newData[i].__set_value(@data[i].__extract_value());
+					nolval(newData[i]).__set_value(nolval(@data[i]).__extract_value());
 				}
 				
 				free(reinterpret_cast<T*, void*>(@data));
@@ -73,9 +73,9 @@ export std.container 0.1.0 {
 			}
 			
 			void resize(size_t size) {
-				reserve(size);
-				for (auto i: counter<size_t>(size, @size)) {
-					@data[i].__destroy_value();
+				self.reserve(size);
+				for (auto i: counter<size_t>(1u, size, @size)) {
+					nolval(@data[i]).__destroy_value();
 				}
 				@size = size;
 			}
@@ -91,7 +91,7 @@ export std.container 0.1.0 {
 			/*varray<T> copy() const <T: copyable<T>> {
 				auto array = varray<T>();
 				array.resize(@size);
-				for (auto i: counter<size_t>(0, @size)) {
+				for (auto i: counter<size_t>(1u, 0u, @size)) {
 					array[i].__set_value(self[i].copy());
 				}
 				return array;

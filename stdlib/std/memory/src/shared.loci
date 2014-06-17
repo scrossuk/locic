@@ -3,13 +3,14 @@ export std.memory 0.1.0 {
 	namespace std {
 		
 		template <typename T>
+		// TODO: use atomic counter.
 		class shared_ptr(size_t* countField, T* ptr) {
 			static create(T value) {
-				return @(new_raw<size_t>(1), std::new_raw<T>(move value));
+				return @(new_raw<size_t>(1u), std::new_raw<T>(move value));
 			}
 			
 			static from_ptr(T* ptr) {
-				return @(new_raw<size_t>(1), ptr);
+				return @(new_raw<size_t>(1u), ptr);
 			}
 			
 			static null() {
@@ -21,7 +22,7 @@ export std.memory 0.1.0 {
 					return;
 				}
 				
-				(*@countField)--;		
+				(*@countField) -= 1;		
 				if(*@countField == 0){
 					delete_raw<size_t>(@countField);
 					delete_raw<T>(@ptr);
@@ -29,7 +30,7 @@ export std.memory 0.1.0 {
 			}
 			
 			shared_ptr<T> implicitCopy() {
-				(*@countField)++;
+				(*@countField) += 1;
 				return @(@countField, @ptr);
 			}
 			

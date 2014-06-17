@@ -41,7 +41,7 @@ namespace locic {
 				return llvm_abi::Type::Pointer();
 			}
 			
-			if (name == "ptr" || name == "ptr_lval") {
+			if (name == "__ptr" || name == "ptr_lval") {
 				return llvm_abi::Type::Pointer();
 			}
 			

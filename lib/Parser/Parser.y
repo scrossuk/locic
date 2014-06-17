@@ -183,8 +183,9 @@ const T& GETSYM(T* value) {
 %token EXPORT
 %token MOVE
 %token LVAL
-%token FINAL
+%token NOLVAL
 %token REF
+%token NOREF
 %token TEMPLATE
 %token TYPENAME
 %token VIRTUAL
@@ -223,6 +224,7 @@ const T& GETSYM(T* value) {
 
 %token COLON
 %token VOID
+%token FINAL
 %token CONST
 %token STAR
 %token COMMA
@@ -972,7 +974,7 @@ pointerType:
 	{
 		// Create 'ptr<TYPE>'.
 		auto typeList = locic::AST::makeNode(LOC(&@1), new locic::AST::TypeList(1, GETSYM($1)));
-		auto symbolElement = locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement("ptr", typeList));
+		auto symbolElement = locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement("__ptr", typeList));
 		auto symbol = locic::AST::makeNode(LOC(&@$), new locic::AST::Symbol(locic::AST::Symbol::Absolute() + symbolElement));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(symbol)));
 	}
@@ -1398,9 +1400,17 @@ precision8:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Lval(GETSYM($3), GETSYM($6))));
 	}
+	| NOLVAL LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::NoLval(GETSYM($3))));
+	}
 	| REF LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ref(GETSYM($3), GETSYM($6))));
+	}
+	| NOREF LROUNDBRACKET value RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::NoRef(GETSYM($3))));
 	}
 	| SELF
 	{

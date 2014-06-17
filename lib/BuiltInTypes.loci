@@ -500,10 +500,10 @@ __primitive longdouble_t {
 }
 
 template <typename T>
-__primitive ptr {
-	static ptr<T> Null() noexcept;
+__primitive __ptr {
+	static __ptr<T> Null() noexcept;
 	
-	ptr<T> implicitCopy() const noexcept;
+	__ptr<T> implicitCopy() const noexcept;
 	
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> deref() const noexcept;
@@ -511,7 +511,7 @@ __primitive ptr {
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> index(size_t index) const noexcept;
 	
-	int compare(ptr<T> value) const noexcept;
+	int compare(__ptr<T> value) const noexcept;
 }
 
 template <typename T>
@@ -520,9 +520,9 @@ __primitive ptr_lval {
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
 	
-	//void __set_value(T value) noexcept;
-	//T __extract_value() noexcept;
-	//void destroy_value() noexcept;
+	void __set_value(T value) noexcept;
+	T __extract_value() noexcept;
+	void __destroy_value() noexcept;
 }
 
 template <typename T>

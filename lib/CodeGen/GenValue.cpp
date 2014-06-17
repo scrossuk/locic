@@ -344,8 +344,16 @@ namespace locic {
 					return genValue(function, value->makeLval.value);
 				}
 				
+				case SEM::Value::NOLVAL: {
+					return genValue(function, value->makeNoLval.value);
+				}
+				
 				case SEM::Value::REF: {
 					return genValue(function, value->makeRef.value);
+				}
+				
+				case SEM::Value::NOREF: {
+					return genValue(function, value->makeNoRef.value);
 				}
 				
 				case SEM::Value::INTERNALCONSTRUCT: {

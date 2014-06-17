@@ -81,10 +81,24 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::NoLval(Value* operand) {
+			assert(operand->type()->isLval());
+			Value* value = new Value(NOLVAL, operand->type()->withoutLvalOrRef());
+			value->makeNoLval.value = operand;
+			return value;
+		}
+		
 		Value* Value::Ref(Type* targetType, Value* operand) {
 			Value* value = new Value(REF, operand->type()->createRefType(targetType));
 			value->makeRef.targetType = targetType;
 			value->makeRef.value = operand;
+			return value;
+		}
+		
+		Value* Value::NoRef(Value* operand) {
+			assert(operand->type()->isRef());
+			Value* value = new Value(NOREF, operand->type()->withoutLvalOrRef());
+			value->makeNoRef.value = operand;
 			return value;
 		}
 		
@@ -205,12 +219,18 @@ namespace locic {
 					return makeString("Lval(value: %s, targetType: %s)",
 									  makeLval.value->toString().c_str(),
 									  makeLval.targetType->toString().c_str());
+				
+				case NOLVAL:
+					return makeString("NoLval(value: %s)", makeNoLval.value->toString().c_str());
 									  
 				case REF:
 					return makeString("Ref(value: %s, targetType: %s)",
 									  makeRef.value->toString().c_str(),
 									  makeRef.targetType->toString().c_str());
-									  
+				
+				case NOREF:
+					return makeString("NoRef(value: %s)", makeNoRef.value->toString().c_str());
+				
 				case INTERNALCONSTRUCT:
 					return makeString("InternalConstruct(args: %s)",
 									  makeArrayString(internalConstruct.parameters).c_str());

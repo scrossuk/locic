@@ -33,7 +33,7 @@ namespace locic {
 			if (name == "float_t") return true;
 			if (name == "double_t") return true;
 			if (name == "longdouble_t") return true;
-			if (name == "ptr") return true;
+			if (name == "__ptr") return true;
 			
 			return false;
 		}

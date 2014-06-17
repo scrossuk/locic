@@ -134,6 +134,13 @@ namespace locic {
 			return type;
 		}
 		
+		Type* Type::withoutLvalOrRef() const {
+			Type* type = new Type(*this);
+			type->lvalTarget_ = NULL;
+			type->refTarget_ = NULL;
+			return type;
+		}
+		
 		Type* Type::withoutTags() const {
 			Type* type = new Type(*this);
 			type->isConst_ = false;

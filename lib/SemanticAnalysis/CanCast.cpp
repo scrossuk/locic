@@ -456,8 +456,10 @@ namespace locic {
 						reducedValue = dissolveLval(reducedValue, location);
 					}
 					
-					auto castResult = ImplicitCastConvert(reducedValue, destType, location);
-					if (castResult != nullptr) return castResult;
+					const auto castResult = ImplicitCastConvert(reducedValue, destType, location);
+					if (castResult != nullptr) {
+						return castResult;
+					}
 				}
 			}
 			
