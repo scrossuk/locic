@@ -206,7 +206,7 @@ namespace locic {
 					} else if (specifier == "C") {
 						// C strings have the type 'const char * const', as opposed to just a
 						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = getBuiltInType(context.scopeStack(), "char_t");
+						const auto charTypeInstance = getBuiltInType(context.scopeStack(), "byte_t");
 						const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
 						
 						// Generate type 'const char'.

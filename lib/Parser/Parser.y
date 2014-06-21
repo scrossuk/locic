@@ -215,7 +215,7 @@ const T& GETSYM(T* value) {
 
 %token SIGNED
 %token UNSIGNED
-%token CHAR
+%token BYTE
 %token SHORT
 %token INT
 %token LONG
@@ -846,9 +846,9 @@ optionalInt:
 	;
 
 integerType:
-	optionalSignedModifier CHAR
+	optionalSignedModifier BYTE
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "char")));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "byte")));
 	}
 	| optionalSignedModifier SHORT optionalInt
 	{

@@ -2,9 +2,7 @@
 
 import int rand();
 
-import int strcmp(const char* const first, const char* const second);
-
-import void printf(const char* text, ...);
+import void printf(const byte* text, ...);
 
 double Random(){
 	// Not a great random number generator...
@@ -193,12 +191,12 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 	}
 }
 
-exception InvalidPlayerError(const char* const name);
+exception InvalidPlayerError(std::string name);
 
-CR::Player& getPlayer(const char* const playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
-	if (strcmp(playerString, C"ai") == 0) {
+CR::Player& getPlayer(std::string playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
+	if (playerString == std::string::cstring(C"ai")) {
 		return aiPlayer;
-	} else if (strcmp(playerString, C"human") == 0) {
+	} else if (playerString == std::string::cstring(C"human")) {
 		return humanPlayer;
 	} else {
 		throw InvalidPlayerError(playerString);
@@ -206,12 +204,12 @@ CR::Player& getPlayer(const char* const playerString, CR::AIPlayer& aiPlayer, CR
 }
 
 // Entry point.
-export int main(int argc, char ** argv) {
-	const char * const usage = C"chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
+export int main(int argc, byte ** argv) {
+	final auto usage = std::string::cstring(C"chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)");
 	
 	if (argc != 3) {
 		printf(C"Incorrect number of arguments! You need to give 2 arguments:\n");
-		printf(C"    %s\n", usage);
+		printf(C"    %s\n", usage.c_str());
 		return 1;
 	}
 	
@@ -225,12 +223,12 @@ export int main(int argc, char ** argv) {
 		auto humanPlayer = CR::HumanPlayer(renderWindow);
 		auto aiPlayer = CR::AIPlayer(renderWindow);
 		
-		final auto& player0 = getPlayer(argv[1u], aiPlayer, humanPlayer);
-		final auto& player1 = getPlayer(argv[2u], aiPlayer, humanPlayer);
+		final auto& player0 = getPlayer(std::string::cstring(argv[1u]), aiPlayer, humanPlayer);
+		final auto& player1 = getPlayer(std::string::cstring(argv[2u]), aiPlayer, humanPlayer);
 		
 		playGame(renderWindow, player0, player1);
 	} catch (InvalidPlayerError error) {
-		printf(C"ERROR: Invalid player name '%s'.\n", error.name);
+		printf(C"ERROR: Invalid player name '%s'.\n", error.name.c_str());
 		return 1;
 	}
 	

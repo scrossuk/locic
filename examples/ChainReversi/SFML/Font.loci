@@ -4,7 +4,7 @@ struct sfFont { };
 
 import {
 	
-	sfFont* sfFont_createFromFile(const char* const filename);
+	sfFont* sfFont_createFromFile(const byte* const filename);
 	
 	sfFont* sfFont_copy(const sfFont* const font);
 	
@@ -17,7 +17,7 @@ namespace sf {
 	exception FontLoadError();
 	
 	class Font(sfFont* font) {
-		static Create(const char* const filename) {
+		static Create(const byte* const filename) {
 			final auto font = sfFont_createFromFile(filename);
 			if (font == null) {
 				throw FontLoadError();

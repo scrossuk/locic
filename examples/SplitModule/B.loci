@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const char * const str, ...);
+import void printf(const byte * const str, ...);
 
 export B 1.0.0 {
 

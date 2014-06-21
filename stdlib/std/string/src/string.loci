@@ -1,0 +1,90 @@
+import size_t strlen(const byte* const stringConstant) noexcept;
+
+import byte* strcpy(byte* dest, const byte* const src) noexcept;
+
+export std.string 0.1.0 {
+	
+	std::string string_literal(const byte* const stringConstant) {
+		return std::string::cstring(stringConstant);
+	}
+	
+	namespace std {
+		
+		exception out_of_range();
+		
+		class string (size_t length, byte* ptr) {
+			static create() {
+				return string::cstring(C"");
+			}
+			
+			static cstring(const byte* const stringConstant) {
+				final auto length = strlen(stringConstant);
+				final auto ptr = std::alloc(length + 1u);
+				return @(length, strcpy(reinterpret_cast<void*, byte*>(ptr), stringConstant));
+			}
+			
+			~ {
+				std::free(reinterpret_cast<byte*, void*>(@ptr));
+			}
+			
+			string implicitCopy() const noexcept {
+				final auto ptr = std::alloc(@length + 1u);
+				return @(@length, strcpy(reinterpret_cast<void*, byte*>(ptr), @ptr));
+			}
+			
+			string add(string other) const {
+				final auto newLength = @length + other.length();
+				final auto ptr = std::alloc(newLength + 1u);
+				final auto newPtr = reinterpret_cast<void*, byte*>(ptr);
+				(void) strcpy(&newPtr[0u], @ptr);
+				(void) strcpy(&newPtr[@length], other.c_str());
+				newPtr[newLength] = 0;
+				return @(newLength, newPtr);
+			}
+			
+			size_t length() const noexcept {
+				return @length;
+			}
+			
+			unichar at(size_t index) const {
+				if (index >= @length) {
+					throw out_of_range();
+				}
+				return @ptr[index];
+			}
+			
+			const byte* const c_str() const noexcept {
+				return @ptr;
+			}
+			
+			int compare(string other) const noexcept {
+				final size_t minLength = @length < other.length() ? @length : other.length();
+				final size_t maxLength = @length > other.length() ? @length : other.length();
+				
+				size_t i = 0u;
+				while (i < maxLength) {
+					if (i >= minLength) {
+						return @length < other.length() ? -1 : 1;
+					}
+					
+					final byte a = @ptr[i];
+					final byte b = other.c_str()[i];
+					if (a != b) {
+						if (a < b) {
+							return -1;
+						} else {
+							return 1;
+						}
+					}
+					
+					i += 1u;
+				}
+				
+				return 0;
+			}
+		}
+		
+	}
+	
+}
+

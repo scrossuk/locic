@@ -13,39 +13,47 @@ __primitive bool {
 	bool logicalOr(bool value) const noexcept;
 }
 
-__primitive char_t {
-	static char_t int8_cast(int8_t value) noexcept;
+__primitive unichar {
+	static unichar byte_cast(byte_t c) noexcept;
 	
-	char_t implicitCopy() const noexcept;
+	unichar implicitCopy() const noexcept;
 	
-	char_t plus() const noexcept;
-	char_t minus() const noexcept;
+	int_t compare(unichar v) const noexcept;
+}
+
+__primitive byte_t {
+	static byte_t int8_cast(int8_t value) noexcept;
 	
-	char_t abs() const noexcept;
+	byte_t implicitCopy() const noexcept;
 	
-	char_t add(char_t v) const noexcept;
-	char_t subtract(char_t v) const noexcept;
-	char_t multiply(char_t v) const noexcept;
-	char_t divide(char_t v) const noexcept;
-	char_t modulo(char_t v) const noexcept;
+	byte_t plus() const noexcept;
+	byte_t minus() const noexcept;
 	
-	int_t compare(char_t v) const noexcept;
+	byte_t abs() const noexcept;
+	
+	byte_t add(byte_t v) const noexcept;
+	byte_t subtract(byte_t v) const noexcept;
+	byte_t multiply(byte_t v) const noexcept;
+	byte_t divide(byte_t v) const noexcept;
+	byte_t modulo(byte_t v) const noexcept;
+	
+	int_t compare(byte_t v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
 
-__primitive uchar_t {
-	static uchar_t uint8_cast(uint8_t value) noexcept;
+__primitive ubyte_t {
+	static ubyte_t uint8_cast(uint8_t value) noexcept;
 	
-	uchar_t implicitCopy() const noexcept;
+	ubyte_t implicitCopy() const noexcept;
 	
-	uchar_t add(uchar_t v) const noexcept;
-	uchar_t subtract(uchar_t v) const noexcept;
-	uchar_t multiply(uchar_t v) const noexcept;
-	uchar_t divide(uchar_t v) const noexcept;
-	uchar_t modulo(uchar_t v) const noexcept;
+	ubyte_t add(ubyte_t v) const noexcept;
+	ubyte_t subtract(ubyte_t v) const noexcept;
+	ubyte_t multiply(ubyte_t v) const noexcept;
+	ubyte_t divide(ubyte_t v) const noexcept;
+	ubyte_t modulo(ubyte_t v) const noexcept;
 	
-	int_t compare(uchar_t v) const noexcept;
+	int_t compare(ubyte_t v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -53,7 +61,7 @@ __primitive uchar_t {
 __primitive short_t {
 	static short_t int8_cast(int8_t value) noexcept;
 	static short_t int16_cast(int16_t value) noexcept;
-	static short_t char_cast(char_t value) noexcept;
+	static short_t byte_cast(byte_t value) noexcept;
 	
 	short_t implicitCopy() const noexcept;
 	
@@ -74,7 +82,7 @@ __primitive short_t {
 __primitive ushort_t {
 	static ushort_t uint8_cast(uint8_t value) noexcept;
 	static ushort_t uint16_cast(uint16_t value) noexcept;
-	static ushort_t uchar_cast(uchar_t value) noexcept;
+	static ushort_t ubyte_cast(ubyte_t value) noexcept;
 	
 	ushort_t implicitCopy() const noexcept;
 	
@@ -94,7 +102,7 @@ __primitive int_t {
 	
 	static int_t int8_cast(int8_t value) noexcept;
 	static int_t int16_cast(int16_t value) noexcept;
-	static int_t char_cast(char_t value) noexcept;
+	static int_t byte_cast(byte_t value) noexcept;
 	static int_t short_cast(short_t value) noexcept;
 	
 	int_t implicitCopy() const noexcept;
@@ -123,7 +131,7 @@ __primitive int_t {
 __primitive uint_t {
 	static uint_t uint8_cast(uint8_t value) noexcept;
 	static uint_t uint16_cast(uint16_t value) noexcept;
-	static uint_t uchar_cast(uchar_t value) noexcept;
+	static uint_t ubyte_cast(ubyte_t value) noexcept;
 	static uint_t ushort_cast(ushort_t value) noexcept;
 	
 	uint_t implicitCopy() const noexcept;
@@ -143,7 +151,7 @@ __primitive long_t {
 	static long_t int8_cast(int8_t value) noexcept;
 	static long_t int16_cast(int16_t value) noexcept;
 	static long_t int32_cast(int32_t value) noexcept;
-	static long_t char_cast(char_t value) noexcept;
+	static long_t byte_cast(byte_t value) noexcept;
 	static long_t short_cast(short_t value) noexcept;
 	static long_t int_cast(int_t value) noexcept;
 	
@@ -167,7 +175,7 @@ __primitive ulong_t {
 	static ulong_t uint8_cast(uint8_t value) noexcept;
 	static ulong_t uint16_cast(uint16_t value) noexcept;
 	static ulong_t uint32_cast(uint32_t value) noexcept;
-	static ulong_t uchar_cast(uchar_t value) noexcept;
+	static ulong_t ubyte_cast(ubyte_t value) noexcept;
 	static ulong_t ushort_cast(ushort_t value) noexcept;
 	static ulong_t uint_cast(uint_t value) noexcept;
 	
@@ -189,7 +197,7 @@ __primitive longlong_t {
 	static longlong_t int16_cast(int16_t value) noexcept;
 	static longlong_t int32_cast(int32_t value) noexcept;
 	static longlong_t int64_cast(int64_t value) noexcept;
-	static longlong_t char_cast(char_t value) noexcept;
+	static longlong_t byte_cast(byte_t value) noexcept;
 	static longlong_t short_cast(short_t value) noexcept;
 	static longlong_t int_cast(int_t value) noexcept;
 	static longlong_t long_cast(long_t value) noexcept;
@@ -215,7 +223,7 @@ __primitive ulonglong_t {
 	static ulonglong_t uint16_cast(uint16_t value) noexcept;
 	static ulonglong_t uint32_cast(uint32_t value) noexcept;
 	static ulonglong_t uint64_cast(uint64_t value) noexcept;
-	static ulonglong_t uchar_cast(uchar_t value) noexcept;
+	static ulonglong_t ubyte_cast(ubyte_t value) noexcept;
 	static ulonglong_t ushort_cast(ushort_t value) noexcept;
 	static ulonglong_t uint_cast(uint_t value) noexcept;
 	static ulonglong_t ulong_cast(ulong_t value) noexcept;
@@ -236,7 +244,7 @@ __primitive ulonglong_t {
 __primitive ssize_t {
 	static ssize_t int8_cast(int8_t value) noexcept;
 	static ssize_t int16_cast(int16_t value) noexcept;
-	static ssize_t char_cast(char_t value) noexcept;
+	static ssize_t byte_cast(byte_t value) noexcept;
 	static ssize_t short_cast(short_t value) noexcept;
 	
 	ssize_t implicitCopy() const noexcept;
@@ -267,7 +275,7 @@ __primitive size_t {
 	
 	static size_t uint8_cast(uint8_t value) noexcept;
 	static size_t uint16_cast(uint16_t value) noexcept;
-	static size_t uchar_cast(uchar_t value) noexcept;
+	static size_t ubyte_cast(ubyte_t value) noexcept;
 	static size_t ushort_cast(ushort_t value) noexcept;
 	
 	size_t implicitCopy() const noexcept;

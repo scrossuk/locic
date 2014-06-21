@@ -119,7 +119,7 @@ typeid                  { return TYPEID; }
 void                    { return VOID; }
 signed                  { return SIGNED; }
 unsigned                { return UNSIGNED; }
-char                    { return CHAR; }
+byte                    { return BYTE; }
 short                   { return SHORT; }
 int                     { return INT; }
 long                    { return LONG; }

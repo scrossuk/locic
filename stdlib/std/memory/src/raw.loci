@@ -2,7 +2,7 @@ export std.memory 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T>
+		/*template <typename T>
 		T* new_raw(T value) {
 			void* ptr = std::alloc(sizeof(T));
 			T* castPtr = reinterpret_cast<void*, T*>(ptr);
@@ -14,7 +14,7 @@ export std.memory 0.1.0 {
 		void delete_raw(T* ptr) {
 			ptr.lval().__clear();
 			std::free(reinterpret_cast<T*, void*>(ptr));
-		}
+		}*/
 		
 	}
 	

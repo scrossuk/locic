@@ -324,7 +324,7 @@ namespace locic {
 			types.push_back("uint32");
 			types.push_back("uint64");
 			
-			types.push_back("char");
+			types.push_back("byte");
 			types.push_back("short");
 			types.push_back("int");
 			types.push_back("long");

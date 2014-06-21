@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const char * const str, ...);
+import void printf(const byte * const str, ...);
 
 size_t makeSum(size_t val) {
 	size_t i = 0u;
@@ -14,7 +14,7 @@ size_t makeSum(size_t val) {
 	return counter;
 }
 
-export int main(int argc, char ** argv) {
+export int main(int argc, byte ** argv) {
 	size_t i = 0u;
 	size_t j = 0u;
 	

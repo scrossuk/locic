@@ -1,6 +1,6 @@
 file(COPY Data DESTINATION .)
 
-loci_example(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-system"
+loci_module(ChainReversi_Module chainReversi.bc ""
 	main.loci
 	CR/AIPlayer.loci
 	CR/Board.loci
@@ -21,5 +21,14 @@ loci_example(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-
 	SFML/Vector.loci
 	SFML/VideoMode.loci
 	SFML/View.loci
+	imports/string.loci
+	)
+
+set(STDLIB "${PROJECT_BINARY_DIR}/stdlib")
+
+loci_link(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-system"
+	chainReversi.bc
+	${STDLIB}/std/memory/std_memory.bc
+	${STDLIB}/std/string/std_string.bc
 	)
 

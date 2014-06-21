@@ -142,13 +142,13 @@ namespace locic {
 		
 		bool isSignedIntegerType(const std::string& name) {
 			return name == "int8_t" || name == "int16_t" || name == "int32_t" || name == "int64_t" ||
-				name == "char_t" || name == "short_t" || name == "int_t" || name == "long_t" ||
+				name == "byte_t" || name == "short_t" || name == "int_t" || name == "long_t" ||
 				name == "longlong_t" || name == "ssize_t";
 		}
 		
 		bool isUnsignedIntegerType(const std::string& name) {
 			return name == "uint8_t" || name == "uint16_t" || name == "uint32_t" || name == "uint64_t" ||
-				name == "uchar_t" || name == "ushort_t" || name == "uint_t" || name == "ulong_t" ||
+				name == "ubyte_t" || name == "ushort_t" || name == "uint_t" || name == "ulong_t" ||
 				name == "ulonglong_t" || name == "size_t";
 		}
 		
@@ -493,13 +493,12 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
 			
-			const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
-			
 			if (methodName == "Create") {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				builder.CreateRet(zero);
 			} else if (hasEnding(methodName, "_cast")) {
 				const auto operand = function.getArg(0);
+				const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
 				builder.CreateRet(builder.CreateFPExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
 				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
@@ -561,6 +560,51 @@ namespace locic {
 					llvm::Value* returnValue =
 						builder.CreateSelect(isLessThan, minusOne,
 							builder.CreateSelect(isGreaterThan, plusOne, zero));
+					builder.CreateRet(returnValue);
+				} else {
+					llvm_unreachable("Unknown primitive binary op.");
+				}
+			} else {
+				llvm_unreachable("Unknown primitive method.");
+			}
+			
+			// Check the generated function is correct.
+			function.verify();
+		}
+		
+		void createUnicharPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+			assert(llvmFunction.isDeclaration());
+			
+			const auto& methodName = semFunction->name().last();
+			
+			Function function(module, llvmFunction, getFunctionArgInfo(module, semFunction->type()), &(module.typeTemplateBuilder(typeInstance)));
+			
+			auto& builder = function.getBuilder();
+			
+			const auto methodOwner = isConstructor(methodName) ? nullptr : builder.CreateLoad(function.getContextValue(typeInstance));
+			
+			if (hasEnding(methodName, "_cast")) {
+				const auto operand = function.getArg(0);
+				const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
+				builder.CreateRet(builder.CreateZExt(operand, selfType));
+			} else if (isUnaryOp(methodName)) {
+				if (methodName == "implicitCopy") {
+					builder.CreateRet(methodOwner);
+				} else {
+					llvm_unreachable("Unknown primitive unary op.");
+				}
+			} else if (isBinaryOp(methodName)) {
+				const auto operand = function.getArg(0);
+				
+				if (methodName == "compare") {
+					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
+					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
+					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto returnValue =
+						builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 					builder.CreateRet(returnValue);
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
@@ -882,6 +926,8 @@ namespace locic {
 				createUnsignedIntegerPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (isFloatType(typeName)) {
 				createFloatPrimitiveMethod(module, typeInstance, function, llvmFunction);
+			} else if (typeName == "unichar") {
+				createUnicharPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (typeName == "__ptr") {
 				createPtrPrimitiveMethod(module, typeInstance, function, llvmFunction);
 			} else if (typeName == "member_lval") {
@@ -1034,6 +1080,11 @@ namespace locic {
 			
 			if (isIntegerType(name)) {
 				return TypeGenerator(module).getIntType(module.getTargetInfo().getPrimitiveSize(name));
+			}
+			
+			if (name == "unichar") {
+				// Unicode characters represented with 32 bits.
+				return TypeGenerator(module).getIntType(32);
 			}
 			
 			if (name == "float_t") {

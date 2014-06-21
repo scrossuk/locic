@@ -50,8 +50,8 @@ namespace locic {
 			primitiveSizes_.insert("null_t", clangTargetInfo->getCharWidth());
 			primitiveSizes_.insert("bool", clangTargetInfo->getCharWidth());
 			
-			primitiveSizes_.insert("char_t", clangTargetInfo->getCharWidth());
-			primitiveSizes_.insert("uchar_t", clangTargetInfo->getCharWidth());
+			primitiveSizes_.insert("byte_t", 8);
+			primitiveSizes_.insert("ubyte_t", 8);
 			primitiveSizes_.insert("short_t", clangTargetInfo->getShortWidth());
 			primitiveSizes_.insert("ushort_t", clangTargetInfo->getShortWidth());
 			primitiveSizes_.insert("int_t", clangTargetInfo->getIntWidth());

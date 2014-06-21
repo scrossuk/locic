@@ -47,7 +47,7 @@ namespace locic {
 			
 			if (name == "bool") {
 				return llvm_abi::Type::Integer(llvm_abi::Bool);
-			} else if (name == "char_t" || name == "uchar_t") {
+			} else if (name == "byte_t" || name == "ubyte_t") {
 				return llvm_abi::Type::Integer(llvm_abi::Char);
 			} else if (name == "short_t" || name == "ushort_t") {
 				return llvm_abi::Type::Integer(llvm_abi::Short);
@@ -67,6 +67,10 @@ namespace locic {
 				return llvm_abi::Type::Integer(llvm_abi::Int32);
 			} else if (name == "int64_t" || name == "uint64_t") {
 				return llvm_abi::Type::Integer(llvm_abi::Int64);
+			}
+			
+			if (name == "unichar") {
+				return llvm_abi::Type::Integer(llvm_abi::Int32);
 			}
 			
 			if (name == "size_t" || name == "ssize_t") {

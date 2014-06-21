@@ -6,7 +6,7 @@ struct sfRenderStates { };
 
 import {
 	
-	sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const char* title, int style, const sfContextSettings* settings);
+	sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const byte* title, int style, const sfContextSettings* settings);
 	
 	void sfRenderWindow_destroy(sfRenderWindow* renderWindow) noexcept;
 	
@@ -43,7 +43,7 @@ import {
 namespace sf {
 	
 	class RenderWindow(sfRenderWindow* window) {
-		static Create (VideoMode videoMode, const char* title) {
+		static Create (VideoMode videoMode, const byte* title) {
 			// TitleBar (1) + Resize (2) + Close (4)
 			// (And 8 would give FullScreen...)
 			final int style = 7;

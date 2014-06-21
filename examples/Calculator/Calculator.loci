@@ -1,19 +1,19 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const char * const str, ...);
+import void printf(const byte * const str, ...);
 
-import int atoi(const char * const str);
-import int strcmp(const char * const s1, const char * const s2);
+import int atoi(const byte * const str);
+import int strcmp(const byte * const s1, const byte * const s2);
 
-bool isStrEqual(const char * const s1, const char * const s2) {
+bool isStrEqual(const byte * const s1, const byte * const s2) {
 	return strcmp(s1, s2) == 0;
 }
 
-export int main(int argc, char ** argv) {
+export int main(int argc, byte ** argv) {
 	printf(C"* Welcome to Calculator! *\n");
 	
-	const char * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
-	const char * const answerText = C"Here's your answer";
+	const byte * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
+	const byte * const answerText = C"Here's your answer";
 	
 	if (argc < 4) {
 		printf(C"Too few arguments! You need to give 3 arguments:\n");
@@ -27,7 +27,7 @@ export int main(int argc, char ** argv) {
 		return 1;
 	}
 	
-	const char * const op = argv[1u];
+	const byte * const op = argv[1u];
 	int arg1 = atoi(argv[2u]);
 	int arg2 = atoi(argv[3u]);
 	

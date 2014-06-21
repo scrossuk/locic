@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const char * const str, ...) noexcept;
+import void printf(const byte * const str, ...) noexcept;
 
 import B 1.0.0 {
 
@@ -31,7 +31,7 @@ class PrintClass(int i) {
 	}
 }
 
-export int main(int argc, char ** argv) {
+export int main(int argc, byte ** argv) {
 	auto testClass = TestClass<PrintClass>(PrintClass(50));
 	testClass.print();
 	

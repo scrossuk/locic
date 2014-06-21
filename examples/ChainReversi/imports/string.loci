@@ -1,0 +1,30 @@
+import std.string 0.1.0 {
+	
+	std::string string_literal(const byte* stringConstant);
+	
+	namespace std {
+		
+		exception out_of_range();
+		
+		class string {
+			static string create();
+			
+			static string cstring(const byte* const stringConstant);
+			
+			string implicitCopy() const noexcept;
+			
+			string add(string other) const;
+			
+			size_t length() const noexcept;
+			
+			unichar at(size_t index) const;
+			
+			const byte* const c_str() const noexcept;
+			
+			int compare(string other) const noexcept;
+		}
+		
+	}
+	
+}
+
