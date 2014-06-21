@@ -201,23 +201,16 @@ namespace locic {
 		SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::STRING: {
-					if (specifier.empty()) {
-						throw ErrorException("Loci strings are not currently supported; add 'C' specifier to use C strings (e.g. C\"example\").");
-					} else if (specifier == "C") {
-						// C strings have the type 'const char * const', as opposed to just a
-						// type name, so their type needs to be generated specially.
-						const auto charTypeInstance = getBuiltInType(context.scopeStack(), "byte_t");
-						const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
-						
-						// Generate type 'const char'.
-						const auto constCharType = charTypeInstance->selfType()->createConstType();
-						
-						// Generate type 'const ptr<const char>'.
-						return SEM::Type::Object(ptrTypeInstance, { constCharType })->createConstType();
-					} else {
-						throw ErrorException(makeString("Invalid string literal specifier '%s'.",
-							specifier.c_str()));
-					}
+					// C strings have the type 'const byte * const', as opposed to just a
+					// type name, so their type needs to be generated specially.
+					const auto byteTypeInstance = getBuiltInType(context.scopeStack(), "byte_t");
+					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
+					
+					// Generate type 'const byte'.
+					const auto constByteType = byteTypeInstance->selfType()->createConstType();
+					
+					// Generate type 'const ptr<const byte>'.
+					return SEM::Type::Object(ptrTypeInstance, { constByteType })->createConstType();
 				}
 				default: {
 					const auto typeName = getLiteralTypeName(specifier, constant);
@@ -230,6 +223,25 @@ namespace locic {
 					return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
 				}
 			}
+		}
+		
+		SEM::Value* getLiteralValue(Context& context, const std::string& specifier, Constant& constant, const Debug::SourceLocation& location) {
+			const auto constantValue = SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
+			
+			if (constant.kind() != Constant::STRING || specifier == "C") {
+				return constantValue;
+			}
+			
+			const auto functionName = std::string("string_literal") + (!specifier.empty() ? std::string("_") + specifier : std::string(""));
+			
+			const auto searchResult = performSearch(context, Name::Absolute() + functionName);
+			if (!searchResult.isFunction()) {
+				throw ErrorException(makeString("Invalid string literal specifier '%s' at %s; failed to find relevant function '%s'.",
+					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
+			}
+			
+			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {});
+			return CallValue(functionRef, { constantValue }, location);
 		}
 		
 		static Name getCanonicalName(const Name& name) {
@@ -276,7 +288,7 @@ namespace locic {
 				case AST::Value::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;
 					auto& constant = *(astValueNode->literal.constant);
-					return SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
+					return getLiteralValue(context, specifier, constant, location);
 				}
 				case AST::Value::SYMBOLREF: {
 					const auto& astSymbolNode = astValueNode->symbolRef.symbol;

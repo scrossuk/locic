@@ -194,9 +194,9 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 exception InvalidPlayerError(std::string name);
 
 CR::Player& getPlayer(std::string playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
-	if (playerString == std::string::cstring(C"ai")) {
+	if (playerString == "ai") {
 		return aiPlayer;
-	} else if (playerString == std::string::cstring(C"human")) {
+	} else if (playerString == "human") {
 		return humanPlayer;
 	} else {
 		throw InvalidPlayerError(playerString);
@@ -205,7 +205,7 @@ CR::Player& getPlayer(std::string playerString, CR::AIPlayer& aiPlayer, CR::Huma
 
 // Entry point.
 export int main(int argc, byte ** argv) {
-	final auto usage = std::string::cstring(C"chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)");
+	final auto usage = "chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
 	
 	if (argc != 3) {
 		printf(C"Incorrect number of arguments! You need to give 2 arguments:\n");
