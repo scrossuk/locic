@@ -4,6 +4,7 @@
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 
 namespace locic {
@@ -26,11 +27,11 @@ namespace locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
+		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location);
+		SEM::Type* UnifyTypes(Context& context, SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location);
 		
-		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location);
+		bool CanDoImplicitCast(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location);
 		
 		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType);
 		

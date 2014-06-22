@@ -2,9 +2,9 @@
 
 import {
 	
-	uint8_t sfMouse_isButtonPressed(int button);
+	uint8_t sfMouse_isButtonPressed(int button) noexcept;
 	
-	sfVector2i sfMouse_getPosition(const sfRenderWindow* const relativeTo);
+	sfVector2i sfMouse_getPosition(const sfRenderWindow* const relativeTo) noexcept;
 	
 }
 

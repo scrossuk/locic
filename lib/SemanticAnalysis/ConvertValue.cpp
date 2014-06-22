@@ -60,7 +60,7 @@ namespace locic {
 			
 			// Look for methods.
 			if (typeInstance->functions().find(CanonicalizeMethodName(memberName)) != typeInstance->functions().end()) {
-				return GetMethod(value, memberName, location);
+				return GetMethod(context, value, memberName, location);
 			}
 			
 			// TODO: this should be replaced by falling back on 'property' methods.
@@ -241,7 +241,7 @@ namespace locic {
 			}
 			
 			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {});
-			return CallValue(functionRef, { constantValue }, location);
+			return CallValue(context, functionRef, { constantValue }, location);
 		}
 		
 		static Name getCanonicalName(const Name& name) {
@@ -377,15 +377,15 @@ namespace locic {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
-					const auto boolValue = ImplicitCast(cond, boolType->selfType(), location);
+					const auto boolValue = ImplicitCast(context, cond, boolType->selfType(), location);
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					const auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);
 					
-					const auto targetType = UnifyTypes(ifTrue->type(), ifFalse->type(), location);
+					const auto targetType = UnifyTypes(context, ifTrue->type(), ifFalse->type(), location);
 					
-					const auto castIfTrue = ImplicitCast(ifTrue, targetType, location);
-					const auto castIfFalse = ImplicitCast(ifFalse, targetType, location);
+					const auto castIfTrue = ImplicitCast(context, ifTrue, targetType, location);
+					const auto castIfFalse = ImplicitCast(context, ifFalse, targetType, location);
 					
 					return SEM::Value::Ternary(boolValue, castIfTrue, castIfFalse);
 				}
@@ -410,7 +410,7 @@ namespace locic {
 									sourceValue->toString().c_str(), sourceType->toString().c_str(),
 									targetType->toString().c_str(), location.toString().c_str()));
 							}
-							return SEM::Value::Reinterpret(ImplicitCast(sourceValue, sourceType, location), targetType);
+							return SEM::Value::Reinterpret(ImplicitCast(context, sourceValue, sourceType, location), targetType);
 						default:
 							throw std::runtime_error("Unknown cast kind.");
 					}
@@ -490,7 +490,7 @@ namespace locic {
 					for(size_t i = 0; i < thisTypeInstance->variables().size(); i++){
 						const auto semVar = thisTypeInstance->variables().at(i);
 						const auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						const auto semParam = ImplicitCast(semValue, semVar->constructType(), location);
+						const auto semParam = ImplicitCast(context, semValue, semVar->constructType(), location);
 						semValues.push_back(semParam);
 					}
 					
@@ -502,7 +502,7 @@ namespace locic {
 					auto object = ConvertValue(context, astValueNode->memberAccess.object);
 					
 					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
-						object = tryDissolveValue(object, location);
+						object = tryDissolveValue(context, object, location);
 					}
 					
 					return MakeMemberAccess(context, object, memberName, astValueNode.location());
@@ -516,7 +516,7 @@ namespace locic {
 						argumentValues.push_back(ConvertValue(context, astArgumentValueNode));
 					}
 					
-					return CallValue(functionValue, argumentValues, location);
+					return CallValue(context, functionValue, argumentValues, location);
 				}
 				default:
 					throw std::runtime_error("Unknown AST::Value kind.");

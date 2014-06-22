@@ -80,7 +80,7 @@ namespace locic {
 			return type->isLval() && type->isObject() && supportsDissolve(type);
 		}
 		
-		SEM::Value* dissolveLval(SEM::Value* value, const Debug::SourceLocation& location) {
+		SEM::Value* dissolveLval(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
 			const auto type = getDerefType(value->type());
 			
 			if (!type->isLval()) {
@@ -98,11 +98,11 @@ namespace locic {
 					type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			return CallValue(GetMethod(value, "dissolve", location), {}, location);
+			return CallValue(context, GetMethod(context, value, "dissolve", location), {}, location);
 		}
 		
-		SEM::Value* tryDissolveValue(SEM::Value* value, const Debug::SourceLocation& location) {
-			return canDissolveValue(value) ? dissolveLval(value, location) : value;
+		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
+			return canDissolveValue(value) ? dissolveLval(context, value, location) : value;
 		}
 		
 	}

@@ -43,7 +43,7 @@ template <typename T>
 interface DefaultConstructInterface {
 	T implicitCopy() const;
 	
-	T multiply(T value) const;
+	T multiply(const T& value) const;
 }
 
 template <typename T: DefaultConstructInterface<T> >
@@ -125,9 +125,9 @@ template <typename T>
 interface count_type {
 	T implicitCopy() const;
 	
-	T add(T value) const;
+	T add(const T& value) const;
 	
-	int compare(T other) const;
+	int compare(const T& other) const;
 }
 
 template <typename T: count_type<T>>

@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 template <typename T>
 class TestClass(T value) {
@@ -17,7 +17,7 @@ class TestClass(T value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	TestClass<int> object = TestClass<int>(200);
 	testPrint(C"object.getValue() = %d", object.getValue());
 	

@@ -38,7 +38,7 @@ namespace locic {
 			return false;
 		}
 		
-		static inline SEM::Value* VarArgCastSearch(SEM::Value* value, const Debug::SourceLocation& location) {
+		static inline SEM::Value* VarArgCastSearch(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
 			if (isValidVarArgType(value->type())) {
 				// Already a valid var arg type.
 				return value;
@@ -49,11 +49,11 @@ namespace locic {
 			
 			if (derefType->isLval() && canDissolveValue(derefValue(value))) {
 				// Dissolve lval.
-				auto dissolvedValue = dissolveLval(derefValue(value), location);
+				auto dissolvedValue = dissolveLval(context, derefValue(value), location);
 				
 				// See if this results in
 				// a valid var arg value.
-				auto result = VarArgCastSearch(dissolvedValue, location);
+				auto result = VarArgCastSearch(context, dissolvedValue, location);
 				
 				if (result != nullptr) return result;
 			}
@@ -61,12 +61,12 @@ namespace locic {
 			if (value->type()->isRef() && supportsImplicitCopy(derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallValue(GetMethod(value, "implicitCopy", location), {}, location) :
+					CallValue(context, GetMethod(context, value, "implicitCopy", location), {}, location) :
 					derefAll(value);
 				
 				// See if this results in
 				// a valid var arg value.
-				auto result = VarArgCastSearch(copyValue, location);
+				auto result = VarArgCastSearch(context, copyValue, location);
 				
 				if (result != nullptr) return result;
 			}
@@ -74,8 +74,8 @@ namespace locic {
 			return nullptr;
 		}
 		
-		SEM::Value* VarArgCast(SEM::Value* value, const Debug::SourceLocation& location) {
-			auto result = VarArgCastSearch(value, location);
+		SEM::Value* VarArgCast(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
+			auto result = VarArgCastSearch(context, value, location);
 			if (result == nullptr) {
 				throw ErrorException(makeString("Var arg parameter '%s' has invalid type '%s' at position %s.",
 					value->toString().c_str(), value->type()->toString().c_str(),

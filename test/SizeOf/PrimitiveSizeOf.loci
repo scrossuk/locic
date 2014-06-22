@@ -1,9 +1,9 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
-	testPrint(C"sizeof(char) = %llu", sizeof(char).toULongLong());
+export int testEntryPoint(int argc, byte ** argv) {
+	testPrint(C"sizeof(byte) = %llu", sizeof(byte).toULongLong());
 	testPrint(C"sizeof(short) = %llu", sizeof(short).toULongLong());
 	testPrint(C"sizeof(int) = %llu", sizeof(int).toULongLong());
 	testPrint(C"sizeof(long) = %llu", sizeof(long).toULongLong());

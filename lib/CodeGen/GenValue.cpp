@@ -33,7 +33,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		static llvm::Value* makePtr(Function& function, llvm::Value* value, SEM::Type* type) {
-			assert(isTypeSizeAlwaysKnown(function.module(), type) && !type->isBuiltInReference());
+			assert(!type->isBuiltInReference());
 			
 			const auto ptrValue = genAlloca(function, type);
 			genStore(function, value, ptrValue, type);
@@ -391,6 +391,14 @@ namespace locic {
 					const auto memberOffset = genMemberOffset(function, type, memberIndex);
 					
 					return function.getBuilder().CreateInBoundsGEP(castDataPointer, memberOffset);
+				}
+				
+				case SEM::Value::REFVALUE: {
+					const auto dataValue = value->refValue.value;
+					const auto llvmDataValue = genValue(function, dataValue);
+					
+					// TODO: call destructor for this value.
+					return makePtr(function, llvmDataValue, dataValue->type());
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {

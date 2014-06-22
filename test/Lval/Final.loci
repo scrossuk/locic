@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 class TestClass (final int value) {
 	static Create(int value) {
@@ -14,7 +14,7 @@ class TestClass (final int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	int i = 4;
 	
 	testPrint(C"testEntryPoint: i = %d", i);

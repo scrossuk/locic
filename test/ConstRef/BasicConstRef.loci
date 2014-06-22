@@ -1,0 +1,22 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+void function(const int& value) {
+	testPrint(C"function: value = %d", value);
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	function(10);
+	
+	function(20);
+	
+	int i = 30;
+	function(i);
+	
+	int j = 40;
+	function(move j);
+	
+	return 0;
+}
+

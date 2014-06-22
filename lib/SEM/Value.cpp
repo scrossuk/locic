@@ -121,6 +121,12 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::RefValue(Value* operand, Type* type) {
+			Value* value = new Value(REFVALUE, type);
+			value->refValue.value = operand;
+			return value;
+		}
+		
 		Value* Value::FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
 			const auto type = functionValue->type();
 			const auto functionType =
@@ -239,6 +245,9 @@ namespace locic {
 					return makeString("MemberAccess(object: %s, var: %s)",
 									  memberAccess.object->toString().c_str(),
 									  memberAccess.memberVar->toString().c_str());
+				
+				case REFVALUE:
+					return makeString("RefValue(value: %s)", refValue.value->toString().c_str());
 									  
 				case FUNCTIONCALL:
 					return makeString("FunctionCall(funcValue: %s, args: %s)",

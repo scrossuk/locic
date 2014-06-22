@@ -5,12 +5,12 @@ __primitive null_t { }
 __primitive bool {
 	bool implicitCopy() const noexcept;
 	
-	int compare(bool value) const noexcept;
+	int compare(const bool& value) const noexcept;
 	
 	bool not() const noexcept;
 	
-	bool logicalAnd(bool value) const noexcept;
-	bool logicalOr(bool value) const noexcept;
+	bool logicalAnd(const bool& value) const noexcept;
+	bool logicalOr(const bool& value) const noexcept;
 }
 
 __primitive unichar {
@@ -18,7 +18,7 @@ __primitive unichar {
 	
 	unichar implicitCopy() const noexcept;
 	
-	int_t compare(unichar v) const noexcept;
+	int_t compare(const unichar& v) const noexcept;
 }
 
 __primitive byte_t {
@@ -31,13 +31,13 @@ __primitive byte_t {
 	
 	byte_t abs() const noexcept;
 	
-	byte_t add(byte_t v) const noexcept;
-	byte_t subtract(byte_t v) const noexcept;
-	byte_t multiply(byte_t v) const noexcept;
-	byte_t divide(byte_t v) const noexcept;
-	byte_t modulo(byte_t v) const noexcept;
+	byte_t add(const byte_t& v) const noexcept;
+	byte_t subtract(const byte_t& v) const noexcept;
+	byte_t multiply(const byte_t& v) const noexcept;
+	byte_t divide(const byte_t& v) const noexcept;
+	byte_t modulo(const byte_t& v) const noexcept;
 	
-	int_t compare(byte_t v) const noexcept;
+	int_t compare(const byte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -47,13 +47,13 @@ __primitive ubyte_t {
 	
 	ubyte_t implicitCopy() const noexcept;
 	
-	ubyte_t add(ubyte_t v) const noexcept;
-	ubyte_t subtract(ubyte_t v) const noexcept;
-	ubyte_t multiply(ubyte_t v) const noexcept;
-	ubyte_t divide(ubyte_t v) const noexcept;
-	ubyte_t modulo(ubyte_t v) const noexcept;
+	ubyte_t add(const ubyte_t& v) const noexcept;
+	ubyte_t subtract(const ubyte_t& v) const noexcept;
+	ubyte_t multiply(const ubyte_t& v) const noexcept;
+	ubyte_t divide(const ubyte_t& v) const noexcept;
+	ubyte_t modulo(const ubyte_t& v) const noexcept;
 	
-	int_t compare(ubyte_t v) const noexcept;
+	int_t compare(const ubyte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -70,13 +70,13 @@ __primitive short_t {
 	
 	short_t abs() const noexcept;
 
-	short_t add(short_t v) const noexcept;
-	short_t subtract(short_t v) const noexcept;
-	short_t multiply(short_t v) const noexcept;
-	short_t divide(short_t v) const noexcept;
-	short_t modulo(short_t v) const noexcept;
+	short_t add(const short_t& v) const noexcept;
+	short_t subtract(const short_t& v) const noexcept;
+	short_t multiply(const short_t& v) const noexcept;
+	short_t divide(const short_t& v) const noexcept;
+	short_t modulo(const short_t& v) const noexcept;
 	
-	int_t compare(short_t v) const noexcept;
+	int_t compare(const short_t& v) const noexcept;
 }
 
 __primitive ushort_t {
@@ -86,13 +86,13 @@ __primitive ushort_t {
 	
 	ushort_t implicitCopy() const noexcept;
 	
-	ushort_t add(ushort_t v) const noexcept;
-	ushort_t subtract(ushort_t v) const noexcept;
-	ushort_t multiply(ushort_t v) const noexcept;
-	ushort_t divide(ushort_t v) const noexcept;
-	ushort_t modulo(ushort_t v) const noexcept;
+	ushort_t add(const ushort_t& v) const noexcept;
+	ushort_t subtract(const ushort_t& v) const noexcept;
+	ushort_t multiply(const ushort_t& v) const noexcept;
+	ushort_t divide(const ushort_t& v) const noexcept;
+	ushort_t modulo(const ushort_t& v) const noexcept;
 	
-	int_t compare(ushort_t v) const noexcept;
+	int_t compare(const ushort_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -112,13 +112,13 @@ __primitive int_t {
 	
 	int_t abs() const noexcept;
 
-	int_t add(int_t v) const noexcept;
-	int_t subtract(int_t v) const noexcept;
-	int_t multiply(int_t v) const noexcept;
-	int_t divide(int_t v) const noexcept;
-	int_t modulo(int_t v) const noexcept;
+	int_t add(const int_t& v) const noexcept;
+	int_t subtract(const int_t& v) const noexcept;
+	int_t multiply(const int_t& v) const noexcept;
+	int_t divide(const int_t& v) const noexcept;
+	int_t modulo(const int_t& v) const noexcept;
 	
-	int_t compare(int_t v) const noexcept;
+	int_t compare(const int_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -136,13 +136,13 @@ __primitive uint_t {
 	
 	uint_t implicitCopy() const noexcept;
 	
-	uint_t add(uint_t v) const noexcept;
-	uint_t subtract(uint_t v) const noexcept;
-	uint_t multiply(uint_t v) const noexcept;
-	uint_t divide(uint_t v) const noexcept;
-	uint_t modulo(uint_t v) const noexcept;
+	uint_t add(const uint_t& v) const noexcept;
+	uint_t subtract(const uint_t& v) const noexcept;
+	uint_t multiply(const uint_t& v) const noexcept;
+	uint_t divide(const uint_t& v) const noexcept;
+	uint_t modulo(const uint_t& v) const noexcept;
 	
-	int_t compare(uint_t v) const noexcept;
+	int_t compare(const uint_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -162,13 +162,13 @@ __primitive long_t {
 	
 	long_t abs() const noexcept;
 
-	long_t add(long_t v) const noexcept;
-	long_t subtract(long_t v) const noexcept;
-	long_t multiply(long_t v) const noexcept;
-	long_t divide(long_t v) const noexcept;
-	long_t modulo(long_t v) const noexcept;
+	long_t add(const long_t& v) const noexcept;
+	long_t subtract(const long_t& v) const noexcept;
+	long_t multiply(const long_t& v) const noexcept;
+	long_t divide(const long_t& v) const noexcept;
+	long_t modulo(const long_t& v) const noexcept;
 	
-	int_t compare(long_t v) const noexcept;
+	int_t compare(const long_t& v) const noexcept;
 }
 
 __primitive ulong_t {
@@ -181,13 +181,13 @@ __primitive ulong_t {
 	
 	ulong_t implicitCopy() const noexcept;
 	
-	ulong_t add(ulong_t v) const noexcept;
-	ulong_t subtract(ulong_t v) const noexcept;
-	ulong_t multiply(ulong_t v) const noexcept;
-	ulong_t divide(ulong_t v) const noexcept;
-	ulong_t modulo(ulong_t v) const noexcept;
+	ulong_t add(const ulong_t& v) const noexcept;
+	ulong_t subtract(const ulong_t& v) const noexcept;
+	ulong_t multiply(const ulong_t& v) const noexcept;
+	ulong_t divide(const ulong_t& v) const noexcept;
+	ulong_t modulo(const ulong_t& v) const noexcept;
 	
-	int_t compare(ulong_t v) const noexcept;
+	int_t compare(const ulong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -209,13 +209,13 @@ __primitive longlong_t {
 	
 	longlong_t abs() const noexcept;
 
-	longlong_t add(longlong_t v) const noexcept;
-	longlong_t subtract(longlong_t v) const noexcept;
-	longlong_t multiply(longlong_t v) const noexcept;
-	longlong_t divide(longlong_t v) const noexcept;
-	longlong_t modulo(longlong_t v) const noexcept;
+	longlong_t add(const longlong_t& v) const noexcept;
+	longlong_t subtract(const longlong_t& v) const noexcept;
+	longlong_t multiply(const longlong_t& v) const noexcept;
+	longlong_t divide(const longlong_t& v) const noexcept;
+	longlong_t modulo(const longlong_t& v) const noexcept;
 	
-	int_t compare(longlong_t v) const noexcept;
+	int_t compare(const longlong_t& v) const noexcept;
 }
 
 __primitive ulonglong_t {
@@ -230,13 +230,13 @@ __primitive ulonglong_t {
 	
 	ulonglong_t implicitCopy() const noexcept;
 	
-	ulonglong_t add(ulonglong_t v) const noexcept;
-	ulonglong_t subtract(ulonglong_t v) const noexcept;
-	ulonglong_t multiply(ulonglong_t v) const noexcept;
-	ulonglong_t divide(ulonglong_t v) const noexcept;
-	ulonglong_t modulo(ulonglong_t v) const noexcept;
+	ulonglong_t add(const ulonglong_t& v) const noexcept;
+	ulonglong_t subtract(const ulonglong_t& v) const noexcept;
+	ulonglong_t multiply(const ulonglong_t& v) const noexcept;
+	ulonglong_t divide(const ulonglong_t& v) const noexcept;
+	ulonglong_t modulo(const ulonglong_t& v) const noexcept;
 	
-	int_t compare(ulonglong_t v) const noexcept;
+	int_t compare(const ulonglong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -254,13 +254,13 @@ __primitive ssize_t {
 	
 	ssize_t abs() const noexcept;
 
-	ssize_t add(ssize_t v) const noexcept;
-	ssize_t subtract(ssize_t v) const noexcept;
-	ssize_t multiply(ssize_t v) const noexcept;
-	ssize_t divide(ssize_t v) const noexcept;
-	ssize_t modulo(ssize_t v) const noexcept;
+	ssize_t add(const ssize_t& v) const noexcept;
+	ssize_t subtract(const ssize_t& v) const noexcept;
+	ssize_t multiply(const ssize_t& v) const noexcept;
+	ssize_t divide(const ssize_t& v) const noexcept;
+	ssize_t modulo(const ssize_t& v) const noexcept;
 	
-	int_t compare(ssize_t v) const noexcept;
+	int_t compare(const ssize_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -280,13 +280,13 @@ __primitive size_t {
 	
 	size_t implicitCopy() const noexcept;
 	
-	size_t add(size_t v) const noexcept;
-	size_t subtract(size_t v) const noexcept;
-	size_t multiply(size_t v) const noexcept;
-	size_t divide(size_t v) const noexcept;
-	size_t modulo(size_t v) const noexcept;
+	size_t add(const size_t& v) const noexcept;
+	size_t subtract(const size_t& v) const noexcept;
+	size_t multiply(const size_t& v) const noexcept;
+	size_t divide(const size_t& v) const noexcept;
+	size_t modulo(const size_t& v) const noexcept;
 	
-	int_t compare(size_t v) const noexcept;
+	int_t compare(const size_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	
@@ -305,13 +305,13 @@ __primitive int8_t {
 	
 	int8_t abs() const noexcept;
 
-	int8_t add(int8_t v) const noexcept;
-	int8_t subtract(int8_t v) const noexcept;
-	int8_t multiply(int8_t v) const noexcept;
-	int8_t divide(int8_t v) const noexcept;
-	int8_t modulo(int8_t v) const noexcept;
+	int8_t add(const int8_t& v) const noexcept;
+	int8_t subtract(const int8_t& v) const noexcept;
+	int8_t multiply(const int8_t& v) const noexcept;
+	int8_t divide(const int8_t& v) const noexcept;
+	int8_t modulo(const int8_t& v) const noexcept;
 	
-	int_t compare(int8_t v) const noexcept;
+	int_t compare(const int8_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -320,13 +320,13 @@ __primitive int8_t {
 __primitive uint8_t {
 	uint8_t implicitCopy() const noexcept;
 
-	uint8_t add(uint8_t v) const noexcept;
-	uint8_t subtract(uint8_t v) const noexcept;
-	uint8_t multiply(uint8_t v) const noexcept;
-	uint8_t divide(uint8_t v) const noexcept;
-	uint8_t modulo(uint8_t v) const noexcept;
+	uint8_t add(const uint8_t& v) const noexcept;
+	uint8_t subtract(const uint8_t& v) const noexcept;
+	uint8_t multiply(const uint8_t& v) const noexcept;
+	uint8_t divide(const uint8_t& v) const noexcept;
+	uint8_t modulo(const uint8_t& v) const noexcept;
 	
-	int_t compare(uint8_t v) const noexcept;
+	int_t compare(const uint8_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -340,13 +340,13 @@ __primitive int16_t {
 	
 	int16_t abs() const noexcept;
 
-	int16_t add(int16_t v) const noexcept;
-	int16_t subtract(int16_t v) const noexcept;
-	int16_t multiply(int16_t v) const noexcept;
-	int16_t divide(int16_t v) const noexcept;
-	int16_t modulo(int16_t v) const noexcept;
+	int16_t add(const int16_t& v) const noexcept;
+	int16_t subtract(const int16_t& v) const noexcept;
+	int16_t multiply(const int16_t& v) const noexcept;
+	int16_t divide(const int16_t& v) const noexcept;
+	int16_t modulo(const int16_t& v) const noexcept;
 	
-	int_t compare(int16_t v) const noexcept;
+	int_t compare(const int16_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -357,13 +357,13 @@ __primitive uint16_t {
 	
 	uint16_t implicitCopy() const noexcept;
 
-	uint16_t add(uint16_t v) const noexcept;
-	uint16_t subtract(uint16_t v) const noexcept;
-	uint16_t multiply(uint16_t v) const noexcept;
-	uint16_t divide(uint16_t v) const noexcept;
-	uint16_t modulo(uint16_t v) const noexcept;
+	uint16_t add(const uint16_t& v) const noexcept;
+	uint16_t subtract(const uint16_t& v) const noexcept;
+	uint16_t multiply(const uint16_t& v) const noexcept;
+	uint16_t divide(const uint16_t& v) const noexcept;
+	uint16_t modulo(const uint16_t& v) const noexcept;
 	
-	int_t compare(uint16_t v) const noexcept;
+	int_t compare(const uint16_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -378,13 +378,13 @@ __primitive int32_t {
 	
 	int32_t abs() const noexcept;
 
-	int32_t add(int32_t v) const noexcept;
-	int32_t subtract(int32_t v) const noexcept;
-	int32_t multiply(int32_t v) const noexcept;
-	int32_t divide(int32_t v) const noexcept;
-	int32_t modulo(int32_t v) const noexcept;
+	int32_t add(const int32_t& v) const noexcept;
+	int32_t subtract(const int32_t& v) const noexcept;
+	int32_t multiply(const int32_t& v) const noexcept;
+	int32_t divide(const int32_t& v) const noexcept;
+	int32_t modulo(const int32_t& v) const noexcept;
 	
-	int_t compare(int32_t v) const noexcept;
+	int_t compare(const int32_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -396,13 +396,13 @@ __primitive uint32_t {
 	
 	uint32_t implicitCopy() const noexcept;
 
-	uint32_t add(uint32_t v) const noexcept;
-	uint32_t subtract(uint32_t v) const noexcept;
-	uint32_t multiply(uint32_t v) const noexcept;
-	uint32_t divide(uint32_t v) const noexcept;
-	uint32_t modulo(uint32_t v) const noexcept;
+	uint32_t add(const uint32_t& v) const noexcept;
+	uint32_t subtract(const uint32_t& v) const noexcept;
+	uint32_t multiply(const uint32_t& v) const noexcept;
+	uint32_t divide(const uint32_t& v) const noexcept;
+	uint32_t modulo(const uint32_t& v) const noexcept;
 	
-	int_t compare(uint32_t v) const noexcept;
+	int_t compare(const uint32_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -418,13 +418,13 @@ __primitive int64_t {
 	
 	int64_t abs() const noexcept;
 
-	int64_t add(int64_t v) const noexcept;
-	int64_t subtract(int64_t v) const noexcept;
-	int64_t multiply(int64_t v) const noexcept;
-	int64_t divide(int64_t v) const noexcept;
-	int64_t modulo(int64_t v) const noexcept;
+	int64_t add(const int64_t& v) const noexcept;
+	int64_t subtract(const int64_t& v) const noexcept;
+	int64_t multiply(const int64_t& v) const noexcept;
+	int64_t divide(const int64_t& v) const noexcept;
+	int64_t modulo(const int64_t& v) const noexcept;
 	
-	int_t compare(int64_t v) const noexcept;
+	int_t compare(const int64_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -437,13 +437,13 @@ __primitive uint64_t {
 	
 	uint64_t implicitCopy() const noexcept;
 
-	uint64_t add(uint64_t v) const noexcept;
-	uint64_t subtract(uint64_t v) const noexcept;
-	uint64_t multiply(uint64_t v) const noexcept;
-	uint64_t divide(uint64_t v) const noexcept;
-	uint64_t modulo(uint64_t v) const noexcept;
+	uint64_t add(const uint64_t& v) const noexcept;
+	uint64_t subtract(const uint64_t& v) const noexcept;
+	uint64_t multiply(const uint64_t& v) const noexcept;
+	uint64_t divide(const uint64_t& v) const noexcept;
+	uint64_t modulo(const uint64_t& v) const noexcept;
 	
-	int_t compare(uint64_t v) const noexcept;
+	int_t compare(const uint64_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -455,15 +455,15 @@ __primitive float_t {
 
 	float_t abs() const noexcept;
 
-	float_t add(float_t v) const noexcept;
-	float_t subtract(float_t v) const noexcept;
-	float_t multiply(float_t v) const noexcept;
-	float_t divide(float_t v) const noexcept;
-	float_t modulo(float_t v) const noexcept;
+	float_t add(const float_t& v) const noexcept;
+	float_t subtract(const float_t& v) const noexcept;
+	float_t multiply(const float_t& v) const noexcept;
+	float_t divide(const float_t& v) const noexcept;
+	float_t modulo(const float_t& v) const noexcept;
 	
 	size_t toSizeT() const noexcept;
 	
-	int_t compare(float_t v) const noexcept;
+	int_t compare(const float_t& v) const noexcept;
 }
 
 __primitive double_t {
@@ -478,13 +478,13 @@ __primitive double_t {
 	
 	double_t abs() const noexcept;
 
-	double_t add(double_t v) const noexcept;
-	double_t subtract(double_t v) const noexcept;
-	double_t multiply(double_t v) const noexcept;
-	double_t divide(double_t v) const noexcept;
-	double_t modulo(double_t v) const noexcept;
+	double_t add(const double_t& v) const noexcept;
+	double_t subtract(const double_t& v) const noexcept;
+	double_t multiply(const double_t& v) const noexcept;
+	double_t divide(const double_t& v) const noexcept;
+	double_t modulo(const double_t& v) const noexcept;
 	
-	int_t compare(double_t v) const noexcept;
+	int_t compare(const double_t& v) const noexcept;
 }
 
 __primitive longdouble_t {
@@ -498,13 +498,13 @@ __primitive longdouble_t {
 	
 	longdouble_t abs() const noexcept;
 
-	longdouble_t add(longdouble_t v) const noexcept;
-	longdouble_t subtract(longdouble_t v) const noexcept;
-	longdouble_t multiply(longdouble_t v) const noexcept;
-	longdouble_t divide(longdouble_t v) const noexcept;
-	longdouble_t modulo(longdouble_t v) const noexcept;
+	longdouble_t add(const longdouble_t& v) const noexcept;
+	longdouble_t subtract(const longdouble_t& v) const noexcept;
+	longdouble_t multiply(const longdouble_t& v) const noexcept;
+	longdouble_t divide(const longdouble_t& v) const noexcept;
+	longdouble_t modulo(const longdouble_t& v) const noexcept;
 	
-	int_t compare(longdouble_t v) const noexcept;
+	int_t compare(const longdouble_t& v) const noexcept;
 }
 
 template <typename T>
@@ -519,7 +519,7 @@ __primitive __ptr {
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> index(size_t index) const noexcept;
 	
-	int compare(__ptr<T> value) const noexcept;
+	int compare(const __ptr<T>& value) const noexcept;
 }
 
 template <typename T>

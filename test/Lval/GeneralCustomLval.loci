@@ -1,8 +1,8 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 interface serializable {
-	const char * const toCString();
+	const byte * const toCString();
 }
 
 template <typename T: serializable>
@@ -58,7 +58,7 @@ class TestClass(int a, int b) {
 		return @(a, b);
 	}
 	
-	const char* const toCString() {
+	const byte* const toCString() {
 		if (@a == 0) {
 			if (@b == 0) {
 				return C"Both Zero";
@@ -108,7 +108,7 @@ void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	lval<TestClass> custom_lval<TestClass> value = lval<TestClass>(custom_lval<TestClass>(TestClass(2, 2)));
 	
 	testPrint(C"testEntryPoint: Value = %s", value.toCString());

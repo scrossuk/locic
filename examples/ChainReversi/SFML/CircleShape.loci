@@ -4,23 +4,23 @@ struct sfCircleShape { };
 
 import {
 	
-	sfCircleShape* sfCircleShape_create();
+	sfCircleShape* sfCircleShape_create() noexcept;
 	
-	sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape);
+	sfCircleShape* sfCircleShape_copy(const sfCircleShape* const shape) noexcept;
 	
 	void sfCircleShape_destroy(sfCircleShape* shape) noexcept;
 	
-	void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin);
+	void sfCircleShape_setOrigin(sfCircleShape* shape, sfVector2f origin) noexcept;
 	
-	void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position);
+	void sfCircleShape_setPosition(sfCircleShape* shape, sfVector2f position) noexcept;
 	
-	void sfCircleShape_setRotation(sfCircleShape* shape, float angle);
+	void sfCircleShape_setRotation(sfCircleShape* shape, float angle) noexcept;
 	
-	void sfCircleShape_setScale(sfCircleShape* shape, sfVector2f scale);
+	void sfCircleShape_setScale(sfCircleShape* shape, sfVector2f scale) noexcept;
 	
-	void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color);
+	void sfCircleShape_setFillColor(sfCircleShape* shape, sfColor color) noexcept;
 	
-	void sfCircleShape_setRadius(sfCircleShape* shape, float radius);
+	void sfCircleShape_setRadius(sfCircleShape* shape, float radius) noexcept;
 	
 }
 

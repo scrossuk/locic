@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 // Class definition.
 class TestClass(int value) {
@@ -17,7 +17,7 @@ class TestClass(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	TestClass testInstance1 = TestClass(1);
 	TestClass testInstance2 = testInstance1;
 	TestClass testInstance3 = testInstance2;

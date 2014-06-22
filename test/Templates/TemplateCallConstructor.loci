@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...) noexcept;
+import void testPrint(const byte * const str, ...) noexcept;
 
 class BuildClass(int value) {
 	static Create(int value) {
@@ -33,7 +33,7 @@ class TestClass(T value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	TestClass<BuildClass> testClass = TestClass<BuildClass>(42);
 	testClass.print();
 	

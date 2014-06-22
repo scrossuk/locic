@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 // First interface implementation.
 class TestClass1 (int value) {
@@ -40,7 +40,7 @@ void polymorphicPrint(TestInterface& object) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	auto testInstance1 = TestClass1(100);
 	
 	polymorphicPrint(testInstance1);

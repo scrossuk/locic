@@ -17,7 +17,7 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value*> CastFunctionArguments(const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types, const Debug::SourceLocation& location) {
+			std::vector<SEM::Value*> CastFunctionArguments(Context& context, const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types, const Debug::SourceLocation& location) {
 				std::vector<SEM::Value*> castValues;
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
@@ -28,8 +28,8 @@ namespace locic {
 					// one of the allowed types (since there's no specific
 					// destination type).
 					const auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(argumentValue, types.at(i), location) :
-						VarArgCast(argumentValue, location);
+						ImplicitCast(context, argumentValue, types.at(i), location) :
+						VarArgCast(context, argumentValue, location);
 					
 					castValues.push_back(castArgumentValue);
 				}
@@ -61,9 +61,9 @@ namespace locic {
 				}
 			}
 			
-			SEM::Value* dissolveObject(SEM::Value* object, const std::string& methodName, const Debug::SourceLocation& location) {
+			SEM::Value* dissolveObject(Context& context, SEM::Value* object, const std::string& methodName, const Debug::SourceLocation& location) {
 				if (methodName != "address" && methodName != "assign" && methodName != "dissolve" && methodName != "move") {
-					return tryDissolveValue(object, location);
+					return tryDissolveValue(context, object, location);
 				} else {
 					return object;
 				}
@@ -98,8 +98,8 @@ namespace locic {
 			return SEM::Value::FunctionRef(type, function, type->generateTemplateVarMap());
 		}
 		
-		SEM::Value* GetMethod(SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
-			const auto value = dissolveObject(rawValue, methodName, location);
+		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			const auto value = dissolveObject(context, rawValue, methodName, location);
 			const auto type = getDerefType(value->type());
 			
 			if (!type->isObjectOrTemplateVar()) {
@@ -141,7 +141,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* CallValue(SEM::Value* value, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
+		SEM::Value* CallValue(Context& context, SEM::Value* value, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
 			if (!isCallableType(value->type())) {
 				throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
 					value->toString().c_str(), location.toString().c_str()));
@@ -170,7 +170,7 @@ namespace locic {
 				}
 			}
 			
-			return SEM::Value::FunctionCall(value, CastFunctionArguments(args, typeList, location));
+			return SEM::Value::FunctionCall(value, CastFunctionArguments(context, args, typeList, location));
 		}
 		
 		bool supportsNullConstruction(SEM::Type* type) {
@@ -291,8 +291,11 @@ namespace locic {
 					if (!function->isConstMethod()) return false;
 					if (function->parameters().size() != 1) return false;
 					
-					const auto firstArg = function->parameters().at(0);
-					if (*(firstArg->constructType()) != *type) return false;
+					const auto firstArgType = function->parameters().at(0)->constructType();
+					if (!firstArgType->isRef()) return false;
+					if (!firstArgType->isBuiltInReference()) return false;
+					if (!firstArgType->refTarget()->isConst()) return false;
+					if (*(firstArgType->refTarget()) != *(type->createConstType())) return false;
 					
 					return true;
 				}

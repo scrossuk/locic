@@ -6,37 +6,37 @@ struct sfRenderStates { };
 
 import {
 	
-	sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const byte* title, int style, const sfContextSettings* settings);
+	sfRenderWindow* sfRenderWindow_create(sfVideoMode mode, const byte* title, int style, const sfContextSettings* settings) noexcept;
 	
 	void sfRenderWindow_destroy(sfRenderWindow* renderWindow) noexcept;
 	
-	void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color);
+	void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color) noexcept;
 	
-	sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow);
+	sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow) noexcept;
 	
-	void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit);
+	void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit) noexcept;
 	
-	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view);
+	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view) noexcept;
 	
-	const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow);
+	const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow) noexcept;
 	
-	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view);
+	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view) noexcept;
 	
-	void sfRenderWindow_display(sfRenderWindow* renderWindow);
+	void sfRenderWindow_display(sfRenderWindow* renderWindow) noexcept;
 	
-	void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states);
+	void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states) noexcept;
 	
-	void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states);
+	void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states) noexcept;
 	
-	void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states);
+	void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states) noexcept;
 	
-	uint8_t sfWindow_isOpen(const sfRenderWindow* const window);
+	uint8_t sfWindow_isOpen(const sfRenderWindow* const window) noexcept;
 	
-	uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event);
+	uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event) noexcept;
 	
-	void sfWindow_setVisible(sfRenderWindow* window, uint8_t visible);
+	void sfWindow_setVisible(sfRenderWindow* window, uint8_t visible) noexcept;
 	
-	void sfWindow_close(sfRenderWindow* window);
+	void sfWindow_close(sfRenderWindow* window) noexcept;
 	
 }
 

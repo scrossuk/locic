@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 class test_range(int i) {
 	static Create() {
@@ -23,7 +23,7 @@ class test_range(int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	testPrint(C"testEntryPoint: START");
 	
 	for (auto i: test_range()) {

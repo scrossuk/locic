@@ -6,9 +6,9 @@ namespace std {
 	interface counter_type {
 		T implicitCopy() const;
 		
-		int compare(T value) const;
+		int compare(const T& value) const;
 		
-		T add(T value) const;
+		T add(const T& value) const;
 	}
 	
 	template <typename T: counter_type<T>>

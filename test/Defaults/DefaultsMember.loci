@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 datatype TestDatatype(int a, int b, int c);
 
@@ -27,7 +27,7 @@ class TestMemberClass1 (int value) {
 		return @(@value);
 	}
 	
-	int compare(TestMemberClass1 other) const {
+	int compare(const TestMemberClass1& other) const {
 		testPrint(C"TestMemberClass1.compare() : @value = %d, other.getValue() = %d",
 			@value, other.getValue());
 		return @value.compare(other.getValue());
@@ -56,7 +56,7 @@ class TestMemberClass2 (TestMemberClass1 object) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	TestClass object = TestClass(TestDatatype(44, 55, 66));
 	object.printValue();
 	

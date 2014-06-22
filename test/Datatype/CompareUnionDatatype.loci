@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 datatype TestData =
 	TestData1() |
@@ -23,7 +23,7 @@ void checkValue(TestData data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	checkValue(TestData1());
 	checkValue(TestData2(false));
 	checkValue(TestData2(true));

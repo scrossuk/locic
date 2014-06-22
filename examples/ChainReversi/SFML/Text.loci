@@ -4,29 +4,29 @@ struct sfText { };
 
 import {
 	
-	sfText* sfText_create();
+	sfText* sfText_create() noexcept;
 	
-	sfText* sfText_copy(const sfText* const text);
+	sfText* sfText_copy(const sfText* const text) noexcept;
 	
 	void sfText_destroy(sfText* text) noexcept;
 	
-	void sfText_setPosition(sfText* text, sfVector2f position);
+	void sfText_setPosition(sfText* text, sfVector2f position) noexcept;
 	
-	void sfText_setRotation(sfText* text, float angle);
+	void sfText_setRotation(sfText* text, float angle) noexcept;
 	
-	void sfText_setColor(sfText* text, sfColor color);
+	void sfText_setColor(sfText* text, sfColor color) noexcept;
 	
-	void sfText_setCharacterSize(sfText* text, unsigned int size);
+	void sfText_setCharacterSize(sfText* text, unsigned int size) noexcept;
 	
-	void sfText_setString(sfText* text, const byte* const string);
+	void sfText_setString(sfText* text, const byte* const string) noexcept;
 	
-	void sfText_setOrigin(sfText* text, sfVector2f position);
+	void sfText_setOrigin(sfText* text, sfVector2f position) noexcept;
 	
-	void sfText_setFont(sfText* text, const sfFont* const font);
+	void sfText_setFont(sfText* text, const sfFont* const font) noexcept;
 	
-	sfFloatRect sfText_getLocalBounds(const sfText* const text);
+	sfFloatRect sfText_getLocalBounds(const sfText* const text) noexcept;
 	
-	sfFloatRect sfText_getGlobalBounds(const sfText* const text);
+	sfFloatRect sfText_getGlobalBounds(const sfText* const text) noexcept;
 	
 }
 

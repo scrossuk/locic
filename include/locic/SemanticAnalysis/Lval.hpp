@@ -22,9 +22,9 @@ namespace locic {
 		
 		bool canDissolveValue(SEM::Value* value);
 		
-		SEM::Value* dissolveLval(SEM::Value* lvalValue, const Debug::SourceLocation& location);
+		SEM::Value* dissolveLval(Context& context, SEM::Value* lvalValue, const Debug::SourceLocation& location);
 		
-		SEM::Value* tryDissolveValue(SEM::Value* value, const Debug::SourceLocation& location);
+		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location);
 		
 	}
 	

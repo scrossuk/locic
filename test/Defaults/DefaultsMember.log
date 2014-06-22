@@ -9,7 +9,5 @@ TestMemberClass1.implicitCopy() : @value = 101
 TestMemberClass2.printValue()
     TestMemberClass1(value = 101)
 testEntryPoint: Compare with its copy...
-TestMemberClass1.implicitCopy() : @value = 101
-TestMemberClass1.implicitCopy() : @value = 101
 TestMemberClass1.compare() : @value = 101, other.getValue() = 101
 testEntryPoint: Is EQUAL.

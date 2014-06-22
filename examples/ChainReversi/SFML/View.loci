@@ -4,11 +4,11 @@ struct sfView { };
 
 import {
 	
-	sfView* sfView_create();
+	sfView* sfView_create() noexcept;
 	
-	sfView* sfView_createFromRect(sfFloatRect rectangle);
+	sfView* sfView_createFromRect(sfFloatRect rectangle) noexcept;
 	
-	sfView* sfView_copy(const sfView* const view);
+	sfView* sfView_copy(const sfView* const view) noexcept;
 	
 	void sfView_destroy(sfView* view) noexcept;
 	

@@ -23,7 +23,7 @@ class TestClass(const byte * const n, int i, int j){
 		return 42;
 	}
 	
-	TestClass multiply(TestClass arg) const {
+	TestClass multiply(const TestClass& arg) const {
 		return @(C"Multiply", @i, @j);
 	}
 	

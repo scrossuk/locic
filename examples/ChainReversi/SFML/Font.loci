@@ -4,9 +4,9 @@ struct sfFont { };
 
 import {
 	
-	sfFont* sfFont_createFromFile(const byte* const filename);
+	sfFont* sfFont_createFromFile(const byte* const filename) noexcept;
 	
-	sfFont* sfFont_copy(const sfFont* const font);
+	sfFont* sfFont_copy(const sfFont* const font) noexcept;
 	
 	void sfFont_destroy(sfFont* font) noexcept;
 	

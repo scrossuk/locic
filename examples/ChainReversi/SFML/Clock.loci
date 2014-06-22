@@ -4,25 +4,25 @@ struct sfClock { };
 
 import {
 	
-	sfClock* sfClock_create();
+	sfClock* sfClock_create() noexcept;
 	
-	sfClock* sfClock_copy(const sfClock* const clock);
+	sfClock* sfClock_copy(const sfClock* const clock) noexcept;
 	
 	void sfClock_destroy(sfClock* clock) noexcept;
 	
-	sfTime sfClock_getElapsedTime(const sfClock* const clock);
+	sfTime sfClock_getElapsedTime(const sfClock* const clock) noexcept;
 	
-	sfTime sfClock_restart(sfClock* clock);
+	sfTime sfClock_restart(sfClock* clock) noexcept;
 	
 	struct sfTime {
 		int64_t microseconds;
 	};
 	
-	float sfTime_asSeconds(sfTime time);
+	float sfTime_asSeconds(sfTime time) noexcept;
 	
-	int32_t sfTime_asMilliseconds(sfTime time);
+	int32_t sfTime_asMilliseconds(sfTime time) noexcept;
 	
-	int64_t sfTime_asMicroseconds(sfTime time);
+	int64_t sfTime_asMicroseconds(sfTime time) noexcept;
 	
 }
 

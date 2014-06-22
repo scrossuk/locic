@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const char * const str, ...);
+import void testPrint(const byte * const str, ...);
 
 interface Printable {
 	void print();
@@ -82,7 +82,7 @@ class OuterClass (MiddleClass<S, T, R> member, R& r, S& s, T& t) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(int argc, byte ** argv) {
 	FirstClass r = FirstClass(1);
 	SecondClass s = SecondClass(2);
 	ThirdClass t = ThirdClass(3);

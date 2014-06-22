@@ -4,23 +4,23 @@ struct sfRectangleShape { };
 
 import {
 	
-	sfRectangleShape* sfRectangleShape_create();
+	sfRectangleShape* sfRectangleShape_create() noexcept;
 	
-	sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* const shape);
+	sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* const shape) noexcept;
 	
 	void sfRectangleShape_destroy(sfRectangleShape* shape) noexcept;
 
-	void sfRectangleShape_setOrigin(sfRectangleShape* shape, sfVector2f origin);
+	void sfRectangleShape_setOrigin(sfRectangleShape* shape, sfVector2f origin) noexcept;
 	
-	void sfRectangleShape_setPosition(sfRectangleShape* shape, sfVector2f position);
+	void sfRectangleShape_setPosition(sfRectangleShape* shape, sfVector2f position) noexcept;
 	
-	void sfRectangleShape_setRotation(sfRectangleShape* shape, float angle);
+	void sfRectangleShape_setRotation(sfRectangleShape* shape, float angle) noexcept;
 	
-	void sfRectangleShape_setScale(sfRectangleShape* shape, sfVector2f scale);
+	void sfRectangleShape_setScale(sfRectangleShape* shape, sfVector2f scale) noexcept;
 	
-	void sfRectangleShape_setFillColor(sfRectangleShape* shape, sfColor color);
+	void sfRectangleShape_setFillColor(sfRectangleShape* shape, sfColor color) noexcept;
 	
-	void sfRectangleShape_setSize(sfRectangleShape* shape, sfVector2f size);
+	void sfRectangleShape_setSize(sfRectangleShape* shape, sfVector2f size) noexcept;
 	
 }
 

@@ -70,9 +70,10 @@ namespace locic {
 			const bool isNoExcept = false;
 			
 			const auto selfType = typeInstance->selfType();
+			const auto argType = createReferenceType(context, selfType->createConstType());
 			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, intType, { selfType });
-			const auto operandVar = SEM::Var::Basic(selfType, selfType);
+			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, intType, { argType });
+			const auto operandVar = SEM::Var::Basic(argType, argType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, { operandVar }, typeInstance->moduleScope());
 		}
 		
@@ -149,7 +150,7 @@ namespace locic {
 			std::vector<SEM::Value*> constructValues;
 			for (const auto argVar: function->parameters()) {
 				const auto argVarValue = createLocalVarRef(context, argVar);
-				constructValues.push_back(CallValue(GetMethod(argVarValue, "move", location), {}, location));
+				constructValues.push_back(CallValue(context, GetMethod(context, argVarValue, "move", location), {}, location));
 			}
 			
 			const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, constructValues);
@@ -172,7 +173,7 @@ namespace locic {
 					const auto caseVarValue = createLocalVarRef(context, caseVar);
 					
 					const auto caseScope = new SEM::Scope();
-					const auto copyResult = CallValue(GetMethod(caseVarValue, "implicitcopy", location), {}, location);
+					const auto copyResult = CallValue(context, GetMethod(context, caseVarValue, "implicitcopy", location), {}, location);
 					const auto copyResultCast = SEM::Value::Cast(selfType, copyResult);
 					caseScope->statements().push_back(SEM::Statement::Return(copyResultCast));
 					
@@ -184,7 +185,7 @@ namespace locic {
 				
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
-					const auto copyResult = CallValue(GetMethod(selfMember, "implicitcopy", location), {}, location);
+					const auto copyResult = CallValue(context, GetMethod(context, selfMember, "implicitcopy", location), {}, location);
 					copyValues.push_back(copyResult);
 				}
 				
@@ -225,14 +226,14 @@ namespace locic {
 						const auto subCaseScope = new SEM::Scope();
 						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), intType);
 						if (i < j) {
-							const auto minusOneConstant = CallValue(GetMethod(plusOneConstant, "minus", location), {}, location);
+							const auto minusOneConstant = CallValue(context, GetMethod(context, plusOneConstant, "minus", location), {}, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(minusOneConstant));
 						} else if (i > j) {
 							subCaseScope->statements().push_back(SEM::Statement::Return(plusOneConstant));
 						} else {
 							// TODO: Either there needs to be an implicit copy here,
 							// or 'compare' should accept its argument by reference.
-							const auto compareResult = CallValue(GetMethod(caseVarValue, "compare", location), { subCaseVarValue }, location);
+							const auto compareResult = CallValue(context, GetMethod(context, caseVarValue, "compare", location), { subCaseVarValue }, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(compareResult));
 						}
 						
@@ -251,8 +252,8 @@ namespace locic {
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
 					const auto operandMember = createMemberVarRef(context, operandValue, memberVar);
-					const auto compareResult = CallValue(GetMethod(selfMember, "compare", location), { operandMember }, location);
-					const auto isZero = CallValue(GetMethod(compareResult, "iszero", location), {}, location);
+					const auto compareResult = CallValue(context, GetMethod(context, selfMember, "compare", location), { operandMember }, location);
+					const auto isZero = CallValue(context, GetMethod(context, compareResult, "iszero", location), {}, location);
 					
 					const auto ifTrueScope = new SEM::Scope();
 					const auto ifFalseScope = new SEM::Scope();

@@ -61,12 +61,12 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::Type* CastType(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
+			SEM::Type* CastType(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
 				// Pattern matched members are restricted
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
 				
-				const auto value = ImplicitCast(SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
+				const auto value = ImplicitCast(context, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
 				return value->type();
 			}
 			
@@ -90,7 +90,7 @@ namespace locic {
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
-						const auto varType = CastType(initialiseType, varDeclType, location, isTopLevel);
+						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
 						if (varType->isBuiltInVoid()) {
 							throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
@@ -117,7 +117,7 @@ namespace locic {
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
-						const auto varType = CastType(initialiseType, varDeclType, location, isTopLevel);
+						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
 						const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
 						const auto& typeChildVars = varType->getObjectType()->variables();

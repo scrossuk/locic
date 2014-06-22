@@ -1,4 +1,4 @@
-sizeof(char) = 1
+sizeof(byte) = 1
 sizeof(short) = 2
 sizeof(int) = 4
 sizeof(long) = 8

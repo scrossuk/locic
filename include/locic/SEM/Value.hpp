@@ -37,6 +37,7 @@ namespace locic {
 					NOREF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
+					REFVALUE,
 					FUNCTIONCALL,
 					FUNCTIONREF,
 					METHODOBJECT,
@@ -107,6 +108,10 @@ namespace locic {
 				} memberAccess;
 				
 				struct {
+					Value* value;
+				} refValue;
+				
+				struct {
 					Value* functionValue;
 					std::vector<Value*> parameters;
 				} functionCall;
@@ -167,6 +172,8 @@ namespace locic {
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				
 				static Value* MemberAccess(Value* object, Var* var, Type* type);
+				
+				static Value* RefValue(Value* operand, Type* type);
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				

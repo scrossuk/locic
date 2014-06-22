@@ -237,7 +237,7 @@ namespace locic {
 					llvm_unreachable("Unknown bool unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = function.getArg(0);
+				const auto operand = builder.CreateLoad(function.getArg(0));
 				
 				if (methodName == "logicalAnd") {
 					builder.CreateRet(builder.CreateAnd(methodOwner, operand));
@@ -344,7 +344,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = function.getArg(0);
+				const auto operand = builder.CreateLoad(function.getArg(0));
 				
 				if (methodName == "add") {
 					createOverflowIntrinsic(function, llvm::Intrinsic::sadd_with_overflow, { methodOwner, operand });
@@ -434,7 +434,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = function.getArg(0);
+				const auto operand = builder.CreateLoad(function.getArg(0));
 				
 				if (methodName == "add") {
 					createOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, { methodOwner, operand });
@@ -501,7 +501,7 @@ namespace locic {
 				const auto selfType = genType(module, semFunction->type()->getFunctionReturnType());
 				builder.CreateRet(builder.CreateFPExt(operand, selfType));
 			} else if (isUnaryOp(methodName)) {
-				llvm::Value* zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+				const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				
 				if (methodName == "implicitCopy") {
 					builder.CreateRet(methodOwner);
@@ -534,7 +534,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				llvm::Value* operand = function.getArg(0);
+				const auto operand = builder.CreateLoad(function.getArg(0));
 				
 				if (methodName == "add") {
 					builder.CreateRet(
@@ -594,7 +594,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = function.getArg(0);
+				const auto operand = builder.CreateLoad(function.getArg(0));
 				
 				if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
@@ -640,9 +640,8 @@ namespace locic {
 				}
 			} else if (isBinaryOp(methodName)) {
 				// TODO: implement addition and subtraction.
-				const auto operand = function.getArg(0);
-				
 				if (methodName == "index") {
+					const auto operand = function.getArg(0);
 					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
 					const auto targetType = SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0));
 					const auto targetSize = genSizeOf(function, targetType);
@@ -652,6 +651,7 @@ namespace locic {
 					const auto castPtr = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					builder.CreateRet(castPtr);
 				} else if (methodName == "compare") {
+					const auto operand = builder.CreateLoad(function.getArg(0));
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);

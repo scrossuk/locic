@@ -274,6 +274,8 @@ namespace locic {
 			return true;
 		}
 		
+		SEM::Value* ImplicitCastConvert(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
+		
 		static SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isRef() && destType->isRef());
@@ -293,21 +295,22 @@ namespace locic {
 		// 'Promote' primitive types.
 		// Currently part of the compiler since method templates
 		// are not yet implemented.
-		SEM::Value* ImplicitPromoteCast(SEM::Value* value, SEM::Type* destType, const std::string& name, const Debug::SourceLocation& location) {
+		SEM::Value* ImplicitPromoteCast(Context& context, SEM::Value* value, SEM::Type* destType, const std::string& name, const Debug::SourceLocation& location) {
 			const auto sourceType = value->type();
+			const auto destDerefType = getDerefType(destType);
 			
-			if (!isPrimitiveType(sourceType, name + "_t") || !destType->isObjectOrTemplateVar()) {
+			if (!isPrimitiveType(sourceType, name + "_t") || !destDerefType->isObjectOrTemplateVar()) {
 				return nullptr;
 			}
 			
 			const auto constructorName = name + "_cast";
-			if (supportsPrimitiveCast(destType, name)) {
-				const auto constructedValue = CallValue(GetStaticMethod(destType, constructorName, location), { value }, location);
+			if (supportsPrimitiveCast(destDerefType, name)) {
+				const auto constructedValue = CallValue(context, GetStaticMethod(destDerefType, constructorName, location), { value }, location);
 				// There still might be some aspects to cast with the constructed type.
-				return ImplicitCastFormatOnly(constructedValue, destType, location);
+				return ImplicitCastConvert(context, constructedValue, destType, location);
 			} else {
 				throw ErrorException(makeString("No '%s' constructor specified for type '%s' at position %s.",
-					constructorName.c_str(), destType->toString().c_str(),
+					constructorName.c_str(), destDerefType->toString().c_str(),
 					location.toString().c_str()));
 			}
 		}
@@ -348,43 +351,60 @@ namespace locic {
 		
 		// Hard coded casts which will eventually be moved into
 		// Loci source (once templated methods are implemented).
-		SEM::Value* ImplicitCastUser(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
+		SEM::Value* ImplicitCastUser(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto sourceType = value->type();
+			const auto destDerefType = getDerefType(destType);
 			
 			// Null literal cast.
-			if (isPrimitiveType(sourceType, "null_t") && destType->isObjectOrTemplateVar()) {
+			if (isPrimitiveType(sourceType, "null_t") && destDerefType->isObjectOrTemplateVar()) {
 				// Casting null to object type invokes the null constructor,
 				// assuming one exists.
-				if (supportsNullConstruction(destType)) {
-					const auto constructedValue = CallValue(GetStaticMethod(destType, "Null", location), {}, location);
+				if (supportsNullConstruction(destDerefType)) {
+					const auto constructedValue = CallValue(context, GetStaticMethod(destDerefType, "Null", location), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
-					const auto castResult = ImplicitCastFormatOnly(constructedValue, destType, location);
-					if (castResult != nullptr) return castResult;
+					const auto castResult = ImplicitCastConvert(context, constructedValue, destType, location);
+					if (castResult != nullptr) {
+						return castResult;
+					}
 				} else {
 					// There's no other way to make 'null' into an object,
 					// so just throw an exception here.
-					throw ErrorException(makeString("No null constructor specified for type '%s'.",
-						destType->toString().c_str()));
+					throw ErrorException(makeString("No null constructor specified for type '%s' at position %s.",
+						destType->toString().c_str(), location.toString().c_str()));
 				}
 			}
 			
 			// Integer promotion.
 			for (const auto intName: integerTypes()) {
-				const auto castedValue = ImplicitPromoteCast(value, destType, intName, location);
+				const auto castedValue = ImplicitPromoteCast(context, value, destType, intName, location);
 				if (castedValue != nullptr) return castedValue;
 			}
 			
 			// Floating point promotion.
 			for (const auto floatName: floatTypes()) {
-				const auto castedValue = ImplicitPromoteCast(value, destType, floatName, location);
+				const auto castedValue = ImplicitPromoteCast(context, value, destType, floatName, location);
 				if (castedValue != nullptr) return castedValue;
 			}
 			
 			return nullptr;
 		}
 		
-		SEM::Value* ImplicitCastConvert(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false) {
+		bool isStructurallyEqual(SEM::Type* firstType, SEM::Type* secondType) {
+			if (firstType->kind() != secondType->kind()) {
+				return false;
+			}
+			
+			if (firstType->isObject()) {
+				return firstType->getObjectType() == secondType->getObjectType();
+			} else if (firstType->isTemplateVar()) {
+				return firstType->getTemplateVar() == secondType->getTemplateVar();
+			} else {
+				return false;
+			}
+		}
+		
+		SEM::Value* ImplicitCastConvert(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
@@ -392,33 +412,32 @@ namespace locic {
 				if (castResult != nullptr) {
 					return castResult;
 				} else if (formatOnly) {
-					throw ErrorException(makeString("Format only cast failed from type %s to type %s.",
-						value->type()->toString().c_str(), destType->toString().c_str()));
+					throw ErrorException(makeString("Format only cast failed from type %s to type %s at position %s.",
+						value->type()->toString().c_str(), destType->toString().c_str(), location.toString().c_str()));
 				}
 			}
 			
-			auto sourceType = value->type();
+			const auto sourceType = value->type();
 			
 			// Try to cast datatype to its parent union datatype.
-			if (sourceType->isDatatype() && destType->isUnionDatatype()) {
-				bool found = false;
-				for (const auto variant: destType->getObjectType()->variants()) {
-					if (sourceType->getObjectType() == variant) {
-						found = true;
-						break;
+			if (sourceType->isDatatype()) {
+				const auto destDerefType = getDerefType(destType);
+				if (destDerefType->isUnionDatatype()) {
+					bool found = false;
+					for (const auto variant: destDerefType->getObjectType()->variants()) {
+						if (sourceType->getObjectType() == variant) {
+							found = true;
+							break;
+						}
 					}
-				}
-				
-				if (found) {
-					return SEM::Value::Cast(destType, value);
-				}
-			}
-			
-			// Try a user cast.
-			{
-				const auto castResult = ImplicitCastUser(value, destType, location);
-				if (castResult != nullptr) {
-					return castResult;
+					
+					if (found) {
+						const auto castValue = SEM::Value::Cast(destDerefType, value);
+						const auto castResult = ImplicitCastConvert(context, castValue, destType, location);
+						if (castResult != nullptr) {
+							return castResult;
+						}
+					}
 				}
 			}
 			
@@ -438,7 +457,7 @@ namespace locic {
 						reducedValue = derefOne(reducedValue);
 					}
 					
-					auto castResult = ImplicitCastConvert(reducedValue, destType, location);
+					auto castResult = ImplicitCastConvert(context, reducedValue, destType, location);
 					if (castResult != nullptr) return castResult;
 				}
 			}
@@ -453,10 +472,10 @@ namespace locic {
 					
 					const auto numReduce = sourceCount - destCount;
 					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = dissolveLval(reducedValue, location);
+						reducedValue = dissolveLval(context, reducedValue, location);
 					}
 					
-					const auto castResult = ImplicitCastConvert(reducedValue, destType, location);
+					const auto castResult = ImplicitCastConvert(context, reducedValue, destType, location);
 					if (castResult != nullptr) {
 						return castResult;
 					}
@@ -480,17 +499,16 @@ namespace locic {
 			
 			// Try to use implicitCopy-by-reference to turn a
 			// reference into a basic value.
-			if (sourceType->isRef() && !destType->isRef()) {
+			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (supportsImplicitCopy(sourceDerefType)) {
 					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						// TODO: fix location.
-						CallValue(GetMethod(derefValue(value), "implicitCopy", location), {}, location) :
+						CallValue(context, GetMethod(context, derefValue(value), "implicitCopy", location), {}, location) :
 						derefAll(value);
 					
-					const auto convertCast = ImplicitCastConvert(copyValue, destType, location);
+					const auto convertCast = ImplicitCastConvert(context, copyValue, destType, location);
 					if (convertCast != nullptr) return convertCast;
-				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(sourceDerefType, destType, location)) {
+				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(context, sourceDerefType, destType, location)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
@@ -505,19 +523,38 @@ namespace locic {
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (sourceType->isConst() && !destType->isConst() && sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(sourceType)) {
-				// TODO: fix location.
-				const auto copyValue = CallValue(GetMethod(value, "implicitCopy", location), {}, location);
+				const auto copyValue = CallValue(context, GetMethod(context, value, "implicitCopy", location), {}, location);
 				if (!copyValue->type()->isConst()) {
-					auto convertCast = ImplicitCastConvert(copyValue, destType, location);
+					auto convertCast = ImplicitCastConvert(context, copyValue, destType, location);
 					if (convertCast != nullptr) return convertCast;
+				}
+			}
+			
+			// Try to cast value to const-ref.
+			if (!sourceType->isLval() && !sourceType->isRef() && destType->isRef()
+					&& destType->isBuiltInReference() && destType->refTarget()->isConst()
+					&& isStructurallyEqual(sourceType, destType->refTarget())) {
+				const auto newType = createReferenceType(context, sourceType->createConstType());
+				const auto refValue = SEM::Value::RefValue(value, newType);
+				const auto castResult = ImplicitCastConvert(context, refValue, destType, location);
+				if (castResult != nullptr) {
+					return castResult;
+				}
+			}
+			
+			// Try a user cast.
+			{
+				const auto castResult = ImplicitCastUser(context, value, destType, location);
+				if (castResult != nullptr) {
+					return castResult;
 				}
 			}
 			
 			return nullptr;
 		}
 		
-		SEM::Value* ImplicitCast(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
-			auto result = ImplicitCastConvert(value, destType, location, formatOnly);
+		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+			auto result = ImplicitCastConvert(context, value, destType, location, formatOnly);
 			if (result != nullptr) return result;
 			
 			if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {
@@ -533,9 +570,9 @@ namespace locic {
 			}
 		}
 		
-		bool CanDoImplicitCast(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
+		bool CanDoImplicitCast(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto formatOnly = false;
-			const auto result = ImplicitCastConvert(SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
+			const auto result = ImplicitCastConvert(context, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
 			return result != nullptr;
 		}
 		
@@ -560,16 +597,16 @@ namespace locic {
 			
 		}
 		
-		SEM::Type* UnifyTypes(SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location) {
+		SEM::Type* UnifyTypes(Context& context, SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location) {
 			// Try to convert both types to their parent (if any).
 			const auto firstParent = getUnionDatatypeParent(first);
 			if (firstParent != nullptr &&
-				CanDoImplicitCast(first, firstParent, location) &&
-				CanDoImplicitCast(second, firstParent, location)) {
+				CanDoImplicitCast(context, first, firstParent, location) &&
+				CanDoImplicitCast(context, second, firstParent, location)) {
 				return firstParent;
 			}
 			
-			if (CanDoImplicitCast(first, second, location)) {
+			if (CanDoImplicitCast(context, first, second, location)) {
 				return second;
 			} else {
 				return first;
