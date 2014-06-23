@@ -32,3 +32,5 @@ loci_link(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-sys
 	${STDLIB}/std/string/std_string.bc
 	)
 
+add_dependencies(ChainReversi std.memory std.string)
+
