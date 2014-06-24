@@ -42,7 +42,7 @@ namespace locic {
 		namespace {
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
-				LifetimeScope lifetimeScope(functionGenerator);
+				ScopeLifetime functionScopeLifetime(functionGenerator);
 				
 				// Parameters need to be copied to the stack, so that it's
 				// possible to assign to them, take their address, etc.

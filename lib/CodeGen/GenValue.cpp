@@ -397,8 +397,12 @@ namespace locic {
 					const auto dataValue = value->refValue.value;
 					const auto llvmDataValue = genValue(function, dataValue);
 					
-					// TODO: call destructor for this value.
-					return makePtr(function, llvmDataValue, dataValue->type());
+					const auto llvmPtrValue = makePtr(function, llvmDataValue, dataValue->type());
+					
+					// Call destructor for the object at the end of the current scope.
+					function.unwindStack().push_back(UnwindAction::Destroy(dataValue->type(), llvmPtrValue));
+					
+					return llvmPtrValue;
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {

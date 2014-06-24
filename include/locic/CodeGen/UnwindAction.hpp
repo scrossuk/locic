@@ -24,6 +24,8 @@ namespace locic {
 				
 				static UnwindAction ScopeMarker();
 				
+				static UnwindAction StatementMarker();
+				
 				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
 				
 				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
@@ -34,6 +36,7 @@ namespace locic {
 					DESTRUCTOR,
 					CATCH,
 					SCOPEMARKER,
+					STATEMENTMARKER,
 					CONTROLFLOW,
 					SCOPEEXIT,
 					CATCHBLOCK
@@ -46,6 +49,8 @@ namespace locic {
 				bool isCatch() const;
 				
 				bool isScopeMarker() const;
+				
+				bool isStatementMarker() const;
 				
 				bool isControlFlow() const;
 				

@@ -10,14 +10,22 @@ namespace locic {
 	
 		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
 		
-		void genScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
-		
 		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
 		
-		class LifetimeScope {
+		class ScopeLifetime {
 			public:
-				LifetimeScope(Function& function);
-				~LifetimeScope();
+				ScopeLifetime(Function& function);
+				~ScopeLifetime();
+				
+			private:
+				Function& function_;
+			
+		};
+		
+		class StatementLifetime {
+			public:
+				StatementLifetime(Function& function);
+				~StatementLifetime();
 				
 			private:
 				Function& function_;

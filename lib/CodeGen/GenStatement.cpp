@@ -27,7 +27,7 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genScope(Function& function, const SEM::Scope& scope) {
-			LifetimeScope lifetimeScope(function);
+			ScopeLifetime scopeLifetime(function);
 			
 			for (const auto localVar: scope.variables()) {
 				genVarAlloca(function, localVar);
@@ -44,6 +44,13 @@ namespace locic {
 			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
 		}
 		
+		llvm::Value* genStatementValue(Function& function, SEM::Value* value) {
+			// Ensure any objects that only exist until the end of
+			// the statement are destroyed.
+			StatementLifetime statementLifetime(function);
+			return genValue(function, value);
+		}
+		
 		void genStatement(Function& function, SEM::Statement* statement) {
 			auto& module = function.module();
 			auto& statementMap = module.debugModule().statementMap;
@@ -56,7 +63,7 @@ namespace locic {
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
 					assert(statement->getValue()->type()->isBuiltInVoid());
-					(void) genValue(function, statement->getValue());
+					(void) genStatementValue(function, statement->getValue());
 					break;
 				}
 				
@@ -67,7 +74,7 @@ namespace locic {
 				
 				case SEM::Statement::INITIALISE: {
 					const auto var = statement->getInitialiseVar();
-					const auto value = genValue(function, statement->getInitialiseValue());
+					const auto value = genStatementValue(function, statement->getInitialiseValue());
 					genVarInitialise(function, var, value);
 					break;
 				}
@@ -78,7 +85,7 @@ namespace locic {
 					assert(!statement->getIfClauseList().empty());
 					
 					for (const auto ifClause: statement->getIfClauseList()) {
-						const auto conditionValue = genValue(function, ifClause->condition());
+						const auto conditionValue = genStatementValue(function, ifClause->condition());
 						
 						const auto thenBB = function.createBasicBlock("ifThen");
 						const auto elseBB = function.createBasicBlock("ifElse");
@@ -104,7 +111,7 @@ namespace locic {
 				}
 				
 				case SEM::Statement::SWITCH: {
-					const auto switchValue = genValue(function, statement->getSwitchValue());
+					const auto switchValue = genStatementValue(function, statement->getSwitchValue());
 					const auto switchType = statement->getSwitchValue()->type();
 					
 					llvm::Value* switchValuePtr = nullptr;
@@ -143,7 +150,7 @@ namespace locic {
 						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
 						
 						{
-							LifetimeScope lifetimeScope(function);
+							ScopeLifetime switchCaseLifetime(function);
 							genVarAlloca(function, switchCase->var());
 							genVarInitialise(function, switchCase->var(), genLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
@@ -171,8 +178,8 @@ namespace locic {
 					// Ensure destructors for conditional expression are generated
 					// before the branch instruction.
 					{
-						LifetimeScope conditionLifetimeScope(function);
-						condition = genValue(function, statement->getLoopCondition());
+						ScopeLifetime conditionScopeLifetime(function);
+						condition = genStatementValue(function, statement->getLoopCondition());
 					}
 					
 					function.getBuilder().CreateCondBr(condition, loopIterationBB, loopEndBB);
@@ -207,7 +214,7 @@ namespace locic {
 					
 					if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
-							const auto returnValue = genValue(function, statement->getReturnValue());
+							const auto returnValue = genStatementValue(function, statement->getReturnValue());
 							
 							// Store the return value into the return value pointer.
 							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
@@ -217,7 +224,7 @@ namespace locic {
 							
 							returnInst = function.getBuilder().CreateRetVoid();
 						} else {
-							const auto returnValue = genValue(function, statement->getReturnValue());
+							const auto returnValue = genStatementValue(function, statement->getReturnValue());
 							
 							const auto encodedReturnValue = encodeReturnValue(function, returnValue, genABIType(function.module(), statement->getReturnValue()->type()));
 							
@@ -304,7 +311,7 @@ namespace locic {
 							{
 								// Make sure the exception object is freed at the end
 								// of the catch block (unless it is rethrown).
-								LifetimeScope lifetimeScope(function);
+								ScopeLifetime catchScopeLifetime(function);
 								function.unwindStack().push_back(UnwindAction::CatchBlock(exceptionPtrValue));
 								genScope(function, catchClause->scope());
 							}
@@ -327,7 +334,7 @@ namespace locic {
 				case SEM::Statement::THROW: {
 					auto throwType = statement->getThrowValue()->type();
 					
-					const auto exceptionValue = genValue(function, statement->getThrowValue());
+					const auto exceptionValue = genStatementValue(function, statement->getThrowValue());
 					const auto exceptionType = genType(module, throwType);
 					
 					// Allocate space for exception.

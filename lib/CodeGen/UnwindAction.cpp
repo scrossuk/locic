@@ -24,6 +24,10 @@ namespace locic {
 			return UnwindAction(UnwindAction::SCOPEMARKER);
 		}
 		
+		UnwindAction UnwindAction::StatementMarker() {
+			return UnwindAction(UnwindAction::STATEMENTMARKER);
+		}
+		
 		UnwindAction UnwindAction::ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock) {
 			UnwindAction action(UnwindAction::CONTROLFLOW);
 			action.actions_.controlFlowAction.breakBlock = breakBlock;
@@ -58,6 +62,10 @@ namespace locic {
 		
 		bool UnwindAction::isScopeMarker() const {
 			return kind() == UnwindAction::SCOPEMARKER;
+		}
+		
+		bool UnwindAction::isStatementMarker() const {
+			return kind() == UnwindAction::STATEMENTMARKER;
 		}
 		
 		bool UnwindAction::isControlFlow() const {

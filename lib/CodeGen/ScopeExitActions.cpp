@@ -52,7 +52,25 @@ namespace locic {
 					}
 				}
 				
-				throw std::runtime_error("Scope marker not found.");
+				llvm_unreachable("Scope marker not found.");
+			}
+			
+			bool statementHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
+				const auto& unwindStack = function.unwindStack();
+				
+				for (size_t i = 0; i < unwindStack.size(); i++) {
+					const size_t pos = unwindStack.size() - i - 1;
+					const auto& unwindAction = unwindStack.at(pos);
+					if (unwindAction.isStatementMarker()) {
+						return false;
+					}
+					
+					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
+						return true;
+					}
+				}
+				
+				llvm_unreachable("Statement marker not found.");
 			}
 			
 			size_t getScopeLevel(const UnwindStack& unwindStack) {
@@ -63,7 +81,7 @@ namespace locic {
 						return pos;
 					}
 				}
-				throw std::runtime_error("Scope marker not found.");
+				llvm_unreachable("Scope marker not found.");
 			}
 			
 			void popScope(UnwindStack& unwindStack) {
@@ -74,7 +92,18 @@ namespace locic {
 						return;
 					}
 				}
-				throw std::runtime_error("Scope marker not found.");
+				llvm_unreachable("Scope marker not found.");
+			}
+			
+			void popStatement(UnwindStack& unwindStack) {
+				while (!unwindStack.empty()) {
+					const bool isMarker = unwindStack.back().isStatementMarker();
+					unwindStack.pop_back();
+					if (isMarker) {
+						return;
+					}
+				}
+				llvm_unreachable("Statement marker not found.");
 			}
 			
 		}
@@ -125,6 +154,32 @@ namespace locic {
 			function.selectBasicBlock(scopeDestroyEndBB);
 		}
 		
+		void genStatementExitActions(Function& function, bool isExceptionState, bool isRethrow) {
+			const auto& unwindStack = function.unwindStack();
+			
+			// Only generate this code if there are actually actions to perform.
+			if (!statementHasExitAction(function, isExceptionState, isRethrow)) return;
+			
+			// Create a new basic block to make this clearer...
+			const auto statementDestroyStartBB = function.createBasicBlock("statementExitActions_START");
+			function.getBuilder().CreateBr(statementDestroyStartBB);
+			function.selectBasicBlock(statementDestroyStartBB);
+			
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				// Perform actions in reverse order (i.e. as a stack).
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& unwindAction = unwindStack.at(pos);
+				if (unwindAction.isStatementMarker()) break;
+				
+				performScopeExitAction(function, pos, isExceptionState, isRethrow);
+			}
+			
+			// ...and another to make it clear where it ends.
+			const auto statementDestroyEndBB = function.createBasicBlock("statementExitActions_END");
+			function.getBuilder().CreateBr(statementDestroyEndBB);
+			function.selectBasicBlock(statementDestroyEndBB);
+		}
+		
 		void genAllScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
 			const auto& unwindStack = function.unwindStack();
 			
@@ -140,7 +195,7 @@ namespace locic {
 			}
 		}
 		
-		LifetimeScope::LifetimeScope(Function& function)
+		ScopeLifetime::ScopeLifetime(Function& function)
 			: function_(function) {
 			const size_t scopeLevel = function_.unwindStack().size();
 			const auto scopeStartBB = function_.createBasicBlock(makeString("scope_%llu_START", (unsigned long long) scopeLevel));
@@ -150,7 +205,7 @@ namespace locic {
 			function_.unwindStack().push_back(UnwindAction::ScopeMarker());
 		}
 		
-		LifetimeScope::~LifetimeScope() {
+		ScopeLifetime::~ScopeLifetime() {
 			const bool isExceptionState = false;
 			const bool isRethrow = false;
 			genScopeExitActions(function_, isExceptionState, isRethrow);
@@ -160,6 +215,18 @@ namespace locic {
 			const auto scopeEndBB = function_.createBasicBlock(makeString("scope_%llu_END", (unsigned long long) scopeLevel));
 			function_.getBuilder().CreateBr(scopeEndBB);
 			function_.selectBasicBlock(scopeEndBB);
+		}
+		
+		StatementLifetime::StatementLifetime(Function& function)
+			: function_(function) {
+			function_.unwindStack().push_back(UnwindAction::StatementMarker());
+		}
+		
+		StatementLifetime::~StatementLifetime() {
+			const bool isExceptionState = false;
+			const bool isRethrow = false;
+			genStatementExitActions(function_, isExceptionState, isRethrow);
+			popStatement(function_.unwindStack());
 		}
 		
 	}
