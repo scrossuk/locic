@@ -20,101 +20,113 @@ namespace llvm_abi {
 		size_t getTypeAlign(const Type& type);
 		
 		size_t getTypeSize(const Type& type) {
-			if (type.isPointer()) {
-				return 8;
-			} else if (type.isInteger()) {
-				switch (type.integerKind()) {
-					case Bool:
-					case Char:
-					case Int8:
-						return 1;
+			switch (type.kind()) {
+				case PointerType:
+					return 8;
+				case IntegerType:
+					switch (type.integerKind()) {
+						case Bool:
+						case Char:
+						case Int8:
+							return 1;
+							
+						case Short:
+						case Int16:
+							return 2;
+							
+						case Int:
+						case Int32:
+							return 4;
+							
+						case Long:
+						case SizeT:
+						case LongLong:
+						case Int64:
+							return 8;
+							
+						case Int128:
+							return 16;
+					}
+					llvm_unreachable("Unknown integer type.");
+				case FloatingPointType:
+					switch (type.floatingPointKind()) {
+						case Float:
+							return 4;
+							
+						case Double:
+							return 8;
+							
+						case LongDouble:
+							return 16;
+							
+						case Float128:
+							return 16;
+					}
+					llvm_unreachable("Unknown floating point type.");
+				case ComplexType:
+					switch (type.complexKind()) {
+						case Float:
+							return 8;
+							
+						case Double:
+							return 16;
+							
+						case LongDouble:
+							return 32;
+							
+						case Float128:
+							return 32;
+					}
+					llvm_unreachable("Unknown complex type.");
+				case StructType: {
+					size_t size = 0;
+					
+					for (const auto& member: type.structMembers()) {
+						if (member.offset() < size) {
+							// Add necessary padding before this member.
+							size = roundUpToAlign(size, getTypeAlign(member.type()));
+						} else {
+							size = member.offset();
+						}
 						
-					case Short:
-					case Int16:
-						return 2;
-						
-					case Int:
-					case Int32:
-						return 4;
-						
-					case Long:
-					case SizeT:
-					case LongLong:
-					case Int64:
-						return 8;
-						
-					case Int128:
-						return 16;
-				}
-			} else if (type.isFloatingPoint()) {
-				switch (type.floatingPointKind()) {
-					case Float:
-						return 4;
-						
-					case Double:
-						return 8;
-						
-					case LongDouble:
-						return 16;
-						
-					case Float128:
-						return 16;
-				}
-			} else if (type.isComplex()) {
-				switch (type.complexKind()) {
-					case Float:
-						return 8;
-						
-					case Double:
-						return 16;
-						
-					case LongDouble:
-						return 32;
-						
-					case Float128:
-						return 32;
-				}
-			} else if (type.isStruct()) {
-				size_t size = 0;
-				
-				for (const auto& member: type.structMembers()) {
-					if (member.offset() < size) {
-						// Add necessary padding before this member.
-						size = roundUpToAlign(size, getTypeAlign(member.type()));
-					} else {
-						size = member.offset();
+						// Add the member's size.
+						size += getTypeSize(member.type());
 					}
 					
-					// Add the member's size.
-					size += getTypeSize(member.type());
+					// Add any final padding.
+					return roundUpToAlign(size, getTypeAlign(type));
 				}
-				
-				// Add any final padding.
-				return roundUpToAlign(size, getTypeAlign(type));
+				case ArrayType:
+					// TODO: this is probably wrong...
+					return getTypeSize(type.arrayElementType()) * type.arrayElementCount();
 			}
 			llvm_unreachable("Unknown ABI type.");
 		}
 		
 		size_t getTypeAlign(const Type& type) {
-			if (type.isStruct()) {
-				size_t mostStrictAlign = 1;
-				for (const auto& member: type.structMembers()) {
-					const size_t align = getTypeAlign(member.type());
-					mostStrictAlign = std::max<size_t>(mostStrictAlign, align);
+			switch (type.kind()) {
+				case StructType: {
+					size_t mostStrictAlign = 1;
+					for (const auto& member: type.structMembers()) {
+						const size_t align = getTypeAlign(member.type());
+						mostStrictAlign = std::max<size_t>(mostStrictAlign, align);
+					}
+					
+					return mostStrictAlign;
 				}
-				
-				return mostStrictAlign;
-			} else if (type.isArray()) {
-				const auto elementAlign = getTypeAlign(type.arrayElementType());
-				const size_t minAlign = getTypeSize(type) >= 16 ? 16 : 1;
-				return std::max<size_t>(elementAlign, minAlign);
-			} else {
-				return getTypeSize(type);
+				case ArrayType: {
+					const auto elementAlign = getTypeAlign(type.arrayElementType());
+					const size_t minAlign = getTypeSize(type) >= 16 ? 16 : 1;
+					return std::max<size_t>(elementAlign, minAlign);
+				}
+				default:
+					return getTypeSize(type);
 			}
 		}
 		
 		std::vector<size_t> getStructOffsets(const std::vector<StructMember>& structMembers) {
 			std::vector<size_t> offsets;
+			offsets.reserve(structMembers.size());
 			
 			size_t offset = 0;
 			for (const auto& member: structMembers) {
@@ -265,10 +277,20 @@ namespace llvm_abi {
 				}
 			} else if (type.isStruct()) {
 				const auto& structMembers = type.structMembers();
-				const auto memberOffsets = getStructOffsets(structMembers);
 				
-				for (size_t i = 0; i < structMembers.size(); i++) {
-					classifyType(classification, structMembers.at(i).type(), offset + memberOffsets.at(i));
+				size_t structOffset = 0;
+				for (const auto& member: structMembers) {
+					if (member.offset() < structOffset) {
+						// Add necessary padding before this member.
+						structOffset = roundUpToAlign(structOffset, getTypeAlign(member.type()));
+					} else {
+						structOffset = member.offset();
+					}
+					
+					classifyType(classification, member.type(), offset + structOffset);
+					
+					// Add the member's size.
+					structOffset += getTypeSize(member.type());
 				}
 			} else {
 				llvm_unreachable("Unknown type kind.");
@@ -315,6 +337,7 @@ namespace llvm_abi {
 			// Okay, we may need to transform. Figure out a canonical type:
 			
 			std::vector<llvm::Type*> parts;
+			parts.reserve(2);
 			
 			const auto size = getTypeSize(type);
 			
@@ -417,9 +440,14 @@ namespace llvm_abi {
 	
 	static const char* DATA_LAYOUT_STR = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128";
 	
-	ABI_x86_64::ABI_x86_64(llvm::LLVMContext& llvmContext)
-		: llvmContext_(llvmContext),
-		dataLayout_(DATA_LAYOUT_STR) { }
+	ABI_x86_64::ABI_x86_64(llvm::Module* module)
+		: llvmContext_(module->getContext()),
+		dataLayout_(DATA_LAYOUT_STR) {
+			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);
+			const auto i64Type = llvm::Type::getInt64Ty(llvmContext_);
+			llvm::Type* types[] = { i8PtrType, i8PtrType, i64Type };
+			memcpyIntrinsic_ = llvm::Intrinsic::getDeclaration(module, llvm::Intrinsic::memcpy, types);
+		}
 	
 	ABI_x86_64::~ABI_x86_64() { }
 	
@@ -464,7 +492,20 @@ namespace llvm_abi {
 			const auto argValuePtr = entryBuilder.CreateAlloca(argValue->getType());
 			builder.CreateStore(argValue, argValuePtr);
 			const auto encodedValuePtr = entryBuilder.CreateAlloca(llvmAbiType);
-			builder.CreateMemCpy(encodedValuePtr, argValuePtr, getTypeSize(argType), getTypeAlign(argType));
+			
+			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);
+			const auto i1Type = llvm::Type::getInt1Ty(llvmContext_);
+			const auto i32Type = llvm::Type::getInt32Ty(llvmContext_);
+			const auto i64Type = llvm::Type::getInt64Ty(llvmContext_);
+			
+			const auto sourceValue = builder.CreatePointerCast(argValuePtr, i8PtrType);
+			const auto destValue = builder.CreatePointerCast(encodedValuePtr, i8PtrType);
+			
+			llvm::Value* args[] = { destValue, sourceValue,
+				llvm::ConstantInt::get(i64Type, getTypeSize(argType)),
+				llvm::ConstantInt::get(i32Type, getTypeAlign(argType)),
+				llvm::ConstantInt::get(i1Type, 0) };
+			builder.CreateCall(memcpyIntrinsic_, args);
 			
 			encodedValues.push_back(builder.CreateLoad(encodedValuePtr));
 		}
@@ -491,7 +532,20 @@ namespace llvm_abi {
 			
 			assert(llvmArgTypes.at(i) != nullptr);
 			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes.at(i));
-			builder.CreateMemCpy(argValuePtr, encodedValuePtr, getTypeSize(argType), getTypeAlign(argType));
+			
+			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);
+			const auto i1Type = llvm::Type::getInt1Ty(llvmContext_);
+			const auto i32Type = llvm::Type::getInt32Ty(llvmContext_);
+			const auto i64Type = llvm::Type::getInt64Ty(llvmContext_);
+			
+			const auto sourceValue = builder.CreatePointerCast(encodedValuePtr, i8PtrType);
+			const auto destValue = builder.CreatePointerCast(argValuePtr, i8PtrType);
+			
+			llvm::Value* args[] = { destValue, sourceValue,
+				llvm::ConstantInt::get(i64Type, getTypeSize(argType)),
+				llvm::ConstantInt::get(i32Type, getTypeAlign(argType)),
+				llvm::ConstantInt::get(i1Type, 0) };
+			builder.CreateCall(memcpyIntrinsic_, args);
 			
 			decodedValues.push_back(builder.CreateLoad(argValuePtr));
 		}

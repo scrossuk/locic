@@ -45,7 +45,7 @@ namespace locic {
 				
 				// Call destructor.
 				const auto argInfo = destructorArgInfo(module, type->getObjectType());
-				const auto destructorFunction = genDestructorFunction(module, type->getObjectType());
+				const auto destructorFunction = genDestructorFunctionDecl(module, type->getObjectType());
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				const auto args = !type->templateArguments().empty() ?
@@ -122,7 +122,7 @@ namespace locic {
 				return getNullDestructorFunction(module);
 			}
 			
-			const auto destructorFunction = genDestructorFunction(module, typeInstance);
+			const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
 			if (!typeInstance->templateVariables().empty()) {
 				return destructorFunction;
 			}
@@ -143,16 +143,14 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
-			
 			if (result.hasValue()) {
 				return result.getValue();
 			}
 			
-			// --- Generate function declaration.
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
@@ -165,6 +163,13 @@ namespace locic {
 			}
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
+			
+			return llvmFunction;
+		}
+		
+		llvm::Function* genDestructorFunctionDef(Module& module, SEM::TypeInstance* typeInstance) {
+			const auto argInfo = destructorArgInfo(module, typeInstance);
+			const auto llvmFunction = genDestructorFunctionDecl(module, typeInstance);
 			
 			if (typeInstance->isPrimitive()) {
 				// This is a primitive method; needs special code generation.
@@ -189,7 +194,7 @@ namespace locic {
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = typeInstance->functions().find("__destructor");
 			if (methodIterator != typeInstance->functions().end()) {
-				const auto customDestructor = genFunction(module, typeInstance, methodIterator->second);
+				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
 				const bool canThrow = false;
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 					std::vector<llvm::Value*>{ function.getTemplateGenerator(), contextValue } : std::vector<llvm::Value*>{ contextValue };

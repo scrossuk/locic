@@ -12,7 +12,9 @@ namespace locic {
 		
 		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* typeInstance, SEM::ModuleScope* moduleScope);
 		
-		llvm::Function* genFunction(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
+		llvm::Function* genFunctionDecl(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
+		
+		llvm::Function* genFunctionDef(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
 		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, SEM::Function* function);
 		

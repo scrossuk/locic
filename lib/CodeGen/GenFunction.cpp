@@ -39,6 +39,55 @@ namespace locic {
 				: llvm::Function::LinkOnceODRLinkage;
 		}
 		
+		llvm::Function* genFunctionDecl(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			if (function->isMethod()) {
+				assert(typeInstance != nullptr);
+			} else {
+				assert(typeInstance == nullptr);
+			}
+			
+			const auto mangledName =
+				mangleModuleScope(function->moduleScope()) +
+				(function->isMethod() ?
+					mangleMethodName(typeInstance, function->name().last()) :
+					mangleFunctionName(function->name()));
+			
+			const auto result = module.getFunctionMap().tryGet(mangledName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			const auto argInfo = getFunctionArgInfo(module, function->type());
+			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
+			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
+			
+			module.getFunctionMap().insert(mangledName, llvmFunction);
+			
+			if (function->type()->isFunctionNoExcept()) {
+				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
+			}
+			
+			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
+				// Class return values are allocated by the caller,
+				// which passes a pointer to the callee. The caller
+				// and callee must, for the sake of optimisation,
+				// ensure that the following attributes hold...
+				
+				// Caller must ensure pointer is always valid.
+				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
+				
+				// Caller must ensure pointer does not alias with
+				// any other arguments.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
+				
+				// Callee must not capture the pointer.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
+			}
+			
+			return llvmFunction;
+		}
+		
 		namespace {
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
@@ -75,54 +124,9 @@ namespace locic {
 			
 		}
 		
-		llvm::Function* genFunction(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			if (function->isMethod()) {
-				assert(typeInstance != nullptr);
-			} else {
-				assert(typeInstance == nullptr);
-			}
-			
-			const auto mangledName =
-				mangleModuleScope(function->moduleScope()) +
-				(function->isMethod() ?
-					mangleMethodName(typeInstance, function->name().last()) :
-					mangleFunctionName(function->name()));
-			
-			const auto result = module.getFunctionMap().tryGet(mangledName);
-			
-			if (result.hasValue()) {
-				return result.getValue();
-			}
-			
-			// --- Generate function declaration.
+		llvm::Function* genFunctionDef(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			const auto argInfo = getFunctionArgInfo(module, function->type());
-			
-			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
-			
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
-			
-			module.getFunctionMap().insert(mangledName, llvmFunction);
-			
-			if (function->type()->isFunctionNoExcept()) {
-				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
-			}
-			
-			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
-				// Class return values are allocated by the caller,
-				// which passes a pointer to the callee. The caller
-				// and callee must, for the sake of optimisation,
-				// ensure that the following attributes hold...
-				
-				// Caller must ensure pointer is always valid.
-				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
-				
-				// Caller must ensure pointer does not alias with
-				// any other arguments.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
-				
-				// Callee must not capture the pointer.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
-			}
+			const auto llvmFunction = genFunctionDecl(module, typeInstance, function);
 			
 			// --- Generate function code.
 			

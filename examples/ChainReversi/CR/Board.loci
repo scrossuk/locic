@@ -8,26 +8,26 @@ namespace std {
 
 	template <typename T>
 	interface counter_type {
-		T implicitCopy() const;
+		T implicitCopy() const noexcept;
 		
-		int compare(const T& value) const;
+		int compare(const T& value) const noexcept;
 		
-		T add(const T& value) const;
+		T add(const T& value) const noexcept;
 	}
 	
 	template <typename T: counter_type<T>>
 	class counter (T increment, T begin, T end) {
 		static Create = default;
 		
-		T front() {
+		T front() noexcept {
 			return @begin;
 		}
 		
-		void popFront() {
+		void popFront() noexcept {
 			@begin += @increment;
 		}
 		
-		bool empty() {
+		bool empty() noexcept {
 			return @begin >= @end;
 		}
 	}
@@ -36,15 +36,15 @@ namespace std {
 	class counter_incl (T increment, T begin, T end) {
 		static Create = default;
 		
-		T front() {
+		T front() noexcept {
 			return @begin;
 		}
 		
-		void popFront() {
+		void popFront() noexcept {
 			@begin += @increment;
 		}
 		
-		bool empty() {
+		bool empty() noexcept {
 			return @begin > @end;
 		}
 	}
@@ -72,7 +72,7 @@ namespace CR {
 			free(reinterpret_cast<Value*, void*>(@data));
 		}
 		
-		Board copy() const {
+		Board copy() const noexcept {
 			void* dataPtr = malloc(sizeof(Value) * @size.width * @size.height);
 			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
 			
@@ -83,7 +83,7 @@ namespace CR {
 			return @(data, @currentPlayer, @size);
 		}
 		
-		bool isValid(Position position) const {
+		bool isValid(Position position) const noexcept {
 			if (self[position] != Empty()) {
 				return false;
 			}
@@ -103,7 +103,7 @@ namespace CR {
 			return false;
 		}
 		
-		void placeMove(Position position) {
+		void placeMove(Position position) noexcept {
 			self[position] = self.player();
 			
 			self.update();
@@ -111,19 +111,19 @@ namespace CR {
 			@currentPlayer = self.opponent();
 		}
 		
-		Value player() const {
+		Value player() const noexcept {
 			return @currentPlayer;
 		}
 		
-		Value opponent() const {
+		Value opponent() const noexcept {
 			return opposite(@currentPlayer);
 		}
 		
-		BoardSize size() const {
+		BoardSize size() const noexcept {
 			return @size;
 		}
 		
-		bool isComplete() const {
+		bool isComplete() const noexcept {
 			for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
 				for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
 					if (self.isValid(Position(x, y))) {
@@ -135,11 +135,11 @@ namespace CR {
 			return true;
 		}
 		
-		lval<Value> ptr_lval<Value> index(Position position) const {
+		lval<Value> ptr_lval<Value> index(Position position) const noexcept {
 			return @data[position.x + position.y * @size.width];
 		}
 		
-		void update() {
+		void update() noexcept {
 			bool hasChanged = true;
 			
 			while (hasChanged) {
@@ -169,7 +169,7 @@ namespace CR {
 		
 	}
 	
-	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) {
+	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) noexcept {
 		bool flagOpponent = false;
 		
 		ssize_t cx = x.signedValue() + xi;
@@ -194,7 +194,7 @@ namespace CR {
 		return false;
 	}
 	
-	bool updateForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) {
+	bool updateForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) noexcept {
 		if (!isValidForDirection(board, x, y, xi, yi)) {
 			return false;
 		}

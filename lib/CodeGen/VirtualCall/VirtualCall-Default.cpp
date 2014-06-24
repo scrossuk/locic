@@ -277,7 +277,7 @@ namespace locic {
 					function.selectBasicBlock(callMethodBasicBlock);
 					
 					const auto argInfo = getFunctionArgInfo(module, semMethod->type());
-					const auto llvmMethod = genFunction(module, typeInstance, semMethod);
+					const auto llvmMethod = genFunctionDecl(module, typeInstance, semMethod);
 					
 					const auto functionType = semMethod->type();
 					const auto returnType = functionType->getFunctionReturnType();

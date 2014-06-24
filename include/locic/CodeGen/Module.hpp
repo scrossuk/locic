@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <llvm-abi/ABI.hpp>
@@ -15,6 +16,7 @@
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
 
@@ -36,6 +38,7 @@ namespace locic {
 		
 		typedef Map<std::string, llvm::Function*> FunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
+		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
 		typedef std::map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
 		typedef std::map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
 		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
@@ -92,12 +95,15 @@ namespace locic {
 				
 				Debug::Module& debugModule();
 				
+				PrimitiveKind primitiveKind(const std::string& name) const;
+				
 			private:
 				std::unique_ptr<llvm::Module> module_;
 				TargetInfo targetInfo_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				FunctionMap functionMap_;
 				MemberVarMap memberVarMap_;
+				PrimitiveMap primitiveMap_;
 				TemplateBuilderMap templateBuilderMap_;
 				TemplateBuilderFunctionMap templateBuilderFunctionMap_;
 				TemplateGeneratorMap templateGeneratorMap_;

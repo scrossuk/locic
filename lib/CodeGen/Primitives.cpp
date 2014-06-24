@@ -1039,103 +1039,111 @@ namespace locic {
 			function.verify();
 		}
 		
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
+		
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type) {
 			const auto& name = type->getObjectType()->name().last();
+			const auto kind = module.primitiveKind(name);
 			
-			if (name == "__ref") {
-				if (type->templateArguments().at(0)->isInterface()) {
-					return interfaceStructType(module).second;
-				} else {
+			switch (kind) {
+				case PrimitiveRef: {
+					if (type->templateArguments().at(0)->isInterface()) {
+						return interfaceStructType(module).second;
+					} else {
+						return genPointerType(module, type->templateArguments().at(0));
+					}
+				}
+				case PrimitivePtr:
+				case PrimitivePtrLval:
 					return genPointerType(module, type->templateArguments().at(0));
+				case PrimitiveValueLval:
+				case PrimitiveMemberLval: {
+					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
+						switch (kind) {
+							case PrimitiveValueLval: {
+								TypeGenerator typeGen(module);
+								const auto targetType = genType(module, type->templateArguments().at(0));
+								return typeGen.getStructType(std::vector<llvm::Type*>{ targetType, typeGen.getI1Type() });
+							}
+							case PrimitiveMemberLval:
+								return genType(module, type->templateArguments().at(0));
+							default:
+								break;
+						}
+					}
+					break;
 				}
-			} else if (name == "__ptr" || name == "ptr_lval") {
-				return genPointerType(module, type->templateArguments().at(0));
+				default:
+					break;
 			}
 			
-			if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
-				if (name == "value_lval") {
-					TypeGenerator typeGen(module);
-					const auto targetType = genType(module, type->templateArguments().at(0));
-					return typeGen.getStructType(std::vector<llvm::Type*>{ targetType, typeGen.getI1Type() });
-				} else if (name == "member_lval") {
-					return genType(module, type->templateArguments().at(0));
+			return getBasicPrimitiveType(module, kind, name);
+		}
+		
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name) {
+			switch (kind) {
+				case PrimitiveVoid:
+					return TypeGenerator(module).getVoidType();
+				case PrimitiveNull:
+					return TypeGenerator(module).getI8PtrType();
+				case PrimitiveBool:
+					return TypeGenerator(module).getI1Type();
+				case PrimitiveSignedInt:
+				case PrimitiveUnsignedInt:
+					return TypeGenerator(module).getIntType(module.getTargetInfo().getPrimitiveSize(name));
+				case PrimitiveUnichar:
+					// Unicode characters represented with 32 bits.
+					return TypeGenerator(module).getIntType(32);
+				case PrimitiveFloat:
+					return TypeGenerator(module).getFloatType();
+				case PrimitiveDouble:
+					return TypeGenerator(module).getDoubleType();
+				case PrimitiveLongDouble:
+					return TypeGenerator(module).getLongDoubleType();
+				case PrimitivePtr:
+				case PrimitivePtrLval:
+					return TypeGenerator(module).getI8PtrType();
+				case PrimitiveValueLval:
+				case PrimitiveMemberLval: {
+					const auto existingType = module.getTypeMap().tryGet(name);
+					if (existingType.hasValue()) {
+						return existingType.getValue();
+					}
+					
+					const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
+					module.getTypeMap().insert(name, type);
+					return type;
 				}
+				case PrimitiveTypename:
+					return typeInfoType(module).second;
+				default:
+					llvm_unreachable("Unrecognised primitive type.");
 			}
-			
-			return getNamedPrimitiveType(module, name);
 		}
 		
 		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name) {
-			if (name == "void_t") {
-				return TypeGenerator(module).getVoidType();
-			}
-			
-			if (name == "null_t") {
-				return TypeGenerator(module).getI8PtrType();
-			}
-			
-			if (name == "bool") {
-				return TypeGenerator(module).getI1Type();
-			}
-			
-			if (isIntegerType(name)) {
-				return TypeGenerator(module).getIntType(module.getTargetInfo().getPrimitiveSize(name));
-			}
-			
-			if (name == "unichar") {
-				// Unicode characters represented with 32 bits.
-				return TypeGenerator(module).getIntType(32);
-			}
-			
-			if (name == "float_t") {
-				return TypeGenerator(module).getFloatType();
-			}
-			
-			if (name == "double_t") {
-				return TypeGenerator(module).getDoubleType();
-			}
-			
-			if (name == "longdouble_t") {
-				return TypeGenerator(module).getLongDoubleType();
-			}
-			
-			if (name == "__ptr" || name == "ptr_lval") {
-				return TypeGenerator(module).getI8PtrType();
-			}
-			
-			if (name == "value_lval" || name == "member_lval") {
-				const auto existingType = module.getTypeMap().tryGet(name);
-				if (existingType.hasValue()) {
-					return existingType.getValue();
-				}
-				
-				const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
-				module.getTypeMap().insert(name, type);
-				return type;
-			}
-			
-			if (name == "typename_t") {
-				return typeInfoType(module).second;
-			}
-			
-			llvm_unreachable("Unrecognised primitive type.");
+			return getBasicPrimitiveType(module, module.primitiveKind(name), name);
 		}
 		
-		bool primitiveTypeHasDestructor(Module&, SEM::TypeInstance* typeInstance) {
+		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
-			return (name == "member_lval" || name == "value_lval");
+			const auto kind = module.primitiveKind(name);
+			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval);
 		}
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
+			const auto kind = module.primitiveKind(name);
 			
-			if (name == "member_lval" || name == "value_lval") {
-				return isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
-			} else {
-				return true;
+			switch (kind) {
+				case PrimitiveMemberLval:
+				case PrimitiveValueLval:
+					return isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
+				default:
+					return true;
 			}
 		}
 		
@@ -1143,11 +1151,14 @@ namespace locic {
 			const auto typeInstance = type->getObjectType();
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
+			const auto kind = module.primitiveKind(name);
 			
-			if (name == "member_lval" || name == "value_lval") {
-				return isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
-			} else {
-				return true;
+			switch (kind) {
+				case PrimitiveMemberLval:
+				case PrimitiveValueLval:
+					return isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
+				default:
+					return true;
 			}
 		}
 		

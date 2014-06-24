@@ -101,9 +101,9 @@ namespace llvm_abi {
 			
 			Type();
 			
-			Type(Type&&);
+			Type(Type&&) = default;
 			
-			Type& operator=(Type);
+			Type& operator=(Type&&) = default;
 			
 			~Type();
 			
@@ -138,10 +138,23 @@ namespace llvm_abi {
 			std::string toString() const;
 			
 		private:
-			Type(std::unique_ptr<struct TypeImpl>&&);
+			TypeKind kind_;
 			
-			std::unique_ptr<struct TypeImpl> impl_;
-		
+			union {
+				IntegerKind integerKind;
+				FloatingPointKind floatingPointKind;
+				FloatingPointKind complexKind;
+			} subKind_;
+			
+			struct {
+				std::vector<StructMember> members;
+			} structType_;
+			
+			struct {
+				size_t elementCount;
+				std::unique_ptr<Type> elementType;
+			} arrayType_;
+			
 	};
 	
 	class StructMember {

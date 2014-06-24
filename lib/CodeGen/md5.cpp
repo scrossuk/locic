@@ -34,9 +34,11 @@ documentation and/or software.
 #include <locic/CodeGen/md5.h>
 
 /* system implementation headers */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <array>
 
 
 // Constants for MD5Transform routine.
@@ -326,6 +328,37 @@ MD5& MD5::finalize() {
 
 //////////////////////////////
 
+static char makeHexChar(unsigned char c) {
+	switch (c) {
+		case 0: return '0';
+		case 1: return '1';
+		case 2: return '2';
+		case 3: return '3';
+		case 4: return '4';
+		case 5: return '5';
+		case 6: return '6';
+		case 7: return '7';
+		case 8: return '8';
+		case 9: return '9';
+		case 10: return 'a';
+		case 11: return 'b';
+		case 12: return 'c';
+		case 13: return 'd';
+		case 14: return 'e';
+		case 15: return 'f';
+		default:
+			assert(false);
+			return '\0';
+	}
+}
+
+static std::array<char, 2> makeHexPair(unsigned char c) {
+	std::array<char, 2> pair;
+	pair[0] = makeHexChar((c >> 4) & 0x0F);
+	pair[1] = makeHexChar((c >> 0) & 0x0F);
+	return pair;
+}
+
 // return hex representation of digest as string
 std::string MD5::hexdigest() const {
 	if (!finalized) {
@@ -335,7 +368,9 @@ std::string MD5::hexdigest() const {
 	char buf[33];
 	
 	for (int i = 0; i < 16; i++) {
-		sprintf(buf + i * 2, "%02x", digest[i]);
+		const std::array<char, 2> hexPair = makeHexPair(digest[i]);
+		buf[i * 2] = hexPair[0];
+		buf[i * 2 + 1] = hexPair[1];
 	}
 	
 	buf[32] = 0;

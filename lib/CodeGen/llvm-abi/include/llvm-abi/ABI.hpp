@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
@@ -44,7 +45,7 @@ namespace llvm_abi {
 		
 	};
 	
-	std::unique_ptr<ABI> createABI(llvm::LLVMContext& llvmContext, const std::string& targetTriple);
+	std::unique_ptr<ABI> createABI(llvm::Module* module, const std::string& targetTriple);
 
 }
 

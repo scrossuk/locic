@@ -9,18 +9,50 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		std::string mangleName(const std::string& prefix, const Name& name) {
+		std::string uintToString(size_t value) {
+			if (value < 20) {
+				switch (value) {
+					case 0: return "0";
+					case 1: return "1";
+					case 2: return "2";
+					case 3: return "3";
+					case 4: return "4";
+					case 5: return "5";
+					case 6: return "6";
+					case 7: return "7";
+					case 8: return "8";
+					case 9: return "9";
+					case 10: return "10";
+					case 11: return "11";
+					case 12: return "12";
+					case 13: return "13";
+					case 14: return "14";
+					case 15: return "15";
+					case 16: return "16";
+					case 17: return "17";
+					case 18: return "18";
+					case 19: return "19";
+				}
+				return "[ERROR]";
+			} else {
+				return std::to_string(value);
+			}
+		}
+		
+		std::string mangleName(const char* prefix, const Name& name) {
 			assert(!name.empty());
 			assert(name.isAbsolute());
 			
-			std::string s = makeString("%s%llu",
-				prefix.c_str(),
-				(unsigned long long) name.size());
-									   
+			std::string s;
+			s.reserve(name.size() * 10);
+			
+			s += prefix;
+			s += uintToString(name.size());
+			
 			for (size_t i = 0; i < name.size(); i++) {
-				s += makeString("N%llu%s",
-					(unsigned long long) name.at(i).size(),
-					name.at(i).c_str());
+				s += "N";
+				s += uintToString(name.at(i).size());
+				s += name.at(i);
 			}
 			
 			return s;
@@ -36,9 +68,11 @@ namespace locic {
 		}
 		
 		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName) {
-			return makeString("M%s%s",
-				mangleObjectType(typeInstance).c_str(),
-				mangleName("F", Name::Absolute() + methodName).c_str());
+			std::string s = "M";
+			s.reserve(10 + methodName.size());
+			s += mangleObjectType(typeInstance);
+			s += mangleName("F", Name::Absolute() + methodName);
+			return s;
 		}
 		
 		std::string mangleDestructorName(SEM::TypeInstance* typeInstance) {
@@ -54,21 +88,13 @@ namespace locic {
 			return mangleName("T", name);
 		}
 		
-		namespace {
-			
-			std::string valToString(size_t val) {
-				return makeString("%llu", (unsigned long long) val);
-			}
-			
-		}
-		
 		std::string mangleModuleScopeFields(const Name& name, const Version& version) {
 			if (name.empty()) return "";
 			
 			const auto versionString =
-				valToString(version.majorVersion()) + "_" +
-				valToString(version.minorVersion()) + "_" +
-				valToString(version.buildVersion()) + "_";
+				uintToString(version.majorVersion()) + "_" +
+				uintToString(version.minorVersion()) + "_" +
+				uintToString(version.buildVersion()) + "_";
 			
 			return mangleName("P", name) + "V" + versionString;
 		}
@@ -79,7 +105,9 @@ namespace locic {
 		}
 		
 		std::string mangleTemplateGenerator(SEM::TypeInstance* typeInstance) {
-			return makeString("TPLGEN%s", mangleObjectType(typeInstance).c_str());
+			std::string s = "TPLGEN";
+			s += mangleObjectType(typeInstance);
+			return s;
 		}
 		
 	}

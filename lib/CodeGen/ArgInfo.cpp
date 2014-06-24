@@ -70,6 +70,8 @@ namespace locic {
 			  isVarArg_(pIsVarArg),
 			  numStandardArguments_(pArgumentTypes.size()),
 			  returnType_(std::move(pReturnType)) {
+			argumentTypes_.reserve(3 + pArgumentTypes.size());
+			
 			if (hasReturnVarArgument_) {
 				if (returnType().second->isPointerTy()) {
 					argumentTypes_.push_back(std::make_pair(llvm_abi::Type::Pointer(), returnType().second));
@@ -97,8 +99,10 @@ namespace locic {
 			
 			llvm_abi::FunctionType abiFunctionType;
 			abiFunctionType.returnType = returnTypeRef.first.copy();
+			abiFunctionType.argTypes.reserve(argumentTypes().size());
 			
 			std::vector<llvm::Type*> paramTypes;
+			paramTypes.reserve(argumentTypes().size());
 			
 			for (const auto& typePair: argumentTypes()) {
 				abiFunctionType.argTypes.push_back(typePair.first.copy());

@@ -68,10 +68,10 @@ namespace locic {
 			const auto& functions = typeInstance->functions();
 			
 			for (const auto functionPair: functions) {
-				(void) genFunction(module, typeInstance, functionPair.second);
+				(void) genFunctionDef(module, typeInstance, functionPair.second);
 			}
 			
-			(void) genDestructorFunction(module, typeInstance);
+			(void) genDestructorFunctionDef(module, typeInstance);
 			(void) genAlignMaskFunction(module, typeInstance->selfType());
 			(void) genSizeOfFunction(module, typeInstance->selfType());
 			
@@ -87,7 +87,7 @@ namespace locic {
 				const auto& item = itemPair.second;
 				if (item.isFunction()) {
 					const auto parent = nullptr;
-					(void) genFunction(module, parent, item.function());
+					(void) genFunctionDef(module, parent, item.function());
 				} else if (item.isTypeInstance()) {
 					genTypeInstanceFunctions(module, item.typeInstance());
 				} else if (item.isNamespace()) {

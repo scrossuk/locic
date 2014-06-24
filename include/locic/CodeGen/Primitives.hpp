@@ -4,14 +4,32 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/SEM.hpp>
-#include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
+		enum PrimitiveKind {
+			PrimitiveVoid,
+			PrimitiveNull,
+			PrimitiveBool,
+			PrimitiveUnichar,
+			PrimitiveSignedInt,
+			PrimitiveUnsignedInt,
+			PrimitiveFloat,
+			PrimitiveDouble,
+			PrimitiveLongDouble,
+			PrimitiveRef,
+			PrimitivePtr,
+			PrimitivePtrLval,
+			PrimitiveValueLval,
+			PrimitiveMemberLval,
+			PrimitiveTypename
+		};
+		
 		class Function;
+		class Module;
 		
 		bool isSignedIntegerType(const std::string& name);
 		
@@ -32,6 +50,8 @@ namespace locic {
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type);
 		
 		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
+		
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		

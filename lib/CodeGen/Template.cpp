@@ -91,6 +91,7 @@ namespace locic {
 		
 		llvm_abi::Type templateGeneratorABIType() {
 			std::vector<llvm_abi::Type> types;
+			types.reserve(2);
 			types.push_back(llvm_abi::Type::Pointer());
 			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
 			return llvm_abi::Type::AutoStruct(std::move(types));
@@ -114,6 +115,7 @@ namespace locic {
 			module.getTypeMap().insert(name, structType);
 			
 			std::vector<llvm::Type*> structMembers;
+			structMembers.reserve(2);
 			structMembers.push_back(vtableType(module)->getPointerTo());
 			structMembers.push_back(templateGeneratorType(module).second);
 			
@@ -123,6 +125,7 @@ namespace locic {
 		
 		llvm_abi::Type typeInfoABIType() {
 			std::vector<llvm_abi::Type> types;
+			types.reserve(2);
 			types.push_back(llvm_abi::Type::Pointer());
 			types.push_back(templateGeneratorABIType());
 			return llvm_abi::Type::AutoStruct(std::move(types));
@@ -141,6 +144,7 @@ namespace locic {
 		
 		ArgInfo rootFunctionArgInfo(Module& module) {
 			std::vector<TypePair> types;
+			types.reserve(1);
 			types.push_back(pathType(module));
 			return ArgInfo::Basic(module, typeInfoArrayType(module), std::move(types));
 		}

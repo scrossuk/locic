@@ -188,7 +188,7 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+			//(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
 		}
 		
 		Function::LocalVarMap& Function::getLocalVarMap() {

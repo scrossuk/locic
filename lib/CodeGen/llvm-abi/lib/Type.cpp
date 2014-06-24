@@ -8,27 +8,6 @@
 
 namespace llvm_abi {
 
-	struct TypeImpl {
-		TypeKind kind;
-		union {
-			IntegerKind integerKind;
-			FloatingPointKind floatingPointKind;
-			FloatingPointKind complexKind;
-		} subKind;
-		
-		struct {
-			std::vector<StructMember> members;
-		} structType;
-		
-		struct {
-			size_t elementCount;
-			Type elementType;
-		} arrayType;
-		
-		inline TypeImpl(TypeKind pKind)
-			: kind(pKind) { }
-	};
-	
 	namespace {
 	
 		template<typename T, typename ...Args>
@@ -39,61 +18,59 @@ namespace llvm_abi {
 	}
 	
 	Type Type::Pointer() {
-		return Type(make_unique<TypeImpl>(PointerType));
+		Type type;
+		type.kind_ = PointerType;
+		return type;
 	}
 	
 	Type Type::Integer(IntegerKind kind) {
-		auto typeImpl = make_unique<TypeImpl>(IntegerType);
-		typeImpl->subKind.integerKind = kind;
-		return Type(std::move(typeImpl));
+		Type type;
+		type.kind_ = IntegerType;
+		type.subKind_.integerKind = kind;
+		return type;
 	}
 	
 	Type Type::FloatingPoint(FloatingPointKind kind) {
-		auto typeImpl = make_unique<TypeImpl>(FloatingPointType);
-		typeImpl->subKind.floatingPointKind = kind;
-		return Type(std::move(typeImpl));
+		Type type;
+		type.kind_ = FloatingPointType;
+		type.subKind_.floatingPointKind = kind;
+		return type;
 	}
 	
 	Type Type::Complex(FloatingPointKind kind) {
-		auto typeImpl = make_unique<TypeImpl>(ComplexType);
-		typeImpl->subKind.complexKind = kind;
-		return Type(std::move(typeImpl));
+		Type type;
+		type.kind_ = ComplexType;
+		type.subKind_.complexKind = kind;
+		return type;
 	}
 	
 	Type Type::Struct(std::vector<StructMember> members) {
-		auto typeImpl = make_unique<TypeImpl>(StructType);
-		typeImpl->structType.members = std::move(members);
-		return Type(std::move(typeImpl));
+		Type type;
+		type.kind_ = StructType;
+		type.structType_.members = std::move(members);
+		return type;
 	}
 	
 	Type Type::AutoStruct(std::vector<Type> memberTypes) {
-		std::vector<StructMember> members;
+		Type type;
+		type.kind_ = StructType;
+		type.structType_.members.reserve(memberTypes.size());
 		for (auto& memberType: memberTypes) {
-			members.push_back(StructMember::AutoOffset(std::move(memberType)));
+			type.structType_.members.push_back(StructMember::AutoOffset(std::move(memberType)));
 		}
-		return Type::Struct(std::move(members));
+		return type;
 	}
 	
 	Type Type::Array(size_t elementCount, Type elementType) {
-		auto typeImpl = make_unique<TypeImpl>(ArrayType);
-		typeImpl->arrayType.elementCount = elementCount;
-		typeImpl->arrayType.elementType = std::move(elementType);
-		return Type(std::move(typeImpl));
+		Type type;
+		type.kind_ = ArrayType;
+		type.arrayType_.elementCount = elementCount;
+		type.arrayType_.elementType = make_unique<Type>(std::move(elementType));
+		return type;
 	}
 	
 	Type::Type()
-		: impl_() { }
-	
-	Type::Type(std::unique_ptr<struct TypeImpl>&& impl)
-		: impl_(std::move(impl)) { }
-	
-	Type::Type(Type&& other)
-		: impl_(std::move(other.impl_)) { }
-	
-	Type& Type::operator=(Type other) {
-		impl_ = std::move(other.impl_);
-		return *this;
-	}
+		: kind_(PointerType) { }
 		
 	Type::~Type() { }
 	
@@ -109,6 +86,7 @@ namespace llvm_abi {
 				return Complex(complexKind());
 			case StructType: {
 				std::vector<StructMember> structMembersCopy;
+				structMembersCopy.reserve(structMembers().size());
 				
 				for (const auto& member: structMembers()) {
 					structMembersCopy.push_back(member.copy());
@@ -124,61 +102,61 @@ namespace llvm_abi {
 	}
 	
 	TypeKind Type::kind() const {
-		return impl_->kind;
+		return kind_;
 	}
 	
 	bool Type::isPointer() const {
-		return impl_->kind == PointerType;
+		return kind_ == PointerType;
 	}
 	
 	bool Type::isInteger() const {
-		return impl_->kind == IntegerType;
+		return kind_ == IntegerType;
 	}
 	
 	IntegerKind Type::integerKind() const {
 		assert(isInteger());
-		return impl_->subKind.integerKind;
+		return subKind_.integerKind;
 	}
 	
 	bool Type::isFloatingPoint() const {
-		return impl_->kind == FloatingPointType;
+		return kind_ == FloatingPointType;
 	}
 	
 	FloatingPointKind Type::floatingPointKind() const {
 		assert(isFloatingPoint());
-		return impl_->subKind.floatingPointKind;
+		return subKind_.floatingPointKind;
 	}
 	
 	bool Type::isComplex() const {
-		return impl_->kind == ComplexType;
+		return kind_ == ComplexType;
 	}
 	
 	FloatingPointKind Type::complexKind() const {
 		assert(isComplex());
-		return impl_->subKind.complexKind;
+		return subKind_.complexKind;
 	}
 	
 	bool Type::isStruct() const {
-		return impl_->kind == StructType;
+		return kind_ == StructType;
 	}
 	
 	const std::vector<StructMember>& Type::structMembers() const {
 		assert(isStruct());
-		return impl_->structType.members;
+		return structType_.members;
 	}
 	
 	bool Type::isArray() const {
-		return impl_->kind == ArrayType;
+		return kind_ == ArrayType;
 	}
 	
 	size_t Type::arrayElementCount() const {
 		assert(isArray());
-		return impl_->arrayType.elementCount;
+		return arrayType_.elementCount;
 	}
 	
 	const Type& Type::arrayElementType() const {
 		assert(isArray());
-		return impl_->arrayType.elementType;
+		return *(arrayType_.elementType);
 	}
 	
 	static std::string intKindToString(IntegerKind kind) {

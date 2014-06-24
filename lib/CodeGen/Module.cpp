@@ -20,10 +20,46 @@ namespace locic {
 		
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
-			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_->getContext(), targetInfo_.getTargetTriple())),
+			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
+			
+			primitiveMap_.insert(std::make_pair("void_t", PrimitiveVoid));
+			primitiveMap_.insert(std::make_pair("null_t", PrimitiveNull));
+			primitiveMap_.insert(std::make_pair("bool", PrimitiveBool));
+			primitiveMap_.insert(std::make_pair("unichar", PrimitiveUnichar));
+			primitiveMap_.insert(std::make_pair("float_t", PrimitiveFloat));
+			primitiveMap_.insert(std::make_pair("double_t", PrimitiveDouble));
+			primitiveMap_.insert(std::make_pair("longdouble_t", PrimitiveLongDouble));
+			primitiveMap_.insert(std::make_pair("__ref", PrimitiveRef));
+			primitiveMap_.insert(std::make_pair("__ptr", PrimitivePtr));
+			primitiveMap_.insert(std::make_pair("ptr_lval", PrimitivePtrLval));
+			primitiveMap_.insert(std::make_pair("value_lval", PrimitiveValueLval));
+			primitiveMap_.insert(std::make_pair("member_lval", PrimitiveMemberLval));
+			primitiveMap_.insert(std::make_pair("typename_t", PrimitiveTypename));
+			
+			primitiveMap_.insert(std::make_pair("int8_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("int16_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("int32_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("int64_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("byte_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("short_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("int_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("long_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("longlong_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("ssize_t", PrimitiveSignedInt));
+			
+			primitiveMap_.insert(std::make_pair("uint8_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("uint16_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("uint32_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("uint64_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("ubyte_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("ushort_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("uint_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("ulong_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("ulonglong_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("size_t", PrimitiveUnsignedInt));
 		}
 		
 		void Module::dump() const {
@@ -119,6 +155,10 @@ namespace locic {
 		
 		Debug::Module& Module::debugModule() {
 			return debugModule_;
+		}
+		
+		PrimitiveKind Module::primitiveKind(const std::string& name) const {
+			return primitiveMap_.at(name);
 		}
 		
 		CompareResult compareTypes(SEM::Type* const first, SEM::Type* const second) {

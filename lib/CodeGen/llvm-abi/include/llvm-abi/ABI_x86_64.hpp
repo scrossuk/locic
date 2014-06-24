@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
@@ -14,7 +15,7 @@ namespace llvm_abi {
 
 	class ABI_x86_64: public ABI {
 		public:
-			ABI_x86_64(llvm::LLVMContext& llvmContext);
+			ABI_x86_64(llvm::Module* module);
 			~ABI_x86_64();
 			
 			std::string name() const;
@@ -38,6 +39,7 @@ namespace llvm_abi {
 		private:
 			llvm::LLVMContext& llvmContext_;
 			llvm::DataLayout dataLayout_;
+			llvm::Value* memcpyIntrinsic_;
 		
 	};
 

@@ -145,9 +145,9 @@ namespace locic {
 		
 		llvm::Function* genFunctionRef(Module& module, SEM::Type* parentType, SEM::Function* function) {
 			if (parentType == nullptr) {
-				return genFunction(module, nullptr, function);
+				return genFunctionDecl(module, nullptr, function);
 			} else if (parentType->isObject()) {
-				return genFunction(module, parentType->getObjectType(), function);
+				return genFunctionDecl(module, parentType->getObjectType(), function);
 			} else if (parentType->isTemplateVar()) {
 				return genTemplateFunctionStub(module, parentType->getTemplateVar(), function);
 			} else {
