@@ -144,16 +144,15 @@ namespace locic {
 		}
 		
 		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
-			
-			const auto result = module.getFunctionMap().tryGet(mangledName);
-			if (result.hasValue()) {
-				return result.getValue();
+			const auto iterator = module.getDestructorMap().find(typeInstance);
+			if (iterator != module.getDestructorMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
+			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
 			llvmFunction->setDoesNotThrow();
 			
@@ -162,7 +161,7 @@ namespace locic {
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getDestructorMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
 			return llvmFunction;
 		}

@@ -13,17 +13,15 @@ namespace locic {
 		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype() || typeInstance->isException());
 			
-			const auto mangledName = mangleObjectType(typeInstance);
-			
-			const auto result = module.getTypeMap().tryGet(mangledName);
-			
-			if (result.hasValue()) {
-				return result.getValue();
+			const auto iterator = module.typeInstanceMap().find(typeInstance);
+			if (iterator != module.typeInstanceMap().end()) {
+				return iterator->second;
 			}
 			
+			const auto mangledName = mangleObjectType(typeInstance);
 			const auto structType = TypeGenerator(module).getForwardDeclaredStructType(mangledName);
 			
-			module.getTypeMap().insert(mangledName, structType);
+			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
 			
 			// Create mapping between member variables and their
 			// indexes within their parent.

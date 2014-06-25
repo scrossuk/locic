@@ -36,14 +36,18 @@ namespace locic {
 			return compareTypes(first, second) == COMPARE_LESS;
 		}
 		
+		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef Map<std::string, llvm::Function*> FunctionMap;
+		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
+		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
-		typedef std::map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
-		typedef std::map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
+		typedef std::unordered_map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
+		typedef std::unordered_map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
 		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
+		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class Module {
 			public:
@@ -67,9 +71,15 @@ namespace locic {
 				
 				llvm::Module* getLLVMModulePtr() const;
 				
+				DestructorMap& getDestructorMap();
+				
 				FunctionMap& getFunctionMap();
 				
 				const FunctionMap& getFunctionMap() const;
+				
+				FunctionDeclMap& getFunctionDeclMap();
+				
+				MemberOffsetFunctionMap& memberOffsetFunctionMap();
 				
 				MemberVarMap& getMemberVarMap();
 				
@@ -87,6 +97,12 @@ namespace locic {
 				
 				const TypeMap& getTypeMap() const;
 				
+				TypeInstanceMap& typeInstanceMap();
+				
+				void setTypeInfoType(llvm::Type* type);
+				
+				llvm::Type* typeInfoType() const;
+				
 				llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
 					llvm::Constant* value = nullptr);
@@ -101,13 +117,18 @@ namespace locic {
 				std::unique_ptr<llvm::Module> module_;
 				TargetInfo targetInfo_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
+				DestructorMap destructorMap_;
 				FunctionMap functionMap_;
+				FunctionDeclMap functionDeclMap_;
+				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				PrimitiveMap primitiveMap_;
 				TemplateBuilderMap templateBuilderMap_;
 				TemplateBuilderFunctionMap templateBuilderFunctionMap_;
 				TemplateGeneratorMap templateGeneratorMap_;
 				TypeMap typeMap_;
+				TypeInstanceMap typeInstanceMap_;
+				llvm::Type* typeInfoType_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				

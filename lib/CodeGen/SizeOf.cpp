@@ -315,19 +315,18 @@ namespace locic {
 		 * }
 		 */
 		llvm::Value* genMemberOffsetFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
-			const auto result = module.getFunctionMap().tryGet(mangledName);
-			
-			if (result.hasValue()) {
-				return result.getValue();
+			const auto iterator = module.memberOffsetFunctionMap().find(typeInstance);
+			if (iterator != module.memberOffsetFunctionMap().end()) {
+				return iterator->second;
 			}
 			
+			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			llvmFunction->setDoesNotAccessMemory();
 			llvmFunction->setDoesNotThrow();
 			
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
 			// Always inline this function.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);

@@ -46,6 +46,11 @@ namespace locic {
 				assert(typeInstance == nullptr);
 			}
 			
+			const auto iterator = module.getFunctionDeclMap().find(function);
+			if (iterator != module.getFunctionDeclMap().end()) {
+				return iterator->second;
+			}
+			
 			const auto mangledName =
 				mangleModuleScope(function->moduleScope()) +
 				(function->isMethod() ?
@@ -63,6 +68,7 @@ namespace locic {
 			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionDeclMap().insert(std::make_pair(function, llvmFunction));
 			
 			if (function->type()->isFunctionNoExcept()) {
 				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);

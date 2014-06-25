@@ -21,6 +21,7 @@ namespace locic {
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
+			  typeInfoType_(nullptr),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
@@ -39,27 +40,27 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair("member_lval", PrimitiveMemberLval));
 			primitiveMap_.insert(std::make_pair("typename_t", PrimitiveTypename));
 			
-			primitiveMap_.insert(std::make_pair("int8_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("int16_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("int32_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("int64_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("byte_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("short_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("int_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("long_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("longlong_t", PrimitiveSignedInt));
-			primitiveMap_.insert(std::make_pair("ssize_t", PrimitiveSignedInt));
+			primitiveMap_.insert(std::make_pair("int8_t", PrimitiveInt8));
+			primitiveMap_.insert(std::make_pair("int16_t", PrimitiveInt16));
+			primitiveMap_.insert(std::make_pair("int32_t", PrimitiveInt32));
+			primitiveMap_.insert(std::make_pair("int64_t", PrimitiveInt64));
+			primitiveMap_.insert(std::make_pair("byte_t", PrimitiveByte));
+			primitiveMap_.insert(std::make_pair("short_t", PrimitiveShort));
+			primitiveMap_.insert(std::make_pair("int_t", PrimitiveInt));
+			primitiveMap_.insert(std::make_pair("long_t", PrimitiveLong));
+			primitiveMap_.insert(std::make_pair("longlong_t", PrimitiveLongLong));
+			primitiveMap_.insert(std::make_pair("ssize_t", PrimitiveSSize));
 			
-			primitiveMap_.insert(std::make_pair("uint8_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("uint16_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("uint32_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("uint64_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("ubyte_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("ushort_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("uint_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("ulong_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("ulonglong_t", PrimitiveUnsignedInt));
-			primitiveMap_.insert(std::make_pair("size_t", PrimitiveUnsignedInt));
+			primitiveMap_.insert(std::make_pair("uint8_t", PrimitiveUInt8));
+			primitiveMap_.insert(std::make_pair("uint16_t", PrimitiveUInt16));
+			primitiveMap_.insert(std::make_pair("uint32_t", PrimitiveUInt32));
+			primitiveMap_.insert(std::make_pair("uint64_t", PrimitiveUInt64));
+			primitiveMap_.insert(std::make_pair("ubyte_t", PrimitiveUByte));
+			primitiveMap_.insert(std::make_pair("ushort_t", PrimitiveUShort));
+			primitiveMap_.insert(std::make_pair("uint_t", PrimitiveUInt));
+			primitiveMap_.insert(std::make_pair("ulong_t", PrimitiveULong));
+			primitiveMap_.insert(std::make_pair("ulonglong_t", PrimitiveULongLong));
+			primitiveMap_.insert(std::make_pair("size_t", PrimitiveSize));
 		}
 		
 		void Module::dump() const {
@@ -102,12 +103,24 @@ namespace locic {
 			return module_.get();
 		}
 		
+		DestructorMap& Module::getDestructorMap() {
+			return destructorMap_;
+		}
+		
 		FunctionMap& Module::getFunctionMap() {
 			return functionMap_;
 		}
 		
 		const FunctionMap& Module::getFunctionMap() const {
 			return functionMap_;
+		}
+		
+		FunctionDeclMap& Module::getFunctionDeclMap() {
+			return functionDeclMap_;
+		}
+		
+		MemberOffsetFunctionMap& Module::memberOffsetFunctionMap() {
+			return memberOffsetFunctionMap_;
 		}
 		
 		MemberVarMap& Module::getMemberVarMap() {
@@ -140,6 +153,18 @@ namespace locic {
 		
 		const TypeMap& Module::getTypeMap() const {
 			return typeMap_;
+		}
+		
+		TypeInstanceMap& Module::typeInstanceMap() {
+			return typeInstanceMap_;
+		}
+		
+		void Module::setTypeInfoType(llvm::Type* type) {
+			typeInfoType_ = type;
+		}
+		
+		llvm::Type* Module::typeInfoType() const {
+			return typeInfoType_;
 		}
 		
 		llvm::GlobalVariable* Module::createConstGlobal(const std::string& name,

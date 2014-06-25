@@ -53,7 +53,7 @@ namespace locic {
 			// instructions like allocas and debug_declares
 			// which must only be executed once per function.
 			const auto entryBB = createBasicBlock("");
-			const auto startBB = createBasicBlock("start");
+			const auto startBB = createBasicBlock("");
 			
 			entryBuilder_.SetInsertPoint(entryBB);
 			const auto startBranch = entryBuilder_.CreateBr(startBB);

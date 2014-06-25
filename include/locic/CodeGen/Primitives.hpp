@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_PRIMITIVES_HPP
 #define LOCIC_CODEGEN_PRIMITIVES_HPP
 
+#include <llvm-abi/Type.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/SEM.hpp>
@@ -15,8 +17,30 @@ namespace locic {
 			PrimitiveNull,
 			PrimitiveBool,
 			PrimitiveUnichar,
-			PrimitiveSignedInt,
-			PrimitiveUnsignedInt,
+			
+			PrimitiveInt8,
+			PrimitiveUInt8,
+			PrimitiveInt16,
+			PrimitiveUInt16,
+			PrimitiveInt32,
+			PrimitiveUInt32,
+			PrimitiveInt64,
+			PrimitiveUInt64,
+			
+			PrimitiveByte,
+			PrimitiveUByte,
+			PrimitiveShort,
+			PrimitiveUShort,
+			PrimitiveInt,
+			PrimitiveUInt,
+			PrimitiveLong,
+			PrimitiveULong,
+			PrimitiveLongLong,
+			PrimitiveULongLong,
+			
+			PrimitiveSize,
+			PrimitiveSSize,
+			
 			PrimitiveFloat,
 			PrimitiveDouble,
 			PrimitiveLongDouble,
@@ -52,6 +76,8 @@ namespace locic {
 		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
+		
+		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		

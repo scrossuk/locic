@@ -102,17 +102,16 @@ namespace locic {
 		}
 		
 		llvm::Type* typeInfoLLVMType(Module& module) {
-			const auto name = "__type_info";
-			
-			const auto result = module.getTypeMap().tryGet(name);
-			if (result.hasValue()) {
-				return result.getValue();
+			const auto existingType = module.typeInfoType();
+			if (existingType != nullptr) {
+				return existingType;
 			}
 			
 			TypeGenerator typeGen(module);
+			const auto name = "__type_info";
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
-			module.getTypeMap().insert(name, structType);
+			module.setTypeInfoType(structType);
 			
 			std::vector<llvm::Type*> structMembers;
 			structMembers.reserve(2);

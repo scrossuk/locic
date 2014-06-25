@@ -479,6 +479,7 @@ namespace llvm_abi {
 		assert(argValues.size() == argTypes.size());
 		
 		std::vector<llvm::Value*> encodedValues;
+		encodedValues.reserve(argValues.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
 			const auto argValue = argValues.at(i);
@@ -517,6 +518,7 @@ namespace llvm_abi {
 		assert(argValues.size() == argTypes.size());
 		
 		std::vector<llvm::Value*> decodedValues;
+		decodedValues.reserve(argValues.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
 			const auto encodedValue = argValues.at(i);
@@ -569,6 +571,7 @@ namespace llvm_abi {
 		assert(llvmFunctionType->getNumParams() == functionType.argTypes.size());
 		
 		std::vector<llvm::Type*> argTypes;
+		argTypes.reserve(llvmFunctionType->getNumParams());
 		
 		for (size_t i = 0; i < llvmFunctionType->getNumParams(); i++) {
 			argTypes.push_back(fixType(llvmContext_, llvmFunctionType->getParamType(i), functionType.argTypes.at(i)));
