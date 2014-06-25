@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <llvm-abi/ABI.hpp>
+#include <llvm-abi/Context.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
@@ -24,10 +25,17 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		typedef std::pair<llvm_abi::Type*, llvm::Type*> TypePair;
+		
 		enum CompareResult {
 			COMPARE_EQUAL,
 			COMPARE_LESS,
 			COMPARE_MORE
+		};
+		
+		enum StandardTypeKind {
+			TemplateGeneratorType,
+			TypeInfoType
 		};
 		
 		CompareResult compareTypes(SEM::Type* const first, SEM::Type* const second);
@@ -42,6 +50,7 @@ namespace locic {
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
+		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
 		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
@@ -65,6 +74,8 @@ namespace locic {
 				
 				const llvm_abi::ABI& abi() const;
 				
+				llvm_abi::Context& abiContext();
+				
 				llvm::LLVMContext& getLLVMContext() const;
 				
 				llvm::Module& getLLVMModule() const;
@@ -85,6 +96,8 @@ namespace locic {
 				
 				const MemberVarMap& getMemberVarMap() const;
 				
+				StandardTypeMap& standardTypeMap();
+				
 				TemplateBuilder& typeTemplateBuilder(SEM::TypeInstance* typeInstance);
 				
 				TemplateBuilderFunctionMap& templateBuilderFunctionMap();
@@ -98,10 +111,6 @@ namespace locic {
 				const TypeMap& getTypeMap() const;
 				
 				TypeInstanceMap& typeInstanceMap();
-				
-				void setTypeInfoType(llvm::Type* type);
-				
-				llvm::Type* typeInfoType() const;
 				
 				llvm::GlobalVariable* createConstGlobal(const std::string& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
@@ -117,18 +126,19 @@ namespace locic {
 				std::unique_ptr<llvm::Module> module_;
 				TargetInfo targetInfo_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
+				llvm_abi::Context abiContext_;
 				DestructorMap destructorMap_;
 				FunctionMap functionMap_;
 				FunctionDeclMap functionDeclMap_;
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				PrimitiveMap primitiveMap_;
+				StandardTypeMap standardTypeMap_;
 				TemplateBuilderMap templateBuilderMap_;
 				TemplateBuilderFunctionMap templateBuilderFunctionMap_;
 				TemplateGeneratorMap templateGeneratorMap_;
 				TypeMap typeMap_;
 				TypeInstanceMap typeInstanceMap_;
-				llvm::Type* typeInfoType_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				

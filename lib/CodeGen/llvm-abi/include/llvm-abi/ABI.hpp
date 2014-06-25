@@ -15,8 +15,8 @@
 namespace llvm_abi {
 
 	struct FunctionType {
-		Type returnType;
-		std::vector<Type> argTypes;
+		Type* returnType;
+		std::vector<Type*> argTypes;
 	};
 	
 	typedef llvm::IRBuilder<> IRBuilder;
@@ -29,17 +29,17 @@ namespace llvm_abi {
 			
 			virtual const llvm::DataLayout& dataLayout() const = 0;
 			
-			virtual size_t typeSize(const Type& type) const = 0;
+			virtual size_t typeSize(Type* type) const = 0;
 			
-			virtual size_t typeAlign(const Type& type) const = 0;
+			virtual size_t typeAlign(Type* type) const = 0;
 			
 			virtual std::vector<size_t> calculateStructOffsets(const std::vector<StructMember>& structMembers) const = 0;
 			
 			virtual llvm::Type* longDoubleType() const = 0;
 			
-			virtual std::vector<llvm::Value*> encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes) = 0;
+			virtual void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes) = 0;
 			
-			virtual std::vector<llvm::Value*> decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, const std::vector<llvm::Value*>& argValues, const std::vector<Type>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) = 0;
+			virtual void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) = 0;
 			
 			virtual llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType) = 0;
 		

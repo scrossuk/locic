@@ -28,16 +28,21 @@ namespace locic {
 			return instruction;
 		}
 		
-		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type, llvm::Type* llvmType) {
-			std::vector<llvm_abi::Type> abiTypes;
-			abiTypes.push_back(std::move(type));
-			return function.module().abi().decodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes, {llvmType}).at(0);
+		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type* type, llvm::Type* llvmType) {
+			std::vector<llvm_abi::Type*> abiTypes;
+			abiTypes.push_back(type);
+			
+			std::vector<llvm::Value*> values;
+			values.push_back(value);
+			function.module().abi().decodeValues(function.getEntryBuilder(), function.getBuilder(), values, abiTypes, {llvmType});
+			return values.at(0);
 		}
 		
 		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
 				SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
+			auto& abiContext = module.abiContext();
 			
 			const auto returnType = functionType->getFunctionReturnType();
 			const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
@@ -49,7 +54,10 @@ namespace locic {
 			assert(llvmFunctionType->isFunctionTy());
 			
 			std::vector<llvm::Value*> parameters;
-			std::vector<llvm_abi::Type> parameterABITypes;
+			parameters.reserve(3 + args.size());
+			
+			std::vector<llvm_abi::Type*> parameterABITypes;
+			parameterABITypes.reserve(3 + args.size());
 			
 			// Some values (e.g. classes) will be returned
 			// by assigning to a pointer passed as the first
@@ -60,22 +68,22 @@ namespace locic {
 			if (!isTypeSizeAlwaysKnown(module, returnType)) {
 				returnVarValue = genAlloca(function, returnType);
 				parameters.push_back(returnVarValue);
-				parameterABITypes.push_back(llvm_abi::Type::Pointer());
+				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
 			}
 			
 			if (templateGenerator != nullptr) {
 				parameters.push_back(templateGenerator);
-				parameterABITypes.push_back(std::move(templateGeneratorType(module).first));
+				parameterABITypes.push_back(templateGeneratorType(module).first);
 			}
 			
 			if (contextPointer != nullptr) {
 				parameters.push_back(contextPointer);
-				parameterABITypes.push_back(llvm_abi::Type::Pointer());
+				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
 			}
 			
 			for (const auto param: args) {
 				llvm::Value* argValue = genValue(function, param);
-				llvm_abi::Type argABIType = genABIArgType(module, param->type());
+				llvm_abi::Type* argABIType = genABIArgType(module, param->type());
 				
 				// When calling var-args functions, all 'char' and
 				// 'short' values must be extended to 'int' values,
@@ -91,24 +99,24 @@ namespace locic {
 						if (isSignedIntegerType(typeName)) {
 							// Need to extend to int.
 							argValue = function.getBuilder().CreateSExt(argValue, getNamedPrimitiveType(module, "int_t"));
-							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
+							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
 						} else if (isUnsignedIntegerType(typeName)) {
 							// Need to extend to unsigned int.
 							argValue = function.getBuilder().CreateZExt(argValue, getNamedPrimitiveType(module, "uint_t"));
-							argABIType = llvm_abi::Type::Integer(llvm_abi::Int);
+							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
 						}
 					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
 						// Need to extend to double.
 						argValue = function.getBuilder().CreateFPExt(argValue, TypeGenerator(module).getDoubleType());
-						argABIType = llvm_abi::Type::FloatingPoint(llvm_abi::Double);
+						argABIType = llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
 					}
 				}
 				
 				parameters.push_back(argValue);
-				parameterABITypes.push_back(std::move(argABIType));
+				parameterABITypes.push_back(argABIType);
 			}
 			
-			const auto encodedParameters = module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
+			module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
@@ -116,7 +124,7 @@ namespace locic {
 				const auto successPath = function.createBasicBlock("successPath");
 				const auto failPath = function.createBasicBlock("failPath");
 				
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, parameters), debugLoc);
 				
 				// Fail path.
 				function.selectBasicBlock(failPath);
@@ -126,7 +134,7 @@ namespace locic {
 				// Success path.
 				function.selectBasicBlock(successPath);
 			} else {
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionPtr, encodedParameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionPtr, parameters), debugLoc);
 			}
 			
 			if (returnVarValue != nullptr) {
@@ -145,13 +153,16 @@ namespace locic {
 			
 			assert(functionPtr->getType()->getPointerElementType()->isFunctionTy());
 			
-			std::vector<llvm_abi::Type> argABITypes;
+			std::vector<llvm_abi::Type*> argABITypes;
+			argABITypes.reserve(argInfo.argumentTypes().size());
+			
 			for (const auto& typePair: argInfo.argumentTypes()) {
-				argABITypes.push_back(typePair.first.copy());
+				argABITypes.push_back(typePair.first);
 			}
 			
 			// Parameters need to be encoded according to the ABI.
-			const auto encodedParameters = function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), args, argABITypes);
+			std::vector<llvm::Value*> encodedParameters = args;
+			function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), encodedParameters, argABITypes);
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
@@ -175,7 +186,7 @@ namespace locic {
 			}
 			
 			// Return values need to be decoded according to the ABI.
-			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first.copy(), argInfo.returnType().second);
+			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first, argInfo.returnType().second);
 		}
 		
 	}

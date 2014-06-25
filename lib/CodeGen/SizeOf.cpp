@@ -333,9 +333,6 @@ namespace locic {
 			
 			assert(!typeInstance->isInterface() && !typeInstance->isClassDecl() && !typeInstance->isPrimitive());
 			
-			std::vector<llvm_abi::Type> abiTypes;
-			abiTypes.push_back(llvm_abi::Type::Integer(llvm_abi::SizeT));
-			
 			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
 			
 			const auto& typeVars = typeInstance->variables();

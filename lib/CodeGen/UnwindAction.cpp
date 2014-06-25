@@ -6,10 +6,9 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		UnwindAction UnwindAction::Destroy(SEM::Type* type, llvm::Value* value) {
+		UnwindAction UnwindAction::Destroy(llvm::BasicBlock* destroyBlock) {
 			UnwindAction action(UnwindAction::DESTRUCTOR);
-			action.actions_.destroyAction.type = type;
-			action.actions_.destroyAction.value = value;
+			action.actions_.destroyAction.block = destroyBlock;
 			return action;
 		}
 		
@@ -20,30 +19,33 @@ namespace locic {
 			return action;
 		}
 		
-		UnwindAction UnwindAction::ScopeMarker() {
-			return UnwindAction(UnwindAction::SCOPEMARKER);
+		UnwindAction UnwindAction::ScopeMarker(llvm::BasicBlock* scopeEndBlock) {
+			UnwindAction action(UnwindAction::SCOPEMARKER);
+			action.actions_.scopeMarker.block = scopeEndBlock;
+			return action;
 		}
 		
-		UnwindAction UnwindAction::StatementMarker() {
-			return UnwindAction(UnwindAction::STATEMENTMARKER);
+		UnwindAction UnwindAction::StatementMarker(llvm::BasicBlock* statementEndBlock) {
+			UnwindAction action(UnwindAction::STATEMENTMARKER);
+			action.actions_.statementMarker.block = statementEndBlock;
+			return action;
 		}
 		
-		UnwindAction UnwindAction::ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock) {
+		UnwindAction UnwindAction::ControlFlow(llvm::BasicBlock* actionBlock) {
 			UnwindAction action(UnwindAction::CONTROLFLOW);
-			action.actions_.controlFlowAction.breakBlock = breakBlock;
-			action.actions_.controlFlowAction.continueBlock = continueBlock;
+			action.actions_.controlFlowAction.block = actionBlock;
 			return action;
 		}
 		
-		UnwindAction UnwindAction::ScopeExit(ScopeExitState state, SEM::Scope* scope) {
+		UnwindAction UnwindAction::ScopeExit(llvm::BasicBlock* actionBlock) {
 			UnwindAction action(UnwindAction::SCOPEEXIT);
-			action.actions_.scopeExitAction.state = state;
-			action.actions_.scopeExitAction.scope = scope;
+			action.actions_.scopeExitAction.block = actionBlock;
 			return action;
 		}
 		
-		UnwindAction UnwindAction::CatchBlock(llvm::Value* exceptionValue) {
+		UnwindAction UnwindAction::CatchBlock(llvm::BasicBlock* destroyBlock, llvm::Value* exceptionValue) {
 			UnwindAction action(UnwindAction::CATCHBLOCK);
+			action.actions_.catchBlock.block = destroyBlock;
 			action.actions_.catchBlock.exceptionValue = exceptionValue;
 			return action;
 		}
@@ -80,14 +82,9 @@ namespace locic {
 			return kind() == UnwindAction::CATCHBLOCK;
 		}
 		
-		SEM::Type* UnwindAction::destroyType() const {
+		llvm::BasicBlock* UnwindAction::destroyBlock() const {
 			assert(isDestructor());
-			return actions_.destroyAction.type;
-		}
-		
-		llvm::Value* UnwindAction::destroyValue() const {
-			assert(isDestructor());
-			return actions_.destroyAction.value;
+			return actions_.destroyAction.block;
 		}
 		
 		llvm::BasicBlock* UnwindAction::catchBlock() const {
@@ -100,29 +97,55 @@ namespace locic {
 			return actions_.catchAction.typeInfo;
 		}
 		
-		llvm::BasicBlock* UnwindAction::breakBlock() const {
+		llvm::BasicBlock* UnwindAction::scopeEndBlock() const {
+			assert(isScopeMarker());
+			return actions_.scopeMarker.block;
+		}
+		
+		llvm::BasicBlock* UnwindAction::statementEndBlock() const {
+			assert(isStatementMarker());
+			return actions_.statementMarker.block;
+		}
+		
+		llvm::BasicBlock* UnwindAction::controlFlowBlock() const {
 			assert(isControlFlow());
-			return actions_.controlFlowAction.breakBlock;
+			return actions_.controlFlowAction.block;
 		}
 		
-		llvm::BasicBlock* UnwindAction::continueBlock() const {
-			assert(isControlFlow());
-			return actions_.controlFlowAction.continueBlock;
-		}
-		
-		ScopeExitState UnwindAction::scopeExitState() const {
+		llvm::BasicBlock* UnwindAction::scopeExitBlock() const {
 			assert(isScopeExit());
-			return actions_.scopeExitAction.state;
+			return actions_.scopeExitAction.block;
 		}
 		
-		SEM::Scope* UnwindAction::scopeExitScope() const {
-			assert(isScopeExit());
-			return actions_.scopeExitAction.scope;
+		llvm::BasicBlock* UnwindAction::destroyExceptionBlock() const {
+			assert(isCatchBlock());
+			return actions_.catchBlock.block;
 		}
 		
 		llvm::Value* UnwindAction::catchExceptionValue() const {
 			assert(isCatchBlock());
 			return actions_.catchBlock.exceptionValue;
+		}
+		
+		llvm::BasicBlock* UnwindAction::unwindBlock() const {
+			switch (kind()) {
+				case DESTRUCTOR:
+					return destroyBlock();
+				case CATCH:
+					return catchBlock();
+				case SCOPEMARKER:
+					return scopeEndBlock();
+				case STATEMENTMARKER:
+					return statementEndBlock();
+				case CONTROLFLOW:
+					return controlFlowBlock();
+				case SCOPEEXIT:
+					return scopeExitBlock();
+				case CATCHBLOCK:
+					return destroyExceptionBlock();
+				default:
+					return nullptr;
+			}
 		}
 		
 	}

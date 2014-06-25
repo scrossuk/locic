@@ -64,7 +64,7 @@ namespace locic {
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
 		
 		TypePair pathType(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(llvm_abi::Int32),
+			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int32),
 				TypeGenerator(module).getI32Type());
 		}
 		
@@ -89,29 +89,30 @@ namespace locic {
 			return structType;
 		}
 		
-		llvm_abi::Type templateGeneratorABIType() {
-			std::vector<llvm_abi::Type> types;
+		llvm_abi::Type* templateGeneratorABIType(Module& module) {
+			auto& abiContext = module.abiContext();
+			std::vector<llvm_abi::Type*> types;
 			types.reserve(2);
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(llvm_abi::Type::Integer(llvm_abi::Int32));
-			return llvm_abi::Type::AutoStruct(std::move(types));
+			types.push_back(llvm_abi::Type::Pointer(abiContext));
+			types.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int32));
+			return llvm_abi::Type::AutoStruct(abiContext, types);
 		}
 		
 		TypePair templateGeneratorType(Module& module) {
-			return std::make_pair(templateGeneratorABIType(), templateGeneratorLLVMType(module));
+			const auto iterator = module.standardTypeMap().find(TemplateGeneratorType);
+			if (iterator != module.standardTypeMap().end()) {
+				return iterator->second;
+			}
+			
+			const auto type = std::make_pair(templateGeneratorABIType(module), templateGeneratorLLVMType(module));
+			module.standardTypeMap().insert(std::make_pair(TemplateGeneratorType, type));
+			return type;
 		}
 		
 		llvm::Type* typeInfoLLVMType(Module& module) {
-			const auto existingType = module.typeInfoType();
-			if (existingType != nullptr) {
-				return existingType;
-			}
-			
 			TypeGenerator typeGen(module);
 			const auto name = "__type_info";
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
-			
-			module.setTypeInfoType(structType);
 			
 			std::vector<llvm::Type*> structMembers;
 			structMembers.reserve(2);
@@ -122,22 +123,31 @@ namespace locic {
 			return structType;
 		}
 		
-		llvm_abi::Type typeInfoABIType() {
-			std::vector<llvm_abi::Type> types;
+		llvm_abi::Type* typeInfoABIType(Module& module) {
+			auto& abiContext = module.abiContext();
+			std::vector<llvm_abi::Type*> types;
 			types.reserve(2);
-			types.push_back(llvm_abi::Type::Pointer());
-			types.push_back(templateGeneratorABIType());
-			return llvm_abi::Type::AutoStruct(std::move(types));
+			types.push_back(llvm_abi::Type::Pointer(abiContext));
+			types.push_back(templateGeneratorABIType(module));
+			return llvm_abi::Type::AutoStruct(abiContext, types);
 		}
 		
 		TypePair typeInfoType(Module& module) {
-			return std::make_pair(typeInfoABIType(), typeInfoLLVMType(module));
+			const auto iterator = module.standardTypeMap().find(TypeInfoType);
+			if (iterator != module.standardTypeMap().end()) {
+				return iterator->second;
+			}
+			
+			const auto type = std::make_pair(typeInfoABIType(module), typeInfoLLVMType(module));
+			module.standardTypeMap().insert(std::make_pair(TypeInfoType, type));
+			return type;
 		}
 		
 		TypePair typeInfoArrayType(Module& module) {
+			const auto typeInfo = typeInfoType(module);
+			auto& abiContext = module.abiContext();
 			TypeGenerator typeGen(module);
-			auto typeInfo = typeInfoType(module);
-			return std::make_pair(llvm_abi::Type::Array(TYPE_INFO_ARRAY_SIZE, std::move(typeInfo.first)),
+			return std::make_pair(llvm_abi::Type::Array(abiContext, TYPE_INFO_ARRAY_SIZE, typeInfo.first),
 				typeGen.getArrayType(typeInfo.second, TYPE_INFO_ARRAY_SIZE));
 		}
 		
@@ -145,7 +155,7 @@ namespace locic {
 			std::vector<TypePair> types;
 			types.reserve(1);
 			types.push_back(pathType(module));
-			return ArgInfo::Basic(module, typeInfoArrayType(module), std::move(types));
+			return ArgInfo::Basic(module, typeInfoArrayType(module), types);
 		}
 		
 		llvm::Value* computeTemplateArguments(Function& function, llvm::Value* generatorValue) {
@@ -182,7 +192,8 @@ namespace locic {
 		
 		ArgInfo bitsRequiredArgInfo(Module& module) {
 			TypeGenerator typeGen(module);
-			return ArgInfo::Basic(module, std::make_pair(llvm_abi::Type::Integer(llvm_abi::Int32), typeGen.getI32Type()), {});
+			return ArgInfo::Basic(module,
+				std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int32), typeGen.getI32Type()), {});
 		}
 		
 		llvm::Function* genBitsRequiredFunctionDecl(Module& module, TemplateBuilder& templateBuilder) {
@@ -343,13 +354,20 @@ namespace locic {
 		}
 		
 		ArgInfo intermediateFunctionArgInfo(Module& module) {
+			auto& abiContext = module.abiContext();
+			
 			std::vector<TypePair> argTypes;
+			argTypes.reserve(4);
+			
 			argTypes.push_back(typeInfoArrayType(module));
+			
 			const auto rootFunctionType = rootFunctionArgInfo(module).makeFunctionType();
-			argTypes.push_back(std::make_pair(llvm_abi::Type::Pointer(), rootFunctionType->getPointerTo()));
+			argTypes.push_back(std::make_pair(llvm_abi::Type::Pointer(abiContext), rootFunctionType->getPointerTo()));
+			
 			argTypes.push_back(pathType(module));
-			argTypes.push_back(std::make_pair(llvm_abi::Type::Integer(llvm_abi::Int8), TypeGenerator(module).getI8Type()));
-			return ArgInfo::Basic(module, typeInfoArrayType(module), std::move(argTypes));
+			argTypes.push_back(std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8), TypeGenerator(module).getI8Type()));
+			
+			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes);
 		}
 		
 		llvm::Function* genTemplateIntermediateFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {

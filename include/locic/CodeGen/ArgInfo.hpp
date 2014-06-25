@@ -16,8 +16,6 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		typedef std::pair<llvm_abi::Type, llvm::Type*> TypePair;
-		
 		TypePair voidTypePair(Module& module);
 		
 		TypePair sizeTypePair(Module& module);
@@ -32,7 +30,7 @@ namespace locic {
 				
 				static ArgInfo VoidTemplateOnly(Module& module);
 				
-				static ArgInfo Templated(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes);
+				static ArgInfo Templated(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes);
 				
 				static ArgInfo TemplateOnly(Module& module, TypePair returnType);
 				
@@ -40,9 +38,9 @@ namespace locic {
 				
 				static ArgInfo TemplateAndContext(Module& module, TypePair returnType);
 				
-				static ArgInfo Basic(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes);
+				static ArgInfo Basic(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes);
 				
-				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair returnType, std::vector<TypePair> argumentTypes);
+				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair returnType, const std::vector<TypePair>& argumentTypes);
 				
 				ArgInfo(ArgInfo&&) = default;
 				ArgInfo& operator=(ArgInfo&&) = default;

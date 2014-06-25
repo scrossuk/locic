@@ -11,6 +11,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -57,6 +58,23 @@ namespace locic {
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				VirtualCall::generateDestructorCall(function, typeInfo, castValue);
 			}
+		}
+		
+		void scheduleDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
+			if (!typeHasDestructor(function.module(), type->getObjectType())) {
+				return;
+			}
+			
+			const auto currentBB = function.getSelectedBasicBlock();
+			
+			const auto destroyBB = function.createBasicBlock("destroyBlock");
+			function.selectBasicBlock(destroyBB);
+			genDestructorCall(function, type, value);
+			function.getBuilder().CreateBr(getNextUnwindBlock(function));
+			
+			function.unwindStack().push_back(UnwindAction::Destroy(destroyBB));
+			
+			function.selectBasicBlock(currentBB);
 		}
 		
 		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {

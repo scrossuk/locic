@@ -400,7 +400,7 @@ namespace locic {
 					const auto llvmPtrValue = makePtr(function, llvmDataValue, dataValue->type());
 					
 					// Call destructor for the object at the end of the current scope.
-					function.unwindStack().push_back(UnwindAction::Destroy(dataValue->type(), llvmPtrValue));
+					scheduleDestructorCall(function, dataValue->type(), llvmPtrValue);
 					
 					return llvmPtrValue;
 				}

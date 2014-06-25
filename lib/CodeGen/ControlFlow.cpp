@@ -14,57 +14,57 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genControlFlowBreak(Function& function) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* breakBlock = nullptr;
-			
-			// Call all destructors until the next control flow point.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isControlFlow()) {
-					breakBlock = action.breakBlock();
-					break;
-				}
-				
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			assert(breakBlock != nullptr);
-			
-			function.getBuilder().CreateBr(breakBlock);
+			// Switch the unwind state to 'break'
+			// and jump to the first unwind block.
+			setCurrentUnwindState(function, UnwindStateBreak);
+			function.getBuilder().CreateBr(getNextUnwindBlock(function));
 		}
 		
 		void genControlFlowContinue(Function& function) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* continueBlock = nullptr;
-			
-			// Perform all exit actions until the next control flow point.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isControlFlow()) {
-					continueBlock = action.continueBlock();
-					break;
-				}
-				
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			assert(continueBlock != nullptr);
-			
-			function.getBuilder().CreateBr(continueBlock);
+			// Switch the unwind state to 'continue'
+			// and jump to the first unwind block.
+			setCurrentUnwindState(function, UnwindStateContinue);
+			function.getBuilder().CreateBr(getNextUnwindBlock(function));
 		}
 		
-		ControlFlowScope::ControlFlowScope(UnwindStack& unwindStack, llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock)
-			: unwindStack_(unwindStack) {
-				assert(breakBlock != nullptr && continueBlock != nullptr);
-				unwindStack_.push_back(UnwindAction::ControlFlow(breakBlock, continueBlock));
+		llvm::BasicBlock* genControlFlowBlock(Function& function, llvm::BasicBlock* breakBB, llvm::BasicBlock* continueBB) {
+			const auto currentBB = function.getSelectedBasicBlock();
+			
+			const auto unwindBB = function.createBasicBlock("controlFlow");
+			const auto isBreakBB = function.createBasicBlock("");
+			const auto isContinueBB = function.createBasicBlock("");
+			const auto testIsContinueBB = function.createBasicBlock("");
+			const auto nextUnwindBB = getNextUnwindBlock(function);
+			
+			function.selectBasicBlock(unwindBB);
+			const auto isBreakState = getIsCurrentUnwindState(function, UnwindStateBreak);
+			function.getBuilder().CreateCondBr(isBreakState, isBreakBB, testIsContinueBB);
+			
+			function.selectBasicBlock(testIsContinueBB);
+			const auto isContinueState = getIsCurrentUnwindState(function, UnwindStateContinue);
+			function.getBuilder().CreateCondBr(isContinueState, isContinueBB, nextUnwindBB);
+			
+			function.selectBasicBlock(isBreakBB);
+			// Set unwind state to 'normal'.
+			setCurrentUnwindState(function, UnwindStateNormal);
+			function.getBuilder().CreateBr(breakBB);
+			
+			function.selectBasicBlock(isContinueBB);
+			// Set unwind state to 'normal'.
+			setCurrentUnwindState(function, UnwindStateNormal);
+			function.getBuilder().CreateBr(continueBB);
+			
+			function.selectBasicBlock(currentBB);
+			
+			return unwindBB;
+		}
+		
+		ControlFlowScope::ControlFlowScope(Function& function, llvm::BasicBlock* breakBB, llvm::BasicBlock* continueBB)
+			: unwindStack_(function.unwindStack()) {
+				assert(breakBB != nullptr && continueBB != nullptr);
+				
+				const auto actionBB = genControlFlowBlock(function, breakBB, continueBB);
+				unwindStack_.push_back(UnwindAction::ControlFlow(actionBB));
 			}
 		
 		ControlFlowScope::~ControlFlowScope() {

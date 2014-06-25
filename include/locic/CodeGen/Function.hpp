@@ -40,6 +40,10 @@ namespace locic {
 				
 				void returnValue(llvm::Value* value);
 				
+				void setReturnValue(llvm::Value* value);
+				
+				llvm::Value* getRawReturnValue();
+				
 				llvm::Function& getLLVMFunction();
 				
 				llvm::Function* getLLVMFunctionPtr();
@@ -92,28 +96,13 @@ namespace locic {
 				
 				SizeOfMap& getSizeOfMap();
 				
-				/**
-				 * \brief Push a new unwind stack on the stack of unwind stacks.
-				 * 
-				 * This will copy the top unwind stack up to the position
-				 * specified to a new unwind stack which is then pushed on
-				 * to the stack of unwind stacks.
-				 * 
-				 * This is used for scope exit actions, since they need a new
-				 * partial unwind stack when their code is being generated,
-				 * since a scope(success) block is allowed to throw.
-				 */
-				void pushUnwindStack(size_t position);
-				
-				/**
-				 * \brief Pop an unwind stack previous pushed.
-				 */
-				void popUnwindStack();
-				
 				UnwindStack& unwindStack();
 				
-				const UnwindStack& unwindStack() const;
+				// Value to determine the state during unwinding.
+				llvm::Value* unwindState();
 				
+				// Value to determine information about an exception
+				// currently being handled.
 				llvm::Value* exceptionInfo();
 				
 				void attachDebugInfo(llvm::DISubprogram subprogram);
@@ -138,14 +127,15 @@ namespace locic {
 				MemberOffsetMap memberOffsetMap_;
 				SizeOfMap sizeOfMap_;
 				
-				// A 'stack' of unwind stacks.
-				std::stack<UnwindStack> unwindStackStack_;
+				UnwindStack unwindStack_;
 				
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;
 				
 				llvm::Value* exceptionInfo_;
+				llvm::Value* returnValuePtr_;
 				llvm::Value* templateArgs_;
+				llvm::Value* unwindState_;
 				
 		};
 		

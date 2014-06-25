@@ -38,12 +38,6 @@ namespace locic {
 			}
 		}
 		
-		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type type) {
-			std::vector<llvm_abi::Type> abiTypes;
-			abiTypes.push_back(std::move(type));
-			return function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), {value}, abiTypes).at(0);
-		}
-		
 		llvm::Value* genStatementValue(Function& function, SEM::Value* value) {
 			// Ensure any objects that only exist until the end of
 			// the statement are destroyed.
@@ -188,7 +182,7 @@ namespace locic {
 					function.selectBasicBlock(loopIterationBB);
 					
 					{
-						ControlFlowScope controlFlowScope(function.unwindStack(), loopEndBB, loopAdvanceBB);
+						ControlFlowScope controlFlowScope(function, loopEndBB, loopAdvanceBB);
 						genScope(function, statement->getLoopIterationScope());
 					}
 					
@@ -210,42 +204,29 @@ namespace locic {
 				}
 				
 				case SEM::Statement::RETURN: {
-					llvm::Instruction* returnInst = nullptr;
-					
 					if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
 						if (function.getArgInfo().hasReturnVarArgument()) {
 							const auto returnValue = genStatementValue(function, statement->getReturnValue());
 							
 							// Store the return value into the return value pointer.
 							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
-							
-							// Perform all exit actions.
-							genAllScopeExitActions(function);
-							
-							returnInst = function.getBuilder().CreateRetVoid();
 						} else {
-							const auto returnValue = genStatementValue(function, statement->getReturnValue());
-							
-							const auto encodedReturnValue = encodeReturnValue(function, returnValue, genABIType(function.module(), statement->getReturnValue()->type()));
-							
-							// Perform all exit actions.
-							genAllScopeExitActions(function);
-							
-							returnInst = function.getBuilder().CreateRet(encodedReturnValue);
+							// Return the value directly, which actually involves it
+							// being stored in a stack allocated block and then loaded
+							// and returned in the top unwind block.
+							// TODO: add debug location.
+							function.setReturnValue(genStatementValue(function, statement->getReturnValue()));
 						}
-					} else {
-						// Perform all exit actions.
-						genAllScopeExitActions(function);
-						
-						returnInst = function.getBuilder().CreateRetVoid();
 					}
 					
-					if (hasDebugInfo) {
-						returnInst->setDebugLoc(debugLocation);
-					}
+					// Set unwind state to 'return'.
+					setCurrentUnwindState(function, UnwindStateReturn);
 					
-					// Need a basic block after a return statement in case anything more is generated.
-					// This (and any following code) will be removed by dead code elimination.
+					// Jump to next unwind block, which will eventually lead
+					// to a return statement in the top unwind block.
+					function.getBuilder().CreateBr(getNextUnwindBlock(function));
+					
+					// Basic block for any further instructions generated.
 					function.selectBasicBlock(function.createBasicBlock("afterReturn"));
 					break;
 				}
@@ -261,21 +242,29 @@ namespace locic {
 					
 					assert(catchTypeList.size() == statement->getTryCatchList().size());
 					
-					const auto catchBlock = function.createBasicBlock("catch");
+					const auto catchBB = function.createBasicBlock("catch");
+					const auto afterCatchBB = function.createBasicBlock("afterCatch");
 					
 					// Execute the 'try' scope, pushing the exception
 					// handlers onto the unwind stack.
 					{
-						TryScope tryScope(function.unwindStack(), catchBlock, catchTypeList);
+						TryScope tryScope(function.unwindStack(), catchBB, catchTypeList);
 						genScope(function, statement->getTryScope());
 					}
 					
-					const auto afterCatchBlock = function.createBasicBlock("afterCatch");
-					
 					// No exception thrown; continue normal execution.
-					function.getBuilder().CreateBr(afterCatchBlock);
+					function.getBuilder().CreateBr(afterCatchBB);
 					
-					function.selectBasicBlock(catchBlock);
+					function.selectBasicBlock(catchBB);
+					
+					const auto nextUnwindBB = getNextUnwindBlock(function);
+					
+					// Check if unwinding due an exception.
+					const auto isExceptionState = getIsCurrentExceptState(function);
+					
+					const auto handleExceptBB = function.createBasicBlock("");
+					function.getBuilder().CreateCondBr(isExceptionState, handleExceptBB, nextUnwindBB);
+					function.selectBasicBlock(handleExceptBB);
 					
 					// Load selector of exception thrown.
 					const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
@@ -284,8 +273,8 @@ namespace locic {
 					
 					for (size_t i = 0; i < statement->getTryCatchList().size(); i++) {
 						const auto catchClause = statement->getTryCatchList().at(i);
-						const auto executeCatchBlock = function.createBasicBlock("executeCatch");
-						const auto tryNextCatchBlock = function.createBasicBlock("tryNextCatch");
+						const auto executeCatchBB = function.createBasicBlock("executeCatch");
+						const auto tryNextCatchBB = function.createBasicBlock("tryNextCatch");
 						
 						// Call llvm.eh.typeid.for intrinsic to get
 						// the selector for the catch type.
@@ -295,11 +284,11 @@ namespace locic {
 						
 						// Check thrown selector against catch selector.
 						const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
-						function.getBuilder().CreateCondBr(compareResult, executeCatchBlock, tryNextCatchBlock);
+						function.getBuilder().CreateCondBr(compareResult, executeCatchBB, tryNextCatchBB);
 						
 						// If matched, execute catch block and then continue normal execution.
 						{
-							function.selectBasicBlock(executeCatchBlock);
+							function.selectBasicBlock(executeCatchBB);
 							const auto catchType = genType(function.module(), catchClause->var()->constructType());
 							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module),
 								std::vector<llvm::Value*>{ thrownExceptionValue });
@@ -308,26 +297,30 @@ namespace locic {
 							assert(catchClause->var()->isBasic());
 							function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
 							
+							// Set unwind state to 'normal'.
+							setCurrentUnwindState(function, UnwindStateNormal);
+							
 							{
+								ScopeLifetime catchScopeLifetime(function);
+								
 								// Make sure the exception object is freed at the end
 								// of the catch block (unless it is rethrown).
-								ScopeLifetime catchScopeLifetime(function);
-								function.unwindStack().push_back(UnwindAction::CatchBlock(exceptionPtrValue));
+								scheduleExceptionDestroy(function, exceptionPtrValue);
+								
 								genScope(function, catchClause->scope());
 							}
 							
 							// Exception was handled, so re-commence normal execution.
-							function.getBuilder().CreateBr(afterCatchBlock);
+							function.getBuilder().CreateBr(afterCatchBB);
 						}
 						
-						function.selectBasicBlock(tryNextCatchBlock);
+						function.selectBasicBlock(tryNextCatchBB);
 					}
 					
 					// If not matched, keep unwinding.
-					const bool isRethrow = false;
-					genExceptionUnwind(function, exceptionInfo, isRethrow);
+					function.getBuilder().CreateBr(nextUnwindBB);
 					
-					function.selectBasicBlock(afterCatchBlock);
+					function.selectBasicBlock(afterCatchBB);
 					break;
 				}
 				
@@ -367,6 +360,7 @@ namespace locic {
 					
 					// ==== 'throw' function DOES throw: Landing pad for running destructors/catch blocks.
 					function.selectBasicBlock(throwPath);
+					
 					const bool isRethrow = false;
 					genLandingPad(function, isRethrow);
 					
@@ -410,6 +404,7 @@ namespace locic {
 					
 					// ==== 'rethrow' function DOES throw: Landing pad for running destructors/catch blocks.
 					function.selectBasicBlock(throwPath);
+					
 					const bool isRethrow = true;
 					genLandingPad(function, isRethrow);
 					
@@ -419,16 +414,56 @@ namespace locic {
 				}
 				
 				case SEM::Statement::SCOPEEXIT: {
-					ScopeExitState state = SCOPEEXIT_ALWAYS;
+					const auto currentBB = function.getSelectedBasicBlock();
+					
 					if (statement->getScopeExitState() == "exit") {
-						state = SCOPEEXIT_ALWAYS;
+						// scope(exit) is run for all unwind states.
+						
+						const auto scopeExitBB = function.createBasicBlock("scopeExit");
+						function.selectBasicBlock(scopeExitBB);
+						genScope(function, statement->getScopeExitScope());
+						function.getBuilder().CreateBr(getNextUnwindBlock(function));
+						
+						function.unwindStack().push_back(UnwindAction::ScopeExit(scopeExitBB));
 					} else if (statement->getScopeExitState() == "success") {
-						state = SCOPEEXIT_SUCCESS;
+						// scope(success) is only run when an exception is NOT active.
+						
+						const auto scopeSuccessBB = function.createBasicBlock("scopeSuccess");
+						function.selectBasicBlock(scopeSuccessBB);
+						
+						const auto runActionBB = function.createBasicBlock("");
+						const auto afterActionBB = getNextUnwindBlock(function);
+						
+						const auto isExceptState = getIsCurrentExceptState(function);
+						function.getBuilder().CreateCondBr(isExceptState, afterActionBB, runActionBB);
+						
+						function.selectBasicBlock(runActionBB);
+						genScope(function, statement->getScopeExitScope());
+						function.getBuilder().CreateBr(afterActionBB);
+						
+						function.unwindStack().push_back(UnwindAction::ScopeExit(scopeSuccessBB));
 					} else if (statement->getScopeExitState() == "failure") {
-						state = SCOPEEXIT_FAILURE;
+						// scope(failure) is only run when an exception is active.
+						
+						const auto scopeFailureBB = function.createBasicBlock("scopeFailure");
+						function.selectBasicBlock(scopeFailureBB);
+						
+						const auto runActionBB = function.createBasicBlock("");
+						const auto afterActionBB = getNextUnwindBlock(function);
+						
+						const auto isExceptState = getIsCurrentExceptState(function);
+						function.getBuilder().CreateCondBr(isExceptState, runActionBB, afterActionBB);
+						
+						function.selectBasicBlock(runActionBB);
+						genScope(function, statement->getScopeExitScope());
+						function.getBuilder().CreateBr(afterActionBB);
+						
+						function.unwindStack().push_back(UnwindAction::ScopeExit(scopeFailureBB));
+					} else {
+						llvm_unreachable("Unknown scope exit action kind.");
 					}
 					
-					function.unwindStack().push_back(UnwindAction::ScopeExit(state, &(statement->getScopeExitScope())));
+					function.selectBasicBlock(currentBB);
 					break;
 				}
 				

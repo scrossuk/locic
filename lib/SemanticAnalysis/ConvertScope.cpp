@@ -34,6 +34,7 @@ namespace locic {
 			assert(astScope.get() != nullptr);
 			
 			const auto semScope = new SEM::Scope();
+			semScope->statements().reserve(astScope->statements->size());
 			
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Scope(semScope));
 			

@@ -6,6 +6,7 @@
 #include <locic/Map.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -42,12 +43,11 @@ namespace locic {
 			  sizeOfMap_(isTypeLessThan),
 			  debugInfo_(nullptr),
 			  exceptionInfo_(nullptr),
-			  templateArgs_(nullptr) {
+			  returnValuePtr_(nullptr),
+			  templateArgs_(nullptr),
+			  unwindState_(nullptr) {
 			assert(function.isDeclaration());
 			assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
-			
-			// Add a bottom level unwind stack.
-			unwindStackStack_.push(UnwindStack());
 			
 			// Create an 'entry' basic block for holding
 			// instructions like allocas and debug_declares
@@ -63,29 +63,72 @@ namespace locic {
 			
 			builder_.SetInsertPoint(startBB);
 			
-			// Decode arguments according to ABI.
-			std::vector<llvm::Value*> encodedArgValues;
-			
+			argValues_.reserve(function_.arg_size());
 			for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
-				encodedArgValues.push_back(arg);
+				argValues_.push_back(arg);
 			}
 			
-			std::vector<llvm_abi::Type> argABITypes;
+			std::vector<llvm_abi::Type*> argABITypes;
+			argABITypes.reserve(argInfo.argumentTypes().size());
+			
 			std::vector<llvm::Type*> argLLVMTypes;
+			argLLVMTypes.reserve(argInfo.argumentTypes().size());
+			
 			for (const auto& typePair: argInfo.argumentTypes()) {
-				argABITypes.push_back(typePair.first.copy());
+				argABITypes.push_back(typePair.first);
 				argLLVMTypes.push_back(typePair.second);
 			}
 			
-			argValues_ = module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), encodedArgValues, argABITypes, argLLVMTypes);
+			// Decode arguments according to ABI.
+			module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), argValues_, argABITypes, argLLVMTypes);
 		}
 		
 		void Function::returnValue(llvm::Value* value) {
+			assert(!argInfo_.hasReturnVarArgument());
+			assert(!value->getType()->isVoidTy());
+			
 			// Encode return value according to ABI.
-			std::vector<llvm_abi::Type> abiTypes;
-			abiTypes.push_back(getArgInfo().returnType().first.copy());
-			const auto encodedValue = module().abi().encodeValues(getEntryBuilder(), getBuilder(), { value }, abiTypes).at(0);
-			getBuilder().CreateRet(encodedValue);
+			std::vector<llvm_abi::Type*> abiTypes;
+			abiTypes.push_back(getArgInfo().returnType().first);
+			
+			std::vector<llvm::Value*> values;
+			values.push_back(value);
+			module().abi().encodeValues(getEntryBuilder(), getBuilder(), values, abiTypes);
+			
+			getBuilder().CreateRet(values.at(0));
+		}
+		
+		void Function::setReturnValue(llvm::Value* value) {
+			assert(!argInfo_.hasReturnVarArgument());
+			assert(!value->getType()->isVoidTy());
+			
+			// Encode return value according to ABI.
+			std::vector<llvm_abi::Type*> abiTypes;
+			abiTypes.push_back(getArgInfo().returnType().first);
+			
+			std::vector<llvm::Value*> values;
+			values.push_back(value);
+			module().abi().encodeValues(getEntryBuilder(), getBuilder(), values, abiTypes);
+			
+			const auto encodedValue = values.at(0);
+			
+			if (returnValuePtr_ == nullptr) {
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(encodedValue->getType());
+			}
+			
+			getBuilder().CreateStore(encodedValue, returnValuePtr_);
+		}
+		
+		llvm::Value* Function::getRawReturnValue() {
+			if (argInfo_.hasReturnVarArgument() || argInfo_.returnType().second->isVoidTy()) {
+				return nullptr;
+			}
+			
+			if (returnValuePtr_ == nullptr) {
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(function_.getFunctionType()->getReturnType());
+			}
+			
+			return getBuilder().CreateLoad(returnValuePtr_);
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
@@ -188,7 +231,7 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-			//(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
 		}
 		
 		Function::LocalVarMap& Function::getLocalVarMap() {
@@ -207,20 +250,20 @@ namespace locic {
 			return sizeOfMap_;
 		}
 		
-		void Function::pushUnwindStack(size_t position) {
-			unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
-		}
-		
-		void Function::popUnwindStack() {
-			unwindStackStack_.pop();
-		}
-		
 		UnwindStack& Function::unwindStack() {
-			return unwindStackStack_.top();
+			return unwindStack_;
 		}
 		
-		const UnwindStack& Function::unwindStack() const {
-			return unwindStackStack_.top();
+		llvm::Value* Function::unwindState() {
+			if (unwindState_ == nullptr) {
+				const auto i8Type = TypeGenerator(module_).getI8Type();
+				
+				// Zero state means 'normal execution'.
+				const auto zero = ConstantGenerator(module_).getI8(0);
+				unwindState_ = getEntryBuilder().CreateAlloca(i8Type, nullptr, "unwindState");
+				getEntryBuilder().CreateStore(zero, unwindState_);
+			}
+			return unwindState_;
 		}
 		
 		llvm::Value* Function::exceptionInfo() {

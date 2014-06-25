@@ -1,7 +1,6 @@
 #ifndef LLVMABI_ABITYPE_HPP
 #define LLVMABI_ABITYPE_HPP
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -54,6 +53,7 @@ namespace llvm_abi {
 	};
 	
 	// Forward declaration.
+	class Context;
 	class StructMember;
 	
 	/**
@@ -67,47 +67,39 @@ namespace llvm_abi {
 			/**
 			 * \brief Integer Type
 			 */
-			static Type Pointer();
+			static Type* Pointer(Context& context);
 			
 			/**
 			 * \brief Integer Type
 			 */
-			static Type Integer(IntegerKind kind);
+			static Type* Integer(Context& context, IntegerKind kind);
 			
 			/**
 			 * \brief Floating Point Type
 			 */
-			static Type FloatingPoint(FloatingPointKind kind);
+			static Type* FloatingPoint(Context& context, FloatingPointKind kind);
 			
 			/**
 			 * \brief Complex Type
 			 */
-			static Type Complex(FloatingPointKind kind);
+			static Type* Complex(Context& context, FloatingPointKind kind);
 			
 			/**
 			 * \brief Struct Type
 			 */
-			static Type Struct(std::vector<StructMember> members);
+			static Type* Struct(Context& context, std::vector<StructMember> members);
 			
 			/**
 			 * \brief Auto-aligned Struct Type
 			 */
-			static Type AutoStruct(std::vector<Type> memberTypes);
+			static Type* AutoStruct(Context& context, const std::vector<Type*>& memberTypes);
 			
 			/**
 			 * \brief Array Type
 			 */
-			static Type Array(size_t elementCount, Type elementType);
+			static Type* Array(Context& context, size_t elementCount, Type* elementType);
 			
-			Type();
-			
-			Type(Type&&) = default;
-			
-			Type& operator=(Type&&) = default;
-			
-			~Type();
-			
-			Type copy() const;
+			bool operator<(const Type& type) const;
 			
 			TypeKind kind() const;
 			
@@ -133,11 +125,13 @@ namespace llvm_abi {
 			
 			size_t arrayElementCount() const;
 			
-			const Type& arrayElementType() const;
+			Type* arrayElementType() const;
 			
 			std::string toString() const;
 			
 		private:
+			Type(TypeKind kind);
+			
 			TypeKind kind_;
 			
 			union {
@@ -152,30 +146,22 @@ namespace llvm_abi {
 			
 			struct {
 				size_t elementCount;
-				std::unique_ptr<Type> elementType;
+				Type* elementType;
 			} arrayType_;
 			
 	};
 	
 	class StructMember {
 		public:
-			inline static StructMember AutoOffset(Type type) {
-				return StructMember(std::move(type), 0);
+			inline static StructMember AutoOffset(Type* type) {
+				return StructMember(type, 0);
 			}
 			
-			inline static StructMember ForceOffset(Type type, size_t offset) {
-				return StructMember(std::move(type), offset);
+			inline static StructMember ForceOffset(Type* type, size_t offset) {
+				return StructMember(type, offset);
 			}
 			
-			inline StructMember copy() const {
-				return StructMember(type().copy(), offset());
-			}
-			
-			inline const Type& type() const {
-				return type_;
-			}
-			
-			inline Type& type() {
+			inline Type* type() const {
 				return type_;
 			}
 			
@@ -184,10 +170,10 @@ namespace llvm_abi {
 			}
 			
 		private:
-			inline StructMember(Type&& pType, size_t pOffset)
-				: type_(std::move(pType)), offset_(pOffset) { }
+			inline StructMember(Type* pType, size_t pOffset)
+				: type_(pType), offset_(pOffset) { }
 			
-			Type type_;
+			Type* type_;
 			size_t offset_;
 			
 	};

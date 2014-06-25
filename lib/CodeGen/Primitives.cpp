@@ -58,7 +58,7 @@ namespace locic {
 				} else {
 					// If the argument is statically known, then the
 					// type information is provided via template generators.
-					align = module.abi().typeAlign(llvm_abi::Type::Pointer());
+					align = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
 				}
 				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(align - 1));
 			} else {
@@ -129,7 +129,7 @@ namespace locic {
 				} else {
 					// If the argument is statically known, then the
 					// type information is provided via template generators.
-					size = module.abi().typeSize(llvm_abi::Type::Pointer());
+					size = module.abi().typeSize(llvm_abi::Type::Pointer(module.abiContext()));
 				}
 				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(size));
 			} else {
@@ -1143,82 +1143,83 @@ namespace locic {
 			return getBasicPrimitiveType(module, module.primitiveKind(name), name);
 		}
 		
-		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type) {
 			assert(isTypeSizeKnownInThisModule(module, type));
 			
 			const auto typeInstance = type->getObjectType();
 			const auto& name = typeInstance->name().last();
 			
+			auto& abiContext = module.abiContext();
 			const auto kind = module.primitiveKind(name);
 			
 			switch (kind) {
 				case PrimitiveVoid:
 					// TODO: use a void type?
-					return llvm_abi::Type::Struct({});
+					return llvm_abi::Type::Struct(abiContext, {});
 				case PrimitiveNull:
-					return llvm_abi::Type::Pointer();
+					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveBool:
-					return llvm_abi::Type::Integer(llvm_abi::Bool);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Bool);
 				case PrimitiveInt8:
 				case PrimitiveUInt8:
-					return llvm_abi::Type::Integer(llvm_abi::Int8);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int8);
 				case PrimitiveInt16:
 				case PrimitiveUInt16:
-					return llvm_abi::Type::Integer(llvm_abi::Int16);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int16);
 				case PrimitiveInt32:
 				case PrimitiveUInt32:
-					return llvm_abi::Type::Integer(llvm_abi::Int32);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
 				case PrimitiveInt64:
 				case PrimitiveUInt64:
-					return llvm_abi::Type::Integer(llvm_abi::Int64);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int64);
 				case PrimitiveByte:
 				case PrimitiveUByte:
-					return llvm_abi::Type::Integer(llvm_abi::Char);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Char);
 				case PrimitiveShort:
 				case PrimitiveUShort:
-					return llvm_abi::Type::Integer(llvm_abi::Short);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Short);
 				case PrimitiveInt:
 				case PrimitiveUInt:
-					return llvm_abi::Type::Integer(llvm_abi::Int);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
 				case PrimitiveLong:
 				case PrimitiveULong:
-					return llvm_abi::Type::Integer(llvm_abi::Long);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Long);
 				case PrimitiveLongLong:
 				case PrimitiveULongLong:
-					return llvm_abi::Type::Integer(llvm_abi::LongLong);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::LongLong);
 				case PrimitiveSize:
 				case PrimitiveSSize:
-					return llvm_abi::Type::Integer(llvm_abi::SizeT);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT);
 				case PrimitiveUnichar:
 					// Unicode characters represented with 32 bits.
-					return llvm_abi::Type::Integer(llvm_abi::Int32);
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
 				case PrimitiveFloat:
-					return llvm_abi::Type::FloatingPoint(llvm_abi::Float);
+					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Float);
 				case PrimitiveDouble:
-					return llvm_abi::Type::FloatingPoint(llvm_abi::Double);
+					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
 				case PrimitiveLongDouble:
-					return llvm_abi::Type::FloatingPoint(llvm_abi::LongDouble);
+					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::LongDouble);
 				case PrimitiveRef: {
 					if (type->templateArguments().at(0)->isInterface()) {
-						return std::move(interfaceStructType(module).first);
+						return interfaceStructType(module).first;
 					} else {
-						return llvm_abi::Type::Pointer();
+						return llvm_abi::Type::Pointer(abiContext);
 					}
 				}
 				case PrimitivePtr:
 				case PrimitivePtrLval:
-					return llvm_abi::Type::Pointer();
+					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveValueLval: {
-					std::vector<llvm_abi::Type> members;
+					std::vector<llvm_abi::Type*> members;
 					members.reserve(2);
 					members.push_back(genABIType(module, type->templateArguments().at(0)));
-					members.push_back(llvm_abi::Type::Integer(llvm_abi::Bool));
-					return llvm_abi::Type::AutoStruct(std::move(members));
+					members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Bool));
+					return llvm_abi::Type::AutoStruct(abiContext, members);
 				}
 				case PrimitiveMemberLval:
 					return genABIType(module, type->templateArguments().at(0));
 				case PrimitiveTypename:
-					return std::move(typeInfoType(module).first);
+					return typeInfoType(module).first;
 				default:
 					llvm_unreachable("Unrecognised primitive type.");
 			}

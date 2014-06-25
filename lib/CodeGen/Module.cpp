@@ -21,7 +21,6 @@ namespace locic {
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
-			  typeInfoType_(nullptr),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
@@ -91,6 +90,10 @@ namespace locic {
 			return *abi_;
 		}
 		
+		llvm_abi::Context& Module::abiContext() {
+			return abiContext_;
+		}
+		
 		llvm::LLVMContext& Module::getLLVMContext() const {
 			return module_->getContext();
 		}
@@ -131,6 +134,10 @@ namespace locic {
 			return memberVarMap_;
 		}
 		
+		StandardTypeMap& Module::standardTypeMap() {
+			return standardTypeMap_;
+		}
+		
 		TemplateBuilder& Module::typeTemplateBuilder(SEM::TypeInstance* typeInstance) {
 			return templateBuilderMap_[typeInstance];
 		}
@@ -157,14 +164,6 @@ namespace locic {
 		
 		TypeInstanceMap& Module::typeInstanceMap() {
 			return typeInstanceMap_;
-		}
-		
-		void Module::setTypeInfoType(llvm::Type* type) {
-			typeInfoType_ = type;
-		}
-		
-		llvm::Type* Module::typeInfoType() const {
-			return typeInfoType_;
 		}
 		
 		llvm::GlobalVariable* Module::createConstGlobal(const std::string& name,

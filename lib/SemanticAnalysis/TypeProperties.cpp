@@ -19,6 +19,7 @@ namespace locic {
 			
 			std::vector<SEM::Value*> CastFunctionArguments(Context& context, const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types, const Debug::SourceLocation& location) {
 				std::vector<SEM::Value*> castValues;
+				castValues.reserve(arguments.size());
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
 					const auto argumentValue = arguments.at(i);

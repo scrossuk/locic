@@ -1,103 +1,107 @@
 #include <assert.h>
 
-#include <memory>
+#include <vector>
 
 #include <llvm/Support/ErrorHandling.h>
 
+#include <llvm-abi/Context.hpp>
 #include <llvm-abi/Type.hpp>
 
 namespace llvm_abi {
-
-	namespace {
 	
-		template<typename T, typename ...Args>
-		std::unique_ptr<T> make_unique(Args&& ...args) {
-			return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-		}
-		
+	Type* Type::Pointer(Context& context) {
+		Type type(PointerType);
+		return context.getType(type);
 	}
 	
-	Type Type::Pointer() {
-		Type type;
-		type.kind_ = PointerType;
-		return type;
-	}
-	
-	Type Type::Integer(IntegerKind kind) {
-		Type type;
-		type.kind_ = IntegerType;
+	Type* Type::Integer(Context& context, IntegerKind kind) {
+		Type type(IntegerType);
 		type.subKind_.integerKind = kind;
-		return type;
+		return context.getType(type);
 	}
 	
-	Type Type::FloatingPoint(FloatingPointKind kind) {
-		Type type;
-		type.kind_ = FloatingPointType;
+	Type* Type::FloatingPoint(Context& context, FloatingPointKind kind) {
+		Type type(FloatingPointType);
 		type.subKind_.floatingPointKind = kind;
-		return type;
+		return context.getType(type);
 	}
 	
-	Type Type::Complex(FloatingPointKind kind) {
-		Type type;
-		type.kind_ = ComplexType;
+	Type* Type::Complex(Context& context, FloatingPointKind kind) {
+		Type type(ComplexType);
 		type.subKind_.complexKind = kind;
-		return type;
+		return context.getType(type);
 	}
 	
-	Type Type::Struct(std::vector<StructMember> members) {
-		Type type;
-		type.kind_ = StructType;
+	Type* Type::Struct(Context& context, std::vector<StructMember> members) {
+		Type type(StructType);
 		type.structType_.members = std::move(members);
-		return type;
+		return context.getType(type);
 	}
 	
-	Type Type::AutoStruct(std::vector<Type> memberTypes) {
-		Type type;
-		type.kind_ = StructType;
+	Type* Type::AutoStruct(Context& context, const std::vector<Type*>& memberTypes) {
+		Type type(StructType);
 		type.structType_.members.reserve(memberTypes.size());
 		for (auto& memberType: memberTypes) {
-			type.structType_.members.push_back(StructMember::AutoOffset(std::move(memberType)));
+			type.structType_.members.push_back(StructMember::AutoOffset(memberType));
 		}
-		return type;
+		return context.getType(type);
 	}
 	
-	Type Type::Array(size_t elementCount, Type elementType) {
-		Type type;
-		type.kind_ = ArrayType;
+	Type* Type::Array(Context& context, size_t elementCount, Type* elementType) {
+		Type type(ArrayType);
 		type.arrayType_.elementCount = elementCount;
-		type.arrayType_.elementType = make_unique<Type>(std::move(elementType));
-		return type;
+		type.arrayType_.elementType = elementType;
+		return context.getType(type);
 	}
 	
-	Type::Type()
-		: kind_(PointerType) { }
-		
-	Type::~Type() { }
+	Type::Type(TypeKind pKind)
+		: kind_(pKind) { }
 	
-	Type Type::copy() const {
+	bool Type::operator<(const Type& type) const {
+		if (kind() != type.kind()) {
+			return kind() < type.kind();
+		}
+		
 		switch (kind()) {
 			case PointerType:
-				return Pointer();
+				return false;
 			case IntegerType:
-				return Integer(integerKind());
+				return integerKind() < type.integerKind();
 			case FloatingPointType:
-				return FloatingPoint(floatingPointKind());
+				return floatingPointKind() < type.floatingPointKind();
 			case ComplexType:
-				return Complex(complexKind());
+				return complexKind() < type.complexKind();
 			case StructType: {
+				if (structMembers().size() != type.structMembers().size()) {
+					return structMembers().size() < type.structMembers().size();
+				}
+				
 				std::vector<StructMember> structMembersCopy;
 				structMembersCopy.reserve(structMembers().size());
 				
-				for (const auto& member: structMembers()) {
-					structMembersCopy.push_back(member.copy());
+				for (size_t i = 0; i < structMembers().size(); i++) {
+					const auto& myMember = structMembers().at(i);
+					const auto& otherMember = type.structMembers().at(i);
+					
+					if (myMember.type() != otherMember.type()) {
+						return myMember.type() < otherMember.type();
+					}
+					
+					if (myMember.offset() != otherMember.offset()) {
+						return myMember.offset() < otherMember.offset();
+					}
 				}
 				
-				return Struct(std::move(structMembersCopy));
+				return false;
 			}
 			case ArrayType:
-				return Array(arrayElementCount(), arrayElementType().copy());
+				if (arrayElementCount() != type.arrayElementCount()) {
+					return arrayElementCount() < type.arrayElementCount();
+				}
+				
+				return arrayElementType() < type.arrayElementType();
 			default:
-				llvm_unreachable("Unknown ABI Type kind in copy().");
+				llvm_unreachable("Unknown ABI Type kind in operator<().");
 		}
 	}
 	
@@ -154,9 +158,9 @@ namespace llvm_abi {
 		return arrayType_.elementCount;
 	}
 	
-	const Type& Type::arrayElementType() const {
+	Type* Type::arrayElementType() const {
 		assert(isArray());
-		return *(arrayType_.elementType);
+		return arrayType_.elementType;
 	}
 	
 	static std::string intKindToString(IntegerKind kind) {
@@ -222,12 +226,12 @@ namespace llvm_abi {
 					if (i > 0) {
 						s += ", ";
 					}
-					s += std::string("StructMember(") + members.at(i).type().toString() + ")";
+					s += std::string("StructMember(") + members.at(i).type()->toString() + ")";
 				}
 				return s + ")";
 			}
 			case ArrayType:
-				return std::string("Array(") + arrayElementType().toString() + ")";
+				return std::string("Array(") + arrayElementType()->toString() + ")";
 			default:
 				return "[UNKNOWN]";
 		}

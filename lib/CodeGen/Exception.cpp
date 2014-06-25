@@ -152,37 +152,44 @@ namespace locic {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchType, typeGen.getI8PtrType()));
 			}
 			
-			// Unwind stack due to exception.
-			genExceptionUnwind(function, landingPad, isRethrow);
+			// Set the exception information.
+			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
+			
+			// Set the unwind state.
+			setCurrentUnwindState(function, isRethrow ? UnwindStateRethrow : UnwindStateThrow);
+			
+			// Jump to first unwind block.
+			function.getBuilder().CreateBr(getNextUnwindBlock(function));
 		}
 		
-		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* catchBlock = nullptr;
+		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue) {
+			const auto currentBB = function.getSelectedBasicBlock();
 			
-			// Perform all scope exit actions until the next catch block.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isCatch()) {
-					catchBlock = action.catchBlock();
-					break;
-				}
-				
-				const bool isExceptionState = true;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
+			const auto unwindBB = function.createBasicBlock("exceptionDestroy");
+			function.selectBasicBlock(unwindBB);
 			
-			if (catchBlock != nullptr) {
-				// Jump to the next catch block and store the exception
-				// information so it can be used by the catch block.
-				function.getBuilder().CreateStore(exceptionInfo, function.exceptionInfo());
-				function.getBuilder().CreateBr(catchBlock);
-			} else {
-				// There isn't a catch block; resume unwinding.
-				function.getBuilder().CreateResume(exceptionInfo);
-			}
+			const auto isRethrowBB = function.createBasicBlock("");
+			const auto isNotRethrowBB = function.createBasicBlock("");
+			
+			const auto nextUnwindBB = getNextUnwindBlock(function);
+			
+			const auto isRethrowState = getIsCurrentUnwindState(function, UnwindStateRethrow);
+			function.getBuilder().CreateCondBr(isRethrowState, isRethrowBB, isNotRethrowBB);
+			
+			function.selectBasicBlock(isRethrowBB);
+			// Set state to 'throw' so that outer catch blocks don't
+			// think their exception has been rethrown.
+			setCurrentUnwindState(function, UnwindStateThrow);
+			function.getBuilder().CreateBr(nextUnwindBB);
+			
+			// If this isn't a rethrow, destroy the exception.
+			function.selectBasicBlock(isNotRethrowBB);
+			function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), std::vector<llvm::Value*>{ exceptionPtrValue });
+			function.getBuilder().CreateBr(nextUnwindBB);
+			
+			function.unwindStack().push_back(UnwindAction::CatchBlock(unwindBB, exceptionPtrValue));
+			
+			function.selectBasicBlock(currentBB);
 		}
 		
 		llvm::Constant* getTypeNameGlobal(Module& module, const std::string& typeName) {

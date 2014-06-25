@@ -16,73 +16,44 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		llvm::Value* getIsCurrentUnwindState(Function& function, UnwindState state) {
+			const auto currentUnwindStateValue = function.getBuilder().CreateLoad(function.unwindState());
+			const auto targetUnwindStateValue = getUnwindStateValue(function.module(), state);
+			return function.getBuilder().CreateICmpEQ(currentUnwindStateValue, targetUnwindStateValue);
+		}
+		
+		llvm::Value* getIsCurrentExceptState(Function& function) {
+			const auto isThrowState = getIsCurrentUnwindState(function, UnwindStateThrow);
+			const auto isRethrowState = getIsCurrentUnwindState(function, UnwindStateRethrow);
+			return function.getBuilder().CreateOr(isThrowState, isRethrowState);
+		}
+		
+		void setCurrentUnwindState(Function& function, UnwindState state) {
+			const auto stateValue = getUnwindStateValue(function.module(), state);
+			function.getBuilder().CreateStore(stateValue, function.unwindState());
+		}
+		
+		llvm::Value* getUnwindStateValue(Module& module, UnwindState state) {
+			return ConstantGenerator(module).getI8(state);
+		}
+		
+		llvm::BasicBlock* getNextUnwindBlock(Function& function) {
+			const auto& unwindStack = function.unwindStack();
+			
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& unwindAction = unwindStack.at(pos);
+				
+				const auto unwindBB = unwindAction.unwindBlock();
+				if (unwindBB != nullptr) {
+					return unwindBB;
+				}
+			}
+			
+			llvm_unreachable("Failed to find next unwind block.");
+		}
+		
 		namespace {
-			
-			bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow) {
-				assert(isExceptionState || !isRethrow);
-				if (unwindAction.isDestructor()) {
-					// Destructors are always executed when exiting a scope.
-					return true;
-				} else if (unwindAction.isScopeExit()) {
-					// Scope exit actions may only be executed on success/failure.
-					const bool supportsExceptionState = (unwindAction.scopeExitState() != SCOPEEXIT_SUCCESS);
-					const bool supportsNormalState = (unwindAction.scopeExitState() != SCOPEEXIT_FAILURE);
-					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
-				} else if (unwindAction.isCatchBlock()) {
-					return !isRethrow;
-				} else {
-					// Everything else is just a placeholder so doesn't
-					// actually generate code when leaving a scope.
-					return false;
-				}
-			}
-			
-			bool scopeHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
-				const auto& unwindStack = function.unwindStack();
-				
-				for (size_t i = 0; i < unwindStack.size(); i++) {
-					const size_t pos = unwindStack.size() - i - 1;
-					const auto& unwindAction = unwindStack.at(pos);
-					if (unwindAction.isScopeMarker()) {
-						return false;
-					}
-					
-					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
-						return true;
-					}
-				}
-				
-				llvm_unreachable("Scope marker not found.");
-			}
-			
-			bool statementHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
-				const auto& unwindStack = function.unwindStack();
-				
-				for (size_t i = 0; i < unwindStack.size(); i++) {
-					const size_t pos = unwindStack.size() - i - 1;
-					const auto& unwindAction = unwindStack.at(pos);
-					if (unwindAction.isStatementMarker()) {
-						return false;
-					}
-					
-					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
-						return true;
-					}
-				}
-				
-				llvm_unreachable("Statement marker not found.");
-			}
-			
-			size_t getScopeLevel(const UnwindStack& unwindStack) {
-				for (size_t i = 0; i < unwindStack.size(); i++) {
-					const size_t pos = unwindStack.size() - i - 1;
-					const auto& unwindAction = unwindStack.at(pos);
-					if (unwindAction.isScopeMarker()) {
-						return pos;
-					}
-				}
-				llvm_unreachable("Scope marker not found.");
-			}
 			
 			void popScope(UnwindStack& unwindStack) {
 				while (!unwindStack.empty()) {
@@ -108,125 +79,110 @@ namespace locic {
 			
 		}
 		
-		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow) {
-			const auto& unwindAction = function.unwindStack().at(position);
+		namespace {
 			
-			if (!isActiveAction(unwindAction, isExceptionState, isRethrow)) {
-				return;
-			}
-			
-			if (unwindAction.isDestructor()) {
-				genDestructorCall(function, unwindAction.destroyType(), unwindAction.destroyValue());
-			} else if (unwindAction.isScopeExit()) {
-				function.pushUnwindStack(position);
-				genScope(function, *(unwindAction.scopeExitScope()));
-				function.popUnwindStack();
-			} else if (unwindAction.isCatchBlock()) {
-				function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), std::vector<llvm::Value*>{ unwindAction.catchExceptionValue() });
-			}
-		}
-		
-		void genScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Only generate this code if there are actually actions to perform.
-			if (!scopeHasExitAction(function, isExceptionState, isRethrow)) return;
-			
-			const auto scopeLevel = getScopeLevel(unwindStack);
-			
-			// Create a new basic block to make this clearer...
-			const auto scopeDestroyStartBB = function.createBasicBlock(makeString("scopeExitActions_%llu_START", (unsigned long long) scopeLevel));
-			function.getBuilder().CreateBr(scopeDestroyStartBB);
-			function.selectBasicBlock(scopeDestroyStartBB);
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				if (unwindAction.isScopeMarker()) break;
+			llvm::BasicBlock* genOuterUnwindBlock(Function& function) {
+				const auto currentBB = function.getSelectedBasicBlock();
 				
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			// ...and another to make it clear where it ends.
-			const auto scopeDestroyEndBB = function.createBasicBlock(makeString("scopeExitActions_%llu_END", (unsigned long long) scopeLevel));
-			function.getBuilder().CreateBr(scopeDestroyEndBB);
-			function.selectBasicBlock(scopeDestroyEndBB);
-		}
-		
-		void genStatementExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Only generate this code if there are actually actions to perform.
-			if (!statementHasExitAction(function, isExceptionState, isRethrow)) return;
-			
-			// Create a new basic block to make this clearer...
-			const auto statementDestroyStartBB = function.createBasicBlock("statementExitActions_START");
-			function.getBuilder().CreateBr(statementDestroyStartBB);
-			function.selectBasicBlock(statementDestroyStartBB);
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				if (unwindAction.isStatementMarker()) break;
+				const auto unwindBB = function.createBasicBlock("functionUnwind");
+				function.selectBasicBlock(unwindBB);
 				
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
+				const auto returnBB = function.createBasicBlock("");
+				const auto keepUnwindingBB = function.createBasicBlock("");
+				
+				// At this point, the only possible unwind states are
+				// normal execution and exception active.
+				const auto isNormalExecution = getIsCurrentUnwindState(function, UnwindStateNormal);
+				function.getBuilder().CreateCondBr(isNormalExecution, returnBB, keepUnwindingBB);
+				
+				// Return a value or void, depending on whether the
+				// generated function returns a value directly.
+				function.selectBasicBlock(returnBB);
+				const auto rawReturnValue = function.getRawReturnValue();
+				if (rawReturnValue != nullptr) {
+					function.getBuilder().CreateRet(rawReturnValue);
+				} else {
+					function.getBuilder().CreateRetVoid();
+				}
+				
+				// TODO: only generate this if necessary.
+				// If an exception is active, continue unwinding out of
+				// this function.
+				function.selectBasicBlock(keepUnwindingBB);
+				const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
+				function.getBuilder().CreateResume(exceptionInfo);
+				
+				function.selectBasicBlock(currentBB);
+				
+				return unwindBB;
 			}
 			
-			// ...and another to make it clear where it ends.
-			const auto statementDestroyEndBB = function.createBasicBlock("statementExitActions_END");
-			function.getBuilder().CreateBr(statementDestroyEndBB);
-			function.selectBasicBlock(statementDestroyEndBB);
 		}
 		
-		void genAllScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Create a new basic block to make this clearer.
-			const auto scopeDestroyAllBB = function.createBasicBlock("exitAllScopes");
-			function.getBuilder().CreateBr(scopeDestroyAllBB);
-			function.selectBasicBlock(scopeDestroyAllBB);
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
+		FunctionLifetime::FunctionLifetime(Function& function)
+			: function_(function),
+			functionExitBB_(genOuterUnwindBlock(function)) {
+				function_.unwindStack().push_back(UnwindAction::ScopeMarker(functionExitBB_));
 			}
+		
+		FunctionLifetime::~FunctionLifetime() {
+			// Jump to unwind block to perform exit actions, which should
+			// then end up jumping to our unwind block.
+			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
 		}
 		
 		ScopeLifetime::ScopeLifetime(Function& function)
-			: function_(function) {
-			const size_t scopeLevel = function_.unwindStack().size();
-			const auto scopeStartBB = function_.createBasicBlock(makeString("scope_%llu_START", (unsigned long long) scopeLevel));
-			function_.getBuilder().CreateBr(scopeStartBB);
-			function_.selectBasicBlock(scopeStartBB);
-			
-			function_.unwindStack().push_back(UnwindAction::ScopeMarker());
-		}
+			: function_(function),
+			scopeExitBB_(function.createBasicBlock("scopeUnwind")) {
+				function_.unwindStack().push_back(UnwindAction::ScopeMarker(scopeExitBB_));
+			}
 		
 		ScopeLifetime::~ScopeLifetime() {
-			const bool isExceptionState = false;
-			const bool isRethrow = false;
-			genScopeExitActions(function_, isExceptionState, isRethrow);
+			// Jump to unwind block to perform exit actions, which should
+			// then end up jumping to our unwind block.
+			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
+			
 			popScope(function_.unwindStack());
 			
-			const size_t scopeLevel = function_.unwindStack().size();
-			const auto scopeEndBB = function_.createBasicBlock(makeString("scope_%llu_END", (unsigned long long) scopeLevel));
-			function_.getBuilder().CreateBr(scopeEndBB);
-			function_.selectBasicBlock(scopeEndBB);
+			// Generate our unwind block.
+			function_.selectBasicBlock(scopeExitBB_);
+			
+			const auto stopUnwindingBB = function_.createBasicBlock("");
+			
+			// If this is normal execution, stop unwinding, otherwise
+			// continue unwinding by jumping to the next unwind block.
+			const auto isNormalExecution = getIsCurrentUnwindState(function_, UnwindStateNormal);
+			
+			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextUnwindBlock(function_));
+			
+			function_.selectBasicBlock(stopUnwindingBB);
 		}
 		
 		StatementLifetime::StatementLifetime(Function& function)
-			: function_(function) {
-			function_.unwindStack().push_back(UnwindAction::StatementMarker());
-		}
+			: function_(function),
+			statementExitBB_(function.createBasicBlock("statementUnwind")) {
+				function_.unwindStack().push_back(UnwindAction::StatementMarker(statementExitBB_));
+			}
 		
 		StatementLifetime::~StatementLifetime() {
-			const bool isExceptionState = false;
-			const bool isRethrow = false;
-			genStatementExitActions(function_, isExceptionState, isRethrow);
+			// Jump to unwind block to perform exit actions, which should
+			// then end up jumping to our unwind block.
+			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
+			
 			popStatement(function_.unwindStack());
+			
+			// Generate our unwind block.
+			function_.selectBasicBlock(statementExitBB_);
+			
+			const auto stopUnwindingBB = function_.createBasicBlock("");
+			
+			// If this is normal execution, stop unwinding, otherwise
+			// continue unwinding by jumping to the next unwind block.
+			const auto isNormalExecution = getIsCurrentUnwindState(function_, UnwindStateNormal);
+			
+			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextUnwindBlock(function_));
+			
+			function_.selectBasicBlock(stopUnwindingBB);
 		}
 		
 	}

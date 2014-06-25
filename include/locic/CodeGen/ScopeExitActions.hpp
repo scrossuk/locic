@@ -8,9 +8,35 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
+		enum UnwindState {
+			UnwindStateNormal = 0,
+			UnwindStateReturn = 1,
+			UnwindStateBreak = 2,
+			UnwindStateContinue = 3,
+			UnwindStateThrow = 4,
+			UnwindStateRethrow = 5,
+		};
 		
-		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
+		llvm::Value* getIsCurrentUnwindState(Function& function, UnwindState state);
+		
+		llvm::Value* getIsCurrentExceptState(Function& function);
+		
+		void setCurrentUnwindState(Function& function, UnwindState state);
+		
+		llvm::Value* getUnwindStateValue(Module& module, UnwindState state);
+		
+		llvm::BasicBlock* getNextUnwindBlock(Function& function);
+		
+		class FunctionLifetime {
+			public:
+				FunctionLifetime(Function& function);
+				~FunctionLifetime();
+				
+			private:
+				Function& function_;
+				llvm::BasicBlock* functionExitBB_;
+			
+		};
 		
 		class ScopeLifetime {
 			public:
@@ -19,6 +45,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
+				llvm::BasicBlock* scopeExitBB_;
 			
 		};
 		
@@ -29,6 +56,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
+				llvm::BasicBlock* statementExitBB_;
 			
 		};
 		

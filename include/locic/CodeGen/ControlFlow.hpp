@@ -15,7 +15,7 @@ namespace locic {
 		
 		class ControlFlowScope {
 			public:
-				ControlFlowScope(UnwindStack& unwindStack, llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
+				ControlFlowScope(Function& function, llvm::BasicBlock* breakBB, llvm::BasicBlock* continueBB);
 				~ControlFlowScope();
 				
 			private:

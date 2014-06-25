@@ -18,19 +18,19 @@ namespace locic {
 		
 		class UnwindAction {
 			public:
-				static UnwindAction Destroy(SEM::Type* type, llvm::Value* value);
+				static UnwindAction Destroy(llvm::BasicBlock* destroyBlock);
 				
 				static UnwindAction CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
 				
-				static UnwindAction ScopeMarker();
+				static UnwindAction ScopeMarker(llvm::BasicBlock* scopeEndBlock);
 				
-				static UnwindAction StatementMarker();
+				static UnwindAction StatementMarker(llvm::BasicBlock* statementEndBlock);
 				
-				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
+				static UnwindAction ControlFlow(llvm::BasicBlock* actionBlock);
 				
-				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
+				static UnwindAction ScopeExit(llvm::BasicBlock* actionBlock);
 				
-				static UnwindAction CatchBlock(llvm::Value* exceptionValue);
+				static UnwindAction CatchBlock(llvm::BasicBlock* destroyBlock, llvm::Value* exceptionValue);
 				
 				enum Kind {
 					DESTRUCTOR,
@@ -58,23 +58,25 @@ namespace locic {
 				
 				bool isCatchBlock() const;
 				
-				SEM::Type* destroyType() const;
-				
-				llvm::Value* destroyValue() const;
+				llvm::BasicBlock* destroyBlock() const;
 				
 				llvm::BasicBlock* catchBlock() const;
 				
 				llvm::Constant* catchTypeInfo() const;
 				
-				llvm::BasicBlock* breakBlock() const;
+				llvm::BasicBlock* scopeEndBlock() const;
 				
-				llvm::BasicBlock* continueBlock() const;
+				llvm::BasicBlock* statementEndBlock() const;
 				
-				ScopeExitState scopeExitState() const;
+				llvm::BasicBlock* controlFlowBlock() const;
 				
-				SEM::Scope* scopeExitScope() const;
+				llvm::BasicBlock* scopeExitBlock() const;
+				
+				llvm::BasicBlock* destroyExceptionBlock() const;
 				
 				llvm::Value* catchExceptionValue() const;
+				
+				llvm::BasicBlock* unwindBlock() const;
 				
 			private:
 				inline UnwindAction(Kind pKind)
@@ -84,7 +86,7 @@ namespace locic {
 				
 				union Actions {
 					struct DestroyAction {
-						SEM::Type* type;
+						llvm::BasicBlock* block;
 						llvm::Value* value;
 					} destroyAction;
 					
@@ -93,17 +95,24 @@ namespace locic {
 						llvm::Constant* typeInfo;
 					} catchAction;
 					
+					struct ScopeMarker {
+						llvm::BasicBlock* block;
+					} scopeMarker;
+					
+					struct StatementMarker {
+						llvm::BasicBlock* block;
+					} statementMarker;
+					
 					struct ControlFlowAction {
-						llvm::BasicBlock* breakBlock;
-						llvm::BasicBlock* continueBlock;
+						llvm::BasicBlock* block;
 					} controlFlowAction;
 					
 					struct ScopeExitAction {
-						ScopeExitState state;
-						SEM::Scope* scope;
+						llvm::BasicBlock* block;
 					} scopeExitAction;
 					
 					struct CatchBlock {
+						llvm::BasicBlock* block;
 						llvm::Value* exceptionValue;
 					} catchBlock;
 				} actions_;

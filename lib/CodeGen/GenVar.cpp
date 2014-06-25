@@ -68,7 +68,7 @@ namespace locic {
 				
 				// Add this to the list of variables to be
 				// destroyed at the end of the function.
-				function.unwindStack().push_back(UnwindAction::Destroy(var->type(), varValue));
+				scheduleDestructorCall(function, var->type(), varValue);
 			} else if (var->isComposite()) {
 				if (!initialiseValue->getType()->isPointerTy()) {
 					const auto initialisePtr = genAlloca(function, var->constructType());

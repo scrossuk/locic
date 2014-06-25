@@ -16,6 +16,8 @@ namespace locic {
 		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
 		
+		void scheduleDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
+		
 		llvm::FunctionType* destructorFunctionType(Module& module, SEM::TypeInstance* typeInstance);
 		
 		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance);

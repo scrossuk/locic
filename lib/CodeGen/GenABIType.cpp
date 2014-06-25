@@ -18,15 +18,17 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm_abi::Type genABIArgType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* genABIArgType(Module& module, SEM::Type* type) {
 			if (isTypeSizeAlwaysKnown(module, type)) {
 				return genABIType(module, type);
 			} else {
-				return llvm_abi::Type::Pointer();
+				return llvm_abi::Type::Pointer(module.abiContext());
 			}
 		}
 		
-		llvm_abi::Type genABIType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* genABIType(Module& module, SEM::Type* type) {
+			auto& abiContext = module.abiContext();
+			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
@@ -34,22 +36,23 @@ namespace locic {
 					if (typeInstance->isPrimitive()) {
 						return getPrimitiveABIType(module, type);
 					} else {
-						std::vector<llvm_abi::Type> members;
+						std::vector<llvm_abi::Type*> members;
 						
 						if (typeInstance->isUnionDatatype()) {
-							members.push_back(llvm_abi::Type::Integer(llvm_abi::Int8));
+							members.reserve(2);
+							members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
 							
-							llvm_abi::Type maxStructType = llvm_abi::Type::AutoStruct({});
+							llvm_abi::Type* maxStructType = llvm_abi::Type::AutoStruct(abiContext, {});
 							size_t maxStructSize = 0;
 							size_t maxStructAlign = 0;
 							
 							for (auto variantTypeInstance: typeInstance->variants()) {
-								auto variantStructType = genABIType(module, variantTypeInstance->selfType());
+								const auto variantStructType = genABIType(module, variantTypeInstance->selfType());
 								const auto variantStructSize = module.abi().typeSize(variantStructType);
 								const auto variantStructAlign = module.abi().typeAlign(variantStructType);
 								
 								if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
-									maxStructType = std::move(variantStructType);
+									maxStructType = variantStructType;
 									maxStructSize = variantStructSize;
 									maxStructAlign = variantStructAlign;
 								} else {
@@ -57,14 +60,15 @@ namespace locic {
 								}
 							}
 							
-							members.push_back(std::move(maxStructType));
+							members.push_back(maxStructType);
 						} else {
+							members.reserve(typeInstance->variables().size());
 							for (const auto var: typeInstance->variables()) {
 								members.push_back(genABIType(module, var->type()));
 							}
 						}
 						
-						return llvm_abi::Type::AutoStruct(std::move(members));
+						return llvm_abi::Type::AutoStruct(abiContext, members);
 					}
 				}
 				
@@ -72,24 +76,26 @@ namespace locic {
 					// Generate struct of function pointer and template
 					// generator if function type is templated method.
 					if (type->isFunctionTemplatedMethod()) {
-						std::vector<llvm_abi::Type> types;
-						types.push_back(llvm_abi::Type::Pointer());
-						types.push_back(std::move(templateGeneratorType(module).first));
-						return llvm_abi::Type::AutoStruct(std::move(types));
+						std::vector<llvm_abi::Type*> types;
+						types.reserve(2);
+						types.push_back(llvm_abi::Type::Pointer(abiContext));
+						types.push_back(templateGeneratorType(module).first);
+						return llvm_abi::Type::AutoStruct(abiContext, types);
 					} else {
-						return llvm_abi::Type::Pointer();
+						return llvm_abi::Type::Pointer(abiContext);
 					}
 				}
 				
 				case SEM::Type::METHOD: {
-					std::vector<llvm_abi::Type> types;
-					types.push_back(llvm_abi::Type::Pointer());
+					std::vector<llvm_abi::Type*> types;
+					types.reserve(2);
+					types.push_back(llvm_abi::Type::Pointer(abiContext));
 					types.push_back(genABIType(module, type->getMethodFunctionType()));
-					return llvm_abi::Type::AutoStruct(std::move(types));
+					return llvm_abi::Type::AutoStruct(abiContext, types);
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
-					return std::move(interfaceMethodType(module).first);
+					return interfaceMethodType(module).first;
 				}
 				
 				default: {

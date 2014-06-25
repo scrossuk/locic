@@ -16,6 +16,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -37,15 +38,16 @@ namespace locic {
 				TypeGenerator typeGen(module);
 				
 				std::vector<TypePair> arguments;
+				arguments.reserve(2);
 				
 				// Hash value type.
-				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(llvm_abi::Int64), typeGen.getI64Type()));
+				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int64), typeGen.getI64Type()));
 				
 				// Arguments struct pointer type.
-				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(), typeGen.getI8PtrType()));
+				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), typeGen.getI8PtrType()));
 				
 				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, isVarArg,
-					voidTypePair(module), std::move(arguments));
+					voidTypePair(module), arguments);
 			}
 			
 			void setStubAttributes(llvm::Function* llvmFunction) {
@@ -260,6 +262,9 @@ namespace locic {
 				
 				Function function(module, *llvmFunction, stubArgInfo);
 				
+				// Generate the outermost unwind block.
+				FunctionLifetime functionLifetime(function);
+				
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
@@ -349,6 +354,8 @@ namespace locic {
 				// (notifies optimiser that this should
 				// never be reached...).
 				builder.CreateUnreachable();
+				
+				function.selectBasicBlock(function.createBasicBlock(""));
 				
 				return llvmFunction;
 			}

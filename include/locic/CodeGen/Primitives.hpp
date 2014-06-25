@@ -77,7 +77,7 @@ namespace locic {
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
 		
-		llvm_abi::Type getPrimitiveABIType(Module& module, SEM::Type* type);
+		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		

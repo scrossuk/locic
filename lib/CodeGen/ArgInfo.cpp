@@ -19,15 +19,15 @@ namespace locic {
 	namespace CodeGen {
 	
 		TypePair voidTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::AutoStruct({}), TypeGenerator(module).getVoidType());
+			return std::make_pair(llvm_abi::Type::AutoStruct(module.abiContext(), {}), TypeGenerator(module).getVoidType());
 		}
 		
 		TypePair sizeTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(llvm_abi::SizeT), getNamedPrimitiveType(module, "size_t"));
+			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::SizeT), getNamedPrimitiveType(module, "size_t"));
 		}
 		
 		TypePair pointerTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Pointer(), TypeGenerator(module).getI8PtrType());
+			return std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), TypeGenerator(module).getI8PtrType());
 		}
 		
 		ArgInfo ArgInfo::VoidNone(Module& module) {
@@ -42,12 +42,12 @@ namespace locic {
 			return ArgInfo(module, false, true, false, false, voidTypePair(module), {});
 		}
 		
-		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes) {
-			return ArgInfo(module, false, true, false, false, std::move(returnType), std::move(argumentTypes));
+		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes) {
+			return ArgInfo(module, false, true, false, false, returnType, argumentTypes);
 		}
 		
 		ArgInfo ArgInfo::TemplateOnly(Module& module, TypePair returnType) {
-			return ArgInfo(module, false, true, false, false, std::move(returnType), {});
+			return ArgInfo(module, false, true, false, false, returnType, {});
 		}
 		
 		ArgInfo ArgInfo::VoidTemplateAndContext(Module& module) {
@@ -55,26 +55,26 @@ namespace locic {
 		}
 		
 		ArgInfo ArgInfo::TemplateAndContext(Module& module, TypePair returnType) {
-			return ArgInfo(module, false, true, true, false, std::move(returnType), {});
+			return ArgInfo(module, false, true, true, false, returnType, {});
 		}
 		
-		ArgInfo ArgInfo::Basic(Module& module, TypePair returnType, std::vector<TypePair> argumentTypes) {
-			return ArgInfo(module, false, false, false, false, std::move(returnType), std::move(argumentTypes));
+		ArgInfo ArgInfo::Basic(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes) {
+			return ArgInfo(module, false, false, false, false, returnType, argumentTypes);
 		}
 		
-		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, std::vector<TypePair> pArgumentTypes)
+		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, const std::vector<TypePair>& pArgumentTypes)
 			: module_(module),
 			  hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),
 			  hasContextArgument_(hCA),
 			  isVarArg_(pIsVarArg),
 			  numStandardArguments_(pArgumentTypes.size()),
-			  returnType_(std::move(pReturnType)) {
+			  returnType_(pReturnType) {
 			argumentTypes_.reserve(3 + pArgumentTypes.size());
 			
 			if (hasReturnVarArgument_) {
 				if (returnType().second->isPointerTy()) {
-					argumentTypes_.push_back(std::make_pair(llvm_abi::Type::Pointer(), returnType().second));
+					argumentTypes_.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), returnType().second));
 				} else {
 					argumentTypes_.push_back(pointerTypePair(module));
 				}
@@ -89,7 +89,7 @@ namespace locic {
 			}
 			
 			for (auto& argType: pArgumentTypes) {
-				argumentTypes_.push_back(std::move(argType));
+				argumentTypes_.push_back(argType);
 			}
 		}
 		
@@ -98,14 +98,14 @@ namespace locic {
 			const auto& returnTypeRef = hasReturnVarArgument() ? voidPair : returnType();
 			
 			llvm_abi::FunctionType abiFunctionType;
-			abiFunctionType.returnType = returnTypeRef.first.copy();
+			abiFunctionType.returnType = returnTypeRef.first;
 			abiFunctionType.argTypes.reserve(argumentTypes().size());
 			
 			std::vector<llvm::Type*> paramTypes;
 			paramTypes.reserve(argumentTypes().size());
 			
 			for (const auto& typePair: argumentTypes()) {
-				abiFunctionType.argTypes.push_back(typePair.first.copy());
+				abiFunctionType.argTypes.push_back(typePair.first);
 				paramTypes.push_back(typePair.second);
 			}
 			
@@ -171,15 +171,16 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplatedMethod();
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			TypePair returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
+			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
 			
 			std::vector<TypePair> argTypes;
+			argTypes.reserve(functionType->getFunctionParameterTypes().size());
 			
 			for (const auto paramType: functionType->getFunctionParameterTypes()) {
 				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, std::move(returnType), std::move(argTypes));
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
 		}
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function) {
@@ -191,15 +192,16 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = true;
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
-			TypePair returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
+			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
 			
 			std::vector<TypePair> argTypes;
+			argTypes.reserve(functionType->getFunctionParameterTypes().size());
 			
 			for (const auto paramType: functionType->getFunctionParameterTypes()) {
 				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, std::move(returnType), std::move(argTypes));
+			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
 		}
 		
 	}

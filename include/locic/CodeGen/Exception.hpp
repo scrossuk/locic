@@ -25,7 +25,7 @@ namespace locic {
 		
 		void genLandingPad(Function& function, bool isRethrow);
 		
-		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow);
+		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue);
 		
 		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance);
 		

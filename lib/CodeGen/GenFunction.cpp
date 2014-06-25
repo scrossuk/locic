@@ -6,6 +6,7 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
@@ -97,7 +98,8 @@ namespace locic {
 		namespace {
 			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
-				ScopeLifetime functionScopeLifetime(functionGenerator);
+				// Generate the outermost unwind block.
+				FunctionLifetime functionLifetime(functionGenerator);
 				
 				// Parameters need to be copied to the stack, so that it's
 				// possible to assign to them, take their address, etc.
@@ -118,10 +120,10 @@ namespace locic {
 					
 					// Add this to the list of variables to be
 					// destroyed at the end of the function.
-					functionGenerator.unwindStack().push_back(UnwindAction::Destroy(paramVar->type(), stackObject));
+					scheduleDestructorCall(functionGenerator, paramVar->type(), stackObject);
 				}
 				
-				auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");
+				const auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");
 				functionGenerator.getBuilder().CreateBr(setParamsEndBB);
 				functionGenerator.selectBasicBlock(setParamsEndBB);
 				
@@ -171,11 +173,6 @@ namespace locic {
 			}
 			
 			genFunctionCode(functionGenerator, function);
-			
-			// Need to terminate the final basic block.
-			// (just make it loop to itself - this will
-			// be removed by dead code elimination)
-			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();
@@ -232,15 +229,17 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
-			
-			if (hasReturnVar) {
-				genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
-				functionGenerator.getBuilder().CreateRetVoid();
-			} else if (result->getType()->isVoidTy()) {
-				functionGenerator.getBuilder().CreateRetVoid();
-			} else {
-				functionGenerator.getBuilder().CreateRet(result);
+			{
+				// Generate the outermost unwind block.
+				FunctionLifetime functionLifetime(functionGenerator);
+				
+				const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
+				
+				if (hasReturnVar) {
+					genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
+				} else if (!result->getType()->isVoidTy()) {
+					functionGenerator.returnValue(result);
+				}
 			}
 			
 			// Check the generated function is correct.
