@@ -134,7 +134,7 @@ namespace locic {
 					const auto alignMaskFunction = genAlignMaskFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
-					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
+					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
 					const auto callResult = genRawFunctionCall(function, alignMaskArgInfo(module, type->getObjectType()), canThrow, alignMaskFunction, args);
 					callResult->setName(callName);
 					return callResult;
@@ -265,7 +265,7 @@ namespace locic {
 					const auto sizeOfFunction = genSizeOfFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
-					const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
+					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, type) } : std::vector<llvm::Value*>{};
 					const auto callResult = genRawFunctionCall(function, sizeOfArgInfo(module, type->getObjectType()), canThrow, sizeOfFunction, args);
 					callResult->setName(callName);
 					return callResult;
@@ -398,7 +398,7 @@ namespace locic {
 			const auto memberOffsetFunction = genMemberOffsetFunction(module, type->getObjectType());
 			
 			const bool hasTemplate = !type->templateArguments().empty();
-			const auto args = hasTemplate ? std::vector<llvm::Value*> { computeTemplateGenerator(function, type), memberIndexValue } : std::vector<llvm::Value*>{ memberIndexValue };
+			const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, type), memberIndexValue } : std::vector<llvm::Value*>{ memberIndexValue };
 			const bool canThrow = false;
 			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), canThrow, memberOffsetFunction, args);
 			callResult->setName(callName);

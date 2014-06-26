@@ -30,6 +30,7 @@ namespace locic {
 		typedef std::pair<SEM::Type*, size_t> OffsetPair;
 		typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
 		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
+		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> TemplateGeneratorMap;
 		typedef std::vector<UnwindAction> UnwindStack;
 		
 		class Function {
@@ -96,6 +97,8 @@ namespace locic {
 				
 				SizeOfMap& getSizeOfMap();
 				
+				TemplateGeneratorMap& templateGeneratorMap();
+				
 				UnwindStack& unwindStack();
 				
 				// Value to determine the state during unwinding.
@@ -128,6 +131,7 @@ namespace locic {
 				LocalVarMap localVarMap_;
 				MemberOffsetMap memberOffsetMap_;
 				SizeOfMap sizeOfMap_;
+				TemplateGeneratorMap templateGeneratorMap_;
 				
 				UnwindStack unwindStack_;
 				

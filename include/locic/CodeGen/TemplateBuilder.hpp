@@ -5,6 +5,9 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/Module.hpp>
+
 namespace locic {
 
 	namespace CodeGen {
@@ -40,8 +43,13 @@ namespace locic {
 				 */
 				const TemplateUseMap& templateUseMap() const;
 				
+				void addInstruction(llvm::Instruction* instruction);
+				
+				void updateAllInstructions(Module& module);
+				
 			private:
 				TemplateUseMap templateUseMap_;
+				std::vector<llvm::Instruction*> instructions_;
 				
 		};
 		

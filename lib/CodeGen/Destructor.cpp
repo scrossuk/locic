@@ -21,9 +21,21 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+		bool typeHasDestructor(Module& module, SEM::Type* type) {
+			if (type->isObject()) {
+				if (type->isPrimitive()) {
+					return primitiveTypeHasDestructor(module, type);
+				} else {
+					return typeInstanceHasDestructor(module, type->getObjectType());
+				}
+			} else {
+				return type->isTemplateVar();
+			}
+		}
+		
+		bool typeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
-				return primitiveTypeHasDestructor(module, typeInstance);
+				return primitiveTypeInstanceHasDestructor(module, typeInstance);
 			}
 			
 			return typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype();
@@ -40,7 +52,7 @@ namespace locic {
 			const bool canThrow = false;
 			
 			if (type->isObject()) {
-				if (!typeHasDestructor(module, type->getObjectType())) {
+				if (!typeHasDestructor(module, type)) {
 					return;
 				}
 				
@@ -50,7 +62,7 @@ namespace locic {
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				const auto args = !type->templateArguments().empty() ?
-					std::vector<llvm::Value*>{ computeTemplateGenerator(function, type), castValue } : std::vector<llvm::Value*>{ castValue };
+					std::vector<llvm::Value*>{ getTemplateGenerator(function, type), castValue } : std::vector<llvm::Value*>{ castValue };
 				
 				(void) genRawFunctionCall(function, argInfo, canThrow, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
@@ -61,7 +73,7 @@ namespace locic {
 		}
 		
 		void scheduleDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
-			if (!typeHasDestructor(function.module(), type->getObjectType())) {
+			if (!typeHasDestructor(function.module(), type)) {
 				return;
 			}
 			
@@ -141,7 +153,7 @@ namespace locic {
 		}
 		
 		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
-			if (!typeHasDestructor(module, typeInstance)) {
+			if (!typeInstanceHasDestructor(module, typeInstance)) {
 				return getNullDestructorFunction(module);
 			}
 			

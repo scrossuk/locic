@@ -41,6 +41,7 @@ namespace locic {
 			  templateBuilder_(pTemplateBuilder),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
+			  templateGeneratorMap_(isTypeLessThan),
 			  debugInfo_(nullptr),
 			  exceptionInfo_(nullptr),
 			  returnValuePtr_(nullptr),
@@ -252,6 +253,10 @@ namespace locic {
 		
 		SizeOfMap& Function::getSizeOfMap() {
 			return sizeOfMap_;
+		}
+		
+		TemplateGeneratorMap& Function::templateGeneratorMap() {
+			return templateGeneratorMap_;
 		}
 		
 		UnwindStack& Function::unwindStack() {

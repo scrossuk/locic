@@ -44,6 +44,7 @@ namespace locic {
 			return compareTypes(first, second) == COMPARE_LESS;
 		}
 		
+		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef Map<std::string, llvm::Function*> FunctionMap;
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
@@ -52,8 +53,7 @@ namespace locic {
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
 		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
-		typedef std::unordered_map<TemplateBuilder*, llvm::Function*> TemplateBuilderFunctionMap;
-		typedef Map<SEM::Type*, llvm::Function*> TemplateGeneratorMap;
+		typedef std::map<SEM::Type*, llvm::Function*, bool(*)(SEM::Type*, SEM::Type*)> TemplateRootFunctionMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
@@ -82,6 +82,8 @@ namespace locic {
 				
 				llvm::Module* getLLVMModulePtr() const;
 				
+				BitsRequiredGlobalMap& bitsRequiredGlobalMap();
+				
 				DestructorMap& getDestructorMap();
 				
 				FunctionMap& getFunctionMap();
@@ -100,11 +102,7 @@ namespace locic {
 				
 				TemplateBuilder& typeTemplateBuilder(SEM::TypeInstance* typeInstance);
 				
-				TemplateBuilderFunctionMap& templateBuilderFunctionMap();
-				
-				TemplateGeneratorMap& getTemplateGeneratorMap();
-				
-				const TemplateGeneratorMap& getTemplateGeneratorMap() const;
+				TemplateRootFunctionMap& templateRootFunctionMap();
 				
 				TypeMap& getTypeMap();
 				
@@ -127,6 +125,8 @@ namespace locic {
 				TargetInfo targetInfo_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				llvm_abi::Context abiContext_;
+				
+				BitsRequiredGlobalMap bitsRequiredGlobalMap_;
 				DestructorMap destructorMap_;
 				FunctionMap functionMap_;
 				FunctionDeclMap functionDeclMap_;
@@ -135,8 +135,7 @@ namespace locic {
 				PrimitiveMap primitiveMap_;
 				StandardTypeMap standardTypeMap_;
 				TemplateBuilderMap templateBuilderMap_;
-				TemplateBuilderFunctionMap templateBuilderFunctionMap_;
-				TemplateGeneratorMap templateGeneratorMap_;
+				TemplateRootFunctionMap templateRootFunctionMap_;
 				TypeMap typeMap_;
 				TypeInstanceMap typeInstanceMap_;
 				DebugBuilder debugBuilder_;

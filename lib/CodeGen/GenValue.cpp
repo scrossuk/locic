@@ -334,7 +334,7 @@ namespace locic {
 					
 					// Generate the vtable and template generator.
 					const auto vtablePointer = genVTable(module, sourceTarget);
-					const auto templateGenerator = computeTemplateGenerator(function, sourceTarget);
+					const auto templateGenerator = getTemplateGenerator(function, sourceTarget);
 					
 					// Build the new interface struct with these values.
 					return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));
@@ -450,7 +450,7 @@ namespace locic {
 						if (parentType->isTemplateVar()) {
 							functionValue = function.getBuilder().CreateInsertValue(functionValue, function.getTemplateGenerator(), { 1 });
 						} else {
-							functionValue = function.getBuilder().CreateInsertValue(functionValue, computeTemplateGenerator(function, parentType), { 1 });
+							functionValue = function.getBuilder().CreateInsertValue(functionValue, getTemplateGenerator(function, parentType), { 1 });
 						}
 						return functionValue;
 					} else {

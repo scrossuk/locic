@@ -1,5 +1,6 @@
 #include <map>
 
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
 
@@ -73,6 +74,16 @@ namespace locic {
 		
 		const TemplateUseMap& TemplateBuilder::templateUseMap() const {
 			return templateUseMap_;
+		}
+		
+		void TemplateBuilder::addInstruction(llvm::Instruction* instruction) {
+			instructions_.push_back(instruction);
+		}
+		
+		void TemplateBuilder::updateAllInstructions(Module& module) {
+			for (const auto instruction: instructions_) {
+				instruction->setOperand(1, ConstantGenerator(module).getI32(bitsRequired()));
+			}
 		}
 		
 	}

@@ -93,11 +93,11 @@ namespace locic {
 					return llvm::ConstantFP::get(module_.abi().longDoubleType(), value);
 				}
 				
-				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, const std::vector<llvm::Constant*>& values) const {
+				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, llvm::ArrayRef<llvm::Constant*> values) const {
 					return llvm::ConstantArray::get(arrayType, values);
 				}
 				
-				inline llvm::Constant* getStruct(llvm::StructType* structType, const std::vector<llvm::Constant*>& values) const {
+				inline llvm::Constant* getStruct(llvm::StructType* structType, llvm::ArrayRef<llvm::Constant*> values) const {
 					return llvm::ConstantStruct::get(structType, values);
 				}
 				
@@ -118,8 +118,12 @@ namespace locic {
 					return llvm::ConstantExpr::getSizeOf(type);
 				}
 				
-				inline llvm::Constant* getGetElementPtr(llvm::Constant* operand, const std::vector<llvm::Constant*>& args) const {
+				inline llvm::Constant* getGetElementPtr(llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const {
 					return llvm::ConstantExpr::getGetElementPtr(operand, args);
+				}
+				
+				inline llvm::Constant* getExtractValue(llvm::Constant* operand, llvm::ArrayRef<unsigned> args) const {
+					return llvm::ConstantExpr::getExtractValue(operand, args);
 				}
 				
 				inline llvm::Constant* getMin(llvm::Constant* first, llvm::Constant* second) const {

@@ -21,6 +21,7 @@ namespace locic {
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
+			  templateRootFunctionMap_(isTypeLessThan),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
@@ -106,6 +107,10 @@ namespace locic {
 			return module_.get();
 		}
 		
+		BitsRequiredGlobalMap& Module::bitsRequiredGlobalMap() {
+			return bitsRequiredGlobalMap_;
+		}
+		
 		DestructorMap& Module::getDestructorMap() {
 			return destructorMap_;
 		}
@@ -142,16 +147,8 @@ namespace locic {
 			return templateBuilderMap_[typeInstance];
 		}
 		
-		TemplateBuilderFunctionMap& Module::templateBuilderFunctionMap() {
-			return templateBuilderFunctionMap_;
-		}
-		
-		TemplateGeneratorMap& Module::getTemplateGeneratorMap() {
-			return templateGeneratorMap_;
-		}
-		
-		const TemplateGeneratorMap& Module::getTemplateGeneratorMap() const {
-			return templateGeneratorMap_;
+		TemplateRootFunctionMap& Module::templateRootFunctionMap() {
+			return templateRootFunctionMap_;
 		}
 		
 		TypeMap& Module::getTypeMap() {

@@ -49,7 +49,7 @@ namespace locic {
 		/**
 		 * \brief Null template generator.
 		 */
-		llvm::Value* nullTemplateGenerator(Function& function);
+		llvm::Value* nullTemplateGenerator(Module& module);
 		
 		/**
 		 * \brief Obtain a template generator for a type with
@@ -59,11 +59,7 @@ namespace locic {
 		 * that can be used with 'computeTemplateArguments' to
 		 * obtain the template arguments.
 		 */
-		llvm::Value* computeTemplateGenerator(Function& function, SEM::Type* type);
-		
-		llvm::Function* genBitsRequiredFunctionDecl(Module& module, TemplateBuilder& templateBuilder);
-		
-		llvm::Function* genBitsRequiredFunction(Module& module, TemplateBuilder& templateBuilder);
+		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type);
 		
 		/**
 		 * \brief Generate a root template argument generator function.

@@ -1225,7 +1225,14 @@ namespace locic {
 			}
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type) {
+			assert(type->isPrimitive());
+			const auto name = type->getObjectType()->name().first();
+			const auto kind = module.primitiveKind(name);
+			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasDestructor(module, type->templateArguments().front());
+		}
+		
+		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);

@@ -14,6 +14,7 @@
 #include <locic/String.hpp>
 
 #include <locic/CodeGen/CodeGen.hpp>
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -78,7 +79,10 @@ namespace locic {
 			if (!typeInstance->templateVariables().empty()) {
 				auto& templateBuilder = module.typeTemplateBuilder(typeInstance);
 				(void) genTemplateIntermediateFunction(module, typeInstance, templateBuilder);
-				(void) genBitsRequiredFunction(module, templateBuilder);
+				
+				// Update all instructions needing the bits required value
+				// with the correct value (now it is known).
+				templateBuilder.updateAllInstructions(module);
 			}
 		}
 		

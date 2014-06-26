@@ -321,6 +321,15 @@ namespace llvm_abi {
 				return nullptr; // Nothing to do.
 			}
 			
+			// TODO: refactor!
+			if (type->isStruct() && type->structMembers().size() == 2
+				&& type->structMembers().front().type()->isPointer()
+				&& type->structMembers().back().type()->isInteger()
+				&& type->structMembers().back().type()->integerKind() == Int32) {
+				// Nothing to do.
+				return nullptr;
+			}
+			
 			const auto classification = classify(type);
 			if (classification.isMemory()) {
 				// LLVM presumably handles passing values in memory correctly.
