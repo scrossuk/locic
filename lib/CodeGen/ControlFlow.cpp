@@ -17,14 +17,14 @@ namespace locic {
 			// Switch the unwind state to 'break'
 			// and jump to the first unwind block.
 			setCurrentUnwindState(function, UnwindStateBreak);
-			function.getBuilder().CreateBr(getNextUnwindBlock(function));
+			function.getBuilder().CreateBr(getNextNormalUnwindBlock(function));
 		}
 		
 		void genControlFlowContinue(Function& function) {
 			// Switch the unwind state to 'continue'
 			// and jump to the first unwind block.
 			setCurrentUnwindState(function, UnwindStateContinue);
-			function.getBuilder().CreateBr(getNextUnwindBlock(function));
+			function.getBuilder().CreateBr(getNextNormalUnwindBlock(function));
 		}
 		
 		llvm::BasicBlock* genControlFlowBlock(Function& function, llvm::BasicBlock* breakBB, llvm::BasicBlock* continueBB) {
@@ -34,7 +34,7 @@ namespace locic {
 			const auto isBreakBB = function.createBasicBlock("");
 			const auto isContinueBB = function.createBasicBlock("");
 			const auto testIsContinueBB = function.createBasicBlock("");
-			const auto nextUnwindBB = getNextUnwindBlock(function);
+			const auto nextUnwindBB = getNextNormalUnwindBlock(function);
 			
 			function.selectBasicBlock(unwindBB);
 			const auto isBreakState = getIsCurrentUnwindState(function, UnwindStateBreak);
@@ -64,7 +64,7 @@ namespace locic {
 				assert(breakBB != nullptr && continueBB != nullptr);
 				
 				const auto actionBB = genControlFlowBlock(function, breakBB, continueBB);
-				unwindStack_.push_back(UnwindAction::ControlFlow(actionBB));
+				unwindStack_.push_back(UnwindAction(UnwindAction::CONTROLFLOW, actionBB, getNextExceptUnwindBlock(function)));
 			}
 		
 		ControlFlowScope::~ControlFlowScope() {

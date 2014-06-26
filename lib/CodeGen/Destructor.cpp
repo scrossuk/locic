@@ -67,12 +67,17 @@ namespace locic {
 			
 			const auto currentBB = function.getSelectedBasicBlock();
 			
-			const auto destroyBB = function.createBasicBlock("destroyBlock");
-			function.selectBasicBlock(destroyBB);
+			const auto normalDestroyBB = function.createBasicBlock("");
+			function.selectBasicBlock(normalDestroyBB);
 			genDestructorCall(function, type, value);
-			function.getBuilder().CreateBr(getNextUnwindBlock(function));
+			function.getBuilder().CreateBr(getNextNormalUnwindBlock(function));
 			
-			function.unwindStack().push_back(UnwindAction::Destroy(destroyBB));
+			const auto exceptDestroyBB = function.createBasicBlock("");
+			function.selectBasicBlock(exceptDestroyBB);
+			genDestructorCall(function, type, value);
+			function.getBuilder().CreateBr(getNextExceptUnwindBlock(function));
+			
+			function.unwindStack().push_back(UnwindAction(UnwindAction::DESTRUCTOR, normalDestroyBB, exceptDestroyBB));
 			
 			function.selectBasicBlock(currentBB);
 		}

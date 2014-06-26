@@ -37,20 +37,12 @@ namespace locic {
 			return ConstantGenerator(module).getI8(state);
 		}
 		
-		llvm::BasicBlock* getNextUnwindBlock(Function& function) {
-			const auto& unwindStack = function.unwindStack();
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				
-				const auto unwindBB = unwindAction.unwindBlock();
-				if (unwindBB != nullptr) {
-					return unwindBB;
-				}
-			}
-			
-			llvm_unreachable("Failed to find next unwind block.");
+		llvm::BasicBlock* getNextNormalUnwindBlock(Function& function) {
+			return function.unwindStack().back().normalUnwindBlock();
+		}
+		
+		llvm::BasicBlock* getNextExceptUnwindBlock(Function& function) {
+			return function.unwindStack().back().exceptUnwindBlock();
 		}
 		
 		namespace {
@@ -81,23 +73,14 @@ namespace locic {
 		
 		namespace {
 			
-			llvm::BasicBlock* genOuterUnwindBlock(Function& function) {
+			llvm::BasicBlock* genNormalOuterUnwindBlock(Function& function) {
 				const auto currentBB = function.getSelectedBasicBlock();
 				
-				const auto unwindBB = function.createBasicBlock("functionUnwind");
+				const auto unwindBB = function.createBasicBlock("");
 				function.selectBasicBlock(unwindBB);
-				
-				const auto returnBB = function.createBasicBlock("");
-				const auto keepUnwindingBB = function.createBasicBlock("");
-				
-				// At this point, the only possible unwind states are
-				// normal execution and exception active.
-				const auto isNormalExecution = getIsCurrentUnwindState(function, UnwindStateNormal);
-				function.getBuilder().CreateCondBr(isNormalExecution, returnBB, keepUnwindingBB);
 				
 				// Return a value or void, depending on whether the
 				// generated function returns a value directly.
-				function.selectBasicBlock(returnBB);
 				const auto rawReturnValue = function.getRawReturnValue();
 				if (rawReturnValue != nullptr) {
 					function.getBuilder().CreateRet(rawReturnValue);
@@ -105,10 +88,18 @@ namespace locic {
 					function.getBuilder().CreateRetVoid();
 				}
 				
-				// TODO: only generate this if necessary.
-				// If an exception is active, continue unwinding out of
-				// this function.
-				function.selectBasicBlock(keepUnwindingBB);
+				function.selectBasicBlock(currentBB);
+				
+				return unwindBB;
+			}
+			
+			llvm::BasicBlock* genExceptOuterUnwindBlock(Function& function) {
+				const auto currentBB = function.getSelectedBasicBlock();
+				
+				const auto unwindBB = function.createBasicBlock("functionUnwind");
+				function.selectBasicBlock(unwindBB);
+				
+				// Continue unwinding.
 				const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
 				function.getBuilder().CreateResume(exceptionInfo);
 				
@@ -120,27 +111,31 @@ namespace locic {
 		}
 		
 		FunctionLifetime::FunctionLifetime(Function& function)
-			: function_(function),
-			functionExitBB_(genOuterUnwindBlock(function)) {
-				function_.unwindStack().push_back(UnwindAction::ScopeMarker(functionExitBB_));
+			: function_(function) {
+				const auto normalOuterBB = genNormalOuterUnwindBlock(function);
+				
+				// TODO: only generate this if function isn't noexcept.
+				const auto exceptOuterBB = genExceptOuterUnwindBlock(function);
+				
+				function_.unwindStack().push_back(UnwindAction(UnwindAction::SCOPEMARKER, normalOuterBB, exceptOuterBB));
 			}
 		
 		FunctionLifetime::~FunctionLifetime() {
 			// Jump to unwind block to perform exit actions, which should
 			// then end up jumping to our unwind block.
-			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
+			function_.getBuilder().CreateBr(getNextNormalUnwindBlock(function_));
 		}
 		
 		ScopeLifetime::ScopeLifetime(Function& function)
 			: function_(function),
 			scopeExitBB_(function.createBasicBlock("scopeUnwind")) {
-				function_.unwindStack().push_back(UnwindAction::ScopeMarker(scopeExitBB_));
+				function_.unwindStack().push_back(UnwindAction(UnwindAction::SCOPEMARKER, scopeExitBB_, getNextExceptUnwindBlock(function)));
 			}
 		
 		ScopeLifetime::~ScopeLifetime() {
 			// Jump to unwind block to perform exit actions, which should
 			// then end up jumping to our unwind block.
-			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
+			function_.getBuilder().CreateBr(getNextNormalUnwindBlock(function_));
 			
 			popScope(function_.unwindStack());
 			
@@ -153,7 +148,7 @@ namespace locic {
 			// continue unwinding by jumping to the next unwind block.
 			const auto isNormalExecution = getIsCurrentUnwindState(function_, UnwindStateNormal);
 			
-			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextUnwindBlock(function_));
+			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextNormalUnwindBlock(function_));
 			
 			function_.selectBasicBlock(stopUnwindingBB);
 		}
@@ -161,13 +156,13 @@ namespace locic {
 		StatementLifetime::StatementLifetime(Function& function)
 			: function_(function),
 			statementExitBB_(function.createBasicBlock("statementUnwind")) {
-				function_.unwindStack().push_back(UnwindAction::StatementMarker(statementExitBB_));
+				function_.unwindStack().push_back(UnwindAction(UnwindAction::STATEMENTMARKER, statementExitBB_, getNextExceptUnwindBlock(function)));
 			}
 		
 		StatementLifetime::~StatementLifetime() {
 			// Jump to unwind block to perform exit actions, which should
 			// then end up jumping to our unwind block.
-			function_.getBuilder().CreateBr(getNextUnwindBlock(function_));
+			function_.getBuilder().CreateBr(getNextNormalUnwindBlock(function_));
 			
 			popStatement(function_.unwindStack());
 			
@@ -180,7 +175,7 @@ namespace locic {
 			// continue unwinding by jumping to the next unwind block.
 			const auto isNormalExecution = getIsCurrentUnwindState(function_, UnwindStateNormal);
 			
-			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextUnwindBlock(function_));
+			function_.getBuilder().CreateCondBr(isNormalExecution, stopUnwindingBB, getNextNormalUnwindBlock(function_));
 			
 			function_.selectBasicBlock(stopUnwindingBB);
 		}

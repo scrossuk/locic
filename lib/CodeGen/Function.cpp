@@ -231,22 +231,26 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+			//(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
 		}
 		
-		Function::LocalVarMap& Function::getLocalVarMap() {
+		CatchTypeStack& Function::catchTypeStack() {
+			return catchTypeStack_;
+		}
+		
+		ExceptionValueStack& Function::exceptionValueStack() {
+			return exceptionValueStack_;
+		}
+		
+		LocalVarMap& Function::getLocalVarMap() {
 			return localVarMap_;
 		}
 		
-		const Function::LocalVarMap& Function::getLocalVarMap() const {
-			return localVarMap_;
-		}
-		
-		Function::MemberOffsetMap& Function::getMemberOffsetMap() {
+		MemberOffsetMap& Function::getMemberOffsetMap() {
 			return memberOffsetMap_;
 		}
 		
-		Function::SizeOfMap& Function::getSizeOfMap() {
+		SizeOfMap& Function::getSizeOfMap() {
 			return sizeOfMap_;
 		}
 		

@@ -238,7 +238,7 @@ namespace locic {
 				if (hasReturnVar) {
 					genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
 				} else if (!result->getType()->isVoidTy()) {
-					functionGenerator.returnValue(result);
+					functionGenerator.setReturnValue(result);
 				}
 			}
 			

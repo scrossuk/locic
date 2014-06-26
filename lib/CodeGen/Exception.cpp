@@ -127,7 +127,6 @@ namespace locic {
 		
 		void genLandingPad(Function& function, bool isRethrow) {
 			auto& module = function.module();
-			const auto& unwindStack = function.unwindStack();
 			
 			TypeGenerator typeGen(module);
 			const auto landingPadType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
@@ -135,14 +134,10 @@ namespace locic {
 			
 			// Find all catch types on the stack.
 			std::vector<llvm::Constant*> catchTypes;
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isCatch()) {
-					catchTypes.push_back(action.catchTypeInfo());
-				}
+			catchTypes.reserve(function.catchTypeStack().size());
+			for (size_t i = 0; i < function.catchTypeStack().size(); i++) {
+				const size_t pos = function.catchTypeStack().size() - i - 1;
+				catchTypes.push_back(function.catchTypeStack().at(pos));
 			}
 			
 			const auto landingPad = function.getBuilder().CreateLandingPad(landingPadType, personalityFunction, catchTypes.size());
@@ -159,19 +154,28 @@ namespace locic {
 			setCurrentUnwindState(function, isRethrow ? UnwindStateRethrow : UnwindStateThrow);
 			
 			// Jump to first unwind block.
-			function.getBuilder().CreateBr(getNextUnwindBlock(function));
+			function.getBuilder().CreateBr(getNextExceptUnwindBlock(function));
 		}
 		
 		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue) {
 			const auto currentBB = function.getSelectedBasicBlock();
 			
-			const auto unwindBB = function.createBasicBlock("exceptionDestroy");
-			function.selectBasicBlock(unwindBB);
+			// In the 'normal execution' case, there is no possibility of
+			// a re-throw so just destroy the exception and continue.
+			const auto normalUnwindBB = function.createBasicBlock("");
+			function.selectBasicBlock(normalUnwindBB);
+			function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), std::vector<llvm::Value*>{ exceptionPtrValue });
+			function.getBuilder().CreateBr(getNextNormalUnwindBlock(function));
+			
+			// In the exception case, there may have been a re-throw,
+			// so check this and only destroy if this is not a re-throw.
+			const auto exceptUnwindBB = function.createBasicBlock("");
+			function.selectBasicBlock(exceptUnwindBB);
 			
 			const auto isRethrowBB = function.createBasicBlock("");
 			const auto isNotRethrowBB = function.createBasicBlock("");
 			
-			const auto nextUnwindBB = getNextUnwindBlock(function);
+			const auto nextUnwindBB = getNextExceptUnwindBlock(function);
 			
 			const auto isRethrowState = getIsCurrentUnwindState(function, UnwindStateRethrow);
 			function.getBuilder().CreateCondBr(isRethrowState, isRethrowBB, isNotRethrowBB);
@@ -187,7 +191,7 @@ namespace locic {
 			function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), std::vector<llvm::Value*>{ exceptionPtrValue });
 			function.getBuilder().CreateBr(nextUnwindBB);
 			
-			function.unwindStack().push_back(UnwindAction::CatchBlock(unwindBB, exceptionPtrValue));
+			function.unwindStack().push_back(UnwindAction(UnwindAction::CATCH, normalUnwindBB, exceptUnwindBB));
 			
 			function.selectBasicBlock(currentBB);
 		}
@@ -274,21 +278,25 @@ namespace locic {
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*>{constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		TryScope::TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList)
-			: unwindStack_(unwindStack), catchCount_(catchTypeList.size()) {
+		TryScope::TryScope(Function& function, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList)
+			: function_(function), catchCount_(catchTypeList.size()) {
 				assert(!catchTypeList.empty());
 				for (size_t i = 0; i < catchTypeList.size(); i++) {
 					// Push in reverse order.
 					const auto catchType = catchTypeList.at(catchTypeList.size() - i - 1);
-					unwindStack_.push_back(UnwindAction::CatchException(catchBlock, catchType));
+					function_.catchTypeStack().push_back(catchType);
 				}
+				
+				function_.unwindStack().push_back(UnwindAction(UnwindAction::CATCH, getNextNormalUnwindBlock(function), catchBlock));
 			}
 		
 		TryScope::~TryScope() {
 			for (size_t i = 0; i < catchCount_; i++) {
-				assert(unwindStack_.back().isCatch());
-				unwindStack_.pop_back();
+				function_.catchTypeStack().pop_back();
 			}
+			
+			assert(function_.unwindStack().back().isCatch());
+			function_.unwindStack().pop_back();
 		}
 		
 	}

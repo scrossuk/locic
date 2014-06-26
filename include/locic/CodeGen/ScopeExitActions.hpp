@@ -25,7 +25,9 @@ namespace locic {
 		
 		llvm::Value* getUnwindStateValue(Module& module, UnwindState state);
 		
-		llvm::BasicBlock* getNextUnwindBlock(Function& function);
+		llvm::BasicBlock* getNextNormalUnwindBlock(Function& function);
+		
+		llvm::BasicBlock* getNextExceptUnwindBlock(Function& function);
 		
 		class FunctionLifetime {
 			public:
@@ -34,7 +36,6 @@ namespace locic {
 				
 			private:
 				Function& function_;
-				llvm::BasicBlock* functionExitBB_;
 			
 		};
 		

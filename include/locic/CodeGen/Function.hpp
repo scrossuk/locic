@@ -2,8 +2,8 @@
 #define LOCIC_CODEGEN_FUNCTION_HPP
 
 #include <map>
-#include <stack>
 #include <string>
+#include <vector>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
@@ -24,18 +24,16 @@ namespace locic {
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
 				llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
 		
+		typedef std::vector<llvm::Constant*> CatchTypeStack;
+		typedef std::vector<llvm::Value*> ExceptionValueStack;
 		typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 		typedef std::pair<SEM::Type*, size_t> OffsetPair;
 		typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
 		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
+		typedef std::vector<UnwindAction> UnwindStack;
 		
 		class Function {
 			public:
-				typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
-				typedef std::pair<SEM::Type*, size_t> OffsetPair;
-				typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
-				typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
-				
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
 				void returnValue(llvm::Value* value);
@@ -88,9 +86,11 @@ namespace locic {
 				
 				void verify() const;
 				
-				LocalVarMap& getLocalVarMap();
+				CatchTypeStack& catchTypeStack();
 				
-				const LocalVarMap& getLocalVarMap() const;
+				ExceptionValueStack& exceptionValueStack();
+				
+				LocalVarMap& getLocalVarMap();
 				
 				MemberOffsetMap& getMemberOffsetMap();
 				
@@ -123,6 +123,8 @@ namespace locic {
 				const ArgInfo& argInfo_;
 				TemplateBuilder* templateBuilder_;
 				
+				CatchTypeStack catchTypeStack_;
+				ExceptionValueStack exceptionValueStack_;
 				LocalVarMap localVarMap_;
 				MemberOffsetMap memberOffsetMap_;
 				SizeOfMap sizeOfMap_;

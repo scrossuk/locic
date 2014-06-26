@@ -33,7 +33,7 @@ namespace locic {
 		
 		class TryScope {
 			public:
-				TryScope(UnwindStack& unwindStack, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList);
+				TryScope(Function& function, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList);
 				~TryScope();
 				
 			private:
@@ -41,7 +41,7 @@ namespace locic {
 				TryScope(const TryScope&) = delete;
 				TryScope& operator=(TryScope) = delete;
 				
-				UnwindStack& unwindStack_;
+				Function& function_;
 				size_t catchCount_;
 			
 		};
