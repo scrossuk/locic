@@ -38,19 +38,15 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
-				SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+			assert(callInfo.functionPtr != nullptr);
+			
 			auto& module = function.module();
-			auto& builder = function.getBuilder();
 			auto& abiContext = module.abiContext();
 			
 			const auto returnType = functionType->getFunctionReturnType();
-			const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
 			
-			const auto functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
-			const auto templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
-			
-			const auto llvmFunctionType = functionPtr->getType()->getPointerElementType();
+			const auto llvmFunctionType = callInfo.functionPtr->getType()->getPointerElementType();
 			assert(llvmFunctionType->isFunctionTy());
 			
 			std::vector<llvm::Value*> parameters;
@@ -71,13 +67,13 @@ namespace locic {
 				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
 			}
 			
-			if (templateGenerator != nullptr) {
-				parameters.push_back(templateGenerator);
+			if (callInfo.templateGenerator != nullptr) {
+				parameters.push_back(callInfo.templateGenerator);
 				parameterABITypes.push_back(templateGeneratorType(module).first);
 			}
 			
-			if (contextPointer != nullptr) {
-				parameters.push_back(contextPointer);
+			if (callInfo.contextPointer != nullptr) {
+				parameters.push_back(callInfo.contextPointer);
 				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
 			}
 			
@@ -124,7 +120,7 @@ namespace locic {
 				const auto successPath = function.createBasicBlock("successPath");
 				const auto failPath = function.createBasicBlock("failPath");
 				
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, parameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(callInfo.functionPtr, successPath, failPath, parameters), debugLoc);
 				
 				// Fail path.
 				function.selectBasicBlock(failPath);
@@ -134,7 +130,7 @@ namespace locic {
 				// Success path.
 				function.selectBasicBlock(successPath);
 			} else {
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(functionPtr, parameters), debugLoc);
+				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(callInfo.functionPtr, parameters), debugLoc);
 			}
 			
 			if (returnVarValue != nullptr) {
@@ -147,13 +143,13 @@ namespace locic {
 		}
 		
 		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, bool canThrow, llvm::Value* functionPtr,
-				const std::vector<llvm::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+				llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
 			
 			assert(args.size() == argInfo.argumentTypes().size());
 			
 			assert(functionPtr->getType()->getPointerElementType()->isFunctionTy());
 			
-			std::vector<llvm_abi::Type*> argABITypes;
+			llvm::SmallVector<llvm_abi::Type*, 10> argABITypes;
 			argABITypes.reserve(argInfo.argumentTypes().size());
 			
 			for (const auto& typePair: argInfo.argumentTypes()) {
@@ -161,7 +157,7 @@ namespace locic {
 			}
 			
 			// Parameters need to be encoded according to the ABI.
-			std::vector<llvm::Value*> encodedParameters = args;
+			std::vector<llvm::Value*> encodedParameters = args.vec();
 			function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), encodedParameters, argABITypes);
 			
 			llvm::Value* encodedCallReturnValue = nullptr;

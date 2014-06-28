@@ -33,6 +33,10 @@ namespace locic {
 			COMPARE_MORE
 		};
 		
+		enum AttributeKind {
+			AttributeVirtualCallStub
+		};
+		
 		enum StandardTypeKind {
 			TemplateGeneratorType,
 			TypeInfoType
@@ -44,6 +48,7 @@ namespace locic {
 			return compareTypes(first, second) == COMPARE_LESS;
 		}
 		
+		typedef std::map<AttributeKind, llvm::AttributeSet> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef Map<std::string, llvm::Function*> FunctionMap;
@@ -81,6 +86,8 @@ namespace locic {
 				llvm::Module& getLLVMModule() const;
 				
 				llvm::Module* getLLVMModulePtr() const;
+				
+				AttributeMap& attributeMap();
 				
 				BitsRequiredGlobalMap& bitsRequiredGlobalMap();
 				
@@ -126,6 +133,7 @@ namespace locic {
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				llvm_abi::Context abiContext_;
 				
+				AttributeMap attributeMap_;
 				BitsRequiredGlobalMap bitsRequiredGlobalMap_;
 				DestructorMap destructorMap_;
 				FunctionMap functionMap_;

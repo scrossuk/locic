@@ -72,7 +72,7 @@ namespace locic {
 			
 			const auto returnVar = needsReturnVar ? builder.CreateAlloca(newFunctionType->getReturnType()) : nullptr;
 			
-			std::vector<llvm::Value*> args;
+			llvm::SmallVector<llvm::Value*, 10> args;
 			
 			if (needsReturnVar) {
 				args.push_back(builder.CreatePointerCast(returnVar, TypeGenerator(module).getI8PtrType()));
@@ -152,6 +152,150 @@ namespace locic {
 				return genTemplateFunctionStub(module, parentType->getTemplateVar(), function);
 			} else {
 				llvm_unreachable("Unknown parent type in function ref.");
+			}
+		}
+		
+		bool isTrivialFunctionCall(SEM::Value* value) {
+			switch (value->kind()) {
+				case SEM::Value::FUNCTIONREF: {
+					if (value->functionRef.function->name() == Name::Absolute() + "value_lval" + "dissolve"
+						|| value->functionRef.function->name() == Name::Absolute() + "member_lval" + "dissolve"
+						|| value->functionRef.function->name() == Name::Absolute() + "__ptr" + "implicitCopy"
+						|| value->functionRef.function->name() == Name::Absolute() + "ptr_lval" + "dissolve") {
+						return true;
+					}
+					
+					return false;
+				}
+				
+				case SEM::Value::METHODOBJECT: {
+					return isTrivialFunctionCall(value->methodObject.method);
+				}
+				
+				default: {
+					return false;
+				}
+			}
+		}
+		
+		llvm::Value* genTrivialFunctionCall(Function& function, llvm::Type* resultType, SEM::Value* value, llvm::Value* contextPointer) {
+			auto& builder = function.getBuilder();
+			auto& module = function.module();
+			
+			TypeGenerator typeGen(module);
+			
+			switch (value->kind()) {
+				case SEM::Value::FUNCTIONREF: {
+					assert(contextPointer != nullptr);
+					assert(resultType->isPointerTy());
+					
+					if (value->functionRef.function->name() == Name::Absolute() + "value_lval" + "dissolve"
+						|| value->functionRef.function->name() == Name::Absolute() + "member_lval" + "dissolve") {
+						return builder.CreatePointerCast(contextPointer, resultType);
+					}
+					
+					if (value->functionRef.function->name() == Name::Absolute() + "__ptr" + "implicitCopy"
+						|| value->functionRef.function->name() == Name::Absolute() + "ptr_lval" + "dissolve") {
+						const auto ptrPtrValue = builder.CreatePointerCast(contextPointer, resultType->getPointerTo());
+						return builder.CreateLoad(ptrPtrValue);
+					}
+					
+					llvm_unreachable("Unknown trivial function.");
+				}
+				
+				case SEM::Value::METHODOBJECT: {
+					const auto dataValue = value->methodObject.methodOwner;
+					const auto llvmDataValue = genValue(function, dataValue);
+					
+					// Methods must have a pointer to the object, which
+					// may require generating a fresh 'alloca'.
+					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
+						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
+					
+					return genTrivialFunctionCall(function, resultType, value->methodObject.method, dataPointer);
+				}
+				
+				default: {
+					llvm_unreachable("Unknown trivial function value kind.");
+				}
+			}
+		}
+		
+		FunctionCallInfo genFunctionCallInfo(Function& function, SEM::Value* value) {
+			auto& builder = function.getBuilder();
+			auto& module = function.module();
+			const auto debugLoc = getDebugLocation(function, value);
+			
+			switch (value->kind()) {
+				case SEM::Value::FUNCTIONREF: {
+					FunctionCallInfo callInfo;
+					
+					const auto parentType = value->functionRef.parentType;
+					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
+					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
+					
+					if (value->type()->isFunctionTemplatedMethod()) {
+						assert(parentType != nullptr);
+						if (parentType->isTemplateVar()) {
+							callInfo.templateGenerator = function.getTemplateGenerator();
+						} else {
+							callInfo.templateGenerator = getTemplateGenerator(function, parentType);
+						}
+					}
+					
+					return callInfo;
+				}
+				
+				case SEM::Value::METHODOBJECT: {
+					assert(value->type()->isMethod());
+					
+					FunctionCallInfo callInfo;
+					
+					const auto functionCallInfo = genFunctionCallInfo(function, value->methodObject.method);
+					
+					callInfo.functionPtr = functionCallInfo.functionPtr;
+					callInfo.templateGenerator = functionCallInfo.templateGenerator;
+					
+					const auto dataValue = value->methodObject.methodOwner;
+					const auto llvmDataValue = genValue(function, dataValue);
+					
+					// Methods must have a pointer to the object, which
+					// may require generating a fresh 'alloca'.
+					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
+						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+					const auto dataPointer = isValuePtr ? llvmDataValue : makePtr(function, llvmDataValue, dataValue->type());
+					
+					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
+					
+					callInfo.contextPointer = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType());
+					
+					return callInfo;
+				}
+				
+				default: {
+					assert(value->type()->isFunction() || value->type()->isMethod());
+					
+					const auto llvmValue = genValue(function, value);
+					
+					FunctionCallInfo callInfo;
+					
+					callInfo.contextPointer = value->type()->isMethod() ?
+						builder.CreateExtractValue(llvmValue, { 0 }) :
+						nullptr;
+					
+					const auto functionValue = value->type()->isMethod() ?
+						builder.CreateExtractValue(llvmValue, { 1 }) :
+						llvmValue;
+					
+					const auto functionType = value->type()->isMethod() ?
+						value->type()->getMethodFunctionType() : value->type();
+					const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
+					callInfo.functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
+					callInfo.templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
+					return callInfo;
+				}
 			}
 		}
 		
@@ -423,42 +567,33 @@ namespace locic {
 					
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
 					
-					const auto callValue = genValue(function, semFunctionValue);
+					if (isTrivialFunctionCall(semFunctionValue)) {
+						return genTrivialFunctionCall(function, genType(module, value->type()), semFunctionValue, nullptr);
+					}
 					
-					const auto contextPointer = semFunctionValue->type()->isMethod() ?
-						function.getBuilder().CreateExtractValue(callValue, { 0 }) :
-						nullptr;
-					const auto functionValue = semFunctionValue->type()->isMethod() ?
-						function.getBuilder().CreateExtractValue(callValue, { 1 }) :
-						callValue;
+					const auto callInfo = genFunctionCallInfo(function, semFunctionValue);
 					const auto functionType = semFunctionValue->type()->isMethod() ?
 						semFunctionValue->type()->getMethodFunctionType() : semFunctionValue->type();
 					
-					return genFunctionCall(function, functionValue, contextPointer, functionType, semArgumentValues, debugLoc);
+					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc);
 				}
 				
 				case SEM::Value::FUNCTIONREF: {
-					const auto parentType = value->functionRef.parentType;
-					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
-					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
-					const auto functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
+					const auto callInfo = genFunctionCallInfo(function, value);
 					
-					if (value->type()->isFunctionTemplatedMethod()) {
-						assert(parentType != nullptr);
+					if (callInfo.templateGenerator != nullptr) {
 						llvm::Value* functionValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, functionPtr, { 0 });
-						if (parentType->isTemplateVar()) {
-							functionValue = function.getBuilder().CreateInsertValue(functionValue, function.getTemplateGenerator(), { 1 });
-						} else {
-							functionValue = function.getBuilder().CreateInsertValue(functionValue, getTemplateGenerator(function, parentType), { 1 });
-						}
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.functionPtr, { 0 });
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 						return functionValue;
 					} else {
-						return functionPtr;
+						return callInfo.functionPtr;
 					}
 				}
 				
 				case SEM::Value::METHODOBJECT: {
+					// TODO: use genFunctionCallInfo here.
+					
 					const auto functionValue = genValue(function, value->methodObject.method);
 					assert(functionValue != nullptr && "MethodObject requires a valid function");
 					

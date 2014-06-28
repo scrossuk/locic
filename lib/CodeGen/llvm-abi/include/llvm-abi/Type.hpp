@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <llvm/ADT/ArrayRef.h>
+
 namespace llvm_abi {
 
 	/**
@@ -92,7 +94,7 @@ namespace llvm_abi {
 			/**
 			 * \brief Auto-aligned Struct Type
 			 */
-			static Type* AutoStruct(Context& context, const std::vector<Type*>& memberTypes);
+			static Type* AutoStruct(Context& context, llvm::ArrayRef<Type*> memberTypes);
 			
 			/**
 			 * \brief Array Type

@@ -107,6 +107,10 @@ namespace locic {
 			return module_.get();
 		}
 		
+		AttributeMap& Module::attributeMap() {
+			return attributeMap_;
+		}
+		
 		BitsRequiredGlobalMap& Module::bitsRequiredGlobalMap() {
 			return bitsRequiredGlobalMap_;
 		}

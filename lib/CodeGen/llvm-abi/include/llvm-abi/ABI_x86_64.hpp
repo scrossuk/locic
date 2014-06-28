@@ -32,13 +32,13 @@ namespace llvm_abi {
 			
 			llvm::Type* abiType(llvm_abi::Type* type) const;
 			
-			std::vector<size_t> calculateStructOffsets(const std::vector<StructMember>& structMembers) const;
+			std::vector<size_t> calculateStructOffsets(llvm::ArrayRef<StructMember> structMembers) const;
 			
 			llvm::Type* longDoubleType() const;
 			
-			void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes);
+			void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes);
 			
-			void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes);
+			void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes);
 			
 			llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType);
 			

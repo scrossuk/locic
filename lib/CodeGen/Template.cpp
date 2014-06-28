@@ -82,18 +82,16 @@ namespace locic {
 			
 			module.getTypeMap().insert(name, structType);
 			
-			std::vector<llvm::Type*> structMembers;
+			llvm::SmallVector<llvm::Type*, 2> structMembers;
 			structMembers.push_back(typeGen.getI8PtrType());
 			structMembers.push_back(typeGen.getI32Type());
-			
 			structType->setBody(structMembers);
 			return structType;
 		}
 		
 		llvm_abi::Type* templateGeneratorABIType(Module& module) {
 			auto& abiContext = module.abiContext();
-			std::vector<llvm_abi::Type*> types;
-			types.reserve(2);
+			llvm::SmallVector<llvm_abi::Type*, 2> types;
 			types.push_back(llvm_abi::Type::Pointer(abiContext));
 			types.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int32));
 			return llvm_abi::Type::AutoStruct(abiContext, types);
@@ -115,19 +113,16 @@ namespace locic {
 			const auto name = "__type_info";
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
-			std::vector<llvm::Type*> structMembers;
-			structMembers.reserve(2);
+			llvm::SmallVector<llvm::Type*, 2> structMembers;
 			structMembers.push_back(vtableType(module)->getPointerTo());
 			structMembers.push_back(templateGeneratorType(module).second);
-			
 			structType->setBody(structMembers);
 			return structType;
 		}
 		
 		llvm_abi::Type* typeInfoABIType(Module& module) {
 			auto& abiContext = module.abiContext();
-			std::vector<llvm_abi::Type*> types;
-			types.reserve(2);
+			llvm::SmallVector<llvm_abi::Type*, 2> types;
 			types.push_back(llvm_abi::Type::Pointer(abiContext));
 			types.push_back(templateGeneratorABIType(module));
 			return llvm_abi::Type::AutoStruct(abiContext, types);
@@ -153,8 +148,7 @@ namespace locic {
 		}
 		
 		ArgInfo rootFunctionArgInfo(Module& module) {
-			std::vector<TypePair> types;
-			types.reserve(1);
+			llvm::SmallVector<TypePair, 1> types;
 			types.push_back(pathType(module));
 			return ArgInfo::Basic(module, typeInfoArrayType(module), types);
 		}
@@ -319,17 +313,18 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			const auto ctlzTypes = std::vector<llvm::Type*>{ typeGen.getI32Type() };
+			llvm::Type* const ctlzTypes[] = { typeGen.getI32Type() };
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
-			const auto numLeadingZeroes = builder.CreateCall(countLeadingZerosFunction, std::vector<llvm::Value*>{ pathArg, constGen.getI1(true) });
+			llvm::Value* const ctlzArgs[] = { pathArg, constGen.getI1(true) };
+			const auto numLeadingZeroes = builder.CreateCall(countLeadingZerosFunction, ctlzArgs);
 			const auto numLeadingZeroesI8 = builder.CreateTrunc(numLeadingZeroes, typeGen.getI8Type());
 			const auto startPosition = builder.CreateSub(constGen.getI8(31), numLeadingZeroesI8);
 			
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, type->getObjectType());
 			
 			const bool canThrow = false;
-			builder.CreateRet(genRawFunctionCall(function, intermediateFunctionArgInfo(module), canThrow, nextFunction,
-				std::vector<llvm::Value*>{ newTypesValue, llvmFunction, pathArg, startPosition }));
+			llvm::Value* const args[] = { newTypesValue, llvmFunction, pathArg, startPosition };
+			builder.CreateRet(genRawFunctionCall(function, intermediateFunctionArgInfo(module), canThrow, nextFunction, args));
 			
 			return llvmFunction;
 		}

@@ -50,22 +50,31 @@ namespace locic {
 					voidTypePair(module), arguments);
 			}
 			
-			void setStubAttributes(llvm::Function* llvmFunction) {
+			llvm::AttributeSet conflictResolutionStubAttributes(Module& module) {
+				const auto iterator = module.attributeMap().find(AttributeVirtualCallStub);
+				if (iterator != module.attributeMap().end()) {
+					return iterator->second;
+				}
+				
+				auto& context = module.getLLVMContext();
+				
+				auto attributes = llvm::AttributeSet();
+				
 				// Always inline stubs.
-				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+				attributes = attributes.addAttribute(context, llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
 				
-				{
-					// Return value pointer attributes.
-					llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
-					llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
-					llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
-				}
+				// Return value pointer attributes.
+				attributes = attributes.addAttribute(context, 1, llvm::Attribute::StructRet);
+				attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoAlias);
+				attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoCapture);
 				
-				{
-					// Arguments struct pointer attributes.
-					llvmFunction->addAttribute(5, llvm::Attribute::NoAlias);
-					llvmFunction->addAttribute(5, llvm::Attribute::NoCapture);
-				}
+				// Arguments struct pointer attributes.
+				attributes = attributes.addAttribute(context, 5, llvm::Attribute::NoAlias);
+				attributes = attributes.addAttribute(context, 5, llvm::Attribute::NoCapture);
+				
+				module.attributeMap().insert(std::make_pair(AttributeVirtualCallStub, attributes));
+				
+				return attributes;
 			}
 			
 			llvm::Value* makeArgsStruct(Function& function, const std::vector<SEM::Type*>& argTypes, const std::vector<llvm::Value*>& args) {
@@ -242,7 +251,8 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				const bool canThrow = false;
-				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, { templateGeneratorValue, objectValue });
+				llvm::Value* const args[] = { templateGeneratorValue, objectValue };
+				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, args);
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
@@ -258,7 +268,7 @@ namespace locic {
 				
 				llvm::Function* llvmFunction = createLLVMFunction(module, stubArgInfo.makeFunctionType(), linkage, "__slot_conflict_resolution_stub");
 				
-				setStubAttributes(llvmFunction);
+				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));
 				
 				Function function(module, *llvmFunction, stubArgInfo);
 				

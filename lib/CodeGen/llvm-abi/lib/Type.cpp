@@ -38,7 +38,7 @@ namespace llvm_abi {
 		return context.getType(type);
 	}
 	
-	Type* Type::AutoStruct(Context& context, const std::vector<Type*>& memberTypes) {
+	Type* Type::AutoStruct(Context& context, llvm::ArrayRef<Type*> memberTypes) {
 		Type type(StructType);
 		type.structType_.members.reserve(memberTypes.size());
 		for (auto& memberType: memberTypes) {

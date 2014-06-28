@@ -124,7 +124,7 @@ namespace llvm_abi {
 			}
 		}
 		
-		std::vector<size_t> getStructOffsets(const std::vector<StructMember>& structMembers) {
+		std::vector<size_t> getStructOffsets(llvm::ArrayRef<StructMember> structMembers) {
 			std::vector<size_t> offsets;
 			offsets.reserve(structMembers.size());
 			
@@ -501,7 +501,7 @@ namespace llvm_abi {
 		return llvmABIType;
 	}
 	
-	std::vector<size_t> ABI_x86_64::calculateStructOffsets(const std::vector<StructMember>& structMembers) const {
+	std::vector<size_t> ABI_x86_64::calculateStructOffsets(llvm::ArrayRef<StructMember> structMembers) const {
 		return getStructOffsets(structMembers);
 	}
 	
@@ -509,12 +509,12 @@ namespace llvm_abi {
 		return llvm::Type::getX86_FP80Ty(llvmContext_);
 	}
 	
-	void ABI_x86_64::encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes) {
+	void ABI_x86_64::encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
 			const auto argValue = argValues.at(i);
-			const auto argType = argTypes.at(i);
+			const auto argType = argTypes[i];
 			const auto llvmAbiType = abiType(argType);
 			if (llvmAbiType == nullptr) {
 				continue;
@@ -542,12 +542,12 @@ namespace llvm_abi {
 		}
 	}
 	
-	void ABI_x86_64::decodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) {
+	void ABI_x86_64::decodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
 			const auto encodedValue = argValues.at(i);
-			const auto argType = argTypes.at(i);
+			const auto argType = argTypes[i];
 			const auto llvmAbiType = abiType(argType);
 			if (llvmAbiType == nullptr) {
 				continue;
@@ -557,7 +557,7 @@ namespace llvm_abi {
 			builder.CreateStore(encodedValue, encodedValuePtr);
 			
 			assert(llvmArgTypes.at(i) != nullptr);
-			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes.at(i));
+			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes[i]);
 			
 			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);
 			const auto i1Type = llvm::Type::getInt1Ty(llvmContext_);
@@ -577,29 +577,39 @@ namespace llvm_abi {
 		}
 	}
 	
-	namespace {
-	
-		// Helper function for rewriteFunctionType.
-		llvm::Type* fixType(ABI_x86_64& abi, llvm::Type* llvmType, Type* type) {
-			const auto llvmAbiType = abi.abiType(type);
-			return llvmAbiType != nullptr ? llvmAbiType : llvmType;
-		}
-		
-	}
-	
 	llvm::FunctionType* ABI_x86_64::rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType) {
-		const auto returnType = fixType(*this, llvmFunctionType->getReturnType(), functionType.returnType);
-		
 		assert(llvmFunctionType->getNumParams() == functionType.argTypes.size());
 		
-		std::vector<llvm::Type*> argTypes;
-		argTypes.reserve(llvmFunctionType->getNumParams());
+		llvm::SmallVector<llvm::Type*, 10> argTypes;
+		bool modified = false;
 		
-		for (size_t i = 0; i < llvmFunctionType->getNumParams(); i++) {
-			argTypes.push_back(fixType(*this, llvmFunctionType->getParamType(i), functionType.argTypes.at(i)));
+		llvm::Type* returnType = nullptr;
+		
+		{
+			const auto llvmAbiType = abiType(functionType.returnType);
+			if (llvmAbiType != nullptr) {
+				modified = true;
+				returnType = llvmAbiType;
+			} else {
+				returnType = llvmFunctionType->getReturnType();
+			}
 		}
 		
-		return llvm::FunctionType::get(returnType, argTypes, llvmFunctionType->isVarArg());
+		for (size_t i = 0; i < llvmFunctionType->getNumParams(); i++) {
+			const auto llvmAbiType = abiType(functionType.argTypes.at(i));
+			if (llvmAbiType != nullptr) {
+				modified = true;
+				argTypes.push_back(llvmAbiType);
+			} else {
+				argTypes.push_back(llvmFunctionType->getParamType(i));
+			}
+		}
+		
+		if (modified) {
+			return llvm::FunctionType::get(returnType, argTypes, llvmFunctionType->isVarArg());
+		} else {
+			return llvmFunctionType;
+		}
 	}
 	
 }

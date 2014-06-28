@@ -12,12 +12,23 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		struct FunctionCallInfo {
+			llvm::Value* functionPtr;
+			llvm::Value* templateGenerator;
+			llvm::Value* contextPointer;
+			
+			inline FunctionCallInfo()
+				: functionPtr(nullptr),
+				templateGenerator(nullptr),
+				contextPointer(nullptr) { }
+		};
+		
 		// TODO: reduce number of arguments to this function.
-		llvm::Value* genFunctionCall(Function& function, llvm::Value* functionValue, llvm::Value* contextPointer,
+		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo,
 			SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc);
 		
 		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, bool canThrow, llvm::Value* functionPtr,
-			const std::vector<llvm::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc = boost::none);
+			llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc = boost::none);
 		
 	}
 	

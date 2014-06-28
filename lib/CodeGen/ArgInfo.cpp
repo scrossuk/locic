@@ -42,7 +42,7 @@ namespace locic {
 			return ArgInfo(module, false, true, false, false, voidTypePair(module), {});
 		}
 		
-		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes) {
+		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes) {
 			return ArgInfo(module, false, true, false, false, returnType, argumentTypes);
 		}
 		
@@ -58,11 +58,11 @@ namespace locic {
 			return ArgInfo(module, false, true, true, false, returnType, {});
 		}
 		
-		ArgInfo ArgInfo::Basic(Module& module, TypePair returnType, const std::vector<TypePair>& argumentTypes) {
+		ArgInfo ArgInfo::Basic(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes) {
 			return ArgInfo(module, false, false, false, false, returnType, argumentTypes);
 		}
 		
-		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, const std::vector<TypePair>& pArgumentTypes)
+		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, llvm::ArrayRef<TypePair> pArgumentTypes)
 			: module_(module),
 			  hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),

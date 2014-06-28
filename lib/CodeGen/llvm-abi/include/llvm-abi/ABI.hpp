@@ -33,13 +33,13 @@ namespace llvm_abi {
 			
 			virtual size_t typeAlign(Type* type) const = 0;
 			
-			virtual std::vector<size_t> calculateStructOffsets(const std::vector<StructMember>& structMembers) const = 0;
+			virtual std::vector<size_t> calculateStructOffsets(llvm::ArrayRef<StructMember> structMembers) const = 0;
 			
 			virtual llvm::Type* longDoubleType() const = 0;
 			
-			virtual void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes) = 0;
+			virtual void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) = 0;
 			
-			virtual void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, const std::vector<Type*>& argTypes, const std::vector<llvm::Type*>& llvmArgTypes) = 0;
+			virtual void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) = 0;
 			
 			virtual llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType) = 0;
 		
