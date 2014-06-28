@@ -6,22 +6,12 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
 	
 	namespace CodeGen {
-		
-		struct FunctionCallInfo {
-			llvm::Value* functionPtr;
-			llvm::Value* templateGenerator;
-			llvm::Value* contextPointer;
-			
-			inline FunctionCallInfo()
-				: functionPtr(nullptr),
-				templateGenerator(nullptr),
-				contextPointer(nullptr) { }
-		};
 		
 		// TODO: reduce number of arguments to this function.
 		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo,

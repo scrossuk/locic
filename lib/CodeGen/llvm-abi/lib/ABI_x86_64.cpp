@@ -556,7 +556,7 @@ namespace llvm_abi {
 			const auto encodedValuePtr = entryBuilder.CreateAlloca(encodedValue->getType());
 			builder.CreateStore(encodedValue, encodedValuePtr);
 			
-			assert(llvmArgTypes.at(i) != nullptr);
+			assert(llvmArgTypes[i] != nullptr);
 			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes[i]);
 			
 			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);

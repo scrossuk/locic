@@ -297,6 +297,13 @@ namespace locic {
 				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 			}
 			
+			if (type->isPrimitive()) {
+				// Primitives don't have template generators;
+				// the path must have ended by now.
+				builder.CreateRet(newTypesValue);
+				return llvmFunction;
+			}
+			
 			// If the path is 1 (i.e. just the leading 1), that means that the
 			// path terminates immediately so just return the new types struct.
 			// Otherwise, call the next intermediate template generator.
@@ -347,6 +354,7 @@ namespace locic {
 		}
 		
 		llvm::Function* genTemplateIntermediateFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
+			assert(!typeInstance->isPrimitive());
 			const auto mangledName = mangleTemplateGenerator(typeInstance);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
@@ -446,26 +454,32 @@ namespace locic {
 					}
 				}
 				
-				// If the position is 0, that means we've reached the end of the path,
-				// so just return the new types struct. Otherwise, call the next
-				// intermediate template generator.
-				const auto pathEndBB = function.createBasicBlock("pathEnd");
-				const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
-				
-				const auto compareValue = builder.CreateICmpEQ(position, constGen.getI8(0));
-				builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
-				
-				function.selectBasicBlock(pathEndBB);
-				builder.CreateRet(newTypesValue);
-				
-				function.selectBasicBlock(callNextGeneratorBB);
-				
-				// Call the next intermediate function.
-				const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseType->getObjectType());
-				
-				const bool canThrow = false;
-				const auto callResult = genRawFunctionCall(function, argInfo, canThrow, nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, position });
-				builder.CreateRet(callResult);
+				if (templateUseType->isPrimitive()) {
+					// Primitives don't have template generators;
+					// the path must have ended by now.
+					builder.CreateRet(newTypesValue);
+				} else {
+					// If the position is 0, that means we've reached the end of the path,
+					// so just return the new types struct. Otherwise, call the next
+					// intermediate template generator.
+					const auto pathEndBB = function.createBasicBlock("pathEnd");
+					const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
+					
+					const auto compareValue = builder.CreateICmpEQ(position, constGen.getI8(0));
+					builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
+					
+					function.selectBasicBlock(pathEndBB);
+					builder.CreateRet(newTypesValue);
+					
+					function.selectBasicBlock(callNextGeneratorBB);
+					
+					// Call the next intermediate function.
+					const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseType->getObjectType());
+					
+					const bool canThrow = false;
+					const auto callResult = genRawFunctionCall(function, argInfo, canThrow, nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, position });
+					builder.CreateRet(callResult);
+				}
 				
 				function.selectBasicBlock(tryNextComponentEntryBB);
 			}

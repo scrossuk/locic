@@ -37,8 +37,7 @@ namespace locic {
 				
 				TypeGenerator typeGen(module);
 				
-				std::vector<TypePair> arguments;
-				arguments.reserve(2);
+				llvm::SmallVector<TypePair, 2> arguments;
 				
 				// Hash value type.
 				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int64), typeGen.getI64Type()));
@@ -77,7 +76,7 @@ namespace locic {
 				return attributes;
 			}
 			
-			llvm::Value* makeArgsStruct(Function& function, const std::vector<SEM::Type*>& argTypes, const std::vector<llvm::Value*>& args) {
+			llvm::Value* makeArgsStruct(Function& function, llvm::ArrayRef<SEM::Type*> argTypes, llvm::ArrayRef<llvm::Value*> args) {
 				assert(argTypes.size() == args.size());
 				
 				auto& module = function.module();
@@ -88,7 +87,7 @@ namespace locic {
 					return ConstantGenerator(module).getNullPointer(i8PtrType);
 				}
 				
-				std::vector<llvm::Type*> llvmArgTypes(args.size(), i8PtrType);
+				llvm::SmallVector<llvm::Type*, 10> llvmArgTypes(args.size(), i8PtrType);
 				const auto argsStructType = TypeGenerator(function.module()).getStructType(llvmArgTypes);
 				
 				const auto argsStructPtr = function.getEntryBuilder().CreateAlloca(argsStructType);
@@ -96,13 +95,13 @@ namespace locic {
 					const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
 						argsStructPtr, 0, offset);
 					
-					if (isTypeSizeAlwaysKnown(module, argTypes.at(offset))) {
-						const auto argAlloca = function.getEntryBuilder().CreateAlloca(args.at(offset)->getType());
-						function.getBuilder().CreateStore(args.at(offset), argAlloca);
+					if (isTypeSizeAlwaysKnown(module, argTypes[offset])) {
+						const auto argAlloca = function.getEntryBuilder().CreateAlloca(args[offset]->getType());
+						function.getBuilder().CreateStore(args[offset], argAlloca);
 						const auto castArg = function.getBuilder().CreatePointerCast(argAlloca, i8PtrType);
 						function.getBuilder().CreateStore(castArg, argPtr);
 					} else {
-						const auto castArg = function.getBuilder().CreatePointerCast(args.at(offset), i8PtrType);
+						const auto castArg = function.getBuilder().CreatePointerCast(args[offset], i8PtrType);
 						function.getBuilder().CreateStore(castArg, argPtr);
 					}
 				}
@@ -110,7 +109,7 @@ namespace locic {
 				return argsStructPtr;
 			}
 			
-			void generateCallWithReturnVar(Function& function, SEM::Type* functionType, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
+			void generateCallWithReturnVar(Function& function, SEM::Type* functionType, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -130,7 +129,7 @@ namespace locic {
 				const auto castVTableOffsetValue = builder.CreateTrunc(vtableOffsetValue, TypeGenerator(module).getI32Type());
 				
 				// Get a pointer to the slot.
-				std::vector<llvm::Value*> vtableEntryGEP;
+				llvm::SmallVector<llvm::Value*, 3> vtableEntryGEP;
 				vtableEntryGEP.push_back(constantGen.getI32(0));
 				vtableEntryGEP.push_back(constantGen.getI32(3));
 				vtableEntryGEP.push_back(castVTableOffsetValue);
@@ -151,7 +150,7 @@ namespace locic {
 				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
 				
 				// Put together the arguments.
-				std::vector<llvm::Value*> parameters;
+				llvm::SmallVector<llvm::Value*, 5> parameters;
 				
 				// Pass in the return var pointer.
 				parameters.push_back(builder.CreatePointerCast(returnVarPointer, i8PtrType, "castedReturnVarPtr"));
@@ -175,7 +174,7 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, parameters);
 			}
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args) {
+			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
 				const auto returnType = functionType->getFunctionReturnType();
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
 				
@@ -201,7 +200,7 @@ namespace locic {
 				
 				// Get a pointer to the slot.
 				ConstantGenerator constGen(module);
-				std::vector<llvm::Value*> vtableEntryGEP;
+				llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 1 : 2));
 				
@@ -237,7 +236,7 @@ namespace locic {
 				
 				// Get a pointer to the slot.
 				ConstantGenerator constGen(module);
-				std::vector<llvm::Value*> vtableEntryGEP;
+				llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				
@@ -255,7 +254,7 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, args);
 			}
 			
-			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods) {
+			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
 				ConstantGenerator constGen(module);
 				TypeGenerator typeGen(module);
 				
@@ -298,7 +297,7 @@ namespace locic {
 					const auto returnType = functionType->getFunctionReturnType();
 					const auto& paramTypes = functionType->getFunctionParameterTypes();
 					
-					std::vector<llvm::Value*> parameters;
+					llvm::SmallVector<llvm::Value*, 10> parameters;
 					
 					// If the function uses a return value pointer, just pass
 					// the pointer we received from our caller.
@@ -322,7 +321,7 @@ namespace locic {
 					
 					// Build the args struct type, which is just a struct
 					// containing i8* for each parameter.
-					std::vector<llvm::Type*> llvmArgsTypes(numArgs, TypeGenerator(module).getI8PtrType());
+					llvm::SmallVector<llvm::Type*, 10> llvmArgsTypes(numArgs, TypeGenerator(module).getI8PtrType());
 					
 					const auto llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
 					

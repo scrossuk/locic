@@ -69,7 +69,8 @@ namespace locic {
 					// generator if function type is templated method.
 					const auto functionPtrType = genFunctionType(module, type)->getPointerTo();
 					if (type->isFunctionTemplatedMethod()) {
-						return TypeGenerator(module).getStructType({ functionPtrType, templateGeneratorType(module).second });
+						llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
+						return TypeGenerator(module).getStructType(memberTypes);
 					} else {
 						return functionPtrType;
 					}
@@ -91,7 +92,7 @@ namespace locic {
 							RetType (*func)(i8*, ArgTypes);
 						};
 					*/
-					std::vector<llvm::Type*> types;
+					llvm::SmallVector<llvm::Type*, 2> types;
 					types.push_back(TypeGenerator(module).getI8PtrType());
 					types.push_back(genType(module, type->getMethodFunctionType()));
 					return TypeGenerator(module).getStructType(types);

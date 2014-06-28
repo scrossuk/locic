@@ -66,6 +66,11 @@ namespace locic {
 				return;
 			}
 			
+			if (typeInstance->isPrimitive()) {
+				// Only generate primitives as needed.
+				return;
+			}
+			
 			const auto& functions = typeInstance->functions();
 			
 			for (const auto functionPair: functions) {

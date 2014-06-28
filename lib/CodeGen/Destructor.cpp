@@ -198,6 +198,11 @@ namespace locic {
 			
 			module.getDestructorMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
+			if (typeInstance->isPrimitive()) {
+				// This is a primitive method; needs special code generation.
+				createPrimitiveDestructor(module, typeInstance, *llvmFunction);
+			}
+			
 			return llvmFunction;
 		}
 		
@@ -206,8 +211,7 @@ namespace locic {
 			const auto llvmFunction = genDestructorFunctionDecl(module, typeInstance);
 			
 			if (typeInstance->isPrimitive()) {
-				// This is a primitive method; needs special code generation.
-				createPrimitiveDestructor(module, typeInstance, *llvmFunction);
+				// Already generated in genDestructorFunctionDecl().
 				return llvmFunction;
 			}
 			

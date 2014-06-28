@@ -92,6 +92,11 @@ namespace locic {
 				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
 			}
 			
+			if (typeInstance != nullptr && typeInstance->isPrimitive()) {
+				// Generate primitive methods as needed.
+				createPrimitiveMethod(module, typeInstance, function, *llvmFunction);
+			}
+			
 			return llvmFunction;
 		}
 		
@@ -139,8 +144,7 @@ namespace locic {
 			// --- Generate function code.
 			
 			if (typeInstance != nullptr && typeInstance->isPrimitive()) {
-				// This is a primitive method; needs special code generation.
-				createPrimitiveMethod(module, typeInstance, function, *llvmFunction);
+				// Already generated in genFunctionDecl().
 				return llvmFunction;
 			}
 			

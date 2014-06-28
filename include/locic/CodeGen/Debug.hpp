@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/optional.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Name.hpp>
@@ -67,6 +69,8 @@ namespace locic {
 		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function);
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
+		
+		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, SEM::Value* value);
 		
 	}
 	

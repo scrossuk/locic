@@ -41,7 +41,8 @@ namespace locic {
 			}
 			
 			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getFunctionType(typeGen.getVoidType(), std::vector<llvm::Type*> { typeGen.getI8PtrType() });
+			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
+			const auto functionType = typeGen.getFunctionType(typeGen.getVoidType(), argTypes);
 			
 			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
 			function->addFnAttr(llvm::Attribute::NoUnwind);
@@ -60,7 +61,8 @@ namespace locic {
 			}
 			
 			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*> { typeGen.getI8PtrType(), typeGen.getI8PtrType(), typeGen.getI8PtrType() });
+			llvm::Type* const argTypes[] = { typeGen.getI8PtrType(), typeGen.getI8PtrType(), typeGen.getI8PtrType() };
+			const auto functionType = typeGen.getVoidFunctionType(argTypes);
 			
 			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
 			
@@ -78,7 +80,8 @@ namespace locic {
 			}
 			
 			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*> { typeGen.getI8PtrType() });
+			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
+			const auto functionType = typeGen.getVoidFunctionType(argTypes);
 			
 			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
 			

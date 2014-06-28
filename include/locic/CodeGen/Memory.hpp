@@ -48,6 +48,15 @@ namespace locic {
 		 */
 		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar);
 		
+		/**
+		 * \brief Allocate and store a value on the stack,
+		 *        in order to get a pointer to it.
+		 * 
+		 * (This is typically used to generate a pointer
+		 * passed as the context pointer to methods.)
+		 */
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, SEM::Type* type);
+		
 	}
 	
 }

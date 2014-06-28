@@ -124,6 +124,14 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, SEM::Type* type) {
+			assert(!type->isBuiltInReference());
+			
+			const auto ptrValue = genAlloca(function, type);
+			genStore(function, value, ptrValue, type);
+			return ptrValue;
+		}
+		
 	}
 	
 }

@@ -30,13 +30,13 @@ namespace locic {
 		
 		llvm::Type* interfaceStructLLVMType(Module& module) {
 			TypeGenerator typeGen(module);
-			return typeGen.getStructType({ typeGen.getI8PtrType(), typeInfoType(module).second });
+			llvm::Type* const memberTypes[] = { typeGen.getI8PtrType(), typeInfoType(module).second };
+			return typeGen.getStructType(memberTypes);
 		}
 		
 		llvm_abi::Type* interfaceStructABIType(Module& module) {
 			auto& abiContext = module.abiContext();
-			std::vector<llvm_abi::Type*> types;
-			types.reserve(2);
+			llvm::SmallVector<llvm_abi::Type*, 2> types;
 			types.push_back(llvm_abi::Type::Pointer(abiContext));
 			types.push_back(typeInfoType(module).first);
 			return llvm_abi::Type::AutoStruct(abiContext, types);
@@ -55,13 +55,13 @@ namespace locic {
 		
 		llvm::Type* interfaceMethodLLVMType(Module& module) {
 			TypeGenerator typeGen(module);
-			return typeGen.getStructType({ interfaceStructLLVMType(module), typeGen.getI64Type() });
+			llvm::Type* const memberTypes[] = { interfaceStructLLVMType(module), typeGen.getI64Type() };
+			return typeGen.getStructType(memberTypes);
 		}
 		
 		llvm_abi::Type* interfaceMethodABIType(Module& module) {
 			auto& abiContext = module.abiContext();
-			std::vector<llvm_abi::Type*> types;
-			types.reserve(2);
+			llvm::SmallVector<llvm_abi::Type*, 2> types;
 			types.push_back(interfaceStructABIType(module));
 			types.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int64));
 			return llvm_abi::Type::AutoStruct(abiContext, types);

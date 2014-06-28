@@ -69,6 +69,10 @@ namespace locic {
 		
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
+		bool isTrivialPrimitiveFunction(Module& module, SEM::Type* type, SEM::Function* function);
+		
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args);
+		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
 		
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type);

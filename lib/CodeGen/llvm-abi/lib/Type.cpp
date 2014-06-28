@@ -76,9 +76,6 @@ namespace llvm_abi {
 					return structMembers().size() < type.structMembers().size();
 				}
 				
-				std::vector<StructMember> structMembersCopy;
-				structMembersCopy.reserve(structMembers().size());
-				
 				for (size_t i = 0; i < structMembers().size(); i++) {
 					const auto& myMember = structMembers().at(i);
 					const auto& otherMember = type.structMembers().at(i);

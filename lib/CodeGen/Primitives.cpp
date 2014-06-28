@@ -1039,6 +1039,172 @@ namespace locic {
 			function.verify();
 		}
 		
+		bool isTrivialPrimitiveFunction(Module& module, SEM::Type* type, SEM::Function* function) {
+			const auto& typeName = type->getObjectType()->name().last();
+			const auto& methodName = function->name().last();
+			const auto kind = module.primitiveKind(typeName);
+			
+			switch (kind) {
+				case PrimitivePtrLval:
+				case PrimitiveValueLval:
+				case PrimitiveMemberLval:
+					return methodName == "dissolve";
+				case PrimitivePtr:
+					return methodName == "implicitCopy" || methodName == "index";
+				case PrimitiveInt8:
+				case PrimitiveUInt8:
+				case PrimitiveInt16:
+				case PrimitiveUInt16:
+				case PrimitiveInt32:
+				case PrimitiveUInt32:
+				case PrimitiveInt64:
+				case PrimitiveUInt64:
+				case PrimitiveByte:
+				case PrimitiveUByte:
+				case PrimitiveShort:
+				case PrimitiveUShort:
+				case PrimitiveInt:
+				case PrimitiveUInt:
+				case PrimitiveLong:
+				case PrimitiveULong:
+				case PrimitiveLongLong:
+				case PrimitiveULongLong:
+				case PrimitiveSize:
+				case PrimitiveSSize:
+					return methodName == "compare" || methodName == "isZero";
+				default:
+					return false;
+			}
+		}
+		
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			const auto& typeName = type->getObjectType()->name().last();
+			const auto& methodName = semFunction->name().last();
+			const auto kind = module.primitiveKind(typeName);
+			
+			ConstantGenerator constGen(module);
+			TypeGenerator typeGen(module);
+			
+			switch (kind) {
+				case PrimitiveValueLval:
+				case PrimitiveMemberLval: {
+					if (methodName == "dissolve") {
+						assert(args.size() == 1);
+						const auto targetType = type->templateArguments().at(0);
+						const auto objectPointer = passContextByRef ? args[0] : genValuePtr(function, args[0], type);
+						return builder.CreatePointerCast(objectPointer, genPointerType(module, targetType));
+					}
+					
+					llvm_unreachable("Unknown trivial lval primitive function.");
+				}
+				case PrimitivePtrLval: {
+					const auto pointerValue =
+						passContextByRef ?
+							builder.CreateLoad(builder.CreatePointerCast(args[0], typeGen.getI8PtrType()->getPointerTo())) :
+							args[0];
+					
+					if (methodName == "dissolve") {
+						assert(args.size() == 1);
+						return pointerValue;
+					}
+					
+					llvm_unreachable("Unknown trivial lval primitive function.");
+				}
+				case PrimitivePtr: {
+					const auto pointerValue =
+						passContextByRef ?
+							builder.CreateLoad(builder.CreatePointerCast(args[0], typeGen.getI8PtrType()->getPointerTo())) :
+							args[0];
+					const auto targetType = type->templateArguments().at(0);
+					
+					if (methodName == "implicitCopy") {
+						assert(args.size() == 1);
+						return builder.CreatePointerCast(pointerValue, genPointerType(module, targetType));
+					} else if (methodName == "index") {
+						assert(args.size() == 2);
+						const auto targetSize = genSizeOf(function, targetType);
+						const auto offset = builder.CreateIntCast(args[1], getNamedPrimitiveType(module, "size_t"), true);
+						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
+						const auto i8IndexPtr = builder.CreateGEP(pointerValue, adjustedOffset);
+						return builder.CreatePointerCast(i8IndexPtr, genPointerType(module, targetType));
+					}
+					
+					llvm_unreachable("Unknown trivial pointer primitive function.");
+				}
+				case PrimitiveInt8:
+				case PrimitiveInt16:
+				case PrimitiveInt32:
+				case PrimitiveInt64:
+				case PrimitiveByte:
+				case PrimitiveShort:
+				case PrimitiveInt:
+				case PrimitiveLong:
+				case PrimitiveLongLong:
+				case PrimitiveSSize: {
+					const auto objectValue =
+						passContextByRef ?
+							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :
+							args[0];
+					
+					if (methodName == "compare") {
+						assert(args.size() == 2);
+						const auto operand = builder.CreateLoad(args[1]);
+						const auto isLessThan = builder.CreateICmpSLT(objectValue, operand);
+						const auto isGreaterThan = builder.CreateICmpSGT(objectValue, operand);
+						const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+						const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+						const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+						return builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
+					} else if (methodName == "isZero") {
+						assert(args.size() == 1);
+						const auto zero = constGen.getPrimitiveInt(typeName, 0);
+						return builder.CreateICmpEQ(objectValue, zero);
+					}
+					
+					llvm_unreachable("Unknown trivial signed integer primitive function.");
+				}
+				case PrimitiveUInt8:
+				case PrimitiveUInt16:
+				case PrimitiveUInt32:
+				case PrimitiveUInt64:
+				case PrimitiveUByte:
+				case PrimitiveUShort:
+				case PrimitiveUInt:
+				case PrimitiveULong:
+				case PrimitiveULongLong:
+				case PrimitiveSize: {
+					const auto objectValue =
+						passContextByRef ?
+							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :
+							args[0];
+					
+					if (methodName == "compare") {
+						assert(args.size() == 2);
+						const auto operand = builder.CreateLoad(args[1]);
+						const auto isLessThan = builder.CreateICmpULT(objectValue, operand);
+						const auto isGreaterThan = builder.CreateICmpUGT(objectValue, operand);
+						const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
+						const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
+						const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+						return builder.CreateSelect(isLessThan, minusOneResult,
+							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
+					} else if (methodName == "isZero") {
+						assert(args.size() == 1);
+						const auto zero = constGen.getPrimitiveInt(typeName, 0);
+						return builder.CreateICmpEQ(objectValue, zero);
+					}
+					
+					llvm_unreachable("Unknown trivial signed integer primitive function.");
+				}
+				default:
+					llvm_unreachable("Unknown trivial primitive function.");
+			}
+		}
+		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
 		
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type) {

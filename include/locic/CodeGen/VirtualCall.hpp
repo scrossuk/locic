@@ -14,9 +14,9 @@ namespace locic {
 		
 		namespace VirtualCall {
 			
-			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, const std::vector<SEM::Function*>& methods);
+			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods);
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, const std::vector<llvm::Value*>& args);
+			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args);
 			
 			enum CountFnKind {
 				ALIGNOF,
