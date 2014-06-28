@@ -146,7 +146,7 @@ namespace locic {
 		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, bool passContextByRef, llvm::Value* contextValue, llvm::ArrayRef<llvm::Value*> args) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					assert(contextPointer != nullptr);
+					assert(contextValue!= nullptr);
 					const auto parentType = value->functionRef.parentType;
 					if (parentType->isPrimitive()) {
 						llvm::SmallVector<llvm::Value*, 10> functionArgs;

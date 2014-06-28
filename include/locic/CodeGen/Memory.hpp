@@ -37,7 +37,7 @@ namespace locic {
 		 * (such as classes) by copying the memory from
 		 * one pointer to another.
 		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* unresolvedType);
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type);
 		
 		/**
 		 * \brief Store a value into a variable.

@@ -39,6 +39,7 @@ namespace locic {
 			  useEntryBuilder_(false),
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
+			  alignMaskMap_(isTypeLessThan),
 			  memberOffsetMap_(isOffsetPairLessThan),
 			  sizeOfMap_(isTypeLessThan),
 			  templateGeneratorMap_(isTypeLessThan),
@@ -235,6 +236,10 @@ namespace locic {
 			//(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
 		}
 		
+		AlignMaskMap& Function::alignMaskMap() {
+			return alignMaskMap_;
+		}
+		
 		CatchTypeStack& Function::catchTypeStack() {
 			return catchTypeStack_;
 		}
@@ -251,7 +256,7 @@ namespace locic {
 			return memberOffsetMap_;
 		}
 		
-		SizeOfMap& Function::getSizeOfMap() {
+		SizeOfMap& Function::sizeOfMap() {
 			return sizeOfMap_;
 		}
 		

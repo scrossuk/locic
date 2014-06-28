@@ -1048,7 +1048,7 @@ namespace locic {
 				case PrimitivePtrLval:
 				case PrimitiveValueLval:
 				case PrimitiveMemberLval:
-					return methodName == "dissolve";
+					return methodName == "assign" || methodName == "dissolve" || methodName == "move";
 				case PrimitivePtr:
 					return methodName == "implicitCopy" || methodName == "index";
 				case PrimitiveInt8:
@@ -1091,22 +1091,78 @@ namespace locic {
 			switch (kind) {
 				case PrimitiveValueLval:
 				case PrimitiveMemberLval: {
-					if (methodName == "dissolve") {
+					const auto targetType = type->templateArguments().at(0);
+					const auto objectPointer = passContextByRef ? args[0] : genValuePtr(function, args[0], type);
+					
+					if (methodName == "assign") {
+						assert(args.size() == 2);
+						
+						const auto objectPointerI8 = builder.CreatePointerCast(objectPointer, typeGen.getI8PtrType());
+						
+						if (kind == PrimitiveValueLval) {
+							const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, genSizeOf(function, targetType));
+							const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, typeGen.getI1Type()->getPointerTo());
+							
+							// Check if there is an existing value.
+							const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
+							const auto isLiveBB = function.createBasicBlock("is_live");
+							const auto setValueBB = function.createBasicBlock("set_value");
+							
+							builder.CreateCondBr(isLive, isLiveBB, setValueBB);
+							
+							// If there is an existing value, run its destructor.
+							function.selectBasicBlock(isLiveBB);
+							genDestructorCall(function, targetType, objectPointerI8);
+							builder.CreateBr(setValueBB);
+							
+							// Now set the liveness indicator and store the value.
+							function.selectBasicBlock(setValueBB);
+							builder.CreateStore(constGen.getI1(true), castLivenessIndicatorPtr);
+						}
+						
+						genStore(function, args[1], objectPointerI8, targetType);
+						return constGen.getVoidUndef();
+					} else if (methodName == "dissolve") {
 						assert(args.size() == 1);
-						const auto targetType = type->templateArguments().at(0);
-						const auto objectPointer = passContextByRef ? args[0] : genValuePtr(function, args[0], type);
 						return builder.CreatePointerCast(objectPointer, genPointerType(module, targetType));
+					} else if (methodName == "move") {
+						assert(args.size() == 1);
+						
+						if (kind == PrimitiveValueLval) {
+							const auto objectPointerI8 = builder.CreatePointerCast(objectPointer, typeGen.getI8PtrType());
+							const auto objectSize = genSizeOf(function, targetType);
+							
+							// Reset the objects' liveness indicator.
+							const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, objectSize);
+							const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, typeGen.getI1Type()->getPointerTo());
+							builder.CreateStore(ConstantGenerator(module).getI1(false), castLivenessIndicatorPtr);
+						}
+						
+						if (isTypeSizeAlwaysKnown(module, targetType)) {
+							const auto targetPointer = builder.CreatePointerCast(objectPointer, genPointerType(module, targetType));
+							return builder.CreateLoad(targetPointer);
+						} else {
+							const auto returnValue = genAlloca(function, targetType);
+							const auto targetPointer = builder.CreatePointerCast(objectPointer, genPointerType(module, targetType));
+							genStore(function, targetPointer, returnValue, targetType);
+							return returnValue;
+						}
 					}
 					
 					llvm_unreachable("Unknown trivial lval primitive function.");
 				}
 				case PrimitivePtrLval: {
+					const auto targetType = type->templateArguments().at(0);
 					const auto pointerValue =
 						passContextByRef ?
 							builder.CreateLoad(builder.CreatePointerCast(args[0], typeGen.getI8PtrType()->getPointerTo())) :
 							args[0];
 					
-					if (methodName == "dissolve") {
+					if (methodName == "assign") {
+						assert(args.size() == 2);
+						genStore(function, args[1], pointerValue, targetType);
+						return constGen.getVoidUndef();
+					} else if (methodName == "dissolve") {
 						assert(args.size() == 1);
 						return pointerValue;
 					}

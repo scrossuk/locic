@@ -111,7 +111,7 @@ namespace locic {
 			return function.getBuilder().CreateAdd(alignMask, ConstantGenerator(function.module()).getSizeTValue(1), name);
 		}
 		
-		llvm::Value* genAlignMask(Function& function, SEM::Type* type) {
+		llvm::Value* genAlignMaskValue(Function& function, SEM::Type* type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
@@ -149,6 +149,17 @@ namespace locic {
 					llvm_unreachable("Unknown type enum for generating alignmask.");
 				}
 			}
+		}
+		
+		llvm::Value* genAlignMask(Function& function, SEM::Type* type) {
+			const auto it = function.alignMaskMap().find(type);
+			if (it != function.alignMaskMap().end()) {
+				return it->second;
+			}
+			
+			const auto alignMaskValue = genAlignMaskValue(function, type);
+			function.alignMaskMap().insert(std::make_pair(type, alignMaskValue));
+			return alignMaskValue;
 		}
 		
 		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
@@ -283,14 +294,13 @@ namespace locic {
 		}
 		
 		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
-			auto& sizeOfMap = function.getSizeOfMap();
-			const auto it = sizeOfMap.find(type);
-			if (it != sizeOfMap.end()) {
+			const auto it = function.sizeOfMap().find(type);
+			if (it != function.sizeOfMap().end()) {
 				return it->second;
 			}
 			
 			const auto sizeOfValue = genSizeOfValue(function, type);
-			sizeOfMap.insert(std::make_pair(type, sizeOfValue));
+			function.sizeOfMap().insert(std::make_pair(type, sizeOfValue));
 			return sizeOfValue;
 		}
 		

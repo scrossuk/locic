@@ -24,6 +24,7 @@ namespace locic {
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
 				llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
 		
+		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> AlignMaskMap;
 		typedef std::vector<llvm::Constant*> CatchTypeStack;
 		typedef std::vector<llvm::Value*> ExceptionValueStack;
 		typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
@@ -87,6 +88,8 @@ namespace locic {
 				
 				void verify() const;
 				
+				AlignMaskMap& alignMaskMap();
+				
 				CatchTypeStack& catchTypeStack();
 				
 				ExceptionValueStack& exceptionValueStack();
@@ -95,7 +98,7 @@ namespace locic {
 				
 				MemberOffsetMap& getMemberOffsetMap();
 				
-				SizeOfMap& getSizeOfMap();
+				SizeOfMap& sizeOfMap();
 				
 				TemplateGeneratorMap& templateGeneratorMap();
 				
@@ -126,6 +129,7 @@ namespace locic {
 				const ArgInfo& argInfo_;
 				TemplateBuilder* templateBuilder_;
 				
+				AlignMaskMap alignMaskMap_;
 				CatchTypeStack catchTypeStack_;
 				ExceptionValueStack exceptionValueStack_;
 				LocalVarMap localVarMap_;

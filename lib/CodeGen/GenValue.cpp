@@ -242,11 +242,23 @@ namespace locic {
 					const auto objectValue = genAlloca(function, type);
 					const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
 					
+					llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
+					
 					for (size_t i = 0; i < parameterValues.size(); i++) {
+						const auto var = parameterVars.at(i);
 						const auto llvmParamValue = genValue(function, parameterValues.at(i));
-						const auto memberOffset = genMemberOffset(function, type, i);
-						const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, memberOffset);
-						genStoreVar(function, llvmParamValue, llvmInsertPointer, parameterVars.at(i));
+						
+						// Align offset for field.
+						offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
+						
+						const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
+						genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
+						
+						if ((i + 1) != parameterValues.size()) {
+							// If this isn't the last field, add its size for calculating
+							// the offset of the next field.
+							offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+						}
 					}
 					
 					return genLoad(function, objectValue, type);

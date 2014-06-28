@@ -400,17 +400,18 @@ namespace locic {
 			const auto mask = constGen.getI32((1 << templateBuilder.bitsRequired()) - 1);
 			const auto component = builder.CreateAnd(subPath, mask);
 			
+			const auto endBB = function.createBasicBlock("");
+			const auto switchInstruction = builder.CreateSwitch(component, endBB);
+			
 			// Generate the component entry for each template use.
 			for (const auto& templateUsePair: templateBuilder.templateUseMap()) {
 				const auto& templateUseType = templateUsePair.first;
 				const auto templateUseComponent = templateUsePair.second;
 				
-				const auto foundComponentEntryBB = function.createBasicBlock("foundComponentEntry");
-				const auto tryNextComponentEntryBB = function.createBasicBlock("tryNextComponentEntry");
-				const auto componentCompareValue = builder.CreateICmpEQ(component, constGen.getI32(templateUseComponent));
-				builder.CreateCondBr(componentCompareValue, foundComponentEntryBB, tryNextComponentEntryBB);
+				const auto caseBB = function.createBasicBlock("");
+				switchInstruction->addCase(constGen.getI32(templateUseComponent), caseBB);
 				
-				function.selectBasicBlock(foundComponentEntryBB);
+				function.selectBasicBlock(caseBB);
 				
 				llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType(module).second);
 				
@@ -480,9 +481,9 @@ namespace locic {
 					const auto callResult = genRawFunctionCall(function, argInfo, canThrow, nextFunction, std::vector<llvm::Value*>{ newTypesValue, rootFnArg, pathArg, position });
 					builder.CreateRet(callResult);
 				}
-				
-				function.selectBasicBlock(tryNextComponentEntryBB);
 			}
+			
+			function.selectBasicBlock(endBB);
 			
 			// Path is not valid...
 			builder.CreateUnreachable();
