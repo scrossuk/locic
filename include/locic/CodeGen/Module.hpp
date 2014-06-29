@@ -52,6 +52,7 @@ namespace locic {
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef Map<std::string, llvm::Function*> FunctionMap;
+		typedef std::map<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
@@ -95,9 +96,9 @@ namespace locic {
 				
 				FunctionMap& getFunctionMap();
 				
-				const FunctionMap& getFunctionMap() const;
-				
 				FunctionDeclMap& getFunctionDeclMap();
+				
+				FunctionPtrStubMap& functionPtrStubMap();
 				
 				MemberOffsetFunctionMap& memberOffsetFunctionMap();
 				
@@ -138,6 +139,7 @@ namespace locic {
 				DestructorMap destructorMap_;
 				FunctionMap functionMap_;
 				FunctionDeclMap functionDeclMap_;
+				FunctionPtrStubMap functionPtrStubMap_;
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				PrimitiveMap primitiveMap_;

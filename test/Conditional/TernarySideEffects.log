@@ -1,0 +1,24 @@
+evaluateBool: value is TRUE
+evaluateInt: value is 1
+testEntryPoint: selectValue(true, 1, 2) = 1
+evaluateBool: value is FALSE
+evaluateInt: value is 2
+testEntryPoint: selectValue(false, 1, 2) = 2
+evaluateBool: value is TRUE
+evaluateInt: value is -1
+testEntryPoint: selectValue(true, -1, -2) = -1
+evaluateBool: value is FALSE
+evaluateInt: value is -2
+testEntryPoint: selectValue(false, -1, -2) = -2
+evaluateBool: value is TRUE
+evaluateInt: value is 100
+testEntryPoint: selectValue(getBool(), 100, 101) = 100
+evaluateBool: value is FALSE
+evaluateInt: value is 101
+testEntryPoint: selectValue(getBool(), 100, 101) = 101
+evaluateBool: value is TRUE
+evaluateInt: value is 100
+testEntryPoint: selectValue(getBool(), 100, 101) = 100
+evaluateBool: value is FALSE
+evaluateInt: value is 101
+testEntryPoint: selectValue(getBool(), 100, 101) = 101

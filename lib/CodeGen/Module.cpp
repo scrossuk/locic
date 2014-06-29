@@ -123,12 +123,12 @@ namespace locic {
 			return functionMap_;
 		}
 		
-		const FunctionMap& Module::getFunctionMap() const {
-			return functionMap_;
-		}
-		
 		FunctionDeclMap& Module::getFunctionDeclMap() {
 			return functionDeclMap_;
+		}
+		
+		FunctionPtrStubMap& Module::functionPtrStubMap() {
+			return functionPtrStubMap_;
 		}
 		
 		MemberOffsetFunctionMap& Module::memberOffsetFunctionMap() {

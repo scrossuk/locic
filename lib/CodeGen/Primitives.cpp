@@ -1071,7 +1071,7 @@ namespace locic {
 				case PrimitiveULongLong:
 				case PrimitiveSize:
 				case PrimitiveSSize:
-					return methodName == "compare" || methodName == "isZero";
+					return hasEnding(methodName, "_cast") || methodName == "compare" || methodName == "isZero";
 				default:
 					return false;
 			}
@@ -1200,6 +1200,11 @@ namespace locic {
 				case PrimitiveLong:
 				case PrimitiveLongLong:
 				case PrimitiveSSize: {
+					if (hasEnding(methodName, "_cast")) {
+						// TODO: handle values passed by reference (e.g. due to templates).
+						return builder.CreateSExt(args[0], genType(module, type));
+					}
+					
 					const auto objectValue =
 						passContextByRef ?
 							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :
@@ -1233,6 +1238,11 @@ namespace locic {
 				case PrimitiveULong:
 				case PrimitiveULongLong:
 				case PrimitiveSize: {
+					if (hasEnding(methodName, "_cast")) {
+						// TODO: handle values passed by reference (e.g. due to templates).
+						return builder.CreateZExt(args[0], genType(module, type));
+					}
+					
 					const auto objectValue =
 						passContextByRef ?
 							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :

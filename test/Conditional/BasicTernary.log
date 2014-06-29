@@ -1,0 +1,8 @@
+testEntryPoint: selectValue(true, 1, 2) = 1
+testEntryPoint: selectValue(false, 1, 2) = 2
+testEntryPoint: selectValue(true, -1, -2) = -1
+testEntryPoint: selectValue(false, -1, -2) = -2
+testEntryPoint: selectValue(getBool(), 100, 101) = 100
+testEntryPoint: selectValue(getBool(), 100, 101) = 101
+testEntryPoint: selectValue(getBool(), 100, 101) = 100
+testEntryPoint: selectValue(getBool(), 100, 101) = 101

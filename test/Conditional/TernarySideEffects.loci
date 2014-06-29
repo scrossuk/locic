@@ -1,0 +1,37 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+bool evaluateBool(bool value) {
+	testPrint(C"evaluateBool: value is %s", value ? C"TRUE" : C"FALSE");
+	return value;
+}
+
+int evaluateInt(int value) {
+	testPrint(C"evaluateInt: value is %d", value);
+	return value;
+}
+
+int selectValue(bool getFirst, int first, int second) {
+	return evaluateBool(getFirst) ? evaluateInt(first) : evaluateInt(second);
+}
+
+bool getBool(bool* value) {
+	*value = !*value;
+	return *value;
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	testPrint(C"testEntryPoint: selectValue(true, 1, 2) = %d", selectValue(true, 1, 2));
+	testPrint(C"testEntryPoint: selectValue(false, 1, 2) = %d", selectValue(false, 1, 2));
+	testPrint(C"testEntryPoint: selectValue(true, -1, -2) = %d", selectValue(true, -1, -2));
+	testPrint(C"testEntryPoint: selectValue(false, -1, -2) = %d", selectValue(false, -1, -2));
+	
+	bool cond = false;
+	testPrint(C"testEntryPoint: selectValue(getBool(), 100, 101) = %d", selectValue(getBool(&cond), 100, 101));
+	testPrint(C"testEntryPoint: selectValue(getBool(), 100, 101) = %d", selectValue(getBool(&cond), 100, 101));
+	testPrint(C"testEntryPoint: selectValue(getBool(), 100, 101) = %d", selectValue(getBool(&cond), 100, 101));
+	testPrint(C"testEntryPoint: selectValue(getBool(), 100, 101) = %d", selectValue(getBool(&cond), 100, 101));
+	return 0;
+}
+

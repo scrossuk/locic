@@ -109,9 +109,57 @@ namespace locic {
 				}
 				
 				case SEM::Value::TERNARY: {
-					return function.getBuilder().CreateSelect(genValue(function, value->ternary.condition),
-							genValue(function, value->ternary.ifTrue),
-							genValue(function, value->ternary.ifFalse));
+					const auto condValue = genValue(function, value->ternary.condition);
+					
+					const auto ifTrueBB = function.createBasicBlock("");
+					const auto ifFalseBB = function.createBasicBlock("");
+					const auto afterCondBB = function.createBasicBlock("");
+					
+					const auto currentBB = function.getBuilder().GetInsertBlock();
+					
+					function.selectBasicBlock(ifTrueBB);
+					const auto ifTrueValue = genValue(function, value->ternary.ifTrue);
+					const auto ifTrueTermBlock = function.getBuilder().GetInsertBlock();
+					const auto ifTrueIsEmpty = ifTrueBB->empty();
+					function.getBuilder().CreateBr(afterCondBB);
+					
+					function.selectBasicBlock(ifFalseBB);
+					const auto ifFalseValue = genValue(function, value->ternary.ifFalse);
+					const auto ifFalseTermBlock = function.getBuilder().GetInsertBlock();
+					const auto ifFalseIsEmpty = ifFalseBB->empty();
+					function.getBuilder().CreateBr(afterCondBB);
+					
+					function.selectBasicBlock(currentBB);
+					
+					if (ifTrueIsEmpty && ifFalseIsEmpty) {
+						// If possible, create a select instruction.
+						ifTrueBB->eraseFromParent();
+						ifFalseBB->eraseFromParent();
+						afterCondBB->eraseFromParent();
+						return function.getBuilder().CreateSelect(condValue, ifTrueValue, ifFalseValue);
+					}
+					
+					const auto ifTrueBranchBB = !ifTrueIsEmpty ? ifTrueBB : afterCondBB;
+					const auto ifFalseBranchBB = !ifFalseIsEmpty ? ifFalseBB : afterCondBB;
+					const auto ifTrueReceiveBB = !ifTrueIsEmpty ? ifTrueTermBlock : currentBB;
+					const auto ifFalseReceiveBB = !ifFalseIsEmpty ? ifFalseTermBlock : currentBB;
+					
+					if (ifTrueIsEmpty) {
+						ifTrueBB->eraseFromParent();
+					}
+					
+					if (ifFalseIsEmpty) {
+						ifFalseBB->eraseFromParent();
+					}
+					
+					function.getBuilder().CreateCondBr(condValue, ifTrueBranchBB, ifFalseBranchBB);
+					
+					function.selectBasicBlock(afterCondBB);
+					
+					const auto phiNode = function.getBuilder().CreatePHI(ifTrueValue->getType(), 2);
+					phiNode->addIncoming(ifTrueValue, ifTrueReceiveBB);
+					phiNode->addIncoming(ifFalseValue, ifFalseReceiveBB);
+					return phiNode;
 				}
 				
 				case SEM::Value::CAST: {
@@ -318,7 +366,7 @@ namespace locic {
 						for (const auto& arg: semArgumentValues) {
 							llvmArgs.push_back(genValue(function, arg));
 						}
-						return genTrivialFunctionCall(function, semFunctionValue, false, nullptr, llvmArgs);
+						return genTrivialFunctionCall(function, semFunctionValue, false, llvmArgs);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semFunctionValue);

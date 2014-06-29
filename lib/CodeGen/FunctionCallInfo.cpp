@@ -19,9 +19,17 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Function* genFunctionPtrStub(Module& module, llvm::Function* functionRefPtr, llvm::FunctionType* newFunctionType) {
+			const auto stubIdPair = std::make_pair(functionRefPtr, newFunctionType);
+			const auto iterator = module.functionPtrStubMap().find(stubIdPair);
+			if (iterator != module.functionPtrStubMap().end()) {
+				return iterator->second;
+			}
+			
 			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
 			
 			const auto llvmFunction = createLLVMFunction(module, newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub");
+			
+			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			
 			// Always inline if possible.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -143,20 +151,12 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, bool passContextByRef, llvm::Value* contextValue, llvm::ArrayRef<llvm::Value*> args) {
+		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					assert(contextValue!= nullptr);
 					const auto parentType = value->functionRef.parentType;
 					if (parentType->isPrimitive()) {
-						llvm::SmallVector<llvm::Value*, 10> functionArgs;
-						functionArgs.push_back(contextValue);
-						
-						for (const auto arg: args) {
-							functionArgs.push_back(arg);
-						}
-						
-						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, passContextByRef, functionArgs);
+						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, passContextByRef, args);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -167,7 +167,15 @@ namespace locic {
 					const auto llvmDataValue = genValue(function, dataValue);
 					const bool isContextRef = dataValue->type()->isBuiltInReference()
 						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
-					return genTrivialFunctionCall(function, value->methodObject.method, isContextRef, llvmDataValue, args);
+					
+					llvm::SmallVector<llvm::Value*, 10> newArgs;
+					newArgs.push_back(llvmDataValue);
+					
+					for (size_t i = 0; i < args.size(); i++) {
+						newArgs.push_back(args[i]);
+					}
+					
+					return genTrivialFunctionCall(function, value->methodObject.method, isContextRef, newArgs);
 				}
 				
 				default: {
