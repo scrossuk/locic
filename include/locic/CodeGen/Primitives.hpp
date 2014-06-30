@@ -71,7 +71,7 @@ namespace locic {
 		
 		bool isTrivialPrimitiveFunction(Module& module, SEM::Type* type, SEM::Function* function);
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args);
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
 		

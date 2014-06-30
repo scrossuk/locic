@@ -33,6 +33,22 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		ArgPair genCallValue(Function& function, SEM::Value* value) {
+			switch (value->kind()) {
+				case SEM::Value::REFVALUE: {
+					const auto dataValue = value->refValue.value;
+					const bool isContextRef = dataValue->type()->isBuiltInReference()
+						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+					return std::make_pair(genValue(function, dataValue), isContextRef);
+				}
+				
+				default:
+					const bool isContextRef = value->type()->isBuiltInReference()
+						|| !isTypeSizeAlwaysKnown(function.module(), value->type());
+					return std::make_pair(genValue(function, value), isContextRef);
+			}
+		}
+		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
 			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
@@ -362,11 +378,11 @@ namespace locic {
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
 					
 					if (isTrivialFunction(module, semFunctionValue)) {
-						llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+						llvm::SmallVector<ArgPair, 10> llvmArgs;
 						for (const auto& arg: semArgumentValues) {
-							llvmArgs.push_back(genValue(function, arg));
+							llvmArgs.push_back(genCallValue(function, arg));
 						}
-						return genTrivialFunctionCall(function, semFunctionValue, false, llvmArgs);
+						return genTrivialFunctionCall(function, semFunctionValue, llvmArgs);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semFunctionValue);

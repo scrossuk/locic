@@ -110,10 +110,6 @@ namespace locic {
 				// possible to assign to them, take their address, etc.
 				const auto& parameterVars = function->parameters();
 				
-				auto setParamsStartBB = functionGenerator.createBasicBlock("setParams_START");
-				functionGenerator.getBuilder().CreateBr(setParamsStartBB);
-				functionGenerator.selectBasicBlock(setParamsStartBB);
-				
 				for (size_t i = 0; i < parameterVars.size(); i++) {
 					const auto paramVar = parameterVars.at(i);
 					
@@ -127,10 +123,6 @@ namespace locic {
 					// destroyed at the end of the function.
 					scheduleDestructorCall(functionGenerator, paramVar->type(), stackObject);
 				}
-				
-				const auto setParamsEndBB = functionGenerator.createBasicBlock("setParams_END");
-				functionGenerator.getBuilder().CreateBr(setParamsEndBB);
-				functionGenerator.selectBasicBlock(setParamsEndBB);
 				
 				genScope(functionGenerator, function->scope());
 			}

@@ -21,9 +21,11 @@ namespace locic {
 				contextPointer(nullptr) { }
 		};
 		
+		typedef std::pair<llvm::Value*, bool> ArgPair;
+		
 		bool isTrivialFunction(Module& module, SEM::Value* value);
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args);
+		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<ArgPair> args);
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, SEM::Value* value);
 		

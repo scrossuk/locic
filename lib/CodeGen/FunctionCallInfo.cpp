@@ -151,12 +151,12 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args) {
+		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<ArgPair> args) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					const auto parentType = value->functionRef.parentType;
 					if (parentType->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, passContextByRef, args);
+						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, args);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -168,14 +168,14 @@ namespace locic {
 					const bool isContextRef = dataValue->type()->isBuiltInReference()
 						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					
-					llvm::SmallVector<llvm::Value*, 10> newArgs;
-					newArgs.push_back(llvmDataValue);
+					llvm::SmallVector<ArgPair, 10> newArgs;
+					newArgs.push_back(std::make_pair(llvmDataValue, isContextRef));
 					
-					for (size_t i = 0; i < args.size(); i++) {
-						newArgs.push_back(args[i]);
+					for (const auto& arg: args) {
+						newArgs.push_back(arg);
 					}
 					
-					return genTrivialFunctionCall(function, value->methodObject.method, isContextRef, newArgs);
+					return genTrivialFunctionCall(function, value->methodObject.method, newArgs);
 				}
 				
 				default: {

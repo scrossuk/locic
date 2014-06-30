@@ -945,6 +945,13 @@ namespace locic {
 			}
 		}
 		
+		bool needsLivenessIndicator(Module& module, SEM::Type* type) {
+			// Liveness indicator only required if type has
+			// destructor (since the liveness indicator is used
+			// to determine whether the destructor should be run).
+			return typeHasDestructor(module, type);
+		}
+		
 		void genStoreValueLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
 			// A value lval contains the target type and
 			// a boolean 'liveness' indicator, which records
@@ -953,11 +960,13 @@ namespace locic {
 			auto& module = functionGenerator.module();
 			auto& builder = functionGenerator.getBuilder();
 			
-			// Set the liveness indicator.
-			const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8PtrType());
-			const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType->lvalTarget()));
-			const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
-			builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
+			if (needsLivenessIndicator(module, varType->lvalTarget())) {
+				// Set the liveness indicator.
+				const auto castVar = builder.CreatePointerCast(var, TypeGenerator(module).getI8PtrType());
+				const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(castVar, genSizeOf(functionGenerator, varType->lvalTarget()));
+				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+				builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
+			}
 			
 			// Store the new child value.
 			genStore(functionGenerator, value, var, varType->lvalTarget());
@@ -1048,7 +1057,7 @@ namespace locic {
 				case PrimitivePtrLval:
 				case PrimitiveValueLval:
 				case PrimitiveMemberLval:
-					return methodName == "assign" || methodName == "dissolve" || methodName == "move";
+					return methodName == "address" || methodName == "assign" || methodName == "dissolve" || methodName == "move";
 				case PrimitivePtr:
 					return methodName == "implicitCopy" || methodName == "index";
 				case PrimitiveInt8:
@@ -1071,13 +1080,31 @@ namespace locic {
 				case PrimitiveULongLong:
 				case PrimitiveSize:
 				case PrimitiveSSize:
-					return hasEnding(methodName, "_cast") || methodName == "compare" || methodName == "isZero";
+					return methodName == "implicitCopy" || hasEnding(methodName, "_cast") || methodName == "compare" || methodName == "isZero";
 				default:
 					return false;
 			}
 		}
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, bool passContextByRef, llvm::ArrayRef<llvm::Value*> args) {
+		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
+			if (arg.second) {
+				return arg.first;
+			} else {
+				return genValuePtr(function, arg.first, type);
+			}
+		}
+		
+		static llvm::Value* loadArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			if (arg.second) {
+				return builder.CreateLoad(builder.CreatePointerCast(arg.first, genPointerType(module, type)));
+			} else {
+				return arg.first;
+			}
+		}
+		
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -1092,14 +1119,17 @@ namespace locic {
 				case PrimitiveValueLval:
 				case PrimitiveMemberLval: {
 					const auto targetType = type->templateArguments().at(0);
-					const auto objectPointer = passContextByRef ? args[0] : genValuePtr(function, args[0], type);
+					const auto objectPointer = allocArg(function, args[0], type);
 					
-					if (methodName == "assign") {
+					if (methodName == "address") {
+						assert(args.size() == 1);
+						return builder.CreatePointerCast(objectPointer, genPointerType(module, targetType));
+					} else if (methodName == "assign") {
 						assert(args.size() == 2);
 						
 						const auto objectPointerI8 = builder.CreatePointerCast(objectPointer, typeGen.getI8PtrType());
 						
-						if (kind == PrimitiveValueLval) {
+						if (kind == PrimitiveValueLval && needsLivenessIndicator(module, targetType)) {
 							const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, genSizeOf(function, targetType));
 							const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, typeGen.getI1Type()->getPointerTo());
 							
@@ -1120,7 +1150,7 @@ namespace locic {
 							builder.CreateStore(constGen.getI1(true), castLivenessIndicatorPtr);
 						}
 						
-						genStore(function, args[1], objectPointerI8, targetType);
+						genStore(function, args[1].first, objectPointerI8, targetType);
 						return constGen.getVoidUndef();
 					} else if (methodName == "dissolve") {
 						assert(args.size() == 1);
@@ -1128,7 +1158,7 @@ namespace locic {
 					} else if (methodName == "move") {
 						assert(args.size() == 1);
 						
-						if (kind == PrimitiveValueLval) {
+						if (kind == PrimitiveValueLval && needsLivenessIndicator(module, targetType)) {
 							const auto objectPointerI8 = builder.CreatePointerCast(objectPointer, typeGen.getI8PtrType());
 							const auto objectSize = genSizeOf(function, targetType);
 							
@@ -1153,14 +1183,14 @@ namespace locic {
 				}
 				case PrimitivePtrLval: {
 					const auto targetType = type->templateArguments().at(0);
-					const auto pointerValue =
-						passContextByRef ?
-							builder.CreateLoad(builder.CreatePointerCast(args[0], typeGen.getI8PtrType()->getPointerTo())) :
-							args[0];
+					const auto pointerValue = loadArg(function, args[0], type);
 					
-					if (methodName == "assign") {
+					if (methodName == "address") {
+						assert(args.size() == 1);
+						return pointerValue;
+					} else if (methodName == "assign") {
 						assert(args.size() == 2);
-						genStore(function, args[1], pointerValue, targetType);
+						genStore(function, args[1].first, pointerValue, targetType);
 						return constGen.getVoidUndef();
 					} else if (methodName == "dissolve") {
 						assert(args.size() == 1);
@@ -1170,21 +1200,19 @@ namespace locic {
 					llvm_unreachable("Unknown trivial lval primitive function.");
 				}
 				case PrimitivePtr: {
-					const auto pointerValue =
-						passContextByRef ?
-							builder.CreateLoad(builder.CreatePointerCast(args[0], typeGen.getI8PtrType()->getPointerTo())) :
-							args[0];
+					const auto pointerValue = loadArg(function, args[0], type);
 					const auto targetType = type->templateArguments().at(0);
 					
 					if (methodName == "implicitCopy") {
 						assert(args.size() == 1);
-						return builder.CreatePointerCast(pointerValue, genPointerType(module, targetType));
+						return pointerValue;
 					} else if (methodName == "index") {
 						assert(args.size() == 2);
 						const auto targetSize = genSizeOf(function, targetType);
-						const auto offset = builder.CreateIntCast(args[1], getNamedPrimitiveType(module, "size_t"), true);
+						const auto offset = builder.CreateIntCast(args[1].first, getNamedPrimitiveType(module, "size_t"), true);
 						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
-						const auto i8IndexPtr = builder.CreateGEP(pointerValue, adjustedOffset);
+						const auto pointerValueI8 = builder.CreatePointerCast(pointerValue, typeGen.getI8PtrType());
+						const auto i8IndexPtr = builder.CreateGEP(pointerValueI8, adjustedOffset);
 						return builder.CreatePointerCast(i8IndexPtr, genPointerType(module, targetType));
 					}
 					
@@ -1202,17 +1230,17 @@ namespace locic {
 				case PrimitiveSSize: {
 					if (hasEnding(methodName, "_cast")) {
 						// TODO: handle values passed by reference (e.g. due to templates).
-						return builder.CreateSExt(args[0], genType(module, type));
+						return builder.CreateSExt(args[0].first, genType(module, type));
 					}
 					
-					const auto objectValue =
-						passContextByRef ?
-							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :
-							args[0];
+					const auto objectValue = loadArg(function, args[0], type);
 					
-					if (methodName == "compare") {
+					if (methodName == "implicitCopy") {
+						assert(args.size() == 1);
+						return objectValue;
+					} else if (methodName == "compare") {
 						assert(args.size() == 2);
-						const auto operand = builder.CreateLoad(args[1]);
+						const auto operand = loadArg(function, args[1], type);
 						const auto isLessThan = builder.CreateICmpSLT(objectValue, operand);
 						const auto isGreaterThan = builder.CreateICmpSGT(objectValue, operand);
 						const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
@@ -1240,17 +1268,17 @@ namespace locic {
 				case PrimitiveSize: {
 					if (hasEnding(methodName, "_cast")) {
 						// TODO: handle values passed by reference (e.g. due to templates).
-						return builder.CreateZExt(args[0], genType(module, type));
+						return builder.CreateZExt(args[0].first, genType(module, type));
 					}
 					
-					const auto objectValue =
-						passContextByRef ?
-							builder.CreateLoad(builder.CreatePointerCast(args[0], genPointerType(module, type))) :
-							args[0];
+					const auto objectValue = loadArg(function, args[0], type);
 					
-					if (methodName == "compare") {
+					if (methodName == "implicitCopy") {
+						assert(args.size() == 1);
+						return objectValue;
+					} else if (methodName == "compare") {
 						assert(args.size() == 2);
-						const auto operand = builder.CreateLoad(args[1]);
+						const auto operand = loadArg(function, args[1], type);
 						const auto isLessThan = builder.CreateICmpULT(objectValue, operand);
 						const auto isGreaterThan = builder.CreateICmpUGT(objectValue, operand);
 						const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
