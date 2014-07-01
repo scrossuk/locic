@@ -115,7 +115,23 @@ namespace locic {
 				 */
 				void popUnwindStack();
 				
-				UnwindStack& unwindStack();
+				void pushUnwindAction(const UnwindAction& action);
+				
+				void popUnwindAction();
+				
+				const UnwindStack& unwindStack() const;
+				
+				/**
+				 * \brief The latest generated landing pad.
+				 * 
+				 * This is used to avoid re-generating landing
+				 * pads when the unwind actions are unchanged;
+				 * this is invalidated when pushing/popping
+				 * unwind actions.
+				 */
+				llvm::LandingPadInst* latestLandingPad();
+				
+				void setLatestLandingPad(llvm::LandingPadInst* landingPad);
 				
 				// Value to determine the state during unwinding.
 				llvm::Value* unwindState();
@@ -153,6 +169,8 @@ namespace locic {
 				
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;
+				
+				llvm::LandingPadInst* landingPad_;
 				
 				llvm::Value* exceptionInfo_;
 				llvm::Value* returnValuePtr_;

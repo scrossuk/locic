@@ -52,8 +52,7 @@ namespace locic {
 			std::vector<llvm::Value*> parameters;
 			parameters.reserve(3 + args.size());
 			
-			std::vector<llvm_abi::Type*> parameterABITypes;
-			parameterABITypes.reserve(3 + args.size());
+			llvm::SmallVector<llvm_abi::Type*, 10> parameterABITypes;
 			
 			// Some values (e.g. classes) will be returned
 			// by assigning to a pointer passed as the first
@@ -116,18 +115,13 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			if (!functionType->isFunctionNoExcept()) {
-				const auto successPath = function.createBasicBlock("successPath");
-				const auto failPath = function.createBasicBlock("failPath");
+			const bool isRethrow = false;
+			if (!functionType->isFunctionNoExcept() && anyExceptionActions(function, isRethrow)) {
+				const auto successPath = function.createBasicBlock("");
+				const auto failPath = genLandingPad(function, isRethrow);
 				
 				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(callInfo.functionPtr, successPath, failPath, parameters), debugLoc);
 				
-				// Fail path.
-				function.selectBasicBlock(failPath);
-				const bool isRethrow = false;
-				genLandingPad(function, isRethrow);
-				
-				// Success path.
 				function.selectBasicBlock(successPath);
 			} else {
 				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateCall(callInfo.functionPtr, parameters), debugLoc);
@@ -162,22 +156,19 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			if (canThrow) {
-				const auto successPath = function.createBasicBlock("successPath");
-				const auto failPath = function.createBasicBlock("failPath");
+			const bool isRethrow = false;
+			if (canThrow && anyExceptionActions(function, isRethrow)) {
+				const auto successPath = function.createBasicBlock("");
+				const auto failPath = genLandingPad(function, isRethrow);
 				
 				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
 				
-				// Fail path.
-				function.selectBasicBlock(failPath);
-				const bool isRethrow = false;
-				genLandingPad(function, isRethrow);
-				
-				// Success path.
 				function.selectBasicBlock(successPath);
 			} else {
 				const auto callInst = function.getBuilder().CreateCall(functionPtr, encodedParameters);
-				callInst->setDoesNotThrow();
+				if (!canThrow) {
+					callInst->setDoesNotThrow();
+				}
 				encodedCallReturnValue = addDebugLoc(callInst, debugLoc);
 			}
 			

@@ -31,6 +31,8 @@ namespace locic {
 		
 		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex);
 		
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, SEM::Type* objectType, size_t memberIndex);
+		
 	}
 	
 }

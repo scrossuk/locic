@@ -304,24 +304,33 @@ namespace locic {
 					
 					const auto type = value->type();
 					const auto objectValue = genAlloca(function, type);
-					const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
 					
-					llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
-					
-					for (size_t i = 0; i < parameterValues.size(); i++) {
-						const auto var = parameterVars.at(i);
-						const auto llvmParamValue = genValue(function, parameterValues.at(i));
+					if (isTypeSizeKnownInThisModule(module, type)) {
+						for (size_t i = 0; i < parameterValues.size(); i++) {
+							const auto var = parameterVars.at(i);
+							const auto llvmParamValue = genValue(function, parameterValues.at(i));
+							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
+						}
+					} else {
+						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
+						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
 						
-						// Align offset for field.
-						offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
-						
-						const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
-						genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
-						
-						if ((i + 1) != parameterValues.size()) {
-							// If this isn't the last field, add its size for calculating
-							// the offset of the next field.
-							offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+						for (size_t i = 0; i < parameterValues.size(); i++) {
+							const auto var = parameterVars.at(i);
+							const auto llvmParamValue = genValue(function, parameterValues.at(i));
+							
+							// Align offset for field.
+							offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
+							
+							const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
+							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
+							
+							if ((i + 1) != parameterValues.size()) {
+								// If this isn't the last field, add its size for calculating
+								// the offset of the next field.
+								offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+							}
 						}
 					}
 					
@@ -339,12 +348,9 @@ namespace locic {
 					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
 						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					const auto dataPointer = isValuePtr ? llvmDataValue : genValuePtr(function, llvmDataValue, dataValue->type());
-					const auto castDataPointer = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType());
 					
 					const auto type = dataValue->type()->isBuiltInReference() ? dataValue->type()->refTarget() : dataValue->type();
-					const auto memberOffset = genMemberOffset(function, type, memberIndex);
-					
-					return function.getBuilder().CreateInBoundsGEP(castDataPointer, memberOffset);
+					return genMemberPtr(function, dataPointer, type, memberIndex);
 				}
 				
 				case SEM::Value::REFVALUE: {

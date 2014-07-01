@@ -25,6 +25,8 @@ namespace locic {
 		
 		llvm::Value* getUnwindStateValue(Module& module, UnwindState state);
 		
+		bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow);
+		
 		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
 		
 		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);

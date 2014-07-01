@@ -56,6 +56,11 @@ namespace locic {
 					return;
 				}
 				
+				if (type->isPrimitive()) {
+					genPrimitiveDestructorCall(function, type, value);
+					return;
+				}
+				
 				// Call destructor.
 				const auto argInfo = destructorArgInfo(module, type->getObjectType());
 				const auto destructorFunction = genDestructorFunctionDecl(module, type->getObjectType());
@@ -78,7 +83,7 @@ namespace locic {
 				return;
 			}
 			
-			function.unwindStack().push_back(UnwindAction::Destructor(type, value));
+			function.pushUnwindAction(UnwindAction::Destructor(type, value));
 		}
 		
 		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {

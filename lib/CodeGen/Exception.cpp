@@ -128,7 +128,51 @@ namespace locic {
 			return function;
 		}
 		
-		void genLandingPad(Function& function, bool isRethrow) {
+		bool anyExceptionActions(Function& function, bool isRethrow) {
+			const auto& unwindStack = function.unwindStack();
+			
+			// Look for any actions to be performed
+			// if an exception is thrown.
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& action = unwindStack.at(pos);
+				
+				const bool isExceptionState = true;
+				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		bool anyExceptionCleanupActions(Function& function, bool isRethrow) {
+			const auto& unwindStack = function.unwindStack();
+			
+			// Look for any actions to be performed
+			// if an exception is thrown.
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& action = unwindStack.at(pos);
+				
+				const bool isExceptionState = true;
+				if (isActiveAction(action, isExceptionState, isRethrow)) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		llvm::BasicBlock* genLandingPad(Function& function, bool isRethrow) {
+			assert(anyExceptionActions(function, isRethrow));
+			
+			const auto latestLandingPad = function.latestLandingPad();
+			// TODO: also support the rethrow case.
+			if (latestLandingPad != nullptr && !isRethrow) {
+				return latestLandingPad->getParent();
+			}
+			
 			auto& module = function.module();
 			const auto& unwindStack = function.unwindStack();
 			
@@ -148,8 +192,14 @@ namespace locic {
 				}
 			}
 			
+			const auto currentBB = function.getBuilder().GetInsertBlock();
+			
+			const auto landingPadBB = function.createBasicBlock("");
+			
+			function.selectBasicBlock(landingPadBB);
+			
 			const auto landingPad = function.getBuilder().CreateLandingPad(landingPadType, personalityFunction, catchTypes.size());
-			landingPad->setCleanup(true);
+			landingPad->setCleanup(anyExceptionCleanupActions(function, isRethrow));
 			
 			for (size_t i = 0; i < catchTypes.size(); i++) {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getI8PtrType()));
@@ -157,6 +207,15 @@ namespace locic {
 			
 			// Unwind stack due to exception.
 			genExceptionUnwind(function, landingPad, isRethrow);
+			
+			// TODO: also support the rethrow case.
+			if (!isRethrow) {
+				function.setLatestLandingPad(landingPad);
+			}
+			
+			function.selectBasicBlock(currentBB);
+			
+			return landingPadBB;
 		}
 		
 		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow) {
@@ -189,7 +248,7 @@ namespace locic {
 		}
 		
 		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue) {
-			function.unwindStack().push_back(UnwindAction::DestroyException(exceptionPtrValue));
+			function.pushUnwindAction(UnwindAction::DestroyException(exceptionPtrValue));
 		}
 		
 		llvm::Constant* getTypeNameGlobal(Module& module, const std::string& typeName) {
@@ -280,21 +339,17 @@ namespace locic {
 		TryScope::TryScope(Function& function, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList)
 			: function_(function), catchCount_(catchTypeList.size()) {
 			assert(!catchTypeList.empty());
-			auto& unwindStack = function_.unwindStack();
-			
 			for (size_t i = 0; i < catchTypeList.size(); i++) {
 				// Push in reverse order.
 				const auto catchType = catchTypeList.at(catchTypeList.size() - i - 1);
-				unwindStack.push_back(UnwindAction::CatchException(catchBlock, catchType));
+				function_.pushUnwindAction(UnwindAction::CatchException(catchBlock, catchType));
 			}
 		}
 		
 		TryScope::~TryScope() {
-			auto& unwindStack = function_.unwindStack();
-			
 			for (size_t i = 0; i < catchCount_; i++) {
-				assert(unwindStack.back().isCatch());
-				unwindStack.pop_back();
+				assert(function_.unwindStack().back().isCatch());
+				function_.popUnwindAction();
 			}
 		}
 		

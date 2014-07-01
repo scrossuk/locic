@@ -4,6 +4,7 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -127,6 +128,10 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
+					}
+					
+					if (type->isPrimitive()) {
+						return genPrimitiveAlignMask(function, type);
 					}
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
@@ -271,6 +276,10 @@ namespace locic {
 						return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
 					}
 					
+					if (type->isPrimitive()) {
+						return genPrimitiveSizeOf(function, type);
+					}
+					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
 					const bool canThrow = false;
 					const auto sizeOfFunction = genSizeOfFunction(module, type);
@@ -381,11 +390,44 @@ namespace locic {
 			return llvmFunction;
 		}
 		
+		bool isPowerOf2(size_t value) {
+			return value != 0 && (value & (value - 1)) == 0;
+		}
+		
+		size_t roundUpToAlign(size_t position, size_t align) {
+			assert(isPowerOf2(align));
+			return (position + (align - 1)) & (~(align - 1));
+		}
+		
 		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex) {
 			assert(type->isObject());
 			
+			auto& module = function.module();
+			
 			if (memberIndex == 0) {
-				return ConstantGenerator(function.module()).getSizeTValue(0);
+				return ConstantGenerator(module).getSizeTValue(0);
+			}
+			
+			if (type->isObject() && isTypeSizeKnownInThisModule(module, type)) {
+				auto& abi = module.abi();
+				const auto objectType = type->getObjectType();
+				assert(memberIndex < objectType->variables().size());
+				
+				size_t offset = 0;
+				
+				for (size_t i = 0; i < memberIndex; i++) {
+					const auto memberVar = objectType->variables().at(i);
+					const auto abiType = genABIType(module, memberVar->type());
+					offset = roundUpToAlign(offset, abi.typeAlign(abiType)) + abi.typeSize(abiType);
+				}
+				
+				{
+					const auto memberVar = objectType->variables().at(memberIndex);
+					const auto abiType = genABIType(module, memberVar->type());
+					offset = roundUpToAlign(offset, abi.typeAlign(abiType));
+				}
+				
+				return ConstantGenerator(module).getSizeTValue(offset);
 			}
 			
 			SetUseEntryBuilder setUseEntryBuilder(function);
@@ -397,8 +439,6 @@ namespace locic {
 			if (it != memberOffsetMap.end()) {
 				return it->second;
 			}
-			
-			auto& module = function.module();
 			
 			const auto callName = makeString("memberoffset_%llu__%s", (unsigned long long) memberIndex,
 				type->getObjectType()->name().last().c_str());
@@ -420,6 +460,20 @@ namespace locic {
 			memberOffsetMap.insert(std::make_pair(offsetPair, callResult));
 			
 			return callResult;
+		}
+		
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, SEM::Type* objectType, size_t memberIndex) {
+			auto& module = function.module();
+			
+			if (isTypeSizeKnownInThisModule(module, objectType)) {
+				const auto llvmObjectPointerType = genPointerType(module, objectType);
+				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
+				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
+			} else {
+				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getI8PtrType());
+				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
+				return function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
+			}
 		}
 		
 	}

@@ -13,7 +13,7 @@ namespace locic {
 		
 		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type);
 		
-		llvm::Type* genPointerType(Module& module, SEM::Type* targetType);
+		llvm::PointerType* genPointerType(Module& module, SEM::Type* targetType);
 		
 		llvm::Type* genType(Module& module, SEM::Type* type);
 		

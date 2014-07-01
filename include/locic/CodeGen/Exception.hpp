@@ -23,7 +23,11 @@ namespace locic {
 		
 		llvm::Function* getExceptionPtrFunction(Module& module);
 		
-		void genLandingPad(Function& function, bool isRethrow);
+		bool anyExceptionActions(Function& function, bool isRethrow);
+		
+		bool anyExceptionCleanupActions(Function& function, bool isRethrow);
+		
+		llvm::BasicBlock* genLandingPad(Function& function, bool isRethrow);
 		
 		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow);
 		

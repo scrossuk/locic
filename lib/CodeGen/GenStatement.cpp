@@ -416,7 +416,7 @@ namespace locic {
 				}
 				
 				case SEM::Statement::THROW: {
-					auto throwType = statement->getThrowValue()->type();
+					const auto throwType = statement->getThrowValue()->type();
 					
 					const auto exceptionValue = genStatementValue(function, statement->getThrowValue());
 					const auto exceptionType = genType(module, throwType);
@@ -424,36 +424,45 @@ namespace locic {
 					// Allocate space for exception.
 					const auto allocateFunction = getExceptionAllocateFunction(module);
 					const auto exceptionValueSize = genSizeOf(function, throwType);
-					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, std::vector<llvm::Value*> { exceptionValueSize });
+					llvm::Value* const exceptArgs[] = { exceptionValueSize };
+					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, exceptArgs);
 					
 					// Store value into allocated space.
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
 					genStore(function, exceptionValue, castedAllocatedException, throwType);
-					
-					const auto noThrowPath = function.createBasicBlock("");
-					const auto throwPath = function.createBasicBlock("");
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
 					const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
 					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getI8PtrType());
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
-					const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath,
-											 std::vector<llvm::Value*> { allocatedException, castedTypeInfo, nullPtr });
-											 
-					if (hasDebugInfo) {
-						throwInvoke->setDebugLoc(debugLocation);
-					}
-					
-					// ==== 'throw' function doesn't throw: Should never happen.
-					function.selectBasicBlock(noThrowPath);
-					function.getBuilder().CreateUnreachable();
-					
-					// ==== 'throw' function DOES throw: Landing pad for running destructors/catch blocks.
-					function.selectBasicBlock(throwPath);
+					llvm::Value* const args[] = { allocatedException, castedTypeInfo, nullPtr };
 					
 					const bool isRethrow = false;
-					genLandingPad(function, isRethrow);
+					
+					if (anyExceptionActions(function, isRethrow)) {
+						// Create throw and nothrow paths.
+						const auto noThrowPath = function.createBasicBlock("");
+						const auto throwPath = genLandingPad(function, isRethrow);
+						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
+						
+						if (hasDebugInfo) {
+							throwInvoke->setDebugLoc(debugLocation);
+						}
+						
+						// 'throw' function should never return normally.
+						function.selectBasicBlock(noThrowPath);
+						function.getBuilder().CreateUnreachable();
+					} else {
+						const auto callInst = function.getBuilder().CreateCall(throwFunction, args);
+						
+						if (hasDebugInfo) {
+							callInst->setDebugLoc(debugLocation);
+						}
+						
+						// 'throw' function should never return normally.
+						function.getBuilder().CreateUnreachable();
+					}
 					break;
 				}
 				
@@ -474,28 +483,36 @@ namespace locic {
 					
 					assert(exceptionValue != nullptr);
 					
-					const auto noThrowPath = function.createBasicBlock("");
-					const auto throwPath = function.createBasicBlock("");
-					
-					// Call 'rethrow' function.
+					// Call 'throw' function.
 					const auto rethrowFunction = getExceptionRethrowFunction(module);
-					
-					const auto rethrowInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath,
-											   std::vector<llvm::Value*> { exceptionValue });
-											   
-					if (hasDebugInfo) {
-						rethrowInvoke->setDebugLoc(debugLocation);
-					}
-					
-					// ==== 'rethrow' function doesn't throw: Should never happen.
-					function.selectBasicBlock(noThrowPath);
-					function.getBuilder().CreateUnreachable();
-					
-					// ==== 'rethrow' function DOES throw: Landing pad for running destructors/catch blocks.
-					function.selectBasicBlock(throwPath);
+					llvm::Value* const args[] = { exceptionValue };
 					
 					const bool isRethrow = true;
-					genLandingPad(function, isRethrow);
+					
+					// Only generate landing pad where necessary.
+					if (anyExceptionActions(function, isRethrow)) {
+						// Create throw and nothrow paths.
+						const auto noThrowPath = function.createBasicBlock("");
+						const auto throwPath = genLandingPad(function, isRethrow);
+						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
+						
+						if (hasDebugInfo) {
+							throwInvoke->setDebugLoc(debugLocation);
+						}
+						
+						// 'rethrow' function should never return normally.
+						function.selectBasicBlock(noThrowPath);
+						function.getBuilder().CreateUnreachable();
+					} else {
+						const auto callInst = function.getBuilder().CreateCall(rethrowFunction, args);
+						
+						if (hasDebugInfo) {
+							callInst->setDebugLoc(debugLocation);
+						}
+						
+						// 'rethrow' function should never return normally.
+						function.getBuilder().CreateUnreachable();
+					}
 					break;
 				}
 				
@@ -510,7 +527,7 @@ namespace locic {
 						state = SCOPEEXIT_FAILURE;
 					}
 					
-					function.unwindStack().push_back(UnwindAction::ScopeExit(state, &(statement->getScopeExitScope())));
+					function.pushUnwindAction(UnwindAction::ScopeExit(state, &(statement->getScopeExitScope())));
 					break;
 				}
 				

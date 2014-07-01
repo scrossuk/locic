@@ -45,6 +45,7 @@ namespace locic {
 			  sizeOfMap_(isTypeLessThan),
 			  templateGeneratorMap_(isTypeLessThan),
 			  debugInfo_(nullptr),
+			  landingPad_(nullptr),
 			  exceptionInfo_(nullptr),
 			  returnValuePtr_(nullptr),
 			  templateArgs_(nullptr),
@@ -266,15 +267,39 @@ namespace locic {
 		}
 		
 		void Function::pushUnwindStack(size_t position) {
+			landingPad_ = nullptr;
 			unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
 		}
 		
 		void Function::popUnwindStack() {
+			landingPad_ = nullptr;
 			unwindStackStack_.pop();
 		}
 		
-		UnwindStack& Function::unwindStack() {
+		void Function::pushUnwindAction(const UnwindAction& action) {
+			// TODO: only invalidate when pushed action affects exceptions.
+			landingPad_ = nullptr;
+			
+			unwindStackStack_.top().push_back(action);
+		}
+		
+		void Function::popUnwindAction() {
+			// TODO: only invalidate when popped action affects exceptions.
+			landingPad_ = nullptr;
+			
+			unwindStackStack_.top().pop_back();
+		}
+		
+		const UnwindStack& Function::unwindStack() const {
 			return unwindStackStack_.top();
+		}
+		
+		llvm::LandingPadInst* Function::latestLandingPad() {
+			return landingPad_;
+		}
+		
+		void Function::setLatestLandingPad(llvm::LandingPadInst* landingPad) {
+			landingPad_ = landingPad;
 		}
 		
 		llvm::Value* Function::unwindState() {

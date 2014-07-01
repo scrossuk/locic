@@ -41,7 +41,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* genPointerType(Module& module, SEM::Type* targetType) {
+		llvm::PointerType* genPointerType(Module& module, SEM::Type* targetType) {
 			if (targetType->isObject()) {
 				assert(!targetType->isInterface());
 				return genObjectType(module, targetType)->getPointerTo();

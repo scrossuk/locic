@@ -39,26 +39,6 @@ namespace locic {
 		
 		namespace {
 		
-			bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow) {
-				assert(isExceptionState || !isRethrow);
-				
-				if (unwindAction.isDestructor()) {
-					// Destructors are always executed when exiting a scope.
-					return true;
-				} else if (unwindAction.isScopeExit()) {
-					// Scope exit actions may only be executed on success/failure.
-					const bool supportsExceptionState = (unwindAction.scopeExitState() != SCOPEEXIT_SUCCESS);
-					const bool supportsNormalState = (unwindAction.scopeExitState() != SCOPEEXIT_FAILURE);
-					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
-				} else if (unwindAction.isDestroyException()) {
-					return !isRethrow;
-				} else {
-					// Everything else is just a placeholder so doesn't
-					// actually generate code when leaving a scope.
-					return false;
-				}
-			}
-			
 			bool scopeHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
 				const auto& unwindStack = function.unwindStack();
 				
@@ -97,10 +77,11 @@ namespace locic {
 				llvm_unreachable("Statement marker not found.");
 			}
 			
-			void popScope(UnwindStack& unwindStack) {
+			void popScope(Function& function) {
+				const auto& unwindStack = function.unwindStack();
 				while (!unwindStack.empty()) {
 					const bool isMarker = unwindStack.back().isScopeMarker();
-					unwindStack.pop_back();
+					function.popUnwindAction();
 					
 					if (isMarker) {
 						return;
@@ -110,10 +91,11 @@ namespace locic {
 				llvm_unreachable("Scope marker not found.");
 			}
 			
-			void popStatement(UnwindStack& unwindStack) {
+			void popStatement(Function& function) {
+				const auto& unwindStack = function.unwindStack();
 				while (!unwindStack.empty()) {
 					const bool isMarker = unwindStack.back().isStatementMarker();
-					unwindStack.pop_back();
+					function.popUnwindAction();
 					
 					if (isMarker) {
 						return;
@@ -133,6 +115,26 @@ namespace locic {
 				}
 			}
 			
+		}
+		
+		bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow) {
+			assert(isExceptionState || !isRethrow);
+			
+			if (unwindAction.isDestructor()) {
+				// Destructors are always executed when exiting a scope.
+				return true;
+			} else if (unwindAction.isScopeExit()) {
+				// Scope exit actions may only be executed on success/failure.
+				const bool supportsExceptionState = (unwindAction.scopeExitState() != SCOPEEXIT_SUCCESS);
+				const bool supportsNormalState = (unwindAction.scopeExitState() != SCOPEEXIT_FAILURE);
+				return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
+			} else if (unwindAction.isDestroyException()) {
+				return !isRethrow;
+			} else {
+				// Everything else is just a placeholder so doesn't
+				// actually generate code when leaving a scope.
+				return false;
+			}
 		}
 		
 		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow) {
@@ -211,7 +213,7 @@ namespace locic {
 		
 		ScopeLifetime::ScopeLifetime(Function& function)
 			: function_(function) {
-			function_.unwindStack().push_back(UnwindAction::ScopeMarker());
+			function_.pushUnwindAction(UnwindAction::ScopeMarker());
 		}
 		
 		ScopeLifetime::~ScopeLifetime() {
@@ -220,12 +222,12 @@ namespace locic {
 				const bool isRethrow = false;
 				genScopeExitActions(function_, isExceptionState, isRethrow);
 			}
-			popScope(function_.unwindStack());
+			popScope(function_);
 		}
 		
 		StatementLifetime::StatementLifetime(Function& function)
 			: function_(function) {
-			function_.unwindStack().push_back(UnwindAction::StatementMarker());
+			function_.pushUnwindAction(UnwindAction::StatementMarker());
 		}
 		
 		StatementLifetime::~StatementLifetime() {
@@ -234,7 +236,7 @@ namespace locic {
 				const bool isRethrow = false;
 				genStatementExitActions(function_, isExceptionState, isRethrow);
 			}
-			popStatement(function_.unwindStack());
+			popStatement(function_);
 		}
 		
 	}

@@ -64,12 +64,12 @@ namespace locic {
 		ControlFlowScope::ControlFlowScope(Function& function, llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock)
 			: function_(function) {
 			assert(breakBlock != nullptr && continueBlock != nullptr);
-			function_.unwindStack().push_back(UnwindAction::ControlFlow(breakBlock, continueBlock));
+			function_.pushUnwindAction(UnwindAction::ControlFlow(breakBlock, continueBlock));
 		}
 		
 		ControlFlowScope::~ControlFlowScope() {
 			assert(function_.unwindStack().back().isControlFlow());
-			function_.unwindStack().pop_back();
+			function_.popUnwindAction();
 		}
 		
 	}
