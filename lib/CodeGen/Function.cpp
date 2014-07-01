@@ -19,12 +19,13 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
-				llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
+										   llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
 		bool isOffsetPairLessThan(const OffsetPair& first, const OffsetPair& second) {
 			const bool result = compareTypes(first.first, second.first);
+			
 			if (result != COMPARE_EQUAL) {
 				return result == COMPARE_LESS;
 			}
@@ -51,6 +52,9 @@ namespace locic {
 			assert(function.isDeclaration());
 			assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 			
+			// Add a bottom level unwind stack.
+			unwindStackStack_.push(UnwindStack());
+			
 			// Create an 'entry' basic block for holding
 			// instructions like allocas and debug_declares
 			// which must only be executed once per function.
@@ -66,6 +70,7 @@ namespace locic {
 			builder_.SetInsertPoint(startBB);
 			
 			argValues_.reserve(function_.arg_size());
+			
 			for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
 				argValues_.push_back(arg);
 			}
@@ -76,7 +81,7 @@ namespace locic {
 			std::vector<llvm::Type*> argLLVMTypes;
 			argLLVMTypes.reserve(argInfo.argumentTypes().size());
 			
-			for (const auto& typePair: argInfo.argumentTypes()) {
+			for (const auto& typePair : argInfo.argumentTypes()) {
 				argABITypes.push_back(typePair.first);
 				argLLVMTypes.push_back(typePair.second);
 			}
@@ -165,9 +170,11 @@ namespace locic {
 		
 		std::vector<llvm::Value*> Function::getArgList() const {
 			std::vector<llvm::Value*> argList;
+			
 			for (size_t i = 0; i < argInfo_.numStandardArguments(); i++) {
 				argList.push_back(getArg(i));
 			}
+			
 			return argList;
 		}
 		
@@ -178,10 +185,12 @@ namespace locic {
 		
 		llvm::Value* Function::getTemplateArgs() {
 			assert(argInfo_.hasTemplateGeneratorArgument());
+			
 			if (templateArgs_ == nullptr) {
 				SetUseEntryBuilder useEntryBuilder(*this);
 				templateArgs_ = computeTemplateArguments(*this, getRawArg(argInfo_.templateGeneratorArgumentOffset()));
 			}
+			
 			return templateArgs_;
 		}
 		
@@ -233,19 +242,11 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-			//(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+			// (void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
 		}
 		
 		AlignMaskMap& Function::alignMaskMap() {
 			return alignMaskMap_;
-		}
-		
-		CatchTypeStack& Function::catchTypeStack() {
-			return catchTypeStack_;
-		}
-		
-		ExceptionValueStack& Function::exceptionValueStack() {
-			return exceptionValueStack_;
 		}
 		
 		LocalVarMap& Function::getLocalVarMap() {
@@ -264,8 +265,16 @@ namespace locic {
 			return templateGeneratorMap_;
 		}
 		
+		void Function::pushUnwindStack(size_t position) {
+			unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
+		}
+		
+		void Function::popUnwindStack() {
+			unwindStackStack_.pop();
+		}
+		
 		UnwindStack& Function::unwindStack() {
-			return unwindStack_;
+			return unwindStackStack_.top();
 		}
 		
 		llvm::Value* Function::unwindState() {
@@ -277,6 +286,7 @@ namespace locic {
 				unwindState_ = getEntryBuilder().CreateAlloca(i8Type, nullptr, "unwindState");
 				getEntryBuilder().CreateStore(zero, unwindState_);
 			}
+			
 			return unwindState_;
 		}
 		
@@ -287,6 +297,7 @@ namespace locic {
 				const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
 				exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
 			}
+			
 			return exceptionInfo_;
 		}
 		

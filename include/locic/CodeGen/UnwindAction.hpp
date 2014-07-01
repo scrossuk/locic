@@ -10,8 +10,28 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		enum ScopeExitState {
+			SCOPEEXIT_ALWAYS,
+			SCOPEEXIT_SUCCESS,
+			SCOPEEXIT_FAILURE
+		};
+		
 		class UnwindAction {
 			public:
+				static UnwindAction Destructor(SEM::Type* type, llvm::Value* value);
+				
+				static UnwindAction CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
+				
+				static UnwindAction ScopeMarker();
+				
+				static UnwindAction StatementMarker();
+				
+				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
+				
+				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
+				
+				static UnwindAction DestroyException(llvm::Value* exceptionValue);
+				
 				enum Kind {
 					DESTRUCTOR,
 					CATCH,
@@ -21,8 +41,6 @@ namespace locic {
 					SCOPEEXIT,
 					DESTROYEXCEPTION
 				};
-				
-				UnwindAction(Kind pKind, llvm::BasicBlock* pNormalUnwindBlock, llvm::BasicBlock* pExceptUnwindBlock);
 				
 				Kind kind() const;
 				
@@ -40,17 +58,55 @@ namespace locic {
 				
 				bool isDestroyException() const;
 				
-				llvm::BasicBlock* normalUnwindBlock() const;
+				SEM::Type* destructorType() const;
 				
-				llvm::BasicBlock* exceptUnwindBlock() const;
+				llvm::Value* destructorValue() const;
+				
+				llvm::BasicBlock* catchBlock() const;
+				
+				llvm::Constant* catchTypeInfo() const;
+				
+				llvm::BasicBlock* breakBlock() const;
+				
+				llvm::BasicBlock* continueBlock() const;
+				
+				ScopeExitState scopeExitState() const;
+				
+				SEM::Scope* scopeExitScope() const;
+				
+				llvm::Value* destroyExceptionValue() const;
 				
 			private:
 				inline UnwindAction(Kind pKind)
 					: kind_(pKind) { }
-				
+					
 				Kind kind_;
-				llvm::BasicBlock* normalUnwindBlock_;
-				llvm::BasicBlock* exceptUnwindBlock_;
+				
+				union Actions {
+					struct DestructorAction {
+						SEM::Type* type;
+						llvm::Value* value;
+					} destructorAction;
+					
+					struct CatchAction {
+						llvm::BasicBlock* block;
+						llvm::Constant* typeInfo;
+					} catchAction;
+					
+					struct ControlFlowAction {
+						llvm::BasicBlock* breakBlock;
+						llvm::BasicBlock* continueBlock;
+					} controlFlowAction;
+					
+					struct ScopeExitAction {
+						ScopeExitState state;
+						SEM::Scope* scope;
+					} scopeExitAction;
+					
+					struct DestroyExceptionAction {
+						llvm::Value* exceptionValue;
+					} destroyExceptionAction;
+				} actions_;
 				
 		};
 		

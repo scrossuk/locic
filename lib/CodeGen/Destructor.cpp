@@ -62,8 +62,9 @@ namespace locic {
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				const auto args = !type->templateArguments().empty() ?
-					std::vector<llvm::Value*>{ getTemplateGenerator(function, type), castValue } : std::vector<llvm::Value*>{ castValue };
-				
+								  std::vector<llvm::Value*> { getTemplateGenerator(function, type), castValue } :
+								  std::vector<llvm::Value*> { castValue };
+								  
 				(void) genRawFunctionCall(function, argInfo, canThrow, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
@@ -77,21 +78,7 @@ namespace locic {
 				return;
 			}
 			
-			const auto currentBB = function.getSelectedBasicBlock();
-			
-			const auto normalDestroyBB = function.createBasicBlock("");
-			function.selectBasicBlock(normalDestroyBB);
-			genDestructorCall(function, type, value);
-			function.getBuilder().CreateBr(getNextNormalUnwindBlock(function));
-			
-			const auto exceptDestroyBB = function.createBasicBlock("");
-			function.selectBasicBlock(exceptDestroyBB);
-			genDestructorCall(function, type, value);
-			function.getBuilder().CreateBr(getNextExceptUnwindBlock(function));
-			
-			function.unwindStack().push_back(UnwindAction(UnwindAction::DESTRUCTOR, normalDestroyBB, exceptDestroyBB));
-			
-			function.selectBasicBlock(currentBB);
+			function.unwindStack().push_back(UnwindAction::Destructor(type, value));
 		}
 		
 		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {
@@ -110,7 +97,8 @@ namespace locic {
 			std::vector<llvm::BasicBlock*> caseBlocks;
 			
 			uint8_t tag = 0;
-			for (const auto variantTypeInstance: typeInstance->variants()) {
+			
+			for (const auto variantTypeInstance : typeInstance->variants()) {
 				const auto matchBB = function.createBasicBlock("tagMatch");
 				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
 				
@@ -134,6 +122,7 @@ namespace locic {
 			const auto mangledName = "__null_destructor";
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
+			
 			if (result.hasValue()) {
 				return result.getValue();
 			}
@@ -158,6 +147,7 @@ namespace locic {
 			}
 			
 			const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
+			
 			if (!typeInstance->templateVariables().empty()) {
 				return destructorFunction;
 			}
@@ -171,7 +161,7 @@ namespace locic {
 			Function function(module, *llvmFunction, argInfo);
 			
 			const bool canThrow = false;
-			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), canThrow, destructorFunction, std::vector<llvm::Value*>{ function.getRawContextValue() });
+			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), canThrow, destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
 			
 			function.getBuilder().CreateRetVoid();
 			
@@ -180,6 +170,7 @@ namespace locic {
 		
 		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto iterator = module.getDestructorMap().find(typeInstance);
+			
 			if (iterator != module.getDestructorMap().end()) {
 				return iterator->second;
 			}
@@ -231,12 +222,14 @@ namespace locic {
 			
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = typeInstance->functions().find("__destructor");
+			
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
 				const bool canThrow = false;
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
-					std::vector<llvm::Value*>{ function.getTemplateGenerator(), contextValue } : std::vector<llvm::Value*>{ contextValue };
-				
+								  std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
+								  std::vector<llvm::Value*> { contextValue };
+								  
 				(void) genRawFunctionCall(function, argInfo, canThrow, customDestructor, args);
 			}
 			

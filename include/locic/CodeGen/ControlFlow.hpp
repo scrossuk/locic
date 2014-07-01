@@ -19,8 +19,8 @@ namespace locic {
 				~ControlFlowScope();
 				
 			private:
-				UnwindStack& unwindStack_;
-			
+				Function& function_;
+				
 		};
 		
 	}

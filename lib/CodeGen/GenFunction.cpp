@@ -36,8 +36,8 @@ namespace locic {
 			}
 			
 			return parentType->isClass()
-				? llvm::Function::ExternalLinkage
-				: llvm::Function::LinkOnceODRLinkage;
+				   ? llvm::Function::ExternalLinkage
+				   : llvm::Function::LinkOnceODRLinkage;
 		}
 		
 		llvm::Function* genFunctionDecl(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
@@ -48,6 +48,7 @@ namespace locic {
 			}
 			
 			const auto iterator = module.getFunctionDeclMap().find(function);
+			
 			if (iterator != module.getFunctionDeclMap().end()) {
 				return iterator->second;
 			}
@@ -55,9 +56,9 @@ namespace locic {
 			const auto mangledName =
 				mangleModuleScope(function->moduleScope()) +
 				(function->isMethod() ?
-					mangleMethodName(typeInstance, function->name().last()) :
-					mangleFunctionName(function->name()));
-			
+				 mangleMethodName(typeInstance, function->name().last()) :
+				 mangleFunctionName(function->name()));
+				 
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
 			if (result.hasValue()) {
@@ -101,10 +102,9 @@ namespace locic {
 		}
 		
 		namespace {
-			
+		
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
-				// Generate the outermost unwind block.
-				FunctionLifetime functionLifetime(functionGenerator);
+				ScopeLifetime functionScopeLifetime(functionGenerator);
 				
 				// Parameters need to be copied to the stack, so that it's
 				// possible to assign to them, take their address, etc.
@@ -156,6 +156,7 @@ namespace locic {
 			
 			const auto& functionMap = module.debugModule().functionMap;
 			const auto iterator = functionMap.find(function);
+			
 			if (iterator != functionMap.end()) {
 				const auto debugSubprogramType = genDebugType(module, function->type());
 				const auto& functionInfo = iterator->second;
@@ -164,11 +165,16 @@ namespace locic {
 			}
 			
 			// Generate allocas for parameters.
-			for (const auto paramVar: function->parameters()) {
+			for (const auto paramVar : function->parameters()) {
 				genVarAlloca(functionGenerator, paramVar);
 			}
 			
 			genFunctionCode(functionGenerator, function);
+			
+			// Need to terminate the final basic block.
+			// (just make it loop to itself - this will
+			// be removed by dead code elimination)
+			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();
@@ -225,17 +231,15 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			{
-				// Generate the outermost unwind block.
-				FunctionLifetime functionLifetime(functionGenerator);
-				
-				const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
-				
-				if (hasReturnVar) {
-					genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
-				} else if (!result->getType()->isVoidTy()) {
-					functionGenerator.setReturnValue(result);
-				}
+			const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
+			
+			if (hasReturnVar) {
+				genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
+				functionGenerator.getBuilder().CreateRetVoid();
+			} else if (result->getType()->isVoidTy()) {
+				functionGenerator.getBuilder().CreateRetVoid();
+			} else {
+				functionGenerator.returnValue(result);
 			}
 			
 			// Check the generated function is correct.

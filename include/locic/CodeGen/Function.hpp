@@ -2,6 +2,7 @@
 #define LOCIC_CODEGEN_FUNCTION_HPP
 
 #include <map>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -22,11 +23,9 @@ namespace locic {
 		static const std::string NO_FUNCTION_NAME = "";
 		
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
-				llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
-		
+										   llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
+										   
 		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> AlignMaskMap;
-		typedef std::vector<llvm::Constant*> CatchTypeStack;
-		typedef std::vector<llvm::Value*> ExceptionValueStack;
 		typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 		typedef std::pair<SEM::Type*, size_t> OffsetPair;
 		typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
@@ -90,10 +89,6 @@ namespace locic {
 				
 				AlignMaskMap& alignMaskMap();
 				
-				CatchTypeStack& catchTypeStack();
-				
-				ExceptionValueStack& exceptionValueStack();
-				
 				LocalVarMap& getLocalVarMap();
 				
 				MemberOffsetMap& getMemberOffsetMap();
@@ -101,6 +96,24 @@ namespace locic {
 				SizeOfMap& sizeOfMap();
 				
 				TemplateGeneratorMap& templateGeneratorMap();
+				
+				/**
+				 * \brief Push a new unwind stack on the stack of unwind stacks.
+				 *
+				 * This will copy the top unwind stack up to the position
+				 * specified to a new unwind stack which is then pushed on
+				 * to the stack of unwind stacks.
+				 *
+				 * This is used for scope exit actions, since they need a new
+				 * partial unwind stack when their code is being generated,
+				 * since a scope(success) block is allowed to throw.
+				 */
+				void pushUnwindStack(size_t position);
+				
+				/**
+				 * \brief Pop an unwind stack previous pushed.
+				 */
+				void popUnwindStack();
 				
 				UnwindStack& unwindStack();
 				
@@ -130,14 +143,13 @@ namespace locic {
 				TemplateBuilder* templateBuilder_;
 				
 				AlignMaskMap alignMaskMap_;
-				CatchTypeStack catchTypeStack_;
-				ExceptionValueStack exceptionValueStack_;
 				LocalVarMap localVarMap_;
 				MemberOffsetMap memberOffsetMap_;
 				SizeOfMap sizeOfMap_;
 				TemplateGeneratorMap templateGeneratorMap_;
 				
-				UnwindStack unwindStack_;
+				// A stack of unwind stacks.
+				std::stack<UnwindStack> unwindStackStack_;
 				
 				llvm::DISubprogram debugInfo_;
 				std::vector<llvm::Value*> argValues_;
@@ -153,8 +165,8 @@ namespace locic {
 			public:
 				inline SetUseEntryBuilder(Function& function)
 					: function_(function) {
-						previousValue_ = function_.setUseEntryBuilder(true);
-					}
+					previousValue_ = function_.setUseEntryBuilder(true);
+				}
 				
 				inline ~SetUseEntryBuilder() {
 					(void) function_.setUseEntryBuilder(previousValue_);

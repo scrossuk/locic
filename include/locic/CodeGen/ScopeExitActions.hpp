@@ -25,19 +25,9 @@ namespace locic {
 		
 		llvm::Value* getUnwindStateValue(Module& module, UnwindState state);
 		
-		llvm::BasicBlock* getNextNormalUnwindBlock(Function& function);
+		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
 		
-		llvm::BasicBlock* getNextExceptUnwindBlock(Function& function);
-		
-		class FunctionLifetime {
-			public:
-				FunctionLifetime(Function& function);
-				~FunctionLifetime();
-				
-			private:
-				Function& function_;
-			
-		};
+		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
 		
 		class ScopeLifetime {
 			public:
@@ -46,8 +36,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
-				llvm::BasicBlock* scopeExitBB_;
-			
+				
 		};
 		
 		class StatementLifetime {
@@ -57,8 +46,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
-				llvm::BasicBlock* statementExitBB_;
-			
+				
 		};
 		
 	}

@@ -16,7 +16,6 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -46,11 +45,12 @@ namespace locic {
 				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), typeGen.getI8PtrType()));
 				
 				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, isVarArg,
-					voidTypePair(module), arguments);
+							   voidTypePair(module), arguments);
 			}
 			
 			llvm::AttributeSet conflictResolutionStubAttributes(Module& module) {
 				const auto iterator = module.attributeMap().find(AttributeVirtualCallStub);
+				
 				if (iterator != module.attributeMap().end()) {
 					return iterator->second;
 				}
@@ -91,10 +91,11 @@ namespace locic {
 				const auto argsStructType = TypeGenerator(function.module()).getStructType(llvmArgTypes);
 				
 				const auto argsStructPtr = function.getEntryBuilder().CreateAlloca(argsStructType);
+				
 				for (size_t offset = 0; offset < args.size(); offset++) {
 					const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
-						argsStructPtr, 0, offset);
-					
+											argsStructPtr, 0, offset);
+											
 					if (isTypeSizeAlwaysKnown(module, argTypes[offset])) {
 						const auto argAlloca = function.getEntryBuilder().CreateAlloca(args[offset]->getType());
 						function.getBuilder().CreateStore(args[offset], argAlloca);
@@ -271,9 +272,6 @@ namespace locic {
 				
 				Function function(module, *llvmFunction, stubArgInfo);
 				
-				// Generate the outermost unwind block.
-				FunctionLifetime functionLifetime(function);
-				
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
 				
@@ -364,8 +362,6 @@ namespace locic {
 				// never be reached...).
 				builder.CreateUnreachable();
 				
-				function.selectBasicBlock(function.createBasicBlock(""));
-				
 				return llvmFunction;
 			}
 			
@@ -373,4 +369,4 @@ namespace locic {
 		
 	}
 }
-	
+
