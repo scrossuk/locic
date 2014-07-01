@@ -123,6 +123,16 @@ namespace locic {
 				llvm_unreachable("Statement marker not found.");
 			}
 			
+			bool lastInstructionTerminates(Function& function) {
+				if (!function.getBuilder().GetInsertBlock()->empty()) {
+					auto iterator = function.getBuilder().GetInsertPoint();
+					--iterator;
+					return iterator->isTerminator();
+				} else {
+					return false;
+				}
+			}
+			
 		}
 		
 		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow) {
@@ -138,6 +148,10 @@ namespace locic {
 				function.pushUnwindStack(position);
 				genScope(function, *(unwindAction.scopeExitScope()));
 				function.popUnwindStack();
+				
+				if (lastInstructionTerminates(function)) {
+					function.selectBasicBlock(function.createBasicBlock(""));
+				}
 			} else if (unwindAction.isDestroyException()) {
 				llvm::Value* const values[] = { unwindAction.destroyExceptionValue() };
 				function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), values);
@@ -201,9 +215,11 @@ namespace locic {
 		}
 		
 		ScopeLifetime::~ScopeLifetime() {
-			const bool isExceptionState = false;
-			const bool isRethrow = false;
-			genScopeExitActions(function_, isExceptionState, isRethrow);
+			if (!lastInstructionTerminates(function_)) {
+				const bool isExceptionState = false;
+				const bool isRethrow = false;
+				genScopeExitActions(function_, isExceptionState, isRethrow);
+			}
 			popScope(function_.unwindStack());
 		}
 		
@@ -213,9 +229,11 @@ namespace locic {
 		}
 		
 		StatementLifetime::~StatementLifetime() {
-			const bool isExceptionState = false;
-			const bool isRethrow = false;
-			genStatementExitActions(function_, isExceptionState, isRethrow);
+			if (!lastInstructionTerminates(function_)) {
+				const bool isExceptionState = false;
+				const bool isRethrow = false;
+				genStatementExitActions(function_, isExceptionState, isRethrow);
+			}
 			popStatement(function_.unwindStack());
 		}
 		

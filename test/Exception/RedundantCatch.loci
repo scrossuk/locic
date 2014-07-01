@@ -7,7 +7,6 @@ void throwFunction0() {
 	try {
 		testPrint(C"0: Throwing.");
 		throw ExampleError(256);
-		testPrint(C"0: THROW ERROR!");
 	} catch (ExampleError error) {
 		testPrint(C"0: Caught error with value %d.", error.value);
 	}
@@ -21,7 +20,6 @@ void throwFunction1() {
 		
 		testPrint(C"1: Throwing.");
 		throw ExampleError(512);
-		testPrint(C"1: THROW ERROR!");
 	} catch (ExampleError error) {
 		testPrint(C"1: Caught error with value %d.", error.value);
 	}

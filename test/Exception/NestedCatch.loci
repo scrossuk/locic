@@ -12,7 +12,6 @@ export int testEntryPoint(int argc, byte ** argv) {
 			try {
 				testPrint(C"0: Throwing.");
 				throw ExampleError(333);
-				testPrint(C"0: THROW ERROR!");
 			} catch (ExampleError error) {
 				testPrint(C"0: Caught error with value %d.", error.value);
 			}
@@ -20,7 +19,6 @@ export int testEntryPoint(int argc, byte ** argv) {
 			
 			testPrint(C"1: Throwing.");
 			throw ExampleError(444);
-			testPrint(C"1: THROW ERROR!");
 		} catch (ExampleError error) {
 			testPrint(C"1: Caught error with value %d.", error.value);
 		}

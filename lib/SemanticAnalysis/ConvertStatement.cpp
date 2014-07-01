@@ -49,7 +49,11 @@ namespace locic {
 					return WillScopeReturn(statement->getLoopIterationScope());
 				}
 				case SEM::Statement::TRY: {
-					// TODO: also consider catch blocks?
+					for (auto catchClause: statement->getTryCatchList()) {
+						if (!WillScopeReturn(catchClause->scope())) {
+							return false;
+						}
+					}
 					return WillScopeReturn(statement->getTryScope());
 				}
 				case SEM::Statement::SCOPEEXIT: {
@@ -59,7 +63,9 @@ namespace locic {
 					return true;
 				}
 				case SEM::Statement::THROW: {
-					// TODO: doesn't seem correct...
+					return true;
+				}
+				case SEM::Statement::RETHROW: {
 					return true;
 				}
 				case SEM::Statement::BREAK: {

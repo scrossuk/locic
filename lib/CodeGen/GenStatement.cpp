@@ -55,6 +55,16 @@ namespace locic {
 			return genValue(function, value);
 		}
 		
+		static bool lastInstructionTerminates(Function& function) {
+			if (!function.getBuilder().GetInsertBlock()->empty()) {
+				auto iterator = function.getBuilder().GetInsertPoint();
+				--iterator;
+				return iterator->isTerminator();
+			} else {
+				return false;
+			}
+		}
+		
 		void genStatement(Function& function, SEM::Statement* statement) {
 			auto& module = function.module();
 			auto& statementMap = module.debugModule().statementMap;
@@ -84,33 +94,72 @@ namespace locic {
 				}
 				
 				case SEM::Statement::IF: {
+					const auto& ifClauseList = statement->getIfClauseList();
+					assert(!ifClauseList.empty());
+					
+					// Create basic blocks in program order.
+					llvm::SmallVector<llvm::BasicBlock*, 5> basicBlocks;
+					for (size_t i = 0; i < ifClauseList.size(); i++) {
+						basicBlocks.push_back(function.createBasicBlock("ifThen"));
+						basicBlocks.push_back(function.createBasicBlock("ifElse"));
+					}
 					const auto mergeBB = function.createBasicBlock("ifMerge");
 					
-					assert(!statement->getIfClauseList().empty());
+					const auto& elseScope = statement->getIfElseScope();
+					const bool hasElseScope = !elseScope.statements().empty();
 					
-					for (const auto ifClause : statement->getIfClauseList()) {
+					bool allTerminate = true;
+					
+					// Go through all if clauses and generate their code.
+					for (size_t i = 0; i < ifClauseList.size(); i++) {
+						const auto& ifClause = ifClauseList.at(i);
 						const auto conditionValue = genStatementValue(function, ifClause->condition());
 						
-						const auto thenBB = function.createBasicBlock("ifThen");
-						const auto elseBB = function.createBasicBlock("ifElse");
+						const auto thenBB = basicBlocks[i * 2 + 0];
+						const auto elseBB = basicBlocks[i * 2 + 1];
 						
-						function.getBuilder().CreateCondBr(conditionValue, thenBB, elseBB);
+						// If this is the last if clause and there's no else clause,
+						// have the false condition jump straight to the merge.
+						const bool isEnd = ((i + 1) == ifClauseList.size());
+						function.getBuilder().CreateCondBr(conditionValue, thenBB, (!isEnd || hasElseScope) ? elseBB : mergeBB);
 						
 						// Create 'then'.
 						function.selectBasicBlock(thenBB);
 						genScope(function, ifClause->scope());
-						function.getBuilder().CreateBr(mergeBB);
+						
+						if (!lastInstructionTerminates(function)) {
+							allTerminate = false;
+							function.getBuilder().CreateBr(mergeBB);
+						}
 						
 						// Create 'else'.
 						function.selectBasicBlock(elseBB);
 					}
 					
-					genScope(function, statement->getIfElseScope());
+					// Only generate the else basic block if there is
+					// an else scope, otherwise erase it.
+					if (hasElseScope) {
+						genScope(function, statement->getIfElseScope());
+						
+						if (!lastInstructionTerminates(function)) {
+							allTerminate = false;
+							function.getBuilder().CreateBr(mergeBB);
+						}
+					} else {
+						allTerminate = false;
+						basicBlocks.back()->eraseFromParent();
+						basicBlocks.pop_back();
+						function.selectBasicBlock(basicBlocks.back());
+					}
 					
-					function.getBuilder().CreateBr(mergeBB);
-					
-					// Create merge (which is where execution continues).
-					function.selectBasicBlock(mergeBB);
+					if (allTerminate) {
+						// If every if clause terminates, then erase
+						// the merge block and terminate here.
+						mergeBB->eraseFromParent();
+					} else {
+						// Select merge block (which is where execution continues).
+						function.selectBasicBlock(mergeBB);
+					}
 					break;
 				}
 				
@@ -133,7 +182,13 @@ namespace locic {
 					const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValuePtr, 0, 1);
 					
 					const auto endBB = function.createBasicBlock("switchEnd");
-					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, statement->getSwitchCaseList().size());
+					
+					// TODO: implement default case.
+					const auto defaultBB = function.createBasicBlock("");
+					
+					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, defaultBB, statement->getSwitchCaseList().size());
+					
+					bool allTerminate = true;
 					
 					for (auto switchCase : statement->getSwitchCaseList()) {
 						const auto caseType = switchCase->var()->constructType();
@@ -164,10 +219,20 @@ namespace locic {
 							genScope(function, switchCase->scope());
 						}
 						
-						function.getBuilder().CreateBr(endBB);
+						if (!lastInstructionTerminates(function)) {
+							allTerminate = false;
+							function.getBuilder().CreateBr(endBB);
+						}
 					}
 					
-					function.selectBasicBlock(endBB);
+					function.selectBasicBlock(defaultBB);
+					function.getBuilder().CreateUnreachable();
+					
+					if (allTerminate) {
+						endBB->eraseFromParent();
+					} else {
+						function.selectBasicBlock(endBB);
+					}
 					break;
 				}
 				
@@ -252,9 +317,6 @@ namespace locic {
 						returnInst->setDebugLoc(debugLocation);
 					}
 					
-					// Need a basic block after a return statement in case anything more is generated.
-					// This (and any following code) will be removed by dead code elimination.
-					function.selectBasicBlock(function.createBasicBlock("afterReturn"));
 					break;
 				}
 				
@@ -280,8 +342,13 @@ namespace locic {
 						genScope(function, statement->getTryScope());
 					}
 					
-					// No exception thrown; continue normal execution.
-					function.getBuilder().CreateBr(afterCatchBB);
+					bool allTerminate = true;
+					
+					if (!lastInstructionTerminates(function)) {
+						// No exception thrown; continue normal execution.
+						allTerminate = false;
+						function.getBuilder().CreateBr(afterCatchBB);
+					}
 					
 					function.selectBasicBlock(catchBB);
 					
@@ -327,7 +394,10 @@ namespace locic {
 							}
 							
 							// Exception was handled, so re-commence normal execution.
-							function.getBuilder().CreateBr(afterCatchBB);
+							if (!lastInstructionTerminates(function)) {
+								allTerminate = false;
+								function.getBuilder().CreateBr(afterCatchBB);
+							}
 						}
 						
 						function.selectBasicBlock(tryNextCatchBB);
@@ -337,7 +407,11 @@ namespace locic {
 					const bool isRethrow = false;
 					genExceptionUnwind(function, exceptionInfo, isRethrow);
 					
-					function.selectBasicBlock(afterCatchBB);
+					if (!allTerminate) {
+						function.selectBasicBlock(afterCatchBB);
+					} else {
+						afterCatchBB->eraseFromParent();
+					}
 					break;
 				}
 				
@@ -380,9 +454,6 @@ namespace locic {
 					
 					const bool isRethrow = false;
 					genLandingPad(function, isRethrow);
-					
-					// Basic block for any further instructions generated.
-					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				
@@ -425,9 +496,6 @@ namespace locic {
 					
 					const bool isRethrow = true;
 					genLandingPad(function, isRethrow);
-					
-					// Basic block for any further instructions generated.
-					function.selectBasicBlock(function.createBasicBlock("afterRethrow"));
 					break;
 				}
 				
@@ -448,17 +516,11 @@ namespace locic {
 				
 				case SEM::Statement::BREAK: {
 					genControlFlowBreak(function);
-					
-					// Basic block for any further instructions generated.
-					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				
 				case SEM::Statement::CONTINUE: {
 					genControlFlowContinue(function);
-					
-					// Basic block for any further instructions generated.
-					function.selectBasicBlock(function.createBasicBlock("afterThrow"));
 					break;
 				}
 				

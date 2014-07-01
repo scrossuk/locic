@@ -171,11 +171,6 @@ namespace locic {
 			
 			genFunctionCode(functionGenerator, function);
 			
-			// Need to terminate the final basic block.
-			// (just make it loop to itself - this will
-			// be removed by dead code elimination)
-			functionGenerator.getBuilder().CreateBr(functionGenerator.getSelectedBasicBlock());
-			
 			// Check the generated function is correct.
 			functionGenerator.verify();
 			

@@ -213,9 +213,6 @@ int main(int argc, char* argv[]) {
 		const auto codeGenDebugFileName = testName + "_codegendebug.ll";
 		codeGenerator.dumpToFile(codeGenDebugFileName);
 		
-		// Optimise.
-		codeGenerator.applyOptimisations(3);
-		
 		// Interpret the code.
 		CodeGen::Interpreter interpreter(codeGenerator.module());
 		

@@ -155,9 +155,6 @@ namespace locic {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getI8PtrType()));
 			}
 			
-			// Set the exception information.
-			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
-			
 			// Unwind stack due to exception.
 			genExceptionUnwind(function, landingPad, isRethrow);
 		}
