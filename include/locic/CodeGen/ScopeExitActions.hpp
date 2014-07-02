@@ -23,13 +23,17 @@ namespace locic {
 		
 		void setCurrentUnwindState(Function& function, UnwindState state);
 		
-		llvm::Value* getUnwindStateValue(Module& module, UnwindState state);
+		llvm::ConstantInt* getUnwindStateValue(Module& module, UnwindState state);
 		
 		bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow);
+		
+		bool isTerminatorAction(const UnwindAction& unwindAction, UnwindState unwindState);
 		
 		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
 		
 		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
+		
+		llvm::BasicBlock* genUnwind(Function& function, UnwindState unwindState);
 		
 		class ScopeLifetime {
 			public:

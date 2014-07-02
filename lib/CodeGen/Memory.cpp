@@ -46,6 +46,7 @@ namespace locic {
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* type) {
 			assert(var->getType()->isPointerTy() || type->isInterface());
+			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -63,19 +64,19 @@ namespace locic {
 				}
 				
 				default: {
-					throw std::runtime_error("Unknown type enum for generating load.");
+					llvm_unreachable("Unknown type enum for generating load.");
 				}
 			}
 		}
 		
 		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
-			const auto castVar = function.getBuilder().CreatePointerCast(var, genPointerType(function.module(), type));
+			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					function.getBuilder().CreateStore(value, castVar);
+					function.getBuilder().CreateStore(value, var);
 					return;
 				}
 				
@@ -84,7 +85,7 @@ namespace locic {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
-						function.getBuilder().CreateStore(value, castVar);
+						function.getBuilder().CreateStore(value, var);
 						return;
 					} else {
 						if (isTypeSizeKnownInThisModule(function.module(), type)) {
@@ -92,18 +93,18 @@ namespace locic {
 							// better to generate an explicit load
 							// and store (optimisations will be able
 							// to make more sense of this).
-							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), castVar);
+							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
 						} else {
 							// If the type size isn't known, then
 							// a memcpy is unavoidable.
-							function.getBuilder().CreateMemCpy(castVar, value, genSizeOf(function, type), 1);
+							function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1);
 						}
 						return;
 					}
 				}
 				
 				default: {
-					throw std::runtime_error("Unknown type enum for generating store.");
+					llvm_unreachable("Unknown type enum for generating store.");
 				}
 			}
 		}

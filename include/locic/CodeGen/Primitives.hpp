@@ -55,11 +55,9 @@ namespace locic {
 		class Function;
 		class Module;
 		
-		bool isSignedIntegerType(const std::string& name);
+		bool isSignedIntegerType(Module& module, SEM::Type* type);
 		
-		bool isUnsignedIntegerType(const std::string& name);
-		
-		bool isIntegerType(const std::string& name);
+		bool isUnsignedIntegerType(Module& module, SEM::Type* type);
 		
 		void createPrimitiveAlignOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction);
 		
@@ -70,8 +68,6 @@ namespace locic {
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
 		void genPrimitiveDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
-		
-		bool isTrivialPrimitiveFunction(Module& module, SEM::Type* type, SEM::Function* function);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
 		
@@ -96,6 +92,8 @@ namespace locic {
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
+		
+		bool needsLivenessIndicator(Module& module, SEM::Type* type);
 		
 	}
 	

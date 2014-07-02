@@ -125,6 +125,30 @@ namespace locic {
 			return actions_.destroyExceptionAction.exceptionValue;
 		}
 		
+		llvm::BasicBlock* UnwindAction::normalUnwindBlock() const {
+			return normalUnwindBB_;
+		}
+		
+		void UnwindAction::setNormalUnwindBlock(llvm::BasicBlock* normalUnwindBB) {
+			normalUnwindBB_ = normalUnwindBB;
+		}
+		
+		llvm::BasicBlock* UnwindAction::exceptUnwindBlock() const {
+			return exceptUnwindBB_;
+		}
+		
+		void UnwindAction::setExceptUnwindBlock(llvm::BasicBlock* exceptUnwindBB) {
+			exceptUnwindBB_ = exceptUnwindBB;
+		}
+		
+		llvm::BasicBlock* UnwindAction::landingPadBlock() const {
+			return landingPadBB_;
+		}
+		
+		void UnwindAction::setLandingPadBlock(llvm::BasicBlock* landingPadBB) {
+			landingPadBB_ = landingPadBB;
+		}
+		
 	}
 	
 }

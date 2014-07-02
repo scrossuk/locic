@@ -85,17 +85,15 @@ namespace locic {
 				// and all 'float' values must be converted to 'double'
 				// values.
 				if (llvmFunctionType->isFunctionVarArg() && param->type()->isPrimitive()) {
-					const auto& typeName = param->type()->getObjectType()->name().last();
-					
 					const auto argType = argValue->getType();
 					const auto sizeInBits = argType->getPrimitiveSizeInBits();
 					
 					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int_t")) {
-						if (isSignedIntegerType(typeName)) {
+						if (isSignedIntegerType(module, param->type())) {
 							// Need to extend to int.
 							argValue = function.getBuilder().CreateSExt(argValue, getNamedPrimitiveType(module, "int_t"));
 							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
-						} else if (isUnsignedIntegerType(typeName)) {
+						} else if (isUnsignedIntegerType(module, param->type())) {
 							// Need to extend to unsigned int.
 							argValue = function.getBuilder().CreateZExt(argValue, getNamedPrimitiveType(module, "uint_t"));
 							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);

@@ -134,11 +134,7 @@ namespace locic {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					const auto parentType = value->functionRef.parentType;
-					if (parentType != nullptr && parentType->isPrimitive()) {
-						return isTrivialPrimitiveFunction(module, parentType, value->functionRef.function);
-					} else {
-						return false;
-					}
+					return (parentType != nullptr && parentType->isPrimitive());
 				}
 				
 				case SEM::Value::METHODOBJECT: {

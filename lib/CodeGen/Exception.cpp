@@ -164,13 +164,51 @@ namespace locic {
 			return false;
 		}
 		
+		llvm::BasicBlock* getLatestLandingPadBlock(Function& function) {
+			const auto& unwindStack = function.unwindStack();
+			
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& action = unwindStack.at(pos);
+				
+				if (action.landingPadBlock() != nullptr) {
+					return action.landingPadBlock();
+				}
+				
+				const bool isExceptionState = true;
+				const bool isRethrow = false;
+				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
+					break;
+				}
+			}
+			
+			return nullptr;
+		}
+		
+		void setLatestLandingPadBlock(Function& function, llvm::BasicBlock* landingPadBB) {
+			auto& unwindStack = function.unwindStack();
+			
+			for (size_t i = 0; i < unwindStack.size(); i++) {
+				const size_t pos = unwindStack.size() - i - 1;
+				auto& action = unwindStack.at(pos);
+				
+				action.setLandingPadBlock(landingPadBB);
+				
+				const bool isExceptionState = true;
+				const bool isRethrow = false;
+				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
+					return;
+				}
+			}
+		}
+		
 		llvm::BasicBlock* genLandingPad(Function& function, bool isRethrow) {
 			assert(anyExceptionActions(function, isRethrow));
 			
-			const auto latestLandingPad = function.latestLandingPad();
+			const auto latestLandingPadBlock = getLatestLandingPadBlock(function);
 			// TODO: also support the rethrow case.
-			if (latestLandingPad != nullptr && !isRethrow) {
-				return latestLandingPad->getParent();
+			if (latestLandingPadBlock != nullptr && !isRethrow) {
+				return latestLandingPadBlock;
 			}
 			
 			auto& module = function.module();
@@ -210,7 +248,7 @@ namespace locic {
 			
 			// TODO: also support the rethrow case.
 			if (!isRethrow) {
-				function.setLatestLandingPad(landingPad);
+				setLatestLandingPadBlock(function, landingPadBB);
 			}
 			
 			function.selectBasicBlock(currentBB);

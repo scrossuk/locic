@@ -76,11 +76,34 @@ namespace locic {
 				
 				llvm::Value* destroyExceptionValue() const;
 				
+				void setActionBlock(UnwindState state, llvm::BasicBlock* actionBB);
+				
+				llvm::BasicBlock* actionBlock(UnwindState state);
+				
+				llvm::BasicBlock* normalUnwindBlock() const;
+				
+				void setNormalUnwindBlock(llvm::BasicBlock* normalUnwindBB);
+				
+				llvm::BasicBlock* exceptUnwindBlock() const;
+				
+				void setExceptUnwindBlock(llvm::BasicBlock* exceptUnwindBB);
+				
+				llvm::BasicBlock* landingPadBlock() const;
+				
+				void setLandingPadBlock(llvm::BasicBlock* landingPadBB);
+				
 			private:
 				inline UnwindAction(Kind pKind)
-					: kind_(pKind) { }
+					: kind_(pKind),
+					normalUnwindBB_(nullptr),
+					exceptUnwindBB_(nullptr),
+					landingPadBB_(nullptr) { }
 					
 				Kind kind_;
+				
+				llvm::BasicBlock* normalUnwindBB_;
+				llvm::BasicBlock* exceptUnwindBB_;
+				llvm::BasicBlock* landingPadBB_;
 				
 				union Actions {
 					struct DestructorAction {

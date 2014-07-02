@@ -324,7 +324,8 @@ namespace locic {
 							offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 							
 							const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
-							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
+							const auto castInsertPointer = function.getBuilder().CreatePointerCast(llvmInsertPointer, genPointerType(module, var->type()));
+							genStoreVar(function, llvmParamValue, castInsertPointer, var);
 							
 							if ((i + 1) != parameterValues.size()) {
 								// If this isn't the last field, add its size for calculating
