@@ -23,13 +23,7 @@ namespace locic {
 		
 		llvm::Function* getExceptionPtrFunction(Module& module);
 		
-		bool anyExceptionActions(Function& function, bool isRethrow);
-		
-		bool anyExceptionCleanupActions(Function& function, bool isRethrow);
-		
-		llvm::BasicBlock* genLandingPad(Function& function, bool isRethrow);
-		
-		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow);
+		llvm::BasicBlock* genLandingPad(Function& function, UnwindState unwindState);
 		
 		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue);
 		
@@ -39,7 +33,7 @@ namespace locic {
 		
 		class TryScope {
 			public:
-				TryScope(Function& function, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList);
+				TryScope(Function& function, llvm::BasicBlock* catchBlock, llvm::ArrayRef<llvm::Constant*> catchTypeList);
 				~TryScope();
 				
 			private:

@@ -55,6 +55,9 @@ namespace locic {
 			// Add a bottom level unwind stack.
 			unwindStackStack_.push(UnwindStack());
 			
+			// Add bottom level action for this function.
+			unwindStack().push_back(UnwindAction::FunctionMarker());
+			
 			// Create an 'entry' basic block for holding
 			// instructions like allocas and debug_declares
 			// which must only be executed once per function.
@@ -266,6 +269,8 @@ namespace locic {
 		}
 		
 		void Function::pushUnwindStack(size_t position) {
+			// Position needs to include top level function action.
+			assert(position >= 1);
 			unwindStackStack_.push(UnwindStack(unwindStack().begin(), unwindStack().begin() + position));
 		}
 		

@@ -14,51 +14,11 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genControlFlowBreak(Function& function) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* breakBlock = nullptr;
-			
-			// Call all destructors until the next control flow point.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isControlFlow()) {
-					breakBlock = action.breakBlock();
-					break;
-				}
-				
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			assert(breakBlock != nullptr);
-			
-			function.getBuilder().CreateBr(breakBlock);
+			genUnwind(function, UnwindStateBreak);
 		}
 		
 		void genControlFlowContinue(Function& function) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* continueBlock = nullptr;
-			
-			// Perform all exit actions until the next control flow point.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isControlFlow()) {
-					continueBlock = action.continueBlock();
-					break;
-				}
-				
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			assert(continueBlock != nullptr);
-			
-			function.getBuilder().CreateBr(continueBlock);
+			genUnwind(function, UnwindStateContinue);
 		}
 		
 		ControlFlowScope::ControlFlowScope(Function& function, llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock)

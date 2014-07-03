@@ -14,6 +14,7 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
@@ -113,10 +114,9 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			const bool isRethrow = false;
-			if (!functionType->isFunctionNoExcept() && anyExceptionActions(function, isRethrow)) {
+			if (!functionType->isFunctionNoExcept() && anyUnwindActions(function, UnwindStateThrow)) {
 				const auto successPath = function.createBasicBlock("");
-				const auto failPath = genLandingPad(function, isRethrow);
+				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
 				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(callInfo.functionPtr, successPath, failPath, parameters), debugLoc);
 				
@@ -154,10 +154,9 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			const bool isRethrow = false;
-			if (canThrow && anyExceptionActions(function, isRethrow)) {
+			if (canThrow && anyUnwindActions(function, UnwindStateThrow)) {
 				const auto successPath = function.createBasicBlock("");
-				const auto failPath = genLandingPad(function, isRethrow);
+				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
 				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
 				

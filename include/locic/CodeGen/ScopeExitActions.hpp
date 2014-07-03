@@ -3,20 +3,12 @@
 
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
-		enum UnwindState {
-			UnwindStateNormal = 0,
-			UnwindStateReturn = 1,
-			UnwindStateBreak = 2,
-			UnwindStateContinue = 3,
-			UnwindStateThrow = 4,
-			UnwindStateRethrow = 5,
-		};
-		
 		llvm::Value* getIsCurrentUnwindState(Function& function, UnwindState state);
 		
 		llvm::Value* getIsCurrentExceptState(Function& function);
@@ -25,15 +17,15 @@ namespace locic {
 		
 		llvm::ConstantInt* getUnwindStateValue(Module& module, UnwindState state);
 		
-		bool isActiveAction(const UnwindAction& unwindAction, bool isExceptionState, bool isRethrow);
+		bool anyUnwindCleanupActions(Function& function, UnwindState unwindState);
 		
-		bool isTerminatorAction(const UnwindAction& unwindAction, UnwindState unwindState);
+		bool anyUnwindActions(Function& function, UnwindState unwindState);
 		
-		void performScopeExitAction(Function& function, size_t position, bool isExceptionState, bool isRethrow);
+		void performScopeExitAction(Function& function, size_t position, UnwindState unwindState);
 		
-		void genAllScopeExitActions(Function& function, bool isExceptionState = false, bool isRethrow = false);
+		llvm::BasicBlock* genUnwindBlock(Function& function, UnwindState unwindState);
 		
-		llvm::BasicBlock* genUnwind(Function& function, UnwindState unwindState);
+		void genUnwind(Function& function, UnwindState unwindState);
 		
 		class ScopeLifetime {
 			public:
@@ -42,16 +34,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
-				
-		};
-		
-		class StatementLifetime {
-			public:
-				StatementLifetime(Function& function);
-				~StatementLifetime();
-				
-			private:
-				Function& function_;
+				llvm::BasicBlock* scopeEndBB_;
 				
 		};
 		

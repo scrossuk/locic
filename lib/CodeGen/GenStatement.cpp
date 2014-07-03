@@ -48,13 +48,6 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genStatementValue(Function& function, SEM::Value* value) {
-			// Ensure any objects that only exist until the end of
-			// the statement are destroyed.
-			StatementLifetime statementLifetime(function);
-			return genValue(function, value);
-		}
-		
 		static bool lastInstructionTerminates(Function& function) {
 			if (!function.getBuilder().GetInsertBlock()->empty()) {
 				auto iterator = function.getBuilder().GetInsertPoint();
@@ -77,7 +70,7 @@ namespace locic {
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
 					assert(statement->getValue()->type()->isBuiltInVoid());
-					(void) genStatementValue(function, statement->getValue());
+					(void) genValue(function, statement->getValue());
 					break;
 				}
 				
@@ -88,7 +81,7 @@ namespace locic {
 				
 				case SEM::Statement::INITIALISE: {
 					const auto var = statement->getInitialiseVar();
-					const auto value = genStatementValue(function, statement->getInitialiseValue());
+					const auto value = genValue(function, statement->getInitialiseValue());
 					genVarInitialise(function, var, value);
 					break;
 				}
@@ -113,7 +106,7 @@ namespace locic {
 					// Go through all if clauses and generate their code.
 					for (size_t i = 0; i < ifClauseList.size(); i++) {
 						const auto& ifClause = ifClauseList.at(i);
-						const auto conditionValue = genStatementValue(function, ifClause->condition());
+						const auto conditionValue = genValue(function, ifClause->condition());
 						
 						const auto thenBB = basicBlocks[i * 2 + 0];
 						const auto elseBB = basicBlocks[i * 2 + 1];
@@ -164,7 +157,7 @@ namespace locic {
 				}
 				
 				case SEM::Statement::SWITCH: {
-					const auto switchValue = genStatementValue(function, statement->getSwitchValue());
+					const auto switchValue = genValue(function, statement->getSwitchValue());
 					const auto switchType = statement->getSwitchValue()->type();
 					
 					llvm::Value* switchValuePtr = nullptr;
@@ -252,7 +245,7 @@ namespace locic {
 					// before the branch instruction.
 					{
 						ScopeLifetime conditionScopeLifetime(function);
-						condition = genStatementValue(function, statement->getLoopCondition());
+						condition = genValue(function, statement->getLoopCondition());
 					}
 					
 					function.getBuilder().CreateCondBr(condition, loopIterationBB, loopEndBB);
@@ -283,38 +276,50 @@ namespace locic {
 				}
 				
 				case SEM::Statement::RETURN: {
-					llvm::Instruction* returnInst = nullptr;
-					
-					if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
-						if (function.getArgInfo().hasReturnVarArgument()) {
-							const auto returnValue = genStatementValue(function, statement->getReturnValue());
-							
-							// Store the return value into the return value pointer.
-							genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
-							
-							// Perform all exit actions.
-							genAllScopeExitActions(function);
-							
-							returnInst = function.getBuilder().CreateRetVoid();
-						} else {
-							const auto returnValue = genStatementValue(function, statement->getReturnValue());
-							
-							const auto encodedReturnValue = encodeReturnValue(function, returnValue, genABIType(function.module(), statement->getReturnValue()->type()));
-							
-							// Perform all exit actions.
-							genAllScopeExitActions(function);
-							
-							returnInst = function.getBuilder().CreateRet(encodedReturnValue);
+					if (anyUnwindActions(function, UnwindStateReturn)) {
+						if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
+							if (function.getArgInfo().hasReturnVarArgument()) {
+								const auto returnValue = genValue(function, statement->getReturnValue());
+								
+								// Store the return value into the return value pointer.
+								genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+							} else {
+								const auto returnValue = genValue(function, statement->getReturnValue());
+								
+								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
+									genABIType(function.module(), statement->getReturnValue()->type()));
+								
+								function.setReturnValue(encodedReturnValue);
+							}
 						}
-					} else {
-						// Perform all exit actions.
-						genAllScopeExitActions(function);
 						
-						returnInst = function.getBuilder().CreateRetVoid();
-					}
-					
-					if (hasDebugInfo) {
-						returnInst->setDebugLoc(debugLocation);
+						genUnwind(function, UnwindStateReturn);
+					} else {
+						llvm::Instruction* returnInst = nullptr;
+						
+						if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
+							if (function.getArgInfo().hasReturnVarArgument()) {
+								const auto returnValue = genValue(function, statement->getReturnValue());
+								
+								// Store the return value into the return value pointer.
+								genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+								
+								returnInst = function.getBuilder().CreateRetVoid();
+							} else {
+								const auto returnValue = genValue(function, statement->getReturnValue());
+								
+								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
+									genABIType(function.module(), statement->getReturnValue()->type()));
+								
+								returnInst = function.getBuilder().CreateRet(encodedReturnValue);
+							}
+						} else {
+							returnInst = function.getBuilder().CreateRetVoid();
+						}
+						
+						if (hasDebugInfo) {
+							returnInst->setDebugLoc(debugLocation);
+						}
 					}
 					
 					break;
@@ -324,7 +329,7 @@ namespace locic {
 					assert(!statement->getTryCatchList().empty());
 					
 					// Get list of exception types to be caught by this statement.
-					std::vector<llvm::Constant*> catchTypeList;
+					llvm::SmallVector<llvm::Constant*, 5> catchTypeList;
 					
 					for (const auto catchClause : statement->getTryCatchList()) {
 						catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
@@ -365,7 +370,7 @@ namespace locic {
 						// Call llvm.eh.typeid.for intrinsic to get
 						// the selector for the catch type.
 						const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*> {});
-						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList.at(i), TypeGenerator(module).getI8PtrType());
+						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList[i], TypeGenerator(module).getI8PtrType());
 						const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*> {castedCatchTypeInfo});
 						
 						// Check thrown selector against catch selector.
@@ -376,8 +381,8 @@ namespace locic {
 						{
 							function.selectBasicBlock(executeCatchBB);
 							const auto catchType = genType(function.module(), catchClause->var()->constructType());
-							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module),
-														   std::vector<llvm::Value*> { thrownExceptionValue });
+							llvm::Value* const getPtrArgs[] = { thrownExceptionValue };
+							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module), getPtrArgs);
 							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionPtrValue, catchType->getPointerTo());
 							
 							assert(catchClause->var()->isBasic());
@@ -404,8 +409,7 @@ namespace locic {
 					}
 					
 					// If not matched, keep unwinding.
-					const bool isRethrow = false;
-					genExceptionUnwind(function, exceptionInfo, isRethrow);
+					genUnwind(function, UnwindStateThrow);
 					
 					if (!allTerminate) {
 						function.selectBasicBlock(afterCatchBB);
@@ -418,7 +422,7 @@ namespace locic {
 				case SEM::Statement::THROW: {
 					const auto throwType = statement->getThrowValue()->type();
 					
-					const auto exceptionValue = genStatementValue(function, statement->getThrowValue());
+					const auto exceptionValue = genValue(function, statement->getThrowValue());
 					const auto exceptionType = genType(module, throwType);
 					
 					// Allocate space for exception.
@@ -438,12 +442,10 @@ namespace locic {
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
 					llvm::Value* const args[] = { allocatedException, castedTypeInfo, nullPtr };
 					
-					const bool isRethrow = false;
-					
-					if (anyExceptionActions(function, isRethrow)) {
+					if (anyUnwindActions(function, UnwindStateThrow)) {
 						// Create throw and nothrow paths.
 						const auto noThrowPath = function.createBasicBlock("");
-						const auto throwPath = genLandingPad(function, isRethrow);
+						const auto throwPath = genLandingPad(function, UnwindStateThrow);
 						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
 						
 						if (hasDebugInfo) {
@@ -483,17 +485,15 @@ namespace locic {
 					
 					assert(exceptionValue != nullptr);
 					
-					// Call 'throw' function.
+					// Call 'rethrow' function.
 					const auto rethrowFunction = getExceptionRethrowFunction(module);
 					llvm::Value* const args[] = { exceptionValue };
 					
-					const bool isRethrow = true;
-					
 					// Only generate landing pad where necessary.
-					if (anyExceptionActions(function, isRethrow)) {
+					if (anyUnwindActions(function, UnwindStateRethrow)) {
 						// Create throw and nothrow paths.
 						const auto noThrowPath = function.createBasicBlock("");
-						const auto throwPath = genLandingPad(function, isRethrow);
+						const auto throwPath = genLandingPad(function, UnwindStateRethrow);
 						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
 						
 						if (hasDebugInfo) {
@@ -532,12 +532,12 @@ namespace locic {
 				}
 				
 				case SEM::Statement::BREAK: {
-					genControlFlowBreak(function);
+					genUnwind(function, UnwindStateBreak);
 					break;
 				}
 				
 				case SEM::Statement::CONTINUE: {
-					genControlFlowContinue(function);
+					genUnwind(function, UnwindStateContinue);
 					break;
 				}
 				

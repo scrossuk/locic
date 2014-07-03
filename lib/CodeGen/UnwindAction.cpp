@@ -20,12 +20,14 @@ namespace locic {
 			return action;
 		}
 		
-		UnwindAction UnwindAction::ScopeMarker() {
-			return UnwindAction(UnwindAction::SCOPEMARKER);
+		UnwindAction UnwindAction::ScopeMarker(llvm::BasicBlock* scopeEndBlock) {
+			UnwindAction action(UnwindAction::SCOPEMARKER);
+			action.actions_.scopeAction.block = scopeEndBlock;
+			return action;
 		}
 		
-		UnwindAction UnwindAction::StatementMarker() {
-			return UnwindAction(UnwindAction::STATEMENTMARKER);
+		UnwindAction UnwindAction::FunctionMarker() {
+			return UnwindAction(UnwindAction::FUNCTIONMARKER);
 		}
 		
 		UnwindAction UnwindAction::ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock) {
@@ -64,8 +66,8 @@ namespace locic {
 			return kind() == UnwindAction::SCOPEMARKER;
 		}
 		
-		bool UnwindAction::isStatementMarker() const {
-			return kind() == UnwindAction::STATEMENTMARKER;
+		bool UnwindAction::isFunctionMarker() const {
+			return kind() == UnwindAction::FUNCTIONMARKER;
 		}
 		
 		bool UnwindAction::isControlFlow() const {
@@ -100,6 +102,11 @@ namespace locic {
 			return actions_.catchAction.typeInfo;
 		}
 		
+		llvm::BasicBlock* UnwindAction::scopeEndBlock() const {
+			assert(isScopeMarker());
+			return actions_.scopeAction.block;
+		}
+		
 		llvm::BasicBlock* UnwindAction::breakBlock() const {
 			assert(isControlFlow());
 			return actions_.controlFlowAction.breakBlock;
@@ -125,20 +132,150 @@ namespace locic {
 			return actions_.destroyExceptionAction.exceptionValue;
 		}
 		
-		llvm::BasicBlock* UnwindAction::normalUnwindBlock() const {
-			return normalUnwindBB_;
+		bool UnwindAction::isTerminator() const {
+			switch (kind()) {
+				case CATCH:
+				case SCOPEMARKER:
+				case CONTROLFLOW:
+				case FUNCTIONMARKER:
+					return true;
+				case DESTRUCTOR:
+				case SCOPEEXIT:
+				case DESTROYEXCEPTION:
+					return false;
+				default:
+					llvm_unreachable("Unknown unwind action kind.");
+			}
 		}
 		
-		void UnwindAction::setNormalUnwindBlock(llvm::BasicBlock* normalUnwindBB) {
-			normalUnwindBB_ = normalUnwindBB;
+		bool UnwindAction::isActiveForState(UnwindState unwindState) const {
+			switch (kind()) {
+				case DESTRUCTOR: {
+					// Destructors are always executed when exiting a scope.
+					return true;
+				}
+				case CATCH: {
+					return unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow;
+				}
+				case SCOPEMARKER: {
+					return unwindState == UnwindStateNormal;
+				}
+				case FUNCTIONMARKER: {
+					return unwindState == UnwindStateThrow || unwindState == UnwindStateReturn;
+				}
+				case CONTROLFLOW: {
+					return unwindState == UnwindStateBreak || unwindState == UnwindStateContinue;
+				}
+				case SCOPEEXIT: {
+					// Scope exit actions may only be executed on success/failure.
+					const bool isExceptionState = (unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
+					const bool supportsExceptionState = (scopeExitState() != SCOPEEXIT_SUCCESS);
+					const bool supportsNormalState = (scopeExitState() != SCOPEEXIT_FAILURE);
+					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
+				}
+				case DESTROYEXCEPTION: {
+					return unwindState == UnwindStateRethrow;
+				}
+				default:
+					llvm_unreachable("Unknown unwind action kind.");
+			}
 		}
 		
-		llvm::BasicBlock* UnwindAction::exceptUnwindBlock() const {
-			return exceptUnwindBB_;
+		llvm::BasicBlock* UnwindAction::actionBlock(UnwindState state) {
+			return actionBB_[state];
 		}
 		
-		void UnwindAction::setExceptUnwindBlock(llvm::BasicBlock* exceptUnwindBB) {
-			exceptUnwindBB_ = exceptUnwindBB;
+		void UnwindAction::setActionBlock(UnwindState state, llvm::BasicBlock* actionBB) {
+			switch (kind()) {
+				case DESTRUCTOR: {
+					if (state == UnwindStateThrow || state == UnwindStateRethrow) {
+						actionBB_[UnwindStateThrow] = actionBB;
+						actionBB_[UnwindStateRethrow] = actionBB;
+					} else {
+						actionBB_[UnwindStateNormal] = actionBB;
+						actionBB_[UnwindStateReturn] = actionBB;
+						actionBB_[UnwindStateBreak] = actionBB;
+						actionBB_[UnwindStateContinue] = actionBB;
+					}
+					break;
+				}
+				case CATCH: {
+					assert(state == UnwindStateThrow || state == UnwindStateRethrow);
+					actionBB_[UnwindStateThrow] = actionBB;
+					actionBB_[UnwindStateRethrow] = actionBB;
+					break;
+				}
+				case SCOPEMARKER: {
+					assert(state == UnwindStateNormal);
+					actionBB_[UnwindStateNormal] = actionBB;
+					break;
+				}
+				case FUNCTIONMARKER: {
+					assert(state == UnwindStateThrow || state == UnwindStateReturn);
+					if (state == UnwindStateThrow) {
+						actionBB_[UnwindStateThrow] = actionBB;
+					} else {
+						actionBB_[UnwindStateReturn] = actionBB;
+					}
+					break;
+				}
+				case CONTROLFLOW: {
+					assert(state == UnwindStateBreak || state == UnwindStateContinue);
+					if (state == UnwindStateBreak) {
+						actionBB_[UnwindStateBreak] = actionBB;
+					} else {
+						actionBB_[UnwindStateContinue] = actionBB;
+					}
+					break;
+				}
+				case SCOPEEXIT: {
+					if (state == UnwindStateThrow || state == UnwindStateRethrow) {
+						actionBB_[UnwindStateThrow] = actionBB;
+						actionBB_[UnwindStateRethrow] = actionBB;
+					} else {
+						actionBB_[UnwindStateNormal] = actionBB;
+						actionBB_[UnwindStateReturn] = actionBB;
+						actionBB_[UnwindStateBreak] = actionBB;
+						actionBB_[UnwindStateContinue] = actionBB;
+					}
+					break;
+				}
+				case DESTROYEXCEPTION: {
+					assert(state != UnwindStateRethrow);
+					if (state == UnwindStateThrow) {
+						actionBB_[UnwindStateThrow] = actionBB;
+					} else {
+						actionBB_[UnwindStateNormal] = actionBB;
+						actionBB_[UnwindStateReturn] = actionBB;
+						actionBB_[UnwindStateBreak] = actionBB;
+						actionBB_[UnwindStateContinue] = actionBB;
+					}
+					break;
+				}
+				default:
+					llvm_unreachable("Unknown unwind action kind.");
+			}
+		}
+		
+		bool UnwindAction::hasSuccessor(llvm::BasicBlock* successorBB) const {
+			for (size_t i = 0; i < UnwindState_MAX; i++) {
+				if (successorBB_.at(i) == successorBB) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		void UnwindAction::addSuccessor(llvm::BasicBlock* successorBB) {
+			assert(!isTerminator());
+			for (size_t i = 0; i < UnwindState_MAX; i++) {
+				if (successorBB_.at(i) == successorBB) {
+					return;
+				} else if (successorBB_.at(i) == nullptr) {
+					successorBB_.at(i) = successorBB;
+					break;
+				}
+			}
 		}
 		
 		llvm::BasicBlock* UnwindAction::landingPadBlock() const {

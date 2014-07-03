@@ -128,42 +128,6 @@ namespace locic {
 			return function;
 		}
 		
-		bool anyExceptionActions(Function& function, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Look for any actions to be performed
-			// if an exception is thrown.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				const bool isExceptionState = true;
-				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
-					return true;
-				}
-			}
-			
-			return false;
-		}
-		
-		bool anyExceptionCleanupActions(Function& function, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Look for any actions to be performed
-			// if an exception is thrown.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				const bool isExceptionState = true;
-				if (isActiveAction(action, isExceptionState, isRethrow)) {
-					return true;
-				}
-			}
-			
-			return false;
-		}
-		
 		llvm::BasicBlock* getLatestLandingPadBlock(Function& function) {
 			const auto& unwindStack = function.unwindStack();
 			
@@ -175,9 +139,7 @@ namespace locic {
 					return action.landingPadBlock();
 				}
 				
-				const bool isExceptionState = true;
-				const bool isRethrow = false;
-				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
+				if (action.isActiveForState(UnwindStateThrow)) {
 					break;
 				}
 			}
@@ -194,20 +156,19 @@ namespace locic {
 				
 				action.setLandingPadBlock(landingPadBB);
 				
-				const bool isExceptionState = true;
-				const bool isRethrow = false;
-				if (action.isCatch() || isActiveAction(action, isExceptionState, isRethrow)) {
+				if (action.isActiveForState(UnwindStateThrow)) {
 					return;
 				}
 			}
 		}
 		
-		llvm::BasicBlock* genLandingPad(Function& function, bool isRethrow) {
-			assert(anyExceptionActions(function, isRethrow));
+		llvm::BasicBlock* genLandingPad(Function& function, UnwindState unwindState) {
+			assert(unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
+			assert(anyUnwindActions(function, unwindState));
 			
 			const auto latestLandingPadBlock = getLatestLandingPadBlock(function);
 			// TODO: also support the rethrow case.
-			if (latestLandingPadBlock != nullptr && !isRethrow) {
+			if (latestLandingPadBlock != nullptr && unwindState == UnwindStateThrow) {
 				return latestLandingPadBlock;
 			}
 			
@@ -237,52 +198,25 @@ namespace locic {
 			function.selectBasicBlock(landingPadBB);
 			
 			const auto landingPad = function.getBuilder().CreateLandingPad(landingPadType, personalityFunction, catchTypes.size());
-			landingPad->setCleanup(anyExceptionCleanupActions(function, isRethrow));
+			landingPad->setCleanup(anyUnwindCleanupActions(function, unwindState));
 			
 			for (size_t i = 0; i < catchTypes.size(); i++) {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getI8PtrType()));
 			}
 			
+			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
+			
 			// Unwind stack due to exception.
-			genExceptionUnwind(function, landingPad, isRethrow);
+			genUnwind(function, unwindState);
 			
 			// TODO: also support the rethrow case.
-			if (!isRethrow) {
+			if (unwindState == UnwindStateThrow) {
 				setLatestLandingPadBlock(function, landingPadBB);
 			}
 			
 			function.selectBasicBlock(currentBB);
 			
 			return landingPadBB;
-		}
-		
-		void genExceptionUnwind(Function& function, llvm::Value* exceptionInfo, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			llvm::BasicBlock* catchBlock = nullptr;
-			
-			// Perform all scope exit actions until the next catch block.
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& action = unwindStack.at(pos);
-				
-				if (action.isCatch()) {
-					catchBlock = action.catchBlock();
-					break;
-				}
-				
-				const bool isExceptionState = true;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-			
-			if (catchBlock != nullptr) {
-				// Jump to the next catch block and store the exception
-				// information so it can be used by the catch block.
-				function.getBuilder().CreateStore(exceptionInfo, function.exceptionInfo());
-				function.getBuilder().CreateBr(catchBlock);
-			} else {
-				// There isn't a catch block; resume unwinding.
-				function.getBuilder().CreateResume(exceptionInfo);
-			}
 		}
 		
 		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue) {
@@ -374,12 +308,12 @@ namespace locic {
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		TryScope::TryScope(Function& function, llvm::BasicBlock* catchBlock, const std::vector<llvm::Constant*>& catchTypeList)
+		TryScope::TryScope(Function& function, llvm::BasicBlock* catchBlock, llvm::ArrayRef<llvm::Constant*> catchTypeList)
 			: function_(function), catchCount_(catchTypeList.size()) {
 			assert(!catchTypeList.empty());
 			for (size_t i = 0; i < catchTypeList.size(); i++) {
 				// Push in reverse order.
-				const auto catchType = catchTypeList.at(catchTypeList.size() - i - 1);
+				const auto catchType = catchTypeList[catchTypeList.size() - i - 1];
 				function_.pushUnwindAction(UnwindAction::CatchException(catchBlock, catchType));
 			}
 		}

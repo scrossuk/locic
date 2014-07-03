@@ -39,44 +39,6 @@ namespace locic {
 		
 		namespace {
 		
-			bool scopeHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
-				const auto& unwindStack = function.unwindStack();
-				
-				for (size_t i = 0; i < unwindStack.size(); i++) {
-					const size_t pos = unwindStack.size() - i - 1;
-					const auto& unwindAction = unwindStack.at(pos);
-					
-					if (unwindAction.isScopeMarker()) {
-						return false;
-					}
-					
-					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
-						return true;
-					}
-				}
-				
-				llvm_unreachable("Scope marker not found.");
-			}
-			
-			bool statementHasExitAction(Function& function, bool isExceptionState, bool isRethrow) {
-				const auto& unwindStack = function.unwindStack();
-				
-				for (size_t i = 0; i < unwindStack.size(); i++) {
-					const size_t pos = unwindStack.size() - i - 1;
-					const auto& unwindAction = unwindStack.at(pos);
-					
-					if (unwindAction.isStatementMarker()) {
-						return false;
-					}
-					
-					if (isActiveAction(unwindAction, isExceptionState, isRethrow)) {
-						return true;
-					}
-				}
-				
-				llvm_unreachable("Statement marker not found.");
-			}
-			
 			void popScope(Function& function) {
 				const auto& unwindStack = function.unwindStack();
 				while (!unwindStack.empty()) {
@@ -91,20 +53,6 @@ namespace locic {
 				llvm_unreachable("Scope marker not found.");
 			}
 			
-			void popStatement(Function& function) {
-				const auto& unwindStack = function.unwindStack();
-				while (!unwindStack.empty()) {
-					const bool isMarker = unwindStack.back().isStatementMarker();
-					function.popUnwindAction();
-					
-					if (isMarker) {
-						return;
-					}
-				}
-				
-				llvm_unreachable("Statement marker not found.");
-			}
-			
 			bool lastInstructionTerminates(Function& function) {
 				if (!function.getBuilder().GetInsertBlock()->empty()) {
 					auto iterator = function.getBuilder().GetInsertPoint();
@@ -117,78 +65,10 @@ namespace locic {
 			
 		}
 		
-		bool isActiveAction(const UnwindAction& unwindAction, UnwindState unwindState) {
-			const bool isExceptionState = (unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
-			
-			switch (unwindAction.kind()) {
-				case UnwindAction::DESTRUCTOR: {
-					// Destructors are always executed when exiting a scope.
-					return true;
-				}
-				case UnwindAction::CATCH: {
-					return isExceptionState;
-				}
-				case UnwindAction::SCOPEMARKER: {
-					// Just a placeholder.
-					return false;
-				}
-				case UnwindAction::STATEMENTMARKER: {
-					// Just a placeholder.
-					return false;
-				}
-				case UnwindAction::CONTROLFLOW: {
-					return !isExceptionState;
-				}
-				case UnwindAction::SCOPEEXIT: {
-					const bool isExceptionState = (unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
-					
-					// Scope exit actions may only be executed on success/failure.
-					const bool supportsExceptionState = (unwindAction.scopeExitState() != SCOPEEXIT_SUCCESS);
-					const bool supportsNormalState = (unwindAction.scopeExitState() != SCOPEEXIT_FAILURE);
-					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
-				}
-				case UnwindAction::DESTROYEXCEPTION: {
-					return !isRethrow;
-				}
-				default:
-					llvm_unreachable("Unknown unwind action kind.");
-			}
-		}
-		
-		bool isTerminatorAction(const UnwindAction& unwindAction, UnwindState unwindState) {
-			switch (unwindAction.kind()) {
-				case UnwindAction::DESTRUCTOR: {
-					return false;
-				}
-				case UnwindAction::CATCH: {
-					return unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow;
-				}
-				case UnwindAction::SCOPEMARKER: {
-					return unwindState == UnwindStateNormal;
-				}
-				case UnwindAction::STATEMENTMARKER: {
-					return unwindState == UnwindStateNormal;
-				}
-				case UnwindAction::CONTROLFLOW: {
-					return unwindState == UnwindStateBreak || unwindState == UnwindStateContinue;
-				}
-				case UnwindAction::SCOPEEXIT: {
-					return false;
-				}
-				case UnwindAction::DESTROYEXCEPTION: {
-					return false;
-				}
-				default:
-					llvm_unreachable("Unknown unwind action kind.");
-			}
-		}
-		
 		void performScopeExitAction(Function& function, size_t position, UnwindState unwindState) {
-			auto& module = function.module();
-			
 			const auto& unwindAction = function.unwindStack().at(position);
 			
-			if (!isActiveAction(unwindAction, isExceptionState, isRethrow)) {
+			if (!unwindAction.isActiveForState(unwindState)) {
 				return;
 			}
 			
@@ -198,15 +78,33 @@ namespace locic {
 					return;
 				}
 				case UnwindAction::CATCH: {
-					// TODO...
+					function.getBuilder().CreateBr(unwindAction.catchBlock());
 					return;
 				}
 				case UnwindAction::SCOPEMARKER: {
 					// Just a placeholder.
 					return;
 				}
-				case UnwindAction::STATEMENTMARKER: {
+				case UnwindAction::FUNCTIONMARKER: {
 					// Just a placeholder.
+					switch (unwindState) {
+						case UnwindStateThrow: {
+							const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
+							function.getBuilder().CreateResume(exceptionInfo);
+							break;
+						}
+						case UnwindStateReturn: {
+							const auto returnType = function.getLLVMFunction().getFunctionType()->getReturnType();
+							if (function.getArgInfo().hasReturnVarArgument() || returnType->isVoidTy()) {
+								function.getBuilder().CreateRetVoid();
+							} else {
+								function.getBuilder().CreateRet(function.getBuilder().CreateLoad(function.getRawReturnValue()));
+							}
+							break;
+						}
+						default:
+							llvm_unreachable("Invalid unwind state for function marker action.");
+					}
 					return;
 				}
 				case UnwindAction::CONTROLFLOW: {
@@ -218,7 +116,7 @@ namespace locic {
 							function.getBuilder().CreateBr(unwindAction.continueBlock());
 							break;
 						default:
-							break;
+							llvm_unreachable("Invalid unwind state for control flow action.");
 					}
 					return;
 				}
@@ -244,15 +142,36 @@ namespace locic {
 			}
 		}
 		
+		bool anyUnwindCleanupActions(Function& function, UnwindState unwindState) {
+			const auto& unwindStack = function.unwindStack();
+			
+			assert(unwindStack.front().isFunctionMarker());
+			
+			for (size_t i = 0; i < unwindStack.size() - 1; i++) {
+				// Perform actions in reverse order (i.e. as a stack).
+				const size_t pos = unwindStack.size() - i - 1;
+				const auto& unwindAction = unwindStack.at(pos);
+				
+				if (unwindAction.isActiveForState(unwindState)) {
+					return !unwindAction.isTerminator();
+				}
+			}
+			
+			return false;
+		}
+		
 		bool anyUnwindActions(Function& function, UnwindState unwindState) {
 			const auto& unwindStack = function.unwindStack();
 			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
+			assert(unwindStack.front().isFunctionMarker());
+			
+			// Ignore top level Function marker.
+			for (size_t i = 0; i < unwindStack.size() - 1; i++) {
 				// Perform actions in reverse order (i.e. as a stack).
 				const size_t pos = unwindStack.size() - i - 1;
-				auto& unwindAction = unwindStack.at(pos);
+				const auto& unwindAction = unwindStack.at(pos);
 				
-				if (isActiveAction(unwindAction, unwindState)) {
+				if (unwindAction.isActiveForState(unwindState)) {
 					return true;
 				}
 			}
@@ -260,145 +179,127 @@ namespace locic {
 			return false;
 		}
 		
-		llvm::BasicBlock* genUnwind(Function& function, UnwindState unwindState) {
-			auto& unwindStack = function.unwindStack();
-			
-			llvm::BasicBlock* initialUnwindBB = nullptr;
+		size_t unwindStartPosition(Function& function, UnwindState unwindState) {
+			const auto& unwindStack = function.unwindStack();
 			
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				// Perform actions in reverse order (i.e. as a stack).
 				const size_t pos = unwindStack.size() - i - 1;
 				auto& unwindAction = unwindStack.at(pos);
 				
-				if (!isActiveAction(unwindAction, unwindState)) {
+				if (unwindAction.isActiveForState(unwindState) && unwindAction.isTerminator()) {
+					return pos;
+				}
+			}
+			
+			llvm_unreachable("Couldn't find unwind terminator action.");
+		}
+		
+		llvm::BasicBlock* genTopUnwindAction(Function& function, size_t position, UnwindState unwindState) {
+			auto& unwindStack = function.unwindStack();
+			
+			auto& topUnwindAction = unwindStack.at(position);
+			assert(topUnwindAction.isTerminator());
+			
+			const auto existingTopBB = topUnwindAction.actionBlock(unwindState);
+			if (existingTopBB != nullptr) {
+				return existingTopBB;
+			}
+			
+			const auto actionBB = function.createBasicBlock("");
+			performScopeExitAction(function, position, unwindState);
+			return actionBB;
+		}
+		
+		llvm::BasicBlock* genUnwindBlock(Function& function, UnwindState unwindState) {
+			auto& module = function.module();
+			auto& unwindStack = function.unwindStack();
+			
+			const auto currentBB = function.getBuilder().GetInsertBlock();
+			
+			const auto startPosition = unwindStartPosition(function, unwindState);
+			llvm::BasicBlock* nextBB = genTopUnwindAction(function, startPosition, unwindState);
+			
+			for (size_t i = startPosition + 1; i < unwindStack.size(); i++) {
+				auto& unwindAction = unwindStack.at(i);
+				
+				if (!unwindAction.isActiveForState(unwindState)) {
 					// Not relevant to this unwind state.
 					continue;
 				}
 				
+				assert(!unwindAction.isTerminator());
+				
 				const auto existingBB = unwindAction.actionBlock(unwindState);
-				const auto unwindBB = existingBB != nullptr ? existingBB : function.createBasicBlock("");
-				
-				if (initialUnwindBB == nullptr) {
-					initialUnwindBB = unwindBB;
-				}
-				
-				if (existingBB == nullptr) {
-					function.selectBasicBlock(unwindBB);
-					
-				}
-				
-				if (isTerminatorAction(unwindAction, unwindState)) {
-					// The last basic block will have been
-					// terminated by a branch since this is
-					// a terminator (i.e. the end of unwinding).
-					return initialUnwindBB;
-				}
 				
 				if (existingBB != nullptr) {
-					const auto& generatedStates = unwindAction.generatedStates();
-					if (!generatedStates.at(unwindState)) {
-						const auto stateUnwindBB = function.createBasicBlock("");
+					if (!unwindAction.hasSuccessor(nextBB)) {
+						llvm::SwitchInst* switchInst = nullptr;
 						
-						// Unwind action hasn't been generated for this state.
-						if (generatedStates.count() > 1) {
-							// It's already been generated for multiple states,
-							// so there should be a switch.
-							assert(!unwindBB->empty());
-							assert(llvm::isa<llvm::SwitchInst>(unwindBB->front()));
-							auto& switchInst = llvm::cast<llvm::SwitchInst>(unwindBB->front());
-							switchInst->
+						llvm::Instruction& lastInstruction = existingBB->back();
+						if (llvm::isa<llvm::BranchInst>(&lastInstruction)) {
+							// Replace the existing branch with a switch.
+							const auto branchInst = llvm::cast<llvm::BranchInst>(&lastInstruction);
+							branchInst->dump();
+							assert(branchInst->isUnconditional());
+							
+							function.selectBasicBlock(branchInst->getParent());
+							const auto currentUnwindStateValue = function.getBuilder().CreateLoad(function.unwindState());
+							switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
+							branchInst->eraseFromParent();
 						} else {
-							// Action has been generated for just one state,
-							// so there should be an unconditional branch.
-							assert(generatedStates.any());
-							assert(llvm::isa<llvm::BranchInst>(unwindBB->front()));
+							// There's already a switch.
+							assert(llvm::isa<llvm::SwitchInst>(&lastInstruction));
+							switchInst = llvm::cast<llvm::SwitchInst>(&lastInstruction);
 						}
 						
-						unwindAction.setGeneratedState(unwindState);
+						switchInst->addCase(getUnwindStateValue(module, unwindState), nextBB);
+						unwindAction.addSuccessor(nextBB);
 					}
+					
+					nextBB = existingBB;
+				} else {
+					const auto actionBB = function.createBasicBlock("");
+					function.selectBasicBlock(actionBB);
+					performScopeExitAction(function, i, unwindState);
+					function.getBuilder().CreateBr(nextBB);
+					
+					unwindAction.setActionBlock(unwindState, actionBB);
+					unwindAction.addSuccessor(nextBB);
+					
+					nextBB = actionBB;
 				}
 			}
 			
-			llvm_unreachable("Unwinding reached top of function.");
+			function.selectBasicBlock(currentBB);
+			
+			return nextBB;
 		}
 		
-		void genScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
+		void genUnwind(Function& function, UnwindState unwindState) {
+			assert(anyUnwindActions(function, unwindState));
 			
-			// Only generate this code if there are actually actions to perform.
-			if (!scopeHasExitAction(function, isExceptionState, isRethrow)) {
-				return;
-			}
-			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				
-				if (unwindAction.isScopeMarker()) {
-					break;
-				}
-				
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-		}
-		
-		void genStatementExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			
-			// Only generate this code if there are actually actions to perform.
-			if (!statementHasExitAction(function, isExceptionState, isRethrow)) {
-				return;
+			if (unwindState != UnwindStateNormal && unwindState != UnwindStateThrow) {
+				setCurrentUnwindState(function, unwindState);
 			}
 			
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				const auto& unwindAction = unwindStack.at(pos);
-				
-				if (unwindAction.isStatementMarker()) {
-					break;
-				}
-				
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
-		}
-		
-		void genAllScopeExitActions(Function& function, bool isExceptionState, bool isRethrow) {
-			const auto& unwindStack = function.unwindStack();
-			for (size_t i = 0; i < unwindStack.size(); i++) {
-				// Perform actions in reverse order (i.e. as a stack).
-				const size_t pos = unwindStack.size() - i - 1;
-				performScopeExitAction(function, pos, isExceptionState, isRethrow);
-			}
+			function.getBuilder().CreateBr(genUnwindBlock(function, unwindState));
 		}
 		
 		ScopeLifetime::ScopeLifetime(Function& function)
-			: function_(function) {
-			function_.pushUnwindAction(UnwindAction::ScopeMarker());
-		}
+			: function_(function),
+			scopeEndBB_(function.createBasicBlock("")) {
+				function_.pushUnwindAction(UnwindAction::ScopeMarker(scopeEndBB_));
+			}
 		
 		ScopeLifetime::~ScopeLifetime() {
-			if (!lastInstructionTerminates(function_)) {
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				genScopeExitActions(function_, isExceptionState, isRethrow);
+			if (!lastInstructionTerminates(function_) && anyUnwindActions(function_, UnwindStateNormal)) {
+				genUnwind(function_, UnwindStateNormal);
+				function_.selectBasicBlock(scopeEndBB_);
+			} else {
+				scopeEndBB_->eraseFromParent();
 			}
 			popScope(function_);
-		}
-		
-		StatementLifetime::StatementLifetime(Function& function)
-			: function_(function) {
-			function_.pushUnwindAction(UnwindAction::StatementMarker());
-		}
-		
-		StatementLifetime::~StatementLifetime() {
-			if (!lastInstructionTerminates(function_)) {
-				const bool isExceptionState = false;
-				const bool isRethrow = false;
-				genStatementExitActions(function_, isExceptionState, isRethrow);
-			}
-			popStatement(function_);
 		}
 		
 	}

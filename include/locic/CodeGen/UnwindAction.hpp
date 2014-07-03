@@ -1,10 +1,14 @@
 #ifndef LOCIC_CODEGEN_UNWINDACTION_HPP
 #define LOCIC_CODEGEN_UNWINDACTION_HPP
 
+#include <array>
+#include <bitset>
 #include <vector>
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/SEM.hpp>
+
+#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
 
@@ -22,9 +26,9 @@ namespace locic {
 				
 				static UnwindAction CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
 				
-				static UnwindAction ScopeMarker();
+				static UnwindAction ScopeMarker(llvm::BasicBlock* scopeEndBlock);
 				
-				static UnwindAction StatementMarker();
+				static UnwindAction FunctionMarker();
 				
 				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
 				
@@ -36,7 +40,7 @@ namespace locic {
 					DESTRUCTOR,
 					CATCH,
 					SCOPEMARKER,
-					STATEMENTMARKER,
+					FUNCTIONMARKER,
 					CONTROLFLOW,
 					SCOPEEXIT,
 					DESTROYEXCEPTION
@@ -50,7 +54,7 @@ namespace locic {
 				
 				bool isScopeMarker() const;
 				
-				bool isStatementMarker() const;
+				bool isFunctionMarker() const;
 				
 				bool isControlFlow() const;
 				
@@ -66,6 +70,8 @@ namespace locic {
 				
 				llvm::Constant* catchTypeInfo() const;
 				
+				llvm::BasicBlock* scopeEndBlock() const;
+				
 				llvm::BasicBlock* breakBlock() const;
 				
 				llvm::BasicBlock* continueBlock() const;
@@ -76,17 +82,17 @@ namespace locic {
 				
 				llvm::Value* destroyExceptionValue() const;
 				
-				void setActionBlock(UnwindState state, llvm::BasicBlock* actionBB);
+				bool isTerminator() const;
+				
+				bool isActiveForState(UnwindState unwindState) const;
 				
 				llvm::BasicBlock* actionBlock(UnwindState state);
 				
-				llvm::BasicBlock* normalUnwindBlock() const;
+				void setActionBlock(UnwindState state, llvm::BasicBlock* actionBB);
 				
-				void setNormalUnwindBlock(llvm::BasicBlock* normalUnwindBB);
+				bool hasSuccessor(llvm::BasicBlock* successorBB) const;
 				
-				llvm::BasicBlock* exceptUnwindBlock() const;
-				
-				void setExceptUnwindBlock(llvm::BasicBlock* exceptUnwindBB);
+				void addSuccessor(llvm::BasicBlock* successorBB);
 				
 				llvm::BasicBlock* landingPadBlock() const;
 				
@@ -95,15 +101,17 @@ namespace locic {
 			private:
 				inline UnwindAction(Kind pKind)
 					: kind_(pKind),
-					normalUnwindBB_(nullptr),
-					exceptUnwindBB_(nullptr),
-					landingPadBB_(nullptr) { }
+					landingPadBB_(nullptr) {
+						actionBB_.fill(nullptr);
+						successorBB_.fill(nullptr);
+					}
 					
 				Kind kind_;
 				
-				llvm::BasicBlock* normalUnwindBB_;
-				llvm::BasicBlock* exceptUnwindBB_;
 				llvm::BasicBlock* landingPadBB_;
+				
+				std::array<llvm::BasicBlock*, UnwindState_MAX> actionBB_;
+				std::array<llvm::BasicBlock*, UnwindState_MAX> successorBB_;
 				
 				union Actions {
 					struct DestructorAction {
@@ -115,6 +123,10 @@ namespace locic {
 						llvm::BasicBlock* block;
 						llvm::Constant* typeInfo;
 					} catchAction;
+					
+					struct ScopeAction {
+						llvm::BasicBlock* block;
+					} scopeAction;
 					
 					struct ControlFlowAction {
 						llvm::BasicBlock* breakBlock;
