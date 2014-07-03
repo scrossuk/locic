@@ -122,7 +122,9 @@ namespace locic {
 				methodName == "assign" ||
 				methodName == "index" ||
 				methodName == "logicalAnd" ||
-				methodName == "logicalOr";
+				methodName == "logicalOr" ||
+				methodName == "equal" ||
+				methodName == "not_equal";
 		}
 		
 		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
@@ -300,6 +302,10 @@ namespace locic {
 					createTrap(function);
 					function.selectBasicBlock(isNotZeroBB);
 					return builder.CreateSRem(methodOwner, operand);
+				} else if (methodName == "equal") {
+					return builder.CreateICmpEQ(methodOwner, operand);
+				} else if (methodName == "not_equal") {
+					return builder.CreateICmpNE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpSLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
@@ -383,6 +389,10 @@ namespace locic {
 					createTrap(function);
 					function.selectBasicBlock(isNotZeroBB);
 					return builder.CreateURem(methodOwner, operand);
+				} else if (methodName == "equal") {
+					return builder.CreateICmpEQ(methodOwner, operand);
+				} else if (methodName == "not_equal") {
+					return builder.CreateICmpNE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
@@ -545,6 +555,12 @@ namespace locic {
 						const auto i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
 						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					}
+				} else if (methodName == "equal") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpEQ(methodOwner, operand);
+				} else if (methodName == "not_equal") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpNE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto operand = loadArg(function, args[1], type);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);

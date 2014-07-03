@@ -37,6 +37,8 @@ __primitive byte_t {
 	byte_t divide(const byte_t& v) const noexcept;
 	byte_t modulo(const byte_t& v) const noexcept;
 	
+	bool equal(const byte_t& v) const noexcept;
+	bool not_equal(const byte_t& v) const noexcept;
 	int_t compare(const byte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -53,6 +55,8 @@ __primitive ubyte_t {
 	ubyte_t divide(const ubyte_t& v) const noexcept;
 	ubyte_t modulo(const ubyte_t& v) const noexcept;
 	
+	bool equal(const ubyte_t& v) const noexcept;
+	bool not_equal(const ubyte_t& v) const noexcept;
 	int_t compare(const ubyte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -76,6 +80,8 @@ __primitive short_t {
 	short_t divide(const short_t& v) const noexcept;
 	short_t modulo(const short_t& v) const noexcept;
 	
+	bool equal(const short_t& v) const noexcept;
+	bool not_equal(const short_t& v) const noexcept;
 	int_t compare(const short_t& v) const noexcept;
 }
 
@@ -92,6 +98,8 @@ __primitive ushort_t {
 	ushort_t divide(const ushort_t& v) const noexcept;
 	ushort_t modulo(const ushort_t& v) const noexcept;
 	
+	bool equal(const ushort_t& v) const noexcept;
+	bool not_equal(const ushort_t& v) const noexcept;
 	int_t compare(const ushort_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -118,7 +126,10 @@ __primitive int_t {
 	int_t divide(const int_t& v) const noexcept;
 	int_t modulo(const int_t& v) const noexcept;
 	
+	bool equal(const int_t& v) const noexcept;
+	bool not_equal(const int_t& v) const noexcept;
 	int_t compare(const int_t& v) const noexcept;
+	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -142,6 +153,8 @@ __primitive uint_t {
 	uint_t divide(const uint_t& v) const noexcept;
 	uint_t modulo(const uint_t& v) const noexcept;
 	
+	bool equal(const uint_t& v) const noexcept;
+	bool not_equal(const uint_t& v) const noexcept;
 	int_t compare(const uint_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -168,6 +181,8 @@ __primitive long_t {
 	long_t divide(const long_t& v) const noexcept;
 	long_t modulo(const long_t& v) const noexcept;
 	
+	bool equal(const long_t& v) const noexcept;
+	bool not_equal(const long_t& v) const noexcept;
 	int_t compare(const long_t& v) const noexcept;
 }
 
@@ -187,6 +202,8 @@ __primitive ulong_t {
 	ulong_t divide(const ulong_t& v) const noexcept;
 	ulong_t modulo(const ulong_t& v) const noexcept;
 	
+	bool equal(const ulong_t& v) const noexcept;
+	bool not_equal(const ulong_t& v) const noexcept;
 	int_t compare(const ulong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -215,6 +232,8 @@ __primitive longlong_t {
 	longlong_t divide(const longlong_t& v) const noexcept;
 	longlong_t modulo(const longlong_t& v) const noexcept;
 	
+	bool equal(const longlong_t& v) const noexcept;
+	bool not_equal(const longlong_t& v) const noexcept;
 	int_t compare(const longlong_t& v) const noexcept;
 }
 
@@ -236,6 +255,8 @@ __primitive ulonglong_t {
 	ulonglong_t divide(const ulonglong_t& v) const noexcept;
 	ulonglong_t modulo(const ulonglong_t& v) const noexcept;
 	
+	bool equal(const ulonglong_t& v) const noexcept;
+	bool not_equal(const ulonglong_t& v) const noexcept;
 	int_t compare(const ulonglong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -260,7 +281,10 @@ __primitive ssize_t {
 	ssize_t divide(const ssize_t& v) const noexcept;
 	ssize_t modulo(const ssize_t& v) const noexcept;
 	
+	bool equal(const ssize_t& v) const noexcept;
+	bool not_equal(const ssize_t& v) const noexcept;
 	int_t compare(const ssize_t& v) const noexcept;
+	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -286,6 +310,8 @@ __primitive size_t {
 	size_t divide(const size_t& v) const noexcept;
 	size_t modulo(const size_t& v) const noexcept;
 	
+	bool equal(const size_t& v) const noexcept;
+	bool not_equal(const size_t& v) const noexcept;
 	int_t compare(const size_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
@@ -311,7 +337,10 @@ __primitive int8_t {
 	int8_t divide(const int8_t& v) const noexcept;
 	int8_t modulo(const int8_t& v) const noexcept;
 	
+	bool equal(const int8_t& v) const noexcept;
+	bool not_equal(const int8_t& v) const noexcept;
 	int_t compare(const int8_t& v) const noexcept;
+	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -326,7 +355,10 @@ __primitive uint8_t {
 	uint8_t divide(const uint8_t& v) const noexcept;
 	uint8_t modulo(const uint8_t& v) const noexcept;
 	
+	bool equal(const uint8_t& v) const noexcept;
+	bool not_equal(const uint8_t& v) const noexcept;
 	int_t compare(const uint8_t& v) const noexcept;
+	
 	bool isZero() const noexcept;
 }
 
@@ -346,7 +378,10 @@ __primitive int16_t {
 	int16_t divide(const int16_t& v) const noexcept;
 	int16_t modulo(const int16_t& v) const noexcept;
 	
+	bool equal(const int16_t& v) const noexcept;
+	bool not_equal(const int16_t& v) const noexcept;
 	int_t compare(const int16_t& v) const noexcept;
+	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -363,6 +398,8 @@ __primitive uint16_t {
 	uint16_t divide(const uint16_t& v) const noexcept;
 	uint16_t modulo(const uint16_t& v) const noexcept;
 	
+	bool equal(const uint16_t& v) const noexcept;
+	bool not_equal(const uint16_t& v) const noexcept;
 	int_t compare(const uint16_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
@@ -384,6 +421,8 @@ __primitive int32_t {
 	int32_t divide(const int32_t& v) const noexcept;
 	int32_t modulo(const int32_t& v) const noexcept;
 	
+	bool equal(const int32_t& v) const noexcept;
+	bool not_equal(const int32_t& v) const noexcept;
 	int_t compare(const int32_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -402,6 +441,8 @@ __primitive uint32_t {
 	uint32_t divide(const uint32_t& v) const noexcept;
 	uint32_t modulo(const uint32_t& v) const noexcept;
 	
+	bool equal(const uint32_t& v) const noexcept;
+	bool not_equal(const uint32_t& v) const noexcept;
 	int_t compare(const uint32_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
@@ -424,6 +465,8 @@ __primitive int64_t {
 	int64_t divide(const int64_t& v) const noexcept;
 	int64_t modulo(const int64_t& v) const noexcept;
 	
+	bool equal(const int64_t& v) const noexcept;
+	bool not_equal(const int64_t& v) const noexcept;
 	int_t compare(const int64_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -443,6 +486,8 @@ __primitive uint64_t {
 	uint64_t divide(const uint64_t& v) const noexcept;
 	uint64_t modulo(const uint64_t& v) const noexcept;
 	
+	bool equal(const uint64_t& v) const noexcept;
+	bool not_equal(const uint64_t& v) const noexcept;
 	int_t compare(const uint64_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
@@ -519,6 +564,8 @@ __primitive __ptr {
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> index(size_t index) const noexcept;
 	
+	bool equal(const __ptr<T>& value) const noexcept;
+	bool not_equal(const __ptr<T>& value) const noexcept;
 	int compare(const __ptr<T>& value) const noexcept;
 }
 

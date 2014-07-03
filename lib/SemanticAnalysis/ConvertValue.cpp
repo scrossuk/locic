@@ -373,6 +373,26 @@ namespace locic {
 				case AST::Value::SIZEOF: {
 					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t")->selfType());
 				}
+				case AST::Value::BINARYOP: {
+					const auto binaryOp = astValueNode->binaryOp.kind;
+					const auto leftOperand = ConvertValue(context, astValueNode->binaryOp.leftOperand);
+					const auto rightOperand = ConvertValue(context, astValueNode->binaryOp.rightOperand);
+					
+					const auto objectValue = tryDissolveValue(context, leftOperand, location);
+					
+					switch (binaryOp) {
+						case AST::OP_ISEQUAL: {
+							const auto method = MakeMemberAccess(context, objectValue, "equal", location);
+							return CallValue(context, method, { rightOperand }, location);
+						}
+						case AST::OP_NOTEQUAL: {
+							const auto method = MakeMemberAccess(context, objectValue, "not_equal", location);
+							return CallValue(context, method, { rightOperand }, location);
+						}
+						default:
+							throw std::runtime_error("Unknown binary op kind.");
+					}
+				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					

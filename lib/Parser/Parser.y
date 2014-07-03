@@ -1522,12 +1522,11 @@ precision3:
 	}
 	| precision4 ISEQUAL precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_ISEQUAL, GETSYM($1), GETSYM($3))));
 	}
 	| precision4 NOTEQUAL precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
-			locic::AST::makeNode(LOC(&@$), UnaryOp("isZero", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_NOTEQUAL, GETSYM($1), GETSYM($3))));
 	}
 	| precision4 LTRIBRACKET precision4
 	{
