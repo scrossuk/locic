@@ -25,8 +25,6 @@ namespace locic {
 		
 		llvm::BasicBlock* genLandingPad(Function& function, UnwindState unwindState);
 		
-		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue);
-		
 		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance);
 		
 		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* throwTypeInstance);

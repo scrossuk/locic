@@ -19,6 +19,8 @@ namespace locic {
 		
 		bool anyUnwindCleanupActions(Function& function, UnwindState unwindState);
 		
+		bool anyUnwindRethrowActions(Function& function);
+		
 		bool anyUnwindActions(Function& function, UnwindState unwindState);
 		
 		void performScopeExitAction(Function& function, size_t position, UnwindState unwindState);

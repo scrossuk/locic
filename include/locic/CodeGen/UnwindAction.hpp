@@ -20,6 +20,17 @@ namespace locic {
 			SCOPEEXIT_FAILURE
 		};
 		
+		struct BasicBlockRange {
+			llvm::BasicBlock* start, *end;
+			
+			inline BasicBlockRange()
+				: start(nullptr),
+				end(nullptr) { }
+			
+			inline BasicBlockRange(llvm::BasicBlock* pStart, llvm::BasicBlock* pEnd)
+				: start(pStart), end(pEnd) { }
+		};
+		
 		class UnwindAction {
 			public:
 				static UnwindAction Destructor(SEM::Type* type, llvm::Value* value);
@@ -34,6 +45,8 @@ namespace locic {
 				
 				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
 				
+				static UnwindAction RethrowScope();
+				
 				static UnwindAction DestroyException(llvm::Value* exceptionValue);
 				
 				enum Kind {
@@ -43,6 +56,7 @@ namespace locic {
 					FUNCTIONMARKER,
 					CONTROLFLOW,
 					SCOPEEXIT,
+					RETHROWSCOPE,
 					DESTROYEXCEPTION
 				};
 				
@@ -59,6 +73,8 @@ namespace locic {
 				bool isControlFlow() const;
 				
 				bool isScopeExit() const;
+				
+				bool isRethrowScope() const;
 				
 				bool isDestroyException() const;
 				
@@ -86,9 +102,9 @@ namespace locic {
 				
 				bool isActiveForState(UnwindState unwindState) const;
 				
-				llvm::BasicBlock* actionBlock(UnwindState state);
+				BasicBlockRange actionBlock(UnwindState state);
 				
-				void setActionBlock(UnwindState state, llvm::BasicBlock* actionBB);
+				void setActionBlock(UnwindState state, BasicBlockRange actionBB);
 				
 				bool hasSuccessor(llvm::BasicBlock* successorBB) const;
 				
@@ -102,7 +118,7 @@ namespace locic {
 				inline UnwindAction(Kind pKind)
 					: kind_(pKind),
 					landingPadBB_(nullptr) {
-						actionBB_.fill(nullptr);
+						actionBB_.fill(BasicBlockRange());
 						successorBB_.fill(nullptr);
 					}
 					
@@ -110,7 +126,7 @@ namespace locic {
 				
 				llvm::BasicBlock* landingPadBB_;
 				
-				std::array<llvm::BasicBlock*, UnwindState_MAX> actionBB_;
+				std::array<BasicBlockRange, UnwindState_MAX> actionBB_;
 				std::array<llvm::BasicBlock*, UnwindState_MAX> successorBB_;
 				
 				union Actions {

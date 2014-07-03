@@ -44,6 +44,10 @@ namespace locic {
 			return action;
 		}
 		
+		UnwindAction UnwindAction::RethrowScope() {
+			return UnwindAction(UnwindAction::RETHROWSCOPE);
+		}
+		
 		UnwindAction UnwindAction::DestroyException(llvm::Value* exceptionValue) {
 			UnwindAction action(UnwindAction::DESTROYEXCEPTION);
 			action.actions_.destroyExceptionAction.exceptionValue = exceptionValue;
@@ -76,6 +80,10 @@ namespace locic {
 		
 		bool UnwindAction::isScopeExit() const {
 			return kind() == UnwindAction::SCOPEEXIT;
+		}
+		
+		bool UnwindAction::isRethrowScope() const {
+			return kind() == UnwindAction::RETHROWSCOPE;
 		}
 		
 		bool UnwindAction::isDestroyException() const {
@@ -138,6 +146,7 @@ namespace locic {
 				case SCOPEMARKER:
 				case CONTROLFLOW:
 				case FUNCTIONMARKER:
+				case RETHROWSCOPE:
 					return true;
 				case DESTRUCTOR:
 				case SCOPEEXIT:
@@ -155,7 +164,7 @@ namespace locic {
 					return true;
 				}
 				case CATCH: {
-					return unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow;
+					return unwindState == UnwindStateThrow;
 				}
 				case SCOPEMARKER: {
 					return unwindState == UnwindStateNormal;
@@ -173,19 +182,22 @@ namespace locic {
 					const bool supportsNormalState = (scopeExitState() != SCOPEEXIT_FAILURE);
 					return (isExceptionState && supportsExceptionState) || (!isExceptionState && supportsNormalState);
 				}
-				case DESTROYEXCEPTION: {
+				case RETHROWSCOPE: {
 					return unwindState == UnwindStateRethrow;
+				}
+				case DESTROYEXCEPTION: {
+					return unwindState == UnwindStateThrow;
 				}
 				default:
 					llvm_unreachable("Unknown unwind action kind.");
 			}
 		}
 		
-		llvm::BasicBlock* UnwindAction::actionBlock(UnwindState state) {
+		BasicBlockRange UnwindAction::actionBlock(UnwindState state) {
 			return actionBB_[state];
 		}
 		
-		void UnwindAction::setActionBlock(UnwindState state, llvm::BasicBlock* actionBB) {
+		void UnwindAction::setActionBlock(UnwindState state, BasicBlockRange actionBB) {
 			switch (kind()) {
 				case DESTRUCTOR: {
 					if (state == UnwindStateThrow || state == UnwindStateRethrow) {
@@ -238,6 +250,11 @@ namespace locic {
 						actionBB_[UnwindStateBreak] = actionBB;
 						actionBB_[UnwindStateContinue] = actionBB;
 					}
+					break;
+				}
+				case RETHROWSCOPE: {
+					assert(state == UnwindStateRethrow);
+					actionBB_[UnwindStateRethrow] = actionBB;
 					break;
 				}
 				case DESTROYEXCEPTION: {

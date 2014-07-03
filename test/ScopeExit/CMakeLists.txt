@@ -3,5 +3,9 @@
 test_check_output(NestedScopeExit)
 test_check_output(ScopeException)
 test_check_output(ScopeExit)
+test_check_output(ScopeExitDuringBreak)
+test_check_output(ScopeExitInternalLoop)
+test_check_output(ScopeExitInternalLoopBreak)
+test_check_output(ScopeExitInternalLoopContinue)
 test_check_output(ScopeSuccessThrow)
 

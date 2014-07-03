@@ -219,10 +219,6 @@ namespace locic {
 			return landingPadBB;
 		}
 		
-		void scheduleExceptionDestroy(Function& function, llvm::Value* exceptionPtrValue) {
-			function.pushUnwindAction(UnwindAction::DestroyException(exceptionPtrValue));
-		}
-		
 		llvm::Constant* getTypeNameGlobal(Module& module, const std::string& typeName) {
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);

@@ -391,9 +391,15 @@ namespace locic {
 							{
 								ScopeLifetime catchScopeLifetime(function);
 								
+								// Turn 'rethrow' state into 'throw' state when
+								// unwinding out of this scope.
+								function.pushUnwindAction(UnwindAction::RethrowScope());
+								
 								// Make sure the exception object is freed at the end
-								// of the catch block (unless it is rethrown).
-								scheduleExceptionDestroy(function, exceptionPtrValue);
+								// of the catch block (unless it is rethrown, in which
+								// case this action won't be run and the action above
+								// will turn the state to 'throw').
+								function.pushUnwindAction(UnwindAction::DestroyException(exceptionPtrValue));
 								
 								genScope(function, catchClause->scope());
 							}
@@ -490,7 +496,7 @@ namespace locic {
 					llvm::Value* const args[] = { exceptionValue };
 					
 					// Only generate landing pad where necessary.
-					if (anyUnwindActions(function, UnwindStateRethrow)) {
+					if (anyUnwindRethrowActions(function)) {
 						// Create throw and nothrow paths.
 						const auto noThrowPath = function.createBasicBlock("");
 						const auto throwPath = genLandingPad(function, UnwindStateRethrow);
