@@ -1530,21 +1530,19 @@ precision3:
 	}
 	| precision4 LTRIBRACKET precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isLessThan", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision4 RTRIBRACKET precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isGreaterThan", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision4 LESSOREQUAL precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
-			locic::AST::makeNode(LOC(&@$), UnaryOp("isPositive", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isLessThanOrEqual", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	| precision4 GREATEROREQUAL precision4
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", 
-			locic::AST::makeNode(LOC(&@$), UnaryOp("isNegative", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("isGreaterThanOrEqual", locic::AST::makeNode(LOC(&@$), BinaryOp("compare", GETSYM($1), GETSYM($3))))));
 	}
 	;
 

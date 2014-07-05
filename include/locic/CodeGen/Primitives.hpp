@@ -17,6 +17,7 @@ namespace locic {
 			PrimitiveNull,
 			PrimitiveBool,
 			PrimitiveUnichar,
+			PrimitiveCompareResult,
 			
 			PrimitiveInt8,
 			PrimitiveUInt8,

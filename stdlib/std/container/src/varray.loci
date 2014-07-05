@@ -6,7 +6,7 @@ namespace std {
 	interface counter_type {
 		T implicitCopy() const;
 		
-		int compare(const T& value) const;
+		compare_result_t compare(const T& value) const;
 		
 		T add(const T& value) const;
 	}

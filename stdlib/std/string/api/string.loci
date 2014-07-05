@@ -21,7 +21,7 @@ import std.string 0.1.0 {
 			
 			const byte* const c_str() const noexcept;
 			
-			int compare(string other) const noexcept;
+			compare_result_t compare(const string& other) const noexcept;
 		}
 		
 	}

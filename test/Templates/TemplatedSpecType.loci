@@ -5,7 +5,7 @@ template <typename T>
 interface Comparable {
 	T implicitCopy() const;
 	
-	int compare(const T& other) const;
+	compare_result_t compare(const T& other) const;
 }
 
 template <typename T: Comparable<T>>
@@ -32,7 +32,7 @@ class CustomType(int value) {
 		return @value;
 	}
 	
-	int compare(const CustomType& other) const {
+	compare_result_t compare(const CustomType& other) const {
 		testPrint(C"CustomType.compare: %d vs %d", @value, other.value());
 		return @value.compare(other.value());
 	}

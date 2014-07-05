@@ -55,12 +55,59 @@ namespace locic {
 			return getBasicPrimitiveType(module, kind, name);
 		}
 		
+		llvm_abi::IntegerKind primitiveABIIntegerKind(PrimitiveKind kind) {
+			switch (kind) {
+				case PrimitiveCompareResult:
+					// Compare results represented with 8 bits.
+					return llvm_abi::Int8;
+				case PrimitiveBool:
+					return llvm_abi::Bool;
+				case PrimitiveInt8:
+				case PrimitiveUInt8:
+					return llvm_abi::Int8;
+				case PrimitiveInt16:
+				case PrimitiveUInt16:
+					return llvm_abi::Int16;
+				case PrimitiveInt32:
+				case PrimitiveUInt32:
+					return llvm_abi::Int32;
+				case PrimitiveInt64:
+				case PrimitiveUInt64:
+					return llvm_abi::Int64;
+				case PrimitiveByte:
+				case PrimitiveUByte:
+					return llvm_abi::Char;
+				case PrimitiveShort:
+				case PrimitiveUShort:
+					return llvm_abi::Short;
+				case PrimitiveInt:
+				case PrimitiveUInt:
+					return llvm_abi::Int;
+				case PrimitiveLong:
+				case PrimitiveULong:
+					return llvm_abi::Long;
+				case PrimitiveLongLong:
+				case PrimitiveULongLong:
+					return llvm_abi::LongLong;
+				case PrimitiveSize:
+				case PrimitiveSSize:
+					return llvm_abi::SizeT;
+				case PrimitiveUnichar:
+					// Unicode characters represented with 32 bits.
+					return llvm_abi::Int32;
+				default:
+					llvm_unreachable("Primitive type is not an integer.");
+			}
+		}
+		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name) {
 			switch (kind) {
 				case PrimitiveVoid:
 					return TypeGenerator(module).getVoidType();
 				case PrimitiveNull:
 					return TypeGenerator(module).getI8PtrType();
+				case PrimitiveCompareResult:
+					return TypeGenerator(module).getI8Type();
 				case PrimitiveBool:
 					return TypeGenerator(module).getI1Type();
 				case PrimitiveInt8:
@@ -83,10 +130,10 @@ namespace locic {
 				case PrimitiveULongLong:
 				case PrimitiveSize:
 				case PrimitiveSSize:
-					return TypeGenerator(module).getIntType(module.getTargetInfo().getPrimitiveSize(name));
-				case PrimitiveUnichar:
-					// Unicode characters represented with 32 bits.
-					return TypeGenerator(module).getIntType(32);
+				case PrimitiveUnichar: {
+					const auto intAbiType = llvm_abi::Type::Integer(module.abiContext(), primitiveABIIntegerKind(kind));
+					return TypeGenerator(module).getIntType(module.abi().typeSize(intAbiType) * 8);
+				}
 				case PrimitiveFloat:
 					return TypeGenerator(module).getFloatType();
 				case PrimitiveDouble:
@@ -133,41 +180,30 @@ namespace locic {
 					return llvm_abi::Type::Struct(abiContext, {});
 				case PrimitiveNull:
 					return llvm_abi::Type::Pointer(abiContext);
+				case PrimitiveCompareResult:
 				case PrimitiveBool:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Bool);
 				case PrimitiveInt8:
 				case PrimitiveUInt8:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int8);
 				case PrimitiveInt16:
 				case PrimitiveUInt16:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int16);
 				case PrimitiveInt32:
 				case PrimitiveUInt32:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
 				case PrimitiveInt64:
 				case PrimitiveUInt64:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int64);
 				case PrimitiveByte:
 				case PrimitiveUByte:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Char);
 				case PrimitiveShort:
 				case PrimitiveUShort:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Short);
 				case PrimitiveInt:
 				case PrimitiveUInt:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
 				case PrimitiveLong:
 				case PrimitiveULong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Long);
 				case PrimitiveLongLong:
 				case PrimitiveULongLong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::LongLong);
 				case PrimitiveSize:
 				case PrimitiveSSize:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT);
 				case PrimitiveUnichar:
-					// Unicode characters represented with 32 bits.
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
+					return llvm_abi::Type::Integer(abiContext, primitiveABIIntegerKind(kind));
 				case PrimitiveFloat:
 					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Float);
 				case PrimitiveDouble:

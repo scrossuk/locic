@@ -71,7 +71,7 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
-			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
+			const auto intType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
 			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, intType, { argType });
 			const auto operandVar = SEM::Var::Basic(argType, argType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, { operandVar }, typeInstance->moduleScope());
@@ -199,7 +199,7 @@ namespace locic {
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
-			const auto intType = getBuiltInType(context.scopeStack(), "int_t")->selfType();
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
 			
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = createLocalVarRef(context, operandVar);
@@ -224,9 +224,9 @@ namespace locic {
 						const auto subCaseVarValue = createLocalVarRef(context, subCaseVar);
 						
 						const auto subCaseScope = new SEM::Scope();
-						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), intType);
+						const auto minusOneConstant = SEM::Value::Constant(Constant::Integer(-1), compareResultType);
+						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), compareResultType);
 						if (i < j) {
-							const auto minusOneConstant = CallValue(context, GetMethod(context, plusOneConstant, "minus", location), {}, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(minusOneConstant));
 						} else if (i > j) {
 							subCaseScope->statements().push_back(SEM::Statement::Return(plusOneConstant));
@@ -252,20 +252,22 @@ namespace locic {
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
 					const auto operandMember = createMemberVarRef(context, operandValue, memberVar);
+					
+					// TODO: use common code with ConvertValue() for this.
 					const auto compareResult = CallValue(context, GetMethod(context, selfMember, "compare", location), { operandMember }, location);
-					const auto isZero = CallValue(context, GetMethod(context, compareResult, "iszero", location), {}, location);
+					const auto isEqual = CallValue(context, GetMethod(context, compareResult, "isEqual", location), {}, location);
 					
 					const auto ifTrueScope = new SEM::Scope();
 					const auto ifFalseScope = new SEM::Scope();
 					
-					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(isZero, ifTrueScope) }, ifFalseScope);
+					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(isEqual, ifTrueScope) }, ifFalseScope);
 					ifFalseScope->statements().push_back(SEM::Statement::Return(compareResult));
 					currentScope->statements().push_back(ifStatement);
 					
 					currentScope = ifTrueScope;
 				}
 				
-				const auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), intType);
+				const auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), compareResultType);
 				currentScope->statements().push_back(SEM::Statement::Return(zeroConstant));
 			}
 			

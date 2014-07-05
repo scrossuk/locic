@@ -193,7 +193,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 
 exception InvalidPlayerError(std::string name);
 
-CR::Player& getPlayer(std::string playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
+CR::Player& getPlayer(const std::string& playerString, CR::AIPlayer& aiPlayer, CR::HumanPlayer& humanPlayer) {
 	if (playerString == "ai") {
 		return aiPlayer;
 	} else if (playerString == "human") {

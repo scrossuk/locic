@@ -2,6 +2,21 @@ __primitive void_t { }
 
 __primitive null_t { }
 
+__primitive compare_result_t {
+	static compare_result_t equal();
+	static compare_result_t less_than();
+	static compare_result_t greater_than();
+	
+	compare_result_t implicitCopy() const noexcept;
+	
+	bool isEqual() const noexcept;
+	bool isNotEqual() const noexcept;
+	bool isLessThan() const noexcept;
+	bool isLessThanOrEqual() const noexcept;
+	bool isGreaterThan() const noexcept;
+	bool isGreaterThanOrEqual() const noexcept;
+}
+
 __primitive bool {
 	bool implicitCopy() const noexcept;
 	
@@ -18,7 +33,7 @@ __primitive unichar {
 	
 	unichar implicitCopy() const noexcept;
 	
-	int_t compare(const unichar& v) const noexcept;
+	compare_result_t compare(const unichar& v) const noexcept;
 }
 
 __primitive byte_t {
@@ -39,7 +54,7 @@ __primitive byte_t {
 	
 	bool equal(const byte_t& v) const noexcept;
 	bool not_equal(const byte_t& v) const noexcept;
-	int_t compare(const byte_t& v) const noexcept;
+	compare_result_t compare(const byte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -57,7 +72,7 @@ __primitive ubyte_t {
 	
 	bool equal(const ubyte_t& v) const noexcept;
 	bool not_equal(const ubyte_t& v) const noexcept;
-	int_t compare(const ubyte_t& v) const noexcept;
+	compare_result_t compare(const ubyte_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -82,7 +97,7 @@ __primitive short_t {
 	
 	bool equal(const short_t& v) const noexcept;
 	bool not_equal(const short_t& v) const noexcept;
-	int_t compare(const short_t& v) const noexcept;
+	compare_result_t compare(const short_t& v) const noexcept;
 }
 
 __primitive ushort_t {
@@ -100,7 +115,7 @@ __primitive ushort_t {
 	
 	bool equal(const ushort_t& v) const noexcept;
 	bool not_equal(const ushort_t& v) const noexcept;
-	int_t compare(const ushort_t& v) const noexcept;
+	compare_result_t compare(const ushort_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -128,7 +143,7 @@ __primitive int_t {
 	
 	bool equal(const int_t& v) const noexcept;
 	bool not_equal(const int_t& v) const noexcept;
-	int_t compare(const int_t& v) const noexcept;
+	compare_result_t compare(const int_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -155,7 +170,7 @@ __primitive uint_t {
 	
 	bool equal(const uint_t& v) const noexcept;
 	bool not_equal(const uint_t& v) const noexcept;
-	int_t compare(const uint_t& v) const noexcept;
+	compare_result_t compare(const uint_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -183,7 +198,7 @@ __primitive long_t {
 	
 	bool equal(const long_t& v) const noexcept;
 	bool not_equal(const long_t& v) const noexcept;
-	int_t compare(const long_t& v) const noexcept;
+	compare_result_t compare(const long_t& v) const noexcept;
 }
 
 __primitive ulong_t {
@@ -204,7 +219,7 @@ __primitive ulong_t {
 	
 	bool equal(const ulong_t& v) const noexcept;
 	bool not_equal(const ulong_t& v) const noexcept;
-	int_t compare(const ulong_t& v) const noexcept;
+	compare_result_t compare(const ulong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -234,7 +249,7 @@ __primitive longlong_t {
 	
 	bool equal(const longlong_t& v) const noexcept;
 	bool not_equal(const longlong_t& v) const noexcept;
-	int_t compare(const longlong_t& v) const noexcept;
+	compare_result_t compare(const longlong_t& v) const noexcept;
 }
 
 __primitive ulonglong_t {
@@ -257,7 +272,7 @@ __primitive ulonglong_t {
 	
 	bool equal(const ulonglong_t& v) const noexcept;
 	bool not_equal(const ulonglong_t& v) const noexcept;
-	int_t compare(const ulonglong_t& v) const noexcept;
+	compare_result_t compare(const ulonglong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -283,7 +298,7 @@ __primitive ssize_t {
 	
 	bool equal(const ssize_t& v) const noexcept;
 	bool not_equal(const ssize_t& v) const noexcept;
-	int_t compare(const ssize_t& v) const noexcept;
+	compare_result_t compare(const ssize_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -312,7 +327,7 @@ __primitive size_t {
 	
 	bool equal(const size_t& v) const noexcept;
 	bool not_equal(const size_t& v) const noexcept;
-	int_t compare(const size_t& v) const noexcept;
+	compare_result_t compare(const size_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	
@@ -339,7 +354,7 @@ __primitive int8_t {
 	
 	bool equal(const int8_t& v) const noexcept;
 	bool not_equal(const int8_t& v) const noexcept;
-	int_t compare(const int8_t& v) const noexcept;
+	compare_result_t compare(const int8_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -357,7 +372,7 @@ __primitive uint8_t {
 	
 	bool equal(const uint8_t& v) const noexcept;
 	bool not_equal(const uint8_t& v) const noexcept;
-	int_t compare(const uint8_t& v) const noexcept;
+	compare_result_t compare(const uint8_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 }
@@ -380,7 +395,7 @@ __primitive int16_t {
 	
 	bool equal(const int16_t& v) const noexcept;
 	bool not_equal(const int16_t& v) const noexcept;
-	int_t compare(const int16_t& v) const noexcept;
+	compare_result_t compare(const int16_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
@@ -400,7 +415,7 @@ __primitive uint16_t {
 	
 	bool equal(const uint16_t& v) const noexcept;
 	bool not_equal(const uint16_t& v) const noexcept;
-	int_t compare(const uint16_t& v) const noexcept;
+	compare_result_t compare(const uint16_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -423,7 +438,7 @@ __primitive int32_t {
 	
 	bool equal(const int32_t& v) const noexcept;
 	bool not_equal(const int32_t& v) const noexcept;
-	int_t compare(const int32_t& v) const noexcept;
+	compare_result_t compare(const int32_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -443,7 +458,7 @@ __primitive uint32_t {
 	
 	bool equal(const uint32_t& v) const noexcept;
 	bool not_equal(const uint32_t& v) const noexcept;
-	int_t compare(const uint32_t& v) const noexcept;
+	compare_result_t compare(const uint32_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -467,7 +482,7 @@ __primitive int64_t {
 	
 	bool equal(const int64_t& v) const noexcept;
 	bool not_equal(const int64_t& v) const noexcept;
-	int_t compare(const int64_t& v) const noexcept;
+	compare_result_t compare(const int64_t& v) const noexcept;
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
@@ -488,7 +503,7 @@ __primitive uint64_t {
 	
 	bool equal(const uint64_t& v) const noexcept;
 	bool not_equal(const uint64_t& v) const noexcept;
-	int_t compare(const uint64_t& v) const noexcept;
+	compare_result_t compare(const uint64_t& v) const noexcept;
 	bool isZero() const noexcept;
 }
 
@@ -508,7 +523,7 @@ __primitive float_t {
 	
 	size_t toSizeT() const noexcept;
 	
-	int_t compare(const float_t& v) const noexcept;
+	compare_result_t compare(const float_t& v) const noexcept;
 }
 
 __primitive double_t {
@@ -529,7 +544,7 @@ __primitive double_t {
 	double_t divide(const double_t& v) const noexcept;
 	double_t modulo(const double_t& v) const noexcept;
 	
-	int_t compare(const double_t& v) const noexcept;
+	compare_result_t compare(const double_t& v) const noexcept;
 }
 
 __primitive longdouble_t {
@@ -549,7 +564,7 @@ __primitive longdouble_t {
 	longdouble_t divide(const longdouble_t& v) const noexcept;
 	longdouble_t modulo(const longdouble_t& v) const noexcept;
 	
-	int_t compare(const longdouble_t& v) const noexcept;
+	compare_result_t compare(const longdouble_t& v) const noexcept;
 }
 
 template <typename T>

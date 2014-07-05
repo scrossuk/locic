@@ -127,7 +127,7 @@ interface count_type {
 	
 	T add(const T& value) const;
 	
-	int compare(const T& other) const;
+	compare_result_t compare(const T& other) const;
 }
 
 template <typename T: count_type<T>>

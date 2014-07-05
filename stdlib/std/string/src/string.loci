@@ -57,30 +57,30 @@ export std.string 0.1.0 {
 				return @ptr;
 			}
 			
-			int compare(string other) const noexcept {
+			compare_result_t compare(const string& other) const noexcept {
 				final size_t minLength = @length < other.length() ? @length : other.length();
 				final size_t maxLength = @length > other.length() ? @length : other.length();
 				
 				size_t i = 0u;
 				while (i < maxLength) {
 					if (i >= minLength) {
-						return @length < other.length() ? -1 : 1;
+						return @length.compare(other.length());
 					}
 					
 					final byte a = @ptr[i];
 					final byte b = other.c_str()[i];
 					if (a != b) {
 						if (a < b) {
-							return -1;
+							return compare_result_t::less_than();
 						} else {
-							return 1;
+							return compare_result_t::greater_than();
 						}
 					}
 					
 					i += 1u;
 				}
 				
-				return 0;
+				return compare_result_t::equal();
 			}
 		}
 		

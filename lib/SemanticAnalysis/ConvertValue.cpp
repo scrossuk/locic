@@ -48,6 +48,48 @@ namespace locic {
 			}
 		}
 		
+		std::string binaryOpToString(AST::BinaryOpKind kind) {
+			switch (kind) {
+				case AST::OP_ISEQUAL:
+					return "==";
+				case AST::OP_NOTEQUAL:
+					return "!=";
+				default:
+					throw std::runtime_error("Unknown binary op.");
+			}
+		}
+		
+		std::string binaryOpName(AST::BinaryOpKind kind) {
+			switch (kind) {
+				case AST::OP_ISEQUAL:
+					return "equal";
+				case AST::OP_NOTEQUAL:
+					return "not_equal";
+				default:
+					throw std::runtime_error("Unknown binary op.");
+			}
+		}
+		
+		SEM::Value* GetBinaryOp(Context& context, SEM::Value* value, AST::BinaryOpKind opKind, const Debug::SourceLocation& location) {
+			const auto derefType = getDerefType(value->type());
+			
+			if (!derefType->isObjectOrTemplateVar()) {
+				throw ErrorException(makeString("Can't perform binary operator '%s' for non-object type '%s' at position %s.",
+					binaryOpToString(opKind).c_str(), derefType->toString().c_str(), location.toString().c_str()));
+			}
+			
+			const auto typeInstance = derefType->getObjectOrSpecType();
+			
+			const auto methodName = binaryOpName(opKind);
+			
+			// Look for the 
+			if (typeInstance->functions().find(CanonicalizeMethodName(methodName)) != typeInstance->functions().end()) {
+				return GetMethod(context, value, methodName, location);
+			} else {
+				return nullptr;
+			}
+		}
+		
 		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
 			const auto derefType = getDerefType(value->type());
 			
@@ -382,12 +424,28 @@ namespace locic {
 					
 					switch (binaryOp) {
 						case AST::OP_ISEQUAL: {
-							const auto method = MakeMemberAccess(context, objectValue, "equal", location);
-							return CallValue(context, method, { rightOperand }, location);
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isEqualMethod = GetMethod(context, compareResult, "isEqual", location);
+								return CallValue(context, isEqualMethod, {}, location);
+							}
 						}
 						case AST::OP_NOTEQUAL: {
-							const auto method = MakeMemberAccess(context, objectValue, "not_equal", location);
-							return CallValue(context, method, { rightOperand }, location);
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isNotEqualMethod = GetMethod(context, compareResult, "isNotEqual", location);
+								return CallValue(context, isNotEqualMethod, {}, location);
+							}
 						}
 						default:
 							throw std::runtime_error("Unknown binary op kind.");

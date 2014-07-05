@@ -156,6 +156,48 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			const auto methodName = semFunction->name().last();
+			
+			const auto lessThanValue = ConstantGenerator(module).getI8(-1);
+			const auto equalValue = ConstantGenerator(module).getI8(0);
+			const auto greaterThanValue = ConstantGenerator(module).getI8(1);
+			
+			if (methodName == "less_than") {
+				assert(args.empty());
+				return lessThanValue;
+			} else if (methodName == "equal") {
+				assert(args.empty());
+				return  equalValue;
+			} else if (methodName == "greater_than") {
+				assert(args.empty());
+				return greaterThanValue;
+			}
+			
+			const auto methodOwner = loadArg(function, args[0], type);
+			
+			if (methodName == "implicitCopy") {
+				return methodOwner;
+			} else if (methodName == "isEqual") {
+				return builder.CreateICmpEQ(methodOwner, equalValue);
+			} else if (methodName == "isNotEqual") {
+				return builder.CreateICmpNE(methodOwner, equalValue);
+			} else if (methodName == "isLessThan") {
+				return builder.CreateICmpEQ(methodOwner, lessThanValue);
+			} else if (methodName == "isLessThanOrEqual") {
+				return builder.CreateICmpNE(methodOwner, greaterThanValue);
+			} else if (methodName == "isGreaterThan") {
+				return builder.CreateICmpEQ(methodOwner, greaterThanValue);
+			} else if (methodName == "isGreaterThanOrEqual") {
+				return builder.CreateICmpNE(methodOwner, lessThanValue);
+			} else {
+				llvm_unreachable("Unknown compare_result_t method.");
+			}
+		}
+		
 		llvm::Value* genBoolPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -184,9 +226,9 @@ namespace locic {
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
+					const auto zeroResult = ConstantGenerator(module).getI8(0);
+					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
@@ -233,7 +275,7 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
-			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
+			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
@@ -309,9 +351,9 @@ namespace locic {
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpSLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
+					const auto zeroResult = ConstantGenerator(module).getI8(0);
+					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
@@ -331,7 +373,7 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
-			const size_t selfWidth = module.getTargetInfo().getPrimitiveSize(typeName);
+			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
@@ -396,9 +438,9 @@ namespace locic {
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
+					const auto zeroResult = ConstantGenerator(module).getI8(0);
+					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
@@ -471,9 +513,9 @@ namespace locic {
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateFCmpOLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateFCmpOGT(methodOwner, operand);
-					const auto minusOne = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zero = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOne = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOne = ConstantGenerator(module).getI8(-1);
+					const auto zero = ConstantGenerator(module).getI8(0);
+					const auto plusOne = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOne,
 							builder.CreateSelect(isGreaterThan, plusOne, zero));
 				} else {
@@ -508,9 +550,9 @@ namespace locic {
 				if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
+					const auto zeroResult = ConstantGenerator(module).getI8(0);
+					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
@@ -565,9 +607,9 @@ namespace locic {
 					const auto operand = loadArg(function, args[1], type);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", -1);
-					const auto zeroResult = ConstantGenerator(module).getPrimitiveInt("int_t", 0);
-					const auto plusOneResult = ConstantGenerator(module).getPrimitiveInt("int_t", 1);
+					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
+					const auto zeroResult = ConstantGenerator(module).getI8(0);
+					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
@@ -790,6 +832,8 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			
 			switch (kind) {
+				case PrimitiveCompareResult:
+					return genCompareResultPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveBool:
 					return genBoolPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveValueLval:
