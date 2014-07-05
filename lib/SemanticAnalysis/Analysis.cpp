@@ -535,12 +535,6 @@ namespace locic {
 			
 			completedTypes.insert(typeInstance);
 			
-			// Nasty hack to ensure lvals have been processed.
-			// TODO: move lval dependent code (e.g. generating
-			//       exception default constructor) out of this pass.
-			//GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "value_lval"));
-			//GenerateTypeDefaultMethods(context, completedTypes, context.lookupName(Name::Absolute() + "member_lval"));
-			
 			// Get type properties for types that this
 			// type depends on, since this is needed for
 			// default method generation.

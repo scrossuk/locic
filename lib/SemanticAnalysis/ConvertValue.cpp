@@ -54,6 +54,14 @@ namespace locic {
 					return "==";
 				case AST::OP_NOTEQUAL:
 					return "!=";
+				case AST::OP_LESSTHAN:
+					return "<";
+				case AST::OP_LESSTHANOREQUAL:
+					return "<=";
+				case AST::OP_GREATERTHAN:
+					return ">";
+				case AST::OP_GREATERTHANOREQUAL:
+					return ">=";
 				default:
 					throw std::runtime_error("Unknown binary op.");
 			}
@@ -65,6 +73,14 @@ namespace locic {
 					return "equal";
 				case AST::OP_NOTEQUAL:
 					return "not_equal";
+				case AST::OP_LESSTHAN:
+					return "less_than";
+				case AST::OP_LESSTHANOREQUAL:
+					return "less_than_or_equal";
+				case AST::OP_GREATERTHAN:
+					return "greater_than";
+				case AST::OP_GREATERTHANOREQUAL:
+					return "greater_than_or_equal";
 				default:
 					throw std::runtime_error("Unknown binary op.");
 			}
@@ -444,6 +460,54 @@ namespace locic {
 								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
 								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
 								const auto isNotEqualMethod = GetMethod(context, compareResult, "isNotEqual", location);
+								return CallValue(context, isNotEqualMethod, {}, location);
+							}
+						}
+						case AST::OP_LESSTHAN: {
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isNotEqualMethod = GetMethod(context, compareResult, "isLessThan", location);
+								return CallValue(context, isNotEqualMethod, {}, location);
+							}
+						}
+						case AST::OP_LESSTHANOREQUAL: {
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isNotEqualMethod = GetMethod(context, compareResult, "isLessThanOrEqual", location);
+								return CallValue(context, isNotEqualMethod, {}, location);
+							}
+						}
+						case AST::OP_GREATERTHAN: {
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isNotEqualMethod = GetMethod(context, compareResult, "isGreaterThan", location);
+								return CallValue(context, isNotEqualMethod, {}, location);
+							}
+						}
+						case AST::OP_GREATERTHANOREQUAL: {
+							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
+							if (opMethod != nullptr) {
+								return CallValue(context, opMethod, { rightOperand }, location);
+							} else {
+								// Fall back on 'compare' method.
+								const auto compareMethod = GetMethod(context, objectValue, "compare", location);
+								const auto compareResult = CallValue(context, compareMethod, { rightOperand }, location);
+								const auto isNotEqualMethod = GetMethod(context, compareResult, "isGreaterThanOrEqual", location);
 								return CallValue(context, isNotEqualMethod, {}, location);
 							}
 						}

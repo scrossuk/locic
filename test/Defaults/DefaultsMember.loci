@@ -27,7 +27,7 @@ class TestMemberClass1 (int value) {
 		return @(@value);
 	}
 	
-	int compare(const TestMemberClass1& other) const {
+	compare_result_t compare(const TestMemberClass1& other) const {
 		testPrint(C"TestMemberClass1.compare() : @value = %d, other.getValue() = %d",
 			@value, other.getValue());
 		return @value.compare(other.getValue());

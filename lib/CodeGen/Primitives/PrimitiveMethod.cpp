@@ -124,7 +124,11 @@ namespace locic {
 				methodName == "logicalAnd" ||
 				methodName == "logicalOr" ||
 				methodName == "equal" ||
-				methodName == "not_equal";
+				methodName == "not_equal" ||
+				methodName == "less_than" ||
+				methodName == "less_than_or_equal" ||
+				methodName == "greater_than" ||
+				methodName == "greater_than_or_equal";
 		}
 		
 		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
@@ -231,6 +235,10 @@ namespace locic {
 					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
+				} else if (methodName == "equal") {
+					return builder.CreateICmpEQ(methodOwner, operand);
+				} else if (methodName == "not_equal") {
+					return builder.CreateICmpNE(methodOwner, operand);
 				} else {
 					llvm_unreachable("Unknown bool binary op.");
 				}
@@ -348,6 +356,14 @@ namespace locic {
 					return builder.CreateICmpEQ(methodOwner, operand);
 				} else if (methodName == "not_equal") {
 					return builder.CreateICmpNE(methodOwner, operand);
+				} else if (methodName == "less_than") {
+					return builder.CreateICmpSLT(methodOwner, operand);
+				} else if (methodName == "less_than_or_equal") {
+					return builder.CreateICmpSLE(methodOwner, operand);
+				} else if (methodName == "greater_than") {
+					return builder.CreateICmpSGT(methodOwner, operand);
+				} else if (methodName == "greater_than_or_equal") {
+					return builder.CreateICmpSGE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpSLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
@@ -435,6 +451,14 @@ namespace locic {
 					return builder.CreateICmpEQ(methodOwner, operand);
 				} else if (methodName == "not_equal") {
 					return builder.CreateICmpNE(methodOwner, operand);
+				} else if (methodName == "less_than") {
+					return builder.CreateICmpULT(methodOwner, operand);
+				} else if (methodName == "less_than_or_equal") {
+					return builder.CreateICmpULE(methodOwner, operand);
+				} else if (methodName == "greater_than") {
+					return builder.CreateICmpUGT(methodOwner, operand);
+				} else if (methodName == "greater_than_or_equal") {
+					return builder.CreateICmpUGE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
@@ -510,6 +534,18 @@ namespace locic {
 					return builder.CreateFDiv(methodOwner, operand);
 				} else if (methodName == "modulo") {
 					return builder.CreateFRem(methodOwner, operand);
+				} else if (methodName == "equal") {
+					return builder.CreateFCmpOEQ(methodOwner, operand);
+				} else if (methodName == "not_equal") {
+					return builder.CreateFCmpONE(methodOwner, operand);
+				} else if (methodName == "less_than") {
+					return builder.CreateFCmpOLT(methodOwner, operand);
+				} else if (methodName == "less_than_or_equal") {
+					return builder.CreateFCmpOLE(methodOwner, operand);
+				} else if (methodName == "greater_than") {
+					return builder.CreateFCmpOGT(methodOwner, operand);
+				} else if (methodName == "greater_than_or_equal") {
+					return builder.CreateFCmpOGE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto isLessThan = builder.CreateFCmpOLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateFCmpOGT(methodOwner, operand);
@@ -603,6 +639,18 @@ namespace locic {
 				} else if (methodName == "not_equal") {
 					const auto operand = loadArg(function, args[1], type);
 					return builder.CreateICmpNE(methodOwner, operand);
+				} else if (methodName == "less_than") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpULT(methodOwner, operand);
+				} else if (methodName == "less_than_or_equal") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpULE(methodOwner, operand);
+				} else if (methodName == "greater_than") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpUGT(methodOwner, operand);
+				} else if (methodName == "greater_than_or_equal") {
+					const auto operand = loadArg(function, args[1], type);
+					return builder.CreateICmpUGE(methodOwner, operand);
 				} else if (methodName == "compare") {
 					const auto operand = loadArg(function, args[1], type);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);

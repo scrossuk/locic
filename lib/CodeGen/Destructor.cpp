@@ -38,6 +38,29 @@ namespace locic {
 				return primitiveTypeInstanceHasDestructor(module, typeInstance);
 			}
 			
+			if (typeInstance->isUnionDatatype()) {
+				for (const auto variantTypeInstance: typeInstance->variants()) {
+					if (typeInstanceHasDestructor(module, variantTypeInstance)) {
+						return true;
+					}
+				}
+				
+				return false;
+			} else {
+				const auto methodIterator = typeInstance->functions().find("__destructor");
+				if (methodIterator != typeInstance->functions().end()) {
+					return true;
+				}
+				
+				for (const auto var: typeInstance->variables()) {
+					if (typeHasDestructor(module, var->type())) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
 			return typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype();
 		}
 		

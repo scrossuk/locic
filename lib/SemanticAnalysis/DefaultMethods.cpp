@@ -71,8 +71,8 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
-			const auto intType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, intType, { argType });
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
+			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType });
 			const auto operandVar = SEM::Var::Basic(argType, argType);
 			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, { operandVar }, typeInstance->moduleScope());
 		}

@@ -28,7 +28,9 @@ namespace locic {
 			OP_ISEQUAL,
 			OP_NOTEQUAL,
 			OP_LESSTHAN,
-			OP_GREATERTHAN
+			OP_LESSTHANOREQUAL,
+			OP_GREATERTHAN,
+			OP_GREATERTHANOREQUAL
 		};
 		
 		struct Value {
