@@ -2,6 +2,7 @@
 #define LOCIC_SEM_VAR_HPP
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <locic/Map.hpp>
@@ -12,6 +13,8 @@ namespace locic {
 	
 		class TemplateVar;
 		class Type;
+		
+		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
 		
 		class Var {
 			public:
@@ -37,7 +40,7 @@ namespace locic {
 				Type* type() const;
 				const std::vector<Var*>& children() const;
 				
-				Var* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
+				Var* substitute(const TemplateVarMap& templateVarMap) const;
 				
 				std::string toString() const;
 				

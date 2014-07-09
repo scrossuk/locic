@@ -65,21 +65,23 @@ namespace locic {
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + "create");
 			}
 			
+			const auto semFunction = new SEM::Function(semTypeInstance->name() + "create", semTypeInstance->moduleScope());
+			
+			semFunction->setMethod(true);
+			semFunction->setStaticMethod(true);
+			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = false;
 			const bool isTemplatedMethod = !semTypeInstance->templateVariables().empty();
 			const bool isNoExcept = false;
-			const bool isStatic = true;
-			const bool isMethod = true;
-			const bool isConst = false;
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
 			const auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), constructTypes);
-			const auto parameters = getParameters(context, constructTypes);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, semTypeInstance->name() + "create", parameters, semTypeInstance->moduleScope());
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), constructTypes));
+			semFunction->setParameters(getParameters(context, constructTypes));
+			return semFunction;
 		}
 		
 		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance, SEM::Function* function) {

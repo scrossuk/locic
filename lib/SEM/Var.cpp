@@ -66,7 +66,7 @@ namespace locic {
 			return children_;
 		}
 		
-		Var* Var::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
+		Var* Var::substitute(const TemplateVarMap& templateVarMap) const {
 			switch (kind()) {
 				case ANY:
 					return Var::Any(constructType()->substitute(templateVarMap));

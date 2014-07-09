@@ -89,9 +89,12 @@ namespace locic {
 				const auto destructorFunction = genDestructorFunctionDecl(module, type->getObjectType());
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
-				const auto args = !type->templateArguments().empty() ?
-								  std::vector<llvm::Value*> { getTemplateGenerator(function, type), castValue } :
-								  std::vector<llvm::Value*> { castValue };
+				
+				llvm::SmallVector<llvm::Value*, 2> args;
+				if (!type->templateArguments().empty()) {
+					args.push_back(getTemplateGenerator(function, type));
+				}
+				args.push_back(castValue);
 								  
 				(void) genRawFunctionCall(function, argInfo, canThrow, destructorFunction, args);
 			} else if (type->isTemplateVar()) {

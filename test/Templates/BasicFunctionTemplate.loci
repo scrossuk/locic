@@ -1,0 +1,19 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+template <typename T>
+T function(T arg) {
+	return move arg;
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	int i = function<int>(20);
+	testPrint(C"i = %d", i);
+	
+	float f = function<float>(20.0f);
+	testPrint(C"f = %f", f);
+	
+	return 0;
+}
+

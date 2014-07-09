@@ -294,6 +294,8 @@ const T& GETSYM(T* value) {
 
 %type <str> functionName
 
+%type <function> nonTemplatedFunctionDecl
+%type <function> nonTemplatedFunctionDef
 %type <function> functionDecl
 %type <function> functionDef
 
@@ -544,7 +546,7 @@ noexceptSpecifier:
 	}
 	;
 
-functionDecl:
+nonTemplatedFunctionDecl:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET noexceptSpecifier SEMICOLON
 	{
 		const bool isVarArg = false;
@@ -569,10 +571,34 @@ functionDecl:
 	}
 	;
 
-functionDef:
+functionDecl:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedFunctionDecl
+	{
+		(GETSYM($5))->setTemplateVariables(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+	}
+	| nonTemplatedFunctionDecl
+	{
+		$$ = $1;
+	}
+	;
+
+nonTemplatedFunctionDef:
 	type functionName LROUNDBRACKET typeVarList RROUNDBRACKET noexceptSpecifier scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def($6, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($7))));
+	}
+	;
+
+functionDef:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedFunctionDef
+	{
+		(GETSYM($5))->setTemplateVariables(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+	}
+	| nonTemplatedFunctionDef
+	{
+		$$ = $1;
 	}
 	;
 

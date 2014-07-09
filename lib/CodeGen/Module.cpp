@@ -251,8 +251,8 @@ namespace locic {
 						return first->isFunctionMethod() && !second->isFunctionMethod() ? COMPARE_LESS : COMPARE_MORE;
 					}
 					
-					if (first->isFunctionTemplatedMethod() != second->isFunctionTemplatedMethod()) {
-						return first->isFunctionTemplatedMethod() && !second->isFunctionTemplatedMethod() ? COMPARE_LESS : COMPARE_MORE;
+					if (first->isFunctionTemplated() != second->isFunctionTemplated()) {
+						return first->isFunctionTemplated() && !second->isFunctionTemplated() ? COMPARE_LESS : COMPARE_MORE;
 					}
 					
 					if (first->isFunctionNoExcept() != second->isFunctionNoExcept()) {

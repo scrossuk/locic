@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_VALUE_HPP
 #define LOCIC_SEM_VALUE_HPP
 
+#include <unordered_map>
 #include <vector>
 
 #include <locic/Map.hpp>
@@ -16,6 +17,8 @@ namespace locic {
 		class Type;
 		class TypeInstance;
 		class Var;
+		
+		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
 	
 		class Value {
 			public:
@@ -119,6 +122,7 @@ namespace locic {
 				struct {
 					Type* parentType;
 					Function* function;
+					std::vector<Type*> templateArguments;
 				} functionRef;
 				
 				struct {
@@ -177,7 +181,7 @@ namespace locic {
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
-				static Value* FunctionRef(Type* parentType, Function* function, const Map<TemplateVar*, Type*>& templateVarMap);
+				static Value* FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				

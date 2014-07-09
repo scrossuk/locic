@@ -5,6 +5,7 @@
 #include <locic/Map.hpp>
 #include <locic/String.hpp>
 
+#include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -45,11 +46,11 @@ namespace locic {
 			return type;
 		}
 		
-		Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
+		Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
 			Type* type = new Type(FUNCTION);
 			type->functionType_.isVarArg = isVarArg;
 			type->functionType_.isMethod = isMethod;
-			type->functionType_.isTemplatedMethod = isTemplatedMethod;
+			type->functionType_.isTemplated = isTemplated;
 			type->functionType_.isNoExcept = isNoExcept;
 			type->functionType_.returnType = returnType;
 			type->functionType_.parameterTypes = parameterTypes;
@@ -179,9 +180,9 @@ namespace locic {
 			return functionType_.isMethod;
 		}
 		
-		bool Type::isFunctionTemplatedMethod() const {
+		bool Type::isFunctionTemplated() const {
 			assert(isFunction());
-			return functionType_.isTemplatedMethod;
+			return functionType_.isTemplated;
 		}
 		
 		bool Type::isFunctionNoExcept() const {
@@ -337,11 +338,11 @@ namespace locic {
 			return getObjectType()->isException();
 		}
 		
-		Map<TemplateVar*, Type*> Type::generateTemplateVarMap() const {
+		TemplateVarMap Type::generateTemplateVarMap() const {
 			assert(isObject() || isTemplateVar());
 			
 			if (isTemplateVar()) {
-				return Map<TemplateVar*, Type*>();
+				return TemplateVarMap();
 			}
 			
 			const auto& templateVars = getObjectType()->templateVariables();
@@ -349,10 +350,10 @@ namespace locic {
 			
 			assert(templateVars.size() == templateArgs.size());
 			
-			Map<TemplateVar*, Type*> templateVarMap;
+			TemplateVarMap templateVarMap;
 			
 			for (size_t i = 0; i < templateVars.size(); i++) {
-				templateVarMap.insert(templateVars.at(i), templateArgs.at(i));
+				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
 			}
 			
 			return templateVarMap;
@@ -360,7 +361,7 @@ namespace locic {
 		
 		namespace {
 		
-			Type* doSubstitute(const Type* type, const Map<TemplateVar*, Type*>& templateVarMap) {
+			Type* doSubstitute(const Type* type, const TemplateVarMap& templateVarMap) {
 				switch (type->kind()) {
 					case Type::OBJECT: {
 						std::vector<Type*> templateArgs;
@@ -381,7 +382,7 @@ namespace locic {
 						
 						const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
 						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplatedMethod(),
+							type->isFunctionTemplated(),
 							type->isFunctionNoExcept(), returnType, args);
 					}
 					
@@ -396,10 +397,9 @@ namespace locic {
 					}
 					
 					case Type::TEMPLATEVAR: {
-						const auto substituteType = templateVarMap.tryGet(type->getTemplateVar());
-						
-						if (substituteType.hasValue()) {
-							return substituteType.getValue();
+						const auto iterator = templateVarMap.find(type->getTemplateVar());
+						if (iterator != templateVarMap.end()) {
+							return iterator->second;
 						} else {
 							return Type::TemplateVarRef(type->getTemplateVar());
 						}
@@ -412,18 +412,18 @@ namespace locic {
 			
 		}
 		
-		Type* Type::substitute(const Map<TemplateVar*, Type*>& templateVarMap) const {
-			auto substitutedType = doSubstitute(this, templateVarMap);
-			auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
-			auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
-			auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
+		Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
+			const auto substitutedType = doSubstitute(this, templateVarMap);
+			const auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
+			const auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
+			const auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
 			return refType;
 		}
 		
-		Type* Type::makeTemplatedMethod() const {
+		Type* Type::makeTemplatedFunction() const {
 			assert(isFunction());
-			const bool isTemplatedMethod = true;
-			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplatedMethod,
+			const bool isTemplated = true;
+			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
 				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes());
 		}
 		
@@ -543,6 +543,90 @@ namespace locic {
 				
 				case TEMPLATEVAR: {
 					return getTemplateVar() == type.getTemplateVar();
+				}
+				
+				default:
+					return false;
+			}
+		}
+		
+		bool Type::operator<(const Type& type) const {
+			if (kind() != type.kind()) {
+				return kind() < type.kind();
+			}
+			
+			if (isConst() != type.isConst()) {
+				return isConst() < type.isConst();
+			}
+			
+			if (isLval() != type.isLval()) {
+				return isLval() < type.isLval();
+			}
+			
+			if (isLval() && lvalTarget() != type.lvalTarget()) {
+				return lvalTarget() < type.lvalTarget();
+			}
+			
+			if (isRef() != type.isRef()) {
+				return isRef() < type.isRef();
+			}
+			
+			if (isRef() && refTarget() != type.refTarget()) {
+				return refTarget() < type.refTarget();
+			}
+			
+			switch (kind_) {
+				case AUTO: {
+					return false;
+				}
+				
+				case OBJECT: {
+					return getObjectType() < type.getObjectType();
+				}
+				
+				case FUNCTION: {
+					const auto& firstList = getFunctionParameterTypes();
+					const auto& secondList = type.getFunctionParameterTypes();
+					
+					if (firstList.size() != secondList.size()) {
+						return firstList.size() < secondList.size();
+					}
+					
+					for (size_t i = 0; i < firstList.size(); i++) {
+						if (firstList.at(i) != secondList.at(i)) {
+							return firstList.at(i) < secondList.at(i);
+						}
+					}
+					
+					if (getFunctionReturnType() != type.getFunctionReturnType()) {
+						return getFunctionReturnType() < type.getFunctionReturnType();
+					}
+					
+					if (isFunctionVarArg() != type.isFunctionVarArg()) {
+						return isFunctionVarArg() < type.isFunctionVarArg();
+					}
+					
+					if (isFunctionMethod() != type.isFunctionMethod()) {
+						return isFunctionMethod() < type.isFunctionMethod();
+					}
+					
+					if (isFunctionTemplated() != type.isFunctionTemplated()) {
+						return isFunctionTemplated() < type.isFunctionTemplated();
+					}
+					
+					if (isFunctionNoExcept() != type.isFunctionNoExcept()) {
+						return isFunctionNoExcept() < type.isFunctionNoExcept();
+					}
+					
+					return false;
+				}
+				
+				case METHOD: {
+					return getMethodFunctionType() < type.getMethodFunctionType();
+				}
+				
+				case TEMPLATEVAR: {
+					return getTemplateVar() < type.getTemplateVar();
 				}
 				
 				default:

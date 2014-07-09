@@ -1,6 +1,8 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONVERTTYPE_HPP
 #define LOCIC_SEMANTICANALYSIS_CONVERTTYPE_HPP
 
+#include <vector>
+
 #include <locic/AST.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
@@ -10,9 +12,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
+		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
-		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
+		std::vector<SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
 		
 		/**
 		 * \brief Convert symbol to semantic object type.

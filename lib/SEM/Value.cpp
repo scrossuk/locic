@@ -141,10 +141,11 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::FunctionRef(Type* parentType, Function* function, const Map<TemplateVar*, Type*>& templateVarMap) {
+		Value* Value::FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
 			value->functionRef.parentType = parentType;
 			value->functionRef.function = function;
+			value->functionRef.templateArguments = templateArguments;
 			return value;
 		}
 		

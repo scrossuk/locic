@@ -9,24 +9,22 @@ namespace locic {
 
 	namespace SEM {
 	
-		Function* Function::Decl(bool isMethod, bool isStatic, bool isConst, Type* type,
-				const Name& name, const std::vector<Var*>& parameters, ModuleScope* moduleScope) {
-			return new Function(isMethod, isStatic, isConst, type, name, parameters, moduleScope, nullptr);
-		}
-		
-		Function::Function(bool isM, bool isS, bool isC, Type* t, const Name& n, const std::vector<Var*>& p, ModuleScope* m, Scope* s)
-			: isMethod_(isM),
-			  isStatic_(isS),
-			  isConst_(isC),
-			  type_(t), name_(n),
-			  parameters_(p),
-			  moduleScope_(m),
-			  scope_(s) {
-			assert(type_ != nullptr);
-		}
+		Function::Function(const Name& pName, ModuleScope* pModuleScope)
+			: isMethod_(false),
+			  isStaticMethod_(false),
+			  isConstMethod_(false),
+			  type_(nullptr),
+			  name_(pName),
+			  moduleScope_(pModuleScope),
+			  scope_(nullptr) { }
 		
 		const Name& Function::name() const {
 			return name_;
+		}
+		
+		void Function::setType(Type* pType) {
+			assert(type_ == nullptr);
+			type_ = pType;
 		}
 		
 		Type* Function::type() const {
@@ -45,16 +43,52 @@ namespace locic {
 			return scope_ != nullptr;
 		}
 		
+		void Function::setMethod(bool pIsMethod) {
+			isMethod_ = pIsMethod;
+		}
+		
 		bool Function::isMethod() const {
 			return isMethod_;
 		}
 		
+		void Function::setStaticMethod(bool pIsStaticMethod) {
+			// isStaticMethod() implies isMethod().
+			assert(!pIsStaticMethod || isMethod());
+			isStaticMethod_ = pIsStaticMethod;
+		}
+		
 		bool Function::isStaticMethod() const {
-			return isStatic_;
+			return isStaticMethod_;
+		}
+		
+		void Function::setConstMethod(bool pIsConstMethod) {
+			// isConstMethod() implies isMethod().
+			assert(!pIsConstMethod || isMethod());
+			isConstMethod_ = pIsConstMethod;
 		}
 		
 		bool Function::isConstMethod() const {
-			return isConst_;
+			return isConstMethod_;
+		}
+		
+		std::vector<TemplateVar*>& Function::templateVariables() {
+			return templateVariables_;
+		}
+		
+		const std::vector<TemplateVar*>& Function::templateVariables() const {
+			return templateVariables_;
+		}
+		
+		std::map<std::string, TemplateVar*>& Function::namedTemplateVariables() {
+			return namedTemplateVariables_;
+		}
+		
+		const std::map<std::string, TemplateVar*>& Function::namedTemplateVariables() const {
+			return namedTemplateVariables_;
+		}
+		
+		void Function::setParameters(std::vector<Var*> pParameters) {
+			parameters_ = std::move(pParameters);
 		}
 		
 		const std::vector<Var*>& Function::parameters() const {
@@ -75,22 +109,40 @@ namespace locic {
 		}
 		
 		Function* Function::createTemplatedDecl() const {
-			return Decl(isMethod(), isStaticMethod(), isConstMethod(), type()->makeTemplatedMethod(), name(), parameters(), moduleScope());
+			assert(templateVariables().empty());
+			assert(type() != nullptr);
+			
+			const auto newFunction = new SEM::Function(name(), moduleScope());
+			newFunction->setMethod(isMethod());
+			newFunction->setStaticMethod(isStaticMethod());
+			newFunction->setConstMethod(isConstMethod());
+			newFunction->setType(type()->makeTemplatedFunction());
+			newFunction->setParameters(parameters());
+			return newFunction;
 		}
 		
-		Function* Function::fullSubstitute(const Name& declName, const Map<TemplateVar*, Type*>& templateVarMap) const {
+		Function* Function::fullSubstitute(const Name& declName, const TemplateVarMap& templateVarMap) const {
 			assert(isDeclaration());
+			assert(templateVariables().empty());
+			assert(type() != nullptr);
+			
+			const auto newFunction = new SEM::Function(declName, moduleScope());
+			newFunction->setMethod(isMethod());
+			newFunction->setStaticMethod(isStaticMethod());
+			newFunction->setConstMethod(isConstMethod());
+			newFunction->setType(type()->substitute(templateVarMap));
 			
 			// Parameter types need to be substituted.
-			std::vector<SEM::Var*> substitutedParam;
+			std::vector<Var*> substitutedParam;
+			substitutedParam.reserve(parameters().size());
 			
 			for (const auto param: parameters()) {
 				substitutedParam.push_back(param->substitute(templateVarMap));
 			}
 			
-			return Decl(isMethod(), isStaticMethod(), isConstMethod(),
-						type()->substitute(templateVarMap),
-						declName, substitutedParam, moduleScope());
+			newFunction->setParameters(std::move(substitutedParam));
+			
+			return newFunction;
 		}
 		
 		void Function::setScope(Scope* newScope) {

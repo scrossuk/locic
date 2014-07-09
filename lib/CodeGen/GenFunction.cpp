@@ -130,7 +130,6 @@ namespace locic {
 		}
 		
 		llvm::Function* genFunctionDef(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			const auto argInfo = getFunctionArgInfo(module, function->type());
 			const auto llvmFunction = genFunctionDecl(module, typeInstance, function);
 			
 			// --- Generate function code.
@@ -147,6 +146,7 @@ namespace locic {
 			
 			const auto templateBuilder = typeInstance != nullptr ? &(module.typeTemplateBuilder(typeInstance)) : nullptr;
 			
+			const auto argInfo = getFunctionArgInfo(module, function->type());
 			Function functionGenerator(module, *llvmFunction, argInfo, templateBuilder);
 			
 			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {

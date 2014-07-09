@@ -96,7 +96,7 @@ namespace locic {
 					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
 			}
 			
-			return SEM::Value::FunctionRef(type, function, type->generateTemplateVarMap());
+			return SEM::Value::FunctionRef(type, function, {}, type->generateTemplateVarMap());
 		}
 		
 		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
@@ -133,7 +133,7 @@ namespace locic {
 					type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(type, function, type->generateTemplateVarMap());
+			const auto functionRef = SEM::Value::FunctionRef(type, function, {}, type->generateTemplateVarMap());
 			
 			if (typeInstance->isInterface()) {
 				return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));

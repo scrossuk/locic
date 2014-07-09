@@ -2,6 +2,7 @@
 #define LOCIC_SEM_TEMPLATEVAR_HPP
 
 #include <string>
+#include <unordered_map>
 
 namespace locic {
 
@@ -40,6 +41,8 @@ namespace locic {
 				TypeInstance* specTypeInstance_;
 				
 		};
+		
+		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
 		
 	}
 	

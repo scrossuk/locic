@@ -2,6 +2,7 @@
 #define LOCIC_SEM_TYPE_HPP
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace locic {
@@ -11,9 +12,13 @@ namespace locic {
 
 	namespace SEM {
 	
+		class Context;
 		class TemplateVar;
+		class Type;
 		class TypeAlias;
 		class TypeInstance;
+		
+		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
 		
 		class Type {
 			public:
@@ -29,11 +34,12 @@ namespace locic {
 				
 				static const std::vector<Type*> NO_TEMPLATE_ARGS;
 				
+				// TODO: modify these to take Context parameter.
 				static Type* Auto();
 				static Type* Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments);
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
-				static Type* Function(bool isVarArg, bool isMethod, bool isTemplatedMethod, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
+				static Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
 				static Type* Method(Type* functionType);
 				static Type* InterfaceMethod(Type* functionType);
 				
@@ -63,7 +69,7 @@ namespace locic {
 				bool isFunction() const;
 				bool isFunctionVarArg() const;
 				bool isFunctionMethod() const;
-				bool isFunctionTemplatedMethod() const;
+				bool isFunctionTemplated() const;
 				bool isFunctionNoExcept() const;
 				Type* getFunctionReturnType() const;
 				const std::vector<Type*>& getFunctionParameterTypes() const;
@@ -96,10 +102,10 @@ namespace locic {
 				bool isObjectOrTemplateVar() const;
 				bool isException() const;
 				
-				Map<TemplateVar*, Type*> generateTemplateVarMap() const;
+				TemplateVarMap generateTemplateVarMap() const;
 				
-				Type* substitute(const Map<TemplateVar*, Type*>& templateVarMap) const;
-				Type* makeTemplatedMethod() const;
+				Type* substitute(const TemplateVarMap& templateVarMap) const;
+				Type* makeTemplatedFunction() const;
 				
 				std::string nameToString() const;
 				
@@ -117,6 +123,10 @@ namespace locic {
 				
 			private:
 				Type(Kind k);
+				
+				// Prevent mistakes from copying.
+				Type(const Type&) = default;
+				Type& operator=(const Type&) = delete;
 					
 				Kind kind_;
 				bool isConst_;
@@ -136,7 +146,7 @@ namespace locic {
 				struct FunctionType {
 					bool isVarArg;
 					bool isMethod;
-					bool isTemplatedMethod;
+					bool isTemplated;
 					bool isNoExcept;
 					Type* returnType;
 					std::vector<Type*> parameterTypes;

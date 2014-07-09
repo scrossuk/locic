@@ -48,8 +48,11 @@ namespace locic {
 		
 		/**
 		 * \brief Null template generator.
+		 * 
+		 * This is just a constant struct of
+		 * { rootFunction = NULL, path = 0 }.
 		 */
-		llvm::Value* nullTemplateGenerator(Module& module);
+		llvm::Constant* nullTemplateGenerator(Module& module);
 		
 		/**
 		 * \brief Obtain a template generator for a type with
@@ -59,7 +62,7 @@ namespace locic {
 		 * that can be used with 'computeTemplateArguments' to
 		 * obtain the template arguments.
 		 */
-		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type);
+		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type, llvm::ArrayRef<SEM::Type*> functionArgs = std::vector<SEM::Type*>());
 		
 		/**
 		 * \brief Generate a root template argument generator function.

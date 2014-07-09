@@ -17,10 +17,12 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			
+			semFunction->setMethod(true);
+			semFunction->setStaticMethod(true);
+			
 			const bool isVarArg = false;
-			const bool isMethod = true;
-			const bool isStatic = true;
-			const bool isConst = false;
 			const bool isDynamicMethod = false;
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
@@ -37,15 +39,18 @@ namespace locic {
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
 			}
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, argVars, typeInstance->moduleScope());
+			semFunction->setParameters(std::move(argVars));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes));
+			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name) {
+			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			
+			semFunction->setMethod(true);
+			semFunction->setConstMethod(true);
+			
 			const bool isVarArg = false;
-			const bool isMethod = true;
-			const bool isStatic = false;
-			const bool isConst = true;
 			const bool isDynamicMethod = true;
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
@@ -53,15 +58,17 @@ namespace locic {
 			// may call child copy constructors that throw.
 			const bool isNoExcept = false;
 			
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {});
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, {}, typeInstance->moduleScope());
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
+			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			
+			semFunction->setMethod(true);
+			semFunction->setConstMethod(true);
+			
 			const bool isVarArg = false;
-			const bool isMethod = true;
-			const bool isStatic = false;
-			const bool isConst = true;
 			const bool isDynamicMethod =true;
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
@@ -72,9 +79,9 @@ namespace locic {
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
 			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
-			const auto functionType = SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType });
-			const auto operandVar = SEM::Var::Basic(argType, argType);
-			return SEM::Function::Decl(isMethod, isStatic, isConst, functionType, name, { operandVar }, typeInstance->moduleScope());
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType }));
+			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
+			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {

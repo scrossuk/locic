@@ -5,6 +5,7 @@
 #include <vector>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
 
@@ -47,10 +48,12 @@ namespace locic {
 				
 				const std::string& name() const;
 				
+				const Node<TemplateTypeVarList>& templateVariables() const;
 				const Node<Type>& returnType() const;
 				const Node<TypeVarList>& parameters() const;
 				const Node<Scope>& scope() const;
 				
+				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
 				void setImport();
 				void setExport();
 				
@@ -65,6 +68,7 @@ namespace locic {
 				
 				std::string name_;
 				
+				Node<TemplateTypeVarList> templateVariables_;
 				Node<Type> returnType_;
 				Node<TypeVarList> parameters_;
 				Node<Scope> scope_;

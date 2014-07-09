@@ -298,7 +298,7 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {});
+			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, {});
 			return CallValue(context, functionRef, { constantValue }, location);
 		}
 		
@@ -364,6 +364,8 @@ namespace locic {
 						const auto function = searchResult.function();
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
+						const auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
+						
 						if (function->isMethod()) {
 							if (!function->isStaticMethod()) {
 								throw ErrorException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
@@ -375,11 +377,12 @@ namespace locic {
 							
 							const auto typeInstance = typeSearchResult.typeInstance();
 							
-							const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
+							const auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance->templateVariables());
+							const auto parentType = SEM::Type::Object(typeInstance, parentTemplateArguments);
 							
-							return SEM::Value::FunctionRef(parentType, function, templateVarMap);
+							return SEM::Value::FunctionRef(parentType, function, functionTemplateArguments, templateVarMap);
 						} else {
-							return SEM::Value::FunctionRef(nullptr, function, templateVarMap);
+							return SEM::Value::FunctionRef(nullptr, function, functionTemplateArguments, templateVarMap);
 						}
 					} else if (searchResult.isTypeInstance()) {
 						const auto typeInstance = searchResult.typeInstance();
@@ -389,7 +392,7 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(context, astSymbolNode));
+						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return GetStaticMethod(parentType, "create", location);
 					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,

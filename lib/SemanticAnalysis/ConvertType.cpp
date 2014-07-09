@@ -17,13 +17,13 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Map<SEM::TemplateVar*, SEM::Type*> GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
 			const auto& location = astSymbol.location();
 			
 			const Name fullName = astSymbol->createName();
 			assert(fullName.size() == astSymbol->size());
 			
-			Map<SEM::TemplateVar*, SEM::Type*> templateVarMap;
+			SEM::TemplateVarMap templateVarMap;
 			
 			for (size_t i = 0; i < astSymbol->size(); i++) {
 				const auto& astSymbolElement = astSymbol->at(i);
@@ -34,28 +34,30 @@ namespace locic {
 				
 				const auto searchResult = performSearch(context, name);
 				
-				if (searchResult.isTypeInstance()) {
-					const auto typeInstance = searchResult.typeInstance();
+				if (searchResult.isFunction() || searchResult.isTypeInstance()) {
+					const auto& templateVariables =
+						searchResult.isFunction() ?
+							searchResult.function()->templateVariables() :
+							searchResult.typeInstance()->templateVariables();
 					
-					const size_t numTemplateVariables = typeInstance->templateVariables().size();
-					if (numTemplateVariables != numTemplateArguments) {
+					if (templateVariables.size() != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
-							"arguments provided for type '%s'; %llu were required, "
+							"arguments provided for function or type '%s'; %llu were required, "
 							"but %llu were provided at position %s.",
 							name.toString().c_str(),
-							(unsigned long long) numTemplateVariables,
+							(unsigned long long) templateVariables.size(),
 							(unsigned long long) numTemplateArguments,
 							location.toString().c_str()));
 					}
 					
 					// First generate template var -> type map.
-					for (size_t j = 0; j < numTemplateArguments; j++) {
+					for (size_t j = 0; j < templateVariables.size(); j++) {
 						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
-						templateVarMap.insert(typeInstance->templateVariables().at(j), templateTypeValue);
+						templateVarMap.insert(std::make_pair(templateVariables.at(j), templateTypeValue));
 					}
 					
 					// Then check all the types are valid parameters.
-					for (size_t j = 0; j < numTemplateArguments; j++) {
+					for (size_t j = 0; j < templateVariables.size(); j++) {
 						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
 						
 						if (templateTypeValue->isAuto()) {
@@ -65,7 +67,7 @@ namespace locic {
 						
 						if (!templateTypeValue->isObjectOrTemplateVar()) {
 							throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
-								"as template parameter %llu for type '%s' at position %s.",
+								"as template parameter %llu for function or type '%s' at position %s.",
 								templateTypeValue->toString().c_str(),
 								(unsigned long long) j,
 								name.toString().c_str(),
@@ -74,21 +76,21 @@ namespace locic {
 						
 						if (templateTypeValue->isInterface()) {
 							throw ErrorException(makeString("Cannot use abstract type '%s' "
-								"as template parameter %llu for type '%s' at position %s.",
+								"as template parameter %llu for function or type '%s' at position %s.",
 								templateTypeValue->getObjectType()->name().toString().c_str(),
 								(unsigned long long) j,
 								name.toString().c_str(),
 								location.toString().c_str()));
 						}
 						
-						const auto templateVariable = typeInstance->templateVariables().at(j);
+						const auto templateVariable = templateVariables.at(j);
 						
 						if (templateVariable->specType() != nullptr) {
 							assert(templateVariable->specType()->isInterface());
 							
 							if (!templateTypeValue->isObjectOrTemplateVar()) {
 								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
-									"constraint for template parameter %llu of type '%s' at position %s.",
+									"constraint for template parameter %llu of function or type '%s' at position %s.",
 									templateTypeValue->toString().c_str(),
 									(unsigned long long) j,
 									name.toString().c_str(),
@@ -99,7 +101,7 @@ namespace locic {
 							
 							if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
 								throw ErrorException(makeString("Type '%s' does not satisfy "
-									"constraint for template parameter %llu of type '%s' at position %s.",
+									"constraint for template parameter %llu of function or type '%s' at position %s.",
 									templateTypeValue->getObjectType()->name().toString().c_str(),
 									(unsigned long long) j,
 									name.toString().c_str(),
@@ -110,7 +112,7 @@ namespace locic {
 				} else {
 					if (numTemplateArguments > 0) {
 						throw ErrorException(makeString("%llu template "
-							"arguments provided for non-type node '%s'; "
+							"arguments provided for non-function and non-type node '%s'; "
 							"none should be provided at position %s.",
 							(unsigned long long) numTemplateArguments,
 							name.toString().c_str(),
@@ -122,13 +124,11 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		std::vector<SEM::Type*> GetTemplateValues(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+		std::vector<SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
 			std::vector<SEM::Type*> templateArguments;
-			for (size_t i = 0; i < astSymbol->size(); i++) {
-				const auto& astSymbolElement = astSymbol->at(i);
-				for (const auto& astTemplateArg: *(astSymbolElement->templateArguments())) {
-					templateArguments.push_back(ConvertType(context, astTemplateArg));
-				}
+			templateArguments.reserve(templateVariables.size());
+			for (const auto templateVar: templateVariables) {
+				templateArguments.push_back(templateVarMap.at(templateVar));
 			}
 			return templateArguments;
 		}
@@ -162,7 +162,7 @@ namespace locic {
 				
 				std::vector<SEM::Type*> templateArguments;
 				for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
-					templateArguments.push_back(templateVarMap.get(typeInstance->templateVariables().at(i)));
+					templateArguments.push_back(templateVarMap.at(typeInstance->templateVariables().at(i)));
 				}
 				
 				return SEM::Type::Object(typeInstance, templateArguments);
@@ -214,11 +214,13 @@ namespace locic {
 				case AST::Type::FUNCTION: {
 					const auto returnType = ConvertType(context, type->functionType.returnType);
 					
-					std::vector<SEM::Type*> parameterTypes;
-					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
+					
+					std::vector<SEM::Type*> parameterTypes;
+					parameterTypes.reserve(astParameterTypes->size());
+					
 					for (const auto& astParamType: *astParameterTypes) {
-						SEM::Type* paramType = ConvertType(context, astParamType);
+						const auto paramType = ConvertType(context, astParamType);
 						
 						if(paramType->isBuiltInVoid()) {
 							throw ErrorException("Parameter type (inside function type) cannot be void.");
@@ -230,13 +232,13 @@ namespace locic {
 					// Currently no syntax exists to express a method function type.
 					const bool isDynamicMethod = false;
 					
-					// Currently no syntax exists to express a templated method function type.
-					const bool isTemplatedMethod = false;
+					// Currently no syntax exists to express a templated function type.
+					const bool isTemplated = false;
 					
 					// Currently no syntax exists to express a type with 'noexcept'.
 					const bool isNoExcept = false;
 					
-					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, returnType, parameterTypes);
+					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, isNoExcept, returnType, parameterTypes);
 				}
 				default:
 					throw std::runtime_error("Unknown AST::Node<AST::Type> type enum.");

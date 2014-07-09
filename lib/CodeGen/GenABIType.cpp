@@ -74,8 +74,8 @@ namespace locic {
 				
 				case SEM::Type::FUNCTION: {
 					// Generate struct of function pointer and template
-					// generator if function type is templated method.
-					if (type->isFunctionTemplatedMethod()) {
+					// generator if function type is templated.
+					if (type->isFunctionTemplated()) {
 						std::vector<llvm_abi::Type*> types;
 						types.reserve(2);
 						types.push_back(llvm_abi::Type::Pointer(abiContext));

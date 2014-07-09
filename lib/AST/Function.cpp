@@ -151,7 +151,7 @@ namespace locic {
 			isMethod_(false), isConstMethod_(false),
 			isStaticMethod_(false), isNoExcept_(false),
 			isImported_(false), isExported_(false),
-			name_(pName) { }
+			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()) { }
 		
 		bool Function::isDeclaration() const {
 			return !isDefinition_;
@@ -197,6 +197,10 @@ namespace locic {
 			return name_;
 		}
 		
+		const Node<TemplateTypeVarList>& Function::templateVariables() const {
+			return templateVariables_;
+		}
+		
 		const Node<Type>& Function::returnType() const {
 			assert(!isDefaultDefinition());
 			return returnType_;
@@ -210,6 +214,10 @@ namespace locic {
 		const Node<Scope>& Function::scope() const {
 			assert(isDefinition() && !isDefaultDefinition());
 			return scope_;
+		}
+		
+		void Function::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
+			templateVariables_ = pTemplateVariables;
 		}
 		
 		void Function::setImport() {

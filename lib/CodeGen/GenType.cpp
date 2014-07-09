@@ -66,9 +66,9 @@ namespace locic {
 				
 				case SEM::Type::FUNCTION: {
 					// Generate struct of function pointer and template
-					// generator if function type is templated method.
+					// generator if function type is templated.
 					const auto functionPtrType = genFunctionType(module, type)->getPointerTo();
-					if (type->isFunctionTemplatedMethod()) {
+					if (type->isFunctionTemplated()) {
 						llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
 						return TypeGenerator(module).getStructType(memberTypes);
 					} else {

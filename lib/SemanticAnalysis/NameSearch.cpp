@@ -69,9 +69,20 @@ namespace locic {
 		SearchResult performInnerFunctionSearch(SEM::Function* function, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
-			const auto iterator = function->namedVariables().find(name.at(0));
-			if (iterator != function->namedVariables().end()) {
-				return SearchResult::Var(iterator->second);
+			// Search template variables.
+			{
+				const auto iterator = function->namedTemplateVariables().find(name.at(0));
+				if (iterator != function->namedTemplateVariables().end()) {
+					return SearchResult::TemplateVar(iterator->second);
+				}
+			}
+			
+			// Search parameter variables.
+			{
+				const auto iterator = function->namedVariables().find(name.at(0));
+				if (iterator != function->namedVariables().end()) {
+					return SearchResult::Var(iterator->second);
+				}
 			}
 			
 			return SearchResult::None();

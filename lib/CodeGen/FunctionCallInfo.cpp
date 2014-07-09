@@ -194,12 +194,11 @@ namespace locic {
 					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
-					if (value->type()->isFunctionTemplatedMethod()) {
-						assert(parentType != nullptr);
-						if (parentType->isTemplateVar()) {
+					if (value->type()->isFunctionTemplated()) {
+						if (parentType != nullptr && parentType->isTemplateVar()) {
 							callInfo.templateGenerator = function.getTemplateGenerator();
 						} else {
-							callInfo.templateGenerator = getTemplateGenerator(function, parentType);
+							callInfo.templateGenerator = getTemplateGenerator(function, parentType, value->functionRef.templateArguments);
 						}
 					}
 					
@@ -249,7 +248,7 @@ namespace locic {
 					
 					const auto functionType = value->type()->isMethod() ?
 						value->type()->getMethodFunctionType() : value->type();
-					const bool isTemplatedMethod = functionType->isFunctionTemplatedMethod();
+					const bool isTemplatedMethod = functionType->isFunctionTemplated();
 					callInfo.functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
 					callInfo.templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
 					return callInfo;

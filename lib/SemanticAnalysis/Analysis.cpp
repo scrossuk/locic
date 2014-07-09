@@ -374,6 +374,8 @@ namespace locic {
 				context.debugModule().varMap.insert(std::make_pair(semVar, varInfo));
 			}
 			
+			assert(semFunction->isDeclaration());
+			
 			return semFunction;
 		}
 		
@@ -478,6 +480,28 @@ namespace locic {
 			}
 		}
 		
+		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+			const auto function = context.scopeStack().back().function();
+			
+			// Add template variables.
+			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = function->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astSpecType = astTemplateVarNode->specType;
+				
+				// If the specification type is void, then just
+			 	// leave the generated type instance empty.
+			 	if (astSpecType->isVoid()) continue;
+			 	
+			 	const auto semSpecType = ConvertType(context, astSpecType);
+			 	
+			 	semTemplateVar->setSpecType(semSpecType);
+			 	
+			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+			}
+		}
+		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto typeInstance = context.scopeStack().back().typeInstance();
 			
@@ -498,10 +522,25 @@ namespace locic {
 			 	
 			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
 			}
+			
+			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
+				const auto methodName = CanonicalizeMethodName(astFunctionNode->name());
+				const auto semChildFunction = typeInstance->functions().at(methodName);
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode);
+			}
 		}
 		
 		void CompleteNamespaceDataTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+				const auto semChildFunction = semNamespace->items().at(astFunctionNode->name()).function();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode);
+			}
 			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				CompleteNamespaceDataTemplateVariableRequirements(context, astModuleScopeNode->data);

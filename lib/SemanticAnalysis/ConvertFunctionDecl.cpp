@@ -13,6 +13,18 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		static SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
+			switch (kind) {
+				case AST::TemplateTypeVar::TYPENAME:
+					return SEM::TEMPLATEVAR_TYPENAME;
+				case AST::TemplateTypeVar::POLYMORPHIC:
+					return SEM::TEMPLATEVAR_POLYMORPHIC;
+				default:
+					assert(false && "Unknown template var kind.");
+					return SEM::TEMPLATEVAR_TYPENAME;
+			}
+		}
+		
 		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
@@ -23,6 +35,35 @@ namespace locic {
 			const auto name = astFunctionNode->name();
 			const auto fullName = getCurrentName(context.scopeStack()) + name;
 			
+			const auto semFunction = new SEM::Function(fullName, moduleScope);
+			
+			semFunction->setMethod(astFunctionNode->isMethod());
+			semFunction->setStaticMethod(astFunctionNode->isStaticMethod());
+			semFunction->setConstMethod(astFunctionNode->isConstMethod());
+			
+			// Add template variables.
+			size_t templateVarIndex = 0;
+			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+				
+				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
+				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {
+					throw TemplateVariableClashException(semFunction->name(), templateVarName);
+				}
+				
+				// Create placeholder for the template type.
+				const Name specObjectName = semFunction->name() + templateVarName + "#spectype";
+				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
+				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
+				
+				semFunction->templateVariables().push_back(semTemplateVar);
+				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+			}
+			
+			// Enable lookups for function template variables.
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semFunction));
+			
 			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
@@ -31,14 +72,7 @@ namespace locic {
 				assert(astFunctionNode->isDefinition());
 				assert(astFunctionNode->isStaticMethod());
 				
-				std::vector<SEM::Type*> templateVars;
-				
-				// The parent class type needs to include the template arguments.
-				for (auto templateVar: thisTypeInstance->templateVariables()) {
-					templateVars.push_back(SEM::Type::TemplateVarRef(templateVar));
-				}
-				
-				semReturnType = SEM::Type::Object(thisTypeInstance, templateVars);
+				semReturnType = thisTypeInstance->selfType();
 			} else {
 				semReturnType = ConvertType(context, astReturnTypeNode);
 			}
@@ -69,15 +103,20 @@ namespace locic {
 				parameterVars.push_back(SEM::Var::Basic(semParamType, lvalType));
 			}
 			
+			semFunction->setParameters(std::move(parameterVars));
+			
 			const bool isDynamicMethod = astFunctionNode->isMethod() && !astFunctionNode->isStaticMethod();
-			const bool isTemplatedMethod = thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty();
+			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
+				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(),
 				isDynamicMethod, isTemplatedMethod,
 				astFunctionNode->isNoExcept(), semReturnType, parameterTypes);
+			semFunction->setType(functionType);
 			
-			return SEM::Function::Decl(astFunctionNode->isMethod(), astFunctionNode->isStaticMethod(),
-				astFunctionNode->isConstMethod(), functionType, fullName, parameterVars, moduleScope);
+			assert(semFunction->isDeclaration());
+			
+			return semFunction;
 		}
 		
 	}

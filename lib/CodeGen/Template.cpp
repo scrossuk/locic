@@ -173,7 +173,7 @@ namespace locic {
 			return callResult;
 		}
 		
-		llvm::Value* nullTemplateGenerator(Module& module) {
+		llvm::Constant* nullTemplateGenerator(Module& module) {
 			ConstantGenerator constGen(module);
 			
 			llvm::SmallVector<llvm::Constant*, 2> values;
@@ -223,7 +223,9 @@ namespace locic {
 				const auto rootFunction = builder.CreateExtractValue(parentTemplateGenerator, { 0 });
 				const auto path = builder.CreateExtractValue(parentTemplateGenerator, { 1 });
 				
-				// Insert garbage value for bits required.
+				// Insert garbage value for bits required; this will be replaced
+				// later by the template builder when the actual number of bits
+				// required is known.
 				const auto bitsRequiredGarbageValue = constGen.getI32(1000);
 				
 				const auto shiftedPath = builder.CreateShl(path, bitsRequiredGarbageValue);
@@ -242,7 +244,10 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type) {
+		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type, llvm::ArrayRef<SEM::Type*> functionArgs) {
+			// TODO...
+			(void) functionArgs;
+			assert(type != nullptr);
 			assert(type->isObject());
 			assert(!type->isInterface());
 			

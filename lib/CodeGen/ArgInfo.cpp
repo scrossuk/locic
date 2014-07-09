@@ -168,7 +168,7 @@ namespace locic {
 			
 			const bool isVarArg = functionType->isFunctionVarArg();
 			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, semReturnType);
-			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplatedMethod();
+			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplated();
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
 			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
