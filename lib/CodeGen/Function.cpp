@@ -23,16 +23,6 @@ namespace locic {
 			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
 		}
 		
-		bool isOffsetPairLessThan(const OffsetPair& first, const OffsetPair& second) {
-			const bool result = compareTypes(first.first, second.first);
-			
-			if (result != COMPARE_EQUAL) {
-				return result == COMPARE_LESS;
-			}
-			
-			return first.second < second.second;
-		}
-		
 		Function::Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* pTemplateBuilder)
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
@@ -40,10 +30,6 @@ namespace locic {
 			  useEntryBuilder_(false),
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
-			  alignMaskMap_(isTypeLessThan),
-			  memberOffsetMap_(isOffsetPairLessThan),
-			  sizeOfMap_(isTypeLessThan),
-			  templateGeneratorMap_(isTypeLessThan),
 			  debugInfo_(nullptr),
 			  exceptionInfo_(nullptr),
 			  returnValuePtr_(nullptr),

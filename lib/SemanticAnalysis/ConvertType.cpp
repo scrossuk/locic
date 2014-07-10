@@ -179,7 +179,7 @@ namespace locic {
 		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
-					return SEM::Type::Auto();
+					return SEM::Type::Auto(context.semContext());
 				}
 				case AST::Type::BRACKET: {
 					return ConvertType(context, type->getBracketTarget());

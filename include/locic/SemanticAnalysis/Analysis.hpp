@@ -11,7 +11,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module& debugModule);
+		void Run(const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
 		
 	}
 	

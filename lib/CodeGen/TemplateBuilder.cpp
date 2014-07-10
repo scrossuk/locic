@@ -32,8 +32,7 @@ namespace locic {
 			return power;
 		}
 		
-		TemplateBuilder::TemplateBuilder()
-			: templateUseMap_(isTypeLessThan) { }
+		TemplateBuilder::TemplateBuilder() { }
 		
 		size_t TemplateBuilder::addUse(SEM::Type* type) {
 			assert(type->isObject() && !type->templateArguments().empty());

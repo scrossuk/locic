@@ -50,6 +50,7 @@ namespace locic {
 					}
 					
 					std::vector<SEM::Type*> templateArgs;
+					templateArgs.reserve(sourceType->templateArguments().size());
 					
 					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
 						const auto sourceTemplateArg = sourceType->templateArguments().at(i);
@@ -214,7 +215,7 @@ namespace locic {
 			
 			// The value's type needs to reflect the successful cast, however
 			// this shouldn't be added unless necessary.
-			if (*(value->type()) != *resultType) {
+			if (value->type() != resultType) {
 				return SEM::Value::Cast(resultType, value);
 			} else {
 				return value;
@@ -223,6 +224,50 @@ namespace locic {
 		
 		static bool methodNamesMatch(const std::string& first, const std::string& second) {
 			return CanonicalizeMethodName(first) == CanonicalizeMethodName(second);
+		}
+		
+		static bool interfaceFunctionTypesCompatible(const SEM::Type* sourceType, const SEM::Type* destType) {
+			assert(sourceType->isFunction());
+			assert(destType->isFunction());
+			
+			if (sourceType == destType) {
+				return true;
+			}
+			
+			assert(!sourceType->isLval());
+			assert(!destType->isLval());
+			assert(!sourceType->isRef());
+			assert(!destType->isRef());
+			assert(!sourceType->isFunctionVarArg());
+			assert(!destType->isFunctionVarArg());
+			
+			const auto& firstList = sourceType->getFunctionParameterTypes();
+			const auto& secondList = destType->getFunctionParameterTypes();
+			
+			if (firstList.size() != secondList.size()) {
+				return firstList.size() < secondList.size();
+			}
+			
+			for (size_t i = 0; i < firstList.size(); i++) {
+				if (firstList.at(i) != secondList.at(i)) {
+					return false;
+				}
+			}
+			
+			if (sourceType->getFunctionReturnType() != destType->getFunctionReturnType()) {
+				return false;
+			}
+			
+			if (sourceType->isFunctionMethod() != destType->isFunctionMethod()) {
+				return false;
+			}
+			
+			if (!sourceType->isFunctionNoExcept() && destType->isFunctionNoExcept()) {
+				// Can't add 'noexcept' specifier.
+				return false;
+			}
+			
+			return true;
 		}
 		
 		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType) {
@@ -264,7 +309,7 @@ namespace locic {
 				const auto interfaceFunctionType = interfaceFunction->type()->substitute(interfaceTemplateVarMap);
 				
 				// Function types must be equivalent.
-				if (*(objectFunctionType) != *(interfaceFunctionType)) {
+				if (!interfaceFunctionTypesCompatible(objectFunctionType, interfaceFunctionType)) {
 					return false;
 				}
 				
@@ -309,8 +354,9 @@ namespace locic {
 				// There still might be some aspects to cast with the constructed type.
 				return ImplicitCastConvert(context, constructedValue, destType, location);
 			} else {
-				throw ErrorException(makeString("No '%s' constructor specified for type '%s' at position %s.",
+				throw ErrorException(makeString("No '%s' constructor specified for type '%s' to cast from value '%s' of type '%s' at position %s.",
 					constructorName.c_str(), destDerefType->toString().c_str(),
+					value->toString().c_str(), value->type()->toString().c_str(),
 					location.toString().c_str()));
 			}
 		}

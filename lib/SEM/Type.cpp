@@ -18,67 +18,94 @@ namespace locic {
 	
 		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
 		
-		Type* Type::Auto() {
-			return new Type(AUTO);
+		Type* Type::Auto(Context& context) {
+			return context.getType(Type(context, AUTO));
 		}
 		
 		Type* Type::Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments) {
 			//assert(typeAlias->templateVariables().size() == templateArguments.size());
+			auto& context = typeAlias->context();
 			
-			Type* type = new Type(ALIAS);
-			type->aliasType_.typeAlias = typeAlias;
-			type->aliasType_.templateArguments = templateArguments;
-			return type;
+			Type type(context, ALIAS);
+			type.aliasType_.typeAlias = typeAlias;
+			type.aliasType_.templateArguments = templateArguments;
+			return context.getType(type);
 		}
 		
 		Type* Type::Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
+			auto& context = typeInstance->context();
 			
-			Type* type = new Type(OBJECT);
-			type->objectType_.typeInstance = typeInstance;
-			type->objectType_.templateArguments = templateArguments;
-			return typeInstance->isConstType() ? type->createConstType() : type;
+			Type type(context, OBJECT);
+			type.isConst_ = typeInstance->isConstType();
+			type.objectType_.typeInstance = typeInstance;
+			type.objectType_.templateArguments = templateArguments;
+			return context.getType(type);
 		}
 		
 		Type* Type::TemplateVarRef(TemplateVar* templateVar) {
-			Type* type = new Type(TEMPLATEVAR);
-			type->templateVarRef_.templateVar = templateVar;
-			return type;
+			auto& context = templateVar->context();
+			
+			Type type(context, TEMPLATEVAR);
+			type.templateVarRef_.templateVar = templateVar;
+			return context.getType(type);
 		}
 		
 		Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
-			Type* type = new Type(FUNCTION);
-			type->functionType_.isVarArg = isVarArg;
-			type->functionType_.isMethod = isMethod;
-			type->functionType_.isTemplated = isTemplated;
-			type->functionType_.isNoExcept = isNoExcept;
-			type->functionType_.returnType = returnType;
-			type->functionType_.parameterTypes = parameterTypes;
+			assert(returnType != nullptr);
+			
+			auto& context = returnType->context();
+			
+			Type type(context, FUNCTION);
 			
 			// Function is always const.
-			return type->createConstType();
+			type.isConst_ = true;
+			
+			type.functionType_.isVarArg = isVarArg;
+			type.functionType_.isMethod = isMethod;
+			type.functionType_.isTemplated = isTemplated;
+			type.functionType_.isNoExcept = isNoExcept;
+			type.functionType_.returnType = returnType;
+			type.functionType_.parameterTypes = parameterTypes;
+			
+			return context.getType(type);
 		}
 		
 		Type* Type::Method(Type* functionType) {
 			assert(functionType->isFunction());
-			Type* type = new Type(METHOD);
-			type->methodType_.functionType = functionType;
+			auto& context = functionType->context();
+			
+			Type type(context, METHOD);
 			
 			// Method is always const.
-			return type->createConstType();
+			type.isConst_ = true;
+			
+			type.methodType_.functionType = functionType;
+			
+			return context.getType(type);
 		}
 		
 		Type* Type::InterfaceMethod(Type* functionType) {
 			assert(functionType->isFunction());
-			Type* type = new Type(INTERFACEMETHOD);
-			type->interfaceMethodType_.functionType = functionType;
+			auto& context = functionType->context();
+			
+			Type type(context, INTERFACEMETHOD);
 			
 			// Interface method is always const.
-			return type->createConstType();
+			type.isConst_ = true;
+			
+			type.interfaceMethodType_.functionType = functionType;
+			
+			return context.getType(type);
 		}
 		
-		Type::Type(Kind k) :
-			kind_(k), isConst_(false), lvalTarget_(NULL), refTarget_(NULL) { }
+		Type::Type(Context& pContext, Kind pKind) :
+			context_(pContext), kind_(pKind),
+			isConst_(false), lvalTarget_(NULL), refTarget_(NULL) { }
+		
+		Context& Type::context() const {
+			return context_;
+		}
 		
 		Type::Kind Type::kind() const {
 			return kind_;
@@ -116,38 +143,38 @@ namespace locic {
 		}
 		
 		Type* Type::createConstType() const {
-			Type* type = new Type(*this);
-			type->isConst_ = true;
-			return type;
+			Type typeCopy(*this);
+			typeCopy.isConst_ = true;
+			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::createLvalType(Type* targetType) const {
 			assert(!isLval() && !isRef());
-			Type* type = new Type(*this);
-			type->lvalTarget_ = targetType;
-			return type;
+			Type typeCopy(*this);
+			typeCopy.lvalTarget_ = targetType;
+			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::createRefType(Type* targetType) const {
 			assert(!isLval() && !isRef());
-			Type* type = new Type(*this);
-			type->refTarget_ = targetType;
-			return type;
+			Type typeCopy(*this);
+			typeCopy.refTarget_ = targetType;
+			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::withoutLvalOrRef() const {
-			Type* type = new Type(*this);
-			type->lvalTarget_ = NULL;
-			type->refTarget_ = NULL;
-			return type;
+			Type typeCopy(*this);
+			typeCopy.lvalTarget_ = NULL;
+			typeCopy.refTarget_ = NULL;
+			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::withoutTags() const {
-			Type* type = new Type(*this);
-			type->isConst_ = false;
-			type->lvalTarget_ = NULL;
-			type->refTarget_ = NULL;
-			return type;
+			Type typeCopy(*this);
+			typeCopy.isConst_ = false;
+			typeCopy.lvalTarget_ = NULL;
+			typeCopy.refTarget_ = NULL;
+			return context_.getType(typeCopy);
 		}
 		
 		bool Type::isAuto() const {
@@ -156,6 +183,14 @@ namespace locic {
 		
 		bool Type::isAlias() const {
 			return kind() == ALIAS;
+		}
+		
+		SEM::TypeAlias* Type::getTypeAlias() const {
+			return aliasType_.typeAlias;
+		}
+		
+		const std::vector<Type*>& Type::typeAliasArguments() const {
+			return aliasType_.templateArguments;
 		}
 		
 		bool Type::isBuiltInVoid() const {
@@ -447,6 +482,10 @@ namespace locic {
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->nameToString().c_str());
 									  
+				case INTERFACEMETHOD:
+					return makeString("InterfaceMethodType(functionType: %s)",
+									  getInterfaceMethodFunctionType()->toString().c_str());
+									  
 				case TEMPLATEVAR:
 					return "TemplateVarType(templateVar: [possible loop])";
 					
@@ -475,12 +514,16 @@ namespace locic {
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->toString().c_str());
 									  
+				case INTERFACEMETHOD:
+					return makeString("InterfaceMethodType(functionType: %s)",
+									  getInterfaceMethodFunctionType()->toString().c_str());
+									  
 				case TEMPLATEVAR:
 					return makeString("TemplateVarType(templateVar: %s)",
 									  getTemplateVar()->toString().c_str());
 									  
 				default:
-					return "[UNKNOWN TYPE]";
+					return makeString("[UNKNOWN TYPE: kind = %llu]", (unsigned long long) kind());
 			}
 		}
 		
@@ -501,53 +544,6 @@ namespace locic {
 				lvalStr;
 				
 			return refStr;
-		}
-		
-		bool Type::operator==(const Type& type) const {
-			if (this == &type) {
-				return true;
-			}
-			
-			if (kind() != type.kind()
-				|| isConst() != type.isConst()
-				|| isLval() != type.isLval()) {
-				return false;
-			}
-			
-			switch (kind_) {
-				case OBJECT: {
-					return getObjectType() == type.getObjectType();
-				}
-				
-				case FUNCTION: {
-					const std::vector<Type*>& firstList = getFunctionParameterTypes();
-					const std::vector<Type*>& secondList = type.getFunctionParameterTypes();
-					
-					if (firstList.size() != secondList.size()) {
-						return false;
-					}
-					
-					for (std::size_t i = 0; i < firstList.size(); i++) {
-						if (*(firstList.at(i)) != *(secondList.at(i))) {
-							return false;
-						}
-					}
-					
-					return *(getFunctionReturnType()) == *(type.getFunctionReturnType())
-						   && isFunctionVarArg() == type.isFunctionVarArg();
-				}
-				
-				case METHOD: {
-					return *(getMethodFunctionType()) == *(type.getMethodFunctionType());
-				}
-				
-				case TEMPLATEVAR: {
-					return getTemplateVar() == type.getTemplateVar();
-				}
-				
-				default:
-					return false;
-			}
 		}
 		
 		bool Type::operator<(const Type& type) const {
@@ -580,7 +576,31 @@ namespace locic {
 					return false;
 				}
 				
+				case ALIAS: {
+					if (typeAliasArguments().size() != type.typeAliasArguments().size()) {
+						return typeAliasArguments().size() < type.typeAliasArguments().size();
+					}
+					
+					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
+						if (typeAliasArguments().at(i) != type.typeAliasArguments().at(i)) {
+							return typeAliasArguments().at(i) < type.typeAliasArguments().at(i);
+						}
+					}
+					
+					return getTypeAlias() < type.getTypeAlias();
+				}
+				
 				case OBJECT: {
+					if (templateArguments().size() != type.templateArguments().size()) {
+						return templateArguments().size() < type.templateArguments().size();
+					}
+					
+					for (size_t i = 0; i < templateArguments().size(); i++) {
+						if (templateArguments().at(i) != type.templateArguments().at(i)) {
+							return templateArguments().at(i) < type.templateArguments().at(i);
+						}
+					}
+					
 					return getObjectType() < type.getObjectType();
 				}
 				
@@ -625,11 +645,16 @@ namespace locic {
 					return getMethodFunctionType() < type.getMethodFunctionType();
 				}
 				
+				case INTERFACEMETHOD: {
+					return getInterfaceMethodFunctionType() < type.getInterfaceMethodFunctionType();
+				}
+				
 				case TEMPLATEVAR: {
 					return getTemplateVar() < type.getTemplateVar();
 				}
 				
 				default:
+					assert(false && "Unknown type kind.");
 					return false;
 			}
 		}

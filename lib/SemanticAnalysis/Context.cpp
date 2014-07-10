@@ -9,8 +9,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Context::Context(Debug::Module& pDebugModule)
-			: debugModule_(pDebugModule) { }
+		Context::Context(Debug::Module& pDebugModule, SEM::Context& pSemContext)
+			: debugModule_(pDebugModule), semContext_(pSemContext) { }
 		
 		Debug::Module& Context::debugModule() {
 			return debugModule_;
@@ -22,6 +22,10 @@ namespace locic {
 		
 		const ScopeStack& Context::scopeStack() const {
 			return scopeStack_;
+		}
+		
+		SEM::Context& Context::semContext() {
+			return semContext_;
 		}
 		
 		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {

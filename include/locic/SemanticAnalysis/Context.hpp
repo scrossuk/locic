@@ -3,6 +3,8 @@
 
 #include <locic/Debug.hpp>
 
+#include <locic/SEM/Context.hpp>
+
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
@@ -11,12 +13,14 @@ namespace locic {
 	
 		class Context {
 			public:
-				Context(Debug::Module& debugModule);
+				Context(Debug::Module& pDebugModule, SEM::Context& pSemContext);
 				
 				Debug::Module& debugModule();
 				
 				ScopeStack& scopeStack();
 				const ScopeStack& scopeStack() const;
+				
+				SEM::Context& semContext();
 			
 			private:
 				// Non-copyable.
@@ -25,6 +29,7 @@ namespace locic {
 				
 				Debug::Module& debugModule_;
 				ScopeStack scopeStack_;
+				SEM::Context& semContext_;
 				
 		};
 		

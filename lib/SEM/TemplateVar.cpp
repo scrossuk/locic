@@ -8,10 +8,14 @@ namespace locic {
 
 	namespace SEM {
 	
-		TemplateVar::TemplateVar(TemplateVarType t, size_t i)
-			: type_(t), index_(i),
+		TemplateVar::TemplateVar(Context& pContext, TemplateVarType t, size_t i)
+			: context_(pContext), type_(t), index_(i),
 			specType_(nullptr), specTypeInstance_(nullptr) { }
-			
+		
+		Context& TemplateVar::context() const {
+			return context_;
+		}
+		
 		TemplateVarType TemplateVar::type() const {
 			return type_;
 		}

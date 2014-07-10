@@ -9,11 +9,14 @@ namespace locic {
 
 	namespace SEM {
 	
+		class Context;
 		class Type;
 		
 		class TypeAlias {
 			public:
-				TypeAlias(const Name& pName);
+				TypeAlias(Context& pContext, const Name& pName);
+				
+				Context& context() const;
 				
 				const Name& name() const;
 				
@@ -24,6 +27,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				Context& context_;
 				Name name_;
 				Type* value_;
 				

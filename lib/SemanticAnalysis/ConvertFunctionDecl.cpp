@@ -45,7 +45,7 @@ namespace locic {
 			size_t templateVarIndex = 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+				const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {
@@ -54,7 +54,7 @@ namespace locic {
 				
 				// Create placeholder for the template type.
 				const Name specObjectName = semFunction->name() + templateVarName + "#spectype";
-				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
+				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
 				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 				
 				semFunction->templateVariables().push_back(semTemplateVar);

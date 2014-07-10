@@ -21,7 +21,6 @@ namespace locic {
 		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
-			  templateRootFunctionMap_(isTypeLessThan),
 			  debugBuilder_(*this), debugModule_(pDebugModule) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
@@ -185,124 +184,6 @@ namespace locic {
 		
 		PrimitiveKind Module::primitiveKind(const std::string& name) const {
 			return primitiveMap_.at(name);
-		}
-		
-		CompareResult compareTypes(SEM::Type* const first, SEM::Type* const second) {
-			if (first == second) {
-				return COMPARE_EQUAL;
-			}
-			
-			if (first->kind() != second->kind()) {
-				return first->kind() < second->kind() ? COMPARE_LESS : COMPARE_MORE;
-			}
-			
-			if (first->isConst() != second->isConst()) {
-				return first->isConst() && !second->isConst() ? COMPARE_LESS : COMPARE_MORE;
-			}
-			
-			if (first->isLval() != second->isLval()) {
-				return first->isLval() && !second->isLval() ? COMPARE_LESS : COMPARE_MORE;
-			}
-			
-			if (first->isRef() != second->isRef()) {
-				return first->isRef() && !second->isRef() ? COMPARE_LESS : COMPARE_MORE;
-			}
-			
-			if (first->isLval()) {
-				const auto result = compareTypes(first->lvalTarget(), second->lvalTarget());
-				if (result != COMPARE_EQUAL) {
-					return result;
-				}
-			}
-			
-			if (first->isRef()) {
-				const auto result = compareTypes(first->refTarget(), second->refTarget());
-				if (result != COMPARE_EQUAL) {
-					return result;
-				}
-			}
-			
-			switch (first->kind()) {
-				case SEM::Type::OBJECT: {
-					if (first->getObjectType() != second->getObjectType()) {
-						return first->getObjectType() < second->getObjectType() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					if (first->templateArguments().size() != second->templateArguments().size()) {
-						return first->templateArguments().size() < second->templateArguments().size() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					for (size_t i = 0; i < first->templateArguments().size(); i++) {
-						const auto result = compareTypes(first->templateArguments().at(i), second->templateArguments().at(i));
-						if (result != COMPARE_EQUAL) {
-							return result;
-						}
-					}
-					
-					return COMPARE_EQUAL;
-				}
-				
-				case SEM::Type::FUNCTION: {
-					if (first->isFunctionVarArg() != second->isFunctionVarArg()) {
-						return first->isFunctionVarArg() && !second->isFunctionVarArg() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					if (first->isFunctionMethod() != second->isFunctionMethod()) {
-						return first->isFunctionMethod() && !second->isFunctionMethod() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					if (first->isFunctionTemplated() != second->isFunctionTemplated()) {
-						return first->isFunctionTemplated() && !second->isFunctionTemplated() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					if (first->isFunctionNoExcept() != second->isFunctionNoExcept()) {
-						return first->isFunctionNoExcept() && !second->isFunctionNoExcept() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					{
-						const auto result = compareTypes(first->getFunctionReturnType(), second->getFunctionReturnType());
-						if (result != COMPARE_EQUAL) {
-							return result;
-						}
-					}
-					
-					const auto& firstList = first->getFunctionParameterTypes();
-					const auto& secondList = second->getFunctionParameterTypes();
-					
-					if (firstList.size() != secondList.size()) {
-						return firstList.size() < secondList.size() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					for (size_t i = 0; i < firstList.size(); i++) {
-						const auto result = compareTypes(firstList.at(i), secondList.at(i));
-						if (result != COMPARE_EQUAL) {
-							return result;
-						}
-					}
-					
-					return COMPARE_EQUAL;
-				}
-				
-				case SEM::Type::METHOD: {
-					return compareTypes(first->getMethodFunctionType(), second->getMethodFunctionType());
-				}
-				
-				case SEM::Type::INTERFACEMETHOD: {
-					return compareTypes(first->getInterfaceMethodFunctionType(), second->getInterfaceMethodFunctionType());
-				}
-				
-				case SEM::Type::TEMPLATEVAR: {
-					if (first->getTemplateVar() != second->getTemplateVar()) {
-						return first->getTemplateVar() < second->getTemplateVar() ? COMPARE_LESS : COMPARE_MORE;
-					}
-					
-					return COMPARE_EQUAL;
-				}
-				
-				default: {
-					llvm_unreachable("Unknown type enum in comparison.");
-				}
-			}
 		}
 		
 	}

@@ -201,23 +201,21 @@ int main(int argc, char* argv[]) {
 		// Debug information.
 		Debug::Module debugModule;
 		
-		// Perform semantic analysis.
-		SEM::Namespace* rootSEMNamespace = nullptr;
+		SEM::Context semContext;
 		
+		// Perform semantic analysis.
 		{
 			Timer timer;
-			rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
+			SemanticAnalysis::Run(astRootNamespaceList, semContext, debugModule);
 			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
 		}
-		
-		assert(rootSEMNamespace != nullptr);
 		
 		if (!semDebugFileName.empty()) {
 			Timer timer;
 			
 			// If requested, dump SEM tree information.
 			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-			ofs << formatMessage(rootSEMNamespace->toString());
+			ofs << formatMessage(semContext.rootNamespace()->toString());
 			
 			printf("Dump SEM: %f seconds.\n", timer.getTime());
 		}
@@ -230,7 +228,7 @@ int main(int argc, char* argv[]) {
 		
 		{
 			Timer timer;
-			codeGenerator.genNamespace(rootSEMNamespace);
+			codeGenerator.genNamespace(semContext.rootNamespace());
 			printf("Code Generation: %f seconds.\n", timer.getTime());
 		}
 		

@@ -82,7 +82,7 @@ namespace locic {
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
 			
 			// Create a placeholder type instance.
-			auto semTypeInstance = new SEM::TypeInstance(fullTypeName, typeInstanceKind, moduleScope);
+			auto semTypeInstance = new SEM::TypeInstance(context.semContext(), fullTypeName, typeInstanceKind, moduleScope);
 			
 			if (moduleScope == nullptr) {
 				if (semTypeInstance->isClassDecl()) {
@@ -115,7 +115,7 @@ namespace locic {
 			size_t templateVarIndex = 0;
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = new SEM::TemplateVar(ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+				const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {
@@ -124,7 +124,7 @@ namespace locic {
 				
 				// Create placeholder for the template type.
 				const Name specObjectName = fullTypeName + templateVarName + "#spectype";
-				const auto templateVarSpecObject = new SEM::TypeInstance(specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
+				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
 				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
@@ -194,7 +194,7 @@ namespace locic {
 					throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
 				}
 				
-				const auto semTypeAlias = new SEM::TypeAlias(fullTypeName);
+				const auto semTypeAlias = new SEM::TypeAlias(context.semContext(), fullTypeName);
 				semNamespace->items().insert(std::make_pair(typeAliasName, SEM::NamespaceItem::TypeAlias(semTypeAlias)));
 			}
 			
@@ -633,16 +633,13 @@ namespace locic {
 			GenerateNamespaceDefaultMethods(context, semNamespace, completedTypes);
 		}
 		
-		SEM::Namespace* Run(const AST::NamespaceList& rootASTNamespaces, Debug::Module& debugModule) {
+		void Run(const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
 			try {
-				// Create the new root namespace (i.e. all symbols/objects exist within this namespace).
-				const auto rootSEMNamespace = new SEM::Namespace(Name::Absolute());
-				
 				// Create 'context' to hold information about code structures.
-				Context context(debugModule);
+				Context context(debugModule, semContext);
 				
 				// Push root namespace on to the stack.
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(rootSEMNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semContext.rootNamespace()));
 				
 				// ---- Pass 1: Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);
@@ -661,8 +658,6 @@ namespace locic {
 				
 				// ---- Pass 6: Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
-				
-				return rootSEMNamespace;
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());
 				throw;

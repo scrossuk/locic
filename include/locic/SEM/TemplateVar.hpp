@@ -8,6 +8,7 @@ namespace locic {
 
 	namespace SEM {
 	
+		class Context;
 		class Type;
 		class TypeInstance;
 		
@@ -18,7 +19,9 @@ namespace locic {
 		
 		class TemplateVar {
 			public:
-				TemplateVar(TemplateVarType t, size_t i);
+				TemplateVar(Context& pContext, TemplateVarType t, size_t i);
+				
+				Context& context() const;
 				
 				TemplateVarType type() const;
 				
@@ -35,6 +38,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				Context& context_;
 				TemplateVarType type_;
 				size_t index_;
 				Type* specType_;

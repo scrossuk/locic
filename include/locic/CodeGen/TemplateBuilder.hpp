@@ -12,7 +12,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		typedef std::map<SEM::Type*, size_t, bool(*)(SEM::Type*, SEM::Type*)> TemplateUseMap;
+		typedef std::unordered_map<SEM::Type*, size_t> TemplateUseMap;
 		
 		class TemplateBuilder {
 			public:

@@ -5,6 +5,7 @@
 #include <locic/Name.hpp>
 #include <locic/String.hpp>
 
+#include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -16,8 +17,13 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(const Name& n, Kind k, ModuleScope* m)
-			: name_(n), kind_(k), moduleScope_(m), parent_(nullptr) { }
+		TypeInstance::TypeInstance(Context& c, const Name& n, Kind k, ModuleScope* m)
+			: context_(c), name_(n), kind_(k),
+			moduleScope_(m), parent_(nullptr) { }
+		
+		Context& TypeInstance::context() const {
+			return context_;
+		}
 			
 		const Name& TypeInstance::name() const {
 			return name_;
@@ -86,6 +92,7 @@ namespace locic {
 		
 		std::vector<Type*> TypeInstance::selfTemplateArgs() const {
 			std::vector<SEM::Type*> templateArgs;
+			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
 				// Refer to the template variables of this type instance.

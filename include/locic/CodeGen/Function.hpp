@@ -25,12 +25,12 @@ namespace locic {
 		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
 										   llvm::GlobalValue::LinkageTypes linkage, const std::string& name);
 										   
-		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> AlignMaskMap;
+		typedef std::unordered_map<SEM::Type*, llvm::Value*> AlignMaskMap;
 		typedef Map<SEM::Var*, llvm::Value*> LocalVarMap;
 		typedef std::pair<SEM::Type*, size_t> OffsetPair;
-		typedef std::map<OffsetPair, llvm::Value*, bool(*)(const OffsetPair&, const OffsetPair&)> MemberOffsetMap;
-		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> SizeOfMap;
-		typedef std::map<SEM::Type*, llvm::Value*, bool(*)(SEM::Type*, SEM::Type*)> TemplateGeneratorMap;
+		typedef std::map<OffsetPair, llvm::Value*> MemberOffsetMap;
+		typedef std::unordered_map<SEM::Type*, llvm::Value*> SizeOfMap;
+		typedef std::unordered_map<SEM::Type*, llvm::Value*> TemplateGeneratorMap;
 		typedef std::vector<UnwindAction> UnwindStack;
 		
 		class Function {

@@ -34,8 +34,7 @@ namespace locic {
 				
 				static const std::vector<Type*> NO_TEMPLATE_ARGS;
 				
-				// TODO: modify these to take Context parameter.
-				static Type* Auto();
+				static Type* Auto(Context& context);
 				static Type* Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments);
 				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
 				static Type* TemplateVarRef(TemplateVar* templateVar);
@@ -43,6 +42,7 @@ namespace locic {
 				static Type* Method(Type* functionType);
 				static Type* InterfaceMethod(Type* functionType);
 				
+				Context& context() const;
 				Kind kind() const;
 				
 				bool isConst() const;
@@ -62,6 +62,9 @@ namespace locic {
 				
 				bool isAuto() const;
 				bool isAlias() const;
+				
+				SEM::TypeAlias* getTypeAlias() const;
+				const std::vector<Type*>& typeAliasArguments() const;
 				
 				bool isBuiltInVoid() const;
 				bool isBuiltInReference() const;
@@ -113,20 +116,12 @@ namespace locic {
 				
 				std::string toString() const;
 				
-				bool operator==(const Type& type) const;
-				
-				inline bool operator!=(const Type& type) const {
-					return !(*this == type);
-				}
-				
 				bool operator<(const Type& type) const;
 				
 			private:
-				Type(Kind k);
+				Type(Context& pContext, Kind pKind);
 				
-				// Prevent mistakes from copying.
-				Type(const Type&) = default;
-				Type& operator=(const Type&) = delete;
+				Context& context_;
 					
 				Kind kind_;
 				bool isConst_;

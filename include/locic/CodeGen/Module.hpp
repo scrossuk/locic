@@ -42,12 +42,6 @@ namespace locic {
 			TypeInfoType
 		};
 		
-		CompareResult compareTypes(SEM::Type* const first, SEM::Type* const second);
-		
-		inline bool isTypeLessThan(SEM::Type* first, SEM::Type* second) {
-			return compareTypes(first, second) == COMPARE_LESS;
-		}
-		
 		typedef std::map<AttributeKind, llvm::AttributeSet> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
@@ -59,7 +53,7 @@ namespace locic {
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
 		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
-		typedef std::map<SEM::Type*, llvm::Function*, bool(*)(SEM::Type*, SEM::Type*)> TemplateRootFunctionMap;
+		typedef std::unordered_map<SEM::Type*, llvm::Function*> TemplateRootFunctionMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;

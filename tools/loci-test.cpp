@@ -195,19 +195,19 @@ int main(int argc, char* argv[]) {
 		Debug::Module debugModule;
 		
 		// Perform semantic analysis.
-		const auto rootSEMNamespace = SemanticAnalysis::Run(astRootNamespaceList, debugModule);
-		assert(rootSEMNamespace != nullptr);
+		SEM::Context semContext;
+		SemanticAnalysis::Run(astRootNamespaceList, semContext, debugModule);
 		
 		// Dump SEM tree information.
 		const auto semDebugFileName = testName + "_semdebug.txt";
 		std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-		ofs << formatMessage(rootSEMNamespace->toString());
+		ofs << formatMessage(semContext.rootNamespace()->toString());
 		
 		// Perform code generation.
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule);
 		
-		codeGenerator.genNamespace(rootSEMNamespace);
+		codeGenerator.genNamespace(semContext.rootNamespace());
 		
 		// Dump LLVM IR.
 		const auto codeGenDebugFileName = testName + "_codegendebug.ll";

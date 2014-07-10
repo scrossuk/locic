@@ -115,7 +115,7 @@ namespace locic {
 			const auto valueType = semVar->constructType();
 			const auto varType = semVar->type();
 			
-			if (*(valueType) == *(varType)) {
+			if (valueType == varType) {
 				genStore(function, value, var, varType);
 			} else {
 				// If the variable type wasn't actually an lval

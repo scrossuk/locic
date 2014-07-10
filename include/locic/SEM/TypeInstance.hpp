@@ -12,6 +12,7 @@ namespace locic {
 	
 	namespace SEM {
 	
+		class Context;
 		class Function;
 		class ModuleScope;
 		class TemplateVar;
@@ -31,7 +32,9 @@ namespace locic {
 					TEMPLATETYPE
 				};
 				
-				TypeInstance(const Name& n, Kind k, SEM::ModuleScope* m);
+				TypeInstance(Context& c, const Name& n, Kind k, SEM::ModuleScope* m);
+				
+				Context& context() const;
 				
 				const Name& name() const;
 				
@@ -113,6 +116,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				Context& context_;
 				Name name_;
 				Kind kind_;
 				SEM::ModuleScope* moduleScope_;

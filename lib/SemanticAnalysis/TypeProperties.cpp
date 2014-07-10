@@ -296,7 +296,7 @@ namespace locic {
 					if (!firstArgType->isRef()) return false;
 					if (!firstArgType->isBuiltInReference()) return false;
 					if (!firstArgType->refTarget()->isConst()) return false;
-					if (*(firstArgType->refTarget()) != *(type->createConstType())) return false;
+					if (firstArgType->refTarget() != type->createConstType()) return false;
 					
 					return true;
 				}

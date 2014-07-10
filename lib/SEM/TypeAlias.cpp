@@ -8,8 +8,12 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeAlias::TypeAlias(const Name& pName)
-			: name_(pName), value_(nullptr) { }
+		TypeAlias::TypeAlias(Context& pContext, const Name& pName)
+			: context_(pContext), name_(pName), value_(nullptr) { }
+		
+		Context& TypeAlias::context() const {
+			return context_;
+		}
 		
 		const Name& TypeAlias::name() const {
 			return name_;

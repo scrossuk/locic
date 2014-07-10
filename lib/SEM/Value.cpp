@@ -52,7 +52,7 @@ namespace locic {
 		}
 		
 		Value* Value::Ternary(Value* condition, Value* ifTrue, Value* ifFalse) {
-			assert(*(ifTrue->type()) == *(ifFalse->type()));
+			assert(ifTrue->type() == ifFalse->type());
 			Value* value = new Value(TERNARY, ifTrue->type());
 			value->ternary.condition = condition;
 			value->ternary.ifTrue = ifTrue;
