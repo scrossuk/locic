@@ -52,8 +52,8 @@ namespace locic {
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
 		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
-		typedef std::unordered_map<SEM::TypeInstance*, TemplateBuilder> TemplateBuilderMap;
-		typedef std::unordered_map<SEM::Type*, llvm::Function*> TemplateRootFunctionMap;
+		typedef std::map<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
+		typedef std::map<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
 		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
@@ -102,7 +102,7 @@ namespace locic {
 				
 				StandardTypeMap& standardTypeMap();
 				
-				TemplateBuilder& typeTemplateBuilder(SEM::TypeInstance* typeInstance);
+				TemplateBuilder& templateBuilder(TemplatedObject templatedObject);
 				
 				TemplateRootFunctionMap& templateRootFunctionMap();
 				

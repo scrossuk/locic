@@ -276,7 +276,7 @@ namespace locic {
 					
 					// Generate the vtable and template generator.
 					const auto vtablePointer = genVTable(module, sourceTarget);
-					const auto templateGenerator = getTemplateGenerator(function, sourceTarget);
+					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
 					
 					// Build the new interface struct with these values.
 					return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));

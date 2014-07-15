@@ -17,6 +17,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
@@ -144,10 +145,14 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			const auto templateBuilder = typeInstance != nullptr ? &(module.typeTemplateBuilder(typeInstance)) : nullptr;
+			const auto templatedObject =
+				!function->templateVariables().empty() || typeInstance == nullptr ?
+					TemplatedObject::Function(typeInstance, function) :
+					TemplatedObject::TypeInstance(typeInstance);
 			
+			auto& templateBuilder = module.templateBuilder(templatedObject);
 			const auto argInfo = getFunctionArgInfo(module, function->type());
-			Function functionGenerator(module, *llvmFunction, argInfo, templateBuilder);
+			Function functionGenerator(module, *llvmFunction, argInfo, &templateBuilder);
 			
 			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {
 				// Always inline if possible for templated functions.
@@ -173,6 +178,14 @@ namespace locic {
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();
+			
+			if (!function->templateVariables().empty()) {
+				(void) genTemplateIntermediateFunction(module, templatedObject, templateBuilder);
+				
+				// Update all instructions needing the bits required value
+				// with the correct value (now it is known).
+				templateBuilder.updateAllInstructions(module);
+			}
 			
 			return llvmFunction;
 		}

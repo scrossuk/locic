@@ -37,6 +37,7 @@ add_library(locic-codegen
 	TargetInfo.cpp
 	Template.cpp
 	TemplateBuilder.cpp
+	TemplatedObject.cpp
 	TypeSizeKnowledge.cpp
 	UnwindAction.cpp
 	VTable.cpp

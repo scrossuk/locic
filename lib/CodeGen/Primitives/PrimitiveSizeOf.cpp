@@ -23,7 +23,7 @@ namespace locic {
 			
 			const auto typeInstance = type->getObjectType();
 			
-			Function function(module, llvmFunction, alignMaskArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, alignMaskArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
 			const auto& name = typeInstance->name().first();
 			
@@ -68,7 +68,7 @@ namespace locic {
 			
 			const auto typeInstance = type->getObjectType();
 			
-			Function function(module, llvmFunction, sizeOfArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, sizeOfArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
 			const auto& name = typeInstance->name().first();
 			

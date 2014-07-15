@@ -82,8 +82,8 @@ namespace locic {
 			(void) genSizeOfFunction(module, typeInstance->selfType());
 			
 			if (!typeInstance->templateVariables().empty()) {
-				auto& templateBuilder = module.typeTemplateBuilder(typeInstance);
-				(void) genTemplateIntermediateFunction(module, typeInstance, templateBuilder);
+				auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(typeInstance));
+				(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(typeInstance), templateBuilder);
 				
 				// Update all instructions needing the bits required value
 				// with the correct value (now it is known).

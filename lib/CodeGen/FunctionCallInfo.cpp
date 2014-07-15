@@ -198,7 +198,12 @@ namespace locic {
 						if (parentType != nullptr && parentType->isTemplateVar()) {
 							callInfo.templateGenerator = function.getTemplateGenerator();
 						} else {
-							callInfo.templateGenerator = getTemplateGenerator(function, parentType, value->functionRef.templateArguments);
+							if (!value->functionRef.templateArguments.empty()) {
+								const auto templateInst = TemplateInst::Function(parentType, value->functionRef.function, value->functionRef.templateArguments);
+								callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
+							} else {
+								callInfo.templateGenerator = getTemplateGenerator(function, TemplateInst::Type(parentType));
+							}
 						}
 					}
 					

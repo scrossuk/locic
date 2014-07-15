@@ -8,6 +8,8 @@
 #include <locic/SEM.hpp>
 #include <locic/Version.hpp>
 
+#include <locic/CodeGen/TemplatedObject.hpp>
+
 namespace locic {
 
 	namespace CodeGen {
@@ -26,7 +28,7 @@ namespace locic {
 		
 		std::string mangleModuleScope(SEM::ModuleScope* moduleScope);
 		
-		std::string mangleTemplateGenerator(SEM::TypeInstance* typeInstance);
+		std::string mangleTemplateGenerator(TemplatedObject templatedObject);
 		
 	}
 	

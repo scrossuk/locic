@@ -7,12 +7,13 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/TemplatedObject.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
-		typedef std::unordered_map<SEM::Type*, size_t> TemplateUseMap;
+		typedef std::map<TemplateInst, size_t> TemplateUseMap;
 		
 		class TemplateBuilder {
 			public:
@@ -21,11 +22,11 @@ namespace locic {
 				/**
 				 * \brief Add template use.
 				 * 
-				 * Generates an entry ID for an intermediate template type
-				 * usage; if the same type is used multiple times the same
-				 * ID will be returned.
+				 * Generates an entry ID for an intermediate template
+				 * instantiation; if the same instantiation is used
+				 * multiple times the same ID will be returned.
 				 */
-				size_t addUse(SEM::Type* type);
+				size_t addUse(const TemplateInst& templateInst);
 				
 				/**
 				 * \brief Bits required to identify template use.
@@ -38,8 +39,8 @@ namespace locic {
 				/**
 				 * \brief Get template use map.
 				 * 
-				 * Returns the mapping from type uses to their
-				 * corresponding entry IDs.
+				 * Returns the mapping from template instantiations
+				 * to their corresponding entry IDs.
 				 */
 				const TemplateUseMap& templateUseMap() const;
 				

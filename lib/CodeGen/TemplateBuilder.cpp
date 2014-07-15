@@ -34,20 +34,20 @@ namespace locic {
 		
 		TemplateBuilder::TemplateBuilder() { }
 		
-		size_t TemplateBuilder::addUse(SEM::Type* type) {
-			assert(type->isObject() && !type->templateArguments().empty());
+		size_t TemplateBuilder::addUse(const TemplateInst& templateInst) {
+			assert(!templateInst.arguments().empty());
 			
-			const auto it = templateUseMap_.find(type);
+			const auto it = templateUseMap_.find(templateInst);
 			if (it != templateUseMap_.end()) {
 				return it->second;
 			}
 			
 			const size_t nextId = templateUseMap_.size();
-			templateUseMap_.insert(std::make_pair(type, nextId));
+			templateUseMap_.insert(std::make_pair(templateInst, nextId));
 			
-			for (const auto& arg: type->templateArguments()) {
+			for (const auto& arg: templateInst.arguments()) {
 				if (arg->isObject() && !arg->templateArguments().empty()) {
-					(void) addUse(arg);
+					(void) addUse(TemplateInst::Type(arg));
 				}
 			}
 			

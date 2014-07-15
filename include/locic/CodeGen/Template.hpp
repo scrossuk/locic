@@ -8,6 +8,7 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
+#include <locic/CodeGen/TemplatedObject.hpp>
 
 namespace locic {
 
@@ -55,14 +56,14 @@ namespace locic {
 		llvm::Constant* nullTemplateGenerator(Module& module);
 		
 		/**
-		 * \brief Obtain a template generator for a type with
-		 *        template arguments.
+		 * \brief Obtain a template generator for a template
+		 *        instantiation.
 		 * 
 		 * This will generate a pair of { rootFunction, path }
 		 * that can be used with 'computeTemplateArguments' to
 		 * obtain the template arguments.
 		 */
-		llvm::Value* getTemplateGenerator(Function& function, SEM::Type* type, llvm::ArrayRef<SEM::Type*> functionArgs = std::vector<SEM::Type*>());
+		llvm::Value* getTemplateGenerator(Function& function, const TemplateInst& templateInst);
 		
 		/**
 		 * \brief Generate a root template argument generator function.
@@ -81,7 +82,7 @@ namespace locic {
 		 * The resulting function can therefore be called to obtain
 		 * template arguments given a particular path.
 		 */
-		llvm::Function* genTemplateRootFunction(Module& module, SEM::Type* type);
+		llvm::Function* genTemplateRootFunction(Module& module, const TemplateInst& templateInst);
 		
 		/**
 		 * \brief Generate the declaration for an intermediate template argument generator function.
@@ -96,7 +97,7 @@ namespace locic {
 		 * and this should mean it is able to be thoroughly optimised (and calls to it
 		 * can be eliminated if possible).
 		 */
-		llvm::Function* genTemplateIntermediateFunctionDecl(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genTemplateIntermediateFunctionDecl(Module& module, TemplatedObject templatedObject);
 		
 		/**
 		 * \brief Generate an intermediate template argument generator function.
@@ -134,7 +135,7 @@ namespace locic {
 		 * intermediate function, in order to set its own template arguments
 		 * based on the arguments provided to it.
 		 */
-		llvm::Function* genTemplateIntermediateFunction(Module& module, SEM::TypeInstance* parentType, const TemplateBuilder& templateBuilder);
+		llvm::Function* genTemplateIntermediateFunction(Module& module, TemplatedObject templatedObject, const TemplateBuilder& templateBuilder);
 		
 	}
 	

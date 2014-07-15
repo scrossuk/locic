@@ -929,7 +929,7 @@ namespace locic {
 			const auto typeName = typeInstance->name().last();
 			
 			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
-			Function function(module, llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
 			// Collect together arguments, and whether they're reference arguments.
 			llvm::SmallVector<std::pair<llvm::Value*, bool>, 10> args;

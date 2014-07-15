@@ -104,9 +104,18 @@ namespace locic {
 			return mangleModuleScopeFields(moduleScope->moduleName(), moduleScope->moduleVersion());
 		}
 		
-		std::string mangleTemplateGenerator(SEM::TypeInstance* typeInstance) {
+		std::string mangleTemplateGenerator(TemplatedObject templatedObject) {
 			std::string s = "TPLGEN";
-			s += mangleObjectType(typeInstance);
+			switch (templatedObject.kind()) {
+				case TemplatedObject::TYPEINSTANCE:
+					s += mangleObjectType(templatedObject.typeInstance());
+					break;
+				case TemplatedObject::FUNCTION:
+					s += mangleFunctionName(templatedObject.function()->name());
+					break;
+				default:	
+					llvm_unreachable("Unknown templated object kind.");
+			}
 			return s;
 		}
 		

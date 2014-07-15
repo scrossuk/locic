@@ -92,7 +92,7 @@ namespace locic {
 				
 				llvm::SmallVector<llvm::Value*, 2> args;
 				if (!type->templateArguments().empty()) {
-					args.push_back(getTemplateGenerator(function, type));
+					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
 				}
 				args.push_back(castValue);
 								  
@@ -241,7 +241,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			Function function(module, *llvmFunction, argInfo, &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
 			if (typeInstance->isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);

@@ -147,8 +147,8 @@ namespace locic {
 			return standardTypeMap_;
 		}
 		
-		TemplateBuilder& Module::typeTemplateBuilder(SEM::TypeInstance* typeInstance) {
-			return templateBuilderMap_[typeInstance];
+		TemplateBuilder& Module::templateBuilder(TemplatedObject templatedObject) {
+			return templateBuilderMap_[templatedObject];
 		}
 		
 		TemplateRootFunctionMap& Module::templateRootFunctionMap() {

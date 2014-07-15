@@ -19,7 +19,7 @@ namespace locic {
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.typeTemplateBuilder(typeInstance)));
+			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			genPrimitiveDestructorCall(function, typeInstance->selfType(), function.getRawContextValue());
 			function.getBuilder().CreateRetVoid();
 			
