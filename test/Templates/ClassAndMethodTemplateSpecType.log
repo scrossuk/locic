@@ -1,0 +1,8 @@
+TestClass::printObject
+PrintableClass: i = 4242
+TestClass::printObjectWithPrinter
+PrintOtherClass: Printing other class...
+PrintableClass: i = 4343
+TestClass::printObjectWithPrinter
+PrintOtherClassTemplated: Printing other class...
+PrintableClass: i = 4444

@@ -290,6 +290,11 @@ namespace locic {
 					}
 				}
 			}
+			
+			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
+				const auto semTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+				semTypeAlias->setValue(ConvertType(context, astTypeAliasNode->value));
+			}
 		}
 		
 		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {

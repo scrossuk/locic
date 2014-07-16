@@ -76,7 +76,7 @@ const T& GETSYM(T* value) {
 
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
-%expect 7
+%expect 8
 %expect-rr 3
 
 %lex-param {void * scanner}
@@ -304,8 +304,10 @@ const T& GETSYM(T* value) {
 
 %type <type> staticMethodReturn
 
-%type <function> staticMethodDecl
-%type <function> staticMethodDef
+%type <function> nonTemplatedStaticMethodDecl
+%type <function> nonTemplatedStaticMethodDef
+%type <function> nonTemplatedMethodDecl
+%type <function> nonTemplatedMethodDef
 %type <function> methodDecl
 %type <function> methodDef
 %type <functionList> methodDeclList
@@ -613,21 +615,33 @@ constSpecifier:
 	}
 	;
 
-staticMethodDecl:
+nonTemplatedStaticMethodDecl:
 	STATIC type functionName LROUNDBRACKET typeVarList RROUNDBRACKET noexceptSpecifier SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::StaticMethodDecl($7, GETSYM($2), GETSYM($3), GETSYM($5))));
 	}
 	;
 	
-methodDecl:
-	staticMethodDecl
+nonTemplatedMethodDecl:
+	nonTemplatedStaticMethodDecl
 	{
 		$$ = $1;
 	}
 	| type functionName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::MethodDecl($6, $7, GETSYM($1), GETSYM($2), GETSYM($4))));
+	}
+	;
+
+methodDecl:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedMethodDecl
+	{
+		(GETSYM($5))->setTemplateVariables(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+	}
+	| nonTemplatedMethodDecl
+	{
+		$$ = $1;
 	}
 	;
 	
@@ -654,7 +668,7 @@ staticMethodReturn:
 	}
 	;
 	
-staticMethodDef:
+nonTemplatedStaticMethodDef:
 	STATIC functionName SETEQUAL DEFAULT SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultStaticMethodDef(GETSYM($2))));
@@ -665,8 +679,8 @@ staticMethodDef:
 	}
 	;
 	
-methodDef:
-	staticMethodDef
+nonTemplatedMethodDef:
+	nonTemplatedStaticMethodDef
 	{
 		$$ = $1;
 	}
@@ -681,6 +695,18 @@ methodDef:
 	| type functionName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier scope
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::MethodDef($6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($8))));
+	}
+	;
+
+methodDef:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedMethodDef
+	{
+		(GETSYM($5))->setTemplateVariables(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+	}
+	| nonTemplatedMethodDef
+	{
+		$$ = $1;
 	}
 	;
 	
@@ -1460,6 +1486,10 @@ precision7:
 	| precision7 DOT NAME
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
+	}
+	| precision7 DOT NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
 	| precision7 PTRACCESS NAME
 	{

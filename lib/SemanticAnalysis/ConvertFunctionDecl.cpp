@@ -42,7 +42,7 @@ namespace locic {
 			semFunction->setConstMethod(astFunctionNode->isConstMethod());
 			
 			// Add template variables.
-			size_t templateVarIndex = 0;
+			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);

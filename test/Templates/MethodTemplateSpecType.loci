@@ -1,0 +1,53 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+interface Printable {
+	void print();
+}
+
+class TestClass() {
+	static create = default;
+	
+	template <typename T: Printable>
+	void printObject(T object) {
+		object.print();
+	}
+}
+
+class PrintableInt(int i) {
+	static create = default;
+	
+	void print() {
+		testPrint(C"PrintableInt: i = %d", @i);
+	}
+}
+
+class PrintableFloat(float f) {
+	static create = default;
+	
+	void print() {
+		testPrint(C"PrintableFloat: f = %.5f", @f);
+	}
+}
+
+class PrintableDouble(double d) {
+	static create = default;
+	
+	void print() {
+		testPrint(C"PrintableDouble: d = %.9f", @d);
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass testObject = TestClass();
+	
+	testObject.printObject<PrintableInt>(PrintableInt(3));
+	
+	testObject.printObject<PrintableFloat>(PrintableFloat(3.14159f));
+	
+	testObject.printObject<PrintableDouble>(PrintableDouble(3.141592654));
+	
+	return 0;
+}
+

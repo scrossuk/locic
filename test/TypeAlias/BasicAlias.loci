@@ -5,7 +5,7 @@ class TestClass() {
 	static Create = default;
 	
 	void print() {
-		testPrintf(C"TestClass.print()");
+		testPrint(C"TestClass.print()");
 	}
 }
 

@@ -19,7 +19,7 @@ namespace locic {
 			return new Value(THIS, type);
 		}
 		
-		Value* Value::Constant(locic::Constant* constant, Type* type) {
+		Value* Value::Constant(const locic::Constant* constant, Type* type) {
 			Value* value = new Value(CONSTANT, type);
 			value->constant = constant;
 			return value;

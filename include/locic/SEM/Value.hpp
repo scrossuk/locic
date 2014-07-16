@@ -51,7 +51,7 @@ namespace locic {
 					CASTDUMMYOBJECT
 				};
 				
-				locic::Constant* constant;
+				const locic::Constant* constant;
 				
 				struct {
 					Var* var;
@@ -149,7 +149,7 @@ namespace locic {
 				
 				static Value* This(Type* type);
 				
-				static Value* Constant(Constant* constant, Type* type);
+				static Value* Constant(const Constant* constant, Type* type);
 				
 				static Value* LocalVar(Var* var, Type* type);
 				

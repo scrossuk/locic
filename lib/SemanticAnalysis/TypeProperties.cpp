@@ -9,6 +9,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/TypeProperties.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 
 namespace locic {
@@ -100,6 +101,10 @@ namespace locic {
 		}
 		
 		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			return GetTemplatedMethod(context, rawValue, methodName, {}, location);
+		}
+		
+		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			const auto value = dissolveObject(context, rawValue, methodName, location);
 			const auto type = getDerefType(value->type());
 			
@@ -133,7 +138,55 @@ namespace locic {
 					type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(type, function, {}, type->generateTemplateVarMap());
+			const auto templateVariables = function->templateVariables();
+			if (templateVariables.size() != templateArguments.size()) {
+				throw ErrorException(makeString("Incorrect number of template "
+					"arguments provided for method '%s'; %llu were required, "
+					"but %llu were provided at position %s.",
+					function->name().toString().c_str(),
+					(unsigned long long) templateVariables.size(),
+					(unsigned long long) templateArguments.size(),
+					location.toString().c_str()));
+			}
+			
+			// Create map from variables to values for both the method
+			// and its parent type.
+			auto combinedTemplateVarMap = type->generateTemplateVarMap();
+			for (size_t i = 0; i < templateArguments.size(); i++) {
+				combinedTemplateVarMap.insert(std::make_pair(templateVariables.at(i), templateArguments.at(i)));
+			}
+			
+			// Now check all the arguments are valid.
+			for (size_t i = 0; i < templateArguments.size(); i++) {
+				const auto templateVariable = templateVariables.at(i);
+				const auto templateTypeValue = templateArguments.at(i);
+				
+				if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
+					throw ErrorException(makeString("Invalid type '%s' passed "
+						"as template parameter %llu for method '%s' at position %s.",
+						templateTypeValue->toString().c_str(),
+						(unsigned long long) i,
+						function->name().toString().c_str(),
+						location.toString().c_str()));
+				}
+				
+				if (templateVariable->specType() != nullptr) {
+					assert(templateVariable->specType()->isInterface());
+					
+					const auto specType = templateVariable->specType()->substitute(combinedTemplateVarMap);
+					
+					if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
+						throw ErrorException(makeString("Type '%s' does not satisfy "
+							"constraint for template parameter %llu of method '%s' at position %s.",
+							templateTypeValue->getObjectType()->name().toString().c_str(),
+							(unsigned long long) i,
+							function->name().toString().c_str(),
+							location.toString().c_str()));
+					}
+				}
+			}
+			
+			const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, combinedTemplateVarMap);
 			
 			if (typeInstance->isInterface()) {
 				return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));

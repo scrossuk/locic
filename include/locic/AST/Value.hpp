@@ -52,6 +52,7 @@ namespace locic {
 				NOREF,
 				INTERNALCONSTRUCT,
 				MEMBERACCESS,
+				TEMPLATEDMEMBERACCESS,
 				FUNCTIONCALL
 			} typeEnum;
 			
@@ -125,6 +126,12 @@ namespace locic {
 				Node<Value> object;
 				std::string memberName;
 			} memberAccess;
+			
+			struct {
+				Node<Value> object;
+				std::string memberName;
+				Node<TypeList> typeList;
+			} templatedMemberAccess;
 			
 			struct {
 				Node<Value> functionValue;
@@ -235,6 +242,14 @@ namespace locic {
 				Value* value = new Value(MEMBERACCESS);
 				value->memberAccess.object = object;
 				value->memberAccess.memberName = memberName;
+				return value;
+			}
+			
+			inline static Value* TemplatedMemberAccess(Node<Value> object, const std::string& memberName, const Node<TypeList>& typeList) {
+				Value* value = new Value(TEMPLATEDMEMBERACCESS);
+				value->templatedMemberAccess.object = object;
+				value->templatedMemberAccess.memberName = memberName;
+				value->templatedMemberAccess.typeList = typeList;
 				return value;
 			}
 			

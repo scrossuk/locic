@@ -1,2 +1,5 @@
-object.getValue() = 200
-object.getValue() = 400
+From object: 4444
+From alias 0: 4444
+From alias 1: 4444
+From alias 2: 4444
+From alias 3: 4444

@@ -1,9 +1,13 @@
 # Template tests.
 
 test_check_output(BasicClassTemplate)
+test_check_output(BasicClassAndMethodTemplate)
 test_check_output(BasicFunctionTemplate)
+test_check_output(BasicMethodTemplate)
+test_check_output(ClassAndMethodTemplateSpecType)
 test_check_output(FunctionTemplateSpecType)
 test_check_output(MemberTemplate)
+test_check_output(MethodTemplateSpecType)
 test_check_output(MultipleTemplate)
 test_check_output(RecursiveTemplate)
 test_check_output(TemplateCallConstructor)

@@ -440,6 +440,16 @@ namespace locic {
 						}
 					}
 					
+					case Type::ALIAS: {
+						std::vector<Type*> templateArgs;
+						
+						for (const auto& templateArg : type->typeAliasArguments()) {
+							templateArgs.push_back(templateArg->substitute(templateVarMap));
+						}
+						
+						return SEM::Type::Alias(type->getTypeAlias(), templateArgs);
+					}
+					
 					default:
 						throw std::runtime_error("Unknown type kind for template var substitution.");
 				}
@@ -460,6 +470,88 @@ namespace locic {
 			const bool isTemplated = true;
 			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
 				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes());
+		}
+		
+		namespace {
+		
+			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
+				switch (type->kind()) {
+					case Type::OBJECT: {
+						std::vector<Type*> templateArgs;
+						templateArgs.reserve(type->templateArguments().size());
+						
+						for (const auto& templateArg: type->templateArguments()) {
+							templateArgs.push_back(doResolve(templateArg, templateVarMap));
+						}
+						
+						return Type::Object(type->getObjectType(), templateArgs);
+					}
+					
+					case Type::FUNCTION: {
+						std::vector<Type*> args;
+						args.reserve(type->getFunctionParameterTypes().size());
+						for (const auto& paramType: type->getFunctionParameterTypes()) {
+							args.push_back(doResolve(paramType, templateVarMap));
+						}
+						
+						const auto returnType = doResolve(type->getFunctionReturnType(), templateVarMap);
+						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
+							type->isFunctionTemplated(),
+							type->isFunctionNoExcept(), returnType, args);
+					}
+					
+					case Type::METHOD: {
+						const auto functionType = doResolve(type->getMethodFunctionType(), templateVarMap);
+						return Type::Method(functionType);
+					}
+					
+					case Type::INTERFACEMETHOD: {
+						const auto functionType = doResolve(type->getInterfaceMethodFunctionType(), templateVarMap);
+						return Type::InterfaceMethod(functionType);
+					}
+					
+					case Type::TEMPLATEVAR: {
+						const auto iterator = templateVarMap.find(type->getTemplateVar());
+						if (iterator != templateVarMap.end()) {
+							return iterator->second;
+						} else {
+							return Type::TemplateVarRef(type->getTemplateVar());
+						}
+					}
+					
+					case Type::ALIAS: {
+						const auto& templateVars = type->getTypeAlias()->templateVariables();
+						
+						SEM::TemplateVarMap newTemplateVarMap = templateVarMap;
+						for (size_t i = 0; i < templateVars.size(); i++) {
+							const auto resolvedType = doResolve(type->typeAliasArguments().at(i), templateVarMap);
+							newTemplateVarMap.insert(std::make_pair(templateVars.at(i), resolvedType));
+						}
+						
+						return doResolve(type->getTypeAlias()->value(), newTemplateVarMap);
+					}
+					
+					default:
+						throw std::runtime_error("Unknown type kind for template var substitution.");
+				}
+			}
+			
+		}
+		
+		Type* Type::resolveAlias() const {
+			assert(isAlias());
+			
+			const auto& templateVars = getTypeAlias()->templateVariables();
+			const auto& templateArgs = typeAliasArguments();
+			
+			assert(templateVars.size() == templateArgs.size());
+			
+			SEM::TemplateVarMap templateVarMap;
+			for (size_t i = 0; i < templateVars.size(); i++) {
+				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
+			}
+			
+			return doResolve(getTypeAlias()->value(), templateVarMap);
 		}
 		
 		std::string Type::nameToString() const {

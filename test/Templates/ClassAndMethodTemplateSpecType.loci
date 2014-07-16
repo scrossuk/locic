@@ -1,0 +1,80 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+interface Printable {
+	void print() const;
+}
+
+template <typename T: Printable>
+interface PrintOther {
+	void printOther(const T& value);
+}
+
+template <typename S: Printable>
+class TestClass(S object) {
+	static create = default;
+	
+	S& object() {
+		return @object;
+	}
+	
+	void printObject() {
+		testPrint(C"TestClass::printObject");
+		@object.print();
+	}
+	
+	template <typename T: PrintOther<S>>
+	void printObjectWithPrinter(T object) {
+		testPrint(C"TestClass::printObjectWithPrinter");
+		object.printOther(@object);
+	}
+}
+
+class PrintableClass(int i) {
+	static create = default;
+	
+	void setValue(int i) {
+		@i = i;
+	}
+	
+	void print() const {
+		testPrint(C"PrintableClass: i = %d", @i);
+	}
+}
+
+class PrintOtherClass() {
+	static create = default;
+	
+	void printOther(const PrintableClass& printableClass) {
+		testPrint(C"PrintOtherClass: Printing other class...");
+		printableClass.print();
+	}
+}
+
+template <typename T: Printable>
+class PrintOtherClassTemplated() {
+	static create = default;
+	
+	void printOther(const T& printableClass) {
+		testPrint(C"PrintOtherClassTemplated: Printing other class...");
+		printableClass.print();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass<PrintableClass> testObject = TestClass<PrintableClass>(PrintableClass(4242));
+	
+	testObject.printObject();
+	
+	testObject.object().setValue(4343);
+	
+	testObject.printObjectWithPrinter<PrintOtherClass>(PrintOtherClass());
+	
+	testObject.object().setValue(4444);
+	
+	testObject.printObjectWithPrinter<PrintOtherClassTemplated<PrintableClass>>(PrintOtherClassTemplated<PrintableClass>());
+	
+	return 0;
+}
+

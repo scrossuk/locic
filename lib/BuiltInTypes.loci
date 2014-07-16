@@ -143,6 +143,10 @@ __primitive ushort_t {
 	bool isZero() const noexcept;
 }
 
+interface __implicit_cast_int_t {
+	uint16_t implicit_cast_int_t() const;
+}
+
 __primitive int_t {
 	static int_t unit() noexcept;
 	
@@ -150,6 +154,9 @@ __primitive int_t {
 	static int_t int16_cast(int16_t value) noexcept;
 	static int_t byte_cast(byte_t value) noexcept;
 	static int_t short_cast(short_t value) noexcept;
+	
+	//template <typename T: __implicit_cast_int_t>
+	//static int_t implicit_cast(T value);
 	
 	int_t implicitCopy() const noexcept;
 	

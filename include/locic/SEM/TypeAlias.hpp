@@ -2,6 +2,7 @@
 #define LOCIC_SEM_TYPEALIAS_HPP
 
 #include <string>
+#include <vector>
 
 #include <locic/Name.hpp>
 
@@ -11,6 +12,7 @@ namespace locic {
 	
 		class Context;
 		class Type;
+		class TypeAlias;
 		
 		class TypeAlias {
 			public:
@@ -19,6 +21,10 @@ namespace locic {
 				Context& context() const;
 				
 				const Name& name() const;
+				
+				const std::vector<SEM::TemplateVar*>& templateVariables() const;
+				
+				void setTemplateVariables(const std::vector<SEM::TemplateVar*>& templateVars);
 				
 				Type* value() const;
 				
@@ -29,6 +35,7 @@ namespace locic {
 			private:
 				Context& context_;
 				Name name_;
+				std::vector<SEM::TemplateVar*> templateVars_;
 				Type* value_;
 				
 		};

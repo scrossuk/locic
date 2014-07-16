@@ -160,16 +160,17 @@ namespace locic {
 				
 				assert(templateVarMap.size() == typeInstance->templateVariables().size());
 				
-				std::vector<SEM::Type*> templateArguments;
-				for(size_t i = 0; i < typeInstance->templateVariables().size(); i++){
-					templateArguments.push_back(templateVarMap.at(typeInstance->templateVariables().at(i)));
-				}
-				
-				return SEM::Type::Object(typeInstance, templateArguments);
-			} else if(searchResult.isTemplateVar()) {
+				return SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
+			} else if (searchResult.isTemplateVar()) {
 				assert(templateVarMap.empty());
 				
 				return SEM::Type::TemplateVarRef(searchResult.templateVar());
+			} else if (searchResult.isTypeAlias()) {
+				const auto typeAlias = searchResult.typeAlias();
+				
+				assert(templateVarMap.size() == typeAlias->templateVariables().size());
+				
+				return SEM::Type::Alias(typeAlias, GetTemplateValues(templateVarMap, typeAlias->templateVariables()))->resolveAlias();
 			} else {
 				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
 					name.toString().c_str(), symbol.location().toString().c_str()));

@@ -1,0 +1,23 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+template <typename S>
+class TestClass(S object) {
+	static create = default;
+	
+	template <typename T>
+	T passThrough(T object) {
+		return move object;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass<int> testObject = TestClass<int>(1);
+	
+	testPrint(C"passThrough<int>(2000) = %d", testObject.passThrough<int>(2000));
+	testPrint(C"passThrough<float>(2000.0f) = %f", testObject.passThrough<float>(2000.0f));
+	
+	return 0;
+}
+
