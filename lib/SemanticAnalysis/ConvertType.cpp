@@ -34,11 +34,13 @@ namespace locic {
 				
 				const auto searchResult = performSearch(context, name);
 				
-				if (searchResult.isFunction() || searchResult.isTypeInstance()) {
+				if (searchResult.isFunction() || searchResult.isTypeAlias() || searchResult.isTypeInstance()) {
 					const auto& templateVariables =
 						searchResult.isFunction() ?
 							searchResult.function()->templateVariables() :
-							searchResult.typeInstance()->templateVariables();
+							searchResult.isTypeAlias() ?
+								searchResult.typeAlias()->templateVariables() :
+								searchResult.typeInstance()->templateVariables();
 					
 					if (templateVariables.size() != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
@@ -107,6 +109,9 @@ namespace locic {
 									name.toString().c_str(),
 									location.toString().c_str()));
 							}
+						} else {
+							// Record this instantiation to be checked later.
+							context.templateInstantiations().push_back(std::make_tuple(templateVariable, templateTypeValue, templateVarMap, name, location));
 						}
 					}
 				} else {
@@ -170,7 +175,10 @@ namespace locic {
 				
 				assert(templateVarMap.size() == typeAlias->templateVariables().size());
 				
-				return SEM::Type::Alias(typeAlias, GetTemplateValues(templateVarMap, typeAlias->templateVariables()))->resolveAlias();
+				const auto templateValues = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
+				assert(templateValues.size() == typeAlias->templateVariables().size());
+				
+				return SEM::Type::Alias(typeAlias, templateValues);
 			} else {
 				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
 					name.toString().c_str(), symbol.location().toString().c_str()));

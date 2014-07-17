@@ -13,6 +13,7 @@ namespace locic {
 			public:
 				enum Kind {
 					NAMESPACE,
+					TYPEALIAS,
 					TYPEINSTANCE,
 					FUNCTION,
 					SCOPE,
@@ -24,6 +25,8 @@ namespace locic {
 				};
 				
 				static ScopeElement Namespace(SEM::Namespace* nameSpace);
+				
+				static ScopeElement TypeAlias(SEM::TypeAlias* typeAlias);
 				
 				static ScopeElement TypeInstance(SEM::TypeInstance* typeInstance);
 				
@@ -44,6 +47,7 @@ namespace locic {
 				Kind kind() const;
 				
 				bool isNamespace() const;
+				bool isTypeAlias() const;
 				bool isTypeInstance() const;
 				bool isFunction() const;
 				bool isScope() const;
@@ -54,6 +58,7 @@ namespace locic {
 				bool isTryScope() const;
 				
 				SEM::Namespace* nameSpace() const;
+				SEM::TypeAlias* typeAlias() const;
 				SEM::TypeInstance* typeInstance() const;
 				SEM::Function* function() const;
 				SEM::Scope* scope() const;
@@ -72,6 +77,7 @@ namespace locic {
 				union {
 					void* ptr;
 					SEM::Namespace* nameSpace;
+					SEM::TypeAlias* typeAlias;
 					SEM::TypeInstance* typeInstance;
 					SEM::Function* function;
 					SEM::Scope* scope;

@@ -23,7 +23,7 @@ namespace locic {
 		}
 		
 		Type* Type::Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments) {
-			//assert(typeAlias->templateVariables().size() == templateArguments.size());
+			assert(typeAlias->templateVariables().size() == templateArguments.size());
 			auto& context = typeAlias->context();
 			
 			Type type(context, ALIAS);
@@ -474,8 +474,14 @@ namespace locic {
 		
 		namespace {
 		
-			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
+			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap);
+			
+			Type* doResolveSwitch(const Type* type, const TemplateVarMap& templateVarMap) {
 				switch (type->kind()) {
+					case Type::AUTO: {
+						return Type::Auto(type->context());
+					}
+					
 					case Type::OBJECT: {
 						std::vector<Type*> templateArgs;
 						templateArgs.reserve(type->templateArguments().size());
@@ -521,10 +527,11 @@ namespace locic {
 					
 					case Type::ALIAS: {
 						const auto& templateVars = type->getTypeAlias()->templateVariables();
+						const auto& templateArgs = type->typeAliasArguments();
 						
 						SEM::TemplateVarMap newTemplateVarMap = templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
-							const auto resolvedType = doResolve(type->typeAliasArguments().at(i), templateVarMap);
+							const auto resolvedType = doResolve(templateArgs.at(i), templateVarMap);
 							newTemplateVarMap.insert(std::make_pair(templateVars.at(i), resolvedType));
 						}
 						
@@ -532,26 +539,22 @@ namespace locic {
 					}
 					
 					default:
-						throw std::runtime_error("Unknown type kind for template var substitution.");
+						throw std::runtime_error("Unknown type kind for alias resolution.");
 				}
+			}
+			
+			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
+				const auto substitutedType = doResolveSwitch(type, templateVarMap);
+				const auto constType = type->isConst() ? substitutedType->createConstType() : substitutedType;
+				const auto lvalType = type->isLval() ? constType->createLvalType(doResolve(type->lvalTarget(), templateVarMap)) : constType;
+				const auto refType = type->isRef() ? lvalType->createRefType(doResolve(type->refTarget(), templateVarMap)) : lvalType;
+				return refType;
 			}
 			
 		}
 		
-		Type* Type::resolveAlias() const {
-			assert(isAlias());
-			
-			const auto& templateVars = getTypeAlias()->templateVariables();
-			const auto& templateArgs = typeAliasArguments();
-			
-			assert(templateVars.size() == templateArgs.size());
-			
-			SEM::TemplateVarMap templateVarMap;
-			for (size_t i = 0; i < templateVars.size(); i++) {
-				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
-			}
-			
-			return doResolve(getTypeAlias()->value(), templateVarMap);
+		Type* Type::resolveAliases() const {
+			return doResolve(this, SEM::TemplateVarMap());
 		}
 		
 		std::string Type::nameToString() const {

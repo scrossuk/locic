@@ -1,0 +1,40 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+interface Printable {
+	void print();
+}
+
+class PrintableClass(int value) {
+	static create = default;
+	
+	void print() {
+		testPrint(C"PrintableClass: value = %d", @value);
+	}
+}
+
+template <typename T : Printable>
+class TestClass(T value) {
+	static Create = default;
+	
+	void print() {
+		testPrint(C"TestClass: Printing value...");
+		@value.print();
+	}
+}
+
+template <typename T : Printable>
+using TestClassAlias = TestClass<T>;
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass<PrintableClass> object = TestClass<PrintableClass>(PrintableClass(50));
+	testPrint(C"testEntryPoint: Printing object...");
+	object.print();
+	
+	TestClassAlias<PrintableClass> alias = TestClassAlias<PrintableClass>(PrintableClass(60));
+	testPrint(C"testEntryPoint: Printing alias...");
+	alias.print();
+	return 0;
+}
+

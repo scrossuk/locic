@@ -1,6 +1,8 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
+#include <tuple>
+
 #include <locic/Debug.hpp>
 
 #include <locic/SEM/Context.hpp>
@@ -11,6 +13,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		using TemplateInstTuple = std::tuple<SEM::TemplateVar*, SEM::Type*, SEM::TemplateVarMap, Name, Debug::SourceLocation>;
+		
 		class Context {
 			public:
 				Context(Debug::Module& pDebugModule, SEM::Context& pSemContext);
@@ -21,6 +25,18 @@ namespace locic {
 				const ScopeStack& scopeStack() const;
 				
 				SEM::Context& semContext();
+				
+				/**
+				 * \brief Maintains a list of pairs of a template var
+				 *        and a type used to instantiate it.
+				 * 
+				 * This allows early Semantic Analysis passes to instantiate
+				 * templates without checking whether they are valid,
+				 * since the specification type isn't generated until a
+				 * later pass. A subsequent pass then re-visits these
+				 * instantiations to check they're valid.
+				 */
+				std::vector<TemplateInstTuple>& templateInstantiations();
 			
 			private:
 				// Non-copyable.
@@ -30,6 +46,7 @@ namespace locic {
 				Debug::Module& debugModule_;
 				ScopeStack scopeStack_;
 				SEM::Context& semContext_;
+				std::vector<TemplateInstTuple> templateInstantiations_;
 				
 		};
 		

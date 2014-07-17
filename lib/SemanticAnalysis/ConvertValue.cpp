@@ -228,13 +228,14 @@ namespace locic {
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return GetStaticMethod(parentType, "create", location);
 					} else if (searchResult.isTypeAlias()) {
-						// TODO: provide template arguments here...
-						const auto resolvedType = SEM::Type::Alias(searchResult.typeAlias(), {})->resolveAlias();
+						const auto typeAlias = searchResult.typeAlias();
+						const auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
+						assert(templateArguments.size() == typeAlias->templateVariables().size());
+						const auto resolvedType = SEM::Type::Alias(typeAlias, templateArguments)->resolveAliases();
 						return GetStaticMethod(resolvedType, "create", location);
 					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
-						// TODO: make these throw exceptions.
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());

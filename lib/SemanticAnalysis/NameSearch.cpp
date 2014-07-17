@@ -88,6 +88,17 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
+		SearchResult performInnerTypeAliasSearch(SEM::TypeAlias* typeAlias, const Name& name) {
+			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
+			
+			const auto iterator = typeAlias->namedTemplateVariables().find(name.at(0));
+			if (iterator != typeAlias->namedTemplateVariables().end()) {
+				return SearchResult::TemplateVar(iterator->second);
+			}
+			
+			return SearchResult::None();
+		}
+		
 		SearchResult performInnerTypeInstanceSearch(SEM::TypeInstance* typeInstance, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
@@ -137,6 +148,8 @@ namespace locic {
 				return performNamespaceSearch(element.nameSpace(), name, 0);
 			} else if (element.isFunction()) {
 				return performInnerFunctionSearch(element.function(), name);
+			} else if (element.isTypeAlias()) {
+				return performInnerTypeAliasSearch(element.typeAlias(), name);
 			} else if (element.isTypeInstance()) {
 				return performInnerTypeInstanceSearch(element.typeInstance(), name);
 			} else if (element.isScope()) {

@@ -576,11 +576,12 @@ namespace locic {
 				}
 			}
 			
-			// Try to cast value to const-ref.
-			if (!sourceType->isLval() && !sourceType->isRef() && destType->isRef()
-					&& destType->isBuiltInReference() && destType->refTarget()->isConst()
-					&& isStructurallyEqual(sourceType, destType->refTarget())) {
-				const auto newType = createReferenceType(context, sourceType->createConstType());
+			// Try to bind value to reference (e.g. T -> T&).
+			if (!sourceType->isLval() && !sourceType->isRef() && destType->isRef() &&
+					destType->isBuiltInReference() &&
+					(!sourceType->isConst() || destType->refTarget()->isConst()) &&
+					isStructurallyEqual(sourceType, destType->refTarget())) {
+				const auto newType = createReferenceType(context, sourceType);
 				const auto refValue = SEM::Value::RefValue(value, newType);
 				const auto castResult = ImplicitCastConvert(context, refValue, destType, location);
 				if (castResult != nullptr) {

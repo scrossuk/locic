@@ -277,6 +277,7 @@ const T& GETSYM(T* value) {
 %type <namespaceData> namespaceData
 %type <nameSpace> nameSpace
 
+%type <typeAlias> nonTemplatedTypeAlias
 %type <typeAlias> typeAlias
 
 %type <string> moduleNameComponent
@@ -498,10 +499,22 @@ nameSpace:
 	}
 	;
 
-typeAlias:
+nonTemplatedTypeAlias:
 	USING NAME SETEQUAL type SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeAlias(GETSYM($2), GETSYM($4))));
+	}
+	;
+
+typeAlias:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedTypeAlias
+	{
+		(GETSYM($5))->templateVariables = GETSYM($3);
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+	}
+	| nonTemplatedTypeAlias
+	{
+		$$ = $1;
 	}
 	;
 

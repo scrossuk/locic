@@ -28,6 +28,10 @@ namespace locic {
 			return semContext_;
 		}
 		
+		std::vector<TemplateInstTuple>& Context::templateInstantiations() {
+			return templateInstantiations_;
+		}
+		
 		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			

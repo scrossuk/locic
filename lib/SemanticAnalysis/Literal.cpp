@@ -183,7 +183,7 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, {});
+			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, SEM::TemplateVarMap());
 			return CallValue(context, functionRef, { constantValue }, location);
 		}
 		

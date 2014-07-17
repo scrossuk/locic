@@ -11,10 +11,25 @@ namespace locic {
 	namespace AST {
 	
 		TypeAlias::TypeAlias(const std::string& pName, AST::Node<Type> pValue)
-			: name(pName), value(pValue) { }
+			: name(pName), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
+			value(pValue) { }
 		
 		std::string TypeAlias::toString() const {
-			return makeString("TypeAlias(name: %s, value: %s)", name.c_str(), value->toString().c_str());
+			std::string templateVarString = "";
+			
+			bool isFirst = true;
+			
+			for (const auto& node : *templateVariables) {
+				if (!isFirst) {
+					templateVarString += ", ";
+				}
+				
+				isFirst = false;
+				templateVarString += node.toString();
+			}
+			
+			return makeString("TypeAlias(name: %s, templateVariables: (%s), value: %s)",
+				name.c_str(), templateVarString.c_str(), value->toString().c_str());
 		}
 		
 	}

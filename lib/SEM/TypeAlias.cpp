@@ -19,12 +19,12 @@ namespace locic {
 			return name_;
 		}
 		
-		const std::vector<SEM::TemplateVar*>& TypeAlias::templateVariables() const {
+		std::vector<TemplateVar*>& TypeAlias::templateVariables() {
 			return templateVars_;
 		}
 		
-		void TypeAlias::setTemplateVariables(const std::vector<SEM::TemplateVar*>& templateVars) {
-			templateVars_ = templateVars;
+		std::map<std::string, TemplateVar*>& TypeAlias::namedTemplateVariables() {
+			return namedTemplateVariables_;
 		}
 		
 		Type* TypeAlias::value() const {

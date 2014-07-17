@@ -109,7 +109,7 @@ namespace locic {
 				
 				Type* substitute(const TemplateVarMap& templateVarMap) const;
 				Type* makeTemplatedFunction() const;
-				Type* resolveAlias() const;
+				Type* resolveAliases() const;
 				
 				std::string nameToString() const;
 				

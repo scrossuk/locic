@@ -86,7 +86,7 @@ namespace locic {
 								varName.c_str(), location.toString().c_str()));
 						}
 						
-						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type);
+						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type)->resolveAliases();
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
@@ -108,7 +108,7 @@ namespace locic {
 					}
 					
 					case AST::TypeVar::PATTERNVAR: {
-						const auto varDeclType = ConvertType(context, astTypeVarNode->patternVar.type);
+						const auto varDeclType = ConvertType(context, astTypeVarNode->patternVar.type)->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
 							throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
@@ -170,7 +170,7 @@ namespace locic {
 							varName.c_str(), location.toString().c_str()));
 					}
 					
-					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type);
+					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type)->resolveAliases();
 					
 					if (varType->isBuiltInVoid()) {
 						throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
@@ -188,7 +188,7 @@ namespace locic {
 				}
 				
 				case AST::TypeVar::PATTERNVAR: {
-					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type);
+					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type)->resolveAliases();
 					
 					if (!varType->isDatatype()) {
 						throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",

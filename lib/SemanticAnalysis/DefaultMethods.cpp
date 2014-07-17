@@ -238,8 +238,6 @@ namespace locic {
 						} else if (i > j) {
 							subCaseScope->statements().push_back(SEM::Statement::Return(plusOneConstant));
 						} else {
-							// TODO: Either there needs to be an implicit copy here,
-							// or 'compare' should accept its argument by reference.
 							const auto compareResult = CallValue(context, GetMethod(context, caseVarValue, "compare", location), { subCaseVarValue }, location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(compareResult));
 						}
@@ -260,7 +258,6 @@ namespace locic {
 					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
 					const auto operandMember = createMemberVarRef(context, operandValue, memberVar);
 					
-					// TODO: use common code with ConvertValue() for this.
 					const auto compareResult = CallValue(context, GetMethod(context, selfMember, "compare", location), { operandMember }, location);
 					const auto isEqual = CallValue(context, GetMethod(context, compareResult, "isEqual", location), {}, location);
 					

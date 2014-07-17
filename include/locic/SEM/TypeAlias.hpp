@@ -22,9 +22,9 @@ namespace locic {
 				
 				const Name& name() const;
 				
-				const std::vector<SEM::TemplateVar*>& templateVariables() const;
+				std::vector<TemplateVar*>& templateVariables();
 				
-				void setTemplateVariables(const std::vector<SEM::TemplateVar*>& templateVars);
+				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				
 				Type* value() const;
 				
@@ -35,7 +35,8 @@ namespace locic {
 			private:
 				Context& context_;
 				Name name_;
-				std::vector<SEM::TemplateVar*> templateVars_;
+				std::vector<TemplateVar*> templateVars_;
+				std::map<std::string, TemplateVar*> namedTemplateVariables_;
 				Type* value_;
 				
 		};

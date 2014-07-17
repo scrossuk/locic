@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
@@ -196,6 +197,26 @@ namespace locic {
 				
 				const auto semTypeAlias = new SEM::TypeAlias(context.semContext(), fullTypeName);
 				semNamespace->items().insert(std::make_pair(typeAliasName, SEM::NamespaceItem::TypeAlias(semTypeAlias)));
+				
+				// Add template variables.
+				size_t templateVarIndex = 0;
+				for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+					const auto& templateVarName = astTemplateVarNode->name;
+					const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+					
+					const auto templateVarIterator = semTypeAlias->namedTemplateVariables().find(templateVarName);
+					if (templateVarIterator != semTypeAlias->namedTemplateVariables().end()) {
+						throw TemplateVariableClashException(fullTypeName, templateVarName);
+					}
+					
+					// Create placeholder for the template type.
+					const Name specObjectName = fullTypeName + templateVarName + "#spectype";
+					const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
+					semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
+					
+					semTypeAlias->templateVariables().push_back(semTemplateVar);
+					semTypeAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+				}
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
@@ -293,6 +314,7 @@ namespace locic {
 			
 			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
 				const auto semTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(semTypeAlias));
 				semTypeAlias->setValue(ConvertType(context, astTypeAliasNode->value));
 			}
 		}
@@ -507,6 +529,28 @@ namespace locic {
 			}
 		}
 		
+		void CompleteTypeAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
+			const auto typeAlias = context.scopeStack().back().typeAlias();
+			
+			// Add template variables.
+			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = typeAlias->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astSpecType = astTemplateVarNode->specType;
+				
+				// If the specification type is void, then just
+			 	// leave the generated type instance empty.
+			 	if (astSpecType->isVoid()) continue;
+			 	
+			 	const auto semSpecType = ConvertType(context, astSpecType);
+			 	
+			 	semTemplateVar->setSpecType(semSpecType);
+			 	
+			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+			}
+		}
+		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto typeInstance = context.scopeStack().back().typeInstance();
 			
@@ -558,6 +602,13 @@ namespace locic {
 				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 			
+			for (auto astTypeAliasNode: astNamespaceDataNode->typeAliases) {
+				const auto semChildTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(semChildTypeAlias));
+				CompleteTypeAliasTemplateVariableRequirements(context, astTypeAliasNode);
+			}
+			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
 				
@@ -570,6 +621,37 @@ namespace locic {
 			for (auto astNamespaceNode: rootASTNamespaces) {
 				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
+		}
+		
+		void CheckTemplateInstantiationsPass(Context& context) {
+			auto& templateInsts = context.templateInstantiations();
+			
+			for (const auto& inst: templateInsts) {
+				const auto templateVariable = std::get<0>(inst);
+				const auto templateTypeValue = std::get<1>(inst);
+				const auto& templateVarMap = std::get<2>(inst);
+				const auto parentName = std::get<3>(inst);
+				const auto location = std::get<4>(inst);
+				
+				if (templateVariable->specType() == nullptr) {
+					continue;
+				}
+				
+				assert(templateVariable->specType()->isInterface());
+				
+				const auto specType = templateVariable->specType()->substitute(templateVarMap);
+				
+				if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
+					throw ErrorException(makeString("Type '%s' does not satisfy "
+						"constraint for template parameter %llu of function or type '%s' at position %s.",
+						templateTypeValue->toString().c_str(),
+						(unsigned long long) templateVariable->index(),
+						parentName.toString().c_str(),
+						location.toString().c_str()));
+				}
+			}
+			
+			templateInsts.clear();
 		}
 		
 		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance* typeInstance, std::set<SEM::TypeInstance*>& completedTypes) {
@@ -657,6 +739,9 @@ namespace locic {
 				
 				// ---- Pass 4: Complete template type variable requirements.
 				CompleteTemplateVariableRequirementsPass(context, rootASTNamespaces);
+				
+				// ---- Pass 5: Check all previous template instantiations are correct.
+				CheckTemplateInstantiationsPass(context);
 				
 				// ---- Pass 5: Generate default methods.
 				GenerateDefaultMethodsPass(context);
