@@ -56,31 +56,25 @@ namespace CR {
 	datatype Position(size_t x, size_t y);
 	datatype BoardSize(size_t width, size_t height);
 	
-	class Board (Value* data, Value currentPlayer, BoardSize size) {
+	class Board (std::varray<Value> data, Value currentPlayer, BoardSize size) {
 		static Create(BoardSize size, Value initialPlayer) {
-			void* dataPtr = malloc(sizeof(Value) * size.width * size.height);
-			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
+			auto data = std::varray<Value>();
 			
 			for (auto p: std::counter<size_t>(1u, 0u, size.width * size.height)) {
-				data[p] = Empty();
+				data.push_back(Empty());
 			}
 			
-			return @(data, initialPlayer, size);
+			return @(move data, initialPlayer, size);
 		}
 		
-		~ {
-			free(reinterpret_cast<Value*, void*>(@data));
-		}
-		
-		Board copy() const noexcept {
-			void* dataPtr = malloc(sizeof(Value) * @size.width * @size.height);
-			Value* data = reinterpret_cast<void*, Value*>(dataPtr);
+		Board copy() const {
+			auto data = std::varray<Value>();
 			
 			for (auto p: std::counter<size_t>(1u, 0u, @size.width * @size.height)) {
-				data[p] = @data[p];
+				data.push_back(@data[p]);
 			}
 			
-			return @(data, @currentPlayer, @size);
+			return @(move data, @currentPlayer, @size);
 		}
 		
 		bool isValid(Position position) const noexcept {
@@ -169,7 +163,7 @@ namespace CR {
 		
 	}
 	
-	bool isValidForDirection(Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) noexcept {
+	bool isValidForDirection(const Board& board, size_t x, size_t y, ssize_t xi, ssize_t yi) noexcept {
 		bool flagOpponent = false;
 		
 		ssize_t cx = x.signedValue() + xi;

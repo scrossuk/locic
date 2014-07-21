@@ -1,0 +1,12 @@
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	if (true) {
+		// ...
+	} else {
+		// ...
+	} else {
+		// ...
+	}
+	return 0;
+}
+

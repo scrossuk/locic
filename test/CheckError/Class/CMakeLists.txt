@@ -1,0 +1,10 @@
+# Class tests.
+
+test_check_error(DuplicateCanonicalMethod)
+test_check_error(DuplicateClass)
+test_check_error(DuplicateMemberVar)
+test_check_error(DuplicateMethod)
+test_check_error(MultipleDestructors)
+test_check_error(NoNullConstructor)
+test_check_error(OverloadedMethod)
+

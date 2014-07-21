@@ -6,8 +6,10 @@
 #include <fstream>
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/regex.hpp>
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
@@ -28,6 +30,7 @@ static FILE* builtInTypesFile() {
 	FILE* file = tmpfile();
 	
 	const size_t writeSize = fwrite((const void*) BuiltInTypes_loci, sizeof(unsigned char), (size_t) BuiltInTypes_loci_len, file);
+	
 	if (writeSize != (size_t) BuiltInTypes_loci_len) {
 		fclose(file);
 		return NULL;
@@ -89,89 +92,120 @@ FORCE_UNDEFINED_SYMBOL(__loci_throw)
 FORCE_UNDEFINED_SYMBOL(__loci_get_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_personality_v0)
 
+std::string loadFile(const std::string& fileName) {
+	std::ifstream fileStream(fileName.c_str());
+	std::stringstream buffer;
+	buffer << fileStream.rdbuf();
+	return buffer.str();
+}
+
+bool checkError(const std::string& testError, const std::string& expectedError) {
+	auto testErrorCopy = testError;
+	boost::algorithm::trim(testErrorCopy);
+	
+	auto expectedErrorCopy = expectedError;
+	boost::algorithm::trim(expectedErrorCopy);
+	boost::regex expectedErrorRegex(expectedErrorCopy);
+	
+	return boost::regex_match(testErrorCopy, expectedErrorRegex);
+}
+
 int main(int argc, char* argv[]) {
+	if (argc < 1) {
+		return -1;
+	}
+	
+	const auto programName = boost::filesystem::path(argv[0]).stem().string();
+	
+	std::string testName;
+	std::vector<std::string> inputFileNames;
+	std::string entryPointName;
+	std::string expectedErrorFileName;
+	std::string expectedOutputFileName;
+	int expectedResult = 0;
+	std::vector<std::string> programArgs;
+	
+	po::options_description visibleOptions("Options");
+	visibleOptions.add_options()
+	("help,h", "Display help information")
+	("test-name", po::value<std::string>(&testName), "Set test name")
+	("entry-point", po::value<std::string>(&entryPointName)->default_value("testEntryPoint"), "Set entry point function name")
+	("expected-error", po::value<std::string>(&expectedErrorFileName), "Set expected error file name")
+	("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
+	("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
+	("args", po::value<std::vector<std::string>>(&programArgs), "Set program arguments")
+	;
+	
+	po::options_description hiddenOptions;
+	hiddenOptions.add_options()
+	("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
+	;
+	
+	po::options_description allOptions;
+	allOptions.add(visibleOptions).add(hiddenOptions);
+	
+	po::positional_options_description optionsPositions;
+	optionsPositions.add("input-file", -1);
+	
+	po::variables_map variableMap;
+	
 	try {
-		if (argc < 1) return -1;
-		const auto programName = boost::filesystem::path(argv[0]).stem().string();
-		
-		std::string testName;
-		std::vector<std::string> inputFileNames;
-		std::string entryPointName;
-		std::string expectedOutputFileName;
-		int expectedResult = 0;
-		std::vector<std::string> programArgs;
-		
-		po::options_description visibleOptions("Options");
-		visibleOptions.add_options()
-		("help,h", "Display help information")
-		("test-name", po::value<std::string>(&testName), "Set test name")
-		("entry-point", po::value<std::string>(&entryPointName)->default_value("testEntryPoint"), "Set entry point function name")
-		("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
-		("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
-		("args", po::value<std::vector<std::string>>(&programArgs), "Set program arguments")
-		;
-		
-		po::options_description hiddenOptions;
-		hiddenOptions.add_options()
-		("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
-		;
-		
-		po::options_description allOptions;
-		allOptions.add(visibleOptions).add(hiddenOptions);
-		
-		po::positional_options_description optionsPositions;
-		optionsPositions.add("input-file", -1);
-		
-		po::variables_map variableMap;
-		
-		try {
-			po::store(po::command_line_parser(argc, argv).options(allOptions).positional(optionsPositions).run(), variableMap);
-			po::notify(variableMap);
-		} catch (const po::error& e) {
-			printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return -1;
-		}
-		
-		if (!variableMap["help"].empty()) {
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return -1;
-		}
-		
-		if (testName.empty()) {
-			printf("%s: No test name specified.\n", programName.c_str());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return -1;
-		}
-		
-		if (inputFileNames.empty()) {
-			printf("%s: No files provided.\n", programName.c_str());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return -1;
-		}
-		
-		if (expectedOutputFileName.empty()) {
-			printf("%s: No expected output filename specified.\n", programName.c_str());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return -1;
-		}
-		
-		inputFileNames.push_back("BuiltInTypes.loci");
-		
+		po::store(po::command_line_parser(argc, argv).options(allOptions).positional(optionsPositions).run(), variableMap);
+		po::notify(variableMap);
+	} catch (const po::error& e) {
+		printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	if (!variableMap["help"].empty()) {
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	if (testName.empty()) {
+		printf("%s: No test name specified.\n", programName.c_str());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	if (inputFileNames.empty()) {
+		printf("%s: No files provided.\n", programName.c_str());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	if (expectedErrorFileName.empty() && expectedOutputFileName.empty()) {
+		printf("%s: Must specify either an error filename or expected output filename.\n", programName.c_str());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	if (!expectedErrorFileName.empty() && !expectedOutputFileName.empty()) {
+		printf("%s: Cannot specify both an error filename and expected output filename.\n", programName.c_str());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return -1;
+	}
+	
+	inputFileNames.push_back("BuiltInTypes.loci");
+	
+	try {
 		AST::NamespaceList astRootNamespaceList;
 		
+		std::stringstream parseErrors;
+		
 		// Parse all source files.
-		for (std::size_t i = 0; i < inputFileNames.size(); i++) {
-			const std::string filename = inputFileNames.at(i);
+		for (const auto& filename: inputFileNames) {
 			FILE* file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
 			
 			if (file == NULL) {
-				printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
+				printf("Test FAILED: Failed to open file '%s'.\n", filename.c_str());
 				return -1;
 			}
 			
@@ -181,12 +215,31 @@ int main(int argc, char* argv[]) {
 				const auto errors = parser.getErrors();
 				assert(!errors.empty());
 				
-				printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
+				parseErrors << "Parser Error: Failed to parse file '" << filename << "' with " << errors.size() << " errors:\n";
 				
-				for (const auto & error : errors) {
-					printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
+				for (const auto& error : errors) {
+					parseErrors << "Parser Error (at " << error.location.toString() << "): " << error.message << "\n";
 				}
-				
+			}
+		}
+		
+		const auto parseErrorString = parseErrors.str();
+		if (!parseErrorString.empty()) {
+			if (!expectedErrorFileName.empty()) {
+				const auto expectedError = loadFile(expectedErrorFileName);
+				if (checkError(parseErrorString, expectedError)) {
+					printf("Test PASSED (with expected error).\n");
+					printf("Error:\n%s\n", parseErrorString.c_str());
+					return 0;
+				} else {
+					printf("Test FAILED: Actual error doesn't match expected error.\n");
+					printf("---Expected error:\n%s\n", expectedError.c_str());
+					printf("---Actual error:\n%s\n", parseErrorString.c_str());
+					return -1;
+				}
+			} else {
+				printf("Test FAILED: Compilation failed unexpectedly.\n");
+				printf("Error:\n%s\n", parseErrorString.c_str());
 				return -1;
 			}
 		}
@@ -213,6 +266,11 @@ int main(int argc, char* argv[]) {
 		const auto codeGenDebugFileName = testName + "_codegendebug.ll";
 		codeGenerator.dumpToFile(codeGenDebugFileName);
 		
+		if (!expectedErrorFileName.empty()) {
+			printf("Test FAILED: Program compiled successfully when it was expected to fail.\n");
+			return -1;
+		}
+		
 		// Interpret the code.
 		CodeGen::Interpreter interpreter(codeGenerator.module());
 		
@@ -223,7 +281,7 @@ int main(int argc, char* argv[]) {
 		
 		if (result != expectedResult) {
 			printf("Test FAILED: Result '%d' doesn't match expected result '%d'.\n",
-				result, expectedResult);
+				   result, expectedResult);
 			return -1;
 		}
 		
@@ -245,8 +303,24 @@ int main(int argc, char* argv[]) {
 		
 		return 0;
 	} catch (const Exception& e) {
-		printf("Compilation failed (errors should be shown above).\n");
-		return -1;
+		if (!expectedErrorFileName.empty()) {
+			const auto testError = e.toString();
+			const auto expectedError = loadFile(expectedErrorFileName);
+			
+			if (checkError(testError, expectedError)) {
+				printf("Test PASSED.\n\n");
+				printf("Error:\n%s\n", testError.c_str());
+				return 0;
+			} else {
+				printf("Test FAILED: Actual error doesn't match expected error.\n");
+				printf("---Expected error:\n%s\n", expectedError.c_str());
+				printf("---Actual error:\n%s\n", testError.c_str());
+				return -1;
+			}
+		} else {
+			printf("Test FAILED: Compilation failed unexpectedly (errors should be shown above).\n");
+			return -1;
+		}
 	}
 }
 

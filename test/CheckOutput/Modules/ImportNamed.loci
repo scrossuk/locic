@@ -1,0 +1,14 @@
+// Test output.
+import void testPrint(const char * const str, ...) noexcept;
+
+import test.module 1.0.0 {
+	int moduleAPI();
+}
+
+// Entry point.
+export int testEntryPoint(int argc, char ** argv) {
+	testPrint(C"testEntryPoint: moduleAPI() returned %d", moduleAPI());
+	
+	return 0;
+}
+

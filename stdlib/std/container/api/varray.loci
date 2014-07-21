@@ -16,9 +16,15 @@ import std.container 0.1.0 {
 			
 			void resize(size_t size);
 			
+			bool empty() const;
+			
 			size_t size() const;
 			
 			lval<T> ptr_lval<T> index(size_t index) const;
+			
+			void push_back(T value);
+			
+			void pop_back();
 			
 			// varray<T> copy() const <T: copyable<T>>;
 			

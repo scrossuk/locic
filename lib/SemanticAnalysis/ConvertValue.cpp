@@ -38,14 +38,64 @@ namespace locic {
 		}
 		
 		bool CanValueThrow(SEM::Value* value) {
-			// TODO...
-			if (value->kind() == SEM::Value::FUNCTIONCALL) {
-				const auto functionValue = value->functionCall.functionValue;
-				const auto functionType = getFunctionType(functionValue->type());
-				assert(functionType->isFunction());
-				return !functionType->isFunctionNoExcept();
-			} else {
-				return false;
+			switch (value->kind()) {
+				case SEM::Value::REINTERPRET: {
+					return CanValueThrow(value->reinterpretValue.value);
+				}
+				case SEM::Value::DEREF_REFERENCE: {
+					return CanValueThrow(value->derefReference.value);
+				}
+				case SEM::Value::TERNARY: {
+					return CanValueThrow(value->ternary.condition) ||
+						CanValueThrow(value->ternary.ifTrue) ||
+						CanValueThrow(value->ternary.ifFalse);
+				}
+				case SEM::Value::CAST: {
+					return CanValueThrow(value->cast.value);
+				}
+				case SEM::Value::POLYCAST: {
+					return CanValueThrow(value->polyCast.value);
+				}
+				case SEM::Value::LVAL: {
+					return CanValueThrow(value->makeLval.value);
+				}
+				case SEM::Value::NOLVAL: {
+					return CanValueThrow(value->makeNoLval.value);
+				}
+				case SEM::Value::REF: {
+					return CanValueThrow(value->makeRef.value);
+				}
+				case SEM::Value::NOREF: {
+					return CanValueThrow(value->makeNoRef.value);
+				}
+				case SEM::Value::INTERNALCONSTRUCT: {
+					for (const auto parameter: value->internalConstruct.parameters) {
+						if (CanValueThrow(parameter)) {
+							return true;
+						}
+					}
+					return false;
+				}
+				case SEM::Value::MEMBERACCESS: {
+					return CanValueThrow(value->memberAccess.object);
+				}
+				case SEM::Value::REFVALUE: {
+					return CanValueThrow(value->refValue.value);
+				}
+				case SEM::Value::FUNCTIONCALL: {
+					for (const auto parameter: value->functionCall.parameters) {
+						if (CanValueThrow(parameter)) {
+							return true;
+						}
+					}
+					
+					const auto functionValue = value->functionCall.functionValue;
+					const auto functionType = getFunctionType(functionValue->type());
+					assert(functionType->isFunction());
+					return CanValueThrow(functionValue) || !functionType->isFunctionNoExcept();
+				}
+				default:
+					return false;
 			}
 		}
 		
@@ -165,16 +215,17 @@ namespace locic {
 				}
 				case AST::Value::THIS: {
 					const auto thisTypeInstance = lookupParentType(context.scopeStack());
+					const auto thisFunction = lookupParentFunction(context.scopeStack());
 					
 					if (thisTypeInstance == nullptr) {
 						throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
 							location.toString().c_str()));
 					}
 					
-					// TODO: make const type when in const methods.
 					const auto selfType = thisTypeInstance->selfType();
+					const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
 					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
-					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfType })->createConstType());
+					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfConstType })->createConstType());
 				}
 				case AST::Value::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;

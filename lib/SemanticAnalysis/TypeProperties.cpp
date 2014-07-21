@@ -127,14 +127,14 @@ namespace locic {
 			assert(function->isMethod());
 			
 			if (function->isStaticMethod()) {
-				throw ErrorException(makeString("Cannot access static method '%s' for value '%s' of type '%s' at position %s.",
-					methodName.c_str(), value->toString().c_str(),
+				throw ErrorException(makeString("Cannot access static method '%s' for value of type '%s' at position %s.",
+					methodName.c_str(),
 					typeInstance->refToString().c_str(), location.toString().c_str()));
 			}
 			
 			if (type->isConst() && !function->isConstMethod()) {
-				throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object '%s' of type '%s' at position %s.",
-					function->name().toString().c_str(), value->toString().c_str(),
+				throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
+					function->name().toString().c_str(),
 					type->toString().c_str(), location.toString().c_str()));
 			}
 			

@@ -1,0 +1,15 @@
+exception ExampleError(int value);
+
+void functionThatThrows() {
+	throw ExampleError(1);
+}
+
+void function() noexcept {
+	functionThatThrows();
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

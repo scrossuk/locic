@@ -92,6 +92,35 @@ include_directories (
 	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
 	)
 
+set (STD_MEMORY_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/alloc.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/raw.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/shared.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/unique.loci"
+	)
+
+set (STD_MEMORY_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/memory/std_memory.bc"
+	)
+
+set (STD_CONTAINER_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/range.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/types.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/varray.loci"
+	)
+
+set (STD_CONTAINER_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
+	)
+
+set (STD_STRING_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
+	)
+
+set (STD_STRING_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/string/std_string.bc"
+	)
+
 # Documentation.
 add_subdirectory(docs)
 

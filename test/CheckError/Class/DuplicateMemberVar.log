@@ -1,0 +1,1 @@
+Member variable 'value' clashes with existing member variable of the same name, at location SourceLocation\(filename = (.*)/DuplicateMemberVar\.loci, range = \(line 1, column 27\) to \(line 1, column 37\)\).

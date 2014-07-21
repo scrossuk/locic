@@ -1,0 +1,13 @@
+// Loci doesn't allow interface methods to be templated
+// since that would be a second instantiation (and would
+// therefore not work with CodeGen's template generators).
+interface SomeInterface {
+	template <typename T>
+	void doSomething();
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

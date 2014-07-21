@@ -1,0 +1,24 @@
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+import void printf(const byte * const str, ...) noexcept;
+import int scanf(const byte * const str, ...) noexcept;
+
+export int main(int argc, byte ** argv) {
+	auto values = std::varray<int>();
+	
+	int intValue = 0;
+        while (scanf(C"%d", &intValue) == 1) {
+                printf(C"Received value: %d\n", intValue);
+                values.push_back(intValue);
+                
+                size_t i = 0u;
+                while (i < values.size()) {
+                	printf(C"    Value[%llu] = %d\n",
+                		i.toULongLong(), values[i]);
+                	i = i + 1u;
+                }
+        }
+	
+	return 0;
+}
+

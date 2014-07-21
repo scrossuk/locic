@@ -120,7 +120,9 @@ namespace locic {
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {
-					throw TemplateVariableClashException(fullTypeName, templateVarName);
+					throw ErrorException(makeString("More than one template variable shares name '%s' in type '%s', at location %s.",
+						templateVarName.c_str(), fullTypeName.toString().c_str(),
+						astTemplateVarNode.location().toString().c_str()));
 				}
 				
 				// Create placeholder for the template type.
@@ -245,9 +247,36 @@ namespace locic {
 					const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
 					
 					if (!semType->isException()) {
-						throw ErrorException(makeString("Exception parent type '%s' is not an exception type.",
-							semType->toString().c_str()));
+						throw ErrorException(makeString("Exception parent type '%s' is not an exception type at location %s.",
+							semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
 					}
+					
+					using VisitFnType = std::function<void (const void*, const SEM::Type*)>;
+					
+					// Check for loops.
+					const VisitFnType visitor = [&] (const void* visitFnVoid, const SEM::Type* childType) {
+						const auto& visitFn = *(static_cast<const VisitFnType*>(visitFnVoid));
+						
+						if (childType->isObject()) {
+							const auto childTypeInstance = childType->getObjectType();
+							if (childTypeInstance == semTypeInstance) {
+								throw ErrorException(makeString("Circular reference for exception type '%s' at location %s.",
+									semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
+							}
+							
+							if (childTypeInstance->isException()) {
+								if (childTypeInstance->parent() != nullptr) {
+									visitFn(visitFnVoid, childTypeInstance->parent()->selfType());
+								}
+							}
+							
+							for (const auto memberVar: childTypeInstance->variables()) {
+								visitFn(visitFnVoid, memberVar->constructType());
+							}
+						}
+					};
+					
+					visitor(&visitor, semType);
 					
 					// TODO: also handle template parameters?
 					semTypeInstance->setParent(semType->getObjectType());
@@ -261,6 +290,14 @@ namespace locic {
 			for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
 				
+				const auto& varName = astTypeVarNode->namedVar.name;
+				const auto iterator = semTypeInstance->namedVariables().find(varName);
+				if (iterator != semTypeInstance->namedVariables().end()) {
+					throw ErrorException(makeString("Member variable '%s' clashes with existing "
+							"member variable of the same name, at location %s.",
+						varName.c_str(), astTypeVarNode.location().toString().c_str()));
+				}
+				
 				const auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
 				
 				const bool isMemberVar = true;
@@ -273,7 +310,7 @@ namespace locic {
 				const auto var = SEM::Var::Basic(semType, lvalType);
 				
 				// Add mapping from name to variable.
-				semTypeInstance->namedVariables().insert(std::make_pair(astTypeVarNode->namedVar.name, var));
+				semTypeInstance->namedVariables().insert(std::make_pair(varName, var));
 				
 				// Add mapping from position to variable.
 				semTypeInstance->variables().push_back(var);

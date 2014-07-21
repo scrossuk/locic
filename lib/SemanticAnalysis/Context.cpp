@@ -34,13 +34,15 @@ namespace locic {
 		
 		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
+			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
 			if (thisTypeInstance == nullptr) {
 				throw ErrorException(makeString("Cannot access 'self' in non-method at %s.", location.toString().c_str()));
 			}
 			
-			// TODO: make const type when in const methods.
-			return createSelfRef(context, thisTypeInstance->selfType());
+			const auto selfType = thisTypeInstance->selfType();
+			const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
+			return createSelfRef(context, selfConstType);
 		}
 		
 	}

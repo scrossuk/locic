@@ -1,0 +1,1 @@
+Interface '::SomeInterface' has templated method 'doSomething' \(interfaces may only contain non-templated methods\) at location SourceLocation\(filename = (.*)/InterfaceMethodTemplate\.loci, range = \(line 5, column 2\) to \(line 6, column 21\)\)\.

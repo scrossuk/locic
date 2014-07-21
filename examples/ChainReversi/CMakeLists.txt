@@ -21,15 +21,15 @@ loci_module(ChainReversi_Module chainReversi.bc ""
 	SFML/Vector.loci
 	SFML/VideoMode.loci
 	SFML/View.loci
-	imports/string.loci
+	${STD_CONTAINER_API_FILES}
+	${STD_STRING_API_FILES}
 	)
-
-set(STDLIB "${PROJECT_BINARY_DIR}/stdlib")
 
 loci_link(ChainReversi chainReversi "-lcsfml-graphics -lcsfml-window -lcsfml-system"
 	chainReversi.bc
-	${STDLIB}/std/memory/std_memory.bc
-	${STDLIB}/std/string/std_string.bc
+	${STD_CONTAINER_BINARY_FILES}
+	${STD_STRING_BINARY_FILES}
+	${STD_MEMORY_BINARY_FILES}
 	)
 
 add_dependencies(ChainReversi std.memory std.string)

@@ -48,8 +48,9 @@ namespace locic {
 			}
 			
 			if (semFunction->type()->isFunctionNoExcept() && CanScopeThrow(*semScope)) {
-				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw.",
-					semFunction->name().toString().c_str()));
+				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
+					semFunction->name().toString().c_str(),
+					astFunctionNode.location().toString().c_str()));
 			}
 			
 			semFunction->setScope(semScope);

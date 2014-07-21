@@ -4,11 +4,11 @@ namespace std {
 	
 	template <typename T>
 	interface counter_type {
-		T implicitCopy() const;
+		T implicitCopy() const noexcept;
 		
 		compare_result_t compare(const T& value) const;
 		
-		T add(const T& value) const;
+		T add(const T& value) const noexcept;
 	}
 	
 	template <typename T: counter_type<T>>
@@ -80,12 +80,28 @@ export std.container 0.1.0 {
 				@size = size;
 			}
 			
+			bool empty() const {
+				return @size == 0u;
+			}
+			
 			size_t size() const {
 				return @size;
 			}
 			
 			lval<T> ptr_lval<T> index(size_t index) const {
 				return @data[index];
+			}
+			
+			void push_back(T value) {
+				self.reserve(@size + 1u);
+				nolval(@data[@size]).__set_value(move value);
+				@size = @size + 1u;
+			}
+			
+			void pop_back() {
+				// assert !self.empty();
+				@size = @size - 1u;
+				nolval(@data[@size]).__destroy_value();
 			}
 			
 			/*varray<T> copy() const <T: copyable<T>> {

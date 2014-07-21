@@ -1,0 +1,20 @@
+// Loci doesn't support method overloading,
+// so the two methods clash since they share
+// the same name.
+class TestClass(int value) {
+	static Create = default;
+	
+	void doSomething(int i) {
+		(void) i;
+	}
+	
+	void doSomething(float f) {
+		(void) f;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

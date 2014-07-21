@@ -1,0 +1,19 @@
+exception ExampleError(int value);
+
+class TestClass (int value) {
+	static create = default;
+	
+	int add(int value) {
+		throw ExampleError(1);
+	}
+}
+
+void function() noexcept {
+	(void) (TestClass(1) + 1);
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

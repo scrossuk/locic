@@ -1,0 +1,7 @@
+# Template tests.
+
+test_check_error(ClassDuplicateTemplate)
+test_check_error(FunctionDuplicateTemplate)
+test_check_error(InterfaceMethodTemplate)
+test_check_error(MethodDuplicateTemplate)
+

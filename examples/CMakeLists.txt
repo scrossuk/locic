@@ -1,19 +1,22 @@
 set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
-macro(copy_example_file name)
-	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${name}" "${CMAKE_CURRENT_BINARY_DIR}/${name}"
-		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${name}")
-endmacro(copy_example_file)
+macro(copy_source_file output_name name)
+	get_filename_component(name_file "${name}" NAME)
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name_file}"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${name}" "${CMAKE_CURRENT_BINARY_DIR}/${name_file}"
+		MAIN_DEPENDENCY "${name}"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+	set(${output_name} "${CMAKE_CURRENT_BINARY_DIR}/${name_file}")
+endmacro(copy_source_file)
 
 function(loci_module name output_name flags)
 	set(${name}_Sources ${ARGN})
 	set(${name}_BuildSources "")
 	
-	foreach(f ${${name}_Sources})
-		copy_example_file(${f})
-		list(APPEND ${name}_BuildSources ${CMAKE_CURRENT_BINARY_DIR}/${f})
-	endforeach(f)
+	foreach(file_source_name ${${name}_Sources})
+		copy_source_file(file_build_source_name ${file_source_name})
+		list(APPEND ${name}_BuildSources ${file_build_source_name})
+	endforeach(file_source_name)
 	
 	separate_arguments(flags)
 	
@@ -61,6 +64,7 @@ endfunction(loci_example)
 
 add_subdirectory(Calculator)
 add_subdirectory(ChainReversi)
+add_subdirectory(CommandLine)
 add_subdirectory(General)
 add_subdirectory(Looper)
 add_subdirectory(SplitModule)

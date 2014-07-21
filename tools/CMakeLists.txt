@@ -3,6 +3,7 @@ set(REQ_LIBS
 	${LLVM_REQ_LIBS}
 	boost_filesystem
 	boost_program_options
+	boost_regex
 	boost_system
 	)
 

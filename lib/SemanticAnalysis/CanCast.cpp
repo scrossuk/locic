@@ -354,9 +354,9 @@ namespace locic {
 				// There still might be some aspects to cast with the constructed type.
 				return ImplicitCastConvert(context, constructedValue, destType, location);
 			} else {
-				throw ErrorException(makeString("No '%s' constructor specified for type '%s' to cast from value '%s' of type '%s' at position %s.",
+				throw ErrorException(makeString("No '%s' constructor specified for type '%s', to cast from value of type '%s' at position %s.",
 					constructorName.c_str(), destDerefType->toString().c_str(),
-					value->toString().c_str(), value->type()->toString().c_str(),
+					value->type()->toString().c_str(),
 					location.toString().c_str()));
 			}
 		}
@@ -610,8 +610,8 @@ namespace locic {
 					destType->toString().c_str(),
 					location.toString().c_str()));
 			} else {
-				throw ErrorException(makeString("Can't implicitly cast value '%s' to type '%s' at position %s.",
-					value->toString().c_str(),
+				throw ErrorException(makeString("Can't implicitly cast value of type '%s' to type '%s' at position %s.",
+					value->type()->toString().c_str(),
 					destType->toString().c_str(),
 					location.toString().c_str()));
 			}

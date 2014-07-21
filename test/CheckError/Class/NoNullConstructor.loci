@@ -1,0 +1,10 @@
+class TestClass(int value) {
+	static Create = default;
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass object = null;
+	return 0;
+}
+

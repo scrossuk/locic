@@ -1,0 +1,10 @@
+class TestClass() {
+	template <typename T, typename T>
+	void function() { }
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

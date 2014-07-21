@@ -1,0 +1,11 @@
+// Integers can't be used as conditions in Loci
+// (no implicit cast to bool).
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	if (1) {
+		// ...
+	}
+	return 0;
+}
+

@@ -1,0 +1,1 @@
+No 'int8_cast' constructor specified for type 'const\(double_t\)', to cast from value of type 'const\(int8_t\)' at position SourceLocation\(filename = (.*)/MismatchedTernaryValues\.loci, range = \(line 3, column 9\) to \(line 3, column 23\)\)\.

@@ -1,3 +1,4 @@
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -594,11 +595,29 @@ namespace locic {
 				case AUTO:
 					return "Auto";
 					
-				case OBJECT:
-					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
-									  getObjectType()->name().toString().c_str(),
-									  makeArrayString(templateArguments()).c_str());
-									  
+				case OBJECT: {
+					const auto objectName = getObjectType()->name().toString(false);
+					if (templateArguments().empty()) {
+						return objectName;
+					} else {
+						std::stringstream stream;
+						stream << objectName << "<";
+						
+						bool isFirst = true;
+						for (const auto templateArg: templateArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							stream << templateArg->toString();
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
 									  getFunctionReturnType()->toString().c_str(),
@@ -625,17 +644,17 @@ namespace locic {
 		std::string Type::toString() const {
 			const std::string constStr =
 				isConst() ?
-				makeString("Const(%s)", basicToString().c_str()) :
+				makeString("const(%s)", basicToString().c_str()) :
 				basicToString();
 				
 			const std::string lvalStr =
 				isLval() ?
-				makeString("Lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
+				makeString("lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
 				constStr;
 				
 			const std::string refStr =
 				isRef() ?
-				makeString("Ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
+				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
 				lvalStr;
 				
 			return refStr;

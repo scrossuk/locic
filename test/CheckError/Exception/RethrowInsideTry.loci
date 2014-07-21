@@ -1,0 +1,22 @@
+// Ensure that exceptions are not rethrow within
+// an inner try-catch; this is required to avoid
+// having to use reference counting in the
+// exception implementation (instead unique
+// ownership rules are used).
+exception ExampleError(int value);
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	try {
+		throw ExampleError(1024);
+	} catch (ExampleError error1) {
+		try {
+			throw;
+		} catch (ExampleError error2) {
+			// If this code worked, there'd be two references
+			// ('error1' and 'error2') to the same error.
+		}
+	}
+	return 0;
+}
+

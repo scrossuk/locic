@@ -41,6 +41,12 @@ namespace locic {
 			semFunction->setStaticMethod(astFunctionNode->isStaticMethod());
 			semFunction->setConstMethod(astFunctionNode->isConstMethod());
 			
+			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
+				throw ErrorException(makeString("Interface '%s' has templated method '%s' (interfaces may only contain non-templated methods) at location %s.",
+						thisTypeInstance->name().toString().c_str(), name.c_str(),
+						astFunctionNode.location().toString().c_str()));
+			}
+			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
@@ -49,7 +55,9 @@ namespace locic {
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {
-					throw TemplateVariableClashException(semFunction->name(), templateVarName);
+					throw ErrorException(makeString("More than one template variable shares name '%s' in function '%s', at location %s.",
+						templateVarName.c_str(), semFunction->name().toString().c_str(),
+						astTemplateVarNode.location().toString().c_str()));
 				}
 				
 				// Create placeholder for the template type.

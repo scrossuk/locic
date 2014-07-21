@@ -1,0 +1,7 @@
+exception Exception(int value) : Exception(value);
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

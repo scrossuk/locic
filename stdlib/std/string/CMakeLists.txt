@@ -1,5 +1,5 @@
 loci_module(std.string std_string.bc ""
-	src/alloc.loci
 	src/string.loci
+	${STD_MEMORY_API_FILES}
 	)
 
