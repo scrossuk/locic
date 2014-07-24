@@ -1622,7 +1622,7 @@ precision2:
 	}
 	| precision2 DOUBLE_AMPERSAND precision3
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("logicalAnd", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALAND, GETSYM($1), GETSYM($3))));
 	}
 	;
 
@@ -1633,7 +1633,7 @@ precision1:
 	}
 	| precision1 DOUBLE_VERTICAL_BAR precision2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("logicalOr", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALOR, GETSYM($1), GETSYM($3))));
 	}
 	;
 	

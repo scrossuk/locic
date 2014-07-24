@@ -2,6 +2,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -75,7 +76,11 @@ namespace locic {
 				if (newFunctionType->getReturnType()->isVoidTy()) {
 					builder.CreateRetVoid();
 				} else {
-					builder.CreateRet(result);
+					if (result->getType()->isPointerTy()) {
+						builder.CreateRet(builder.CreatePointerCast(result, newFunctionType->getReturnType()));
+					} else {
+						builder.CreateRet(result);
+					}
 				}
 			}
 			
@@ -128,7 +133,21 @@ namespace locic {
 			}
 		}
 		
-		
+		ArgPair genCallValue(Function& function, SEM::Value* value) {
+			switch (value->kind()) {
+				case SEM::Value::REFVALUE: {
+					const auto dataValue = value->refValue.value;
+					const bool isContextRef = dataValue->type()->isBuiltInReference()
+						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+					return std::make_pair(genValue(function, dataValue), isContextRef);
+				}
+				
+				default:
+					const bool isContextRef = value->type()->isBuiltInReference()
+						|| !isTypeSizeAlwaysKnown(function.module(), value->type());
+					return std::make_pair(genValue(function, value), isContextRef);
+			}
+		}
 		
 		bool isTrivialFunction(Module& module, SEM::Value* value) {
 			switch (value->kind()) {
@@ -147,12 +166,23 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<ArgPair> args) {
+		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					const auto parentType = value->functionRef.parentType;
+					
+					llvm::SmallVector<ArgPair, 10> llvmArgs;
+					
+					if (contextValue.first != nullptr) {
+						llvmArgs.push_back(contextValue);
+					}
+					
+					for (const auto& arg: args) {
+						llvmArgs.push_back(genCallValue(function, arg));
+					}
+					
 					if (parentType->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, args);
+						return genTrivialPrimitiveFunctionCall(function, parentType, value->functionRef.function, llvmArgs);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -164,14 +194,12 @@ namespace locic {
 					const bool isContextRef = dataValue->type()->isBuiltInReference()
 						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					
-					llvm::SmallVector<ArgPair, 10> newArgs;
-					newArgs.push_back(std::make_pair(llvmDataValue, isContextRef));
-					
-					for (const auto& arg: args) {
-						newArgs.push_back(arg);
+					if (isContextRef && !dataValue->type()->isRef()) {
+						// Call destructor for the object at the end of the current scope.
+						scheduleDestructorCall(function, dataValue->type(), llvmDataValue);
 					}
 					
-					return genTrivialFunctionCall(function, value->methodObject.method, newArgs);
+					return genTrivialFunctionCall(function, value->methodObject.method, args, std::make_pair(llvmDataValue, isContextRef));
 				}
 				
 				default: {
@@ -228,6 +256,11 @@ namespace locic {
 					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
 						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
 					const auto dataPointer = isValuePtr ? llvmDataValue : genValuePtr(function, llvmDataValue, dataValue->type());
+					
+					if (!dataValue->type()->isRef()) {
+						// Call destructor for the object at the end of the current scope.
+						scheduleDestructorCall(function, dataValue->type(), dataPointer);
+					}
 					
 					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
 					

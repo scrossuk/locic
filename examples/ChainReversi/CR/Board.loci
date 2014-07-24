@@ -1,56 +1,5 @@
 // Chain Reversi Board.
 
-import void* malloc(size_t size) noexcept;
-import void free(void* ptr) noexcept;
-
-// TODO: replace this with actual standard library.
-namespace std {
-
-	template <typename T>
-	interface counter_type {
-		T implicitCopy() const noexcept;
-		
-		compare_result_t compare(const T& value) const noexcept;
-		
-		T add(const T& value) const noexcept;
-	}
-	
-	template <typename T: counter_type<T>>
-	class counter (T increment, T begin, T end) {
-		static Create = default;
-		
-		T front() noexcept {
-			return @begin;
-		}
-		
-		void popFront() noexcept {
-			@begin += @increment;
-		}
-		
-		bool empty() noexcept {
-			return @begin >= @end;
-		}
-	}
-	
-	template <typename T: counter_type<T>>
-	class counter_incl (T increment, T begin, T end) {
-		static Create = default;
-		
-		T front() noexcept {
-			return @begin;
-		}
-		
-		void popFront() noexcept {
-			@begin += @increment;
-		}
-		
-		bool empty() noexcept {
-			return @begin > @end;
-		}
-	}
-
-}
-
 namespace CR {
 
 	datatype Position(size_t x, size_t y);

@@ -1,0 +1,18 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	auto varray = std::varray<int>();
+	
+	for (auto i: std::counter<int>(1, 0, 10)) {
+		varray.push_back(i);
+	}
+	
+	for (auto i: std::counter<size_t>(1u, 0u, 10u)) {
+		testPrint(C"varray[%llu] = %d", i.toULongLong(), varray[i]);
+	}
+	
+	return 0;
+}
+

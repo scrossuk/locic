@@ -10,10 +10,13 @@ import std.memory 0.1.0 {
 			
 			static shared_ptr<T> null();
 			
-			shared_ptr<T> implicitCopy();
+			shared_ptr<T> implicit_copy() const;
 			
 			lval<T> ptr_lval<T> deref() const;
 		}
+		
+		template <typename T>
+		shared_ptr<T> new_shared(T value);
 		
 	}
 	

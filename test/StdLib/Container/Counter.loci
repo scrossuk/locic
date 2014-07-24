@@ -1,0 +1,90 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+class CountObject(int value) {
+	static create = default;
+	
+	CountObject implicitCopy() const noexcept {
+		return @(@value);
+	}
+	
+	compare_result_t compare(const CountObject& other) const noexcept {
+		testPrint(C"CountObject: compare %d and %d", @value, other.getValue());
+		return @value.compare(other.getValue());
+	}
+	
+	CountObject add(const CountObject& other) const noexcept {
+		testPrint(C"CountObject: %d + %d", @value, other.getValue());
+		return @(@value + other.getValue());
+	}
+	
+	int getValue() const noexcept {
+		return @value;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	testPrint(C"Counting from 0 to 0 in increments of 1.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(1), CountObject(0), CountObject(0))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	testPrint(C"Counting from 0 to 10 in increments of 1.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(1), CountObject(0), CountObject(10))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	testPrint(C"Counting from 0 to 100 in increments of 10.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(10), CountObject(0), CountObject(100))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	testPrint(C"Counting inclusively from 0 to 0 in increments of 1.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(1), CountObject(0), CountObject(0))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	testPrint(C"Counting inclusively from 0 to 10 in increments of 1.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(1), CountObject(0), CountObject(10))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	testPrint(C"Counting inclusively from 0 to 100 in increments of 10.");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(10), CountObject(0), CountObject(100))) {
+			testPrint(C"Value %d = %d.", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	return 0;
+}
+

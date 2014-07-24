@@ -34,6 +34,11 @@ namespace locic {
 		}
 		
 		bool typeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+			if (typeInstance->isClassDecl()) {
+				// Assume a destructor exists.
+				return true;
+			}
+			
 			if (typeInstance->isPrimitive()) {
 				return primitiveTypeInstanceHasDestructor(module, typeInstance);
 			}
@@ -60,8 +65,6 @@ namespace locic {
 				
 				return false;
 			}
-			
-			return typeInstance->isClass() || typeInstance->isDatatype() || typeInstance->isUnionDatatype();
 		}
 		
 		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance) {

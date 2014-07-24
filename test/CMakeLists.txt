@@ -3,4 +3,5 @@
 
 add_subdirectory(CheckOutput)
 add_subdirectory(CheckError)
+add_subdirectory(StdLib)
 

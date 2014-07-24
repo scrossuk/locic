@@ -11,6 +11,9 @@ import std.memory 0.1.0 {
 			lval<T> ptr_lval<T> deref() const;
 		}
 		
+		template <typename T>
+		unique_ptr<T> new_unique(T value);
+		
 	}
 	
 }

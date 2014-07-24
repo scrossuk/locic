@@ -1,0 +1,32 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		testPrint(C"Create TestClass: %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"Destroy TestClass: %d", @value);
+	}
+}
+
+void function(std::unique_ptr<TestClass> testObject) {
+	testPrint(C"function()!");
+	(void) testObject;
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	auto uniquePtr = std::new_unique<TestClass>(TestClass(1));
+	
+	testPrint(C"Calling function().");
+	
+	function(move uniquePtr);
+	
+	testPrint(C"Finished function().");
+	
+	return 0;
+}
+

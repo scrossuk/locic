@@ -106,19 +106,22 @@ namespace locic {
 					// Go through all if clauses and generate their code.
 					for (size_t i = 0; i < ifClauseList.size(); i++) {
 						const auto& ifClause = ifClauseList.at(i);
-						const auto conditionValue = genValue(function, ifClause->condition());
-						
 						const auto thenBB = basicBlocks[i * 2 + 0];
 						const auto elseBB = basicBlocks[i * 2 + 1];
 						
-						// If this is the last if clause and there's no else clause,
-						// have the false condition jump straight to the merge.
-						const bool isEnd = ((i + 1) == ifClauseList.size());
-						function.getBuilder().CreateCondBr(conditionValue, thenBB, (!isEnd || hasElseScope) ? elseBB : mergeBB);
-						
-						// Create 'then'.
-						function.selectBasicBlock(thenBB);
-						genScope(function, ifClause->scope());
+						{
+							ScopeLifetime ifCaseLifetime(function);
+							const auto conditionValue = genValue(function, ifClause->condition());
+							
+							// If this is the last if clause and there's no else clause,
+							// have the false condition jump straight to the merge.
+							const bool isEnd = ((i + 1) == ifClauseList.size());
+							function.getBuilder().CreateCondBr(conditionValue, thenBB, (!isEnd || hasElseScope) ? elseBB : mergeBB);
+							
+							// Create 'then'.
+							function.selectBasicBlock(thenBB);
+							genScope(function, ifClause->scope());
+						}
 						
 						if (!lastInstructionTerminates(function)) {
 							allTerminate = false;

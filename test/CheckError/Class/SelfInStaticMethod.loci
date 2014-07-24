@@ -1,0 +1,14 @@
+class TestClass(int value) {
+	static Create(int value) {
+		self.doSomething();
+		return @(value);
+	}
+	
+	void doSomething() { }
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	return 0;
+}
+

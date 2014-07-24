@@ -40,6 +40,11 @@ namespace locic {
 				throw ErrorException(makeString("Cannot access 'self' in non-method at %s.", location.toString().c_str()));
 			}
 			
+			if (thisFunction->isStaticMethod()) {
+				throw ErrorException(makeString("Cannot access 'self' in static method at %s.",
+					location.toString().c_str()));
+			}
+			
 			const auto selfType = thisTypeInstance->selfType();
 			const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
 			return createSelfRef(context, selfConstType);

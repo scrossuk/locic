@@ -79,7 +79,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSIO
 
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
-llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core jit mcjit nativecodegen native ipo option)
+llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
 
 # Clang (for target information).
 set(CLANG_REQ_LIBS clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization)
@@ -90,6 +90,17 @@ set(CLANG_REQ_LIBS clangFrontend clangParse clangSema clangEdit clangAnalysis cl
 include_directories (
 	"${CMAKE_SOURCE_DIR}/include"
 	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
+	)
+
+set (STD_CONTAINER_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/range.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/types.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/varray.loci"
+	)
+
+set (STD_CONTAINER_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
 	)
 
 set (STD_MEMORY_API_FILES
@@ -103,18 +114,9 @@ set (STD_MEMORY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/memory/std_memory.bc"
 	)
 
-set (STD_CONTAINER_API_FILES
-	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/range.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/types.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/varray.loci"
-	)
-
-set (STD_CONTAINER_BINARY_FILES
-	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
-	)
-
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/stringbuffer.loci"
 	)
 
 set (STD_STRING_BINARY_FILES

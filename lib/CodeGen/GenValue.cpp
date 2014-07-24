@@ -33,22 +33,6 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		ArgPair genCallValue(Function& function, SEM::Value* value) {
-			switch (value->kind()) {
-				case SEM::Value::REFVALUE: {
-					const auto dataValue = value->refValue.value;
-					const bool isContextRef = dataValue->type()->isBuiltInReference()
-						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
-					return std::make_pair(genValue(function, dataValue), isContextRef);
-				}
-				
-				default:
-					const bool isContextRef = value->type()->isBuiltInReference()
-						|| !isTypeSizeAlwaysKnown(function.module(), value->type());
-					return std::make_pair(genValue(function, value), isContextRef);
-			}
-		}
-		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
 			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
@@ -78,6 +62,20 @@ namespace locic {
 							assert(value->type()->isObject());
 							const auto floatValue = value->constant->floatValue();
 							return ConstantGenerator(module).getPrimitiveFloat(value->type()->getObjectType()->name().last(), floatValue);
+						}
+						
+						case locic::Constant::CHARACTER: {
+							const auto characterValue = value->constant->characterValue();
+							
+							const auto typeName = value->type()->getObjectType()->name().last();
+							
+							if (typeName == "byte_t") {
+								return ConstantGenerator(module).getI8(characterValue);
+							} else if (typeName == "unichar") {
+								return ConstantGenerator(module).getI32(characterValue);
+							} else {
+								llvm_unreachable("Unknown character literal type.");
+							}
 						}
 						
 						case locic::Constant::STRING: {
@@ -385,11 +383,7 @@ namespace locic {
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
 					
 					if (isTrivialFunction(module, semFunctionValue)) {
-						llvm::SmallVector<ArgPair, 10> llvmArgs;
-						for (const auto& arg: semArgumentValues) {
-							llvmArgs.push_back(genCallValue(function, arg));
-						}
-						return genTrivialFunctionCall(function, semFunctionValue, llvmArgs);
+						return genTrivialFunctionCall(function, semFunctionValue, semArgumentValues);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semFunctionValue);
@@ -430,6 +424,11 @@ namespace locic {
 					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
 					
 					assert(value->type()->isMethod());
+					
+					if (!dataValue->type()->isRef()) {
+						// Call destructor for the object at the end of the current scope.
+						scheduleDestructorCall(function, dataValue->type(), dataPointer);
+					}
 					
 					const auto contextPtr = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType(), "this_ptr_cast_to_void_ptr");
 					

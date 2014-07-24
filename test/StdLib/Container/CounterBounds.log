@@ -1,0 +1,35 @@
+Counting from 250 to 255 in increments of 1.
+CountObject: compare 250 and 255
+Value 0 = 250.
+CountObject: 250 + 1
+CountObject: compare 251 and 255
+Value 1 = 251.
+CountObject: 251 + 1
+CountObject: compare 252 and 255
+Value 2 = 252.
+CountObject: 252 + 1
+CountObject: compare 253 and 255
+Value 3 = 253.
+CountObject: 253 + 1
+CountObject: compare 254 and 255
+Value 4 = 254.
+CountObject: 254 + 1
+CountObject: compare 255 and 255
+Counting inclusively from 250 to 255 in increments of 1.
+Value 0 = 250.
+CountObject: compare 250 and 255
+CountObject: 250 + 1
+Value 1 = 251.
+CountObject: compare 251 and 255
+CountObject: 251 + 1
+Value 2 = 252.
+CountObject: compare 252 and 255
+CountObject: 252 + 1
+Value 3 = 253.
+CountObject: compare 253 and 255
+CountObject: 253 + 1
+Value 4 = 254.
+CountObject: compare 254 and 255
+CountObject: 254 + 1
+Value 5 = 255.
+CountObject: compare 255 and 255

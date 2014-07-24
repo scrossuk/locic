@@ -2,19 +2,19 @@ export std.memory 0.1.0 {
 	
 	namespace std {
 		
-		/*template <typename T>
+		template <typename T>
 		T* new_raw(T value) {
-			void* ptr = std::alloc(sizeof(T));
+			void* ptr = alloc(sizeof(T));
 			T* castPtr = reinterpret_cast<void*, T*>(ptr);
-			castPtr.lval().__assign(move value);
+			nolval(*castPtr).__set_value(move value);
 			return castPtr;
 		}
 		
 		template <typename T>
-		void delete_raw(T* ptr) {
-			ptr.lval().__clear();
-			std::free(reinterpret_cast<T*, void*>(ptr));
-		}*/
+		void delete_raw(T* ptr) noexcept {
+			nolval(*ptr).__destroy_value();
+			free(reinterpret_cast<T*, void*>(ptr));
+		}
 		
 	}
 	

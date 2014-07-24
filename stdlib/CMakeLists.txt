@@ -9,7 +9,7 @@ macro(copy_source_file output_name name)
 	set(${output_name} "${CMAKE_CURRENT_BINARY_DIR}/${name_file}")
 endmacro(copy_source_file)
 
-function(loci_module name output_name flags)
+macro(loci_module name output_name flags)
 	set(${name}_Sources ${ARGN})
 	set(${name}_BuildSources "")
 	
@@ -20,14 +20,14 @@ function(loci_module name output_name flags)
 	
 	separate_arguments(flags)
 	
-	add_custom_command(OUTPUT ${output_name} ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}" ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
 		COMMAND # Run compiler.
 			${LOCIC} ${flags} -o ${output_name} --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${${name}_BuildSources}
 		DEPENDS ${LOCIC} ${${name}_BuildSources}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
-	add_custom_target(${name} ALL DEPENDS ${output_name})
-endfunction(loci_module)
+	add_custom_target(${name} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${output_name}")
+endmacro(loci_module)
 
 add_subdirectory(std)
 

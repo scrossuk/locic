@@ -26,9 +26,6 @@ __primitive bool {
 	compare_result_t compare(const bool& v) const noexcept;
 	
 	bool not() const noexcept;
-	
-	bool logicalAnd(const bool& value) const noexcept;
-	bool logicalOr(const bool& value) const noexcept;
 }
 
 __primitive unichar {
@@ -184,6 +181,7 @@ __primitive int_t {
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
 	
+	byte_t toByte() const noexcept;
 	size_t toSizeT() const noexcept;
 	
 	float_t toFloat() const noexcept;

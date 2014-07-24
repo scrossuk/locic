@@ -1,0 +1,10 @@
+evaluate: value is false
+testEntryPoint: logicalAnd(false, false) = false
+evaluate: value is false
+testEntryPoint: logicalAnd(false, true) = false
+evaluate: value is true
+evaluate: value is false
+testEntryPoint: logicalAnd(true, false) = false
+evaluate: value is true
+evaluate: value is true
+testEntryPoint: logicalAnd(true, true) = true

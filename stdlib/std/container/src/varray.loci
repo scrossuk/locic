@@ -1,35 +1,3 @@
-
-// TODO: replace this with actual standard library.
-namespace std {
-	
-	template <typename T>
-	interface counter_type {
-		T implicitCopy() const noexcept;
-		
-		compare_result_t compare(const T& value) const;
-		
-		T add(const T& value) const noexcept;
-	}
-	
-	template <typename T: counter_type<T>>
-	class counter (T increment, T begin, T end) {
-		static Create = default;
-		
-		T front() noexcept {
-			return @begin;
-		}
-		
-		void popFront() noexcept {
-			@begin += @increment;
-		}
-		
-		bool empty() noexcept {
-			return @begin >= @end;
-		}
-	}
-	
-}
-
 export std.container 0.1.0 {
 	
 	namespace std {
@@ -44,7 +12,7 @@ export std.container 0.1.0 {
 			}
 			
 			~ {
-				for (auto i: counter<size_t>(1u, 0u, @size)) {
+				for (auto i: reverse_counter<size_t>(1u, @size, 0u)) {
 					nolval(@data[i]).__destroy_value();
 				}
 				
@@ -74,8 +42,10 @@ export std.container 0.1.0 {
 			
 			void resize(size_t size) {
 				self.reserve(size);
-				for (auto i: counter<size_t>(1u, size, @size)) {
-					nolval(@data[i]).__destroy_value();
+				if (size < @size) {
+					for (auto i: reverse_counter<size_t>(1u, @size, size)) {
+						nolval(@data[i]).__destroy_value();
+					}
 				}
 				@size = size;
 			}
@@ -90,6 +60,13 @@ export std.container 0.1.0 {
 			
 			lval<T> ptr_lval<T> index(size_t index) const {
 				return @data[index];
+			}
+			
+			void clear() noexcept {
+				for (auto i: reverse_counter<size_t>(1u, @size, 0u)) {
+					nolval(@data[i]).__destroy_value();
+				}
+				@size = 0u;
 			}
 			
 			void push_back(T value) {

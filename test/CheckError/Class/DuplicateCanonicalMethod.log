@@ -1,1 +1,1 @@
-Function name '::TestClass::do_SOME_thing' clashes with existing function\.
+Function name '::TestClass::do_SOME_thing' clashes with existing name, at position SourceLocation\(filename = (.*)/DuplicateCanonicalMethod\.loci, range = \(line 6, column 2\) to \(line 6, column 26\)\)\.

@@ -379,7 +379,7 @@ namespace locic {
 			types.push_back("long");
 			types.push_back("longlong");
 			
-			types.push_back("uchar");
+			types.push_back("ubyte");
 			types.push_back("ushort");
 			types.push_back("uint");
 			types.push_back("ulong");

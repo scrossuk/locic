@@ -1,0 +1,25 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		testPrint(C"Create TestClass: %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"Destroy TestClass: %d", @value);
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(1, 0, 10)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	return 0;
+}
+

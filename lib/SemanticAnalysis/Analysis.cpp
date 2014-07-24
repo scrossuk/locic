@@ -70,14 +70,8 @@ namespace locic {
 			// Check if there's anything with the same name.
 			const auto iterator = parentNamespace->items().find(typeInstanceName);
 			if (iterator != parentNamespace->items().end()) {
-				if (iterator->second.isTypeInstance()) {
-					throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
-				} else if (iterator->second.isNamespace()) {
-					throw NameClashException(NameClashException::TYPE_WITH_NAMESPACE, fullTypeName);
-				}
-				assert(false &&
-					"Functions shouldn't be added at this point, so anything "
-					"that isn't a namespace or a type instance should be 'none'.");
+				throw ErrorException(makeString("Type instance name '%s' clashes with existing name, at position %s.",
+					fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
 			}
 			
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
@@ -194,7 +188,8 @@ namespace locic {
 				const auto fullTypeName = semNamespace->name() + typeAliasName;
 				const auto iterator = semNamespace->items().find(typeAliasName);
 				if (iterator != semNamespace->items().end()) {
-					throw NameClashException(NameClashException::TYPE_WITH_TYPE, fullTypeName);
+					throw ErrorException(makeString("Type alias name '%s' clashes with existing name, at position %s.",
+						fullTypeName.toString().c_str(), astTypeAliasNode.location().toString().c_str()));
 				}
 				
 				const auto semTypeAlias = new SEM::TypeAlias(context.semContext(), fullTypeName);
@@ -451,14 +446,8 @@ namespace locic {
 			
 			const auto iterator = parentNamespace->items().find(name);
 			if (iterator != parentNamespace->items().end()) {
-				if (iterator->second.isTypeInstance()) {
-					throw NameClashException(NameClashException::FUNCTION_WITH_TYPE, fullName);
-				} else if (iterator->second.isFunction()) {
-					throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
-				} else if (iterator->second.isNamespace()) {
-					throw NameClashException(NameClashException::FUNCTION_WITH_NAMESPACE, fullName);
-				}
-				assert(false && "Node is not function, type instance, or namespace, so it must be 'none'");
+				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
+					fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 			}
 			
 			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
@@ -475,7 +464,8 @@ namespace locic {
 			
 			const auto iterator = parentType->functions().find(canonicalMethodName);
 			if (iterator != parentType->functions().end()) {
-				throw NameClashException(NameClashException::FUNCTION_WITH_FUNCTION, fullName);
+				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
+					fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 			}
 			
 			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);

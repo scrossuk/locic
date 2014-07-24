@@ -222,6 +222,11 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
+					if (thisFunction->isStaticMethod()) {
+						throw ErrorException(makeString("Cannot access 'this' in static method at %s.",
+							location.toString().c_str()));
+					}
+					
 					const auto selfType = thisTypeInstance->selfType();
 					const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
 					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
@@ -402,6 +407,22 @@ namespace locic {
 								const auto isNotEqualMethod = GetMethod(context, compareResult, "isGreaterThanOrEqual", location);
 								return CallValue(context, isNotEqualMethod, {}, location);
 							}
+						}
+						case AST::OP_LOGICALAND: {
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+							const auto boolValue = ImplicitCast(context, leftOperand, boolType->selfType(), location);
+							
+							// Logical AND only evaluates the right operand if the left
+							// operand is TRUE, otherwise it returns FALSE.
+							return SEM::Value::Ternary(boolValue, rightOperand, SEM::Value::Constant(Constant::False(), boolType->selfType()));
+						}
+						case AST::OP_LOGICALOR: {
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+							const auto boolValue = ImplicitCast(context, leftOperand, boolType->selfType(), location);
+							
+							// Logical OR only evaluates the right operand if the left
+							// operand is FALSE, otherwise it returns TRUE.
+							return SEM::Value::Ternary(boolValue, SEM::Value::Constant(Constant::True(), boolType->selfType()), rightOperand);
 						}
 						default:
 							throw std::runtime_error("Unknown binary op kind.");

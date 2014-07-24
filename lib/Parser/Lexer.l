@@ -57,6 +57,12 @@
 				return CONSTANT; }
 <STRING_STATE>.               { yyextra->appendStringConstant(yytext); }
 
+"'\\n'"                 { yylval->lexer_constant = locic::Constant::Character('\n'); return CONSTANT; }
+"'\\t'"                 { yylval->lexer_constant = locic::Constant::Character('\t'); return CONSTANT; }
+"'\\\\'"                { yylval->lexer_constant = locic::Constant::Character('\\'); return CONSTANT; }
+"'\\\''"                { yylval->lexer_constant = locic::Constant::Character('\''); return CONSTANT; }
+"'"."'"                 { yylval->lexer_constant = locic::Constant::Character(yytext[1]); return CONSTANT; }
+
 if                      { return IF; }
 else                    { return ELSE; }
 while                   { return WHILE; }

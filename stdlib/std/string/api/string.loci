@@ -13,7 +13,7 @@ import std.string 0.1.0 {
 			
 			string implicitCopy() const noexcept;
 			
-			string add(string other) const;
+			string add(const string& other) const;
 			
 			size_t length() const noexcept;
 			

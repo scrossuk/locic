@@ -1,0 +1,1 @@
+Cannot access 'this' in static method at SourceLocation\(filename = (.*)/ThisInStaticMethod\.loci, range = \(line 3, column 3\) to \(line 3, column 7\)\)\.

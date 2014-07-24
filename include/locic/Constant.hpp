@@ -16,11 +16,13 @@ namespace locic{
 				BOOLEAN,
 				INTEGER,
 				FLOATINGPOINT,
+				CHARACTER,
 				STRING
 			};
 			
 			typedef unsigned long long IntegerVal;
 			typedef long double FloatVal;
+			typedef uint32_t CharVal;
 			
 			static inline Constant * Null(){
 				return new Constant(NULLVAL);
@@ -50,6 +52,12 @@ namespace locic{
 				return constant;
 			}
 			
+			static inline Constant * Character(CharVal value){
+				Constant * constant = new Constant(CHARACTER);
+				constant->character_ = value;
+				return constant;
+			}
+			
 			static inline Constant * String(const std::string& value){
 				Constant * constant = new Constant(STRING);
 				constant->string_ = value;
@@ -75,6 +83,11 @@ namespace locic{
 				return float_;
 			}
 			
+			inline CharVal characterValue() const{
+				assert(kind_ == CHARACTER);
+				return character_;
+			}
+			
 			inline const std::string& stringValue() const{
 				assert(kind_ == STRING);
 				return string_;
@@ -90,6 +103,8 @@ namespace locic{
 						return makeString("IntegerConstant(%llu)", integerValue());
 					case FLOATINGPOINT:
 						return makeString("FloatConstant(%Lf)", floatValue());
+					case CHARACTER:
+						return makeString("CharacterConstant(%llu)", (unsigned long long) characterValue());
 					case STRING:
 						return makeString("StringConstant(\"%s\")", escapeString(stringValue()).c_str());
 					default:
@@ -107,6 +122,7 @@ namespace locic{
 				bool bool_;
 				IntegerVal integer_;
 				FloatVal float_;
+				CharVal character_;
 			};
 			
 			std::string string_;

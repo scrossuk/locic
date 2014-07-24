@@ -1,0 +1,118 @@
+export std.container 0.1.0 {
+
+	namespace std {
+		
+		template <typename T>
+		interface counter_type {
+			T implicit_copy() const noexcept;
+			
+			compare_result_t compare(const T& value) const noexcept;
+			
+			T add(const T& value) const noexcept;
+		}
+		
+		template <typename T: counter_type<T>>
+		class counter (T increment, T begin, T end) {
+			static create = default;
+			
+			const T& front() const noexcept {
+				return @begin;
+			}
+			
+			void pop_front() noexcept {
+				@begin += @increment;
+			}
+			
+			bool empty() const noexcept {
+				return @begin == @end;
+			}
+		}
+		
+		template <typename T: counter_type<T>>
+		class counter_incl (T increment, T begin, T end, bool empty) {
+			static create(T increment, T begin, T end) {
+				return @(move increment, move begin, move end, false);
+			}
+			
+			const T& front() const noexcept {
+				return @begin;
+			}
+			
+			void pop_front() noexcept {
+				if (@begin == @end) {
+					@empty = true;
+					return;
+				}
+				@begin += @increment;
+			}
+			
+			bool empty() const noexcept {
+				return @empty;
+			}
+		}
+		
+		template <typename T>
+		interface reverse_counter_type {
+			T implicit_copy() const noexcept;
+			
+			compare_result_t compare(const T& value) const noexcept;
+			
+			T subtract(const T& value) const noexcept;
+		}
+		
+		template <typename T: reverse_counter_type<T>>
+		class reverse_counter (T decrement, T begin, T end, bool empty) {
+			static create(T decrement, T begin, T end) {
+				if (begin > end) {
+					begin -= decrement;
+					return @(move decrement, move begin, move end, false);
+				} else {
+					return @(move decrement, move begin, move end, true);
+				}
+			}
+			
+			const T& front() const noexcept {
+				return @begin;
+			}
+			
+			void pop_front() noexcept {
+				if (@begin == @end) {
+					@empty = true;
+					return;
+				}
+				@begin -= @decrement;
+			}
+			
+			bool empty() const noexcept {
+				return @empty;
+			}
+		}
+		
+		template <typename T: reverse_counter_type<T>>
+		class reverse_counter_incl (T decrement, T begin, T end, bool empty) {
+			static create(T decrement, T begin, T end) {
+				return @(move decrement, move begin, move end, false);
+			}
+			
+			const T& front() const noexcept {
+				return @begin;
+			}
+			
+			void pop_front() noexcept {
+				if (@begin == @end) {
+					@empty = true;
+					return;
+				}
+				@begin -= @decrement;
+			}
+			
+			bool empty() const noexcept {
+				return @empty;
+			}
+		}
+		
+	}
+	
+}
+		
+		

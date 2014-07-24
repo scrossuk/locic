@@ -1,0 +1,43 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class stringbuffer (size_t length, byte* ptr) {
+			static create() {
+				final auto ptr = reinterpret_cast<void*, byte*>(std::alloc(1u));
+				ptr[0u] = 0;
+				return @(0u, ptr);
+			}
+			
+			~ {
+				std::free(reinterpret_cast<byte*, void*>(@ptr));
+			}
+			
+			size_t length() const noexcept {
+				return @length;
+			}
+			
+			void appendByte(byte character) {
+				final auto newLength = @length + 1u;
+				final auto newPtr = reinterpret_cast<void*, byte*>(std::alloc(newLength + 1u));
+				(void) strcpy(&newPtr[0u], @ptr);
+				newPtr[@length] = character;
+				newPtr[newLength] = 0;
+				std::free(reinterpret_cast<byte*, void*>(@ptr));
+				@length = newLength;
+				@ptr = newPtr;
+			}
+			
+			const byte* const c_str() const noexcept {
+				return @ptr;
+			}
+			
+			string str() const {
+				return string::cstring(@ptr);
+			}
+		}
+		
+	}
+	
+}
+

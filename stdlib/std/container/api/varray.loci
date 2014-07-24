@@ -22,6 +22,8 @@ import std.container 0.1.0 {
 			
 			lval<T> ptr_lval<T> index(size_t index) const;
 			
+			void clear() noexcept;
+			
 			void push_back(T value);
 			
 			void pop_back();

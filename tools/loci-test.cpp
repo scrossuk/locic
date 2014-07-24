@@ -11,12 +11,20 @@
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
 
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Linker.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/SourceMgr.h>
+
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
 
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGen.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
+#include <locic/CodeGen/Module.hpp>
 #include <locic/SemanticAnalysis.hpp>
 
 using namespace locic;
@@ -110,6 +118,17 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 	return boost::regex_match(testErrorCopy, expectedErrorRegex);
 }
 
+llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
+	llvm::sys::Path fileNamePath;
+	if (!fileNamePath.set(fileName)) {
+		printf("Invalid file name '%s'.\n", fileName.c_str());
+		return nullptr;
+	}
+	
+	llvm::SMDiagnostic error;
+	return llvm::ParseIRFile(fileNamePath.str(), error, context);
+}
+
 int main(int argc, char* argv[]) {
 	if (argc < 1) {
 		return -1;
@@ -123,6 +142,7 @@ int main(int argc, char* argv[]) {
 	std::string expectedErrorFileName;
 	std::string expectedOutputFileName;
 	int expectedResult = 0;
+	std::vector<std::string> dependencyModules;
 	std::vector<std::string> programArgs;
 	
 	po::options_description visibleOptions("Options");
@@ -133,7 +153,8 @@ int main(int argc, char* argv[]) {
 	("expected-error", po::value<std::string>(&expectedErrorFileName), "Set expected error file name")
 	("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
 	("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
-	("args", po::value<std::vector<std::string>>(&programArgs), "Set program arguments")
+	("dependency-modules", po::value<std::vector<std::string>>(&dependencyModules)->multitoken(), "Set dependency module bitcode files")
+	("args", po::value<std::vector<std::string>>(&programArgs)->multitoken(), "Set program arguments")
 	;
 	
 	po::options_description hiddenOptions;
@@ -271,8 +292,27 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		
+		llvm::Module* linkedModule = codeGenerator.module().getLLVMModulePtr();
+		
+		for (const auto& dependencyModuleName: dependencyModules) {
+			const auto dependencyModule = loadBitcodeFile(dependencyModuleName, linkedModule->getContext());
+			if (dependencyModule == nullptr) {
+				printf("Test FAILED: Failed to load dependency module '%s'.\n",
+					dependencyModuleName.c_str());
+				return -1;
+			}
+			
+			std::string errorMessage;
+			const bool linkFailed = llvm::Linker::LinkModules(linkedModule, dependencyModule, llvm::Linker::DestroySource, &errorMessage);
+			if (linkFailed) {
+				printf("Test FAILED: Couldn't link with dependency module '%s'; error given was '%s'.\n",
+					dependencyModuleName.c_str(), errorMessage.c_str());
+				return -1;
+			}
+		}
+		
 		// Interpret the code.
-		CodeGen::Interpreter interpreter(codeGenerator.module());
+		CodeGen::Interpreter interpreter(linkedModule);
 		
 		// Treat entry point function as if it is 'main'.
 		programArgs.insert(programArgs.begin(), "testProgram");

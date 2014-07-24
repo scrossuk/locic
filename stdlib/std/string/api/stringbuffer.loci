@@ -1,0 +1,20 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		class stringbuffer {
+			static stringbuffer create();
+			
+			size_t length() const noexcept;
+			
+			void appendByte(byte character);
+			
+			const byte* const c_str() const noexcept;
+			
+			string str() const;
+		}
+		
+	}
+	
+}
+

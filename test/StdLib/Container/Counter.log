@@ -1,0 +1,135 @@
+Counting from 0 to 0 in increments of 1.
+CountObject: compare 0 and 0
+Counting from 0 to 10 in increments of 1.
+CountObject: compare 0 and 10
+Value 0 = 0.
+CountObject: 0 + 1
+CountObject: compare 1 and 10
+Value 1 = 1.
+CountObject: 1 + 1
+CountObject: compare 2 and 10
+Value 2 = 2.
+CountObject: 2 + 1
+CountObject: compare 3 and 10
+Value 3 = 3.
+CountObject: 3 + 1
+CountObject: compare 4 and 10
+Value 4 = 4.
+CountObject: 4 + 1
+CountObject: compare 5 and 10
+Value 5 = 5.
+CountObject: 5 + 1
+CountObject: compare 6 and 10
+Value 6 = 6.
+CountObject: 6 + 1
+CountObject: compare 7 and 10
+Value 7 = 7.
+CountObject: 7 + 1
+CountObject: compare 8 and 10
+Value 8 = 8.
+CountObject: 8 + 1
+CountObject: compare 9 and 10
+Value 9 = 9.
+CountObject: 9 + 1
+CountObject: compare 10 and 10
+Counting from 0 to 100 in increments of 10.
+CountObject: compare 0 and 100
+Value 0 = 0.
+CountObject: 0 + 10
+CountObject: compare 10 and 100
+Value 1 = 10.
+CountObject: 10 + 10
+CountObject: compare 20 and 100
+Value 2 = 20.
+CountObject: 20 + 10
+CountObject: compare 30 and 100
+Value 3 = 30.
+CountObject: 30 + 10
+CountObject: compare 40 and 100
+Value 4 = 40.
+CountObject: 40 + 10
+CountObject: compare 50 and 100
+Value 5 = 50.
+CountObject: 50 + 10
+CountObject: compare 60 and 100
+Value 6 = 60.
+CountObject: 60 + 10
+CountObject: compare 70 and 100
+Value 7 = 70.
+CountObject: 70 + 10
+CountObject: compare 80 and 100
+Value 8 = 80.
+CountObject: 80 + 10
+CountObject: compare 90 and 100
+Value 9 = 90.
+CountObject: 90 + 10
+CountObject: compare 100 and 100
+Counting inclusively from 0 to 0 in increments of 1.
+Value 0 = 0.
+CountObject: compare 0 and 0
+Counting inclusively from 0 to 10 in increments of 1.
+Value 0 = 0.
+CountObject: compare 0 and 10
+CountObject: 0 + 1
+Value 1 = 1.
+CountObject: compare 1 and 10
+CountObject: 1 + 1
+Value 2 = 2.
+CountObject: compare 2 and 10
+CountObject: 2 + 1
+Value 3 = 3.
+CountObject: compare 3 and 10
+CountObject: 3 + 1
+Value 4 = 4.
+CountObject: compare 4 and 10
+CountObject: 4 + 1
+Value 5 = 5.
+CountObject: compare 5 and 10
+CountObject: 5 + 1
+Value 6 = 6.
+CountObject: compare 6 and 10
+CountObject: 6 + 1
+Value 7 = 7.
+CountObject: compare 7 and 10
+CountObject: 7 + 1
+Value 8 = 8.
+CountObject: compare 8 and 10
+CountObject: 8 + 1
+Value 9 = 9.
+CountObject: compare 9 and 10
+CountObject: 9 + 1
+Value 10 = 10.
+CountObject: compare 10 and 10
+Counting inclusively from 0 to 100 in increments of 10.
+Value 0 = 0.
+CountObject: compare 0 and 100
+CountObject: 0 + 10
+Value 1 = 10.
+CountObject: compare 10 and 100
+CountObject: 10 + 10
+Value 2 = 20.
+CountObject: compare 20 and 100
+CountObject: 20 + 10
+Value 3 = 30.
+CountObject: compare 30 and 100
+CountObject: 30 + 10
+Value 4 = 40.
+CountObject: compare 40 and 100
+CountObject: 40 + 10
+Value 5 = 50.
+CountObject: compare 50 and 100
+CountObject: 50 + 10
+Value 6 = 60.
+CountObject: compare 60 and 100
+CountObject: 60 + 10
+Value 7 = 70.
+CountObject: compare 70 and 100
+CountObject: 70 + 10
+Value 8 = 80.
+CountObject: compare 80 and 100
+CountObject: 80 + 10
+Value 9 = 90.
+CountObject: compare 90 and 100
+CountObject: 90 + 10
+Value 10 = 100.
+CountObject: compare 100 and 100

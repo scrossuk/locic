@@ -1,23 +1,119 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const byte * const str, ...) noexcept;
-import int scanf(const byte * const str, ...) noexcept;
+import void printf(const byte* const str, ...) noexcept;
+import int scanf(const byte* const str, ...) noexcept;
+import int getchar() noexcept;
+import int atoi(const byte* const str);
 
-export int main(int argc, byte ** argv) {
-	auto values = std::varray<int>();
+exception EOFException();
+
+std::varray<std::string> readCommandLine() {
+	auto components = std::varray<std::string>();
 	
-	int intValue = 0;
-        while (scanf(C"%d", &intValue) == 1) {
-                printf(C"Received value: %d\n", intValue);
-                values.push_back(intValue);
-                
-                size_t i = 0u;
-                while (i < values.size()) {
-                	printf(C"    Value[%llu] = %d\n",
-                		i.toULongLong(), values[i]);
-                	i = i + 1u;
-                }
-        }
+	bool isTerminated = false;
+	while (!isTerminated) {
+		auto commandBuffer = std::stringbuffer();
+		while (true) {
+			final int charInt = getchar();
+			if (charInt == -1) {
+				printf(C"Got EOF\n");
+				throw EOFException();
+			}
+			
+			final byte charByte = charInt.toByte();
+			if (charByte == C'\n') {
+				isTerminated = true;
+				break;
+			}
+			
+			if (charByte == C' ' || charByte == C'\t') {
+				break;
+			}
+			
+			commandBuffer.appendByte(charByte);
+		}
+		
+		if (commandBuffer.length() > 0u) {
+			components.push_back(commandBuffer.str());
+		}
+	}
+	
+	return move components;
+}
+
+export int main(int argc, byte** argv) {
+	try {
+		auto values = std::varray<int>();
+		
+		while (true) {
+			printf(C"$ ");
+			
+			final auto commandComponents = readCommandLine();
+			
+			if (commandComponents.empty()) {
+				continue;
+			}
+			
+			final auto& command = commandComponents[0u];
+			
+			if (command == "add") {
+				if (commandComponents.size() != 2u) {
+					printf(C"add: incorrect number of arguments\n");
+					continue;
+				}
+				
+				final int value = atoi(commandComponents[1u].c_str());
+				values.push_back(value);
+				printf(C"Added value: %d\n", value);
+			} else if (command == "clear") {
+				if (commandComponents.size() != 1u) {
+					printf(C"clear: incorrect number of arguments\n");
+					continue;
+				}
+				
+				values.clear();
+				printf(C"Cleared all values.\n");
+			} else if (command == "show") {
+				if (commandComponents.size() != 1u) {
+					printf(C"show: incorrect number of arguments\n");
+					continue;
+				}
+				
+				printf(C"Got %llu values.\n", values.size().toULongLong());
+				size_t i = 0u;
+				while (i < values.size()) {
+					printf(C"    Value[%llu] = %d\n",
+						   i.toULongLong(), values[i]);
+					i = i + 1u;
+				}
+			} else if (command == "help") {
+				if (commandComponents.size() != 1u) {
+					printf(C"help: incorrect number of arguments\n");
+					continue;
+				}
+				
+				printf(C"Available commands:\n");
+				printf(C"    add [value]\n");
+				printf(C"    clear\n");
+				printf(C"    exit\n");
+				printf(C"    help\n");
+				printf(C"    show\n");
+			} else if (command == "exit") {
+				if (commandComponents.size() != 1u) {
+					printf(C"exit: incorrect number of arguments\n");
+					continue;
+				}
+				
+				printf(C"Exiting...\n");
+				return 0;
+			} else {
+				printf(C"Unknown command '%s'.\n", command.c_str());
+			}
+		}
+	} catch (EOFException e) {
+		printf(C"Exiting due to EOF...\n");
+		return -1;
+	}
 	
 	return 0;
 }

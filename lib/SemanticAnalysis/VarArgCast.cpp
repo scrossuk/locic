@@ -19,7 +19,7 @@ namespace locic {
 			const auto name = type->getObjectType()->name().first();
 			
 			// TODO: find a better (cleaner) way to do this...
-			if (name == "char_t" || name == "uchar_t") return true;
+			if (name == "byte_t" || name == "ubyte_t") return true;
 			if (name == "short_t" || name == "ushort_t") return true;
 			if (name == "int_t" || name == "uint_t") return true;
 			if (name == "long_t" || name == "ulong_t") return true;

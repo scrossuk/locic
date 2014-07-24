@@ -136,6 +136,16 @@ namespace locic {
 				case Constant::FLOATINGPOINT: {
 					return getFloatingPointConstantType(specifier, constant);
 				}
+				case Constant::CHARACTER: {
+					if (specifier == "") {
+						return "unichar";
+					} else if (specifier == "C") {
+						return "byte_t";
+					} else {
+						throw ErrorException(makeString("Invalid character literal specifier '%s'.",
+							specifier.c_str()));
+					}
+				}
 				default:
 					throw std::runtime_error("Unknown constant kind.");
 			}

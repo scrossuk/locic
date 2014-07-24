@@ -25,7 +25,7 @@ namespace locic {
 		
 		bool isTrivialFunction(Module& module, SEM::Value* value);
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<ArgPair> args);
+		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue = ArgPair(nullptr, 0));
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, SEM::Value* value);
 		

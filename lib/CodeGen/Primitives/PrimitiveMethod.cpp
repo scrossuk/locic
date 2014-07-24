@@ -121,8 +121,6 @@ namespace locic {
 				methodName == "compare" ||
 				methodName == "assign" ||
 				methodName == "index" ||
-				methodName == "logicalAnd" ||
-				methodName == "logicalOr" ||
 				methodName == "equal" ||
 				methodName == "not_equal" ||
 				methodName == "less_than" ||
@@ -223,11 +221,7 @@ namespace locic {
 			} else if (isBinaryOp(methodName)) {
 				const auto operand = loadArg(function, args[1], type);
 				
-				if (methodName == "logicalAnd") {
-					return builder.CreateAnd(methodOwner, operand);
-				} else if (methodName == "logicalOr") {
-					return builder.CreateOr(methodOwner, operand);
-				} else if (methodName == "compare") {
+				if (methodName == "compare") {
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);

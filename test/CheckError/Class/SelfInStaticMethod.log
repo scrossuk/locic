@@ -1,0 +1,1 @@
+Cannot access 'self' in static method at SourceLocation\(filename = (.*)/SelfInStaticMethod\.loci, range = \(line 3, column 3\) to \(line 3, column 7\)\)\.

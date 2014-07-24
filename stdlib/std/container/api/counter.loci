@@ -1,0 +1,71 @@
+import std.container 0.1.0 {
+
+	namespace std {
+		
+		template <typename T>
+		interface counter_type {
+			T implicit_copy() const noexcept;
+			
+			compare_result_t compare(const T& value) const noexcept;
+			
+			T add(const T& value) const noexcept;
+		}
+		
+		template <typename T: counter_type<T>>
+		class counter {
+			static counter<T> create(T increment, T begin, T end);
+			
+			const T& front() const noexcept;
+			
+			void pop_front() noexcept;
+			
+			bool empty() const noexcept;
+		}
+		
+		template <typename T: counter_type<T>>
+		class counter_incl {
+			static counter_incl<T> create(T increment, T begin, T end);
+			
+			const T& front() const noexcept;
+			
+			void pop_front() noexcept;
+			
+			bool empty() const noexcept;
+		}
+		
+		template <typename T>
+		interface reverse_counter_type {
+			T implicit_copy() const noexcept;
+			
+			compare_result_t compare(const T& value) const noexcept;
+			
+			T subtract(const T& value) const noexcept;
+		}
+		
+		template <typename T: reverse_counter_type<T>>
+		class reverse_counter {
+			static reverse_counter<T> create(T decrement, T begin, T end);
+			
+			const T& front() const noexcept;
+			
+			void pop_front() noexcept;
+			
+			bool empty() const noexcept;
+		}
+		
+		template <typename T: reverse_counter_type<T>>
+		class reverse_counter_incl {
+			static reverse_counter_incl<T> create(T decrement, T begin, T end);
+			
+			const T& front() const noexcept;
+			
+			void pop_front() noexcept;
+			
+			bool empty() const noexcept;
+		}
+		
+	}
+	
+}
+		
+		

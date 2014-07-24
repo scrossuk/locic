@@ -563,10 +563,34 @@ namespace locic {
 				case AUTO:
 					return "Auto";
 					
-				case OBJECT:
-					return makeString("ObjectType(typeInstance: %s, templateArguments: %s)",
-									  getObjectType()->name().toString().c_str(),
-									  makeNameArrayString(templateArguments()).c_str());
+				case OBJECT: {
+					if (isBuiltInReference()) {
+						assert(templateArguments().size() == 1);
+						return templateArguments().front()->nameToString() + "&";
+					}
+					
+					const auto objectName = getObjectType()->name().toString(false);
+					if (templateArguments().empty()) {
+						return objectName;
+					} else {
+						std::stringstream stream;
+						stream << objectName << "<";
+						
+						bool isFirst = true;
+						for (const auto templateArg: templateArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							stream << templateArg->nameToString();
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
 									  
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
@@ -596,6 +620,11 @@ namespace locic {
 					return "Auto";
 					
 				case OBJECT: {
+					if (isBuiltInReference()) {
+						assert(templateArguments().size() == 1);
+						return templateArguments().front()->toString() + "&";
+					}
+					
 					const auto objectName = getObjectType()->name().toString(false);
 					if (templateArguments().empty()) {
 						return objectName;

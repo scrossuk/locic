@@ -13,7 +13,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		Interpreter::Interpreter(Module& module)
+		Interpreter::Interpreter(llvm::Module* module)
 			: module_(module),
 			executionEngine_(NULL) {
 				llvm::InitializeNativeTarget();
@@ -24,7 +24,7 @@ namespace locic {
 				targetOptions.JITExceptionHandling = true;
 #endif
 				
-				llvm::EngineBuilder engineBuilder(module.getLLVMModulePtr());
+				llvm::EngineBuilder engineBuilder(module);
 				
 				engineBuilder.setEngineKind(llvm::EngineKind::JIT);
 				engineBuilder.setTargetOptions(targetOptions);
@@ -40,7 +40,7 @@ namespace locic {
 		Interpreter::~Interpreter() { }
 		
 		void* Interpreter::getFunctionPointer(const std::string& functionName) {
-			llvm::Function* function = module_.getLLVMModule().getFunction(functionName);
+			llvm::Function* function = module_->getFunction(functionName);
 			if (function == NULL) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}
@@ -51,7 +51,7 @@ namespace locic {
 		}
 		
 		int Interpreter::runAsMain(const std::string& functionName, const std::vector<std::string>& args) {
-			llvm::Function* function = module_.getLLVMModule().getFunction(functionName);
+			llvm::Function* function = module_->getFunction(functionName);
 			if (function == NULL) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}
