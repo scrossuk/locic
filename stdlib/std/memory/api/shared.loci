@@ -8,11 +8,11 @@ import std.memory 0.1.0 {
 			
 			static shared_ptr<T> from_ptr(T* ptr);
 			
-			static shared_ptr<T> null();
+			static shared_ptr<T> null() noexcept;
 			
-			shared_ptr<T> implicit_copy() const;
+			shared_ptr<T> implicit_copy() const noexcept;
 			
-			lval<T> ptr_lval<T> deref() const;
+			lval<T> ptr_lval<T> deref() const noexcept;
 		}
 		
 		template <typename T>

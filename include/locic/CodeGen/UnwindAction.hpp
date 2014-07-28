@@ -106,10 +106,6 @@ namespace locic {
 				
 				void setActionBlock(UnwindState state, BasicBlockRange actionBB);
 				
-				bool hasSuccessor(llvm::BasicBlock* successorBB) const;
-				
-				void addSuccessor(llvm::BasicBlock* successorBB);
-				
 				llvm::BasicBlock* landingPadBlock() const;
 				
 				void setLandingPadBlock(llvm::BasicBlock* landingPadBB);

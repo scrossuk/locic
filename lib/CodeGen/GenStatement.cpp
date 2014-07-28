@@ -48,14 +48,23 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		static bool lastInstructionTerminates(Function& function) {
-			if (!function.getBuilder().GetInsertBlock()->empty()) {
-				auto iterator = function.getBuilder().GetInsertPoint();
-				--iterator;
-				return iterator->isTerminator();
-			} else {
-				return false;
+		llvm::Function* getAssertFailedFunction(Module& module) {
+			const std::string functionName = "__loci_assert_failed";
+			const auto result = module.getFunctionMap().tryGet(functionName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
 			}
+			
+			TypeGenerator typeGen(module);
+			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
+			const auto functionType = typeGen.getVoidFunctionType(argTypes);
+			
+			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
+			
+			module.getFunctionMap().insert(functionName, function);
+			
+			return function;
 		}
 		
 		void genStatement(Function& function, SEM::Statement* statement) {
@@ -109,23 +118,67 @@ namespace locic {
 						const auto thenBB = basicBlocks[i * 2 + 0];
 						const auto elseBB = basicBlocks[i * 2 + 1];
 						
+						// If this is the last if clause and there's no else clause,
+						// have the false condition jump straight to the merge.
+						const bool isEnd = ((i + 1) == ifClauseList.size());
+						const auto nextBB = (!isEnd || hasElseScope) ? elseBB : mergeBB;
+						
+						llvm::Value* conditionValue = nullptr;
+						bool conditionHasUnwindActions = false;
+						bool thenClauseTerminated = false;
+						
 						{
-							ScopeLifetime ifCaseLifetime(function);
-							const auto conditionValue = genValue(function, ifClause->condition());
+							ScopeLifetime ifScopeLifetime(function);
 							
-							// If this is the last if clause and there's no else clause,
-							// have the false condition jump straight to the merge.
-							const bool isEnd = ((i + 1) == ifClauseList.size());
-							function.getBuilder().CreateCondBr(conditionValue, thenBB, (!isEnd || hasElseScope) ? elseBB : mergeBB);
+							conditionValue = genValue(function, ifClause->condition());
+							conditionHasUnwindActions = anyUnwindCleanupActions(function, UnwindStateNormal);
+							
+							// The condition value may involve some unwinding operations, in
+							// which case we need to jump to the next unwind block if the
+							// condition was false. Once unwinding is complete then we may
+							// need to re-check the condition to determine where to proceed.
+							if (conditionHasUnwindActions) {
+								function.getBuilder().CreateCondBr(conditionValue, thenBB, genUnwindBlock(function, UnwindStateNormal));
+							} else {
+								function.getBuilder().CreateCondBr(conditionValue, thenBB, nextBB);
+							}
 							
 							// Create 'then'.
 							function.selectBasicBlock(thenBB);
 							genScope(function, ifClause->scope());
+							
+							if (lastInstructionTerminates(function)) {
+								thenClauseTerminated = true;
+								// The 'then' clause finished with a terminator (e.g. a 'return'),
+								// but we need a new basic block for the unwinding operations
+								// from the if condition (in case the condition was false).
+								if (conditionHasUnwindActions) {
+									const auto ifUnwindBB = function.createBasicBlock("ifUnwind");
+									function.selectBasicBlock(ifUnwindBB);
+								}
+							} else {
+								// The 'then' clause did not end with a terminator, so
+								// it will necessary to generate a final merge block.
+								allTerminate = false;
+							}
 						}
 						
 						if (!lastInstructionTerminates(function)) {
-							allTerminate = false;
-							function.getBuilder().CreateBr(mergeBB);
+							if (conditionHasUnwindActions) {
+								if (thenClauseTerminated) {
+									// The 'then' clause terminated, so we can just jump straight
+									// to the next clause.
+									function.getBuilder().CreateBr(nextBB);
+								} else if (nextBB == mergeBB) {
+									// The merge block is the next block, so just jump there.
+									function.getBuilder().CreateBr(mergeBB);
+								} else {
+									// Need to discern between success/failure cases.
+									function.getBuilder().CreateCondBr(conditionValue, mergeBB, nextBB);
+								}
+							} else {
+								function.getBuilder().CreateBr(mergeBB);
+							}
 						}
 						
 						// Create 'else'.
@@ -547,6 +600,32 @@ namespace locic {
 				
 				case SEM::Statement::CONTINUE: {
 					genUnwind(function, UnwindStateContinue);
+					break;
+				}
+				
+				case SEM::Statement::ASSERT: {
+					const auto failBB = function.createBasicBlock("assertFail");
+					const auto successBB = function.createBasicBlock("assertSuccess");
+					
+					const auto conditionValue = genValue(function, statement->getAssertValue());
+					function.getBuilder().CreateCondBr(conditionValue, successBB, failBB);
+					
+					function.selectBasicBlock(failBB);
+					
+					const auto stringValue = statement->getAssertName();
+					
+					const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), stringValue.size() + 1);
+					const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
+					const auto globalArray = module.createConstGlobal("assert_name_constant", arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+					globalArray->setAlignment(1);
+					const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
+					
+					const auto assertFailedFunction = getAssertFailedFunction(module);
+					llvm::Value* const args[] = { stringGlobal };
+					function.getBuilder().CreateCall(assertFailedFunction, args);
+					function.getBuilder().CreateUnreachable();
+					
+					function.selectBasicBlock(successBB);
 					break;
 				}
 				

@@ -15,7 +15,10 @@
 #define YYLTYPE locic::Parser::LocationInfo
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
 	yylloc->first_column = yyextra->columnPosition(); yylloc->last_column = yyextra->columnPosition() + yyleng; \
-	yyextra->advanceColumn(yyleng);
+	yyextra->advanceColumn(yyleng); \
+	yylloc->first_byte = yyextra->byteOffset(); yylloc->last_byte = yyextra->byteOffset() + yyleng; \
+	yylloc->first_line_byte = yyextra->columnByteOffset(); yylloc->last_line_byte = yyextra->byteOffset() + yyleng; \
+	yyextra->addByteOffset(yyleng);
 
 // To fix 'unused parameter' warnings.
 #define YY_EXIT_FAILURE ((void) yyscanner, 2)
@@ -73,6 +76,7 @@ case                    { return CASE; }
 default                 { return DEFAULT; }
 continue                { return CONTINUE; }
 break                   { return BREAK; }
+assert                  { return ASSERT; }
 
 exception               { return EXCEPTION; }
 throw                   { return THROW; }

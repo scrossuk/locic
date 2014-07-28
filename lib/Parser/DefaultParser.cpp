@@ -6,7 +6,6 @@
 #include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 
-#include "GeneratedParser.hpp"
 #include "Lexer.hpp"
 #include "Token.hpp"
 

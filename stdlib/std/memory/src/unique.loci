@@ -8,7 +8,7 @@ export std.memory 0.1.0 {
 				return @(new_raw<T>(move value));
 			}
 			
-			static null() {
+			static null() noexcept {
 				return @(null);
 			}
 			
@@ -18,8 +18,25 @@ export std.memory 0.1.0 {
 				}
 			}
 			
-			lval<T> ptr_lval<T> deref() const {
+			lval<T> ptr_lval<T> deref() const noexcept {
 				return *@ptr;
+			}
+			
+			T* get() noexcept {
+				return @ptr;
+			}
+			
+			void reset(T* pointer) noexcept {
+				if (@ptr != null) {
+					delete_raw<T>(@ptr);
+				}
+				@ptr = pointer;
+			}
+			
+			T* release() noexcept {
+				T* pointer = @ptr;
+				@ptr = null;
+				return pointer;
 			}
 		}
 		

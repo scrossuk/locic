@@ -93,7 +93,8 @@ extern "C" void testPrint(const char* format, ...) {
 # define FORCE_UNDEFINED_SYMBOL(x) extern "C" void x(void); void (*__ ## x ## _fp)(void)=&x;
 #endif
 
-// Force dependency on exception runtime ABI.
+// Force dependency on runtime ABI.
+FORCE_UNDEFINED_SYMBOL(__loci_assert_failed)
 FORCE_UNDEFINED_SYMBOL(__loci_allocate_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_free_exception)
 FORCE_UNDEFINED_SYMBOL(__loci_throw)

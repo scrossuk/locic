@@ -62,7 +62,8 @@ namespace locic {
 			// the members must also be.
 			const auto derefType = getDerefType(object->type());
 			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
-			return SEM::Value::MemberAccess(derefValue(object), var, createReferenceType(context, memberType));
+			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
+			return SEM::Value::MemberAccess(derefValue(object), var, createReferenceType(context, memberTypeSub));
 		}
 		
 	}

@@ -1,0 +1,34 @@
+TestClass Create: value = 5
+testEntryPoint: if 5
+TestClass Destroy: value = 5
+TestClass Create: value = 4
+TestClass Destroy: value = 4
+testEntryPoint: else
+TestClass Create: value = 4
+TestClass Destroy: value = 4
+TestClass Create: value = 5
+testEntryPoint: else if 5
+TestClass Destroy: value = 5
+TestClass Create: value = 3
+TestClass Destroy: value = 3
+TestClass Create: value = 4
+TestClass Destroy: value = 4
+TestClass Create: value = 5
+testEntryPoint: else if 5
+TestClass Destroy: value = 5
+TestClass Create: value = 3
+TestClass Destroy: value = 3
+TestClass Create: value = 4
+TestClass Destroy: value = 4
+TestClass Create: value = 5
+testEntryPoint: else if 5
+TestClass Destroy: value = 5
+TestClass Create: value = 2
+TestClass Destroy: value = 2
+TestClass Create: value = 3
+TestClass Destroy: value = 3
+TestClass Create: value = 4
+TestClass Destroy: value = 4
+TestClass Create: value = 5
+testEntryPoint: else if 5
+TestClass Destroy: value = 5

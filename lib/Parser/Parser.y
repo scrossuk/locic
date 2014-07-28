@@ -28,9 +28,31 @@ static locic::Debug::SourceLocation convertLocationInfo(const std::string& fileN
 		locic::Debug::SourceRange(
 			locic::Debug::SourcePosition(locationInfo->first_line, locationInfo->first_column),
 			locic::Debug::SourcePosition(locationInfo->last_line, locationInfo->last_column)
-		)
+		),
+		std::make_pair(locationInfo->first_byte, locationInfo->last_byte),
+		std::make_pair(locationInfo->first_line_byte, locationInfo->last_line_byte)
 	);
 }
+
+static std::string readString(const std::string& fileName, const locic::Parser::LocationInfo* locationInfo) {
+	// TODO: this needs a lot of improvement, and should probably
+	//       be moved out of here entirely.
+	const auto handle = fopen(fileName.c_str(), "rb");
+	
+	const auto length = locationInfo->last_byte - locationInfo->first_byte;
+	
+	std::vector<char> data;
+	data.resize(length + 1);
+	fseek(handle, locationInfo->first_byte, SEEK_SET);
+	(void) fread(data.data(), 1, length, handle);
+	data.at(length) = '\0';
+	
+	fclose(handle);
+	
+	return std::string(data.data());
+}
+
+#define READ(locationInfo) (readString(parserContext->fileName(), (locationInfo)))
 
 #define LOC(locationInfo) (convertLocationInfo(parserContext->fileName(), (locationInfo)))
 
@@ -241,6 +263,7 @@ const T& GETSYM(T* value) {
 %token PERCENTEQUAL
 
 %token RETURN
+%token ASSERT
 %token AT
 %token NULLVAL
 
@@ -1391,6 +1414,10 @@ normalStatement:
 	| BREAK
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Break()));
+	}
+	| ASSERT value
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assert(GETSYM($2), READ(&@2))));
 	}
 	;
 

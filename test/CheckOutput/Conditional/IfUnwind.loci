@@ -1,0 +1,82 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		testPrint(C"TestClass Create: value = %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"TestClass Destroy: value = %d", @value);
+	}
+	
+	bool test() const {
+		return @value >= 5;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	if (TestClass(5).test()) {
+		testPrint(C"testEntryPoint: if 5");
+	}
+	
+	if (TestClass(4).test()) {
+		testPrint(C"testEntryPoint: if 4");
+	} else {
+		testPrint(C"testEntryPoint: else");
+	}
+	
+	if (TestClass(4).test()) {
+		testPrint(C"testEntryPoint: if 4");
+	} else if (TestClass(5).test()) {
+		testPrint(C"testEntryPoint: else if 5");
+	} else {
+		testPrint(C"testEntryPoint: else");
+	}
+	
+	if (TestClass(3).test()) {
+		testPrint(C"testEntryPoint: if 3");
+	} else if (TestClass(4).test()) {
+		testPrint(C"testEntryPoint: else if 4");
+	} else if (TestClass(5).test()) {
+		testPrint(C"testEntryPoint: else if 5");
+	} else {
+		testPrint(C"testEntryPoint: else");
+	}
+	
+	if (TestClass(3).test()) {
+		testPrint(C"testEntryPoint: if 3");
+		return -1;
+	} else if (TestClass(4).test()) {
+		testPrint(C"testEntryPoint: else if 4");
+		return -1;
+	} else if (TestClass(5).test()) {
+		testPrint(C"testEntryPoint: else if 5");
+	} else if (TestClass(6).test()) {
+		testPrint(C"testEntryPoint: else if 6");
+		return -1;
+	} else {
+		testPrint(C"testEntryPoint: else");
+	}
+	
+	if (TestClass(2).test()) {
+		testPrint(C"testEntryPoint: if 2");
+		return -1;
+	} else if (TestClass(3).test()) {
+		testPrint(C"testEntryPoint: else if 3");
+	} else if (TestClass(4).test()) {
+		testPrint(C"testEntryPoint: else if 4");
+		return -1;
+	} else if (TestClass(5).test()) {
+		testPrint(C"testEntryPoint: else if 5");
+	} else if (TestClass(6).test()) {
+		testPrint(C"testEntryPoint: else if 6");
+	} else {
+		testPrint(C"testEntryPoint: else");
+	}
+	
+	return 0;
+}
+

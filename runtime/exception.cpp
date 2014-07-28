@@ -7,6 +7,11 @@
 #include <unistd.h>
 #include <unwind.h>
 
+extern "C" void __loci_assert_failed(const char* name) {
+	printf("Assertion failed: %s\n", name);
+	abort();
+}
+
 typedef const char* __loci_exception_name_t;
 
 typedef struct __loci_catch_type_t {

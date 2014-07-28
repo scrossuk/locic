@@ -104,6 +104,13 @@ namespace locic {
 			return new Statement(CONTINUE);
 		}
 		
+		Statement* Statement::Assert(Value* value, const std::string& name) {
+			Statement* statement = new Statement(ASSERT);
+			statement->assertStmt_.value = value;
+			statement->assertStmt_.name = name;
+			return statement;
+		}
+		
 		Statement::Statement(Kind k)
 			: kind_(k) { }
 			
@@ -248,6 +255,20 @@ namespace locic {
 			return kind() == CONTINUE;
 		}
 		
+		bool Statement::isAssertStatement() const {
+			return kind() == ASSERT;
+		}
+		
+		Value* Statement::getAssertValue() const {
+			assert(isAssertStatement());
+			return assertStmt_.value;
+		}
+		
+		const std::string& Statement::getAssertName() const {
+			assert(isAssertStatement());
+			return assertStmt_.name;
+		}
+		
 		std::string Statement::toString() const {
 			switch (kind_) {
 				case VALUE: {
@@ -318,6 +339,10 @@ namespace locic {
 				
 				case CONTINUE: {
 					return "ContinueStatement";
+				}
+				
+				case ASSERT: {
+					return makeString("AssertStatement(value: %s, name: %s)", getAssertValue()->toString().c_str(), getAssertName().c_str());
 				}
 				
 				default:

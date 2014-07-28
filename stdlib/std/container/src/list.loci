@@ -1,0 +1,161 @@
+export std.container 0.1.0 {
+	
+	namespace std {
+	
+		template <typename T>
+		datatype list_node(list_node<T>* previous, list_node<T>* next, T value);
+		
+		template <typename T>
+		class list_range (list_node<T>* begin, list_node<T>* end) {
+			static create = default;
+			
+			lval<T> ptr_lval<T> front() {
+				assert !self.empty();
+				return *(&(@begin->value));
+			}
+			
+			void pop_front() {
+				assert !self.empty();
+				if (@begin == @end) {
+					@begin = null;
+					@end = null;
+				} else {
+					@begin = @begin->next;
+				}
+			}
+			
+			lval<T> ptr_lval<T> back() {
+				assert !self.empty();
+				return *(&(@end->value));
+			}
+			
+			void pop_back() {
+				assert !self.empty();
+				if (@begin == @end) {
+					@begin = null;
+					@end = null;
+				} else {
+					@end = @end->previous;
+				}
+			}
+			
+			bool empty() const noexcept {
+				return @begin == null;
+			}
+		}
+		
+		/**
+		 * \brief Doubly-linked list.
+		 */
+		template <typename T>
+		class list(size_t size, list_node<T>* begin, list_node<T>* end) {
+			static create() {
+				return @(0u, null, null);
+			}
+			
+			~ {
+				list_node<T>* next = @begin;
+				while (next != null) {
+					list_node<T>* current = next;
+					next = current->next;
+					delete_raw<list_node<T>>(current);
+				}
+			}
+			
+			bool empty() const noexcept {
+				return @size == 0u;
+			}
+			
+			size_t size() const noexcept {
+				return @size;
+			}
+			
+			void clear() noexcept {
+				list_node<T>* next = @begin;
+				while (next != null) {
+					list_node<T>* current = next;
+					next = current->next;
+					std::delete_raw<list_node<T>>(current);
+				}
+				
+				@begin = null;
+				@end = null;
+				@size = 0u;
+			}
+			
+			lval<T> ptr_lval<T> front() {
+				assert !self.empty();
+				return *(&(@begin->value));
+			}
+			
+			lval<T> ptr_lval<T> back() {
+				assert !self.empty();
+				return *(&(@end->value));
+			}
+			
+			void push_front(T value) {
+				final auto new_node = new_raw<list_node<T>>(list_node<T>(null, @begin, move value));
+				if (self.empty()) {
+					@begin = new_node;
+					@end = new_node;
+				} else {
+					@begin->previous = new_node;
+					@begin = new_node;
+				}
+				@size += 1u;
+			}
+			
+			void pop_front() noexcept {
+				assert !self.empty();
+				list_node<T>* newBegin = @begin->next;
+				delete_raw<list_node<T>>(@begin);
+				
+				if (newBegin == null) {
+					@begin = null;
+					@end = null;
+				} else {
+					@begin = newBegin;
+					@begin->previous = null;
+				}
+				
+				@size -= 1u;
+			}
+			
+			void push_back(T value) {
+				final auto new_node = new_raw<list_node<T>>(list_node<T>(@end, null, move value));
+				if (self.empty()) {
+					@begin = new_node;
+					@end = new_node;
+				} else {
+					@end->next = new_node;
+					@end = new_node;
+				}
+				@size += 1u;
+			}
+			
+			void pop_back() noexcept {
+				assert !self.empty();
+				list_node<T>* newEnd = @end->previous;
+				delete_raw<list_node<T>>(@end);
+				
+				if (newEnd == null) {
+					@begin = null;
+					@end = null;
+				} else {
+					@end = newEnd;
+					@end->next = null;
+				}
+				
+				@size -= 1u;
+			}
+			
+			list_range<T> range() const noexcept {
+				return list_range<T>(@begin, @end);
+			}
+			
+		}
+		
+	}
+	
+}
+

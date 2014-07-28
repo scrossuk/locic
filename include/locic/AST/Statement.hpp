@@ -34,7 +34,8 @@ namespace locic {
 				THROW,
 				RETHROW,
 				BREAK,
-				CONTINUE
+				CONTINUE,
+				ASSERT
 			} typeEnum;
 			
 			struct {
@@ -89,6 +90,11 @@ namespace locic {
 			struct {
 				Node<Value> value;
 			} throwStmt;
+			
+			struct {
+				Node<Value> value;
+				std::string name;
+			} assertStmt;
 			
 			inline Statement()
 				: typeEnum(NONE) { }
@@ -192,6 +198,13 @@ namespace locic {
 			
 			inline static Statement* Continue() {
 				return new Statement(CONTINUE);
+			}
+			
+			inline static Statement* Assert(const Node<Value>& value, const std::string& name) {
+				Statement* statement = new Statement(ASSERT);
+				statement->assertStmt.value = value;
+				statement->assertStmt.name = name;
+				return statement;
 			}
 		};
 		

@@ -31,7 +31,8 @@ namespace locic {
 					THROW,
 					RETHROW,
 					BREAK,
-					CONTINUE
+					CONTINUE,
+					ASSERT
 				};
 				
 				static Statement* ValueStmt(Value* value);
@@ -61,6 +62,8 @@ namespace locic {
 				static Statement* Break();
 				
 				static Statement* Continue();
+				
+				static Statement* Assert(Value* value, const std::string& name);
 				
 				Kind kind() const;
 				
@@ -124,6 +127,12 @@ namespace locic {
 				
 				bool isContinueStatement() const;
 				
+				bool isAssertStatement() const;
+				
+				Value* getAssertValue() const;
+				
+				const std::string& getAssertName() const;
+				
 				std::string toString() const;
 				
 			private:
@@ -177,6 +186,11 @@ namespace locic {
 				struct {
 					Value* value;
 				} throwStmt_;
+				
+				struct {
+					Value* value;
+					std::string name;
+				} assertStmt_;
 				
 		};
 		

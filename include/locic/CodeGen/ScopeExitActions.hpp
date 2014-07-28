@@ -17,6 +17,8 @@ namespace locic {
 		
 		llvm::ConstantInt* getUnwindStateValue(Module& module, UnwindState state);
 		
+		bool lastInstructionTerminates(Function& function);
+		
 		bool anyUnwindCleanupActions(Function& function, UnwindState unwindState);
 		
 		bool anyUnwindRethrowActions(Function& function);

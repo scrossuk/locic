@@ -274,27 +274,6 @@ namespace locic {
 			}
 		}
 		
-		bool UnwindAction::hasSuccessor(llvm::BasicBlock* successorBB) const {
-			for (size_t i = 0; i < UnwindState_MAX; i++) {
-				if (successorBB_.at(i) == successorBB) {
-					return true;
-				}
-			}
-			return false;
-		}
-		
-		void UnwindAction::addSuccessor(llvm::BasicBlock* successorBB) {
-			assert(!isTerminator());
-			for (size_t i = 0; i < UnwindState_MAX; i++) {
-				if (successorBB_.at(i) == successorBB) {
-					return;
-				} else if (successorBB_.at(i) == nullptr) {
-					successorBB_.at(i) = successorBB;
-					break;
-				}
-			}
-		}
-		
 		llvm::BasicBlock* UnwindAction::landingPadBlock() const {
 			return landingPadBB_;
 		}

@@ -13,7 +13,9 @@ export std.container 0.1.0 {
 		
 		template <typename T: counter_type<T>>
 		class counter (T increment, T begin, T end) {
-			static create = default;
+			static create(T increment, T begin, T end) noexcept {
+				return @(move increment, move begin, move end);
+			}
 			
 			const T& front() const noexcept {
 				return @begin;
@@ -30,7 +32,7 @@ export std.container 0.1.0 {
 		
 		template <typename T: counter_type<T>>
 		class counter_incl (T increment, T begin, T end, bool empty) {
-			static create(T increment, T begin, T end) {
+			static create(T increment, T begin, T end) noexcept {
 				return @(move increment, move begin, move end, false);
 			}
 			
@@ -62,7 +64,7 @@ export std.container 0.1.0 {
 		
 		template <typename T: reverse_counter_type<T>>
 		class reverse_counter (T decrement, T begin, T end, bool empty) {
-			static create(T decrement, T begin, T end) {
+			static create(T decrement, T begin, T end) noexcept {
 				if (begin > end) {
 					begin -= decrement;
 					return @(move decrement, move begin, move end, false);
@@ -90,7 +92,7 @@ export std.container 0.1.0 {
 		
 		template <typename T: reverse_counter_type<T>>
 		class reverse_counter_incl (T decrement, T begin, T end, bool empty) {
-			static create(T decrement, T begin, T end) {
+			static create(T decrement, T begin, T end) noexcept {
 				return @(move decrement, move begin, move end, false);
 			}
 			

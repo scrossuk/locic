@@ -25,7 +25,8 @@ namespace locic{
 			public:
 				inline Context(AST::NamespaceList& l, const std::string& n)
 					: rootNamespaceList_(l), fileName_(n),
-					nextAnonymousVariable_(0), column_(1) { }
+					nextAnonymousVariable_(0), column_(1),
+					byteOffset_(0), columnByteOffset_(0) { }
 				
 				inline const std::string& fileName() const {
 					return fileName_;
@@ -57,6 +58,19 @@ namespace locic{
 				
 				inline void resetColumn() {
 					column_ = 1;
+					columnByteOffset_ = byteOffset_;
+				}
+				
+				inline void addByteOffset(size_t pByteOffset) {
+					byteOffset_ += pByteOffset;
+				}
+				
+				inline size_t byteOffset() const {
+					return byteOffset_;
+				}
+				
+				inline size_t columnByteOffset() const {
+					return columnByteOffset_;
 				}
 				
 				inline const std::string& getStringConstant() const {
@@ -78,6 +92,8 @@ namespace locic{
 				std::string stringConstant_;
 				size_t nextAnonymousVariable_;
 				size_t column_;
+				size_t byteOffset_;
+				size_t columnByteOffset_;
 				
 		};
 		

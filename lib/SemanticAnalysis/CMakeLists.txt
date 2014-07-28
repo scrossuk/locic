@@ -14,6 +14,7 @@ add_library(locic-semanalysis
 	ConvertValue.cpp
 	ConvertVar.cpp
 	DefaultMethods.cpp
+	ExitStates.cpp
 	Literal.cpp
 	Lval.cpp
 	NameSearch.cpp

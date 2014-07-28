@@ -27,7 +27,7 @@ export std.string 0.1.0 {
 				std::free(reinterpret_cast<byte*, void*>(@ptr));
 			}
 			
-			string implicitCopy() const noexcept {
+			string implicitCopy() const {
 				final auto ptr = std::alloc(@length + 1u);
 				return @(@length, strcpy(reinterpret_cast<void*, byte*>(ptr), @ptr));
 			}

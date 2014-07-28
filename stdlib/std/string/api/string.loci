@@ -11,7 +11,7 @@ import std.string 0.1.0 {
 			
 			static string cstring(const byte* const stringConstant);
 			
-			string implicitCopy() const noexcept;
+			string implicitCopy() const;
 			
 			string add(const string& other) const;
 			

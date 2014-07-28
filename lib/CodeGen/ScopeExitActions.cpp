@@ -53,16 +53,16 @@ namespace locic {
 				llvm_unreachable("Scope marker not found.");
 			}
 			
-			bool lastInstructionTerminates(Function& function) {
-				if (!function.getBuilder().GetInsertBlock()->empty()) {
-					auto iterator = function.getBuilder().GetInsertPoint();
-					--iterator;
-					return iterator->isTerminator();
-				} else {
-					return false;
-				}
+		}
+		
+		bool lastInstructionTerminates(Function& function) {
+			if (!function.getBuilder().GetInsertBlock()->empty()) {
+				auto iterator = function.getBuilder().GetInsertPoint();
+				--iterator;
+				return iterator->isTerminator();
+			} else {
+				return false;
 			}
-			
 		}
 		
 		void performScopeExitAction(Function& function, size_t position, UnwindState unwindState) {
@@ -294,27 +294,27 @@ namespace locic {
 				
 				if (existingBBRange.start != nullptr) {
 					assert(existingBBRange.end != nullptr);
-					if (!unwindAction.hasSuccessor(nextBB)) {
-						llvm::SwitchInst* switchInst = nullptr;
+					
+					llvm::Instruction& lastInstruction = existingBBRange.end->back();
+					if (llvm::isa<llvm::BranchInst>(&lastInstruction)) {
+						const auto branchInst = llvm::cast<llvm::BranchInst>(&lastInstruction);
+						assert(branchInst->isUnconditional());
 						
-						llvm::Instruction& lastInstruction = existingBBRange.end->back();
-						if (llvm::isa<llvm::BranchInst>(&lastInstruction)) {
+						// Only modify this branch if it isn't already
+						// pointing to the right place.
+						if (branchInst->getSuccessor(0) != nextBB) {
 							// Replace the existing branch with a switch.
-							const auto branchInst = llvm::cast<llvm::BranchInst>(&lastInstruction);
-							assert(branchInst->isUnconditional());
-							
 							function.selectBasicBlock(branchInst->getParent());
 							const auto currentUnwindStateValue = function.getBuilder().CreateLoad(function.unwindState());
-							switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
+							const auto switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
 							branchInst->eraseFromParent();
-						} else {
-							// There's already a switch.
-							assert(llvm::isa<llvm::SwitchInst>(&lastInstruction));
-							switchInst = llvm::cast<llvm::SwitchInst>(&lastInstruction);
+							switchInst->addCase(getUnwindStateValue(module, unwindState), nextBB);
 						}
-						
+					} else {
+						// There's already a switch.
+						assert(llvm::isa<llvm::SwitchInst>(&lastInstruction));
+						const auto switchInst = llvm::cast<llvm::SwitchInst>(&lastInstruction);
 						switchInst->addCase(getUnwindStateValue(module, unwindState), nextBB);
-						unwindAction.addSuccessor(nextBB);
 					}
 					
 					nextBB = existingBBRange.start;
@@ -328,7 +328,6 @@ namespace locic {
 					function.getBuilder().CreateBr(nextBB);
 					
 					unwindAction.setActionBlock(unwindState, BasicBlockRange(actionStartBB, actionEndBB));
-					unwindAction.addSuccessor(nextBB);
 					
 					nextBB = actionStartBB;
 				}

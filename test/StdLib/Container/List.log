@@ -1,0 +1,55 @@
+list.size() = 10
+list.front() = 0
+list.back() = 9
+Print all values...
+    Value = 0
+    Value = 1
+    Value = 2
+    Value = 3
+    Value = 4
+    Value = 5
+    Value = 6
+    Value = 7
+    Value = 8
+    Value = 9
+Pop front!
+list.size() = 9
+list.front() = 1
+list.back() = 9
+Print all values...
+    Value = 1
+    Value = 2
+    Value = 3
+    Value = 4
+    Value = 5
+    Value = 6
+    Value = 7
+    Value = 8
+    Value = 9
+Pop back!
+list.size() = 8
+list.front() = 1
+list.back() = 8
+Print all values...
+    Value = 1
+    Value = 2
+    Value = 3
+    Value = 4
+    Value = 5
+    Value = 6
+    Value = 7
+    Value = 8
+Push front!
+list.size() = 9
+list.front() = -1
+list.back() = 8
+Print all values...
+    Value = -1
+    Value = 1
+    Value = 2
+    Value = 3
+    Value = 4
+    Value = 5
+    Value = 6
+    Value = 7
+    Value = 8

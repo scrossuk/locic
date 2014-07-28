@@ -13,136 +13,12 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
+#include <locic/SemanticAnalysis/ExitStates.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		bool WillStatementReturn(SEM::Statement* statement) {
-			switch(statement->kind()) {
-				case SEM::Statement::VALUE: {
-					return false;
-				}
-				case SEM::Statement::SCOPE: {
-					return WillScopeReturn(statement->getScope());
-				}
-				case SEM::Statement::INITIALISE: {
-					return false;
-				}
-				case SEM::Statement::IF: {
-					for (const auto ifClause: statement->getIfClauseList()) {
-						if (!WillScopeReturn(ifClause->scope())) {
-							return false;
-						}
-					}
-					return WillScopeReturn(statement->getIfElseScope());
-				}
-				case SEM::Statement::SWITCH: {
-					for (auto switchCase: statement->getSwitchCaseList()) {
-						if (!WillScopeReturn(switchCase->scope())) {
-							return false;
-						}
-					}
-					return true;
-				}
-				case SEM::Statement::LOOP: {
-					return WillScopeReturn(statement->getLoopIterationScope());
-				}
-				case SEM::Statement::TRY: {
-					for (auto catchClause: statement->getTryCatchList()) {
-						if (!WillScopeReturn(catchClause->scope())) {
-							return false;
-						}
-					}
-					return WillScopeReturn(statement->getTryScope());
-				}
-				case SEM::Statement::SCOPEEXIT: {
-					return false;
-				}
-				case SEM::Statement::RETURN: {
-					return true;
-				}
-				case SEM::Statement::THROW: {
-					return true;
-				}
-				case SEM::Statement::RETHROW: {
-					return true;
-				}
-				case SEM::Statement::BREAK: {
-					// TODO: doesn't seem correct...
-					return true;
-				}
-				case SEM::Statement::CONTINUE: {
-					return false;
-				}
-				default: {
-					throw std::runtime_error("Unknown statement kind.");
-				}
-			}
-		}
-		
-		bool CanStatementThrow(SEM::Statement* statement) {
-			switch(statement->kind()) {
-				case SEM::Statement::VALUE: {
-					return CanValueThrow(statement->getValue());
-				}
-				case SEM::Statement::SCOPE: {
-					return CanScopeThrow(statement->getScope());
-				}
-				case SEM::Statement::INITIALISE: {
-					return false;
-				}
-				case SEM::Statement::IF: {
-					for (const auto ifClause: statement->getIfClauseList()) {
-						if (CanValueThrow(ifClause->condition()) || CanScopeThrow(ifClause->scope())) {
-							return true;
-						}
-					}
-					return CanScopeThrow(statement->getIfElseScope());
-				}
-				case SEM::Statement::SWITCH: {
-					for (auto switchCase: statement->getSwitchCaseList()) {
-						if (CanScopeThrow(switchCase->scope())) {
-							return true;
-						}
-					}
-					return CanValueThrow(statement->getSwitchValue());
-				}
-				case SEM::Statement::LOOP: {
-					return CanValueThrow(statement->getLoopCondition()) ||
-						CanScopeThrow(statement->getLoopIterationScope()) ||
-						CanScopeThrow(statement->getLoopAdvanceScope());
-				}
-				case SEM::Statement::TRY: {
-					for (auto catchClause: statement->getTryCatchList()) {
-						if (CanScopeThrow(catchClause->scope())) {
-							return true;
-						}
-					}
-					return CanScopeThrow(statement->getTryScope());
-				}
-				case SEM::Statement::SCOPEEXIT: {
-					// scope(success) is allowed to throw.
-					return statement->getScopeExitState() == "success" && CanScopeThrow(statement->getScopeExitScope());
-				}
-				case SEM::Statement::RETURN: {
-					return false;
-				}
-				case SEM::Statement::THROW: {
-					return true;
-				}
-				case SEM::Statement::BREAK: {
-					return false;
-				}
-				case SEM::Statement::CONTINUE: {
-					return false;
-				}
-				default: {
-					throw std::runtime_error("Unknown statement kind.");
-				}
-			}
-		}
-		
 		SEM::Statement* ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -276,6 +152,11 @@ namespace locic {
 					{
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TryScope());
 						tryScope = ConvertScope(context, statement->tryStmt.scope);
+						
+						if (!GetScopeExitStates(tryScope).test(UnwindStateThrow)) {
+							throw ErrorException(makeString("Try statement wraps a scope that cannot throw, at position %s.",
+								location.toString().c_str()));
+						}
 					}
 					
 					std::vector<SEM::CatchClause*> catchList;
@@ -323,9 +204,14 @@ namespace locic {
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
 					
 					const auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
+					const auto exitStates = GetScopeExitStates(scopeExitScope);
+					
+					assert(!exitStates.test(UnwindStateReturn));
+					assert(!exitStates.test(UnwindStateBreak));
+					assert(!exitStates.test(UnwindStateContinue));
 					
 					// scope(success) is allowed to throw.
-					if (scopeExitState != "success" && CanScopeThrow(*scopeExitScope)) {
+					if (scopeExitState != "success" && (exitStates.test(UnwindStateThrow) || exitStates.test(UnwindStateRethrow))) {
 						throw ErrorException(makeString("Scope exit action (for state '%s') can throw, at position %s.",
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
@@ -386,6 +272,14 @@ namespace locic {
 					const auto castValue = ImplicitCast(context, semValue, getParentFunctionReturnType(context.scopeStack()), location);
 					
 					return SEM::Statement::Return(castValue);
+				}
+				case AST::Statement::ASSERT: {
+					assert(statement->assertStmt.value.get() != nullptr);
+					
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+					const auto condition = ConvertValue(context, statement->assertStmt.value);
+					const auto boolValue = ImplicitCast(context, condition, boolType->selfType(), location);
+					return SEM::Statement::Assert(boolValue, statement->assertStmt.name);
 				}
 				case AST::Statement::THROW: {
 					// Check this is not being used inside a scope action

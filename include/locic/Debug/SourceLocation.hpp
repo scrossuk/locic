@@ -86,11 +86,15 @@ namespace locic {
 			public:
 				inline static SourceLocation Null() {
 					const auto nullPosition = SourcePosition(0, 0);
-					return SourceLocation("<NULL>", SourceRange(nullPosition, nullPosition));
+					return SourceLocation("<NULL>", SourceRange(nullPosition, nullPosition),
+						std::make_pair<size_t, size_t>(0, 0), std::make_pair<size_t, size_t>(0, 0));
 				}
 				
-				inline SourceLocation(const std::string& pFileName, SourceRange pRange)
-					: fileName_(pFileName), range_(pRange) { }
+				inline SourceLocation(const std::string& pFileName, SourceRange pRange,
+						std::pair<size_t, size_t> pByteRange,
+						std::pair<size_t, size_t> pLineByteRange)
+					: fileName_(pFileName), range_(pRange),
+					byteRange_(pByteRange), lineByteRange_(pLineByteRange) { }
 					
 				inline std::string fileName() const {
 					return fileName_;
@@ -98,6 +102,14 @@ namespace locic {
 				
 				inline SourceRange range() const {
 					return range_;
+				}
+				
+				inline std::pair<size_t, size_t> byteRange() const {
+					return byteRange_;
+				}
+				
+				inline std::pair<size_t, size_t> lineByteRange() const {
+					return lineByteRange_;
 				}
 				
 				inline std::string toString() const {
@@ -108,6 +120,8 @@ namespace locic {
 			private:
 				std::string fileName_;
 				SourceRange range_;
+				std::pair<size_t, size_t> byteRange_;
+				std::pair<size_t, size_t> lineByteRange_;
 				
 		};
 		

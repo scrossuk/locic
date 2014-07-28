@@ -9,10 +9,6 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		bool WillStatementReturn(SEM::Statement* statement);
-		
-		bool CanStatementThrow(SEM::Statement* statement);
-		
 		SEM::Statement* ConvertStatement(Context& context, const AST::Node<AST::Statement>& statement);
 		
 	}

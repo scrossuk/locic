@@ -1,0 +1,51 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+	
+		template <typename T>
+		class list_range {
+			lval<T> ptr_lval<T> front();
+			
+			void pop_front();
+			
+			lval<T> ptr_lval<T> back();
+			
+			void pop_back();
+			
+			bool empty() const noexcept;
+		}
+		
+		/**
+		 * \brief Doubly-linked list.
+		 */
+		template <typename T>
+		class list {
+			static list<T> create();
+			
+			bool empty() const noexcept;
+			
+			size_t size() const noexcept;
+			
+			void clear() noexcept;
+			
+			lval<T> ptr_lval<T> front();
+			
+			lval<T> ptr_lval<T> back();
+			
+			void push_front(T value);
+			
+			void pop_front() noexcept;
+			
+			void push_back(T value);
+			
+			void pop_back() noexcept;
+			
+			list_range<T> range() const noexcept;
+			
+		}
+		
+	}
+	
+}
+

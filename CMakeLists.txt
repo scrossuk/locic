@@ -94,6 +94,7 @@ include_directories (
 
 set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/list.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/range.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/types.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/varray.loci"

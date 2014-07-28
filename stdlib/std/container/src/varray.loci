@@ -59,6 +59,7 @@ export std.container 0.1.0 {
 			}
 			
 			lval<T> ptr_lval<T> index(size_t index) const {
+				assert index < @size;
 				return @data[index];
 			}
 			
@@ -76,7 +77,7 @@ export std.container 0.1.0 {
 			}
 			
 			void pop_back() {
-				// assert !self.empty();
+				assert !self.empty();
 				@size = @size - 1u;
 				nolval(@data[@size]).__destroy_value();
 			}

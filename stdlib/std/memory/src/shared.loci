@@ -13,7 +13,7 @@ export std.memory 0.1.0 {
 				return @(new_raw<size_t>(1u), ptr);
 			}
 			
-			static null() {
+			static null() noexcept {
 				return @(null, null);
 			}
 			
@@ -29,12 +29,12 @@ export std.memory 0.1.0 {
 				}
 			}
 			
-			shared_ptr<T> implicit_copy() const {
+			shared_ptr<T> implicit_copy() const noexcept {
 				(*@countField) += 1u;
 				return @(@countField, @ptr);
 			}
 			
-			lval<T> ptr_lval<T> deref() const {
+			lval<T> ptr_lval<T> deref() const noexcept {
 				return *@ptr;
 			}
 		}
