@@ -11,6 +11,8 @@ namespace locic {
 	
 		size_t getRefCount(SEM::Type* type);
 		
+		SEM::Type* getLastRefType(SEM::Type* type);
+		
 		SEM::Type* getDerefType(SEM::Type* type);
 		
 		SEM::Value* derefOne(SEM::Value* value);

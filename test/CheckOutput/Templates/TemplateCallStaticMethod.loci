@@ -21,7 +21,7 @@ template <typename T: StaticMethodAPI>
 class TestClass() {
 	static void print() {
 		testPrint(C"TestClass.print(): makeInt() = %d", T.makeInt());
-		testPrint(C"TestClass.print(): makeFloat() = %f", T.makeFloat());
+		testPrint(C"TestClass.print(): makeFloat() = %.1f", T.makeFloat());
 	}
 }
 

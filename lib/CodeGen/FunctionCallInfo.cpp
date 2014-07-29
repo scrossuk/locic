@@ -152,8 +152,13 @@ namespace locic {
 		bool isTrivialFunction(Module& module, SEM::Value* value) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					const auto parentType = value->functionRef.parentType;
-					return (parentType != nullptr && parentType->isPrimitive());
+					const auto parentTypeValue = value->functionRef.typeValue;
+					
+					if (parentTypeValue == nullptr) {
+						return false;
+					}
+					
+					return parentTypeValue->type()->staticRefTarget()->isPrimitive();
 				}
 				
 				case SEM::Value::METHODOBJECT: {
@@ -169,7 +174,10 @@ namespace locic {
 		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					const auto parentType = value->functionRef.parentType;
+					const auto parentTypeValue = value->functionRef.typeValue;
+					assert(parentTypeValue != nullptr);
+					
+					const auto parentType = parentTypeValue->type()->staticRefTarget();
 					
 					llvm::SmallVector<ArgPair, 10> llvmArgs;
 					
@@ -217,7 +225,9 @@ namespace locic {
 				case SEM::Value::FUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
-					const auto parentType = value->functionRef.parentType;
+					const auto parentTypeValue = value->functionRef.typeValue;
+					const auto parentType = parentTypeValue != nullptr ? parentTypeValue->type()->staticRefTarget() : nullptr;
+					
 					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
 					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);

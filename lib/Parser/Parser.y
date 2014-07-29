@@ -207,6 +207,7 @@ const T& GETSYM(T* value) {
 %token LVAL
 %token NOLVAL
 %token REF
+%token STATICREF
 %token NOREF
 %token TEMPLATE
 %token TYPENAME
@@ -264,6 +265,7 @@ const T& GETSYM(T* value) {
 
 %token RETURN
 %token ASSERT
+%token UNREACHABLE
 %token AT
 %token NULLVAL
 
@@ -1055,6 +1057,10 @@ typePrecision2:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($5))));
 	}
+	| STATICREF LTRIBRACKET type RTRIBRACKET typePrecision3
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::StaticRef(GETSYM($3), GETSYM($5))));
+	}
 	;
 
 pointerType:
@@ -1418,6 +1424,10 @@ normalStatement:
 	| ASSERT value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assert(GETSYM($2), READ(&@2))));
+	}
+	| UNREACHABLE
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Unreachable()));
 	}
 	;
 

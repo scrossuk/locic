@@ -67,6 +67,24 @@ namespace locic {
 			return function;
 		}
 		
+		llvm::Function* getUnreachableFailedFunction(Module& module) {
+			const std::string functionName = "__loci_unreachable_failed";
+			const auto result = module.getFunctionMap().tryGet(functionName);
+			
+			if (result.hasValue()) {
+				return result.getValue();
+			}
+			
+			TypeGenerator typeGen(module);
+			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>());
+			
+			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
+			
+			module.getFunctionMap().insert(functionName, function);
+			
+			return function;
+		}
+		
 		void genStatement(Function& function, SEM::Statement* statement) {
 			auto& module = function.module();
 			auto& statementMap = module.debugModule().statementMap;
@@ -626,6 +644,13 @@ namespace locic {
 					function.getBuilder().CreateUnreachable();
 					
 					function.selectBasicBlock(successBB);
+					break;
+				}
+				
+				case SEM::Statement::UNREACHABLE: {
+					const auto unreachableFailedFunction = getUnreachableFailedFunction(module);
+					function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
+					function.getBuilder().CreateUnreachable();
 					break;
 				}
 				

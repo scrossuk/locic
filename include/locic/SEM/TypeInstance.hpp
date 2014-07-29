@@ -64,9 +64,6 @@ namespace locic {
 				
 				bool isName() const;
 				
-				// Queries whether all methods are const.
-				bool isConstType() const;
-				
 				/**
 				 * \brief Get type of 'self'.
 				 * 

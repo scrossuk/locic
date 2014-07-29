@@ -750,9 +750,8 @@ __primitive __ref {
 	__ref<T> implicitCopy() const noexcept;
 }
 
-template <typename T>
 __primitive typename_t {
-	typename_t<T> implicitCopy() const noexcept;
+	typename_t implicitCopy() const noexcept;
 }
 
 /*

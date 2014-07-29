@@ -350,7 +350,7 @@ namespace locic {
 			
 			const auto constructorName = name + "_cast";
 			if (supportsPrimitiveCast(destDerefType, name)) {
-				const auto constructedValue = CallValue(context, GetStaticMethod(destDerefType, constructorName, location), { value }, location);
+				const auto constructedValue = CallValue(context, GetStaticMethod(context, destDerefType, constructorName, location), { value }, location);
 				// There still might be some aspects to cast with the constructed type.
 				return ImplicitCastConvert(context, constructedValue, destType, location);
 			} else {
@@ -406,7 +406,7 @@ namespace locic {
 				// Casting null to object type invokes the null constructor,
 				// assuming one exists.
 				if (supportsNullConstruction(destDerefType)) {
-					const auto constructedValue = CallValue(context, GetStaticMethod(destDerefType, "Null", location), {}, location);
+					const auto constructedValue = CallValue(context, GetStaticMethod(context, destDerefType, "Null", location), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
 					const auto castResult = ImplicitCastConvert(context, constructedValue, destType, location);
@@ -532,14 +532,13 @@ namespace locic {
 			if (sourceType->isRef() && destType->isRef() && sourceType->refTarget()->isObject() && destType->refTarget()->isInterface()) {
 				// TODO: add support for custom ref types.
 				if (sourceType->isBuiltInReference() && destType->isBuiltInReference()) {
-					// SEM::Type* sourceTarget = sourceType->refTarget();
-					// SEM::Type* destTarget = destType->refTarget();
+					const auto sourceTarget = sourceType->refTarget();
+					const auto destTarget = destType->refTarget();
 					
-					// TODO: Prevent cast from const ref to non-const ref.
-					// if (!sourceTarget->isConst() || destTarget->isConst()) {
+					if (!sourceTarget->isConst() || destTarget->isConst()) {
 						auto castResult = PolyCastValueToType(value, destType);
 						if (castResult != nullptr) return castResult;
-					// }
+					}
 				}
 			}
 			

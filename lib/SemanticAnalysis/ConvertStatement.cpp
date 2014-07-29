@@ -44,12 +44,12 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool")->selfType();
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
 						const auto condition = ConvertValue(context, astIfClause->condition);
-						const auto boolValue = ImplicitCast(context, condition, boolType->selfType(), location);
+						const auto boolValue = ImplicitCast(context, condition, boolType->createConstType(), location);
 						const auto ifTrueScope = ConvertScope(context, astIfClause->scope);
 						clauseList.push_back(new SEM::IfClause(boolValue, ifTrueScope));
 					}
@@ -273,14 +273,6 @@ namespace locic {
 					
 					return SEM::Statement::Return(castValue);
 				}
-				case AST::Statement::ASSERT: {
-					assert(statement->assertStmt.value.get() != nullptr);
-					
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
-					const auto condition = ConvertValue(context, statement->assertStmt.value);
-					const auto boolValue = ImplicitCast(context, condition, boolType->selfType(), location);
-					return SEM::Statement::Assert(boolValue, statement->assertStmt.name);
-				}
 				case AST::Statement::THROW: {
 					// Check this is not being used inside a scope action
 					// (apart from inside scope(success), which is allowed).
@@ -372,6 +364,17 @@ namespace locic {
 					}
 					
 					return SEM::Statement::Continue();
+				}
+				case AST::Statement::ASSERT: {
+					assert(statement->assertStmt.value.get() != nullptr);
+					
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool")->selfType();
+					const auto condition = ConvertValue(context, statement->assertStmt.value);
+					const auto boolValue = ImplicitCast(context, condition, boolType->createConstType(), location);
+					return SEM::Statement::Assert(boolValue, statement->assertStmt.name);
+				}
+				case AST::Statement::UNREACHABLE: {
+					return SEM::Statement::Unreachable();
 				}
 				default:
 					throw std::runtime_error("Unknown statement kind.");

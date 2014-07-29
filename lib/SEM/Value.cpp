@@ -127,6 +127,12 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::TypeRef(Type* targetType, Type* type) {
+			Value* value = new Value(TYPEREF, type);
+			value->typeRef.targetType = targetType;
+			return value;
+		}
+		
 		Value* Value::FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
 			const auto type = functionValue->type();
 			const auto functionType =
@@ -141,9 +147,9 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
+		Value* Value::FunctionRef(Value* typeValue, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
-			value->functionRef.parentType = parentType;
+			value->functionRef.typeValue = typeValue;
 			value->functionRef.function = function;
 			value->functionRef.templateArguments = templateArguments;
 			return value;
@@ -249,18 +255,21 @@ namespace locic {
 				
 				case REFVALUE:
 					return makeString("RefValue(value: %s)", refValue.value->toString().c_str());
-									  
+				
+				case TYPEREF:
+					return makeString("TypeRef(targetType: %s)", typeRef.targetType->toString().c_str());
+				
 				case FUNCTIONCALL:
 					return makeString("FunctionCall(funcValue: %s, args: %s)",
 									  functionCall.functionValue->toString().c_str(),
 									  makeArrayString(functionCall.parameters).c_str());
 									  
 				case FUNCTIONREF:
-					return makeString("FunctionRef(name: %s, parentType: %s)",
+					return makeString("FunctionRef(name: %s, typeValue: %s)",
 									  functionRef.function->name().toString().c_str(),
-									  functionRef.parentType != NULL ?
-									  functionRef.parentType->toString().c_str() :
-									  "[NONE]");
+									  functionRef.typeValue != nullptr ?
+									  	functionRef.typeValue->toString().c_str() :
+									 	 "[NONE]");
 									  
 				case METHODOBJECT:
 					return makeString("MethodObject(method: %s, object: %s)",

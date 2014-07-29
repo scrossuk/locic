@@ -38,7 +38,6 @@ namespace locic {
 			auto& context = typeInstance->context();
 			
 			Type type(context, OBJECT);
-			type.isConst_ = typeInstance->isConstType();
 			type.objectType_.typeInstance = typeInstance;
 			type.objectType_.templateArguments = templateArguments;
 			return context.getType(type);
@@ -59,9 +58,6 @@ namespace locic {
 			
 			Type type(context, FUNCTION);
 			
-			// Function is always const.
-			type.isConst_ = true;
-			
 			type.functionType_.isVarArg = isVarArg;
 			type.functionType_.isMethod = isMethod;
 			type.functionType_.isTemplated = isTemplated;
@@ -78,9 +74,6 @@ namespace locic {
 			
 			Type type(context, METHOD);
 			
-			// Method is always const.
-			type.isConst_ = true;
-			
 			type.methodType_.functionType = functionType;
 			
 			return context.getType(type);
@@ -92,9 +85,6 @@ namespace locic {
 			
 			Type type(context, INTERFACEMETHOD);
 			
-			// Interface method is always const.
-			type.isConst_ = true;
-			
 			type.interfaceMethodType_.functionType = functionType;
 			
 			return context.getType(type);
@@ -102,7 +92,8 @@ namespace locic {
 		
 		Type::Type(Context& pContext, Kind pKind) :
 			context_(pContext), kind_(pKind),
-			isConst_(false), lvalTarget_(NULL), refTarget_(NULL) { }
+			isConst_(false), lvalTarget_(nullptr),
+			refTarget_(nullptr), staticRefTarget_(nullptr) { }
 		
 		Context& Type::context() const {
 			return context_;
@@ -117,15 +108,19 @@ namespace locic {
 		}
 		
 		bool Type::isLval() const {
-			return lvalTarget_ != NULL;
+			return lvalTarget_ != nullptr;
 		}
 		
 		bool Type::isRef() const {
-			return refTarget_ != NULL;
+			return refTarget_ != nullptr;
+		}
+		
+		bool Type::isStaticRef() const {
+			return staticRefTarget_ != nullptr;
 		}
 		
 		bool Type::isLvalOrRef() const {
-			return isLval() || isRef();
+			return isLval() || isRef() || isStaticRef();
 		}
 		
 		Type* Type::lvalTarget() const {
@@ -138,9 +133,16 @@ namespace locic {
 			return refTarget_;
 		}
 		
+		Type* Type::staticRefTarget() const {
+			assert(isStaticRef());
+			return staticRefTarget_;
+		}
+		
 		Type* Type::lvalOrRefTarget() const {
 			assert(isLvalOrRef());
-			return isLval() ? lvalTarget() : refTarget();
+			return isLval() ? lvalTarget() :
+				isRef() ? refTarget() :
+					staticRefTarget();
 		}
 		
 		Type* Type::createConstType() const {
@@ -150,31 +152,40 @@ namespace locic {
 		}
 		
 		Type* Type::createLvalType(Type* targetType) const {
-			assert(!isLval() && !isRef());
+			assert(!isLval() && !isRef() && !isStaticRef());
 			Type typeCopy(*this);
 			typeCopy.lvalTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::createRefType(Type* targetType) const {
-			assert(!isLval() && !isRef());
+			assert(!isLval() && !isRef() && !isStaticRef());
 			Type typeCopy(*this);
 			typeCopy.refTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
+		Type* Type::createStaticRefType(Type* targetType) const {
+			assert(!isLval() && !isRef() && !isStaticRef());
+			Type typeCopy(*this);
+			typeCopy.staticRefTarget_ = targetType;
+			return context_.getType(typeCopy);
+		}
+		
 		Type* Type::withoutLvalOrRef() const {
 			Type typeCopy(*this);
-			typeCopy.lvalTarget_ = NULL;
-			typeCopy.refTarget_ = NULL;
+			typeCopy.lvalTarget_ = nullptr;
+			typeCopy.refTarget_ = nullptr;
+			typeCopy.staticRefTarget_ = nullptr;
 			return context_.getType(typeCopy);
 		}
 		
 		Type* Type::withoutTags() const {
 			Type typeCopy(*this);
 			typeCopy.isConst_ = false;
-			typeCopy.lvalTarget_ = NULL;
-			typeCopy.refTarget_ = NULL;
+			typeCopy.lvalTarget_ = nullptr;
+			typeCopy.refTarget_ = nullptr;
+			typeCopy.staticRefTarget_ = nullptr;
 			return context_.getType(typeCopy);
 		}
 		
@@ -463,7 +474,8 @@ namespace locic {
 			const auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
 			const auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
 			const auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
-			return refType;
+			const auto staticRefType = isStaticRef() ? refType->createStaticRefType(staticRefTarget()->substitute(templateVarMap)) : refType;
+			return staticRefType;
 		}
 		
 		Type* Type::makeTemplatedFunction() const {
@@ -549,7 +561,8 @@ namespace locic {
 				const auto constType = type->isConst() ? substitutedType->createConstType() : substitutedType;
 				const auto lvalType = type->isLval() ? constType->createLvalType(doResolve(type->lvalTarget(), templateVarMap)) : constType;
 				const auto refType = type->isRef() ? lvalType->createRefType(doResolve(type->refTarget(), templateVarMap)) : lvalType;
-				return refType;
+				const auto staticRefType = type->isStaticRef() ? refType->createStaticRefType(type->staticRefTarget()->substitute(templateVarMap)) : refType;
+				return staticRefType;
 			}
 			
 		}
@@ -686,7 +699,12 @@ namespace locic {
 				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
 				lvalStr;
 				
-			return refStr;
+			const std::string staticRefStr =
+				isStaticRef() ?
+				makeString("staticref<%s>(%s)", staticRefTarget()->toString().c_str(), refStr.c_str()) :
+				refStr;
+				
+			return staticRefStr;
 		}
 		
 		bool Type::operator<(const Type& type) const {
@@ -712,6 +730,14 @@ namespace locic {
 			
 			if (isRef() && refTarget() != type.refTarget()) {
 				return refTarget() < type.refTarget();
+			}
+			
+			if (isStaticRef() != type.isStaticRef()) {
+				return isStaticRef() < type.isStaticRef();
+			}
+			
+			if (isStaticRef() && staticRefTarget() != type.staticRefTarget()) {
+				return staticRefTarget() < type.staticRefTarget();
 			}
 			
 			switch (kind_) {

@@ -204,6 +204,10 @@ namespace locic {
 					auto targetType = ConvertType(context, type->getRefTarget());
 					return ConvertType(context, type->getRefType())->createRefType(targetType);
 				}
+				case AST::Type::STATICREF: {
+					auto targetType = ConvertType(context, type->getStaticRefTarget());
+					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
+				}
 				case AST::Type::VOID: {
 					return SEM::Type::Object(getBuiltInType(context.scopeStack(), "void_t"), SEM::Type::NO_TEMPLATE_ARGS);
 				}

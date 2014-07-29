@@ -173,7 +173,7 @@ namespace locic {
 							typeName.c_str()));
 					}
 					
-					return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS)->createConstType();
+					return SEM::Type::Object(typeInstance, SEM::Type::NO_TEMPLATE_ARGS);
 				}
 			}
 		}

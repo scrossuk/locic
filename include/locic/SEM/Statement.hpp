@@ -32,7 +32,8 @@ namespace locic {
 					RETHROW,
 					BREAK,
 					CONTINUE,
-					ASSERT
+					ASSERT,
+					UNREACHABLE
 				};
 				
 				static Statement* ValueStmt(Value* value);
@@ -64,6 +65,8 @@ namespace locic {
 				static Statement* Continue();
 				
 				static Statement* Assert(Value* value, const std::string& name);
+				
+				static Statement* Unreachable();
 				
 				Kind kind() const;
 				
@@ -132,6 +135,8 @@ namespace locic {
 				Value* getAssertValue() const;
 				
 				const std::string& getAssertName() const;
+				
+				bool isUnreachableStatement() const;
 				
 				std::string toString() const;
 				

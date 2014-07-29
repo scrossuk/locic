@@ -192,6 +192,9 @@ namespace locic {
 					exitStates.set(UnwindStateContinue);
 					return exitStates;
 				}
+				case SEM::Statement::UNREACHABLE: {
+					return std::bitset<UnwindState_MAX>();
+				}
 				default: {
 					throw std::runtime_error("Unknown statement kind.");
 				}

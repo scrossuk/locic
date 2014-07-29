@@ -111,6 +111,10 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement* Statement::Unreachable() {
+			return new Statement(UNREACHABLE);
+		}
+		
 		Statement::Statement(Kind k)
 			: kind_(k) { }
 			
@@ -269,6 +273,10 @@ namespace locic {
 			return assertStmt_.name;
 		}
 		
+		bool Statement::isUnreachableStatement() const {
+			return kind() == UNREACHABLE;
+		}
+		
 		std::string Statement::toString() const {
 			switch (kind_) {
 				case VALUE: {
@@ -343,6 +351,10 @@ namespace locic {
 				
 				case ASSERT: {
 					return makeString("AssertStatement(value: %s, name: %s)", getAssertValue()->toString().c_str(), getAssertName().c_str());
+				}
+				
+				case UNREACHABLE: {
+					return "UnreachableStatement";
 				}
 				
 				default:

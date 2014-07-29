@@ -118,7 +118,7 @@ namespace locic {
 			// Call parent constructor.
 			// TODO: should provide template arguments.
 			const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-			constructValues.push_back(CallValue(context, GetStaticMethod(parentType, "create", location), parentArguments, location));
+			constructValues.push_back(CallValue(context, GetStaticMethod(context, parentType, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {
 				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");

@@ -364,6 +364,11 @@ namespace locic {
 					return llvmPtrValue;
 				}
 				
+				case SEM::Value::TYPEREF: {
+					// TODO!
+					return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+				}
+				
 				case SEM::Value::FUNCTIONCALL: {
 					const auto semFunctionValue = value->functionCall.functionValue;
 					const auto& semArgumentValues = value->functionCall.parameters;

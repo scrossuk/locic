@@ -25,7 +25,8 @@ namespace locic {
 				case SEM::Statement::RETHROW:
 				case SEM::Statement::BREAK:
 				case SEM::Statement::CONTINUE:
-				case SEM::Statement::ASSERT: {
+				case SEM::Statement::ASSERT:
+				case SEM::Statement::UNREACHABLE: {
 					return;
 				}
 				case SEM::Statement::SCOPE: {

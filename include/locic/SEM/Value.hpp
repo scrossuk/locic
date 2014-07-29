@@ -41,6 +41,7 @@ namespace locic {
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
 					REFVALUE,
+					TYPEREF,
 					FUNCTIONCALL,
 					FUNCTIONREF,
 					METHODOBJECT,
@@ -115,12 +116,16 @@ namespace locic {
 				} refValue;
 				
 				struct {
+					Type* targetType;
+				} typeRef;
+				
+				struct {
 					Value* functionValue;
 					std::vector<Value*> parameters;
 				} functionCall;
 				
 				struct {
-					Type* parentType;
+					Value* typeValue;
 					Function* function;
 					std::vector<Type*> templateArguments;
 				} functionRef;
@@ -179,9 +184,11 @@ namespace locic {
 				
 				static Value* RefValue(Value* operand, Type* type);
 				
+				static Value* TypeRef(Type* targetType, Type* type);
+				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
-				static Value* FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
+				static Value* FunctionRef(Value* typeValue, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				

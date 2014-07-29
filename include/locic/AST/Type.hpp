@@ -28,6 +28,7 @@ namespace locic {
 				CONST,
 				LVAL,
 				REF,
+				STATICREF,
 				BRACKET,
 				VOID,
 				NULLT,
@@ -55,6 +56,11 @@ namespace locic {
 				Node<Type> targetType;
 				Node<Type> refType;
 			} refType;
+			
+			struct {
+				Node<Type> targetType;
+				Node<Type> refType;
+			} staticRefType;
 			
 			struct {
 				SignedModifier signedModifier;
@@ -114,6 +120,13 @@ namespace locic {
 				Type* type = new Type(REF);
 				type->refType.targetType = targetType;
 				type->refType.refType = refType;
+				return type;
+			}
+			
+			inline static Type* StaticRef(const Node<Type>& targetType, const Node<Type>& refType) {
+				Type* type = new Type(STATICREF);
+				type->staticRefType.targetType = targetType;
+				type->staticRefType.refType = refType;
 				return type;
 			}
 			
@@ -210,6 +223,20 @@ namespace locic {
 			inline Node<Type> getRefType() const {
 				assert(isRef());
 				return refType.refType;
+			}
+			
+			inline bool isStaticRef() const {
+				return typeEnum == STATICREF;
+			}
+			
+			inline Node<Type> getStaticRefTarget() const {
+				assert(isStaticRef());
+				return staticRefType.targetType;
+			}
+			
+			inline Node<Type> getStaticRefType() const {
+				assert(isStaticRef());
+				return staticRefType.refType;
 			}
 			
 			inline bool isNull() const {

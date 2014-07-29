@@ -77,14 +77,6 @@ namespace locic {
 			return kind() == TEMPLATETYPE;
 		}
 		
-		// Queries whether all methods are const.
-		// TODO: move into Semantic Analysis
-		bool TypeInstance::isConstType() const {
-			// TODO: actually detect this.
-			return isPrimitive() && name_.last() != "value_lval" && name_.last() != "ptr"
-				&& name_.last() != "ptr_lval" && name_.last() != "member_lval";
-		}
-		
 		Type* TypeInstance::selfType() const {
 			// TODO: remove const_cast.
 			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());

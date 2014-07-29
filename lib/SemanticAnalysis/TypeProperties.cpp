@@ -40,6 +40,10 @@ namespace locic {
 			}
 			
 			bool isCallableType(SEM::Type* type) {
+				if (getLastRefType(type)->isStaticRef()) {
+					return true;
+				}
+				
 				switch (type->kind()) {
 					case SEM::Type::FUNCTION:
 					case SEM::Type::METHOD:
@@ -73,7 +77,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Value* GetStaticMethod(SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value* GetStaticMethod(Context& context, SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -97,7 +101,9 @@ namespace locic {
 					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
 			}
 			
-			return SEM::Value::FunctionRef(type, function, {}, type->generateTemplateVarMap());
+			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+			const auto typeValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+			return SEM::Value::FunctionRef(typeValue, function, {}, type->generateTemplateVarMap());
 		}
 		
 		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
@@ -186,7 +192,9 @@ namespace locic {
 				}
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, combinedTemplateVarMap);
+			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+			const auto typeValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+			const auto functionRef = SEM::Value::FunctionRef(typeValue, function, templateArguments, combinedTemplateVarMap);
 			
 			if (typeInstance->isInterface()) {
 				return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));
@@ -195,10 +203,16 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* CallValue(Context& context, SEM::Value* value, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
+		SEM::Value* CallValue(Context& context, SEM::Value* rawValue, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
+			const auto value = tryDissolveValue(context, rawValue, location);
+			
 			if (!isCallableType(value->type())) {
 				throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
 					value->toString().c_str(), location.toString().c_str()));
+			}
+			
+			if (getLastRefType(value->type())->isStaticRef()) {
+				return CallValue(context, GetStaticMethod(context, getLastRefType(value->type())->staticRefTarget(), "create", location), args, location);
 			}
 			
 			const auto functionType = getFunctionType(value->type());

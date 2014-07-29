@@ -3,10 +3,10 @@ import void testPrint(const byte * const str, ...);
 
 template <typename T>
 interface PrimitiveInterface {
-	T add(const T& value);
+	T add(const T& value) const;
 }
 
-void polymorphicAddAndPrint(PrimitiveInterface<int>& value1, int value2) {
+void polymorphicAddAndPrint(const PrimitiveInterface<int>& value1, int value2) {
 	auto sum = value1.add(value2);
 	testPrint(C"polymorphicAddAndPrint: Sum = %d", sum);
 }

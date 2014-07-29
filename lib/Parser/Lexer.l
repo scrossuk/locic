@@ -77,6 +77,7 @@ default                 { return DEFAULT; }
 continue                { return CONTINUE; }
 break                   { return BREAK; }
 assert                  { return ASSERT; }
+unreachable             { return UNREACHABLE; }
 
 exception               { return EXCEPTION; }
 throw                   { return THROW; }
@@ -107,6 +108,7 @@ final                   { return FINAL; }
 lval                    { return LVAL; }
 nolval                  { return NOLVAL; }
 ref                     { return REF; }
+staticref               { return STATICREF; }
 noref                   { return NOREF; }
 
 using                   { return USING; }

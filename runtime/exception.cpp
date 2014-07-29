@@ -12,6 +12,11 @@ extern "C" void __loci_assert_failed(const char* name) {
 	abort();
 }
 
+extern "C" void __loci_unreachable_failed() {
+	printf("Unreachable failed!\n");
+	abort();
+}
+
 typedef const char* __loci_exception_name_t;
 
 typedef struct __loci_catch_type_t {

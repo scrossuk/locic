@@ -1,0 +1,8 @@
+TestClass.zero()
+TestClass: value = 0
+TestClass.one()
+TestClass: value = 1
+TestClass.create(2)
+TestClass: value = 2
+TestClass(3)
+TestClass: value = 3

@@ -1,0 +1,8 @@
+typeValue.thirty()
+TestClass: value = 30
+typeValue.fourty()
+TestClass: value = 40
+typeValue.create(50)
+TestClass: value = 50
+typeValue(60)
+TestClass: value = 60

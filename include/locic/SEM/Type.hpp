@@ -48,15 +48,18 @@ namespace locic {
 				bool isConst() const;
 				bool isLval() const;
 				bool isRef() const;
+				bool isStaticRef() const;
 				bool isLvalOrRef() const;
 				
 				Type* lvalTarget() const;
 				Type* refTarget() const;
+				Type* staticRefTarget() const;
 				Type* lvalOrRefTarget() const;
 				
 				Type* createConstType() const;
 				Type* createLvalType(Type* targetType) const;
 				Type* createRefType(Type* targetType) const;
+				Type* createStaticRefType(Type* targetType) const;
 				Type* withoutLvalOrRef() const;
 				Type* withoutTags() const;
 				
@@ -128,6 +131,7 @@ namespace locic {
 				bool isConst_;
 				Type* lvalTarget_;
 				Type* refTarget_;
+				Type* staticRefTarget_;
 				
 				struct {
 					TypeAlias* typeAlias;

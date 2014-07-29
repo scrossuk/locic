@@ -35,7 +35,8 @@ namespace locic {
 				RETHROW,
 				BREAK,
 				CONTINUE,
-				ASSERT
+				ASSERT,
+				UNREACHABLE
 			} typeEnum;
 			
 			struct {
@@ -205,6 +206,10 @@ namespace locic {
 				statement->assertStmt.value = value;
 				statement->assertStmt.name = name;
 				return statement;
+			}
+			
+			inline static Statement* Unreachable() {
+				return new Statement(UNREACHABLE);
 			}
 		};
 		
