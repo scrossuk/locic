@@ -9,6 +9,7 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -118,7 +119,8 @@ namespace locic {
 			// Call parent constructor.
 			// TODO: should provide template arguments.
 			const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-			constructValues.push_back(CallValue(context, GetStaticMethod(context, parentType, "create", location), parentArguments, location));
+			const auto typeRefValue = createTypeRef(context, parentType);
+			constructValues.push_back(CallValue(context, GetStaticMethod(context, typeRefValue, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {
 				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");

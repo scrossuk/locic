@@ -38,6 +38,8 @@ namespace locic {
 					NOLVAL,
 					REF,
 					NOREF,
+					STATICREF,
+					NOSTATICREF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
 					REFVALUE,
@@ -46,6 +48,7 @@ namespace locic {
 					FUNCTIONREF,
 					METHODOBJECT,
 					INTERFACEMETHODOBJECT,
+					STATICINTERFACEMETHODOBJECT,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -103,6 +106,15 @@ namespace locic {
 				} makeNoRef;
 				
 				struct {
+					Type* targetType;
+					Value* value;
+				} makeStaticRef;
+				
+				struct {
+					Value* value;
+				} makeNoStaticRef;
+				
+				struct {
 					std::vector<Value*> parameters;
 				} internalConstruct;
 				
@@ -125,7 +137,7 @@ namespace locic {
 				} functionCall;
 				
 				struct {
-					Value* typeValue;
+					Type* parentType;
 					Function* function;
 					std::vector<Type*> templateArguments;
 				} functionRef;
@@ -146,9 +158,9 @@ namespace locic {
 				} interfaceMethodObject;
 				
 				struct {
-					Value* methodValue;
-					std::vector<Value*> parameters;
-				} interfaceMethodCall;
+					Value* method;
+					Value* typeRef;
+				} staticInterfaceMethodObject;
 				
 				static Value* Self(Type* type);
 				
@@ -178,6 +190,10 @@ namespace locic {
 				
 				static Value* NoRef(Value* operand);
 				
+				static Value* StaticRef(Type* targetType, Value* operand);
+				
+				static Value* NoStaticRef(Value* operand);
+				
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				
 				static Value* MemberAccess(Value* object, Var* var, Type* type);
@@ -188,11 +204,13 @@ namespace locic {
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
-				static Value* FunctionRef(Value* typeValue, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
+				static Value* FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				
 				static Value* InterfaceMethodObject(Value* method, Value* methodOwner);
+				
+				static Value* StaticInterfaceMethodObject(Value* method, Value* typeRef);
 				
 				static Value* CastDummy(Type* type);
 				

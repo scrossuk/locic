@@ -21,6 +21,20 @@ namespace locic {
 		
 		SEM::Value* derefAll(SEM::Value* value);
 		
+		size_t getStaticRefCount(SEM::Type* type);
+		
+		SEM::Type* getLastStaticRefType(SEM::Type* type);
+		
+		SEM::Type* getStaticDerefType(SEM::Type* type);
+		
+		SEM::Value* staticDerefOne(SEM::Value* value);
+		
+		SEM::Value* staticDerefValue(SEM::Value* value);
+		
+		SEM::Value* staticDerefAll(SEM::Value* value);
+		
+		SEM::Value* createTypeRef(Context& context, SEM::Type* targetType);
+		
 		SEM::Type* createReferenceType(Context& context, SEM::Type* varType);
 		
 		SEM::Value* createSelfRef(Context& context, SEM::Type* selfType);

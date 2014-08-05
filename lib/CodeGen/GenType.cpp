@@ -102,6 +102,10 @@ namespace locic {
 					return interfaceMethodType(module).second;
 				}
 				
+				case SEM::Type::STATICINTERFACEMETHOD: {
+					return staticInterfaceMethodType(module).second;
+				}
+				
 				default: {
 					llvm_unreachable("Unknown type enum for generating type.");
 				}
@@ -161,6 +165,11 @@ namespace locic {
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
+					// TODO!
+					return module.debugBuilder().createNullType();
+				}
+				
+				case SEM::Type::STATICINTERFACEMETHOD: {
 					// TODO!
 					return module.debugBuilder().createNullType();
 				}

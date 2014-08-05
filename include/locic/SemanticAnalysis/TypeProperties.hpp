@@ -10,7 +10,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Value* GetStaticMethod(Context& context, SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location);
+		SEM::Value* GetStaticMethod(Context& context, SEM::Value* value, const std::string& methodName, const Debug::SourceLocation& location);
 		
 		SEM::Value* GetMethod(Context& context, SEM::Value* value, const std::string& methodName, const Debug::SourceLocation& location);
 		

@@ -172,8 +172,18 @@ namespace locic {
 				if (refTarget == nullptr) return nullptr;
 			}
 			
-			// No type can be both an lval and a ref.
-			assert(lvalTarget == nullptr || refTarget == nullptr);
+			SEM::Type* staticRefTarget = nullptr;
+			
+			if (sourceType->isStaticRef() || destType->isStaticRef()) {
+				if (!(sourceType->isStaticRef() && destType->isStaticRef())) {
+					// If one type is ref, both types must be refs.
+					return nullptr;
+				}
+				
+				// Must perform substitutions for the ref target type.
+				staticRefTarget = ImplicitCastTypeFormatOnlyChain(sourceType->staticRefTarget(), destType->staticRefTarget(), hasConstChain, location);
+				if (staticRefTarget == nullptr) return nullptr;
+			}
 			
 			// Generate the 'untagged' type.
 			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(sourceType, destType, hasConstChain, location);
@@ -186,6 +196,10 @@ namespace locic {
 			
 			if (refTarget != nullptr) {
 				resultType = resultType->createRefType(refTarget);
+			}
+			
+			if (staticRefTarget != nullptr) {
+				resultType = resultType->createStaticRefType(staticRefTarget);
 			}
 			
 			// Non-const 'auto' can match 'const T', and in that case
@@ -321,12 +335,24 @@ namespace locic {
 		
 		SEM::Value* ImplicitCastConvert(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		static SEM::Value* PolyCastValueToType(SEM::Value* value, SEM::Type* destType) {
+		static SEM::Value* PolyCastRefValueToType(SEM::Value* value, SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isRef() && destType->isRef());
 			
 			const auto sourceTargetType = sourceType->refTarget();
 			const auto destTargetType = destType->refTarget();
+			
+			return TypeSatisfiesInterface(sourceTargetType, destTargetType) ?
+				SEM::Value::PolyCast(destType, value) :
+				nullptr;
+		}
+		
+		static SEM::Value* PolyCastStaticRefValueToType(SEM::Value* value, SEM::Type* destType) {
+			const auto sourceType = value->type();
+			assert(sourceType->isStaticRef() && destType->isStaticRef());
+			
+			const auto sourceTargetType = sourceType->staticRefTarget();
+			const auto destTargetType = destType->staticRefTarget();
 			
 			return TypeSatisfiesInterface(sourceTargetType, destTargetType) ?
 				SEM::Value::PolyCast(destType, value) :
@@ -350,7 +376,8 @@ namespace locic {
 			
 			const auto constructorName = name + "_cast";
 			if (supportsPrimitiveCast(destDerefType, name)) {
-				const auto constructedValue = CallValue(context, GetStaticMethod(context, destDerefType, constructorName, location), { value }, location);
+				const auto typeRefValue = createTypeRef(context, destDerefType);
+				const auto constructedValue = CallValue(context, GetStaticMethod(context, typeRefValue, constructorName, location), { value }, location);
 				// There still might be some aspects to cast with the constructed type.
 				return ImplicitCastConvert(context, constructedValue, destType, location);
 			} else {
@@ -406,7 +433,8 @@ namespace locic {
 				// Casting null to object type invokes the null constructor,
 				// assuming one exists.
 				if (supportsNullConstruction(destDerefType)) {
-					const auto constructedValue = CallValue(context, GetStaticMethod(context, destDerefType, "Null", location), {}, location);
+					const auto typeRefValue = createTypeRef(context, destDerefType);
+					const auto constructedValue = CallValue(context, GetStaticMethod(context, typeRefValue, "null", location), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
 					const auto castResult = ImplicitCastConvert(context, constructedValue, destType, location);
@@ -536,9 +564,20 @@ namespace locic {
 					const auto destTarget = destType->refTarget();
 					
 					if (!sourceTarget->isConst() || destTarget->isConst()) {
-						auto castResult = PolyCastValueToType(value, destType);
+						const auto castResult = PolyCastRefValueToType(value, destType);
 						if (castResult != nullptr) return castResult;
 					}
+				}
+			}
+			
+			// Try to use a polymorphic staticref cast.
+			if (sourceType->isStaticRef() && destType->isStaticRef() && sourceType->staticRefTarget()->isObject() && destType->staticRefTarget()->isInterface()) {
+				const auto sourceTarget = sourceType->staticRefTarget();
+				const auto destTarget = destType->staticRefTarget();
+				
+				if (!sourceTarget->isConst() || destTarget->isConst()) {
+					const auto castResult = PolyCastStaticRefValueToType(value, destType);
+					if (castResult != nullptr) return castResult;
 				}
 			}
 			
@@ -551,7 +590,11 @@ namespace locic {
 						CallValue(context, GetMethod(context, derefValue(value), "implicitCopy", location), {}, location) :
 						derefAll(value);
 					
-					const auto convertCast = ImplicitCastConvert(context, copyValue, destType, location);
+					const auto copyRefValue = sourceDerefType->isStaticRef() ?
+						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), copyValue) :
+						copyValue;
+					
+					const auto convertCast = ImplicitCastConvert(context, copyRefValue, destType, location);
 					if (convertCast != nullptr) return convertCast;
 				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(context, sourceDerefType, destType, location)) {
 					// This almost certainly would have worked

@@ -1,0 +1,47 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+	
+		template <typename T>
+		class set_range {
+			lval<T> ptr_lval<T> front();
+			
+			void pop_front();
+			
+			lval<T> ptr_lval<T> back();
+			
+			void pop_back();
+			
+			bool empty() const noexcept;
+		}
+		
+		template <typename T>
+		interface comparable {
+			compare_result_t compare(const T& other) const noexcept;
+		}
+		
+		/**
+		 * \brief Set.
+		 */
+		template <typename T: comparable<T>>
+		class set {
+			static set<T> create();
+			
+			bool empty() const noexcept;
+			
+			size_t size() const noexcept;
+			
+			void clear() noexcept;
+			
+			void insert(T value);
+			
+			bool try_insert(T value);
+			
+			set_range<T> range() const noexcept;
+		}
+		
+	}
+	
+}
+

@@ -79,6 +79,10 @@ namespace llvm_abi {
 					}
 					llvm_unreachable("Unknown complex type.");
 				case StructType: {
+					if (type->structMembers().empty()) {
+						return getTypeAlign(type);
+					}
+					
 					size_t size = 0;
 					
 					for (const auto& member: type->structMembers()) {

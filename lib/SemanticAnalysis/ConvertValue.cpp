@@ -84,7 +84,7 @@ namespace locic {
 		}
 		
 		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
-			const auto derefType = getDerefType(value->type());
+			const auto derefType = getStaticDerefType(getDerefType(value->type()));
 			
 			if (!derefType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Can't access member '%s' of type '%s' at position %s.",
@@ -95,8 +95,8 @@ namespace locic {
 			
 			// Look for methods.
 			if (typeInstance->functions().find(CanonicalizeMethodName(memberName)) != typeInstance->functions().end()) {
-				if (getLastRefType(value->type())->isStaticRef()) {
-					return GetStaticMethod(context, getLastRefType(value->type())->staticRefTarget(), memberName, location);
+				if (getDerefType(value->type())->isStaticRef()) {
+					return GetStaticMethod(context, value, memberName, location);
 				} else {
 					return GetMethod(context, value, memberName, location);
 				}
@@ -199,10 +199,7 @@ namespace locic {
 							const auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance->templateVariables());
 							const auto parentType = SEM::Type::Object(typeInstance, parentTemplateArguments);
 							
-							const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
-							const auto typeValue = SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
-							
-							return SEM::Value::FunctionRef(typeValue, function, functionTemplateArguments, templateVarMap);
+							return SEM::Value::FunctionRef(parentType, function, functionTemplateArguments, templateVarMap);
 						} else {
 							return SEM::Value::FunctionRef(nullptr, function, functionTemplateArguments, templateVarMap);
 						}

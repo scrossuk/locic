@@ -253,31 +253,49 @@ namespace locic {
 					const auto rawValue = genValue(function, value->polyCast.value);
 					const auto sourceType = value->polyCast.value->type();
 					const auto destType = value->type();
-					(void) destType;
 					
-					assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
-					assert(destType->isBuiltInReference() && "Polycast dest type must be reference.");
-					assert(destType->refTarget()->isInterface() && "Polycast dest target type must be interface");
-					
-					const auto sourceTarget = sourceType->refTarget();
-					
-					if (sourceTarget->isInterface()) {
-						// Since the vtable is a hash table and it has
-						// already been generated, this is a no-op.
-						return rawValue;
+					if (sourceType->isStaticRef()) {
+						const auto sourceTarget = sourceType->staticRefTarget();
+						
+						if (sourceTarget->isInterface()) {
+							// Since the vtable is a hash table and it has
+							// already been generated, this is a no-op.
+							return rawValue;
+						}
+						
+						// Generate the vtable and template generator.
+						const auto vtablePointer = genVTable(module, sourceTarget);
+						const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
+						
+						// Build the new type info struct with these values.
+						return makeTypeInfoValue(function, vtablePointer, templateGenerator);
+					} else if (sourceType->isRef()) {
+						assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
+						assert(destType->isBuiltInReference() && "Polycast dest type must be reference.");
+						assert(destType->refTarget()->isInterface() && "Polycast dest target type must be interface");
+						
+						const auto sourceTarget = sourceType->refTarget();
+						
+						if (sourceTarget->isInterface()) {
+							// Since the vtable is a hash table and it has
+							// already been generated, this is a no-op.
+							return rawValue;
+						}
+						
+						// Cast class pointer to pointer to the opaque struct
+						// representing destination interface type.
+						const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
+									TypeGenerator(module).getI8PtrType());
+						
+						// Generate the vtable and template generator.
+						const auto vtablePointer = genVTable(module, sourceTarget);
+						const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
+						
+						// Build the new interface struct with these values.
+						return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));
+					} else {
+						llvm_unreachable("Poly cast type must be ref or staticref.");
 					}
-					
-					// Cast class pointer to pointer to the opaque struct
-					// representing destination interface type.
-					const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-								TypeGenerator(module).getI8PtrType());
-					
-					// Generate the vtable and template generator.
-					const auto vtablePointer = genVTable(module, sourceTarget);
-					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
-					
-					// Build the new interface struct with these values.
-					return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));
 				}
 				
 				case SEM::Value::LVAL: {
@@ -294,6 +312,14 @@ namespace locic {
 				
 				case SEM::Value::NOREF: {
 					return genValue(function, value->makeNoRef.value);
+				}
+				
+				case SEM::Value::STATICREF: {
+					return genValue(function, value->makeStaticRef.value);
+				}
+				
+				case SEM::Value::NOSTATICREF: {
+					return genValue(function, value->makeNoStaticRef.value);
 				}
 				
 				case SEM::Value::INTERNALCONSTRUCT: {
@@ -365,15 +391,20 @@ namespace locic {
 				}
 				
 				case SEM::Value::TYPEREF: {
-					// TODO!
-					return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+					const auto targetType = value->typeRef.targetType;
+					
+					const auto vtablePointer = genVTable(module, targetType);
+					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(targetType));
+					
+					// Build the new type info struct with these values.
+					return makeTypeInfoValue(function, vtablePointer, templateGenerator);
 				}
 				
 				case SEM::Value::FUNCTIONCALL: {
 					const auto semFunctionValue = value->functionCall.functionValue;
 					const auto& semArgumentValues = value->functionCall.parameters;
 					
-					if (semFunctionValue->type()->isInterfaceMethod()) {
+					if (semFunctionValue->type()->isInterfaceMethod() || semFunctionValue->type()->isStaticInterfaceMethod()) {
 						const auto methodValue = genValue(function, semFunctionValue);
 						
 						llvm::SmallVector<llvm::Value*, 10> llvmArgs;
@@ -381,8 +412,7 @@ namespace locic {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						const auto functionType = semFunctionValue->type()->getInterfaceMethodFunctionType();
-						return VirtualCall::generateCall(function, functionType, methodValue, llvmArgs);
+						return VirtualCall::generateCall(function, semFunctionValue->type(), methodValue, llvmArgs);
 					}
 					
 					assert(semFunctionValue->type()->isFunction() || semFunctionValue->type()->isMethod());
@@ -453,6 +483,18 @@ namespace locic {
 					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 					return makeInterfaceMethodValue(function, methodOwner, methodHashValue);
+				}
+				
+				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
+					const auto method = value->staticInterfaceMethodObject.method;
+					const auto typeRef = genValue(function, value->staticInterfaceMethodObject.typeRef);
+					
+					assert(method->kind() == SEM::Value::FUNCTIONREF);
+					
+					const auto interfaceFunction = method->functionRef.function;
+					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
+					return makeStaticInterfaceMethodValue(function, typeRef, methodHashValue);
 				}
 				
 				default:

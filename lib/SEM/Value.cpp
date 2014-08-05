@@ -102,6 +102,20 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::StaticRef(Type* targetType, Value* operand) {
+			Value* value = new Value(STATICREF, operand->type()->createStaticRefType(targetType));
+			value->makeStaticRef.targetType = targetType;
+			value->makeStaticRef.value = operand;
+			return value;
+		}
+		
+		Value* Value::NoStaticRef(Value* operand) {
+			assert(operand->type()->isStaticRef());
+			Value* value = new Value(NOSTATICREF, operand->type()->withoutLvalOrRef());
+			value->makeNoStaticRef.value = operand;
+			return value;
+		}
+		
 		Value* Value::InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters) {
 			Value* value = new Value(INTERNALCONSTRUCT, typeInstance->selfType());
 			value->internalConstruct.parameters = parameters;
@@ -134,22 +148,16 @@ namespace locic {
 		}
 		
 		Value* Value::FunctionCall(Value* functionValue, const std::vector<Value*>& parameters) {
-			const auto type = functionValue->type();
-			const auto functionType =
-				type->isFunction() ?
-					type :
-					(type->isMethod() ?
-						type->getMethodFunctionType() :
-						type->getInterfaceMethodFunctionType());
+			const auto functionType = functionValue->type()->getCallableFunctionType();
 			Value* value = new Value(FUNCTIONCALL, functionType->getFunctionReturnType());
 			value->functionCall.functionValue = functionValue;
 			value->functionCall.parameters = parameters;
 			return value;
 		}
 		
-		Value* Value::FunctionRef(Value* typeValue, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
+		Value* Value::FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
-			value->functionRef.typeValue = typeValue;
+			value->functionRef.parentType = parentType;
 			value->functionRef.function = function;
 			value->functionRef.templateArguments = templateArguments;
 			return value;
@@ -168,6 +176,14 @@ namespace locic {
 			Value* value = new Value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method->type()));
 			value->interfaceMethodObject.method = method;
 			value->interfaceMethodObject.methodOwner = methodOwner;
+			return value;
+		}
+		
+		Value* Value::StaticInterfaceMethodObject(Value* method, Value* typeRef) {
+			assert(method->type()->isFunction());
+			Value* value = new Value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method->type()));
+			value->staticInterfaceMethodObject.method = method;
+			value->staticInterfaceMethodObject.typeRef = typeRef;
 			return value;
 		}
 		
@@ -243,6 +259,14 @@ namespace locic {
 				
 				case NOREF:
 					return makeString("NoRef(value: %s)", makeNoRef.value->toString().c_str());
+									  
+				case STATICREF:
+					return makeString("StaticRef(value: %s, targetType: %s)",
+									  makeStaticRef.value->toString().c_str(),
+									  makeStaticRef.targetType->toString().c_str());
+				
+				case NOSTATICREF:
+					return makeString("NoStaticRef(value: %s)", makeNoStaticRef.value->toString().c_str());
 				
 				case INTERNALCONSTRUCT:
 					return makeString("InternalConstruct(args: %s)",
@@ -265,10 +289,10 @@ namespace locic {
 									  makeArrayString(functionCall.parameters).c_str());
 									  
 				case FUNCTIONREF:
-					return makeString("FunctionRef(name: %s, typeValue: %s)",
+					return makeString("FunctionRef(name: %s, parentType: %s)",
 									  functionRef.function->name().toString().c_str(),
-									  functionRef.typeValue != nullptr ?
-									  	functionRef.typeValue->toString().c_str() :
+									  functionRef.parentType != nullptr ?
+									  	functionRef.parentType->toString().c_str() :
 									 	 "[NONE]");
 									  
 				case METHODOBJECT:
@@ -280,6 +304,11 @@ namespace locic {
 					return makeString("InterfaceMethodObject(method: %s, object: %s)",
 									  interfaceMethodObject.method->toString().c_str(),
 									  interfaceMethodObject.methodOwner->toString().c_str());
+									  
+				case STATICINTERFACEMETHODOBJECT:
+					return makeString("StaticInterfaceMethodObject(method: %s, typeRef: %s)",
+									  staticInterfaceMethodObject.method->toString().c_str(),
+									  staticInterfaceMethodObject.typeRef->toString().c_str());
 									  
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",

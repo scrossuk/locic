@@ -110,23 +110,58 @@ namespace locic {
 				return argsStructPtr;
 			}
 			
-			void generateCallWithReturnVar(Function& function, SEM::Type* functionType, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			struct MethodComponents {
+				llvm::Value* objectPointer;
+				llvm::Value* vtablePointer;
+				llvm::Value* templateGeneratorValue;
+				llvm::Value* hashValue;
+				
+				inline MethodComponents(
+					llvm::Value* pObjectPointer,
+					llvm::Value* pVtablePointer,
+					llvm::Value* pTemplateGeneratorValue,
+					llvm::Value* pHashValue
+					) :
+					objectPointer(pObjectPointer),
+					vtablePointer(pVtablePointer),
+					templateGeneratorValue(pTemplateGeneratorValue),
+					hashValue(pHashValue) { }
+			};
+			
+			MethodComponents getComponents(Function& function, bool isStatic, llvm::Value* interfaceMethodValue) {
+				auto& builder = function.getBuilder();
+				auto& module = function.module();
+				
+				if (isStatic) {
+					const auto objectPointer = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+					const auto typeInfoValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "typeInfo");
+					const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+					const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+					const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
+					return MethodComponents(objectPointer, vtablePointer, templateGeneratorValue, hashValue);
+				} else {
+					const auto interfaceValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "interface");
+					const auto objectPointer = builder.CreateExtractValue(interfaceValue, { 0 }, "object");
+					const auto typeInfoValue = builder.CreateExtractValue(interfaceValue, { 1 }, "typeInfo");
+					const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+					const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+					const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
+					return MethodComponents(objectPointer, vtablePointer, templateGeneratorValue, hashValue);
+				}
+			}
+			
+			void generateCallWithReturnVar(Function& function, SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
 				// Extract the components of the interface method struct.
-				const auto interfaceValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "interface");
-				const auto objectPointer = builder.CreateExtractValue(interfaceValue, { 0 }, "object");
-				const auto typeInfoValue = builder.CreateExtractValue(interfaceValue, { 1 }, "typeInfo");
-				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
-				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
-				const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
+				const auto methodComponents = getComponents(function, isStatic, interfaceMethodValue);
 				
 				// Calculate the slot for the virtual call.
 				ConstantGenerator constantGen(function.module());
 				const auto vtableSizeValue = constantGen.getI64(VTABLE_SIZE);
 				
-				const auto vtableOffsetValue = builder.CreateURem(hashValue, vtableSizeValue, "vtableOffset");
+				const auto vtableOffsetValue = builder.CreateURem(methodComponents.hashValue, vtableSizeValue, "vtableOffset");
 				const auto castVTableOffsetValue = builder.CreateTrunc(vtableOffsetValue, TypeGenerator(module).getI32Type());
 				
 				// Get a pointer to the slot.
@@ -135,7 +170,7 @@ namespace locic {
 				vtableEntryGEP.push_back(constantGen.getI32(3));
 				vtableEntryGEP.push_back(castVTableOffsetValue);
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(methodComponents.vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
@@ -157,13 +192,13 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(returnVarPointer, i8PtrType, "castedReturnVarPtr"));
 				
 				// Pass in the template generator.
-				parameters.push_back(templateGeneratorValue);
+				parameters.push_back(methodComponents.templateGeneratorValue);
 				
 				// Pass in the object pointer.
-				parameters.push_back(builder.CreatePointerCast(objectPointer, i8PtrType, "castedObjectPtr"));
+				parameters.push_back(builder.CreatePointerCast( methodComponents.objectPointer, i8PtrType, "castedObjectPtr"));
 				
 				// Pass in the method hash value.
-				parameters.push_back(hashValue);
+				parameters.push_back(methodComponents.hashValue);
 				
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
@@ -175,7 +210,11 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, parameters);
 			}
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			llvm::Value* generateCall(Function& function, SEM::Type* callableType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+				const bool isStatic = callableType->isStaticInterfaceMethod();
+				
+				const auto functionType = callableType->getCallableFunctionType();
+				
 				const auto returnType = functionType->getFunctionReturnType();
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
 				
@@ -185,7 +224,7 @@ namespace locic {
 				// If the return type isn't void, allocate space on the stack for the return value.
 				const auto returnVarValue = hasReturnVar ? genAlloca(function, returnType) : constGen.getNullPointer(i8PtrType);
 				
-				generateCallWithReturnVar(function, functionType, returnVarValue, interfaceMethodValue, args);
+				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args);
 				
 				// If the return type isn't void, load the return value from the stack.
 				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();

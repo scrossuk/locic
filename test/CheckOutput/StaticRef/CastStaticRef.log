@@ -1,0 +1,6 @@
+typeValue.print100()
+TestClass: Printing 100
+typeValue.print200()
+TestClass: Printing 200
+typeValue.print300()
+TestClass: Printing 300

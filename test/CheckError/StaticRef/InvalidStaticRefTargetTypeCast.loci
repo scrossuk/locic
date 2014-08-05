@@ -1,0 +1,16 @@
+class TestClass() { }
+
+class TestClass2() { }
+
+void function0(staticref<TestClass> typename_t typeValue) {
+	function1(typeValue);
+}
+
+void function1(staticref<TestClass2> typename_t typeValue) { }
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	function0(TestClass);
+	return 0;
+}
+

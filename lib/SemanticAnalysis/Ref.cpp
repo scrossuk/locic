@@ -8,10 +8,8 @@ namespace locic {
 	
 		size_t getRefCount(SEM::Type* type) {
 			size_t count = 0;
-			while (type->isRef() || type->isStaticRef()) {
-				type = type->isRef() ?
-					type->refTarget() :
-					type->staticRefTarget();
+			while (type->isRef()) {
+				type = type->refTarget();
 				count++;
 			}
 			return count;
@@ -19,30 +17,26 @@ namespace locic {
 		
 		SEM::Type* getLastRefType(SEM::Type* type) {
 			while (getRefCount(type) > 1) {
-				type = type->isRef() ?
-					type->refTarget() :
-					type->staticRefTarget();
+				type = type->refTarget();
 			}
 			return type;
 		}
 		
 		SEM::Type* getDerefType(SEM::Type* type) {
-			while (type->isRef() || type->isStaticRef()) {
-				type = type->isRef() ?
-					type->refTarget() :
-					type->staticRefTarget();
+			while (type->isRef()) {
+				type = type->refTarget();
 			}
 			return type;
 		}
 		
 		SEM::Value* derefOne(SEM::Value* value) {
-			assert(getRefCount(value->type()) > 1);
+			assert(value->type()->isRef() && value->type()->refTarget()->isRef());
 			// TODO: add support for custom ref types.
 			return SEM::Value::DerefReference(value);
 		}
 		
 		SEM::Value* derefValue(SEM::Value* value) {
-			while (getRefCount(value->type()) > 1) {
+			while (value->type()->isRef() && value->type()->refTarget()->isRef()) {
 				// TODO: add support for custom ref types.
 				value = SEM::Value::DerefReference(value);
 			}
@@ -50,11 +44,61 @@ namespace locic {
 		}
 		
 		SEM::Value* derefAll(SEM::Value* value) {
-			while (getRefCount(value->type()) > 0) {
+			while (value->type()->isRef()) {
 				// TODO: add support for custom ref types.
 				value = SEM::Value::DerefReference(value);
 			}
 			return value;
+		}
+		
+		size_t getStaticRefCount(SEM::Type* type) {
+			size_t count = 0;
+			while (type->isStaticRef()) {
+				type = type->staticRefTarget();
+				count++;
+			}
+			return count;
+		}
+		
+		SEM::Type* getLastStaticRefType(SEM::Type* type) {
+			while (getStaticRefCount(type) > 1) {
+				type = type->staticRefTarget();
+			}
+			return type;
+		}
+		
+		SEM::Type* getStaticDerefType(SEM::Type* type) {
+			while (type->isStaticRef()) {
+				type = type->staticRefTarget();
+			}
+			return type;
+		}
+		
+		SEM::Value* staticDerefOne(SEM::Value* value) {
+			assert(value->type()->isStaticRef() && value->type()->staticRefTarget()->isStaticRef());
+			// TODO: add support for custom ref types.
+			return SEM::Value::DerefReference(value);
+		}
+		
+		SEM::Value* staticDerefValue(SEM::Value* value) {
+			while (value->type()->isStaticRef() && value->type()->staticRefTarget()->isStaticRef()) {
+				// TODO: add support for custom ref types.
+				value = SEM::Value::DerefReference(value);
+			}
+			return value;
+		}
+		
+		SEM::Value* staticDerefAll(SEM::Value* value) {
+			while (value->type()->isStaticRef()) {
+				// TODO: add support for custom ref types.
+				value = SEM::Value::DerefReference(value);
+			}
+			return value;
+		}
+		
+		SEM::Value* createTypeRef(Context& context, SEM::Type* targetType) {
+			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		
 		SEM::Type* createReferenceType(Context& context, SEM::Type* varType) {

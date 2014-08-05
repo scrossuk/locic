@@ -90,6 +90,17 @@ namespace locic {
 			return context.getType(type);
 		}
 		
+		Type* Type::StaticInterfaceMethod(Type* functionType) {
+			assert(functionType->isFunction());
+			auto& context = functionType->context();
+			
+			Type type(context, STATICINTERFACEMETHOD);
+			
+			type.staticInterfaceMethodType_.functionType = functionType;
+			
+			return context.getType(type);
+		}
+		
 		Type::Type(Context& pContext, Kind pKind) :
 			context_(pContext), kind_(pKind),
 			isConst_(false), lvalTarget_(nullptr),
@@ -265,6 +276,15 @@ namespace locic {
 			return interfaceMethodType_.functionType;
 		}
 		
+		bool Type::isStaticInterfaceMethod() const {
+			return kind() == STATICINTERFACEMETHOD;
+		}
+		
+		Type* Type::getStaticInterfaceMethodFunctionType() const {
+			assert(isStaticInterfaceMethod());
+			return staticInterfaceMethodType_.functionType;
+		}
+		
 		TemplateVar* Type::getTemplateVar() const {
 			assert(isTemplateVar());
 			return templateVarRef_.templateVar;
@@ -284,12 +304,28 @@ namespace locic {
 			return objectType_.templateArguments;
 		}
 		
-		SEM::TypeInstance* Type::getObjectOrSpecType() const {
+		TypeInstance* Type::getObjectOrSpecType() const {
 			assert(isObject() || isTemplateVar());
 			if (isObject()) {
 				return getObjectType();
 			} else {
 				return getTemplateVar()->specTypeInstance();
+			}
+		}
+		
+		Type* Type::getCallableFunctionType() const {
+			switch (kind()) {
+				case Type::FUNCTION:
+					// TODO: remove const cast!
+					return const_cast<Type*>(this);
+				case Type::METHOD:
+					return getMethodFunctionType();
+				case Type::INTERFACEMETHOD:
+					return getInterfaceMethodFunctionType();
+				case Type::STATICINTERFACEMETHOD:
+					return getStaticInterfaceMethodFunctionType();
+				default:
+					throw std::runtime_error("Unknown callable type kind.");
 			}
 		}
 		
@@ -443,6 +479,11 @@ namespace locic {
 						return Type::InterfaceMethod(functionType);
 					}
 					
+					case Type::STATICINTERFACEMETHOD: {
+						const auto functionType = type->getStaticInterfaceMethodFunctionType()->substitute(templateVarMap);
+						return Type::StaticInterfaceMethod(functionType);
+					}
+					
 					case Type::TEMPLATEVAR: {
 						const auto iterator = templateVarMap.find(type->getTemplateVar());
 						if (iterator != templateVarMap.end()) {
@@ -527,6 +568,11 @@ namespace locic {
 					case Type::INTERFACEMETHOD: {
 						const auto functionType = doResolve(type->getInterfaceMethodFunctionType(), templateVarMap);
 						return Type::InterfaceMethod(functionType);
+					}
+					
+					case Type::STATICINTERFACEMETHOD: {
+						const auto functionType = doResolve(type->getStaticInterfaceMethodFunctionType(), templateVarMap);
+						return Type::StaticInterfaceMethod(functionType);
 					}
 					
 					case Type::TEMPLATEVAR: {
@@ -619,6 +665,10 @@ namespace locic {
 					return makeString("InterfaceMethodType(functionType: %s)",
 									  getInterfaceMethodFunctionType()->toString().c_str());
 									  
+				case STATICINTERFACEMETHOD:
+					return makeString("StaticInterfaceMethodType(functionType: %s)",
+									  getStaticInterfaceMethodFunctionType()->toString().c_str());
+									  
 				case TEMPLATEVAR:
 					return "TemplateVarType(templateVar: [possible loop])";
 					
@@ -673,6 +723,10 @@ namespace locic {
 				case INTERFACEMETHOD:
 					return makeString("InterfaceMethodType(functionType: %s)",
 									  getInterfaceMethodFunctionType()->toString().c_str());
+									  
+				case STATICINTERFACEMETHOD:
+					return makeString("StaticInterfaceMethodType(functionType: %s)",
+									  getStaticInterfaceMethodFunctionType()->toString().c_str());
 									  
 				case TEMPLATEVAR:
 					return makeString("TemplateVarType(templateVar: %s)",
@@ -816,6 +870,10 @@ namespace locic {
 				
 				case INTERFACEMETHOD: {
 					return getInterfaceMethodFunctionType() < type.getInterfaceMethodFunctionType();
+				}
+				
+				case STATICINTERFACEMETHOD: {
+					return getStaticInterfaceMethodFunctionType() < type.getStaticInterfaceMethodFunctionType();
 				}
 				
 				case TEMPLATEVAR: {

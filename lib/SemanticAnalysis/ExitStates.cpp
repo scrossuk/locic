@@ -201,18 +201,6 @@ namespace locic {
 			}
 		}
 		
-		SEM::Type* getFunctionType(SEM::Type* type) {
-			if (type->isInterfaceMethod()) {
-				return type->getInterfaceMethodFunctionType();
-			}
-			
-			if (type->isMethod()) {
-				return type->getMethodFunctionType();
-			}
-			
-			return type;
-		}
-		
 		std::bitset<UnwindState_MAX> GetValueExitStates(SEM::Value* value) {
 			switch (value->kind()) {
 				case SEM::Value::REINTERPRET: {
@@ -264,7 +252,7 @@ namespace locic {
 					}
 					
 					const auto functionValue = value->functionCall.functionValue;
-					const auto functionType = getFunctionType(functionValue->type());
+					const auto functionType = functionValue->type()->getCallableFunctionType();
 					assert(functionType->isFunction());
 					
 					if (!functionType->isFunctionNoExcept()) {

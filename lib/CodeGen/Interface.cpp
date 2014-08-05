@@ -78,6 +78,31 @@ namespace locic {
 			return methodValue;
 		}
 		
+		llvm::Type* staticInterfaceMethodLLVMType(Module& module) {
+			TypeGenerator typeGen(module);
+			llvm::Type* const memberTypes[] = { typeInfoType(module).second, typeGen.getI64Type() };
+			return typeGen.getStructType(memberTypes);
+		}
+		
+		llvm_abi::Type* staticInterfaceMethodABIType(Module& module) {
+			auto& abiContext = module.abiContext();
+			llvm::SmallVector<llvm_abi::Type*, 2> types;
+			types.push_back(typeInfoType(module).first);
+			types.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int64));
+			return llvm_abi::Type::AutoStruct(abiContext, types);
+		}
+		
+		TypePair staticInterfaceMethodType(Module& module) {
+			return std::make_pair(staticInterfaceMethodABIType(module), staticInterfaceMethodLLVMType(module));
+		}
+		
+		llvm::Value* makeStaticInterfaceMethodValue(Function& function, llvm::Value* typeInfoValue, llvm::Value* hashValue) {
+			llvm::Value* methodValue = ConstantGenerator(function.module()).getUndef(staticInterfaceMethodLLVMType(function.module()));
+			methodValue = function.getBuilder().CreateInsertValue(methodValue, typeInfoValue, { 0 });
+			methodValue = function.getBuilder().CreateInsertValue(methodValue, hashValue, { 1 });
+			return methodValue;
+		}
+		
 	}
 	
 }

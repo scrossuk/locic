@@ -914,6 +914,8 @@ namespace locic {
 				case PrimitiveDouble:
 				case PrimitiveLongDouble:
 					return genFloatPrimitiveMethodCall(function, type, semFunction, args);
+				case PrimitiveTypename:
+					return genTypenamePrimitiveMethodCall(function, type, semFunction, args);
 				default:
 					llvm_unreachable("Unknown trivial primitive function.");
 			}

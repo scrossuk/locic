@@ -48,6 +48,22 @@ namespace locic {
 		TypePair interfaceMethodType(Module& module);
 		
 		llvm::Value* makeInterfaceMethodValue(Function& function, llvm::Value* interfaceStructValue, llvm::Value* hashValue);
+		
+		/* Static interface method type is:
+			struct {
+				struct {
+					__vtable_type* vtable;
+					struct {
+						void* rootFn;
+						uint32_t path;
+					} templateGenerator;
+				} typeInfo;
+				i64 methodHash;
+			};
+		*/
+		TypePair staticInterfaceMethodType(Module& module);
+		
+		llvm::Value* makeStaticInterfaceMethodValue(Function& function, llvm::Value* typeInfoValue, llvm::Value* hashValue);
 	}
 	
 }

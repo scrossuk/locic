@@ -98,6 +98,10 @@ namespace locic {
 					return interfaceMethodType(module).first;
 				}
 				
+				case SEM::Type::STATICINTERFACEMETHOD: {
+					return staticInterfaceMethodType(module).first;
+				}
+				
 				default: {
 					llvm_unreachable("Unknown type kind for generating ABI type.");
 				}

@@ -270,6 +270,7 @@ int main(int argc, char* argv[]) {
 		Debug::Module debugModule;
 		
 		// Perform semantic analysis.
+		printf("Performing semantic analysis...\n");
 		SEM::Context semContext;
 		SemanticAnalysis::Run(astRootNamespaceList, semContext, debugModule);
 		
@@ -279,6 +280,8 @@ int main(int argc, char* argv[]) {
 		ofs << formatMessage(semContext.rootNamespace()->toString());
 		
 		// Perform code generation.
+		printf("Performing code generation...\n");
+		
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
 		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule);
 		

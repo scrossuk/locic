@@ -40,30 +40,14 @@ namespace locic {
 			}
 			
 			bool isCallableType(SEM::Type* type) {
-				if (getLastRefType(type)->isStaticRef()) {
-					return true;
-				}
-				
 				switch (type->kind()) {
 					case SEM::Type::FUNCTION:
 					case SEM::Type::METHOD:
 					case SEM::Type::INTERFACEMETHOD:
+					case SEM::Type::STATICINTERFACEMETHOD:
 						return true;
 					default:
 						return false;
-				}
-			}
-			
-			SEM::Type* getFunctionType(SEM::Type* type) {
-				switch (type->kind()) {
-					case SEM::Type::FUNCTION:
-						return type;
-					case SEM::Type::METHOD:
-						return type->getMethodFunctionType();
-					case SEM::Type::INTERFACEMETHOD:
-						return type->getInterfaceMethodFunctionType();
-					default:
-						throw std::runtime_error("Cannot get function type of non-function value.");
 				}
 			}
 			
@@ -77,13 +61,16 @@ namespace locic {
 			
 		}
 		
-		SEM::Value* GetStaticMethod(Context& context, SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
-			if (!type->isObjectOrTemplateVar()) {
+		SEM::Value* GetStaticMethod(Context&, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			const auto value = derefAll(rawValue);
+			const auto targetType = value->type()->staticRefTarget();
+			
+			if (!targetType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
-					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
+					methodName.c_str(), targetType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
+			const auto typeInstance = targetType->isObject() ? targetType->getObjectType() : targetType->getTemplateVar()->specTypeInstance();
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
 			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
@@ -101,9 +88,13 @@ namespace locic {
 					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
-			const auto typeValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
-			return SEM::Value::FunctionRef(typeValue, function, {}, type->generateTemplateVarMap());
+			const auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, targetType->generateTemplateVarMap());
+			
+			if (targetType->isInterface()) {
+				return SEM::Value::StaticInterfaceMethodObject(functionRef, value);
+			} else {
+				return functionRef;
+			}
 		}
 		
 		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
@@ -192,9 +183,7 @@ namespace locic {
 				}
 			}
 			
-			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
-			const auto typeValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
-			const auto functionRef = SEM::Value::FunctionRef(typeValue, function, templateArguments, combinedTemplateVarMap);
+			const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, combinedTemplateVarMap);
 			
 			if (typeInstance->isInterface()) {
 				return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));
@@ -206,16 +195,16 @@ namespace locic {
 		SEM::Value* CallValue(Context& context, SEM::Value* rawValue, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
 			const auto value = tryDissolveValue(context, rawValue, location);
 			
+			if (getDerefType(value->type())->isStaticRef()) {
+				return CallValue(context, GetStaticMethod(context, value, "create", location), args, location);
+			}
+			
 			if (!isCallableType(value->type())) {
 				throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
 					value->toString().c_str(), location.toString().c_str()));
 			}
 			
-			if (getLastRefType(value->type())->isStaticRef()) {
-				return CallValue(context, GetStaticMethod(context, getLastRefType(value->type())->staticRefTarget(), "create", location), args, location);
-			}
-			
-			const auto functionType = getFunctionType(value->type());
+			const auto functionType = value->type()->getCallableFunctionType();
 			const auto& typeList = functionType->getFunctionParameterTypes();
 			
 			if (functionType->isFunctionVarArg()) {
@@ -313,6 +302,7 @@ namespace locic {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::STATICINTERFACEMETHOD:
 					// Built-in types can be copied implicitly.
 					return true;
 					
@@ -328,6 +318,9 @@ namespace locic {
 					if (function->isStaticMethod()) return false;
 					if (!function->isConstMethod()) return false;
 					if (!function->parameters().empty()) return false;
+					
+					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
+					if (returnType->isLvalOrRef()) return false;
 					
 					return true;
 				}
@@ -345,6 +338,7 @@ namespace locic {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::STATICINTERFACEMETHOD:
 					return false;
 					
 				case SEM::Type::OBJECT: {
