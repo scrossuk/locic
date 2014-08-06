@@ -40,10 +40,15 @@ namespace locic {
 				
 				static ArgInfo Basic(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
 				
+				static ArgInfo VarArgs(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
+				
 				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
 				
-				ArgInfo(ArgInfo&&) = default;
-				ArgInfo& operator=(ArgInfo&&) = default;
+				ArgInfo withNoMemoryAccess() const;
+				
+				ArgInfo withNoExcept() const;
+				
+				ArgInfo withNoReturn() const;
 				
 				llvm::FunctionType* makeFunctionType() const;
 				
@@ -54,6 +59,12 @@ namespace locic {
 				bool hasContextArgument() const;
 				
 				bool isVarArg() const;
+				
+				bool noMemoryAccess() const;
+				
+				bool noExcept() const;
+				
+				bool noReturn() const;
 				
 				size_t returnVarArgumentOffset() const;
 				
@@ -69,22 +80,22 @@ namespace locic {
 				
 				const TypePair& returnType() const;
 				
-				const std::vector<TypePair>& argumentTypes() const;
+				const llvm::SmallVector<TypePair, 10>& argumentTypes() const;
 				
 			private:
-				// Non-copyable.
-				ArgInfo(const ArgInfo&) = delete;
-				ArgInfo& operator=(const ArgInfo&) = delete;
-				
-				Module& module_;
+				Module* module_;
 				bool hasReturnVarArgument_;
 				bool hasTemplateGeneratorArgument_;
 				bool hasContextArgument_;
 				bool isVarArg_;
 				size_t numStandardArguments_;
 				
+				bool noMemoryAccess_;
+				bool noExcept_;
+				bool noReturn_;
+				
 				TypePair returnType_;
-				std::vector<TypePair> argumentTypes_;
+				llvm::SmallVector<TypePair, 10> argumentTypes_;
 				
 		};
 		

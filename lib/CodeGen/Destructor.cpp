@@ -69,13 +69,12 @@ namespace locic {
 		
 		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
 			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
-			return hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
+			const auto argInfo = hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
+			return argInfo.withNoExcept();
 		}
 		
 		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
-			
-			const bool canThrow = false;
 			
 			if (type->isObject()) {
 				if (!typeHasDestructor(module, type)) {
@@ -99,7 +98,7 @@ namespace locic {
 				}
 				args.push_back(castValue);
 								  
-				(void) genRawFunctionCall(function, argInfo, canThrow, destructorFunction, args);
+				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
@@ -161,10 +160,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto argInfo = ArgInfo::VoidTemplateAndContext(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, mangledName);
-			llvmFunction->setDoesNotThrow();
-			llvmFunction->setDoesNotAccessMemory();
+			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept().withNoMemoryAccess();
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, mangledName);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
@@ -187,15 +184,13 @@ namespace locic {
 			}
 			
 			// Create stub to call destructor with no template generator.
-			const auto argInfo = ArgInfo::VoidTemplateAndContext(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
-			llvmFunction->setDoesNotThrow();
+			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept();
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
 			
-			const bool canThrow = false;
-			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), canThrow, destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
+			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
 			
 			function.getBuilder().CreateRetVoid();
 			
@@ -213,8 +208,7 @@ namespace locic {
 			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
 			
 			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
-			llvmFunction->setDoesNotThrow();
+			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
 			
 			if (argInfo.hasTemplateGeneratorArgument()) {
 				// Always inline templated destructors.
@@ -259,12 +253,10 @@ namespace locic {
 			
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
-				const bool canThrow = false;
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 								  std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
 								  std::vector<llvm::Value*> { contextValue };
-								  
-				(void) genRawFunctionCall(function, argInfo, canThrow, customDestructor, args);
+				(void) genRawFunctionCall(function, argInfo, customDestructor, args);
 			}
 			
 			const auto& memberVars = typeInstance->variables();

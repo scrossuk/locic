@@ -62,13 +62,20 @@ namespace locic {
 			return ArgInfo(module, false, false, false, false, returnType, argumentTypes);
 		}
 		
+		ArgInfo ArgInfo::VarArgs(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes) {
+			return ArgInfo(module, false, false, false, true, returnType, argumentTypes);
+		}
+		
 		ArgInfo::ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair pReturnType, llvm::ArrayRef<TypePair> pArgumentTypes)
-			: module_(module),
+			: module_(&module),
 			  hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),
 			  hasContextArgument_(hCA),
 			  isVarArg_(pIsVarArg),
 			  numStandardArguments_(pArgumentTypes.size()),
+			  noMemoryAccess_(false),
+			  noExcept_(false),
+			  noReturn_(false),
 			  returnType_(pReturnType) {
 			argumentTypes_.reserve(3 + pArgumentTypes.size());
 			
@@ -93,8 +100,26 @@ namespace locic {
 			}
 		}
 		
+		ArgInfo ArgInfo::withNoMemoryAccess() const {
+			ArgInfo copy(*this);
+			copy.noMemoryAccess_ = true;
+			return copy;
+		}
+		
+		ArgInfo ArgInfo::withNoExcept() const {
+			ArgInfo copy(*this);
+			copy.noExcept_ = true;
+			return copy;
+		}
+		
+		ArgInfo ArgInfo::withNoReturn() const {
+			ArgInfo copy(*this);
+			copy.noReturn_ = true;
+			return copy;
+		}
+		
 		llvm::FunctionType* ArgInfo::makeFunctionType() const {
-			const auto voidPair = voidTypePair(module_);
+			const auto voidPair = voidTypePair(*module_);
 			const auto& returnTypeRef = hasReturnVarArgument() ? voidPair : returnType();
 			
 			llvm_abi::FunctionType abiFunctionType;
@@ -109,8 +134,8 @@ namespace locic {
 				paramTypes.push_back(typePair.second);
 			}
 			
-			const auto genericFunctionType = TypeGenerator(module_).getFunctionType(returnTypeRef.second, paramTypes, isVarArg());
-			return module_.abi().rewriteFunctionType(genericFunctionType, abiFunctionType);
+			const auto genericFunctionType = TypeGenerator(*module_).getFunctionType(returnTypeRef.second, paramTypes, isVarArg());
+			return module_->abi().rewriteFunctionType(genericFunctionType, abiFunctionType);
 		}
 		
 		bool ArgInfo::hasReturnVarArgument() const {
@@ -127,6 +152,18 @@ namespace locic {
 		
 		bool ArgInfo::isVarArg() const {
 			return isVarArg_;
+		}
+		
+		bool ArgInfo::noMemoryAccess() const {
+			return noMemoryAccess_;
+		}
+		
+		bool ArgInfo::noExcept() const {
+			return noExcept_;
+		}
+		
+		bool ArgInfo::noReturn() const {
+			return noReturn_;
 		}
 		
 		size_t ArgInfo::returnVarArgumentOffset() const {
@@ -157,7 +194,7 @@ namespace locic {
 			return returnType_;
 		}
 		
-		const std::vector<TypePair>& ArgInfo::argumentTypes() const {
+		const llvm::SmallVector<TypePair, 10>& ArgInfo::argumentTypes() const {
 			return argumentTypes_;
 		}
 		
@@ -180,7 +217,13 @@ namespace locic {
 				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
+			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
+			
+			if (functionType->isFunctionNoExcept()) {
+				argInfo = argInfo.withNoExcept();
+			}
+			
+			return argInfo;
 		}
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function) {
@@ -201,7 +244,13 @@ namespace locic {
 				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
-			return ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
+			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
+			
+			if (functionType->isFunctionNoExcept()) {
+				argInfo = argInfo.withNoExcept();
+			}
+			
+			return argInfo;
 		}
 		
 	}

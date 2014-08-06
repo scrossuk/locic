@@ -28,7 +28,7 @@ namespace locic {
 			
 			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
 			
-			const auto llvmFunction = createLLVMFunction(module, newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub");
+			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub", module.getLLVMModulePtr());
 			
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			

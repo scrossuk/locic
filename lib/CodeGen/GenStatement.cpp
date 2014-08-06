@@ -48,6 +48,15 @@ namespace locic {
 			return values.at(0);
 		}
 		
+		ArgInfo assertFailedArgInfo(Module& module) {
+			auto& abiContext = module.abiContext();
+			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			
+			const TypePair argTypes[] = { voidPtr };
+			return ArgInfo::Basic(module, voidType, argTypes).withNoExcept().withNoReturn();
+		}
+		
 		llvm::Function* getAssertFailedFunction(Module& module) {
 			const std::string functionName = "__loci_assert_failed";
 			const auto result = module.getFunctionMap().tryGet(functionName);
@@ -56,15 +65,15 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
-			const auto functionType = typeGen.getVoidFunctionType(argTypes);
-			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			
+			const auto function = createLLVMFunction(module, assertFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
+		}
+		
+		ArgInfo unreachableFailedArgInfo(Module& module) {
+			auto& abiContext = module.abiContext();
+			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			return ArgInfo::Basic(module, voidType, {}).withNoExcept().withNoReturn();
 		}
 		
 		llvm::Function* getUnreachableFailedFunction(Module& module) {
@@ -75,13 +84,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVoidFunctionType(std::vector<llvm::Type*>());
-			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			
+			const auto function = createLLVMFunction(module, unreachableFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
 		}
 		
@@ -457,6 +461,9 @@ namespace locic {
 							const auto catchType = genType(function.module(), catchClause->var()->constructType());
 							llvm::Value* const getPtrArgs[] = { thrownExceptionValue };
 							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module), getPtrArgs);
+							exceptionPtrValue->setDoesNotAccessMemory();
+							exceptionPtrValue->setDoesNotThrow();
+							
 							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionPtrValue, catchType->getPointerTo());
 							
 							assert(catchClause->var()->isBasic());
@@ -527,6 +534,7 @@ namespace locic {
 						const auto noThrowPath = function.createBasicBlock("");
 						const auto throwPath = genLandingPad(function, UnwindStateThrow);
 						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
+						throwInvoke->setDoesNotReturn();
 						
 						if (hasDebugInfo) {
 							throwInvoke->setDebugLoc(debugLocation);
@@ -537,6 +545,7 @@ namespace locic {
 						function.getBuilder().CreateUnreachable();
 					} else {
 						const auto callInst = function.getBuilder().CreateCall(throwFunction, args);
+						callInst->setDoesNotReturn();
 						
 						if (hasDebugInfo) {
 							callInst->setDebugLoc(debugLocation);
@@ -575,6 +584,7 @@ namespace locic {
 						const auto noThrowPath = function.createBasicBlock("");
 						const auto throwPath = genLandingPad(function, UnwindStateRethrow);
 						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
+						throwInvoke->setDoesNotReturn();
 						
 						if (hasDebugInfo) {
 							throwInvoke->setDebugLoc(debugLocation);
@@ -585,6 +595,7 @@ namespace locic {
 						function.getBuilder().CreateUnreachable();
 					} else {
 						const auto callInst = function.getBuilder().CreateCall(rethrowFunction, args);
+						callInst->setDoesNotReturn();
 						
 						if (hasDebugInfo) {
 							callInst->setDebugLoc(debugLocation);
@@ -640,7 +651,9 @@ namespace locic {
 					
 					const auto assertFailedFunction = getAssertFailedFunction(module);
 					llvm::Value* const args[] = { stringGlobal };
-					function.getBuilder().CreateCall(assertFailedFunction, args);
+					const auto callInst = function.getBuilder().CreateCall(assertFailedFunction, args);
+					callInst->setDoesNotThrow();
+					callInst->setDoesNotReturn();
 					function.getBuilder().CreateUnreachable();
 					
 					function.selectBasicBlock(successBB);
@@ -649,7 +662,9 @@ namespace locic {
 				
 				case SEM::Statement::UNREACHABLE: {
 					const auto unreachableFailedFunction = getUnreachableFailedFunction(module);
-					function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
+					const auto callInst = function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
+					callInst->setDoesNotThrow();
+					callInst->setDoesNotReturn();
 					function.getBuilder().CreateUnreachable();
 					break;
 				}

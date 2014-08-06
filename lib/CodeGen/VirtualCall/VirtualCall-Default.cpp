@@ -206,8 +206,7 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				const bool canThrow = true;
-				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, parameters);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
 			}
 			
 			llvm::Value* generateCall(Function& function, SEM::Type* callableType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
@@ -246,24 +245,18 @@ namespace locic {
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
-				const auto argInfo = ArgInfo::TemplateOnly(module, sizeTypePair(module));
+				const auto argInfo = ArgInfo::TemplateOnly(module, sizeTypePair(module)).withNoMemoryAccess().withNoExcept();
 				
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				const bool canThrow = false;
-				const auto callResult = genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, { templateGeneratorValue });
-				
-				// TODO: add this to ArgInfo:
-				// callInst->setDoesNotAccessMemory();
-				
-				return callResult;
+				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue });
 			}
 			
 			ArgInfo virtualDestructorArgInfo(Module& module) {
-				return ArgInfo::VoidTemplateAndContext(module);
+				return ArgInfo::VoidTemplateAndContext(module).withNoExcept();
 			}
 			
 			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue) {
@@ -289,9 +282,8 @@ namespace locic {
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				const bool canThrow = false;
 				llvm::Value* const args[] = { templateGeneratorValue, objectValue };
-				(void) genRawFunctionCall(function, argInfo, canThrow, castedMethodFunctionPointer, args);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
@@ -305,8 +297,7 @@ namespace locic {
 				const auto stubArgInfo = getStubArgInfo(module);
 				const auto linkage = llvm::Function::PrivateLinkage;
 				
-				llvm::Function* llvmFunction = createLLVMFunction(module, stubArgInfo.makeFunctionType(), linkage, "__slot_conflict_resolution_stub");
-				
+				const auto llvmFunction = createLLVMFunction(module, stubArgInfo, linkage, "__slot_conflict_resolution_stub");
 				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));
 				
 				Function function(module, *llvmFunction, stubArgInfo);
@@ -381,8 +372,7 @@ namespace locic {
 					}
 					
 					// Call the method.
-					const bool canThrow = true;
-					const auto llvmCallReturnValue = genRawFunctionCall(function, argInfo, canThrow, llvmMethod, parameters);
+					const auto llvmCallReturnValue = genRawFunctionCall(function, argInfo, llvmMethod, parameters);
 					
 					// Store return value.
 					if (!argInfo.hasReturnVarArgument() && !returnType->isBuiltInVoid()) {

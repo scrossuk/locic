@@ -21,24 +21,27 @@ namespace locic {
 	namespace CodeGen {
 		
 		ArgInfo alignMaskArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
-			return !typeInstance->templateVariables().empty() ?
+			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
+			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
 		ArgInfo sizeOfArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
-			return !typeInstance->templateVariables().empty() ?
+			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
+			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
 		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
 			std::vector<TypePair> argTypes;
 			argTypes.push_back(sizeTypePair(module));
 			
-			return !typeInstance->templateVariables().empty() ?
+			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::Templated(module, sizeTypePair(module), std::move(argTypes)) :
 				ArgInfo::Basic(module, sizeTypePair(module), std::move(argTypes));
+			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
 		llvm::Function* genAlignMaskFunction(Module& module, SEM::Type* type) {
@@ -52,9 +55,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = alignMaskArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
-			llvmFunction->setDoesNotAccessMemory();
-			
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
@@ -135,12 +136,11 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
-					const bool canThrow = false;
 					const auto alignMaskFunction = genAlignMaskFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
-					const auto callResult = genRawFunctionCall(function, alignMaskArgInfo(module, type->getObjectType()), canThrow, alignMaskFunction, args);
+					const auto callResult = genRawFunctionCall(function, alignMaskArgInfo(module, type->getObjectType()), alignMaskFunction, args);
 					callResult->setName(callName);
 					return callResult;
 				}
@@ -178,9 +178,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = sizeOfArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
-			llvmFunction->setDoesNotAccessMemory();
-			
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
@@ -281,12 +279,11 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
-					const bool canThrow = false;
 					const auto sizeOfFunction = genSizeOfFunction(module, type);
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
-					const auto callResult = genRawFunctionCall(function, sizeOfArgInfo(module, type->getObjectType()), canThrow, sizeOfFunction, args);
+					const auto callResult = genRawFunctionCall(function, sizeOfArgInfo(module, type->getObjectType()), sizeOfFunction, args);
 					callResult->setName(callName);
 					return callResult;
 				}
@@ -341,9 +338,7 @@ namespace locic {
 			
 			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
-			llvmFunction->setDoesNotAccessMemory();
-			llvmFunction->setDoesNotThrow();
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
 			
 			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
@@ -448,9 +443,10 @@ namespace locic {
 			const auto memberOffsetFunction = genMemberOffsetFunction(module, type->getObjectType());
 			
 			const bool hasTemplate = !type->templateArguments().empty();
-			const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)), memberIndexValue } : std::vector<llvm::Value*>{ memberIndexValue };
-			const bool canThrow = false;
-			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), canThrow, memberOffsetFunction, args);
+			const auto args = hasTemplate ?
+				std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)), memberIndexValue } :
+				std::vector<llvm::Value*>{ memberIndexValue };
+			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), memberOffsetFunction, args);
 			callResult->setName(callName);
 			
 			// TODO: add these to ArgInfo:

@@ -134,7 +134,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, bool canThrow, llvm::Value* functionPtr,
+		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
 				llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
 			
 			assert(args.size() == argInfo.argumentTypes().size());
@@ -154,18 +154,38 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			if (canThrow && anyUnwindActions(function, UnwindStateThrow)) {
+			if (!argInfo.noExcept() && anyUnwindActions(function, UnwindStateThrow)) {
 				const auto successPath = function.createBasicBlock("");
 				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
-				encodedCallReturnValue = addDebugLoc(function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters), debugLoc);
+				const auto invokeInst = function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters);
+				
+				if (argInfo.noReturn()) {
+					invokeInst->setDoesNotReturn();
+				}
+				
+				if (argInfo.noMemoryAccess()) {
+					invokeInst->setDoesNotAccessMemory();
+				}
+				
+				encodedCallReturnValue = addDebugLoc(invokeInst, debugLoc);
 				
 				function.selectBasicBlock(successPath);
 			} else {
 				const auto callInst = function.getBuilder().CreateCall(functionPtr, encodedParameters);
-				if (!canThrow) {
+				
+				if (argInfo.noExcept()) {
 					callInst->setDoesNotThrow();
 				}
+				
+				if (argInfo.noReturn()) {
+					callInst->setDoesNotReturn();
+				}
+				
+				if (argInfo.noMemoryAccess()) {
+					callInst->setDoesNotAccessMemory();
+				}
+				
 				encodedCallReturnValue = addDebugLoc(callInst, debugLoc);
 			}
 			

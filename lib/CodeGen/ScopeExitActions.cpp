@@ -155,7 +155,8 @@ namespace locic {
 					switch (unwindState) {
 						case UnwindStateThrow: {
 							llvm::Value* const values[] = { unwindAction.destroyExceptionValue() };
-							function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), values);
+							const auto callInst = function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), values);
+							callInst->setDoesNotThrow();
 							break;
 						}
 						default:

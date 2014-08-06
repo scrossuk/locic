@@ -18,9 +18,22 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Function* createLLVMFunction(Module& module, llvm::FunctionType* type,
-										   llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
-			return llvm::Function::Create(type, linkage, name, module.getLLVMModulePtr());
+		llvm::Function* createLLVMFunction(Module& module, const ArgInfo& argInfo, llvm::GlobalValue::LinkageTypes linkage, const std::string& name) {
+			const auto llvmFunction = llvm::Function::Create(argInfo.makeFunctionType(), linkage, name, module.getLLVMModulePtr());
+			
+			if (argInfo.noMemoryAccess()) {
+				llvmFunction->setDoesNotAccessMemory();
+			}
+			
+			if (argInfo.noExcept()) {
+				llvmFunction->setDoesNotThrow();
+			}
+			
+			if (argInfo.noReturn()) {
+				llvmFunction->setDoesNotReturn();
+			}
+			
+			return llvmFunction;
 		}
 		
 		Function::Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* pTemplateBuilder)

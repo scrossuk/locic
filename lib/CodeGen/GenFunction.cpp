@@ -68,14 +68,10 @@ namespace locic {
 			
 			const auto argInfo = getFunctionArgInfo(module, function->type());
 			const auto linkage = getFunctionLinkage(typeInstance, function->moduleScope());
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), linkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
 			
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			module.getFunctionDeclMap().insert(std::make_pair(function, llvmFunction));
-			
-			if (function->type()->isFunctionNoExcept()) {
-				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
-			}
 			
 			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
@@ -195,11 +191,7 @@ namespace locic {
 			
 			// --- Generate function declaration.
 			const auto argInfo = getTemplateVarFunctionStubArgInfo(module, function);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, "templateFunctionStub");
-			
-			if (function->type()->isFunctionNoExcept()) {
-				llvmFunction->addFnAttr(llvm::Attribute::NoUnwind);
-			}
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, "templateFunctionStub");
 			
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);

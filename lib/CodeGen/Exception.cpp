@@ -21,14 +21,15 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getFunctionType(typeGen.getI8PtrType(), std::vector<llvm::Type*> { getSizeType(module.getTargetInfo()) });
+			auto& abiContext = module.abiContext();
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto sizeType = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT), getSizeType(module.getTargetInfo()));
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			function->addFnAttr(llvm::Attribute::NoUnwind);
+			const TypePair argTypes[] = { sizeType };
+			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept();
 			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
 		}
 		
@@ -40,15 +41,15 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
-			const auto functionType = typeGen.getFunctionType(typeGen.getVoidType(), argTypes);
+			auto& abiContext = module.abiContext();
+			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			function->addFnAttr(llvm::Attribute::NoUnwind);
+			const TypePair argTypes[] = { voidPtr };
+			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoExcept();
 			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
 		}
 		
@@ -60,14 +61,15 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			llvm::Type* const argTypes[] = { typeGen.getI8PtrType(), typeGen.getI8PtrType(), typeGen.getI8PtrType() };
-			const auto functionType = typeGen.getVoidFunctionType(argTypes);
+			auto& abiContext = module.abiContext();
+			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
+			const TypePair argTypes[] = { voidPtr, voidPtr, voidPtr };
+			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
 			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
 		}
 		
@@ -79,12 +81,14 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			llvm::Type* const argTypes[] = { typeGen.getI8PtrType() };
-			const auto functionType = typeGen.getVoidFunctionType(argTypes);
+			auto& abiContext = module.abiContext();
+			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
+			const TypePair argTypes[] = { voidPtr };
+			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
 			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
 			
 			return function;
@@ -98,14 +102,12 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getVarArgsFunctionType(typeGen.getI32Type(), std::vector<llvm::Type*> {});
+			auto& abiContext = module.abiContext();
+			const auto int32Type = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::Int32), TypeGenerator(module).getI32Type());
+			const auto argInfo = ArgInfo::VarArgs(module, int32Type, {}).withNoExcept();
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			function->addFnAttr(llvm::Attribute::NoUnwind);
-			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
-			
 			return function;
 		}
 		
@@ -117,12 +119,13 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto functionType = typeGen.getFunctionType(typeGen.getI8PtrType(), std::vector<llvm::Type*> {typeGen.getI8PtrType()});
+			auto& abiContext = module.abiContext();
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
 			
-			const auto function = createLLVMFunction(module, functionType, llvm::Function::ExternalLinkage, functionName);
-			function->addFnAttr(llvm::Attribute::NoUnwind);
+			const TypePair argTypes[] = { voidPtr };
+			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept().withNoMemoryAccess();
 			
+			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(functionName, function);
 			
 			return function;

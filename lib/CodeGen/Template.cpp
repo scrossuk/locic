@@ -152,7 +152,7 @@ namespace locic {
 		ArgInfo rootFunctionArgInfo(Module& module) {
 			llvm::SmallVector<TypePair, 1> types;
 			types.push_back(pathType(module));
-			return ArgInfo::Basic(module, typeInfoArrayType(module), types);
+			return ArgInfo::Basic(module, typeInfoArrayType(module), types).withNoMemoryAccess().withNoExcept();
 		}
 		
 		llvm::Value* computeTemplateArguments(Function& function, llvm::Value* generatorValue) {
@@ -165,13 +165,8 @@ namespace locic {
 			const auto functionType = argInfo.makeFunctionType();
 			const auto castRootFn = builder.CreateBitCast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
 			
-			const bool canThrow = false;
-			const auto callResult = genRawFunctionCall(function, argInfo, canThrow, castRootFn, { generatorPath });
+			const auto callResult = genRawFunctionCall(function, argInfo, castRootFn, { generatorPath });
 			callResult->setName("templateArgs");
-			
-			// TODO: add to ArgInfo:
-			// callInstruction->setDoesNotAccessMemory();
-			
 			return callResult;
 		}
 		
@@ -274,9 +269,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = rootFunctionArgInfo(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo.makeFunctionType(), llvm::Function::PrivateLinkage, "template_root");
-			llvmFunction->setDoesNotAccessMemory();
-			llvmFunction->setDoesNotThrow();
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, "template_root");
 			
 			module.templateRootFunctionMap().insert(std::make_pair(templateInst, llvmFunction));
 			
@@ -338,9 +331,8 @@ namespace locic {
 			
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
-			const bool canThrow = false;
 			llvm::Value* const args[] = { newTypesValue, llvmFunction, pathArg, startPosition };
-			builder.CreateRet(genRawFunctionCall(function, intermediateFunctionArgInfo(module), canThrow, nextFunction, args));
+			builder.CreateRet(genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
 			
 			return llvmFunction;
 		}
@@ -359,7 +351,7 @@ namespace locic {
 			argTypes.push_back(pathType(module));
 			argTypes.push_back(std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8), TypeGenerator(module).getI8Type()));
 			
-			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes);
+			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes).withNoMemoryAccess().withNoExcept();
 		}
 		
 		static llvm::GlobalValue::LinkageTypes getTemplatedObjectLinkage(TemplatedObject templatedObject) {
@@ -387,13 +379,8 @@ namespace locic {
 				return result.getValue();
 			}
 			
-			const auto functionType = intermediateFunctionArgInfo(module).makeFunctionType();
-			const auto llvmFunction = createLLVMFunction(module, functionType, getTemplatedObjectLinkage(templatedObject), mangledName);
-			llvmFunction->setDoesNotAccessMemory();
-			llvmFunction->setDoesNotThrow();
-			
+			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionArgInfo(module), getTemplatedObjectLinkage(templatedObject), mangledName);
 			module.getFunctionMap().insert(mangledName, llvmFunction);
-			
 			return llvmFunction;
 		}
 		
@@ -502,9 +489,8 @@ namespace locic {
 					// Call the next intermediate function.
 					const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseInst.object());
 					
-					const bool canThrow = false;
 					llvm::Value* const args[] = { newTypesValue, rootFnArg, pathArg, position };
-					const auto callResult = genRawFunctionCall(function, argInfo, canThrow, nextFunction, args);
+					const auto callResult = genRawFunctionCall(function, argInfo, nextFunction, args);
 					builder.CreateRet(callResult);
 				}
 			}
