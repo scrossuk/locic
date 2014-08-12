@@ -98,13 +98,7 @@ namespace locic {
 			
 			parentNamespace->items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(semTypeInstance)));
 			
-			if (semTypeInstance->isUnionDatatype()) {
-				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
-					variantTypeInstance->setParent(semTypeInstance);
-					semTypeInstance->variants().push_back(variantTypeInstance);
-				}
-			}
+			context.debugModule().typeInstanceMap.insert(std::make_pair(semTypeInstance, Debug::TypeInstanceInfo(astTypeInstanceNode.location())));
 			
 			// Add template variables.
 			size_t templateVarIndex = 0;
@@ -126,6 +120,16 @@ namespace locic {
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
 				semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+			}
+			
+			if (semTypeInstance->isUnionDatatype()) {
+				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
+					variantTypeInstance->setParent(semTypeInstance->selfType());
+					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables();
+					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables();
+					semTypeInstance->variants().push_back(variantTypeInstance);
+				}
 			}
 			
 			return semTypeInstance;
@@ -261,7 +265,7 @@ namespace locic {
 							
 							if (childTypeInstance->isException()) {
 								if (childTypeInstance->parent() != nullptr) {
-									visitFn(visitFnVoid, childTypeInstance->parent()->selfType());
+									visitFn(visitFnVoid, childTypeInstance->parent());
 								}
 							}
 							
@@ -273,8 +277,7 @@ namespace locic {
 					
 					visitor(&visitor, semType);
 					
-					// TODO: also handle template parameters?
-					semTypeInstance->setParent(semType->getObjectType());
+					semTypeInstance->setParent(semType);
 					
 					// Also add parent as first member variable.
 					const auto var = SEM::Var::Basic(semType, semType);
@@ -697,7 +700,7 @@ namespace locic {
 				}
 			} else {
 				if (typeInstance->isException() && typeInstance->parent() != nullptr) {
-					GenerateTypeDefaultMethods(context, typeInstance->parent(), completedTypes);
+					GenerateTypeDefaultMethods(context, typeInstance->parent()->getObjectType(), completedTypes);
 				}
 				
 				for (const auto var: typeInstance->variables()) {

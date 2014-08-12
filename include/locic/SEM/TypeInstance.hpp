@@ -105,8 +105,8 @@ namespace locic {
 				
 				std::vector<Type*> constructTypes() const;
 				
-				void setParent(TypeInstance* parent);
-				TypeInstance* parent() const;
+				void setParent(Type* parent);
+				Type* parent() const;
 				
 				std::string refToString() const;
 				
@@ -118,7 +118,7 @@ namespace locic {
 				Kind kind_;
 				SEM::ModuleScope* moduleScope_;
 				
-				TypeInstance* parent_;
+				Type* parent_;
 				
 				std::vector<TypeInstance*> variants_;
 				

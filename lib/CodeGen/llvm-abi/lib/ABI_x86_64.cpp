@@ -40,6 +40,7 @@ namespace llvm_abi {
 							
 						case Long:
 						case SizeT:
+						case PtrDiffT:
 						case LongLong:
 						case Int64:
 							return 8;

@@ -42,6 +42,8 @@ namespace locic {
 			PrimitiveSize,
 			PrimitiveSSize,
 			
+			PrimitivePtrDiff,
+			
 			PrimitiveFloat,
 			PrimitiveDouble,
 			PrimitiveLongDouble,

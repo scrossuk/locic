@@ -159,6 +159,7 @@ const T& GETSYM(T* value) {
 	
 	// Switch case.
 	locic::AST::Node<locic::AST::SwitchCase>* switchCase;
+	locic::AST::Node<locic::AST::DefaultCase>* defaultCase;
 	locic::AST::Node<locic::AST::SwitchCaseList>* switchCaseList;
 	
 	// If clause.
@@ -371,6 +372,7 @@ const T& GETSYM(T* value) {
 %type <catchClauseList> catchClauseList
 
 %type <switchCase> switchCase
+%type <defaultCase> defaultCase
 %type <switchCaseList> switchCaseList
 
 %type <ifClause> ifClause
@@ -1250,7 +1252,7 @@ switchCase:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SwitchCase(GETSYM($2), GETSYM($3))));
 	}
 	;
-	
+
 switchCaseList:
 	// empty
 	{
@@ -1260,6 +1262,17 @@ switchCaseList:
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+defaultCase:
+	// empty
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::DefaultCase::Empty()));
+	}
+	| DEFAULT scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::DefaultCase::Scope(GETSYM($2))));
 	}
 	;
 
@@ -1321,9 +1334,9 @@ scopedStatement:
 	{
 		$$ = $1;
 	}
-	| SWITCH LROUNDBRACKET value RROUNDBRACKET LCURLYBRACKET switchCaseList RCURLYBRACKET
+	| SWITCH LROUNDBRACKET value RROUNDBRACKET LCURLYBRACKET switchCaseList defaultCase RCURLYBRACKET
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Switch(GETSYM($3), GETSYM($6))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Switch(GETSYM($3), GETSYM($6), GETSYM($7))));
 	}
 	| FOR LROUNDBRACKET typeVar COLON value RROUNDBRACKET scope
 	{

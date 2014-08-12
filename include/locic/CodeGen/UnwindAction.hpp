@@ -106,22 +106,21 @@ namespace locic {
 				
 				void setActionBlock(UnwindState state, BasicBlockRange actionBB);
 				
-				llvm::BasicBlock* landingPadBlock() const;
+				llvm::BasicBlock* landingPadBlock(UnwindState unwindState) const;
 				
-				void setLandingPadBlock(llvm::BasicBlock* landingPadBB);
+				void setLandingPadBlock(UnwindState unwindState, llvm::BasicBlock* landingPadBB);
 				
 			private:
 				inline UnwindAction(Kind pKind)
-					: kind_(pKind),
-					landingPadBB_(nullptr) {
+					: kind_(pKind) {
+						landingPadBB_.fill(nullptr);
 						actionBB_.fill(BasicBlockRange());
 						successorBB_.fill(nullptr);
 					}
 					
 				Kind kind_;
 				
-				llvm::BasicBlock* landingPadBB_;
-				
+				std::array<llvm::BasicBlock*, UnwindState_MAX> landingPadBB_;
 				std::array<BasicBlockRange, UnwindState_MAX> actionBB_;
 				std::array<llvm::BasicBlock*, UnwindState_MAX> successorBB_;
 				

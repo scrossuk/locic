@@ -35,7 +35,6 @@ namespace locic {
 		
 		llvm::Value* genValue(Function& function, SEM::Value* value) {
 			auto& module = function.module();
-			const auto debugLoc = getDebugLocation(function, value);
 			
 			switch (value->kind()) {
 				case SEM::Value::SELF: {
@@ -214,14 +213,14 @@ namespace locic {
 								
 								const auto unionValue = genAlloca(function, destType);
 								
+								const auto unionDatatypePointers = getUnionDatatypePointers(function, destType, unionValue);
+								
 								// Set the variant kind value.
-								const auto variantKindPtr = function.getBuilder().CreateConstInBoundsGEP2_32(unionValue, 0, 0);
-								function.getBuilder().CreateStore(ConstantGenerator(module).getI8(variantKind), variantKindPtr);
+								function.getBuilder().CreateStore(ConstantGenerator(module).getI8(variantKind), unionDatatypePointers.first);
 								
 								// Store the union value.
-								const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(unionValue, 0, 1);
 								const auto unionValueType = genType(function.module(), sourceType);
-								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
 								genStore(function, codeValue, castedUnionValuePtr, sourceType);
 								
 								return genLoad(function, unionValue, destType);
@@ -252,7 +251,6 @@ namespace locic {
 				case SEM::Value::POLYCAST: {
 					const auto rawValue = genValue(function, value->polyCast.value);
 					const auto sourceType = value->polyCast.value->type();
-					const auto destType = value->type();
 					
 					if (sourceType->isStaticRef()) {
 						const auto sourceTarget = sourceType->staticRefTarget();
@@ -271,8 +269,8 @@ namespace locic {
 						return makeTypeInfoValue(function, vtablePointer, templateGenerator);
 					} else if (sourceType->isRef()) {
 						assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
-						assert(destType->isBuiltInReference() && "Polycast dest type must be reference.");
-						assert(destType->refTarget()->isInterface() && "Polycast dest target type must be interface");
+						assert(value->type()->isBuiltInReference() && "Polycast dest type must be reference.");
+						assert(value->type()->refTarget()->isInterface() && "Polycast dest target type must be interface");
 						
 						const auto sourceTarget = sourceType->refTarget();
 						
@@ -425,6 +423,7 @@ namespace locic {
 					const auto functionType = semFunctionValue->type()->isMethod() ?
 						semFunctionValue->type()->getMethodFunctionType() : semFunctionValue->type();
 					
+					const auto debugLoc = getDebugLocation(function, value);
 					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc);
 				}
 				
@@ -442,33 +441,20 @@ namespace locic {
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					// TODO: use genFunctionCallInfo here.
+					const auto callInfo = genFunctionCallInfo(function, value);
 					
-					const auto functionValue = genValue(function, value->methodObject.method);
-					assert(functionValue != nullptr && "MethodObject requires a valid function");
+					llvm::Value* functionValue = nullptr;
 					
-					const auto dataValue = value->methodObject.methodOwner;
-					const auto llvmDataValue = genValue(function, dataValue);
-					
-					// Methods must have a pointer to the object, which
-					// may require generating a fresh 'alloca'.
-					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
-						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
-					const auto dataPointer = isValuePtr ? llvmDataValue : genValuePtr(function, llvmDataValue, dataValue->type());
-					
-					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
-					
-					assert(value->type()->isMethod());
-					
-					if (!dataValue->type()->isRef()) {
-						// Call destructor for the object at the end of the current scope.
-						scheduleDestructorCall(function, dataValue->type(), dataPointer);
+					if (callInfo.templateGenerator != nullptr) {
+						functionValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.functionPtr, { 0 });
+						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.templateGenerator, { 1 });
+					} else {
+						functionValue = callInfo.functionPtr;
 					}
 					
-					const auto contextPtr = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType(), "this_ptr_cast_to_void_ptr");
-					
 					llvm::Value* methodValue = ConstantGenerator(module).getUndef(genType(module, value->type()));
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, contextPtr, { 0 });
+					methodValue = function.getBuilder().CreateInsertValue(methodValue, callInfo.contextPointer, { 0 });
 					methodValue = function.getBuilder().CreateInsertValue(methodValue, functionValue, { 1 });
 					return methodValue;
 				}

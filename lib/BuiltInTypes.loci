@@ -696,6 +696,36 @@ __primitive longdouble_t {
 	compare_result_t compare(const longdouble_t& v) const noexcept;
 }
 
+__primitive ptrdiff_t {
+	static ptrdiff_t unit() noexcept;
+	
+	static ptrdiff_t int8_cast(int8_t value) noexcept;
+	static ptrdiff_t int16_cast(int16_t value) noexcept;
+	static ptrdiff_t byte_cast(byte_t value) noexcept;
+	static ptrdiff_t short_cast(short_t value) noexcept;
+	
+	ptrdiff_t implicitCopy() const noexcept;
+	
+	ptrdiff_t add(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t subtract(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t multiply(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t divide(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t modulo(const ptrdiff_t& v) const noexcept;
+	
+	bool equal(const ptrdiff_t& v) const noexcept;
+	bool not_equal(const ptrdiff_t& v) const noexcept;
+	bool less_than(const ptrdiff_t& v) const noexcept;
+	bool less_than_or_equal(const ptrdiff_t& v) const noexcept;
+	bool greater_than(const ptrdiff_t& v) const noexcept;
+	bool greater_than_or_equal(const ptrdiff_t& v) const noexcept;
+	
+	compare_result_t compare(const ptrdiff_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+	
+	float_t toFloat() const noexcept;
+}
+
 template <typename T>
 __primitive __ptr {
 	static __ptr<T> Null() noexcept;
@@ -707,6 +737,9 @@ __primitive __ptr {
 	
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> index(size_t index) const noexcept;
+	
+	__ptr<T> add(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t subtract(const __ptr<T>& v) const noexcept;
 	
 	bool equal(const __ptr<T>& value) const noexcept;
 	bool not_equal(const __ptr<T>& value) const noexcept;

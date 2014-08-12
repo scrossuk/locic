@@ -2,7 +2,6 @@ add_library(locic-semanalysis
 	Analysis.cpp
 	CanCast.cpp
 	Context.cpp
-	ConvertClassDef.cpp
 	ConvertException.cpp
 	ConvertForLoop.cpp
 	ConvertFunctionDecl.cpp
@@ -11,6 +10,7 @@ add_library(locic-semanalysis
 	ConvertScope.cpp
 	ConvertStatement.cpp
 	ConvertType.cpp
+	ConvertTypeInstance.cpp
 	ConvertValue.cpp
 	ConvertVar.cpp
 	DefaultMethods.cpp

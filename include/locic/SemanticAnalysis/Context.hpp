@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
+#include <set>
 #include <tuple>
 
 #include <locic/Debug.hpp>
@@ -37,6 +38,8 @@ namespace locic {
 				 * instantiations to check they're valid.
 				 */
 				std::vector<TemplateInstTuple>& templateInstantiations();
+				
+				const std::set<std::string>& validVarArgTypes() const;
 			
 			private:
 				// Non-copyable.
@@ -47,6 +50,7 @@ namespace locic {
 				ScopeStack scopeStack_;
 				SEM::Context& semContext_;
 				std::vector<TemplateInstTuple> templateInstantiations_;
+				std::set<std::string> validVarArgTypes_;
 				
 		};
 		

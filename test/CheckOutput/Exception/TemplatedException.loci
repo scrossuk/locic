@@ -1,0 +1,30 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+template <typename T>
+interface Copyable {
+	T implicitCopy() const;
+}
+
+template <typename T>
+exception ParentError(T value);
+
+template <typename T: Copyable<T>>
+exception ChildError(T value0, T value1) : ParentError<T>(value0);
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	try {
+		throw ChildError<int>(111, 222);
+	} catch (ChildError<int> error) {
+		testPrint(C"Caught child exception with values %d and %d!", error.value0, error.value1);
+	}
+	
+	try {
+		throw ChildError<int>(333, 444);
+	} catch (ParentError<int> error) {
+		testPrint(C"Caught parent exception with value %d!", error.value);
+	}
+	return 0;
+}
+

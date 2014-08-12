@@ -5,14 +5,14 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
+#include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		// TODO: rename to 'ConvertTypeInstance'.
-		void ConvertClassDef(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto semTypeInstance = context.scopeStack().back().typeInstance();
 			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {

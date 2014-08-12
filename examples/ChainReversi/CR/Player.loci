@@ -1,4 +1,4 @@
-// Chain Reversi Human Player.
+// Chain Reversi Player API.
 
 namespace CR {
 

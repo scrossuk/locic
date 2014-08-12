@@ -18,10 +18,10 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule)
+		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
 			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
-			  debugBuilder_(*this), debugModule_(pDebugModule) {
+			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(targetInfo_.getTargetTriple());
 			
@@ -50,6 +50,7 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair("long_t", PrimitiveLong));
 			primitiveMap_.insert(std::make_pair("longlong_t", PrimitiveLongLong));
 			primitiveMap_.insert(std::make_pair("ssize_t", PrimitiveSSize));
+			primitiveMap_.insert(std::make_pair("ptrdiff_t", PrimitivePtrDiff));
 			
 			primitiveMap_.insert(std::make_pair("uint8_t", PrimitiveUInt8));
 			primitiveMap_.insert(std::make_pair("uint16_t", PrimitiveUInt16));
@@ -180,6 +181,10 @@ namespace locic {
 		
 		Debug::Module& Module::debugModule() {
 			return debugModule_;
+		}
+		
+		const BuildOptions& Module::buildOptions() const {
+			return buildOptions_;
 		}
 		
 		PrimitiveKind Module::primitiveKind(const std::string& name) const {

@@ -117,9 +117,7 @@ namespace locic {
 			std::vector<SEM::Value*> constructValues;
 			
 			// Call parent constructor.
-			// TODO: should provide template arguments.
-			const auto parentType = SEM::Type::Object(semTypeInstance->parent(), SEM::Type::NO_TEMPLATE_ARGS);
-			const auto typeRefValue = createTypeRef(context, parentType);
+			const auto typeRefValue = createTypeRef(context, semTypeInstance->parent());
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, typeRefValue, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {

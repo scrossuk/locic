@@ -13,6 +13,7 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
@@ -60,7 +61,7 @@ namespace locic {
 		
 		class Module {
 			public:
-				Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule);
+				Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
 				
 				void dump() const;
 				
@@ -120,6 +121,8 @@ namespace locic {
 				
 				Debug::Module& debugModule();
 				
+				const BuildOptions& buildOptions() const;
+				
 				PrimitiveKind primitiveKind(const std::string& name) const;
 				
 			private:
@@ -144,6 +147,7 @@ namespace locic {
 				TypeInstanceMap typeInstanceMap_;
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
+				BuildOptions buildOptions_;
 				
 		};
 		

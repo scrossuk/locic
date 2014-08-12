@@ -118,11 +118,9 @@ namespace locic {
 			assert(typeInstance->isUnionDatatype());
 			
 			const auto contextValue = function.getContextValue(typeInstance);
+			const auto unionDatatypePointers = getUnionDatatypePointers(function, typeInstance->selfType(), contextValue);
 			
-			const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, 0);
-			const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
-			
-			const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(contextValue, 0, 1);
+			const auto loadedTag = function.getBuilder().CreateLoad(unionDatatypePointers.first);
 			
 			const auto endBB = function.createBasicBlock("end");
 			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
@@ -141,7 +139,7 @@ namespace locic {
 				
 				const auto variantType = variantTypeInstance->selfType();
 				const auto unionValueType = genType(function.module(), variantType);
-				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
 				
 				genDestructorCall(function, variantType, castedUnionValuePtr);
 				

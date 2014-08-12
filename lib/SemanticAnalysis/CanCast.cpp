@@ -676,12 +676,7 @@ namespace locic {
 					return nullptr;
 				}
 				
-				const auto parent = type->getObjectType()->parent();
-				if (parent == nullptr) {
-					return nullptr;
-				}
-				
-				return SEM::Type::Object(parent, type->templateArguments());
+				return type->getObjectType()->parent()->substitute(type->generateTemplateVarMap());
 			}
 			
 		}

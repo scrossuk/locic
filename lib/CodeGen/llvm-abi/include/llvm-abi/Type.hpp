@@ -25,7 +25,8 @@ namespace llvm_abi {
 		Int32,
 		Int64,
 		Int128,
-		SizeT
+		SizeT,
+		PtrDiffT
 	};
 	
 	/**

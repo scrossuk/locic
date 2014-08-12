@@ -45,10 +45,11 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList) {
+		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList, Scope* defaultScope) {
 			Statement* statement = new Statement(SWITCH);
 			statement->switchStmt_.value = value;
 			statement->switchStmt_.caseList = caseList;
+			statement->switchStmt_.defaultScope = defaultScope;
 			return statement;
 		}
 		
@@ -182,6 +183,11 @@ namespace locic {
 			return switchStmt_.caseList;
 		}
 		
+		Scope* Statement::getSwitchDefaultScope() const {
+			assert(isSwitchStatement());
+			return switchStmt_.defaultScope;
+		}
+		
 		bool Statement::isLoopStatement() const {
 			return kind() == LOOP;
 		}
@@ -302,9 +308,12 @@ namespace locic {
 				}
 				
 				case SWITCH: {
-					return makeString("SwitchStatement(value: %s, caseList: %s)",
+					return makeString("SwitchStatement(value: %s, caseList: %s, defaultScope: %s)",
 									  switchStmt_.value->toString().c_str(),
-									  makeArrayString(switchStmt_.caseList).c_str());
+									  makeArrayString(switchStmt_.caseList).c_str(),
+									  switchStmt_.defaultScope != nullptr ?
+									  	switchStmt_.defaultScope->toString().c_str() :
+									  	"[NONE]");
 				}
 				
 				case LOOP: {

@@ -131,18 +131,20 @@ namespace locic {
 			return function;
 		}
 		
-		llvm::BasicBlock* getLatestLandingPadBlock(Function& function) {
+		llvm::BasicBlock* getLatestLandingPadBlock(Function& function, UnwindState unwindState) {
+			assert(unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
+			
 			const auto& unwindStack = function.unwindStack();
 			
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				const size_t pos = unwindStack.size() - i - 1;
 				const auto& action = unwindStack.at(pos);
 				
-				if (action.landingPadBlock() != nullptr) {
-					return action.landingPadBlock();
+				if (action.landingPadBlock(unwindState) != nullptr) {
+					return action.landingPadBlock(unwindState);
 				}
 				
-				if (action.isActiveForState(UnwindStateThrow)) {
+				if (action.isActiveForState(unwindState)) {
 					break;
 				}
 			}
@@ -150,16 +152,18 @@ namespace locic {
 			return nullptr;
 		}
 		
-		void setLatestLandingPadBlock(Function& function, llvm::BasicBlock* landingPadBB) {
+		void setLatestLandingPadBlock(Function& function, UnwindState unwindState, llvm::BasicBlock* landingPadBB) {
+			assert(unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
+			
 			auto& unwindStack = function.unwindStack();
 			
 			for (size_t i = 0; i < unwindStack.size(); i++) {
 				const size_t pos = unwindStack.size() - i - 1;
 				auto& action = unwindStack.at(pos);
 				
-				action.setLandingPadBlock(landingPadBB);
+				action.setLandingPadBlock(unwindState, landingPadBB);
 				
-				if (action.isActiveForState(UnwindStateThrow)) {
+				if (action.isActiveForState(unwindState)) {
 					return;
 				}
 			}
@@ -169,9 +173,12 @@ namespace locic {
 			assert(unwindState == UnwindStateThrow || unwindState == UnwindStateRethrow);
 			assert(anyUnwindActions(function, unwindState));
 			
-			const auto latestLandingPadBlock = getLatestLandingPadBlock(function);
-			// TODO: also support the rethrow case.
-			if (latestLandingPadBlock != nullptr && unwindState == UnwindStateThrow) {
+			// See if the landing pad has already been generated (this
+			// depends on whether any extra actions have been added that
+			// need to be run when unwinding, in case a new landing pad
+			// must be created).
+			const auto latestLandingPadBlock = getLatestLandingPadBlock(function, unwindState);
+			if (latestLandingPadBlock != nullptr) {
 				return latestLandingPadBlock;
 			}
 			
@@ -212,10 +219,8 @@ namespace locic {
 			// Unwind stack due to exception.
 			genUnwind(function, unwindState);
 			
-			// TODO: also support the rethrow case.
-			if (unwindState == UnwindStateThrow) {
-				setLatestLandingPadBlock(function, landingPadBB);
-			}
+			// Save the landing pad so it can be re-used.
+			setLatestLandingPadBlock(function, unwindState, landingPadBB);
 			
 			function.selectBasicBlock(currentBB);
 			
@@ -251,10 +256,9 @@ namespace locic {
 			// Calculate offset to check based on number of parents.
 			size_t offset = 0;
 			auto currentInstance = catchTypeInstance;
-			
-			while (currentInstance->parent() != NULL) {
+			while (currentInstance->parent() != nullptr) {
 				offset++;
-				currentInstance = currentInstance->parent();
+				currentInstance = currentInstance->parent()->getObjectType();
 			}
 			
 			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
@@ -272,10 +276,10 @@ namespace locic {
 			
 			// Add type names in REVERSE order.
 			auto currentInstance = throwTypeInstance;
-			
-			while (currentInstance != NULL) {
+			while (currentInstance != nullptr) {
 				typeNames.push_back(currentInstance->name().toString());
-				currentInstance = currentInstance->parent();
+				currentInstance = currentInstance->parent() != nullptr ?
+					currentInstance->parent()->getObjectType() : nullptr;
 			}
 			
 			assert(!typeNames.empty());

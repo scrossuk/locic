@@ -33,6 +33,8 @@ namespace locic {
 		
 		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, SEM::Type* objectType, size_t memberIndex);
 		
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, SEM::Type* type, llvm::Value* objectPointer);
+		
 	}
 	
 }

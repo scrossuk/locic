@@ -186,7 +186,7 @@ namespace locic {
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, caseScope));
 				}
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases));
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
 			} else {
 				std::vector<SEM::Value*> copyValues;
 				
@@ -245,12 +245,12 @@ namespace locic {
 						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, subCaseScope));
 					}
 					
-					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue), subSwitchCases));
+					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue), subSwitchCases, nullptr));
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, caseScope));
 				}
 				
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases));
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
 			} else {
 				auto currentScope = functionScope;
 				

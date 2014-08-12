@@ -150,11 +150,12 @@ namespace locic {
 			return types;
 		}
 		
-		void TypeInstance::setParent(TypeInstance* pParent) {
+		void TypeInstance::setParent(Type* pParent) {
+			assert(pParent->isObject());
 			parent_ = pParent;
 		}
 		
-		TypeInstance* TypeInstance::parent() const {
+		Type* TypeInstance::parent() const {
 			return parent_;
 		}
 		

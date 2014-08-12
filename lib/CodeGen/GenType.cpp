@@ -138,11 +138,16 @@ namespace locic {
 						}
 					}
 					
-					// TODO!
-					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
-					const auto lineNumber = 12;
+					const auto iterator = module.debugModule().typeInstanceMap.find(objectType);
 					
-					return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
+					if (iterator != module.debugModule().typeInstanceMap.end()) {
+						const auto& location = iterator->second.location;
+						const auto file = module.debugBuilder().createFile(location.fileName());
+						const auto lineNumber = location.range().start().lineNumber();
+						return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
+					} else {
+						return module.debugBuilder().createNullType();
+					}
 				}
 				
 				case SEM::Type::FUNCTION: {

@@ -44,7 +44,7 @@ namespace locic {
 				
 				static Statement* If(const std::vector<IfClause*>& ifClauses, Scope* elseScope);
 				
-				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList);
+				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList, Scope* defaultScope);
 				
 				static Statement* Loop(Value* condition, Scope* iterationScope, Scope* advanceScope);
 				
@@ -95,6 +95,8 @@ namespace locic {
 				Value* getSwitchValue() const;
 				
 				const std::vector<SwitchCase*>& getSwitchCaseList() const;
+				
+				Scope* getSwitchDefaultScope() const;
 				
 				bool isLoopStatement() const;
 				
@@ -166,6 +168,7 @@ namespace locic {
 				struct {
 					Value* value;
 					std::vector<SwitchCase*> caseList;
+					Scope* defaultScope;
 				} switchStmt_;
 				
 				struct {

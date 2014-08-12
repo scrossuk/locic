@@ -10,4 +10,5 @@ test_check_output(PassThroughException)
 test_check_output(RedundantCatch)
 test_check_output(RethrowException)
 test_check_output(ScopedCatch)
+test_check_output(TemplatedException)
 

@@ -274,12 +274,12 @@ namespace locic {
 			}
 		}
 		
-		llvm::BasicBlock* UnwindAction::landingPadBlock() const {
-			return landingPadBB_;
+		llvm::BasicBlock* UnwindAction::landingPadBlock(UnwindState unwindState) const {
+			return landingPadBB_.at(unwindState);
 		}
 		
-		void UnwindAction::setLandingPadBlock(llvm::BasicBlock* landingPadBB) {
-			landingPadBB_ = landingPadBB;
+		void UnwindAction::setLandingPadBlock(UnwindState unwindState, llvm::BasicBlock* landingPadBB) {
+			landingPadBB_.at(unwindState) = landingPadBB;
 		}
 		
 	}

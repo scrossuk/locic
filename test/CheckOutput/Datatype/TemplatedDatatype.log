@@ -1,0 +1,4 @@
+printBasicDatatype: data = TestBasicDatatype(a = 9, b = 99, c = 999)
+printUnionDatatype: data = TestUnionDatatype0(a = 9)
+printUnionDatatype: data = TestUnionDatatype1(a = 9, b = 99)
+printUnionDatatype: data = TestUnionDatatype2(a = 9, b = 99, c = 999)

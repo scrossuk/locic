@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
 		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
 		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
+		("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
 		;
 		
 		po::options_description hiddenOptions;
@@ -143,6 +144,9 @@ int main(int argc, char* argv[]) {
 			std::cout << visibleOptions << std::endl;
 			return 1;
 		}
+		
+		BuildOptions buildOptions;
+		buildOptions.unsafe = !variableMap["unsafe"].empty();
 		
 		inputFileNames.push_back("BuiltInTypes.loci");
 		
@@ -224,7 +228,7 @@ int main(int argc, char* argv[]) {
 		const auto outputName = "output";
 		
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName, debugModule);
+		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName, debugModule, buildOptions);
 		
 		{
 			Timer timer;

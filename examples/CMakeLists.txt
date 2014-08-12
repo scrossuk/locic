@@ -47,11 +47,11 @@ function(loci_link name binary_name flags)
 			llvm-dis ${binary_name}_final.bc -o ${binary_name}_final.ll &&
 			
 			# Use clang to generate non-optimised platform binary.
-			clang -o ${binary_name} ${binary_name}_linked.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags} &&
+			clang -o ${binary_name} ${binary_name}_linked.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
 			
 			# Use clang to generate optimised platform binary.
-			clang -o ${binary_name}_optimised ${binary_name}_final.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime-exception ${flags}
-		DEPENDS ${${name}_Sources} loci-runtime-exception
+			clang -o ${binary_name}_optimised ${binary_name}_final.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
+		DEPENDS ${${name}_Sources} loci-runtime
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
 	add_custom_target(${name} ALL DEPENDS ${binary_name})

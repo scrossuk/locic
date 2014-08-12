@@ -41,6 +41,7 @@ namespace locic {
 				case PrimitiveLong:
 				case PrimitiveLongLong:
 				case PrimitiveSSize:
+				case PrimitivePtrDiff:
 					return true;
 				default:
 					return false;
@@ -277,6 +278,7 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
+			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
@@ -322,29 +324,45 @@ namespace locic {
 				llvm::Value* const binaryArgs[] = { methodOwner, operand };
 				
 				if (methodName == "add") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::sadd_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateAdd(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::sadd_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "subtract") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::ssub_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateSub(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::ssub_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "multiply") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::smul_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateMul(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::smul_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "divide") {
-					// TODO: also check for case of MIN_INT / -1 leading to overflow.
-					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-					const auto isZeroBB = function.createBasicBlock("isZero");
-					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-					function.selectBasicBlock(isZeroBB);
-					createTrap(function);
-					function.selectBasicBlock(isNotZeroBB);
+					if (!unsafe) {
+						// TODO: also check for case of MIN_INT / -1 leading to overflow.
+						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+						const auto isZeroBB = function.createBasicBlock("isZero");
+						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+						function.selectBasicBlock(isZeroBB);
+						createTrap(function);
+						function.selectBasicBlock(isNotZeroBB);
+					}
 					return builder.CreateSDiv(methodOwner, operand);
 				} else if (methodName == "modulo") {
-					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-					const auto isZeroBB = function.createBasicBlock("isZero");
-					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-					function.selectBasicBlock(isZeroBB);
-					createTrap(function);
-					function.selectBasicBlock(isNotZeroBB);
+					if (!unsafe) {
+						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+						const auto isZeroBB = function.createBasicBlock("isZero");
+						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+						function.selectBasicBlock(isZeroBB);
+						createTrap(function);
+						function.selectBasicBlock(isNotZeroBB);
+					}
 					return builder.CreateSRem(methodOwner, operand);
 				} else if (methodName == "equal") {
 					return builder.CreateICmpEQ(methodOwner, operand);
@@ -383,6 +401,7 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
+			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
@@ -418,28 +437,44 @@ namespace locic {
 				llvm::Value* const binaryArgs[] = { methodOwner, operand };
 				
 				if (methodName == "add") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateAdd(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "subtract") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateSub(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "multiply") {
-					return genOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, binaryArgs);
+					if (unsafe) {
+						return builder.CreateMul(methodOwner, operand);
+					} else {
+						return genOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, binaryArgs);
+					}
 				} else if (methodName == "divide") {
-					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-					const auto isZeroBB = function.createBasicBlock("isZero");
-					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-					function.selectBasicBlock(isZeroBB);
-					createTrap(function);
-					function.selectBasicBlock(isNotZeroBB);
+					if (!unsafe) {
+						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+						const auto isZeroBB = function.createBasicBlock("isZero");
+						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+						function.selectBasicBlock(isZeroBB);
+						createTrap(function);
+						function.selectBasicBlock(isNotZeroBB);
+					}
 					return builder.CreateUDiv(methodOwner, operand);
 				} else if (methodName == "modulo") {
-					const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-					const auto isZeroBB = function.createBasicBlock("isZero");
-					const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-					builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-					function.selectBasicBlock(isZeroBB);
-					createTrap(function);
-					function.selectBasicBlock(isNotZeroBB);
+					if (!unsafe) {
+						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
+						const auto isZeroBB = function.createBasicBlock("isZero");
+						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
+						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
+						function.selectBasicBlock(isZeroBB);
+						createTrap(function);
+						function.selectBasicBlock(isNotZeroBB);
+					}
 					return builder.CreateURem(methodOwner, operand);
 				} else if (methodName == "equal") {
 					return builder.CreateICmpEQ(methodOwner, operand);
@@ -612,19 +647,41 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				// TODO: implement addition and subtraction.
-				if (methodName == "index") {
+				if (methodName == "add") {
+					const auto ptrDiffTType = getNamedPrimitiveType(module, "ptrdiff_t");
+					const auto operand = loadArgRaw(function, args[1], ptrDiffTType);
+					const auto targetType = type->templateArguments().front();
+					
+					if (isTypeSizeKnownInThisModule(module, targetType)) {
+						return builder.CreateInBoundsGEP(methodOwner, operand);
+					} else {
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto targetSize = genSizeOf(function, targetType);
+						const auto adjustedOffset = builder.CreateMul(operand, targetSize);
+						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
+						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+					}
+				} else if (methodName == "subtract") {
+					// TODO: should be intptr_t!
+					const auto ptrDiffTType = getNamedPrimitiveType(module, "ptrdiff_t");
+					const auto operand = loadArg(function, args[1], type);
+					
+					const auto firstPtrInt = builder.CreatePtrToInt(methodOwner, ptrDiffTType);
+					const auto secondPtrInt = builder.CreatePtrToInt(operand, ptrDiffTType);
+					
+					return builder.CreateSub(firstPtrInt, secondPtrInt);
+				} else if (methodName == "index") {
 					const auto sizeTType = getNamedPrimitiveType(module, "size_t");
 					const auto operand = loadArgRaw(function, args[1], sizeTType);
 					const auto targetType = type->templateArguments().front();
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
-						return builder.CreateGEP(methodOwner, operand);
+						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
 						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto offset = builder.CreateIntCast(operand, sizeTType, true);
 						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
-						const auto i8IndexPtr = builder.CreateGEP(i8BasePtr, adjustedOffset);
+						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
 						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					}
 				} else if (methodName == "equal") {
@@ -898,6 +955,7 @@ namespace locic {
 				case PrimitiveLong:
 				case PrimitiveLongLong:
 				case PrimitiveSSize:
+				case PrimitivePtrDiff:
 					return genSignedIntegerPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveUInt8:
 				case PrimitiveUInt16:

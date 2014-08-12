@@ -4,9 +4,9 @@
 #include <locic/AST.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertClassDef.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
+#include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 
 namespace locic {
 
@@ -38,14 +38,14 @@ namespace locic {
 					const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-					ConvertClassDef(context, astTypeInstanceNode);
+					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 				
 				for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 					const auto semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
-					ConvertClassDef(context, astTypeInstanceNode);
+					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 			}
 		}

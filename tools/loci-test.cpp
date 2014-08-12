@@ -266,6 +266,10 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
+		// Build options.
+		BuildOptions buildOptions;
+		buildOptions.unsafe = false;
+		
 		// Debug information.
 		Debug::Module debugModule;
 		
@@ -283,7 +287,7 @@ int main(int argc, char* argv[]) {
 		printf("Performing code generation...\n");
 		
 		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule);
+		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());
 		

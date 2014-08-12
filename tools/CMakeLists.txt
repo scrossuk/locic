@@ -35,7 +35,7 @@ target_link_libraries(loci-test
 	locic-sem
 	locic-ast
 	locic-support
-	loci-runtime-exception
+	loci-runtime
 	llvm-abi
 	${REQ_LIBS}
 	)

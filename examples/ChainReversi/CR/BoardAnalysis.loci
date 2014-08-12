@@ -80,8 +80,8 @@ namespace CR {
 			return false;
 		}
 		
-		/*std::vector<Position> getWinners() const {
-			final auto winners = std::vector<Position>();
+		std::varray<Position> getWinners() const {
+			auto winners = std::varray<Position>();
 			
 			for (auto x: std::counter<size_t>(1u, 0u, @board.size().width)) {
 				for (auto y: std::counter<size_t>(1u, 0u, @board.size().height)) {
@@ -99,7 +99,7 @@ namespace CR {
 			}
 			
 			return move winners;
-		}*/
+		}
 		
 	}
 	

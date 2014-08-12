@@ -61,7 +61,7 @@ namespace locic {
 				case AST::Statement::SWITCH: {
 					const auto value = ConvertValue(context, statement->switchStmt.value);
 					
-					std::set<SEM::TypeInstance*> switchCaseTypeInstances;
+					std::map<SEM::TypeInstance*, SEM::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
@@ -77,12 +77,13 @@ namespace locic {
 						
 						caseList.push_back(semCase);
 						
-						const auto insertResult = switchCaseTypeInstances.insert(semCase->var()->constructType()->getObjectType());
+						const auto caseType = semCase->var()->constructType();
+						const auto insertResult = switchCaseTypes.insert(std::make_pair(caseType->getObjectType(), caseType));
 						
 						// Check for duplicate cases.
 						if (!insertResult.second) {
 							throw ErrorException(makeString("Duplicate switch case for type '%s' at position %s.",
-								(*(insertResult.first))->refToString().c_str(),
+								(insertResult.first->first)->refToString().c_str(),
 								location.toString().c_str()));
 						}
 					}
@@ -92,11 +93,14 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
+					const auto firstSwitchTypeIterator = switchCaseTypes.begin();
+					
 					// Check that all switch cases are based
 					// on the same union datatype.
-					const auto switchTypeInstance = (*(switchCaseTypeInstances.begin()))->parent();
-					for (auto caseTypeInstance: switchCaseTypeInstances) {
-						auto caseTypeInstanceParent = caseTypeInstance->parent();
+					const auto switchType = firstSwitchTypeIterator->first->parent();
+					for (auto caseTypePair: switchCaseTypes) {
+						const auto caseTypeInstance = caseTypePair.first;
+						const auto caseTypeInstanceParent = caseTypeInstance->parent();
 						
 						if (caseTypeInstanceParent == nullptr) {
 							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
@@ -104,32 +108,47 @@ namespace locic {
 								location.toString().c_str()));
 						}
 						
-						if (caseTypeInstanceParent != switchTypeInstance) {
+						if (caseTypeInstanceParent->getObjectType() != switchType->getObjectType()) {
 							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
 								caseTypeInstance->refToString().c_str(),
-								(*(switchCaseTypeInstances.begin()))->refToString().c_str(),
+								(firstSwitchTypeIterator->first)->refToString().c_str(),
 								location.toString().c_str()));
 						}
 					}
 					
-					// TODO: implement 'default' case.
-					const bool hasDefaultCase = false;
+					const auto substitutedSwitchType = switchType->substitute(firstSwitchTypeIterator->second->generateTemplateVarMap());
 					
-					if (!hasDefaultCase) {
-						// Check all cases are handled.
-						for (auto variantTypeInstance: switchTypeInstance->variants()) {
-							if (switchCaseTypeInstances.find(variantTypeInstance) == switchCaseTypeInstances.end()) {
-								throw ErrorException(makeString("Union datatype member '%s' not handled in switch at position %s.",
-									variantTypeInstance->refToString().c_str(), location.toString().c_str()));
-							}
+					// Case value to switch type.
+					const auto castValue = ImplicitCast(context, value, substitutedSwitchType, location);
+					
+					const auto& astDefaultCase = statement->switchStmt.defaultCase;
+					const bool hasDefaultCase = astDefaultCase->hasScope;
+					
+					std::vector<SEM::TypeInstance*> unhandledCases;
+					
+					// Check whether all cases are handled.
+					for (auto variantTypeInstance: switchType->getObjectType()->variants()) {
+						if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
+							unhandledCases.push_back(variantTypeInstance);
 						}
 					}
 					
-					// Case value to switch type.
-					// TODO: fix the template arguments for the switch type.
-					const auto castValue = ImplicitCast(context, value, switchTypeInstance->selfType(), location);
-					
-					return SEM::Statement::Switch(castValue, caseList);
+					if (hasDefaultCase) {
+						if (unhandledCases.empty()) {
+							throw ErrorException(makeString("All cases are handled in switch with (unused) default case at position %s.",
+								location.toString().c_str()));
+						}
+						
+						const auto defaultScope = ConvertScope(context, astDefaultCase->scope);
+						return SEM::Statement::Switch(castValue, caseList, defaultScope);
+					} else {
+						if (!unhandledCases.empty()) {
+							throw ErrorException(makeString("Union datatype member '%s' not handled in switch at position %s.",
+								unhandledCases.front()->refToString().c_str(), location.toString().c_str()));
+						}
+						
+						return SEM::Statement::Switch(castValue, caseList, nullptr);
+					}
 				}
 				case AST::Statement::WHILE: {
 					const auto condition = ConvertValue(context, statement->whileStmt.condition);

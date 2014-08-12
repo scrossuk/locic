@@ -22,6 +22,22 @@ namespace locic {
 		
 		typedef std::vector<Node<SwitchCase>> SwitchCaseList;
 		
+		struct DefaultCase {
+			bool hasScope;
+			Node<AST::Scope> scope;
+			
+			inline static DefaultCase* Empty() {
+				return new DefaultCase(false, makeDefaultNode<AST::Scope>());
+			}
+			
+			inline static DefaultCase* Scope(const Node<AST::Scope>& scope) {
+				return new DefaultCase(true, scope);
+			}
+			
+			inline DefaultCase(bool pHasScope, const Node<AST::Scope>& pScope)
+				: hasScope(pHasScope), scope(pScope) { }
+		};
+		
 	}
 	
 }

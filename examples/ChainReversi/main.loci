@@ -4,16 +4,16 @@ import int rand();
 
 import void printf(const byte* text, ...);
 
-double Random(){
+double Random() {
 	// Not a great random number generator...
 	return (rand() % 100).toFloat() / 100.0f;
 }
 
-double SRandom(){
+double SRandom() {
 	return 2.0 * Random() - 1.0;
 }
 
-void initializeBoard(CR::Board& board){
+void initializeBoard(CR::Board& board) {
 	for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
 		for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
 			board[CR::Position(x, y)] = CR::Empty();

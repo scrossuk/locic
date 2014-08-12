@@ -105,8 +105,8 @@ namespace locic {
 			}
 		}
 		
-		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName, Debug::Module& debugModule)
-			: module_(new Module(moduleName, targetInfo, debugModule)) {
+		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions)
+			: module_(new Module(moduleName, targetInfo, debugModule, buildOptions)) {
 			// TODO: fill these in correctly.
 			DebugCompileUnit compileUnit;
 			compileUnit.compilerName = "Loci Compiler";

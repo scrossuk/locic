@@ -247,15 +247,12 @@ namespace locic {
 						switchValuePtr = switchValue;
 					}
 					
-					const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValuePtr, 0, 0);
-					const auto loadedTag = function.getBuilder().CreateLoad(loadedTagPtr);
+					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
 					
-					const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(switchValuePtr, 0, 1);
+					const auto loadedTag = function.getBuilder().CreateLoad(unionDatatypePointers.first);
 					
-					const auto endBB = function.createBasicBlock("switchEnd");
-					
-					// TODO: implement default case.
 					const auto defaultBB = function.createBasicBlock("");
+					const auto endBB = function.createBasicBlock("switchEnd");
 					
 					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, defaultBB, statement->getSwitchCaseList().size());
 					
@@ -281,7 +278,7 @@ namespace locic {
 						function.selectBasicBlock(caseBB);
 						
 						const auto unionValueType = genType(function.module(), caseType);
-						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionValuePtr, unionValueType->getPointerTo());
+						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
 						
 						{
 							ScopeLifetime switchCaseLifetime(function);
@@ -297,7 +294,17 @@ namespace locic {
 					}
 					
 					function.selectBasicBlock(defaultBB);
-					function.getBuilder().CreateUnreachable();
+					
+					if (statement->getSwitchDefaultScope() != nullptr) {
+						genScope(function, *(statement->getSwitchDefaultScope()));
+						
+						if (!lastInstructionTerminates(function)) {
+							allTerminate = false;
+							function.getBuilder().CreateBr(endBB);
+						}
+					} else {
+						function.getBuilder().CreateUnreachable();
+					}
 					
 					if (allTerminate) {
 						endBB->eraseFromParent();
@@ -641,19 +648,24 @@ namespace locic {
 					
 					function.selectBasicBlock(failBB);
 					
-					const auto stringValue = statement->getAssertName();
+					if (!module.buildOptions().unsafe) {
+						const auto stringValue = statement->getAssertName();
+						
+						const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), stringValue.size() + 1);
+						const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
+						const auto globalArray = module.createConstGlobal("assert_name_constant", arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+						globalArray->setAlignment(1);
+						const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
+						
+						const auto assertFailedFunction = getAssertFailedFunction(module);
+						llvm::Value* const args[] = { stringGlobal };
+						const auto callInst = function.getBuilder().CreateCall(assertFailedFunction, args);
+						callInst->setDoesNotThrow();
+						callInst->setDoesNotReturn();
+					}
 					
-					const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), stringValue.size() + 1);
-					const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
-					const auto globalArray = module.createConstGlobal("assert_name_constant", arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
-					globalArray->setAlignment(1);
-					const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
-					
-					const auto assertFailedFunction = getAssertFailedFunction(module);
-					llvm::Value* const args[] = { stringGlobal };
-					const auto callInst = function.getBuilder().CreateCall(assertFailedFunction, args);
-					callInst->setDoesNotThrow();
-					callInst->setDoesNotReturn();
+					// Still want to create the conditional branch and unreachable
+					// in 'unsafe' mode, since this is a hint to the optimiser.
 					function.getBuilder().CreateUnreachable();
 					
 					function.selectBasicBlock(successBB);
@@ -661,10 +673,12 @@ namespace locic {
 				}
 				
 				case SEM::Statement::UNREACHABLE: {
-					const auto unreachableFailedFunction = getUnreachableFailedFunction(module);
-					const auto callInst = function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
-					callInst->setDoesNotThrow();
-					callInst->setDoesNotReturn();
+					if (!module.buildOptions().unsafe) {
+						const auto unreachableFailedFunction = getUnreachableFailedFunction(module);
+						const auto callInst = function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
+						callInst->setDoesNotThrow();
+						callInst->setDoesNotReturn();
+					}
 					function.getBuilder().CreateUnreachable();
 					break;
 				}

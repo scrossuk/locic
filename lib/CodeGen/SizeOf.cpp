@@ -449,10 +449,6 @@ namespace locic {
 			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), memberOffsetFunction, args);
 			callResult->setName(callName);
 			
-			// TODO: add these to ArgInfo:
-			// callInst->setDoesNotAccessMemory();
-			// callInst->setDoesNotThrow();
-			
 			memberOffsetMap.insert(std::make_pair(offsetPair, callResult));
 			
 			return callResult;
@@ -469,6 +465,23 @@ namespace locic {
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getI8PtrType());
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
 				return function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
+			}
+		}
+		
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, SEM::Type* type, llvm::Value* objectPtr) {
+			assert(type->isObject() && type->getObjectType()->isUnionDatatype());
+			auto& module = function.module();
+			
+			if (isTypeSizeKnownInThisModule(module, type)) {
+				const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 0);
+				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 1);
+				return std::make_pair(loadedTagPtr, unionValuePtr);
+			} else {
+				const auto castObjectPtr = function.getBuilder().CreatePointerCast(objectPtr, TypeGenerator(module).getI8PtrType());
+				const auto loadedTagPtr = castObjectPtr;
+				const auto unionAlignValue = genAlignOf(function, type);
+				const auto unionValuePtr = function.getBuilder().CreateInBoundsGEP(castObjectPtr, unionAlignValue);
+				return std::make_pair(loadedTagPtr, unionValuePtr);
 			}
 		}
 		

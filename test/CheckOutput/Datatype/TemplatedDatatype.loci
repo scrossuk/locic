@@ -1,0 +1,40 @@
+// Test output.
+import void testPrint(const byte * const str, ...);
+
+template <typename T>
+datatype TestBasicDatatype(T a, T b, T c);
+
+template <typename T>
+datatype TestUnionDatatype =
+	TestUnionDatatype0(T a) |
+	TestUnionDatatype1(T a, T b) |
+	TestUnionDatatype2(T a, T b, T c);
+
+void printBasicDatatype(TestBasicDatatype<int> data) {
+	testPrint(C"printBasicDatatype: data = TestBasicDatatype(a = %d, b = %d, c = %d)",
+		data.a, data.b, data.c);
+}
+
+void printUnionDatatype(TestUnionDatatype<int> data) {
+	switch (move data) {
+		case TestUnionDatatype0<int>(int a) {
+			testPrint(C"printUnionDatatype: data = TestUnionDatatype0(a = %d)", a);
+		}
+		case TestUnionDatatype1<int>(int a, int b) {
+			testPrint(C"printUnionDatatype: data = TestUnionDatatype1(a = %d, b = %d)", a, b);
+		}
+		case TestUnionDatatype2<int>(int a, int b, int c) {
+			testPrint(C"printUnionDatatype: data = TestUnionDatatype2(a = %d, b = %d, c = %d)", a, b, c);
+		}
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	printBasicDatatype(TestBasicDatatype<int>(9, 99, 999));
+	printUnionDatatype(TestUnionDatatype0<int>(9));
+	printUnionDatatype(TestUnionDatatype1<int>(9, 99));
+	printUnionDatatype(TestUnionDatatype2<int>(9, 99, 999));
+	return 0;
+}
+

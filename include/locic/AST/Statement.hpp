@@ -56,6 +56,7 @@ namespace locic {
 			struct {
 				Node<Value> value;
 				Node<SwitchCaseList> caseList;
+				Node<DefaultCase> defaultCase;
 			} switchStmt;
 			
 			struct {
@@ -130,10 +131,11 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* Switch(const Node<Value>& value, const Node<SwitchCaseList>& caseList) {
+			inline static Statement* Switch(const Node<Value>& value, const Node<SwitchCaseList>& caseList, const Node<DefaultCase>& defaultCase) {
 				Statement* statement = new Statement(SWITCH);
 				statement->switchStmt.value = value;
 				statement->switchStmt.caseList = caseList;
+				statement->switchStmt.defaultCase = defaultCase;
 				return statement;
 			}
 			

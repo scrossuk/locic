@@ -92,6 +92,8 @@ namespace locic {
 				case PrimitiveSize:
 				case PrimitiveSSize:
 					return llvm_abi::SizeT;
+				case PrimitivePtrDiff:
+					return llvm_abi::PtrDiffT;
 				case PrimitiveUnichar:
 					// Unicode characters represented with 32 bits.
 					return llvm_abi::Int32;
@@ -130,6 +132,7 @@ namespace locic {
 				case PrimitiveULongLong:
 				case PrimitiveSize:
 				case PrimitiveSSize:
+				case PrimitivePtrDiff:
 				case PrimitiveUnichar: {
 					const auto intAbiType = llvm_abi::Type::Integer(module.abiContext(), primitiveABIIntegerKind(kind));
 					return TypeGenerator(module).getIntType(module.abi().typeSize(intAbiType) * 8);
@@ -202,6 +205,7 @@ namespace locic {
 				case PrimitiveULongLong:
 				case PrimitiveSize:
 				case PrimitiveSSize:
+				case PrimitivePtrDiff:
 				case PrimitiveUnichar:
 					return llvm_abi::Type::Integer(abiContext, primitiveABIIntegerKind(kind));
 				case PrimitiveFloat:
