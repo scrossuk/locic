@@ -31,6 +31,7 @@ This release of LOCIC depends on the following:
 * Boost System [debian package: libboost-system-dev]
 * LLVM 3.3/3.4 (build with instructions below)
 * Clang 3.3/3.4 (build with instructions below)
+* Sphinx (documentation)
 
 Specific versions of LLVM and Clang are given since their
 API tends to be incompatible between releases.

@@ -1554,7 +1554,7 @@ The errors might appear invalid, since many programmers may expect int to be 32 
 \end{itemize}
 
 \paragraph{}
-Loci is compatible with these rules, and therefore aims to enhance cross-architecture compatibility by preventing any casts which cannot be guaranteed to be valid across all compliant architectures. This means that semantic analysis of Loci code is completely independent of the target, and so provides a much more robust error checking procedure. It's rare that it's ever justified to use an undersized types; developers can simply use a larger type (or rely on fixed sized types such as `int32\_t'.
+Loci is compatible with these rules, and therefore aims to enhance cross-architecture compatibility by preventing any casts which cannot be guaranteed to be valid across all compliant architectures. This means that semantic analysis of Loci code is completely independent of the target, and so provides a much more robust error checking procedure. It's rare that it's ever justified to use an undersized types; developers can simply use a larger type (or rely on fixed sized types such as `int32\_t').
 
 \subsubsection{Literal Specifiers}
 
@@ -1949,13 +1949,14 @@ In this example, the types of binding variables `a' and `b' are not required, an
 Loci supports operator overloading as a useful way to provide a clean syntax for manipulating standard library or user defined types such as strings, vectors, matrices and arrays. Unlike C++, Loci uses normal function names to define methods that can be used in operator overloading:
 
 \begin{lstlisting}
-interface A {
-	int compare(const A&) const;
-	A add(const A&) const;
-	A substract(const A&) const;
+template <typename T>
+interface BasicNumber {
+	compare_result_t compare(const T&) const;
+	T add(const T&) const;
+	T substract(const T&) const;
 }
 
-interface IntArray{
+interface IntArray {
 	// Arrays should return an lval for array members to
 	// allow various lval operations; custom lval types
 	// can be defined for special behaviour (or to eliminate
@@ -1963,16 +1964,17 @@ interface IntArray{
 	lval<int> value_lval<int>& index(size_t index);
 }
 
-void function(const A& a0, const A& a1, IntArray& array) {
+template <typename T: BasicNumber<T>>
+void function(const T& a0, const T& a1, IntArray& array) {
 	// All following pairs are equivalent...
-	bool compare = a0.compare(a1) < 0;
+	bool compare = a0.compare(a1).isLessThan();
 	bool compare = a0 < a1;
 	
-	A a2 = a0.add(a1);
-	A a2 = a0 + a1;
+	T a2 = a0.add(a1);
+	T a2 = a0 + a1;
 	
-	A a3 = a0.subtract(a1);
-	A a3 = a0 - a1;
+	T a3 = a0.subtract(a1);
+	T a3 = a0 - a1;
 	
 	array.index(0).assign(5);
 	array[0] = 5;
@@ -2006,8 +2008,8 @@ In this case, the meaning of the second argument to the method, `true', is uncle
 
 \begin{lstlisting}
 void function2(){
-	std::string haystack = "Hello world!";
-	std::string needle = "world";
+	final auto haystack = "Hello world!";
+	final auto needle = "world";
 	
 	// Is it...
 	bool found = canFindString(needle, haystack);
@@ -2065,18 +2067,15 @@ void f(int i){
 	}
 }
 
-String caller() {
+void caller() {
 	try {
 		f(-1);
 	} catch (GenericException exception) {
-		std::string reason = exception.what;
+		const std::string& reason = exception.what;
 		//...
 	}
 }
 \end{lstlisting}
-
-\paragraph{}
-A stack trace is also constructed while these exceptions are in flight, and in the case that the exception reaches the top level of the program (i.e. the main function), the stack trace is printed along with the contents of the exception type.
 
 \clearpage
 
@@ -2249,70 +2248,185 @@ However, developers can achieve particular effective optimisation of templated c
 
 \clearpage
 
-\subsection{Namespace Versions}
+\subsection{Modules}
 
 \paragraph{}
-One of the primary goals of Loci is to be an excellent language for providing and using APIs, by ensuring that generated code is compatible across platforms and compilers (or if it is not compatible, fails with a clear error as early as possible).
+Loci projects can be broken down into one or more modules, with each module consisting of one or more source files. The sources files for a module are all passed to the Loci compiler, which then generates the relevant assembly code\footnote{LOCIC generates LLVM IR.} for the module. These outputs can then be linked together to produce the final project binaries.
 
 \paragraph{}
-Namespace versions are a fairly novel feature in Loci that aim to make it easy for developers to release multiple versions of their API, and to eliminate old versions and produce clear error messages for code that is still using now unavailable APIs.
+To enable this process, Loci supports `importing' and `exporting' symbols and constructs from a module. Any symbols or constructs not marked for import and export are considered to be internal, and therefore unavailable for linking.
+
+\subsubsection{Imports}
 
 \paragraph{}
-For example, a library may change its method names, which would give errors indicating to the user of the library that they are calling a non-existent method. Ideally, though, the compiler (or linker) could produce an error indicating that the user of the library is using a non-existent API version, or even better, an outdated version.
-
-\paragraph{}
-Furthermore, there are other issues with contending versions of libraries, such as changes to internal implementations. Consider, for example, that a program `P' depends on a library `L'. Both P and L also depend on a library `S'.
-
-\paragraph{}
-If P and L use different versions of S (most likely in different shared libraries), they must not pass instances of classes from S between each other, in case the wrong methods are run on a particular instance. Even worse, one version of S may override the other in the dynamic symbol table.
-
-\paragraph{}
-Namespace versions offer a solution to these problems:
+Here's an example of an imported function:
 
 \begin{lstlisting}
-namespace Library{
-	class ObjectType{ };
+import double sqrt(double value);
+\end{lstlisting}
+
+\paragraph{}
+This code imports an external function named `sqrt', presumably referring to the C standard library function. This import statement is `unnamed', meaning that no module name is provided and therefore no symbol name mangling occurs\footnote{Assuming the function is in the global namespace.}.
+
+\paragraph{}
+Here's another example using a named import statement:
+
+\begin{lstlisting}
+import custom.module 1.0.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		void doSomething();
+	}
+}
+\end{lstlisting}
+
+\paragraph{}
+In this case the class `CustomClass' is being imported from another module with name `custom.module' and API version `1.0.0'. Note that the API version must exactly match that used by the corresponding module's export statement.
+
+\subsubsection{Exports}
+
+\paragraph{}
+This is extremely similar to the `import' statements. Here are examples matching the above:
+
+\begin{lstlisting}
+export double sqrt(double value) {
+	return internalSqrtFunction(value);
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+export custom.module 1.0.0 {
+	class CustomClass(int member0, int member1) {
+		static Create() {
+			return @(1, 2);
+		}
+		
+		void doSomething() {
+			printf(C"CustomClass(%d, %d)\n", @member0, @member1);
+		}
+	}
+}
+\end{lstlisting}
+
+\subsubsection{API Versions}
+
+\paragraph{}
+API versions are an extremely valuable feature that ensures modules can retain compatibility while continuing to enhance its API. In the example above `custom.module' is exporting `CustomClass' with API version 1.0.0.
+
+\paragraph{}
+It may turn out that the module developer decides to add a new class, change a method name, perhaps even modify documented behaviour etc. Any of these changes should be provided by a new API version; DO NOT MODIFY AN EXISTING API! Here's an example:
+
+\begin{lstlisting}
+import custom.module 1.0.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		void doSomething();
+	}
 }
 
-namespace Library[a_version_string_100]{
-	class ObjectType{ };
+import custom.module 1.1.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		int getFirstValue() const;
+		
+		// Renamed from 'doSomething'.
+		void printValues() const;
+	}
 }
 \end{lstlisting}
 
 \paragraph{}
-The first namespace declaration has an implicit version of the empty string, whereas the second has the explicit version ``a\_version\_string\_100". Client code can then use specific versions like so:
+This is a Loci 'header' that a module developer might provide to clients\footnote{Tools will soon be available to automate most of this process.}. A few changes have been made to the module in the new API version, however the old API version is also provided. This means that existing clients can continue to use the old API version without any issues, while new clients can use the new API version; existing clients can of course upgrade in due course.
+
+\paragraph{}
+Here's how a client might use this API:
 
 \begin{lstlisting}
-Library::ObjectType f();
+using custom.module 1.0.0;
 
-Library[a_version_string_100]::ObjectType g();
+void function() {
+	auto object = CustomClass();
+	object.doSomething();
+}
 \end{lstlisting}
 
 \paragraph{}
-But this is slightly awkward, so a version other than the empty string can be selected to be default within a single module for a particular namespace:
+Here's another iteration of the API:
 
 \begin{lstlisting}
-using Library[a_version_string_100]
+import custom.module 1.0.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		void doSomething();
+	}
+}
 
-// Now the empty string version has to be explicit.
-Library[]::ObjectType f();
+import custom.module 1.1.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		int getFirstValue() const;
+		
+		// Renamed from 'doSomething'.
+		void printValues() const;
+	}
+}
 
-// Now equivalent to 'Library[a_version_string_100]::ObjectType g();'.
-Library::ObjectType g();
+import custom.module 1.2.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		int getFirstValue() const;
+		
+		int getSecondValue() const;
+		
+		void printValues() const;
+	}
+}
 \end{lstlisting}
 
 \paragraph{}
-The names of symbols within namespaces with different versions are clearly transformed/mangled to differ from each other, ensuring that multiple versions can co-exist.
-
-\paragraph{}
-Versions can also be removed:
+There are now 3 API versions here, and it's possible the module developer is now slightly overloaded maintaining backwards compatibility. Hence they might decide to deprecate the oldest API:
 
 \begin{lstlisting}
-namespace Library[old_version] = null;
+import(deprecated) custom.module 1.0.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		void doSomething();
+	}
+}
+
+import custom.module 1.1.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		int getFirstValue() const;
+		
+		// Renamed from 'doSomething'.
+		void printValues() const;
+	}
+}
+
+import custom.module 1.2.0 {
+	class CustomClass {
+		static CustomClass Create();
+		
+		int getFirstValue() const;
+		
+		int getSecondValue() const;
+		
+		void printValues() const;
+	}
+}
 \end{lstlisting}
 
 \paragraph{}
-In this case, clients of the library will be informed that the version ``old\_version" has been removed.
+In this case, the compiler will generate warnings when clients re-build their code to encourage them to upgrade to a more recent API.
 
 \clearpage
 
@@ -2324,24 +2438,94 @@ In addition to the core language syntax and semantics, an important part of the 
 \subsection{Strings}
 
 \paragraph{}
-Strings are used in Loci as the default way to handle character sequences, mostly replacing the `char *' string type as used in C and C++.
+Strings (`std::string') are used in Loci as the default way to handle character sequences. They have the following properties:
+
+\begin{itemize}
+\item Immutable
+\item Unicode support
+\item May use non-contiguous storage
+\item Concatenation is O(log N)
+\item Substring is O(log N)
+\item Indexing is O(log N)
+\item Iteration is O(N)
+\end{itemize}
+
+\paragraph{}
+Hence the likely implementation of strings is using a `rope' data structure. The internal representation is likely to use UTF-8. Here's some code using `std::string':
+
+\begin{lstlisting}
+void function() {
+	auto a = "Hello";
+	auto b = "Hello" + " ";
+	auto c = " " + "world!";
+	auto d = b.substring(0, 5) + c;
+	auto e = "Hello %s!".format("world");
+	auto f = "%0 is written as '%1'.".format({ 42, "fourty two" });
+}
+\end{lstlisting}
+
+\subsubsection{Char Sequence}
+
+\paragraph{}
+If developers are seeking O(1) append, they can use `std::char_sequence', which has the following properties:
+
+\begin{itemize}
+\item Mutable
+\item Unicode support
+\item Must use contiguous storage
+\item Indexing is O(1)
+\item Appending is O(1) amortized
+\item No concatenation or substring
+\item Iteration is O(N)
+\item Can produce C strings (`const byte* const')
+\item Can produce Loci strings (`std::string')
+\end{itemize}
+
+\paragraph{}
+Here's some code using `std::char_sequence':
+
+\begin{lstlisting}
+void function() {
+	{
+		auto sequence = std::char_sequence();
+		sequence.append("Hello");
+		sequence.append(" ");
+		sequence.append("world");
+		sequence.append("!");
+		
+		const byte* const cString = sequence.c_str();
+		const std::string lociString = sequence.str();
+	}
+	
+	{
+		auto sequence = std::char_sequence();
+		sequence.append(42);
+		sequence.append(" is written as '");
+		sequence.append("fourty two");
+		sequence.append("'.");
+	}
+}
+\end{lstlisting}
 
 \subsubsection{Literals}
 
 \paragraph{}
-Loci breaks away from C by making string literals (without specifiers) be of type `string', rather than type `char * const'. However C string literals can be declared using the string literal specifier 'C':
+Loci breaks away from C by making string literals (without specifiers) be of type `std::string', rather than type `const byte * const'. However C string literals can be declared using the string literal specifier 'C':
 
 \begin{lstlisting}
-void f(char * const cString) {
-	printf("%s", cString);
+void f(const byte * const cString) {
+	printf(C"%s", cString);
 }
 
 void function() {
-	// Invalid - no implicit cast from String to char *.
+	// Invalid - no implicit cast from std::string to const byte* const.
 	f("Hello world!");
 	
 	// Valid - literal prefixed with 'C' gives C string.
 	f(C"Hello world!");
+	
+	// Also valid - literal specifiers can be suffixes.
+	f("Hello world!"C);
 }
 \end{lstlisting}
 
@@ -2358,7 +2542,7 @@ data TwoInts(int a, int b);
 
 void function(){
 	auto t = TwoInts(1, 2);
-	StdOut().writeLine("{%0}, {%1}, {%2}".format({1.0, "str", t}));
+	std::stdout().write("%0, %1, %2".format({1.0, "str", t}));
 }
 \end{lstlisting}
 
