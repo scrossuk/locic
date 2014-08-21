@@ -20,7 +20,7 @@ namespace locic {
 		
 		bool supportsNullConstruction(SEM::Type* type);
 		
-		bool supportsPrimitiveCast(SEM::Type* type, const std::string& primitiveName);
+		bool supportsImplicitCast(SEM::Type* type);
 		
 		bool supportsImplicitCopy(SEM::Type* type);
 		

@@ -1,14 +1,14 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const byte * const str, ...) noexcept;
 
 // Class definition.
 class TestClass(int value) {
-	static Null() {
+	static Null() noexcept {
 		testPrint(C"TestClass.Null");
 		return @(1);
 	}
 	
-	void printValue() {
+	void printValue() noexcept {
 		testPrint(C"TestClass.printValue: Value = %d", @value);
 	}
 	

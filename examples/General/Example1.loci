@@ -192,7 +192,7 @@ class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
 		if (i < @size) {
 			return @ptr[i];
 		}
-		printf(C"Out of bounds at index '%llu'.\n", i.toULongLong());
+		printf(C"Out of bounds at index '%llu'.\n", i.cast<ulonglong_t>());
 		@guardSlot = @emptyValue;
 		return *(&(@guardSlot));
 	}
@@ -206,7 +206,7 @@ class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
 Memory<int> createMemory() {
 	auto m = Memory<int>(20u, -1000);
 	for (auto i: count<int>(1, -5, 25)) {
-		m[i.toSizeT()] = i + 42;
+		m[i.cast<size_t>()] = i + 42;
 	}
 	return move m;
 }
@@ -222,7 +222,7 @@ export int main(int argc, byte ** argv){
 	{
 		auto m = createMemory();
 		for (auto i: count<int>(1, -5, 25)) {
-			printf(C"m[%02d] = %d.\n", i, m[i.toSizeT()]);
+			printf(C"m[%02d] = %d.\n", i, m[i.cast<size_t>()]);
 		}
 	}
 	
@@ -231,15 +231,13 @@ export int main(int argc, byte ** argv){
 	
 	int argIndex = 1;
 	while (argIndex < argc) {
-		printf(C"    Arg %d: %s\n", argIndex, argv[argIndex.toSizeT()]);
+		printf(C"    Arg %d: %s\n", argIndex, argv[argIndex.cast<size_t>()]);
 		argIndex += 1;
 	}
 	
 	lval<int> custom_lval custLval = lval<int>(custom_lval());
 	custLval = 101;
 	lvalFunc(custLval);
-	
-	//byte * argv0 = argv[0];
 	
 	TestClass nullThing = null;
 	

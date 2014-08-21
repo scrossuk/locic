@@ -1,0 +1,43 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+// Class definition.
+class DestClass(int value) {
+	static implicitCastSourceClass(const SourceClass& object) {
+		return @(object.value() * 5);
+	}
+	
+	int value() const {
+		return @value;
+	}
+}
+
+template <typename T>
+interface CastFromSourceClass {
+	static T implicitCastSourceClass(const SourceClass& object);
+}
+
+class SourceClass(int value) {
+	static create = default;
+	
+	template <typename T: CastFromSourceClass<T>>
+	T implicitCast() const {
+		return T.implicitCastSourceClass(self);
+	}
+	
+	int value() const {
+		return @value;
+	}
+	
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	SourceClass originalObject = SourceClass(45);
+	DestClass castedObject = originalObject;
+	
+	testPrint(C"SourceClass: value = %d", originalObject.value());
+	testPrint(C"DestClass: value = %d", castedObject.value());
+	return 0;
+}
+

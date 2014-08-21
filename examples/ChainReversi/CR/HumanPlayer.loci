@@ -16,8 +16,8 @@ namespace CR {
 					return None();
 				}
 				
-				final auto x = (mousePos.x * board.size().width.toFloat()).toSizeT();
-				final auto y = (mousePos.y * board.size().height.toFloat()).toSizeT();
+				final auto x = (mousePos.x * board.size().width.cast<float>()).cast<size_t>();
+				final auto y = (mousePos.y * board.size().height.cast<float>()).cast<size_t>();
 				
 				if (x >= board.size().width || y >= board.size().height) {
 					// Just in case...

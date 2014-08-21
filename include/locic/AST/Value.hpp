@@ -89,7 +89,6 @@ namespace locic {
 			} ternary;
 			
 			enum CastKind {
-				CAST_STATIC,
 				CAST_CONST,
 				CAST_REINTERPRET,
 				CAST_DYNAMIC

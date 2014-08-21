@@ -385,9 +385,6 @@ namespace locic {
 					const auto targetType = ConvertType(context, astValueNode->cast.targetType);
 					
 					switch(astValueNode->cast.castKind) {
-						case AST::Value::CAST_STATIC: {
-							throw ErrorException("static_cast not yet implemented.");
-						}
 						case AST::Value::CAST_CONST:
 							throw ErrorException("const_cast not yet implemented.");
 						case AST::Value::CAST_DYNAMIC:

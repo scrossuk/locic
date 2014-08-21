@@ -9,7 +9,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 		list.push_back(i);
 	}
 	
-	testPrint(C"list.size() = %llu", list.size().toULongLong());
+	testPrint(C"list.size() = %llu", list.size().cast<ulonglong_t>());
 	testPrint(C"list.front() = %d", list.front());
 	testPrint(C"list.back() = %d", list.back());
 	
@@ -21,7 +21,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 	testPrint(C"Pop front!");
 	list.pop_front();
 	
-	testPrint(C"list.size() = %llu", list.size().toULongLong());
+	testPrint(C"list.size() = %llu", list.size().cast<ulonglong_t>());
 	testPrint(C"list.front() = %d", list.front());
 	testPrint(C"list.back() = %d", list.back());
 	
@@ -33,7 +33,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 	testPrint(C"Pop back!");
 	list.pop_back();
 	
-	testPrint(C"list.size() = %llu", list.size().toULongLong());
+	testPrint(C"list.size() = %llu", list.size().cast<ulonglong_t>());
 	testPrint(C"list.front() = %d", list.front());
 	testPrint(C"list.back() = %d", list.back());
 	
@@ -45,7 +45,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 	testPrint(C"Push front!");
 	list.push_front(-1);
 	
-	testPrint(C"list.size() = %llu", list.size().toULongLong());
+	testPrint(C"list.size() = %llu", list.size().cast<ulonglong_t>());
 	testPrint(C"list.front() = %d", list.front());
 	testPrint(C"list.back() = %d", list.back());
 	

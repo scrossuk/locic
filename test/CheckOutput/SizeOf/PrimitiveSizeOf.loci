@@ -3,14 +3,14 @@ import void testPrint(const byte * const str, ...);
 
 // Entry point.
 export int testEntryPoint(int argc, byte ** argv) {
-	testPrint(C"sizeof(byte) = %llu", sizeof(byte).toULongLong());
-	testPrint(C"sizeof(short) = %llu", sizeof(short).toULongLong());
-	testPrint(C"sizeof(int) = %llu", sizeof(int).toULongLong());
-	testPrint(C"sizeof(long) = %llu", sizeof(long).toULongLong());
-	testPrint(C"sizeof(long long) = %llu", sizeof(long long).toULongLong());
+	testPrint(C"sizeof(byte) = %llu", sizeof(byte).cast<ulonglong_t>());
+	testPrint(C"sizeof(short) = %llu", sizeof(short).cast<ulonglong_t>());
+	testPrint(C"sizeof(int) = %llu", sizeof(int).cast<ulonglong_t>());
+	testPrint(C"sizeof(long) = %llu", sizeof(long).cast<ulonglong_t>());
+	testPrint(C"sizeof(long long) = %llu", sizeof(long long).cast<ulonglong_t>());
 	
-	testPrint(C"sizeof(float) = %llu", sizeof(float).toULongLong());
-	testPrint(C"sizeof(double) = %llu", sizeof(double).toULongLong());
+	testPrint(C"sizeof(float) = %llu", sizeof(float).cast<ulonglong_t>());
+	testPrint(C"sizeof(double) = %llu", sizeof(double).cast<ulonglong_t>());
 	return 0;
 }
 

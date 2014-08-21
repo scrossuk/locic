@@ -168,7 +168,7 @@ Some sort of header files are needed for this case, which in Loci are simply nor
 
 Loci projects can be broken down into one or more modules, with each module consisting of one or more source files. The sources files for a module are all passed to the Loci compiler, which then generates the relevant assembly code (LOCIC generates LLVM IR) for the module. These outputs can then be linked together to produce the final project binaries.
 
-To enable this process, Loci supports 'importing' and 'exporting' symbols and constructs from a module. Any symbols or constructs not marked for import and export are considered to be internal, and therefore unavailable for linking.
+To enable this process, Loci supports *importing* and *exporting* symbols and constructs from a module. Any symbols or constructs not marked for import and export are considered to be internal, and therefore unavailable for linking.
 
 Imports
 ~~~~~~~
@@ -179,9 +179,9 @@ Here's an example of an imported function:
 
 	import double sqrt(double value) noexcept;
 
-This code imports an external function named 'sqrt', presumably referring to the C standard library function. This import statement is 'unnamed', meaning that no module name is provided and therefore no symbol name mangling occurs (assuming the function is in the global namespace).
+This code imports an external function named 'sqrt', presumably referring to the C standard library function. This *import* statement is 'unnamed', meaning that no module name is provided and therefore no symbol name mangling occurs (assuming the function is in the global namespace).
 
-Here's another example using a named import statement:
+Here's another example using a named *import* statement:
 
 .. code-block:: c++
 
@@ -198,7 +198,7 @@ In this case the class 'CustomClass' is being imported from another module with 
 Exports
 ~~~~~~~
 
-This is extremely similar to the 'import' statements. Here are examples matching the above:
+This is extremely similar to the *import* statements. Here are examples matching the above:
 
 .. code-block:: c++
 
@@ -335,4 +335,13 @@ There are now 3 API versions here, and it's possible the module developer is now
 	}
 
 In this case, the compiler will generate warnings when clients re-build their code to encourage them to upgrade to a more recent API.
+
+Implementation
+--------------
+
+See:
+
+* :doc:`Multi-pass Compilation <MultiPassCompilation>`
+* :doc:`Name Mangling <NameMangling>`
+
 

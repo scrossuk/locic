@@ -4,7 +4,7 @@ Language Goals
 Background
 ----------
 
-The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating inter-operation of different programming languages with C as a 'bridge'. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
+The C programming language is a widely used programming language and compilers are available for almost all architectures. Furthermore, many programming languages provide the means to call into/out-of C, facilitating inter-operation of different programming languages with :doc:`C as a bridge<CompatibilityWithC>`. While technically useful, the C programming language is often perceived as lacking sufficiently powerful abstractions to construct large and complex systems. For this reason, languages such as C++, Objective C and D were invented to provide abstractions on top of the language.
 
 Unfortunately, these languages have significant problems. For example, C++ and D place undue attention to compile-time functionality that serves to complicate the source code. Interestingly, Objective-C shifts the vast majority of the burden to run-time, and hence uses weak typing. Preference of programming languages is certainly based on the opinion of individual programmers, however languages also face general criticism. In particular, C++ attracts criticism due to its large set of features and rules that ultimately combine to produce complex semantics. Equally, however, programmers support the combination of powerful features as found in a multi-paradigm language such as C++.
 
@@ -15,9 +15,9 @@ However, these languages also suffer significant problems: there are no determin
 Aims
 ----
 
-This document therefore describes and rationalises the design of the Loci programming language, which aims to provide strong compatibility with C, while adding useful efficient high level abstractions, and without the complexities that arise in C++. Note that the Loci Compiler Tools (of which this document is currently a part) may not have a complete implementation of all features described here.
+This document therefore describes and rationalises the design of the Loci programming language, which aims to provide strong compatibility with C, while adding useful efficient high level abstractions, and without the complexities that arise in C++.
 
-Loci should satisfy the following (quite vague) goals:
+Loci should satisfy the following high-level goals:
 
 * *Modular* - The language must help to produce programs in which the basic problem is split into distinct components, which can be easily re-combined to solve other problems.
 * *Portable* - The language should be independent of any specific machine architecture or operating system, such that programs can be ported easily.
@@ -55,11 +55,11 @@ Loci is very closely related to C in both syntax and semantics, with the ability
 
 A primary concern for the language design is closely resembling the 'look and feel' of languages such as C and C++, with the intention that developers familiar with those languages should be able to easily get started in Loci. Syntactic or semantic divergences from existing languages are justified in this document.
 
-Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is algebraic data types, which are well suited to expressing data such as ASTs (Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code).
+Loci emphasises providing choice for the programmer, in the form of features that are each suited for particular purposes, where such features interact well with the rest of the language. A good example is :doc:`Algebraic Datatypes <AlgebraicDatatypes>`, which are well suited to expressing data such as ASTs (Abstract Syntax Trees, which are constructed in a compiler front-end and approximately express the structure of the input source code).
 
-However, as well as using ideas from many languages, Loci also specifically rejects some features, such as method/function overloading, class inheritance and weak typing (specifically, a large set of legal implicit casts; for example, in C, it is valid to implicitly cast from 'void *' to 'int *'). Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
+However, as well as using ideas from many languages, Loci also specifically rejects some features, such as :doc:`Function/Method Overloading <FunctionOverloading>`, :doc:`Class Inheritance <ClassInheritance>` and weak typing (specifically, a large set of legal implicit casts; for example, in C, it is valid to implicitly cast from 'void \*' to 'int \*'). Each of the features left out are considered at least unnecessary and potentially harmful, and interact poorly with the surrounding environment.
 
-In addition, Loci modifies well known features to make them easier to use, to help the programmer avoid common pitfalls and as an attempt to fix the flaws in some programming languages that are now evident in hindsight. The language also attempts to help programmers verify code correctness and to make code reasonably self-documenting.
+In addition, Loci modifies well known features to make them easier to use, to help the programmer avoid common pitfalls and as an attempt to fix the flaws in some programming languages that are now evident in hindsight. The language also attempts to help programmers verify code correctness and to make code reasonably self-documenting (e.g. with an :doc:`Assert Statement <AssertStatement>`).
 
 This section explains and justifies some of the design decisions made within the language; the following section then shows how these features are implemented. Each design decision was made with a good understanding of how it would be implemented, in particular to minimise the compiler complexity (and correspondingly, the time taken for compilation), code dependencies and code size, and to maximise the performance.
 

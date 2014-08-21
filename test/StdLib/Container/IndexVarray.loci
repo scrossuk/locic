@@ -10,7 +10,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 	}
 	
 	for (auto i: std::counter<size_t>(1u, 0u, 10u)) {
-		testPrint(C"varray[%llu] = %d", i.toULongLong(), varray[i]);
+		testPrint(C"varray[%llu] = %d", i.cast<ulonglong_t>(), varray[i]);
 	}
 	
 	return 0;

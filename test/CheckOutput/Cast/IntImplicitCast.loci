@@ -1,0 +1,32 @@
+// Test output.
+import void testPrint(const byte * const str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static implicitCastInt8T(int8_t value) noexcept {
+		testPrint(C"TestClass.implicitCastInt8T");
+		return @(value);
+	}
+	
+	static implicitCastInt16T(int16_t value) noexcept {
+		testPrint(C"TestClass.implicitCastInt16T");
+		return @(value);
+	}
+	
+	void printValue() noexcept {
+		testPrint(C"TestClass.printValue: Value = %d", @value);
+	}
+	
+}
+
+// Entry point.
+export int testEntryPoint(int argc, byte ** argv) {
+	TestClass testInstance1 = 22;
+	testInstance1.printValue();
+	
+	auto intValue = 1022;
+	TestClass testInstance2 = move intValue;
+	testInstance2.printValue();
+	return 0;
+}
+

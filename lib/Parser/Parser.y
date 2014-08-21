@@ -270,9 +270,7 @@ const T& GETSYM(T* value) {
 %token AT
 %token NULLVAL
 
-%token CAST
 %token CONST_CAST
-%token STATIC_CAST
 %token DYNAMIC_CAST
 %token REINTERPRET_CAST
 
@@ -1456,15 +1454,7 @@ constant:
 	;
 
 castKind:
-	CAST
-	{
-		$$ = locic::AST::Value::CAST_STATIC;
-	}
-	| STATIC_CAST
-	{
-		$$ = locic::AST::Value::CAST_STATIC;
-	}
-	| CONST_CAST
+	CONST_CAST
 	{
 		$$ = locic::AST::Value::CAST_CONST;
 	}

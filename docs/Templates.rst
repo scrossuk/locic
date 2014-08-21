@@ -41,7 +41,7 @@ Since primitive types are modelled as objects, even with their implementation be
 
 	void function(){
 		auto cInt = Class<int>(1, 2);
-		assert(cInt.lessThan());
+		assert cInt.lessThan();
 	}
 
 Function Templates
@@ -113,7 +113,7 @@ The advantages of this include:
 
 These are all the advantages of non-templated functions and classes, seamlessly extended to templated constructs. This is something that *can't be achieved* in C++, despite attempts to resolve this, such as C++'s *export* keyword.
 
-The implementation essentially performs auto-boxing for primitive types, without needing to perform a heap allocation. However if the templated implementation is available to the compiler then it can easily optimise these uses and this can also be performed as part of link-time optimisation. As an example, LOCIC will generate LLVM IR that can be optimised to inline operations, and this can be performed even after linking modules together.
+The implementation essentially performs auto-boxing for primitive types, without needing to perform a heap allocation. However if the templated implementation is available to the compiler then it can easily optimise these uses and this can also be performed as part of link-time optimisation. As an example, LOCIC will generate LLVM IR that can be optimised to inline operations, and this can be performed even after linking modules together. See :doc:`Template Generators <TemplateGenerators>` for more information.
 
 Hence there need be only be a runtime cost for templated constructs if:
 

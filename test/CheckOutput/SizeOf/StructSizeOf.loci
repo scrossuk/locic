@@ -56,15 +56,15 @@ struct I {
 
 // Entry point.
 export int testEntryPoint(int argc, byte ** argv) {
-	testPrint(C"sizeof(A) = %llu", sizeof(A).toULongLong());
-	testPrint(C"sizeof(B) = %llu", sizeof(B).toULongLong());
-	testPrint(C"sizeof(C) = %llu", sizeof(C).toULongLong());
-	testPrint(C"sizeof(D) = %llu", sizeof(D).toULongLong());
-	testPrint(C"sizeof(E) = %llu", sizeof(E).toULongLong());
-	testPrint(C"sizeof(F) = %llu", sizeof(F).toULongLong());
-	testPrint(C"sizeof(G) = %llu", sizeof(G).toULongLong());
-	testPrint(C"sizeof(H) = %llu", sizeof(H).toULongLong());
-	testPrint(C"sizeof(I) = %llu", sizeof(I).toULongLong());
+	testPrint(C"sizeof(A) = %llu", sizeof(A).cast<ulonglong_t>());
+	testPrint(C"sizeof(B) = %llu", sizeof(B).cast<ulonglong_t>());
+	testPrint(C"sizeof(C) = %llu", sizeof(C).cast<ulonglong_t>());
+	testPrint(C"sizeof(D) = %llu", sizeof(D).cast<ulonglong_t>());
+	testPrint(C"sizeof(E) = %llu", sizeof(E).cast<ulonglong_t>());
+	testPrint(C"sizeof(F) = %llu", sizeof(F).cast<ulonglong_t>());
+	testPrint(C"sizeof(G) = %llu", sizeof(G).cast<ulonglong_t>());
+	testPrint(C"sizeof(H) = %llu", sizeof(H).cast<ulonglong_t>());
+	testPrint(C"sizeof(I) = %llu", sizeof(I).cast<ulonglong_t>());
 	return 0;
 }
 

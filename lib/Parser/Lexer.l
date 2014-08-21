@@ -119,9 +119,7 @@ export                  { return EXPORT; }
 move                    { return MOVE; }
 sizeof                  { return SIZEOF; }
 
-cast                    { return CAST; }
 const_cast              { return CONST_CAST; }
-static_cast             { return STATIC_CAST; }
 reinterpret_cast        { return REINTERPRET_CAST; }
 dynamic_cast            { return DYNAMIC_CAST; }
 

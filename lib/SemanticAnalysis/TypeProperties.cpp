@@ -260,37 +260,34 @@ namespace locic {
 			}
 		}
 		
-		bool supportsPrimitiveCast(SEM::Type* type, const std::string& primitiveName) {
+		bool supportsImplicitCast(SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::TEMPLATEVAR:
 					return false;
 					
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
-					const auto canonicalMethodName = CanonicalizeMethodName(primitiveName + "_cast");
-					const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
+					const auto methodIterator = typeInstance->functions().find("implicitcast");
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
 					if (function->type()->isFunctionVarArg()) return false;
 					if (!function->isMethod()) return false;
-					if (!function->isStaticMethod()) return false;
-					if (function->isConstMethod()) return false;
-					if (function->parameters().size() != 1) return false;
+					if (function->isStaticMethod()) return false;
+					if (!function->isConstMethod()) return false;
+					if (!function->parameters().empty()) return false;
+					if (function->templateVariables().size() != 1) return false;
 					
-					const auto operandType = function->parameters().at(0)->constructType();
-					if (!operandType->isObject()) return false;
+					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
 					
-					if (!operandType->getObjectType()->isPrimitive()) return false;
-					if (operandType->getObjectType()->name().last() != primitiveName + "_t") return false;
+					if (!returnType->isTemplateVar()) return false;
+					if (returnType->getTemplateVar() != function->templateVariables().front()) return false;
 					
 					return true;
 				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsPrimitiveCast(type->getTemplateVar()->specTypeInstance()->selfType(), primitiveName);
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");

@@ -11,7 +11,7 @@ export int testEntryPoint(int argc, byte ** argv) {
 		varray.push_back(i);
 	}
 	
-	testPrint(C"Array size = %llu.", varray.size().toULongLong());
+	testPrint(C"Array size = %llu.", varray.size().cast<ulonglong_t>());
 	
 	return 0;
 }

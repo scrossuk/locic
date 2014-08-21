@@ -1,11 +1,11 @@
 
 
 class TestClass(const byte * const n, int i, int j){
-	static Null() {
+	static null() noexcept {
 		return @(C"NULL", 0, 0);
 	}
 	
-	static Create(int v) {
+	static create(int v) noexcept {
 		return @(C"NON-NULL", v, v + 1);
 	}
 	

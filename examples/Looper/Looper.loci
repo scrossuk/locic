@@ -23,7 +23,7 @@ export int main(int argc, byte ** argv) {
 		i = i + 1u;
 	}
 	
-	printf(C"Done: %llu\n", j.toULongLong());
+	printf(C"Done: %llu\n", j.cast<ulonglong_t>());
 	return 0;
 }
 

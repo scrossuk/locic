@@ -1,24 +1,24 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const byte * const str, ...) noexcept;
 
 // Class definition.
 class TestClass(int value) {
-	static create(int value) {
+	static create(int value) noexcept {
 		testPrint(C"TestClass.create: Value = %d", value);
 		return @(value);
 	}
 	
-	static null() {
+	static null() noexcept {
 		testPrint(C"TestClass.null");
 		return @(48);
 	}
 	
-	static another_constructor() {
+	static another_constructor() noexcept {
 		testPrint(C"TestClass.another_constructor");
 		return @(45);
 	}
 	
-	void print() {
+	void print() noexcept {
 		testPrint(C"TestClass: @value = %d", @value);
 	}
 }

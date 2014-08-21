@@ -6,7 +6,7 @@ import void printf(const byte* text, ...);
 
 double Random() {
 	// Not a great random number generator...
-	return (rand() % 100).toFloat() / 100.0f;
+	return (rand() % 100).cast<float>() / 100.0f;
 }
 
 double SRandom() {
@@ -112,7 +112,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 				auto backgroundCircle = sf::CircleShape();
 				backgroundCircle.setRadius(45.0f);
 				backgroundCircle.setFillColor(sf::Color(20u, 20u, 20u, 255u));
-				backgroundCircle.setPosition(sf::Vector2f(x.toFloat() * 100.0f + 5.0f, y.toFloat() * 100.0f + 5.0f));
+				backgroundCircle.setPosition(sf::Vector2f(x.cast<float>() * 100.0f + 5.0f, y.cast<float>() * 100.0f + 5.0f));
 				renderWindow.drawCircle(backgroundCircle);
 				
 				final const auto position = CR::Position(x, y);
@@ -144,7 +144,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 					}
 				}
 				
-				foregroundCircle.setPosition(sf::Vector2f(x.toFloat() * 100.0f + 10.0f, y.toFloat() * 100.0f + 10.0f));
+				foregroundCircle.setPosition(sf::Vector2f(x.cast<float>() * 100.0f + 10.0f, y.cast<float>() * 100.0f + 10.0f));
 				renderWindow.drawCircle(foregroundCircle);
 			}
 		}

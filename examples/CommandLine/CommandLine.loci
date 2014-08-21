@@ -20,7 +20,7 @@ std::varray<std::string> readCommandLine() {
 				throw EOFException();
 			}
 			
-			final byte charByte = charInt.toByte();
+			final byte charByte = charInt.cast<byte>();
 			if (charByte == C'\n') {
 				isTerminated = true;
 				break;
@@ -79,11 +79,11 @@ export int main(int argc, byte** argv) {
 					continue;
 				}
 				
-				printf(C"Got %llu values.\n", values.size().toULongLong());
+				printf(C"Got %llu values.\n", values.size().cast<ulonglong_t>());
 				size_t i = 0u;
 				while (i < values.size()) {
 					printf(C"    Value[%llu] = %d\n",
-						   i.toULongLong(), values[i]);
+						   i.cast<ulonglong_t>(), values[i]);
 					i = i + 1u;
 				}
 			} else if (command == "help") {
