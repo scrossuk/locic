@@ -26,7 +26,7 @@ The performance for each case (depending on types of A and B) is:
 * If A is an interface type, and B is an interface type, then this call involves a number of comparisons proportional to the number of methods in the larger interface, unless it can be determined at compile-time that there is a valid static cast from A to B.
 
 dynamic_cast
------------
+------------
 
 This operates just like C++:
 

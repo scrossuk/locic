@@ -82,7 +82,7 @@ Implicit copy
 
 The above example shows the creation of an explicit *copy* method. However, there are many types (e.g. a 2D vector of ints) that are cheap to *copy* and therefore justify an implicit *copy* mechanism.
 
-Loci supports this through a method named 'implicitCopy'; here’s an example:
+Loci supports this through a method named *implicitCopy*; here’s an example:
 
 .. code-block:: c++
 

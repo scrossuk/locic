@@ -6,7 +6,6 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/SEM.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
 
@@ -77,15 +76,14 @@ namespace locic {
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
 		
 		llvm::Value* genPrimitiveAlignMask(Function& function, SEM::Type* type);
-		
 		llvm::Value* genPrimitiveSizeOf(Function& function, SEM::Type* type);
 		
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind);
+		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type);
 		
-		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
-		
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
-		
+		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind);
+		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type);
 		
 		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type);

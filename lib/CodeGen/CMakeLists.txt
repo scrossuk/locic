@@ -34,7 +34,6 @@ add_library(locic-codegen
 	ScopeExitActions.cpp
 	SizeOf.cpp
 	Support.cpp
-	TargetInfo.cpp
 	Template.cpp
 	TemplateBuilder.cpp
 	TemplatedObject.cpp

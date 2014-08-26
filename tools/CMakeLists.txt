@@ -1,5 +1,4 @@
 set(REQ_LIBS
-	${CLANG_REQ_LIBS}
 	${LLVM_REQ_LIBS}
 	boost_filesystem
 	boost_program_options

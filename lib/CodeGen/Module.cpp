@@ -12,18 +12,18 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
-		Module::Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
+		Module::Module(const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
-			  targetInfo_(targetInfo), abi_(llvm_abi::createABI(module_.get(), targetInfo_.getTargetTriple())),
+			  abi_(llvm_abi::createABI(module_.get(), llvm::sys::getDefaultTargetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
-			module_->setTargetTriple(targetInfo_.getTargetTriple());
+			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
 			
 			primitiveMap_.insert(std::make_pair("void_t", PrimitiveVoid));
 			primitiveMap_.insert(std::make_pair("null_t", PrimitiveNull));
@@ -78,10 +78,6 @@ namespace locic {
 			std::ofstream file(fileName.c_str());
 			llvm::raw_os_ostream ostream(file);
 			llvm::WriteBitcodeToFile(module_.get(), ostream);
-		}
-		
-		const TargetInfo& Module::getTargetInfo() const {
-			return targetInfo_;
 		}
 		
 		llvm_abi::ABI& Module::abi() {

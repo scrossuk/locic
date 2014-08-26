@@ -13,7 +13,13 @@
 
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/IRReader/IRReader.h>
+
+#ifdef LLVM_3_5
+#include <llvm/Linker/Linker.h>
+#else
 #include <llvm/Linker.h>
+#endif
+
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/SourceMgr.h>
@@ -120,6 +126,10 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 }
 
 llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
+#ifdef LLVM_3_5
+	llvm::SMDiagnostic error;
+	return llvm::ParseIRFile(fileName, error, context);
+#else
 	llvm::sys::Path fileNamePath;
 	if (!fileNamePath.set(fileName)) {
 		printf("Invalid file name '%s'.\n", fileName.c_str());
@@ -128,6 +138,7 @@ llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& co
 	
 	llvm::SMDiagnostic error;
 	return llvm::ParseIRFile(fileNamePath.str(), error, context);
+#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -286,8 +297,7 @@ int main(int argc, char* argv[]) {
 		// Perform code generation.
 		printf("Performing code generation...\n");
 		
-		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, "test", debugModule, buildOptions);
+		CodeGen::CodeGenerator codeGenerator("test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());
 		

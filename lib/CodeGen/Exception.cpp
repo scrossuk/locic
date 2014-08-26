@@ -23,7 +23,7 @@ namespace locic {
 			
 			auto& abiContext = module.abiContext();
 			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
-			const auto sizeType = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT), getSizeType(module.getTargetInfo()));
+			const auto sizeType = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT), getBasicPrimitiveType(module, PrimitiveSize));
 			
 			const TypePair argTypes[] = { sizeType };
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept();

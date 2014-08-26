@@ -10,27 +10,6 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* voidType() {
-			return llvm::Type::getVoidTy(llvm::getGlobalContext());
-		}
-		
-		llvm::Type* i8Type() {
-			return llvm::Type::getInt8Ty(llvm::getGlobalContext());
-		}
-		
-		llvm::Type* i32Type() {
-			return llvm::Type::getInt32Ty(llvm::getGlobalContext());
-		}
-		
-		llvm::Type* getSizeType(const TargetInfo& targetInfo) {
-			const size_t sizeTypeWidth = targetInfo.getPrimitiveSize("size_t");
-			return llvm::IntegerType::get(llvm::getGlobalContext(), sizeTypeWidth);
-		}
-		
-		llvm::PointerType* i8PtrType() {
-			return i8Type()->getPointerTo();
-		}
-		
 		llvm::StructType* vtableType(Module& module) {
 			const auto name = "__vtable";
 			

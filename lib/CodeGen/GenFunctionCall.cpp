@@ -77,29 +77,30 @@ namespace locic {
 				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
 			}
 			
+			const auto intType = getBasicPrimitiveType(module, PrimitiveInt);
+			const auto intSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveInt));
+			const auto doubleSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveDouble));
+			
 			for (const auto param: args) {
 				llvm::Value* argValue = genValue(function, param);
 				llvm_abi::Type* argABIType = genABIArgType(module, param->type());
 				
-				// When calling var-args functions, all 'char' and
-				// 'short' values must be extended to 'int' values,
-				// and all 'float' values must be converted to 'double'
-				// values.
+				// When calling var-args functions, all 'char' and 'short'
+				// values must be extended to 'int' values, and all 'float'
+				// values must be converted to 'double' values.
 				if (llvmFunctionType->isFunctionVarArg() && param->type()->isPrimitive()) {
-					const auto argType = argValue->getType();
-					const auto sizeInBits = argType->getPrimitiveSizeInBits();
+					const auto typeSize = module.abi().typeSize(argABIType);
 					
-					if (argType->isIntegerTy() && sizeInBits < module.getTargetInfo().getPrimitiveSize("int_t")) {
+					if (argABIType->isInteger() && typeSize < intSize) {
 						if (isSignedIntegerType(module, param->type())) {
-							// Need to extend to int.
-							argValue = function.getBuilder().CreateSExt(argValue, getNamedPrimitiveType(module, "int_t"));
-							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+							// Need to extend to int (i.e. sign extend).
+							argValue = function.getBuilder().CreateSExt(argValue, intType);
 						} else if (isUnsignedIntegerType(module, param->type())) {
-							// Need to extend to unsigned int.
-							argValue = function.getBuilder().CreateZExt(argValue, getNamedPrimitiveType(module, "uint_t"));
-							argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+							// Need to extend to unsigned int (i.e. zero extend).
+							argValue = function.getBuilder().CreateZExt(argValue, intType);
 						}
-					} else if (argType->isFloatingPointTy() && sizeInBits < 64) {
+						argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+					} else if (argABIType->isFloatingPoint() && typeSize < doubleSize) {
 						// Need to extend to double.
 						argValue = function.getBuilder().CreateFPExt(argValue, TypeGenerator(module).getDoubleType());
 						argABIType = llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);

@@ -86,7 +86,7 @@ Const implicit casting rules follow a concept of 'const chains', meaning that a 
 	
 	Valid:   int * const * -> int const * const * const
 
-Note that, in the last case, a type such as 'int* const *' can be achieved by code such as following:
+Note that, in the last case, a type such as 'int\* const\*' can be achieved by code such as following:
 
 .. code-block:: c++
 

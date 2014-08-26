@@ -4,10 +4,25 @@
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/Passes.h>
+
+#ifndef LLVM_3_5
 #include <llvm/Analysis/Verifier.h>
+#endif
+
 #include <llvm/Bitcode/ReaderWriter.h>
+
+#ifdef LLVM_3_5
+#include <llvm/DebugInfo/DIContext.h>
+#else
 #include <llvm/DebugInfo.h>
+#endif
+
+#ifdef LLVM_3_5
+#include <llvm/IR/DIBuilder.h>
+#else
 #include <llvm/DIBuilder.h>
+#endif
+
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/IR/Attributes.h>

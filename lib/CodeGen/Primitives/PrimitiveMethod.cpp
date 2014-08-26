@@ -18,7 +18,6 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>

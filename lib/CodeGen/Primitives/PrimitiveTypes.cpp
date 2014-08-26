@@ -16,8 +16,6 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name);
-		
 		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type) {
 			const auto& name = type->getObjectType()->name().last();
 			const auto kind = module.primitiveKind(name);
@@ -52,7 +50,7 @@ namespace locic {
 					break;
 			}
 			
-			return getBasicPrimitiveType(module, kind, name);
+			return getBasicPrimitiveType(module, kind);
 		}
 		
 		llvm_abi::IntegerKind primitiveABIIntegerKind(PrimitiveKind kind) {
@@ -102,7 +100,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind, const std::string& name) {
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind) {
 			switch (kind) {
 				case PrimitiveVoid:
 					return TypeGenerator(module).getVoidType();
@@ -148,6 +146,8 @@ namespace locic {
 					return TypeGenerator(module).getI8PtrType();
 				case PrimitiveValueLval:
 				case PrimitiveMemberLval: {
+					const std::string name = (kind == PrimitiveValueLval) ? "value_lval" : "member_lval";
+					
 					const auto existingType = module.getTypeMap().tryGet(name);
 					if (existingType.hasValue()) {
 						return existingType.getValue();
@@ -165,17 +165,11 @@ namespace locic {
 		}
 		
 		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name) {
-			return getBasicPrimitiveType(module, module.primitiveKind(name), name);
+			return getBasicPrimitiveType(module, module.primitiveKind(name));
 		}
 		
-		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type) {
-			assert(isTypeSizeKnownInThisModule(module, type));
-			
-			const auto typeInstance = type->getObjectType();
-			const auto& name = typeInstance->name().last();
-			
+		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind) {
 			auto& abiContext = module.abiContext();
-			const auto kind = module.primitiveKind(name);
 			
 			switch (kind) {
 				case PrimitiveVoid:
@@ -214,6 +208,25 @@ namespace locic {
 					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
 				case PrimitiveLongDouble:
 					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::LongDouble);
+				default:
+					llvm_unreachable("Unrecognised primitive type.");
+			}
+		}
+		
+		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name) {
+			return getBasicPrimitiveABIType(module, module.primitiveKind(name));
+		}
+		
+		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type) {
+			assert(isTypeSizeKnownInThisModule(module, type));
+			
+			const auto typeInstance = type->getObjectType();
+			const auto& name = typeInstance->name().last();
+			
+			auto& abiContext = module.abiContext();
+			const auto kind = module.primitiveKind(name);
+			
+			switch (kind) {
 				case PrimitiveRef: {
 					if (type->templateArguments().at(0)->isInterface()) {
 						return interfaceStructType(module).first;
@@ -235,7 +248,7 @@ namespace locic {
 				case PrimitiveTypename:
 					return typeInfoType(module).first;
 				default:
-					llvm_unreachable("Unrecognised primitive type.");
+					return getBasicPrimitiveABIType(module, kind);
 			}
 		}
 		

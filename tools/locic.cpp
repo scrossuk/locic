@@ -227,8 +227,7 @@ int main(int argc, char* argv[]) {
 		// TODO: name this based on output file name.
 		const auto outputName = "output";
 		
-		CodeGen::TargetInfo targetInfo = CodeGen::TargetInfo::DefaultTarget();
-		CodeGen::CodeGenerator codeGenerator(targetInfo, outputName, debugModule, buildOptions);
+		CodeGen::CodeGenerator codeGenerator(outputName, debugModule, buildOptions);
 		
 		{
 			Timer timer;

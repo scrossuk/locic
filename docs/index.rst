@@ -110,6 +110,7 @@ Language
 	Const
 	ControlFlow
 	Exceptions
+	ImplicitOperations
 	Literals
 	LvaluesAndRvalues
 	Modules

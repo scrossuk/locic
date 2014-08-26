@@ -28,7 +28,6 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VTable.hpp>
@@ -105,8 +104,8 @@ namespace locic {
 			}
 		}
 		
-		CodeGenerator::CodeGenerator(const TargetInfo& targetInfo, const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions)
-			: module_(new Module(moduleName, targetInfo, debugModule, buildOptions)) {
+		CodeGenerator::CodeGenerator(const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions)
+			: module_(new Module(moduleName, debugModule, buildOptions)) {
 			// TODO: fill these in correctly.
 			DebugCompileUnit compileUnit;
 			compileUnit.compilerName = "Loci Compiler";

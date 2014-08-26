@@ -12,7 +12,7 @@ namespace locic {
 	
 		class ConstantGenerator {
 			public:
-				inline ConstantGenerator(const Module& module)
+				inline ConstantGenerator(Module& module)
 					: module_(module) { }
 				
 				inline llvm::UndefValue* getVoidUndef() const {
@@ -59,13 +59,13 @@ namespace locic {
 				}
 				
 				inline llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const {
-					const size_t sizeTypeWidth = module_.getTargetInfo().getPrimitiveSize("size_t");
-					return getInt(sizeTypeWidth, sizeValue);
+					const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
+					return getInt(sizeTypeWidth * 8, sizeValue);
 				}
 				
 				inline llvm::ConstantInt* getPrimitiveInt(const std::string& primitiveName, long long intValue) const {
-					const size_t primitiveWidth = module_.getTargetInfo().getPrimitiveSize(primitiveName);
-					return getInt(primitiveWidth, intValue);
+					const size_t primitiveWidth = module_.abi().typeSize(getNamedPrimitiveABIType(module_, primitiveName));
+					return getInt(primitiveWidth * 8, intValue);
 				}
 				
 				inline llvm::Constant* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const {
@@ -137,7 +137,7 @@ namespace locic {
 				}
 				
 			private:
-				const Module& module_;
+				Module& module_;
 				
 		};
 		

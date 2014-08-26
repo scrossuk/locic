@@ -117,24 +117,21 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
-						if (objectType->name() == (Name::Absolute() + "void")) {
-							return module.debugBuilder().createVoidType();
-						}
+						const auto primitiveKind = module.primitiveKind(objectType->name().last());
 						
-						if (objectType->name() == (Name::Absolute() + "null_t")) {
-							return module.debugBuilder().createNullType();
-						}
-						
-						if (objectType->name() == (Name::Absolute() + "ptr")) {
-							return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
-						}
-						
-						if (objectType->name() == (Name::Absolute() + "int_t")) {
-							return module.debugBuilder().createIntType("int_t");
-						}
-						
-						if (objectType->name() == (Name::Absolute() + "__ref")) {
-							return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front()));
+						switch (primitiveKind) {
+							case PrimitiveVoid:
+								return module.debugBuilder().createVoidType();
+							case PrimitiveNull:
+								return module.debugBuilder().createNullType();
+							case PrimitivePtr:
+								return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
+							case PrimitiveInt:
+								return module.debugBuilder().createIntType("int_t");
+							case PrimitiveRef:
+								return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front()));
+							default:
+								break;
 						}
 					}
 					
@@ -189,7 +186,7 @@ namespace locic {
 				}
 				
 				default: {
-					throw std::runtime_error("Unknown type enum for generating type.");
+					llvm_unreachable("Unknown type enum for generating type.");
 				}
 			}
 		}

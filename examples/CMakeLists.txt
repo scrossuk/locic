@@ -1,3 +1,5 @@
+find_package(LLVMBinaries REQUIRED)
+
 set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
 macro(copy_source_file output_name name)
@@ -36,21 +38,27 @@ function(loci_link name binary_name flags)
 	
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised
 		COMMAND # Link bitcode files together.
-			llvm-link ${${name}_Sources} -o ${binary_name}_linked.bc &&
+			${LLVMBINARIES_LINK_EXECUTABLE} ${${name}_Sources} -o ${binary_name}_linked.bc &&
 			
 			# Run 'opt' multiple times for maximum optimisation.
-			opt -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
-			opt -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
-			opt -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
+			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
+			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
+			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
 			
 			# Disassemble for debugging.
-			llvm-dis ${binary_name}_final.bc -o ${binary_name}_final.ll &&
+			${LLVMBINARIES_DIS_EXECUTABLE} ${binary_name}_final.bc -o ${binary_name}_final.ll &&
 			
-			# Use clang to generate non-optimised platform binary.
-			clang -o ${binary_name} ${binary_name}_linked.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
+			# Use 'llc' to generate non-optimised platform object file.
+			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
 			
-			# Use clang to generate optimised platform binary.
-			clang -o ${binary_name}_optimised ${binary_name}_final.bc -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
+			# Use 'gcc' to generate non-optimised platform binary.
+			gcc -o ${binary_name} ${binary_name}.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
+			
+			# Use 'llc' to generate optimised platform object file.
+			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
+			
+			# Use 'gcc' to generate non-optimised platform binary.
+			gcc -o ${binary_name}_optimised ${binary_name}_optimised.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
 		DEPENDS ${${name}_Sources} loci-runtime
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	

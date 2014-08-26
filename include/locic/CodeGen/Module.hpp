@@ -19,7 +19,6 @@
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
 
 namespace locic {
@@ -61,15 +60,13 @@ namespace locic {
 		
 		class Module {
 			public:
-				Module(const std::string& name, const TargetInfo& targetInfo, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
+				Module(const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
 				
 				void dump() const;
 				
 				void dumpToFile(const std::string& fileName) const;
 				
 				void writeBitCodeToFile(const std::string& fileName) const;
-				
-				const TargetInfo& getTargetInfo() const;
 				
 				llvm_abi::ABI& abi();
 				
@@ -127,7 +124,6 @@ namespace locic {
 				
 			private:
 				std::unique_ptr<llvm::Module> module_;
-				TargetInfo targetInfo_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
 				llvm_abi::Context abiContext_;
 				

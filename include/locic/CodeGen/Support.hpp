@@ -3,25 +3,12 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
-#include <vector>
-
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/TargetInfo.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* voidType();
-		
-		llvm::Type* i8Type();
-		
-		llvm::Type* i32Type();
-		
-		llvm::Type* getSizeType(const TargetInfo& targetInfo);
-		
-		llvm::PointerType* i8PtrType();
-		
 		llvm::StructType* vtableType(Module& module);
 		
 	}

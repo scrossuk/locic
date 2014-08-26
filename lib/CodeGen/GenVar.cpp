@@ -36,7 +36,8 @@ namespace locic {
 				
 				if (iterator != varMap.end()) {
 					const auto& varInfo = iterator->second;
-					const auto debugDeclare = genDebugVar(function, varInfo, genDebugType(module, var->constructType()), stackObject);
+					const auto debugType = genDebugType(module, var->constructType());
+					const auto debugDeclare = genDebugVar(function, varInfo, debugType, stackObject);
 					
 					const auto varDeclStart = varInfo.declLocation.range().start();
 					debugDeclare->setDebugLoc(llvm::DebugLoc::get(varDeclStart.lineNumber(), varDeclStart.column(), function.debugInfo()));

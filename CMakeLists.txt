@@ -21,6 +21,13 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type (options are None, Debug, Release, RelWithDebInfo and MinSizeRel)." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+# Add path for custom modules
+set(CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
+	)
+
 # --- Compiler Properties
 
 set(LOCIC_VERSION_MAJOR 1)
@@ -64,8 +71,10 @@ set(LLVM_VERSION_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
 set(LLVM_VERSION_NAME "")
 if("${LLVM_VERSION_STRING}" STREQUAL "3.3")
 	set(LLVM_VERSION_NAME "3_3")
-else("${LLVM_VERSION_STRING}" STREQUAL "3.4")
+elseif("${LLVM_VERSION_STRING}" STREQUAL "3.4")
 	set(LLVM_VERSION_NAME "3_4")
+elseif("${LLVM_VERSION_STRING}" STREQUAL "3.5")
+	set(LLVM_VERSION_NAME "3_5")
 endif("${LLVM_VERSION_STRING}" STREQUAL "3.3")
 
 if("${LLVM_VERSION_NAME}" STREQUAL "")
@@ -77,12 +86,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLLVM_${LLVM_VERSION_NAME}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSION_MINOR}")
 
-include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
-
-# Clang (for target information).
-set(CLANG_REQ_LIBS clangFrontend clangParse clangSema clangEdit clangAnalysis clangAST clangLex clangBasic clangDriver clangSerialization)
 
 # --- Subdirectories
 

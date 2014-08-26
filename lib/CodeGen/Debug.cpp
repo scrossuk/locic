@@ -79,24 +79,24 @@ namespace locic {
 		llvm::DIType DebugBuilder::createNullType() {
 #if defined(LLVM_3_3)
 			return builder_.createNullPtrType("null");
-#elif defined(LLVM_3_4)
+#else
 			return builder_.createNullPtrType();
 #endif
 		}
 		
 		llvm::DIType DebugBuilder::createReferenceType(llvm::DIType type) {
-			return builder_.createReferenceType(0, type);
+			return builder_.createReferenceType(llvm::dwarf::DW_TAG_reference_type, type);
 		}
 		
 		llvm::DIType DebugBuilder::createPointerType(llvm::DIType type) {
-			const auto& targetInfo = module_.getTargetInfo();
-			return builder_.createPointerType(type, targetInfo.getPointerSize());
+			const auto pointerSize = module_.abi().typeSize(llvm_abi::Type::Pointer(module_.abiContext()));
+			return builder_.createPointerType(type, pointerSize);
 		}
 		
 		llvm::DIType DebugBuilder::createIntType(const std::string& name) {
-			const auto& targetInfo = module_.getTargetInfo();
-			return builder_.createBasicType(name, targetInfo.getPrimitiveSize(name),
-				targetInfo.getPrimitiveAlign(name), llvm::dwarf::DW_ATE_signed);
+			const auto& abi = module_.abi();
+			const auto abiType = getNamedPrimitiveABIType(module_, name);
+			return builder_.createBasicType(name, abi.typeSize(abiType), abi.typeAlign(abiType), llvm::dwarf::DW_ATE_signed);
 		}
 		
 		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {
@@ -131,6 +131,7 @@ namespace locic {
 		}
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
+			assert(type.isType());
 			auto& module = function.module();
 			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName());
 			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
