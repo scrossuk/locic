@@ -23,7 +23,10 @@ namespace locic {
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+
+#ifndef LLVM_3_3
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
+#endif
 			
 			primitiveMap_.insert(std::make_pair("void_t", PrimitiveVoid));
 			primitiveMap_.insert(std::make_pair("null_t", PrimitiveNull));

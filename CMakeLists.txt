@@ -16,11 +16,6 @@ enable_testing()
 
 project(LOCIC C CXX)
 
-if(NOT CMAKE_BUILD_TYPE)
-	# Build debug by default.
-	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type (options are None, Debug, Release, RelWithDebInfo and MinSizeRel)." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
-
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
@@ -86,8 +81,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLLVM_${LLVM_VERSION_NAME}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSION_MINOR}")
 
-include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIBRARY_DIRS})
+message(STATUS "    LLVM definitions: ${LLVM_DEFINITIONS}")
+add_definitions(${LLVM_DEFINITIONS})
+
+set(LOCIC_LLVM_INCLUDE_DIRS "${LLVM_INCLUDE_DIRS}" CACHE STRING "Set LLVM include directories.")
+set(LOCIC_LLVM_LIBRARY_DIRS "${LLVM_LIBRARY_DIRS}" CACHE STRING "Set LLVM library directories.")
+
+message(STATUS "    LLVM include directories: ${LOCIC_LLVM_INCLUDE_DIRS}")
+message(STATUS "        (if this is wrong, specify LOCIC_LLVM_INCLUDE_DIRS)")
+include_directories(SYSTEM ${LOCIC_LLVM_INCLUDE_DIRS})
+
+message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
+message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
+link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
+
 llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
 
 # --- Subdirectories

@@ -3,6 +3,12 @@ Loci Compiler Tools documentation
 
 Version 1.1 is now available! See :doc:`Releases <Releases>` for more information.
 
+.. toctree::
+	:maxdepth: 1
+	
+	GettingStarted
+	Releases
+
 Introduction
 ------------
 
@@ -138,7 +144,6 @@ Compiler
 .. toctree::
 	:maxdepth: 1
 	
-	Releases
 	CompilerDesign
 	DynamicDispatch
 	LLVMIntro

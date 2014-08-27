@@ -126,10 +126,7 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 }
 
 llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
-#ifdef LLVM_3_5
-	llvm::SMDiagnostic error;
-	return llvm::ParseIRFile(fileName, error, context);
-#else
+#ifdef LLVM_3_3
 	llvm::sys::Path fileNamePath;
 	if (!fileNamePath.set(fileName)) {
 		printf("Invalid file name '%s'.\n", fileName.c_str());
@@ -138,6 +135,9 @@ llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& co
 	
 	llvm::SMDiagnostic error;
 	return llvm::ParseIRFile(fileNamePath.str(), error, context);
+#else
+	llvm::SMDiagnostic error;
+	return llvm::ParseIRFile(fileName, error, context);
 #endif
 }
 

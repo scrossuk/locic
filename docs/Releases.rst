@@ -9,18 +9,18 @@ This section lists completed releases of the Loci Compiler Tools, in reverse ver
 v1.1
 ~~~~
 
-Released on 23rd August 2014, version 1.1 provides:
+Released on 27th August 2014, version 1.1 provides:
 
 **Language features**
 
-* Code Generation fix for :doc:`templates <Templates>` (to replace C++-like template expansion with a single representation for each class, to allow templated APIs across module boundaries)
+* Switching from C++-like :doc:`template <Templates>` expansion to use :doc:`Template Generators <TemplateGenerators>` (to allow templated APIs across module boundaries)
 * :doc:`Module imports and exports <Modules>`
 * :doc:`scope(success), scope(failure) and scope(exit) <Exceptions>`
 * :doc:`noexcept <Exceptions>`
 * :doc:`Type-templated functions/methods <Templates>`
 * Type aliases
 * :doc:`assert and unreachable statements <AssertStatement>`
-* Implicit and explicit casts between types using templated methods
+* :doc:`Implicit and explicit casts <ImplicitOperations>` between types using templated methods
 
 **Standard library**
 
@@ -34,6 +34,10 @@ Released on 23rd August 2014, version 1.1 provides:
 * A larger set of examples and updates to examples to demonstrate newly implemented features.
 * Significantly improved documentation in reStructuredText using Sphinx, which can generate multiple output formats including HTML and PDF.
 * A much larger set of integrated tests to check both accept and reject cases, as well as testing the standard library.
+
+**Dependencies**
+
+* Tested to build and work with LLVM 3.3/3.4/3.5
 
 v1.0
 ~~~~
