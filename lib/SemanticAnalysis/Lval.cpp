@@ -48,9 +48,15 @@ namespace locic {
 		
 		bool supportsDissolve(SEM::Type* type) {
 			switch (type->kind()) {
+				case SEM::Type::AUTO:
+				case SEM::Type::ALIAS:
+					// Invalid here.
+					std::terminate();
+				
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::STATICINTERFACEMETHOD:
 					return false;
 					
 				case SEM::Type::OBJECT: {
@@ -69,10 +75,9 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR:
 					return supportsDissolve(type->getTemplateVar()->specTypeInstance()->selfType());
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
 			}
+			
+			std::terminate();
 		}
 		
 		bool canDissolveValue(SEM::Value* value) {

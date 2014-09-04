@@ -1,0 +1,53 @@
+export std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			template <typename T>
+			// TODO: use a queue<T>!
+			class message_queue(mutex mutex, size_t position, varray<T> array, event::generator generator) {
+				static create() {
+					return @(mutex(), 0u, varray<T>(), event::generator());
+				}
+				
+				bool empty() const {
+					auto lock = unique_lock(@mutex);
+					assert @position <= @array.size();
+					return @position == @array.size();
+				}
+				
+				void send(T message) {
+					auto lock = unique_lock(@mutex);
+					assert @position <= @array.size();
+					@array.push_back(move message);
+					assert @position < @array.size();
+					@generator.notify();
+				}
+				
+				T receive() {
+					auto lock = unique_lock(@mutex);
+					
+					assert @position < @array.size();
+					// TODO: use a queue<T>!
+					T message = nolval(@array[@position]).__extract_value();
+					@position += 1u;
+					
+					if (@position == @array.size()) {
+						@generator.reset();
+					}
+					
+					return move message;
+				}
+				
+				event::source event_source() const noexcept {
+					return @generator.event_source();
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

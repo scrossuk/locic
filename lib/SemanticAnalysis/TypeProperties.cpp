@@ -103,7 +103,7 @@ namespace locic {
 		
 		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			const auto value = dissolveObject(context, rawValue, methodName, location);
-			const auto type = getDerefType(value->type());
+			const auto type = getDerefType(value->type())->resolveAliases();
 			
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
@@ -324,6 +324,43 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR:
 					return supportsImplicitCopy(type->getTemplateVar()->specTypeInstance()->selfType());
+					
+				default:
+					throw std::runtime_error("Unknown SEM type kind.");
+			}
+		}
+		
+		bool supportsNoExceptImplicitCopy(SEM::Type* type) {
+			switch (type->kind()) {
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::STATICINTERFACEMETHOD:
+					// Built-in types can be copied implicitly.
+					return true;
+					
+				case SEM::Type::OBJECT: {
+					// Named types must have a method for implicit copying.
+					const auto typeInstance = type->getObjectType();
+					const auto methodIterator = typeInstance->functions().find("implicitcopy");
+					if (methodIterator == typeInstance->functions().end()) return false;
+					
+					const auto function = methodIterator->second;
+					if (function->type()->isFunctionVarArg()) return false;
+					if (!function->type()->isFunctionNoExcept()) return false;
+					if (!function->isMethod()) return false;
+					if (function->isStaticMethod()) return false;
+					if (!function->isConstMethod()) return false;
+					if (!function->parameters().empty()) return false;
+					
+					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
+					if (returnType->isLvalOrRef()) return false;
+					
+					return true;
+				}
+				
+				case SEM::Type::TEMPLATEVAR:
+					return supportsNoExceptImplicitCopy(type->getTemplateVar()->specTypeInstance()->selfType());
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");

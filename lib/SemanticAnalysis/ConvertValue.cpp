@@ -39,9 +39,23 @@ namespace locic {
 					return ">";
 				case AST::OP_GREATERTHANOREQUAL:
 					return ">=";
-				default:
-					throw std::runtime_error("Unknown binary op.");
+				case AST::OP_ADD:
+					return "+";
+				case AST::OP_SUBTRACT:
+					return "-";
+				case AST::OP_MULTIPLY:
+					return "*";
+				case AST::OP_DIVIDE:
+					return "/";
+				case AST::OP_MODULO:
+					return "%";
+				case AST::OP_LOGICALAND:
+					return "&&";
+				case AST::OP_LOGICALOR:
+					return "||";
 			}
+			
+			std::terminate();
 		}
 		
 		std::string binaryOpName(AST::BinaryOpKind kind) {
@@ -58,9 +72,23 @@ namespace locic {
 					return "greater_than";
 				case AST::OP_GREATERTHANOREQUAL:
 					return "greater_than_or_equal";
-				default:
-					throw std::runtime_error("Unknown binary op.");
+				case AST::OP_ADD:
+					return "add";
+				case AST::OP_SUBTRACT:
+					return "subtract";
+				case AST::OP_MULTIPLY:
+					return "multiply";
+				case AST::OP_DIVIDE:
+					return "divide";
+				case AST::OP_MODULO:
+					return "modulo";
+				case AST::OP_LOGICALAND:
+					return "logical_and";
+				case AST::OP_LOGICALOR:
+					return "logical_or";
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::Value* GetBinaryOp(Context& context, SEM::Value* value, AST::BinaryOpKind opKind, const Debug::SourceLocation& location) {
@@ -237,11 +265,9 @@ namespace locic {
 						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
 						const auto templateVarType = SEM::Type::TemplateVarRef(templateVar);
 						return SEM::Value::TypeRef(templateVarType, typenameType->createStaticRefType(templateVarType));
-					} else {
-						throw std::runtime_error("Unknown search result for name reference.");
 					}
 					
-					throw std::runtime_error("Invalid if-statement fallthrough in ConvertValue for name reference.");
+					std::terminate();
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
@@ -271,6 +297,26 @@ namespace locic {
 					const auto objectValue = tryDissolveValue(context, leftOperand, location);
 					
 					switch (binaryOp) {
+						case AST::OP_ADD: {
+							const auto opMethod = GetMethod(context, objectValue, "add", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_SUBTRACT: {
+							const auto opMethod = GetMethod(context, objectValue, "subtract", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_MULTIPLY: {
+							const auto opMethod = GetMethod(context, objectValue, "multiply", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_DIVIDE: {
+							const auto opMethod = GetMethod(context, objectValue, "divide", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_MODULO: {
+							const auto opMethod = GetMethod(context, objectValue, "modulo", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
 						case AST::OP_ISEQUAL: {
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
@@ -359,9 +405,9 @@ namespace locic {
 							// operand is FALSE, otherwise it returns TRUE.
 							return SEM::Value::Ternary(boolValue, SEM::Value::Constant(Constant::True(), boolType), rightOperand);
 						}
-						default:
-							throw std::runtime_error("Unknown binary op kind.");
 					}
+					
+					std::terminate();
 				}
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
@@ -398,9 +444,9 @@ namespace locic {
 									targetType->toString().c_str(), location.toString().c_str()));
 							}
 							return SEM::Value::Reinterpret(ImplicitCast(context, sourceValue, sourceType, location), targetType);
-						default:
-							throw std::runtime_error("Unknown cast kind.");
 					}
+					
+					std::terminate();
 				}
 				case AST::Value::LVAL: {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
@@ -421,7 +467,7 @@ namespace locic {
 				case AST::Value::NOLVAL: {
 					const auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
 					
-					if (!sourceValue->type()->isLval()) {
+					if (!getDerefType(sourceValue->type())->isLval()) {
 						throw ErrorException(makeString("Can't use 'nolval' operator on non-lval value '%s' at position '%s'.",
 							sourceValue->toString().c_str(), location.toString().c_str()));
 					}
@@ -518,9 +564,9 @@ namespace locic {
 					
 					return CallValue(context, functionValue, argumentValues, location);
 				}
-				default:
-					throw std::runtime_error("Unknown AST::Value kind.");
 			}
+			
+			std::terminate();
 		}
 		
 		Debug::ValueInfo makeValueInfo(const AST::Node<AST::Value>& astValueNode) {

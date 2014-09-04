@@ -1,0 +1,88 @@
+void checkSet(std::event::wait_set& waitSet) {
+	if (waitSet.poll()) {
+		printf(C"    * Event source ACTIVE!\n");
+	} else {
+		printf(C"    * Event source inactive...\n");
+	}
+}
+
+void runEventsExample() {
+	printf(C"================ EVENTS EXAMPLE ================\n");
+	
+	auto generator = std::event::generator();
+	
+	printf(C"------ EDGE TRIGGERED ------\n");
+	
+	auto edgeTriggeredWaitSet = std::event::wait_set::edge_triggered();
+	edgeTriggeredWaitSet.insert(generator.event_source());
+	
+	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+		generator.notify();
+		
+		printf(C"  %llu:\n", i);
+		
+		checkSet(edgeTriggeredWaitSet);
+		checkSet(edgeTriggeredWaitSet);
+		
+		generator.reset();
+		
+		checkSet(edgeTriggeredWaitSet);
+	}
+	
+	printf(C"\n------ LEVEL TRIGGERED ------\n");
+	
+	auto levelTriggeredWaitSet = std::event::wait_set::level_triggered();
+	levelTriggeredWaitSet.insert(generator.event_source());
+	
+	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+		generator.notify();
+		
+		printf(C"  %llu:\n", i);
+		
+		checkSet(levelTriggeredWaitSet);
+		checkSet(levelTriggeredWaitSet);
+		
+		generator.reset();
+		
+		checkSet(levelTriggeredWaitSet);
+	}
+	
+	printf(C"\n------ EDGE TRIGGERED via EDGE TRIGGERED (!) ------\n");
+	
+	auto doubleEdgeTriggeredWaitSet = std::event::wait_set::edge_triggered();
+	doubleEdgeTriggeredWaitSet.insert(edgeTriggeredWaitSet.event_source());
+	
+	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+		generator.notify();
+		
+		printf(C"  %llu:\n", i);
+		
+		checkSet(doubleEdgeTriggeredWaitSet);
+		checkSet(doubleEdgeTriggeredWaitSet);
+		
+		generator.reset();
+		
+		checkSet(doubleEdgeTriggeredWaitSet);
+	}
+	
+	printf(C"\n------ LEVEL TRIGGERED via LEVEL TRIGGERED (!) ------\n");
+	
+	auto doubleLevelTriggeredWaitSet = std::event::wait_set::edge_triggered();
+	doubleLevelTriggeredWaitSet.insert(levelTriggeredWaitSet.event_source());
+	
+	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+		generator.notify();
+		
+		printf(C"  %llu:\n", i);
+		
+		checkSet(doubleLevelTriggeredWaitSet);
+		checkSet(doubleLevelTriggeredWaitSet);
+		
+		generator.reset();
+		
+		checkSet(doubleLevelTriggeredWaitSet);
+	}
+	
+	printf(C"\n\n\n");
+}
+

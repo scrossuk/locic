@@ -37,7 +37,6 @@ namespace locic {
 		
 		struct Value {
 			enum TypeEnum {
-				NONE,
 				SELF,
 				THIS,
 				BRACKET,
@@ -139,7 +138,7 @@ namespace locic {
 				Node<ValueList> parameters;
 			} functionCall;
 			
-			inline Value() : typeEnum(NONE) { }
+			inline Value() : typeEnum(static_cast<TypeEnum>(-1)) { }
 			
 			inline Value(TypeEnum e) : typeEnum(e) { }
 			

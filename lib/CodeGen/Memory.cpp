@@ -38,6 +38,10 @@ namespace locic {
 					}
 				}
 				
+				case SEM::Type::ALIAS: {
+					return genAlloca(function, type->resolveAliases());
+				}
+				
 				default: {
 					throw std::runtime_error("Unknown type enum for generating alloca.");
 				}
@@ -61,6 +65,10 @@ namespace locic {
 					} else {
 						return var;
 					}
+				}
+				
+				case SEM::Type::ALIAS: {
+					return genLoad(function, var, type->resolveAliases());
 				}
 				
 				default: {
@@ -101,6 +109,10 @@ namespace locic {
 						}
 						return;
 					}
+				}
+				
+				case SEM::Type::ALIAS: {
+					return genStore(function, value, var, type->resolveAliases());
 				}
 				
 				default: {

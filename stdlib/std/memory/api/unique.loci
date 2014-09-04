@@ -20,6 +20,24 @@ import std.memory 0.1.0 {
 		template <typename T>
 		unique_ptr<T> new_unique(T value);
 		
+		template <typename T>
+		class unique_ref {
+			static unique_ptr<T> create(T value);
+			
+			static unique_ptr<T> null() noexcept;
+			
+			lval<T> ptr_lval<T> deref() const noexcept;
+			
+			T* get() noexcept;
+			
+			void reset(T* pointer) noexcept;
+			
+			T* release() noexcept;
+		}
+		
+		template <typename T>
+		unique_ref<T> new_unique_ref(T value);
+		
 	}
 	
 }

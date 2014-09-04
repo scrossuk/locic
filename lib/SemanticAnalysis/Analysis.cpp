@@ -26,7 +26,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		SEM::TypeInstance::Kind ConvertTypeInstanceKind(AST::TypeInstance::Kind kind) {
-			switch(kind) {
+			switch (kind) {
 				case AST::TypeInstance::PRIMITIVE:
 					return SEM::TypeInstance::PRIMITIVE;
 				case AST::TypeInstance::STRUCT:
@@ -43,9 +43,9 @@ namespace locic {
 					return SEM::TypeInstance::INTERFACE;
 				case AST::TypeInstance::EXCEPTION:
 					return SEM::TypeInstance::EXCEPTION;
-				default:
-					throw std::runtime_error("Unknown type instance type enum.");
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
@@ -54,10 +54,9 @@ namespace locic {
 					return SEM::TEMPLATEVAR_TYPENAME;
 				case AST::TemplateTypeVar::POLYMORPHIC:
 					return SEM::TEMPLATEVAR_POLYMORPHIC;
-				default:
-					assert(false && "Unknown template var kind.");
-					return SEM::TEMPLATEVAR_TYPENAME;
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::ModuleScope* moduleScope) {

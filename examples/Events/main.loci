@@ -1,0 +1,11 @@
+// Printf has an 'int' return type, but since
+// it's ignored just use 'void'.
+import void printf(const byte* const str, ...) noexcept;
+
+export int main(int argc, byte** argv) {
+	runEventsExample();
+	runMessageQueueExample();
+	runThreadsExample();
+	return 0;
+}
+

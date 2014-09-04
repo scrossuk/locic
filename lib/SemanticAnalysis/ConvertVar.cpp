@@ -145,11 +145,9 @@ namespace locic {
 						
 						return SEM::Var::Composite(varType, children);
 					}
-					
-					default: {
-						throw std::runtime_error("Unknown typevar kind.");
-					}
 				}
+				
+				std::terminate();
 			}
 			
 		}
@@ -217,11 +215,9 @@ namespace locic {
 					
 					return SEM::Var::Composite(varType, children);
 				}
-				
-				default: {
-					throw std::runtime_error("Unknown typevar kind.");
-				}
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Type* initialiseType) {

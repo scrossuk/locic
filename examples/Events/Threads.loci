@@ -1,0 +1,110 @@
+import int rand() noexcept;
+
+class example_thread(std::concurrency::mutex& mutex, std::concurrency::mutex& logMutex, size_t id) {
+	static create = default;
+	
+	void run() {
+		// Randomize order...
+		sleep(rand() % 5);
+		
+		{
+			auto logLock = std::concurrency::unique_lock(@logMutex);
+			printf(C"  Thread %llu: Obtaining lock...\n", @id.cast<ulonglong_t>());
+		}
+		
+		auto lock = std::concurrency::unique_lock(@mutex);
+		
+		{
+			auto logLock = std::concurrency::unique_lock(@logMutex);
+			printf(C"  Thread %llu: Got lock!\n", @id.cast<ulonglong_t>());
+		}
+		
+		{
+			auto logLock = std::concurrency::unique_lock(@logMutex);
+			printf(C"    Thread %llu: Starting 1 second sleep...\n", @id.cast<ulonglong_t>());
+		}
+		
+		sleep(1);
+		
+		{
+			auto logLock = std::concurrency::unique_lock(@logMutex);
+			printf(C"    Thread %llu: Finished sleep.\n", @id.cast<ulonglong_t>());
+		}
+		
+		{
+			auto logLock = std::concurrency::unique_lock(@logMutex);
+			printf(C"  Thread %llu: Done.\n", @id.cast<ulonglong_t>());
+		}
+	}
+}
+
+import void sleep(int seconds) noexcept;
+
+bool checkThreads(std::concurrency::mutex& logMutex, std::varray<std::concurrency::thread>& threads) {
+	bool anyRunning = false;
+	
+	auto logLock = std::concurrency::unique_lock(logMutex);
+	
+	bool b = false;
+	
+	printf(C"Stopped: { ");
+	
+	for (auto i: std::counter<size_t>(1u, 0u, threads.size())) {
+		auto& thread = threads[i];
+		if (thread.event_source().poll()) {
+			if (b) {
+				printf(C", ");
+			}
+			printf(C"%llu", i.cast<ulonglong_t>());
+			b = true;
+		} else {
+			anyRunning = true;
+		}
+	}
+	
+	printf(C" }\n");
+	
+	return anyRunning;
+}
+
+void runThreadsExample() {
+	printf(C"================ THREADS EXAMPLE ================\n");
+	
+	auto waitSet = std::event::wait_set.edge_triggered();
+	
+	auto mutex = std::concurrency::mutex();
+	auto logMutex = std::concurrency::mutex();
+	
+	auto threadArray = std::varray<std::concurrency::thread>();
+	
+	final size_t NUM_THREADS = 20u;
+	
+	for (auto i: std::counter<size_t>(1u, 0u, NUM_THREADS)) {
+		threadArray.push_back(std::new_thread<example_thread>(example_thread(mutex, logMutex, i)));
+	}
+	
+	for (auto& thread: threadArray.range()) {
+		waitSet.insert(thread.event_source());
+	}
+	
+	{
+		auto logLock = std::concurrency::unique_lock(logMutex);
+		printf(C"Waiting for any terminate events...\n");
+	}
+	
+	while (checkThreads(logMutex, threadArray)) {
+		waitSet.wait();
+	}
+	
+	for (auto i: std::counter<size_t>(1u, 0u, threadArray.size())) {
+		auto& thread = threadArray[i];
+		{
+			auto logLock = std::concurrency::unique_lock(logMutex);
+			printf(C"Joining %llu...\n", i.cast<ulonglong_t>());
+		}
+		thread.join();
+	}
+	
+	printf(C"\n\n\n");
+}
+

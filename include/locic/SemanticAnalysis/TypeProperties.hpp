@@ -24,6 +24,8 @@ namespace locic {
 		
 		bool supportsImplicitCopy(SEM::Type* type);
 		
+		bool supportsNoExceptImplicitCopy(SEM::Type* type);
+		
 		bool supportsCompare(SEM::Type* type);
 		
 	}

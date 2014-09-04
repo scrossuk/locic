@@ -41,7 +41,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::PointerType* genPointerType(Module& module, SEM::Type* targetType) {
+		llvm::PointerType* genPointerType(Module& module, SEM::Type* rawTargetType) {
+			const auto targetType = rawTargetType->resolveAliases();
 			if (targetType->isObject()) {
 				assert(!targetType->isInterface());
 				return genObjectType(module, targetType)->getPointerTo();
@@ -104,6 +105,10 @@ namespace locic {
 				
 				case SEM::Type::STATICINTERFACEMETHOD: {
 					return staticInterfaceMethodType(module).second;
+				}
+				
+				case SEM::Type::ALIAS: {
+					return genType(module, type->resolveAliases());
 				}
 				
 				default: {
@@ -183,6 +188,10 @@ namespace locic {
 					const auto name = Name::Absolute() + "T";
 					
 					return module.debugBuilder().createObjectType(file, lineNumber, name);
+				}
+				
+				case SEM::Type::ALIAS: {
+					return genDebugType(module, type->resolveAliases());
 				}
 				
 				default: {

@@ -1,0 +1,36 @@
+export std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			interface runnable {
+				void run();
+			}
+			
+			template <typename T: runnable>
+			class fiber(T runnable) {
+				static create(T runnable) {
+					// TODO!
+					return @(move runnable);
+				}
+				
+				void cancel() {
+					// TODO!
+				}
+				
+				void join() {
+					// TODO!
+				}
+				
+				event::source event_source() const noexcept {
+					return event::source.inactive();
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

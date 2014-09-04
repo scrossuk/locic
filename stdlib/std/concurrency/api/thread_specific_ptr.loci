@@ -1,0 +1,24 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			template <typename T>
+			class thread_specific_ptr {
+				static thread_specific_ptr<T> create();
+				
+				void assign(T* ptr);
+				
+				T*& dissolve() const;
+				
+				T* move();
+				
+			}
+			
+		}
+	}
+	
+}
+
+

@@ -1,0 +1,28 @@
+import std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			class wait_set {
+				static wait_set create(bool edgeTriggered);
+				
+				static wait_set edge_triggered();
+				
+				static wait_set level_triggered();
+				
+				void insert(source single_source);
+				
+				void wait();
+				
+				bool poll();
+				
+				source event_source() const noexcept;
+			}
+			
+		}
+	}
+	
+}
+
+

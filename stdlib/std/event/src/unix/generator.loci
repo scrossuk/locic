@@ -1,0 +1,61 @@
+import {
+	
+	struct handle_pair {
+		int read;
+		int write;
+	}
+	
+	handle_pair std_event_generator_makepipe() noexcept;
+	
+	int std_event_generator_closepipe(handle_pair handlePair) noexcept;
+	
+	int std_event_generator_notify(handle_pair handlePair) noexcept;
+	
+	int std_event_generator_reset(handle_pair handlePair) noexcept;
+	
+}
+
+export std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			class generator(handle_pair handlePair) {
+				static generator create() {
+					const auto handlePair = std_event_generator_makepipe();
+					if (handlePair.read < 0) {
+						throw pipe_failed(-handlePair.read);
+					}
+					return @(handlePair);
+				}
+				
+				~ {
+					(void) std_event_generator_closepipe(@handlePair);
+				}
+				
+				void notify() {
+					const int result = std_event_generator_notify(@handlePair);
+					if (result < 0) {
+						throw generator_notify_failed(-result);
+					}
+				}
+				
+				void reset() {
+					const int result = std_event_generator_reset(@handlePair);
+					if (result < 0) {
+						throw generator_reset_failed(-result);
+					}
+				}
+				
+				source event_source() const {
+					return source.__handle(@handlePair.read);
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

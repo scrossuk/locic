@@ -1,0 +1,25 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			template <typename T>
+			class thread_local {
+				static thread_local<T> create();
+				
+				T* address() const;
+				
+				void assign(T value);
+				
+				T& dissolve() const;
+				
+				T move();
+			}
+			
+		}
+	}
+	
+}
+
+

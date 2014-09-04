@@ -1,0 +1,82 @@
+import {
+	// Potentially not correct!
+	struct pthread_mutex_t {
+		uint64_t a;
+		uint64_t b;
+		uint64_t c;
+		uint64_t d;
+		uint64_t e;
+		uint64_t f;
+	};
+	
+	int pthread_mutex_init(pthread_mutex_t* cond, void* ptr) noexcept;
+	
+	int pthread_mutex_destroy(pthread_mutex_t* cond) noexcept;
+	
+	int pthread_mutex_lock(pthread_mutex_t* cond) noexcept;
+	
+	int pthread_mutex_unlock(pthread_mutex_t* cond) noexcept;
+}
+
+export std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			exception create_mutex_failed(int result);
+			
+			exception lock_failed(int result);
+			
+			class mutex(pthread_mutex_t mutexObject) {
+				static create() {
+					pthread_mutex_t mutexObject = pthread_mutex_t(0u, 0u, 0u, 0u, 0u, 0u);
+					final int result = pthread_mutex_init(&mutexObject, null);
+					if (result != 0) {
+						throw create_mutex_failed(result);
+					}
+					
+					return @(mutexObject);
+				}
+				
+				~ {
+					(void) pthread_mutex_destroy(&@mutexObject);
+				}
+				
+				pthread_mutex_t* __handle() noexcept {
+					return &@mutexObject;
+				}
+				
+				void lock() {
+					const int result = pthread_mutex_lock(&@mutexObject);
+					if (result != 0) {
+						throw lock_failed(result);
+					}
+				}
+				
+				void unlock() noexcept {
+					(void) pthread_mutex_unlock(&@mutexObject);
+				}
+			}
+			
+			class unique_lock(mutex& mutex) {
+				static unique_lock create(mutex& mutex) {
+					mutex.lock();
+					return @(mutex);
+				}
+				
+				~ {
+					@mutex.unlock();
+				}
+				
+				mutex& internal_mutex() noexcept {
+					return @mutex;
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

@@ -10,9 +10,6 @@ namespace locic {
 	
 		std::string Type::toString() const {
 			switch(typeEnum) {
-				case NONE:
-					return "[NONE]";
-					
 				case AUTO:
 					return "auto";
 					
@@ -22,11 +19,17 @@ namespace locic {
 				case CONST:
 					return std::string("const ") + getConstTarget()->toString();
 					
+				case LVAL:
+					return std::string("lval <") + getLvalTarget()->toString() + "> " + getLvalType()->toString();
+					
+				case REF:
+					return std::string("ref <") + getRefTarget()->toString() + "> " + getRefType()->toString();
+					
+				case STATICREF:
+					return std::string("staticref <") + getStaticRefTarget()->toString() + "> " + getStaticRefType()->toString();
+					
 				case VOID:
 					return "void";
-					
-				case NULLT:
-					return "null";
 				
 				case INTEGER: {
 					const auto signedString = (integerSignedModifier() == SIGNED ?
@@ -49,6 +52,9 @@ namespace locic {
 				case REFERENCE:
 					return getReferenceTarget()->toString() + "&";
 					
+				case POINTER:
+					return getPointerTarget()->toString() + "*";
+					
 				case FUNCTION: {
 					std::string str;
 					str += "(";
@@ -66,10 +72,9 @@ namespace locic {
 					str += ")";
 					return str;
 				}
-				
-				default:
-					return "[UNKNOWN]";
 			}
+			
+			std::terminate();
 		}
 		
 	}

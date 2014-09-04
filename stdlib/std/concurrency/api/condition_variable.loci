@@ -1,0 +1,26 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			interface mutex_locker {
+				mutex& internal_mutex() noexcept;
+			}
+			
+			class condition_variable {
+				static condition_variable create();
+				
+				void notify_one() noexcept;
+				
+				void notify_all() noexcept;
+				
+				void wait(mutex_locker& locker);
+			}
+			
+		}
+	}
+	
+}
+
+

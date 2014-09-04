@@ -1,0 +1,85 @@
+
+class message_queue_thread(std::concurrency::message_queue<int>& receiveQueue, std::concurrency::message_queue<int>& sendQueue, size_t id) {
+	static create = default;
+	
+	void run() {
+		printf(C"  Thread %llu: Started.\n", @id.cast<ulonglong_t>());
+		
+		while (true) {
+			@receiveQueue.event_source().wait();
+			if (@receiveQueue.empty()) {
+				//printf(C"  Thread %llu: Message queue still empty...\n", @id.cast<ulonglong_t>());
+				continue;
+			}
+			
+			final int message = @receiveQueue.receive();
+			
+			printf(C"  Thread %llu: Received %d.\n", @id.cast<ulonglong_t>(), message);
+			
+			if (message < 0) {
+				printf(C"  Thread %llu: Exiting...\n", @id.cast<ulonglong_t>());
+				break;
+			}
+			
+			if (message < 10) {
+				printf(C"  Thread %llu: Sending %d.\n", @id.cast<ulonglong_t>(), message + 1);
+				@sendQueue.send(message + 1);
+			}
+		}
+		
+		printf(C"  Thread %llu: Stopped.\n", @id.cast<ulonglong_t>());
+	}
+}
+
+void runMessageQueueExample() {
+	printf(C"================ MESSAGE QUEUE EXAMPLE ================\n");
+	
+	auto messageQueue0To1 = std::concurrency::message_queue<int>();
+	auto messageQueue1To0 = std::concurrency::message_queue<int>();
+	
+	auto thread0 = std::new_thread<message_queue_thread>(message_queue_thread(messageQueue1To0, messageQueue0To1, 0u));
+	auto thread1 = std::new_thread<message_queue_thread>(message_queue_thread(messageQueue0To1, messageQueue1To0, 1u));
+	
+	sleep(1);
+	
+	printf(C"\nSend 0:\n");
+	
+	messageQueue0To1.send(0);
+	
+	sleep(1);
+	
+	printf(C"\nSend 3:\n");
+	
+	messageQueue0To1.send(3);
+	
+	sleep(1);
+	
+	printf(C"\nSend 5:\n");
+	
+	messageQueue0To1.send(5);
+	
+	sleep(1);
+	
+	printf(C"\nSend 10:\n");
+	
+	messageQueue0To1.send(10);
+	
+	sleep(1);
+	
+	printf(C"\nSend 20:\n");
+	
+	messageQueue0To1.send(20);
+	
+	sleep(1);
+	
+	printf(C"\nSend -1 (to request exit):\n");
+	
+	messageQueue0To1.send(-1);
+	messageQueue1To0.send(-1);
+	
+	thread0.join();
+	thread1.join();
+	
+	printf(C"\n\n\n");
+}
+

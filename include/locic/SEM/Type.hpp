@@ -62,6 +62,8 @@ namespace locic {
 				Type* createLvalType(Type* targetType) const;
 				Type* createRefType(Type* targetType) const;
 				Type* createStaticRefType(Type* targetType) const;
+				Type* withoutLval() const;
+				Type* withoutRef() const;
 				Type* withoutLvalOrRef() const;
 				Type* withoutTags() const;
 				

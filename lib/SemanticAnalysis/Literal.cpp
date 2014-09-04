@@ -146,9 +146,13 @@ namespace locic {
 							specifier.c_str()));
 					}
 				}
-				default:
-					throw std::runtime_error("Unknown constant kind.");
+				case Constant::STRING: {
+					// Not handled here.
+					std::terminate();
+				}
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {

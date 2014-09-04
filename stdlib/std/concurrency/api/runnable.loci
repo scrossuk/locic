@@ -1,0 +1,16 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			interface runnable {
+				void run();
+			}
+			
+		}
+	}
+	
+}
+
+

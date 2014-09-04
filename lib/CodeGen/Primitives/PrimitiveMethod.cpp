@@ -164,7 +164,7 @@ namespace locic {
 		static llvm::Value* loadArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
-			if (arg.second) {
+			if (arg.second && !type->isRef()) {
 				return genLoad(function, builder.CreatePointerCast(arg.first, genPointerType(module, type)), type);
 			} else {
 				return arg.first;
@@ -900,9 +900,13 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			const auto& methodName = semFunction->name().last();
+			const auto targetType = type->templateArguments().front();
+			
+			if (methodName == "__empty") {
+				return genLoad(function, genAlloca(function, type), type);
+			}
 			
 			const auto methodOwner = allocArg(function, args[0], type);
-			const auto targetType = type->templateArguments().front();
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
@@ -925,6 +929,19 @@ namespace locic {
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
+			} else if (methodName == "__set_value") {
+				const auto operand = loadArg(function, args[1], targetType);
+				
+				// Assign new value.
+				genStore(function, operand, methodOwner, targetType);
+				
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "__extract_value") {
+				return genLoad(function, methodOwner, targetType);
+			} else if (methodName == "__destroy_value") {
+				// Destroy existing value.
+				genDestructorCall(function, targetType, methodOwner);
+				return ConstantGenerator(module).getVoidUndef();
 			} else {
 				llvm_unreachable("Unknown primitive method.");
 			}
@@ -952,7 +969,8 @@ namespace locic {
 					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
 					builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 				}
-				return objectVar;
+				
+				return genLoad(function, objectVar, type);
 			}
 			
 			ConstantGenerator constGen(module);
@@ -1106,6 +1124,8 @@ namespace locic {
 					return genFloatPrimitiveMethodCall(function, type, semFunction, templateArgs, args);
 				case PrimitiveTypename:
 					return genTypenamePrimitiveMethodCall(function, type, semFunction, args);
+				case PrimitiveRef:
+					return genRefPrimitiveMethodCall(function, type, semFunction, args);
 				default:
 					llvm_unreachable("Unknown trivial primitive function.");
 			}

@@ -1,0 +1,50 @@
+export std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			class source (int handle) {
+				static source inactive() noexcept {
+					return @(-1);
+				}
+				
+				static source __handle(int handle) noexcept {
+					return @(handle);
+				}
+				
+				source implicitCopy() const noexcept {
+					return @(@handle);
+				}
+				
+				int __getHandle() const noexcept {
+					return @handle;
+				}
+				
+				bool poll() const {
+					auto waitSet = wait_set.level_triggered();
+					waitSet.insert(self);
+					return waitSet.poll();
+				}
+				
+				void wait() const {
+					auto waitSet = wait_set.level_triggered();
+					waitSet.insert(self);
+					waitSet.wait();
+				}
+			}
+			
+			interface source_range {
+				bool empty() const;
+				
+				void popFront();
+				
+				lval<source> ptr_lval<source> front() const;
+			}
+			
+		}
+	}
+	
+}
+
+

@@ -1,0 +1,26 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			class mutex {
+				static mutex create();
+				
+				void lock();
+				
+				void unlock() noexcept;
+			}
+			
+			class unique_lock {
+				static unique_lock create(mutex& mutex);
+				
+				mutex& internal_mutex() noexcept;
+			}
+			
+		}
+	}
+	
+}
+
+

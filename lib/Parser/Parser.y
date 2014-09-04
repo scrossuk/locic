@@ -1014,7 +1014,7 @@ typePrecision4:
 	{
 		$$ = $1;
 	}
-	| LROUNDBRACKET typePrecision1 RROUNDBRACKET
+	| LROUNDBRACKET typePrecision0 RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Bracket(GETSYM($2))));
 	}
@@ -1066,11 +1066,11 @@ typePrecision2:
 pointerType:
 	typePrecision1 STAR
 	{
-		// Create 'ptr<TYPE>'.
-		auto typeList = locic::AST::makeNode(LOC(&@1), new locic::AST::TypeList(1, GETSYM($1)));
-		auto symbolElement = locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement("__ptr", typeList));
-		auto symbol = locic::AST::makeNode(LOC(&@$), new locic::AST::Symbol(locic::AST::Symbol::Absolute() + symbolElement));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Object(symbol)));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Pointer(GETSYM($1))));
+	}
+	| typePrecision1 AMPERSAND
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Reference(GETSYM($1))));
 	}
 	;
 
@@ -1094,11 +1094,6 @@ typePrecision0:
 	typePrecision1
 	{
 		$$ = $1;
-	}
-	| typePrecision1 AMPERSAND
-	{
-		// Still a built-in type until virtual typenames are implemented.
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Reference(GETSYM($1))));
 	}
 	;
 

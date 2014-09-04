@@ -1,0 +1,51 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+	
+		/**
+		 * \brief Double-ended Queue
+		 */
+		template <typename T>
+		class deque {
+			static deque<T> create() noexcept;
+			
+			void reserve(size_t size);
+			
+			size_t capacity() const noexcept;
+			
+			bool empty() const noexcept;
+			
+			size_t size() const noexcept;
+			
+			lval<T> ptr_lval<T> index(size_t index) const noexcept;
+			
+			void clear() noexcept;
+			
+			void push_front(T value);
+			
+			void pop_front() noexcept;
+			
+			void push_back(T value);
+			
+			void pop_back() noexcept;
+			
+			deque_range<T> range() const noexcept;
+			
+		}
+		
+		template <typename T>
+		class deque_range {
+			deque_range<T> implicitCopy() const noexcept;
+			
+			bool empty() const noexcept;
+			
+			void popFront() noexcept;
+			
+			lval<T> ptr_lval<T> front() const noexcept;
+		}
+		
+	}
+	
+}
+

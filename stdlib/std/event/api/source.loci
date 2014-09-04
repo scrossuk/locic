@@ -1,0 +1,30 @@
+import std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			class source {
+				static source inactive() noexcept;
+				
+				source implicitCopy() const noexcept;
+				
+				bool poll() const;
+				
+				void wait() const;
+			}
+			
+			interface source_range {
+				bool empty() const;
+				
+				void popFront();
+				
+				lval<source> ptr_lval<source> front() const;
+			}
+			
+		}
+	}
+	
+}
+
+

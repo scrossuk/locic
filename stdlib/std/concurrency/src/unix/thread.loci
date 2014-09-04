@@ -1,0 +1,112 @@
+import {
+	// Potentially not correct!
+	using pthread_t = uint64_t;
+	
+	int pthread_create(pthread_t* thread, void* attr, (*)(void)(void*) startRoutine, void* arg) noexcept;
+	
+	int pthread_join(pthread_t thread, void** retval) noexcept;
+}
+
+interface thread_runnable {
+	void run_internal();
+	
+	std::event::source event_source() const noexcept;
+}
+
+datatype runnable_header(lval<thread_runnable&> member_lval<thread_runnable&> selfRef);
+
+template <typename T: std::concurrency::runnable>
+class internal_runnable(lval<thread_runnable&> member_lval<thread_runnable&> selfRef, lval<T> value_lval<T> runnable, std::event::generator terminateGenerator) {
+	static create(T runnable) {
+		return @(lval<thread_runnable&>(member_lval<thread_runnable&>.__empty()), lval<T>(value_lval<T>(move runnable)), std::event::generator());
+	}
+	
+	void run_internal() {
+		{
+			T runnable = move @runnable;
+			runnable.run();
+		}
+		@terminateGenerator.notify();
+	}
+	
+	void set_self_ref() {
+		nolval(@selfRef).__set_value(self);
+	}
+	
+	std::event::source event_source() const noexcept {
+		return @terminateGenerator.event_source();
+	}
+}
+
+void threadFunction(void* objectPtr) {
+	auto runnablePtr = reinterpret_cast<void*, runnable_header*>(objectPtr);
+	runnablePtr->selfRef.run_internal();
+}
+
+export std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		template <typename T: concurrency::runnable>
+		concurrency::thread new_thread(T runnable_object) {
+			return concurrency::thread::create<T>(move runnable_object);
+		}
+		
+		namespace concurrency {
+			
+			exception create_failed(int result);
+			exception join_failed(int result);
+			
+			class thread(thread_runnable& internalRunnable, mutex mutex, bool hasJoined, pthread_t threadObject) {
+				template <typename T: runnable>
+				static create(T runnableObject) {
+					auto internalRunnable = new_unique<internal_runnable<T>>(internal_runnable<T>(move runnableObject));
+					internalRunnable->set_self_ref();
+					
+					pthread_t threadObject = 0u;
+					final int result = pthread_create(&threadObject, null, ::threadFunction, reinterpret_cast<internal_runnable<T>*, void*>(internalRunnable.get()));
+					if (result != 0) {
+						throw create_failed(result);
+					}
+					
+					thread_runnable& internalRunnableRef = *internalRunnable;
+					
+					// TODO: fix this!
+					(void) internalRunnable.release();
+					
+					return @(internalRunnableRef, mutex(), false, threadObject);
+				}
+				
+				~ {
+					//self.cancel();
+					//self.join();
+				}
+				
+				void cancel() {
+					auto lock = unique_lock(@mutex);
+					// TODO...
+				}
+				
+				void join() {
+					auto lock = unique_lock(@mutex);
+					if (!@hasJoined) {
+						final int result = pthread_join(@threadObject, null);
+						if (result != 0) {
+							throw join_failed(result);
+						}
+						
+						@hasJoined = true;
+					}
+				}
+				
+				event::source event_source() const noexcept {
+					return @internalRunnable.event_source();
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

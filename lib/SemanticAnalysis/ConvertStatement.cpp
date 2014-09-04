@@ -284,7 +284,21 @@ namespace locic {
 						}
 					}
 					
+					// Can't return in a function that returns void.
+					if (getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
+						throw ErrorException(makeString("Cannot return value in function '%s' with void return type at position %s.",
+							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
+							location.toString().c_str()));
+					}
+					
 					const auto semValue = ConvertValue(context, statement->returnStmt.value);
+					
+					// Can't return void.
+					if (semValue->type()->isBuiltInVoid()) {
+						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
+							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
+							location.toString().c_str()));
+					}
 					
 					// Cast the return value to the function's
 					// specified return type.
@@ -395,9 +409,9 @@ namespace locic {
 				case AST::Statement::UNREACHABLE: {
 					return SEM::Statement::Unreachable();
 				}
-				default:
-					throw std::runtime_error("Unknown statement kind.");
 			}
+			
+			std::terminate();
 		}
 		
 		Debug::StatementInfo makeStatementInfo(const AST::Node<AST::Statement>& astStatementNode) {

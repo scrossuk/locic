@@ -102,6 +102,10 @@ namespace locic {
 					return staticInterfaceMethodType(module).first;
 				}
 				
+				case SEM::Type::ALIAS: {
+					return genABIType(module, type->resolveAliases());
+				}
+				
 				default: {
 					llvm_unreachable("Unknown type kind for generating ABI type.");
 				}

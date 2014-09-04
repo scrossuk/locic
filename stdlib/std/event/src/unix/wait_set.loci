@@ -1,0 +1,69 @@
+import int std_event_wait_create() noexcept;
+
+import int std_event_wait_destroy(int waitHandle) noexcept;
+
+import int std_event_wait_add_handle(int waitHandle, int newHandle, int isEdgeTriggered) noexcept;
+
+import int std_event_wait_internal(int waitHandle, int doPoll) noexcept;
+
+export std.event 0.1.0 {
+
+	namespace std {
+	
+		namespace event {
+		
+			class wait_set(bool isEdgeTriggered, int waitHandle) {
+				static wait_set create(bool isEdgeTriggered) {
+					const int waitHandle = std_event_wait_create();
+					if (waitHandle < 0) {
+						throw wait_create_failed(-waitHandle);
+					}
+					return @(isEdgeTriggered, waitHandle);
+				}
+				
+				~ {
+					(void) std_event_wait_destroy(@waitHandle);
+				}
+				
+				static wait_set edge_triggered() {
+					return wait_set(true);
+				}
+				
+				static wait_set level_triggered() {
+					return wait_set(false);
+				}
+				
+				void insert(source single_source) {
+					const int addResult = std_event_wait_add_handle(@waitHandle, single_source.__getHandle(), @isEdgeTriggered ? 1 : 0);
+					if (addResult < 0) {
+						throw wait_insert_failed(-addResult);
+					}
+				}
+				
+				void wait() {
+					const int waitResult = std_event_wait_internal(@waitHandle, 0);
+					if (waitResult < 0) {
+						throw wait_failed(-waitResult);
+					}
+				}
+				
+				bool poll() {
+					const int waitResult = std_event_wait_internal(@waitHandle, 1);
+					if (waitResult < 0) {
+						throw wait_failed(-waitResult);
+					}
+					
+					return waitResult > 0;
+				}
+				
+				source event_source() const noexcept {
+					return source.__handle(@waitHandle);
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

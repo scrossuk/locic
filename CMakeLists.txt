@@ -40,7 +40,8 @@ message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 # Enable most warnings.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(LOCIC_C_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_C_WARNINGS}")
 
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -105,6 +106,19 @@ include_directories (
 	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
 	)
 
+set (STD_CONCURRENCY_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/condition_variable.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/fiber.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/message_queue.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/mutex.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/runnable.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/thread.loci"
+	)
+
+set (STD_CONCURRENCY_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/concurrency/std_concurrency.bc"
+	)
+
 set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/list.loci"
@@ -115,6 +129,16 @@ set (STD_CONTAINER_API_FILES
 
 set (STD_CONTAINER_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
+	)
+
+set (STD_EVENT_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/generator.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/source.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/wait_set.loci"
+	)
+
+set (STD_EVENT_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/event/std_event.bc"
 	)
 
 set (STD_MEMORY_API_FILES

@@ -44,6 +44,24 @@ namespace locic {
 			return semFunction;
 		}
 		
+		bool HasNoExceptImplicitCopy(SEM::TypeInstance* typeInstance) {
+			if (typeInstance->isUnionDatatype()) {
+				for (auto variantTypeInstance: typeInstance->variants()) {
+					if (!HasNoExceptImplicitCopy(variantTypeInstance)) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				for (auto var: typeInstance->variables()) {
+					if (!supportsNoExceptImplicitCopy(var->constructType())) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		
 		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
@@ -56,7 +74,7 @@ namespace locic {
 			
 			// Default copy constructor may throw since it
 			// may call child copy constructors that throw.
-			const bool isNoExcept = false;
+			const bool isNoExcept = HasNoExceptImplicitCopy(typeInstance);
 			
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
 			return semFunction;

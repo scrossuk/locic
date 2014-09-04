@@ -1,0 +1,61 @@
+import {
+	// Potentially not correct!
+	using pthread_cond_t = uint64_t;
+	
+	int pthread_cond_init(pthread_cond_t* cond, void* ptr) noexcept;
+	
+	int pthread_cond_destroy(pthread_cond_t* cond) noexcept;
+	
+	int pthread_cond_signal(pthread_cond_t* cond) noexcept;
+	
+	int pthread_cond_broadcast(pthread_cond_t* cond) noexcept;
+	
+	int pthread_cond_wait(pthread_cond_t* cond, pthread_mutex_t* mutex) noexcept;
+}
+
+export std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			interface mutex_locker {
+				mutex& internal_mutex();
+			}
+			
+			exception create_condition_failed(int result);
+			
+			class condition_variable(pthread_cond_t conditionObject) {
+				static create() {
+					pthread_cond_t conditionObject = 0u;
+					final int result = pthread_cond_init(&conditionObject, null);
+					if (result != 0) {
+						throw create_condition_failed(result);
+					}
+					
+					return @(conditionObject);
+				}
+				
+				~ {
+					(void) pthread_cond_destroy(&@conditionObject);
+				}
+				
+				void notify_one() noexcept {
+					(void) pthread_cond_signal(&@conditionObject);
+				}
+				
+				void notify_all() noexcept {
+					(void) pthread_cond_broadcast(&@conditionObject);
+				}
+				
+				void wait(mutex_locker& locker) {
+					(void) pthread_cond_wait(&@conditionObject, locker.internal_mutex().__handle());
+				}
+			}
+			
+		}
+	}
+	
+}
+
+

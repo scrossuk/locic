@@ -1,0 +1,19 @@
+export std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			exception generator_notify_failed(int error);
+			exception generator_reset_failed(int error);
+			exception pipe_failed(int error);
+			exception wait_create_failed(int error);
+			exception wait_insert_failed(int error);
+			exception wait_failed(int error);
+			
+		}
+	}
+	
+}
+
+

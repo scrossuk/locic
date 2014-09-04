@@ -266,6 +266,8 @@ __primitive int_t {
 	static int_t implicit_cast_byte_t(byte_t value) noexcept;
 	static int_t implicit_cast_short_t(short_t value) noexcept;
 	
+	static int_t cast_size_t(size_t value) noexcept;
+	
 	int_t implicitCopy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_int_t<T>>
@@ -1202,9 +1204,15 @@ __primitive value_lval {
 
 template <typename T>
 __primitive member_lval {
+	static member_lval<T> __empty() noexcept;
+	
 	T* address() noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
+	
+	void __set_value(T value) noexcept;
+	T __extract_value() noexcept;
+	void __destroy_value() noexcept;
 }
 
 template <typename T>

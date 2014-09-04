@@ -60,7 +60,7 @@ namespace locic {
 					
 					// Then check all the types are valid parameters.
 					for (size_t j = 0; j < templateVariables.size(); j++) {
-						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j));
+						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j))->resolveAliases();
 						
 						if (templateTypeValue->isAuto()) {
 							// Presumably auto will always work...
@@ -185,6 +185,11 @@ namespace locic {
 			}
 		}
 		
+		SEM::Type* createPointerType(Context& context, SEM::Type* varType) {
+			const auto pointerTypeInst = getBuiltInType(context.scopeStack(), "__ptr");
+			return SEM::Type::Object(pointerTypeInst, { varType});
+		}
+		
 		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
@@ -224,6 +229,10 @@ namespace locic {
 					const auto targetType = ConvertType(context, type->getReferenceTarget());
 					return createReferenceType(context, targetType);
 				}
+				case AST::Type::POINTER: {
+					const auto targetType = ConvertType(context, type->getPointerTarget());
+					return createPointerType(context, targetType);
+				}
 				case AST::Type::FUNCTION: {
 					const auto returnType = ConvertType(context, type->functionType.returnType);
 					
@@ -253,9 +262,9 @@ namespace locic {
 					
 					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, isNoExcept, returnType, parameterTypes);
 				}
-				default:
-					throw std::runtime_error("Unknown AST::Node<AST::Type> type enum.");
 			}
+			
+			std::terminate();
 		}
 		
 	}

@@ -48,6 +48,8 @@ namespace locic {
 				}
 				case SEM::Type::TEMPLATEVAR:
 					return false;
+				case SEM::Type::ALIAS:
+					return isTypeSizeKnownInThisModule(module, type->resolveAliases());
 				default:
 					llvm_unreachable("Unknown SEM type kind enum.");
 			}
@@ -91,6 +93,8 @@ namespace locic {
 					}
 				case SEM::Type::TEMPLATEVAR:
 					return false;
+				case SEM::Type::ALIAS:
+					return isTypeSizeAlwaysKnown(module, type->resolveAliases());
 				default:
 					llvm_unreachable("Unknown SEM type kind enum.");
 			}

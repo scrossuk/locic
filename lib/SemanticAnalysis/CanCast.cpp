@@ -32,6 +32,14 @@ namespace locic {
 			}
 			
 			switch (destType->kind()) {
+				case SEM::Type::AUTO: {
+					// Shouldn't happen, since source type can't be 'auto'.
+					std::terminate();
+				}
+				case SEM::Type::ALIAS: {
+					// Aliases should be resolved by now...
+					std::terminate();
+				}
 				case SEM::Type::OBJECT: {
 					// Objects can only be cast to the same object type.
 					if (sourceType->getObjectType() != destType->getObjectType()) {
@@ -108,9 +116,21 @@ namespace locic {
 						sourceType->isFunctionNoExcept(), returnType, paramTypes);
 				}
 				case SEM::Type::METHOD: {
-					auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);
+					const auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);
 					if (functionType == nullptr) return nullptr;
 					return SEM::Type::Method(functionType);
+				}
+				case SEM::Type::INTERFACEMETHOD: {
+					const auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getInterfaceMethodFunctionType(),
+						destType->getInterfaceMethodFunctionType(), hasConstChain, location);
+					if (functionType == nullptr) return nullptr;
+					return SEM::Type::InterfaceMethod(functionType);
+				}
+				case SEM::Type::STATICINTERFACEMETHOD: {
+					const auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getStaticInterfaceMethodFunctionType(),
+						destType->getStaticInterfaceMethodFunctionType(), hasConstChain, location);
+					if (functionType == nullptr) return nullptr;
+					return SEM::Type::StaticInterfaceMethod(functionType);
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
@@ -119,10 +139,9 @@ namespace locic {
 					}
 					return sourceType->withoutTags();
 				}
-				default: {
-					throw std::runtime_error("Unknown SEM type enum value.");
-				}
 			}
+			
+			std::terminate();
 		}
 		
 		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location) {
@@ -220,7 +239,7 @@ namespace locic {
 			// is root there is a valid chain of (zero) const parent types.
 			const bool hasParentConstChain = true;
 			
-			return ImplicitCastTypeFormatOnlyChain(sourceType, destType, hasParentConstChain, location);
+			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location);
 		}
 		
 		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
@@ -305,6 +324,8 @@ namespace locic {
 					// If all the object methods have been considered, but
 					// there's still an interface method to consider, then
 					// that method must not be present in the object type.
+					printf("\n\nMethod not found:\n\n%s\n\n",
+						interfaceFunction->name().toString().c_str());
 					return false;
 				}
 				
@@ -316,6 +337,9 @@ namespace locic {
 				
 				// Can't cast mutator method to const method.
 				if (!objectFunction->isConstMethod() && interfaceFunction->isConstMethod()) {
+					printf("\n\nNot const-compatible:\n\n%s\n\n%s\n\n",
+						objectFunction->name().toString().c_str(),
+						interfaceFunction->name().toString().c_str());
 					return false;
 				}
 					
@@ -325,6 +349,9 @@ namespace locic {
 				
 				// Function types must be equivalent.
 				if (!interfaceFunctionTypesCompatible(objectFunctionType, interfaceFunctionType)) {
+					printf("\n\nNot compatible:\n\n%s\n\n%s\n\n",
+						objectFunctionType->toString().c_str(),
+						interfaceFunctionType->toString().c_str());
 					return false;
 				}
 				
@@ -416,7 +443,7 @@ namespace locic {
 				}
 			}
 			
-			const auto sourceType = value->type();
+			const auto sourceType = value->type()->resolveAliases();
 			
 			// Try to cast datatype to its parent union datatype.
 			if (sourceType->isDatatype()) {
@@ -570,7 +597,7 @@ namespace locic {
 		
 		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
-			auto result = ImplicitCastConvert(context, errors, value, destType, location, formatOnly);
+			auto result = ImplicitCastConvert(context, errors, value, destType->resolveAliases(), location, formatOnly);
 			if (result != nullptr) return result;
 			
 			if (errors.empty()) {

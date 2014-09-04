@@ -82,8 +82,7 @@ namespace locic {
 		}
 		
 		Value* Value::NoLval(Value* operand) {
-			assert(operand->type()->isLval());
-			Value* value = new Value(NOLVAL, operand->type()->withoutLvalOrRef());
+			Value* value = new Value(NOLVAL, operand->type()->withoutLval());
 			value->makeNoLval.value = operand;
 			return value;
 		}
@@ -96,8 +95,7 @@ namespace locic {
 		}
 		
 		Value* Value::NoRef(Value* operand) {
-			assert(operand->type()->isRef());
-			Value* value = new Value(NOREF, operand->type()->withoutLvalOrRef());
+			Value* value = new Value(NOREF, operand->type()->withoutRef());
 			value->makeNoRef.value = operand;
 			return value;
 		}
@@ -110,7 +108,6 @@ namespace locic {
 		}
 		
 		Value* Value::NoStaticRef(Value* operand) {
-			assert(operand->type()->isStaticRef());
 			Value* value = new Value(NOSTATICREF, operand->type()->withoutLvalOrRef());
 			value->makeNoStaticRef.value = operand;
 			return value;

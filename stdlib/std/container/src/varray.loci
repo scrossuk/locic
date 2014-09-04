@@ -7,7 +7,7 @@ export std.container 0.1.0 {
 		 */
 		template <typename T>
 		class varray(size_t size, size_t capacity, T* data) {
-			static create() {
+			static create() noexcept {
 				return @(0u, 0u, null);
 			}
 			
@@ -36,7 +36,7 @@ export std.container 0.1.0 {
 				@capacity = size;
 			}
 			
-			size_t capacity() const {
+			size_t capacity() const noexcept {
 				return @capacity;
 			}
 			
@@ -50,15 +50,19 @@ export std.container 0.1.0 {
 				@size = size;
 			}
 			
-			bool empty() const {
+			bool empty() const noexcept {
 				return @size == 0u;
 			}
 			
-			size_t size() const {
+			const T* const data() const noexcept {
+				return @data;
+			}
+			
+			size_t size() const noexcept {
 				return @size;
 			}
 			
-			lval<T> ptr_lval<T> index(size_t index) const {
+			lval<T> ptr_lval<T> index(size_t index) const noexcept {
 				assert index < @size;
 				return @data[index];
 			}
@@ -76,7 +80,7 @@ export std.container 0.1.0 {
 				@size = @size + 1u;
 			}
 			
-			void pop_back() {
+			void pop_back() noexcept {
 				assert !self.empty();
 				@size = @size - 1u;
 				nolval(@data[@size]).__destroy_value();
@@ -91,6 +95,34 @@ export std.container 0.1.0 {
 				return array;
 			}*/
 			
+			varray_range<T> range() const noexcept {
+				return varray_range<T>(self);
+			}
+			
+		}
+		
+		template <typename T>
+		class varray_range(const varray<T>& array, size_t position) {
+			static create(const varray<T>& array) noexcept {
+				return @(array, 0u);
+			}
+			
+			varray_range<T> implicitCopy() const noexcept {
+				return @(@array, @position);
+			}
+			
+			bool empty() const noexcept {
+				return @position == @array.size();
+			}
+			
+			void popFront() noexcept {
+				assert !self.empty();
+				@position += 1u;
+			}
+			
+			lval<T> ptr_lval<T> front() const noexcept {
+				return @array[@position];
+			}
 		}
 		
 	}

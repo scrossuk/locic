@@ -17,6 +17,90 @@ namespace locic {
 
 	namespace SEM {
 	
+		template <typename T>
+		Type* applyType(T function, const Type* type);
+		
+		template <typename T>
+		Type* doApplyType(T function, const Type* type) {
+			switch (type->kind()) {
+				case Type::AUTO: {
+					return const_cast<Type*>(type);
+				}
+				
+				case Type::OBJECT: {
+					std::vector<Type*> templateArgs;
+					
+					for (const auto& templateArg : type->templateArguments()) {
+						templateArgs.push_back(applyType<T>(function, templateArg));
+					}
+					
+					return Type::Object(type->getObjectType(), templateArgs);
+				}
+				
+				case Type::FUNCTION: {
+					std::vector<Type*> args;
+					
+					for (const auto& paramType : type->getFunctionParameterTypes()) {
+						args.push_back(applyType<T>(function, paramType));
+					}
+					
+					const auto returnType = applyType<T>(function, type->getFunctionReturnType());
+					return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
+						type->isFunctionTemplated(),
+						type->isFunctionNoExcept(), returnType, args);
+				}
+				
+				case Type::METHOD: {
+					return Type::Method(applyType<T>(function, type->getMethodFunctionType()));
+				}
+				
+				case Type::INTERFACEMETHOD: {
+					return Type::InterfaceMethod(applyType<T>(function, type->getInterfaceMethodFunctionType()));
+				}
+				
+				case Type::STATICINTERFACEMETHOD: {
+					return Type::StaticInterfaceMethod(applyType<T>(function, type->getStaticInterfaceMethodFunctionType()));
+				}
+				
+				case Type::TEMPLATEVAR: {
+					return const_cast<Type*>(type);
+				}
+				
+				case Type::ALIAS: {
+					std::vector<Type*> templateArgs;
+					
+					for (const auto& templateArg : type->typeAliasArguments()) {
+						templateArgs.push_back(applyType<T>(function, templateArg));
+					}
+					
+					return SEM::Type::Alias(type->getTypeAlias(), templateArgs);
+				}
+			}
+			
+			std::terminate();
+		}
+		
+		template <typename T>
+		Type* applyType(T function, const Type* type) {
+			const auto basicType = doApplyType<T>(function, type);
+			
+			const auto constType = type->isConst() ? basicType->createConstType() : basicType;
+			
+			const auto lvalType = type->isLval() ?
+				constType->createLvalType(applyType<T>(function, type->lvalTarget())) :
+				constType;
+			
+			const auto refType = type->isRef() ?
+				lvalType->createRefType(applyType<T>(function, type->refTarget())) :
+				lvalType;
+			
+			const auto staticRefType = type->isStaticRef() ?
+				refType->createStaticRefType(applyType<T>(function, type->staticRefTarget())) :
+				refType;
+			
+			return function(staticRefType);
+		}
+		
 		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
 		
 		Type* Type::Auto(Context& context) {
@@ -183,12 +267,42 @@ namespace locic {
 			return context_.getType(typeCopy);
 		}
 		
+		Type* Type::withoutLval() const {
+			return applyType([&](Type* type) {
+					if (type->isLval()) {
+						Type typeCopy(*type);
+						typeCopy.lvalTarget_ = nullptr;
+						return context_.getType(typeCopy);
+					} else {
+						return type;
+					}
+				}, this);
+		}
+		
+		Type* Type::withoutRef() const {
+			return applyType([&](Type* type) {
+					if (type->isRef()) {
+						Type typeCopy(*type);
+						typeCopy.refTarget_ = nullptr;
+						return context_.getType(typeCopy);
+					} else {
+						return type;
+					}
+				}, this);
+		}
+		
 		Type* Type::withoutLvalOrRef() const {
-			Type typeCopy(*this);
-			typeCopy.lvalTarget_ = nullptr;
-			typeCopy.refTarget_ = nullptr;
-			typeCopy.staticRefTarget_ = nullptr;
-			return context_.getType(typeCopy);
+			return applyType([&](Type* type) {
+					if (type->isRef()) {
+						Type typeCopy(*type);
+						typeCopy.lvalTarget_ = nullptr;
+						typeCopy.refTarget_ = nullptr;
+						typeCopy.staticRefTarget_ = nullptr;
+						return context_.getType(typeCopy);
+					} else {
+						return type;
+					}
+				}, this);
 		}
 		
 		Type* Type::withoutTags() const {
@@ -197,6 +311,7 @@ namespace locic {
 			typeCopy.lvalTarget_ = nullptr;
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
+			
 			return context_.getType(typeCopy);
 		}
 		
@@ -671,9 +786,33 @@ namespace locic {
 									  
 				case TEMPLATEVAR:
 					return "TemplateVarType(templateVar: [possible loop])";
-					
+				
+				case ALIAS: {
+					const auto aliasName = getTypeAlias()->name().toString(false);
+					if (typeAliasArguments().empty()) {
+						return aliasName;
+					} else {
+						std::stringstream stream;
+						stream << aliasName << "<";
+						
+						bool isFirst = true;
+						for (const auto templateArg: typeAliasArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							stream << templateArg->nameToString();
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
+				
 				default:
-					return "[UNKNOWN TYPE]";
+					return makeString("[UNKNOWN TYPE: kind = %llu]", (unsigned long long) kind());
 			}
 		}
 		
@@ -731,7 +870,31 @@ namespace locic {
 				case TEMPLATEVAR:
 					return makeString("TemplateVarType(templateVar: %s)",
 									  getTemplateVar()->toString().c_str());
-									  
+				
+				case ALIAS: {
+					const auto aliasName = getTypeAlias()->name().toString(false);
+					if (typeAliasArguments().empty()) {
+						return aliasName;
+					} else {
+						std::stringstream stream;
+						stream << aliasName << "<";
+						
+						bool isFirst = true;
+						for (const auto templateArg: typeAliasArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							stream << templateArg->nameToString();
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
+								  
 				default:
 					return makeString("[UNKNOWN TYPE: kind = %llu]", (unsigned long long) kind());
 			}

@@ -1,0 +1,38 @@
+import std.event 0.1.0 {
+
+	namespace std {
+		
+		namespace event {
+			
+			class generator {
+				static generator create();
+				
+				/**
+				 * \brief Notify Generator
+				 * 
+				 * Creates an event on the generator's internal event
+				 * source, which can be detected by clients.
+				 */
+				void notify();
+				
+				/**
+				 * \brief Reset Generator
+				 * 
+				 * Resets event source, clearing all events.
+				 */
+				void reset();
+				
+				/**
+				 * \brief Event Source
+				 * 
+				 * Obtains the generator's internal event source.
+				 */
+				source event_source() const;
+			}
+			
+		}
+	}
+	
+}
+
+

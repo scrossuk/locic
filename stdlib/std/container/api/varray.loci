@@ -8,28 +8,43 @@ import std.container 0.1.0 {
 		 */
 		template <typename T>
 		class varray {
-			static varray<T> create();
+			static varray<T> create() noexcept;
 			
 			void reserve(size_t size);
 			
-			size_t capacity() const;
+			size_t capacity() const noexcept;
 			
 			void resize(size_t size);
 			
-			bool empty() const;
+			bool empty() const noexcept;
 			
-			size_t size() const;
+			const T* const data() const noexcept;
 			
-			lval<T> ptr_lval<T> index(size_t index) const;
+			size_t size() const noexcept;
+			
+			lval<T> ptr_lval<T> index(size_t index) const noexcept;
 			
 			void clear() noexcept;
 			
 			void push_back(T value);
 			
-			void pop_back();
+			void pop_back() noexcept;
 			
 			// varray<T> copy() const <T: copyable<T>>;
 			
+			varray_range<T> range() const noexcept;
+			
+		}
+		
+		template <typename T>
+		class varray_range {
+			varray_range<T> implicitCopy() const noexcept;
+			
+			bool empty() const noexcept;
+			
+			void popFront() noexcept;
+			
+			lval<T> ptr_lval<T> front() const noexcept;
 		}
 		
 	}

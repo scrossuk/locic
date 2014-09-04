@@ -63,10 +63,9 @@ namespace locic {
 					DeadCodeSearchScope(context, &(statement->getScopeExitScope()));
 					return;
 				}
-				default: {
-					throw std::runtime_error("Unknown statement kind.");
-				}
 			}
+			
+			std::terminate();
 		}
 		
 		void DeadCodeSearchScope(Context& context, SEM::Scope* scope) {

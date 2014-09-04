@@ -23,7 +23,6 @@ namespace locic {
 			};
 			
 			enum TypeEnum {
-				NONE,
 				AUTO,
 				CONST,
 				LVAL,
@@ -31,11 +30,11 @@ namespace locic {
 				STATICREF,
 				BRACKET,
 				VOID,
-				NULLT,
 				INTEGER,
 				FLOAT,
 				OBJECT,
 				REFERENCE,
+				POINTER,
 				FUNCTION
 			} typeEnum;
 			
@@ -80,12 +79,16 @@ namespace locic {
 			} referenceType;
 			
 			struct {
+				Node<Type> targetType;
+			} pointerType;
+			
+			struct {
 				bool isVarArg;
 				Node<Type> returnType;
 				Node<TypeList> parameterTypes;
 			} functionType;
 			
-			inline Type() : typeEnum(NONE) { }
+			inline Type() : typeEnum(static_cast<TypeEnum>(-1)) { }
 			
 			inline Type(TypeEnum e) : typeEnum(e) { }
 			
@@ -152,6 +155,12 @@ namespace locic {
 			inline static Type* Reference(Node<Type> targetType) {
 				Type* type = new Type(REFERENCE);
 				type->referenceType.targetType = targetType;
+				return type;
+			}
+			
+			inline static Type* Pointer(Node<Type> targetType) {
+				Type* type = new Type(POINTER);
+				type->pointerType.targetType = targetType;
 				return type;
 			}
 			
@@ -239,21 +248,26 @@ namespace locic {
 				return staticRefType.refType;
 			}
 			
-			inline bool isNull() const {
-				return typeEnum == NULLT;
-			}
-			
 			inline bool isReference() const {
 				return typeEnum == REFERENCE;
-			}
-			
-			inline bool isFunction() const {
-				return typeEnum == FUNCTION;
 			}
 			
 			inline Node<Type> getReferenceTarget() const {
 				assert(isReference());
 				return referenceType.targetType;
+			}
+			
+			inline bool isPointer() const {
+				return typeEnum == POINTER;
+			}
+			
+			inline Node<Type> getPointerTarget() const {
+				assert(isPointer());
+				return pointerType.targetType;
+			}
+			
+			inline bool isFunction() const {
+				return typeEnum == FUNCTION;
 			}
 			
 			inline bool isInteger() const {

@@ -1,0 +1,28 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		namespace concurrency {
+			
+			/**
+			 * \brief Single-reader, single-writer message queue.
+			 */
+			template <typename T>
+			class message_queue {
+				static message_queue<T> create();
+				
+				bool empty() const;
+				
+				void send(T message);
+				
+				T receive();
+				
+				event::source event_source() const noexcept;
+			}
+			
+		}
+	}
+	
+}
+
+

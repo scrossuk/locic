@@ -1,0 +1,26 @@
+import std.concurrency 0.1.0 {
+
+	namespace std {
+		
+		template <typename T: concurrency::runnable>
+		concurrency::thread new_thread(T runnable_object);
+		
+		namespace concurrency {
+			
+			class thread {
+				template <typename T: runnable>
+				static thread create(T runnable_object);
+				
+				void cancel();
+				
+				void join();
+				
+				event::source event_source() const noexcept;
+			}
+			
+		}
+	}
+	
+}
+
+

@@ -19,10 +19,9 @@ namespace locic {
 					return SEM::TEMPLATEVAR_TYPENAME;
 				case AST::TemplateTypeVar::POLYMORPHIC:
 					return SEM::TEMPLATEVAR_POLYMORPHIC;
-				default:
-					assert(false && "Unknown template var kind.");
-					return SEM::TEMPLATEVAR_TYPENAME;
 			}
+			
+			std::terminate();
 		}
 		
 		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
