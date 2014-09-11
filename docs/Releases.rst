@@ -79,6 +79,7 @@ Planned for the end of 2014, version 1.2 aims to provide:
 
 * Clarifying/defining implicit casting rules
 * C enums and unions
+* Statically checked exception specifications
 * :doc:`Vectorised types <VectorTypes>`
 * Lambdas
 * Value-templates, including lists of types

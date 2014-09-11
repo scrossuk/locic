@@ -113,6 +113,200 @@ Consider a violation of this specifier:
 
 This code is not valid and will be **rejected** by the compiler, since the *noexcept* property is statically checked.
 
+Exception Specifiers
+--------------------
+
+*noexcept* is actually just a special case of Loci's *exception specifiers*, which follow a similar syntax to C++ but that are statically checked by the compiler. For example:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		exception FileOpenFailedException();
+		
+		class File {
+			static File open(const std::string& fileName) throw(FileOpenFailedException);
+		}
+	}
+
+This code is very clear that *openFile* may only throw exceptions of type *FileOpenFailedException* (or derived exception types). As previously mentioned, this property will be statically checked by the compiler.
+
+Here is the equivalent of the above *noexcept* using an *exception specifier* (though the former is recommended):
+
+.. code-block:: c++
+
+	int addInts(int a, int b) throw() {
+		return a + b;
+	}
+
+The main reason to use specifiers is to produce APIs with clear failure modes, such as the file opening example expressed above. Omitting the exception specifier means that the function may throw any exception:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		class File {
+			static File open(const std::string& fileName);
+		}
+	}
+
+This means that developers can choose to use exception specifiers where appropriate and avoid them otherwise. Typically, specifiers are appropriate for use in heavily used core APIs (such as the standard library), but inappropriate as part of application logic or a custom rarely used API.
+
+In regard to :doc:`Module API versions <Modules>`, any changes to exception specifiers should be made in a new API version; for this reason it may be appropriate to use a generic exception type in exception specifiers (from which the client can obtain information about the error) and then throw derived exception types internally. For example:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		exception FileException(std::string what);
+		
+		class File {
+			static File open(const std::string& fileName) throw(FileException);
+		}
+	}
+
+The *open* constructor method could now be implemented as:
+
+.. code-block:: c++
+
+	export custom.library 1.0.0 {
+		exception FileException(std::string what);
+		exception FileNotFoundException() : FileException("File not found.");
+		exception FileAccessDeniedException() : FileException("File access denied.");
+		
+		class File(/* ... */) {
+			static File open(const std::string& fileName) throw(FileException) {
+				if (!fileExists(fileName)) {
+					throw FileNotFoundException();
+				}
+				
+				if (!fileIsAccessible(fileName)) {
+					throw FileAccessDeniedException();
+				}
+				
+				// etc...
+			}
+		}
+	}
+
+Overriding Static Analysis with Assert
+--------------------------------------
+
+The :doc:`Assert Statement <AssertStatement>` can be used to inform the compiler that a block of code will not throw, even though static analysis suggests it could. For example:
+
+.. code-block:: c++
+
+	import bool fileExists(const std::string& fileName) noexcept;
+	
+	import bool fileIsAccessible(const std::string& fileName) noexcept;
+	
+	import std::string readFile(const std::string& fileName);
+	
+	std::string readFileOrReturnNothing(const std::string& fileName) noexcept {
+		if (fileExists(fileName) && fileIsAccessible(fileName)) {
+			return readFile(fileName);
+		} else {
+			return "";
+		}
+	}
+
+The compiler will reject this code as invalid, since *readFile* may throw but *readFileOrReturnNothing* is declared as *noexcept*. However, let's assume that *readFile* is known to not throw in the situation shown here. The programmer can assert this by doing:
+
+.. code-block:: c++
+
+	import bool fileExists(const std::string& fileName) noexcept;
+	
+	import bool fileIsAccessible(const std::string& fileName) noexcept;
+	
+	import std::string readFile(const std::string& fileName);
+	
+	std::string readFileOrReturnNothing(const std::string& fileName) noexcept {
+		if (fileExists(fileName) && fileIsAccessible(fileName)) {
+			assert noexcept {
+				return readFile(fileName);
+			}
+		} else {
+			return "";
+		}
+	}
+
+This means the compiler will generate code to check this property at run-time when configured to do so (e.g. for a debug build), and otherwise trust the programmer and assume the property is true. Hence no error will be produced by the error in this case. Given that this overrides the assistance of static analysis, this should be done **with great care!**
+
+A similar construct can be used for exception specifiers:
+
+.. code-block:: c++
+
+	import bool fileExists(const std::string& fileName) noexcept;
+	
+	import bool fileIsAccessible(const std::string& fileName) noexcept;
+	
+	import custom.library 1.0.0 {
+		exception FileException(std::string what);
+		exception FileNotFoundException() : FileException("File not found.");
+		exception FileAccessDeniedException() : FileException("File access denied.");
+		
+		class File {
+			static File open(const std::string& fileName) throw(FileException);
+		}
+	}
+	
+	bool tryToReadFile(const std::string& fileName) throw(FileAccessDeniedException) {
+		if (fileExists(fileName)) {
+			assert throw(FileAccessDeniedException) {
+				auto file = File.open(fileName);
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+
+Again, this overrides the static analysis and so should be avoided in most cases; it usually makes sense to build exception-throwing code on top of *noexcept* code rather than the other way around.
+
+Note that the structures described above are essentially equivalent to:
+
+.. code-block:: c++
+
+	void throwAnyFunction();
+	
+	void noThrowFunction() noexcept {
+		try {
+			throwAnyFunction();
+		} catch (...) {
+			unreachable;
+		}
+	}
+	
+	exception TypeOne();
+	exception TypeTwo();
+	
+	void throwBothFunction() throw(TypeOne, TypeTwo);
+	
+	void throwOneFunction() throw(TypeOne) {
+		try {
+			throwBothFunction();
+		} catch (TypeTwo e) {
+			(void) e;
+			unreachable;
+		}
+	}
+	
+	exception Parent();
+	exception ChildOne() : Parent();
+	exception ChildTwo() : Parent();
+	
+	void throwParentFunction() throw(Parent);
+	
+	void throwChildFunction() throw(ChildOne) {
+		try {
+			throwBothFunction();
+		} catch (ChildOne e) {
+			(void) e;
+			throw;
+		} catch (...) {
+			unreachable;
+		}
+	}
+
+In these cases the compiler's static analysis will recognise that the catch blocks prevent exceptions of the given types unwinding further.
+
 Destructors
 -----------
 
