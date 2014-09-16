@@ -1,4 +1,5 @@
 find_package(LLVMBinaries REQUIRED)
+find_package(ClangBinary REQUIRED)
 
 set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
@@ -51,14 +52,14 @@ function(loci_link name binary_name flags)
 			# Use 'llc' to generate non-optimised platform object file.
 			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
 			
-			# Use 'gcc' to generate non-optimised platform binary.
-			gcc -o ${binary_name} ${binary_name}.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
+			# Use 'clang' to generate non-optimised platform binary.
+			${CLANGBINARY_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
 			
 			# Use 'llc' to generate optimised platform object file.
 			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
 			
 			# Use 'gcc' to generate non-optimised platform binary.
-			gcc -o ${binary_name}_optimised ${binary_name}_optimised.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
+			${CLANGBINARY_EXECUTABLE} -o ${binary_name}_optimised ${binary_name}_optimised.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
 		DEPENDS ${${name}_Sources} loci-runtime
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	

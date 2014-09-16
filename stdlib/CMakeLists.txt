@@ -1,3 +1,6 @@
+find_package(LLVMBinaries REQUIRED)
+find_package(ClangBinary REQUIRED)
+
 set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
 
 macro(copy_source_file output_name name)
@@ -49,14 +52,14 @@ macro(loci_module name output_name flags)
 			list(APPEND ${name}_CBuildObjects "${file_object_name}")
 			add_custom_command(OUTPUT "${file_object_name}"
 				COMMAND
-					clang -o "${file_object_name}" ${CFLAGS} -c -emit-llvm "${file_source_name}"
+					${CLANGBINARY_EXECUTABLE} -o "${file_object_name}" ${CFLAGS} -c -emit-llvm "${file_source_name}"
 				DEPENDS ${file_source_name}
 				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 		endforeach (file_source_name)
 		
 		add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
 				COMMAND
-					llvm-link -o "${CMAKE_CURRENT_BINARY_DIR}/${output_name}" ${${name}_CBuildObjects} "${LOCIMODULE_OUTPUT_NAME}"
+					${LLVMBINARIES_LINK_EXECUTABLE} -o "${CMAKE_CURRENT_BINARY_DIR}/${output_name}" ${${name}_CBuildObjects} "${LOCIMODULE_OUTPUT_NAME}"
 				DEPENDS ${${name}_CBuildObjects} "${LOCIMODULE_OUTPUT_NAME}"
 				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	else ()

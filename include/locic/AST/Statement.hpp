@@ -18,7 +18,6 @@ namespace locic {
 		
 		struct Statement {
 			enum TypeEnum {
-				NONE,
 				VALUE,
 				SCOPE,
 				IF,
@@ -28,7 +27,6 @@ namespace locic {
 				TRY,
 				SCOPEEXIT,
 				VARDECL,
-				ASSIGN,
 				RETURN,
 				RETURNVOID,
 				THROW,
@@ -97,9 +95,6 @@ namespace locic {
 				Node<Value> value;
 				std::string name;
 			} assertStmt;
-			
-			inline Statement()
-				: typeEnum(NONE) { }
 				
 			inline Statement(TypeEnum e)
 				: typeEnum(e) { }
