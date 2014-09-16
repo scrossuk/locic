@@ -2,15 +2,69 @@ import std.string 0.1.0 {
 	
 	namespace std {
 		
+		template <typename T>
+		interface forward_range {
+			bool empty() const;
+			
+			void popFront();
+			
+			lval<T> value_lval<T> front() const;
+		}
+		
+		/**
+		 * \brief String Buffer
+		 * 
+		 * This class can be used to build strings by appending a
+		 * sequence of unicode characters.
+		 */
 		class stringbuffer {
+			/**
+			 * \brief Constructs an empty string buffer.
+			 * 
+			 * \return An empty string buffer.
+			 */
 			static stringbuffer create();
 			
+			/**
+			 * \brief Get whether the string buffer is empty.
+			 * 
+			 * \return Whether the string buffer is empty.
+			 */
+			bool empty() const noexcept;
+			
+			/**
+			 * \brief Get string buffer contents length (number of unicode characters).
+			 * 
+			 * \return The string buffer contents length.
+			 */
 			size_t length() const noexcept;
 			
-			void appendByte(byte character);
+			/**
+			 * \brief Append a unicode character.
+			 * 
+			 * \param The character to append.
+			 */
+			void append(unichar character);
 			
+			/**
+			 * \brief Append a range of unicode characters.
+			 * 
+			 * \param The range of characters to append.
+			 */
+			void append_range(forward_range<unichar>& range);
+			
+			/**
+			 * \brief Gets a pointer to a UTF-8 null-terminated C string.
+			 * 
+			 * \return A pointer to a UTF-8 null-terminated C string.
+			 */
 			const byte* const c_str() const noexcept;
 			
+			/**
+			 * \brief Generates a string value.
+			 * 
+			 * \return A string value containing the string buffer's contents.
+			 */
 			string str() const;
 		}
 		

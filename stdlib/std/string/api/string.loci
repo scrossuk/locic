@@ -6,21 +6,58 @@ import std.string 0.1.0 {
 		
 		exception out_of_range();
 		
+		/**
+		 * \brief String
+		 * 
+		 * This class represents a disjoint (i.e. potentially non-contiguous)
+		 * sequence of unicode characters. Strings are immutable, hence all
+		 * 'mutating' methods return a new string with the specified modifications.
+		 */
 		class string {
+			/**
+			 * \brief Constructs an empty string.
+			 * 
+			 * \return An empty string.
+			 */
 			static string create();
 			
+			/**
+			 * \brief Constructs a string using a UTF-8 encoded null-terminated
+			 *        C-string constant.
+			 * 
+			 * \return A string containing the given string constant.
+			 */
 			static string cstring(const byte* const stringConstant);
 			
-			string implicitCopy() const;
+			string implicit_copy() const;
 			
+			/**
+			 * \brief Concatenate two strings.
+			 * 
+			 * \param The string to concatenate to this string.
+			 * \return A string containing the concatenated contents of
+			 *         this string and the given string.
+			 */
 			string add(const string& other) const;
 			
+			/**
+			 * \brief Get string contents length (number of unicode characters).
+			 * 
+			 * \return The string contents length.
+			 */
 			size_t length() const noexcept;
 			
+			// TODO: remove!
 			unichar at(size_t index) const;
 			
+			// TODO: remove!
 			const byte* const c_str() const noexcept;
 			
+			/**
+			 * \brief Compare this string with the given string.
+			 * 
+			 * \return The result of comparing the strings lexicographically.
+			 */
 			compare_result_t compare(const string& other) const noexcept;
 		}
 		

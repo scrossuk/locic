@@ -13,11 +13,15 @@ export std.string 0.1.0 {
 				std::free(reinterpret_cast<byte*, void*>(@ptr));
 			}
 			
+			bool empty() const noexcept {
+				return @length == 0u;
+			}
+			
 			size_t length() const noexcept {
 				return @length;
 			}
 			
-			void appendByte(byte character) {
+			void append(unichar character) {
 				final auto newLength = @length + 1u;
 				final auto newPtr = reinterpret_cast<void*, byte*>(std::alloc(newLength + 1u));
 				(void) strcpy(&newPtr[0u], @ptr);
@@ -26,6 +30,12 @@ export std.string 0.1.0 {
 				std::free(reinterpret_cast<byte*, void*>(@ptr));
 				@length = newLength;
 				@ptr = newPtr;
+			}
+			
+			void append_range(forward_range<unichar>& range) {
+				for (unichar character: range) {
+					self.append(character);
+				}
 			}
 			
 			const byte* const c_str() const noexcept {
