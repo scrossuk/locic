@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 datatype TestDatatype(int a, int b, int c);
 
@@ -14,7 +14,7 @@ class TestClass (int a, int b, int c) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestDatatype data = TestDatatype(1, 2, 3);
 	
 	testPrint(C"testEntryPoint: data = TestDatatype(a = %d, b = %d, c = %d)",

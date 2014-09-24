@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 class DestroyNotifier() {
 	static Create() {
@@ -30,7 +30,7 @@ class TestClass(T value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass<DestroyNotifier> object = TestClass<DestroyNotifier>(DestroyNotifier());
 	
 	return 0;

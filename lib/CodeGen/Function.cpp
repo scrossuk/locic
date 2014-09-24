@@ -1,4 +1,5 @@
 #include <stack>
+#include <stdexcept>
 #include <string>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
@@ -144,6 +145,10 @@ namespace locic {
 			return function_;
 		}
 		
+		const llvm::Function& Function::getLLVMFunction() const {
+			return function_;
+		}
+		
 		llvm::Function* Function::getLLVMFunctionPtr() {
 			return &function_;
 		}
@@ -244,7 +249,17 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-			// (void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+#ifdef LLVM_3_5
+			llvm::raw_os_ostream cerrStream(std::cerr);
+			const bool result = llvm::verifyFunction(function_, &cerrStream);
+			if (result)
+			{
+				const std::string functionName = getLLVMFunction().getName();
+				throw std::runtime_error(makeString("Verification failed for function '%s'.", functionName.c_str()));
+			}
+#else
+			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+#endif
 		}
 		
 		AlignMaskMap& Function::alignMaskMap() {

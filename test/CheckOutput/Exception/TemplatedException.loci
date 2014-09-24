@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 template <typename T>
 interface Copyable {
@@ -13,7 +13,7 @@ template <typename T: Copyable<T>>
 exception ChildError(T value0, T value1) : ParentError<T>(value0);
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	try {
 		throw ChildError<int>(111, 222);
 	} catch (ChildError<int> error) {

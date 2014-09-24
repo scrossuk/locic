@@ -1,0 +1,30 @@
+import std.string 0.1.0 {
+	
+	std::unichar character_literal(uint32_t characterConstant) noexcept;
+	
+	namespace std {
+		
+		exception invalid_unichar(uint32_t value);
+		
+		/**
+		 * \brief Unicode character (or 'code point').
+		 */
+		class unichar {
+			static unichar create(uint32_t value) noexcept;
+			
+			static unichar implicit_cast_ubyte_t(ubyte_t value) noexcept;
+			static unichar implicit_cast_uint8_t(uint8_t value) noexcept;
+			static unichar implicit_cast_uint16_t(uint16_t value) noexcept;
+			static unichar implicit_cast_uint32_t(uint32_t value) noexcept;
+			
+			unichar implicit_copy() const noexcept;
+			
+			uint32_t raw_value() const noexcept;
+			
+			bool in_range(unichar least, unichar most) const noexcept;
+		}
+		
+	}
+	
+}
+

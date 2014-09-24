@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 datatype UnionDataType =
 	TestDatatype1(int a) |
@@ -36,7 +36,7 @@ void printData(UnionDataType data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	printData(TestDatatype1(0));
 	printData(TestDatatype2(11, 22));
 	printData(TestDatatype3(33, 44, 55));

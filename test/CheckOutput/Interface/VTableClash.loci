@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 // The VTable hash table should have 20 slots,
 // so this should cause multiple clashes.
@@ -227,7 +227,7 @@ void polymorphicPrint(HugeInterface& object) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	auto instance = HugeClass(42);
 	
 	polymorphicPrint(instance);

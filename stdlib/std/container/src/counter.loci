@@ -14,6 +14,7 @@ export std.container 0.1.0 {
 		template <typename T: counter_type<T>>
 		class counter (T increment, T begin, T end) {
 			static create(T increment, T begin, T end) noexcept {
+				assert begin <= end;
 				return @(move increment, move begin, move end);
 			}
 			

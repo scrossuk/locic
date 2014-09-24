@@ -5,7 +5,9 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/Passes.h>
 
-#ifndef LLVM_3_5
+#ifdef LLVM_3_5
+#include <llvm/IR/Verifier.h>
+#else
 #include <llvm/Analysis/Verifier.h>
 #endif
 

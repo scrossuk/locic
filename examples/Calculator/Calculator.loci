@@ -1,19 +1,19 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const byte * const str, ...) noexcept;
+import void printf(const ubyte * const str, ...) noexcept;
 
-import int atoi(const byte * const str) noexcept;
-import int strcmp(const byte * const s1, const byte * const s2) noexcept;
+import int atoi(const ubyte * const str) noexcept;
+import int strcmp(const ubyte * const s1, const ubyte * const s2) noexcept;
 
-bool isStrEqual(const byte * const s1, const byte * const s2) noexcept {
+bool isStrEqual(const ubyte * const s1, const ubyte * const s2) noexcept {
 	return strcmp(s1, s2) == 0;
 }
 
-export int main(int argc, byte ** argv) {
+export int main(int argc, ubyte ** argv) {
 	printf(C"* Welcome to Calculator! *\n");
 	
-	const byte * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
-	const byte * const answerText = C"Here's your answer";
+	const ubyte * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
+	const ubyte * const answerText = C"Here's your answer";
 	
 	if (argc < 4) {
 		printf(C"Too few arguments! You need to give 3 arguments:\n");
@@ -27,7 +27,7 @@ export int main(int argc, byte ** argv) {
 		return 1;
 	}
 	
-	const byte * const op = argv[1u];
+	const ubyte * const op = argv[1u];
 	int arg1 = atoi(argv[2u]);
 	int arg2 = atoi(argv[3u]);
 	

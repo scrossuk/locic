@@ -1,0 +1,59 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class utf8encoder (forward_range<unichar>& range, std::queue<ubyte_t> data) {
+			static create(forward_range<unichar>& range) {
+				return @(range, std::queue<ubyte_t>());
+			}
+			
+			bool empty() const {
+				return @data.empty() && @range.empty();
+			}
+			
+			void pop_front() {
+				assert !self.empty();
+				
+				if (!@data.empty()) {
+					@data.pop();
+					if (!@data.empty()) {
+						return;
+					}
+				}
+				
+				if (@range.empty()) {
+					return;
+				}
+				
+				unichar character = @range.front();
+				@range.pop_front();
+				
+				if (character.in_range(0x00u, 0x7Fu)) {
+					// ASCII character range.
+					@data.push(character.to_byte());
+				} else if (character.in_range(0x80u, 0x7FFu)) {
+					@data.push(ubyte_t.leading_ones(2u) | ((character.raw_value() & uint32_t.trailing_ones(11u)) >> 6u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte_t>());
+				} else if (character.in_range(0x800u, 0xFFFFu)) {
+					@data.push(ubyte_t.leading_ones(3u) | ((character.raw_value() & uint32_t.trailing_ones(16u)) >> 12u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte_t>());
+				} else {
+					assert character.in_range(0x10000u, 0x1FFFFFu);
+					
+					@data.push(ubyte_t.leading_ones(4u) | ((character.raw_value() & uint32_t.trailing_ones(21u)) >> 18u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(18u)) >> 12u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte_t>());
+					@data.push(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte_t>());
+				}
+			}
+			
+			const ubyte_t& front() const {
+				return @data.front();
+			}
+		}
+		
+	}
+	
+}
+

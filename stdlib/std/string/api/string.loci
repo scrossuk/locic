@@ -1,6 +1,6 @@
 import std.string 0.1.0 {
 	
-	std::string string_literal(const byte* stringConstant);
+	std::string string_literal(const ubyte* const stringConstant);
 	
 	namespace std {
 		
@@ -27,7 +27,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \return A string containing the given string constant.
 			 */
-			static string cstring(const byte* const stringConstant);
+			static string cstring(const ubyte* const stringConstant);
 			
 			string implicit_copy() const;
 			
@@ -47,18 +47,14 @@ import std.string 0.1.0 {
 			 */
 			size_t length() const noexcept;
 			
-			// TODO: remove!
-			unichar at(size_t index) const;
-			
-			// TODO: remove!
-			const byte* const c_str() const noexcept;
-			
 			/**
 			 * \brief Compare this string with the given string.
 			 * 
 			 * \return The result of comparing the strings lexicographically.
 			 */
 			compare_result_t compare(const string& other) const noexcept;
+			
+			stringbuffer make_buffer() const;
 		}
 		
 	}

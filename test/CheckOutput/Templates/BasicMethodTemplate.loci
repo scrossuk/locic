@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 interface Printable {
 	void print();
@@ -15,7 +15,7 @@ class TestClass() {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass testObject = TestClass();
 	
 	testPrint(C"passThrough<int>(1000) = %d", testObject.passThrough<int>(1000));

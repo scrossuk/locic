@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const byte * const str, ...) noexcept;
+import void printf(const ubyte * const str, ...) noexcept;
 
 class TestClass2(int i){
 	static Create = default;
@@ -211,7 +211,7 @@ Memory<int> createMemory() {
 	return move m;
 }
 
-export int main(int argc, byte ** argv){
+export int main(int argc, ubyte ** argv){
 	if(argc < 2){
 		printf(C"Give me at least one argument...\n");
 		return 1;
@@ -226,7 +226,7 @@ export int main(int argc, byte ** argv){
 		}
 	}
 	
-	byte * programName = argv[0u];
+	ubyte * programName = argv[0u];
 	printf(C"Program name is %s.\n", programName);
 	
 	int argIndex = 1;

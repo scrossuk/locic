@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 interface Printable {
 	void printValue();
@@ -22,7 +22,7 @@ class PrintableValue (int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	function<PrintableValue>(PrintableValue(101));
 	function<PrintableValue>(PrintableValue(212));
 	function<PrintableValue>(PrintableValue(323));

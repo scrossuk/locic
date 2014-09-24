@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 interface Printable {
 	void print();
@@ -39,7 +39,7 @@ class PrintableDouble(double d) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass testObject = TestClass();
 	
 	testObject.printObject<PrintableInt>(PrintableInt(3));

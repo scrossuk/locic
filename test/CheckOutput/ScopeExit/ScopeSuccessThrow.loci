@@ -1,10 +1,10 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 exception TestError();
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	try {
 		scope (exit) {
 			testPrint(C"testEntryPoint: Exiting try scope.");

@@ -68,7 +68,7 @@ namespace locic {
 							
 							const auto typeName = value->type()->getObjectType()->name().last();
 							
-							if (typeName == "byte_t") {
+							if (typeName == "ubyte_t") {
 								return ConstantGenerator(module).getI8(characterValue);
 							} else if (typeName == "unichar") {
 								return ConstantGenerator(module).getI32(characterValue);

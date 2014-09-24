@@ -110,7 +110,10 @@ namespace locic {
 		bool isConstructor(const std::string& methodName) {
 			return methodName == "create" ||
 				methodName == "null" ||
+				methodName == "zero" ||
 				methodName == "unit" ||
+				methodName == "leading_ones" ||
+				methodName == "trailing_ones" ||
 				hasStart(methodName, "implicit_cast_") ||
 				hasStart(methodName, "cast_");
 		}
@@ -148,7 +151,11 @@ namespace locic {
 				methodName == "less_than" ||
 				methodName == "less_than_or_equal" ||
 				methodName == "greater_than" ||
-				methodName == "greater_than_or_equal";
+				methodName == "greater_than_or_equal" ||
+				methodName == "bitwise_and" ||
+				methodName == "bitwise_or" ||
+				methodName == "left_shift" ||
+				methodName == "right_shift";
 		}
 		
 		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
@@ -511,6 +518,43 @@ namespace locic {
 			}
 		}
 		
+		// Count leading zeroes.
+		llvm::Value* countLeadingZeroes(Function& function, llvm::Value* value, bool isZeroUndef = false) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			ConstantGenerator constGen(module);
+			
+			llvm::Type* const ctlzTypes[] = { value->getType() };
+			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
+			llvm::Value* const ctlzArgs[] = { value, constGen.getI1(isZeroUndef) };
+			return builder.CreateCall(countLeadingZerosFunction, ctlzArgs);
+		}
+		
+		// Count leading zeroes if value > 0, and return sizeof(T) if value == 0.
+		// 
+		// For example:
+		// 
+		//     ctlz_bounded(uint32_t(0)) = 31
+		//     ctlz_bounded(uint32_t(1)) = 31
+		//     ctlz_bounded(uint32_t(2)) = 30
+		//     ctlz_bounded(uint32_t(4)) = 29
+		//     etc.
+		// 
+		llvm::Value* countLeadingZeroesBounded(Function& function, llvm::Value* value) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			const auto intType = llvm::cast<llvm::IntegerType>(value->getType());
+			
+			ConstantGenerator constGen(module);
+			const auto leadingZeroes = countLeadingZeroes(function, value, true);
+			const auto maxValue = constGen.getIntByType(intType, intType->getIntegerBitWidth() - 1);
+			
+			const auto isEqualToZero = builder.CreateICmpEQ(value, constGen.getIntByType(intType, 0));
+			return builder.CreateSelect(isEqualToZero, maxValue, leadingZeroes);
+		}
+		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -528,8 +572,61 @@ namespace locic {
 			
 			if (methodName == "create") {
 				return zero;
+			} else if (methodName == "zero") {
+				return zero;
 			} else if (methodName == "unit") {
 				return unit;
+			} else if (methodName == "leading_ones") {
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto operand = loadArgRaw(function, args[0], sizeTType);
+				
+				if (!unsafe) {
+					// Check that operand <= sizeof(type) * 8.
+					const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+					const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
+					const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
+					const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
+					builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
+					function.selectBasicBlock(exceedsMaxBB);
+					createTrap(function);
+					function.selectBasicBlock(doesNotExceedMaxBB);
+				}
+				
+				const bool isSigned = false;
+				
+				const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+				const auto shift = builder.CreateSub(maxValue, operand);
+				
+				// Use a 128-bit integer type to avoid overflow.
+				const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
+				const auto shiftCasted = builder.CreateIntCast(shift, one128Bit->getType(), isSigned);
+				const auto shiftedValue = builder.CreateShl(one128Bit, shiftCasted);
+				const auto trailingOnesValue = builder.CreateSub(shiftedValue, one128Bit);
+				const auto result = builder.CreateNot(trailingOnesValue);
+				return builder.CreateIntCast(result, selfType, isSigned);
+			} else if (methodName == "trailing_ones") {
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto operand = loadArgRaw(function, args[0], sizeTType);
+				
+				if (!unsafe) {
+					// Check that operand <= sizeof(type) * 8.
+					const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+					const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
+					const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
+					const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
+					builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
+					function.selectBasicBlock(exceedsMaxBB);
+					createTrap(function);
+					function.selectBasicBlock(doesNotExceedMaxBB);
+				}
+				
+				// Use a 128-bit integer type to avoid overflow.
+				const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
+				const bool isSigned = false;
+				const auto operandCasted = builder.CreateIntCast(operand, one128Bit->getType(), isSigned);
+				const auto shiftedValue = builder.CreateShl(one128Bit, operandCasted);
+				const auto result = builder.CreateSub(shiftedValue, one128Bit);
+				return builder.CreateIntCast(result, selfType, isSigned);
 			} else if (hasStart(methodName, "implicit_cast_") || hasStart(methodName, "cast_")) {
 				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
 				const auto operand = loadArg(function, args[0], argType);
@@ -553,6 +650,55 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
+				if (methodName == "left_shift") {
+					const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+					const auto operand = loadArgRaw(function, args[1], sizeTType);
+					
+					if (!unsafe) {
+						// Check that operand <= leading_zeroes(value).
+						
+						// Calculate leading zeroes, or produce sizeof(T) - 1 if value == 0
+						// (which prevents shifting 0 by sizeof(T) * 8).
+						const auto leadingZeroes = countLeadingZeroesBounded(function, methodOwner);
+						
+						const bool isSigned = false;
+						const auto leadingZeroesSizeT = builder.CreateIntCast(leadingZeroes, operand->getType(), isSigned);
+						
+						const auto exceedsLeadingZeroes = builder.CreateICmpUGT(operand, leadingZeroesSizeT);
+						const auto exceedsLeadingZeroesBB = function.createBasicBlock("exceedsLeadingZeroes");
+						const auto doesNotExceedLeadingZeroesBB = function.createBasicBlock("doesNotExceedLeadingZeroes");
+						builder.CreateCondBr(exceedsLeadingZeroes, exceedsLeadingZeroesBB, doesNotExceedLeadingZeroesBB);
+						function.selectBasicBlock(exceedsLeadingZeroesBB);
+						createTrap(function);
+						function.selectBasicBlock(doesNotExceedLeadingZeroesBB);
+					}
+					
+					const bool isSigned = false;
+					const auto operandCasted = builder.CreateIntCast(operand, selfType, isSigned);
+					
+					return builder.CreateShl(methodOwner, operandCasted);
+				} else if (methodName == "right_shift") {
+					const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+					const auto operand = loadArgRaw(function, args[1], sizeTType);
+					
+					if (!unsafe) {
+						// Check that operand < sizeof(type) * 8.
+						const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth - 1);
+						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
+						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
+						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
+						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
+						function.selectBasicBlock(exceedsMaxBB);
+						createTrap(function);
+						function.selectBasicBlock(doesNotExceedMaxBB);
+					}
+					
+					const bool isSigned = false;
+					const auto operandCasted = builder.CreateIntCast(operand, selfType, isSigned);
+					
+					return builder.CreateLShr(methodOwner, operandCasted);
+				}
+				
 				const auto operand = loadArg(function, args[1], type);
 				llvm::Value* const binaryArgs[] = { methodOwner, operand };
 				
@@ -596,6 +742,10 @@ namespace locic {
 						function.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateURem(methodOwner, operand);
+				} else if (methodName == "bitwise_and") {
+					return builder.CreateAnd(methodOwner, operand);
+				} else if (methodName == "bitwise_or") {
+					return builder.CreateOr(methodOwner, operand);
 				} else if (methodName == "equal") {
 					return builder.CreateICmpEQ(methodOwner, operand);
 				} else if (methodName == "not_equal") {
@@ -619,7 +769,16 @@ namespace locic {
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
+			} else if (methodName == "in_range") {
+				const auto leftOperand = loadArg(function, args[1], type);
+				const auto rightOperand = loadArg(function, args[2], type);
+				
+				return builder.CreateAnd(
+						builder.CreateICmpULE(leftOperand, methodOwner),
+						builder.CreateICmpULE(methodOwner, rightOperand)
+					);
 			} else {
+				printf("%s\n", methodName.c_str());
 				llvm_unreachable("Unknown primitive method.");
 			}
 		}

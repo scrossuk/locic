@@ -155,6 +155,7 @@ set (STD_MEMORY_BINARY_FILES
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/stringbuffer.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/unichar.loci"
 	)
 
 set (STD_STRING_BINARY_FILES

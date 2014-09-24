@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 template <typename T>
 interface Comparable {
@@ -39,7 +39,7 @@ class CustomType(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass<int> object0 = TestClass<int>(0, 0);
 	testPrint(C"object0.isEqual = %s", object0.isEqual() ? C"YES" : C"NO");
 	

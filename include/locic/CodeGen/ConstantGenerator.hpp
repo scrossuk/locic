@@ -38,6 +38,10 @@ namespace locic {
 						llvm::APInt(sizeInBits, intValue));
 				}
 				
+				inline llvm::ConstantInt* getIntByType(llvm::IntegerType* type, long long intValue) const {
+					return llvm::ConstantInt::get(type, intValue);
+				}
+				
 				inline llvm::ConstantInt* getI1(bool value) const {
 					return getInt(1, value ? 1 : 0);
 				}

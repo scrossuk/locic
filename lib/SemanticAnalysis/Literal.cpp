@@ -140,7 +140,7 @@ namespace locic {
 					if (specifier == "") {
 						return "unichar";
 					} else if (specifier == "C") {
-						return "byte_t";
+						return "ubyte_t";
 					} else {
 						throw ErrorException(makeString("Invalid character literal specifier '%s'.",
 							specifier.c_str()));
@@ -158,15 +158,15 @@ namespace locic {
 		SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::STRING: {
-					// C strings have the type 'const byte * const', as opposed to just a
+					// C strings have the type 'const ubyte * const', as opposed to just a
 					// type name, so their type needs to be generated specially.
-					const auto byteTypeInstance = getBuiltInType(context.scopeStack(), "byte_t");
+					const auto byteTypeInstance = getBuiltInType(context.scopeStack(), "ubyte_t");
 					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
 					
-					// Generate type 'const byte'.
+					// Generate type 'const ubyte'.
 					const auto constByteType = byteTypeInstance->selfType()->createConstType();
 					
-					// Generate type 'const ptr<const byte>'.
+					// Generate type 'const ptr<const ubyte>'.
 					return SEM::Type::Object(ptrTypeInstance, { constByteType })->createConstType();
 				}
 				default: {

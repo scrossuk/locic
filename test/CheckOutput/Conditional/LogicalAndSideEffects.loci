@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 bool evaluate(bool value) {
 	testPrint(C"evaluate: value is %s", value ? C"true" : C"false");
@@ -11,7 +11,7 @@ bool logicalAnd(bool first, bool second) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"testEntryPoint: logicalAnd(false, false) = %s", logicalAnd(false, false) ? C"true" : C"false");
 	testPrint(C"testEntryPoint: logicalAnd(false, true) = %s", logicalAnd(false, true) ? C"true" : C"false");
 	testPrint(C"testEntryPoint: logicalAnd(true, false) = %s", logicalAnd(true, false) ? C"true" : C"false");

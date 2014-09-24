@@ -1,10 +1,8 @@
-import size_t strlen(const byte* const stringConstant) noexcept;
-
-import byte* strcpy(byte* dest, const byte* const src) noexcept;
+import size_t strlen(const ubyte* const stringConstant) noexcept;
 
 export std.string 0.1.0 {
 	
-	std::string string_literal(const byte* const stringConstant) {
+	std::string string_literal(const ubyte* const stringConstant) {
 		return std::string::cstring(stringConstant);
 	}
 	
@@ -12,49 +10,58 @@ export std.string 0.1.0 {
 		
 		exception out_of_range();
 		
-		class string (size_t length, byte* ptr) {
+		class string (size_t length, std::varray<ubyte> byteArray) {
 			static create() {
 				return string::cstring(C"");
 			}
 			
-			static cstring(const byte* const stringConstant) {
+			static cstring(const ubyte* const stringConstant) {
 				final auto length = strlen(stringConstant);
-				final auto ptr = std::alloc(length + 1u);
-				return @(length, strcpy(reinterpret_cast<void*, byte*>(ptr), stringConstant));
+				
+				auto byteArray = std::varray<ubyte>();
+				
+				for (auto i: std::counter<size_t>(1u, 0u, length)) {
+					byteArray.push_back(stringConstant[i]);
+				}
+				
+				byteArray.push_back(0u);
+				
+				return @(length, move byteArray);
 			}
 			
-			~ {
-				std::free(reinterpret_cast<byte*, void*>(@ptr));
-			}
-			
-			string implicitCopy() const {
-				final auto ptr = std::alloc(@length + 1u);
-				return @(@length, strcpy(reinterpret_cast<void*, byte*>(ptr), @ptr));
+			string implicit_copy() const {
+				auto byteArray = std::varray<ubyte>();
+				
+				for (auto i: std::counter<size_t>(0u, @byteArray.size(), 1u)) {
+					byteArray.push_back(@byteArray[i]);
+				}
+				
+				return @(@length, move byteArray);
 			}
 			
 			string add(string other) const {
 				final auto newLength = @length + other.length();
-				final auto ptr = std::alloc(newLength + 1u);
-				final auto newPtr = reinterpret_cast<void*, byte*>(ptr);
-				(void) strcpy(&newPtr[0u], @ptr);
-				(void) strcpy(&newPtr[@length], other.c_str());
-				newPtr[newLength] = 0;
-				return @(newLength, newPtr);
+				auto byteArray = std::varray<ubyte>();
+				
+				for (auto i: std::counter<size_t>(0u, @length, 1u)) {
+					byteArray.push_back(@byteArray[i]);
+				}
+				
+				for (auto i: std::counter<size_t>(0u, other.length(), 1u)) {
+					byteArray.push_back(other.c_str()[i]);
+				}
+				
+				byteArray.push_back(0u);
+				
+				return @(newLength, move byteArray);
 			}
 			
 			size_t length() const noexcept {
 				return @length;
 			}
 			
-			unichar at(size_t index) const {
-				if (index >= @length) {
-					throw out_of_range();
-				}
-				return @ptr[index];
-			}
-			
-			const byte* const c_str() const noexcept {
-				return @ptr;
+			const ubyte* const c_str() const noexcept {
+				return @byteArray.data();
 			}
 			
 			compare_result_t compare(const string& other) const noexcept {
@@ -67,8 +74,8 @@ export std.string 0.1.0 {
 						return @length.compare(other.length());
 					}
 					
-					final byte a = @ptr[i];
-					final byte b = other.c_str()[i];
+					final ubyte a = self.c_str()[i];
+					final ubyte b = other.c_str()[i];
 					if (a != b) {
 						if (a < b) {
 							return compare_result_t::less_than();
@@ -81,6 +88,14 @@ export std.string 0.1.0 {
 				}
 				
 				return compare_result_t::equal();
+			}
+			
+			stringbuffer make_buffer() const {
+				auto buffer = stringbuffer();
+				for (auto i: std::counter<size_t>(1u, 0u, @byteArray.size())) {
+					buffer.append(@byteArray[i]);
+				}
+				return move buffer;
 			}
 		}
 		

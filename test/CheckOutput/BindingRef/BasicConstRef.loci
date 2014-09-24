@@ -1,12 +1,12 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 void function(const int& value) {
 	testPrint(C"function: value = %d", value);
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	function(10);
 	
 	function(20);

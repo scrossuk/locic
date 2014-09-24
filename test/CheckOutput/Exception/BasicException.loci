@@ -1,10 +1,10 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 exception ExampleError(int value);
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	try {
 		throw ExampleError(1024);
 	} catch (ExampleError error) {

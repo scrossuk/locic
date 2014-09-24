@@ -1,10 +1,10 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 exception ExampleError(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l);
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	try {
 		throw ExampleError(1,2,3,4,5,6,7,8,9,10,11,12);
 	} catch (ExampleError error) {

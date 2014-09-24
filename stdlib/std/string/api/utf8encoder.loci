@@ -1,0 +1,44 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief UTF-8 encoder.
+		 * 
+		 * This class represents a range that pulls unicode characters
+		 * from an underlying forward_range and provides the equivalent
+		 * UTF-8 bytes.
+		 */
+		class utf8encoder {
+			/**
+			 * \brief Constructs a UTF-8 encoder based on a
+			 *        unicode character range.
+			 * 
+			 * \return A UTF-8 encoder.
+			 */
+			static utf8encoder create(forward_range<unichar>& range);
+			
+			/**
+			 * \brief Get whether the UTF-8 encoder is empty.
+			 * 
+			 * \return Whether the encoder is empty.
+			 */
+			bool empty() const;
+			
+			/**
+			 * \brief Move to next UTF-8 byte.
+			 */
+			void pop_front();
+			
+			/**
+			 * \brief Get current UTF-8 byte.
+			 * 
+			 * \return Current UTF-8 byte.
+			 */
+			const ubyte_t& front() const;
+		}
+		
+	}
+	
+}
+

@@ -2,7 +2,7 @@
 
 import int rand();
 
-import void printf(const byte* text, ...);
+import void printf(const ubyte* text, ...);
 
 double Random() {
 	// Not a great random number generator...
@@ -204,12 +204,12 @@ CR::Player& getPlayer(const std::string& playerString, CR::AIPlayer& aiPlayer, C
 }
 
 // Entry point.
-export int main(int argc, byte ** argv) {
+export int main(int argc, ubyte ** argv) {
 	final auto usage = "chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
 	
 	if (argc != 3) {
 		printf(C"Incorrect number of arguments! You need to give 2 arguments:\n");
-		printf(C"    %s\n", usage.c_str());
+		printf(C"    %s\n", usage.make_buffer().c_str());
 		return 1;
 	}
 	
@@ -228,7 +228,7 @@ export int main(int argc, byte ** argv) {
 		
 		playGame(renderWindow, player0, player1);
 	} catch (InvalidPlayerError error) {
-		printf(C"ERROR: Invalid player name '%s'.\n", error.name.c_str());
+		printf(C"ERROR: Invalid player name '%s'.\n", error.name.make_buffer().c_str());
 		return 1;
 	}
 	

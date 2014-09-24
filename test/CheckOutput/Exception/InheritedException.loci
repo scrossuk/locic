@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 exception GrandParentException(int value);
 
@@ -8,7 +8,7 @@ exception ParentException(int value1, int value2) : GrandParentException(value1 
 exception ChildException(int value1, int value2, int value3) : ParentException(value1 + value2, value2 + value3);
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	try {
 		throw ChildException(1, 10, 100);
 	} catch (ChildException e) {

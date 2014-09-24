@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Class definition.
 class DestClass(int value) {
@@ -32,7 +32,7 @@ class SourceClass(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	SourceClass originalObject = SourceClass(45);
 	DestClass castedObject = originalObject;
 	

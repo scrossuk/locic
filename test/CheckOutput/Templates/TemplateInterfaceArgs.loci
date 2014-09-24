@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 interface Printable {
 	void print();
@@ -48,7 +48,7 @@ class PolymorphicClass(Printable& printable) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	FirstClass a = FirstClass(100);
 	SecondClass b = SecondClass(200);
 	

@@ -1,9 +1,9 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const byte* const str, ...) noexcept;
-import int scanf(const byte* const str, ...) noexcept;
+import void printf(const ubyte* const str, ...) noexcept;
+import int scanf(const ubyte* const str, ...) noexcept;
 import int getchar() noexcept;
-import int atoi(const byte* const str);
+import int atoi(const ubyte* const str);
 
 exception EOFException();
 
@@ -16,11 +16,10 @@ std::varray<std::string> readCommandLine() {
 		while (true) {
 			final int charInt = getchar();
 			if (charInt == -1) {
-				printf(C"Got EOF\n");
 				throw EOFException();
 			}
 			
-			final byte charByte = charInt.cast<byte>();
+			final ubyte charByte = charInt.cast<uint>().cast<ubyte>();
 			if (charByte == C'\n') {
 				isTerminated = true;
 				break;
@@ -30,7 +29,7 @@ std::varray<std::string> readCommandLine() {
 				break;
 			}
 			
-			commandBuffer.appendByte(charByte);
+			commandBuffer.append(charByte);
 		}
 		
 		if (commandBuffer.length() > 0u) {
@@ -41,7 +40,7 @@ std::varray<std::string> readCommandLine() {
 	return move components;
 }
 
-export int main(int argc, byte** argv) {
+export int main(int argc, ubyte** argv) {
 	try {
 		auto values = std::varray<int>();
 		
@@ -62,7 +61,7 @@ export int main(int argc, byte** argv) {
 					continue;
 				}
 				
-				final int value = atoi(commandComponents[1u].c_str());
+				final int value = atoi(commandComponents[1u].make_buffer().c_str());
 				values.push_back(value);
 				printf(C"Added value: %d\n", value);
 			} else if (command == "clear") {
@@ -107,7 +106,7 @@ export int main(int argc, byte** argv) {
 				printf(C"Exiting...\n");
 				return 0;
 			} else {
-				printf(C"Unknown command '%s'.\n", command.c_str());
+				printf(C"Unknown command '%s'.\n", command.make_buffer().c_str());
 			}
 		}
 	} catch (EOFException e) {

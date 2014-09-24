@@ -99,7 +99,11 @@ const T& GETSYM(T* value) {
 // Expecting to get a certain number of shift/reduce
 // and reduce/reduce conflicts.
 %expect 8
-%expect-rr 3
+
+// Reduce-reduce conflicts occur due to the clash between
+// variable definitions and value assignments (resolved
+// by favouring the latter; see below for more information).
+%expect-rr 4
 
 %lex-param {void * scanner}
 %lex-param {locic::Parser::Context * parserContext}
@@ -240,9 +244,15 @@ const T& GETSYM(T* value) {
 %token SIGNED
 %token UNSIGNED
 %token BYTE
+%token UBYTE
 %token SHORT
+%token USHORT
 %token INT
+%token UINT
 %token LONG
+%token ULONG
+%token LONGLONG
+%token ULONGLONG
 %token FLOAT
 %token DOUBLE
 
@@ -388,15 +398,18 @@ const T& GETSYM(T* value) {
 %type <value> value
 %type <valueList> nonEmptyValueList
 %type <valueList> valueList
-%type <value> precision0
-%type <value> precision1
-%type <value> precision2
-%type <value> precision3
-%type <value> precision4
-%type <value> precision5
-%type <value> precision6
-%type <value> precision7
-%type <value> precision8
+%type <value> value_precedence0
+%type <value> value_precedence1
+%type <value> value_precedence2
+%type <value> value_precedence3
+%type <value> value_precedence4
+%type <value> value_precedence5
+%type <value> value_precedence6
+%type <value> value_precedence7
+%type <value> value_precedence8
+%type <value> value_precedence9
+%type <value> value_precedence10
+%type <value> value_precedence11
 
 // ================ Rules ================
 %%
@@ -940,13 +953,25 @@ integerType:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "byte")));
 	}
+	| UBYTE
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "byte")));
+	}
 	| optionalSignedModifier SHORT optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "short")));
 	}
+	| USHORT
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "short")));
+	}
 	| optionalSignedModifier INT
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "int")));
+	}
+	| UINT
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "int")));
 	}
 	| SIGNED
 	{
@@ -968,6 +993,10 @@ integerType:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "long")));
 	}
+	| ULONG
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "long")));
+	}
 	| LONG LONG optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::NO_SIGNED, "longlong")));
@@ -975,6 +1004,14 @@ integerType:
 	| signedModifier LONG LONG optionalInt
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "longlong")));
+	}
+	| signedModifier LONGLONG
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer($1, "longlong")));
+	}
+	| ULONGLONG
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Integer(locic::AST::Type::UNSIGNED, "longlong")));
 	}
 	;
 
@@ -1364,6 +1401,12 @@ normalStatement:
 	 * Given that multiplication shouldn't return an l-value
 	 * (if it really must, use parentheses around it),
 	 * variable definitions always take precedence in this case.
+	 * 
+	 * A similar situation occurs for references; for example:
+	 * 
+	 *     T & r = value;
+	 * 
+	 * As above, this is assumed to be a variable definition.
 	 */
 	typeVar SETEQUAL value %dprec 2
 	{
@@ -1391,7 +1434,7 @@ normalStatement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))))))));
 	}
-	| precision5 PERCENTEQUAL precision6
+	| value_precedence3 PERCENTEQUAL value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))))))));
 	}
@@ -1463,8 +1506,8 @@ castKind:
 	}
 	;
 	
-precision8:
-	LROUNDBRACKET precision0 RROUNDBRACKET
+value_precedence0:
+	LROUNDBRACKET value_precedence8 RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Bracket(GETSYM($2))));
 	}
@@ -1526,165 +1569,202 @@ precision8:
 	}
 	;
 	
-precision7:
-	precision8
+value_precedence1:
+	value_precedence0
 	{
 		$$ = $1;
 	}
-	| precision7 DOT NAME
+	| value_precedence1 DOT NAME
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
 	}
-	| precision7 DOT NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
+	| value_precedence1 DOT NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
-	| precision7 PTRACCESS NAME
+	| value_precedence1 PTRACCESS NAME
 	{
 		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, GETSYM($3))));
 	}
-	| precision7 LROUNDBRACKET valueList RROUNDBRACKET
+	| value_precedence1 LROUNDBRACKET valueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
 	}
-	| precision7 LSQUAREBRACKET value RSQUAREBRACKET
+	| value_precedence1 LSQUAREBRACKET value RSQUAREBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("index", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-precision6:
-	precision7
+value_precedence2:
+	value_precedence1
 	{
 		$$ = $1;
 	}
-	| PLUS precision6
+	| PLUS value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
 	}
-	| MINUS precision6
+	| MINUS value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
 	}
-	| EXCLAIMMARK precision6
+	| EXCLAIMMARK value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
 	}
-	| AMPERSAND precision6
+	| AMPERSAND value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
 	}
-	| STAR precision6
+	| STAR value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
 	}
-	| MOVE precision6
+	| MOVE value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
 	}
 	;
 	
-precision5:
-	precision6
+value_precedence3:
+	value_precedence2
 	{
 		$$ = $1;
 	}
-	| precision5 STAR precision6
+	| value_precedence3 STAR value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))));
 	}
-	| precision5 FORWARDSLASH precision6
+	| value_precedence3 FORWARDSLASH value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))));
 	}
-	| precision5 PERCENT precision6
+	| value_precedence3 PERCENT value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-precision4:
-	precision5
+value_precedence4:
+	value_precedence3
 	{
 		$$ = $1;
 	}
-	| precision4 PLUS precision5
+	| value_precedence4 PLUS value_precedence3
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_ADD, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 MINUS precision5
+	| value_precedence4 MINUS value_precedence3
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_SUBTRACT, GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-precision3:
-	precision4
+value_precedence5:
+	value_precedence4
 	{
 		$$ = $1;
 	}
-	| precision4 ISEQUAL precision4
+	| value_precedence5 LTRIBRACKET LTRIBRACKET value_precedence4
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LEFTSHIFT, GETSYM($1), GETSYM($4))));
+	}
+	| value_precedence5 RTRIBRACKET RTRIBRACKET value_precedence4
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_RIGHTSHIFT, GETSYM($1), GETSYM($4))));
+	}
+	;
+	
+value_precedence6:
+	value_precedence5
+	{
+		$$ = $1;
+	}
+	| value_precedence5 ISEQUAL value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_ISEQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 NOTEQUAL precision4
+	| value_precedence5 NOTEQUAL value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_NOTEQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 LTRIBRACKET precision4
+	| value_precedence5 LTRIBRACKET value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LESSTHAN, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 RTRIBRACKET precision4
+	| value_precedence5 RTRIBRACKET value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_GREATERTHAN, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 LESSOREQUAL precision4
+	| value_precedence5 LESSOREQUAL value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LESSTHANOREQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| precision4 GREATEROREQUAL precision4
+	| value_precedence5 GREATEROREQUAL value_precedence5
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_GREATERTHANOREQUAL, GETSYM($1), GETSYM($3))));
 	}
 	;
 
-precision2:
-	precision3
+value_precedence7:
+	value_precedence6
 	{
 		$$ = $1;
 	}
-	| precision2 DOUBLE_AMPERSAND precision3
+	| value_precedence7 AMPERSAND value_precedence6
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_BITWISEAND, GETSYM($1), GETSYM($3))));
+	}
+	;
+
+value_precedence8:
+	value_precedence7
+	{
+		$$ = $1;
+	}
+	| value_precedence8 VERTICAL_BAR value_precedence7
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_BITWISEOR, GETSYM($1), GETSYM($3))));
+	}
+	;
+
+value_precedence9:
+	value_precedence8
+	{
+		$$ = $1;
+	}
+	| value_precedence9 DOUBLE_AMPERSAND value_precedence8
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALAND, GETSYM($1), GETSYM($3))));
 	}
 	;
 
-precision1:
-	precision2
+value_precedence10:
+	value_precedence9
 	{
 		$$ = $1;
 	}
-	| precision1 DOUBLE_VERTICAL_BAR precision2
+	| value_precedence10 DOUBLE_VERTICAL_BAR value_precedence9
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALOR, GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-precision0:
-	precision1
+value_precedence11:
+	value_precedence10
 	{
 		$$ = $1;
 	}
-	| precision1 QUESTIONMARK precision0 COLON precision0
+	| value_precedence10 QUESTIONMARK value_precedence11 COLON value_precedence11
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
 	;
 	
 value:
-	precision0
+	value_precedence11
 	{
 		$$ = $1;
 	}

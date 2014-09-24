@@ -1,8 +1,8 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	auto list = std::list<int>();
 	
 	for (auto i: std::counter<int>(1, 0, 10)) {

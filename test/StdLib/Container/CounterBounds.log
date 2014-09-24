@@ -1,5 +1,6 @@
 Counting from 250 to 255 in increments of 1.
 CountObject: compare 250 and 255
+CountObject: compare 250 and 255
 Value 0 = 250.
 CountObject: 250 + 1
 CountObject: compare 251 and 255

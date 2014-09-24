@@ -23,6 +23,11 @@
 // To fix 'unused parameter' warnings.
 #define YY_EXIT_FAILURE ((void) yyscanner, 2)
 
+// TODO: this should be replaced with more complete validation.
+static locic::Constant::IntegerVal parseHex(const char* const data) {
+	return strtoll(data, NULL, 16);
+}
+
 %}
 
 %option prefix="Locic_Parser_GeneratedLexer_"
@@ -130,9 +135,15 @@ void                    { return VOID; }
 signed                  { return SIGNED; }
 unsigned                { return UNSIGNED; }
 byte                    { return BYTE; }
+ubyte                   { return UBYTE; }
 short                   { return SHORT; }
+ushort                  { return USHORT; }
 int                     { return INT; }
+uint                    { return UINT; }
 long                    { return LONG; }
+ulong                   { return ULONG; }
+longlong                { return LONGLONG; }
+ulonglong               { return ULONGLONG; }
 float                   { return FLOAT; }
 double                  { return DOUBLE; }
 
@@ -140,6 +151,7 @@ null                    { return NULLVAL; }
 true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }
 false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
 [0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }
+0x[0-9A-F]+             { yylval->lexer_constant = locic::Constant::Integer(parseHex(yytext)); return CONSTANT; }
 [0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(atof(yytext)); return CONSTANT; }
 
 [0-9]+\.[0-9]+.[0-9]+   { yylval->lexer_version = new locic::Version(locic::Version::FromString(yytext)); return VERSION; }

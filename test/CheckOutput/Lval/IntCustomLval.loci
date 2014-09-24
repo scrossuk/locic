@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 class custom_lval(int value) {
 	static Create(int value) {
@@ -59,7 +59,7 @@ void moveFunction(lval<int> custom_lval& objectLval) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	lval<int> custom_lval value = lval<int>(custom_lval(4));
 	
 	testPrint(C"testEntryPoint: Value = %d", value);

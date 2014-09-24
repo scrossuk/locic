@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 exception TestError();
 
@@ -26,7 +26,7 @@ void testFunction(int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	scope (exit) {
 		testPrint(C"testEntryPoint: Program exit");
 	}

@@ -1,0 +1,44 @@
+export std.string 0.1.0 {
+	
+	std::unichar character_literal(uint32_t characterConstant) noexcept {
+		return std::unichar(characterConstant);
+	}
+	
+	namespace std {
+		
+		class unichar(uint32_t value) {
+			static create = default;
+			
+			static implicit_cast_ubyte_t(ubyte_t value) noexcept {
+				return @(value);
+			}
+			
+			static implicit_cast_uint8_t(uint8_t value) noexcept {
+				return @(value);
+			}
+			
+			static implicit_cast_uint16_t(uint16_t value) noexcept {
+				return @(value);
+			}
+			
+			static implicit_cast_uint32_t(uint32_t value) noexcept {
+				return @(value);
+			}
+			
+			unichar implicit_copy() const noexcept {
+				return @(@value);
+			}
+			
+			uint32_t raw_value() const noexcept {
+				return @value;
+			}
+			
+			bool in_range(unichar least, unichar most) const noexcept {
+				return @value.in_range(least.raw_value(), most.raw_value());
+			}
+		}
+		
+	}
+	
+}
+

@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 int testVal(int value) {
 	if (value > 10) {
@@ -10,7 +10,7 @@ int testVal(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	int i = 8;
 	
 	testPrint(C"testEntryPoint: START");

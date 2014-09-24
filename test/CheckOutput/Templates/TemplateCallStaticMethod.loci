@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 class StaticMethodClass() {
 	static int makeInt() {
@@ -26,7 +26,7 @@ class TestClass() {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass<StaticMethodClass>::print();
 	return 0;
 }

@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 class TestClass(int value) {
 	static create(int value) {
@@ -30,7 +30,7 @@ class OwnerClass(int id, std::shared_ptr<TestClass> ptr) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	auto sharedPtr = std::new_shared<TestClass>(TestClass(10));
 	
 	auto owner0 = OwnerClass(0, sharedPtr);

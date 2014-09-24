@@ -1,8 +1,8 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"testEntryPoint: Add outer scope exit #1");
 	scope (exit) {
 		testPrint(C"testEntryPoint: Outer scope exit #1");

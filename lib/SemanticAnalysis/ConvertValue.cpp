@@ -53,6 +53,14 @@ namespace locic {
 					return "&&";
 				case AST::OP_LOGICALOR:
 					return "||";
+				case AST::OP_BITWISEAND:
+					return "&";
+				case AST::OP_BITWISEOR:
+					return "|";
+				case AST::OP_LEFTSHIFT:
+					return "<<";
+				case AST::OP_RIGHTSHIFT:
+					return ">>";
 			}
 			
 			std::terminate();
@@ -86,6 +94,14 @@ namespace locic {
 					return "logical_and";
 				case AST::OP_LOGICALOR:
 					return "logical_or";
+				case AST::OP_BITWISEAND:
+					return "bitwise_and";
+				case AST::OP_BITWISEOR:
+					return "bitwise_or";
+				case AST::OP_LEFTSHIFT:
+					return "left_shift";
+				case AST::OP_RIGHTSHIFT:
+					return "right_shift";
 			}
 			
 			std::terminate();
@@ -404,6 +420,22 @@ namespace locic {
 							// Logical OR only evaluates the right operand if the left
 							// operand is FALSE, otherwise it returns TRUE.
 							return SEM::Value::Ternary(boolValue, SEM::Value::Constant(Constant::True(), boolType), rightOperand);
+						}
+						case AST::OP_BITWISEAND: {
+							const auto opMethod = GetMethod(context, objectValue, "bitwise_and", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_BITWISEOR: {
+							const auto opMethod = GetMethod(context, objectValue, "bitwise_or", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_LEFTSHIFT: {
+							const auto opMethod = GetMethod(context, objectValue, "left_shift", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
+						}
+						case AST::OP_RIGHTSHIFT: {
+							const auto opMethod = GetMethod(context, objectValue, "right_shift", location);
+							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 					}
 					

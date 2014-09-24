@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 exception ExampleError1(int value1);
 exception ExampleError2(int value1, int value2);
@@ -43,7 +43,7 @@ void throwFunction(int throwIndex) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	throwFunction(0);
 	throwFunction(1);
 	throwFunction(2);

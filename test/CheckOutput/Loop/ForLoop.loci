@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 class test_range(int value, int position, int limit) {
 	static Create(int limit) {
@@ -24,7 +24,7 @@ class test_range(int value, int position, int limit) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	
 	for (auto value: test_range(8)) {
 		testPrint(C"testEntryPoint(up to 2^8): value = %d", value);

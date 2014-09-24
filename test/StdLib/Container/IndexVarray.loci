@@ -1,8 +1,8 @@
 // Test output.
-import void testPrint(const byte * const str, ...) noexcept;
+import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	auto varray = std::varray<int>();
 	
 	for (auto i: std::counter<int>(1, 0, 10)) {

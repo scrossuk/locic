@@ -18,7 +18,7 @@ import {
 	
 	void sfText_setCharacterSize(sfText* text, unsigned int size) noexcept;
 	
-	void sfText_setString(sfText* text, const byte* const string) noexcept;
+	void sfText_setString(sfText* text, const ubyte* const string) noexcept;
 	
 	void sfText_setOrigin(sfText* text, sfVector2f position) noexcept;
 	
@@ -65,7 +65,7 @@ namespace sf {
 			sfText_setCharacterSize(@text, size);
 		}
 		
-		void setString(const byte* const string) {
+		void setString(const ubyte* const string) {
 			sfText_setString(@text, string);
 		}
 		

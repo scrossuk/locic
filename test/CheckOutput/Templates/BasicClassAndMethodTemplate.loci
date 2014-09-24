@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 template <typename S>
 class TestClass(S object) {
@@ -12,7 +12,7 @@ class TestClass(S object) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	TestClass<int> testObject = TestClass<int>(1);
 	
 	testPrint(C"passThrough<int>(2000) = %d", testObject.passThrough<int>(2000));

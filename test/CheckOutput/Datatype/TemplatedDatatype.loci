@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 template <typename T>
 datatype TestBasicDatatype(T a, T b, T c);
@@ -30,7 +30,7 @@ void printUnionDatatype(TestUnionDatatype<int> data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	printBasicDatatype(TestBasicDatatype<int>(9, 99, 999));
 	printUnionDatatype(TestUnionDatatype0<int>(9));
 	printUnionDatatype(TestUnionDatatype1<int>(9, 99));

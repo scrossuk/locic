@@ -3,7 +3,7 @@ class TestClass(int value, int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	return 0;
 }
 

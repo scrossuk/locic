@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const byte * const str, ...);
+import void testPrint(const ubyte * const str, ...);
 
 bool evaluateBool(bool value) {
 	testPrint(C"evaluateBool: value is %s", value ? C"TRUE" : C"FALSE");
@@ -21,7 +21,7 @@ bool getBool(bool* value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, byte ** argv) {
+export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"testEntryPoint: selectValue(true, 1, 2) = %d", selectValue(true, 1, 2));
 	testPrint(C"testEntryPoint: selectValue(false, 1, 2) = %d", selectValue(false, 1, 2));
 	testPrint(C"testEntryPoint: selectValue(true, -1, -2) = %d", selectValue(true, -1, -2));

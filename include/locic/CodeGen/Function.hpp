@@ -45,6 +45,8 @@ namespace locic {
 				
 				llvm::Function& getLLVMFunction();
 				
+				const llvm::Function& getLLVMFunction() const;
+				
 				llvm::Function* getLLVMFunctionPtr();
 				
 				Module& module();
