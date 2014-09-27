@@ -31,6 +31,7 @@ add_library(locic-codegen
 	Primitives/PrimitiveTypes.cpp
 	Primitives/PrimitiveTypeSizeKnowledge.cpp
 	Primitives/PrimitiveValueLval.cpp
+	Routines.cpp
 	ScopeExitActions.cpp
 	SizeOf.cpp
 	Support.cpp

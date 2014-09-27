@@ -1,0 +1,43 @@
+template <typename T>
+interface __implicit_cast_from_double_t {
+	static T implicit_cast_double_t(double_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_double_t {
+	static T cast_double_t(double_t value) noexcept;
+}
+
+__primitive double_t {
+	static double_t implicit_cast_float_t(float_t value) noexcept;
+	
+	static double_t cast_longdouble_t(longdouble_t value) noexcept;
+	
+	double_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_double_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_double_t<T>>
+	T cast() const noexcept;
+	
+	double_t plus() const noexcept;
+	double_t minus() const noexcept;
+	
+	double_t abs() const noexcept;
+
+	double_t add(const double_t& v) const noexcept;
+	double_t subtract(const double_t& v) const noexcept;
+	double_t multiply(const double_t& v) const noexcept;
+	double_t divide(const double_t& v) const noexcept;
+	double_t modulo(const double_t& v) const noexcept;
+	
+	bool equal(const double_t& v) const noexcept;
+	bool not_equal(const double_t& v) const noexcept;
+	bool less_than(const double_t& v) const noexcept;
+	bool less_than_or_equal(const double_t& v) const noexcept;
+	bool greater_than(const double_t& v) const noexcept;
+	bool greater_than_or_equal(const double_t& v) const noexcept;
+	
+	compare_result_t compare(const double_t& v) const noexcept;
+}

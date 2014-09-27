@@ -31,7 +31,6 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair("void_t", PrimitiveVoid));
 			primitiveMap_.insert(std::make_pair("null_t", PrimitiveNull));
 			primitiveMap_.insert(std::make_pair("bool", PrimitiveBool));
-			primitiveMap_.insert(std::make_pair("unichar", PrimitiveUnichar));
 			primitiveMap_.insert(std::make_pair("float_t", PrimitiveFloat));
 			primitiveMap_.insert(std::make_pair("double_t", PrimitiveDouble));
 			primitiveMap_.insert(std::make_pair("longdouble_t", PrimitiveLongDouble));

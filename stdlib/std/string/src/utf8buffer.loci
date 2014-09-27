@@ -1,0 +1,50 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class utf8buffer (size_t length, std::varray<ubyte> byteArray) {
+			static create() {
+				auto byteArray = std::varray<ubyte>();
+				byteArray.push_back(0u);
+				return @(0u, move byteArray);
+			}
+			
+			bool empty() const noexcept {
+				return @length == 0u;
+			}
+			
+			size_t length() const noexcept {
+				return @length;
+			}
+			
+			void append(final unichar character) {
+				@length += 1u;
+				
+				// Remove null terminator.
+				@byteArray.pop_back();
+				
+				encode_utf8_character(character, @byteArray);
+				
+				// Re-add null terminator.
+				@byteArray.push_back(0u);
+			}
+			
+			void append_range(forward_range<unichar>& range) {
+				for (unichar character: range) {
+					self.append(character);
+				}
+			}
+			
+			const ubyte* const c_str() const noexcept {
+				return @byteArray.data();
+			}
+			
+			string str() const {
+				return string::cstring(self.c_str());
+			}
+		}
+		
+	}
+	
+}
+

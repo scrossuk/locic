@@ -1,8 +1,4 @@
-template <virtual typename T>
-__primitive ref{
-	static unit();
-	
-	T& forward() const;
+template <typename T>
+__primitive __ref {
+	__ref<T> implicitCopy() const noexcept;
 }
-
-

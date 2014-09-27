@@ -1,30 +1,24 @@
-template <virtual typename T>
-__primitive ptr{
-	static unit();
+template <typename T>
+__primitive __ptr {
+	static __ptr<T> null() noexcept;
 	
-	static null();
+	__ptr<T> implicitCopy() const noexcept;
 	
-	lval ptr_lval<T> deref();
-	lval const ptr_lval<T> deref() const;
+	// TODO: this should be const-templated once the compiler supports that.
+	lval<T> ptr_lval<T> deref() const noexcept;
 	
-	ptr<T> add(ssize_t offset) const;
+	// TODO: this should be const-templated once the compiler supports that.
+	lval<T> ptr_lval<T> index(size_t index) const noexcept;
 	
-	ssize_t subtract(ptr<T> ptr) const;
+	__ptr<T> add(const ptrdiff_t& v) const noexcept;
+	ptrdiff_t subtract(const __ptr<T>& v) const noexcept;
 	
-	lval ptr_lval<T> atIndex(size_t index);
-	lval const ptr_lval<T> atIndex(size_t index) const;
+	bool equal(const __ptr<T>& value) const noexcept;
+	bool not_equal(const __ptr<T>& value) const noexcept;
+	bool less_than(const __ptr<T>& v) const noexcept;
+	bool less_than_or_equal(const __ptr<T>& v) const noexcept;
+	bool greater_than(const __ptr<T>& v) const noexcept;
+	bool greater_than_or_equal(const __ptr<T>& v) const noexcept;
+	
+	int compare(const __ptr<T>& value) const noexcept;
 }
-
-template <virtual typename T>
-__primitive ptr_lval {
-	T lvalMove();
-	
-	void lvalSet(T value);
-	
-	T& lvalGet() const;
-	
-	T* lvalAddress();
-	T* const lvalAddress() const;
-}
-
-

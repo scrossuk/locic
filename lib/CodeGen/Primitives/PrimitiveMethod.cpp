@@ -17,6 +17,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -134,7 +135,11 @@ namespace locic {
 				methodName == "dissolve" ||
 				methodName == "move" ||
 				methodName == "signedValue" ||
-				methodName == "unsignedValue";
+				methodName == "unsignedValue" ||
+				methodName == "count_leading_zeroes" ||
+				methodName == "count_leading_ones" ||
+				methodName == "count_trailing_zeroes" ||
+				methodName == "count_trailing_ones";
 		}
 		
 		bool isBinaryOp(const std::string& methodName) {
@@ -518,43 +523,6 @@ namespace locic {
 			}
 		}
 		
-		// Count leading zeroes.
-		llvm::Value* countLeadingZeroes(Function& function, llvm::Value* value, bool isZeroUndef = false) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
-			
-			ConstantGenerator constGen(module);
-			
-			llvm::Type* const ctlzTypes[] = { value->getType() };
-			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
-			llvm::Value* const ctlzArgs[] = { value, constGen.getI1(isZeroUndef) };
-			return builder.CreateCall(countLeadingZerosFunction, ctlzArgs);
-		}
-		
-		// Count leading zeroes if value > 0, and return sizeof(T) if value == 0.
-		// 
-		// For example:
-		// 
-		//     ctlz_bounded(uint32_t(0)) = 31
-		//     ctlz_bounded(uint32_t(1)) = 31
-		//     ctlz_bounded(uint32_t(2)) = 30
-		//     ctlz_bounded(uint32_t(4)) = 29
-		//     etc.
-		// 
-		llvm::Value* countLeadingZeroesBounded(Function& function, llvm::Value* value) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
-			
-			const auto intType = llvm::cast<llvm::IntegerType>(value->getType());
-			
-			ConstantGenerator constGen(module);
-			const auto leadingZeroes = countLeadingZeroes(function, value, true);
-			const auto maxValue = constGen.getIntByType(intType, intType->getIntegerBitWidth() - 1);
-			
-			const auto isEqualToZero = builder.CreateICmpEQ(value, constGen.getIntByType(intType, 0));
-			return builder.CreateSelect(isEqualToZero, maxValue, leadingZeroes);
-		}
-		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -646,6 +614,30 @@ namespace locic {
 					return builder.CreateICmpEQ(methodOwner, zero);
 				} else if (methodName == "signedValue") {
 					return methodOwner;
+				} else if (methodName == "count_leading_zeroes") {
+					const auto bitCount = countLeadingZeroes(function, methodOwner);
+					
+					// Cast to size_t.
+					const bool isSigned = false;
+					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+				} else if (methodName == "count_leading_ones") {
+					const auto bitCount = countLeadingOnes(function, methodOwner);
+					
+					// Cast to size_t.
+					const bool isSigned = false;
+					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+				} else if (methodName == "count_trailing_zeroes") {
+					const auto bitCount = countTrailingZeroes(function, methodOwner);
+					
+					// Cast to size_t.
+					const bool isSigned = false;
+					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+				} else if (methodName == "count_trailing_ones") {
+					const auto bitCount = countTrailingOnes(function, methodOwner);
+					
+					// Cast to size_t.
+					const bool isSigned = false;
+					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
@@ -657,7 +649,7 @@ namespace locic {
 					if (!unsafe) {
 						// Check that operand <= leading_zeroes(value).
 						
-						// Calculate leading zeroes, or produce sizeof(T) - 1 if value == 0
+						// Calculate leading zeroes, or produce sizeof(T) * 8 - 1 if value == 0
 						// (which prevents shifting 0 by sizeof(T) * 8).
 						const auto leadingZeroes = countLeadingZeroesBounded(function, methodOwner);
 						
@@ -868,47 +860,6 @@ namespace locic {
 					const auto plusOne = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOne,
 							builder.CreateSelect(isGreaterThan, plusOne, zero));
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
-				}
-			} else {
-				llvm_unreachable("Unknown primitive method.");
-			}
-		}
-		
-		llvm::Value* genUnicharPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
-			
-			const auto& methodName = semFunction->name().last();
-			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
-			
-			if (hasStart(methodName, "implicit_cast_") || hasStart(methodName, "cast_")) {
-				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
-				const auto operand = loadArg(function, args[0], argType);
-				return builder.CreateZExtOrTrunc(operand, genType(module, type));
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicitCast") {
-					return genImplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "cast") {
-					return genExplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "implicitCopy") {
-					return methodOwner;
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
-				}
-			} else if (isBinaryOp(methodName)) {
-				const auto operand = loadArg(function, args[1], type);
-				
-				if (methodName == "compare") {
-					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
-					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
-					const auto zeroResult = ConstantGenerator(module).getI8(0);
-					const auto plusOneResult = ConstantGenerator(module).getI8(1);
-					return builder.CreateSelect(isLessThan, minusOneResult,
-							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
@@ -1252,8 +1203,6 @@ namespace locic {
 					return genPtrLvalPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitivePtr:
 					return genPtrPrimitiveMethodCall(function, type, semFunction, args);
-				case PrimitiveUnichar:
-					return genUnicharPrimitiveMethodCall(function, type, semFunction, templateArgs, args);
 				case PrimitiveInt8:
 				case PrimitiveInt16:
 				case PrimitiveInt32:

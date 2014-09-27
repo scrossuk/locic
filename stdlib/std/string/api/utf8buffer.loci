@@ -3,18 +3,17 @@ import std.string 0.1.0 {
 	namespace std {
 		
 		/**
-		 * \brief String Buffer
+		 * \brief UTF-8 Buffer
 		 * 
-		 * This class can be used to build strings by appending a
-		 * sequence of unicode characters.
+		 * Represents a sequence of UTF-8 encoded unicode characters.
 		 */
-		class stringbuffer {
+		class utf8buffer {
 			/**
 			 * \brief Constructs an empty string buffer.
 			 * 
 			 * \return An empty string buffer.
 			 */
-			static stringbuffer create();
+			static utf8buffer create();
 			
 			/**
 			 * \brief Get whether the string buffer is empty.

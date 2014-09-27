@@ -1,0 +1,3 @@
+__primitive typename_t {
+	typename_t implicitCopy() const noexcept;
+}

@@ -1,0 +1,18 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		exception utf8_decode_error(const ubyte* const error);
+		
+		void encode_utf8(input_range<unichar>& source, output_range<ubyte>& dest);
+		
+		void decode_utf8(input_range<ubyte>& source, output_range<unichar>& dest);
+		
+		void encode_utf8_character(unichar character, output_range<ubyte>& dest);
+		
+		unichar decode_utf8_character(input_range<ubyte>& source);
+		
+	}
+	
+}
+

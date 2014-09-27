@@ -1,0 +1,57 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief String Builder
+		 * 
+		 * Mutable buffer for efficiently constructing string instances.
+		 */
+		class stringbuilder {
+			/**
+			 * \brief Constructs an empty string builder.
+			 * 
+			 * \return An empty string builder.
+			 */
+			static stringbuilder create();
+			
+			/**
+			 * \brief Get whether the string builder is empty.
+			 * 
+			 * \return Whether the string builder is empty.
+			 */
+			bool empty() const noexcept;
+			
+			/**
+			 * \brief Get string builder contents length (number of unicode characters).
+			 * 
+			 * \return The string builder contents length.
+			 */
+			size_t length() const noexcept;
+			
+			/**
+			 * \brief Append a unicode character.
+			 * 
+			 * \param The character to append.
+			 */
+			void append(unichar character);
+			
+			/**
+			 * \brief Append a range of unicode characters.
+			 * 
+			 * \param The range of characters to append.
+			 */
+			void append_range(forward_range<unichar>& range);
+			
+			/**
+			 * \brief Generates a string value.
+			 * 
+			 * \return A string value containing the string builder's contents.
+			 */
+			string str() const;
+		}
+		
+	}
+	
+}
+

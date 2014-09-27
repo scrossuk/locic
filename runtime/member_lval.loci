@@ -1,0 +1,12 @@
+template <typename T>
+__primitive member_lval {
+	static member_lval<T> __empty() noexcept;
+	
+	T* address() noexcept;
+	void assign(T value) noexcept;
+	T& dissolve() const noexcept;
+	
+	void __set_value(T value) noexcept;
+	T __extract_value() noexcept;
+	void __destroy_value() noexcept;
+}

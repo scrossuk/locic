@@ -1,7 +1,0 @@
-__primitive bool{
-	bool implicitCopy();
-	
-	bool not();
-};
-
-

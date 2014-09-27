@@ -1,0 +1,43 @@
+template <typename T>
+interface __implicit_cast_from_ulong_t {
+	static T implicit_cast_ulong_t(ulong_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_ulong_t {
+	static T cast_ulong_t(ulong_t value) noexcept;
+}
+
+__primitive ulong_t {
+	static ulong_t implicit_cast_uint8_t(uint8_t value) noexcept;
+	static ulong_t implicit_cast_uint16_t(uint16_t value) noexcept;
+	static ulong_t implicit_cast_uint32_t(uint32_t value) noexcept;
+	static ulong_t implicit_cast_ubyte_t(ubyte_t value) noexcept;
+	static ulong_t implicit_cast_ushort_t(ushort_t value) noexcept;
+	static ulong_t implicit_cast_uint_t(uint_t value) noexcept;
+	
+	ulong_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_ulong_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_ulong_t<T>>
+	T cast() const noexcept;
+	
+	ulong_t add(const ulong_t& v) const noexcept;
+	ulong_t subtract(const ulong_t& v) const noexcept;
+	ulong_t multiply(const ulong_t& v) const noexcept;
+	ulong_t divide(const ulong_t& v) const noexcept;
+	ulong_t modulo(const ulong_t& v) const noexcept;
+	
+	bool equal(const ulong_t& v) const noexcept;
+	bool not_equal(const ulong_t& v) const noexcept;
+	bool less_than(const ulong_t& v) const noexcept;
+	bool less_than_or_equal(const ulong_t& v) const noexcept;
+	bool greater_than(const ulong_t& v) const noexcept;
+	bool greater_than_or_equal(const ulong_t& v) const noexcept;
+	
+	compare_result_t compare(const ulong_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+}

@@ -1,0 +1,50 @@
+template <typename T>
+interface __implicit_cast_from_size_t {
+	static T implicit_cast_size_t(size_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_size_t {
+	static T cast_size_t(size_t value) noexcept;
+}
+
+__primitive size_t {
+	static size_t unit() noexcept;
+	
+	static size_t implicit_cast_uint8_t(uint8_t value) noexcept;
+	static size_t implicit_cast_uint16_t(uint16_t value) noexcept;
+	static size_t implicit_cast_ubyte_t(ubyte_t value) noexcept;
+	static size_t implicit_cast_ushort_t(ushort_t value) noexcept;
+	
+	static size_t cast_int_t(int_t value) noexcept;
+	static size_t cast_float_t(float_t value) noexcept;
+	static size_t cast_double_t(double_t value) noexcept;
+	static size_t cast_longdouble_t(longdouble_t value) noexcept;
+	
+	size_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_size_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_size_t<T>>
+	T cast() const noexcept;
+	
+	size_t add(const size_t& v) const noexcept;
+	size_t subtract(const size_t& v) const noexcept;
+	size_t multiply(const size_t& v) const noexcept;
+	size_t divide(const size_t& v) const noexcept;
+	size_t modulo(const size_t& v) const noexcept;
+	
+	bool equal(const size_t& v) const noexcept;
+	bool not_equal(const size_t& v) const noexcept;
+	bool less_than(const size_t& v) const noexcept;
+	bool less_than_or_equal(const size_t& v) const noexcept;
+	bool greater_than(const size_t& v) const noexcept;
+	bool greater_than_or_equal(const size_t& v) const noexcept;
+	
+	compare_result_t compare(const size_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+	
+	ssize_t signedValue() const noexcept;
+}

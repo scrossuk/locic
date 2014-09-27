@@ -1,0 +1,42 @@
+template <typename T>
+interface __implicit_cast_from_longdouble_t {
+	static T implicit_cast_longdouble_t(longdouble_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_longdouble_t {
+	static T cast_longdouble_t(longdouble_t value) noexcept;
+}
+
+__primitive longdouble_t {
+	static longdouble_t implicit_cast_float_t(float_t value) noexcept;
+	static longdouble_t implicit_cast_double_t(double_t value) noexcept;
+	
+	longdouble_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_longdouble_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_longdouble_t<T>>
+	T cast() const noexcept;
+	
+	longdouble_t plus() const noexcept;
+	longdouble_t minus() const noexcept;
+	
+	longdouble_t abs() const noexcept;
+
+	longdouble_t add(const longdouble_t& v) const noexcept;
+	longdouble_t subtract(const longdouble_t& v) const noexcept;
+	longdouble_t multiply(const longdouble_t& v) const noexcept;
+	longdouble_t divide(const longdouble_t& v) const noexcept;
+	longdouble_t modulo(const longdouble_t& v) const noexcept;
+	
+	bool equal(const longdouble_t& v) const noexcept;
+	bool not_equal(const longdouble_t& v) const noexcept;
+	bool less_than(const longdouble_t& v) const noexcept;
+	bool less_than_or_equal(const longdouble_t& v) const noexcept;
+	bool greater_than(const longdouble_t& v) const noexcept;
+	bool greater_than_or_equal(const longdouble_t& v) const noexcept;
+	
+	compare_result_t compare(const longdouble_t& v) const noexcept;
+}

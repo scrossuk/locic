@@ -90,8 +90,8 @@ export std.string 0.1.0 {
 				return compare_result_t::equal();
 			}
 			
-			stringbuffer make_buffer() const {
-				auto buffer = stringbuffer();
+			utf8buffer make_buffer() const {
+				auto buffer = utf8buffer();
 				for (auto i: std::counter<size_t>(1u, 0u, @byteArray.size())) {
 					buffer.append(@byteArray[i]);
 				}

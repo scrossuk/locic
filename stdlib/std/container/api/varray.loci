@@ -42,7 +42,7 @@ import std.container 0.1.0 {
 			
 			bool empty() const noexcept;
 			
-			void popFront() noexcept;
+			void next() noexcept;
 			
 			lval<T> ptr_lval<T> front() const noexcept;
 		}

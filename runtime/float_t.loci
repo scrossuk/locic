@@ -1,0 +1,55 @@
+template <typename T>
+interface __implicit_cast_from_float_t {
+	static T implicit_cast_float_t(float_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_float_t {
+	static T cast_float_t(float_t value) noexcept;
+}
+
+__primitive float_t {
+	static float_t cast_byte_t(byte_t value) noexcept;
+	static float_t cast_ubyte_t(ubyte_t value) noexcept;
+	static float_t cast_short_t(short_t value) noexcept;
+	static float_t cast_ushort_t(ushort_t value) noexcept;
+	static float_t cast_int_t(int_t value) noexcept;
+	static float_t cast_uint_t(uint_t value) noexcept;
+	static float_t cast_long_t(long_t value) noexcept;
+	static float_t cast_ulong_t(ulong_t value) noexcept;
+	static float_t cast_longlong_t(longlong_t value) noexcept;
+	static float_t cast_ulonglong_t(ulonglong_t value) noexcept;
+	static float_t cast_ssize_t(ssize_t value) noexcept;
+	static float_t cast_size_t(size_t value) noexcept;
+	
+	static float_t cast_double_t(double_t value) noexcept;
+	static float_t cast_longdouble_t(longdouble_t value) noexcept;
+	
+	float_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_float_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_float_t<T>>
+	T cast() const noexcept;
+	
+	float_t plus() const noexcept;
+	float_t minus() const noexcept;
+
+	float_t abs() const noexcept;
+
+	float_t add(const float_t& v) const noexcept;
+	float_t subtract(const float_t& v) const noexcept;
+	float_t multiply(const float_t& v) const noexcept;
+	float_t divide(const float_t& v) const noexcept;
+	float_t modulo(const float_t& v) const noexcept;
+	
+	bool equal(const float_t& v) const noexcept;
+	bool not_equal(const float_t& v) const noexcept;
+	bool less_than(const float_t& v) const noexcept;
+	bool less_than_or_equal(const float_t& v) const noexcept;
+	bool greater_than(const float_t& v) const noexcept;
+	bool greater_than_or_equal(const float_t& v) const noexcept;
+	
+	compare_result_t compare(const float_t& v) const noexcept;
+}

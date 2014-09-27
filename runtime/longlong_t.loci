@@ -1,0 +1,48 @@
+template <typename T>
+interface __implicit_cast_from_longlong_t {
+	static T implicit_cast_longlong_t(longlong_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_longlong_t {
+	static T cast_longlong_t(longlong_t value) noexcept;
+}
+
+__primitive longlong_t {
+	static longlong_t implicit_cast_int8_t(int8_t value) noexcept;
+	static longlong_t implicit_cast_int16_t(int16_t value) noexcept;
+	static longlong_t implicit_cast_int32_t(int32_t value) noexcept;
+	static longlong_t implicit_cast_int64_t(int64_t value) noexcept;
+	static longlong_t implicit_cast_byte_t(byte_t value) noexcept;
+	static longlong_t implicit_cast_short_t(short_t value) noexcept;
+	static longlong_t implicit_cast_int_t(int_t value) noexcept;
+	static longlong_t implicit_cast_long_t(long_t value) noexcept;
+	
+	longlong_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_longlong_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_longlong_t<T>>
+	T cast() const noexcept;
+	
+	longlong_t plus() const noexcept;
+	longlong_t minus() const noexcept;
+	
+	longlong_t abs() const noexcept;
+
+	longlong_t add(const longlong_t& v) const noexcept;
+	longlong_t subtract(const longlong_t& v) const noexcept;
+	longlong_t multiply(const longlong_t& v) const noexcept;
+	longlong_t divide(const longlong_t& v) const noexcept;
+	longlong_t modulo(const longlong_t& v) const noexcept;
+	
+	bool equal(const longlong_t& v) const noexcept;
+	bool not_equal(const longlong_t& v) const noexcept;
+	bool less_than(const longlong_t& v) const noexcept;
+	bool less_than_or_equal(const longlong_t& v) const noexcept;
+	bool greater_than(const longlong_t& v) const noexcept;
+	bool greater_than_or_equal(const longlong_t& v) const noexcept;
+	
+	compare_result_t compare(const longlong_t& v) const noexcept;
+}

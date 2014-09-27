@@ -115,7 +115,7 @@ export std.container 0.1.0 {
 				return @position == @array.size();
 			}
 			
-			void popFront() noexcept {
+			void next() noexcept {
 				assert !self.empty();
 				@position += 1u;
 			}

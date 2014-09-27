@@ -201,8 +201,6 @@ const T& GETSYM(T* value) {
 %token RROUNDBRACKET
 %token LTRIBRACKET
 %token RTRIBRACKET
-%token DOUBLE_LTRIBRACKET
-%token DOUBLE_RTRIBRACKET
 
 %token AUTO
 %token STATIC

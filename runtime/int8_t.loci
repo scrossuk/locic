@@ -1,0 +1,43 @@
+template <typename T>
+interface __implicit_cast_from_int8_t {
+	static T implicit_cast_int8_t(int8_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_int8_t {
+	static T cast_int8_t(int8_t value) noexcept;
+}
+
+__primitive int8_t {
+	int8_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_int8_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_int8_t<T>>
+	T cast() const noexcept;
+	
+	int8_t plus() const noexcept;
+	int8_t minus() const noexcept;
+	
+	int8_t abs() const noexcept;
+
+	int8_t add(const int8_t& v) const noexcept;
+	int8_t subtract(const int8_t& v) const noexcept;
+	int8_t multiply(const int8_t& v) const noexcept;
+	int8_t divide(const int8_t& v) const noexcept;
+	int8_t modulo(const int8_t& v) const noexcept;
+	
+	bool equal(const int8_t& v) const noexcept;
+	bool not_equal(const int8_t& v) const noexcept;
+	bool less_than(const int8_t& v) const noexcept;
+	bool less_than_or_equal(const int8_t& v) const noexcept;
+	bool greater_than(const int8_t& v) const noexcept;
+	bool greater_than_or_equal(const int8_t& v) const noexcept;
+	
+	compare_result_t compare(const int8_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+	bool isPositive() const noexcept;
+	bool isNegative() const noexcept;
+}

@@ -1,0 +1,11 @@
+template <typename T>
+interface __implicit_cast_from_null_t {
+	static T null() noexcept;
+}
+
+__primitive null_t {
+	static null_t create() noexcept;
+	
+	template <typename T: __implicit_cast_from_null_t<T>>
+	T implicitCast() const noexcept;
+}

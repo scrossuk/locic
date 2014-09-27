@@ -54,7 +54,7 @@ import std.string 0.1.0 {
 			 */
 			compare_result_t compare(const string& other) const noexcept;
 			
-			stringbuffer make_buffer() const;
+			utf8buffer make_buffer() const;
 		}
 		
 	}

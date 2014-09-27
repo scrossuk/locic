@@ -1,0 +1,45 @@
+template <typename T>
+interface __implicit_cast_from_byte_t {
+	static T implicit_cast_byte_t(byte_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_byte_t {
+	static T cast_byte_t(byte_t value) noexcept;
+}
+
+__primitive byte_t {
+	static byte_t implicit_cast_int8_t(int8_t value) noexcept;
+	
+	static byte_t cast_int_t(int_t value) noexcept;
+	
+	byte_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_byte_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_byte_t<T>>
+	T cast() const noexcept;
+	
+	byte_t plus() const noexcept;
+	byte_t minus() const noexcept;
+	
+	byte_t abs() const noexcept;
+	
+	byte_t add(const byte_t& v) const noexcept;
+	byte_t subtract(const byte_t& v) const noexcept;
+	byte_t multiply(const byte_t& v) const noexcept;
+	byte_t divide(const byte_t& v) const noexcept;
+	byte_t modulo(const byte_t& v) const noexcept;
+	
+	bool equal(const byte_t& v) const noexcept;
+	bool not_equal(const byte_t& v) const noexcept;
+	bool less_than(const byte_t& v) const noexcept;
+	bool less_than_or_equal(const byte_t& v) const noexcept;
+	bool greater_than(const byte_t& v) const noexcept;
+	bool greater_than_or_equal(const byte_t& v) const noexcept;
+	
+	compare_result_t compare(const byte_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+}

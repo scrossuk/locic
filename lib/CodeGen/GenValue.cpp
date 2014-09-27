@@ -70,8 +70,6 @@ namespace locic {
 							
 							if (typeName == "ubyte_t") {
 								return ConstantGenerator(module).getI8(characterValue);
-							} else if (typeName == "unichar") {
-								return ConstantGenerator(module).getI32(characterValue);
 							} else {
 								llvm_unreachable("Unknown character literal type.");
 							}

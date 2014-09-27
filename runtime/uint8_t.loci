@@ -1,0 +1,36 @@
+template <typename T>
+interface __implicit_cast_from_uint8_t {
+	static T implicit_cast_uint8_t(uint8_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_uint8_t {
+	static T cast_uint8_t(uint8_t value) noexcept;
+}
+
+__primitive uint8_t {
+	uint8_t implicitCopy() const noexcept;
+	
+	template <typename T: __implicit_cast_from_uint8_t<T>>
+	T implicitCast() const noexcept;
+	
+	template <typename T: __cast_from_uint8_t<T>>
+	T cast() const noexcept;
+
+	uint8_t add(const uint8_t& v) const noexcept;
+	uint8_t subtract(const uint8_t& v) const noexcept;
+	uint8_t multiply(const uint8_t& v) const noexcept;
+	uint8_t divide(const uint8_t& v) const noexcept;
+	uint8_t modulo(const uint8_t& v) const noexcept;
+	
+	bool equal(const uint8_t& v) const noexcept;
+	bool not_equal(const uint8_t& v) const noexcept;
+	bool less_than(const uint8_t& v) const noexcept;
+	bool less_than_or_equal(const uint8_t& v) const noexcept;
+	bool greater_than(const uint8_t& v) const noexcept;
+	bool greater_than_or_equal(const uint8_t& v) const noexcept;
+	
+	compare_result_t compare(const uint8_t& v) const noexcept;
+	
+	bool isZero() const noexcept;
+}

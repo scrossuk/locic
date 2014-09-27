@@ -1,0 +1,34 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class stringbuilder (utf8buffer buffer) {
+			static create() {
+				return @(utf8buffer());
+			}
+			
+			bool empty() const noexcept {
+				return @buffer.empty();
+			}
+			
+			size_t length() const noexcept {
+				return @buffer.length();
+			}
+			
+			void append(final unichar character) {
+				@buffer.append(character);
+			}
+			
+			void append_range(forward_range<unichar>& range) {
+				@buffer.append_range(range);
+			}
+			
+			string str() const {
+				return string::cstring(@buffer.c_str());
+			}
+		}
+		
+	}
+	
+}
+

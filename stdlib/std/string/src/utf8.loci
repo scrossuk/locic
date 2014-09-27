@@ -1,0 +1,102 @@
+datatype utf8_initial_pair(ubyte_t first_value, size_t bytes_to_read);
+
+utf8_initial_pair utf8_read_first_byte(ubyte_t first_byte) {
+	final size_t leading_ones_count = first_byte.count_leading_ones();
+	assert leading_ones_count <= 8u;
+	
+	if (leading_ones_count == 0u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(7u), 0u);
+	} else if (leading_ones_count == 1u) {
+		throw std::utf8_decode_error(C"UTF-8 first byte has 1 leading one bit.");
+	} else if (leading_ones_count == 2u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(5u), 1u);
+	} else if (leading_ones_count == 3u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(4u), 2u);
+	} else if (leading_ones_count == 4u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(3u), 3u);
+	} else if (leading_ones_count == 5u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(2u), 4u);
+	} else if (leading_ones_count == 6u) {
+		return utf8_initial_pair(first_byte & ubyte_t.trailing_ones(1u), 5u);
+	} else {
+		throw std::utf8_decode_error(C"UTF-8 first byte has 7+ leading one bits.");
+	}
+}
+
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		exception utf8_decode_error(const ubyte* const error);
+		
+		void encode_utf8(input_range<unichar>& source, output_range<ubyte>& dest) {
+			while (!source.empty()) {
+				encode_utf8_character(source.pop_front(), dest);
+			}
+		}
+		
+		void decode_utf8(input_range<ubyte>& source, output_range<unichar>& dest) {
+			while (!source.empty()) {
+				dest.push_back(decode_utf8_character(source));
+			}
+		}
+		
+		void encode_utf8_character(unichar character, output_range<ubyte>& dest) {
+			if (character.in_range(0x00u, 0x7Fu)) {
+				// ASCII character range.
+				dest.push_back(character.raw_value().cast<ubyte>());
+			} else if (character.in_range(0x80u, 0x7FFu)) {
+				dest.push_back(ubyte_t.leading_ones(2u) | ((character.raw_value() & uint32_t.trailing_ones(11u)) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+			} else if (character.in_range(0x800u, 0xFFFFu)) {
+				dest.push_back(ubyte_t.leading_ones(3u) | ((character.raw_value() & uint32_t.trailing_ones(16u)) >> 12u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+			} else {
+				assert character.in_range(0x10000u, 0x10FFFFu);
+				
+				dest.push_back(ubyte_t.leading_ones(4u) | ((character.raw_value() & uint32_t.trailing_ones(21u)) >> 18u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(18u)) >> 12u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+			}
+		}
+		
+		unichar decode_utf8_character(input_range<ubyte>& source) {
+			if (source.empty()) {
+				throw utf8_decode_error(C"Failed to read first UTF-8 byte.");
+			}
+			
+			final utf8_initial_pair first_byte_pair = utf8_read_first_byte(source.pop_front());
+			
+			assert first_byte_pair.bytes_to_read <= 5u;
+			
+			uint32_t character_value = first_byte_pair.first_value.cast<uint32_t>();
+			
+			for (size_t i: std::counter_incl<size_t>(1u, 0u, first_byte_pair.bytes_to_read)) {
+				final ubyte sequence_byte = source.pop_front();
+				
+				// UTF-8 sequence byte values must be 0b10xxxxxx
+				if (sequence_byte.count_leading_ones() != 1u) {
+					throw utf8_decode_error(C"UTF-8 sequence byte is not 0b10xxxxxx.");
+				}
+				
+				character_value = (character_value << 6u) | (sequence_byte.cast<uint32_t>() & uint32_t.trailing_ones(6u));
+			}
+			
+			if (character_value.in_range(0xD800u, 0xDFFFu)) {
+				throw utf8_decode_error(C"UTF-8 code point is within invalid range U+D800 to U+DFFF.");
+			}
+			
+			if (!character_value.in_range(0x0u, 0x10FFFFu)) {
+				assert character_value > 0x10FFFFu;
+				throw utf8_decode_error(C"UTF-8 code points exceeds U+10FFFF.");
+			}
+			
+			return character_value;
+		}
+		
+	}
+	
+}
+

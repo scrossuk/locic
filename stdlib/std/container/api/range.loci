@@ -3,10 +3,22 @@ import std.container 0.1.0 {
 	namespace std {
 		
 		template <typename T>
+		interface input_range {
+			bool empty() const;
+			
+			T pop_front();
+		}
+		
+		template <typename T>
+		interface output_range {
+			void push_back(T value);
+		}
+		
+		template <typename T>
 		interface forward_range {
 			bool empty() const;
 			
-			void popFront();
+			void next();
 			
 			lval<T> value_lval<T> front() const;
 		}
@@ -15,7 +27,7 @@ import std.container 0.1.0 {
 		interface backward_range {
 			bool empty() const;
 			
-			void popBack();
+			void previous();
 			
 			lval<T> value_lval<T> back() const;
 		}
@@ -24,11 +36,11 @@ import std.container 0.1.0 {
 		interface bidirectional_range {
 			bool empty() const;
 			
-			void popFront();
+			void next();
 			
 			lval<T> value_lval<T> front() const;
 			
-			void popBack();
+			void previous();
 			
 			lval<T> value_lval<T> back() const;
 		}

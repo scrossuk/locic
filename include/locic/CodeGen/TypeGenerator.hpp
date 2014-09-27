@@ -11,7 +11,7 @@ namespace locic {
 	
 		class TypeGenerator {
 			public:
-				inline TypeGenerator(const Module& module)
+				inline TypeGenerator(Module& module)
 					: module_(module) { }
 					
 				inline llvm::Type* getVoidType() const {
@@ -40,6 +40,11 @@ namespace locic {
 				
 				inline llvm::IntegerType* getIntType(size_t typeSizeInBits) const {
 					return llvm::IntegerType::get(module_.getLLVMContext(), typeSizeInBits);
+				}
+				
+				inline llvm::IntegerType* getSizeTType() const {
+					const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
+					return llvm::IntegerType::get(module_.getLLVMContext(), sizeTypeWidth * 8);
 				}
 				
 				inline llvm::PointerType* getI8PtrType() const {
@@ -89,7 +94,7 @@ namespace locic {
 				}
 				
 			private:
-				const Module& module_;
+				Module& module_;
 				
 		};
 		

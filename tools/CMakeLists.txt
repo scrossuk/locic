@@ -18,6 +18,7 @@ target_link_libraries(locic
 	locic-sem
 	locic-ast
 	locic-support
+	loci-builtintypes
 	llvm-abi
 	${REQ_LIBS}
 	)
@@ -34,6 +35,7 @@ target_link_libraries(loci-test
 	locic-sem
 	locic-ast
 	locic-support
+	loci-builtintypes
 	loci-runtime
 	llvm-abi
 	${REQ_LIBS}
