@@ -11,8 +11,8 @@ class test_range(int value, int position, int limit) {
 		return @value;
 	}
 	
-	void popFront() {
-		testPrint(C"test_range: popFront");
+	void skipFront() {
+		testPrint(C"test_range: skipFront");
 		@position += 1;
 		@value *= 2;
 	}

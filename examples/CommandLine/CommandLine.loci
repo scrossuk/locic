@@ -12,7 +12,7 @@ std::varray<std::string> readCommandLine() {
 	
 	bool isTerminated = false;
 	while (!isTerminated) {
-		auto commandBuffer = std::stringbuilder();
+		auto commandBuffer = std::string_builder();
 		while (true) {
 			final int charInt = getchar();
 			if (charInt == -1) {

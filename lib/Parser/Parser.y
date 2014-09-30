@@ -1413,28 +1413,28 @@ normalStatement:
 	
 	| value SETEQUAL value %dprec 1
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), GETSYM($3))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_DIRECT, GETSYM($1), GETSYM($3))));
 	}
 	
 	| value ADDEQUAL value
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("add", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_ADD, GETSYM($1), GETSYM($3))));
 	}
 	| value SUBEQUAL value
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("subtract", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_SUB, GETSYM($1), GETSYM($3))));
 	}
 	| value MULEQUAL value
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("multiply", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_MUL, GETSYM($1), GETSYM($3))));
 	}
 	| value DIVEQUAL value
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("divide", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_DIV, GETSYM($1), GETSYM($3))));
 	}
 	| value_precedence3 PERCENTEQUAL value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(locic::AST::makeNode(LOC(&@$), BinaryOp("assign", GETSYM($1), locic::AST::makeNode(LOC(&@$), BinaryOp("modulo", GETSYM($1), GETSYM($3))))))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_MOD, GETSYM($1), GETSYM($3))));
 	}
 	| value
 	{
@@ -1602,27 +1602,27 @@ value_precedence2:
 	}
 	| PLUS value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("plus", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_PLUS, GETSYM($2))));
 	}
 	| MINUS value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("minus", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_MINUS, GETSYM($2))));
 	}
 	| EXCLAIMMARK value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("not", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_NOT, GETSYM($2))));
 	}
 	| AMPERSAND value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("address", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_ADDRESS, GETSYM($2))));
 	}
 	| STAR value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_DEREF, GETSYM($2))));
 	}
 	| MOVE value_precedence2
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), UnaryOp("move", GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_MOVE, GETSYM($2))));
 	}
 	;
 	

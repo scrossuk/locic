@@ -16,6 +16,15 @@ namespace locic {
 	
 		struct Scope;
 		
+		enum AssignKind {
+			ASSIGN_DIRECT,
+			ASSIGN_ADD,
+			ASSIGN_SUB,
+			ASSIGN_MUL,
+			ASSIGN_DIV,
+			ASSIGN_MOD
+		};
+		
 		struct Statement {
 			enum TypeEnum {
 				VALUE,
@@ -27,6 +36,7 @@ namespace locic {
 				TRY,
 				SCOPEEXIT,
 				VARDECL,
+				ASSIGN,
 				RETURN,
 				RETURNVOID,
 				THROW,
@@ -82,6 +92,12 @@ namespace locic {
 				Node<TypeVar> typeVar;
 				Node<Value> value;
 			} varDecl;
+			
+			struct {
+				AssignKind assignKind;
+				Node<Value> var;
+				Node<Value> value;
+			} assignStmt;
 			
 			struct {
 				Node<Value> value;
@@ -167,6 +183,14 @@ namespace locic {
 				Statement* statement = new Statement(VARDECL);
 				statement->varDecl.typeVar = typeVar;
 				statement->varDecl.value = value;
+				return statement;
+			}
+			
+			inline static Statement* Assign(AssignKind assignKind, const Node<Value>& var, const Node<Value>& value) {
+				Statement* statement = new Statement(ASSIGN);
+				statement->assignStmt.assignKind = assignKind;
+				statement->assignStmt.var = var;
+				statement->assignStmt.value = value;
 				return statement;
 			}
 			

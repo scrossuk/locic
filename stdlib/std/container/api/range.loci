@@ -18,29 +18,19 @@ import std.container 0.1.0 {
 		interface forward_range {
 			bool empty() const;
 			
-			void next();
+			void skip_front();
 			
 			lval<T> value_lval<T> front() const;
 		}
-		
-		template <typename T>
-		interface backward_range {
-			bool empty() const;
-			
-			void previous();
-			
-			lval<T> value_lval<T> back() const;
-		}
-		
 		template <typename T>
 		interface bidirectional_range {
 			bool empty() const;
 			
-			void next();
+			void skip_front();
 			
 			lval<T> value_lval<T> front() const;
 			
-			void previous();
+			void skip_back();
 			
 			lval<T> value_lval<T> back() const;
 		}

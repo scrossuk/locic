@@ -17,7 +17,7 @@ import std.container 0.1.0 {
 			
 			const T& front() const noexcept;
 			
-			void next() noexcept;
+			void skip_front() noexcept;
 			
 			bool empty() const noexcept;
 		}
@@ -28,7 +28,7 @@ import std.container 0.1.0 {
 			
 			const T& front() const noexcept;
 			
-			void next() noexcept;
+			void skip_front() noexcept;
 			
 			bool empty() const noexcept;
 		}
@@ -48,7 +48,7 @@ import std.container 0.1.0 {
 			
 			const T& front() const noexcept;
 			
-			void next() noexcept;
+			void skip_front() noexcept;
 			
 			bool empty() const noexcept;
 		}
@@ -59,7 +59,7 @@ import std.container 0.1.0 {
 			
 			const T& front() const noexcept;
 			
-			void next() noexcept;
+			void skip_front() noexcept;
 			
 			bool empty() const noexcept;
 		}

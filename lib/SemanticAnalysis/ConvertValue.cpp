@@ -127,7 +127,8 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* value, const std::string& memberName, const Debug::SourceLocation& location) {
+		SEM::Value* MakeMemberAccess(Context& context, SEM::Value* rawValue, const std::string& memberName, const Debug::SourceLocation& location) {
+			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
 			const auto derefType = getStaticDerefType(getDerefType(value->type()));
 			
 			if (!derefType->isObjectOrTemplateVar()) {
@@ -305,35 +306,67 @@ namespace locic {
 				case AST::Value::SIZEOF: {
 					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t")->selfType());
 				}
+				case AST::Value::UNARYOP: {
+					const auto unaryOp = astValueNode->unaryOp.kind;
+					const auto operand = ConvertValue(context, astValueNode->unaryOp.operand);
+					
+					switch (unaryOp) {
+						case AST::OP_PLUS: {
+							const auto opMethod = GetMethod(context, operand, "plus", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+						case AST::OP_MINUS: {
+							const auto opMethod = GetMethod(context, operand, "minus", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+						case AST::OP_NOT: {
+							const auto opMethod = GetMethod(context, operand, "not", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+						case AST::OP_DEREF: {
+							const auto opMethod = GetMethod(context, operand, "deref", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+						case AST::OP_ADDRESS: {
+							const auto opMethod = GetSpecialMethod(context, derefValue(operand), "address", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+						case AST::OP_MOVE: {
+							const auto opMethod = GetSpecialMethod(context, derefValue(operand), "move", location);
+							return CallValue(context, opMethod, {}, location);
+						}
+					}
+					
+					std::terminate();
+				}
 				case AST::Value::BINARYOP: {
 					const auto binaryOp = astValueNode->binaryOp.kind;
 					const auto leftOperand = ConvertValue(context, astValueNode->binaryOp.leftOperand);
 					const auto rightOperand = ConvertValue(context, astValueNode->binaryOp.rightOperand);
 					
-					const auto objectValue = tryDissolveValue(context, leftOperand, location);
-					
 					switch (binaryOp) {
 						case AST::OP_ADD: {
-							const auto opMethod = GetMethod(context, objectValue, "add", location);
+							const auto opMethod = GetMethod(context, leftOperand, "add", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_SUBTRACT: {
-							const auto opMethod = GetMethod(context, objectValue, "subtract", location);
+							const auto opMethod = GetMethod(context, leftOperand, "subtract", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_MULTIPLY: {
-							const auto opMethod = GetMethod(context, objectValue, "multiply", location);
+							const auto opMethod = GetMethod(context, leftOperand, "multiply", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_DIVIDE: {
-							const auto opMethod = GetMethod(context, objectValue, "divide", location);
+							const auto opMethod = GetMethod(context, leftOperand, "divide", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_MODULO: {
-							const auto opMethod = GetMethod(context, objectValue, "modulo", location);
+							const auto opMethod = GetMethod(context, leftOperand, "modulo", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_ISEQUAL: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -346,6 +379,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_NOTEQUAL: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -358,6 +392,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LESSTHAN: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -370,6 +405,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LESSTHANOREQUAL: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -382,6 +418,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_GREATERTHAN: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -394,6 +431,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_GREATERTHANOREQUAL: {
+							const auto objectValue = tryDissolveValue(context, derefValue(leftOperand), location);
 							const auto opMethod = GetBinaryOp(context, objectValue, binaryOp, location);
 							if (opMethod != nullptr) {
 								return CallValue(context, opMethod, { rightOperand }, location);
@@ -422,19 +460,19 @@ namespace locic {
 							return SEM::Value::Ternary(boolValue, SEM::Value::Constant(Constant::True(), boolType), rightOperand);
 						}
 						case AST::OP_BITWISEAND: {
-							const auto opMethod = GetMethod(context, objectValue, "bitwise_and", location);
+							const auto opMethod = GetMethod(context, leftOperand, "bitwise_and", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_BITWISEOR: {
-							const auto opMethod = GetMethod(context, objectValue, "bitwise_or", location);
+							const auto opMethod = GetMethod(context, leftOperand, "bitwise_or", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_LEFTSHIFT: {
-							const auto opMethod = GetMethod(context, objectValue, "left_shift", location);
+							const auto opMethod = GetMethod(context, leftOperand, "left_shift", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 						case AST::OP_RIGHTSHIFT: {
-							const auto opMethod = GetMethod(context, objectValue, "right_shift", location);
+							const auto opMethod = GetMethod(context, leftOperand, "right_shift", location);
 							return CallValue(context, opMethod, { rightOperand }, location);
 						}
 					}
@@ -564,12 +602,7 @@ namespace locic {
 				case AST::Value::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;
 					
-					auto object = ConvertValue(context, astValueNode->memberAccess.object);
-					
-					if (memberName != "address" && memberName != "assign" && memberName != "dissolve" && memberName != "move") {
-						object = tryDissolveValue(context, object, location);
-					}
-					
+					const auto object = ConvertValue(context, astValueNode->memberAccess.object);
 					return MakeMemberAccess(context, object, memberName, astValueNode.location());
 				}
 				case AST::Value::TEMPLATEDMEMBERACCESS: {

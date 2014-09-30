@@ -12,7 +12,8 @@ __primitive longdouble_t {
 	static longdouble_t implicit_cast_float_t(float_t value) noexcept;
 	static longdouble_t implicit_cast_double_t(double_t value) noexcept;
 	
-	longdouble_t implicitCopy() const noexcept;
+	longdouble_t implicit_copy() const noexcept;
+	longdouble_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_longdouble_t<T>>
 	T implicitCast() const noexcept;

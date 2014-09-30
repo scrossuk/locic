@@ -16,6 +16,7 @@ export std.string 0.1.0 {
 			}
 			
 			static cstring(const ubyte* const stringConstant) {
+				// Work out number of bytes until NULL terminator.
 				final auto length = strlen(stringConstant);
 				
 				auto byteArray = std::varray<ubyte>();
@@ -39,7 +40,11 @@ export std.string 0.1.0 {
 				return @(@length, move byteArray);
 			}
 			
-			string add(string other) const {
+			string copy() const {
+				return self.implicit_copy();
+			}
+			
+			string add(const string& other) const {
 				final auto newLength = @length + other.length();
 				auto byteArray = std::varray<ubyte>();
 				
@@ -54,6 +59,22 @@ export std.string 0.1.0 {
 				byteArray.push_back(0u);
 				
 				return @(newLength, move byteArray);
+			}
+			
+			string substr(string_range range) const {
+				auto byteArray = std::varray<ubyte>();
+				
+				for (auto i: std::counter<size_t>(range._beginPos(), range._endPos(), 1u)) {
+					byteArray .push_back(@byteArray[i]);
+				}
+				
+				byteArray.push_back(0u);
+				
+				return @(range.length(), move byteArray);
+			}
+			
+			string_range all() const {
+				return string_range._string_all(@byteArray);
 			}
 			
 			size_t length() const noexcept {
@@ -78,20 +99,20 @@ export std.string 0.1.0 {
 					final ubyte b = other.c_str()[i];
 					if (a != b) {
 						if (a < b) {
-							return compare_result_t::less_than();
+							return compare_result_t.less_than();
 						} else {
-							return compare_result_t::greater_than();
+							return compare_result_t.greater_than();
 						}
 					}
 					
 					i += 1u;
 				}
 				
-				return compare_result_t::equal();
+				return compare_result_t.equal();
 			}
 			
-			utf8buffer make_buffer() const {
-				auto buffer = utf8buffer();
+			utf8_buffer make_buffer() const {
+				auto buffer = utf8_buffer();
 				for (auto i: std::counter<size_t>(1u, 0u, @byteArray.size())) {
 					buffer.append(@byteArray[i]);
 				}

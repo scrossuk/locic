@@ -9,14 +9,14 @@ import std.string 0.1.0 {
 		 * from an underlying forward_range and provides the equivalent
 		 * UTF-8 bytes.
 		 */
-		class utf8encoder {
+		class utf8_encoder {
 			/**
 			 * \brief Constructs a UTF-8 encoder based on a
 			 *        unicode character range.
 			 * 
 			 * \return A UTF-8 encoder.
 			 */
-			static utf8encoder create(forward_range<unichar>& range);
+			static utf8_encoder create(forward_range<unichar>& range);
 			
 			/**
 			 * \brief Get whether the UTF-8 encoder is empty.

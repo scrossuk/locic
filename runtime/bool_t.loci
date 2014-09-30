@@ -9,7 +9,8 @@ interface __cast_from_bool_t {
 }
 
 __primitive bool {
-	bool implicitCopy() const noexcept;
+	bool implicit_copy() const noexcept;
+	bool copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_bool_t<T>>
 	T implicitCast() const noexcept;

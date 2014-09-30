@@ -87,7 +87,7 @@ namespace locic {
 					}
 					
 					const auto advanceScope = new SEM::Scope();
-					const auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "next", location), {}, location);
+					const auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "skipfront", location), {}, location);
 					advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
 					
 					outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, iterationScope, advanceScope));

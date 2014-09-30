@@ -9,12 +9,12 @@ export std.container 0.1.0 {
 		class list_range (list_node<T>* begin, list_node<T>* end) {
 			static create = default;
 			
-			lval<T> ptr_lval<T> front() {
+			lval<T> ptr_lval<T> front() const {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
 			
-			void pop_front() {
+			void skip_front() {
 				assert !self.empty();
 				if (@begin == @end) {
 					@begin = null;
@@ -24,12 +24,12 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			lval<T> ptr_lval<T> back() {
+			lval<T> ptr_lval<T> back() const {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
 			
-			void pop_back() {
+			void skip_back() {
 				assert !self.empty();
 				if (@begin == @end) {
 					@begin = null;
@@ -149,7 +149,7 @@ export std.container 0.1.0 {
 				@size -= 1u;
 			}
 			
-			list_range<T> range() const noexcept {
+			list_range<T> all() const noexcept {
 				return list_range<T>(@begin, @end);
 			}
 			

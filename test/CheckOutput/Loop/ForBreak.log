@@ -3,22 +3,22 @@ test_range: empty
 test_range: front
 testEntryPoint: LOOP START i = 0
 testEntryPoint: LOOP END i = 0
-test_range: popFront
+test_range: skipFront
 test_range: empty
 test_range: front
 testEntryPoint: LOOP START i = 1
 testEntryPoint: LOOP END i = 1
-test_range: popFront
+test_range: skipFront
 test_range: empty
 test_range: front
 testEntryPoint: LOOP START i = 2
 testEntryPoint: LOOP END i = 2
-test_range: popFront
+test_range: skipFront
 test_range: empty
 test_range: front
 testEntryPoint: LOOP START i = 3
 testEntryPoint: LOOP END i = 3
-test_range: popFront
+test_range: skipFront
 test_range: empty
 test_range: front
 testEntryPoint: LOOP START i = 4

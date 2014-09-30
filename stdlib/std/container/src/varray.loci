@@ -95,33 +95,42 @@ export std.container 0.1.0 {
 				return array;
 			}*/
 			
-			varray_range<T> range() const noexcept {
+			varray_range<T> all() const noexcept {
 				return varray_range<T>(self);
 			}
 			
 		}
 		
 		template <typename T>
-		class varray_range(const varray<T>& array, size_t position) {
+		class varray_range(const varray<T>& array, size_t begin, size_t end) {
 			static create(const varray<T>& array) noexcept {
-				return @(array, 0u);
+				return @(array, 0u, array.size());
 			}
 			
-			varray_range<T> implicitCopy() const noexcept {
-				return @(@array, @position);
-			}
+			implicitCopy = default;
 			
 			bool empty() const noexcept {
-				return @position == @array.size();
+				return @begin == @end;
 			}
 			
-			void next() noexcept {
+			void skip_front() noexcept {
 				assert !self.empty();
-				@position += 1u;
+				@begin += 1u;
 			}
 			
 			lval<T> ptr_lval<T> front() const noexcept {
-				return @array[@position];
+				assert !self.empty();
+				return @array[@begin];
+			}
+			
+			void skip_back() noexcept {
+				assert !self.empty();
+				@end -= 1u;
+			}
+			
+			lval<T> ptr_lval<T> back() const noexcept {
+				assert !self.empty();
+				return @array[@end - 1u];
 			}
 		}
 		

@@ -13,7 +13,8 @@ __primitive short_t {
 	static short_t implicit_cast_int16_t(int16_t value) noexcept;
 	static short_t implicit_cast_byte_t(byte_t value) noexcept;
 	
-	short_t implicitCopy() const noexcept;
+	short_t implicit_copy() const noexcept;
+	short_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_short_t<T>>
 	T implicitCast() const noexcept;

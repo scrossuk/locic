@@ -13,7 +13,8 @@ __primitive byte_t {
 	
 	static byte_t cast_int_t(int_t value) noexcept;
 	
-	byte_t implicitCopy() const noexcept;
+	byte_t implicit_copy() const noexcept;
+	byte_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_byte_t<T>>
 	T implicitCast() const noexcept;

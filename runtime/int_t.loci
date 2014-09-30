@@ -18,7 +18,8 @@ __primitive int_t {
 	
 	static int_t cast_size_t(size_t value) noexcept;
 	
-	int_t implicitCopy() const noexcept;
+	int_t implicit_copy() const noexcept;
+	int_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_int_t<T>>
 	T implicitCast() const noexcept;

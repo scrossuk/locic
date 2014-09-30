@@ -32,7 +32,7 @@ import std.container 0.1.0 {
 			
 			// varray<T> copy() const <T: copyable<T>>;
 			
-			varray_range<T> range() const noexcept;
+			varray_range<T> all() const noexcept;
 			
 		}
 		
@@ -42,9 +42,13 @@ import std.container 0.1.0 {
 			
 			bool empty() const noexcept;
 			
-			void next() noexcept;
+			void skip_front() noexcept;
 			
 			lval<T> ptr_lval<T> front() const noexcept;
+			
+			void skip_back() noexcept;
+			
+			lval<T> ptr_lval<T> back() const noexcept;
 		}
 		
 	}

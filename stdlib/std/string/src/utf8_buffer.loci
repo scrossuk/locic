@@ -2,7 +2,7 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
-		class utf8buffer (size_t length, std::varray<ubyte> byteArray) {
+		class utf8_buffer (size_t length, std::varray<ubyte> byteArray) {
 			static create() {
 				auto byteArray = std::varray<ubyte>();
 				byteArray.push_back(0u);

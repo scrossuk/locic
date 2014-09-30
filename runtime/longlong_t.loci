@@ -18,7 +18,8 @@ __primitive longlong_t {
 	static longlong_t implicit_cast_int_t(int_t value) noexcept;
 	static longlong_t implicit_cast_long_t(long_t value) noexcept;
 	
-	longlong_t implicitCopy() const noexcept;
+	longlong_t implicit_copy() const noexcept;
+	longlong_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_longlong_t<T>>
 	T implicitCast() const noexcept;

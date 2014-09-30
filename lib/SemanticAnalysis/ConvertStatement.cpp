@@ -14,11 +14,42 @@
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/ExitStates.hpp>
+#include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		SEM::Value* GetAssignValue(Context& context, AST::AssignKind assignKind, SEM::Value* varValue, SEM::Value* operandValue, const Debug::SourceLocation& location) {
+			switch (assignKind) {
+				case AST::ASSIGN_DIRECT:
+					return operandValue;
+				case AST::ASSIGN_ADD: {
+					const auto opMethod = GetMethod(context, varValue, "add", location);
+					return CallValue(context, opMethod, { operandValue }, location);
+				}
+				case AST::ASSIGN_SUB: {
+					const auto opMethod = GetMethod(context, varValue, "subtract", location);
+					return CallValue(context, opMethod, { operandValue }, location);
+				}
+				case AST::ASSIGN_MUL: {
+					const auto opMethod = GetMethod(context, varValue, "multiply", location);
+					return CallValue(context, opMethod, { operandValue }, location);
+				}
+				case AST::ASSIGN_DIV: {
+					const auto opMethod = GetMethod(context, varValue, "divide", location);
+					return CallValue(context, opMethod, { operandValue }, location);
+				}
+				case AST::ASSIGN_MOD: {
+					const auto opMethod = GetMethod(context, varValue, "modulo", location);
+					return CallValue(context, opMethod, { operandValue }, location);
+				}
+			}
+			
+			std::terminate();
+		}
+		
 		SEM::Statement* ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -260,6 +291,22 @@ namespace locic {
 					
 					// Generate the initialise statement.
 					return SEM::Statement::InitialiseStmt(semVar, semInitialiseValue);
+				}
+				case AST::Statement::ASSIGN: {
+					const auto assignKind = statement->assignStmt.assignKind;
+					const auto semVarValue = derefValue(ConvertValue(context, statement->assignStmt.var));
+					const auto semOperandValue = ConvertValue(context, statement->assignStmt.value);
+					
+					if (!getDerefType(semVarValue->type())->isLval()) {
+						throw ErrorException(makeString("Can't assign to non-lval type '%s' at position %s.",
+							semVarValue->type()->toString().c_str(),
+							location.toString().c_str()));
+					}
+					
+					const auto semAssignValue = GetAssignValue(context, assignKind, semVarValue, semOperandValue, location);
+					
+					const auto opMethod = GetSpecialMethod(context, semVarValue, "assign", location);
+					return SEM::Statement::ValueStmt(CallValue(context, opMethod, { semAssignValue }, location));
 				}
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)

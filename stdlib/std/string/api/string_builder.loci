@@ -7,13 +7,13 @@ import std.string 0.1.0 {
 		 * 
 		 * Mutable buffer for efficiently constructing string instances.
 		 */
-		class stringbuilder {
+		class string_builder {
 			/**
 			 * \brief Constructs an empty string builder.
 			 * 
 			 * \return An empty string builder.
 			 */
-			static stringbuilder create();
+			static string_builder create();
 			
 			/**
 			 * \brief Get whether the string builder is empty.

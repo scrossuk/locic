@@ -81,29 +81,13 @@ namespace locic {
 		}
 		
 		bool canDissolveValue(SEM::Value* value) {
-			const auto type = getDerefType(value->type());
+			const auto type = getSingleDerefType(value->type());
 			return type->isLval() && type->isObject() && supportsDissolve(type);
 		}
 		
 		SEM::Value* dissolveLval(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			const auto type = getDerefType(value->type());
-			
-			if (!type->isLval()) {
-				throw ErrorException(makeString("Type '%s' is not an lval and hence it cannot be dissolved at position %s.",
-					type->toString().c_str(), location.toString().c_str()));
-			}
-			
-			if (!type->isObject()) {
-				throw ErrorException(makeString("Type '%s' is not an object type and hence it cannot be dissolved at position %s.",
-					type->toString().c_str(), location.toString().c_str()));
-			}
-			
-			if (!supportsDissolve(type)) {
-				throw ErrorException(makeString("Type '%s' does not support 'dissolve' at position %s.",
-					type->toString().c_str(), location.toString().c_str()));
-			}
-			
-			return CallValue(context, GetMethod(context, value, "dissolve", location), {}, location);
+			assert (canDissolveValue(value));
+			return CallValue(context, GetSpecialMethod(context, value, "dissolve", location), {}, location);
 		}
 		
 		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {

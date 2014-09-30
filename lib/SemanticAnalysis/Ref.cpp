@@ -22,6 +22,10 @@ namespace locic {
 			return type;
 		}
 		
+		SEM::Type* getSingleDerefType(SEM::Type* type) {
+			return type->isRef() ? type->refTarget() : type;
+		}
+		
 		SEM::Type* getDerefType(SEM::Type* type) {
 			while (type->isRef()) {
 				type = type->refTarget();

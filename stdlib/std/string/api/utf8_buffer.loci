@@ -7,13 +7,13 @@ import std.string 0.1.0 {
 		 * 
 		 * Represents a sequence of UTF-8 encoded unicode characters.
 		 */
-		class utf8buffer {
+		class utf8_buffer {
 			/**
 			 * \brief Constructs an empty string buffer.
 			 * 
 			 * \return An empty string buffer.
 			 */
-			static utf8buffer create();
+			static utf8_buffer create();
 			
 			/**
 			 * \brief Get whether the string buffer is empty.
@@ -30,14 +30,14 @@ import std.string 0.1.0 {
 			size_t length() const noexcept;
 			
 			/**
-			 * \brief Append a unicode character.
+			 * \brief Append a unicode character to be encoded.
 			 * 
 			 * \param The character to append.
 			 */
 			void append(unichar character);
 			
 			/**
-			 * \brief Append a range of unicode characters.
+			 * \brief Append a range of unicode characters to be encoded.
 			 * 
 			 * \param The range of characters to append.
 			 */

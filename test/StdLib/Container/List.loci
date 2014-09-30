@@ -14,7 +14,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"list.back() = %d", list.back());
 	
 	testPrint(C"Print all values...");
-	for (const auto& value: list.range()) {
+	for (const auto& value: list.all()) {
 		testPrint(C"    Value = %d", value);
 	}
 	
@@ -26,7 +26,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"list.back() = %d", list.back());
 	
 	testPrint(C"Print all values...");
-	for (const auto& value: list.range()) {
+	for (const auto& value: list.all()) {
 		testPrint(C"    Value = %d", value);
 	}
 	
@@ -38,7 +38,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"list.back() = %d", list.back());
 	
 	testPrint(C"Print all values...");
-	for (const auto& value: list.range()) {
+	for (const auto& value: list.all()) {
 		testPrint(C"    Value = %d", value);
 	}
 	
@@ -50,7 +50,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	testPrint(C"list.back() = %d", list.back());
 	
 	testPrint(C"Print all values...");
-	for (const auto& value: list.range()) {
+	for (const auto& value: list.all()) {
 		testPrint(C"    Value = %d", value);
 	}
 	

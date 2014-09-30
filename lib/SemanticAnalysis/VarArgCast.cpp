@@ -47,7 +47,7 @@ namespace locic {
 			if (value->type()->isRef() && supportsImplicitCopy(derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallValue(context, GetMethod(context, value, "implicitCopy", location), {}, location) :
+					CallValue(context, GetMethod(context, value, "implicitcopy", location), {}, location) :
 					derefAll(value);
 				
 				// See if this results in

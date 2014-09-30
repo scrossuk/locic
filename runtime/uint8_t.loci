@@ -9,7 +9,8 @@ interface __cast_from_uint8_t {
 }
 
 __primitive uint8_t {
-	uint8_t implicitCopy() const noexcept;
+	uint8_t implicit_copy() const noexcept;
+	uint8_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_uint8_t<T>>
 	T implicitCast() const noexcept;

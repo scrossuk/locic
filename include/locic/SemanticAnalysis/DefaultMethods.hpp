@@ -14,17 +14,23 @@ namespace locic {
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name);
 		
+		SEM::Function* CreateDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name);
+		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location);
 		
 		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
 		
+		bool HasDefaultExplicitCopy(SEM::TypeInstance* typeInstance);
+		
 		bool HasDefaultCompare(SEM::TypeInstance* typeInstance);
 		
 		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
 		
 		void CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
+		
+		void CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
 		
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
 		

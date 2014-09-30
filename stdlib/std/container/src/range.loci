@@ -6,7 +6,7 @@ export std.container 0.1.0 {
 		interface forward_range {
 			bool empty() const;
 			
-			void popFront();
+			void skip_front();
 			
 			lval<T> value_lval<T> front() const;
 		}
@@ -15,7 +15,7 @@ export std.container 0.1.0 {
 		interface backward_range {
 			bool empty() const;
 			
-			void popBack();
+			void skip_back();
 			
 			lval<T> value_lval<T> back() const;
 		}
@@ -24,11 +24,11 @@ export std.container 0.1.0 {
 		interface bidirectional_range {
 			bool empty() const;
 			
-			void popFront();
+			void skip_front();
 			
 			lval<T> value_lval<T> front() const;
 			
-			void popBack();
+			void skip_back();
 			
 			lval<T> value_lval<T> back() const;
 		}

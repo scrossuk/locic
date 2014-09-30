@@ -126,7 +126,7 @@ namespace locic {
 				const auto varValue = SEM::Value::LocalVar(semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.
-				constructValues.push_back(CallValue(context, GetMethod(context, varValue, "move", location), {}, location));
+				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(varValue), "move", location), {}, location));
 			}
 			
 			const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);

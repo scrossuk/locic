@@ -6,6 +6,9 @@ interface __implicit_cast_from_null_t {
 __primitive null_t {
 	static null_t create() noexcept;
 	
+	null_t implicit_copy() const noexcept;
+	null_t copy() const noexcept;
+	
 	template <typename T: __implicit_cast_from_null_t<T>>
 	T implicitCast() const noexcept;
 }

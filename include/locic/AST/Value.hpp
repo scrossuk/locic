@@ -19,6 +19,15 @@ namespace locic {
 		
 		typedef std::vector<Node<Value>> ValueList;
 		
+		enum UnaryOpKind {
+			OP_PLUS,
+			OP_MINUS,
+			OP_NOT,
+			OP_ADDRESS,
+			OP_DEREF,
+			OP_MOVE
+		};
+		
 		enum BinaryOpKind {
 			OP_ADD,
 			OP_SUBTRACT,
@@ -48,6 +57,7 @@ namespace locic {
 				SYMBOLREF,
 				MEMBERREF,
 				SIZEOF,
+				UNARYOP,
 				BINARYOP,
 				TERNARY,
 				CAST,
@@ -81,6 +91,11 @@ namespace locic {
 			struct {
 				Node<Type> type;
 			} sizeOf;
+			
+			struct {
+				UnaryOpKind kind;
+				Node<Value> operand;
+			} unaryOp;
 			
 			struct {
 				BinaryOpKind kind;
@@ -182,6 +197,13 @@ namespace locic {
 			inline static Value* SizeOf(const Node<Type>& type) {
 				Value* value = new Value(SIZEOF);
 				value->sizeOf.type = type;
+				return value;
+			}
+			
+			inline static Value* UnaryOp(UnaryOpKind kind, Node<Value> operand) {
+				Value* value = new Value(UNARYOP);
+				value->unaryOp.kind = kind;
+				value->unaryOp.operand = operand;
 				return value;
 			}
 			

@@ -1,4 +1,5 @@
 template <typename T>
 __primitive __ref {
-	__ref<T> implicitCopy() const noexcept;
+	__ref<T> implicit_copy() const noexcept;
+	__ref<T> copy() const noexcept;
 }

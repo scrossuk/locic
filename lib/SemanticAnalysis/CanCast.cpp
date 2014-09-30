@@ -498,7 +498,7 @@ namespace locic {
 					
 					const auto numReduce = sourceCount - destCount;
 					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = dissolveLval(context, reducedValue, location);
+						reducedValue = dissolveLval(context, derefValue(reducedValue), location);
 					}
 					
 					const auto castResult = ImplicitCastConvert(context, errors, reducedValue, destType, location);
@@ -539,7 +539,7 @@ namespace locic {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (supportsImplicitCopy(sourceDerefType)) {
 					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						CallValue(context, GetMethod(context, derefValue(value), "implicitCopy", location), {}, location) :
+						CallValue(context, GetSpecialMethod(context, derefValue(value), "implicitcopy", location), {}, location) :
 						derefAll(value);
 					
 					const auto copyRefValue = sourceDerefType->isStaticRef() ?
@@ -547,12 +547,14 @@ namespace locic {
 						copyValue;
 					
 					const auto convertCast = ImplicitCastConvert(context, errors, copyRefValue, destType, location);
-					if (convertCast != nullptr) return convertCast;
+					if (convertCast != nullptr) {
+						return convertCast;
+					}
 				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(context, sourceDerefType, destType, location)) {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
-					errors.push_back(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitCopy' method, "
+					errors.push_back(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitcopy' method, "
 							"in cast from type %s to type %s at position %s.",
 						sourceDerefType->nameToString().c_str(),
 						sourceType->toString().c_str(),
@@ -564,10 +566,12 @@ namespace locic {
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
 					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(sourceType)) {
-				const auto copyValue = CallValue(context, GetMethod(context, value, "implicitCopy", location), {}, location);
+				const auto copyValue = CallValue(context, GetSpecialMethod(context, value, "implicitcopy", location), {}, location);
 				if (!copyValue->type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(context, errors, copyValue, destType, location);
-					if (convertCast != nullptr) return convertCast;
+					if (convertCast != nullptr) {
+						return convertCast;
+					}
 				}
 			}
 			

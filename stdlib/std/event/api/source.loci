@@ -17,7 +17,7 @@ import std.event 0.1.0 {
 			interface source_range {
 				bool empty() const;
 				
-				void popFront();
+				void skip_front();
 				
 				lval<source> ptr_lval<source> front() const;
 			}

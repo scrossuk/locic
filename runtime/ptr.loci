@@ -2,7 +2,8 @@ template <typename T>
 __primitive __ptr {
 	static __ptr<T> null() noexcept;
 	
-	__ptr<T> implicitCopy() const noexcept;
+	__ptr<T> implicit_copy() const noexcept;
+	__ptr<T> copy() const noexcept;
 	
 	// TODO: this should be const-templated once the compiler supports that.
 	lval<T> ptr_lval<T> deref() const noexcept;

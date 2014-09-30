@@ -2,7 +2,7 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
-		class utf8encoder (forward_range<unichar>& range, std::queue<ubyte_t> data) {
+		class utf8_encoder (forward_range<unichar>& range, std::queue<ubyte_t> data) {
 			static create(forward_range<unichar>& range) {
 				return @(range, std::queue<ubyte_t>());
 			}

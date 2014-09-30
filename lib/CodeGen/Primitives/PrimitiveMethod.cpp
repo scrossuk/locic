@@ -122,7 +122,8 @@ namespace locic {
 		bool isUnaryOp(const std::string& methodName) {
 			return methodName == "implicitCast" ||
 				methodName == "cast" ||
-				methodName == "implicitCopy" ||
+				methodName == "implicit_copy" ||
+				methodName == "copy" ||
 				methodName == "plus" ||
 				methodName == "minus" ||
 				methodName == "not" ||
@@ -215,7 +216,7 @@ namespace locic {
 			
 			const auto methodOwner = loadArg(function, args[0], type);
 			
-			if (methodName == "implicitCopy") {
+			if (methodName == "implicit_copy" || methodName == "copy") {
 				return methodOwner;
 			} else if (methodName == "isEqual") {
 				return builder.CreateICmpEQ(methodOwner, equalValue);
@@ -338,7 +339,7 @@ namespace locic {
 					return genImplicitCast(function, methodOwner, type, templateArgs[0]);
 				} else if (methodName == "cast") {
 					return genExplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "implicitCopy") {
+				} else if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else if (methodName == "not") {
 					return builder.CreateNot(methodOwner);
@@ -431,7 +432,7 @@ namespace locic {
 					return genImplicitCast(function, methodOwner, type, templateArgs[0]);
 				} else if (methodName == "cast") {
 					return genExplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "implicitCopy" || methodName == "plus") {
+				} else if (methodName == "implicit_copy" || methodName == "copy" || methodName == "plus") {
 					return methodOwner;
 				} else if (methodName == "minus") {
 					return builder.CreateNeg(methodOwner);
@@ -608,7 +609,7 @@ namespace locic {
 					return genImplicitCast(function, methodOwner, type, templateArgs[0]);
 				} else if (methodName == "cast") {
 					return genExplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "implicitCopy") {
+				} else if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else if (methodName == "isZero") {
 					return builder.CreateICmpEQ(methodOwner, zero);
@@ -810,7 +811,7 @@ namespace locic {
 					return genImplicitCast(function, methodOwner, type, templateArgs[0]);
 				} else if (methodName == "cast") {
 					return genExplicitCast(function, methodOwner, type, templateArgs[0]);
-				} else if (methodName == "implicitCopy" || methodName == "plus") {
+				} else if (methodName == "implicit_copy" || methodName == "copy" || methodName == "plus") {
 					return methodOwner;
 				} else if (methodName == "minus") {
 					return builder.CreateFNeg(methodOwner);
@@ -879,7 +880,7 @@ namespace locic {
 			if (methodName == "null") {
 				return ConstantGenerator(module).getNull(genType(module, type));
 			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicitCopy") {
+				if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else if (methodName == "deref") {
 					return methodOwner;
@@ -1154,7 +1155,7 @@ namespace locic {
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
 			if (isUnaryOp(methodName)) {
-				if (methodName == "implicitCopy") {
+				if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
@@ -1169,7 +1170,7 @@ namespace locic {
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
 			if (isUnaryOp(methodName)) {
-				if (methodName == "implicitCopy") {
+				if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");

@@ -83,7 +83,7 @@ void runThreadsExample() {
 		threadArray.push_back(std::new_thread<example_thread>(example_thread(mutex, logMutex, i)));
 	}
 	
-	for (auto& thread: threadArray.range()) {
+	for (auto& thread: threadArray.all()) {
 		waitSet.insert(thread.event_source());
 	}
 	

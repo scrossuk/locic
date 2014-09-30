@@ -2,9 +2,9 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
-		class stringbuilder (utf8buffer buffer) {
+		class string_builder (utf8_buffer buffer) {
 			static create() {
-				return @(utf8buffer());
+				return @(utf8_buffer());
 			}
 			
 			bool empty() const noexcept {

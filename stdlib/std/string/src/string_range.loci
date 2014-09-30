@@ -1,0 +1,69 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class string_range (const std::varray<ubyte>& stringData, size_t begin, size_t end) {
+			static _string_all(const std::varray<ubyte>& stringData) {
+				return @(stringData, 0u, stringData.size());
+			}
+			
+			string_range iterator_pair(string_iterator begin, string_iterator end) {
+				assert begin <= end;
+				return @(begin._stringData(), begin._stringPos(), end._stringPos());
+			}
+			
+			implicit_copy = default;
+			
+			copy = default;
+			
+			size_t _beginPos() const noexcept {
+				return @begin;
+			}
+			
+			size_t _endPos() const noexcept {
+				return @end;
+			}
+			
+			string_iterator begin() const {
+				return string_iterator._fromPos(@stringData, @begin);
+			}
+			
+			string_iterator end() const {
+				return string_iterator._fromPos(@stringData, @end);
+			}
+			
+			void pop_front() {
+				assert !self.empty();
+				@begin += 1u;
+			}
+			
+			lval<unichar> const value_lval<const unichar>& front() const {
+				// TODO
+				unreachable;
+			}
+			
+			void pop_back() {
+				assert !self.empty();
+				@end -= 1u;
+			}
+			
+			lval<unichar> const value_lval<const unichar>& back() const {
+				// TODO
+				unreachable;
+			}
+			
+			bool empty() const {
+				assert @begin <= @end;
+				return @begin == @end;
+			}
+			
+			size_t length() const {
+				assert @begin <= @end;
+				return @end - @begin;
+			}
+		}
+		
+	}
+	
+}
+

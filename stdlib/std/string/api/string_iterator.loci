@@ -1,0 +1,68 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief String Iterator
+		 * 
+		 * Represents a position within a string.
+		 */
+		class string_iterator {
+			/**
+			 * \brief Implicitly copy string iterator.
+			 * 
+			 * \return A copy of the string iterator.
+			 */
+			string_iterator implicit_copy() const;
+			
+			/**
+			 * \brief Explicitly copy string iterator.
+			 * 
+			 * \return A copy of the string iterator.
+			 */
+			string_iterator copy() const;
+			
+			/**
+			 * \brief Move to previous character.
+			 */
+			void previous();
+			
+			/**
+			 * \brief Move to next character.
+			 */
+			void next();
+			
+			/**
+			 * \brief Get character at current position.
+			 * 
+			 * \return Character at current position.
+			 */
+			lval<unichar> const value_lval<const unichar>& deref() const;
+			
+			/**
+			 * \brief Compare with another iterator.
+			 * 
+			 * \param other The other iterator.
+			 * \return The comparison result.
+			 */
+			compare_result_t compare(const string_iterator& other) const noexcept;
+			
+			/**
+			 * \brief Get whether the iterator is at the beginning of the string.
+			 * 
+			 * \return Whether the iterator is at the beginning of the string.
+			 */
+			bool is_begin() const;
+			
+			/**
+			 * \brief Get whether the iterator is at the end of the string.
+			 * 
+			 * \return Whether the iterator is at the end of the string.
+			 */
+			bool is_end() const;
+		}
+		
+	}
+	
+}
+

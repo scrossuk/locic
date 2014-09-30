@@ -1,0 +1,55 @@
+export std.string 0.1.0 {
+	
+	namespace std {
+		
+		class string_iterator (const std::varray<ubyte>& stringData, size_t position) {
+			static _fromPos(const std::varray<ubyte>& stringData, size_t position) {
+				return @(stringData, position);
+			}
+			
+			implicit_copy = default;
+			
+			copy = default;
+			
+			const std::varray<ubyte>& _stringData() const {
+				return @stringData;
+			}
+			
+			size_t _stringPos() const {
+				return @position;
+			}
+			
+			void previous() {
+				assert !self.is_begin();
+				@position -= 1u;
+			}
+			
+			void next() {
+				assert !self.is_end();
+				@position += 1u;
+			}
+			
+			lval<unichar> const value_lval<const unichar>& deref() const {
+				assert !self.is_end();
+				// TODO!
+				unreachable;
+			}
+			
+			compare_result_t compare(const string_iterator& other) const noexcept {
+				assert @stringData.data() == other._stringData().data();
+				return @position.compare(other._stringPos());
+			}
+			
+			bool is_begin() const {
+				return @position == 0u;
+			}
+			
+			bool is_end() const {
+				return @position == @stringData.size();
+			}
+		}
+		
+	}
+	
+}
+

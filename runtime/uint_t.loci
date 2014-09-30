@@ -16,7 +16,8 @@ __primitive uint_t {
 	
 	static uint_t cast_int_t(int_t value) noexcept;
 	
-	uint_t implicitCopy() const noexcept;
+	uint_t implicit_copy() const noexcept;
+	uint_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_uint_t<T>>
 	T implicitCast() const noexcept;

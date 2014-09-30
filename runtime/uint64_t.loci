@@ -13,7 +13,8 @@ __primitive uint64_t {
 	static uint64_t implicit_cast_uint16_t(uint16_t value) noexcept;
 	static uint64_t implicit_cast_uint32_t(uint32_t value) noexcept;
 	
-	uint64_t implicitCopy() const noexcept;
+	uint64_t implicit_copy() const noexcept;
+	uint64_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_uint64_t<T>>
 	T implicitCast() const noexcept;

@@ -51,14 +51,6 @@ namespace locic {
 				}
 			}
 			
-			SEM::Value* dissolveObject(Context& context, SEM::Value* object, const std::string& methodName, const Debug::SourceLocation& location) {
-				if (methodName != "address" && methodName != "assign" && methodName != "dissolve" && methodName != "move") {
-					return tryDissolveValue(context, object, location);
-				} else {
-					return object;
-				}
-			}
-			
 		}
 		
 		SEM::Value* GetStaticMethod(Context&, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
@@ -102,9 +94,22 @@ namespace locic {
 		}
 		
 		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
-			const auto value = dissolveObject(context, rawValue, methodName, location);
+			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
 			const auto type = getDerefType(value->type())->resolveAliases();
 			
+			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, templateArguments, location);
+		}
+		
+		// Gets the method without dissolving or derefencing the object.
+		SEM::Value* GetSpecialMethod(Context& context, SEM::Value* value, const std::string& methodName, const Debug::SourceLocation& location) {
+			return GetMethodWithoutResolution(context, value, getSingleDerefType(value->type())->resolveAliases(), methodName, location);
+		}
+		
+		SEM::Value* GetMethodWithoutResolution(Context& context, SEM::Value* value, SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
+			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, {}, location);
+		}
+		
+		SEM::Value* GetTemplatedMethodWithoutResolution(Context&, SEM::Value* value, SEM::Type* type, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -193,7 +198,7 @@ namespace locic {
 		}
 		
 		SEM::Value* CallValue(Context& context, SEM::Value* rawValue, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
-			const auto value = tryDissolveValue(context, rawValue, location);
+			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
 			
 			if (getDerefType(value->type())->isStaticRef()) {
 				return CallValue(context, GetStaticMethod(context, value, "create", location), args, location);
@@ -294,19 +299,19 @@ namespace locic {
 			}
 		}
 		
-		bool supportsImplicitCopy(SEM::Type* type) {
+		bool supportsCopy(SEM::Type* type, const std::string& functionName) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
 				case SEM::Type::STATICINTERFACEMETHOD:
-					// Built-in types can be copied implicitly.
+					// Built-in types can be copied.
 					return true;
 					
 				case SEM::Type::OBJECT: {
-					// Named types must have a method for implicit copying.
+					// Named types must have a method for copying.
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("implicitcopy");
+					const auto methodIterator = typeInstance->functions().find(functionName);
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
@@ -323,26 +328,26 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsImplicitCopy(type->getTemplateVar()->specTypeInstance()->selfType());
+					return supportsCopy(type->getTemplateVar()->specTypeInstance()->selfType(), functionName);
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");
 			}
 		}
 		
-		bool supportsNoExceptImplicitCopy(SEM::Type* type) {
+		bool supportsNoExceptCopy(SEM::Type* type, const std::string& functionName) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
 				case SEM::Type::STATICINTERFACEMETHOD:
-					// Built-in types can be copied implicitly.
+					// Built-in types can be copied noexcept.
 					return true;
 					
 				case SEM::Type::OBJECT: {
-					// Named types must have a method for implicit copying.
+					// Named types must have a method for copying noexcept.
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("implicitcopy");
+					const auto methodIterator = typeInstance->functions().find(functionName);
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
@@ -360,11 +365,27 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsNoExceptImplicitCopy(type->getTemplateVar()->specTypeInstance()->selfType());
+					return supportsNoExceptCopy(type->getTemplateVar()->specTypeInstance()->selfType(), functionName);
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");
 			}
+		}
+		
+		bool supportsImplicitCopy(SEM::Type* type) {
+			return supportsCopy(type, "implicitcopy");
+		}
+		
+		bool supportsNoExceptImplicitCopy(SEM::Type* type) {
+			return supportsNoExceptCopy(type, "implicitcopy");
+		}
+		
+		bool supportsExplicitCopy(SEM::Type* type) {
+			return supportsCopy(type, "copy");
+		}
+		
+		bool supportsNoExceptExplicitCopy(SEM::Type* type) {
+			return supportsNoExceptCopy(type, "copy");
 		}
 		
 		bool supportsCompare(SEM::Type* type) {

@@ -3,7 +3,8 @@ __primitive compare_result_t {
 	static compare_result_t less_than() noexcept;
 	static compare_result_t greater_than() noexcept;
 	
-	compare_result_t implicitCopy() const noexcept;
+	compare_result_t implicit_copy() const noexcept;
+	compare_result_t copy() const noexcept;
 	
 	bool isEqual() const noexcept;
 	bool isNotEqual() const noexcept;

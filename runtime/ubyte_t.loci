@@ -19,7 +19,8 @@ __primitive ubyte_t {
 	static ubyte_t cast_uint32_t(uint32_t value) noexcept;
 	static ubyte_t cast_uint_t(uint_t value) noexcept;
 	
-	ubyte_t implicitCopy() const noexcept;
+	ubyte_t implicit_copy() const noexcept;
+	ubyte_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_ubyte_t<T>>
 	T implicitCast() const noexcept;

@@ -11,7 +11,8 @@ interface __cast_from_uint16_t {
 __primitive uint16_t {
 	static uint16_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	
-	uint16_t implicitCopy() const noexcept;
+	uint16_t implicit_copy() const noexcept;
+	uint16_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_uint16_t<T>>
 	T implicitCast() const noexcept;

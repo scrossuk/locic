@@ -13,6 +13,8 @@ namespace locic {
 		
 		SEM::Type* getLastRefType(SEM::Type* type);
 		
+		SEM::Type* getSingleDerefType(SEM::Type* type);
+		
 		SEM::Type* getDerefType(SEM::Type* type);
 		
 		SEM::Value* derefOne(SEM::Value* value);

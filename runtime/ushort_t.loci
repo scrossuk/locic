@@ -13,7 +13,8 @@ __primitive ushort_t {
 	static ushort_t implicit_cast_uint16_t(uint16_t value) noexcept;
 	static ushort_t implicit_cast_ubyte_t(ubyte_t value) noexcept;
 	
-	ushort_t implicitCopy() const noexcept;
+	ushort_t implicit_copy() const noexcept;
+	ushort_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_ushort_t<T>>
 	T implicitCast() const noexcept;

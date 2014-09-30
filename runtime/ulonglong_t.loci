@@ -20,7 +20,8 @@ __primitive ulonglong_t {
 	
 	static ulonglong_t cast_size_t(size_t value) noexcept;
 	
-	ulonglong_t implicitCopy() const noexcept;
+	ulonglong_t implicit_copy() const noexcept;
+	ulonglong_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_ulonglong_t<T>>
 	T implicitCast() const noexcept;

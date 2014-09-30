@@ -29,7 +29,19 @@ import std.string 0.1.0 {
 			 */
 			static string cstring(const ubyte* const stringConstant);
 			
+			/**
+			 * \brief Implicitly copy this string.
+			 * 
+			 * \return A string representing a copy of this string.
+			 */
 			string implicit_copy() const;
+			
+			/**
+			 * \brief Explicitly copy this string.
+			 * 
+			 * \return A string representing a copy of this string.
+			 */
+			string copy() const;
 			
 			/**
 			 * \brief Concatenate two strings.
@@ -39,6 +51,21 @@ import std.string 0.1.0 {
 			 *         this string and the given string.
 			 */
 			string add(const string& other) const;
+			
+			/**
+			 * \brief Get substring.
+			 * 
+			 * \param The range for which to get a substring.
+			 * \return The substring.
+			 */
+			string substr(string_range range) const;
+			
+			/**
+			 * \brief Get range of the whole string.
+			 * 
+			 * \return Range of the whole string.
+			 */
+			string_range all() const;
 			
 			/**
 			 * \brief Get string contents length (number of unicode characters).
@@ -54,7 +81,14 @@ import std.string 0.1.0 {
 			 */
 			compare_result_t compare(const string& other) const noexcept;
 			
-			utf8buffer make_buffer() const;
+			/**
+			 * \brief Create a UTF-8 buffer for the string.
+			 * 
+			 * This function is typically used to create C strings from std::string.
+			 * 
+			 * \return A UTF-8 buffer equivalent of the string.
+			 */
+			utf8_buffer make_buffer() const;
 		}
 		
 	}

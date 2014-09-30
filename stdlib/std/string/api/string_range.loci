@@ -1,0 +1,91 @@
+import std.string 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief String Range
+		 * 
+		 * Represents a (potentially empty) range of characters
+		 * within a string.
+		 */
+		class string_range {
+			/**
+			 * \brief Create range from pair of iterators.
+			 * 
+			 * \param begin The iterator for the beginning of the range.
+			 * \param end The iterator for the end of the range.
+			 * \return The string range.
+			 */
+			string_range iterator_pair(string_iterator begin, string_iterator end);
+			
+			/**
+			 * \brief Implicitly copy string range.
+			 * 
+			 * \return A copy of the string range.
+			 */
+			string_range implicit_copy() const;
+			
+			/**
+			 * \brief Explicitly copy string range.
+			 * 
+			 * \return A copy of the string range.
+			 */
+			string_range copy() const;
+			
+			/**
+			 * \brief Get iterator for beginning of range.
+			 * 
+			 * \return Iterator for beginning of range.
+			 */
+			string_iterator begin() const;
+			
+			/**
+			 * \brief Get iterator for end of range.
+			 * 
+			 * \return Iterator for end of range.
+			 */
+			string_iterator end() const;
+			
+			/**
+			 * \brief Pop front.
+			 */
+			void pop_front();
+			
+			/**
+			 * \brief Get value at front of range.
+			 * 
+			 * \return Value at front of range.
+			 */
+			lval<unichar> const value_lval<const unichar>& front() const;
+			
+			/**
+			 * \brief Pop back.
+			 */
+			void pop_back();
+			
+			/**
+			 * \brief Get value at back of range.
+			 * 
+			 * \return Value at back of range.
+			 */
+			lval<unichar> const value_lval<const unichar>& back() const;
+			
+			/**
+			 * \brief Get whether range is empty.
+			 * 
+			 * \return Whether range is empty.
+			 */
+			bool empty() const;
+			
+			/**
+			 * \brief Get range length.
+			 * 
+			 * \return Range length.
+			 */
+			size_t length() const;
+		}
+		
+	}
+	
+}
+

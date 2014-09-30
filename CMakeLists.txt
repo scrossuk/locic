@@ -96,7 +96,15 @@ message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
 link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
 
-llvm_map_components_to_libraries(LLVM_REQ_LIBS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
+set(LLVM_REQ_COMPONENTS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
+
+# llvm_map_components_to_libraries() is deprecated in LLVM 3.5, so use the more
+# modern llvm_map_components_to_libnames() when available.
+if ("${LLVM_VERSION_STRING}" VERSION_GREATER "3.4")
+	llvm_map_components_to_libnames(LLVM_REQ_LIBS ${LLVM_REQ_COMPONENTS})
+else()
+	llvm_map_components_to_libraries(LLVM_REQ_LIBS ${LLVM_REQ_COMPONENTS})
+endif()
 
 # --- Subdirectories
 
@@ -154,10 +162,12 @@ set (STD_MEMORY_BINARY_FILES
 
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/stringbuilder.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_builder.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_iterator.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_range.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/unichar.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8buffer.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8_buffer.loci"
 	)
 
 set (STD_STRING_BINARY_FILES

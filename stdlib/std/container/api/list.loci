@@ -5,13 +5,13 @@ import std.container 0.1.0 {
 	
 		template <typename T>
 		class list_range {
-			lval<T> ptr_lval<T> front();
+			lval<T> ptr_lval<T> front() const;
 			
-			void pop_front();
+			void skip_front();
 			
-			lval<T> ptr_lval<T> back();
+			lval<T> ptr_lval<T> back() const;
 			
-			void pop_back();
+			void skip_back();
 			
 			bool empty() const noexcept;
 		}
@@ -41,7 +41,7 @@ import std.container 0.1.0 {
 			
 			void pop_back() noexcept;
 			
-			list_range<T> range() const noexcept;
+			list_range<T> all() const noexcept;
 			
 		}
 		

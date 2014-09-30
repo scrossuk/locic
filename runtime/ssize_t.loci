@@ -14,7 +14,8 @@ __primitive ssize_t {
 	static ssize_t implicit_cast_byte_t(byte_t value) noexcept;
 	static ssize_t implicit_cast_short_t(short_t value) noexcept;
 	
-	ssize_t implicitCopy() const noexcept;
+	ssize_t implicit_copy() const noexcept;
+	ssize_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_ssize_t<T>>
 	T implicitCast() const noexcept;

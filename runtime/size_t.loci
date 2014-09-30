@@ -21,7 +21,8 @@ __primitive size_t {
 	static size_t cast_double_t(double_t value) noexcept;
 	static size_t cast_longdouble_t(longdouble_t value) noexcept;
 	
-	size_t implicitCopy() const noexcept;
+	size_t implicit_copy() const noexcept;
+	size_t copy() const noexcept;
 	
 	template <typename T: __implicit_cast_from_size_t<T>>
 	T implicitCast() const noexcept;

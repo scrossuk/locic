@@ -22,7 +22,7 @@ export std.container 0.1.0 {
 				return @begin;
 			}
 			
-			void next() noexcept {
+			void skip_front() noexcept {
 				@begin += @increment;
 			}
 			
@@ -41,7 +41,7 @@ export std.container 0.1.0 {
 				return @begin;
 			}
 			
-			void next() noexcept {
+			void skip_front() noexcept {
 				if (@begin == @end) {
 					@empty = true;
 					return;
@@ -78,7 +78,7 @@ export std.container 0.1.0 {
 				return @begin;
 			}
 			
-			void next() noexcept {
+			void skip_front() noexcept {
 				if (@begin == @end) {
 					@empty = true;
 					return;
@@ -101,7 +101,7 @@ export std.container 0.1.0 {
 				return @begin;
 			}
 			
-			void next() noexcept {
+			void skip_front() noexcept {
 				if (@begin == @end) {
 					@empty = true;
 					return;
