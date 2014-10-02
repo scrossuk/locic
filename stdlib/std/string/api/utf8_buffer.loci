@@ -41,7 +41,9 @@ import std.string 0.1.0 {
 			 * 
 			 * \param The range of characters to append.
 			 */
-			void append_range(forward_range<unichar>& range);
+			template <typename RangeType : forward_range<unichar, LvalType>, typename 
+LvalType : readable_lval<unichar>>
+			void append_range(RangeType range);
 			
 			/**
 			 * \brief Gets a pointer to a UTF-8 null-terminated C string.

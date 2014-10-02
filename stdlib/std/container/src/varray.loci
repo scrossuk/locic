@@ -12,7 +12,7 @@ export std.container 0.1.0 {
 			}
 			
 			~ {
-				for (auto i: reverse_counter<size_t>(1u, @size, 0u)) {
+				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
 					nolval(@data[i]).__destroy_value();
 				}
 				
@@ -26,7 +26,7 @@ export std.container 0.1.0 {
 				
 				T* newData = reinterpret_cast<void*, T*>(alloc(size * sizeof(T)));
 				
-				for (auto i: counter<size_t>(1u, 0u, @size)) {
+				for (auto i: counter<size_t>(0u, @size, 1u)) {
 					nolval(newData[i]).__set_value(nolval(@data[i]).__extract_value());
 				}
 				
@@ -43,7 +43,7 @@ export std.container 0.1.0 {
 			void resize(size_t size) {
 				self.reserve(size);
 				if (size < @size) {
-					for (auto i: reverse_counter<size_t>(1u, @size, size)) {
+					for (auto i: reverse_counter<size_t>(@size, size, 1u)) {
 						nolval(@data[i]).__destroy_value();
 					}
 				}
@@ -68,7 +68,7 @@ export std.container 0.1.0 {
 			}
 			
 			void clear() noexcept {
-				for (auto i: reverse_counter<size_t>(1u, @size, 0u)) {
+				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
 					nolval(@data[i]).__destroy_value();
 				}
 				@size = 0u;

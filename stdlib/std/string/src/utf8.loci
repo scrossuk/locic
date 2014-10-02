@@ -73,7 +73,7 @@ export std.string 0.1.0 {
 			
 			uint32_t character_value = first_byte_pair.first_value.cast<uint32_t>();
 			
-			for (size_t i: std::counter_incl<size_t>(1u, 0u, first_byte_pair.bytes_to_read)) {
+			for (size_t i: std::counter_incl<size_t>(0u, first_byte_pair.bytes_to_read, 1u)) {
 				final ubyte sequence_byte = source.pop_front();
 				
 				// UTF-8 sequence byte values must be 0b10xxxxxx

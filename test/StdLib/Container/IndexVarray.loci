@@ -5,11 +5,11 @@ import void testPrint(const ubyte * const str, ...) noexcept;
 export int testEntryPoint(int argc, ubyte ** argv) {
 	auto varray = std::varray<int>();
 	
-	for (auto i: std::counter<int>(1, 0, 10)) {
+	for (auto i: std::counter<int>(0, 10, 1)) {
 		varray.push_back(i);
 	}
 	
-	for (auto i: std::counter<size_t>(1u, 0u, 10u)) {
+	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
 		testPrint(C"varray[%llu] = %d", i.cast<ulonglong_t>(), varray[i]);
 	}
 	

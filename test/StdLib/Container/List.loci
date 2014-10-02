@@ -5,7 +5,7 @@ import void testPrint(const ubyte * const str, ...) noexcept;
 export int testEntryPoint(int argc, ubyte ** argv) {
 	auto list = std::list<int>();
 	
-	for (auto i: std::counter<int>(1, 0, 10)) {
+	for (auto i: std::counter<int>(0, 10, 1)) {
 		list.push_back(i);
 	}
 	

@@ -16,7 +16,7 @@ class TestClass(int value) {
 export int testEntryPoint(int argc, ubyte ** argv) {
 	auto varray = std::varray<TestClass>();
 	
-	for (auto i: std::counter<int>(1, 0, 10)) {
+	for (auto i: std::counter<int>(0, 10, 1)) {
 		varray.push_back(TestClass(i));
 	}
 	

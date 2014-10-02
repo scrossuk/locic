@@ -29,7 +29,9 @@ export std.string 0.1.0 {
 				@byteArray.push_back(0u);
 			}
 			
-			void append_range(forward_range<unichar>& range) {
+			template <typename RangeType : forward_range<unichar, LvalType>, typename 
+LvalType : readable_lval<unichar>>
+			void append_range(RangeType range) {
 				for (unichar character: range) {
 					self.append(character);
 				}

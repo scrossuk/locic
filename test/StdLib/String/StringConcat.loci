@@ -1,0 +1,18 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto helloString = "hello";
+	auto worldString = "world";
+	
+	testPrint(C"helloString = %s", helloString.make_buffer().c_str());
+	testPrint(C"worldString = %s", worldString.make_buffer().c_str());
+	
+	auto combinedString = helloString + " " + worldString;
+	
+	testPrint(C"combinedString = %s", combinedString.make_buffer().c_str());
+	
+	return 0;
+}
+

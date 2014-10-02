@@ -91,6 +91,10 @@ import std.string 0.1.0 {
 			utf8_buffer make_buffer() const;
 		}
 		
+		class string_lval {
+			unichar dissolve() const;
+		}
+		
 	}
 	
 }

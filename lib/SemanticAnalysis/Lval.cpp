@@ -82,7 +82,8 @@ namespace locic {
 		
 		bool canDissolveValue(SEM::Value* value) {
 			const auto type = getSingleDerefType(value->type());
-			return type->isLval() && type->isObject() && supportsDissolve(type);
+			return type->isLval() && type->isObjectOrTemplateVar() && 
+supportsDissolve(type);
 		}
 		
 		SEM::Value* dissolveLval(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {

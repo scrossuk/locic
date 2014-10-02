@@ -4,7 +4,8 @@ export std.string 0.1.0 {
 		
 		class string_range (const std::varray<ubyte>& stringData, size_t begin, size_t end) {
 			static _string_all(const std::varray<ubyte>& stringData) {
-				return @(stringData, 0u, stringData.size());
+				assert !stringData.empty();
+				return @(stringData, 0u, stringData.size() - 1u);
 			}
 			
 			string_range iterator_pair(string_iterator begin, string_iterator end) {
@@ -32,24 +33,24 @@ export std.string 0.1.0 {
 				return string_iterator._fromPos(@stringData, @end);
 			}
 			
-			void pop_front() {
+			void skip_front() {
 				assert !self.empty();
 				@begin += 1u;
 			}
 			
-			lval<unichar> const value_lval<const unichar>& front() const {
-				// TODO
-				unreachable;
+			lval<unichar> string_lval front() const {
+				assert !self.empty();
+				return lval<unichar>(string_lval(&@stringData[@begin]));
 			}
 			
-			void pop_back() {
+			void skip_back() {
 				assert !self.empty();
 				@end -= 1u;
 			}
 			
-			lval<unichar> const value_lval<const unichar>& back() const {
-				// TODO
-				unreachable;
+			lval<unichar> string_lval back() const {
+				assert !self.empty();
+                                return lval<unichar>(string_lval(&@stringData[@end - 1u]));
 			}
 			
 			bool empty() const {

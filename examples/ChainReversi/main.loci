@@ -14,8 +14,8 @@ double SRandom() {
 }
 
 void initializeBoard(CR::Board& board) {
-	for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
-		for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
+	for (auto x: std::counter<size_t>(0u, board.size().width, 1u)) {
+		for (auto y: std::counter<size_t>(0u, board.size().height, 1u)) {
 			board[CR::Position(x, y)] = CR::Empty();
 		}
 	}
@@ -107,8 +107,8 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 		// Clear screen to black.
 		renderWindow.clear(sf::Color(0u, 0u, 0u, 255u));
 		
-		for (auto x: std::counter<size_t>(1u, 0u, board.size().width)) {
-			for (auto y: std::counter<size_t>(1u, 0u, board.size().height)) {
+		for (auto x: std::counter<size_t>(0u, board.size().width, 1u)) {
+			for (auto y: std::counter<size_t>(0u, board.size().height, 1u)) {
 				auto backgroundCircle = sf::CircleShape();
 				backgroundCircle.setRadius(45.0f);
 				backgroundCircle.setFillColor(sf::Color(20u, 20u, 20u, 255u));

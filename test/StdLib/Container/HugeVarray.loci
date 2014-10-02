@@ -7,7 +7,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	
 	varray.reserve(10000u);
 	
-	for (auto i: std::counter<uint32_t>(1u, 0u, 10000u)) {
+	for (auto i: std::counter<uint32_t>(0u, 10000u, 1u)) {
 		varray.push_back(i);
 	}
 	

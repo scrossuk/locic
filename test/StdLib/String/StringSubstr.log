@@ -1,0 +1,5 @@
+string = Hello world
+string.substr(string.all()) = Hello world
+string.substr(range) = ello worl
+string.substr(range) = worl
+string.substr(range) = 

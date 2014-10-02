@@ -12,10 +12,10 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T: counter_type<T>>
-		class counter (T increment, T begin, T end) {
-			static create(T increment, T begin, T end) noexcept {
+		class counter (T begin, T end, T increment) {
+			static create(T begin, T end, T increment) noexcept {
 				assert begin <= end;
-				return @(move increment, move begin, move end);
+				return @(move begin, move end, move increment);
 			}
 			
 			const T& front() const noexcept {
@@ -32,9 +32,10 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T: counter_type<T>>
-		class counter_incl (T increment, T begin, T end, bool empty) {
-			static create(T increment, T begin, T end) noexcept {
-				return @(move increment, move begin, move end, false);
+		class counter_incl (T begin, T end, T increment, bool empty) {
+			static create(T begin, T end, T increment) noexcept {
+				assert begin <= end;
+				return @(move begin, move end, move increment, false);
 			}
 			
 			const T& front() const noexcept {
@@ -64,13 +65,14 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T: reverse_counter_type<T>>
-		class reverse_counter (T decrement, T begin, T end, bool empty) {
-			static create(T decrement, T begin, T end) noexcept {
+		class reverse_counter (T begin, T end, T decrement, bool empty) {
+			static create(T begin, T end, T decrement) noexcept {
+				assert begin >= end;
 				if (begin > end) {
 					begin -= decrement;
-					return @(move decrement, move begin, move end, false);
+					return @(move begin, move end, move decrement, false);
 				} else {
-					return @(move decrement, move begin, move end, true);
+					return @(move begin, move end, move decrement, true);
 				}
 			}
 			
@@ -92,9 +94,10 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T: reverse_counter_type<T>>
-		class reverse_counter_incl (T decrement, T begin, T end, bool empty) {
-			static create(T decrement, T begin, T end) noexcept {
-				return @(move decrement, move begin, move end, false);
+		class reverse_counter_incl (T begin, T end, T decrement, bool empty) {
+			static create(T begin, T end, T decrement) noexcept {
+				assert begin >= end;
+				return @(move begin, move end, move decrement, false);
 			}
 			
 			const T& front() const noexcept {

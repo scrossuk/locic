@@ -47,28 +47,28 @@ import std.string 0.1.0 {
 			string_iterator end() const;
 			
 			/**
-			 * \brief Pop front.
+			 * \brief Skip front.
 			 */
-			void pop_front();
+			void skip_front();
 			
 			/**
 			 * \brief Get value at front of range.
 			 * 
 			 * \return Value at front of range.
 			 */
-			lval<unichar> const value_lval<const unichar>& front() const;
+			lval<unichar> string_lval front() const;
 			
 			/**
 			 * \brief Pop back.
 			 */
-			void pop_back();
+			void skip_back();
 			
 			/**
 			 * \brief Get value at back of range.
 			 * 
 			 * \return Value at back of range.
 			 */
-			lval<unichar> const value_lval<const unichar>& back() const;
+			lval<unichar> string_lval back() const;
 			
 			/**
 			 * \brief Get whether range is empty.

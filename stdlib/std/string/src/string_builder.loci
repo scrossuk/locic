@@ -2,6 +2,11 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
+		template <typename T>
+		interface readable_lval {
+			T& dissolve() const;
+		}
+		
 		class string_builder (utf8_buffer buffer) {
 			static create() {
 				return @(utf8_buffer());
@@ -19,8 +24,10 @@ export std.string 0.1.0 {
 				@buffer.append(character);
 			}
 			
-			void append_range(forward_range<unichar>& range) {
-				@buffer.append_range(range);
+			template <typename RangeType : forward_range<unichar, LvalType>, typename 
+LvalType : readable_lval<unichar>>
+			void append_range(RangeType range) {
+				@buffer.append_range<RangeType, LvalType>(move range);
 			}
 			
 			string str() const {

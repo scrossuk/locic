@@ -1,6 +1,8 @@
 Counting from 0 to 0 in decrements of 1.
 CountObject: compare 0 and 0
+CountObject: compare 0 and 0
 Counting from 10 to 0 in decrements of 1.
+CountObject: compare 10 and 0
 CountObject: compare 10 and 0
 CountObject: 10 - 1
 Value 0 = 9.
@@ -34,6 +36,7 @@ Value 9 = 0.
 CountObject: compare 0 and 0
 Counting from 100 to 0 in decrements of 10.
 CountObject: compare 100 and 0
+CountObject: compare 100 and 0
 CountObject: 100 - 10
 Value 0 = 90.
 CountObject: compare 90 and 0
@@ -65,9 +68,11 @@ CountObject: 10 - 10
 Value 9 = 0.
 CountObject: compare 0 and 0
 Counting inclusively from 0 to 0 in decrements of 1.
+CountObject: compare 0 and 0
 Value 0 = 0.
 CountObject: compare 0 and 0
 Counting inclusively from 10 to 0 in decrements of 1.
+CountObject: compare 10 and 0
 Value 0 = 10.
 CountObject: compare 10 and 0
 CountObject: 10 - 1
@@ -101,6 +106,7 @@ CountObject: 1 - 1
 Value 10 = 0.
 CountObject: compare 0 and 0
 Counting inclusively from 100 to 0 in decrements of 10.
+CountObject: compare 100 and 0
 Value 0 = 100.
 CountObject: compare 100 and 0
 CountObject: 100 - 10

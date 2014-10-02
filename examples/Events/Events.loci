@@ -16,7 +16,7 @@ void runEventsExample() {
 	auto edgeTriggeredWaitSet = std::event::wait_set::edge_triggered();
 	edgeTriggeredWaitSet.insert(generator.event_source());
 	
-	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+	for (ulonglong_t i: std::counter<ulonglong_t>(0u, 3u, 1u)) {
 		generator.notify();
 		
 		printf(C"  %llu:\n", i);
@@ -34,7 +34,7 @@ void runEventsExample() {
 	auto levelTriggeredWaitSet = std::event::wait_set::level_triggered();
 	levelTriggeredWaitSet.insert(generator.event_source());
 	
-	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+	for (ulonglong_t i: std::counter<ulonglong_t>(0u, 3u, 1u)) {
 		generator.notify();
 		
 		printf(C"  %llu:\n", i);
@@ -52,7 +52,7 @@ void runEventsExample() {
 	auto doubleEdgeTriggeredWaitSet = std::event::wait_set::edge_triggered();
 	doubleEdgeTriggeredWaitSet.insert(edgeTriggeredWaitSet.event_source());
 	
-	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+	for (ulonglong_t i: std::counter<ulonglong_t>(0u, 3u, 1u)) {
 		generator.notify();
 		
 		printf(C"  %llu:\n", i);
@@ -70,7 +70,7 @@ void runEventsExample() {
 	auto doubleLevelTriggeredWaitSet = std::event::wait_set::edge_triggered();
 	doubleLevelTriggeredWaitSet.insert(levelTriggeredWaitSet.event_source());
 	
-	for (ulonglong_t i: std::counter<ulonglong_t>(1u, 0u, 3u)) {
+	for (ulonglong_t i: std::counter<ulonglong_t>(0u, 3u, 1u)) {
 		generator.notify();
 		
 		printf(C"  %llu:\n", i);

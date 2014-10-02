@@ -29,7 +29,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::counter<CountObject>(CountObject(1u), CountObject(250u), CountObject(255u))) {
+		for (auto i: std::counter<CountObject>(CountObject(250u), CountObject(255u), CountObject(1u))) {
 			testPrint(C"Value %d = %u.", position, i.getValue());
 			position += 1;
 		}
@@ -39,7 +39,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::counter_incl<CountObject>(CountObject(1u), CountObject(250u), CountObject(255u))) {
+		for (auto i: std::counter_incl<CountObject>(CountObject(250u), CountObject(255u), CountObject(1u))) {
 			testPrint(C"Value %d = %u.", position, i.getValue());
 			position += 1;
 		}

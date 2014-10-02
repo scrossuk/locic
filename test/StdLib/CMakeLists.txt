@@ -20,4 +20,5 @@ endmacro(test_stdlib_check_output)
 
 add_subdirectory(Container)
 add_subdirectory(Memory)
+add_subdirectory(String)
 

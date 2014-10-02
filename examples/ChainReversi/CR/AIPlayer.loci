@@ -28,8 +28,8 @@ namespace CR {
 			
 			final auto analysis = BoardAnalysis(board);
 			
-			for (auto xi: std::counter<size_t>(1u, 0u, 8u)) {
-				for (auto yi: std::counter<size_t>(1u, 0u, 8u)) {
+			for (auto xi: std::counter<size_t>(0u, 8u, 1u)) {
+				for (auto yi: std::counter<size_t>(0u, 8u, 1u)) {
 					final auto position = Position(xi, yi);
 					if (!board.isValid(position)) {
 						continue;

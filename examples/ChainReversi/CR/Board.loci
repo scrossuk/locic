@@ -9,7 +9,7 @@ namespace CR {
 		static Create(BoardSize size, Value initialPlayer) {
 			auto data = std::varray<Value>();
 			
-			for (auto p: std::counter<size_t>(1u, 0u, size.width * size.height)) {
+			for (auto p: std::counter<size_t>(0u, size.width * size.height, 1u)) {
 				data.push_back(Empty());
 			}
 			
@@ -19,7 +19,7 @@ namespace CR {
 		Board copy() const {
 			auto data = std::varray<Value>();
 			
-			for (auto p: std::counter<size_t>(1u, 0u, @size.width * @size.height)) {
+			for (auto p: std::counter<size_t>(0u, @size.width * @size.height, 1u)) {
 				data.push_back(@data[p]);
 			}
 			
@@ -31,8 +31,8 @@ namespace CR {
 				return false;
 			}
 			
-			for (auto xi: std::counter_incl<ssize_t>(1, -1, 1)) {
-				for (auto yi: std::counter_incl<ssize_t>(1, -1, 1)) {
+			for (auto xi: std::counter_incl<ssize_t>(-1, 1, 1)) {
+				for (auto yi: std::counter_incl<ssize_t>(-1, 1, 1)) {
 					if (xi == 0 && yi == 0) {
 						continue;
 					}
@@ -67,8 +67,8 @@ namespace CR {
 		}
 		
 		bool isComplete() const noexcept {
-			for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
-				for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
+			for (auto x: std::counter<size_t>(0u, @size.width, 1u)) {
+				for (auto y: std::counter<size_t>(0u, @size.height, 1u)) {
 					if (self.isValid(Position(x, y))) {
 						return false;
 					}
@@ -88,14 +88,14 @@ namespace CR {
 			while (hasChanged) {
 				hasChanged = false;
 				
-				for (auto x: std::counter<size_t>(1u, 0u, @size.width)) {
-					for (auto y: std::counter<size_t>(1u, 0u, @size.height)) {
+				for (auto x: std::counter<size_t>(0u, @size.width, 1u)) {
+					for (auto y: std::counter<size_t>(0u, @size.height, 1u)) {
 						if (self[Position(x, y)] != self.player()) {
 							continue;
 						}
 						
-						for (auto xi: std::counter_incl<ssize_t>(1, -1, 1)) {
-							for (auto yi: std::counter_incl<ssize_t>(1, -1, 1)) {
+						for (auto xi: std::counter_incl<ssize_t>(-1, 1, 1)) {
+							for (auto yi: std::counter_incl<ssize_t>(-1, 1, 1)) {
 								if (xi == 0 && yi == 0) {
 									continue;
 								}

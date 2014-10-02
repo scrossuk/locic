@@ -29,7 +29,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter<CountObject>(CountObject(1), CountObject(0), CountObject(0))) {
+		for (auto i: std::reverse_counter<CountObject>(CountObject(0), CountObject(0), CountObject(1))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}
@@ -39,7 +39,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter<CountObject>(CountObject(1), CountObject(10), CountObject(0))) {
+		for (auto i: std::reverse_counter<CountObject>(CountObject(10), CountObject(0), CountObject(1))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}
@@ -49,7 +49,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter<CountObject>(CountObject(10), CountObject(100), CountObject(0))) {
+		for (auto i: std::reverse_counter<CountObject>(CountObject(100), CountObject(0), CountObject(10))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}
@@ -59,7 +59,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(1), CountObject(0), CountObject(0))) {
+		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(0), CountObject(0), CountObject(1))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}
@@ -69,7 +69,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(1), CountObject(10), CountObject(0))) {
+		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(10), CountObject(0), CountObject(1))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}
@@ -79,7 +79,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	{
 		int position = 0;
 		
-		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(10), CountObject(100), CountObject(0))) {
+		for (auto i: std::reverse_counter_incl<CountObject>(CountObject(100), CountObject(0), CountObject(10))) {
 			testPrint(C"Value %d = %d.", position, i.getValue());
 			position += 1;
 		}

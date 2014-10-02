@@ -21,7 +21,7 @@ export std.string 0.1.0 {
 				
 				auto byteArray = std::varray<ubyte>();
 				
-				for (auto i: std::counter<size_t>(1u, 0u, length)) {
+				for (auto i: std::counter<size_t>(0u, length, 1u)) {
 					byteArray.push_back(stringConstant[i]);
 				}
 				
@@ -113,10 +113,19 @@ export std.string 0.1.0 {
 			
 			utf8_buffer make_buffer() const {
 				auto buffer = utf8_buffer();
-				for (auto i: std::counter<size_t>(1u, 0u, @byteArray.size())) {
+				for (auto i: std::counter<size_t>(0u, @byteArray.size(), 1u)) {
 					buffer.append(@byteArray[i]);
 				}
 				return move buffer;
+			}
+		}
+		
+		class string_lval(const ubyte* const utf8Ptr) {
+			static create = default;
+			
+			unichar dissolve() const {
+				// TODO!
+				unreachable;
 			}
 		}
 		
