@@ -363,6 +363,7 @@ const T& GETSYM(T* value) {
 
 %type <typeList> nonEmptyTypeList
 %type <typeList> typeList
+%type <typeList> templateTypeList
 %type <typeVar> patternTypeVar
 %type <typeVar> typeVar
 %type <typeVarList> nonEmptyTypeVarList
@@ -876,7 +877,7 @@ symbolElement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement(GETSYM($1), locic::AST::makeDefaultNode<locic::AST::TypeList>())));
 	}
-	| NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
+	| NAME LTRIBRACKET templateTypeList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement(GETSYM($1), GETSYM($3))));
 	}
@@ -1150,7 +1151,7 @@ nonEmptyTypeList:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	;
-	
+
 typeList:
 	// empty
 	{
@@ -1159,6 +1160,25 @@ typeList:
 	| nonEmptyTypeList
 	{
 		$$ = $1;
+	}
+	;
+
+// Template type lists are actually considered as tuples, and brackets can be
+// added to resolve ambiguities; from a syntactic point of view no-brackets is
+// actually the special case.
+templateTypeList:
+	nonEmptyTypeList
+	{
+		$$ = $1;
+	}
+	| LROUNDBRACKET nonEmptyTypeList COMMA RROUNDBRACKET
+	{
+		$$ = $2;
+	}
+	| LROUNDBRACKET nonEmptyTypeList COMMA type RROUNDBRACKET
+	{
+		(GETSYM($2))->push_back(GETSYM($4));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($2)).get()));
 	}
 	;
 
@@ -1576,7 +1596,7 @@ value_precedence1:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence1 DOT NAME LTRIBRACKET nonEmptyTypeList RTRIBRACKET
+	| value_precedence1 DOT NAME LTRIBRACKET templateTypeList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}

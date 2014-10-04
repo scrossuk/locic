@@ -3,19 +3,12 @@ import std.container 0.1.0 {
 	namespace std {
 		
 		template <typename T>
-		interface input_range {
-			bool empty() const;
-			
-			T pop_front();
-		}
-		
-		template <typename T>
 		interface output_range {
 			void push_back(T value);
 		}
 		
 		template <typename T, typename LvalType>
-		interface forward_range {
+		interface input_range {
 			bool empty() const;
 			
 			void skip_front();
@@ -39,5 +32,3 @@ import std.container 0.1.0 {
 	}
 	
 }
-		
-		

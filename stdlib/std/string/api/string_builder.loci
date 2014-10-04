@@ -46,9 +46,8 @@ import std.string 0.1.0 {
 			 * 
 			 * \param The range of characters to append.
 			 */
-			template <typename RangeType : forward_range<unichar, LvalType>, typename 
-LvalType : readable_lval<unichar>>
-			void append_range(RangeType range);
+			template <typename LvalType: readable_lval<unichar>>
+			void append_range(input_range<unichar, LvalType>& range);
 			
 			/**
 			 * \brief Generates a string value.

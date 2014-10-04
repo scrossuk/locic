@@ -4,13 +4,16 @@ import std.string 0.1.0 {
 		
 		exception utf8_decode_error(const ubyte* const error);
 		
-		void encode_utf8(input_range<unichar>& source, output_range<ubyte>& dest);
+		template <typename LvalType: readable_lval<const unichar>>
+		void utf8_encode(input_range<const unichar, LvalType>& source, output_range<ubyte>& dest);
 		
-		void decode_utf8(input_range<ubyte>& source, output_range<unichar>& dest);
+		template <typename LvalType: readable_lval<const ubyte>>
+		void utf8_decode(input_range<const ubyte, LvalType>& source, output_range<unichar>& dest);
 		
-		void encode_utf8_character(unichar character, output_range<ubyte>& dest);
+		void utf8_encode_character(unichar character, output_range<ubyte>& dest);
 		
-		unichar decode_utf8_character(input_range<ubyte>& source);
+		template <typename LvalType: readable_lval<const ubyte>>
+		unichar utf8_decode_character(input_range<const ubyte, LvalType>& source);
 		
 	}
 	

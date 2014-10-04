@@ -29,19 +29,22 @@ export std.string 0.1.0 {
 		
 		exception utf8_decode_error(const ubyte* const error);
 		
-		void encode_utf8(input_range<unichar>& source, output_range<ubyte>& dest) {
+		template <typename LvalType: readable_lval<const unichar>>
+		void utf8_encode(input_range<const unichar, LvalType>& source, output_range<ubyte>& dest) {
 			while (!source.empty()) {
-				encode_utf8_character(source.pop_front(), dest);
+				utf8_encode_character(source.front(), dest);
+				source.skip_front();
 			}
 		}
 		
-		void decode_utf8(input_range<ubyte>& source, output_range<unichar>& dest) {
+		template <typename LvalType: readable_lval<const ubyte>>
+		void utf8_decode(input_range<const ubyte, LvalType>& source, output_range<unichar>& dest) {
 			while (!source.empty()) {
-				dest.push_back(decode_utf8_character(source));
+				dest.push_back(utf8_decode_character<LvalType>(source));
 			}
 		}
 		
-		void encode_utf8_character(unichar character, output_range<ubyte>& dest) {
+		void utf8_encode_character(unichar character, output_range<ubyte>& dest) {
 			if (character.in_range(0x00u, 0x7Fu)) {
 				// ASCII character range.
 				dest.push_back(character.raw_value().cast<ubyte>());
@@ -62,19 +65,22 @@ export std.string 0.1.0 {
 			}
 		}
 		
-		unichar decode_utf8_character(input_range<ubyte>& source) {
+		template <typename LvalType: readable_lval<const ubyte>>
+		unichar utf8_decode_character(input_range<const ubyte, LvalType>& source) {
 			if (source.empty()) {
 				throw utf8_decode_error(C"Failed to read first UTF-8 byte.");
 			}
 			
-			final utf8_initial_pair first_byte_pair = utf8_read_first_byte(source.pop_front());
+			const utf8_initial_pair first_byte_pair = utf8_read_first_byte(source.front());
+			source.skip_front();
 			
 			assert first_byte_pair.bytes_to_read <= 5u;
 			
 			uint32_t character_value = first_byte_pair.first_value.cast<uint32_t>();
 			
 			for (size_t i: std::counter_incl<size_t>(0u, first_byte_pair.bytes_to_read, 1u)) {
-				final ubyte sequence_byte = source.pop_front();
+				const ubyte sequence_byte = source.front();
+				source.skip_front();
 				
 				// UTF-8 sequence byte values must be 0b10xxxxxx
 				if (sequence_byte.count_leading_ones() != 1u) {

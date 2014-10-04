@@ -120,12 +120,31 @@ export std.string 0.1.0 {
 			}
 		}
 		
-		class string_lval(const ubyte* const utf8Ptr) {
+		template <typename T>
+		class ptr_range (T* const ptr) {
 			static create = default;
 			
-			unichar dissolve() const {
-				// TODO!
-				unreachable;
+			bool empty() const {
+				return false;
+			}
+			
+			lval<T> ptr_lval<T> front() const {
+				return *@ptr;
+			}
+			
+			void skip_front() {
+				@ptr += 1;
+			}
+		}
+		
+		class string_lval(unichar character) {
+			static create(const ubyte* const utf8Ptr) {
+				auto ptrRange = ptr_range<const ubyte>(utf8Ptr);
+				return @(utf8_decode_character<ptr_lval<const ubyte>>(ptrRange));
+			}
+			
+			const unichar& dissolve() const {
+				return @character;
 			}
 		}
 		

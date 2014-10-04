@@ -24,10 +24,9 @@ export std.string 0.1.0 {
 				@buffer.append(character);
 			}
 			
-			template <typename RangeType : forward_range<unichar, LvalType>, typename 
-LvalType : readable_lval<unichar>>
-			void append_range(RangeType range) {
-				@buffer.append_range<RangeType, LvalType>(move range);
+			template <typename LvalType: readable_lval<unichar>>
+			void append_range(input_range<unichar, LvalType>& range) {
+				@buffer.append_range<LvalType>(range);
 			}
 			
 			string str() const {

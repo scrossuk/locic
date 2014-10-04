@@ -23,15 +23,14 @@ export std.string 0.1.0 {
 				// Remove null terminator.
 				@byteArray.pop_back();
 				
-				encode_utf8_character(character, @byteArray);
+				utf8_encode_character(character, @byteArray);
 				
 				// Re-add null terminator.
 				@byteArray.push_back(0u);
 			}
 			
-			template <typename RangeType : forward_range<unichar, LvalType>, typename 
-LvalType : readable_lval<unichar>>
-			void append_range(RangeType range) {
+			template <typename LvalType: readable_lval<unichar>>
+			void append_range(input_range<unichar, LvalType>& range) {
 				for (unichar character: range) {
 					self.append(character);
 				}
