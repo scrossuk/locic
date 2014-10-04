@@ -1,0 +1,18 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto elements = std::varray<std::string>();
+	elements.push_back("A - 1");
+	elements.push_back("B - 2");
+	elements.push_back("C - 3");
+	
+	auto range = elements.all();
+	auto joinedString = ", ".join<ptr_lval<std::string>>(range);
+	
+	testPrint(C"joinedString = %s", joinedString.make_buffer().c_str());
+	
+	return 0;
+}
+

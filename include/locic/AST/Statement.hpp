@@ -37,6 +37,8 @@ namespace locic {
 				SCOPEEXIT,
 				VARDECL,
 				ASSIGN,
+				INCREMENT,
+				DECREMENT,
 				RETURN,
 				RETURNVOID,
 				THROW,
@@ -98,6 +100,14 @@ namespace locic {
 				Node<Value> var;
 				Node<Value> value;
 			} assignStmt;
+			
+			struct {
+				Node<Value> value;
+			} incrementStmt;
+			
+			struct {
+				Node<Value> value;
+			} decrementStmt;
 			
 			struct {
 				Node<Value> value;
@@ -191,6 +201,18 @@ namespace locic {
 				statement->assignStmt.assignKind = assignKind;
 				statement->assignStmt.var = var;
 				statement->assignStmt.value = value;
+				return statement;
+			}
+			
+			inline static Statement* Increment(const Node<Value>& value) {
+				Statement* statement = new Statement(INCREMENT);
+				statement->incrementStmt.value = value;
+				return statement;
+			}
+			
+			inline static Statement* Decrement(const Node<Value>& value) {
+				Statement* statement = new Statement(DECREMENT);
+				statement->decrementStmt.value = value;
 				return statement;
 			}
 			

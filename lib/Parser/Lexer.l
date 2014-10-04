@@ -174,6 +174,8 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 
 \/\/(.*?)\n             { }
 
+"++"                    { return DOUBLE_PLUS; }
+"--"                    { return DOUBLE_MINUS; }
 "%"                     { return PERCENT; }
 "="                     { return SETEQUAL; }
 "+"                     { return PLUS; }

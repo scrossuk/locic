@@ -68,7 +68,21 @@ import std.string 0.1.0 {
 			string_range all() const;
 			
 			/**
-			 * \brief Get string contents length (number of unicode characters).
+			 * \brief Get iterator for beginning of string.
+			 * 
+			 * \return Iterator for beginning of string.
+			 */
+			string_iterator begin() const;
+			
+			/**
+			 * \brief Get iterator for end of string.
+			 * 
+			 * \return Iterator for end of string.
+			 */
+			string_iterator end() const;
+			
+			/**
+			 * \brief Get string contents length (number of unicode code points).
 			 * 
 			 * \return The string contents length.
 			 */
@@ -77,9 +91,19 @@ import std.string 0.1.0 {
 			/**
 			 * \brief Compare this string with the given string.
 			 * 
+			 * \param other The other string to compare against.
 			 * \return The result of comparing the strings lexicographically.
 			 */
 			compare_result_t compare(const string& other) const noexcept;
+			
+			/**
+			 * \brief Join a range of string values with this value as separator.
+			 * 
+			 * \param range The range of strings to join.
+			 * \return The joined string.
+			 */
+			template <typename LvalType: readable_lval<string>>
+			string join(input_range<string, LvalType>& range) const;
 			
 			/**
 			 * \brief Create a UTF-8 buffer for the string.

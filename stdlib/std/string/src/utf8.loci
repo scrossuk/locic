@@ -78,7 +78,7 @@ export std.string 0.1.0 {
 			
 			uint32_t character_value = first_byte_pair.first_value.cast<uint32_t>();
 			
-			for (size_t i: std::counter_incl<size_t>(0u, first_byte_pair.bytes_to_read, 1u)) {
+			for (size_t i: std::counter<size_t>(0u, first_byte_pair.bytes_to_read, 1u)) {
 				const ubyte sequence_byte = source.front();
 				source.skip_front();
 				

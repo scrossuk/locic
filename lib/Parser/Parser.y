@@ -286,7 +286,9 @@ const T& GETSYM(T* value) {
 %token DOT
 %token PTRACCESS
 %token PLUS
+%token DOUBLE_PLUS
 %token MINUS
+%token DOUBLE_MINUS
 %token EXCLAIMMARK
 %token AMPERSAND
 %token DOUBLE_AMPERSAND
@@ -1455,6 +1457,14 @@ normalStatement:
 	| value_precedence3 PERCENTEQUAL value_precedence2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_MOD, GETSYM($1), GETSYM($3))));
+	}
+	| value DOUBLE_PLUS
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Increment(GETSYM($1))));
+	}
+	| value DOUBLE_MINUS
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Decrement(GETSYM($1))));
 	}
 	| value
 	{

@@ -77,6 +77,14 @@ export std.string 0.1.0 {
 				return string_range._string_all(@byteArray);
 			}
 			
+			string_iterator begin() const {
+				return self.all().begin();
+			}
+			
+			string_iterator end() const {
+				return self.all().end();
+			}
+			
 			size_t length() const noexcept {
 				return @length;
 			}
@@ -109,6 +117,21 @@ export std.string 0.1.0 {
 				}
 				
 				return compare_result_t.equal();
+			}
+			
+			template <typename LvalType: readable_lval<string>>
+			string join(input_range<string, LvalType>& range) const {
+				string joinedString = "";
+				bool isFirst = true;
+				for (const auto& stringValue: range) {
+					if (isFirst) {
+						isFirst = false;
+					} else {
+						joinedString += self;
+					}
+					joinedString += stringValue;
+				}
+				return joinedString;
 			}
 			
 			utf8_buffer make_buffer() const {

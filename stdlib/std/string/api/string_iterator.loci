@@ -25,12 +25,12 @@ import std.string 0.1.0 {
 			/**
 			 * \brief Move to previous character.
 			 */
-			void previous();
+			void decrement();
 			
 			/**
 			 * \brief Move to next character.
 			 */
-			void next();
+			void increment();
 			
 			/**
 			 * \brief Get character at current position.

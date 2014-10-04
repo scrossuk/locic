@@ -308,6 +308,34 @@ namespace locic {
 					const auto opMethod = GetSpecialMethod(context, semVarValue, "assign", location);
 					return SEM::Statement::ValueStmt(CallValue(context, opMethod, { semAssignValue }, location));
 				}
+				case AST::Statement::INCREMENT: {
+					const auto semOperandValue = ConvertValue(context, statement->incrementStmt.value);
+					const auto opMethod = GetMethod(context, semOperandValue, "increment", location);
+					const auto opResult = CallValue(context, opMethod, { }, location);
+					
+					if (opResult->type()->isBuiltInVoid()) {
+						return SEM::Statement::ValueStmt(opResult);
+					} else {
+						// Automatically cast to void if necessary.
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t")->selfType();
+						const auto voidCastedValue = SEM::Value::Cast(voidType, opResult);
+						return SEM::Statement::ValueStmt(voidCastedValue);
+					}
+				}
+				case AST::Statement::DECREMENT: {
+					const auto semOperandValue = ConvertValue(context, statement->decrementStmt.value);
+					const auto opMethod = GetMethod(context, semOperandValue, "decrement", location);
+					const auto opResult = CallValue(context, opMethod, { }, location);
+					
+					if (opResult->type()->isBuiltInVoid()) {
+						return SEM::Statement::ValueStmt(opResult);
+					} else {
+						// Automatically cast to void if necessary.
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t")->selfType();
+						const auto voidCastedValue = SEM::Value::Cast(voidType, opResult);
+						return SEM::Statement::ValueStmt(voidCastedValue);
+					}
+				}
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
 					if (!getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {

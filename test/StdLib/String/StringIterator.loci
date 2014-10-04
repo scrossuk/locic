@@ -1,0 +1,40 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto string = "Example Text";
+	
+	{
+		auto iterator = string.begin();
+		assert iterator.is_begin();
+		
+		for (auto i: std::counter<size_t>(0u, string.length(), 1u)) {
+			testPrint(C"string[%llu] = %llu",
+				  i.cast<ulonglong>(),
+				  (*iterator).raw_value().cast<ulonglong>());
+			iterator++;
+		}
+		
+		assert iterator.is_end();
+		assert iterator == string.end();
+	}
+	
+	{
+		auto iterator = string.end();
+		assert iterator.is_end();
+		
+		for (auto i: std::counter<size_t>(0u, string.length(), 1u)) {
+			iterator--;
+			testPrint(C"string[%llu] = %llu",
+				  (string.length() - i - 1u).cast<ulonglong>(),
+				  (*iterator).raw_value().cast<ulonglong>());
+		}
+		
+		assert iterator.is_begin();
+		assert iterator == string.begin();
+	}
+	
+	return 0;
+}
+
