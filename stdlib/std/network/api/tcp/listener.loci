@@ -1,0 +1,27 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			/**
+			* \brief TCP Listener
+			*/
+			class listener {
+				static listener create(port source_port);
+				
+				event::source event_source() const;
+				
+				bool check();
+				
+				stream wait();
+				
+				stream get();
+			}
+			
+		}
+		
+	}
+	
+}
+

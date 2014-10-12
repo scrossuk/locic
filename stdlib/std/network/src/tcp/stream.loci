@@ -1,0 +1,97 @@
+import ssize_t std_tcp_read(int eventHandle, uint8_t* data, size_t size) noexcept;
+import ssize_t std_tcp_write(int eventHandle, const uint8_t* const data, size_t size) noexcept;
+import void std_tcp_close(int eventHandle) noexcept;
+
+export std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			template <typename T>
+			interface buffer {
+				T* data() const;
+				
+				size_t size() const;
+			}
+			
+			class stream (int handle, uint8_t firstByte, bool hasFirstByte, bool isValid) {
+				static _create(int handle) noexcept {
+					return @(handle, 0u, false, true);
+				}
+				
+				/*static _create(int handle, uint8_t firstByte) noexcept {
+					return @(handle, firstByte, true, true);
+				}*/
+				
+				~ {
+					std_tcp_close(@handle);
+				}
+				
+				event::source event_source() const noexcept {
+					const bool waitForRead = true;
+					const bool waitForWrite = true;
+					return event::source._handle(@handle, waitForRead, waitForWrite);
+				}
+				
+				event::source read_source() const noexcept {
+					const bool waitForRead = true;
+					const bool waitForWrite = false;
+					return event::source._handle(@handle, waitForRead, waitForWrite);
+				}
+				
+				event::source write_source() const noexcept {
+					const bool waitForRead = false;
+					const bool waitForWrite = true;
+					return event::source._handle(@handle, waitForRead, waitForWrite);
+				}
+				
+				bool valid() const noexcept {
+					return @isValid;
+				}
+				
+				size_t read_some(buffer<uint8_t>& destBuffer) {
+					const size_t bufferSize = destBuffer.size();
+					if (bufferSize == 0u) {
+						return 0u;
+					}
+					
+					uint8_t* const bufferData = destBuffer.data();
+					
+					if (@hasFirstByte) {
+						bufferData[0u] = @firstByte;
+						@hasFirstByte = false;
+						return 1u;
+					}
+					
+					const ssize_t result = std_tcp_read(@handle, bufferData, bufferSize);
+					if (result < 0) {
+						@isValid = false;
+						return 0u;
+					}
+					
+					return result.unsigned_value();
+				}
+				
+				size_t write_some(const buffer<uint8_t>& sourceBuffer) {
+					const size_t bufferSize = sourceBuffer.size();
+					if (bufferSize == 0u) {
+						return 0u;
+					}
+					
+					const ssize_t result = std_tcp_write(@handle, sourceBuffer.data(), bufferSize);
+					if (result < 0) {
+						@isValid = false;
+						return 0u;
+					}
+					
+					return result.unsigned_value();
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+

@@ -1,0 +1,14 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			datatype endpoint(ip::address address, uint16_t port);
+			
+		}
+		
+	}
+	
+}
+

@@ -1,0 +1,10 @@
+export std.future 0.1.0 {
+	
+	namespace std {
+		
+		// TODO
+		
+	}
+	
+}
+

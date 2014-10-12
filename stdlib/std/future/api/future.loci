@@ -1,0 +1,16 @@
+import std.future 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		T future_get(future<T> future);
+		
+		template <typename T>
+		class future {
+			std::event_source event_source() const;
+		}
+		
+	}
+	
+}
+

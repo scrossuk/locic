@@ -1,0 +1,26 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace ip {
+			
+			class address_v4 {
+				static address_v4 raw(uint32_t value) noexcept;
+				
+				static address_v4 localhost() noexcept;
+				
+				static address_v4 any() noexcept;
+				
+				address_v4 implicit_copy() const noexcept;
+				
+				bool is_localhost() const noexcept;
+				
+				bool is_any() const noexcept;
+			}
+			
+		}
+		
+	}
+	
+}
+

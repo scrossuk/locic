@@ -22,9 +22,12 @@ int std_event_wait_destroy(EventHandle waitHandle) {
 	return closeResult >= 0 ? closeResult : -errno;
 }
 
-int std_event_wait_add_handle(EventHandle waitHandle, EventHandle newHandle, int isEdgeTriggered) {
+int std_event_wait_add_handle(EventHandle waitHandle, EventHandle newHandle, int notifyRead, int notifyWrite, int isEdgeTriggered) {
 	struct epoll_event ev;
-	ev.events = (isEdgeTriggered != 0) ? (EPOLLIN | EPOLLET) : EPOLLIN;
+	ev.events =
+		(notifyRead != 0 ? EPOLLIN : 0) |
+		(notifyWrite != 0 ? EPOLLOUT : 0) |
+		(isEdgeTriggered != 0 ? EPOLLET : 0);
 	ev.data.u64 = 0;
 	ev.data.fd = newHandle;
 	const int ctlResult = epoll_ctl(waitHandle, EPOLL_CTL_ADD, newHandle, &ev);

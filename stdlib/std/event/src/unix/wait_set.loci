@@ -2,7 +2,7 @@ import int std_event_wait_create() noexcept;
 
 import int std_event_wait_destroy(int waitHandle) noexcept;
 
-import int std_event_wait_add_handle(int waitHandle, int newHandle, int isEdgeTriggered) noexcept;
+import int std_event_wait_add_handle(int waitHandle, int newHandle, int notifyRead, int notifyWrite, int isEdgeTriggered) noexcept;
 
 import int std_event_wait_internal(int waitHandle, int doPoll) noexcept;
 
@@ -34,7 +34,12 @@ export std.event 0.1.0 {
 				}
 				
 				void insert(source single_source) {
-					const int addResult = std_event_wait_add_handle(@waitHandle, single_source.__getHandle(), @isEdgeTriggered ? 1 : 0);
+					const int addResult = std_event_wait_add_handle(
+						@waitHandle,
+						single_source._getHandle(),
+						single_source._notifyRead() ? 1 : 0,
+						single_source._notifyWrite() ? 1 : 0,
+						@isEdgeTriggered ? 1 : 0);
 					if (addResult < 0) {
 						throw wait_insert_failed(-addResult);
 					}
@@ -57,7 +62,9 @@ export std.event 0.1.0 {
 				}
 				
 				source event_source() const noexcept {
-					return source.__handle(@waitHandle);
+					const bool notifyRead = true;
+					const bool notifyWrite = false;
+					return source._handle(@waitHandle, notifyRead, notifyWrite);
 				}
 			}
 			

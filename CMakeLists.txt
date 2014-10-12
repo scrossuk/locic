@@ -160,6 +160,19 @@ set (STD_MEMORY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/memory/std_memory.bc"
 	)
 
+set (STD_NETWORK_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/ip/address.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/ip/address_v4.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/connector.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/endpoint.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/listener.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/stream.loci"
+	)
+
+set (STD_NETWORK_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/network/std_network.bc"
+	)
+
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_builder.loci"

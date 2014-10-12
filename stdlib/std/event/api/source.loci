@@ -7,6 +7,8 @@ import std.event 0.1.0 {
 			class source {
 				static source inactive() noexcept;
 				
+				static source _handle(int handle, bool notifyRead, bool notifyWrite) noexcept;
+				
 				source implicitCopy() const noexcept;
 				
 				bool poll() const;

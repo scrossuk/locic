@@ -4,21 +4,29 @@ export std.event 0.1.0 {
 		
 		namespace event {
 			
-			class source (int handle) {
+			class source (int handle, bool notifyRead, bool notifyWrite) {
 				static source inactive() noexcept {
-					return @(-1);
+					return @(-1, false, false);
 				}
 				
-				static source __handle(int handle) noexcept {
-					return @(handle);
+				static source _handle(int handle, bool notifyRead, bool notifyWrite) noexcept {
+					return @(handle, notifyRead, notifyWrite);
 				}
 				
 				source implicitCopy() const noexcept {
-					return @(@handle);
+					return @(@handle, @notifyRead, @notifyWrite);
 				}
 				
-				int __getHandle() const noexcept {
+				int _getHandle() const noexcept {
 					return @handle;
+				}
+				
+				bool _notifyRead() const noexcept {
+					return @notifyRead;
+				}
+				
+				bool _notifyWrite() const noexcept {
+					return @notifyWrite;
 				}
 				
 				bool poll() const {

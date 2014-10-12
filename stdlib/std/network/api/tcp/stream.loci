@@ -1,0 +1,36 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			template <typename T>
+			interface buffer {
+				T* data() const;
+				
+				size_t size() const;
+			}
+			
+			/**
+			* \brief TCP Stream
+			*/
+			class stream {
+				event::source event_source() const noexcept;
+				
+				event::source read_source() const noexcept;
+				
+				event::source write_source() const noexcept;
+				
+				bool valid() const noexcept;
+				
+				size_t read_some(buffer<uint8_t>& destBuffer);
+				
+				size_t write_some(const buffer<uint8_t>& sourceBuffer);
+			}
+			
+		}
+		
+	}
+	
+}
+

@@ -1,0 +1,47 @@
+export std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace ip {
+			
+			class address_v4 (uint32_t value) {
+				static address_v4 raw(uint32_t value) noexcept {
+					return @(value);
+				}
+				
+				static address_v4 localhost() noexcept {
+					return
+						@(
+							(127u32 << 24u) |
+							(0u32 << 16u) |
+							(0u32 << 8u) |
+							(1u32 << 0u)
+						);
+				}
+				
+				static address_v4 any() noexcept {
+					// TODO!
+					unreachable;
+				}
+				
+				address_v4 implicit_copy() const noexcept {
+					return @(@value);
+				}
+				
+				bool is_localhost() const noexcept {
+					// TODO!
+					unreachable;
+				}
+				
+				bool is_any() const noexcept {
+					// TODO!
+					unreachable;
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+

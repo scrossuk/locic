@@ -1,0 +1,27 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			/**
+			* \brief TCP Connector
+			*/
+			class connector {
+				static connector create(endpoint dest);
+				
+				event::source event_source() const;
+				
+				bool check();
+			}
+			
+			stream connector_wait(connector conn);
+			
+			stream connector_get(connector conn);
+			
+		}
+		
+	}
+	
+}
+

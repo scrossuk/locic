@@ -1,0 +1,20 @@
+import std.future 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		datatype promise_pair(future<T> future, promise<T> promise);
+		
+		template <typename T>
+		promise_pair<T> make_promise();
+		
+		template <typename T>
+		void complete_promise(promise<T> promise, T value);
+		
+		template <typename T>
+		class promise { }
+		
+	}
+	
+}
+

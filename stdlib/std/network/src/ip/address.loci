@@ -1,0 +1,16 @@
+export std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace ip {
+			
+			datatype address =
+				address_v4_(uint32_t value) |
+				address_v6_(uint64_t low, uint64_t high);
+			
+		}
+		
+	}
+	
+}
+
