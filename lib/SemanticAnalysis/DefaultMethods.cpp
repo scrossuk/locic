@@ -132,7 +132,7 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
-			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t");
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType }));
 			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
 			return semFunction;
@@ -174,7 +174,7 @@ namespace locic {
 				name.toString().c_str(), location.toString().c_str()));
 		}
 		
-		bool HasDefaultImplicitCopy(SEM::TypeInstance* typeInstance) {
+		bool HasDefaultImplicitCopy(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!HasDefaultImplicitCopy(variantTypeInstance)) {
@@ -192,7 +192,7 @@ namespace locic {
 			}
 		}
 		
-		bool HasDefaultExplicitCopy(SEM::TypeInstance* typeInstance) {
+		bool HasDefaultExplicitCopy(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!HasDefaultExplicitCopy(variantTypeInstance)) {
@@ -293,7 +293,7 @@ namespace locic {
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
-			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t")->selfType();
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t");
 			
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = createLocalVarRef(context, operandVar);

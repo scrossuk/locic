@@ -2,7 +2,7 @@ template <typename T>
 __primitive member_lval {
 	static member_lval<T> __empty() noexcept;
 	
-	T* address() noexcept;
+	T* address() const noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
 	

@@ -1,0 +1,23 @@
+import std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			/**
+			* \brief Synchronous stream.
+			*/
+			class sync_stream {
+				static sync_stream create(stream& underlying_stream) noexcept;
+				
+				void sync_read(buffer<uint8_t>& dest_buffer);
+				
+				void sync_write(const buffer<const uint8_t>& source_buffer);
+			}
+			
+		}
+		
+	}
+	
+}
+

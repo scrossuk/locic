@@ -16,6 +16,8 @@ __primitive ptrdiff_t {
 	static ptrdiff_t implicit_cast_byte_t(byte_t value) noexcept;
 	static ptrdiff_t implicit_cast_short_t(short_t value) noexcept;
 	
+	static ptrdiff_t cast_size_t(size_t value) noexcept;
+	
 	ptrdiff_t implicit_copy() const noexcept;
 	ptrdiff_t copy() const noexcept;
 	

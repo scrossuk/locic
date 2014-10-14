@@ -231,6 +231,34 @@ namespace locic {
 			}
 		}
 		
+		void AddNamespaceDataAliasValues(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astChildNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				AddNamespaceDataAliasValues(context, astChildNamespaceNode->data);
+			}
+			
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				AddNamespaceDataAliasValues(context, astModuleScopeNode->data);
+			}
+			
+			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
+				const auto semTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(semTypeAlias));
+				semTypeAlias->setValue(ConvertType(context, astTypeAliasNode->value));
+			}
+		}
+		
+		// Add alias values.
+		void AddAliasValuesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
+				AddNamespaceDataAliasValues(context, astNamespaceNode->data);
+			}
+		}
+		
 		// Fill in type instance structures with member variable information.
 		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto semTypeInstance = context.scopeStack().back().typeInstance();
@@ -344,12 +372,6 @@ namespace locic {
 						AddTypeInstanceMemberVariables(context, astVariantNode);
 					}
 				}
-			}
-			
-			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
-				const auto semTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(semTypeAlias));
-				semTypeAlias->setValue(ConvertType(context, astTypeAliasNode->value));
 			}
 		}
 		
@@ -760,22 +782,25 @@ namespace locic {
 				// ---- Pass 1: Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);
 				
-				// ---- Pass 2: Add type member variables.
+				// ---- Pass 2: Add alias values.
+				AddAliasValuesPass(context, rootASTNamespaces);
+				
+				// ---- Pass 3: Add type member variables.
 				AddTypeMemberVariablesPass(context, rootASTNamespaces);
 				
-				// ---- Pass 3: Create function declarations.
+				// ---- Pass 4: Create function declarations.
 				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 4: Complete template type variable requirements.
+				// ---- Pass 5: Complete template type variable requirements.
 				CompleteTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 5: Check all previous template instantiations are correct.
+				// ---- Pass 6: Check all previous template instantiations are correct.
 				CheckTemplateInstantiationsPass(context);
 				
-				// ---- Pass 5: Generate default methods.
+				// ---- Pass 7: Generate default methods.
 				GenerateDefaultMethodsPass(context);
 				
-				// ---- Pass 6: Fill in function code.
+				// ---- Pass 8: Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());

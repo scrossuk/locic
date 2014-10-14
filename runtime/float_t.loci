@@ -10,7 +10,7 @@ interface __cast_from_float_t {
 
 __primitive float_t {
 	static float_t cast_byte_t(byte_t value) noexcept;
-	static float_t cast_ubyte_t(ubyte_t value) noexcept;
+	static float_t cast_uint8_t(uint8_t value) noexcept;
 	static float_t cast_short_t(short_t value) noexcept;
 	static float_t cast_ushort_t(ushort_t value) noexcept;
 	static float_t cast_int_t(int_t value) noexcept;

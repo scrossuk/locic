@@ -1,6 +1,6 @@
 template <typename T>
 __primitive ptr_lval {
-	T* address() noexcept;
+	T* address() const noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
 	

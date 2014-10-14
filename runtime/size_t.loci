@@ -13,7 +13,6 @@ __primitive size_t {
 	
 	static size_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	static size_t implicit_cast_uint16_t(uint16_t value) noexcept;
-	static size_t implicit_cast_ubyte_t(ubyte_t value) noexcept;
 	static size_t implicit_cast_ushort_t(ushort_t value) noexcept;
 	
 	static size_t cast_int_t(int_t value) noexcept;

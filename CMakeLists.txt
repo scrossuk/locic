@@ -167,6 +167,7 @@ set (STD_NETWORK_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/endpoint.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/listener.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/stream.loci"
+	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/sync_stream.loci"
 	)
 
 set (STD_NETWORK_BINARY_FILES

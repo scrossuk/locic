@@ -43,6 +43,14 @@ export std.string 0.1.0 {
 			string str() const {
 				return string::cstring(self.c_str());
 			}
+			
+			const ubyte* data() const noexcept {
+				return @byteArray.data();
+			}
+			
+			size_t size() const noexcept {
+				return @byteArray.size();
+			}
 		}
 		
 	}

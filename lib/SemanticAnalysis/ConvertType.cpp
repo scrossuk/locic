@@ -142,13 +142,13 @@ namespace locic {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
 			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? makeString("u%s_t", nameString.c_str()) : makeString("%s_t", nameString.c_str());
-			return SEM::Type::Object(getBuiltInType(context.scopeStack(), fullNameString), SEM::Type::NO_TEMPLATE_ARGS);
+			return getBuiltInType(context.scopeStack(), fullNameString);
 		}
 		
 		SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = makeString("%s_t", nameString.c_str());
-			return SEM::Type::Object(getBuiltInType(context.scopeStack(), fullNameString), SEM::Type::NO_TEMPLATE_ARGS);
+			return getBuiltInType(context.scopeStack(), fullNameString);
 		}
 		
 		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
@@ -186,7 +186,7 @@ namespace locic {
 		}
 		
 		SEM::Type* createPointerType(Context& context, SEM::Type* varType) {
-			const auto pointerTypeInst = getBuiltInType(context.scopeStack(), "__ptr");
+			const auto pointerTypeInst = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
 			return SEM::Type::Object(pointerTypeInst, { varType});
 		}
 		
@@ -214,7 +214,7 @@ namespace locic {
 					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
 				}
 				case AST::Type::VOID: {
-					return SEM::Type::Object(getBuiltInType(context.scopeStack(), "void_t"), SEM::Type::NO_TEMPLATE_ARGS);
+					return getBuiltInType(context.scopeStack(), "void_t");
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);

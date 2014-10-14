@@ -101,12 +101,12 @@ namespace locic {
 		}
 		
 		SEM::Value* createTypeRef(Context& context, SEM::Type* targetType) {
-			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
 			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		
 		SEM::Type* createReferenceType(Context& context, SEM::Type* varType) {
-			const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");
+			const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
 			return SEM::Type::Object(referenceTypeInst, { varType})->createRefType(varType)->createConstType();
 		}
 		

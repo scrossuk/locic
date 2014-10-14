@@ -49,6 +49,10 @@ namespace locic {
 					return false;
 				}
 				
+				case SEM::Type::ALIAS: {
+					return isRootType(type->resolveAliases());
+				}
+				
 				default: {
 					llvm_unreachable("Unknown SEM::Type kind in isRootType()");
 				}

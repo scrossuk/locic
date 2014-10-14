@@ -8,7 +8,7 @@ import std.network 0.1.0 {
 			* \brief TCP Listener
 			*/
 			class listener {
-				static listener create(port source_port);
+				static listener create(port_t port);
 				
 				event::source event_source() const;
 				

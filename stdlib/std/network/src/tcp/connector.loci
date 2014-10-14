@@ -1,22 +1,50 @@
-import int std_tcp_connect_v4(uint32_t address, uint16_t port) noexcept;
-
 export std.network 0.1.0 {
 	
 	namespace std {
 		
 		namespace tcp {
 			
-			class connector (int handle) {
+			class connector(int handle, endpoint peer) {
 				static create(endpoint dest) {
-					switch (dest.address) {
-						case ip::address_v4_(uint32_t value) {
-							return @(std_tcp_connect_v4(value, dest.port));
-						}
-						case ip::address_v6_(uint64_t low, uint64_t high) {
-							// TODO!
-							unreachable;
+					const int handle = std_tcp_socket();
+					if (handle < 0) {
+						throw socket_failed(-handle);
+					}
+					
+					scope (failure) {
+						std_tcp_close(handle);
+					}
+					
+					{
+						const int result = std_tcp_setnonblocking(handle, 1);
+						if (result < 0) {
+							throw setnonblocking_failed(-result);
 						}
 					}
+					
+					{
+						const int result = std_tcp_setipv6only(handle, 0);
+						if (result < 0) {
+							throw setipv6only_failed(-result);
+						}
+					}
+					
+					{
+						const int result = std_tcp_setnosigpipe(handle, 1);
+						if (result < 0) {
+							throw setnosigpipe_failed(-result);
+						}
+					}
+					
+					{
+						const auto encodedAddress = encodeAddress(dest.address);
+						const int result = std_tcp_connect(handle, &encodedAddress, dest.port);
+						if (result < 0 && !isInProgress(result)) {
+							throw connect_failed(-result);
+						}
+					}
+					
+					return @(handle, dest);
 				}
 				
 				~ {
@@ -39,7 +67,16 @@ export std.network 0.1.0 {
 					return event::source._handle(@handle, waitForRead, waitForWrite);
 				}
 				
-				bool ready() const {
+				endpoint peer() const noexcept {
+					return @peer;
+				}
+				
+				bool check() {
+					assert @handle >= 0;
+					return self.event_source().poll();
+				}
+				
+				bool _ready() const {
 					assert @handle >= 0;
 					return self.event_source().poll();
 				}
@@ -47,14 +84,27 @@ export std.network 0.1.0 {
 			
 			stream connector_wait(connector conn) {
 				conn.event_source().wait();
-				assert conn.ready();
+				assert conn._ready();
 				return connector_get(move conn);
 			}
 			
 			stream connector_get(connector conn) {
-				assert conn.ready();
+				assert conn._ready();
 				const int handle = conn._release();
-				return stream._create(handle);
+				scope (failure) {
+					std_tcp_close(handle);
+				}
+				
+				{
+					const int result = std_tcp_geterror(handle);
+					if (result < 0) {
+						throw geterror_failed(-result);
+					} else if (result > 0) {
+						throw connect_failed(result);
+					}
+				}
+				
+				return stream._create(handle, conn.peer());
 			}
 			
 		}

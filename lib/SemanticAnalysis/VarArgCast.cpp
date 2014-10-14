@@ -25,12 +25,12 @@ namespace locic {
 		}
 		
 		static inline SEM::Value* VarArgCastSearch(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			if (isValidVarArgType(context, value->type())) {
+			if (isValidVarArgType(context, value->type()->resolveAliases())) {
 				// Already a valid var arg type.
 				return value;
 			}
 			
-			auto derefType = getDerefType(value->type());
+			auto derefType = getDerefType(value->type()->resolveAliases());
 			assert(!derefType->isRef());
 			
 			if (derefType->isLval() && canDissolveValue(derefValue(value))) {

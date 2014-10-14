@@ -17,7 +17,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location);
+		static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
 		
 		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
 			if (destType->isAuto()) {
@@ -144,7 +144,8 @@ namespace locic {
 			std::terminate();
 		}
 		
-		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location) {
+		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& 
+location, bool isTopLevel) {
 			// Can't cast const to non-const, unless the destination type is
 			// 'auto', since that can match 'const T'.
 			if (sourceType->isConst() && !destType->isConst() && !destType->isAuto()) {
@@ -163,7 +164,7 @@ namespace locic {
 			
 			// There is a chain of const if all parents of the destination type are const,
 			// and the destination type itself is const.
-			const bool hasConstChain = hasParentConstChain && destType->isConst();
+			const bool hasConstChain = isTopLevel || (hasParentConstChain && destType->isConst());
 			
 			SEM::Type* lvalTarget = nullptr;
 			
@@ -229,8 +230,8 @@ namespace locic {
 			return isConst ? resultType->createConstType() : resultType;
 		}
 		
-		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location) {
-			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location);
+		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
+			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location, isTopLevel);
 		}
 		
 		static SEM::Type* ImplicitCastTypeFormatOnly(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
@@ -239,7 +240,9 @@ namespace locic {
 			// is root there is a valid chain of (zero) const parent types.
 			const bool hasParentConstChain = true;
 			
-			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location);
+			const bool isTopLevel = true;
+			
+			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location, isTopLevel);
 		}
 		
 		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
@@ -259,7 +262,7 @@ namespace locic {
 			return CanonicalizeMethodName(first) == CanonicalizeMethodName(second);
 		}
 		
-		static bool interfaceFunctionTypesCompatible(const SEM::Type* sourceType, const SEM::Type* destType) {
+		static bool interfaceFunctionTypesCompatible(SEM::Type* sourceType, SEM::Type* destType) {
 			assert(sourceType->isFunction());
 			assert(destType->isFunction());
 			
@@ -287,8 +290,12 @@ namespace locic {
 				}
 			}
 			
-			if (sourceType->getFunctionReturnType() != destType->getFunctionReturnType()
-				&& sourceType->getFunctionReturnType()->createConstType() != destType->getFunctionReturnType()) {
+			const auto castReturnType =
+				ImplicitCastTypeFormatOnly(
+					sourceType->getFunctionReturnType(),
+					destType->getFunctionReturnType(),
+					Debug::SourceLocation::Null());
+			if (castReturnType == nullptr) {
 				return false;
 			}
 			

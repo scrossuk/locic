@@ -5,7 +5,7 @@ export std.string 0.1.0 {
 		class string_range (const std::varray<ubyte>& stringData, size_t begin, size_t end) {
 			static _string_all(const std::varray<ubyte>& stringData) {
 				assert !stringData.empty();
-				return @(stringData, 0u, stringData.size() - 1u);
+				return @(stringData, 0u, stringData.size());
 			}
 			
 			string_range iterator_pair(string_iterator begin, string_iterator end) {

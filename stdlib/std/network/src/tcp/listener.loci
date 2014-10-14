@@ -1,0 +1,117 @@
+export std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			class listener(int handle, int nextHandle, endpoint nextPeer) {
+				static create(final port_t port) {
+					const int handle = std_tcp_socket();
+					if (handle < 0) {
+						throw socket_failed(-handle);
+					}
+					
+					scope (failure) {
+						std_tcp_close(handle);
+					}
+					
+					{
+						const int result = std_tcp_setnonblocking(handle, 1);
+						if (result < 0) {
+							throw setnonblocking_failed(-result);
+						}
+					}
+					
+					{
+						const int result = std_tcp_setipv6only(handle, 0);
+						if (result < 0) {
+							throw setipv6only_failed(-result);
+						}
+					}
+					
+					{
+						const int result = std_tcp_setreuseaddress(handle, 1);
+						if (result < 0) {
+							throw setreuseaddress_failed(-result);
+						}
+					}
+					
+					{
+						const int result = std_tcp_bind(handle, port);
+						if (result < 0) {
+							throw bind_failed(-result);
+						}
+					}
+					
+					{
+						const int backlog = 10;
+						const int result = std_tcp_listen(handle, backlog);
+						if (result < 0) {
+							throw listen_failed(-result);
+						}
+					}
+					
+					return @(handle, -1, endpoint(ip::address_v4_(0u), 0u));
+				}
+				
+				~ {
+					assert @handle >= 0;
+					std_tcp_close(@handle);
+				}
+				
+				event::source event_source() const noexcept {
+					assert @handle >= 0;
+					const bool waitForRead = true;
+					const bool waitForWrite = false;
+					return event::source._handle(@handle, waitForRead, waitForWrite);
+				}
+				
+				bool check() {
+					assert @handle >= 0;
+					
+					if (@nextHandle >= 0) {
+						// Already got a handle.
+						return true;
+					}
+					
+					auto peerAddress = std_ipv6_address(0u, 0u);
+					port_t peerPort = 0u;
+					
+					const int result = std_tcp_accept(@handle, &peerAddress, &peerPort);
+					if (result < 0) {
+						if (isWouldBlock(result)) {
+							// Accept indicated it would block.
+							return false;
+						} else {
+							// An error occurred.
+							throw accept_failed(-result);
+						}
+					} else {
+						@nextHandle = result;
+						@nextPeer = endpoint(decodeAddress(peerAddress), peerPort);
+						return true;
+					}
+				}
+				
+				stream wait() {
+					while (!self.check()) {
+						self.event_source().wait();
+					}
+					return self.get();
+				}
+				
+				stream get() {
+					assert @nextHandle >= 0;
+					scope (success) {
+						@nextHandle = -1;
+					}
+					return stream._create(@nextHandle, @nextPeer);
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+

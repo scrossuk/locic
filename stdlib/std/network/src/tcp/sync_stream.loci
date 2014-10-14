@@ -1,0 +1,74 @@
+template <typename T>
+class wrap_buffer(T* const data, size_t size) {
+	static create = default;
+	
+	T* data() const noexcept {
+		return @data;
+	}
+	
+	size_t size() const noexcept {
+		return @size;
+	}
+}
+
+export std.network 0.1.0 {
+	
+	namespace std {
+		
+		namespace tcp {
+			
+			exception sync_read_failed();
+			exception sync_write_failed();
+			
+			class sync_stream(stream& underlyingStream) {
+				static create = default;
+				
+				void sync_read(buffer<uint8_t>& dest_buffer) {
+					size_t position = 0u;
+					uint8_t* const data = dest_buffer.data();
+					const size_t size = dest_buffer.size();
+					
+					while (position < size) {
+						auto readBuffer = wrap_buffer<uint8_t>(data + position.cast<ptrdiff_t>(), size - position);
+						const size_t readSize = @underlyingStream.read_some(readBuffer);
+						assert readSize <= (size - position);
+						
+						if (readSize == 0u) {
+							if (!@underlyingStream.valid()) {
+								throw sync_read_failed();
+							}
+							@underlyingStream.read_source().wait();
+						} else {
+							position += readSize;
+						}
+					}
+				}
+				
+				void sync_write(const buffer<const uint8_t>& source_buffer) {
+					size_t position = 0u;
+					const uint8_t* data = source_buffer.data();
+					const size_t size = source_buffer.size();
+					
+					while (position < size) {
+						const auto writeBuffer = wrap_buffer<const uint8_t>(data + position.cast<ptrdiff_t>(), size - position);
+						const size_t writeSize = @underlyingStream.write_some(writeBuffer);
+						assert writeSize <= (size - position);
+						
+						if (writeSize == 0u) {
+							if (!@underlyingStream.valid()) {
+								throw sync_write_failed();
+							}
+							@underlyingStream.write_source().wait();
+						} else {
+							position += writeSize;
+						}
+					}
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+

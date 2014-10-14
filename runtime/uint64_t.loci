@@ -9,9 +9,22 @@ interface __cast_from_uint64_t {
 }
 
 __primitive uint64_t {
+	static uint64_t zero() noexcept;
+	static uint64_t leading_ones(size_t count) noexcept;
+	static uint64_t trailing_ones(size_t count) noexcept;
+	
 	static uint64_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	static uint64_t implicit_cast_uint16_t(uint16_t value) noexcept;
 	static uint64_t implicit_cast_uint32_t(uint32_t value) noexcept;
+	
+	static uint64_t cast_ushort_t(ushort_t value) noexcept;
+	static uint64_t cast_uint_t(uint_t value) noexcept;
+	static uint64_t cast_ulong_t(ulong_t value) noexcept;
+	static uint64_t cast_ulonglong_t(ulonglong_t value) noexcept;
+	static uint64_t cast_uint8_t(uint8_t value) noexcept;
+	static uint64_t cast_uint16_t(uint16_t value) noexcept;
+	static uint64_t cast_uint32_t(uint32_t value) noexcept;
+	static uint64_t cast_uint64_t(uint64_t value) noexcept;
 	
 	uint64_t implicit_copy() const noexcept;
 	uint64_t copy() const noexcept;
@@ -27,6 +40,12 @@ __primitive uint64_t {
 	uint64_t multiply(const uint64_t& v) const noexcept;
 	uint64_t divide(const uint64_t& v) const noexcept;
 	uint64_t modulo(const uint64_t& v) const noexcept;
+	uint64_t bitwise_and(const uint64_t& v) const noexcept;
+	uint64_t bitwise_or(const uint64_t& v) const noexcept;
+	uint64_t left_shift(const size_t& shift) const noexcept;
+	uint64_t right_shift(const size_t& shift) const noexcept;
+	
+	bool in_range(uint64_t least, uint64_t most) const noexcept;
 	
 	bool equal(const uint64_t& v) const noexcept;
 	bool not_equal(const uint64_t& v) const noexcept;

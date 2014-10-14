@@ -58,15 +58,21 @@ namespace locic {
 			return function->type()->getFunctionReturnType();
 		}
 		
-		SEM::TypeInstance* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName) {
+		SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName) {
 			const auto rootElement = scopeStack.at(0);
 			assert(rootElement.isNamespace());
 			
 			const auto iterator = rootElement.nameSpace()->items().find(typeName);
 			assert(iterator != rootElement.nameSpace()->items().end());
-			assert(iterator->second.isTypeInstance());
 			
-			return iterator->second.typeInstance();
+			const auto value = iterator->second;
+			assert(value.isTypeInstance() || value.isTypeAlias());
+			
+			if (value.isTypeInstance()) {
+				return value.typeInstance()->selfType();
+			} else {
+				return value.typeAlias()->selfType();
+			}
 		}
 		
 	}

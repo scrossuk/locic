@@ -161,7 +161,7 @@ namespace locic {
 			// Now check all the arguments are valid.
 			for (size_t i = 0; i < templateArguments.size(); i++) {
 				const auto templateVariable = templateVariables.at(i);
-				const auto templateTypeValue = templateArguments.at(i);
+				const auto templateTypeValue = templateArguments.at(i)->resolveAliases();
 				
 				if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
 					throw ErrorException(makeString("Invalid type '%s' passed "
@@ -299,7 +299,8 @@ namespace locic {
 			}
 		}
 		
-		bool supportsCopy(SEM::Type* type, const std::string& functionName) {
+		bool supportsCopy(SEM::Type* const type, const std::string& functionName) {
+			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -335,7 +336,8 @@ namespace locic {
 			}
 		}
 		
-		bool supportsNoExceptCopy(SEM::Type* type, const std::string& functionName) {
+		bool supportsNoExceptCopy(SEM::Type* const type, const std::string& functionName) {
+			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -372,23 +374,24 @@ namespace locic {
 			}
 		}
 		
-		bool supportsImplicitCopy(SEM::Type* type) {
-			return supportsCopy(type, "implicitcopy");
+		bool supportsImplicitCopy(SEM::Type* const type) {
+			return supportsCopy(type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsNoExceptImplicitCopy(SEM::Type* type) {
-			return supportsNoExceptCopy(type, "implicitcopy");
+		bool supportsNoExceptImplicitCopy(SEM::Type* const type) {
+			return supportsNoExceptCopy(type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsExplicitCopy(SEM::Type* type) {
-			return supportsCopy(type, "copy");
+		bool supportsExplicitCopy(SEM::Type* const type) {
+			return supportsCopy(type->resolveAliases(), "copy");
 		}
 		
-		bool supportsNoExceptExplicitCopy(SEM::Type* type) {
-			return supportsNoExceptCopy(type, "copy");
+		bool supportsNoExceptExplicitCopy(SEM::Type* const type) {
+			return supportsNoExceptCopy(type->resolveAliases(), "copy");
 		}
 		
-		bool supportsCompare(SEM::Type* type) {
+		bool supportsCompare(SEM::Type* const rawType) {
+			SEM::Type* const type = rawType->resolveAliases();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:

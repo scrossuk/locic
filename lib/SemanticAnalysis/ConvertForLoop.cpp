@@ -65,7 +65,7 @@ namespace locic {
 					
 					const auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "empty", location), {}, location);
 					const auto isNotEmpty = CallValue(context, GetMethod(context, isEmpty, "not", location), {}, location);
-					const auto loopCondition = ImplicitCast(context, isNotEmpty, getBuiltInType(context.scopeStack(), "bool")->selfType(), location);
+					const auto loopCondition = ImplicitCast(context, isNotEmpty, getBuiltInType(context.scopeStack(), "bool"), location);
 					
 					const auto iterationScope = new SEM::Scope();
 					

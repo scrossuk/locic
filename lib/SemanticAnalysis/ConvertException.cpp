@@ -121,7 +121,7 @@ namespace locic {
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, typeRefValue, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {
-				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");
+				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
 				const auto varType = SEM::Type::Object(referenceTypeInst, { semVar->type() })->createRefType(semVar->type());
 				const auto varValue = SEM::Value::LocalVar(semVar, varType);
 				

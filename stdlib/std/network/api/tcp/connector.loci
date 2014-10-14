@@ -10,7 +10,9 @@ import std.network 0.1.0 {
 			class connector {
 				static connector create(endpoint dest);
 				
-				event::source event_source() const;
+				event::source event_source() const noexcept;
+				
+				endpoint peer() const noexcept;
 				
 				bool check();
 			}

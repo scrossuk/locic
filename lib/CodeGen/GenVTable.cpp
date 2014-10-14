@@ -48,7 +48,7 @@ namespace locic {
 		}
 		
 		llvm::GlobalVariable* genVTable(Module& module, SEM::Type* type) {
-			const auto typeInstance = type->getObjectType();
+			const auto typeInstance = type->resolveAliases()->getObjectType();
 			const auto mangledName = std::string("__type_vtable_") + mangleObjectType(typeInstance);
 			
 			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName);

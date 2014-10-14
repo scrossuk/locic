@@ -1,0 +1,114 @@
+template <typename T>
+class UnitData(T data) {
+	static create = default;
+	
+	const T& value() const {
+		return @data;
+	}
+	
+	T* data() const {
+		return &@data;
+	}
+	
+	size_t size() const {
+		return 1u;
+	}
+}
+
+void printEndpoint(const std::tcp::endpoint& endpoint) {
+	switch (endpoint.address) {
+		case std::ip::address_v4_(uint32_t value) {
+			printf(C"endpoint(address_ipv4(%llu), %llu)\n",
+				value.cast<ulonglong_t>(),
+				endpoint.port.cast<ulonglong_t>());
+		}
+		case std::ip::address_v6_(uint64_t low, uint64_t high) {
+			printf(C"endpoint(address_ipv6(%llu, %llu), %llu)\n",
+				low.cast<ulonglong_t>(),
+				high.cast<ulonglong_t>(),
+				endpoint.port.cast<ulonglong_t>());
+		}
+	}
+}
+
+void runTCPExample() {
+	printf(C"================ TCP EXAMPLE ================\n");
+	
+	const std::tcp::port_t port = 10101u;
+	
+	auto listener = std::tcp::listener(port);
+	
+	printf(C"Created TCP listener.\n");
+	
+	const auto localAddress = std::ip::address_v4_(std::ip::address_v4.localhost().value());
+	auto connector = std::tcp::connector(std::tcp::endpoint(localAddress, port));
+	
+	printf(C"Created TCP connector.\n");
+	
+	auto waitSet = std::event::wait_set.edge_triggered();
+	waitSet.insert(listener.event_source());
+	waitSet.insert(connector.event_source());
+	
+	while (true) {
+		waitSet.wait();
+		
+		if (connector.check()) {
+			printf(C"Connector is ready.\n");
+		}
+		
+		if (listener.check()) {
+			printf(C"Listener is ready.\n");
+		}
+		
+		if (connector.check() && listener.check()) {
+			break;
+		}
+	}
+	
+	printf(C"TCP Connected.\n");
+	
+	auto connectStream = std::tcp::connector_get(move connector);
+	printf(C"Connect peer endpoint: ");
+	printEndpoint(connectStream.peer());
+	auto connectSyncStream = std::tcp::sync_stream(connectStream);
+	
+	auto listenStream = listener.get();
+	printf(C"Listen peer endpoint: ");
+	printEndpoint(listenStream.peer());
+	auto listenSyncStream = std::tcp::sync_stream(listenStream);
+	
+	{
+		printf(C"Writing a byte of data to connect-side stream...\n");
+		auto writeData = UnitData<uint8_t>(255u);
+		connectSyncStream.sync_write(writeData);
+	}
+	
+	{
+		printf(C"Reading a byte of data from listen-side stream...\n");
+		auto readData = UnitData<uint8_t>(0u);
+		listenSyncStream.sync_read(readData);
+		
+		printf(C"Read byte = %llu\n", readData.value().cast<ulonglong_t>());
+	}
+	
+	const auto string = "Hello world!";
+	const auto buffer = string.make_buffer();
+	
+	{
+		printf(C"Writing '%s' to listen-side stream...\n", buffer.c_str());
+		listenSyncStream.sync_write(buffer);
+	}
+	
+	{
+		printf(C"Reading data from connect-side stream...\n");
+		auto readData = std::varray<uint8_t>();
+		readData.resize(buffer.size());
+		connectSyncStream.sync_read(readData);
+		
+		readData.push_back(0u);
+		printf(C"Read data = %s\n", readData.data());
+	}
+	
+	printf(C"\n\n\n");
+}
+

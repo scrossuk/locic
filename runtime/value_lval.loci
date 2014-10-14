@@ -1,7 +1,7 @@
 template <typename T>
 __primitive value_lval {
 	static value_lval<T> create(T value) noexcept;
-	T* address() noexcept;
+	T* address() const noexcept;
 	void assign(T value) noexcept;
 	T& dissolve() const noexcept;
 	T move() noexcept;

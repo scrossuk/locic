@@ -1,12 +1,75 @@
-import ssize_t std_tcp_read(int eventHandle, uint8_t* data, size_t size) noexcept;
-import ssize_t std_tcp_write(int eventHandle, const uint8_t* const data, size_t size) noexcept;
-import void std_tcp_close(int eventHandle) noexcept;
+struct std_ipv6_address {
+	uint64_t high;
+	uint64_t low;
+}
+
+import int std_tcp_iswouldblock(const int error) noexcept;
+import int std_tcp_isinprogress(const int error) noexcept;
+
+import int std_tcp_socket() noexcept;
+import int std_tcp_connect(const int handle, const std_ipv6_address* const address, const uint16_t port) noexcept;
+import int std_tcp_setnosigpipe(const int handle, const int value) noexcept;
+import int std_tcp_setnonblocking(const int handle, const int value) noexcept;
+import int std_tcp_setipv6only(const int handle, const int value) noexcept;
+import int std_tcp_setreuseaddress(const int handle, const int value) noexcept;
+import int std_tcp_geterror(const int handle) noexcept;
+import int std_tcp_bind(const int handle, const uint16_t port) noexcept;
+import int std_tcp_listen(const int handle, const int backlog) noexcept;
+import int std_tcp_accept(int listenHandle, std_ipv6_address* peerAddressValue, uint16_t* peerPort) noexcept;
+import ssize_t std_tcp_read(const int eventHandle, uint8_t* const data, const size_t size) noexcept;
+import ssize_t std_tcp_write(const int eventHandle, const uint8_t* const data, const size_t size) noexcept;
+import void std_tcp_close(const int eventHandle) noexcept;
+
+bool isWouldBlock(final int error) noexcept {
+	return std_tcp_iswouldblock(-error) != 0;
+}
+
+bool isInProgress(final int error) noexcept {
+	return std_tcp_isinprogress(-error) != 0;
+}
+
+std_ipv6_address encodeAddress(const std::ip::address& address) noexcept {
+	switch (address) {
+		case std::ip::address_v4_(uint32_t value) {
+			// Map IPv4 address to IPv4.
+			return std_ipv6_address(0u, (uint64_t.trailing_ones(16u) << 32u) | value);
+		}
+		case std::ip::address_v6_(uint64_t low, uint64_t high) {
+			return std_ipv6_address(high, low);
+		}
+	}
+}
+
+bool isAddressIPv4(const std_ipv6_address& address) noexcept {
+	return address.high == 0u && (address.low >> 32u) == uint64_t.trailing_ones(16u);
+}
+
+std::ip::address decodeAddress(const std_ipv6_address& address) noexcept {
+	if (isAddressIPv4(address)) {
+		return std::ip::address_v4_((address.low & uint64_t.trailing_ones(32u)).cast<uint32_t>());
+	} else {
+		return std::ip::address_v6_(address.low, address.high);
+	}
+}
 
 export std.network 0.1.0 {
 	
 	namespace std {
 		
 		namespace tcp {
+			
+			exception socket_error(std::string error);
+			
+			exception socket_failed(int error) : socket_error("socket() failed.");
+			exception connect_failed(int error) : socket_error("connect() failed.");
+			exception bind_failed(int error) : socket_error("bind() failed.");
+			exception listen_failed(int error) : socket_error("listen() failed.");
+			exception accept_failed(int error) : socket_error("accept() failed.");
+			exception setnonblocking_failed(int error) : socket_error("Failed to set socket to non-blocking.");
+			exception setnosigpipe_failed(int error) : socket_error("Failed to disable socket SIGPIPEs.");
+			exception setipv6only_failed(int error) : socket_error("Failed to disable socket IPV6_ONLY.");
+			exception setreuseaddress_failed(int error) : socket_error("Failed to enable socket address reuse.");
+			exception geterror_failed(int error) : socket_error("Failed to get socket error.");
 			
 			template <typename T>
 			interface buffer {
@@ -15,14 +78,10 @@ export std.network 0.1.0 {
 				size_t size() const;
 			}
 			
-			class stream (int handle, uint8_t firstByte, bool hasFirstByte, bool isValid) {
-				static _create(int handle) noexcept {
-					return @(handle, 0u, false, true);
+			class stream(int handle, endpoint peer, bool isValid) {
+				static _create(int handle, endpoint peer) noexcept {
+					return @(handle, peer, true);
 				}
-				
-				/*static _create(int handle, uint8_t firstByte) noexcept {
-					return @(handle, firstByte, true, true);
-				}*/
 				
 				~ {
 					std_tcp_close(@handle);
@@ -50,30 +109,28 @@ export std.network 0.1.0 {
 					return @isValid;
 				}
 				
+				endpoint peer() const noexcept {
+					return @peer;
+				}
+				
 				size_t read_some(buffer<uint8_t>& destBuffer) {
 					const size_t bufferSize = destBuffer.size();
 					if (bufferSize == 0u) {
 						return 0u;
 					}
 					
-					uint8_t* const bufferData = destBuffer.data();
-					
-					if (@hasFirstByte) {
-						bufferData[0u] = @firstByte;
-						@hasFirstByte = false;
-						return 1u;
-					}
-					
-					const ssize_t result = std_tcp_read(@handle, bufferData, bufferSize);
+					const ssize_t result = std_tcp_read(@handle, destBuffer.data(), bufferSize);
 					if (result < 0) {
-						@isValid = false;
+						if (!isWouldBlock(result.cast<int>())) {
+							@isValid = false;
+						}
 						return 0u;
 					}
 					
 					return result.unsigned_value();
 				}
 				
-				size_t write_some(const buffer<uint8_t>& sourceBuffer) {
+				size_t write_some(const buffer<const uint8_t>& sourceBuffer) {
 					const size_t bufferSize = sourceBuffer.size();
 					if (bufferSize == 0u) {
 						return 0u;
@@ -81,7 +138,9 @@ export std.network 0.1.0 {
 					
 					const ssize_t result = std_tcp_write(@handle, sourceBuffer.data(), bufferSize);
 					if (result < 0) {
-						@isValid = false;
+						if (!isWouldBlock(result.cast<int>())) {
+							@isValid = false;
+						}
 						return 0u;
 					}
 					

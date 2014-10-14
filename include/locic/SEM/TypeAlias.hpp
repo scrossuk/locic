@@ -22,7 +22,28 @@ namespace locic {
 				
 				const Name& name() const;
 				
+				/**
+				 * \brief Get type of 'self'.
+				 * 
+				 * This creates an alias type with template
+				 * arguments that refer to the type alias'
+				 * own template variables.
+				 * 
+				 * For example, given:
+				 * 
+				 *     template <typename A, typename B>
+				 *     using SomeAlias = ...;
+				 * 
+				 * ...this function will return:
+				 * 
+				 *     SomeAlias<A, B>
+				 * 
+				 */
+				Type* selfType() const;
+				std::vector<Type*> selfTemplateArgs() const;
+				
 				std::vector<TemplateVar*>& templateVariables();
+				const std::vector<TemplateVar*>& templateVariables() const;
 				
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				

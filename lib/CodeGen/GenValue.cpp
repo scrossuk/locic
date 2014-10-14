@@ -66,9 +66,9 @@ namespace locic {
 						case locic::Constant::CHARACTER: {
 							const auto characterValue = value->constant->characterValue();
 							
-							const auto typeName = value->type()->getObjectType()->name().last();
+							const auto typeName = value->type()->resolveAliases()->getObjectType()->name().last();
 							
-							if (typeName == "ubyte_t") {
+							if (typeName == "uint8_t") {
 								return ConstantGenerator(module).getI8(characterValue);
 							} else {
 								llvm_unreachable("Unknown character literal type.");
@@ -175,8 +175,8 @@ namespace locic {
 				
 				case SEM::Value::CAST: {
 					const auto codeValue = genValue(function, value->cast.value);
-					const auto sourceType = value->cast.value->type();
-					const auto destType = value->type();
+					const auto sourceType = value->cast.value->type()->resolveAliases();
+					const auto destType = value->type()->resolveAliases();
 					assert((sourceType->kind() == destType->kind()
 							|| (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t")
 							|| destType->isBuiltInVoid())

@@ -57,6 +57,20 @@ import std.string 0.1.0 {
 			 * \return A string value containing the string buffer's contents.
 			 */
 			string str() const;
+			
+			/**
+			 * \brief Gets a pointer to the UTF-8 data (which may not be null-terminated).
+			 * 
+			 * \return A pointer to the UTF-8 data (which may not be null-terminated).
+			 */
+			const ubyte* data() const noexcept;
+			
+			/**
+			 * \brief Get the length of the UTF-8 data in bytes (NOT Unicode code points).
+			 * 
+			 * \return The length of the UTF-8 data in bytes
+			 */
+			size_t size() const noexcept;
 		}
 		
 	}

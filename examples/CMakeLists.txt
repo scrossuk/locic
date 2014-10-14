@@ -77,5 +77,6 @@ add_subdirectory(CommandLine)
 add_subdirectory(Events)
 add_subdirectory(General)
 add_subdirectory(Looper)
+add_subdirectory(Network)
 add_subdirectory(SplitModule)
 

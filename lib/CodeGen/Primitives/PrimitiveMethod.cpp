@@ -29,7 +29,8 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isFloatType(Module& module, SEM::Type* type) {
+		bool isFloatType(Module& module, SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
 			const auto& typeName = type->getObjectType()->name().last();
@@ -45,7 +46,8 @@ namespace locic {
 			}
 		}
 		
-		bool isSignedIntegerType(Module& module, SEM::Type* type) {
+		bool isSignedIntegerType(Module& module, SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
 			const auto& typeName = type->getObjectType()->name().last();
@@ -69,7 +71,8 @@ namespace locic {
 			}
 		}
 		
-		bool isUnsignedIntegerType(Module& module, SEM::Type* type) {
+		bool isUnsignedIntegerType(Module& module, SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
 			const auto& typeName = type->getObjectType()->name().last();
@@ -235,7 +238,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genCastMethodCall(Function& function, const std::string& functionName, llvm::Value* sourceValue, SEM::Type* targetType) {
+		llvm::Value* genCastMethodCall(Function& function, const std::string& functionName, llvm::Value* sourceValue, SEM::Type* const rawTargetType) {
+			const auto targetType = rawTargetType->resolveAliases();
 			auto& module = function.module();
 			
 			const auto typeInstance = targetType->getObjectOrSpecType();

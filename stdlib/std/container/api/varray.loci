@@ -18,7 +18,7 @@ import std.container 0.1.0 {
 			
 			bool empty() const noexcept;
 			
-			const T* const data() const noexcept;
+			T* data() const noexcept;
 			
 			size_t size() const noexcept;
 			

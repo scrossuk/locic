@@ -91,7 +91,8 @@ namespace locic {
 		TemplatedObject::TemplatedObject(Kind pKind)
 			: kind_(pKind) { }
 		
-		TemplateInst TemplateInst::Type(SEM::Type* type) {
+		TemplateInst TemplateInst::Type(SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			assert(type->isObject());
 			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), type->templateArguments());
 		}

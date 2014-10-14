@@ -25,8 +25,6 @@ export std.string 0.1.0 {
 					byteArray.push_back(stringConstant[i]);
 				}
 				
-				byteArray.push_back(0u);
-				
 				return @(length, move byteArray);
 			}
 			
@@ -53,10 +51,8 @@ export std.string 0.1.0 {
 				}
 				
 				for (auto i: std::counter<size_t>(0u, other.length(), 1u)) {
-					byteArray.push_back(other.c_str()[i]);
+					byteArray.push_back(other._data()[i]);
 				}
-				
-				byteArray.push_back(0u);
 				
 				return @(newLength, move byteArray);
 			}
@@ -89,7 +85,7 @@ export std.string 0.1.0 {
 				return @length;
 			}
 			
-			const ubyte* const c_str() const noexcept {
+			const ubyte* const _data() const noexcept {
 				return @byteArray.data();
 			}
 			
@@ -103,8 +99,8 @@ export std.string 0.1.0 {
 						return @length.compare(other.length());
 					}
 					
-					final ubyte a = self.c_str()[i];
-					final ubyte b = other.c_str()[i];
+					final ubyte a = self._data()[i];
+					final ubyte b = other._data()[i];
 					if (a != b) {
 						if (a < b) {
 							return compare_result_t.less_than();

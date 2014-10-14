@@ -44,7 +44,7 @@ export std.string 0.1.0 {
 			}
 			
 			bool is_end() const {
-				return @position == (@stringData.size() - 1u);
+				return @position == @stringData.size();
 			}
 		}
 		

@@ -204,7 +204,7 @@ namespace locic {
 					
 					const auto selfType = thisTypeInstance->selfType();
 					const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
-					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr");
+					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
 					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfConstType })->createConstType());
 				}
 				case AST::Value::LITERAL: {
@@ -256,7 +256,7 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isTypeAlias()) {
@@ -264,7 +264,7 @@ namespace locic {
 						const auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
 						assert(templateArguments.size() == typeAlias->templateVariables().size());
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
 						const auto resolvedType = SEM::Type::Alias(typeAlias, templateArguments)->resolveAliases();
 						return SEM::Value::TypeRef(resolvedType, typenameType->createStaticRefType(resolvedType));
 					} else if (searchResult.isVar()) {
@@ -273,13 +273,13 @@ namespace locic {
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref");
+						const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
 						const auto var = searchResult.var();
 						return SEM::Value::LocalVar(var, SEM::Type::Object(referenceTypeInst, { var->type() })->createRefType(var->type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = searchResult.templateVar();
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t")->selfType();
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
 						const auto templateVarType = SEM::Type::TemplateVarRef(templateVar);
 						return SEM::Value::TypeRef(templateVarType, typenameType->createStaticRefType(templateVarType));
 					}
@@ -304,7 +304,7 @@ namespace locic {
 					return createMemberVarRef(context, selfValue, variableIterator->second);
 				}
 				case AST::Value::SIZEOF: {
-					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t")->selfType());
+					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t"));
 				}
 				case AST::Value::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
@@ -444,7 +444,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LOGICALAND: {
-							const auto boolType = getBuiltInType(context.scopeStack(), "bool")->selfType();
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
 							const auto boolValue = ImplicitCast(context, leftOperand, boolType->createConstType(), location);
 							
 							// Logical AND only evaluates the right operand if the left
@@ -452,7 +452,7 @@ namespace locic {
 							return SEM::Value::Ternary(boolValue, rightOperand, SEM::Value::Constant(Constant::False(), boolType));
 						}
 						case AST::OP_LOGICALOR: {
-							const auto boolType = getBuiltInType(context.scopeStack(), "bool")->selfType();
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
 							const auto boolValue = ImplicitCast(context, leftOperand, boolType->createConstType(), location);
 							
 							// Logical OR only evaluates the right operand if the left
@@ -482,7 +482,7 @@ namespace locic {
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool")->selfType();
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
 					const auto boolValue = ImplicitCast(context, cond, boolType->createConstType(), location);
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);

@@ -54,7 +54,7 @@ export std.container 0.1.0 {
 				return @size == 0u;
 			}
 			
-			const T* const data() const noexcept {
+			T* data() const noexcept {
 				return @data;
 			}
 			

@@ -4,6 +4,8 @@ import std.network 0.1.0 {
 		
 		namespace tcp {
 			
+			exception socket_error(std::string error);
+			
 			template <typename T>
 			interface buffer {
 				T* data() const;
@@ -23,9 +25,11 @@ import std.network 0.1.0 {
 				
 				bool valid() const noexcept;
 				
+				endpoint peer() const noexcept;
+				
 				size_t read_some(buffer<uint8_t>& destBuffer);
 				
-				size_t write_some(const buffer<uint8_t>& sourceBuffer);
+				size_t write_some(const buffer<const uint8_t>& sourceBuffer);
 			}
 			
 		}

@@ -16,6 +16,8 @@ import std.network 0.1.0 {
 				bool is_localhost() const noexcept;
 				
 				bool is_any() const noexcept;
+				
+				uint32_t value() const noexcept;
 			}
 			
 		}

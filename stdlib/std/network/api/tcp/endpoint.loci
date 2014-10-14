@@ -4,7 +4,9 @@ import std.network 0.1.0 {
 		
 		namespace tcp {
 			
-			datatype endpoint(ip::address address, uint16_t port);
+			using port_t = uint16_t;
+			
+			datatype endpoint(ip::address address, port_t port);
 			
 		}
 		
