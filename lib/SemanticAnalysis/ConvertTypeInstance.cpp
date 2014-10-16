@@ -16,7 +16,7 @@ namespace locic {
 			const auto semTypeInstance = context.scopeStack().back().typeInstance();
 			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-				const auto methodName = CanonicalizeMethodName(astFunctionNode->name());
+				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 				const auto semChildFunction = semTypeInstance->functions().at(methodName);
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));

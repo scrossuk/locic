@@ -8,6 +8,8 @@ import std.network 0.1.0 {
 			
 			datatype endpoint(ip::address address, port_t port);
 			
+			std::string endpoint::to_string() const;
+			
 		}
 		
 	}

@@ -16,7 +16,7 @@ export std.container 0.1.0 {
 					nolval(@data[i]).__destroy_value();
 				}
 				
-				free(reinterpret_cast<T*, void*>(@data));
+				release(reinterpret_cast<T*, void*>(@data));
 			}
 			
 			void reserve(size_t size) {
@@ -24,13 +24,13 @@ export std.container 0.1.0 {
 					return;
 				}
 				
-				T* newData = reinterpret_cast<void*, T*>(alloc(size * sizeof(T)));
+				T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
 					nolval(newData[i]).__set_value(nolval(@data[i]).__extract_value());
 				}
 				
-				free(reinterpret_cast<T*, void*>(@data));
+				release(reinterpret_cast<T*, void*>(@data));
 				
 				@data = newData;
 				@capacity = size;

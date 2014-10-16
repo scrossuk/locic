@@ -20,6 +20,7 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/NameSearch.hpp>
 
 namespace locic {
 
@@ -425,7 +426,7 @@ namespace locic {
 				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStaticMethod(),
+				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
 					fullName, astFunctionNode.location());
 			}
 			
@@ -466,23 +467,53 @@ namespace locic {
 			const auto parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& name = astFunctionNode->name();
-			const auto fullName = parentNamespace->name() + name;
+			assert(!name->empty());
 			
-			const auto iterator = parentNamespace->items().find(name);
-			if (iterator != parentNamespace->items().end()) {
-				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
-					fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+			if (name->size() == 1) {
+				// Just a normal function.
+				const auto fullName = parentNamespace->name() + name->last();
+				
+				const auto iterator = parentNamespace->items().find(name->last());
+				if (iterator != parentNamespace->items().end()) {
+					throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
+						fullName.toString().c_str(), name.location().toString().c_str()));
+				}
+				
+				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
+				
+				parentNamespace->items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(semFunction)));
+			} else {
+				// An extension method; search for the parent type.
+				assert(name->size() > 1);
+				const auto searchResult = performSearch(context, name->getPrefix());
+				if (searchResult.isNone()) {
+					throw ErrorException(makeString("Failed to find parent type for extension method '%s', at position %s.",
+						name->toString().c_str(), name.location().toString().c_str()));
+				}
+				
+				if (!searchResult.isTypeInstance()) {
+					throw ErrorException(makeString("Parent type for extension method '%s' is not a valid type, at position %s.",
+						name->toString().c_str(), name.location().toString().c_str()));
+				}
+				
+				const auto parentTypeInstance = searchResult.typeInstance();
+				
+				// Push the type instance on the scope stack, since the extension method is
+				// effectively within the scope of the type instance.
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
+				
+				const auto fullName = parentTypeInstance->name() + name->last();
+				
+				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
+				
+				parentTypeInstance->functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), semFunction));
 			}
-			
-			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
-			
-			parentNamespace->items().insert(std::make_pair(name, SEM::NamespaceItem::Function(semFunction)));
 		}
 		
 		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			const auto parentType = context.scopeStack().back().typeInstance();
 			
-			const auto& name = astFunctionNode->name();
+			const auto name = astFunctionNode->name()->last();
 			const auto canonicalMethodName = CanonicalizeMethodName(name);
 			const auto fullName = parentType->name() + name;
 			
@@ -613,18 +644,18 @@ namespace locic {
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
 				// If the specification type is void, then just
-			 	// leave the generated type instance empty.
-			 	if (astSpecType->isVoid()) continue;
-			 	
-			 	const auto semSpecType = ConvertType(context, astSpecType);
-			 	
-			 	semTemplateVar->setSpecType(semSpecType);
-			 	
-			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+				// leave the generated type instance empty.
+				if (astSpecType->isVoid()) continue;
+				
+				const auto semSpecType = ConvertType(context, astSpecType);
+				
+				semTemplateVar->setSpecType(semSpecType);
+				
+				CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
 			}
 			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-				const auto methodName = CanonicalizeMethodName(astFunctionNode->name());
+				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 				const auto semChildFunction = typeInstance->functions().at(methodName);
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
@@ -636,7 +667,7 @@ namespace locic {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
-				const auto semChildFunction = semNamespace->items().at(astFunctionNode->name()).function();
+				const auto semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
 				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode);

@@ -4,7 +4,7 @@ export std.memory 0.1.0 {
 		
 		template <typename T>
 		T* new_raw(T value) {
-			void* ptr = alloc(sizeof(T));
+			void* ptr = allocate(sizeof(T));
 			T* castPtr = reinterpret_cast<void*, T*>(ptr);
 			nolval(*castPtr).__set_value(move value);
 			return castPtr;
@@ -13,7 +13,7 @@ export std.memory 0.1.0 {
 		template <typename T>
 		void delete_raw(T* ptr) noexcept {
 			nolval(*ptr).__destroy_value();
-			free(reinterpret_cast<T*, void*>(ptr));
+			release(reinterpret_cast<T*, void*>(ptr));
 		}
 		
 	}

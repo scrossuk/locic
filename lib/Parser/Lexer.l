@@ -190,6 +190,7 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 "?"                     { return QUESTIONMARK; }
 "@"                     { return AT; }
 ","                     { return COMMA; }
+"::"                    { return DOUBLE_COLON; }
 ":"                     { return COLON; }
 ";"                     { return SEMICOLON; }
 "("                     { return LROUNDBRACKET; }

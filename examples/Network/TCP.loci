@@ -15,22 +15,6 @@ class UnitData(T data) {
 	}
 }
 
-void printEndpoint(const std::tcp::endpoint& endpoint) {
-	switch (endpoint.address) {
-		case std::ip::address_v4_(uint32_t value) {
-			printf(C"endpoint(address_ipv4(%llu), %llu)\n",
-				value.cast<ulonglong_t>(),
-				endpoint.port.cast<ulonglong_t>());
-		}
-		case std::ip::address_v6_(uint64_t low, uint64_t high) {
-			printf(C"endpoint(address_ipv6(%llu, %llu), %llu)\n",
-				low.cast<ulonglong_t>(),
-				high.cast<ulonglong_t>(),
-				endpoint.port.cast<ulonglong_t>());
-		}
-	}
-}
-
 void runTCPExample() {
 	printf(C"================ TCP EXAMPLE ================\n");
 	
@@ -40,8 +24,7 @@ void runTCPExample() {
 	
 	printf(C"Created TCP listener.\n");
 	
-	const auto localAddress = std::ip::address_v4_(std::ip::address_v4.localhost().value());
-	auto connector = std::tcp::connector(std::tcp::endpoint(localAddress, port));
+	auto connector = std::tcp::connector(std::tcp::endpoint(std::ip::address_v4.localhost(), port));
 	
 	printf(C"Created TCP connector.\n");
 	
@@ -68,13 +51,11 @@ void runTCPExample() {
 	printf(C"TCP Connected.\n");
 	
 	auto connectStream = std::tcp::connector_get(move connector);
-	printf(C"Connect peer endpoint: ");
-	printEndpoint(connectStream.peer());
+	printf(C"Connect peer endpoint: %s\n", connectStream.peer().to_string().make_buffer().c_str());
 	auto connectSyncStream = std::tcp::sync_stream(connectStream);
 	
 	auto listenStream = listener.get();
-	printf(C"Listen peer endpoint: ");
-	printEndpoint(listenStream.peer());
+	printf(C"Listen peer endpoint: %s\n", listenStream.peer().to_string().make_buffer().c_str());
 	auto listenSyncStream = std::tcp::sync_stream(listenStream);
 	
 	{

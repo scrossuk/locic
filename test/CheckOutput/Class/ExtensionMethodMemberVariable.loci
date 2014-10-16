@@ -1,0 +1,19 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+// Class definition.
+class TestClass(const ubyte* const text) {
+	static Create = default;
+}
+
+void TestClass::printText() {
+	testPrint(C"TestClass.printText: @text = \"%s\"", @text);
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto testObject = TestClass(C"Extension method test!");
+	testObject.printText();
+	return 0;
+}
+

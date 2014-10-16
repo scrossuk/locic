@@ -30,11 +30,11 @@ bool isInProgress(final int error) noexcept {
 
 std_ipv6_address encodeAddress(const std::ip::address& address) noexcept {
 	switch (address) {
-		case std::ip::address_v4_(uint32_t value) {
+		case std::ip::address_v4(uint32_t value) {
 			// Map IPv4 address to IPv4.
 			return std_ipv6_address(0u, (uint64_t.trailing_ones(16u) << 32u) | value);
 		}
-		case std::ip::address_v6_(uint64_t low, uint64_t high) {
+		case std::ip::address_v6(uint64_t low, uint64_t high) {
 			return std_ipv6_address(high, low);
 		}
 	}
@@ -46,9 +46,9 @@ bool isAddressIPv4(const std_ipv6_address& address) noexcept {
 
 std::ip::address decodeAddress(const std_ipv6_address& address) noexcept {
 	if (isAddressIPv4(address)) {
-		return std::ip::address_v4_((address.low & uint64_t.trailing_ones(32u)).cast<uint32_t>());
+		return std::ip::address_v4((address.low & uint64_t.trailing_ones(32u)).cast<uint32_t>());
 	} else {
-		return std::ip::address_v6_(address.low, address.high);
+		return std::ip::address_v6(address.low, address.high);
 	}
 }
 

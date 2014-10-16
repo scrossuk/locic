@@ -1,0 +1,16 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+void int_t::printSelf() {
+	testPrint(C"uint8_t.printSelf: self = %d", self);
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	int i = 20;
+	i.printSelf();
+	int j = 30;
+	j.printSelf();
+	return 0;
+}
+

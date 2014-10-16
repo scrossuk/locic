@@ -7,16 +7,16 @@ export std.memory 0.1.0 {
 		
 		exception bad_alloc();
 		
-		void* alloc(size_t size) {
-			final auto ptr = ::calloc(1u, size);
+		void* allocate(size_t size) {
+			final auto ptr = calloc(1u, size);
 			if (ptr == null) {
 				throw bad_alloc();
 			}
 			return ptr;
 		}
 		
-		void free(void* ptr) noexcept {
-			::free(ptr);
+		void release(void* ptr) noexcept {
+			free(ptr);
 		}
 		
 	}

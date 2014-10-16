@@ -51,7 +51,7 @@ export std.network 0.1.0 {
 						}
 					}
 					
-					return @(handle, -1, endpoint(ip::address_v4_(0u), 0u));
+					return @(handle, -1, endpoint(ip::address_v4(0u), 0u));
 				}
 				
 				~ {

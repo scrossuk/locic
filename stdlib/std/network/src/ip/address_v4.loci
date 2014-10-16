@@ -4,43 +4,41 @@ export std.network 0.1.0 {
 		
 		namespace ip {
 			
-			class address_v4 (uint32_t value) {
-				static address_v4 raw(uint32_t value) noexcept {
-					return @(value);
-				}
-				
-				static address_v4 localhost() noexcept {
-					return
-						@(
-							(127u32 << 24u) |
-							(0u32 << 16u) |
-							(0u32 << 8u) |
-							(1u32 << 0u)
-						);
-				}
-				
-				static address_v4 any() noexcept {
-					// TODO!
-					unreachable;
-				}
-				
-				address_v4 implicit_copy() const noexcept {
-					return @(@value);
-				}
-				
-				bool is_localhost() const noexcept {
-					// TODO!
-					unreachable;
-				}
-				
-				bool is_any() const noexcept {
-					// TODO!
-					unreachable;
-				}
-				
-				uint32_t value() const noexcept {
-					return @value;
-				}
+			static address_v4 address_v4::localhost() noexcept {
+				return
+					@(
+						(127u32 << 24u) |
+						(0u32 << 16u) |
+						(0u32 << 8u) |
+						(1u32 << 0u)
+					);
+			}
+			
+			static address_v4 address_v4::any() noexcept {
+				// TODO!
+				unreachable;
+			}
+			
+			bool address_v4::is_localhost() const noexcept {
+				// TODO!
+				unreachable;
+			}
+			
+			bool address_v4::is_any() const noexcept {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string address_v4::to_string() const {
+				return "ip::address_v4(" +
+						serialize((@value >> 24u) & 0xFFu) +
+						"." +
+						serialize((@value >> 16u) & 0xFFu) +
+						"." +
+						serialize((@value >> 8u) & 0xFFu) +
+						"." +
+						serialize((@value >> 0u) & 0xFFu) +
+					")";
 			}
 			
 		}

@@ -24,6 +24,15 @@ namespace locic {
 			std::terminate();
 		}
 		
+		Name getParentName(const ScopeElement& topElement) {
+			assert(topElement.isNamespace() || topElement.isTypeInstance());
+			if (topElement.isNamespace()) {
+				return topElement.nameSpace()->name();
+			} else {
+				return topElement.typeInstance()->name();
+			}
+		}
+		
 		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
@@ -31,17 +40,29 @@ namespace locic {
 			
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
-			const auto name = astFunctionNode->name();
-			const auto fullName = getCurrentName(context.scopeStack()) + name;
+			const auto name = astFunctionNode->name()->last();
+			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
 			const auto semFunction = new SEM::Function(fullName, moduleScope);
 			
-			semFunction->setMethod(astFunctionNode->isMethod());
-			semFunction->setStaticMethod(astFunctionNode->isStaticMethod());
-			semFunction->setConstMethod(astFunctionNode->isConstMethod());
+			const bool isMethod = thisTypeInstance != nullptr;
+			
+			if (!isMethod && astFunctionNode->isConst()) {
+				throw ErrorException(makeString("Non-method function '%s' cannot be const, at location %s.",
+						name.c_str(), astFunctionNode.location().toString().c_str()));
+			}
+			
+			if (!isMethod && astFunctionNode->isStatic()) {
+				throw ErrorException(makeString("Non-method function '%s' cannot be static, at location %s.",
+						name.c_str(), astFunctionNode.location().toString().c_str()));
+			}
+			
+			semFunction->setMethod(isMethod);
+			semFunction->setStaticMethod(astFunctionNode->isStatic());
+			semFunction->setConstMethod(astFunctionNode->isConst());
 			
 			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
-				throw ErrorException(makeString("Interface '%s' has templated method '%s' (interfaces may only contain non-templated methods) at location %s.",
+				throw ErrorException(makeString("Interface '%s' has templated method '%s' (interfaces may only contain non-templated methods), at location %s.",
 						thisTypeInstance->name().toString().c_str(), name.c_str(),
 						astFunctionNode.location().toString().c_str()));
 			}
@@ -77,7 +98,7 @@ namespace locic {
 				// the return type will be the parent class type).
 				assert(thisTypeInstance != nullptr);
 				assert(astFunctionNode->isDefinition());
-				assert(astFunctionNode->isStaticMethod());
+				assert(astFunctionNode->isStatic());
 				
 				semReturnType = thisTypeInstance->selfType();
 			} else {
@@ -112,7 +133,7 @@ namespace locic {
 			
 			semFunction->setParameters(std::move(parameterVars));
 			
-			const bool isDynamicMethod = astFunctionNode->isMethod() && !astFunctionNode->isStaticMethod();
+			const bool isDynamicMethod = isMethod && !astFunctionNode->isStatic();
 			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			

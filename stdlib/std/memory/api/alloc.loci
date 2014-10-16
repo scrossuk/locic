@@ -4,9 +4,9 @@ import std.memory 0.1.0 {
 		
 		exception bad_alloc();
 		
-		void* alloc(size_t size);
+		void* allocate(size_t size);
 		
-		void free(void* ptr) noexcept;
+		void release(void* ptr) noexcept;
 		
 	}
 	

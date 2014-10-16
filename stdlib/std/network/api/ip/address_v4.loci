@@ -4,21 +4,15 @@ import std.network 0.1.0 {
 		
 		namespace ip {
 			
-			class address_v4 {
-				static address_v4 raw(uint32_t value) noexcept;
-				
-				static address_v4 localhost() noexcept;
-				
-				static address_v4 any() noexcept;
-				
-				address_v4 implicit_copy() const noexcept;
-				
-				bool is_localhost() const noexcept;
-				
-				bool is_any() const noexcept;
-				
-				uint32_t value() const noexcept;
-			}
+			static address_v4 address_v4::localhost() noexcept;
+			
+			static address_v4 address_v4::any() noexcept;
+			
+			bool address_v4::is_localhost() const noexcept;
+			
+			bool address_v4::is_any() const noexcept;
+			
+			std::string address_v4::to_string() const;
 			
 		}
 		

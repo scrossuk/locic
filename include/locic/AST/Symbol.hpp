@@ -14,14 +14,14 @@ namespace locic {
 	
 		class SymbolElement {
 			public:
-				inline SymbolElement(const std::string& n, const Node<TypeList>& t)
+				SymbolElement(const std::string& n, const Node<TypeList>& t)
 					: name_(n), templateArguments_(t) { }
 					
-				inline const std::string& name() const {
+				const std::string& name() const {
 					return name_;
 				}
 				
-				inline const Node<TypeList>& templateArguments() const {
+				const Node<TypeList>& templateArguments() const {
 					return templateArguments_;
 				}
 				
@@ -33,47 +33,56 @@ namespace locic {
 		
 		class Symbol {
 			public:
-				static inline Symbol Absolute() {
+				static Symbol Absolute() {
 					return Symbol(true);
 				}
 				
-				static inline Symbol Relative() {
+				static Symbol Relative() {
 					return Symbol(false);
 				}
 				
-				inline Symbol()
+				Symbol()
 					: isAbsolute_(false) { }
 					
-				inline Symbol operator+(const Node<SymbolElement>& symbolElement) const {
+				Symbol operator+(const Node<SymbolElement>& symbolElement) const {
 					return Symbol(*this, symbolElement);
 				}
 				
-				inline bool empty() const {
+				bool empty() const {
 					return list_.empty();
 				}
 				
-				inline size_t size() const {
+				size_t size() const {
 					return list_.size();
 				}
 				
-				inline const Node<SymbolElement>& at(size_t i) const {
+				const Node<SymbolElement>& at(size_t i) const {
 					return list_.at(i);
 				}
 				
-				inline const Node<SymbolElement>& first() const {
+				const Node<SymbolElement>& first() const {
 					return list_.front();
 				}
 				
-				inline const Node<SymbolElement>& last() const {
+				const Node<SymbolElement>& last() const {
 					return list_.back();
 				}
 				
-				inline bool isAbsolute() const {
+				bool isAbsolute() const {
 					return isAbsolute_;
 				}
 				
-				inline bool isRelative() const {
+				bool isRelative() const {
 					return !isAbsolute_;
+				}
+				
+				bool isTrivial() const {
+					return size() == 1 && first()->templateArguments()->empty();
+				}
+				
+				std::string trivialString() const {
+					assert(isTrivial());
+					return createName().first();
 				}
 				
 				std::string toString() const;
@@ -81,7 +90,7 @@ namespace locic {
 				Name createName() const;
 				
 			private:
-				inline explicit Symbol(bool isAbs)
+				explicit Symbol(bool isAbs)
 					: isAbsolute_(isAbs) { }
 					
 				Symbol(const Symbol& symbol, const Node<SymbolElement>& symbolElement);

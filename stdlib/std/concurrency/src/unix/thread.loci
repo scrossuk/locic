@@ -64,7 +64,7 @@ export std.concurrency 0.1.0 {
 					internalRunnable->set_self_ref();
 					
 					pthread_t threadObject = 0u;
-					final int result = pthread_create(&threadObject, null, ::threadFunction, reinterpret_cast<internal_runnable<T>*, void*>(internalRunnable.get()));
+					final int result = pthread_create(&threadObject, null, threadFunction, reinterpret_cast<internal_runnable<T>*, void*>(internalRunnable.get()));
 					if (result != 0) {
 						throw create_failed(result);
 					}

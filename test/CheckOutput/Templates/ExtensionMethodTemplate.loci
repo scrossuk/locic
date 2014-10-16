@@ -1,0 +1,38 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+class TestClass(int value) {
+	static Create = default;
+	
+	int getValue() const {
+		return @value;
+	}
+}
+
+interface MakeIntable {
+	int makeInt() const;
+}
+
+template <typename S: MakeIntable>
+void TestClass::setValue(S value) {
+	@value = value.makeInt();
+}
+
+class SetValueImpl(int value) {
+	static Create = default;
+	
+	int makeInt() const {
+		return @value;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	TestClass object = TestClass(16000);
+	testPrint(C"object.getValue() = %d", object.getValue());
+	object.setValue<SetValueImpl>(SetValueImpl(17000));
+	testPrint(C"object.getValue() = %d", object.getValue());
+	
+	return 0;
+}
+

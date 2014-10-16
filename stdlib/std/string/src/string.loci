@@ -1,3 +1,4 @@
+import int sprintf(ubyte* str, const ubyte* const format, ...) noexcept;
 import size_t strlen(const ubyte* const stringConstant) noexcept;
 
 export std.string 0.1.0 {
@@ -137,6 +138,13 @@ export std.string 0.1.0 {
 				}
 				return move buffer;
 			}
+		}
+		
+		std::string serialize(ulonglong_t value) {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(10u);
+			(void) sprintf(bytes.data(), C"%llu", value);
+			return std::string.cstring(bytes.data());
 		}
 		
 		template <typename T>

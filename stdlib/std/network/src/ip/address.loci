@@ -5,8 +5,19 @@ export std.network 0.1.0 {
 		namespace ip {
 			
 			datatype address =
-				address_v4_(uint32_t value) |
-				address_v6_(uint64_t low, uint64_t high);
+				address_v4(uint32_t value) |
+				address_v6(uint64_t low, uint64_t high);
+			
+			std::string address::to_string() const {
+				switch (self) {
+					case address_v4(uint32_t value) {
+						return address_v4(value).to_string();
+					}
+					case address_v6(uint64_t low, uint64_t high) {
+						return "ip::address_v6([TODO])";
+					}
+				}
+			}
 			
 		}
 		

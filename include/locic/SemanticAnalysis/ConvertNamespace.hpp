@@ -9,6 +9,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
+		SEM::Function* findNamespaceFunction(Context& context, const Name& name);
+		
 		void ConvertNamespace(Context& context, const AST::NamespaceList& rootASTNamespaces);
 		
 	}
