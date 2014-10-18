@@ -13,9 +13,10 @@ loci_link(Events events "-pthread"
 	events.bc
 	${STD_CONCURRENCY_BINARY_FILES}
 	${STD_EVENT_BINARY_FILES}
+	${STD_STRING_BINARY_FILES}
 	${STD_CONTAINER_BINARY_FILES}
 	${STD_MEMORY_BINARY_FILES}
 	)
 
-add_dependencies(Events std.concurrency std.event std.container)
+add_dependencies(Events std.concurrency std.event std.string std.container)
 
