@@ -55,7 +55,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = alignMaskArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
@@ -178,7 +178,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = sizeOfArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			
 			assert(!typeInstance->isInterface());
@@ -338,7 +338,7 @@ namespace locic {
 			
 			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getFunctionLinkage(typeInstance, typeInstance->moduleScope()), mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
 			
 			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			

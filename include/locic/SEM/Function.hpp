@@ -37,6 +37,9 @@ namespace locic {
 				bool isDeclaration() const;
 				
 				bool isDefinition() const;
+                                
+                                void setPrimitive(bool pIsPrimitive);
+                                bool isPrimitive() const;
 				
 				void setMethod(bool pIsMethod);
 				bool isMethod() const;
@@ -69,6 +72,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				bool isPrimitive_;
 				bool isMethod_, isStaticMethod_, isConstMethod_;
 				Type* type_;
 				Name name_;

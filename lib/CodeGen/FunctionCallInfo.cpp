@@ -152,13 +152,7 @@ namespace locic {
 		bool isTrivialFunction(Module& module, SEM::Value* value) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					const auto parentType = value->functionRef.parentType;
-					
-					if (parentType == nullptr) {
-						return false;
-					}
-					
-					return parentType->isPrimitive();
+					return value->functionRef.function->isPrimitive();
 				}
 				
 				case SEM::Value::METHODOBJECT: {
@@ -174,9 +168,6 @@ namespace locic {
 		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue) {
 			switch (value->kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					const auto parentType = value->functionRef.parentType;
-					assert(parentType != nullptr);
-					
 					llvm::SmallVector<ArgPair, 10> llvmArgs;
 					
 					if (contextValue.first != nullptr) {
@@ -187,8 +178,8 @@ namespace locic {
 						llvmArgs.push_back(genCallValue(function, arg));
 					}
 					
-					if (parentType->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, parentType,
+					if (value->functionRef.function->isPrimitive()) {
+						return genTrivialPrimitiveFunctionCall(function, value->functionRef.parentType,
 							value->functionRef.function, value->functionRef.templateArguments, llvmArgs);
 					}
 					

@@ -65,28 +65,31 @@ namespace locic {
 				return;
 			}
 			
-			if (typeInstance->isPrimitive()) {
-				// Only generate primitives as needed.
-				return;
-			}
-			
 			const auto& functions = typeInstance->functions();
 			
 			for (const auto functionPair: functions) {
-				(void) genFunctionDef(module, typeInstance, functionPair.second);
+				const auto function = functionPair.second;
+				
+				// Only generate primitives as needed.
+				if (!function->isPrimitive()) {
+					(void) genFunctionDef(module, typeInstance, function);
+				}
 			}
 			
-			(void) genDestructorFunctionDef(module, typeInstance);
-			(void) genAlignMaskFunction(module, typeInstance->selfType());
-			(void) genSizeOfFunction(module, typeInstance->selfType());
-			
-			if (!typeInstance->templateVariables().empty()) {
-				auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(typeInstance));
-				(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(typeInstance), templateBuilder);
+			// Only generate primitives as needed.
+			if (!typeInstance->isPrimitive()) {
+				(void) genDestructorFunctionDef(module, typeInstance);
+				(void) genAlignMaskFunction(module, typeInstance->selfType());
+				(void) genSizeOfFunction(module, typeInstance->selfType());
 				
-				// Update all instructions needing the bits required value
-				// with the correct value (now it is known).
-				templateBuilder.updateAllInstructions(module);
+				if (!typeInstance->templateVariables().empty()) {
+					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(typeInstance));
+					(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(typeInstance), templateBuilder);
+					
+					// Update all instructions needing the bits required value
+					// with the correct value (now it is known).
+					templateBuilder.updateAllInstructions(module);
+				}
 			}
 		}
 		

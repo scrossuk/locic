@@ -1,7 +1,7 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-void int_t::printSelf() {
+void int_t::printSelf() const {
 	testPrint(C"uint8_t.printSelf: self = %d", self);
 }
 

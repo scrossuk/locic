@@ -360,9 +360,9 @@ namespace locic {
 		
 		static llvm::GlobalValue::LinkageTypes getTemplatedObjectLinkage(TemplatedObject templatedObject) {
 			if (templatedObject.isTypeInstance()) {
-				return getFunctionLinkage(templatedObject.typeInstance(), templatedObject.typeInstance()->moduleScope());
+				return getTypeInstanceLinkage(templatedObject.typeInstance());
 			} else {
-				return getFunctionLinkage(templatedObject.parentTypeInstance(), templatedObject.function()->moduleScope());
+				return getFunctionLinkage(templatedObject.function());
 			}
 		}
 		

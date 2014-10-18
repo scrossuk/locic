@@ -31,13 +31,13 @@ export std.network 0.1.0 {
 			
 			std::string address_v4::to_string() const {
 				return "ip::address_v4(" +
-						serialize((@value >> 24u) & 0xFFu) +
+						((@value >> 24u) & 0xFFu).to_string() +
 						"." +
-						serialize((@value >> 16u) & 0xFFu) +
+						((@value >> 16u) & 0xFFu).to_string() +
 						"." +
-						serialize((@value >> 8u) & 0xFFu) +
+						((@value >> 8u) & 0xFFu).to_string() +
 						"." +
-						serialize((@value >> 0u) & 0xFFu) +
+						((@value >> 0u) & 0xFFu).to_string() +
 					")";
 			}
 			

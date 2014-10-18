@@ -203,7 +203,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
-			const auto linkage = getFunctionLinkage(typeInstance, typeInstance->moduleScope());
+			const auto linkage = getTypeInstanceLinkage(typeInstance);
 			
 			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
@@ -233,6 +233,7 @@ namespace locic {
 			}
 			
 			if (typeInstance->isClassDecl()) {
+				// Don't generate code for imported functionality.
 				return llvmFunction;
 			}
 			
@@ -252,8 +253,8 @@ namespace locic {
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
-								  std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
-								  std::vector<llvm::Value*> { contextValue };
+							std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
+							std::vector<llvm::Value*> { contextValue };
 				(void) genRawFunctionCall(function, argInfo, customDestructor, args);
 			}
 			

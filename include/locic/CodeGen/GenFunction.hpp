@@ -10,7 +10,9 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::TypeInstance* typeInstance, SEM::ModuleScope* moduleScope);
+		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::Function* function);
+		
+		llvm::GlobalValue::LinkageTypes getTypeInstanceLinkage(SEM::TypeInstance* typeInstance);
 		
 		llvm::Function* genFunctionDecl(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
 		

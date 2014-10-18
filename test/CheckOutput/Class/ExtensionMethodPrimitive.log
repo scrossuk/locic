@@ -1,1 +1,2 @@
-TestClass.printText: Text = "Extension method test!"
+uint8_t.printSelf: self = 20
+uint8_t.printSelf: self = 30

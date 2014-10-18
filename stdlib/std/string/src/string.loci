@@ -140,6 +140,38 @@ export std.string 0.1.0 {
 			}
 		}
 		
+		std::string uint8_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string uint16_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string uint32_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string uint64_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string ushort_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string uint_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string ulong_t::to_string() const {
+			return serialize(self);
+		}
+		
+		std::string ulonglong_t::to_string() const {
+			return serialize(self);
+		}
+		
 		std::string serialize(ulonglong_t value) {
 			auto bytes = std::varray<ubyte>();
 			bytes.resize(10u);

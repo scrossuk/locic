@@ -10,7 +10,8 @@ namespace locic {
 	namespace SEM {
 	
 		Function::Function(const Name& pName, ModuleScope* pModuleScope)
-			: isMethod_(false),
+			: isPrimitive_(false),
+			  isMethod_(false),
 			  isStaticMethod_(false),
 			  isConstMethod_(false),
 			  type_(nullptr),
@@ -41,6 +42,14 @@ namespace locic {
 		
 		bool Function::isDefinition() const {
 			return scope_ != nullptr;
+		}
+		
+		void Function::setPrimitive(bool pIsPrimitive) {
+			isPrimitive_ = pIsPrimitive;
+		}
+		
+		bool Function::isPrimitive() const {
+			return isPrimitive_;
 		}
 		
 		void Function::setMethod(bool pIsMethod) {

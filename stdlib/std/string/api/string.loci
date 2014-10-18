@@ -115,6 +115,15 @@ import std.string 0.1.0 {
 			utf8_buffer make_buffer() const;
 		}
 		
+		std::string uint8_t::to_string() const;
+		std::string uint16_t::to_string() const;
+		std::string uint32_t::to_string() const;
+		std::string uint64_t::to_string() const;
+		std::string ushort_t::to_string() const;
+		std::string uint_t::to_string() const;
+		std::string ulong_t::to_string() const;
+		std::string ulonglong_t::to_string() const;
+		
 		std::string serialize(ulonglong_t value);
 		
 		class string_lval {

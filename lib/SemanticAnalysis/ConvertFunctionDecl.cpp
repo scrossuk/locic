@@ -57,6 +57,9 @@ namespace locic {
 						name.c_str(), astFunctionNode.location().toString().c_str()));
 			}
 			
+			// Don't treat extension methods as primitive methods.
+			semFunction->setPrimitive(isMethod && thisTypeInstance->isPrimitive() && astFunctionNode->name()->size() == 1);
+			
 			semFunction->setMethod(isMethod);
 			semFunction->setStaticMethod(astFunctionNode->isStatic());
 			semFunction->setConstMethod(astFunctionNode->isConst());
