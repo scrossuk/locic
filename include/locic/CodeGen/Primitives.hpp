@@ -56,44 +56,45 @@ namespace locic {
 		class Function;
 		class Module;
 		
-		bool isSignedIntegerType(Module& module, SEM::Type* type);
+		bool isSignedIntegerType(Module& module, const SEM::Type* type);
 		
-		bool isUnsignedIntegerType(Module& module, SEM::Type* type);
+		bool isUnsignedIntegerType(Module& module, const SEM::Type* type);
 		
-		void createPrimitiveAlignOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction);
+		void createPrimitiveAlignOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction);
 		
-		void createPrimitiveSizeOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
-		void genPrimitiveDestructorCall(Function& function, SEM::Type* type, llvm::Value* value);
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+			llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, SEM::Type* varType);
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
 		
-		llvm::Value* genPrimitiveAlignMask(Function& function, SEM::Type* type);
-		llvm::Value* genPrimitiveSizeOf(Function& function, SEM::Type* type);
+		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type);
+		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind);
 		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
-		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type);
+		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind);
 		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name);
-		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type);
+		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type);
+		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type);
 		
 		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type);
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type);
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type);
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, const SEM::Type* type);
 		
-		bool needsLivenessIndicator(Module& module, SEM::Type* type);
+		bool needsLivenessIndicator(Module& module, const SEM::Type* type);
 		
 	}
 	

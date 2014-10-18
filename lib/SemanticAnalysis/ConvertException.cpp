@@ -18,8 +18,8 @@ namespace locic {
 	
 		namespace {
 			
-			std::vector<SEM::Type*> getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
-				std::vector<SEM::Type*> types;
+			std::vector<const SEM::Type*> getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
+				std::vector<const SEM::Type*> types;
 				bool isFirst = true;
 				for (const auto var: variables) {
 					if (isFirst) {
@@ -31,7 +31,7 @@ namespace locic {
 				return types;
 			}
 			
-			std::vector<SEM::Var*> getParameters(Context& context, const std::vector<SEM::Type*>& constructTypes) {
+			std::vector<SEM::Var*> getParameters(Context& context, const std::vector<const SEM::Type*>& constructTypes) {
 				std::vector<SEM::Var*> parameters;
 				for (const auto varType: constructTypes) {
 					const bool isLvalConst = false;

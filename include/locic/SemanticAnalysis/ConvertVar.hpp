@@ -15,7 +15,7 @@ namespace locic {
 		
 		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& typeVar);
 		
-		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& typeVar, SEM::Type* initialiseType);
+		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& typeVar, const SEM::Type* initialiseType);
 		
 	}
 	

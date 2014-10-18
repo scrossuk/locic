@@ -27,17 +27,17 @@ namespace locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
+		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, const SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		SEM::Type* UnifyTypes(Context& context, SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location);
+		const SEM::Type* UnifyTypes(Context& context, const SEM::Type* first, const SEM::Type* second, const Debug::SourceLocation& location);
 		
-		bool CanDoImplicitCast(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location);
+		bool CanDoImplicitCast(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location);
 		
-		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType);
+		bool TypeSatisfiesInterface(const SEM::Type* objectType, const SEM::Type* interfaceType);
 		
 		class CastTypeMismatchException: public CastException {
 			public:
-				inline CastTypeMismatchException(SEM::Value* value, SEM::Type* sourceType, SEM::Type* destType)
+				inline CastTypeMismatchException(SEM::Value* value, const SEM::Type* sourceType, const SEM::Type* destType)
 					: value_(value), sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -49,14 +49,14 @@ namespace locic {
 				
 			private:
 				SEM::Value* value_;
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastConstCorrectnessViolationException: public CastException {
 			public:
-				inline CastConstCorrectnessViolationException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastConstCorrectnessViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -66,14 +66,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastLValueToRValueException: public CastException {
 			public:
-				inline CastLValueToRValueException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastLValueToRValueException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -83,14 +83,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastRValueToReferenceException: public CastException {
 			public:
-				inline CastRValueToReferenceException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastRValueToReferenceException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -100,14 +100,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastObjectTypeMismatchException: public CastException {
 			public:
-				inline CastObjectTypeMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastObjectTypeMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -117,14 +117,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastConstChainingViolationException: public CastException {
 			public:
-				inline CastConstChainingViolationException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastConstChainingViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -135,14 +135,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastFunctionParameterNumberMismatchException: public CastException {
 			public:
-				inline CastFunctionParameterNumberMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastFunctionParameterNumberMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -152,14 +152,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class CastFunctionVarArgsMismatchException: public CastException {
 			public:
-				inline CastFunctionVarArgsMismatchException(SEM::Type* sourceType, SEM::Type* destType)
+				inline CastFunctionVarArgsMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
 				inline std::string toString() const {
@@ -169,14 +169,14 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				
 		};
 		
 		class PolyCastMissingMethodException: public CastException {
 			public:
-				inline PolyCastMissingMethodException(SEM::Type* sourceType, SEM::Type* destType,
+				inline PolyCastMissingMethodException(const SEM::Type* sourceType, const SEM::Type* destType,
 						SEM::Function* methodFunction)
 					: sourceType_(sourceType), destType_(destType),
 					  methodFunction_(methodFunction) { }
@@ -189,8 +189,8 @@ namespace locic {
 				}
 				
 			private:
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
 				SEM::Function* methodFunction_;
 				
 		};
@@ -198,8 +198,8 @@ namespace locic {
 		class PolyCastMethodMismatchException: public CastException {
 			public:
 				inline PolyCastMethodMismatchException(const Name& methodName,
-						SEM::Type* sourceType, SEM::Type* destType,
-						SEM::Type* sourceMethodType, SEM::Type* destMethodType)
+						const SEM::Type* sourceType, const SEM::Type* destType,
+						const SEM::Type* sourceMethodType, const SEM::Type* destMethodType)
 					: methodName_(methodName),
 					  sourceType_(sourceType), destType_(destType),
 					  sourceMethodType_(sourceMethodType), destMethodType_(destMethodType) { }
@@ -215,10 +215,10 @@ namespace locic {
 				
 			private:
 				Name methodName_;
-				SEM::Type* sourceType_;
-				SEM::Type* destType_;
-				SEM::Type* sourceMethodType_;
-				SEM::Type* destMethodType_;
+				const SEM::Type* sourceType_;
+				const SEM::Type* destType_;
+				const SEM::Type* sourceMethodType_;
+				const SEM::Type* destMethodType_;
 				
 		};
 		

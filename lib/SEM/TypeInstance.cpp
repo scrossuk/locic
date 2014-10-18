@@ -77,13 +77,13 @@ namespace locic {
 			return kind() == TEMPLATETYPE;
 		}
 		
-		Type* TypeInstance::selfType() const {
+		const Type* TypeInstance::selfType() const {
 			// TODO: remove const_cast.
 			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());
 		}
 		
-		std::vector<Type*> TypeInstance::selfTemplateArgs() const {
-			std::vector<SEM::Type*> templateArgs;
+		std::vector<const Type*> TypeInstance::selfTemplateArgs() const {
+			std::vector<const SEM::Type*> templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
@@ -142,20 +142,20 @@ namespace locic {
 			return functions_;
 		}
 		
-		std::vector<Type*> TypeInstance::constructTypes() const {
-			std::vector<Type*> types;
+		std::vector<const Type*> TypeInstance::constructTypes() const {
+			std::vector<const Type*> types;
 			for (const auto var: variables()) {
 				types.push_back(var->constructType());
 			}
 			return types;
 		}
 		
-		void TypeInstance::setParent(Type* pParent) {
+		void TypeInstance::setParent(const Type* pParent) {
 			assert(pParent->isObject());
 			parent_ = pParent;
 		}
 		
-		Type* TypeInstance::parent() const {
+		const Type* TypeInstance::parent() const {
 			return parent_;
 		}
 		

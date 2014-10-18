@@ -23,12 +23,12 @@ namespace locic {
 			return name_;
 		}
 		
-		void Function::setType(Type* pType) {
+		void Function::setType(const Type* pType) {
 			assert(type_ == nullptr);
 			type_ = pType;
 		}
 		
-		Type* Function::type() const {
+		const Type* Function::type() const {
 			return type_;
 		}
 		

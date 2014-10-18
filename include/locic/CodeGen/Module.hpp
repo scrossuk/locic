@@ -54,7 +54,7 @@ namespace locic {
 		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef std::map<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef std::map<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
-		typedef Map<SEM::TemplateVar*, SEM::Type*> TemplateVarMap;
+		typedef Map<SEM::TemplateVar*, const SEM::Type*> TemplateVarMap;
 		typedef Map<std::string, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		

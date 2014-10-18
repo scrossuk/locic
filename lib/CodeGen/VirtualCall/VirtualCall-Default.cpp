@@ -76,7 +76,7 @@ namespace locic {
 				return attributes;
 			}
 			
-			llvm::Value* makeArgsStruct(Function& function, llvm::ArrayRef<SEM::Type*> argTypes, llvm::ArrayRef<llvm::Value*> args) {
+			llvm::Value* makeArgsStruct(Function& function, llvm::ArrayRef<const SEM::Type*> argTypes, llvm::ArrayRef<llvm::Value*> args) {
 				assert(argTypes.size() == args.size());
 				
 				auto& module = function.module();
@@ -150,7 +150,7 @@ namespace locic {
 				}
 			}
 			
-			void generateCallWithReturnVar(Function& function, SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -209,7 +209,7 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
 			}
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* callableType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
 				const bool isStatic = callableType->isStaticInterfaceMethod();
 				
 				const auto functionType = callableType->getCallableFunctionType();

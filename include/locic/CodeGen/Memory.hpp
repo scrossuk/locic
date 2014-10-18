@@ -15,7 +15,7 @@ namespace locic {
 		 * This will allocate stack space for the given
 		 * type, and return a pointer to that space.
 		 */
-		llvm::Value* genAlloca(Function& function, SEM::Type* type);
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type);
 		
 		/**
 		 * \brief Load a value from a memory location.
@@ -26,7 +26,7 @@ namespace locic {
 		 * to it as-is, since class types should always be
 		 * handled as pointers.
 		 */
-		llvm::Value* genLoad(Function& function, llvm::Value* source, SEM::Type* type);
+		llvm::Value* genLoad(Function& function, llvm::Value* source, const SEM::Type* type);
 		
 		/**
 		 * \brief Store a value into a memory location.
@@ -37,7 +37,7 @@ namespace locic {
 		 * (such as classes) by copying the memory from
 		 * one pointer to another.
 		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type);
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
 		
 		/**
 		 * \brief Store a value into a variable.
@@ -55,7 +55,7 @@ namespace locic {
 		 * (This is typically used to generate a pointer
 		 * passed as the context pointer to methods.)
 		 */
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, SEM::Type* type);
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type);
 		
 	}
 	

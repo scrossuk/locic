@@ -13,19 +13,19 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
+		const SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
 			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "value_lval")->getObjectType();
 			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
-		SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, SEM::Type* valueType) {
+		const SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
 			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "member_lval")->getObjectType();
 			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
-		SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, SEM::Type* valueType) {
+		const SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, const SEM::Type* valueType) {
 			if (getDerefType(valueType)->isLval()) return valueType;
 			
 			if (isMember) {
@@ -35,7 +35,7 @@ namespace locic {
 			}
 		}
 		
-		size_t getLvalCount(SEM::Type* type) {
+		size_t getLvalCount(const SEM::Type* type) {
 			type = getDerefType(type);
 			
 			size_t count = 0;
@@ -46,7 +46,7 @@ namespace locic {
 			return count;
 		}
 		
-		bool supportsDissolve(SEM::Type* type) {
+		bool supportsDissolve(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::AUTO:
 				case SEM::Type::ALIAS:

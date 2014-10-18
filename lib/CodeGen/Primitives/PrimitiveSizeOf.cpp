@@ -18,7 +18,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveAlignOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction) {
+		void createPrimitiveAlignOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto typeInstance = type->getObjectType();
@@ -63,7 +63,7 @@ namespace locic {
 			}
 		}
 		
-		void createPrimitiveSizeOf(Module& module, SEM::Type* type, llvm::Function& llvmFunction) {
+		void createPrimitiveSizeOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			const auto typeInstance = type->getObjectType();
@@ -134,7 +134,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPrimitiveAlignMask(Function& function, SEM::Type* type) {
+		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type) {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
@@ -150,7 +150,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPrimitiveSizeOf(Function& function, SEM::Type* type) {
+		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type) {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			

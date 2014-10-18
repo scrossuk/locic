@@ -17,7 +17,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genStoreValueLval(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
+		void genStoreValueLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			// A value lval contains the target type and
 			// a boolean 'liveness' indicator, which records
 			// whether the lval currently holds a value.
@@ -38,7 +38,7 @@ namespace locic {
 			genStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
-		void genStoreMemberLval(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
+		void genStoreMemberLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -48,7 +48,7 @@ namespace locic {
 			genStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
-		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* varType) {
+		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
 			const auto typeName = varType->getObjectType()->name().last();

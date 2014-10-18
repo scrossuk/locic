@@ -44,7 +44,7 @@ namespace locic {
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		llvm::Function* genAlignMaskFunction(Module& module, SEM::Type* type) {
+		llvm::Function* genAlignMaskFunction(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
 				mangleMethodName(typeInstance, std::string("__alignmask") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
@@ -107,13 +107,13 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genAlignOf(Function& function, SEM::Type* type) {
+		llvm::Value* genAlignOf(Function& function, const SEM::Type* type) {
 			const auto alignMask = genAlignMask(function, type);
 			const auto name = makeString("alignof__%s", type->isObject() ? type->getObjectType()->name().last().c_str() : "");
 			return function.getBuilder().CreateAdd(alignMask, ConstantGenerator(function.module()).getSizeTValue(1), name);
 		}
 		
-		llvm::Value* genAlignMaskValue(Function& function, SEM::Type* type) {
+		llvm::Value* genAlignMaskValue(Function& function, const SEM::Type* type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
@@ -156,7 +156,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genAlignMask(Function& function, SEM::Type* type) {
+		llvm::Value* genAlignMask(Function& function, const SEM::Type* type) {
 			const auto it = function.alignMaskMap().find(type);
 			if (it != function.alignMaskMap().end()) {
 				return it->second;
@@ -167,7 +167,7 @@ namespace locic {
 			return alignMaskValue;
 		}
 		
-		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type) {
+		llvm::Function* genSizeOfFunction(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
 				mangleMethodName(typeInstance, std::string("__sizeof") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
@@ -257,7 +257,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOfValue(Function& function, SEM::Type* type) {
+		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
@@ -299,7 +299,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genSizeOf(Function& function, SEM::Type* type) {
+		llvm::Value* genSizeOf(Function& function, const SEM::Type* type) {
 			const auto it = function.sizeOfMap().find(type);
 			if (it != function.sizeOfMap().end()) {
 				return it->second;
@@ -394,7 +394,7 @@ namespace locic {
 			return (position + (align - 1)) & (~(align - 1));
 		}
 		
-		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex) {
+		llvm::Value* genMemberOffset(Function& function, const SEM::Type* type, size_t memberIndex) {
 			assert(type->isObject());
 			
 			auto& module = function.module();
@@ -454,7 +454,7 @@ namespace locic {
 			return callResult;
 		}
 		
-		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, SEM::Type* objectType, size_t memberIndex) {
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, const SEM::Type* objectType, size_t memberIndex) {
 			auto& module = function.module();
 			
 			if (isTypeSizeKnownInThisModule(module, objectType)) {
@@ -468,7 +468,7 @@ namespace locic {
 			}
 		}
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, SEM::Type* type, llvm::Value* objectPtr) {
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* type, llvm::Value* objectPtr) {
 			assert(type->isObject() && type->getObjectType()->isUnionDatatype());
 			auto& module = function.module();
 			

@@ -21,7 +21,7 @@ namespace locic {
 		class Type;
 		class Var;
 		
-		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
+		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Function {
 			public:
@@ -29,8 +29,8 @@ namespace locic {
 				
 				const Name& name() const;
 				
-				void setType(Type* pType);
-				Type* type() const;
+				void setType(const Type* pType);
+				const Type* type() const;
 				
 				ModuleScope* moduleScope() const;
 				
@@ -74,7 +74,7 @@ namespace locic {
 			private:
 				bool isPrimitive_;
 				bool isMethod_, isStaticMethod_, isConstMethod_;
-				Type* type_;
+				const Type* type_;
 				Name name_;
 				
 				std::vector<TemplateVar*> templateVariables_;

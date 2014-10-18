@@ -19,7 +19,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* genArgType(Module& module, SEM::Type* type) {
+		llvm::Type* genArgType(Module& module, const SEM::Type* type) {
 			if (isTypeSizeAlwaysKnown(module, type)) {
 				return genType(module, type);
 			} else {
@@ -27,11 +27,11 @@ namespace locic {
 			}
 		}
 		
-		llvm::FunctionType* genFunctionType(Module& module, SEM::Type* type) {
+		llvm::FunctionType* genFunctionType(Module& module, const SEM::Type* type) {
 			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
-		llvm::Type* genObjectType(Module& module, SEM::Type* type) {
+		llvm::Type* genObjectType(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			if (typeInstance->isPrimitive()) {
 				return getPrimitiveType(module, type);
@@ -41,7 +41,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::PointerType* genPointerType(Module& module, SEM::Type* rawTargetType) {
+		llvm::PointerType* genPointerType(Module& module, const SEM::Type* rawTargetType) {
 			const auto targetType = rawTargetType->resolveAliases();
 			if (targetType->isObject()) {
 				assert(!targetType->isInterface());
@@ -59,7 +59,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* genType(Module& module, SEM::Type* type) {
+		llvm::Type* genType(Module& module, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type);
@@ -117,7 +117,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genDebugType(Module& module, SEM::Type* type) {
+		llvm::DIType genDebugType(Module& module, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();

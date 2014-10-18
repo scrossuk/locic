@@ -61,7 +61,7 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::Type* CastType(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
+			const SEM::Type* CastType(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
 				// Pattern matched members are restricted
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
@@ -70,7 +70,7 @@ namespace locic {
 				return value->type();
 			}
 			
-			SEM::Var* ConvertInitialisedVarRecurse(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Type* initialiseType, bool isTopLevel) {
+			SEM::Var* ConvertInitialisedVarRecurse(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
 				const auto& location = astTypeVarNode.location();
 				
 				switch (astTypeVarNode->kind) {
@@ -220,7 +220,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Type* initialiseType) {
+		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, isMember, astTypeVarNode, initialiseType, isTopLevel);
 		}

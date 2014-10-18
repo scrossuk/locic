@@ -33,7 +33,7 @@ namespace locic {
 			}
 		}
 		
-		bool isTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {
+		bool isTypeSizeKnownInThisModule(Module& module, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -80,7 +80,7 @@ namespace locic {
 			}
 		}
 		
-		bool isTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
+		bool isTypeSizeAlwaysKnown(Module& module, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:

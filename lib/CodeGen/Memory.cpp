@@ -14,7 +14,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genAlloca(Function& function, SEM::Type* type) {
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
@@ -48,7 +48,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* var, SEM::Type* type) {
+		llvm::Value* genLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -77,7 +77,7 @@ namespace locic {
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, SEM::Type* type) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -137,7 +137,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, SEM::Type* type) {
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type) {
 			assert(!type->isBuiltInReference());
 			
 			const auto ptrValue = genAlloca(function, type);

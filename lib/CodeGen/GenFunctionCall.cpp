@@ -39,7 +39,7 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
 			assert(callInfo.functionPtr != nullptr);
 			
 			auto& module = function.module();

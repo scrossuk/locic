@@ -18,7 +18,7 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value*> CastFunctionArguments(Context& context, const std::vector<SEM::Value*>& arguments, const std::vector<SEM::Type*>& types, const Debug::SourceLocation& location) {
+			std::vector<SEM::Value*> CastFunctionArguments(Context& context, const std::vector<SEM::Value*>& arguments, const std::vector<const SEM::Type*>& types, const Debug::SourceLocation& location) {
 				std::vector<SEM::Value*> castValues;
 				castValues.reserve(arguments.size());
 				
@@ -39,7 +39,7 @@ namespace locic {
 				return castValues;
 			}
 			
-			bool isCallableType(SEM::Type* type) {
+			bool isCallableType(const SEM::Type* type) {
 				switch (type->kind()) {
 					case SEM::Type::FUNCTION:
 					case SEM::Type::METHOD:
@@ -93,7 +93,7 @@ namespace locic {
 			return GetTemplatedMethod(context, rawValue, methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
 			const auto type = getDerefType(value->type())->resolveAliases();
 			
@@ -105,11 +105,11 @@ namespace locic {
 			return GetMethodWithoutResolution(context, value, getSingleDerefType(value->type())->resolveAliases(), methodName, location);
 		}
 		
-		SEM::Value* GetMethodWithoutResolution(Context& context, SEM::Value* value, SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value* GetMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethodWithoutResolution(Context&, SEM::Value* value, SEM::Type* type, const std::string& methodName, const std::vector<SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value* GetTemplatedMethodWithoutResolution(Context&, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -235,7 +235,7 @@ namespace locic {
 			return SEM::Value::FunctionCall(value, CastFunctionArguments(context, args, typeList, location));
 		}
 		
-		bool supportsNullConstruction(SEM::Type* type) {
+		bool supportsNullConstruction(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -265,7 +265,7 @@ namespace locic {
 			}
 		}
 		
-		bool supportsImplicitCast(SEM::Type* type) {
+		bool supportsImplicitCast(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -299,7 +299,7 @@ namespace locic {
 			}
 		}
 		
-		bool supportsCopy(SEM::Type* const type, const std::string& functionName) {
+		bool supportsCopy(const SEM::Type* const type, const std::string& functionName) {
 			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -336,7 +336,7 @@ namespace locic {
 			}
 		}
 		
-		bool supportsNoExceptCopy(SEM::Type* const type, const std::string& functionName) {
+		bool supportsNoExceptCopy(const SEM::Type* const type, const std::string& functionName) {
 			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -374,24 +374,24 @@ namespace locic {
 			}
 		}
 		
-		bool supportsImplicitCopy(SEM::Type* const type) {
+		bool supportsImplicitCopy(const SEM::Type* const type) {
 			return supportsCopy(type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsNoExceptImplicitCopy(SEM::Type* const type) {
+		bool supportsNoExceptImplicitCopy(const SEM::Type* const type) {
 			return supportsNoExceptCopy(type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsExplicitCopy(SEM::Type* const type) {
+		bool supportsExplicitCopy(const SEM::Type* const type) {
 			return supportsCopy(type->resolveAliases(), "copy");
 		}
 		
-		bool supportsNoExceptExplicitCopy(SEM::Type* const type) {
+		bool supportsNoExceptExplicitCopy(const SEM::Type* const type) {
 			return supportsNoExceptCopy(type->resolveAliases(), "copy");
 		}
 		
-		bool supportsCompare(SEM::Type* const rawType) {
-			SEM::Type* const type = rawType->resolveAliases();
+		bool supportsCompare(const SEM::Type* const rawType) {
+			const SEM::Type* const type = rawType->resolveAliases();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:

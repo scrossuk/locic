@@ -18,17 +18,17 @@ namespace locic {
 	namespace SEM {
 	
 		template <typename T>
-		Type* applyType(T function, const Type* type);
+		const Type* applyType(T function, const Type* type);
 		
 		template <typename T>
-		Type* doApplyType(T function, const Type* type) {
+		const Type* doApplyType(T function, const Type* type) {
 			switch (type->kind()) {
 				case Type::AUTO: {
-					return const_cast<Type*>(type);
+					return type;
 				}
 				
 				case Type::OBJECT: {
-					std::vector<Type*> templateArgs;
+					std::vector<const Type*> templateArgs;
 					
 					for (const auto& templateArg : type->templateArguments()) {
 						templateArgs.push_back(applyType<T>(function, templateArg));
@@ -38,7 +38,7 @@ namespace locic {
 				}
 				
 				case Type::FUNCTION: {
-					std::vector<Type*> args;
+					std::vector<const Type*> args;
 					
 					for (const auto& paramType : type->getFunctionParameterTypes()) {
 						args.push_back(applyType<T>(function, paramType));
@@ -63,11 +63,11 @@ namespace locic {
 				}
 				
 				case Type::TEMPLATEVAR: {
-					return const_cast<Type*>(type);
+					return type;
 				}
 				
 				case Type::ALIAS: {
-					std::vector<Type*> templateArgs;
+					std::vector<const Type*> templateArgs;
 					
 					for (const auto& templateArg : type->typeAliasArguments()) {
 						templateArgs.push_back(applyType<T>(function, templateArg));
@@ -81,7 +81,7 @@ namespace locic {
 		}
 		
 		template <typename T>
-		Type* applyType(T function, const Type* type) {
+		const Type* applyType(T function, const Type* type) {
 			const auto basicType = doApplyType<T>(function, type);
 			
 			const auto constType = type->isConst() ? basicType->createConstType() : basicType;
@@ -101,13 +101,13 @@ namespace locic {
 			return function(staticRefType);
 		}
 		
-		const std::vector<Type*> Type::NO_TEMPLATE_ARGS = std::vector<Type*>();
+		const std::vector<const Type*> Type::NO_TEMPLATE_ARGS = std::vector<const Type*>();
 		
-		Type* Type::Auto(Context& context) {
+		const Type* Type::Auto(const Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		Type* Type::Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments) {
+		const Type* Type::Alias(TypeAlias* typeAlias, const std::vector<const Type*>& templateArguments) {
 			assert(typeAlias->templateVariables().size() == templateArguments.size());
 			auto& context = typeAlias->context();
 			
@@ -117,7 +117,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments) {
+		const Type* Type::Object(TypeInstance* typeInstance, const std::vector<const Type*>& templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
 			
@@ -127,7 +127,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::TemplateVarRef(TemplateVar* templateVar) {
+		const Type* Type::TemplateVarRef(TemplateVar* templateVar) {
 			auto& context = templateVar->context();
 			
 			Type type(context, TEMPLATEVAR);
@@ -135,7 +135,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes) {
+		const Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, const std::vector<const Type*>& parameterTypes) {
 			assert(returnType != nullptr);
 			
 			auto& context = returnType->context();
@@ -152,7 +152,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::Method(Type* functionType) {
+		const Type* Type::Method(const Type* functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -163,7 +163,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::InterfaceMethod(Type* functionType) {
+		const Type* Type::InterfaceMethod(const Type* functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -174,7 +174,7 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type* Type::StaticInterfaceMethod(Type* functionType) {
+		const Type* Type::StaticInterfaceMethod(const Type* functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -185,12 +185,12 @@ namespace locic {
 			return context.getType(type);
 		}
 		
-		Type::Type(Context& pContext, Kind pKind) :
+		Type::Type(const Context& pContext, Kind pKind) :
 			context_(pContext), kind_(pKind),
 			isConst_(false), lvalTarget_(nullptr),
 			refTarget_(nullptr), staticRefTarget_(nullptr) { }
 		
-		Context& Type::context() const {
+		const Context& Type::context() const {
 			return context_;
 		}
 		
@@ -218,57 +218,57 @@ namespace locic {
 			return isLval() || isRef() || isStaticRef();
 		}
 		
-		Type* Type::lvalTarget() const {
+		const Type* Type::lvalTarget() const {
 			assert(isLval());
 			return lvalTarget_;
 		}
 		
-		Type* Type::refTarget() const {
+		const Type* Type::refTarget() const {
 			assert(isRef());
 			return refTarget_;
 		}
 		
-		Type* Type::staticRefTarget() const {
+		const Type* Type::staticRefTarget() const {
 			assert(isStaticRef());
 			return staticRefTarget_;
 		}
 		
-		Type* Type::lvalOrRefTarget() const {
+		const Type* Type::lvalOrRefTarget() const {
 			assert(isLvalOrRef());
 			return isLval() ? lvalTarget() :
 				isRef() ? refTarget() :
 					staticRefTarget();
 		}
 		
-		Type* Type::createConstType() const {
+		const Type* Type::createConstType() const {
 			Type typeCopy(*this);
 			typeCopy.isConst_ = true;
 			return context_.getType(typeCopy);
 		}
 		
-		Type* Type::createLvalType(Type* targetType) const {
+		const Type* Type::createLvalType(const Type* targetType) const {
 			assert(!isLval() && !isRef() && !isStaticRef());
 			Type typeCopy(*this);
 			typeCopy.lvalTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
-		Type* Type::createRefType(Type* targetType) const {
+		const Type* Type::createRefType(const Type* targetType) const {
 			assert(!isLval() && !isRef() && !isStaticRef());
 			Type typeCopy(*this);
 			typeCopy.refTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
-		Type* Type::createStaticRefType(Type* targetType) const {
+		const Type* Type::createStaticRefType(const Type* targetType) const {
 			assert(!isLval() && !isRef() && !isStaticRef());
 			Type typeCopy(*this);
 			typeCopy.staticRefTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
-		Type* Type::withoutLval() const {
-			return applyType([&](Type* type) {
+		const Type* Type::withoutLval() const {
+			return applyType([&](const Type* type) {
 					if (type->isLval()) {
 						Type typeCopy(*type);
 						typeCopy.lvalTarget_ = nullptr;
@@ -279,8 +279,8 @@ namespace locic {
 				}, this);
 		}
 		
-		Type* Type::withoutRef() const {
-			return applyType([&](Type* type) {
+		const Type* Type::withoutRef() const {
+			return applyType([&](const Type* type) {
 					if (type->isRef()) {
 						Type typeCopy(*type);
 						typeCopy.refTarget_ = nullptr;
@@ -291,8 +291,8 @@ namespace locic {
 				}, this);
 		}
 		
-		Type* Type::withoutLvalOrRef() const {
-			return applyType([&](Type* type) {
+		const Type* Type::withoutLvalOrRef() const {
+			return applyType([&](const Type* type) {
 					if (type->isRef()) {
 						Type typeCopy(*type);
 						typeCopy.lvalTarget_ = nullptr;
@@ -305,7 +305,7 @@ namespace locic {
 				}, this);
 		}
 		
-		Type* Type::withoutTags() const {
+		const Type* Type::withoutTags() const {
 			Type typeCopy(*this);
 			typeCopy.isConst_ = false;
 			typeCopy.lvalTarget_ = nullptr;
@@ -327,7 +327,7 @@ namespace locic {
 			return aliasType_.typeAlias;
 		}
 		
-		const std::vector<Type*>& Type::typeAliasArguments() const {
+		const std::vector<const Type*>& Type::typeAliasArguments() const {
 			return aliasType_.templateArguments;
 		}
 		
@@ -363,12 +363,12 @@ namespace locic {
 			return functionType_.isNoExcept;
 		}
 		
-		Type* Type::getFunctionReturnType() const {
+		const Type* Type::getFunctionReturnType() const {
 			assert(isFunction());
 			return functionType_.returnType;
 		}
 		
-		const std::vector<Type*>& Type::getFunctionParameterTypes() const {
+		const std::vector<const Type*>& Type::getFunctionParameterTypes() const {
 			assert(isFunction());
 			return functionType_.parameterTypes;
 		}
@@ -377,7 +377,7 @@ namespace locic {
 			return kind() == METHOD;
 		}
 		
-		Type* Type::getMethodFunctionType() const {
+		const Type* Type::getMethodFunctionType() const {
 			assert(isMethod());
 			return methodType_.functionType;
 		}
@@ -386,7 +386,7 @@ namespace locic {
 			return kind() == INTERFACEMETHOD;
 		}
 		
-		Type* Type::getInterfaceMethodFunctionType() const {
+		const Type* Type::getInterfaceMethodFunctionType() const {
 			assert(isInterfaceMethod());
 			return interfaceMethodType_.functionType;
 		}
@@ -395,7 +395,7 @@ namespace locic {
 			return kind() == STATICINTERFACEMETHOD;
 		}
 		
-		Type* Type::getStaticInterfaceMethodFunctionType() const {
+		const Type* Type::getStaticInterfaceMethodFunctionType() const {
 			assert(isStaticInterfaceMethod());
 			return staticInterfaceMethodType_.functionType;
 		}
@@ -409,12 +409,12 @@ namespace locic {
 			return kind() == OBJECT;
 		}
 		
-		SEM::TypeInstance* Type::getObjectType() const {
+		TypeInstance* Type::getObjectType() const {
 			assert(isObject());
 			return objectType_.typeInstance;
 		}
 		
-		const std::vector<Type*>& Type::templateArguments() const {
+		const std::vector<const Type*>& Type::templateArguments() const {
 			assert(isObject());
 			return objectType_.templateArguments;
 		}
@@ -428,11 +428,10 @@ namespace locic {
 			}
 		}
 		
-		Type* Type::getCallableFunctionType() const {
+		const Type* Type::getCallableFunctionType() const {
 			switch (kind()) {
 				case Type::FUNCTION:
-					// TODO: remove const cast!
-					return const_cast<Type*>(this);
+					return this;
 				case Type::METHOD:
 					return getMethodFunctionType();
 				case Type::INTERFACEMETHOD:
@@ -559,10 +558,10 @@ namespace locic {
 		
 		namespace {
 		
-			Type* doSubstitute(const Type* type, const TemplateVarMap& templateVarMap) {
+			const Type* doSubstitute(const Type* type, const TemplateVarMap& templateVarMap) {
 				switch (type->kind()) {
 					case Type::OBJECT: {
-						std::vector<Type*> templateArgs;
+						std::vector<const Type*> templateArgs;
 						
 						for (const auto& templateArg : type->templateArguments()) {
 							templateArgs.push_back(templateArg->substitute(templateVarMap));
@@ -572,7 +571,7 @@ namespace locic {
 					}
 					
 					case Type::FUNCTION: {
-						std::vector<Type*> args;
+						std::vector<const Type*> args;
 						
 						for (const auto& paramType : type->getFunctionParameterTypes()) {
 							args.push_back(paramType->substitute(templateVarMap));
@@ -609,7 +608,7 @@ namespace locic {
 					}
 					
 					case Type::ALIAS: {
-						std::vector<Type*> templateArgs;
+						std::vector<const Type*> templateArgs;
 						
 						for (const auto& templateArg : type->typeAliasArguments()) {
 							templateArgs.push_back(templateArg->substitute(templateVarMap));
@@ -625,7 +624,7 @@ namespace locic {
 			
 		}
 		
-		Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
+		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
 			const auto substitutedType = doSubstitute(this, templateVarMap);
 			const auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
 			const auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
@@ -634,7 +633,7 @@ namespace locic {
 			return staticRefType;
 		}
 		
-		Type* Type::makeTemplatedFunction() const {
+		const Type* Type::makeTemplatedFunction() const {
 			assert(isFunction());
 			const bool isTemplated = true;
 			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
@@ -643,16 +642,16 @@ namespace locic {
 		
 		namespace {
 		
-			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap);
+			const Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap);
 			
-			Type* doResolveSwitch(const Type* type, const TemplateVarMap& templateVarMap) {
+			const Type* doResolveSwitch(const Type* type, const TemplateVarMap& templateVarMap) {
 				switch (type->kind()) {
 					case Type::AUTO: {
 						return Type::Auto(type->context());
 					}
 					
 					case Type::OBJECT: {
-						std::vector<Type*> templateArgs;
+						std::vector<const Type*> templateArgs;
 						templateArgs.reserve(type->templateArguments().size());
 						
 						for (const auto& templateArg: type->templateArguments()) {
@@ -663,7 +662,7 @@ namespace locic {
 					}
 					
 					case Type::FUNCTION: {
-						std::vector<Type*> args;
+						std::vector<const Type*> args;
 						args.reserve(type->getFunctionParameterTypes().size());
 						for (const auto& paramType: type->getFunctionParameterTypes()) {
 							args.push_back(doResolve(paramType, templateVarMap));
@@ -703,7 +702,7 @@ namespace locic {
 						const auto& templateVars = type->getTypeAlias()->templateVariables();
 						const auto& templateArgs = type->typeAliasArguments();
 						
-						SEM::TemplateVarMap newTemplateVarMap = templateVarMap;
+						TemplateVarMap newTemplateVarMap = templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
 							const auto resolvedType = doResolve(templateArgs.at(i), templateVarMap);
 							newTemplateVarMap.insert(std::make_pair(templateVars.at(i), resolvedType));
@@ -717,7 +716,7 @@ namespace locic {
 				}
 			}
 			
-			Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
+			const Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
 				const auto substitutedType = doResolveSwitch(type, templateVarMap);
 				const auto constType = type->isConst() ? substitutedType->createConstType() : substitutedType;
 				const auto lvalType = type->isLval() ? constType->createLvalType(doResolve(type->lvalTarget(), templateVarMap)) : constType;
@@ -728,7 +727,7 @@ namespace locic {
 			
 		}
 		
-		Type* Type::resolveAliases() const {
+		const Type* Type::resolveAliases() const {
 			return doResolve(this, SEM::TemplateVarMap());
 		}
 		
@@ -957,7 +956,7 @@ namespace locic {
 				return staticRefTarget() < type.staticRefTarget();
 			}
 			
-			switch (kind_) {
+			switch (kind()) {
 				case AUTO: {
 					return false;
 				}
@@ -1042,11 +1041,9 @@ namespace locic {
 				case TEMPLATEVAR: {
 					return getTemplateVar() < type.getTemplateVar();
 				}
-				
-				default:
-					assert(false && "Unknown type kind.");
-					return false;
 			}
+			
+			throw std::logic_error("Unknown type kind.");
 		}
 		
 	}

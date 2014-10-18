@@ -198,7 +198,7 @@ namespace locic {
 			return argumentTypes_;
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::Type* functionType) {
+		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType) {
 			assert(functionType->isFunction());
 			
 			const auto semReturnType = functionType->getFunctionReturnType();

@@ -18,7 +18,7 @@ namespace locic {
 		class TypeAlias;
 		class TypeInstance;
 		
-		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
+		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Type {
 			public:
@@ -33,18 +33,18 @@ namespace locic {
 					TEMPLATEVAR
 				};
 				
-				static const std::vector<Type*> NO_TEMPLATE_ARGS;
+				static const std::vector<const Type*> NO_TEMPLATE_ARGS;
 				
-				static Type* Auto(Context& context);
-				static Type* Alias(TypeAlias* typeAlias, const std::vector<Type*>& templateArguments);
-				static Type* Object(TypeInstance* typeInstance, const std::vector<Type*>& templateArguments);
-				static Type* TemplateVarRef(TemplateVar* templateVar);
-				static Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, Type* returnType, const std::vector<Type*>& parameterTypes);
-				static Type* Method(Type* functionType);
-				static Type* InterfaceMethod(Type* functionType);
-				static Type* StaticInterfaceMethod(Type* functionType);
+				static const Type* Auto(const Context& context);
+				static const Type* Alias(TypeAlias* typeAlias, const std::vector<const Type*>& templateArguments);
+				static const Type* Object(TypeInstance* typeInstance, const std::vector<const Type*>& templateArguments);
+				static const Type* TemplateVarRef(TemplateVar* templateVar);
+				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, const std::vector<const Type*>& parameterTypes);
+				static const Type* Method(const Type* functionType);
+				static const Type* InterfaceMethod(const Type* functionType);
+				static const Type* StaticInterfaceMethod(const Type* functionType);
 				
-				Context& context() const;
+				const Context& context() const;
 				Kind kind() const;
 				
 				bool isConst() const;
@@ -53,25 +53,25 @@ namespace locic {
 				bool isStaticRef() const;
 				bool isLvalOrRef() const;
 				
-				Type* lvalTarget() const;
-				Type* refTarget() const;
-				Type* staticRefTarget() const;
-				Type* lvalOrRefTarget() const;
+				const Type* lvalTarget() const;
+				const Type* refTarget() const;
+				const Type* staticRefTarget() const;
+				const Type* lvalOrRefTarget() const;
 				
-				Type* createConstType() const;
-				Type* createLvalType(Type* targetType) const;
-				Type* createRefType(Type* targetType) const;
-				Type* createStaticRefType(Type* targetType) const;
-				Type* withoutLval() const;
-				Type* withoutRef() const;
-				Type* withoutLvalOrRef() const;
-				Type* withoutTags() const;
+				const Type* createConstType() const;
+				const Type* createLvalType(const Type* targetType) const;
+				const Type* createRefType(const Type* targetType) const;
+				const Type* createStaticRefType(const Type* targetType) const;
+				const Type* withoutLval() const;
+				const Type* withoutRef() const;
+				const Type* withoutLvalOrRef() const;
+				const Type* withoutTags() const;
 				
 				bool isAuto() const;
 				bool isAlias() const;
 				
 				SEM::TypeAlias* getTypeAlias() const;
-				const std::vector<Type*>& typeAliasArguments() const;
+				const std::vector<const Type*>& typeAliasArguments() const;
 				
 				bool isBuiltInVoid() const;
 				bool isBuiltInReference() const;
@@ -81,27 +81,27 @@ namespace locic {
 				bool isFunctionMethod() const;
 				bool isFunctionTemplated() const;
 				bool isFunctionNoExcept() const;
-				Type* getFunctionReturnType() const;
-				const std::vector<Type*>& getFunctionParameterTypes() const;
+				const Type* getFunctionReturnType() const;
+				const std::vector<const Type*>& getFunctionParameterTypes() const;
 				
 				bool isMethod() const;
-				Type* getMethodFunctionType() const;
+				const Type* getMethodFunctionType() const;
 				
 				bool isInterfaceMethod() const;
-				Type* getInterfaceMethodFunctionType() const;
+				const Type* getInterfaceMethodFunctionType() const;
 				
 				bool isStaticInterfaceMethod() const;
-				Type* getStaticInterfaceMethodFunctionType() const;
+				const Type* getStaticInterfaceMethodFunctionType() const;
 				
 				bool isObject() const;
 				TypeInstance* getObjectType() const;
-				const std::vector<Type*>& templateArguments() const;
+				const std::vector<const Type*>& templateArguments() const;
 				
 				bool isTemplateVar() const;
 				TemplateVar* getTemplateVar() const;
 				
 				TypeInstance* getObjectOrSpecType() const;
-				Type* getCallableFunctionType() const;
+				const Type* getCallableFunctionType() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
 				bool isClassDecl() const;
@@ -118,9 +118,9 @@ namespace locic {
 				
 				TemplateVarMap generateTemplateVarMap() const;
 				
-				Type* substitute(const TemplateVarMap& templateVarMap) const;
-				Type* makeTemplatedFunction() const;
-				Type* resolveAliases() const;
+				const Type* substitute(const TemplateVarMap& templateVarMap) const;
+				const Type* makeTemplatedFunction() const;
+				const Type* resolveAliases() const;
 				
 				std::string nameToString() const;
 				
@@ -131,24 +131,23 @@ namespace locic {
 				bool operator<(const Type& type) const;
 				
 			private:
-				Type(Context& pContext, Kind pKind);
+				Type(const Context& pContext, Kind pKind);
 				
-				Context& context_;
-					
+				const Context& context_;
 				Kind kind_;
 				bool isConst_;
-				Type* lvalTarget_;
-				Type* refTarget_;
-				Type* staticRefTarget_;
+				const Type* lvalTarget_;
+				const Type* refTarget_;
+				const Type* staticRefTarget_;
 				
 				struct {
 					TypeAlias* typeAlias;
-					std::vector<Type*> templateArguments;
+					std::vector<const Type*> templateArguments;
 				} aliasType_;
 				
 				struct {
 					TypeInstance* typeInstance;
-					std::vector<Type*> templateArguments;
+					std::vector<const Type*> templateArguments;
 				} objectType_;
 				
 				struct FunctionType {
@@ -156,20 +155,20 @@ namespace locic {
 					bool isMethod;
 					bool isTemplated;
 					bool isNoExcept;
-					Type* returnType;
-					std::vector<Type*> parameterTypes;
+					const Type* returnType;
+					std::vector<const Type*> parameterTypes;
 				} functionType_;
 				
 				struct {
-					Type* functionType;
+					const Type* functionType;
 				} methodType_;
 				
 				struct {
-					Type* functionType;
+					const Type* functionType;
 				} interfaceMethodType_;
 				
 				struct {
-					Type* functionType;
+					const Type* functionType;
 				} staticInterfaceMethodType_;
 				
 				struct {

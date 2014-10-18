@@ -14,7 +14,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		using TemplateInstTuple = std::tuple<SEM::TemplateVar*, SEM::Type*, SEM::TemplateVarMap, Name, Debug::SourceLocation>;
+		using TemplateInstTuple = std::tuple<SEM::TemplateVar*, const SEM::Type*, SEM::TemplateVarMap, Name, Debug::SourceLocation>;
 		
 		class Context {
 			public:

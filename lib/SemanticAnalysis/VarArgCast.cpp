@@ -13,7 +13,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		bool isValidVarArgType(Context& context, SEM::Type* type) {
+		bool isValidVarArgType(Context& context, const SEM::Type* type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
 			if (type->isLval() || type->isRef()) return false;

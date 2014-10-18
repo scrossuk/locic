@@ -17,23 +17,23 @@ namespace locic {
 		
 		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genAlignMaskFunction(Module& module, SEM::Type* type);
+		llvm::Function* genAlignMaskFunction(Module& module, const SEM::Type* type);
 		
-		llvm::Value* genAlignOf(Function& function, SEM::Type* type);
+		llvm::Value* genAlignOf(Function& function, const SEM::Type* type);
 		
-		llvm::Value* genAlignMask(Function& function, SEM::Type* type);
+		llvm::Value* genAlignMask(Function& function, const SEM::Type* type);
 		
-		llvm::Function* genSizeOfFunction(Module& module, SEM::Type* type);
+		llvm::Function* genSizeOfFunction(Module& module, const SEM::Type* type);
 		
-		llvm::Value* genSizeOf(Function& function, SEM::Type* type);
+		llvm::Value* genSizeOf(Function& function, const SEM::Type* type);
 		
 		llvm::Value* makeAligned(Function& function, llvm::Value* size, llvm::Value* alignMask);
 		
-		llvm::Value* genMemberOffset(Function& function, SEM::Type* type, size_t memberIndex);
+		llvm::Value* genMemberOffset(Function& function, const SEM::Type* type, size_t memberIndex);
 		
-		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, SEM::Type* objectType, size_t memberIndex);
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, const SEM::Type* objectType, size_t memberIndex);
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, SEM::Type* type, llvm::Value* objectPointer);
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* type, llvm::Value* objectPointer);
 		
 	}
 	

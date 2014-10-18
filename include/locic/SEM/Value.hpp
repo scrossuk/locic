@@ -18,7 +18,7 @@ namespace locic {
 		class TypeInstance;
 		class Var;
 		
-		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
+		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 	
 		class Value {
 			public:
@@ -62,7 +62,7 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 				} sizeOf;
 				
 				struct {
@@ -78,17 +78,17 @@ namespace locic {
 				} ternary;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 					Value* value;
 				} cast;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 					Value* value;
 				} polyCast;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 					Value* value;
 				} makeLval;
 				
@@ -97,7 +97,7 @@ namespace locic {
 				} makeNoLval;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 					Value* value;
 				} makeRef;
 				
@@ -106,7 +106,7 @@ namespace locic {
 				} makeNoRef;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 					Value* value;
 				} makeStaticRef;
 				
@@ -128,7 +128,7 @@ namespace locic {
 				} refValue;
 				
 				struct {
-					Type* targetType;
+					const Type* targetType;
 				} typeRef;
 				
 				struct {
@@ -137,9 +137,9 @@ namespace locic {
 				} functionCall;
 				
 				struct {
-					Type* parentType;
+					const Type* parentType;
 					Function* function;
-					std::vector<Type*> templateArguments;
+					std::vector<const Type*> templateArguments;
 				} functionRef;
 				
 				struct {
@@ -162,49 +162,49 @@ namespace locic {
 					Value* typeRef;
 				} staticInterfaceMethodObject;
 				
-				static Value* Self(Type* type);
+				static Value* Self(const Type* type);
 				
-				static Value* This(Type* type);
+				static Value* This(const Type* type);
 				
-				static Value* Constant(const Constant* constant, Type* type);
+				static Value* Constant(const Constant* constant, const Type* type);
 				
-				static Value* LocalVar(Var* var, Type* type);
+				static Value* LocalVar(Var* var, const Type* type);
 				
-				static Value* SizeOf(Type* targetType, Type* sizeType);
+				static Value* SizeOf(const Type* targetType, const Type* sizeType);
 				
-				static Value* Reinterpret(Value* operand, Type* type);
+				static Value* Reinterpret(Value* operand, const Type* type);
 				
 				static Value* DerefReference(Value* operand);
 				
 				static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse);
 				
-				static Value* Cast(Type* targetType, Value* operand);
+				static Value* Cast(const Type* targetType, Value* operand);
 				
-				static Value* PolyCast(Type* targetType, Value* operand);
+				static Value* PolyCast(const Type* targetType, Value* operand);
 				
-				static Value* Lval(Type* targetType, Value* operand);
+				static Value* Lval(const Type* targetType, Value* operand);
 				
 				static Value* NoLval(Value* operand);
 				
-				static Value* Ref(Type* targetType, Value* operand);
+				static Value* Ref(const Type* targetType, Value* operand);
 				
 				static Value* NoRef(Value* operand);
 				
-				static Value* StaticRef(Type* targetType, Value* operand);
+				static Value* StaticRef(const Type* targetType, Value* operand);
 				
 				static Value* NoStaticRef(Value* operand);
 				
 				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
 				
-				static Value* MemberAccess(Value* object, Var* var, Type* type);
+				static Value* MemberAccess(Value* object, Var* var, const Type* type);
 				
-				static Value* RefValue(Value* operand, Type* type);
+				static Value* RefValue(Value* operand, const Type* type);
 				
-				static Value* TypeRef(Type* targetType, Type* type);
+				static Value* TypeRef(const Type* targetType, const Type* type);
 				
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
-				static Value* FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap);
+				static Value* FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				
@@ -212,20 +212,20 @@ namespace locic {
 				
 				static Value* StaticInterfaceMethodObject(Value* method, Value* typeRef);
 				
-				static Value* CastDummy(Type* type);
+				static Value* CastDummy(const Type* type);
 				
 				Kind kind() const;
 				
-				Type* type() const;
+				const Type* type() const;
 				
 				std::string toString() const;
 				
 			private:
 				// Value();
-				Value(Kind k, Type* t);
+				Value(Kind k, const Type* t);
 				
 				Kind kind_;
-				Type* type_;
+				const Type* type_;
 				
 		};
 		

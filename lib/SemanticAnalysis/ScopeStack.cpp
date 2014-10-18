@@ -52,13 +52,13 @@ namespace locic {
 			return nullptr;
 		}
 		
-		SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
+		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
 			const auto function = lookupParentFunction(scopeStack);
 			assert(function != nullptr);
 			return function->type()->getFunctionReturnType();
 		}
 		
-		SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName) {
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName) {
 			const auto rootElement = scopeStack.at(0);
 			assert(rootElement.isNamespace());
 			

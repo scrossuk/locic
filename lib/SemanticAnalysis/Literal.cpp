@@ -155,7 +155,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
+		const SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::STRING: {
 					// C strings have the type 'const ubyte * const', as opposed to just a

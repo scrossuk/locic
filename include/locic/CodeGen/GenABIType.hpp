@@ -12,9 +12,9 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm_abi::Type* genABIArgType(Module& module, SEM::Type* type);
+		llvm_abi::Type* genABIArgType(Module& module, const SEM::Type* type);
 		
-		llvm_abi::Type* genABIType(Module& module, SEM::Type* type);
+		llvm_abi::Type* genABIType(Module& module, const SEM::Type* type);
 		
 	}
 	

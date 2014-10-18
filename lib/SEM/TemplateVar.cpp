@@ -24,13 +24,13 @@ namespace locic {
 			return index_;
 		}
 		
-		void TemplateVar::setSpecType(Type* spec) {
+		void TemplateVar::setSpecType(const Type* spec) {
 			assert(specType_ == nullptr);
 			assert(spec != nullptr);
 			specType_ = spec;
 		}
 		
-		Type* TemplateVar::specType() const {
+		const Type* TemplateVar::specType() const {
 			return specType_;
 		}
 		

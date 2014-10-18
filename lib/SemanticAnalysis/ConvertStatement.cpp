@@ -92,7 +92,7 @@ namespace locic {
 				case AST::Statement::SWITCH: {
 					const auto value = ConvertValue(context, statement->switchStmt.value);
 					
-					std::map<SEM::TypeInstance*, SEM::Type*> switchCaseTypes;
+					std::map<SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {

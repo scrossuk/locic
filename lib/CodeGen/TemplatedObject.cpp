@@ -91,16 +91,16 @@ namespace locic {
 		TemplatedObject::TemplatedObject(Kind pKind)
 			: kind_(pKind) { }
 		
-		TemplateInst TemplateInst::Type(SEM::Type* const rawType) {
+		TemplateInst TemplateInst::Type(const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject());
 			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), type->templateArguments());
 		}
 		
-		TemplateInst TemplateInst::Function(SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<SEM::Type*> functionArgs) {
+		TemplateInst TemplateInst::Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<const SEM::Type*> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());
-				llvm::SmallVector<SEM::Type*, 10> args;
+				llvm::SmallVector<const SEM::Type*, 10> args;
 				for (auto arg: parentType->templateArguments()) {
 					args.push_back(arg);
 				}
@@ -113,7 +113,7 @@ namespace locic {
 			}
 		}
 		
-		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Type*> pArguments)
+		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<const SEM::Type*> pArguments)
 			: object_(pObject) {
 				for (size_t i = 0; i < pArguments.size(); i++) {
 					arguments_.push_back(pArguments[i]);
@@ -124,7 +124,7 @@ namespace locic {
 			return object_;
 		}
 		
-		llvm::ArrayRef<SEM::Type*> TemplateInst::arguments() const {
+		llvm::ArrayRef<const SEM::Type*> TemplateInst::arguments() const {
 			return arguments_;
 		}
 		

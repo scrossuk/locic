@@ -1,144 +1,75 @@
 #ifndef LOCIC_CODEGEN_CONSTANTGENERATOR_HPP
 #define LOCIC_CODEGEN_CONSTANTGENERATOR_HPP
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <stdint.h>
 
-#include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
+#include <string>
+
+#include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
+		class Module;
+		
 		class ConstantGenerator {
 			public:
-				inline ConstantGenerator(Module& module)
-					: module_(module) { }
+				ConstantGenerator(Module& module);
 				
-				inline llvm::UndefValue* getVoidUndef() const {
-					return llvm::UndefValue::get(
-						llvm::Type::getVoidTy(module_.getLLVMContext()));
-				}
+				llvm::UndefValue* getVoidUndef() const;
 				
-				inline llvm::UndefValue* getUndef(llvm::Type* type) const {
-					return llvm::UndefValue::get(type);
-				}
+				llvm::UndefValue* getUndef(llvm::Type* type) const;
 				
-				inline llvm::Constant* getNull(llvm::Type* type) const {
-					return llvm::Constant::getNullValue(type);
-				}
+				llvm::Constant* getNull(llvm::Type* type) const;
 				
-				inline llvm::ConstantPointerNull* getNullPointer(llvm::PointerType* pointerType) const {
-					return llvm::ConstantPointerNull::get(pointerType);
-				}
+				llvm::ConstantPointerNull* getNullPointer(llvm::PointerType* pointerType) const;
 				
-				inline llvm::ConstantInt* getInt(size_t sizeInBits, long long intValue) const {
-					assert(sizeInBits >= 1);
-					return llvm::ConstantInt::get(module_.getLLVMContext(),
-						llvm::APInt(sizeInBits, intValue));
-				}
+				llvm::ConstantInt* getInt(size_t sizeInBits, long long intValue) const;
 				
-				inline llvm::ConstantInt* getIntByType(llvm::IntegerType* type, long long intValue) const {
-					return llvm::ConstantInt::get(type, intValue);
-				}
+				llvm::ConstantInt* getIntByType(llvm::IntegerType* type, long long intValue) const;
 				
-				inline llvm::ConstantInt* getI1(bool value) const {
-					return getInt(1, value ? 1 : 0);
-				}
+				llvm::ConstantInt* getI1(bool value) const;
 				
-				inline llvm::ConstantInt* getI8(uint8_t value) const {
-					return getInt(8, value);
-				}
+				llvm::ConstantInt* getI8(uint8_t value) const;
 				
-				inline llvm::ConstantInt* getI16(uint16_t value) const {
-					return getInt(32, value);
-				}
+				llvm::ConstantInt* getI16(uint16_t value) const;
 				
-				inline llvm::ConstantInt* getI32(uint32_t value) const {
-					return getInt(32, value);
-				}
+				llvm::ConstantInt* getI32(uint32_t value) const;
 				
-				inline llvm::ConstantInt* getI64(uint64_t value) const {
-					return getInt(64, value);
-				}
+				llvm::ConstantInt* getI64(uint64_t value) const;
 				
-				inline llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const {
-					const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
-					return getInt(sizeTypeWidth * 8, sizeValue);
-				}
+				llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const;
 				
-				inline llvm::ConstantInt* getPrimitiveInt(const std::string& primitiveName, long long intValue) const {
-					const size_t primitiveWidth = module_.abi().typeSize(getNamedPrimitiveABIType(module_, primitiveName));
-					return getInt(primitiveWidth * 8, intValue);
-				}
+				llvm::ConstantInt* getPrimitiveInt(const std::string& primitiveName, long long intValue) const;
 				
-				inline llvm::Constant* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const {
-					if (primitiveName == "float_t") {
-						return getFloat(floatValue);
-					} else if (primitiveName == "double_t") {
-						return getDouble(floatValue);
-					} else if (primitiveName == "longdouble_t") {
-						return getLongDouble(floatValue);
-					} else {
-						assert(false && "TODO");
-						return NULL;
-					}
-				}
+				llvm::Constant* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const;
 				
-				inline llvm::Constant* getFloat(float value) const {
-					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
-				}
+				llvm::Constant* getFloat(float value) const;
 				
-				inline llvm::Constant* getDouble(double value) const {
-					return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
-				}
+				llvm::Constant* getDouble(double value) const;
 				
-				inline llvm::Constant* getLongDouble(long double value) const {
-					return llvm::ConstantFP::get(module_.abi().longDoubleType(), value);
-				}
+				llvm::Constant* getLongDouble(long double value) const;
 				
-				inline llvm::Constant* getArray(llvm::ArrayType* arrayType, llvm::ArrayRef<llvm::Constant*> values) const {
-					return llvm::ConstantArray::get(arrayType, values);
-				}
+				llvm::Constant* getArray(llvm::ArrayType* arrayType, llvm::ArrayRef<llvm::Constant*> values) const;
 				
-				inline llvm::Constant* getStruct(llvm::StructType* structType, llvm::ArrayRef<llvm::Constant*> values) const {
-					return llvm::ConstantStruct::get(structType, values);
-				}
+				llvm::Constant* getStruct(llvm::StructType* structType, llvm::ArrayRef<llvm::Constant*> values) const;
 				
-				inline llvm::Constant* getString(const std::string& value, bool withNullTerminator = true) const {
-					return llvm::ConstantDataArray::getString(module_.getLLVMContext(),
-						value, withNullTerminator);
-				}
+				llvm::Constant* getString(const std::string& value, bool withNullTerminator = true) const;
 				
-				inline llvm::Constant* getPointerCast(llvm::Constant* value, llvm::Type* targetType) const {
-					return llvm::ConstantExpr::getPointerCast(value, targetType);
-				}
+				llvm::Constant* getPointerCast(llvm::Constant* value, llvm::Type* targetType) const;
 				
-				inline llvm::Constant* getAlignOf(llvm::Type* type) const {
-					return llvm::ConstantExpr::getAlignOf(type);
-				}
+				llvm::Constant* getAlignOf(llvm::Type* type) const;
 				
-				inline llvm::Constant* getSizeOf(llvm::Type* type) const {
-					return llvm::ConstantExpr::getSizeOf(type);
-				}
+				llvm::Constant* getSizeOf(llvm::Type* type) const;
 				
-				inline llvm::Constant* getGetElementPtr(llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const {
-					return llvm::ConstantExpr::getGetElementPtr(operand, args);
-				}
+				llvm::Constant* getGetElementPtr(llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const;
 				
-				inline llvm::Constant* getExtractValue(llvm::Constant* operand, llvm::ArrayRef<unsigned> args) const {
-					return llvm::ConstantExpr::getExtractValue(operand, args);
-				}
+				llvm::Constant* getExtractValue(llvm::Constant* operand, llvm::ArrayRef<unsigned> args) const;
 				
-				inline llvm::Constant* getMin(llvm::Constant* first, llvm::Constant* second) const {
-					llvm::Constant* compareResult = llvm::ConstantExpr::getICmp(llvm::CmpInst::ICMP_ULT, first, second);
-					return llvm::ConstantExpr::getSelect(compareResult, first, second);
-				}
+				llvm::Constant* getMin(llvm::Constant* first, llvm::Constant* second) const;
 				
-				inline llvm::Constant* getMax(llvm::Constant* first, llvm::Constant* second) const {
-					llvm::Constant* compareResult = llvm::ConstantExpr::getICmp(llvm::CmpInst::ICMP_UGT, first, second);
-					return llvm::ConstantExpr::getSelect(compareResult, first, second);
-				}
+				llvm::Constant* getMax(llvm::Constant* first, llvm::Constant* second) const;
 				
 			private:
 				Module& module_;

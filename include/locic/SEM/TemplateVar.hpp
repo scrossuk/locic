@@ -27,9 +27,9 @@ namespace locic {
 				
 				size_t index() const;
 				
-				void setSpecType(Type* spec);
+				void setSpecType(const Type* spec);
 				
-				Type* specType() const;
+				const Type* specType() const;
 				
 				void setSpecTypeInstance(TypeInstance* spec);
 				
@@ -41,12 +41,12 @@ namespace locic {
 				Context& context_;
 				TemplateVarType type_;
 				size_t index_;
-				Type* specType_;
+				const Type* specType_;
 				TypeInstance* specTypeInstance_;
 				
 		};
 		
-		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
+		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 	}
 	

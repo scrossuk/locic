@@ -47,7 +47,7 @@ namespace locic {
 			return hashArray;
 		}
 		
-		llvm::GlobalVariable* genVTable(Module& module, SEM::Type* type) {
+		llvm::GlobalVariable* genVTable(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->resolveAliases()->getObjectType();
 			const auto mangledName = std::string("__type_vtable_") + mangleObjectType(typeInstance);
 			

@@ -39,17 +39,16 @@ namespace locic {
 				 *     SomeAlias<A, B>
 				 * 
 				 */
-				Type* selfType() const;
-				std::vector<Type*> selfTemplateArgs() const;
+				const Type* selfType() const;
+				std::vector<const Type*> selfTemplateArgs() const;
 				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				
-				Type* value() const;
-				
-				void setValue(Type* pValue);
+				const Type* value() const;
+				void setValue(const Type* pValue);
 				
 				std::string toString() const;
 				
@@ -58,7 +57,7 @@ namespace locic {
 				Name name_;
 				std::vector<TemplateVar*> templateVars_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
-				Type* value_;
+				const Type* value_;
 				
 		};
 		

@@ -6,7 +6,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		size_t getRefCount(SEM::Type* type) {
+		size_t getRefCount(const SEM::Type* type) {
 			size_t count = 0;
 			while (type->isRef()) {
 				type = type->refTarget();
@@ -15,18 +15,18 @@ namespace locic {
 			return count;
 		}
 		
-		SEM::Type* getLastRefType(SEM::Type* type) {
+		const SEM::Type* getLastRefType(const SEM::Type* type) {
 			while (getRefCount(type) > 1) {
 				type = type->refTarget();
 			}
 			return type;
 		}
 		
-		SEM::Type* getSingleDerefType(SEM::Type* type) {
+		const SEM::Type* getSingleDerefType(const SEM::Type* type) {
 			return type->isRef() ? type->refTarget() : type;
 		}
 		
-		SEM::Type* getDerefType(SEM::Type* type) {
+		const SEM::Type* getDerefType(const SEM::Type* type) {
 			while (type->isRef()) {
 				type = type->refTarget();
 			}
@@ -55,7 +55,7 @@ namespace locic {
 			return value;
 		}
 		
-		size_t getStaticRefCount(SEM::Type* type) {
+		size_t getStaticRefCount(const SEM::Type* type) {
 			size_t count = 0;
 			while (type->isStaticRef()) {
 				type = type->staticRefTarget();
@@ -64,14 +64,14 @@ namespace locic {
 			return count;
 		}
 		
-		SEM::Type* getLastStaticRefType(SEM::Type* type) {
+		const SEM::Type* getLastStaticRefType(const SEM::Type* type) {
 			while (getStaticRefCount(type) > 1) {
 				type = type->staticRefTarget();
 			}
 			return type;
 		}
 		
-		SEM::Type* getStaticDerefType(SEM::Type* type) {
+		const SEM::Type* getStaticDerefType(const SEM::Type* type) {
 			while (type->isStaticRef()) {
 				type = type->staticRefTarget();
 			}
@@ -100,17 +100,17 @@ namespace locic {
 			return value;
 		}
 		
-		SEM::Value* createTypeRef(Context& context, SEM::Type* targetType) {
+		SEM::Value* createTypeRef(Context& context, const SEM::Type* targetType) {
 			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
 			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		
-		SEM::Type* createReferenceType(Context& context, SEM::Type* varType) {
+		const SEM::Type* createReferenceType(Context& context, const SEM::Type* varType) {
 			const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
 			return SEM::Type::Object(referenceTypeInst, { varType})->createRefType(varType)->createConstType();
 		}
 		
-		SEM::Value* createSelfRef(Context& context, SEM::Type* selfType) {
+		SEM::Value* createSelfRef(Context& context, const SEM::Type* selfType) {
 			return SEM::Value::Self(createReferenceType(context, selfType));
 		}
 		

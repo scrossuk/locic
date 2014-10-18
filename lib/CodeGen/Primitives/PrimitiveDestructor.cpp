@@ -26,7 +26,7 @@ namespace locic {
 			function.verify();
 		}
 		
-		void genPrimitiveDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
 			auto& builder = function.getBuilder();
@@ -65,7 +65,7 @@ namespace locic {
 			}
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, SEM::Type* type) {
+		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type) {
 			assert(type->isPrimitive());
 			const auto name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);

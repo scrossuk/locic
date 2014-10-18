@@ -51,21 +51,21 @@ namespace locic {
 		
 		class TemplateInst {
 			public:
-				static TemplateInst Type(SEM::Type* type);
+				static TemplateInst Type(const SEM::Type* type);
 				
-				static TemplateInst Function(SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<SEM::Type*> functionArgs);
+				static TemplateInst Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<const SEM::Type*> functionArgs);
 				
-				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Type*> pArguments);
+				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<const SEM::Type*> pArguments);
 				
 				TemplatedObject object() const;
 				
-				llvm::ArrayRef<SEM::Type*> arguments() const;
+				llvm::ArrayRef<const SEM::Type*> arguments() const;
 				
 				bool operator<(const TemplateInst& other) const;
 				
 			private:
 				TemplatedObject object_;
-				llvm::SmallVector<SEM::Type*, 10> arguments_;
+				llvm::SmallVector<const SEM::Type*, 10> arguments_;
 				
 		};
 		

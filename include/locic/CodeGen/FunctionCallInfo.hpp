@@ -23,7 +23,7 @@ namespace locic {
 		
 		typedef std::pair<llvm::Value*, bool> ArgPair;
 		
-		llvm::Function* genFunctionRef(Module& module, SEM::Type* parentType, SEM::Function* function);
+		llvm::Function* genFunctionRef(Module& module, const SEM::Type* parentType, SEM::Function* function);
 		
 		bool isTrivialFunction(Module& module, SEM::Value* value);
 		

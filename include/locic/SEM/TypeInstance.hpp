@@ -32,7 +32,7 @@ namespace locic {
 					TEMPLATETYPE
 				};
 				
-				TypeInstance(Context& c, const Name& n, Kind k, SEM::ModuleScope* m);
+				TypeInstance(Context& c, const Name& n, Kind k, ModuleScope* m);
 				
 				Context& context() const;
 				
@@ -40,7 +40,7 @@ namespace locic {
 				
 				Kind kind() const;
 				
-				SEM::ModuleScope* moduleScope() const;
+				ModuleScope* moduleScope() const;
 				
 				bool isPrimitive() const;
 				
@@ -81,8 +81,8 @@ namespace locic {
 				 *     SomeType<A, B>
 				 * 
 				 */
-				Type* selfType() const;
-				std::vector<Type*> selfTemplateArgs() const;
+				const Type* selfType() const;
+				std::vector<const Type*> selfTemplateArgs() const;
 				
 				std::vector<TypeInstance*>& variants();
 				const std::vector<TypeInstance*>& variants() const;
@@ -103,10 +103,10 @@ namespace locic {
 				std::map<std::string, Function*>& functions();
 				const std::map<std::string, Function*>& functions() const;
 				
-				std::vector<Type*> constructTypes() const;
+				std::vector<const Type*> constructTypes() const;
 				
-				void setParent(Type* parent);
-				Type* parent() const;
+				void setParent(const Type* parent);
+				const Type* parent() const;
 				
 				std::string refToString() const;
 				
@@ -116,9 +116,9 @@ namespace locic {
 				Context& context_;
 				Name name_;
 				Kind kind_;
-				SEM::ModuleScope* moduleScope_;
+				ModuleScope* moduleScope_;
 				
-				Type* parent_;
+				const Type* parent_;
 				
 				std::vector<TypeInstance*> variants_;
 				
@@ -129,7 +129,7 @@ namespace locic {
 				std::map<std::string, Var*> namedVariables_;
 				
 				std::map<std::string, Function*> functions_;
-				std::vector<Type*> constructTypes_;
+				std::vector<const Type*> constructTypes_;
 				
 		};
 		

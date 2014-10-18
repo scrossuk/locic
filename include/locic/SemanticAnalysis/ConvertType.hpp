@@ -16,17 +16,17 @@ namespace locic {
 		
 		SEM::TemplateVarMap GenerateBasicTemplateVarMap(Context& context, const AST::Node<AST::TypeList>& astTypeListNode);
 		
-		std::vector<SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
+		std::vector<const SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
 		
 		/**
 		 * \brief Convert symbol to semantic object type.
 		 */
-		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol);
+		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol);
 		
 		/**
 		 * \brief Convert AST type annotation to a semantic type definition.
 		 */
-		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type);
+		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type);
 		
 	}
 	

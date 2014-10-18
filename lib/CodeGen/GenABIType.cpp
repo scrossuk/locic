@@ -18,7 +18,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm_abi::Type* genABIArgType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* genABIArgType(Module& module, const SEM::Type* type) {
 			if (isTypeSizeAlwaysKnown(module, type)) {
 				return genABIType(module, type);
 			} else {
@@ -26,7 +26,7 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::Type* genABIType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* genABIType(Module& module, const SEM::Type* type) {
 			auto& abiContext = module.abiContext();
 			
 			switch (type->kind()) {

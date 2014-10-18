@@ -29,7 +29,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isFloatType(Module& module, SEM::Type* const rawType) {
+		bool isFloatType(Module& module, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
@@ -46,7 +46,7 @@ namespace locic {
 			}
 		}
 		
-		bool isSignedIntegerType(Module& module, SEM::Type* const rawType) {
+		bool isSignedIntegerType(Module& module, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
@@ -71,7 +71,7 @@ namespace locic {
 			}
 		}
 		
-		bool isUnsignedIntegerType(Module& module, SEM::Type* const rawType) {
+		bool isUnsignedIntegerType(Module& module, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isPrimitive());
 			
@@ -167,7 +167,7 @@ namespace locic {
 				methodName == "right_shift";
 		}
 		
-		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
+		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, const SEM::Type* type) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			if (arg.second) {
@@ -177,7 +177,7 @@ namespace locic {
 			}
 		}
 		
-		static llvm::Value* loadArg(Function& function, std::pair<llvm::Value*, bool> arg, SEM::Type* type) {
+		static llvm::Value* loadArg(Function& function, std::pair<llvm::Value*, bool> arg, const SEM::Type* type) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			if (arg.second && !type->isRef()) {
@@ -196,7 +196,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -238,7 +238,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genCastMethodCall(Function& function, const std::string& functionName, llvm::Value* sourceValue, SEM::Type* const rawTargetType) {
+		llvm::Value* genCastMethodCall(Function& function, const std::string& functionName, llvm::Value* sourceValue, const SEM::Type* const rawTargetType) {
 			const auto targetType = rawTargetType->resolveAliases();
 			auto& module = function.module();
 			
@@ -252,7 +252,7 @@ namespace locic {
 						llvmArgs.push_back(ArgPair(sourceValue, false));
 					}
 					
-					llvm::SmallVector<SEM::Type*, 1> templateArgs;
+					llvm::SmallVector<const SEM::Type*, 1> templateArgs;
 					return genTrivialPrimitiveFunctionCall(function, targetType, functionPtr, templateArgs, llvmArgs);
 				} else {
 					const auto argInfo = getFunctionArgInfo(module, functionPtr->type());
@@ -299,17 +299,17 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genExplicitCast(Function& function, llvm::Value* sourceValue, SEM::Type* sourceType, SEM::Type* targetType) {
+		llvm::Value* genExplicitCast(Function& function, llvm::Value* sourceValue, const SEM::Type* sourceType, const SEM::Type* targetType) {
 			const auto functionName = CanonicalizeMethodName(std::string("cast_" + sourceType->getObjectType()->name().last()));
 			return genCastMethodCall(function, functionName, sourceValue, targetType);
 		}
 		
-		llvm::Value* genImplicitCast(Function& function, llvm::Value* sourceValue, SEM::Type* sourceType, SEM::Type* targetType) {
+		llvm::Value* genImplicitCast(Function& function, llvm::Value* sourceValue, const SEM::Type* sourceType, const SEM::Type* targetType) {
 			const auto functionName = CanonicalizeMethodName(std::string("implicit_cast_" + sourceType->getObjectType()->name().last()));
 			return genCastMethodCall(function, functionName, sourceValue, targetType);
 		}
 		
-		llvm::Value* genNullPrimitiveMethodCall(Function& function, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genNullPrimitiveMethodCall(Function& function, SEM::Function* semFunction, llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			
 			const auto methodName = semFunction->name().last();
@@ -328,7 +328,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genBoolPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+				llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -400,7 +401,8 @@ namespace locic {
 			return builder.CreateExtractValue(addResult, resultPosition);
 		}
 		
-		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+				llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -528,7 +530,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+				llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -780,7 +783,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFloatPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+				llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -873,7 +877,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -964,7 +968,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			
 			const auto& methodName = semFunction->name().last();
@@ -1010,7 +1014,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genMemberLvalPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genMemberLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -1062,7 +1066,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -1154,7 +1158,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genRefPrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genRefPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			const auto& methodName = semFunction->name().last();
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
@@ -1169,7 +1173,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTypenamePrimitiveMethodCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genTypenamePrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			const auto methodName = semFunction->name().last();
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
@@ -1184,7 +1188,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction,
+				llvm::ArrayRef<const SEM::Type*> templateArgs, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			
 			const auto& typeName = type->getObjectType()->name().last();
@@ -1250,7 +1255,7 @@ namespace locic {
 			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
 			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
-			llvm::SmallVector<SEM::Type*, 8> templateArgs;
+			llvm::SmallVector<const SEM::Type*, 8> templateArgs;
 			for (const auto& templateVar: semFunction->templateVariables()) {
 				templateArgs.push_back(SEM::Type::TemplateVarRef(templateVar));
 			}

@@ -33,7 +33,7 @@ namespace locic {
 		
 		class UnwindAction {
 			public:
-				static UnwindAction Destructor(SEM::Type* type, llvm::Value* value);
+				static UnwindAction Destructor(const SEM::Type* type, llvm::Value* value);
 				
 				static UnwindAction CatchException(llvm::BasicBlock* catchBlock, llvm::Constant* catchTypeInfo);
 				
@@ -78,7 +78,7 @@ namespace locic {
 				
 				bool isDestroyException() const;
 				
-				SEM::Type* destructorType() const;
+				const SEM::Type* destructorType() const;
 				
 				llvm::Value* destructorValue() const;
 				
@@ -126,7 +126,7 @@ namespace locic {
 				
 				union Actions {
 					struct DestructorAction {
-						SEM::Type* type;
+						const SEM::Type* type;
 						llvm::Value* value;
 					} destructorAction;
 					

@@ -11,10 +11,10 @@ namespace locic {
 		Context::Context()
 			: rootNamespace_(new SEM::Namespace(Name::Absolute())) { }
 		
-		Type* Context::getType(Type type) {
+		const Type* Context::getType(Type type) const {
 			auto result = types_.insert(type);
 			// Not sure why the const cast is needed here...
-			return const_cast<Type*>(&(*(result.first)));
+			return &(*(result.first));
 		}
 		
 		SEM::Namespace* Context::rootNamespace() {

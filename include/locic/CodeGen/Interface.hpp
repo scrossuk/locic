@@ -10,7 +10,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool hasVirtualTypeArgument(SEM::Type* type);
+		bool hasVirtualTypeArgument(const SEM::Type* type);
 		
 		llvm::Value* makeTypeInfoValue(Function& function, llvm::Value* vtablePointer, llvm::Value* templateGenerator);
 		

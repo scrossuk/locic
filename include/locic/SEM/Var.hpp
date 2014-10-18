@@ -14,15 +14,15 @@ namespace locic {
 		class TemplateVar;
 		class Type;
 		
-		typedef std::unordered_map<TemplateVar*, Type*> TemplateVarMap;
+		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Var {
 			public:
-				static Var* Any(Type* constructType);
+				static Var* Any(const Type* constructType);
 				
-				static Var* Basic(Type* constructType, Type* type);
+				static Var* Basic(const Type* constructType, const Type* type);
 				
-				static Var* Composite(Type* type, const std::vector<Var*>& children);
+				static Var* Composite(const Type* type, const std::vector<Var*>& children);
 				
 				enum Kind {
 					ANY,
@@ -36,8 +36,8 @@ namespace locic {
 				bool isBasic() const;
 				bool isComposite() const;
 				
-				Type* constructType() const;
-				Type* type() const;
+				const Type* constructType() const;
+				const Type* type() const;
 				const std::vector<Var*>& children() const;
 				
 				Var* substitute(const TemplateVarMap& templateVarMap) const;
@@ -48,8 +48,8 @@ namespace locic {
 				Var();
 				
 				Kind kind_;
-				Type* constructType_;
-				Type* type_;
+				const Type* constructType_;
+				const Type* type_;
 				std::vector<Var*> children_;
 				
 		};

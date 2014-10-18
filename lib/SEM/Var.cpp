@@ -10,14 +10,14 @@ namespace locic {
 
 	namespace SEM {
 	
-		Var* Var::Any(Type* constructType) {
+		Var* Var::Any(const Type* constructType) {
 			Var* var = new Var;
 			var->kind_ = ANY;
 			var->constructType_ = constructType;
 			return var;
 		}
 		
-		Var* Var::Basic(Type* constructType, Type* type) {
+		Var* Var::Basic(const Type* constructType, const Type* type) {
 			Var* var = new Var;
 			var->kind_ = BASIC;
 			var->constructType_ = constructType;
@@ -25,7 +25,7 @@ namespace locic {
 			return var;
 		}
 		
-		Var* Var::Composite(Type* type, const std::vector<Var*>& children) {
+		Var* Var::Composite(const Type* type, const std::vector<Var*>& children) {
 			Var* var = new Var;
 			var->kind_ = COMPOSITE;
 			var->constructType_ = type;
@@ -52,11 +52,11 @@ namespace locic {
 			return kind() == COMPOSITE;
 		}
 		
-		Type* Var::constructType() const {
+		const Type* Var::constructType() const {
 			return constructType_;
 		}
 		
-		Type* Var::type() const {
+		const Type* Var::type() const {
 			assert(isBasic() || isComposite());
 			return type_;
 		}

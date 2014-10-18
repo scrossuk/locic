@@ -25,9 +25,9 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isRootTypeList(llvm::ArrayRef<SEM::Type*> templateArguments);
+		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments);
 		
-		bool isRootType(SEM::Type* type) {
+		bool isRootType(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					return isRootTypeList(type->templateArguments());
@@ -59,7 +59,7 @@ namespace locic {
 			}
 		}
 		
-		bool isRootTypeList(llvm::ArrayRef<SEM::Type*> templateArguments) {
+		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments) {
 			for (size_t i = 0; i < templateArguments.size(); i++) {
 				if (!isRootType(templateArguments[i])) {
 					return false;
@@ -184,7 +184,7 @@ namespace locic {
 			return constGen.getStruct(templateGeneratorLLVMType(module), values);
 		}
 		
-		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<SEM::Type*> arguments) {
+		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<const SEM::Type*> arguments) {
 			for (size_t i = 0; i < arguments.size(); i++) {
 				if (arguments[i]->isInterface()) {
 					return true;

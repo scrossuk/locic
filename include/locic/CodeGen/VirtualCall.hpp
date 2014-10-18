@@ -16,7 +16,7 @@ namespace locic {
 			
 			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods);
 			
-			llvm::Value* generateCall(Function& function, SEM::Type* functionType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args);
+			llvm::Value* generateCall(Function& function, const SEM::Type* functionType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args);
 			
 			enum CountFnKind {
 				ALIGNOF,

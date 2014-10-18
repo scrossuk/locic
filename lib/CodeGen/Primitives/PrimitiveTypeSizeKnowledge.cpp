@@ -11,7 +11,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, SEM::Type* type) {
+		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();
@@ -26,7 +26,7 @@ namespace locic {
 			}
 		}
 		
-		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, SEM::Type* type) {
+		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
 			assert(typeInstance->isPrimitive());
 			const auto name = typeInstance->name().first();

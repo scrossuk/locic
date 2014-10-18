@@ -9,16 +9,16 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, SEM::Type* valueType);
+		const SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType);
 		
-		SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, SEM::Type* valueType);
+		const SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType);
 		
 		// Wraps the given type in a default implicit lval, unless
 		// the type is itself an lval (or some number of refs that lead
 		// to an lval).
-		SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, SEM::Type* valueType);
+		const SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, const SEM::Type* valueType);
 		
-		size_t getLvalCount(SEM::Type* type);
+		size_t getLvalCount(const SEM::Type* type);
 		
 		bool canDissolveValue(SEM::Value* value);
 		

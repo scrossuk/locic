@@ -36,7 +36,7 @@ namespace locic {
 		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
-			SEM::Type* semReturnType = NULL;
+			const SEM::Type* semReturnType = NULL;
 			
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -109,7 +109,7 @@ namespace locic {
 			}
 			
 			std::vector<SEM::Var*> parameterVars;
-			std::vector<SEM::Type*> parameterTypes;
+			std::vector<const SEM::Type*> parameterTypes;
 			
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters())) {
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);

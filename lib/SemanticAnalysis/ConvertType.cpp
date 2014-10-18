@@ -129,8 +129,8 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		std::vector<SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
-			std::vector<SEM::Type*> templateArguments;
+		std::vector<const SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
+			std::vector<const SEM::Type*> templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {
 				templateArguments.push_back(templateVarMap.at(templateVar));
@@ -138,20 +138,20 @@ namespace locic {
 			return templateArguments;
 		}
 		
-		SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const std::string& nameString) {
+		const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const std::string& nameString) {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
 			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? makeString("u%s_t", nameString.c_str()) : makeString("%s_t", nameString.c_str());
 			return getBuiltInType(context.scopeStack(), fullNameString);
 		}
 		
-		SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
+		const SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = makeString("%s_t", nameString.c_str());
 			return getBuiltInType(context.scopeStack(), fullNameString);
 		}
 		
-		SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
+		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
 			const Name name = symbol->createName();
@@ -185,12 +185,12 @@ namespace locic {
 			}
 		}
 		
-		SEM::Type* createPointerType(Context& context, SEM::Type* varType) {
+		const SEM::Type* createPointerType(Context& context, const SEM::Type* varType) {
 			const auto pointerTypeInst = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
 			return SEM::Type::Object(pointerTypeInst, { varType});
 		}
 		
-		SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
+		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
 					return SEM::Type::Auto(context.semContext());
@@ -238,7 +238,7 @@ namespace locic {
 					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
 					
-					std::vector<SEM::Type*> parameterTypes;
+					std::vector<const SEM::Type*> parameterTypes;
 					parameterTypes.reserve(astParameterTypes->size());
 					
 					for (const auto& astParamType: *astParameterTypes) {

@@ -121,7 +121,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genFunctionRef(Module& module, SEM::Type* parentType, SEM::Function* function) {
+		llvm::Function* genFunctionRef(Module& module, const SEM::Type* parentType, SEM::Function* function) {
 			if (parentType == nullptr) {
 				return genFunctionDecl(module, nullptr, function);
 			} else if (parentType->isObject()) {

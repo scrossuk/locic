@@ -16,7 +16,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* getPrimitiveType(Module& module, SEM::Type* type) {
+		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type) {
 			const auto& name = type->getObjectType()->name().last();
 			const auto kind = module.primitiveKind(name);
 			
@@ -212,7 +212,7 @@ namespace locic {
 			return getBasicPrimitiveABIType(module, module.primitiveKind(name));
 		}
 		
-		llvm_abi::Type* getPrimitiveABIType(Module& module, SEM::Type* type) {
+		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type) {
 			assert(isTypeSizeKnownInThisModule(module, type));
 			
 			const auto typeInstance = type->getObjectType();

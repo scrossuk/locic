@@ -19,12 +19,12 @@ namespace locic {
 			return name_;
 		}
 		
-		Type* TypeAlias::selfType() const {
+		const Type* TypeAlias::selfType() const {
 			return Type::Alias(const_cast<TypeAlias*>(this), selfTemplateArgs());
 		}
 		
-		std::vector<Type*> TypeAlias::selfTemplateArgs() const {
-			std::vector<SEM::Type*> templateArgs;
+		std::vector<const Type*> TypeAlias::selfTemplateArgs() const {
+			std::vector<const SEM::Type*> templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
@@ -47,11 +47,11 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
-		Type* TypeAlias::value() const {
+		const Type* TypeAlias::value() const {
 			return value_;
 		}
 		
-		void TypeAlias::setValue(Type* pValue) {
+		void TypeAlias::setValue(const Type* pValue) {
 			assert(value_ == nullptr);
 			assert(pValue != nullptr);
 			value_ = pValue;

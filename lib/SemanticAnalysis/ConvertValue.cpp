@@ -609,7 +609,7 @@ namespace locic {
 					const auto& memberName = astValueNode->templatedMemberAccess.memberName;
 					const auto object = ConvertValue(context, astValueNode->templatedMemberAccess.object);
 					
-					std::vector<SEM::Type*> templateArguments;
+					std::vector<const SEM::Type*> templateArguments;
 					templateArguments.reserve(astValueNode->templatedMemberAccess.typeList->size());
 					
 					for (const auto typeArg: *(astValueNode->templatedMemberAccess.typeList)) {

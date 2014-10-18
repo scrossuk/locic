@@ -99,7 +99,7 @@ namespace locic {
 				
 		};
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::Type* functionType);
+		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType);
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function);
 		

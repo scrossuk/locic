@@ -17,9 +17,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
+		static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
 		
-		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(SEM::Type* sourceType, SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
+		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(const SEM::Type* sourceType, const SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
 			if (destType->isAuto()) {
 				// 'auto' is pattern matching, so in this
 				// case it can match the source type.
@@ -57,7 +57,7 @@ namespace locic {
 						return nullptr;
 					}
 					
-					std::vector<SEM::Type*> templateArgs;
+					std::vector<const SEM::Type*> templateArgs;
 					templateArgs.reserve(sourceType->templateArguments().size());
 					
 					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
@@ -85,7 +85,7 @@ namespace locic {
 						return nullptr;
 					}
 					
-					std::vector<SEM::Type*> paramTypes;
+					std::vector<const SEM::Type*> paramTypes;
 					
 					// Check contra-variance for argument types.
 					for (std::size_t i = 0; i < sourceList.size(); i++) {
@@ -144,7 +144,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		static SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& 
+		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& 
 location, bool isTopLevel) {
 			// Can't cast const to non-const, unless the destination type is
 			// 'auto', since that can match 'const T'.
@@ -166,7 +166,7 @@ location, bool isTopLevel) {
 			// and the destination type itself is const.
 			const bool hasConstChain = isTopLevel || (hasParentConstChain && destType->isConst());
 			
-			SEM::Type* lvalTarget = nullptr;
+			const SEM::Type* lvalTarget = nullptr;
 			
 			if (sourceType->isLval() || destType->isLval()) {
 				if (!(sourceType->isLval() && destType->isLval())) {
@@ -179,7 +179,7 @@ location, bool isTopLevel) {
 				if (lvalTarget == nullptr) return nullptr;
 			}
 			
-			SEM::Type* refTarget = nullptr;
+			const SEM::Type* refTarget = nullptr;
 			
 			if (sourceType->isRef() || destType->isRef()) {
 				if (!(sourceType->isRef() && destType->isRef())) {
@@ -192,7 +192,7 @@ location, bool isTopLevel) {
 				if (refTarget == nullptr) return nullptr;
 			}
 			
-			SEM::Type* staticRefTarget = nullptr;
+			const SEM::Type* staticRefTarget = nullptr;
 			
 			if (sourceType->isStaticRef() || destType->isStaticRef()) {
 				if (!(sourceType->isStaticRef() && destType->isStaticRef())) {
@@ -230,11 +230,11 @@ location, bool isTopLevel) {
 			return isConst ? resultType->createConstType() : resultType;
 		}
 		
-		inline static SEM::Type* ImplicitCastTypeFormatOnlyChain(SEM::Type* sourceType, SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
+		inline static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location, isTopLevel);
 		}
 		
-		static SEM::Type* ImplicitCastTypeFormatOnly(SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
+		static const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
 			// is root there is a valid chain of (zero) const parent types.
@@ -245,7 +245,7 @@ location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location, isTopLevel);
 		}
 		
-		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location) {
+		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType, location);
 			if (resultType == nullptr) return nullptr;
 			
@@ -262,7 +262,7 @@ location, bool isTopLevel) {
 			return CanonicalizeMethodName(first) == CanonicalizeMethodName(second);
 		}
 		
-		static bool interfaceFunctionTypesCompatible(SEM::Type* sourceType, SEM::Type* destType) {
+		static bool interfaceFunctionTypesCompatible(const SEM::Type* sourceType, const SEM::Type* destType) {
 			assert(sourceType->isFunction());
 			assert(destType->isFunction());
 			
@@ -311,7 +311,7 @@ location, bool isTopLevel) {
 			return true;
 		}
 		
-		bool TypeSatisfiesInterface(SEM::Type* objectType, SEM::Type* interfaceType) {
+		bool TypeSatisfiesInterface(const SEM::Type* objectType, const SEM::Type* interfaceType) {
 			assert(objectType->isObjectOrTemplateVar());
 			assert(interfaceType->isInterface());
 			
@@ -368,9 +368,9 @@ location, bool isTopLevel) {
 			return true;
 		}
 		
-		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
+		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		static SEM::Value* PolyCastRefValueToType(SEM::Value* value, SEM::Type* destType) {
+		static SEM::Value* PolyCastRefValueToType(SEM::Value* value, const SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isRef() && destType->isRef());
 			
@@ -382,7 +382,7 @@ location, bool isTopLevel) {
 				nullptr;
 		}
 		
-		static SEM::Value* PolyCastStaticRefValueToType(SEM::Value* value, SEM::Type* destType) {
+		static SEM::Value* PolyCastStaticRefValueToType(SEM::Value* value, const SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isStaticRef() && destType->isStaticRef());
 			
@@ -395,7 +395,7 @@ location, bool isTopLevel) {
 		}
 		
 		// User-defined casts.
-		SEM::Value* ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value* rawValue, SEM::Type* destType, const Debug::SourceLocation& location) {
+		SEM::Value* ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value* rawValue, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto value = derefValue(rawValue);
 			const auto sourceDerefType = getDerefType(value->type());
 			const auto destDerefType = getDerefType(destType);
@@ -423,7 +423,7 @@ location, bool isTopLevel) {
 			return nullptr;
 		}
 		
-		bool isStructurallyEqual(SEM::Type* firstType, SEM::Type* secondType) {
+		bool isStructurallyEqual(const SEM::Type* firstType, const SEM::Type* secondType) {
 			if (firstType->kind() != secondType->kind()) {
 				return false;
 			}
@@ -437,7 +437,7 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
@@ -606,7 +606,7 @@ location, bool isTopLevel) {
 			return nullptr;
 		}
 		
-		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
 			auto result = ImplicitCastConvert(context, errors, value, destType->resolveAliases(), location, formatOnly);
 			if (result != nullptr) return result;
@@ -628,7 +628,7 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		bool CanDoImplicitCast(Context& context, SEM::Type* sourceType, SEM::Type* destType, const Debug::SourceLocation& location) {
+		bool CanDoImplicitCast(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto formatOnly = false;
 			std::vector<std::string> errors;
 			const auto result = ImplicitCastConvert(context, errors, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
@@ -637,7 +637,7 @@ location, bool isTopLevel) {
 		
 		namespace {
 			
-			SEM::Type* getUnionDatatypeParent(SEM::Type* type) {
+			const SEM::Type* getUnionDatatypeParent(const SEM::Type* type) {
 				while (type->isLvalOrRef()) {
 					type = type->lvalOrRefTarget();
 				}
@@ -651,7 +651,7 @@ location, bool isTopLevel) {
 			
 		}
 		
-		SEM::Type* UnifyTypes(Context& context, SEM::Type* first, SEM::Type* second, const Debug::SourceLocation& location) {
+		const SEM::Type* UnifyTypes(Context& context, const SEM::Type* first, const SEM::Type* second, const Debug::SourceLocation& location) {
 			// Try to convert both types to their parent (if any).
 			const auto firstParent = getUnionDatatypeParent(first);
 			if (firstParent != nullptr &&

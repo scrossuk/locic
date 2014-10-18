@@ -568,7 +568,7 @@ namespace locic {
 		// 
 		//        template <typename T: SPEC_TYPE>
 		// 
-		void CopyTemplateVarTypeInstance(SEM::Type* srcType, SEM::TypeInstance* destTypeInstance) {
+		void CopyTemplateVarTypeInstance(const SEM::Type* srcType, SEM::TypeInstance* destTypeInstance) {
 			assert(srcType->isObject());
 			assert(destTypeInstance != nullptr);
 			

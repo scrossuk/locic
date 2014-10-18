@@ -11,34 +11,34 @@ namespace locic {
 
 	namespace SEM {
 	
-		Value* Value::Self(Type* type) {
+		Value* Value::Self(const Type* type) {
 			return new Value(SELF, type);
 		}
 		
-		Value* Value::This(Type* type) {
+		Value* Value::This(const Type* type) {
 			return new Value(THIS, type);
 		}
 		
-		Value* Value::Constant(const locic::Constant* constant, Type* type) {
+		Value* Value::Constant(const locic::Constant* constant, const Type* type) {
 			Value* value = new Value(CONSTANT, type);
 			value->constant = constant;
 			return value;
 		}
 		
-		Value* Value::LocalVar(Var* var, Type* type) {
+		Value* Value::LocalVar(Var* var, const Type* type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value* value = new Value(LOCALVAR, type);
 			value->localVar.var = var;
 			return value;
 		}
 		
-		Value* Value::SizeOf(Type* targetType, Type* sizeType) {
+		Value* Value::SizeOf(const Type* targetType, const Type* sizeType) {
 			Value* value = new Value(SIZEOF, sizeType);
 			value->sizeOf.targetType = targetType;
 			return value;
 		}
 		
-		Value* Value::Reinterpret(Value* operand, Type* type) {
+		Value* Value::Reinterpret(Value* operand, const Type* type) {
 			Value* value = new Value(REINTERPRET, type);
 			value->reinterpretValue.value = operand;
 			return value;
@@ -60,21 +60,21 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::Cast(Type* targetType, Value* operand) {
+		Value* Value::Cast(const Type* targetType, Value* operand) {
 			Value* value = new Value(CAST, targetType);
 			value->cast.targetType = targetType;
 			value->cast.value = operand;
 			return value;
 		}
 		
-		Value* Value::PolyCast(Type* targetType, Value* operand) {
+		Value* Value::PolyCast(const Type* targetType, Value* operand) {
 			Value* value = new Value(POLYCAST, targetType);
 			value->polyCast.targetType = targetType;
 			value->polyCast.value = operand;
 			return value;
 		}
 		
-		Value* Value::Lval(Type* targetType, Value* operand) {
+		Value* Value::Lval(const Type* targetType, Value* operand) {
 			Value* value = new Value(LVAL, operand->type()->createLvalType(targetType));
 			value->makeLval.targetType = targetType;
 			value->makeLval.value = operand;
@@ -87,7 +87,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::Ref(Type* targetType, Value* operand) {
+		Value* Value::Ref(const Type* targetType, Value* operand) {
 			Value* value = new Value(REF, operand->type()->createRefType(targetType));
 			value->makeRef.targetType = targetType;
 			value->makeRef.value = operand;
@@ -100,7 +100,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::StaticRef(Type* targetType, Value* operand) {
+		Value* Value::StaticRef(const Type* targetType, Value* operand) {
 			Value* value = new Value(STATICREF, operand->type()->createStaticRefType(targetType));
 			value->makeStaticRef.targetType = targetType;
 			value->makeStaticRef.value = operand;
@@ -119,7 +119,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::MemberAccess(Value* object, Var* var, Type* type) {
+		Value* Value::MemberAccess(Value* object, Var* var, const Type* type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
 			// the members must also be.
@@ -132,13 +132,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::RefValue(Value* operand, Type* type) {
+		Value* Value::RefValue(Value* operand, const Type* type) {
 			Value* value = new Value(REFVALUE, type);
 			value->refValue.value = operand;
 			return value;
 		}
 		
-		Value* Value::TypeRef(Type* targetType, Type* type) {
+		Value* Value::TypeRef(const Type* targetType, const Type* type) {
 			Value* value = new Value(TYPEREF, type);
 			value->typeRef.targetType = targetType;
 			return value;
@@ -152,7 +152,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::FunctionRef(Type* parentType, Function* function, const std::vector<Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
+		Value* Value::FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
 			value->functionRef.parentType = parentType;
 			value->functionRef.function = function;
@@ -184,11 +184,11 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::CastDummy(Type* type) {
+		Value* Value::CastDummy(const Type* type) {
 			return new Value(CASTDUMMYOBJECT, type);
 		}
 		
-		Value::Value(Kind k, Type* t) : kind_(k), type_(t) {
+		Value::Value(Kind k, const Type* t) : kind_(k), type_(t) {
 			assert(type_ != NULL);
 		}
 		
@@ -196,7 +196,7 @@ namespace locic {
 			return kind_;
 		}
 		
-		Type* Value::type() const {
+		const Type* Value::type() const {
 			return type_;
 		}
 		
@@ -313,10 +313,9 @@ namespace locic {
 					
 				case NONE:
 					return "[NONE]";
-					
-				default:
-					return makeString("[UNKNOWN VALUE (kind = %u)]", (unsigned int) kind());
 			}
+			
+			throw std::logic_error("Unknown value kind.");
 		}
 	}
 	

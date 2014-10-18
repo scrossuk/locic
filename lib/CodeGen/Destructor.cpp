@@ -21,7 +21,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasDestructor(Module& module, SEM::Type* type) {
+		bool typeHasDestructor(Module& module, const SEM::Type* type) {
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
 					return primitiveTypeHasDestructor(module, type);
@@ -73,7 +73,7 @@ namespace locic {
 			return argInfo.withNoExcept();
 		}
 		
-		void genDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
+		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -106,7 +106,7 @@ namespace locic {
 			}
 		}
 		
-		void scheduleDestructorCall(Function& function, SEM::Type* type, llvm::Value* value) {
+		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			if (!typeHasDestructor(function.module(), type)) {
 				return;
 			}

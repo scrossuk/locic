@@ -16,7 +16,7 @@ namespace locic {
 			public:
 				Context();
 				
-				Type* getType(Type type);
+				const Type* getType(Type type) const;
 				
 				SEM::Namespace* rootNamespace();
 				
@@ -26,7 +26,7 @@ namespace locic {
 				Context& operator=(const Context&) = delete;
 				
 				std::unique_ptr<SEM::Namespace> rootNamespace_;
-				std::set<Type> types_;
+				mutable std::set<Type> types_;
 				
 		};
 		

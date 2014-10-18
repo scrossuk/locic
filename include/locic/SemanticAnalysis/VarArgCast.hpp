@@ -10,7 +10,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		bool isValidVarArgType(Context& context, SEM::Type* type);
+		bool isValidVarArgType(Context& context, const SEM::Type* type);
 		
 		SEM::Value* VarArgCast(Context& context, SEM::Value* value, const Debug::SourceLocation& location);
 		
