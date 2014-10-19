@@ -8,6 +8,7 @@
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Statement.hpp>
 #include <locic/AST/StringList.hpp>

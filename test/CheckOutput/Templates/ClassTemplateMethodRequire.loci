@@ -1,0 +1,57 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+interface FirstInterface {
+	void printFirst() const;
+}
+
+interface SecondInterface {
+	void printSecond() const;
+}
+
+template <typename T: FirstInterface>
+class TestClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	void indirectPrintFirst() {
+		@value.printFirst();
+	}
+	
+	void indirectPrintSecond() require(T : SecondInterface) {
+		@value.printSecond();
+	}
+}
+
+class PrintFirstAble(int value) {
+	static create = default;
+	
+	void printFirst() const {
+		testPrint(C"PrintFirstAble.printFirst(): value = %d", @value);
+	}
+}
+
+class PrintBothAble(int first, int second) {
+	static create = default;
+	
+	void printFirst() const {
+		testPrint(C"PrintBothAble.printFirst(): first = %d", @first);
+	}
+	
+	void printSecond() const {
+		testPrint(C"PrintBothAble.printSecond(): second = %d", @second);
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	TestClass<PrintFirstAble> printFirstAble = TestClass<PrintFirstAble>(PrintFirstAble(2500));
+	printFirstAble.indirectPrintFirst();
+	
+	TestClass<PrintBothAble> printBothAble = TestClass<PrintBothAble>(PrintBothAble(2600, 2700));
+	printBothAble.indirectPrintFirst();
+	printBothAble.indirectPrintSecond();
+	return 0;
+}
+

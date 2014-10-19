@@ -94,6 +94,7 @@ noexcept                { return NOEXCEPT; }
 template                { return TEMPLATE; }
 typename                { return TYPENAME; }
 virtual                 { return VIRTUAL; }
+require                 { return REQUIRE; }
 
 self                    { return SELF; }
 this                    { return THIS; }
@@ -130,6 +131,9 @@ dynamic_cast            { return DYNAMIC_CAST; }
 
 typeof                  { return TYPEOF; }
 typeid                  { return TYPEID; }
+
+and                     { return AND; }
+or                      { return OR; }
 
 void                    { return VOID; }
 signed                  { return SIGNED; }

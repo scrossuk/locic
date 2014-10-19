@@ -7,6 +7,7 @@
 #include <locic/Name.hpp>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
@@ -19,23 +20,19 @@ namespace locic {
 	
 		struct Function {
 			public:
-				static Function* Decl(bool isVarArg, bool isStatic, bool isConst, bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters);
+				static Function* Decl(bool isVarArg, bool isStatic, bool isConst, bool isNoExcept,
+						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
+						const Node<RequireSpecifier>& requireSpecifier);
 				
-				static Function* Def(bool isStatic, bool isConst, bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
-				
-				static Function* StaticMethodDecl(bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters);
-				
-				static Function* MethodDecl(bool isConst, bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters);
+				static Function* Def(bool isVarArg, bool isStatic, bool isConst, bool isNoExcept,
+						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
+						const Node<Scope>& scope, const Node<RequireSpecifier>& requireSpecifier);
 				
 				static Function* DefaultStaticMethodDef(const Node<Name>& name);
 				
 				static Function* DefaultMethodDef(const Node<Name>& name);
 				
 				static Function* Destructor(const Node<Name>& name, const Node<Scope>& scope);
-				
-				static Function* StaticMethodDef(bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
-				
-				static Function* MethodDef(bool isConst, bool isNoExcept, const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters, const Node<Scope>& scope);
 				
 				bool isDeclaration() const;
 				bool isDefinition() const;
@@ -54,6 +51,7 @@ namespace locic {
 				const Node<Type>& returnType() const;
 				const Node<TypeVarList>& parameters() const;
 				const Node<Scope>& scope() const;
+				const Node<RequireSpecifier>& requireSpecifier() const;
 				
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
 				void setImport();
@@ -73,6 +71,7 @@ namespace locic {
 				Node<Type> returnType_;
 				Node<TypeVarList> parameters_;
 				Node<Scope> scope_;
+				Node<RequireSpecifier> requireSpecifier_;
 				
 		};
 		

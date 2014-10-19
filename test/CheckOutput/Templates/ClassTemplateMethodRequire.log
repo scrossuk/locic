@@ -1,0 +1,2 @@
+object.getValue() = 11111
+object.getValueRef() = 11111
