@@ -99,9 +99,12 @@ namespace locic {
 			return mangleName("P", name) + "V" + versionString;
 		}
 		
-		std::string mangleModuleScope(SEM::ModuleScope* moduleScope) {
-			if (moduleScope == nullptr) return "";
-			return mangleModuleScopeFields(moduleScope->moduleName(), moduleScope->moduleVersion());
+		std::string mangleModuleScope(const SEM::ModuleScope& moduleScope) {
+			if (moduleScope.isInternal()) {
+				return "";
+			}
+			
+			return mangleModuleScopeFields(moduleScope.moduleName(), moduleScope.moduleVersion());
 		}
 		
 		std::string mangleTemplateGenerator(TemplatedObject templatedObject) {

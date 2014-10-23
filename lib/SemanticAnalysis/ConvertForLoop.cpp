@@ -40,14 +40,14 @@ namespace locic {
 		 * }
 		 */
 		
-		SEM::Scope* ConvertForLoop(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode) {
+		std::unique_ptr<SEM::Scope> ConvertForLoop(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode) {
 			// TODO: fix this to be the correct location.
 			const auto& location = astScopeNode.location();
 			
-			const auto outerScope = new SEM::Scope();
+			auto outerScope = SEM::Scope::Create();
 			
 			{
-				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(outerScope));
+				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(outerScope.get()));
 				
 				const auto initValue = ConvertValue(context, astInitValueNode);
 				
@@ -67,10 +67,10 @@ namespace locic {
 					const auto isNotEmpty = CallValue(context, GetMethod(context, isEmpty, "not", location), {}, location);
 					const auto loopCondition = ImplicitCast(context, isNotEmpty, getBuiltInType(context.scopeStack(), "bool"), location);
 					
-					const auto iterationScope = new SEM::Scope();
+					auto iterationScope = SEM::Scope::Create();
 					
 					{
-						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope));
+						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope.get()));
 						
 						const auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "front", location), {}, location);
 						
@@ -81,16 +81,15 @@ namespace locic {
 						iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar,
 							ImplicitCast(context, currentValue, loopVar->constructType(), location)));
 						
-						const auto innerScope = ConvertScope(context, astScopeNode);
-						
-						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(innerScope));
+						auto innerScope = ConvertScope(context, astScopeNode);
+						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(std::move(innerScope)));
 					}
 					
-					const auto advanceScope = new SEM::Scope();
+					auto advanceScope = SEM::Scope::Create();
 					const auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "skipfront", location), {}, location);
 					advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
 					
-					outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, iterationScope, advanceScope));
+					outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, std::move(iterationScope), std::move(advanceScope)));
 				}
 			}
 			

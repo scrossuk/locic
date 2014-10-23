@@ -34,22 +34,20 @@ namespace locic {
 				return llvm::Function::LinkOnceODRLinkage;
 			}
 			
-			const auto moduleScope = function->moduleScope();
+			const auto& moduleScope = function->moduleScope();
 			
-			if (moduleScope != nullptr) {
-				if (moduleScope->isImport() && function->isDefinition()) {
-					// Auto-generated type method (e.g. an implicitcopy for a struct).
-					return llvm::Function::LinkOnceODRLinkage;
-				} else {
-					// Imported declarations or exported definitions.
-					assert((moduleScope->isImport() && function->isDeclaration()) ||
-						(moduleScope->isExport() && function->isDefinition()));
-					return llvm::Function::ExternalLinkage;
-				}
-			} else {
+			if (moduleScope.isInternal()) {
 				// Internal definition.
 				assert(function->isDefinition());
 				return llvm::Function::PrivateLinkage;
+			} else if (moduleScope.isImport() && function->isDefinition()) {
+				// Auto-generated type method (e.g. an implicitcopy for a struct).
+				return llvm::Function::LinkOnceODRLinkage;
+			} else {
+				// Imported declarations or exported definitions.
+				assert((moduleScope.isImport() && function->isDeclaration()) ||
+					(moduleScope.isExport() && function->isDefinition()));
+				return llvm::Function::ExternalLinkage;
 			}
 		}
 		
@@ -59,18 +57,16 @@ namespace locic {
 				return llvm::Function::LinkOnceODRLinkage;
 			}
 			
-			const auto moduleScope = typeInstance->moduleScope();
+			const auto& moduleScope = typeInstance->moduleScope();
 			
-			if (moduleScope != nullptr) {
-				if (typeInstance->isClass()) {
-					return llvm::Function::ExternalLinkage;
-				} else {
-					// Non-class type.
-					return llvm::Function::LinkOnceODRLinkage;
-				}
-			} else {
+			if (moduleScope.isInternal()) {
 				// Internal definition.
 				return llvm::Function::PrivateLinkage;
+			} else if (typeInstance->isClass()) {
+				return llvm::Function::ExternalLinkage;
+			} else {
+				// Non-class type.
+				return llvm::Function::LinkOnceODRLinkage;
 			}
 		}
 		

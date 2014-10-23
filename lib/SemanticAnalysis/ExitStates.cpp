@@ -9,10 +9,10 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		std::bitset<UnwindState_MAX> GetScopeExitStates(SEM::Scope* scope) {
+		std::bitset<UnwindState_MAX> GetScopeExitStates(const SEM::Scope& scope) {
 			std::bitset<UnwindState_MAX> exitStates;
 			
-			const auto& statementList = scope->statements();
+			const auto& statementList = scope.statements();
 			
 			if (statementList.empty()) {
 				exitStates.set(UnwindStateNormal);
@@ -42,7 +42,7 @@ namespace locic {
 				// Handle scope(success) specially, since these statements can
 				// be run in a 'normal' state
 				if (statement->kind() == SEM::Statement::SCOPEEXIT && statement->getScopeExitState() == "success") {
-					const auto scopeExitStates = GetScopeExitStates(&(statement->getScopeExitScope()));
+					const auto scopeExitStates = GetScopeExitStates(statement->getScopeExitScope());
 					if (scopeExitStates.test(UnwindStateThrow)) {
 						exitStates.set(UnwindStateThrow);
 					}
@@ -81,7 +81,7 @@ namespace locic {
 					return GetValueExitStates(statement->getValue());
 				}
 				case SEM::Statement::SCOPE: {
-					return GetScopeExitStates(&(statement->getScope()));
+					return GetScopeExitStates(statement->getScope());
 				}
 				case SEM::Statement::INITIALISE: {
 					return GetValueExitStates(statement->getInitialiseValue());
@@ -95,10 +95,10 @@ namespace locic {
 							exitStates.set(UnwindStateThrow);
 						}
 						
-						exitStates |= GetScopeExitStates(&(ifClause->scope()));
+						exitStates |= GetScopeExitStates(ifClause->scope());
 					}
 					
-					exitStates |= GetScopeExitStates(&(statement->getIfElseScope()));
+					exitStates |= GetScopeExitStates(statement->getIfElseScope());
 					return exitStates;
 				}
 				case SEM::Statement::SWITCH: {
@@ -110,7 +110,7 @@ namespace locic {
 					}
 					
 					for (auto switchCase: statement->getSwitchCaseList()) {
-						exitStates |= GetScopeExitStates(&(switchCase->scope()));
+						exitStates |= GetScopeExitStates(switchCase->scope());
 					}
 					
 					return exitStates;
@@ -123,7 +123,7 @@ namespace locic {
 						exitStates.set(UnwindStateThrow);
 					}
 					
-					auto iterationScopeExitStates = GetScopeExitStates(&(statement->getLoopIterationScope()));
+					auto iterationScopeExitStates = GetScopeExitStates(statement->getLoopIterationScope());
 					
 					// Block any 'continue' exit state.
 					iterationScopeExitStates.reset(UnwindStateContinue);
@@ -136,7 +136,7 @@ namespace locic {
 					
 					exitStates |= iterationScopeExitStates;
 					
-					auto advanceScopeExitStates = GetScopeExitStates(&(statement->getLoopAdvanceScope()));
+					auto advanceScopeExitStates = GetScopeExitStates(statement->getLoopAdvanceScope());
 					advanceScopeExitStates.reset(UnwindStateNormal);
 					exitStates |= advanceScopeExitStates;
 					
@@ -145,10 +145,10 @@ namespace locic {
 				case SEM::Statement::TRY: {
 					std::bitset<UnwindState_MAX> exitStates;
 					
-					exitStates |= GetScopeExitStates(&(statement->getTryScope()));
+					exitStates |= GetScopeExitStates(statement->getTryScope());
 					
 					for (auto catchClause: statement->getTryCatchList()) {
-						auto catchExitStates = GetScopeExitStates(&(catchClause->scope()));
+						auto catchExitStates = GetScopeExitStates(catchClause->scope());
 						
 						// Turn 'rethrow' into 'throw'.
 						if (catchExitStates.test(UnwindStateRethrow)) {

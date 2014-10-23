@@ -19,7 +19,7 @@ namespace locic {
 			UnwindState_MAX
 		};
 		
-		std::bitset<UnwindState_MAX> GetScopeExitStates(SEM::Scope* scope);
+		std::bitset<UnwindState_MAX> GetScopeExitStates(const SEM::Scope& scope);
 		
 		std::bitset<UnwindState_MAX> GetStatementExitStates(SEM::Statement* statement);
 		

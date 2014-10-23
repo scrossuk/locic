@@ -12,6 +12,10 @@ namespace locic {
 
 	namespace SEM {
 	
+		std::unique_ptr<Scope> Scope::Create() {
+			return std::unique_ptr<Scope>(new Scope());
+		}
+		
 		Scope::Scope() { }
 		
 		std::vector<Var*>& Scope::variables() {

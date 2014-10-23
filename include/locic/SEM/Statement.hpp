@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_STATEMENT_HPP
 #define LOCIC_SEM_STATEMENT_HPP
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,19 +39,19 @@ namespace locic {
 				
 				static Statement* ValueStmt(Value* value);
 				
-				static Statement* ScopeStmt(Scope* scope);
+				static Statement* ScopeStmt(std::unique_ptr<Scope> scope);
 				
 				static Statement* InitialiseStmt(Var* var, Value* value);
 				
-				static Statement* If(const std::vector<IfClause*>& ifClauses, Scope* elseScope);
+				static Statement* If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
 				
-				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList, Scope* defaultScope);
+				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
 				
-				static Statement* Loop(Value* condition, Scope* iterationScope, Scope* advanceScope);
+				static Statement* Loop(Value* condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
 				
-				static Statement* Try(Scope* scope, const std::vector<CatchClause*>& catchList);
+				static Statement* Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
 				
-				static Statement* ScopeExit(const std::string& state, Scope* scope);
+				static Statement* ScopeExit(const std::string& state, std::unique_ptr<Scope> scope);
 				
 				static Statement* ReturnVoid();
 				
@@ -152,7 +153,7 @@ namespace locic {
 				} valueStmt_;
 				
 				struct {
-					Scope* scope;
+					std::unique_ptr<Scope> scope;
 				} scopeStmt_;
 				
 				struct {
@@ -162,29 +163,29 @@ namespace locic {
 				
 				struct {
 					std::vector<IfClause*> clauseList;
-					Scope* elseScope;
+					std::unique_ptr<Scope> elseScope;
 				} ifStmt_;
 				
 				struct {
 					Value* value;
 					std::vector<SwitchCase*> caseList;
-					Scope* defaultScope;
+					std::unique_ptr<Scope> defaultScope;
 				} switchStmt_;
 				
 				struct {
 					Value* condition;
-					Scope* iterationScope;
-					Scope* advanceScope;
+					std::unique_ptr<Scope> iterationScope;
+					std::unique_ptr<Scope> advanceScope;
 				} loopStmt_;
 				
 				struct {
-					Scope* scope;
+					std::unique_ptr<Scope> scope;
 					std::vector<CatchClause*> catchList;
 				} tryStmt_;
 				
 				struct {
 					std::string state;
-					Scope* scope;
+					std::unique_ptr<Scope> scope;
 				} scopeExitStmt_;
 				
 				struct {

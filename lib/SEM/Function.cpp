@@ -9,15 +9,14 @@ namespace locic {
 
 	namespace SEM {
 	
-		Function::Function(const Name& pName, ModuleScope* pModuleScope)
+		Function::Function(Name pName, ModuleScope pModuleScope)
 			: isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
 			  isConstMethod_(false),
 			  type_(nullptr),
-			  name_(pName),
-			  moduleScope_(pModuleScope),
-			  scope_(nullptr) { }
+			  name_(std::move(pName)),
+			  moduleScope_(std::move(pModuleScope)) { }
 		
 		const Name& Function::name() const {
 			return name_;
@@ -32,7 +31,7 @@ namespace locic {
 			return type_;
 		}
 		
-		ModuleScope* Function::moduleScope() const {
+		const ModuleScope& Function::moduleScope() const {
 			return moduleScope_;
 		}
 		
@@ -41,7 +40,7 @@ namespace locic {
 		}
 		
 		bool Function::isDefinition() const {
-			return scope_ != nullptr;
+			return scope_.get() != nullptr;
 		}
 		
 		void Function::setPrimitive(bool pIsPrimitive) {
@@ -96,6 +95,14 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
+		TemplateRequireMap& Function::typeRequirements() {
+			return typeRequirements_;
+		}
+		
+		const TemplateRequireMap& Function::typeRequirements() const {
+			return typeRequirements_;
+		}
+		
 		void Function::setParameters(std::vector<Var*> pParameters) {
 			parameters_ = std::move(pParameters);
 		}
@@ -130,12 +137,12 @@ namespace locic {
 			return newFunction;
 		}
 		
-		Function* Function::fullSubstitute(const Name& declName, const TemplateVarMap& templateVarMap) const {
+		Function* Function::fullSubstitute(Name declName, const TemplateVarMap& templateVarMap) const {
 			assert(isDeclaration());
 			assert(templateVariables().empty());
 			assert(type() != nullptr);
 			
-			const auto newFunction = new SEM::Function(declName, moduleScope());
+			const auto newFunction = new SEM::Function(std::move(declName), moduleScope());
 			newFunction->setMethod(isMethod());
 			newFunction->setStaticMethod(isStaticMethod());
 			newFunction->setConstMethod(isConstMethod());
@@ -154,10 +161,10 @@ namespace locic {
 			return newFunction;
 		}
 		
-		void Function::setScope(Scope* newScope) {
-			assert(scope_ == nullptr);
-			scope_ = newScope;
-			assert(scope_ != nullptr);
+		void Function::setScope(std::unique_ptr<Scope> newScope) {
+			assert(scope_.get() == nullptr);
+			assert(newScope.get() != nullptr);
+			scope_ = std::move(newScope);
 		}
 		
 		std::string Function::toString() const {

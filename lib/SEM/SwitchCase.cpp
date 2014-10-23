@@ -15,17 +15,18 @@ namespace locic {
 		SwitchCase::SwitchCase()
 			: var_(nullptr), scope_(nullptr) { }
 		
-		SwitchCase::SwitchCase(Var* pVar, Scope* pScope)
-			: var_(pVar), scope_(pScope) { }
+		SwitchCase::SwitchCase(Var* pVar, std::unique_ptr<Scope> pScope)
+			: var_(pVar), scope_(std::move(pScope)) { }
 		
 		void SwitchCase::setVar(Var* pVar) {
 			assert(pVar != nullptr);
 			var_ = pVar;
 		}
 		
-		void SwitchCase::setScope(Scope* pScope) {
-			assert(pScope != nullptr);
-			scope_ = pScope;
+		void SwitchCase::setScope(std::unique_ptr<Scope> pScope) {
+			assert(scope_.get() == nullptr);
+			assert(pScope.get() != nullptr);
+			scope_ = std::move(pScope);
 		}
 		
 		Var* SwitchCase::var() const {

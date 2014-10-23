@@ -47,6 +47,14 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
+		TemplateRequireMap& TypeAlias::typeRequirements() {
+			return typeRequirements_;
+		}
+		
+		const TemplateRequireMap& TypeAlias::typeRequirements() const {
+			return typeRequirements_;
+		}
+		
 		const Type* TypeAlias::value() const {
 			return value_;
 		}

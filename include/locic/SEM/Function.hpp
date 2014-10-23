@@ -2,11 +2,14 @@
 #define LOCIC_SEM_FUNCTION_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <locic/Name.hpp>
+#include <locic/SEM/ModuleScope.hpp>
+#include <locic/SEM/TemplateVar.hpp>
 
 namespace locic {
 	
@@ -15,24 +18,21 @@ namespace locic {
 
 	namespace SEM {
 	
-		class ModuleScope;
 		class Scope;
-		class TemplateVar;
 		class Type;
+		class TypeInstance;
 		class Var;
-		
-		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Function {
 			public:
-				Function(const Name& pName, ModuleScope* pModuleScope);
+				Function(Name pName, ModuleScope pModuleScope);
 				
 				const Name& name() const;
 				
 				void setType(const Type* pType);
 				const Type* type() const;
 				
-				ModuleScope* moduleScope() const;
+				const ModuleScope& moduleScope() const;
 				
 				bool isDeclaration() const;
 				
@@ -56,18 +56,21 @@ namespace locic {
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
 				
+				TemplateRequireMap& typeRequirements();
+				const TemplateRequireMap& typeRequirements() const;
+				
 				void setParameters(std::vector<Var*> pParameters);
 				const std::vector<Var*>& parameters() const;
 				
 				std::map<std::string, Var*>& namedVariables();
 				const std::map<std::string, Var*>& namedVariables() const;
 				
-				void setScope(Scope* newScope);
+				void setScope(std::unique_ptr<Scope> newScope);
 				const Scope& scope() const;
 				
 				Function* createTemplatedDecl() const;
 				
-				Function* fullSubstitute(const Name& declName, const TemplateVarMap& templateVarMap) const;
+				Function* fullSubstitute(Name declName, const TemplateVarMap& templateVarMap) const;
 				
 				std::string toString() const;
 				
@@ -79,12 +82,12 @@ namespace locic {
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
-				
+				TemplateRequireMap typeRequirements_;
 				std::vector<Var*> parameters_;
 				std::map<std::string, Var*> namedVariables_;
 				
-				ModuleScope* moduleScope_;
-				Scope* scope_;
+				ModuleScope moduleScope_;
+				std::unique_ptr<Scope> scope_;
 				
 		};
 		

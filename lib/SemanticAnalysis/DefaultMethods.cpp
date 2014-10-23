@@ -229,7 +229,7 @@ namespace locic {
 		}
 		
 		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			const auto functionScope = new SEM::Scope();
+			auto functionScope = SEM::Scope::Create();
 			
 			assert(!typeInstance->isUnionDatatype());
 			
@@ -242,14 +242,14 @@ namespace locic {
 			const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, constructValues);
 			functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
 			
-			function->setScope(functionScope);
+			function->setScope(std::move(functionScope));
 		}
 		
 		void CreateDefaultCopy(Context& context, const std::string& functionName, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
-			const auto functionScope = new SEM::Scope();
+			auto functionScope = SEM::Scope::Create();
 			
 			if (typeInstance->isUnionDatatype()) {
 				std::vector<SEM::SwitchCase*> switchCases;
@@ -258,12 +258,12 @@ namespace locic {
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
 					const auto caseVarValue = createLocalVarRef(context, caseVar);
 					
-					const auto caseScope = new SEM::Scope();
+					auto caseScope = SEM::Scope::Create();
 					const auto copyResult = CallValue(context, GetSpecialMethod(context, caseVarValue, functionName, location), {}, location);
 					const auto copyResultCast = SEM::Value::Cast(selfType, copyResult);
 					caseScope->statements().push_back(SEM::Statement::Return(copyResultCast));
 					
-					switchCases.push_back(new SEM::SwitchCase(caseVar, caseScope));
+					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
 				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
 			} else {
@@ -279,7 +279,7 @@ namespace locic {
 				functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
 			}
 			
-			function->setScope(functionScope);
+			function->setScope(std::move(functionScope));
 		}
 		
 		void CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
@@ -298,7 +298,7 @@ namespace locic {
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = createLocalVarRef(context, operandVar);
 			
-			const auto functionScope = new SEM::Scope();
+			auto functionScope = SEM::Scope::Create();
 			
 			if (typeInstance->isUnionDatatype()) {
 				std::vector<SEM::SwitchCase*> switchCases;
@@ -308,7 +308,7 @@ namespace locic {
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
 					const auto caseVarValue = createLocalVarRef(context, caseVar);
 					
-					const auto caseScope = new SEM::Scope();
+					auto caseScope = SEM::Scope::Create();
 					
 					std::vector<SEM::SwitchCase*> subSwitchCases;
 					for (size_t j = 0; j < typeInstance->variants().size(); j++) {
@@ -317,7 +317,7 @@ namespace locic {
 						const auto subCaseVar = SEM::Var::Basic(subVariantType, subVariantType);
 						const auto subCaseVarValue = createLocalVarRef(context, subCaseVar);
 						
-						const auto subCaseScope = new SEM::Scope();
+						auto subCaseScope = SEM::Scope::Create();
 						const auto minusOneConstant = SEM::Value::Constant(Constant::Integer(-1), compareResultType);
 						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), compareResultType);
 						if (i < j) {
@@ -329,17 +329,17 @@ namespace locic {
 							subCaseScope->statements().push_back(SEM::Statement::Return(compareResult));
 						}
 						
-						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, subCaseScope));
+						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, std::move(subCaseScope)));
 					}
 					
 					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue), subSwitchCases, nullptr));
 					
-					switchCases.push_back(new SEM::SwitchCase(caseVar, caseScope));
+					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
 				
 				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
 			} else {
-				auto currentScope = functionScope;
+				auto currentScope = functionScope.get();
 				
 				for (const auto memberVar: typeInstance->variables()) {
 					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
@@ -348,21 +348,24 @@ namespace locic {
 					const auto compareResult = CallValue(context, GetMethod(context, selfMember, "compare", location), { operandMember }, location);
 					const auto isEqual = CallValue(context, GetMethod(context, compareResult, "isEqual", location), {}, location);
 					
-					const auto ifTrueScope = new SEM::Scope();
-					const auto ifFalseScope = new SEM::Scope();
+					auto ifTrueScope = SEM::Scope::Create();
+					auto ifFalseScope = SEM::Scope::Create();
 					
-					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(isEqual, ifTrueScope) }, ifFalseScope);
+					const auto nextScope = ifTrueScope.get();
+					
 					ifFalseScope->statements().push_back(SEM::Statement::Return(compareResult));
+					
+					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(isEqual, std::move(ifTrueScope)) }, std::move(ifFalseScope));
 					currentScope->statements().push_back(ifStatement);
 					
-					currentScope = ifTrueScope;
+					currentScope = nextScope;
 				}
 				
 				const auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), compareResultType);
 				currentScope->statements().push_back(SEM::Statement::Return(zeroConstant));
 			}
 			
-			function->setScope(functionScope);
+			function->setScope(std::move(functionScope));
 		}
 		
 		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {

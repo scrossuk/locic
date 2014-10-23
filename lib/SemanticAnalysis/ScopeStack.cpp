@@ -52,6 +52,35 @@ namespace locic {
 			return nullptr;
 		}
 		
+		SEM::TypeInstance* getSpecType(const ScopeStack& scopeStack, SEM::TemplateVar* const templateVar) {
+			for (size_t i = 0; i < scopeStack.size(); i++) {
+				const auto pos = scopeStack.size() - i - 1;
+				const auto& element = scopeStack.at(pos);
+				
+				if (element.isFunction()) {
+					const auto function = element.function();
+					const auto it = function->typeRequirements().find(templateVar);
+					if (it != function->typeRequirements().end()) {
+						return it->second;
+					}
+				} else if (element.isTypeAlias()) {
+					const auto typeAlias = element.typeAlias();
+					const auto it = typeAlias->typeRequirements().find(templateVar);
+					if (it != typeAlias->typeRequirements().end()) {
+						return it->second;
+					}
+				} else if (element.isTypeInstance()) {
+					const auto typeInstance = element.typeInstance();
+					const auto it = typeInstance->typeRequirements().find(templateVar);
+					if (it != typeInstance->typeRequirements().end()) {
+						return it->second;
+					}
+				}
+			}
+			
+			throw std::runtime_error("Failed to find template var spec type.");
+		}
+		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
 			const auto function = lookupParentFunction(scopeStack);
 			assert(function != nullptr);

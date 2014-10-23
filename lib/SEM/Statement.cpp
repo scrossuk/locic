@@ -24,9 +24,9 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::ScopeStmt(Scope* scope) {
+		Statement* Statement::ScopeStmt(std::unique_ptr<Scope> scope) {
 			Statement* statement = new Statement(SCOPE);
-			statement->scopeStmt_.scope = scope;
+			statement->scopeStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
@@ -37,41 +37,41 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::If(const std::vector<IfClause*>& ifClauses, Scope* elseScope) {
+		Statement* Statement::If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope) {
 			assert(elseScope != nullptr);
 			Statement* statement = new Statement(IF);
 			statement->ifStmt_.clauseList = ifClauses;
-			statement->ifStmt_.elseScope = elseScope;
+			statement->ifStmt_.elseScope = std::move(elseScope);
 			return statement;
 		}
 		
-		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList, Scope* defaultScope) {
+		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
 			Statement* statement = new Statement(SWITCH);
 			statement->switchStmt_.value = value;
 			statement->switchStmt_.caseList = caseList;
-			statement->switchStmt_.defaultScope = defaultScope;
+			statement->switchStmt_.defaultScope = std::move(defaultScope);
 			return statement;
 		}
 		
-		Statement* Statement::Loop(Value* condition, Scope* iterationScope, Scope* advanceScope) {
+		Statement* Statement::Loop(Value* condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
 			Statement* statement = new Statement(LOOP);
 			statement->loopStmt_.condition = condition;
-			statement->loopStmt_.iterationScope = iterationScope;
-			statement->loopStmt_.advanceScope = advanceScope;
+			statement->loopStmt_.iterationScope = std::move(iterationScope);
+			statement->loopStmt_.advanceScope = std::move(advanceScope);
 			return statement;
 		}
 		
-		Statement* Statement::Try(Scope* scope, const std::vector<CatchClause*>& catchList) {
+		Statement* Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
 			Statement* statement = new Statement(TRY);
-			statement->tryStmt_.scope = scope;
+			statement->tryStmt_.scope = std::move(scope);
 			statement->tryStmt_.catchList = catchList;
 			return statement;
 		}
 		
-		Statement* Statement::ScopeExit(const std::string& state, Scope* scope) {
+		Statement* Statement::ScopeExit(const std::string& state, std::unique_ptr<Scope> scope) {
 			Statement* statement = new Statement(SCOPEEXIT);
 			statement->scopeExitStmt_.state = state;
-			statement->scopeExitStmt_.scope = scope;
+			statement->scopeExitStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
@@ -185,7 +185,7 @@ namespace locic {
 		
 		Scope* Statement::getSwitchDefaultScope() const {
 			assert(isSwitchStatement());
-			return switchStmt_.defaultScope;
+			return switchStmt_.defaultScope.get();
 		}
 		
 		bool Statement::isLoopStatement() const {
@@ -365,11 +365,9 @@ namespace locic {
 				case UNREACHABLE: {
 					return "UnreachableStatement";
 				}
-				
-				default:
-					assert(false && "Unknown SEM::Statement kind.");
-					return "Statement([INVALID])";
 			}
+			
+			throw std::logic_error("Unknown SEM::Statement kind.");
 		}
 		
 	}

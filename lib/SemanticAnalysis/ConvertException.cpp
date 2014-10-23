@@ -131,9 +131,9 @@ namespace locic {
 			
 			const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);
 			
-			const auto scope = new SEM::Scope();
+			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
 			scope->statements().push_back(SEM::Statement::Return(returnValue));
-			function->setScope(scope);
+			function->setScope(std::move(scope));
 		}
 		
 	}

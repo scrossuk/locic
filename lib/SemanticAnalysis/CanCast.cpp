@@ -234,7 +234,7 @@ location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location, isTopLevel);
 		}
 		
-		static const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
+		const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
 			// is root there is a valid chain of (zero) const parent types.
@@ -245,7 +245,7 @@ location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location, isTopLevel);
 		}
 		
-		static SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location) {
+		SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType, location);
 			if (resultType == nullptr) return nullptr;
 			

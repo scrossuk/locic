@@ -419,15 +419,6 @@ namespace locic {
 			return objectType_.templateArguments;
 		}
 		
-		TypeInstance* Type::getObjectOrSpecType() const {
-			assert(isObject() || isTemplateVar());
-			if (isObject()) {
-				return getObjectType();
-			} else {
-				return getTemplateVar()->specTypeInstance();
-			}
-		}
-		
 		const Type* Type::getCallableFunctionType() const {
 			switch (kind()) {
 				case Type::FUNCTION:

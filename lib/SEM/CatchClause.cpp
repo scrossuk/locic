@@ -13,16 +13,17 @@ namespace locic {
 	namespace SEM {
 	
 		CatchClause::CatchClause()
-			: var_(nullptr), scope_(nullptr) { }
+			: var_(nullptr) { }
 		
 		void CatchClause::setVar(Var* pVar) {
 			assert(pVar != nullptr);
 			var_ = pVar;
 		}
 		
-		void CatchClause::setScope(Scope* pScope) {
-			assert(pScope != nullptr);
-			scope_ = pScope;
+		void CatchClause::setScope(std::unique_ptr<Scope> pScope) {
+			assert(scope_.get() == nullptr);
+			assert(pScope.get() != nullptr);
+			scope_ = std::move(pScope);
 		}
 		
 		Var* CatchClause::var() const {

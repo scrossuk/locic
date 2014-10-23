@@ -7,6 +7,8 @@
 
 #include <locic/Map.hpp>
 #include <locic/Name.hpp>
+#include <locic/SEM/ModuleScope.hpp>
+#include <locic/SEM/TemplateVar.hpp>
 
 namespace locic {
 	
@@ -14,7 +16,6 @@ namespace locic {
 	
 		class Context;
 		class Function;
-		class ModuleScope;
 		class TemplateVar;
 		class Var;
 		
@@ -32,7 +33,7 @@ namespace locic {
 					TEMPLATETYPE
 				};
 				
-				TypeInstance(Context& c, const Name& n, Kind k, ModuleScope* m);
+				TypeInstance(Context& c, Name n, Kind k, ModuleScope m);
 				
 				Context& context() const;
 				
@@ -40,7 +41,7 @@ namespace locic {
 				
 				Kind kind() const;
 				
-				ModuleScope* moduleScope() const;
+				const ModuleScope& moduleScope() const;
 				
 				bool isPrimitive() const;
 				
@@ -93,6 +94,9 @@ namespace locic {
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
 				
+				TemplateRequireMap& typeRequirements();
+				const TemplateRequireMap& typeRequirements() const;
+				
 				// TODO: replace with 'property' methods.
 				std::map<std::string, Var*>& namedVariables();
 				const std::map<std::string, Var*>& namedVariables() const;
@@ -116,7 +120,7 @@ namespace locic {
 				Context& context_;
 				Name name_;
 				Kind kind_;
-				ModuleScope* moduleScope_;
+				ModuleScope moduleScope_;
 				
 				const Type* parent_;
 				
@@ -124,6 +128,7 @@ namespace locic {
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				TemplateRequireMap typeRequirements_;
 				
 				std::vector<Var*> variables_;
 				std::map<std::string, Var*> namedVariables_;

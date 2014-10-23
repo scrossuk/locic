@@ -81,13 +81,13 @@ namespace locic {
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
 						const auto condition = ConvertValue(context, astIfClause->condition);
 						const auto boolValue = ImplicitCast(context, condition, boolType->createConstType(), location);
-						const auto ifTrueScope = ConvertScope(context, astIfClause->scope);
-						clauseList.push_back(new SEM::IfClause(boolValue, ifTrueScope));
+						auto ifTrueScope = ConvertScope(context, astIfClause->scope);
+						clauseList.push_back(new SEM::IfClause(boolValue, std::move(ifTrueScope)));
 					}
 					
-					const auto elseScope = ConvertScope(context, statement->ifStmt.elseScope);
+					auto elseScope = ConvertScope(context, statement->ifStmt.elseScope);
 					
-					return SEM::Statement::If(clauseList, elseScope);
+					return SEM::Statement::If(clauseList, std::move(elseScope));
 				}
 				case AST::Statement::SWITCH: {
 					const auto value = ConvertValue(context, statement->switchStmt.value);
@@ -170,8 +170,8 @@ namespace locic {
 								location.toString().c_str()));
 						}
 						
-						const auto defaultScope = ConvertScope(context, astDefaultCase->scope);
-						return SEM::Statement::Switch(castValue, caseList, defaultScope);
+						auto defaultScope = ConvertScope(context, astDefaultCase->scope);
+						return SEM::Statement::Switch(castValue, caseList, std::move(defaultScope));
 					} else {
 						if (!unhandledCases.empty()) {
 							throw ErrorException(makeString("Union datatype member '%s' not handled in switch at position %s.",
@@ -186,24 +186,24 @@ namespace locic {
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Loop());
 					
-					const auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
-					const auto advanceScope = new SEM::Scope();
+					auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
+					auto advanceScope = SEM::Scope::Create();
 					const auto loopCondition = ImplicitCast(context, condition, getBuiltInType(context.scopeStack(), "bool"), location);
-					return SEM::Statement::Loop(loopCondition, iterationScope, advanceScope);
+					return SEM::Statement::Loop(loopCondition, std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
 					const auto& forStmt = statement->forStmt;
-					const auto loopScope = ConvertForLoop(context, forStmt.typeVar, forStmt.initValue, forStmt.scope);
-					return SEM::Statement::ScopeStmt(loopScope);
+					auto loopScope = ConvertForLoop(context, forStmt.typeVar, forStmt.initValue, forStmt.scope);
+					return SEM::Statement::ScopeStmt(std::move(loopScope));
 				}
 				case AST::Statement::TRY: {
-					SEM::Scope* tryScope = nullptr;
+					std::unique_ptr<SEM::Scope> tryScope;
 					
 					{
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TryScope());
 						tryScope = ConvertScope(context, statement->tryStmt.scope);
 						
-						if (!GetScopeExitStates(tryScope).test(UnwindStateThrow)) {
+						if (!GetScopeExitStates(*tryScope).test(UnwindStateThrow)) {
 							throw ErrorException(makeString("Try statement wraps a scope that cannot throw, at position %s.",
 								location.toString().c_str()));
 						}
@@ -242,7 +242,7 @@ namespace locic {
 						catchList.push_back(semCatch);
 					}
 					
-					return SEM::Statement::Try(tryScope, catchList);
+					return SEM::Statement::Try(std::move(tryScope), catchList);
 				}
 				case AST::Statement::SCOPEEXIT: {
 					const auto& scopeExitState = statement->scopeExitStmt.state;
@@ -253,8 +253,8 @@ namespace locic {
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
 					
-					const auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
-					const auto exitStates = GetScopeExitStates(scopeExitScope);
+					auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
+					const auto exitStates = GetScopeExitStates(*scopeExitScope);
 					
 					assert(!exitStates.test(UnwindStateReturn));
 					assert(!exitStates.test(UnwindStateBreak));
@@ -266,7 +266,7 @@ namespace locic {
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
 					
-					return SEM::Statement::ScopeExit(scopeExitState, scopeExitScope);
+					return SEM::Statement::ScopeExit(scopeExitState, std::move(scopeExitScope));
 				}
 				case AST::Statement::VARDECL: {
 					const auto& astTypeVarNode = statement->varDecl.typeVar;

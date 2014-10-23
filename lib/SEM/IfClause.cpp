@@ -10,8 +10,8 @@ namespace locic {
 
 	namespace SEM {
 	
-		IfClause::IfClause(Value* pCondition, Scope* pScope)
-			: condition_(pCondition), scope_(pScope) { }
+		IfClause::IfClause(Value* pCondition, std::unique_ptr<Scope> pScope)
+			: condition_(pCondition), scope_(std::move(pScope)) { }
 		
 		Value* IfClause::condition() const {
 			return condition_;

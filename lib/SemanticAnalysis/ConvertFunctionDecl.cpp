@@ -33,7 +33,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
+		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
 			const SEM::Type* semReturnType = NULL;
@@ -43,7 +43,7 @@ namespace locic {
 			const auto name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
-			const auto semFunction = new SEM::Function(fullName, moduleScope);
+			const auto semFunction = new SEM::Function(fullName, std::move(moduleScope));
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
@@ -74,7 +74,12 @@ namespace locic {
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+				const auto templateVarFullName = semFunction->name() + templateVarName;
+				const auto semTemplateVar =
+					new SEM::TemplateVar(context.semContext(),
+						ConvertTemplateVarType(astTemplateVarNode->kind),
+						templateVarFullName,
+						templateVarIndex++);
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {
@@ -84,8 +89,9 @@ namespace locic {
 				}
 				
 				// Create placeholder for the template type.
-				const Name specObjectName = semFunction->name() + templateVarName + "#spectype";
-				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
+				const Name specObjectName = templateVarFullName + "#spectype";
+				const auto specModuleScope = SEM::ModuleScope::Internal();
+				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, specModuleScope);
 				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 				
 				semFunction->templateVariables().push_back(semTemplateVar);

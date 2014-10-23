@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_IFCLAUSE_HPP
 #define LOCIC_SEM_IFCLAUSE_HPP
 
+#include <memory>
 #include <string>
 
 namespace locic {
@@ -12,7 +13,7 @@ namespace locic {
 		
 		class IfClause {
 			public:
-				IfClause(Value* condition, Scope* scope);
+				IfClause(Value* condition, std::unique_ptr<Scope> scope);
 				
 				Value* condition() const;
 				
@@ -22,7 +23,7 @@ namespace locic {
 				
 			private:
 				Value* condition_;
-				Scope* scope_;
+				std::unique_ptr<Scope> scope_;
 				
 		};
 		

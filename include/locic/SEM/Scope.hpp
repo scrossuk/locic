@@ -2,6 +2,7 @@
 #define LOCIC_SEM_SCOPE_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -14,7 +15,11 @@ namespace locic {
 	
 		class Scope {
 			public:
+				static std::unique_ptr<Scope> Create();
+				
 				Scope();
+				Scope(Scope&&) = default;
+				Scope& operator=(Scope&&) = default;
 				
 				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
@@ -28,6 +33,10 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				// Non-copyable.
+				Scope(const Scope&);
+				Scope& operator=(const Scope&);
+				
 				std::vector<Var*> variables_;
 				std::map<std::string, Var*> namedVariables_;
 				std::vector<Statement*> statementList_;

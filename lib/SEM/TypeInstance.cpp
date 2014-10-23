@@ -17,9 +17,12 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(Context& c, const Name& n, Kind k, ModuleScope* m)
-			: context_(c), name_(n), kind_(k),
-			moduleScope_(m), parent_(nullptr) { }
+		TypeInstance::TypeInstance(Context& c, Name n, Kind k, ModuleScope m)
+			: context_(c),
+			name_(std::move(n)),
+			kind_(std::move(k)),
+			moduleScope_(std::move(m)),
+			parent_(nullptr) { }
 		
 		Context& TypeInstance::context() const {
 			return context_;
@@ -33,7 +36,7 @@ namespace locic {
 			return kind_;
 		}
 		
-		SEM::ModuleScope* TypeInstance::moduleScope() const {
+		const SEM::ModuleScope& TypeInstance::moduleScope() const {
 			return moduleScope_;
 		}
 		
@@ -108,6 +111,14 @@ namespace locic {
 		
 		const std::map<std::string, TemplateVar*>& TypeInstance::namedTemplateVariables() const {
 			return namedTemplateVariables_;
+		}
+		
+		TemplateRequireMap& TypeInstance::typeRequirements() {
+			return typeRequirements_;
+		}
+		
+		const TemplateRequireMap& TypeInstance::typeRequirements() const {
+			return typeRequirements_;
 		}
 		
 		std::vector<TypeInstance*>& TypeInstance::variants() {
@@ -196,10 +207,9 @@ namespace locic {
 				case TEMPLATETYPE:
 					return makeString("TemplateType(name: %s)",
 									  name().toString().c_str());
-									  
-				default:
-					return "[UNKNOWN TYPE INSTANCE]";
 			}
+			
+			throw std::logic_error("Unknown SEM::TypeInstance kind.");
 		}
 		
 		std::string TypeInstance::toString() const {

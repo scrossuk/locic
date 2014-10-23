@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/Name.hpp>
+#include <locic/SEM/TemplateVar.hpp>
 
 namespace locic {
 
@@ -47,6 +48,9 @@ namespace locic {
 				
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				
+				TemplateRequireMap& typeRequirements();
+				const TemplateRequireMap& typeRequirements() const;
+				
 				const Type* value() const;
 				void setValue(const Type* pValue);
 				
@@ -57,6 +61,7 @@ namespace locic {
 				Name name_;
 				std::vector<TemplateVar*> templateVars_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				TemplateRequireMap typeRequirements_;
 				const Type* value_;
 				
 		};

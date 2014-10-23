@@ -15,12 +15,14 @@
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
+#include <locic/SemanticAnalysis/ConvertRequireSpecifier.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/Template.hpp>
 
 namespace locic {
 
@@ -60,7 +62,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::ModuleScope* moduleScope) {
+		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
 			const auto parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& typeInstanceName = astTypeInstanceNode->name;
@@ -79,20 +81,27 @@ namespace locic {
 			// Create a placeholder type instance.
 			auto semTypeInstance = new SEM::TypeInstance(context.semContext(), fullTypeName, typeInstanceKind, moduleScope);
 			
-			if (moduleScope == nullptr) {
-				if (semTypeInstance->isClassDecl()) {
-					throw ErrorException(makeString("Definition required for internal class '%s', at location %s.",
-						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+			switch (moduleScope.kind()) {
+				case SEM::ModuleScope::INTERNAL: {
+					if (semTypeInstance->isClassDecl()) {
+						throw ErrorException(makeString("Definition required for internal class '%s', at location %s.",
+							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+					}
+					break;
 				}
-			} else if (moduleScope->isImport()) {
-				if (semTypeInstance->isClassDef()) {
-					throw ErrorException(makeString("Implementation not allowed of imported class '%s', at location %s.",
-						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				case SEM::ModuleScope::IMPORT: {
+					if (semTypeInstance->isClassDef()) {
+						throw ErrorException(makeString("Implementation not allowed of imported class '%s', at location %s.",
+							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+					}
+					break;
 				}
-			} else if (moduleScope->isExport()) {
-				if (semTypeInstance->isClassDecl()) {
-					throw ErrorException(makeString("Definition required for exported class '%s', at location %s.",
-						fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				case SEM::ModuleScope::EXPORT: {
+					if (semTypeInstance->isClassDecl()) {
+						throw ErrorException(makeString("Definition required for exported class '%s', at location %s.",
+							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+					}
+					break;
 				}
 			}
 			
@@ -104,7 +113,12 @@ namespace locic {
 			size_t templateVarIndex = 0;
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+				const auto templateVarFullName = fullTypeName + templateVarName;
+				const auto semTemplateVar =
+					new SEM::TemplateVar(context.semContext(),
+						ConvertTemplateVarType(astTemplateVarNode->kind),
+						templateVarFullName,
+						templateVarIndex++);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {
@@ -112,11 +126,6 @@ namespace locic {
 						templateVarName.c_str(), fullTypeName.toString().c_str(),
 						astTemplateVarNode.location().toString().c_str()));
 				}
-				
-				// Create placeholder for the template type.
-				const Name specObjectName = fullTypeName + templateVarName + "#spectype";
-				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
-				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
 				semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
@@ -143,7 +152,7 @@ namespace locic {
 			return name;
 		}
 		
-		SEM::ModuleScope* ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode) {
+		SEM::ModuleScope ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode) {
 			if (astModuleScopeNode->kind == AST::ModuleScope::IMPORT) {
 				if (astModuleScopeNode->isNamed) {
 					return SEM::ModuleScope::Import(stringListToName(astModuleScopeNode->moduleName), *(astModuleScopeNode->version));
@@ -159,7 +168,7 @@ namespace locic {
 			}
 		}
 		
-		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
+		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
@@ -180,7 +189,7 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				if (moduleScope != nullptr) {
+				if (!moduleScope.isInternal()) {
 					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
 						astModuleScopeNode.location().toString().c_str()));
 				}
@@ -203,17 +212,17 @@ namespace locic {
 				size_t templateVarIndex = 0;
 				for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
 					const auto& templateVarName = astTemplateVarNode->name;
-					const auto semTemplateVar = new SEM::TemplateVar(context.semContext(), ConvertTemplateVarType(astTemplateVarNode->kind), templateVarIndex++);
+					const auto templateVarFullName = fullTypeName + templateVarName;
+					const auto semTemplateVar =
+						new SEM::TemplateVar(context.semContext(),
+							ConvertTemplateVarType(astTemplateVarNode->kind),
+							templateVarFullName,
+							templateVarIndex++);
 					
 					const auto templateVarIterator = semTypeAlias->namedTemplateVariables().find(templateVarName);
 					if (templateVarIterator != semTypeAlias->namedTemplateVariables().end()) {
 						throw TemplateVariableClashException(fullTypeName, templateVarName);
 					}
-					
-					// Create placeholder for the template type.
-					const Name specObjectName = fullTypeName + templateVarName + "#spectype";
-					const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
-					semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
 					
 					semTypeAlias->templateVariables().push_back(semTemplateVar);
 					semTypeAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
@@ -228,7 +237,7 @@ namespace locic {
 		// Get all namespaces and type names, and build initial type instance structures.
 		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceData(context, astNamespaceNode->data, nullptr);
+				AddNamespaceData(context, astNamespaceNode->data, SEM::ModuleScope::Internal());
 			}
 		}
 		
@@ -393,32 +402,53 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		SEM::Function* AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, SEM::ModuleScope* moduleScope) {
+		SEM::ModuleScope getFunctionScope(const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
+			if (astFunctionNode->isImported()) {
+				if (!moduleScope.isInternal()) {
+					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
+						astFunctionNode.location().toString().c_str()));
+				}
+				return SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
+			} else if (astFunctionNode->isExported()) {
+				if (!moduleScope.isInternal()) {
+					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
+						astFunctionNode.location().toString().c_str()));
+				}
+				return SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
+			} else {
+				return moduleScope;
+			}
+		}
+		
+		SEM::Function* AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
-			if (astFunctionNode->isImported()) {
-				moduleScope = SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
-			} else if (astFunctionNode->isExported()) {
-				moduleScope = SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
-			}
+			const auto moduleScope = getFunctionScope(astFunctionNode, parentModuleScope);
 			
 			const bool isParentInterface = topElement.isTypeInstance() && topElement.typeInstance()->isInterface();
 			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance()->isPrimitive();
 			
-			if (moduleScope == nullptr) {
-				if (!isParentInterface && !isParentPrimitive && astFunctionNode->isDeclaration()) {
-					throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
-						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+			switch (moduleScope.kind()) {
+				case SEM::ModuleScope::INTERNAL: {
+					if (!isParentInterface && !isParentPrimitive && astFunctionNode->isDeclaration()) {
+						throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
+							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+					}
+					break;
 				}
-			} else if (moduleScope->isImport()) {
-				if (!isParentInterface && !astFunctionNode->isDeclaration()) {
-					throw ErrorException(makeString("Implementation not allowed of imported function '%s', at location %s.",
-						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+				case SEM::ModuleScope::IMPORT: {
+					if (!isParentInterface && !astFunctionNode->isDeclaration()) {
+						throw ErrorException(makeString("Implementation not allowed of imported function '%s', at location %s.",
+							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+					}
+					break;
 				}
-			} else if (moduleScope->isExport()) {
-				if (!isParentInterface && astFunctionNode->isDeclaration()) {
-					throw ErrorException(makeString("Definition required for exported function '%s', at location %s.",
-						fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+				case SEM::ModuleScope::EXPORT: {
+					if (!isParentInterface && astFunctionNode->isDeclaration()) {
+						throw ErrorException(makeString("Definition required for exported function '%s', at location %s.",
+							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+					}
+					break;
 				}
 			}
 			
@@ -463,7 +493,7 @@ namespace locic {
 			return semFunction;
 		}
 		
-		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
+		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			const auto parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& name = astFunctionNode->name();
@@ -510,7 +540,7 @@ namespace locic {
 			}
 		}
 		
-		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope* moduleScope) {
+		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			const auto parentType = context.scopeStack().back().typeInstance();
 			
 			const auto name = astFunctionNode->name()->last();
@@ -528,7 +558,7 @@ namespace locic {
 			parentType->functions().insert(std::make_pair(canonicalMethodName, semFunction));
 		}
 		
-		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, SEM::ModuleScope* moduleScope) {
+		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
@@ -536,7 +566,7 @@ namespace locic {
 			}
 			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				assert(moduleScope == nullptr);
+				assert(moduleScope.isInternal());
 				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
 			
@@ -559,38 +589,19 @@ namespace locic {
 		
 		void AddFunctionDeclsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, nullptr);
+				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, SEM::ModuleScope::Internal());
 			}
 		}
 		
-		// Creates a new type instance based around a template variable specification type.
-		// i.e. building a type for 'T' based on 'SPEC_TYPE' in:
-		// 
-		//        template <typename T: SPEC_TYPE>
-		// 
-		void CopyTemplateVarTypeInstance(const SEM::Type* srcType, SEM::TypeInstance* destTypeInstance) {
-			assert(srcType->isObject());
-			assert(destTypeInstance != nullptr);
-			
-			const auto templateVarMap = srcType->generateTemplateVarMap();
-			
-			const auto srcTypeInstance = srcType->getObjectType();
-			
-			for (const auto& functionPair: srcTypeInstance->functions()) {
-				const auto& name = functionPair.first;
-				const auto srcFunction = functionPair.second;
-				// The specification type may contain template arguments,
-				// so this code does the necessary substitution. For example:
-				// 
-				//        template <typename T: SPEC_TYPE<T>>
-				// 
-				const auto destFunction = srcFunction->createTemplatedDecl()->fullSubstitute(destTypeInstance->name() + name, templateVarMap);
-				destTypeInstance->functions().insert(std::make_pair(name, destFunction));
-			}
-		}
-		
-		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::TemplateRequireMap& parentRequireMap) {
 			const auto function = context.scopeStack().back().function();
+			
+			// Set parent's requirements.
+			function->typeRequirements() = parentRequireMap;
+			
+			if (!astFunctionNode->requireSpecifier().isNull()) {
+				ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier(), function->typeRequirements());
+			}
 			
 			// Add template variables.
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
@@ -599,15 +610,16 @@ namespace locic {
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
-				// If the specification type is void, then just
-			 	// leave the generated type instance empty.
-			 	if (astSpecType->isVoid()) continue;
+				if (astSpecType->isVoid()) {
+					// No requirement specified.
+					continue;
+				}
 			 	
 			 	const auto semSpecType = ConvertType(context, astSpecType);
-			 	
-			 	semTemplateVar->setSpecType(semSpecType);
-			 	
-			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+				
+				// Add the specificaton to the type requirements.
+				const auto requireInstance = getRequireTypeInstance(context, function->typeRequirements(), semTemplateVar);
+				addTypeToRequirement(requireInstance, semSpecType);
 			}
 		}
 		
@@ -621,15 +633,16 @@ namespace locic {
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
-				// If the specification type is void, then just
-			 	// leave the generated type instance empty.
-			 	if (astSpecType->isVoid()) continue;
+				if (astSpecType->isVoid()) {
+					// No requirement specified.
+					continue;
+				}
 			 	
 			 	const auto semSpecType = ConvertType(context, astSpecType);
 			 	
-			 	semTemplateVar->setSpecType(semSpecType);
-			 	
-			 	CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+			 	// Add the specificaton to the type requirements.
+				const auto requireInstance = getRequireTypeInstance(context, typeAlias->typeRequirements(), semTemplateVar);
+				addTypeToRequirement(requireInstance, semSpecType);
 			}
 		}
 		
@@ -643,15 +656,16 @@ namespace locic {
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
-				// If the specification type is void, then just
-				// leave the generated type instance empty.
-				if (astSpecType->isVoid()) continue;
+				if (astSpecType->isVoid()) {
+					// No requirement specified.
+					continue;
+				}
 				
 				const auto semSpecType = ConvertType(context, astSpecType);
 				
-				semTemplateVar->setSpecType(semSpecType);
-				
-				CopyTemplateVarTypeInstance(semSpecType, semTemplateVar->specTypeInstance());
+				// Add the specificaton to the type requirements.
+				const auto requireInstance = getRequireTypeInstance(context, typeInstance->typeRequirements(), semTemplateVar);
+				addTypeToRequirement(requireInstance, semSpecType);
 			}
 			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
@@ -659,7 +673,7 @@ namespace locic {
 				const auto semChildFunction = typeInstance->functions().at(methodName);
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode);
+				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, typeInstance->typeRequirements());
 			}
 		}
 		
@@ -670,7 +684,7 @@ namespace locic {
 				const auto semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode);
+				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::TemplateRequireMap());
 			}
 			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {

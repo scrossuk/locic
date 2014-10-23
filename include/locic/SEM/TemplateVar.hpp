@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <locic/Name.hpp>
+
 namespace locic {
 
 	namespace SEM {
@@ -19,33 +21,27 @@ namespace locic {
 		
 		class TemplateVar {
 			public:
-				TemplateVar(Context& pContext, TemplateVarType t, size_t i);
+				TemplateVar(Context& pContext, TemplateVarType t, const Name& name, size_t i);
 				
 				Context& context() const;
 				
 				TemplateVarType type() const;
 				
+				const Name& name() const;
+				
 				size_t index() const;
-				
-				void setSpecType(const Type* spec);
-				
-				const Type* specType() const;
-				
-				void setSpecTypeInstance(TypeInstance* spec);
-				
-				TypeInstance* specTypeInstance() const;
 				
 				std::string toString() const;
 				
 			private:
 				Context& context_;
 				TemplateVarType type_;
+				Name name_;
 				size_t index_;
-				const Type* specType_;
-				TypeInstance* specTypeInstance_;
 				
 		};
 		
+		typedef std::unordered_map<TemplateVar*, TypeInstance*> TemplateRequireMap;
 		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 	}

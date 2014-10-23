@@ -9,7 +9,12 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Scope* ConvertForLoop(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode);
+		std::unique_ptr<SEM::Scope> ConvertForLoop(
+			Context& context,
+			const AST::Node<AST::TypeVar>& astTypeVarNode,
+			const AST::Node<AST::Value>& astInitValueNode,
+			const AST::Node<AST::Scope>& astScopeNode
+		);
 		
 	}
 	

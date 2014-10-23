@@ -26,7 +26,7 @@ namespace locic {
 		
 		std::string mangleModuleScopeFields(const Name& name, const Version& version);
 		
-		std::string mangleModuleScope(SEM::ModuleScope* moduleScope);
+		std::string mangleModuleScope(const SEM::ModuleScope& moduleScope);
 		
 		std::string mangleTemplateGenerator(TemplatedObject templatedObject);
 		

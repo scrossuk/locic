@@ -8,9 +8,8 @@ namespace locic {
 
 	namespace SEM {
 	
-		TemplateVar::TemplateVar(Context& pContext, TemplateVarType t, size_t i)
-			: context_(pContext), type_(t), index_(i),
-			specType_(nullptr), specTypeInstance_(nullptr) { }
+		TemplateVar::TemplateVar(Context& pContext, TemplateVarType t, const Name& pName, size_t i)
+			: context_(pContext), type_(t), name_(pName), index_(i) { }
 		
 		Context& TemplateVar::context() const {
 			return context_;
@@ -20,39 +19,18 @@ namespace locic {
 			return type_;
 		}
 		
+		const Name& TemplateVar::name() const {
+			return name_;
+		}
+		
 		size_t TemplateVar::index() const {
 			return index_;
 		}
 		
-		void TemplateVar::setSpecType(const Type* spec) {
-			assert(specType_ == nullptr);
-			assert(spec != nullptr);
-			specType_ = spec;
-		}
-		
-		const Type* TemplateVar::specType() const {
-			return specType_;
-		}
-		
-		void TemplateVar::setSpecTypeInstance(TypeInstance* spec) {
-			assert(specTypeInstance_ == nullptr);
-			assert(spec != nullptr);
-			specTypeInstance_ = spec;
-		}
-		
-		TypeInstance* TemplateVar::specTypeInstance() const {
-			return specTypeInstance_;
-		}
-		
 		std::string TemplateVar::toString() const {
-			return makeString("TemplateVar(index = %llu, specType = %s, specInstance = %s)",
-				(unsigned long long) index(),
-				specType() != nullptr ?
-					specType()->nameToString().c_str() :
-					"[NONE]",
-				specTypeInstance() != nullptr ?
-					specTypeInstance()->refToString().c_str() :
-					"[NONE]");
+			return makeString("TemplateVar(name = %s, index = %llu)",
+				name().toString().c_str(),
+				(unsigned long long) index());
 		}
 		
 	}

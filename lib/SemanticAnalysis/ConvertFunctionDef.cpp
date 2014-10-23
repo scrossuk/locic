@@ -14,7 +14,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void DeadCodeSearchScope(Context& context, SEM::Scope* scope);
+		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope);
 		
 		void DeadCodeSearchStatement(Context& context, SEM::Statement* statement) {
 			switch(statement->kind()) {
@@ -30,37 +30,37 @@ namespace locic {
 					return;
 				}
 				case SEM::Statement::SCOPE: {
-					DeadCodeSearchScope(context, &(statement->getScope()));
+					DeadCodeSearchScope(context, statement->getScope());
 					return;
 				}
 				case SEM::Statement::IF: {
 					for (const auto ifClause: statement->getIfClauseList()) {
-						DeadCodeSearchScope(context, &(ifClause->scope()));
+						DeadCodeSearchScope(context, ifClause->scope());
 					}
 					
-					DeadCodeSearchScope(context, &(statement->getIfElseScope()));
+					DeadCodeSearchScope(context, statement->getIfElseScope());
 					return;
 				}
 				case SEM::Statement::SWITCH: {
 					for (auto switchCase: statement->getSwitchCaseList()) {
-						DeadCodeSearchScope(context, &(switchCase->scope()));
+						DeadCodeSearchScope(context, switchCase->scope());
 					}
 					return;
 				}
 				case SEM::Statement::LOOP: {
-					DeadCodeSearchScope(context, &(statement->getLoopIterationScope()));
-					DeadCodeSearchScope(context, &(statement->getLoopAdvanceScope()));
+					DeadCodeSearchScope(context, statement->getLoopIterationScope());
+					DeadCodeSearchScope(context, statement->getLoopAdvanceScope());
 					return;
 				}
 				case SEM::Statement::TRY: {
-					DeadCodeSearchScope(context, &(statement->getTryScope()));
+					DeadCodeSearchScope(context, statement->getTryScope());
 					for (auto catchClause: statement->getTryCatchList()) {
-						DeadCodeSearchScope(context, &(catchClause->scope()));
+						DeadCodeSearchScope(context, catchClause->scope());
 					}
 					return;
 				}
 				case SEM::Statement::SCOPEEXIT: {
-					DeadCodeSearchScope(context, &(statement->getScopeExitScope()));
+					DeadCodeSearchScope(context, statement->getScopeExitScope());
 					return;
 				}
 			}
@@ -68,9 +68,9 @@ namespace locic {
 			std::terminate();
 		}
 		
-		void DeadCodeSearchScope(Context& context, SEM::Scope* scope) {
+		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
 			bool isNormalBlocked = false;
-			for (const auto statement: scope->statements()) {
+			for (const auto statement: scope.statements()) {
 				DeadCodeSearchStatement(context, statement);
 				
 				if (isNormalBlocked) {
@@ -108,11 +108,11 @@ namespace locic {
 			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)
-			const auto semScope = ConvertScope(context, astFunctionNode->scope());
+			auto semScope = ConvertScope(context, astFunctionNode->scope());
 			
 			const auto returnType = semFunction->type()->getFunctionReturnType();
 			
-			const auto exitStates = GetScopeExitStates(semScope);
+			const auto exitStates = GetScopeExitStates(*semScope);
 			
 			assert(!exitStates.test(UnwindStateBreak));
 			assert(!exitStates.test(UnwindStateContinue));
@@ -128,7 +128,7 @@ namespace locic {
 				}
 			}
 			
-			DeadCodeSearchScope(context, semScope);
+			DeadCodeSearchScope(context, *semScope);
 			
 			if (semFunction->type()->isFunctionNoExcept() && exitStates.test(UnwindStateThrow)) {
 				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
@@ -136,7 +136,7 @@ namespace locic {
 					astFunctionNode.location().toString().c_str()));
 			}
 			
-			semFunction->setScope(semScope);
+			semFunction->setScope(std::move(semScope));
 		}
 		
 	}

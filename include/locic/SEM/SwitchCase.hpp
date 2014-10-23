@@ -2,6 +2,7 @@
 #define LOCIC_SEM_SWITCHCASE_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 
 namespace locic {
@@ -14,11 +15,11 @@ namespace locic {
 		class SwitchCase {
 			public:
 				SwitchCase();
-				SwitchCase(Var* var, Scope* scope);
+				SwitchCase(Var* var, std::unique_ptr<Scope> scope);
 				
 				void setVar(Var* var);
 				
-				void setScope(Scope* scope);
+				void setScope(std::unique_ptr<Scope> scope);
 				
 				Var* var() const;
 				
@@ -32,7 +33,7 @@ namespace locic {
 			private:
 				Var* var_;
 				std::map<std::string, Var*> namedVariables_;
-				Scope* scope_;
+				std::unique_ptr<Scope> scope_;
 				
 		};
 		

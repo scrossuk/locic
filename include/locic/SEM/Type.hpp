@@ -100,7 +100,6 @@ namespace locic {
 				bool isTemplateVar() const;
 				TemplateVar* getTemplateVar() const;
 				
-				TypeInstance* getObjectOrSpecType() const;
 				const Type* getCallableFunctionType() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
