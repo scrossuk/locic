@@ -40,24 +40,22 @@ class ExampleTemplatedClass0(){
 }
 
 template <typename T>
-interface DefaultConstructInterface {
-	T implicitCopy() const;
-	
+interface multipliable {
 	T multiply(const T& value) const;
 }
 
-template <typename T: DefaultConstructInterface<T> >
+template <typename T>
 class PolyClass(T v) {
 	static Create(T value) {
 		printf(C"Create PolyClass.\n");
-		return @(value);
+		return @(move value);
 	}
 	
-	~{
+	~ {
 		printf(C"Destroying PolyClass.\n");
 	}
 	
-	T function(T value) {
+	T function(T value) require (T : multipliable<T>) {
 		printf(C"Multiply PolyClass.\n");
 		return value * @v;
 	}
@@ -197,7 +195,7 @@ class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
 		return *(&(@guardSlot));
 	}
 	
-	size_t size() {
+	size_t size() const {
 		return @size;
 	}
 	

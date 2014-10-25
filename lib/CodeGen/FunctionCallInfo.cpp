@@ -180,7 +180,7 @@ namespace locic {
 					
 					if (value->functionRef.function->isPrimitive()) {
 						return genTrivialPrimitiveFunctionCall(function, value->functionRef.parentType,
-							value->functionRef.function, value->functionRef.templateArguments, llvmArgs);
+							value->functionRef.function, llvmArgs);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");

@@ -10,7 +10,8 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		Context::Context(Debug::Module& pDebugModule, SEM::Context& pSemContext)
-			: debugModule_(pDebugModule), semContext_(pSemContext) {
+			: debugModule_(pDebugModule), semContext_(pSemContext),
+			templateRequirementsComplete_(false) {
 				validVarArgTypes_.insert("byte_t");
 				validVarArgTypes_.insert("ubyte_t");
 				validVarArgTypes_.insert("short_t");
@@ -53,6 +54,14 @@ namespace locic {
 		
 		std::vector<TemplateInstTuple>& Context::templateInstantiations() {
 			return templateInstantiations_;
+		}
+		
+		bool Context::templateRequirementsComplete() const {
+			return templateRequirementsComplete_;
+		}
+		
+		void Context::setTemplateRequirementsComplete() {
+			templateRequirementsComplete_ = true;
 		}
 		
 		const std::set<std::string>& Context::validVarArgTypes() const {

@@ -116,11 +116,10 @@ namespace locic {
 					binaryOpToString(opKind).c_str(), derefType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = derefType->getObjectOrSpecType();
+			const auto typeInstance = getObjectOrSpecType(context, derefType);
 			
 			const auto methodName = binaryOpName(opKind);
 			
-			// Look for the 
 			if (typeInstance->functions().find(CanonicalizeMethodName(methodName)) != typeInstance->functions().end()) {
 				return GetMethod(context, value, methodName, location);
 			} else {
@@ -137,7 +136,7 @@ namespace locic {
 					memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = derefType->getObjectOrSpecType();
+			const auto typeInstance = getObjectOrSpecType(context, derefType);
 			
 			// Look for methods.
 			if (typeInstance->functions().find(CanonicalizeMethodName(memberName)) != typeInstance->functions().end()) {

@@ -9,6 +9,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 
@@ -53,7 +54,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Value* GetStaticMethod(Context&, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value* GetStaticMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
 			const auto value = derefAll(rawValue);
 			const auto targetType = value->type()->staticRefTarget();
 			
@@ -62,7 +63,7 @@ namespace locic {
 					methodName.c_str(), targetType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = targetType->isObject() ? targetType->getObjectType() : targetType->getTemplateVar()->specTypeInstance();
+			const auto typeInstance = getObjectOrSpecType(context, targetType);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
 			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
@@ -109,13 +110,13 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethodWithoutResolution(Context&, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value* GetTemplatedMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = type->isObject() ? type->getObjectType() : type->getTemplateVar()->specTypeInstance();
+			const auto typeInstance = getObjectOrSpecType(context, type);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
 			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
@@ -155,36 +156,37 @@ namespace locic {
 			// and its parent type.
 			auto combinedTemplateVarMap = type->generateTemplateVarMap();
 			for (size_t i = 0; i < templateArguments.size(); i++) {
-				combinedTemplateVarMap.insert(std::make_pair(templateVariables.at(i), templateArguments.at(i)));
-			}
-			
-			// Now check all the arguments are valid.
-			for (size_t i = 0; i < templateArguments.size(); i++) {
 				const auto templateVariable = templateVariables.at(i);
 				const auto templateTypeValue = templateArguments.at(i)->resolveAliases();
 				
 				if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
 					throw ErrorException(makeString("Invalid type '%s' passed "
-						"as template parameter %llu for method '%s' at position %s.",
+						"as template parameter '%s' for method '%s' at position %s.",
 						templateTypeValue->toString().c_str(),
-						(unsigned long long) i,
+						templateVariable->name().toString().c_str(),
 						function->name().toString().c_str(),
 						location.toString().c_str()));
 				}
 				
-				if (templateVariable->specType() != nullptr) {
-					assert(templateVariable->specType()->isInterface());
-					
-					const auto specType = templateVariable->specType()->substitute(combinedTemplateVarMap);
-					
-					if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
-						throw ErrorException(makeString("Type '%s' does not satisfy "
-							"constraint for template parameter %llu of method '%s' at position %s.",
-							templateTypeValue->getObjectType()->name().toString().c_str(),
-							(unsigned long long) i,
-							function->name().toString().c_str(),
-							location.toString().c_str()));
-					}
+				combinedTemplateVarMap.insert(std::make_pair(templateVariable, templateTypeValue));
+			}
+			
+			// Now check all the arguments are valid.
+			for (const auto& templateAssignment: combinedTemplateVarMap) {
+				const auto templateVariable = templateAssignment.first;
+				const auto templateValue = templateAssignment.second;
+				const auto specTypeInstance = function->typeRequirements().at(templateVariable);
+				
+				const auto sourceType = getTemplateTypeInstance(context, templateValue);
+				const auto requireType = std::make_pair(specTypeInstance, combinedTemplateVarMap);
+				
+				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
+					throw ErrorException(makeString("Type '%s' does not satisfy "
+						"constraint for template parameter '%s' of method '%s' at position %s.",
+						templateValue->toString().c_str(),
+						templateVariable->name().toString().c_str(),
+						function->name().toString().c_str(),
+						location.toString().c_str()));
 				}
 			}
 			
@@ -235,7 +237,7 @@ namespace locic {
 			return SEM::Value::FunctionCall(value, CastFunctionArguments(context, args, typeList, location));
 		}
 		
-		bool supportsNullConstruction(const SEM::Type* type) {
+		bool supportsNullConstruction(Context& context, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -258,7 +260,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsNullConstruction(type->getTemplateVar()->specTypeInstance()->selfType());
+					return supportsNullConstruction(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");
@@ -299,7 +301,7 @@ namespace locic {
 			}
 		}
 		
-		bool supportsCopy(const SEM::Type* const type, const std::string& functionName) {
+		bool supportsCopy(Context& context, const SEM::Type* const type, const std::string& functionName) {
 			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -329,14 +331,14 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsCopy(type->getTemplateVar()->specTypeInstance()->selfType(), functionName);
+					return supportsCopy(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType(), functionName);
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");
 			}
 		}
 		
-		bool supportsNoExceptCopy(const SEM::Type* const type, const std::string& functionName) {
+		bool supportsNoExceptCopy(Context& context, const SEM::Type* const type, const std::string& functionName) {
 			assert(!type->isAlias());
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -367,30 +369,30 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsNoExceptCopy(type->getTemplateVar()->specTypeInstance()->selfType(), functionName);
+					return supportsNoExceptCopy(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType(), functionName);
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");
 			}
 		}
 		
-		bool supportsImplicitCopy(const SEM::Type* const type) {
-			return supportsCopy(type->resolveAliases(), "implicitcopy");
+		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
+			return supportsCopy(context, type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsNoExceptImplicitCopy(const SEM::Type* const type) {
-			return supportsNoExceptCopy(type->resolveAliases(), "implicitcopy");
+		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
+			return supportsNoExceptCopy(context, type->resolveAliases(), "implicitcopy");
 		}
 		
-		bool supportsExplicitCopy(const SEM::Type* const type) {
-			return supportsCopy(type->resolveAliases(), "copy");
+		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
+			return supportsCopy(context, type->resolveAliases(), "copy");
 		}
 		
-		bool supportsNoExceptExplicitCopy(const SEM::Type* const type) {
-			return supportsNoExceptCopy(type->resolveAliases(), "copy");
+		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
+			return supportsNoExceptCopy(context, type->resolveAliases(), "copy");
 		}
 		
-		bool supportsCompare(const SEM::Type* const rawType) {
+		bool supportsCompare(Context& context, const SEM::Type* const rawType) {
 			const SEM::Type* const type = rawType->resolveAliases();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
@@ -421,7 +423,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsCompare(type->getTemplateVar()->specTypeInstance()->selfType());
+					return supportsCompare(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
 					
 				default:
 					throw std::runtime_error("Unknown SEM type kind.");

@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_ptrdiff_t {
-	static T implicit_cast_ptrdiff_t(ptrdiff_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_ptrdiff_t {
-	static T cast_ptrdiff_t(ptrdiff_t value) noexcept;
-}
-
 __primitive ptrdiff_t {
 	static ptrdiff_t unit() noexcept;
 	
@@ -20,12 +10,6 @@ __primitive ptrdiff_t {
 	
 	ptrdiff_t implicit_copy() const noexcept;
 	ptrdiff_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_ptrdiff_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_ptrdiff_t<T>>
-	T cast() const noexcept;
 	
 	ptrdiff_t add(const ptrdiff_t& v) const noexcept;
 	ptrdiff_t subtract(const ptrdiff_t& v) const noexcept;
@@ -43,4 +27,24 @@ __primitive ptrdiff_t {
 	compare_result_t compare(const ptrdiff_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_ptrdiff_t {
+	static T implicit_cast_ptrdiff_t(ptrdiff_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_ptrdiff_t {
+	static T cast_ptrdiff_t(ptrdiff_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_ptrdiff_t<T>>
+T ptrdiff_t::implicitCast() const noexcept {
+	return T.implicit_cast_ptrdiff_t(self);
+}
+
+template <typename T: __cast_from_ptrdiff_t<T>>
+T ptrdiff_t::cast() const noexcept {
+	return T.cast_ptrdiff_t(self);
 }

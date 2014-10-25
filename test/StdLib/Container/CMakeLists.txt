@@ -6,5 +6,6 @@ test_stdlib_check_output(HugeVarray)
 test_stdlib_check_output(IndexVarray)
 test_stdlib_check_output(List)
 test_stdlib_check_output(ReverseCounter)
+test_stdlib_check_output(VarrayCopy)
 test_stdlib_check_output(VarrayDestroy)
 

@@ -14,7 +14,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		using TemplateInstTuple = std::tuple<SEM::TemplateVar*, const SEM::Type*, SEM::TemplateVarMap, Name, Debug::SourceLocation>;
+		using TemplatedTypeInstance = std::pair<const SEM::TypeInstance*, SEM::TemplateVarMap>;
+		using TemplateInstTuple = std::tuple<const SEM::TemplateVar*, TemplatedTypeInstance, TemplatedTypeInstance, Name, Debug::SourceLocation>;
 		
 		class Context {
 			public:
@@ -38,6 +39,8 @@ namespace locic {
 				 * instantiations to check they're valid.
 				 */
 				std::vector<TemplateInstTuple>& templateInstantiations();
+				bool templateRequirementsComplete() const;
+				void setTemplateRequirementsComplete();
 				
 				const std::set<std::string>& validVarArgTypes() const;
 			
@@ -49,6 +52,7 @@ namespace locic {
 				Debug::Module& debugModule_;
 				ScopeStack scopeStack_;
 				SEM::Context& semContext_;
+				bool templateRequirementsComplete_;
 				std::vector<TemplateInstTuple> templateInstantiations_;
 				std::set<std::string> validVarArgTypes_;
 				

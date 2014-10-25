@@ -1,0 +1,32 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		testPrint(C"Create TestClass: %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"Destroy TestClass: %d", @value);
+	}
+	
+	TestClass copy() const {
+		testPrint(C"Copy TestClass: %d", @value);
+		return @(@value);
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(50, 500, 50)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	auto varrayCopy = varray.copy();
+	
+	return 0;
+}
+

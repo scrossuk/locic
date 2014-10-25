@@ -1,24 +1,8 @@
-template <typename T>
-interface __implicit_cast_from_uint16_t {
-	static T implicit_cast_uint16_t(uint16_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_uint16_t {
-	static T cast_uint16_t(uint16_t value) noexcept;
-}
-
 __primitive uint16_t {
 	static uint16_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	
 	uint16_t implicit_copy() const noexcept;
 	uint16_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_uint16_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_uint16_t<T>>
-	T cast() const noexcept;
 
 	uint16_t add(const uint16_t& v) const noexcept;
 	uint16_t subtract(const uint16_t& v) const noexcept;
@@ -35,4 +19,24 @@ __primitive uint16_t {
 	
 	compare_result_t compare(const uint16_t& v) const noexcept;
 	bool isZero() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_uint16_t {
+	static T implicit_cast_uint16_t(uint16_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_uint16_t {
+	static T cast_uint16_t(uint16_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_uint16_t<T>>
+T uint16_t::implicitCast() const noexcept {
+	return T.implicit_cast_uint16_t(self);
+}
+
+template <typename T: __cast_from_uint16_t<T>>
+T uint16_t::cast() const noexcept {
+	return T.cast_uint16_t(self);
 }

@@ -28,19 +28,19 @@ namespace locic {
 		
 		SEM::Value* CallValue(Context& context, SEM::Value* value, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location);
 		
-		bool supportsNullConstruction(const SEM::Type* type);
+		bool supportsNullConstruction(Context& context, const SEM::Type* type);
 		
 		bool supportsImplicitCast(const SEM::Type* type);
 		
-		bool supportsImplicitCopy(const SEM::Type* type);
+		bool supportsImplicitCopy(Context& context, const SEM::Type* type);
 		
-		bool supportsExplicitCopy(const SEM::Type* type);
+		bool supportsExplicitCopy(Context& context, const SEM::Type* type);
 		
-		bool supportsNoExceptImplicitCopy(const SEM::Type* type);
+		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* type);
 		
-		bool supportsNoExceptExplicitCopy(const SEM::Type* type);
+		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* type);
 		
-		bool supportsCompare(const SEM::Type* type);
+		bool supportsCompare(Context& context, const SEM::Type* type);
 		
 	}
 	

@@ -8,6 +8,7 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/Template.hpp>
 
 namespace locic {
 
@@ -33,7 +34,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
+		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope, const SEM::TemplateRequireMap& parentRequireMap) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
 			const SEM::Type* semReturnType = NULL;
@@ -70,6 +71,12 @@ namespace locic {
 						astFunctionNode.location().toString().c_str()));
 			}
 			
+			// Add require instance for each parent template variable.
+			for (const auto& parentRequirement: parentRequireMap) {
+				const auto semTemplateVar = parentRequirement.first;
+				addRequireTypeInstance(context, semFunction->typeRequirements(), semTemplateVar);
+			}
+			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
@@ -88,14 +95,10 @@ namespace locic {
 						astTemplateVarNode.location().toString().c_str()));
 				}
 				
-				// Create placeholder for the template type.
-				const Name specObjectName = templateVarFullName + "#spectype";
-				const auto specModuleScope = SEM::ModuleScope::Internal();
-				const auto templateVarSpecObject = new SEM::TypeInstance(context.semContext(), specObjectName, SEM::TypeInstance::TEMPLATETYPE, specModuleScope);
-				semTemplateVar->setSpecTypeInstance(templateVarSpecObject);
-				
 				semFunction->templateVariables().push_back(semTemplateVar);
 				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+				
+				addRequireTypeInstance(context, semFunction->typeRequirements(), semTemplateVar);
 			}
 			
 			// Enable lookups for function template variables.

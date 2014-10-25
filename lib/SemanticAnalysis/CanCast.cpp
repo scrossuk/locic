@@ -11,6 +11,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -311,11 +312,11 @@ location, bool isTopLevel) {
 			return true;
 		}
 		
-		bool TypeSatisfiesInterface(const SEM::Type* objectType, const SEM::Type* interfaceType) {
+		bool TypeSatisfiesInterface(Context& context, const SEM::Type* objectType, const SEM::Type* interfaceType) {
 			assert(objectType->isObjectOrTemplateVar());
 			assert(interfaceType->isInterface());
 			
-			const auto objectInstance = objectType->getObjectOrSpecType();
+			const auto objectInstance = getObjectOrSpecType(context, objectType);
 			const auto interfaceInstance = interfaceType->getObjectType();
 			
 			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();
@@ -370,26 +371,26 @@ location, bool isTopLevel) {
 		
 		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		static SEM::Value* PolyCastRefValueToType(SEM::Value* value, const SEM::Type* destType) {
+		static SEM::Value* PolyCastRefValueToType(Context& context, SEM::Value* value, const SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isRef() && destType->isRef());
 			
 			const auto sourceTargetType = sourceType->refTarget();
 			const auto destTargetType = destType->refTarget();
 			
-			return TypeSatisfiesInterface(sourceTargetType, destTargetType) ?
+			return TypeSatisfiesInterface(context, sourceTargetType, destTargetType) ?
 				SEM::Value::PolyCast(destType, value) :
 				nullptr;
 		}
 		
-		static SEM::Value* PolyCastStaticRefValueToType(SEM::Value* value, const SEM::Type* destType) {
+		static SEM::Value* PolyCastStaticRefValueToType(Context& context, SEM::Value* value, const SEM::Type* destType) {
 			const auto sourceType = value->type();
 			assert(sourceType->isStaticRef() && destType->isStaticRef());
 			
 			const auto sourceTargetType = sourceType->staticRefTarget();
 			const auto destTargetType = destType->staticRefTarget();
 			
-			return TypeSatisfiesInterface(sourceTargetType, destTargetType) ?
+			return TypeSatisfiesInterface(context, sourceTargetType, destTargetType) ?
 				SEM::Value::PolyCast(destType, value) :
 				nullptr;
 		}
@@ -403,12 +404,16 @@ location, bool isTopLevel) {
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(sourceDerefType)) {
 				const auto castFunction = sourceDerefType->getObjectType()->functions().at("implicitcast");
 				const auto& castTemplateVar = castFunction->templateVariables().front();
-				const auto specType = castTemplateVar->specType();
+				
+				const auto specTypeInstance = castFunction->typeRequirements().at(castTemplateVar);
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
-				if (specType == nullptr || TypeSatisfiesInterface(destDerefType, specType->substitute(combinedTemplateVarMap))) {
+				const auto sourceType = getTemplateTypeInstance(context, destDerefType);
+				const auto requireType = std::make_pair(specTypeInstance, combinedTemplateVarMap);
+				
+				if (TemplateValueSatisfiesRequirement(sourceType, requireType)) {
 					const auto method = GetTemplatedMethod(context, value, "implicitcast", { destDerefType }, location);
 					const auto castValue = CallValue(context, method, {}, location);
 					
@@ -523,7 +528,7 @@ location, bool isTopLevel) {
 					const auto destTarget = destType->refTarget();
 					
 					if (!sourceTarget->isConst() || destTarget->isConst()) {
-						const auto castResult = PolyCastRefValueToType(value, destType);
+						const auto castResult = PolyCastRefValueToType(context, value, destType);
 						if (castResult != nullptr) return castResult;
 					}
 				}
@@ -535,7 +540,7 @@ location, bool isTopLevel) {
 				const auto destTarget = destType->staticRefTarget();
 				
 				if (!sourceTarget->isConst() || destTarget->isConst()) {
-					const auto castResult = PolyCastStaticRefValueToType(value, destType);
+					const auto castResult = PolyCastStaticRefValueToType(context, value, destType);
 					if (castResult != nullptr) return castResult;
 				}
 			}
@@ -544,7 +549,7 @@ location, bool isTopLevel) {
 			// reference into a basic value.
 			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
-				if (supportsImplicitCopy(sourceDerefType)) {
+				if (supportsImplicitCopy(context, sourceDerefType)) {
 					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
 						CallValue(context, GetSpecialMethod(context, derefValue(value), "implicitcopy", location), {}, location) :
 						derefAll(value);
@@ -572,7 +577,7 @@ location, bool isTopLevel) {
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
-					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(sourceType)) {
+					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
 				const auto copyValue = CallValue(context, GetSpecialMethod(context, value, "implicitcopy", location), {}, location);
 				if (!copyValue->type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(context, errors, copyValue, destType, location);

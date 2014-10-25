@@ -33,7 +33,7 @@ namespace locic {
 			auto derefType = getDerefType(value->type()->resolveAliases());
 			assert(!derefType->isRef());
 			
-			if (derefType->isLval() && canDissolveValue(derefValue(value))) {
+			if (derefType->isLval() && canDissolveValue(context, derefValue(value))) {
 				// Dissolve lval.
 				auto dissolvedValue = dissolveLval(context, derefValue(value), location);
 				
@@ -44,7 +44,7 @@ namespace locic {
 				if (result != nullptr) return result;
 			}
 			
-			if (value->type()->isRef() && supportsImplicitCopy(derefType)) {
+			if (value->type()->isRef() && supportsImplicitCopy(context, derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
 					CallValue(context, GetMethod(context, value, "implicitcopy", location), {}, location) :

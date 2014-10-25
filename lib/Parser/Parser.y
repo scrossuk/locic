@@ -1734,15 +1734,15 @@ value_precedence1:
 	{
 		$$ = $1;
 	}
-	| value_precedence1 DOT NAME
+	| value_precedence1 DOT functionNameElement
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence1 DOT NAME LTRIBRACKET templateTypeList RTRIBRACKET
+	| value_precedence1 DOT functionNameElement LTRIBRACKET templateTypeList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
-	| value_precedence1 PTRACCESS NAME
+	| value_precedence1 PTRACCESS functionNameElement
 	{
 		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp("deref", GETSYM($1)));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, GETSYM($3))));

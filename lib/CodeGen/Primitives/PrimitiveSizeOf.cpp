@@ -18,6 +18,17 @@ namespace locic {
 
 	namespace CodeGen {
 	
+		namespace {
+			
+			const SEM::Type* getFirstTemplateVarRef(const SEM::TypeInstance* const typeInstance) {
+				assert(!typeInstance->templateVariables().empty());
+				
+				const auto templateVar = typeInstance->templateVariables().front();
+				return SEM::Type::TemplateVarRef(templateVar);
+			}
+			
+		}
+		
 		void createPrimitiveAlignOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
@@ -31,7 +42,7 @@ namespace locic {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     alignof(member_lval) = alignof(T).
-				function.getBuilder().CreateRet(genAlignMask(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "value_lval") {
 				// value_lval is struct { bool isLive; T value; }.
 				// Hence:
@@ -42,7 +53,7 @@ namespace locic {
 				// 
 				// and given alignof(T) >= 1:
 				//     alignof(value_lval) = alignof(T).
-				function.getBuilder().CreateRet(genAlignMask(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "__ref") {
 				size_t align = 0;
 				if (hasVirtualTypeArgument(type)) {
@@ -76,7 +87,7 @@ namespace locic {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     sizeof(member_lval) = sizeof(T).
-				function.getBuilder().CreateRet(genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0))));
+				function.getBuilder().CreateRet(genSizeOf(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "value_lval") {
 				// value_lval is struct { T value; bool isLive; }.
 				// Hence:
@@ -111,8 +122,9 @@ namespace locic {
 				// 
 				// so this can be reduced to:
 				//     sizeof(value_lval) = alignof(T) + sizeof(T).
-				const auto templateVarAlign = genAlignOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
-				const auto templateVarSize = genSizeOf(function, SEM::Type::TemplateVarRef(typeInstance->templateVariables().at(0)));
+				const auto templateVarRef = getFirstTemplateVarRef(typeInstance);
+				const auto templateVarAlign = genAlignOf(function, templateVarRef);
+				const auto templateVarSize = genSizeOf(function, templateVarRef);
 				function.getBuilder().CreateRet(function.getBuilder().CreateAdd(templateVarAlign, templateVarSize));
 			} else if (name == "__ref") {
 				size_t size = 0;

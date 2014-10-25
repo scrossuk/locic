@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_double_t {
-	static T implicit_cast_double_t(double_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_double_t {
-	static T cast_double_t(double_t value) noexcept;
-}
-
 __primitive double_t {
 	static double_t implicit_cast_float_t(float_t value) noexcept;
 	
@@ -15,12 +5,6 @@ __primitive double_t {
 	
 	double_t implicit_copy() const noexcept;
 	double_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_double_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_double_t<T>>
-	T cast() const noexcept;
 	
 	double_t plus() const noexcept;
 	double_t minus() const noexcept;
@@ -41,4 +25,24 @@ __primitive double_t {
 	bool greater_than_or_equal(const double_t& v) const noexcept;
 	
 	compare_result_t compare(const double_t& v) const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_double_t {
+	static T implicit_cast_double_t(double_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_double_t {
+	static T cast_double_t(double_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_double_t<T>>
+T double_t::implicitCast() const noexcept {
+	return T.implicit_cast_double_t(self);
+}
+
+template <typename T: __cast_from_double_t<T>>
+T double_t::cast() const noexcept {
+	return T.cast_double_t(self);
 }

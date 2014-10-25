@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_float_t {
-	static T implicit_cast_float_t(float_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_float_t {
-	static T cast_float_t(float_t value) noexcept;
-}
-
 __primitive float_t {
 	static float_t cast_byte_t(byte_t value) noexcept;
 	static float_t cast_uint8_t(uint8_t value) noexcept;
@@ -28,12 +18,6 @@ __primitive float_t {
 	float_t implicit_copy() const noexcept;
 	float_t copy() const noexcept;
 	
-	template <typename T: __implicit_cast_from_float_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_float_t<T>>
-	T cast() const noexcept;
-	
 	float_t plus() const noexcept;
 	float_t minus() const noexcept;
 
@@ -53,4 +37,24 @@ __primitive float_t {
 	bool greater_than_or_equal(const float_t& v) const noexcept;
 	
 	compare_result_t compare(const float_t& v) const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_float_t {
+	static T implicit_cast_float_t(float_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_float_t {
+	static T cast_float_t(float_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_float_t<T>>
+T float_t::implicitCast() const noexcept {
+	return T.implicit_cast_float_t(self);
+}
+
+template <typename T: __cast_from_float_t<T>>
+T float_t::cast() const noexcept {
+	return T.cast_float_t(self);
 }

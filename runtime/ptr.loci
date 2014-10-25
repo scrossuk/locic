@@ -19,5 +19,5 @@ __primitive __ptr {
 	bool greater_than(const __ptr<T>& v) const noexcept;
 	bool greater_than_or_equal(const __ptr<T>& v) const noexcept;
 	
-	int compare(const __ptr<T>& value) const noexcept;
+	compare_result_t compare(const __ptr<T>& value) const noexcept;
 }

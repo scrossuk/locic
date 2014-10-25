@@ -12,17 +12,19 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::TypeInstance* getRequireTypeInstance(Context& context, SEM::TemplateRequireMap& requireMap, SEM::TemplateVar* templateVar);
+		void addRequireTypeInstance(Context& context, SEM::TemplateRequireMap& requireMap, SEM::TemplateVar* templateVar);
 		
-		void addTypeToRequirement(SEM::TypeInstance* const requireInstance, const SEM::Type* const newType);
+		void addTypeToRequirement(Context& context, SEM::TypeInstance* const requireInstance, const SEM::Type* const newType);
 		
-		SEM::TypeInstance* getObjectOrSpecType(Context& context, const SEM::Type* const type);
+		const SEM::TypeInstance* getObjectOrSpecType(Context& context, const SEM::Type* type);
+		
+		TemplatedTypeInstance getTemplateTypeInstance(Context& context, const SEM::Type* type);
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
 		std::vector<const SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
 		
-		bool TemplateValuesSatisfyRequirements(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateRequireMap& requireMap);
+		bool TemplateValueSatisfiesRequirement(const TemplatedTypeInstance& objectType, const TemplatedTypeInstance& requireType);
 		
 	}
 	

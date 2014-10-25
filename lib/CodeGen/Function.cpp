@@ -255,6 +255,7 @@ namespace locic {
 			if (result)
 			{
 				const std::string functionName = getLLVMFunction().getName();
+				getLLVMFunction().dump();
 				throw std::runtime_error(makeString("Verification failed for function '%s'.", functionName.c_str()));
 			}
 #else

@@ -22,7 +22,7 @@ namespace locic {
 			
 			switch (astRequireExprNode->kind()) {
 				case AST::RequireExpr::BRACKET: {
-					ConvertRequireExpr(context, requireMap, astRequireExprNode->bracketExpr());
+					ConvertRequireExpr(context, astRequireExprNode->bracketExpr(), requireMap);
 					break;
 				}
 				case AST::RequireExpr::TYPESPEC: {
@@ -40,13 +40,12 @@ namespace locic {
 					const auto semTemplateVar = searchResult.templateVar();
 					const auto semSpecType = ConvertType(context, typeSpecType);
 					
-					const auto requireInstance = getRequireTypeInstance(context, requireMap, semTemplateVar);
-					addTypeToRequirement(requireInstance, semSpecType);
+					addTypeToRequirement(context, requireMap.at(semTemplateVar), semSpecType);
 					break;
 				}
 				case AST::RequireExpr::AND: {
-					ConvertRequireExpr(context, requireMap, astRequireExprNode->andLeft());
-					ConvertRequireExpr(context, requireMap, astRequireExprNode->andRight());
+					ConvertRequireExpr(context, astRequireExprNode->andLeft(), requireMap);
+					ConvertRequireExpr(context, astRequireExprNode->andRight(), requireMap);
 					break;
 				}
 			}
@@ -55,11 +54,11 @@ namespace locic {
 		void ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode, SEM::TemplateRequireMap& requireMap) {
 			switch (astRequireSpecifierNode->kind()) {
 				case AST::RequireSpecifier::NONE:
-					break;
+					return;
 				case AST::RequireSpecifier::EXPR:
 				{
 					ConvertRequireExpr(context, astRequireSpecifierNode->expr(), requireMap);
-					break;
+					return;
 				}
 			}
 			

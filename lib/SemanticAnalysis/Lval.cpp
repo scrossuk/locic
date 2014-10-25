@@ -46,7 +46,7 @@ namespace locic {
 			return count;
 		}
 		
-		bool supportsDissolve(const SEM::Type* type) {
+		bool supportsDissolve(Context& context, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::AUTO:
 				case SEM::Type::ALIAS:
@@ -74,25 +74,24 @@ namespace locic {
 				}
 				
 				case SEM::Type::TEMPLATEVAR:
-					return supportsDissolve(type->getTemplateVar()->specTypeInstance()->selfType());
+					return supportsDissolve(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
 			}
 			
 			std::terminate();
 		}
 		
-		bool canDissolveValue(SEM::Value* value) {
+		bool canDissolveValue(Context& context, SEM::Value* value) {
 			const auto type = getSingleDerefType(value->type());
-			return type->isLval() && type->isObjectOrTemplateVar() && 
-supportsDissolve(type);
+			return type->isLval() && type->isObjectOrTemplateVar() && supportsDissolve(context, type);
 		}
 		
 		SEM::Value* dissolveLval(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			assert (canDissolveValue(value));
+			assert (canDissolveValue(context, value));
 			return CallValue(context, GetSpecialMethod(context, value, "dissolve", location), {}, location);
 		}
 		
 		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			return canDissolveValue(value) ? dissolveLval(context, value, location) : value;
+			return canDissolveValue(context, value) ? dissolveLval(context, value, location) : value;
 		}
 		
 	}

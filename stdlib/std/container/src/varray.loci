@@ -86,14 +86,14 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).__destroy_value();
 			}
 			
-			/*varray<T> copy() const <T: copyable<T>> {
+			varray<T> copy() const require(T: copyable<T>) {
 				auto array = varray<T>();
-				array.resize(@size);
-				for (auto i: counter<size_t>(1u, 0u, @size)) {
-					array[i].__set_value(self[i].copy());
+				array.reserve(@size);
+				for (auto i: counter<size_t>(0u, @size, 1u)) {
+					array.push_back(self[i].copy());
 				}
-				return array;
-			}*/
+				return move array;
+			}
 			
 			varray_range<T> all() const noexcept {
 				return varray_range<T>(self);

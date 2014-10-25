@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_size_t {
-	static T implicit_cast_size_t(size_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_size_t {
-	static T cast_size_t(size_t value) noexcept;
-}
-
 __primitive size_t {
 	static size_t unit() noexcept;
 	
@@ -22,12 +12,6 @@ __primitive size_t {
 	
 	size_t implicit_copy() const noexcept;
 	size_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_size_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_size_t<T>>
-	T cast() const noexcept;
 	
 	size_t add(const size_t& v) const noexcept;
 	size_t subtract(const size_t& v) const noexcept;
@@ -47,4 +31,24 @@ __primitive size_t {
 	bool isZero() const noexcept;
 	
 	ssize_t signedValue() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_size_t {
+	static T implicit_cast_size_t(size_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_size_t {
+	static T cast_size_t(size_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_size_t<T>>
+T size_t::implicitCast() const noexcept {
+	return T.implicit_cast_size_t(self);
+}
+
+template <typename T: __cast_from_size_t<T>>
+T size_t::cast() const noexcept {
+	return T.cast_size_t(self);
 }

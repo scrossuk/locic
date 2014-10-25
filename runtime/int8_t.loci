@@ -1,22 +1,6 @@
-template <typename T>
-interface __implicit_cast_from_int8_t {
-	static T implicit_cast_int8_t(int8_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_int8_t {
-	static T cast_int8_t(int8_t value) noexcept;
-}
-
 __primitive int8_t {
 	int8_t implicit_copy() const noexcept;
 	int8_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_int8_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_int8_t<T>>
-	T cast() const noexcept;
 	
 	int8_t plus() const noexcept;
 	int8_t minus() const noexcept;
@@ -41,4 +25,24 @@ __primitive int8_t {
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_int8_t {
+	static T implicit_cast_int8_t(int8_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_int8_t {
+	static T cast_int8_t(int8_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_int8_t<T>>
+T int8_t::implicitCast() const noexcept {
+	return T.implicit_cast_int8_t(self);
+}
+
+template <typename T: __cast_from_int8_t<T>>
+T int8_t::cast() const noexcept {
+	return T.cast_int8_t(self);
 }

@@ -1,3 +1,15 @@
+__primitive bool {
+	bool implicit_copy() const noexcept;
+	bool copy() const noexcept;
+	
+	bool equal(const bool& v) const noexcept;
+	bool not_equal(const bool& v) const noexcept;
+	
+	compare_result_t compare(const bool& v) const noexcept;
+	
+	bool not() const noexcept;
+}
+
 template <typename T>
 interface __implicit_cast_from_bool_t {
 	static T implicit_cast_bool_t(bool value) noexcept;
@@ -8,20 +20,12 @@ interface __cast_from_bool_t {
 	static T cast_bool_t(bool value) noexcept;
 }
 
-__primitive bool {
-	bool implicit_copy() const noexcept;
-	bool copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_bool_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_bool_t<T>>
-	T cast() const noexcept;
-	
-	bool equal(const bool& v) const noexcept;
-	bool not_equal(const bool& v) const noexcept;
-	
-	compare_result_t compare(const bool& v) const noexcept;
-	
-	bool not() const noexcept;
+template <typename T: __implicit_cast_from_bool_t<T>>
+T bool::implicitCast() const noexcept {
+	return T.implicit_cast_bool_t(self);
+}
+
+template <typename T: __cast_from_bool_t<T>>
+T bool::cast() const noexcept {
+	return T.cast_bool_t(self);
 }

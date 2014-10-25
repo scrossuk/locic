@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_ssize_t {
-	static T implicit_cast_ssize_t(ssize_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_ssize_t {
-	static T cast_ssize_t(ssize_t value) noexcept;
-}
-
 __primitive ssize_t {
 	static ssize_t implicit_cast_int8_t(int8_t value) noexcept;
 	static ssize_t implicit_cast_int16_t(int16_t value) noexcept;
@@ -16,12 +6,6 @@ __primitive ssize_t {
 	
 	ssize_t implicit_copy() const noexcept;
 	ssize_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_ssize_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_ssize_t<T>>
-	T cast() const noexcept;
 	
 	ssize_t plus() const noexcept;
 	ssize_t minus() const noexcept;
@@ -48,4 +32,24 @@ __primitive ssize_t {
 	bool isNegative() const noexcept;
 	
 	size_t unsignedValue() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_ssize_t {
+	static T implicit_cast_ssize_t(ssize_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_ssize_t {
+	static T cast_ssize_t(ssize_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_ssize_t<T>>
+T ssize_t::implicitCast() const noexcept {
+	return T.implicit_cast_ssize_t(self);
+}
+
+template <typename T: __cast_from_ssize_t<T>>
+T ssize_t::cast() const noexcept {
+	return T.cast_ssize_t(self);
 }

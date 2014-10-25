@@ -755,7 +755,7 @@ namespace locic {
 						return stream.str();
 					}
 				}
-									  
+				
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
 									  getFunctionReturnType()->nameToString().c_str(),

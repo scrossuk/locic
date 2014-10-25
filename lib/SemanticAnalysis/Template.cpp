@@ -13,28 +13,23 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/Template.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::TypeInstance* getRequireTypeInstance(Context& context, SEM::TemplateRequireMap& requireMap, SEM::TemplateVar* templateVar) {
-			const auto iterator = requireMap.find(templateVar);
-			if (iterator != requireMap.end()) {
-				return iterator->second;
-			}
-			
+		void addRequireTypeInstance(Context& context, SEM::TemplateRequireMap& requireMap, SEM::TemplateVar* templateVar) {
 			const auto name = templateVar->name() + "#spectype";
 			const auto moduleScope = SEM::ModuleScope::Internal();
-			const auto typeInstance = new SEM::TypeInstance(context.semContext(), name, SEM::TypeInstance::TEMPLATETYPE, moduleScope);
-			requireMap.insert(std::make_pair(templateVar, typeInstance));
-			return typeInstance;
+			std::unique_ptr<SEM::TypeInstance> typeInstance(new SEM::TypeInstance(context.semContext(), name, SEM::TypeInstance::TEMPLATETYPE, moduleScope));
+			requireMap.insert(std::make_pair(templateVar, typeInstance.release()));
 		}
 		
-		void addTypeToRequirement(SEM::TypeInstance* const requireInstance, const SEM::Type* const newType) {
+		void addTypeToRequirement(Context& context, SEM::TypeInstance* const requireInstance, const SEM::Type* const newType) {
 			assert(newType->isObjectOrTemplateVar());
 			
-			const auto typeInstance = newType->getObjectOrSpecType();
+			const auto typeInstance = getObjectOrSpecType(context, newType);
 			const auto templateVarMap = newType->generateTemplateVarMap();
 			
 			for (const auto& newFunctionPair: typeInstance->functions()) {
@@ -58,13 +53,15 @@ namespace locic {
 			}
 		}
 		
-		SEM::TypeInstance* getObjectOrSpecType(Context& context, const SEM::Type* const type) {
+		const SEM::TypeInstance* getObjectOrSpecType(Context& context, const SEM::Type* type) {
 			assert(type->isObject() || type->isTemplateVar());
-			if (type->isObject()) {
-				return type->getObjectType();
-			} else {
-				return lookupSpecType(context.scopeStack(), type->getTemplateVar());
-			}
+			return type->isObject() ?
+				type->getObjectType() :
+				getSpecType(context.scopeStack(), type->getTemplateVar());
+		}
+		
+		TemplatedTypeInstance getTemplateTypeInstance(Context& context, const SEM::Type* type) {
+			return std::make_pair(getObjectOrSpecType(context, type), type->generateTemplateVarMap());
 		}
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
@@ -91,6 +88,13 @@ namespace locic {
 							searchResult.isTypeAlias() ?
 								searchResult.typeAlias()->templateVariables() :
 								searchResult.typeInstance()->templateVariables();
+					
+					const auto& typeRequirements =
+						searchResult.isFunction() ?
+							searchResult.function()->typeRequirements() :
+							searchResult.isTypeAlias() ?
+								searchResult.typeAlias()->typeRequirements() :
+								searchResult.typeInstance()->typeRequirements();
 					
 					if (templateVariables.size() != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
@@ -136,32 +140,22 @@ namespace locic {
 						}
 						
 						const auto templateVariable = templateVariables.at(j);
+						const auto specTypeInstance = typeRequirements.at(templateVariable);
 						
-						if (templateVariable->specType() != nullptr) {
-							assert(templateVariable->specType()->isInterface());
-							
-							if (!templateTypeValue->isObjectOrTemplateVar()) {
-								throw ErrorException(makeString("Non-object type '%s' cannot satisfy "
-									"constraint for template parameter %llu of function or type '%s' at position %s.",
-									templateTypeValue->toString().c_str(),
-									(unsigned long long) j,
-									name.toString().c_str(),
-									location.toString().c_str()));
-							}
-							
-							const auto specType = templateVariable->specType()->substitute(templateVarMap);
-							
-							if (!TypeSatisfiesInterface(templateTypeValue, specType)) {
-								throw ErrorException(makeString("Type '%s' does not satisfy "
-									"constraint for template parameter %llu of function or type '%s' at position %s.",
-									templateTypeValue->getObjectType()->name().toString().c_str(),
-									(unsigned long long) j,
+						const auto sourceType = getTemplateTypeInstance(context, templateTypeValue);
+						const auto requireType = std::make_pair(specTypeInstance, templateVarMap);
+						
+						if (context.templateRequirementsComplete()) {
+							if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
+								throw ErrorException(makeString("Type does not satisfy "
+									"constraint for template parameter '%s' of function or type '%s' at position %s.",
+									templateVariable->name().toString().c_str(),
 									name.toString().c_str(),
 									location.toString().c_str()));
 							}
 						} else {
 							// Record this instantiation to be checked later.
-							context.templateInstantiations().push_back(std::make_tuple(templateVariable, templateTypeValue, templateVarMap, name, location));
+							context.templateInstantiations().push_back(std::make_tuple(templateVariable, sourceType, requireType, name, location));
 						}
 					}
 				} else {
@@ -241,11 +235,12 @@ namespace locic {
 			return true;
 		}
 		
-		bool TemplateValueSatisfiesRequirement(const SEM::TemplateVarMap& templateVarMap, const SEM::Type* objectType, const SEM::TypeInstance* requireInstance) {
-			assert(objectType->isObjectOrTemplateVar());
+		bool TemplateValueSatisfiesRequirement(const TemplatedTypeInstance& objectType, const TemplatedTypeInstance& requireType) {
+			const auto objectInstance = objectType.first;
+			const auto& objectTemplateVarMap = objectType.second;
 			
-			const auto objectInstance = objectType->getObjectOrSpecType();
-			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();
+			const auto requireInstance = requireType.first;
+			const auto& requireTemplateVarMap = requireType.second;
 			
 			auto objectIterator = objectInstance->functions().begin();
 			auto requireIterator = requireInstance->functions().begin();
@@ -278,7 +273,7 @@ namespace locic {
 				
 				// Substitute any template variables in the function types.
 				const auto objectFunctionType = objectFunction->type()->substitute(objectTemplateVarMap);
-				const auto requireFunctionType = requireFunction->type()->substitute(templateVarMap);
+				const auto requireFunctionType = requireFunction->type()->substitute(requireTemplateVarMap);
 				
 				// Function types must be equivalent.
 				if (!functionTypesCompatible(objectFunctionType, requireFunctionType)) {
@@ -291,18 +286,6 @@ namespace locic {
 				++requireIterator;
 			}
 			
-			return true;
-		}
-		
-		bool TemplateValuesSatisfyRequirements(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateRequireMap& requireMap) {
-			for (const auto& mapping: templateVarMap) {
-				const auto& templateVar = mapping.first;
-				const auto& value = mapping.second;
-				const auto& requireType = requireMap.at(templateVar);
-				if (!TemplateValueSatisfiesRequirement(templateVarMap, value, requireType)) {
-					return false;
-				}
-			}
 			return true;
 		}
 		

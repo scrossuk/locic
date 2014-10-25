@@ -30,7 +30,7 @@ import std.container 0.1.0 {
 			
 			void pop_back() noexcept;
 			
-			// varray<T> copy() const <T: copyable<T>>;
+			varray<T> copy() const require(T: copyable<T>);
 			
 			varray_range<T> all() const noexcept;
 			

@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_ulong_t {
-	static T implicit_cast_ulong_t(ulong_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_ulong_t {
-	static T cast_ulong_t(ulong_t value) noexcept;
-}
-
 __primitive ulong_t {
 	static ulong_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	static ulong_t implicit_cast_uint16_t(uint16_t value) noexcept;
@@ -17,12 +7,6 @@ __primitive ulong_t {
 	
 	ulong_t implicit_copy() const noexcept;
 	ulong_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_ulong_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_ulong_t<T>>
-	T cast() const noexcept;
 	
 	ulong_t add(const ulong_t& v) const noexcept;
 	ulong_t subtract(const ulong_t& v) const noexcept;
@@ -40,4 +24,24 @@ __primitive ulong_t {
 	compare_result_t compare(const ulong_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_ulong_t {
+	static T implicit_cast_ulong_t(ulong_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_ulong_t {
+	static T cast_ulong_t(ulong_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_ulong_t<T>>
+T ulong_t::implicitCast() const noexcept {
+	return T.implicit_cast_ulong_t(self);
+}
+
+template <typename T: __cast_from_ulong_t<T>>
+T ulong_t::cast() const noexcept {
+	return T.cast_ulong_t(self);
 }

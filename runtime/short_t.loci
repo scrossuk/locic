@@ -1,13 +1,3 @@
-template <typename T>
-interface __implicit_cast_from_short_t {
-	static T implicit_cast_short_t(short_t value) noexcept;
-}
-
-template <typename T>
-interface __cast_from_short_t {
-	static T cast_short_t(short_t value) noexcept;
-}
-
 __primitive short_t {
 	static short_t implicit_cast_int8_t(int8_t value) noexcept;
 	static short_t implicit_cast_int16_t(int16_t value) noexcept;
@@ -15,12 +5,6 @@ __primitive short_t {
 	
 	short_t implicit_copy() const noexcept;
 	short_t copy() const noexcept;
-	
-	template <typename T: __implicit_cast_from_short_t<T>>
-	T implicitCast() const noexcept;
-	
-	template <typename T: __cast_from_short_t<T>>
-	T cast() const noexcept;
 	
 	short_t plus() const noexcept;
 	short_t minus() const noexcept;
@@ -41,4 +25,24 @@ __primitive short_t {
 	bool greater_than_or_equal(const short_t& v) const noexcept;
 	
 	compare_result_t compare(const short_t& v) const noexcept;
+}
+
+template <typename T>
+interface __implicit_cast_from_short_t {
+	static T implicit_cast_short_t(short_t value) noexcept;
+}
+
+template <typename T>
+interface __cast_from_short_t {
+	static T cast_short_t(short_t value) noexcept;
+}
+
+template <typename T: __implicit_cast_from_short_t<T>>
+T short_t::implicitCast() const noexcept {
+	return T.implicit_cast_short_t(self);
+}
+
+template <typename T: __cast_from_short_t<T>>
+T short_t::cast() const noexcept {
+	return T.cast_short_t(self);
 }

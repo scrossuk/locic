@@ -44,17 +44,18 @@ namespace locic {
 			return semFunction;
 		}
 		
-		bool HasNoExceptImplicitCopy(SEM::TypeInstance* typeInstance) {
+		bool HasNoExceptImplicitCopy(Context& context, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasNoExceptImplicitCopy(variantTypeInstance)) {
+					if (!HasNoExceptImplicitCopy(context, variantTypeInstance)) {
 						return false;
 					}
 				}
 				return true;
 			} else {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
-					if (!supportsNoExceptImplicitCopy(var->constructType())) {
+					if (!supportsNoExceptImplicitCopy(context, var->constructType())) {
 						return false;
 					}
 				}
@@ -62,17 +63,18 @@ namespace locic {
 			}
 		}
 		
-		bool HasNoExceptExplicitCopy(SEM::TypeInstance* typeInstance) {
+		bool HasNoExceptExplicitCopy(Context& context, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasNoExceptExplicitCopy(variantTypeInstance)) {
+					if (!HasNoExceptExplicitCopy(context, variantTypeInstance)) {
 						return false;
 					}
 				}
 				return true;
 			} else {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
-					if (!supportsNoExceptExplicitCopy(var->constructType())) {
+					if (!supportsNoExceptExplicitCopy(context, var->constructType())) {
 						return false;
 					}
 				}
@@ -80,7 +82,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* CreateDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name) {
+		SEM::Function* CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
 			semFunction->setMethod(true);
@@ -92,13 +94,13 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			const bool isNoExcept = HasNoExceptImplicitCopy(typeInstance);
+			const bool isNoExcept = HasNoExceptImplicitCopy(context, typeInstance);
 			
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance, const Name& name) {
+		SEM::Function* CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
 			semFunction->setMethod(true);
@@ -110,7 +112,7 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			const bool isNoExcept = HasNoExceptExplicitCopy(typeInstance);
+			const bool isNoExcept = HasNoExceptExplicitCopy(context, typeInstance);
 			
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
 			return semFunction;
@@ -153,14 +155,14 @@ namespace locic {
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				return CreateDefaultImplicitCopyDecl(typeInstance, name);
+				return CreateDefaultImplicitCopyDecl(context, typeInstance, name);
 			} else if (canonicalName == "copy") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				return CreateDefaultExplicitCopyDecl(typeInstance, name);
+				return CreateDefaultExplicitCopyDecl(context, typeInstance, name);
 			} else if (canonicalName == "compare") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
@@ -174,17 +176,18 @@ namespace locic {
 				name.toString().c_str(), location.toString().c_str()));
 		}
 		
-		bool HasDefaultImplicitCopy(SEM::TypeInstance* const typeInstance) {
+		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasDefaultImplicitCopy(variantTypeInstance)) {
+					if (!HasDefaultImplicitCopy(context, variantTypeInstance)) {
 						return false;
 					}
 				}
 				return true;
 			} else {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
-					if (!supportsImplicitCopy(var->constructType())) {
+					if (!supportsImplicitCopy(context, var->constructType())) {
 						return false;
 					}
 				}
@@ -192,17 +195,18 @@ namespace locic {
 			}
 		}
 		
-		bool HasDefaultExplicitCopy(SEM::TypeInstance* const typeInstance) {
+		bool HasDefaultExplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasDefaultExplicitCopy(variantTypeInstance)) {
+					if (!HasDefaultExplicitCopy(context, variantTypeInstance)) {
 						return false;
 					}
 				}
 				return true;
 			} else {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
-					if (!supportsExplicitCopy(var->constructType())) {
+					if (!supportsExplicitCopy(context, var->constructType())) {
 						return false;
 					}
 				}
@@ -210,17 +214,18 @@ namespace locic {
 			}
 		}
 		
-		bool HasDefaultCompare(SEM::TypeInstance* typeInstance) {
+		bool HasDefaultCompare(Context& context, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!supportsCompare(variantTypeInstance->selfType())) {
+					if (!supportsCompare(context, variantTypeInstance->selfType())) {
 						return false;
 					}
 				}
 				return true;
 			} else {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
-					if (!supportsCompare(var->constructType())) {
+					if (!supportsCompare(context, var->constructType())) {
 						return false;
 					}
 				}
@@ -377,21 +382,21 @@ namespace locic {
 				assert(!typeInstance->isException());
 				CreateDefaultConstructor(context, typeInstance, function, location);
 			} else if (canonicalName == "implicitcopy") {
-				if (!HasDefaultImplicitCopy(typeInstance)) {
+				if (!HasDefaultImplicitCopy(context, typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
 				CreateDefaultImplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "copy") {
-				if (!HasDefaultExplicitCopy(typeInstance)) {
+				if (!HasDefaultExplicitCopy(context, typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
 				CreateDefaultExplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "compare") {
-				if (!HasDefaultCompare(typeInstance)) {
+				if (!HasDefaultCompare(context, typeInstance)) {
 					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
