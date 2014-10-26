@@ -44,6 +44,32 @@ namespace locic {
 			return semFunction;
 		}
 		
+		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			
+			semFunction->setMethod(true);
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod = true;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// Move never throws.
+			const bool isNoExcept = true;
+			
+			const auto constructTypes = typeInstance->constructTypes();
+			
+			std::vector<SEM::Var*> argVars;
+			for (const auto constructType: constructTypes) {
+				const bool isLvalConst = false;
+				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
+				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
+			}
+			
+			semFunction->setParameters(std::move(argVars));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes));
+			return semFunction;
+		}
+		
 		bool HasNoExceptImplicitCopy(Context& context, SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {

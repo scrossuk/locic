@@ -430,6 +430,12 @@ namespace locic {
 			}
 		}
 		
+		bool supportsMove(Context& context, const SEM::Type* const rawType) {
+			const SEM::Type* const type = rawType->resolveAliases();
+			const SEM::Type* const interfaceType = getBuiltInType(context.scopeStack(), "movable");
+			return TypeSatisfiesInterface(context, type, interfaceType);
+		}
+		
 	}
 	
 }

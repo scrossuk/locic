@@ -36,6 +36,12 @@ namespace locic {
 				const auto& functionName = newFunctionPair.first;
 				const auto& newFunction = newFunctionPair.second;
 				
+				// TODO: also skip unsatisfied requirement specifiers.
+				if (newType->isConst() && !newFunction->isConstMethod()) {
+					// Skip function.
+					continue;
+				}
+				
 				const auto& iterator = requireInstance->functions().find(functionName);
 				if (iterator != requireInstance->functions().end()) {
 					// Not a new method; must be merged with existing method.

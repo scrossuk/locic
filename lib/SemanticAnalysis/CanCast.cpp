@@ -325,8 +325,14 @@ location, bool isTopLevel) {
 			auto objectIterator = objectInstance->functions().begin();
 			auto interfaceIterator = interfaceInstance->functions().begin();
 			
-			for (; interfaceIterator != interfaceInstance->functions().end(); ++objectIterator) {
+			while (interfaceIterator != interfaceInstance->functions().end()) {
 				const auto interfaceFunction = interfaceIterator->second;
+				
+				if (interfaceType->isConst() && !interfaceFunction->isConstMethod()) {
+					// Skip this method.
+					++interfaceIterator;
+					continue;
+				}
 				
 				if (objectIterator == objectInstance->functions().end()) {
 					// If all the object methods have been considered, but
@@ -340,7 +346,16 @@ location, bool isTopLevel) {
 				const auto objectFunction = objectIterator->second;
 				
 				if (!methodNamesMatch(objectFunction->name().last(), interfaceFunction->name().last())) {
+					++objectIterator;
 					continue;
+				}
+				
+				// Can't use method since object type is const.
+				if (objectType->isConst() && !objectFunction->isConstMethod()) {
+					printf("\n\nNot const-compatible:\n\n%s\n\n%s\n\n",
+						objectFunction->name().toString().c_str(),
+						interfaceFunction->name().toString().c_str());
+					return false;
 				}
 				
 				// Can't cast mutator method to const method.
@@ -364,6 +379,7 @@ location, bool isTopLevel) {
 				}
 				
 				++interfaceIterator;
+				++objectIterator;
 			}
 			
 			return true;
