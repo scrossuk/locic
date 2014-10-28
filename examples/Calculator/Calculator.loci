@@ -1,11 +1,11 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const ubyte * const str, ...) noexcept;
+import void printf(const ubyte * str, ...) noexcept;
 
-import int atoi(const ubyte * const str) noexcept;
-import int strcmp(const ubyte * const s1, const ubyte * const s2) noexcept;
+import int atoi(const ubyte * str) noexcept;
+import int strcmp(const ubyte * s1, const ubyte * s2) noexcept;
 
-bool isStrEqual(const ubyte * const s1, const ubyte * const s2) noexcept {
+bool isStrEqual(const ubyte * s1, const ubyte * s2) noexcept {
 	return strcmp(s1, s2) == 0;
 }
 

@@ -202,6 +202,16 @@ namespace locic {
 				name.toString().c_str(), location.toString().c_str()));
 		}
 		
+		bool HasDefaultConstructor(Context&, SEM::TypeInstance* const typeInstance) {
+			return typeInstance->isDatatype() || typeInstance->isStruct() || typeInstance->isException();
+		}
+		
+		bool HasDefaultMove(Context&, SEM::TypeInstance* const typeInstance) {
+			// There's only a default move method if the user
+			// hasn't specified a custom move method.
+			return typeInstance->functions().find("moveto") == typeInstance->functions().end();
+		}
+		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
@@ -210,7 +220,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
+			} else if(typeInstance->isStruct() || typeInstance->isException()) {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsImplicitCopy(context, var->constructType())) {
@@ -218,6 +228,8 @@ namespace locic {
 					}
 				}
 				return true;
+			} else {
+				return false;
 			}
 		}
 		
@@ -229,7 +241,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
+			} else if(typeInstance->isStruct() || typeInstance->isException()) {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsExplicitCopy(context, var->constructType())) {
@@ -237,10 +249,12 @@ namespace locic {
 					}
 				}
 				return true;
+			} else {
+				return false;
 			}
 		}
 		
-		bool HasDefaultCompare(Context& context, SEM::TypeInstance* typeInstance) {
+		bool HasDefaultCompare(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!supportsCompare(context, variantTypeInstance->selfType())) {
@@ -248,7 +262,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
+			} else if(typeInstance->isStruct() || typeInstance->isException()) {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsCompare(context, var->constructType())) {
@@ -256,6 +270,8 @@ namespace locic {
 					}
 				}
 				return true;
+			} else {
+				return false;
 			}
 		}
 		

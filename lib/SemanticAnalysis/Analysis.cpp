@@ -734,29 +734,6 @@ namespace locic {
 			}
 		}
 		
-		void CheckTemplateInstantiationsPass(Context& context) {
-			auto& templateInsts = context.templateInstantiations();
-			
-			for (const auto& inst: templateInsts) {
-				const auto templateVariable = std::get<0>(inst);
-				const auto& sourceType = std::get<1>(inst);
-				const auto& requireType = std::get<2>(inst);
-				const auto parentName = std::get<3>(inst);
-				const auto location = std::get<4>(inst);
-				
-				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
-					throw ErrorException(makeString("Type does not satisfy "
-						"constraint for template parameter '%s' of function or type '%s' at position %s.",
-						templateVariable->name().toString().c_str(),
-						parentName.toString().c_str(),
-						location.toString().c_str()));
-				}
-			}
-			
-			templateInsts.clear();
-			context.setTemplateRequirementsComplete();
-		}
-		
 		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance* typeInstance, std::set<SEM::TypeInstance*>& completedTypes) {
 			if (completedTypes.find(typeInstance) != completedTypes.end()) {
 				return;
@@ -783,26 +760,32 @@ namespace locic {
 			}
 			
 			// Add default constructor.
-			if (typeInstance->isDatatype() || typeInstance->isStruct() || typeInstance->isException()) {
+			if (HasDefaultConstructor(context, typeInstance)) {
 				// Add constructor for exception types using initializer;
-				// for datatypes and structs, just add a default constructor.
-				const auto constructor =
+				// for other types just add a default constructor.
+				const auto methodDecl =
 					typeInstance->isException() ?
 						CreateExceptionConstructorDecl(context, typeInstance) :
 						CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + "create");
-				typeInstance->functions().insert(std::make_pair("create", constructor));
+				typeInstance->functions().insert(std::make_pair("create", methodDecl));
+			}
+			
+			// Add default move method.
+			if (HasDefaultMove(context, typeInstance)) {
+				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "moveto");
+				typeInstance->functions().insert(std::make_pair("moveto", methodDecl));
 			}
 			
 			// Add default implicit copy if available.
-			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultImplicitCopy(context, typeInstance)) {
-				const auto implicitCopy = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + "implicitcopy");
-				typeInstance->functions().insert(std::make_pair("implicitcopy", implicitCopy));
+			if (HasDefaultImplicitCopy(context, typeInstance)) {
+				const auto methodDecl = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + "implicitcopy");
+				typeInstance->functions().insert(std::make_pair("implicitcopy", methodDecl));
 			}
 			
 			// Add default compare for datatypes if available.
-			if ((typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype()) && HasDefaultCompare(context, typeInstance)) {
-				const auto implicitCopy = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
-				typeInstance->functions().insert(std::make_pair("compare", implicitCopy));
+			if (HasDefaultCompare(context, typeInstance)) {
+				const auto methodDecl = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
+				typeInstance->functions().insert(std::make_pair("compare", methodDecl));
 			}
 		}
 		
@@ -821,6 +804,29 @@ namespace locic {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			std::set<SEM::TypeInstance*> completedTypes;
 			GenerateNamespaceDefaultMethods(context, semNamespace, completedTypes);
+		}
+		
+		void CheckTemplateInstantiationsPass(Context& context) {
+			auto& templateInsts = context.templateInstantiations();
+			
+			for (const auto& inst: templateInsts) {
+				const auto templateVariable = std::get<0>(inst);
+				const auto& sourceType = std::get<1>(inst);
+				const auto& requireType = std::get<2>(inst);
+				const auto parentName = std::get<3>(inst);
+				const auto location = std::get<4>(inst);
+				
+				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
+					throw ErrorException(makeString("Type does not satisfy "
+						"constraint for template parameter '%s' of function or type '%s' at position %s.",
+						templateVariable->name().toString().c_str(),
+						parentName.toString().c_str(),
+						location.toString().c_str()));
+				}
+			}
+			
+			templateInsts.clear();
+			context.setTemplateRequirementsComplete();
 		}
 		
 		void Run(const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
@@ -846,11 +852,11 @@ namespace locic {
 				// ---- Pass 5: Complete template type variable requirements.
 				CompleteTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 6: Check all previous template instantiations are correct.
-				CheckTemplateInstantiationsPass(context);
-				
-				// ---- Pass 7: Generate default methods.
+				// ---- Pass 6: Generate default methods.
 				GenerateDefaultMethodsPass(context);
+				
+				// ---- Pass 7: Check all previous template instantiations are correct.
+				CheckTemplateInstantiationsPass(context);
 				
 				// ---- Pass 8: Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
