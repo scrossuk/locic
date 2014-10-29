@@ -10,22 +10,22 @@ __primitive bool {
 	bool not() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_bool_t {
 	static T implicit_cast_bool_t(bool value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_bool_t {
 	static T cast_bool_t(bool value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_bool_t<T>>
-T bool::implicitCast() const noexcept {
+T bool::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_bool_t(self);
 }
 
 template <typename T: __cast_from_bool_t<T>>
-T bool::cast() const noexcept {
+T bool::cast() const noexcept require(T : movable) {
 	return T.cast_bool_t(self);
 }

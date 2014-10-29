@@ -29,23 +29,23 @@ __primitive byte_t {
 	bool isZero() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_byte_t {
 	static T implicit_cast_byte_t(byte_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_byte_t {
 	static T cast_byte_t(byte_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_byte_t<T>>
-T byte_t::implicitCast() const noexcept {
+T byte_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_byte_t(self);
 }
 
 template <typename T: __cast_from_byte_t<T>>
-T byte_t::cast() const noexcept {
+T byte_t::cast() const noexcept require(T : movable) {
 	return T.cast_byte_t(self);
 }
 

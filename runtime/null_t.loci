@@ -5,12 +5,12 @@ __primitive null_t {
 	null_t copy() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_null_t {
 	static T null() noexcept;
 }
 
 template <typename T: __implicit_cast_from_null_t<T>>
-T null_t::implicitCast() const noexcept {
+T null_t::implicitCast() const noexcept require(T : movable) {
 	return T.null();
 }

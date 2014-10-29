@@ -37,22 +37,22 @@ __primitive ulonglong_t {
 	bool isZero() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_ulonglong_t {
 	static T implicit_cast_ulonglong_t(ulonglong_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_ulonglong_t {
 	static T cast_ulonglong_t(ulonglong_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_ulonglong_t<T>>
-T ulonglong_t::implicitCast() const noexcept {
+T ulonglong_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_ulonglong_t(self);
 }
 
 template <typename T: __cast_from_ulonglong_t<T>>
-T ulonglong_t::cast() const noexcept {
+T ulonglong_t::cast() const noexcept require(T : movable) {
 	return T.cast_ulonglong_t(self);
 }

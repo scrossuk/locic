@@ -29,22 +29,22 @@ __primitive ptrdiff_t {
 	bool isZero() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_ptrdiff_t {
 	static T implicit_cast_ptrdiff_t(ptrdiff_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_ptrdiff_t {
 	static T cast_ptrdiff_t(ptrdiff_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_ptrdiff_t<T>>
-T ptrdiff_t::implicitCast() const noexcept {
+T ptrdiff_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_ptrdiff_t(self);
 }
 
 template <typename T: __cast_from_ptrdiff_t<T>>
-T ptrdiff_t::cast() const noexcept {
+T ptrdiff_t::cast() const noexcept require(T : movable) {
 	return T.cast_ptrdiff_t(self);
 }

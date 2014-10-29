@@ -39,22 +39,22 @@ __primitive float_t {
 	compare_result_t compare(const float_t& v) const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_float_t {
 	static T implicit_cast_float_t(float_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_float_t {
 	static T cast_float_t(float_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_float_t<T>>
-T float_t::implicitCast() const noexcept {
+T float_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_float_t(self);
 }
 
 template <typename T: __cast_from_float_t<T>>
-T float_t::cast() const noexcept {
+T float_t::cast() const noexcept require(T : movable) {
 	return T.cast_float_t(self);
 }

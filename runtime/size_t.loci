@@ -33,22 +33,22 @@ __primitive size_t {
 	ssize_t signedValue() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_size_t {
 	static T implicit_cast_size_t(size_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_size_t {
 	static T cast_size_t(size_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_size_t<T>>
-T size_t::implicitCast() const noexcept {
+T size_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_size_t(self);
 }
 
 template <typename T: __cast_from_size_t<T>>
-T size_t::cast() const noexcept {
+T size_t::cast() const noexcept require(T : movable) {
 	return T.cast_size_t(self);
 }

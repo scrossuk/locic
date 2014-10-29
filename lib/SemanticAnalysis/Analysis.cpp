@@ -819,7 +819,7 @@ namespace locic {
 				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
 					throw ErrorException(makeString("Type does not satisfy "
 						"constraint for template parameter '%s' of function or type '%s' at position %s.",
-						templateVariable->name().toString().c_str(),
+						templateVariable->name().last().c_str(),
 						parentName.toString().c_str(),
 						location.toString().c_str()));
 				}

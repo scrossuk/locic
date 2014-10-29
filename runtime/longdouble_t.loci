@@ -26,22 +26,22 @@ __primitive longdouble_t {
 	compare_result_t compare(const longdouble_t& v) const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_longdouble_t {
 	static T implicit_cast_longdouble_t(longdouble_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_longdouble_t {
 	static T cast_longdouble_t(longdouble_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_longdouble_t<T>>
-T longdouble_t::implicitCast() const noexcept {
+T longdouble_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_longdouble_t(self);
 }
 
 template <typename T: __cast_from_longdouble_t<T>>
-T longdouble_t::cast() const noexcept {
+T longdouble_t::cast() const noexcept require(T : movable) {
 	return T.cast_longdouble_t(self);
 }

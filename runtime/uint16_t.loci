@@ -21,22 +21,22 @@ __primitive uint16_t {
 	bool isZero() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_uint16_t {
 	static T implicit_cast_uint16_t(uint16_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_uint16_t {
 	static T cast_uint16_t(uint16_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_uint16_t<T>>
-T uint16_t::implicitCast() const noexcept {
+T uint16_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_uint16_t(self);
 }
 
 template <typename T: __cast_from_uint16_t<T>>
-T uint16_t::cast() const noexcept {
+T uint16_t::cast() const noexcept require(T : movable) {
 	return T.cast_uint16_t(self);
 }

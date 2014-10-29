@@ -37,22 +37,22 @@ __primitive int_t {
 	bool isNegative() const noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __implicit_cast_from_int_t {
 	static T implicit_cast_int_t(int_t value) noexcept;
 }
 
-template <typename T>
+template <typename T : movable>
 interface __cast_from_int_t {
 	static T cast_int_t(int_t value) noexcept;
 }
 
 template <typename T: __implicit_cast_from_int_t<T>>
-T int_t::implicitCast() const noexcept {
+T int_t::implicitCast() const noexcept require(T : movable) {
 	return T.implicit_cast_int_t(self);
 }
 
 template <typename T: __cast_from_int_t<T>>
-T int_t::cast() const noexcept {
+T int_t::cast() const noexcept require(T : movable) {
 	return T.cast_int_t(self);
 }
