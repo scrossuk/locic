@@ -75,6 +75,10 @@ namespace locic {
 			return s;
 		}
 		
+		std::string mangleMoveName(SEM::TypeInstance* typeInstance) {
+			return mangleMethodName(typeInstance, "__moveto");
+		}
+		
 		std::string mangleDestructorName(SEM::TypeInstance* typeInstance) {
 			return mangleMethodName(typeInstance, "__destroy");
 		}

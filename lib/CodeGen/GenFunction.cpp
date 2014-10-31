@@ -37,8 +37,7 @@ namespace locic {
 			const auto& moduleScope = function->moduleScope();
 			
 			if (moduleScope.isInternal()) {
-				// Internal definition.
-				assert(function->isDefinition());
+				// Internal functions.
 				return llvm::Function::PrivateLinkage;
 			} else if (moduleScope.isImport() && function->isDefinition()) {
 				// Auto-generated type method (e.g. an implicitcopy for a struct).

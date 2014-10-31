@@ -142,6 +142,10 @@ namespace locic {
 			return memberVarMap_;
 		}
 		
+		MoveFunctionMap& Module::getMoveFunctionMap() {
+			return moveFunctionMap_;
+		}
+		
 		StandardTypeMap& Module::standardTypeMap() {
 			return standardTypeMap_;
 		}

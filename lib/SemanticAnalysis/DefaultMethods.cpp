@@ -56,17 +56,22 @@ namespace locic {
 			// Move never throws.
 			const bool isNoExcept = true;
 			
-			const auto constructTypes = typeInstance->constructTypes();
+			const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
+			const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
+			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
+			const auto voidPtrType = SEM::Type::Object(ptrTypeInstance, { voidType });
 			
-			std::vector<SEM::Var*> argVars;
+			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType, sizeType };
+			
+			/*std::vector<SEM::Var*> argVars;
 			for (const auto constructType: constructTypes) {
 				const bool isLvalConst = false;
 				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
 			}
 			
-			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes));
+			semFunction->setParameters(std::move(argVars));*/
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, voidType, argTypes));
 			return semFunction;
 		}
 		
@@ -209,7 +214,7 @@ namespace locic {
 		bool HasDefaultMove(Context&, SEM::TypeInstance* const typeInstance) {
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
-			return typeInstance->functions().find("moveto") == typeInstance->functions().end();
+			return !typeInstance->isInterface() && typeInstance->functions().find("__moveto") == typeInstance->functions().end();
 		}
 		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {

@@ -25,6 +25,7 @@ add_library(locic-codegen
 	md5.cpp
 	Memory.cpp
 	Module.cpp
+	Move.cpp
 	Primitives/PrimitiveDestructor.cpp
 	Primitives/PrimitiveMethod.cpp
 	Primitives/PrimitiveSizeOf.cpp

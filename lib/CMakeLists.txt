@@ -15,6 +15,7 @@ add_subdirectory(SemanticAnalysis)
 
 # Build support library.
 add_library(locic-support
+	Name.cpp
 	String.cpp
 	Version.cpp
 	)

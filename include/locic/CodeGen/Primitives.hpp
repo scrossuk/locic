@@ -66,8 +66,10 @@ namespace locic {
 		
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
-		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void createPrimitiveMove(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue);
 		
+		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
@@ -85,8 +87,10 @@ namespace locic {
 		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
-		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type);
+		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type);
+		bool primitiveTypeInstanceHasCustomMove(Module& module, SEM::TypeInstance* typeInstance);
 		
+		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type);
 		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type);

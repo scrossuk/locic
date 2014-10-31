@@ -18,6 +18,8 @@ namespace locic {
 		
 		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName);
 		
+		std::string mangleMoveName(SEM::TypeInstance* typeInstance);
+		
 		std::string mangleDestructorName(SEM::TypeInstance* typeInstance);
 		
 		std::string mangleObjectType(SEM::TypeInstance* typeInstance);

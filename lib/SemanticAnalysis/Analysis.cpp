@@ -772,8 +772,8 @@ namespace locic {
 			
 			// Add default move method.
 			if (HasDefaultMove(context, typeInstance)) {
-				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "moveto");
-				typeInstance->functions().insert(std::make_pair("moveto", methodDecl));
+				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "__moveto");
+				typeInstance->functions().insert(std::make_pair("__moveto", methodDecl));
 			}
 			
 			// Add default implicit copy if available.

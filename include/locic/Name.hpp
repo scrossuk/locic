@@ -13,184 +13,67 @@ namespace locic{
 		typedef ListType::const_iterator CItType;
 	
 		public:
-			inline Name()
-				: isAbsolute_(true){ }
+			Name();
 			
-			inline explicit Name(bool isNameAbsolute)
-				: isAbsolute_(isNameAbsolute){ }
+			explicit Name(bool isNameAbsolute);
 			
-			inline Name(const Name& name, size_t substrSize)
-				: isAbsolute_(name.isAbsolute()){
-				
-				assert(substrSize <= name.size());
-				
-				for(std::size_t i = 0; i < substrSize; i++){
-					list_.push_back(name.at(i));
-				}	
-			}
+			Name(const Name& name, size_t substrSize);
 			
-			inline Name(const Name& prefix, const std::string& suffix)
-				: isAbsolute_(prefix.isAbsolute()){
-				for(std::size_t i = 0; i < prefix.size(); i++){
-					list_.push_back(prefix.at(i));
-				}
-				
-				// No member of a name can be an empty string.
-				if(suffix.size() > 0){
-					list_.push_back(suffix);
-				}
-			}
+			Name(const Name& prefix, const std::string& suffix);
 			
-			inline Name(const Name& prefix, const Name& suffix)
-				: isAbsolute_(prefix.isAbsolute()){
-				for(std::size_t i = 0; i < prefix.size(); i++){
-					list_.push_back(prefix.at(i));
-				}
-				for(std::size_t i = 0; i < suffix.size(); i++){
-					list_.push_back(suffix.at(i));
-				}
-			}
+			Name(const Name& prefix, const Name& suffix);
 			
-			inline static Name Absolute(){
-				return Name(true);
-			}
+			static Name Absolute();
 			
-			inline static Name Relative(){
-				return Name(false);
-			}
+			static Name Relative();
 			
-			inline bool operator==(const Name& name) const{
-				if(size() != name.size()) return false;
-				for(std::size_t i = 0; i < size(); i++){
-					if(at(i) != name.at(i)){
-						return false;
-					}
-				}
-				return true;
-			}
+			bool operator==(const Name& name) const;
 			
-			inline Name operator+(const std::string& name) const{
-				return Name(*this, name);
-			}
+			Name operator+(const std::string& name) const;
 			
-			inline Name makeAbsolute(const Name& name) const{
-				assert(isAbsolute());
-				assert(!name.empty());
-				if(name.isAbsolute()){
-					return name;
-				}else{
-					return concat(name);
-				}
-			}
+			Name makeAbsolute(const Name& name) const;
 			
-			inline bool isRelative() const{
-				return !isAbsolute_;
-			}
+			bool isRelative() const;
 			
-			inline bool isAbsolute() const{
-				return isAbsolute_;
-			}
+			bool isAbsolute() const;
 			
-			inline bool isPrefixOf(const Name& name) const{
-				if(size() >= name.size()) return false;
-				for(std::size_t i = 0; i < size(); i++){
-					if(at(i) != name.at(i)){
-						return false;
-					}
-				}
-				return true;
-			}
+			bool isPrefixOf(const Name& name) const;
 			
-			inline bool isExactPrefixOf(const Name& name) const{
-				return (size() + 1 == name.size()) && isPrefixOf(name);
-			}
+			bool isExactPrefixOf(const Name& name) const;
 			
-			inline std::string toString(bool addPrefix = true) const{
-				std::string str;
-				if (addPrefix && isAbsolute_) str += "::";
-				
-				for (CItType it = list_.begin(); it != list_.end(); ++it) {
-					if (it != list_.begin()) str += "::";
-					str += *it;
-				}
-				return str;
-			}
+			std::string toString(bool addPrefix = true) const;
 			
-			inline std::string genString() const{
-				std::string str;
-				for(CItType it = list_.begin(); it != list_.end(); ++it){
-					if(it != list_.begin()) str += "__";
-					str += *it;
-				}
-				return str;
-			}
+			std::string genString() const;
 			
-			inline std::string first() const{
-				return list_.front();
-			}
+			std::string first() const;
 			
-			inline std::string last() const{
-				assert(list_.back() == revAt(0)
-					&& "The last element must be the first element when the list is in reverse order");
-				return list_.back();
-			}
+			std::string last() const;
 			
-			inline std::string onlyElement() const{
-				assert(list_.size() == 1
-					&& "Getting the only element of a name means there must be exactly one element");
-				return list_.front();
-			}
+			std::string onlyElement() const;
 			
-			inline bool empty() const{
-				return list_.empty();
-			}
+			bool empty() const;
 			
-			inline std::size_t size() const{
-				return list_.size();
-			}
+			std::size_t size() const;
 			
-			inline std::string at(std::size_t i) const{
-				assert(i < list_.size());
-				return list_.at(i);
-			}
+			std::string at(std::size_t i) const;
 			
-			inline std::string revAt(std::size_t i) const{
-				assert(i < list_.size());
-				return list_.at(list_.size() - i - 1);
-			}
+			std::string revAt(std::size_t i) const;
 			
-			inline Name substr(std::size_t substrSize) const{
-				return Name(*this, substrSize);
-			}
+			Name substr(std::size_t substrSize) const;
 			
-			inline Name concat(const Name& suffix) const{
-				return Name(*this, suffix);
-			}
+			Name concat(const Name& suffix) const;
 			
-			inline Name append(const std::string& suffix) const{
-				return Name(*this, suffix);
-			}
+			Name append(const std::string& suffix) const;
 			
-			inline Name getPrefix() const {
-				assert(!empty());
-				return substr(size() - 1);
-			}
+			Name getPrefix() const;
 			
-			inline ListType::iterator begin() {
-				return list_.begin();
-			}
+			ListType::iterator begin();
 			
-			inline ListType::iterator end() {
-				return list_.end();
-			}
+			ListType::iterator end();
 			
-			inline ListType::const_iterator begin() const {
-				return list_.begin();
-			}
+			ListType::const_iterator begin() const;
 			
-			inline ListType::const_iterator end() const {
-				return list_.end();
-			}
+			ListType::const_iterator end() const;
 			
 		private:
 			bool isAbsolute_;
@@ -198,28 +81,7 @@ namespace locic{
 			
 	};
 	
-	inline std::string CanonicalizeMethodName(const std::string& name) {
-		if (name.size() >= 2 && name.at(0) == '_' && name.at(1) == '_') {
-			// Preserve names that start with two underscores.
-			return name;
-		}
-		
-		std::string canonicalName;
-		
-		for (size_t i = 0; i < name.size(); i++) {
-			const auto c = name.at(i);
-			if (c == '_') continue;
-			
-			if (c >= 'A' && c <= 'Z') {
-				canonicalName += 'a' + (c - 'A');
-				continue;
-			}
-			
-			canonicalName += c;
-		}
-		
-		return canonicalName;
-	}
+	std::string CanonicalizeMethodName(const std::string& name);
 
 }
 

@@ -282,7 +282,7 @@ location, bool isTopLevel) {
 			const auto& secondList = destType->getFunctionParameterTypes();
 			
 			if (firstList.size() != secondList.size()) {
-				return firstList.size() < secondList.size();
+				return false;
 			}
 			
 			for (size_t i = 0; i < firstList.size(); i++) {

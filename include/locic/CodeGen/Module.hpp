@@ -50,6 +50,7 @@ namespace locic {
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef Map<SEM::Var*, size_t> MemberVarMap;
+		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
 		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
 		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef std::map<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
@@ -98,6 +99,8 @@ namespace locic {
 				
 				const MemberVarMap& getMemberVarMap() const;
 				
+				MoveFunctionMap& getMoveFunctionMap();
+				
 				StandardTypeMap& standardTypeMap();
 				
 				TemplateBuilder& templateBuilder(TemplatedObject templatedObject);
@@ -135,6 +138,7 @@ namespace locic {
 				FunctionPtrStubMap functionPtrStubMap_;
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
+				MoveFunctionMap moveFunctionMap_;
 				PrimitiveMap primitiveMap_;
 				StandardTypeMap standardTypeMap_;
 				TemplateBuilderMap templateBuilderMap_;

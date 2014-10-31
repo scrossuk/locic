@@ -3,10 +3,10 @@ __primitive member_lval {
 	static member_lval<T> __empty() noexcept;
 	
 	T* address() const noexcept;
-	void assign(T value) noexcept;
+	void assign(T value) noexcept require(T : movable);
 	T& dissolve() const noexcept;
 	
-	void __set_value(T value) noexcept;
-	T __extract_value() noexcept;
+	void __set_value(T value) noexcept require(T : movable);
+	T __extract_value() noexcept require(T : movable);
 	void __destroy_value() noexcept;
 }
