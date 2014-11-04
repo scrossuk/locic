@@ -67,10 +67,17 @@ namespace locic {
 			}
 		}
 		
-		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
-			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
-			const auto argInfo = hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
+		ArgInfo moveBasicArgInfo(Module& module, const bool hasTemplateArgs) {
+			const auto voidPtrTypePair = pointerTypePair(module);
+			const TypePair types[] = { voidPtrTypePair };
+			const auto argInfo = hasTemplateArgs ?
+				ArgInfo::VoidTemplateAndContextWithArgs(module, types) :
+				ArgInfo::VoidContextWithArgs(module, types);
 			return argInfo.withNoExcept();
+		}
+		
+		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
 		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue) {
@@ -148,7 +155,7 @@ namespace locic {
 			function.selectBasicBlock(endBB);
 		}
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genVTableMoveFunction(Module& module, SEM::TypeInstance* typeInstance) {
 			const auto moveFunction = genMoveFunctionDecl(module, typeInstance);
 			
 			if (!typeInstance->templateVariables().empty()) {
@@ -156,13 +163,14 @@ namespace locic {
 			}
 			
 			// Create stub to call a move function with no template generator.
-			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept();
+			const bool hasTemplateArgs = true;
+			const auto argInfo = moveBasicArgInfo(module, hasTemplateArgs);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
 			
-			genRawFunctionCall(function, moveArgInfo(module, typeInstance), moveFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
+			genRawFunctionCall(function, moveArgInfo(module, typeInstance), moveFunction, std::vector<llvm::Value*> { function.getRawContextValue(), function.getArg(0) });
 			
 			function.getBuilder().CreateRetVoid();
 			
@@ -202,7 +210,7 @@ namespace locic {
 			const auto llvmFunction = genMoveFunctionDecl(module, typeInstance);
 			
 			if (typeInstance->isPrimitive()) {
-				// Already generated in genDestructorFunctionDecl().
+				// Already generated in genMoveFunctionDecl().
 				return llvmFunction;
 			}
 			

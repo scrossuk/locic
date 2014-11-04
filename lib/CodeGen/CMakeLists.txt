@@ -28,6 +28,7 @@ add_library(locic-codegen
 	Move.cpp
 	Primitives/PrimitiveDestructor.cpp
 	Primitives/PrimitiveMethod.cpp
+	Primitives/PrimitiveMove.cpp
 	Primitives/PrimitiveSizeOf.cpp
 	Primitives/PrimitiveStoreLval.cpp
 	Primitives/PrimitiveTypes.cpp

@@ -20,7 +20,7 @@ namespace locic {
 		
 		void genUnionMove(Function& function, SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genVTableMoveFunction(Module& module, SEM::TypeInstance* typeInstance);
 		
 		llvm::Function* genMoveFunctionDecl(Module& module, SEM::TypeInstance* typeInstance);
 		

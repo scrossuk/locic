@@ -167,7 +167,7 @@ namespace locic {
 				// Get a pointer to the slot.
 				llvm::SmallVector<llvm::Value*, 3> vtableEntryGEP;
 				vtableEntryGEP.push_back(constantGen.getI32(0));
-				vtableEntryGEP.push_back(constantGen.getI32(3));
+				vtableEntryGEP.push_back(constantGen.getI32(4));
 				vtableEntryGEP.push_back(castVTableOffsetValue);
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(methodComponents.vtablePointer, vtableEntryGEP, "vtableEntryPointer");
@@ -241,7 +241,7 @@ namespace locic {
 				ConstantGenerator constGen(module);
 				llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 				vtableEntryGEP.push_back(constGen.getI32(0));
-				vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 1 : 2));
+				vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 2 : 3));
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
@@ -253,6 +253,39 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue });
+			}
+			
+			ArgInfo virtualMoveArgInfo(Module& module) {
+				const auto voidPtrTypePair = pointerTypePair(module);
+				const TypePair types[] = { voidPtrTypePair };
+				return ArgInfo::VoidTemplateAndContextWithArgs(module, types).withNoExcept();
+			}
+			
+			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue, llvm::Value* destValue) {
+				auto& module = function.module();
+				auto& builder = function.getBuilder();
+				
+				// Extract vtable and template generator.
+				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
+				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
+				
+				// Get a pointer to the slot.
+				ConstantGenerator constGen(module);
+				llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
+				vtableEntryGEP.push_back(constGen.getI32(0));
+				vtableEntryGEP.push_back(constGen.getI32(0));
+				
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				
+				const auto argInfo = virtualMoveArgInfo(module);
+				
+				// Load the slot.
+				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
+				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
+				
+				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue };
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			
 			ArgInfo virtualDestructorArgInfo(Module& module) {
@@ -271,7 +304,7 @@ namespace locic {
 				ConstantGenerator constGen(module);
 				llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 				vtableEntryGEP.push_back(constGen.getI32(0));
-				vtableEntryGEP.push_back(constGen.getI32(0));
+				vtableEntryGEP.push_back(constGen.getI32(1));
 				
 				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				

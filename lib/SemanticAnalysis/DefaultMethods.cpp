@@ -58,10 +58,9 @@ namespace locic {
 			
 			const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
 			const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
-			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
 			const auto voidPtrType = SEM::Type::Object(ptrTypeInstance, { voidType });
 			
-			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType, sizeType };
+			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType };
 			
 			/*std::vector<SEM::Var*> argVars;
 			for (const auto constructType: constructTypes) {

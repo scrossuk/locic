@@ -6,6 +6,7 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -70,6 +71,9 @@ namespace locic {
 			const auto i8PtrType = typeGen.getI8PtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
+			
+			// Move.
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableMoveFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Destructor.
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, typeInstance), typeGen.getI8PtrType()));

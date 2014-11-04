@@ -25,6 +25,9 @@ namespace locic {
 			
 			std::vector<llvm::Type*> structElements;
 			
+			// Move.
+			structElements.push_back(typeGen.getI8PtrType());
+			
 			// Destructor.
 			structElements.push_back(typeGen.getI8PtrType());
 			

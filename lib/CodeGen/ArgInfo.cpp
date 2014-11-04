@@ -5,6 +5,8 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -38,6 +40,10 @@ namespace locic {
 			return ArgInfo(module, false, false, true, false, voidTypePair(module), {});
 		}
 		
+		ArgInfo ArgInfo::VoidContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes) {
+			return ArgInfo(module, false, false, true, false, voidTypePair(module), argumentTypes);
+		}
+		
 		ArgInfo ArgInfo::VoidTemplateOnly(Module& module) {
 			return ArgInfo(module, false, true, false, false, voidTypePair(module), {});
 		}
@@ -52,6 +58,10 @@ namespace locic {
 		
 		ArgInfo ArgInfo::VoidTemplateAndContext(Module& module) {
 			return ArgInfo(module, false, true, true, false, voidTypePair(module), {});
+		}
+		
+		ArgInfo ArgInfo::VoidTemplateAndContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes) {
+			return ArgInfo(module, false, true, true, false, voidTypePair(module), argumentTypes);
 		}
 		
 		ArgInfo ArgInfo::TemplateAndContext(Module& module, TypePair returnType) {
@@ -196,6 +206,27 @@ namespace locic {
 		
 		const llvm::SmallVector<TypePair, 10>& ArgInfo::argumentTypes() const {
 			return argumentTypes_;
+		}
+		
+		std::string ArgInfo::toString() const {
+			return makeString("ArgInfo(hasReturnVarArgument = %s, "
+				"hasTemplateGeneratorArgument = %s, "
+				"hasContextArgument = %s, "
+				"isVarArg = %s, "
+				"numStandardArguments = %llu, "
+				"noMemoryAccess = %s, "
+				"noExcept = %s, "
+				"noReturn = %s, "
+				"returnType = TODO, "
+				"argumentTypes = TODO)",
+				hasReturnVarArgument() ? "true" : "false",
+				hasTemplateGeneratorArgument() ? "true" : "false",
+				hasContextArgument() ? "true" : "false",
+				isVarArg() ? "true" : "false",
+				(unsigned long long) numStandardArguments(),
+				noMemoryAccess() ? "true" : "false",
+				noExcept() ? "true" : "false",
+				noReturn() ? "true" : "false");
 		}
 		
 		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType) {

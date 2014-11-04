@@ -24,6 +24,7 @@
 #include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Optimisations.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -78,6 +79,7 @@ namespace locic {
 			
 			// Only generate primitives as needed.
 			if (!typeInstance->isPrimitive()) {
+				(void) genMoveFunctionDef(module, typeInstance);
 				(void) genDestructorFunctionDef(module, typeInstance);
 				(void) genAlignMaskFunction(module, typeInstance->selfType());
 				(void) genSizeOfFunction(module, typeInstance->selfType());

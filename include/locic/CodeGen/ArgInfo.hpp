@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <string>
 #include <vector>
 
 #include <llvm-abi/Type.hpp>
@@ -28,6 +29,8 @@ namespace locic {
 				
 				static ArgInfo VoidContextOnly(Module& module);
 				
+				static ArgInfo VoidContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				
 				static ArgInfo VoidTemplateOnly(Module& module);
 				
 				static ArgInfo Templated(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
@@ -35,6 +38,8 @@ namespace locic {
 				static ArgInfo TemplateOnly(Module& module, TypePair returnType);
 				
 				static ArgInfo VoidTemplateAndContext(Module& module);
+				
+				static ArgInfo VoidTemplateAndContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
 				
 				static ArgInfo TemplateAndContext(Module& module, TypePair returnType);
 				
@@ -81,6 +86,8 @@ namespace locic {
 				const TypePair& returnType() const;
 				
 				const llvm::SmallVector<TypePair, 10>& argumentTypes() const;
+				
+				std::string toString() const;
 				
 			private:
 				Module* module_;
