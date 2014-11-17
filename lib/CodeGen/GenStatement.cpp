@@ -241,8 +241,8 @@ namespace locic {
 					llvm::Value* switchValuePtr = nullptr;
 					
 					if (!switchValue->getType()->isPointerTy()) {
-						switchValuePtr = genAlloca(function, statement->getSwitchValue()->type());
-						genStore(function, switchValue, switchValuePtr, statement->getSwitchValue()->type());
+						switchValuePtr = genAlloca(function, switchType);
+						genStore(function, switchValue, switchValuePtr, switchType);
 					} else {
 						switchValuePtr = switchValue;
 					}

@@ -31,7 +31,7 @@ namespace locic {
 					
 					const auto searchResult = performSearch(context, Name::Relative() + typeSpecName);
 					if (!searchResult.isTemplateVar()) {
-						throw ErrorException(makeString("Failed to find template var '%s'"
+						throw ErrorException(makeString("Failed to find template var '%s' "
 							"in require expression, at position %s.",
 							typeSpecName.c_str(),
 							location.toString().c_str()));

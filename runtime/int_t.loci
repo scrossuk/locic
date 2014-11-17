@@ -35,6 +35,8 @@ __primitive int_t {
 	bool isZero() const noexcept;
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

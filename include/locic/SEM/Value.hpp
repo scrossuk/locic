@@ -28,7 +28,10 @@ namespace locic {
 					THIS,
 					CONSTANT,
 					LOCALVAR,
+					UNIONTAG,
 					SIZEOF,
+					UNIONDATAOFFSET,
+					MEMBEROFFSET,
 					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -62,8 +65,21 @@ namespace locic {
 				} localVar;
 				
 				struct {
+					Value* operand;
+				} unionTag;
+				
+				struct {
 					const Type* targetType;
 				} sizeOf;
+				
+				struct {
+					const TypeInstance* typeInstance;
+				} unionDataOffset;
+				
+				struct {
+					const TypeInstance* typeInstance;
+					size_t memberIndex;
+				} memberOffset;
 				
 				struct {
 					Value* value;
@@ -170,7 +186,13 @@ namespace locic {
 				
 				static Value* LocalVar(Var* var, const Type* type);
 				
+				static Value* UnionTag(Value* operand, const Type* type);
+				
 				static Value* SizeOf(const Type* targetType, const Type* sizeType);
+				
+				static Value* UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType);
+				
+				static Value* MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
 				
 				static Value* Reinterpret(Value* operand, const Type* type);
 				

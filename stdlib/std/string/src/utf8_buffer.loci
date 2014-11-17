@@ -30,13 +30,13 @@ export std.string 0.1.0 {
 			}
 			
 			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<unichar, LvalType>& range) {
+			void append_range(input_range<unichar, LvalType>& range) require(LvalType : movable) {
 				for (unichar character: range) {
 					self.append(character);
 				}
 			}
 			
-			const ubyte* const c_str() const noexcept {
+			const ubyte* c_str() const noexcept {
 				return @byteArray.data();
 			}
 			

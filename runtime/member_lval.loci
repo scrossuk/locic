@@ -9,4 +9,6 @@ __primitive member_lval {
 	void __set_value(T value) noexcept require(T : movable);
 	T __extract_value() noexcept require(T : movable);
 	void __destroy_value() noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept require(T : movable);
 }

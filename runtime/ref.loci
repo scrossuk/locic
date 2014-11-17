@@ -2,4 +2,6 @@ template <typename T>
 __primitive __ref {
 	__ref<T> implicit_copy() const noexcept;
 	__ref<T> copy() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }

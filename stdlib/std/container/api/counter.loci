@@ -2,7 +2,7 @@ import std.container 0.1.0 {
 
 	namespace std {
 		
-		template <typename T>
+		template <typename T: movable>
 		interface counter_type {
 			T implicit_copy() const noexcept;
 			
@@ -11,7 +11,8 @@ import std.container 0.1.0 {
 			T add(const T& value) const noexcept;
 		}
 		
-		template <typename T: counter_type<T>>
+		template <typename T>
+		require (T : movable and T : counter_type<T>)
 		class counter {
 			static counter<T> create(T begin, T end, T increment) noexcept;
 			
@@ -22,7 +23,8 @@ import std.container 0.1.0 {
 			bool empty() const noexcept;
 		}
 		
-		template <typename T: counter_type<T>>
+		template <typename T>
+		require (T : movable and T : counter_type<T>)
 		class counter_incl {
 			static counter_incl<T> create(T begin, T end, T increment) noexcept;
 			
@@ -33,7 +35,7 @@ import std.container 0.1.0 {
 			bool empty() const noexcept;
 		}
 		
-		template <typename T>
+		template <typename T : movable>
 		interface reverse_counter_type {
 			T implicit_copy() const noexcept;
 			
@@ -42,7 +44,8 @@ import std.container 0.1.0 {
 			T subtract(const T& value) const noexcept;
 		}
 		
-		template <typename T: reverse_counter_type<T>>
+		template <typename T>
+		require (T : movable and T : reverse_counter_type<T>)
 		class reverse_counter {
 			static reverse_counter<T> create(T begin, T end, T decrement) noexcept;
 			
@@ -53,7 +56,8 @@ import std.container 0.1.0 {
 			bool empty() const noexcept;
 		}
 		
-		template <typename T: reverse_counter_type<T>>
+		template <typename T>
+		require (T : movable and T : reverse_counter_type<T>)
 		class reverse_counter_incl {
 			static reverse_counter_incl<T> create(T begin, T end, T decrement) noexcept;
 			

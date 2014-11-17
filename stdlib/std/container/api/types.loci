@@ -4,7 +4,7 @@ import std.container 0.1.0 {
 	
 		template <typename T>
 		interface copyable {
-			T copy() const;
+			T copy() const require(T : movable);
 		}
 		
 	}

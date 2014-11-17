@@ -60,16 +60,25 @@ namespace locic {
 			const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
 			const auto voidPtrType = SEM::Type::Object(ptrTypeInstance, { voidType });
 			
-			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType };
+			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
 			
-			/*std::vector<SEM::Var*> argVars;
-			for (const auto constructType: constructTypes) {
+			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType, sizeType };
+			
+			std::vector<SEM::Var*> argVars;
+			
+			{
 				const bool isLvalConst = false;
-				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
-				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
+				const auto lvalType = makeValueLvalType(context, isLvalConst, voidPtrType);
+				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType));
 			}
 			
-			semFunction->setParameters(std::move(argVars));*/
+			{
+				const bool isLvalConst = false;
+				const auto lvalType = makeValueLvalType(context, isLvalConst, sizeType);
+				argVars.push_back(SEM::Var::Basic(sizeType, lvalType));
+			}
+			
+			semFunction->setParameters(std::move(argVars));
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, voidType, argTypes));
 			return semFunction;
 		}
@@ -171,6 +180,9 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
+			assert(!typeInstance->isClassDecl());
+			assert(!typeInstance->isInterface());
+			
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "create") {
 				if (!isStatic) {
@@ -211,12 +223,24 @@ namespace locic {
 		}
 		
 		bool HasDefaultMove(Context&, SEM::TypeInstance* const typeInstance) {
+			assert(typeInstance->isClass() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isUnionDatatype() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct());
+			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
-			return !typeInstance->isInterface() && typeInstance->functions().find("__moveto") == typeInstance->functions().end();
+			return typeInstance->functions().find("__moveto") == typeInstance->functions().end();
 		}
 		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
+			assert(typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isUnionDatatype() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct());
+			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!HasDefaultImplicitCopy(context, variantTypeInstance)) {
@@ -224,7 +248,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else if(typeInstance->isStruct() || typeInstance->isException()) {
+			} else {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsImplicitCopy(context, var->constructType())) {
@@ -232,12 +256,16 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
-				return false;
 			}
 		}
 		
 		bool HasDefaultExplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
+			assert(typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isUnionDatatype() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct());
+			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!HasDefaultExplicitCopy(context, variantTypeInstance)) {
@@ -245,7 +273,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else if(typeInstance->isStruct() || typeInstance->isException()) {
+			} else {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsExplicitCopy(context, var->constructType())) {
@@ -253,12 +281,16 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
-				return false;
 			}
 		}
 		
 		bool HasDefaultCompare(Context& context, SEM::TypeInstance* const typeInstance) {
+			assert(typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isUnionDatatype() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct());
+			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!supportsCompare(context, variantTypeInstance->selfType())) {
@@ -266,7 +298,7 @@ namespace locic {
 					}
 				}
 				return true;
-			} else if(typeInstance->isStruct() || typeInstance->isException()) {
+			} else {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				for (auto var: typeInstance->variables()) {
 					if (!supportsCompare(context, var->constructType())) {
@@ -274,8 +306,6 @@ namespace locic {
 					}
 				}
 				return true;
-			} else {
-				return false;
 			}
 		}
 		
@@ -292,6 +322,68 @@ namespace locic {
 			
 			const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, constructValues);
 			functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
+			
+			function->setScope(std::move(functionScope));
+		}
+		
+		void CreateDefaultMove(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			const auto selfValue = createSelfRef(context, typeInstance->selfType());
+			
+			auto functionScope = SEM::Scope::Create();
+			
+			const auto ptrVar = function->parameters().at(0);
+			const auto ptrValue = createLocalVarRef(context, ptrVar);
+			
+			const auto positionVar = function->parameters().at(1);
+			const auto positionValue = createLocalVarRef(context, positionVar);
+			
+			const auto ubyteType = getBuiltInType(context.scopeStack(), "ubyte_t");
+			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
+			
+			if (typeInstance->isUnionDatatype()) {
+				{
+					// Move the tag.
+					const auto tagValue = SEM::Value::UnionTag(derefAll(selfValue), ubyteType);
+					const std::vector<SEM::Value*> moveArgs = { ptrValue, positionValue };
+					const auto moveResult = CallValue(context, GetSpecialMethod(context, tagValue, "__moveto", location), moveArgs, location);
+					functionScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+				}
+				
+				// Calculate the position of the union data so that this
+				// can be passed to the move methods of the union types.
+				const auto unionDataOffset = SEM::Value::UnionDataOffset(typeInstance, sizeType);
+				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue, "add", location), { unionDataOffset }, location);
+				
+				std::vector<SEM::SwitchCase*> switchCases;
+				for (const auto variantTypeInstance: typeInstance->variants()) {
+					const auto variantType = variantTypeInstance->selfType();
+					const auto caseVar = SEM::Var::Basic(variantType, variantType);
+					const auto caseVarValue = createLocalVarRef(context, caseVar);
+					
+					auto caseScope = SEM::Scope::Create();
+					const std::vector<SEM::Value*> moveArgs = { ptrValue, unionDataPosition };
+					const auto moveResult = CallValue(context, GetSpecialMethod(context, caseVarValue, "__moveto", location), moveArgs, location);
+					caseScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+					caseScope->statements().push_back(SEM::Statement::ReturnVoid());
+					
+					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
+				}
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
+			} else {
+				for (size_t i = 0; i < typeInstance->variables().size(); i++) {
+					const auto& memberVar = typeInstance->variables().at(i);
+					const auto memberOffset = SEM::Value::MemberOffset(typeInstance, i, sizeType);
+					const auto memberPosition = CallValue(context, GetMethod(context, positionValue, "add", location), { memberOffset }, location);
+					
+					const std::vector<SEM::Value*> moveArgs = { ptrValue, memberPosition };
+					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
+					const auto moveResult = CallValue(context, GetSpecialMethod(context, selfMember, "__moveto", location), moveArgs, location);
+					
+					functionScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+				}
+				
+				functionScope->statements().push_back(SEM::Statement::ReturnVoid());
+			}
 			
 			function->setScope(std::move(functionScope));
 		}
@@ -420,11 +512,15 @@ namespace locic {
 		}
 		
 		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			assert(!typeInstance->isClassDecl());
+			assert(!typeInstance->isInterface());
 			assert(function->isDeclaration());
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
-			if (canonicalName == "create") {
+			if (canonicalName == "__moveto") {
+				CreateDefaultMove(context, typeInstance, function, location);
+			} else if (canonicalName == "create") {
 				assert(!typeInstance->isException());
 				CreateDefaultConstructor(context, typeInstance, function, location);
 			} else if (canonicalName == "implicitcopy") {

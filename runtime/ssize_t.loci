@@ -32,6 +32,8 @@ __primitive ssize_t {
 	bool isNegative() const noexcept;
 	
 	size_t unsignedValue() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

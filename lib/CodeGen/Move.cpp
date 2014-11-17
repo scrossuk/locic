@@ -80,7 +80,7 @@ namespace locic {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue) {
+		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -170,7 +170,8 @@ namespace locic {
 			
 			Function function(module, *llvmFunction, argInfo);
 			
-			genRawFunctionCall(function, moveArgInfo(module, typeInstance), moveFunction, std::vector<llvm::Value*> { function.getRawContextValue(), function.getArg(0) });
+			genRawFunctionCall(function, moveArgInfo(module, typeInstance), moveFunction,
+				std::vector<llvm::Value*> { function.getRawContextValue(), function.getArg(0), function.getArg(1) });
 			
 			function.getBuilder().CreateRetVoid();
 			
@@ -184,77 +185,11 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto argInfo = moveArgInfo(module, typeInstance);
-			const auto linkage = getTypeInstanceLinkage(typeInstance);
-			
-			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleMoveName(typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
-			
-			if (argInfo.hasTemplateGeneratorArgument()) {
-				// Always inline templated destructors.
-				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
-			}
+			// Use custom 'moveto' method if available.
+			const auto semFunction = typeInstance->functions().at("__moveto");
+			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
 			
 			module.getMoveFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
-			
-			if (typeInstance->isPrimitive()) {
-				// This is a primitive method; needs special code generation.
-				createPrimitiveMove(module, typeInstance, *llvmFunction);
-			}
-			
-			return llvmFunction;
-		}
-		
-		llvm::Function* genMoveFunctionDef(Module& module, SEM::TypeInstance* typeInstance) {
-			const auto argInfo = moveArgInfo(module, typeInstance);
-			const auto llvmFunction = genMoveFunctionDecl(module, typeInstance);
-			
-			if (typeInstance->isPrimitive()) {
-				// Already generated in genMoveFunctionDecl().
-				return llvmFunction;
-			}
-			
-			if (typeInstance->isClassDecl()) {
-				// Don't generate code for imported functionality.
-				return llvmFunction;
-			}
-			
-			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			
-			if (typeInstance->isUnionDatatype()) {
-				genUnionMove(function, typeInstance);
-				function.getBuilder().CreateRetVoid();
-				return llvmFunction;
-			}
-			
-			const auto sourceValue = function.getRawContextValue();
-			const auto destValue = function.getBuilder().CreatePointerCast(function.getArg(0), TypeGenerator(module).getI8PtrType());
-			
-			// Call the custom move function, if one exists.
-			const auto methodIterator = typeInstance->functions().find("__moveto");
-			
-			if (methodIterator != typeInstance->functions().end()) {
-				const auto customMove = genFunctionDecl(module, typeInstance, methodIterator->second);
-				const auto args =
-					argInfo.hasTemplateGeneratorArgument() ?
-						std::vector<llvm::Value*> { function.getTemplateGenerator(), sourceValue, destValue } :
-						std::vector<llvm::Value*> { sourceValue, destValue };
-				(void) genRawFunctionCall(function, argInfo, customMove, args);
-			}
-			
-			const auto& memberVars = typeInstance->variables();
-			
-			// Move all objects within the parent object.
-			for (size_t i = 0; i < memberVars.size(); i++) {
-				const auto memberVar = memberVars.at(i);
-				const size_t memberIndex = module.getMemberVarMap().get(memberVar);
-				const auto memberOffsetValue = genMemberOffset(function, typeInstance->selfType(), memberIndex);
-				const auto ptrToSourceMember = function.getBuilder().CreateInBoundsGEP(sourceValue, memberOffsetValue);
-				const auto ptrToDestMember = function.getBuilder().CreateInBoundsGEP(destValue, memberOffsetValue);
-				genMoveCall(function, memberVar->type(), ptrToSourceMember, ptrToDestMember);
-			}
-			
-			function.getBuilder().CreateRetVoid();
 			
 			return llvmFunction;
 		}

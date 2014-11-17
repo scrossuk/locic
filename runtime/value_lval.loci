@@ -5,4 +5,6 @@ __primitive value_lval {
 	void assign(T value) noexcept require(T : movable);
 	T& dissolve() const noexcept;
 	T move() noexcept require(T : movable);
+	
+	void __move_to(void* ptr, size_t position) noexcept require(T : movable);
 }

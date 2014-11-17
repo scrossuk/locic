@@ -24,6 +24,8 @@ __primitive uint_t {
 	compare_result_t compare(const uint_t& v) const noexcept;
 	
 	bool isZero() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

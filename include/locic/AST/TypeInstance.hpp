@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/RequireSpecifier.hpp>
 
 namespace locic {
 
@@ -42,6 +43,7 @@ namespace locic {
 			Node<TypeVarList> variables;
 			Node<FunctionList> functions;
 			Node<ExceptionInitializer> initializer;
+			Node<RequireSpecifier> requireSpecifier;
 			
 			public:
 				static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions);
@@ -59,6 +61,9 @@ namespace locic {
 				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
 				
 				static TypeInstance* Exception(const std::string& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
+				
+				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
+				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
 				
 				std::string toString() const;
 				

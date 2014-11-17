@@ -8,6 +8,8 @@ __primitive bool {
 	compare_result_t compare(const bool& v) const noexcept;
 	
 	bool not() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

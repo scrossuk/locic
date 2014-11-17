@@ -19,7 +19,7 @@ export std.container 0.1.0 {
 				release(reinterpret_cast<T*, void*>(@data));
 			}
 			
-			void reserve(size_t size) {
+			void reserve(size_t size) require (T : movable) {
 				if (size <= @capacity) {
 					return;
 				}
@@ -40,7 +40,7 @@ export std.container 0.1.0 {
 				return @capacity;
 			}
 			
-			void resize(size_t size) {
+			void resize(size_t size) require (T : movable) {
 				self.reserve(size);
 				if (size < @size) {
 					for (auto i: reverse_counter<size_t>(@size, size, 1u)) {
@@ -74,7 +74,7 @@ export std.container 0.1.0 {
 				@size = 0u;
 			}
 			
-			void push_back(T value) {
+			void push_back(T value) require (T : movable) {
 				self.reserve(@size + 1u);
 				nolval(@data[@size]).__set_value(move value);
 				@size = @size + 1u;
@@ -86,7 +86,7 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).__destroy_value();
 			}
 			
-			varray<T> copy() const require(T: copyable<T>) {
+			varray<T> copy() const require(T : movable and T: copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {

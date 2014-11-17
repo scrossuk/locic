@@ -2,10 +2,10 @@ export std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T>
+		template <typename T : movable>
 		datatype list_node(list_node<T>* previous, list_node<T>* next, T value);
 		
-		template <typename T>
+		template <typename T : movable>
 		class list_range (list_node<T>* begin, list_node<T>* end) {
 			static create = default;
 			
@@ -47,7 +47,7 @@ export std.container 0.1.0 {
 		/**
 		 * \brief Doubly-linked list.
 		 */
-		template <typename T>
+		template <typename T : movable>
 		class list(size_t size, list_node<T>* begin, list_node<T>* end) {
 			static create() {
 				return @(0u, null, null);

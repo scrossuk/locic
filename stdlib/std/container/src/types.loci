@@ -2,7 +2,7 @@ export std.container 0.1.0 {
 
 	namespace std {
 	
-		template <typename T>
+		template <typename T : movable>
 		interface copyable {
 			T copy() const;
 		}

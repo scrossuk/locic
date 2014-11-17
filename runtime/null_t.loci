@@ -3,6 +3,8 @@ __primitive null_t {
 	
 	null_t implicit_copy() const noexcept;
 	null_t copy() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

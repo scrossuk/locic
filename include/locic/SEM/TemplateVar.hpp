@@ -41,7 +41,19 @@ namespace locic {
 				
 		};
 		
+		/**
+		 * \brief Template Require Map
+		 * 
+		 * A map from template variables to type instances that describe
+		 * their requirements (and hence supported operations).
+		 */
 		typedef std::unordered_map<TemplateVar*, TypeInstance*> TemplateRequireMap;
+		
+		/**
+		 * \brief Template Var Map
+		 * 
+		 * An assignment of type values for template variables.
+		 */
 		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 	}

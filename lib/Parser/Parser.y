@@ -879,10 +879,11 @@ templateTypeVarList:
 	;
 
 typeInstance:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedTypeInstance
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET requireSpecifier nonTemplatedTypeInstance
 	{
-		(GETSYM($5))->templateVariables = GETSYM($3);
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+		(GETSYM($6))->setTemplateVariables(GETSYM($3));
+		(GETSYM($6))->setRequireSpecifier(GETSYM($5));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($6)).get()));
 	}
 	| nonTemplatedTypeInstance
 	{

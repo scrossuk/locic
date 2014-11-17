@@ -12,4 +12,6 @@ __primitive compare_result_t {
 	bool isLessThanOrEqual() const noexcept;
 	bool isGreaterThan() const noexcept;
 	bool isGreaterThanOrEqual() const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }

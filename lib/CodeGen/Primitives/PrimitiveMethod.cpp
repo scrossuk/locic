@@ -332,7 +332,19 @@ namespace locic {
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
-			if (methodName == "create") {
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "create") {
 				return zero;
 			} else if (methodName == "unit") {
 				return unit;
@@ -452,7 +464,19 @@ namespace locic {
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
-			if (methodName == "create") {
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "create") {
 				return zero;
 			} else if (methodName == "zero") {
 				return zero;
@@ -782,7 +806,19 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
-			if (methodName == "null") {
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "null") {
 				return ConstantGenerator(module).getNull(genType(module, type));
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_copy" || methodName == "copy") {
@@ -867,13 +903,26 @@ namespace locic {
 		
 		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
+			auto& builder = function.getBuilder();
 			
 			const auto& methodName = semFunction->name().last();
 			
 			const auto methodOwner = loadArg(function, args[0], type);
 			const auto targetType = type->templateArguments().front();
 			
-			if (isUnaryOp(methodName)) {
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
 					return methodOwner;
 				} else {
@@ -924,7 +973,21 @@ namespace locic {
 			
 			const auto methodOwner = allocArg(function, args[0], type);
 			
-			if (isUnaryOp(methodName)) {
+			if (methodName == "__move_to") {
+				// TODO: must call __move_to() of child!
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
+				
+				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				genStore(function, genLoad(function, targetPtr, targetType), castedDestPtr, targetType);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
 					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 				} else {

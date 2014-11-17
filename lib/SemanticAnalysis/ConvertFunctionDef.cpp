@@ -89,29 +89,6 @@ namespace locic {
 			}
 		}
 		
-		void CheckParameterTypes(Context& context, SEM::Function* const function) {
-			const auto functionType = function->type();
-			
-			auto& debugModule = context.debugModule();
-			const auto& functionInfo = debugModule.functionMap.at(function);
-			
-			if (!supportsMove(context, functionType->getFunctionReturnType())) {
-				throw ErrorException(makeString("Return type '%s' of function '%s' is not movable, at position %s.",
-					functionType->getFunctionReturnType()->toString().c_str(),
-					function->name().toString().c_str(),
-					functionInfo.declLocation.toString().c_str()));
-			}
-			
-			for (const auto& paramType: functionType->getFunctionParameterTypes()) {
-				if (!supportsMove(context, paramType)) {
-					throw ErrorException(makeString("Parameter type '%s' of function '%s' is not movable, at position %s.",
-						paramType->toString().c_str(),
-						function->name().toString().c_str(),
-						functionInfo.declLocation.toString().c_str()));
-				}
-			}
-		}
-		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			const auto semFunction = context.scopeStack().back().function();
 			
@@ -119,7 +96,14 @@ namespace locic {
 			// (it is about to be made into a definition).
 			assert(semFunction->isDeclaration());
 			
-			CheckParameterTypes(context, semFunction);
+			const auto functionType = semFunction->type();
+			
+			if (!supportsMove(context, functionType->getFunctionReturnType())) {
+				throw ErrorException(makeString("Return type '%s' of function '%s' is not movable, at position %s.",
+					functionType->getFunctionReturnType()->toString().c_str(),
+					semFunction->name().toString().c_str(),
+					astFunctionNode.location().toString().c_str()));
+			}
 			
 			if (astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.

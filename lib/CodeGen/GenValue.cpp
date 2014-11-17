@@ -115,8 +115,39 @@ namespace locic {
 					return genLoad(function, refValue, value->type());
 				}
 				
+				case SEM::Value::UNIONTAG: {
+					const auto unionType = value->unionTag.operand->type();
+					const auto unionValue = genValue(function, value->unionTag.operand);
+					
+					llvm::Value* unionValuePtr = nullptr;
+					
+					if (!unionValue->getType()->isPointerTy()) {
+						// TODO: remove this unnecessary alloc.
+						unionValuePtr = genAlloca(function, unionType);
+						genStore(function, unionValue, unionValuePtr, unionType);
+					} else {
+						unionValuePtr = unionValue;
+					}
+					
+					const auto unionDatatypePointers = getUnionDatatypePointers(function, unionType, unionValuePtr);
+					
+					return function.getBuilder().CreateLoad(unionDatatypePointers.first);
+				}
+				
 				case SEM::Value::SIZEOF: {
 					return genSizeOf(function, value->sizeOf.targetType);
+				}
+				
+				case SEM::Value::UNIONDATAOFFSET: {
+					// Offset of union datatype data is equivalent to its
+					// alignment size.
+					return genAlignOf(function, value->unionDataOffset.typeInstance->selfType());
+				}
+				
+				case SEM::Value::MEMBEROFFSET: {
+					// Offset of union datatype data is equivalent to its
+					// alignment size.
+					return genMemberOffset(function, value->memberOffset.typeInstance->selfType(), value->memberOffset.memberIndex);
 				}
 				
 				case SEM::Value::TERNARY: {

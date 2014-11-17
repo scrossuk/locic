@@ -32,9 +32,28 @@ namespace locic {
 			return value;
 		}
 		
+		Value* Value::UnionTag(Value* operand, const Type* type) {
+			Value* value = new Value(UNIONTAG, type);
+			value->unionTag.operand = operand;
+			return value;
+		}
+		
 		Value* Value::SizeOf(const Type* targetType, const Type* sizeType) {
 			Value* value = new Value(SIZEOF, sizeType);
 			value->sizeOf.targetType = targetType;
+			return value;
+		}
+		
+		Value* Value::UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType) {
+			Value* value = new Value(UNIONDATAOFFSET, sizeType);
+			value->unionDataOffset.typeInstance = typeInstance;
+			return value;
+		}
+		
+		Value* Value::MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType) {
+			Value* value = new Value(MEMBEROFFSET, sizeType);
+			value->memberOffset.typeInstance = typeInstance;
+			value->memberOffset.memberIndex = memberIndex;
 			return value;
 		}
 		
@@ -214,8 +233,19 @@ namespace locic {
 					return makeString("LocalVar(%s)",
 									  localVar.var->toString().c_str());
 				
+				case UNIONTAG:
+					return makeString("UnionTag(%s)", unionTag.operand->toString().c_str());
+				
 				case SIZEOF:
 					return makeString("SizeOf(type: %s)", sizeOf.targetType->toString().c_str());
+				
+				case UNIONDATAOFFSET:
+					return makeString("UnionDataOffset(%s)", unionDataOffset.typeInstance->name().toString().c_str());
+				
+				case MEMBEROFFSET:
+					return makeString("MemberOffset(type: %s, memberIndex: %llu)",
+						memberOffset.typeInstance->name().toString().c_str(),
+						(unsigned long long) memberOffset.memberIndex);
 				
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)",

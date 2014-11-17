@@ -5,6 +5,7 @@
 #include <set>
 #include <stdexcept>
 #include <tuple>
+#include <unordered_set>
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
@@ -665,6 +666,11 @@ namespace locic {
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto typeInstance = context.scopeStack().back().typeInstance();
 			
+			// Add any requirements in require() specifier.
+			if (!astTypeInstanceNode->requireSpecifier.isNull()) {
+				ConvertRequireSpecifier(context, astTypeInstanceNode->requireSpecifier, typeInstance->typeRequirements());
+			}
+			
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
@@ -734,12 +740,18 @@ namespace locic {
 			}
 		}
 		
-		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance* typeInstance, std::set<SEM::TypeInstance*>& completedTypes) {
+		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance* typeInstance, std::unordered_set<SEM::TypeInstance*>& completedTypes) {
 			if (completedTypes.find(typeInstance) != completedTypes.end()) {
 				return;
 			}
 			
 			completedTypes.insert(typeInstance);
+			
+			if (typeInstance->isInterface() || typeInstance->isPrimitive() || typeInstance->isTemplateType()) {
+				// Skip interfaces, primitives and template types since
+				// default method generation doesn't apply to them.
+				return;
+			}
 			
 			// Get type properties for types that this
 			// type depends on, since this is needed for
@@ -759,37 +771,43 @@ namespace locic {
 				}
 			}
 			
-			// Add default constructor.
-			if (HasDefaultConstructor(context, typeInstance)) {
-				// Add constructor for exception types using initializer;
-				// for other types just add a default constructor.
-				const auto methodDecl =
-					typeInstance->isException() ?
-						CreateExceptionConstructorDecl(context, typeInstance) :
-						CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + "create");
-				typeInstance->functions().insert(std::make_pair("create", methodDecl));
-			}
-			
 			// Add default move method.
 			if (HasDefaultMove(context, typeInstance)) {
 				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "__moveto");
 				typeInstance->functions().insert(std::make_pair("__moveto", methodDecl));
 			}
 			
-			// Add default implicit copy if available.
-			if (HasDefaultImplicitCopy(context, typeInstance)) {
-				const auto methodDecl = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + "implicitcopy");
-				typeInstance->functions().insert(std::make_pair("implicitcopy", methodDecl));
-			}
-			
-			// Add default compare for datatypes if available.
-			if (HasDefaultCompare(context, typeInstance)) {
-				const auto methodDecl = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
-				typeInstance->functions().insert(std::make_pair("compare", methodDecl));
+			// All non-class types can also get various other default methods implicitly
+			// (which must be specified explicitly for classes).
+			if (!typeInstance->isClass()) {
+				// Add default constructor.
+				if (HasDefaultConstructor(context, typeInstance)) {
+					// Add constructor for exception types using initializer;
+					// for other types just add a default constructor.
+					const auto methodDecl =
+					typeInstance->isException() ?
+					CreateExceptionConstructorDecl(context, typeInstance) :
+					CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + "create");
+					typeInstance->functions().insert(std::make_pair("create", methodDecl));
+				}
+				
+				if (!typeInstance->isException()) {
+					// Add default implicit copy if available.
+					if (HasDefaultImplicitCopy(context, typeInstance)) {
+						const auto methodDecl = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + "implicitcopy");
+						typeInstance->functions().insert(std::make_pair("implicitcopy", methodDecl));
+					}
+					
+					// Add default compare for datatypes if available.
+					if (HasDefaultCompare(context, typeInstance)) {
+						const auto methodDecl = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
+						typeInstance->functions().insert(std::make_pair("compare", methodDecl));
+					}
+				}
 			}
 		}
 		
-		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace* nameSpace, std::set<SEM::TypeInstance*>& completedTypes) {
+		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace* nameSpace, std::unordered_set<SEM::TypeInstance*>& completedTypes) {
 			for (const auto& itemPair: nameSpace->items()) {
 				const auto& item = itemPair.second;
 				if (item.isNamespace()) {
@@ -802,7 +820,7 @@ namespace locic {
 		
 		void GenerateDefaultMethodsPass(Context& context) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
-			std::set<SEM::TypeInstance*> completedTypes;
+			std::unordered_set<SEM::TypeInstance*> completedTypes;
 			GenerateNamespaceDefaultMethods(context, semNamespace, completedTypes);
 		}
 		

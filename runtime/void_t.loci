@@ -1,1 +1,3 @@
-__primitive void_t { }
+__primitive void_t {
+	void __move_to(void* ptr, size_t position) noexcept;
+}

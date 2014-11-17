@@ -71,15 +71,16 @@ namespace locic {
 			for (const auto functionPair: functions) {
 				const auto function = functionPair.second;
 				
-				// Only generate primitives as needed.
-				if (!function->isPrimitive()) {
-					(void) genFunctionDef(module, typeInstance, function);
+				if (function->isPrimitive()) {
+					// Only generate 'primitive' functions when needed.
+					continue;
 				}
+				
+				(void) genFunctionDef(module, typeInstance, function);
 			}
 			
 			// Only generate primitives as needed.
 			if (!typeInstance->isPrimitive()) {
-				(void) genMoveFunctionDef(module, typeInstance);
 				(void) genDestructorFunctionDef(module, typeInstance);
 				(void) genAlignMaskFunction(module, typeInstance->selfType());
 				(void) genSizeOfFunction(module, typeInstance->selfType());

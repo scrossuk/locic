@@ -25,6 +25,8 @@ __primitive double_t {
 	bool greater_than_or_equal(const double_t& v) const noexcept;
 	
 	compare_result_t compare(const double_t& v) const noexcept;
+	
+	void __move_to(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>
