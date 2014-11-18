@@ -18,7 +18,7 @@ import {
 	
 	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view) noexcept;
 	
-	const sfView* const sfRenderWindow_getView(const sfRenderWindow* const renderWindow) noexcept;
+	const sfView* sfRenderWindow_getView(const sfRenderWindow* const renderWindow) noexcept;
 	
 	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view) noexcept;
 	
@@ -111,7 +111,7 @@ namespace sf {
 			sfRenderWindow_drawText(@window, text.raw(), null);
 		}
 		
-		const sfRenderWindow* const windowPointer() const {
+		const sfRenderWindow* windowPointer() const {
 			return @window;
 		}
 	}

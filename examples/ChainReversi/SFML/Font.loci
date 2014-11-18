@@ -33,7 +33,7 @@ namespace sf {
 			sfFont_destroy(@font);
 		}
 		
-		const sfFont* const raw() const {
+		const sfFont* raw() const {
 			return @font;
 		}
 	}

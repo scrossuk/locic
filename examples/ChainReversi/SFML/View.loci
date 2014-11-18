@@ -33,7 +33,7 @@ namespace sf {
 			sfView_destroy(@view);
 		}
 		
-		sfView* const raw() const {
+		sfView* raw() const {
 			return @view;
 		}
 		

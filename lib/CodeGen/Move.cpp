@@ -68,8 +68,7 @@ namespace locic {
 		}
 		
 		ArgInfo moveBasicArgInfo(Module& module, const bool hasTemplateArgs) {
-			const auto voidPtrTypePair = pointerTypePair(module);
-			const TypePair types[] = { voidPtrTypePair };
+			const TypePair types[] = { pointerTypePair(module), sizeTypePair(module) };
 			const auto argInfo = hasTemplateArgs ?
 				ArgInfo::VoidTemplateAndContextWithArgs(module, types) :
 				ArgInfo::VoidContextWithArgs(module, types);
@@ -90,7 +89,7 @@ namespace locic {
 				}
 				
 				if (type->isPrimitive()) {
-					genPrimitiveMoveCall(function, type, sourceValue, destValue);
+					genPrimitiveMoveCall(function, type, sourceValue, destValue, positionValue);
 					return;
 				}
 				
@@ -101,58 +100,21 @@ namespace locic {
 				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getI8PtrType());
 				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getI8PtrType());
 				
-				llvm::SmallVector<llvm::Value*, 2> args;
+				llvm::SmallVector<llvm::Value*, 4> args;
 				if (!type->templateArguments().empty()) {
 					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
 				}
 				args.push_back(castSourceValue);
 				args.push_back(castDestValue);
+                                args.push_back(positionValue);
 				
 				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getI8PtrType());
 				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getI8PtrType());
-				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue);
+				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue);
 			}
-		}
-		
-		void genUnionMove(Function& function, SEM::TypeInstance* typeInstance) {
-			assert(typeInstance->isUnionDatatype());
-			
-			const auto contextValue = function.getContextValue(typeInstance);
-			const auto sourceUnionDatatypePointers = getUnionDatatypePointers(function, typeInstance->selfType(), contextValue);
-			const auto destUnionDatatypePointers = getUnionDatatypePointers(function, typeInstance->selfType(), function.getArg(0));
-			
-			const auto loadedTag = function.getBuilder().CreateLoad(sourceUnionDatatypePointers.first);
-			function.getBuilder().CreateStore(loadedTag, destUnionDatatypePointers.first);
-			
-			const auto endBB = function.createBasicBlock("end");
-			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
-			
-			std::vector<llvm::BasicBlock*> caseBlocks;
-			
-			uint8_t tag = 0;
-			
-			for (const auto variantTypeInstance : typeInstance->variants()) {
-				const auto matchBB = function.createBasicBlock("tagMatch");
-				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
-				
-				switchInstruction->addCase(tagValue, matchBB);
-				
-				function.selectBasicBlock(matchBB);
-				
-				const auto variantType = variantTypeInstance->selfType();
-				const auto unionValueType = genType(function.module(), variantType);
-				const auto castedSourceUnionValuePtr = function.getBuilder().CreatePointerCast(sourceUnionDatatypePointers.second, unionValueType->getPointerTo());
-				const auto castedDestUnionValuePtr = function.getBuilder().CreatePointerCast(destUnionDatatypePointers.second, unionValueType->getPointerTo());
-				
-				genMoveCall(function, variantType, castedSourceUnionValuePtr, castedDestUnionValuePtr);
-				
-				function.getBuilder().CreateBr(endBB);
-			}
-			
-			function.selectBasicBlock(endBB);
 		}
 		
 		llvm::Function* genVTableMoveFunction(Module& module, SEM::TypeInstance* typeInstance) {

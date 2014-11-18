@@ -41,10 +41,10 @@ class ExampleTemplatedClass0(){
 
 template <typename T>
 interface multipliable {
-	T multiply(const T& value) const;
+	T multiply(const T& value) const require(T : movable);
 }
 
-template <typename T>
+template <typename T: movable>
 class PolyClass(T v) {
 	static Create(T value) {
 		printf(C"Create PolyClass.\n");
@@ -119,7 +119,7 @@ void lvalFunc(lval<int> custom_lval& custLval) {
 	printf(C"Custom lval: %d\n", move custLval);
 }
 
-template <typename T>
+template <typename T: movable>
 interface count_type {
 	T implicitCopy() const;
 	
@@ -128,7 +128,8 @@ interface count_type {
 	compare_result_t compare(const T& other) const;
 }
 
-template <typename T: count_type<T>>
+template <typename T>
+require(T : count_type<T> and T : movable)
 class count(T unit, T from, T to) {
 	static Create = default;
 	
@@ -166,12 +167,12 @@ import void free(void* ptr) noexcept;
 
 template <typename T>
 interface Copyable {
-	T implicitCopy() const;
+	T implicitCopy() const require(T : movable);
 }
 
-template <typename T: Copyable<T>>
+template <typename T : movable>
 class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
-	static Create(size_t size, T emptyValue) {
+	static Create(size_t size, T emptyValue) require(T : Copyable<T>) {
 		final auto sizeof_int = 4u;
 		auto inst = @(reinterpret_cast<void*, T*>(malloc(size * sizeof_int)), size, emptyValue, emptyValue);
 		
@@ -191,7 +192,6 @@ class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
 			return @ptr[i];
 		}
 		printf(C"Out of bounds at index '%llu'.\n", i.cast<ulonglong_t>());
-		@guardSlot = @emptyValue;
 		return *(&(@guardSlot));
 	}
 	

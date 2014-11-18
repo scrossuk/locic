@@ -16,6 +16,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -191,6 +192,19 @@ namespace locic {
 				return builder.CreateLoad(builder.CreatePointerCast(arg.first, type->getPointerTo()));
 			} else {
 				return arg.first;
+			}
+		}
+		
+		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>>) {
+			auto& module = function.module();
+			
+			const auto methodName = semFunction->name().last();
+			
+			if (methodName == "__move_to") {
+				// Do nothing...
+				return ConstantGenerator(module).getVoidUndef();
+			} else {
+				llvm_unreachable("Unknown void_t method.");
 			}
 		}
 		
@@ -718,7 +732,19 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
-			if (methodName == "create") {
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "create") {
 				return ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 			} else if (hasStart(methodName, "implicit_cast_") || hasStart(methodName, "cast_")) {
 				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
@@ -1056,7 +1082,41 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			const auto methodOwner = allocArg(function, args[0], type);
 			
-			if (isUnaryOp(methodName)) {
+			if (methodName == "__move_to") {
+				const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
+				
+				const auto sourceValue = methodOwner;
+				const auto i8PtrType = typeGen.getI8PtrType();
+				const auto destValue = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto positionValue = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto castType = typeSizeIsKnown ? genPointerType(module, type) : TypeGenerator(module).getI8PtrType();
+				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
+				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
+				
+				// Check the 'liveness indicator' which indicates whether
+				// child value's move method should be run.
+				const auto livenessIndicatorPtr = typeSizeIsKnown ?
+					builder.CreateConstInBoundsGEP2_32(sourceObjectPointer, 0, 1) :
+					builder.CreateInBoundsGEP(sourceObjectPointer, genSizeOf(function, targetType));
+				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+				const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
+				
+				const auto isLiveBB = function.createBasicBlock("is_live");
+				const auto afterBB = function.createBasicBlock("");
+				
+				builder.CreateCondBr(isLive, isLiveBB, afterBB);
+				
+				// If it is live, run the child value's move method.
+				function.selectBasicBlock(isLiveBB);
+				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
+				builder.CreateBr(afterBB);
+				
+				function.selectBasicBlock(afterBB);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
 					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 				} else if (methodName == "move") {
@@ -1158,6 +1218,8 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			
 			switch (kind) {
+				case PrimitiveVoid:
+					return genVoidPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveCompareResult:
 					return genCompareResultPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveNull:
@@ -1204,6 +1266,7 @@ namespace locic {
 				case PrimitiveRef:
 					return genRefPrimitiveMethodCall(function, type, semFunction, args);
 				default:
+					printf("%s\n", typeName.c_str());
 					llvm_unreachable("Unknown trivial primitive function.");
 			}
 		}

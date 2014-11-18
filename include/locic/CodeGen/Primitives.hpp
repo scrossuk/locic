@@ -67,7 +67,7 @@ namespace locic {
 		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMove(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
-		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue);
+		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
 		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);

@@ -17,7 +17,7 @@ export std.concurrency 0.1.0 {
 					return @position == @array.size();
 				}
 				
-				void send(T message) {
+				void send(T message) require(T : movable) {
 					auto lock = unique_lock(@mutex);
 					assert @position <= @array.size();
 					@array.push_back(move message);
@@ -25,7 +25,7 @@ export std.concurrency 0.1.0 {
 					@generator.notify();
 				}
 				
-				T receive() {
+				T receive() require(T : movable) {
 					auto lock = unique_lock(@mutex);
 					
 					assert @position < @array.size();

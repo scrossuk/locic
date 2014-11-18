@@ -8,7 +8,8 @@ export std.concurrency 0.1.0 {
 				void run();
 			}
 			
-			template <typename T: runnable>
+			template <typename T>
+			require (T : runnable and T : movable)
 			class fiber(T runnable) {
 				static create(T runnable) {
 					// TODO!

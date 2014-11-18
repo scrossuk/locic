@@ -25,7 +25,8 @@ namespace locic {
 			
 			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind);
 			
-			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue, llvm::Value* destValue);
+			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue,
+				llvm::Value* destValue, llvm::Value* positionValue);
 			
 			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue);
 			

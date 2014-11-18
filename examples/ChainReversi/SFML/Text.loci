@@ -45,7 +45,7 @@ namespace sf {
 			sfText_destroy(@text);
 		}
 		
-		const sfText* const raw() const {
+		const sfText* raw() const {
 			return @text;
 		}
 		

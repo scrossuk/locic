@@ -15,7 +15,8 @@ interface thread_runnable {
 
 datatype runnable_header(lval<thread_runnable&> member_lval<thread_runnable&> selfRef);
 
-template <typename T: std::concurrency::runnable>
+template <typename T>
+require(T : std::concurrency::runnable and T : movable)
 class internal_runnable(lval<thread_runnable&> member_lval<thread_runnable&> selfRef, lval<T> value_lval<T> runnable, std::event::generator terminateGenerator) {
 	static create(T runnable) {
 		return @(lval<thread_runnable&>(member_lval<thread_runnable&>.__empty()), lval<T>(value_lval<T>(move runnable)), std::event::generator());
@@ -47,8 +48,8 @@ export std.concurrency 0.1.0 {
 
 	namespace std {
 		
-		template <typename T: concurrency::runnable>
-		concurrency::thread new_thread(T runnable_object) {
+		template <typename T>
+		concurrency::thread new_thread(T runnable_object) require(T : concurrency::runnable and T : movable) {
 			return concurrency::thread::create<T>(move runnable_object);
 		}
 		
@@ -58,8 +59,8 @@ export std.concurrency 0.1.0 {
 			exception join_failed(int result);
 			
 			class thread(thread_runnable& internalRunnable, mutex mutex, bool hasJoined, pthread_t threadObject) {
-				template <typename T: runnable>
-				static create(T runnableObject) {
+				template <typename T>
+				static create(T runnableObject) require(T : runnable and T : movable) {
 					auto internalRunnable = new_unique<internal_runnable<T>>(internal_runnable<T>(move runnableObject));
 					internalRunnable->set_self_ref();
 					

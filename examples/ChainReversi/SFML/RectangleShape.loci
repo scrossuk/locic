@@ -39,7 +39,7 @@ namespace sf {
 			sfRectangleShape_destroy(@shape);
 		}
 		
-		sfRectangleShape* const raw() const {
+		sfRectangleShape* raw() const {
 			return @shape;
 		}
 		

@@ -42,14 +42,14 @@ import std.string 0.1.0 {
 			 * \param The range of characters to append.
 			 */
 			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<unichar, LvalType>& range);
+			void append_range(input_range<unichar, LvalType>& range) require(LvalType : movable);
 			
 			/**
 			 * \brief Gets a pointer to a UTF-8 null-terminated C string.
 			 * 
 			 * \return A pointer to a UTF-8 null-terminated C string.
 			 */
-			const ubyte* const c_str() const noexcept;
+			const ubyte* c_str() const noexcept;
 			
 			/**
 			 * \brief Generates a string value.

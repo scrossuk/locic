@@ -39,7 +39,7 @@ namespace sf {
 			sfCircleShape_destroy(@shape);
 		}
 		
-		sfCircleShape* const raw() const {
+		sfCircleShape* raw() const {
 			return @shape;
 		}
 		

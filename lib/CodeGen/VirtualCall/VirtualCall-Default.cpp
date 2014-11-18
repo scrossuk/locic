@@ -256,12 +256,12 @@ namespace locic {
 			}
 			
 			ArgInfo virtualMoveArgInfo(Module& module) {
-				const auto voidPtrTypePair = pointerTypePair(module);
-				const TypePair types[] = { voidPtrTypePair };
+				const TypePair types[] = { pointerTypePair(module), sizeTypePair(module) };
 				return ArgInfo::VoidTemplateAndContextWithArgs(module, types).withNoExcept();
 			}
 			
-			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue, llvm::Value* destValue) {
+			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue,
+					llvm::Value* destValue, llvm::Value* positionValue) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -284,7 +284,7 @@ namespace locic {
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue };
+				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
 				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			

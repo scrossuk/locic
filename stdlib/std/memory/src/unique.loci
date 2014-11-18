@@ -4,7 +4,7 @@ export std.memory 0.1.0 {
 		
 		template <typename T>
 		class unique_ptr(T* ptr) {
-			static create(T value) {
+			static create(T value) require(T : movable) {
 				return @(new_raw<T>(move value));
 			}
 			
@@ -40,7 +40,7 @@ export std.memory 0.1.0 {
 			}
 		}
 		
-		template <typename T>
+		template <typename T : movable>
 		unique_ptr<T> new_unique(T value) {
 			return unique_ptr<T>::create(move value);
 		}

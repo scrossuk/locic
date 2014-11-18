@@ -16,7 +16,7 @@ namespace locic {
 		
 		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance);
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue);
+		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
 		void genUnionMove(Function& function, SEM::TypeInstance* typeInstance);
 		
