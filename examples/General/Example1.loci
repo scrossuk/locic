@@ -187,11 +187,12 @@ class Memory(T* ptr, size_t size, T emptyValue, T guardSlot) {
 		free(reinterpret_cast<T*, void*>(@ptr));
 	}
 	
-	lval<T> ptr_lval<T> index(size_t i) {
+	lval<T> ptr_lval<T> index(size_t i) require(T : Copyable<T>) {
 		if (i < @size) {
 			return @ptr[i];
 		}
 		printf(C"Out of bounds at index '%llu'.\n", i.cast<ulonglong_t>());
+		@guardSlot = @emptyValue;
 		return *(&(@guardSlot));
 	}
 	

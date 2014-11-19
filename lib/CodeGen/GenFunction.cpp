@@ -178,8 +178,9 @@ namespace locic {
 			const auto argInfo = getFunctionArgInfo(module, function->type());
 			Function functionGenerator(module, *llvmFunction, argInfo, &templateBuilder);
 			
-			if (typeInstance != nullptr && !typeInstance->templateVariables().empty()) {
-				// Always inline if possible for templated functions.
+			if (argInfo.hasTemplateGeneratorArgument() || (typeInstance != nullptr && typeInstance->isPrimitive())) {
+				// Always inline if possible for templated functions
+				// or methods of primitives.
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			

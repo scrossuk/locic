@@ -1,7 +1,7 @@
 find_package(LLVMBinaries REQUIRED)
 find_package(ClangBinary REQUIRED)
 
-set(LOCIC ${CMAKE_BINARY_DIR}/tools/locic)
+set(LOCIC "${CMAKE_BINARY_DIR}/tools/locic")
 
 macro(copy_source_file output_name name)
 	get_filename_component(name_file "${name}" NAME)
@@ -32,15 +32,24 @@ function(loci_module name output_name flags)
 	add_custom_target(${name} ALL DEPENDS ${output_name})
 endfunction(loci_module)
 
-function(loci_link name binary_name flags)
+set(RUNTIME_MODULE "${CMAKE_BINARY_DIR}/runtime/loci-runtime.bc")
+
+function(loci_link name binary_name flags primary_module)
 	set(${name}_Sources ${ARGN})
 	
 	separate_arguments(flags)
 	
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised
-		COMMAND # Link bitcode files together.
-			${LLVMBINARIES_LINK_EXECUTABLE} ${${name}_Sources} -o ${binary_name}_linked.bc &&
-			
+		COMMAND
+			# Create a file of all symbols in the primary module.
+			${LLVMBINARIES_NM_EXECUTABLE} -extern-only -just-symbol-name -defined-only "${primary_module}" > "${primary_module}.symbols.txt"
+		COMMAND
+			# Link bitcode files together.
+			${LLVMBINARIES_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
+		COMMAND
+			# Internalize all dependency symbols in linked module.
+			${LLVMBINARIES_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -strip -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
+		COMMAND
 			# Run 'opt' multiple times for maximum optimisation.
 			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
 			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
@@ -58,9 +67,9 @@ function(loci_link name binary_name flags)
 			# Use 'llc' to generate optimised platform object file.
 			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
 			
-			# Use 'gcc' to generate non-optimised platform binary.
-			${CLANGBINARY_EXECUTABLE} -o ${binary_name}_optimised ${binary_name}_optimised.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags}
-		DEPENDS ${${name}_Sources} loci-runtime
+			# Use 'clang' to generate optimised platform binary.
+			${CLANGBINARY_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
+		DEPENDS ${primary_module} ${${name}_Sources} loci-runtime-bc
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
 	add_custom_target(${name} ALL DEPENDS ${binary_name})

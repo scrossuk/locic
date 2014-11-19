@@ -1,3 +1,6 @@
+find_package(LLVMBinaries REQUIRED)
+find_package(ClangBinary REQUIRED)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 
 set(RUNTIME_FILES
@@ -36,7 +39,7 @@ set(RUNTIME_FILES
 	ushort_t.loci
 	value_lval.loci
 	void_t.loci
-	)
+)
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci"
 	COMMAND ${CMAKE_COMMAND}
@@ -44,7 +47,8 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci"
 		-D OUTPUT_FILE="${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci"
 		-P "${CMAKE_SOURCE_DIR}/cmake/ConcatFiles.cmake"
 	DEPENDS ${RUNTIME_FILES}
-	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c"
 	COMMAND ${CMAKE_COMMAND}
@@ -53,13 +57,33 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c"
 		-D WORKING_DIR="${CMAKE_CURRENT_BINARY_DIR}"
 		-P "${CMAKE_SOURCE_DIR}/cmake/MakeCString.cmake"
 	DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci"
-	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+)
+
+set(RUNTIME_FILES
+	assert.cpp
+	exception.cpp
+)
 
 add_library(loci-builtintypes STATIC
 	"${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci.c"
-	)
+)
 
 add_library(loci-runtime STATIC
-	assert.cpp
-	exception.cpp
-	)
+	${RUNTIME_FILES}
+)
+
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
+	COMMAND
+		${CLANGBINARY_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "assert.cpp"
+	COMMAND
+		${CLANGBINARY_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" "exception.cpp"
+	COMMAND
+		${LLVMBINARIES_LINK_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
+	DEPENDS ${RUNTIME_FILES}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(loci-runtime-bc ALL
+	DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
+)

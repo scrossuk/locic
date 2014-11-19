@@ -21,6 +21,10 @@ find_program(LLVMBINARIES_LLC_EXECUTABLE
 	NAMES llc
 	DOC "Path to llc executable")
 
+find_program(LLVMBINARIES_NM_EXECUTABLE
+	NAMES llvm-nm
+	DOC "Path to llvm-nm executable")
+
 find_program(LLVMBINARIES_OPT_EXECUTABLE
 	NAMES opt
 	DOC "Path to opt executable")
@@ -31,6 +35,7 @@ find_package_handle_standard_args(LLVMBinaries
 	LLVMBINARIES_DIS_EXECUTABLE
 	LLVMBINARIES_LINK_EXECUTABLE
 	LLVMBINARIES_LLC_EXECUTABLE
+	LLVMBINARIES_NM_EXECUTABLE
 	LLVMBINARIES_OPT_EXECUTABLE
 	)
 

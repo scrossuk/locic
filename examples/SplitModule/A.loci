@@ -8,7 +8,8 @@ import B 1.0.0 {
 		void print();
 	}
 	
-	template <typename T: Printable>
+	template <typename T>
+	require(T : Printable and T : movable)
 	class TestClass {
 		static TestClass<T> Create(T value);
 		
