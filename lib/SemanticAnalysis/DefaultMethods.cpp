@@ -46,6 +46,7 @@ namespace locic {
 		
 		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			semFunction->typeRequirements() = typeInstance->typeRequirements();
 			
 			semFunction->setMethod(true);
 			

@@ -35,7 +35,8 @@ class TestClassFloat (float value) {
 	}
 }
 
-template <typename T: Incrementable>
+template <typename T>
+require(T : Incrementable and T : movable)
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

@@ -21,7 +21,8 @@ class SecondClass(int i) {
 	}
 }
 
-template <typename A : Printable, typename B : Printable>
+template <typename A, typename B>
+require(A : Printable and A : movable and B : Printable and B : movable)
 class TestClass(A a, B b) {
 	static Create = default;
 	

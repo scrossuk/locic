@@ -9,7 +9,8 @@ interface SecondInterface {
 	void printSecond() const;
 }
 
-template <typename T: FirstInterface>
+template <typename T>
+require(T : FirstInterface and T : movable)
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

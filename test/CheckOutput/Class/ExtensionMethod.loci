@@ -5,7 +5,7 @@ import void testPrint(const ubyte * const str, ...);
 class TestClass(const ubyte* const text) {
 	static Create = default;
 	
-	const ubyte* const getText() const {
+	const ubyte* getText() const {
 		return @text;
 	}
 }

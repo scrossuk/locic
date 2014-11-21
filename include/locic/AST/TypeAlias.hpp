@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
 
@@ -14,11 +15,19 @@ namespace locic {
 		struct TypeAlias {
 			std::string name;
 			Node<TemplateTypeVarList> templateVariables;
+			Node<RequireSpecifier> requireSpecifier;
 			AST::Node<AST::Type> value;
 			
-			TypeAlias(const std::string& pName, AST::Node<Type> pValue);
+			public:
+				TypeAlias(const std::string& pName, AST::Node<Type> pValue);
 				
-			std::string toString() const;
+				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
+				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
+					
+				std::string toString() const;
+				
+			private:
+				// TODO: make member variables private.
 		};
 		
 	}

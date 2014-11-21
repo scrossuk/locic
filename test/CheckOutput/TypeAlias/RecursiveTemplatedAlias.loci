@@ -1,7 +1,7 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-template <typename T>
+template <typename T : movable>
 class TestClass(T value) {
 	static Create = default;
 	
@@ -10,16 +10,16 @@ class TestClass(T value) {
 	}
 }
 
-template <typename T>
+template <typename T : movable>
 using TestClassAlias0 = TestClass<T>;
 
-template <typename T>
+template <typename T : movable>
 using TestClassAlias1 = TestClassAlias0<T>;
 
-template <typename T>
+template <typename T : movable>
 using TestClassAlias2 = TestClassAlias1<T>;
 
-template <typename T>
+template <typename T : movable>
 using TestClassAlias3 = TestClassAlias2<T>;
 
 // Entry point.

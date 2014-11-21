@@ -1,14 +1,15 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-template <typename T>
+template <typename T: movable>
 interface copyable {
 	T implicitCopy() const;
 	
 	int abs();
 }
 
-template <typename T: copyable<T>>
+template <typename T>
+require(T : copyable<T> and T : movable)
 class TestClass(T value, int extra) {
 	static Create(T value) {
 		return @(move value, 1);

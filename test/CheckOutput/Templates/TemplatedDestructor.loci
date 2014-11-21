@@ -16,7 +16,8 @@ interface Destroyable {
 	void onDestroy() noexcept;
 }
 
-template <typename T: Destroyable>
+template <typename T>
+require(T : Destroyable and T : movable)
 class TestClass(T value) {
 	static Create(T value) {
 		testPrint(C"TestClass.Create");

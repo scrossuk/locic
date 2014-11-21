@@ -644,6 +644,11 @@ namespace locic {
 		void CompleteTypeAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
 			const auto typeAlias = context.scopeStack().back().typeAlias();
 			
+			// Add any requirements in require() specifier.
+			if (!astTypeAliasNode->requireSpecifier.isNull()) {
+				ConvertRequireSpecifier(context, astTypeAliasNode->requireSpecifier, typeAlias->typeRequirements());
+			}
+			
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;

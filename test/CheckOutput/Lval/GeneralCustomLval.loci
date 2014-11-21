@@ -2,10 +2,11 @@
 import void testPrint(const ubyte * const str, ...);
 
 interface serializable {
-	const ubyte * const toCString();
+	const ubyte * toCString();
 }
 
-template <typename T: serializable>
+template <typename T>
+require(T : serializable and T : movable)
 // Use a 'value_lval' since it supports move operations.
 class custom_lval(bool hasValue, lval<T> value_lval<T> value) {
 	static Create(T value) {
@@ -58,7 +59,7 @@ class TestClass(int a, int b) {
 		return @(a, b);
 	}
 	
-	const ubyte* const toCString() {
+	const ubyte* toCString() {
 		if (@a == 0) {
 			if (@b == 0) {
 				return C"Both Zero";

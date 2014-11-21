@@ -1,11 +1,11 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-template <typename S>
+template <typename S : movable>
 class TestClass(S object) {
 	static create = default;
 	
-	template <typename T>
+	template <typename T : movable>
 	T passThrough(T object) {
 		return move object;
 	}

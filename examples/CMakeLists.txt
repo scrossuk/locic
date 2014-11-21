@@ -48,7 +48,7 @@ function(loci_link name binary_name flags primary_module)
 			${LLVMBINARIES_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
 		COMMAND
 			# Internalize all dependency symbols in linked module.
-			${LLVMBINARIES_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -strip -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
+			${LLVMBINARIES_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
 		COMMAND
 			# Run 'opt' multiple times for maximum optimisation.
 			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&

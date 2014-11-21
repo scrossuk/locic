@@ -1,14 +1,15 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-template <typename T>
+template <typename T : movable>
 interface Comparable {
 	T implicitCopy() const;
 	
 	compare_result_t compare(const T& other) const;
 }
 
-template <typename T: Comparable<T>>
+template <typename T>
+require(T : Comparable<T> and T : movable)
 class TestClass(T value0, T value1) {
 	static Create(T value0, T value1) {
 		return @(move value0, move value1);

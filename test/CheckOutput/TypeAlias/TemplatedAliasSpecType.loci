@@ -13,7 +13,8 @@ class PrintableClass(int value) {
 	}
 }
 
-template <typename T : Printable>
+template <typename T>
+require(T : Printable and T : movable)
 class TestClass(T value) {
 	static Create = default;
 	
@@ -23,7 +24,8 @@ class TestClass(T value) {
 	}
 }
 
-template <typename T : Printable>
+template <typename T>
+require(T : Printable and T : movable)
 using TestClassAlias = TestClass<T>;
 
 // Entry point.

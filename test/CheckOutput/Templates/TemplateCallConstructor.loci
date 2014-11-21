@@ -12,14 +12,15 @@ class BuildClass(int value) {
 	}
 }
 
-template <typename T>
+template <typename T : movable>
 interface Constructible {
 	static T Create(int value);
 	
 	void print();
 }
 
-template <typename T: Constructible<T>>
+template <typename T>
+require(T : Constructible<T> and T : movable)
 class TestClass(T value) {
 	static Create(int value) {
 		testPrint(C"TestClass.Create()");

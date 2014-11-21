@@ -1,15 +1,16 @@
 // Test output.
 import void testPrint(const ubyte * const str, ...);
 
-template <typename T>
+template <typename T : movable>
 interface Copyable {
 	T implicitCopy() const;
 }
 
-template <typename T>
+template <typename T : movable>
 exception ParentError(T value);
 
-template <typename T: Copyable<T>>
+template <typename T>
+require(T : Copyable<T> and T : movable)
 exception ChildError(T value0, T value1) : ParentError<T>(value0);
 
 // Entry point.

@@ -10,7 +10,8 @@ interface PrintOther {
 	void printOther(const T& value);
 }
 
-template <typename S: Printable>
+template <typename S>
+require(S : movable and S : Printable)
 class TestClass(S object) {
 	static create = default;
 	

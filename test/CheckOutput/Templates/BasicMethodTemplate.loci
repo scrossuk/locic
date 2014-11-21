@@ -8,7 +8,7 @@ interface Printable {
 class TestClass() {
 	static create = default;
 	
-	template <typename T>
+	template <typename T : movable>
 	T passThrough(T object) {
 		return move object;
 	}
