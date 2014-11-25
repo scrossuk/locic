@@ -1052,6 +1052,57 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			const auto& methodName = semFunction->name().last();
+			const auto targetType = type->templateArguments().front();
+			
+			if (methodName == "__empty") {
+				return genLoad(function, genAlloca(function, type), type);
+			}
+			
+			const auto methodOwner = allocArg(function, args[0], type);
+			
+			if (methodName == "__move_to") {
+				// TODO: must call __move_to() of child!
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, "size_t");
+				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
+				
+				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				genStore(function, genLoad(function, targetPtr, targetType), castedDestPtr, targetType);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (isUnaryOp(methodName)) {
+				if (methodName == "address" || methodName == "dissolve") {
+					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				} else {
+					llvm_unreachable("Unknown primitive unary op.");
+				}
+			} else if (methodName == "__set_value") {
+				const auto operand = loadArg(function, args[1], targetType);
+				
+				// Assign new value.
+				genStore(function, operand, methodOwner, targetType);
+				
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "__extract_value") {
+				return genLoad(function, methodOwner, targetType);
+			} else if (methodName == "__destroy_value") {
+				// Destroy existing value.
+				genDestructorCall(function, targetType, methodOwner);
+				return ConstantGenerator(module).getVoidUndef();
+			} else {
+				llvm_unreachable("Unknown primitive method.");
+			}
+		}
+		
 		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -1230,6 +1281,8 @@ namespace locic {
 					return genValueLvalPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitiveMemberLval:
 					return genMemberLvalPrimitiveMethodCall(function, type, semFunction, args);
+				case PrimitiveFinalLval:
+					return genFinalLvalPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitivePtrLval:
 					return genPtrLvalPrimitiveMethodCall(function, type, semFunction, args);
 				case PrimitivePtr:

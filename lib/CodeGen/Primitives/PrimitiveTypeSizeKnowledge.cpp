@@ -18,6 +18,7 @@ namespace locic {
 			const auto kind = module.primitiveKind(name);
 			
 			switch (kind) {
+				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
@@ -33,6 +34,7 @@ namespace locic {
 			const auto kind = module.primitiveKind(name);
 			
 			switch (kind) {
+				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));

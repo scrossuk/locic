@@ -48,6 +48,16 @@ namespace locic {
 			genStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
+		void genStoreFinalLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			
+			// A final lval just contains its target type,
+			// so just store that directly.
+			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
+			genStore(function, value, targetPtr, varType->lvalTarget());
+		}
+		
 		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
@@ -56,6 +66,8 @@ namespace locic {
 				genStoreValueLval(function, value, var, varType);
 			} else if (typeName == "member_lval") {
 				genStoreMemberLval(function, value, var, varType);
+			} else if (typeName == "final_lval") {
+				genStoreFinalLval(function, value, var, varType);
 			} else {
 				llvm_unreachable("Unknown primitive lval kind.");
 			}

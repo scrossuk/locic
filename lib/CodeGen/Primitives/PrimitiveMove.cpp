@@ -61,7 +61,7 @@ namespace locic {
 				builder.CreateBr(afterBB);
 				
 				function.selectBasicBlock(afterBB);
-			} else if (typeName == "member_lval") {
+			} else if (typeName == "final_lval" || typeName == "member_lval") {
 				const auto targetType = type->templateArguments().front();
 				genMoveCall(function, targetType, sourceValue, destValue, positionValue);
 			}

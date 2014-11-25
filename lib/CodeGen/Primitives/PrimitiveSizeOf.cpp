@@ -38,7 +38,7 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval") {
+			if (name == "member_lval" || name == "final_lval") {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     alignof(member_lval) = alignof(T).
@@ -83,7 +83,7 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval") {
+			if (name == "member_lval" || name == "final_lval") {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     sizeof(member_lval) = sizeof(T).
@@ -154,7 +154,7 @@ namespace locic {
 			if (typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front();
 				return genAlignMask(function, targetType);
-			} else if (typeName == "member_lval") {
+			} else if (typeName == "member_lval" || typeName == "final_lval") {
 				const auto targetType = type->templateArguments().front();
 				return genAlignMask(function, targetType);
 			} else {
@@ -170,7 +170,7 @@ namespace locic {
 			if (typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front();
 				return function.getBuilder().CreateAdd(genAlignOf(function, targetType), genSizeOf(function, targetType));
-			} else if (typeName == "member_lval") {
+			} else if (typeName == "member_lval" || typeName == "final_lval") {
 				const auto targetType = type->templateArguments().front();
 				return genSizeOf(function, targetType);
 			} else {

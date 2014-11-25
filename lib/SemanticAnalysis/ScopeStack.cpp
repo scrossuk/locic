@@ -92,7 +92,7 @@ namespace locic {
 			assert(rootElement.isNamespace());
 			
 			const auto iterator = rootElement.nameSpace()->items().find(typeName);
-			assert(iterator != rootElement.nameSpace()->items().end());
+			assert(iterator != rootElement.nameSpace()->items().end() && "Failed to find built-in type!");
 			
 			const auto value = iterator->second;
 			assert(value.isTypeInstance() || value.isTypeAlias());

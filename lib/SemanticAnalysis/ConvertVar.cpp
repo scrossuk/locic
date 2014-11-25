@@ -97,10 +97,10 @@ namespace locic {
 								astTypeVarNode->namedVar.name.c_str(), location.toString().c_str()));
 						}
 						
-						// 'final' keyword makes the default lval const.
-						const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
+						// 'final' keyword uses an unmodifiable type.
+						const bool isFinalLval = astTypeVarNode->namedVar.isFinal;
 						
-						const auto lvalType = makeLvalType(context, isMember, isLvalConst, varType);
+						const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 						
 						const auto var = SEM::Var::Basic(varType, lvalType);
 						attachVar(context, varName, astTypeVarNode, var);

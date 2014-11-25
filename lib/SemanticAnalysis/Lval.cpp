@@ -25,10 +25,20 @@ namespace locic {
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
-		const SEM::Type* makeLvalType(Context& context, bool isMember, bool isLvalConst, const SEM::Type* valueType) {
+		const SEM::Type* makeFinalLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
+			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "final_lval")->getObjectType();
+			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
+			return isLvalConst ? lvalType->createConstType() : lvalType;
+		}
+		
+		const SEM::Type* makeLvalType(Context& context, bool isMember, bool isFinal, const SEM::Type* valueType) {
 			if (getDerefType(valueType)->isLval()) return valueType;
 			
-			if (isMember) {
+			const bool isLvalConst = false;
+			
+			if (isFinal) {
+				return makeFinalLvalType(context, isLvalConst, valueType);
+			} else if (isMember) {
 				return makeMemberLvalType(context, isLvalConst, valueType);
 			} else {
 				return makeValueLvalType(context, isLvalConst, valueType);

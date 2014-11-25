@@ -607,40 +607,6 @@ namespace locic {
 			}
 		}
 		
-		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::TemplateRequireMap& parentRequireMap) {
-			const auto function = context.scopeStack().back().function();
-			
-			// Add any requirements specified by parent.
-			for (const auto& parentRequirement: parentRequireMap) {
-				const auto semTemplateVar = parentRequirement.first;
-				const auto requireInstance = parentRequirement.second;
-				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), requireInstance->selfType());
-			}
-			
-			// Add any requirements in require() specifier.
-			if (!astFunctionNode->requireSpecifier().isNull()) {
-				ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier(), function->typeRequirements());
-			}
-			
-			// Add requirements specified inline for template variables.
-			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
-				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = function->namedTemplateVariables().at(templateVarName);
-				
-				const auto& astSpecType = astTemplateVarNode->specType;
-				
-				if (astSpecType->isVoid()) {
-					// No requirement specified.
-					continue;
-				}
-			 	
-			 	const auto semSpecType = ConvertType(context, astSpecType);
-				
-				// Add the specificaton to the type requirements.
-				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), semSpecType);
-			}
-		}
-		
 		void CompleteTypeAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
 			const auto typeAlias = context.scopeStack().back().typeAlias();
 			
@@ -693,35 +659,20 @@ namespace locic {
 				// Add the specification to the type requirements.
 				addTypeToRequirement(context, typeInstance->typeRequirements().at(semTemplateVar), semSpecType);
 			}
-			
-			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
-				const auto semChildFunction = typeInstance->functions().at(methodName);
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, typeInstance->typeRequirements());
-			}
 		}
 		
-		void CompleteNamespaceDataTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+		void CompleteNamespaceDataTypeTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astFunctionNode: astNamespaceDataNode->functions) {
-				const auto semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::TemplateRequireMap());
-			}
-			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				CompleteNamespaceDataTemplateVariableRequirements(context, astModuleScopeNode->data);
+				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astModuleScopeNode->data);
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
 				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
-				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
+				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 			
 			for (auto astTypeAliasNode: astNamespaceDataNode->typeAliases) {
@@ -739,9 +690,99 @@ namespace locic {
 			}
 		}
 		
-		void CompleteTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+		void CompleteTypeTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				CompleteNamespaceDataTemplateVariableRequirements(context, astNamespaceNode->data);
+				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data);
+			}
+		}
+		
+		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::TemplateRequireMap& parentRequireMap) {
+			const auto function = context.scopeStack().back().function();
+			
+			// Add any requirements specified by parent.
+			for (const auto& parentRequirement: parentRequireMap) {
+				const auto semTemplateVar = parentRequirement.first;
+				const auto requireInstance = parentRequirement.second;
+				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), requireInstance->selfType());
+			}
+			
+			// Add any requirements in require() specifier.
+			if (!astFunctionNode->requireSpecifier().isNull()) {
+				ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier(), function->typeRequirements());
+			}
+			
+			// Add requirements specified inline for template variables.
+			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = function->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astSpecType = astTemplateVarNode->specType;
+				
+				if (astSpecType->isVoid()) {
+					// No requirement specified.
+					continue;
+				}
+			 	
+			 	const auto semSpecType = ConvertType(context, astSpecType);
+				
+				// Add the specificaton to the type requirements.
+				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), semSpecType);
+			}
+		}
+		
+		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+				const auto semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
+				
+				const auto& name = astFunctionNode->name();
+				assert(!name->empty());
+				
+				if (name->size() == 1) {
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::TemplateRequireMap());
+				} else {
+					const auto searchResult = performSearch(context, name->getPrefix());
+					const auto parentTypeInstance = searchResult.typeInstance();
+					
+					// Push the type instance on the scope stack, since the extension method is
+					// effectively within the scope of the type instance.
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
+					
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance->typeRequirements());
+				}
+			}
+			
+			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astModuleScopeNode->data);
+			}
+			
+			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data);
+			}
+			
+			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
+					const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
+					const auto semChildFunction = semChildTypeInstance->functions().at(methodName);
+					
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance->typeRequirements());
+				}
+			}
+		}
+		
+		void CompleteFunctionTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
+				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 		}
 		
@@ -872,16 +913,19 @@ namespace locic {
 				// ---- Pass 4: Create function declarations.
 				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 5: Complete template type variable requirements.
-				CompleteTemplateVariableRequirementsPass(context, rootASTNamespaces);
+				// ---- Pass 5: Complete type template variable requirements.
+				CompleteTypeTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 6: Generate default methods.
+				// ---- Pass 6: Complete function template variable requirements.
+				CompleteFunctionTemplateVariableRequirementsPass(context, rootASTNamespaces);
+				
+				// ---- Pass 7: Generate default methods.
 				GenerateDefaultMethodsPass(context);
 				
-				// ---- Pass 7: Check all previous template instantiations are correct.
+				// ---- Pass 8: Check all previous template instantiations are correct.
 				CheckTemplateInstantiationsPass(context);
 				
-				// ---- Pass 8: Fill in function code.
+				// ---- Pass 9: Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());

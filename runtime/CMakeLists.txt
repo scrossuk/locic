@@ -8,6 +8,7 @@ set(RUNTIME_FILES
 	byte_t.loci
 	compare_result_t.loci
 	double_t.loci
+	final_lval.loci
 	float_t.loci
 	int16_t.loci
 	int32_t.loci

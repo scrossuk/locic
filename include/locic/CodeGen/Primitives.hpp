@@ -50,6 +50,7 @@ namespace locic {
 			PrimitivePtrLval,
 			PrimitiveValueLval,
 			PrimitiveMemberLval,
+			PrimitiveFinalLval,
 			PrimitiveTypename
 		};
 		

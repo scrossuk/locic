@@ -39,6 +39,7 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair("ptr_lval", PrimitivePtrLval));
 			primitiveMap_.insert(std::make_pair("value_lval", PrimitiveValueLval));
 			primitiveMap_.insert(std::make_pair("member_lval", PrimitiveMemberLval));
+			primitiveMap_.insert(std::make_pair("final_lval", PrimitiveFinalLval));
 			primitiveMap_.insert(std::make_pair("typename_t", PrimitiveTypename));
 			primitiveMap_.insert(std::make_pair("compare_result_t", PrimitiveCompareResult));
 			
@@ -190,7 +191,9 @@ namespace locic {
 		}
 		
 		PrimitiveKind Module::primitiveKind(const std::string& name) const {
-			return primitiveMap_.at(name);
+			const auto iterator = primitiveMap_.find(name);
+			assert(iterator != primitiveMap_.end() && "Failed to find primitive type!");
+			return iterator->second;
 		}
 		
 	}

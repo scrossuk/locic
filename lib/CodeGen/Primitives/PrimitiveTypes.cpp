@@ -40,7 +40,8 @@ namespace locic {
 					}
 					break;
 				}
-				case PrimitiveMemberLval: {
+				case PrimitiveMemberLval:
+				case PrimitiveFinalLval: {
 					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
 						return genType(module, type->templateArguments().at(0));
 					}
@@ -97,6 +98,17 @@ namespace locic {
 			}
 		}
 		
+		llvm::Type* getLvalStruct(Module& module, const std::string& name) {
+			const auto existingType = module.getTypeMap().tryGet(name);
+			if (existingType.hasValue()) {
+				return existingType.getValue();
+			}
+			
+			const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
+			module.getTypeMap().insert(name, type);
+			return type;
+		}
+		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind) {
 			switch (kind) {
 				case PrimitiveVoid:
@@ -141,18 +153,11 @@ namespace locic {
 				case PrimitivePtrLval:
 					return TypeGenerator(module).getI8PtrType();
 				case PrimitiveValueLval:
-				case PrimitiveMemberLval: {
-					const std::string name = (kind == PrimitiveValueLval) ? "value_lval" : "member_lval";
-					
-					const auto existingType = module.getTypeMap().tryGet(name);
-					if (existingType.hasValue()) {
-						return existingType.getValue();
-					}
-					
-					const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
-					module.getTypeMap().insert(name, type);
-					return type;
-				}
+					return getLvalStruct(module, "value_lval");
+				case PrimitiveMemberLval:
+					return getLvalStruct(module, "member_lval");
+				case PrimitiveFinalLval:
+					return getLvalStruct(module, "final_lval");
 				case PrimitiveTypename:
 					return typeInfoType(module).second;
 				default:
@@ -238,6 +243,7 @@ namespace locic {
 					members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Bool));
 					return llvm_abi::Type::AutoStruct(abiContext, members);
 				}
+				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 					return genABIType(module, type->templateArguments().at(0));
 				case PrimitiveTypename:
