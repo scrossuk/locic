@@ -4,6 +4,8 @@ set(REQ_LIBS
 	boost_program_options
 	boost_regex
 	boost_system
+	tinfo
+	${CMAKE_DL_LIBS}
 	)
 
 # Build compiler.
