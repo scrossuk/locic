@@ -1,4 +1,5 @@
 find_package(Threads REQUIRED)
+find_package(ZLIB REQUIRED)
 
 set(REQ_LIBS
 	${LLVM_LIBRARIES}
@@ -7,6 +8,7 @@ set(REQ_LIBS
 	boost_regex
 	boost_system
 	tinfo
+	${ZLIB_LIBRARIES}
 	${CMAKE_DL_LIBS}
 	${CMAKE_THREAD_LIBS_INIT}
 )
