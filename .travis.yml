@@ -36,7 +36,7 @@ install:
   - sudo apt-get update
 
   # Install package dependencies.
-  - sudo apt-get install -y $LLVM_PACKAGE $CLANG_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
+  - sudo apt-get install -y $LLVM_PACKAGE "clang-$CLANG_VERSION" libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
 
   # Install a recent version of g++ (with C++11 support).
   -
@@ -47,7 +47,8 @@ install:
   # Install a recent version of clang++ (with C++11 support).
   -
     if [[ "${CXX}" == "clang++" ]]; then
-      sudo apt-get install -y clang-3.4; export CXX="clang++-3.4";
+      # Use the previously installed clang version (since installing one tends to remove another).
+      export CXX="clang++-$CLANG_VERSION";
     fi
 
   # Build and install a recent version of bison.
@@ -63,24 +64,24 @@ before_script:
 
 script:
   # Make sure we use the correct Clang binary.
-  - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="$CLANG_PACKAGE" ..
+  - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="clang-$CLANG_VERSION" ..
   - make
   - ctest --output-on-failure
 
 env:
   # Build with LLVM 3.3; use Clang 3.4 since Clang 3.3 can't build the exception runtime code.
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.3 llvm-3.3-dev" CLANG_PACKAGE="clang-3.4"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.3 llvm-3.3-dev" CLANG_VERSION="3.4"
 
   # Build with LLVM 3.4
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev" CLANG_PACKAGE="clang-3.4"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev" CLANG_VERSION="3.4"
 
   # Build with LLVM 3.5
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_PACKAGE="clang-3.5"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_PACKAGE="clang-3.5"
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_VERSION="3.5"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_VERSION="3.5"
 
   # Build with LLVM 3.6
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
 
 matrix:
   allow_failures:
