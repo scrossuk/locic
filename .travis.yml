@@ -26,6 +26,9 @@ before_install:
 
   - sudo add-apt-repository --yes ppa:h-rayflood/llvm
 
+  # SFML 2
+  - sudo add-apt-repository --yes ppa:sonkun/sfml-stable
+
 install:
   - sudo apt-get update
   - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
