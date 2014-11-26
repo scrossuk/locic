@@ -63,3 +63,8 @@ env:
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev"
   - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
+
+matrix:
+  allow_failures:
+  - env: BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
+  - env: BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
