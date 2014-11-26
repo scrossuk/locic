@@ -23,11 +23,11 @@ install:
   - sudo apt-get update
   - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-dev libboost-program-options-dev
   -
-    if [[ "${LLVM_PACKAGE}" == *3\.[56]* ]] && [[ "${CXX}" == "g++" ]]; then
+    if [ "${CXX}" == "g++" ]]; then
       sudo apt-get install g++-4.8; export CXX="g++-4.8";
     fi
   -
-    if [[ "${LLVM_PACKAGE}" == *3\.[56]* ]] && [[ "${CXX}" == "clang++" ]]; then
+    if [[ "${CXX}" == "clang++" ]]; then
       sudo apt-get install --allow-unauthenticated -qq clang-3.4; export CXX="clang++-3.4";
     fi
 
@@ -42,7 +42,7 @@ script:
 env:
   - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev"
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev"
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev libedit2 libedit-dev"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev libedit2 libedit-dev"
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev libedit2 libedit-dev"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev libedit2 libedit-dev"
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev"
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
