@@ -60,7 +60,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_BUILD=${LOCIC_VERSION_BU
 # --- Dependencies
 
 # Find LLVM (for code generation).
-find_package(LLVM REQUIRED)
+set(LLVM_REQ_COMPONENTS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
+find_package(LLVM REQUIRED ${LLVM_REQ_COMPONENTS})
 
 # Check LLVM version.
 set(LLVM_VERSION_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
@@ -95,16 +96,6 @@ include_directories(SYSTEM ${LOCIC_LLVM_INCLUDE_DIRS})
 message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
 link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
-
-set(LLVM_REQ_COMPONENTS bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
-
-# llvm_map_components_to_libraries() is deprecated in LLVM 3.5, so use the more
-# modern llvm_map_components_to_libnames() when available.
-if ("${LLVM_VERSION_STRING}" VERSION_GREATER "3.4")
-	llvm_map_components_to_libnames(LLVM_REQ_LIBS ${LLVM_REQ_COMPONENTS})
-else()
-	llvm_map_components_to_libraries(LLVM_REQ_LIBS ${LLVM_REQ_COMPONENTS})
-endif()
 
 # --- Subdirectories
 

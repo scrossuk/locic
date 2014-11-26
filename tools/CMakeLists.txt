@@ -1,5 +1,5 @@
 set(REQ_LIBS
-	${LLVM_REQ_LIBS}
+	${LLVM_LIBRARIES}
 	boost_filesystem
 	boost_program_options
 	boost_regex

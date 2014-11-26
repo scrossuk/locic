@@ -9,7 +9,7 @@
 # CLANGBINARY_EXECUTABLE
 
 find_program(CLANGBINARY_EXECUTABLE
-	NAMES clang
+	NAMES clang-3.6 clang-3.5 clang-3.4 clang-3.3 clang
 	DOC "Path to clang executable")
 
 include(FindPackageHandleStandardArgs)
