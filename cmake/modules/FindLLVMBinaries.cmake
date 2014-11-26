@@ -17,27 +17,37 @@ find_package(LLVM REQUIRED)
 find_program(LLVMBINARIES_DIS_EXECUTABLE
 	NAMES llvm-dis
 	PATHS ${LLVM_TOOLS_BINARY_DIR}
-	DOC "Path to llvm-dis executable")
+	DOC "Path to llvm-dis executable"
+	NO_DEFAULT_PATH
+)
 
 find_program(LLVMBINARIES_LINK_EXECUTABLE
 	NAMES llvm-link
 	PATHS ${LLVM_TOOLS_BINARY_DIR}
-	DOC "Path to llvm-link executable")
+	DOC "Path to llvm-link executable"
+	NO_DEFAULT_PATH
+)
 
 find_program(LLVMBINARIES_LLC_EXECUTABLE
 	NAMES llc
 	PATHS ${LLVM_TOOLS_BINARY_DIR}
-	DOC "Path to llc executable")
+	DOC "Path to llc executable"
+	NO_DEFAULT_PATH
+)
 
 find_program(LLVMBINARIES_NM_EXECUTABLE
 	NAMES llvm-nm
 	PATHS ${LLVM_TOOLS_BINARY_DIR}
-	DOC "Path to llvm-nm executable")
+	DOC "Path to llvm-nm executable"
+	NO_DEFAULT_PATH
+)
 
 find_program(LLVMBINARIES_OPT_EXECUTABLE
 	NAMES opt
 	PATHS ${LLVM_TOOLS_BINARY_DIR}
-	DOC "Path to opt executable")
+	DOC "Path to opt executable"
+	NO_DEFAULT_PATH
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LLVMBinaries
@@ -47,5 +57,5 @@ find_package_handle_standard_args(LLVMBinaries
 	LLVMBINARIES_LLC_EXECUTABLE
 	LLVMBINARIES_NM_EXECUTABLE
 	LLVMBINARIES_OPT_EXECUTABLE
-	)
+)
 
