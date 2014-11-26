@@ -11,6 +11,8 @@ compiler:
 
 before_install:
   - sudo apt-get update
+
+  # Ensure add-apt-repository is installed.
   - sudo apt-get install python-software-properties
 
   # LLVM 3.4 / 3.5 / snapshots
@@ -19,6 +21,7 @@ before_install:
   - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main' >> /etc/apt/sources.list"
   - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
 
+  # Boost
   - sudo add-apt-repository --yes ppa:boost-latest/ppa
 
   # g++4.8.1
@@ -31,16 +34,23 @@ before_install:
 
 install:
   - sudo apt-get update
-  - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
+
+  # Install package dependencies.
+  - sudo apt-get install -y $LLVM_PACKAGE $CLANG_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
+
+  # Install a recent version of g++ (with C++11 support).
   -
     if [[ "${CXX}" == "g++" ]]; then
-      sudo apt-get install g++-4.8; export CXX="g++-4.8";
-    fi
-  -
-    if [[ "${CXX}" == "clang++" ]]; then
-      sudo apt-get install --allow-unauthenticated -qq clang-3.4; export CXX="clang++-3.4";
+      sudo apt-get install -y g++-4.8; export CXX="g++-4.8";
     fi
 
+  # Install a recent version of clang++ (with C++11 support).
+  -
+    if [[ "${CXX}" == "clang++" ]]; then
+      sudo apt-get install -y clang-3.4; export CXX="clang++-3.4";
+    fi
+
+  # Build and install a recent version of bison.
   - wget http://ftp.heanet.ie/mirrors/gnu/bison/bison-3.0.2.tar.gz
   - tar -xvzf bison-3.0.2.tar.gz
   - cd bison-3.0.2
@@ -52,19 +62,28 @@ before_script:
   - cd build
 
 script:
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+  # Make sure we use the correct Clang binary.
+  - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="$CLANG_PACKAGE" ..
   - make
   - ctest --output-on-failure
 
 env:
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev"
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev"
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
+  # Build with LLVM 3.3.
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.3 llvm-3.3-dev" CLANG_PACKAGE="clang-3.3"
+
+  # Build with LLVM 3.4
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev" CLANG_PACKAGE="clang-3.4"
+
+  # Build with LLVM 3.5
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_PACKAGE="clang-3.5"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_PACKAGE="clang-3.5"
+
+  # Build with LLVM 3.6
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
 
 matrix:
   allow_failures:
-  - env: BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
-  - env: BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev"
+  # Allow failures when using LLVM 3.6 since it's in development.
+  - env: BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
+  - env: BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_PACKAGE="clang-3.6"
