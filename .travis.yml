@@ -27,7 +27,7 @@ before_install:
   - sudo add-apt-repository --yes ppa:h-rayflood/llvm
 
   # SFML 2
-  - sudo add-apt-repository --yes ppa:sonkun/sfml-stable
+  - sudo add-apt-repository --yes ppa:sonkun/sfml-development
 
 install:
   - sudo apt-get update
