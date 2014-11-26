@@ -14,7 +14,7 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/IRReader/IRReader.h>
 
-#ifdef LLVM_3_5
+#if defined(LLVM_3_5) && defined(LLVM_LINKER_IN_LINKER)
 #include <llvm/Linker/Linker.h>
 #else
 #include <llvm/Linker.h>

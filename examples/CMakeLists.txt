@@ -42,7 +42,7 @@ function(loci_link name binary_name flags primary_module)
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised
 		COMMAND
 			# Create a file of all symbols in the primary module.
-			${LLVMBINARIES_NM_EXECUTABLE} -extern-only -just-symbol-name -defined-only "${primary_module}" > "${primary_module}.symbols.txt"
+			${LLVMBINARIES_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c12- > "${primary_module}.symbols.txt"
 		COMMAND
 			# Link bitcode files together.
 			${LLVMBINARIES_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
@@ -62,7 +62,7 @@ function(loci_link name binary_name flags primary_module)
 			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
 			
 			# Use 'clang' to generate non-optimised platform binary.
-			${CLANGBINARY_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm -L${CMAKE_BINARY_DIR}/runtime -lloci-runtime ${flags} &&
+			${CLANGBINARY_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm ${flags} &&
 			
 			# Use 'llc' to generate optimised platform object file.
 			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&

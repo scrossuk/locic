@@ -19,7 +19,7 @@
 #include <llvm/DebugInfo.h>
 #endif
 
-#ifdef LLVM_3_5
+#if defined(LLVM_3_5) && defined(LLVM_DIBUILDER_IN_IR)
 #include <llvm/IR/DIBuilder.h>
 #else
 #include <llvm/DIBuilder.h>

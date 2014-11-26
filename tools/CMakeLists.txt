@@ -1,3 +1,5 @@
+find_package(Threads REQUIRED)
+
 set(REQ_LIBS
 	${LLVM_LIBRARIES}
 	boost_filesystem
@@ -6,12 +8,13 @@ set(REQ_LIBS
 	boost_system
 	tinfo
 	${CMAKE_DL_LIBS}
-	)
+	${CMAKE_THREAD_LIBS_INIT}
+)
 
 # Build compiler.
 add_executable(locic
 	locic.cpp
-	)
+)
 
 target_link_libraries(locic
 	locic-parser
@@ -23,7 +26,7 @@ target_link_libraries(locic
 	loci-builtintypes
 	llvm-abi
 	${REQ_LIBS}
-	)
+)
 
 # Build test tool.
 add_executable(loci-test
@@ -41,12 +44,12 @@ target_link_libraries(loci-test
 	loci-runtime
 	llvm-abi
 	${REQ_LIBS}
-	)
+)
 
 # Build vtable generator.
 add_executable(loci-vtable
 	loci-vtable.cpp
-	)
+)
 
 target_link_libraries(loci-vtable
 	locic-parser
@@ -56,5 +59,5 @@ target_link_libraries(loci-vtable
 	locic-support
 	llvm-abi
 	${REQ_LIBS}
-	)
+)
 
