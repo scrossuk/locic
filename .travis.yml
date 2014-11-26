@@ -31,6 +31,12 @@ install:
       sudo apt-get install --allow-unauthenticated -qq clang-3.4; export CXX="clang++-3.4";
     fi
 
+  - wget http://ftp.heanet.ie/mirrors/gnu/bison/bison-3.0.2.tar.gz
+  - tar -xvzf bison-3.0.2.tar.gz
+  - cd bison-3.0.2
+  - ./configure && make && sudo make install
+  - cd ..
+
 before_script:
   - mkdir build
   - cd build
