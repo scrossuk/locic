@@ -68,8 +68,8 @@ script:
   - ctest --output-on-failure
 
 env:
-  # Build with LLVM 3.3.
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.3 llvm-3.3-dev" CLANG_PACKAGE="clang-3.3"
+  # Build with LLVM 3.3; use Clang 3.4 since Clang 3.3 can't build the exception runtime code.
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.3 llvm-3.3-dev" CLANG_PACKAGE="clang-3.4"
 
   # Build with LLVM 3.4
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev" CLANG_PACKAGE="clang-3.4"
