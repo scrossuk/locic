@@ -23,7 +23,7 @@ install:
   - sudo apt-get update
   - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-dev libboost-program-options-dev
   -
-    if [ "${CXX}" == "g++" ]]; then
+    if [[ "${CXX}" == "g++" ]]; then
       sudo apt-get install g++-4.8; export CXX="g++-4.8";
     fi
   -
