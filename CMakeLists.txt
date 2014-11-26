@@ -99,6 +99,15 @@ message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
 link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
 
+find_package(LLVMBinaries REQUIRED)
+
+message(STATUS "    LLVM tools binary directory: ${LLVM_TOOLS_BINARY_DIR}")
+message(STATUS "        llvm-dis path: ${LLVMBINARIES_DIS_EXECUTABLE}")
+message(STATUS "        llvm-link path: ${LLVMBINARIES_LINK_EXECUTABLE}")
+message(STATUS "        llc path: ${LLVMBINARIES_LLC_EXECUTABLE}")
+message(STATUS "        llvm-nm path: ${LLVMBINARIES_NM_EXECUTABLE}")
+message(STATUS "        opt path: ${LLVMBINARIES_OPT_EXECUTABLE}")
+
 # --- Subdirectories
 
 # All headers are in the /include directory.
