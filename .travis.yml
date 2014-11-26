@@ -54,6 +54,7 @@ before_script:
 script:
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
   - make
+  - ctest --output-on-failure
 
 env:
   - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev"
