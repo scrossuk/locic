@@ -150,6 +150,10 @@ else()
         list(REMOVE_ITEM LLVM_FIND_COMPONENTS "lto" index)
         list(REMOVE_ITEM LLVM_FIND_COMPONENTS "profiledata" index)
     endif()
+    if(NOT ${LLVM_VERSION_STRING} MATCHES "^3\\.[0-5][\\.0-9A-Za-z]*")
+        # Versions above 3.5 do not support jit
+        list(REMOVE_ITEM LLVM_FIND_COMPONENTS "jit" index)
+    endif()
 
     llvm_set(LDFLAGS ldflags)
     if(NOT ${LLVM_VERSION_STRING} MATCHES "^3\\.[0-4][\\.0-9A-Za-z]*")

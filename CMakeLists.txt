@@ -112,27 +112,27 @@ message(STATUS "        opt path: ${LLVMBINARIES_OPT_EXECUTABLE}")
 # in 'llvm/' directory rather than 'llvm/IR/'.
 find_file(LLVM_DIBUILDER_H
 	NAMES "DIBuilder.h"
-	PATHS ${LOCIC_LLVM_INCLUDE_DIRS}/llvm/IR
+	PATHS "${LOCIC_LLVM_INCLUDE_DIRS}/llvm/IR"
 	NO_DEFAULT_PATH
 )
 
-if(${LLVM_DIBUILDER_H})
-	message(STATUS "Found DIBuilder.h in llvm/IR.")
+if(LLVM_DIBUILDER_H)
+	message(STATUS "    Found DIBuilder.h in llvm/IR.")
 	add_definitions(-DLLVM_DIBUILDER_IN_IR)
-endif(${LLVM_DIBUILDER_H})
+endif(LLVM_DIBUILDER_H)
 
 # Workaround for Ubuntu LLVM 3.5 package putting Linker.h
 # in 'llvm/' directory rather than 'llvm/Linker/'.
 find_file(LLVM_LINKER_H
 	NAMES "Linker.h"
-	PATHS ${LOCIC_LLVM_INCLUDE_DIRS}/llvm/Linker
+	PATHS "${LOCIC_LLVM_INCLUDE_DIRS}/llvm/Linker"
 	NO_DEFAULT_PATH
 )
 
-if(${LLVM_LINKER_H})
-	message(STATUS "Found Linker.h in llvm/Linker.")
+if(LLVM_LINKER_H)
+	message(STATUS "    Found Linker.h in llvm/Linker.")
 	add_definitions(-DLLVM_LINKER_IN_LINKER)
-endif(${LLVM_LINKER_H})
+endif(LLVM_LINKER_H)
 
 # --- Subdirectories
 
