@@ -28,7 +28,7 @@ before_install:
 
 install:
   - sudo apt-get update
-  - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev
+  - sudo apt-get install -y $LLVM_PACKAGE libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
   -
     if [[ "${CXX}" == "g++" ]]; then
       sudo apt-get install g++-4.8; export CXX="g++-4.8";
