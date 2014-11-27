@@ -1,5 +1,5 @@
-find_package(LLVMBinaries REQUIRED)
-find_package(ClangBinary REQUIRED)
+find_package(LLVM REQUIRED)
+find_package(Clang REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 
@@ -76,11 +76,11 @@ add_library(loci-runtime STATIC
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
 	COMMAND
-		${CLANGBINARY_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "assert.cpp"
+		${CLANG_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "assert.cpp"
 	COMMAND
-		${CLANGBINARY_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" "exception.cpp"
+		${CLANG_EXECUTABLE} -fno-exceptions -c -emit-llvm -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" "exception.cpp"
 	COMMAND
-		${LLVMBINARIES_LINK_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
+		${LLVM_LINK_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-assert.bc" "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime-exception.bc" -o "${CMAKE_CURRENT_BINARY_DIR}/loci-runtime.bc"
 	DEPENDS ${RUNTIME_FILES}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )

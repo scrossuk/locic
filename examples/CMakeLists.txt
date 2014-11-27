@@ -1,5 +1,5 @@
-find_package(LLVMBinaries REQUIRED)
-find_package(ClangBinary REQUIRED)
+find_package(LLVM REQUIRED)
+find_package(Clang REQUIRED)
 
 set(LOCIC "${CMAKE_BINARY_DIR}/tools/locic")
 
@@ -42,33 +42,33 @@ function(loci_link name binary_name flags primary_module)
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised
 		COMMAND
 			# Create a file of all symbols in the primary module.
-			${LLVMBINARIES_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c12- > "${primary_module}.symbols.txt"
+			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c12- > "${primary_module}.symbols.txt"
 		COMMAND
 			# Link bitcode files together.
-			${LLVMBINARIES_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
+			${LLVM_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
 		COMMAND
 			# Internalize all dependency symbols in linked module.
-			${LLVMBINARIES_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
+			${LLVM_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
 		COMMAND
 			# Run 'opt' multiple times for maximum optimisation.
-			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
-			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
-			${LLVMBINARIES_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
 			
 			# Disassemble for debugging.
-			${LLVMBINARIES_DIS_EXECUTABLE} ${binary_name}_final.bc -o ${binary_name}_final.ll &&
+			${LLVM_DIS_EXECUTABLE} ${binary_name}_final.bc -o ${binary_name}_final.ll &&
 			
 			# Use 'llc' to generate non-optimised platform object file.
-			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
+			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
 			
 			# Use 'clang' to generate non-optimised platform binary.
-			${CLANGBINARY_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm ${flags} &&
+			${CLANG_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm ${flags} &&
 			
 			# Use 'llc' to generate optimised platform object file.
-			${LLVMBINARIES_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
+			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
 			
 			# Use 'clang' to generate optimised platform binary.
-			${CLANGBINARY_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
+			${CLANG_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
 		DEPENDS ${primary_module} ${${name}_Sources} loci-runtime-bc
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	

@@ -2,11 +2,11 @@
 #
 # Example usage:
 #
-# find_package(ClangBinary)
+# find_package(Clang)
 #
 # If successful the following variables will be defined
-# CLANGBINARY_FOUND
-# CLANGBINARY_EXECUTABLE
+# CLANG_FOUND
+# CLANG_EXECUTABLE
 
 set(CLANG_BINARY_NAME "" CACHE STRING "Set Clang binary name.")
 
@@ -31,22 +31,21 @@ endif(NOT "${CLANG_BINARY_NAME}" STREQUAL "")
 if(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 	# If user specifies a directory only look for clang
 	# in that particular root directory.
-	find_program(CLANGBINARY_EXECUTABLE
+	find_program(CLANG_EXECUTABLE
 		NAMES ${CLANG_BINARY_SEARCH_NAMES}
 		PATHS ${CLANG_ROOT_DIR}/bin NO_DEFAULT_PATH
 		DOC "Path to clang executable"
 	)
 else(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 	# Otherwise search for clang in default paths.
-	find_program(CLANGBINARY_EXECUTABLE
+	find_program(CLANG_EXECUTABLE
 		NAMES ${CLANG_BINARY_SEARCH_NAMES}
 		DOC "Path to clang executable"
 	)
 endif(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ClangBinary
+find_package_handle_standard_args(Clang
 	"Failed to locate Clang executable"
-	CLANGBINARY_EXECUTABLE
+	CLANG_EXECUTABLE
 )
-

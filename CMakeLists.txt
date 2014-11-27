@@ -40,15 +40,11 @@ message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 # Enable most warnings.
-set(LOCIC_C_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_C_WARNINGS}")
+set(LOCIC_BUILD_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_BUILD_WARNINGS}")
 
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-# Enable/disable optimisation depending on build type.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 # Add version as preprocessor defines.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION=${LOCIC_VERSION}")
@@ -88,37 +84,40 @@ set(LLVM_REQ_COMPONENTS bitreader bitwriter core irreader jit linker mcjit nativ
 find_package(LLVM REQUIRED ${LLVM_REQ_COMPONENTS})
 
 # Check LLVM version.
-set(LLVM_VERSION_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
+set(LLVM_VERSION_SIMPLE_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
 set(LLVM_VERSION_NAME "")
-if("${LLVM_VERSION_STRING}" STREQUAL "3.3")
+if("${LLVM_VERSION_SIMPLE_STRING}" STREQUAL "3.3")
 	set(LLVM_VERSION_NAME "3_3")
-elseif("${LLVM_VERSION_STRING}" STREQUAL "3.4")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" STREQUAL "3.4")
 	set(LLVM_VERSION_NAME "3_4")
-elseif("${LLVM_VERSION_STRING}" STREQUAL "3.5")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" STREQUAL "3.5")
 	set(LLVM_VERSION_NAME "3_5")
-elseif("${LLVM_VERSION_STRING}" STREQUAL "3.6")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" STREQUAL "3.6")
 	set(LLVM_VERSION_NAME "3_6")
-endif("${LLVM_VERSION_STRING}" STREQUAL "3.3")
+endif("${LLVM_VERSION_SIMPLE_STRING}" STREQUAL "3.3")
 
 if("${LLVM_VERSION_NAME}" STREQUAL "")
-	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_STRING} is not supported.")
+	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported.")
 endif("${LLVM_VERSION_NAME}" STREQUAL "")
 
-message(STATUS "Using LLVM ${LLVM_VERSION_STRING} (name is '${LLVM_VERSION_NAME}').")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLLVM_${LLVM_VERSION_NAME}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSION_MINOR}")
+message(STATUS "Using LLVM ${LLVM_VERSION_SIMPLE_STRING} (name is '${LLVM_VERSION_NAME}').")
 
-message(STATUS "    LLVM definitions: ${LLVM_DEFINITIONS}")
-add_definitions(${LLVM_DEFINITIONS})
+add_definitions(
+	"-DLLVM_${LLVM_VERSION_NAME}"
+	"-DLOCIC_LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}"
+	"-DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSION_MINOR}"
+)
 
 # Also use LLVM_OBJ_ROOT here for custom builds of LLVM.
-set(LOCIC_LLVM_INCLUDE_DIRS
-	"${LLVM_OBJ_ROOT}/include"
-	"${LLVM_INCLUDE_DIRS}"
-	CACHE STRING "Set LLVM include directories."
-)
+set(LOCIC_LLVM_INCLUDE_DIRS "${LLVM_INCLUDE_DIRS}" CACHE STRING "Set LLVM include directories.")
 set(LOCIC_LLVM_LIBRARY_DIRS "${LLVM_LIBRARY_DIRS}" CACHE STRING "Set LLVM library directories.")
+
+message(STATUS "    LLVM binary directory: ${LLVM_BINARY_DIR}")
+message(STATUS "        llc path: ${LLVM_LLC_EXECUTABLE}")
+message(STATUS "        llvm-dis path: ${LLVM_DIS_EXECUTABLE}")
+message(STATUS "        llvm-link path: ${LLVM_LINK_EXECUTABLE}")
+message(STATUS "        llvm-nm path: ${LLVM_NM_EXECUTABLE}")
+message(STATUS "        opt path: ${LLVM_OPT_EXECUTABLE}")
 
 message(STATUS "    LLVM include directories: ${LOCIC_LLVM_INCLUDE_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_INCLUDE_DIRS)")
@@ -127,15 +126,6 @@ include_directories(SYSTEM ${LOCIC_LLVM_INCLUDE_DIRS})
 message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
 link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
-
-find_package(LLVMBinaries REQUIRED)
-
-message(STATUS "    LLVM tools binary directory: ${LLVM_TOOLS_BINARY_DIR}")
-message(STATUS "        llvm-dis path: ${LLVMBINARIES_DIS_EXECUTABLE}")
-message(STATUS "        llvm-link path: ${LLVMBINARIES_LINK_EXECUTABLE}")
-message(STATUS "        llc path: ${LLVMBINARIES_LLC_EXECUTABLE}")
-message(STATUS "        llvm-nm path: ${LLVMBINARIES_NM_EXECUTABLE}")
-message(STATUS "        opt path: ${LLVMBINARIES_OPT_EXECUTABLE}")
 
 function(add_to_paths var extra)
 	foreach(oldpath ${ARGN})
