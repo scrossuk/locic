@@ -38,16 +38,16 @@ install:
   # Install package dependencies.
   - sudo apt-get install -y $LLVM_PACKAGE "clang-$CLANG_VERSION" libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev
 
-  # Install a recent version of g++ (with C++11 support).
+  # Install a recent version of g++ to build the compiler (with C++11 support).
   -
     if [[ "${CXX}" == "g++" ]]; then
       sudo apt-get install -y g++-4.8; export CXX="g++-4.8";
     fi
 
-  # Install a recent version of clang++ (with C++11 support).
+  # Use a recent version of clang++ to build the compiler (with C++11 support);
+  # use the previously installed clang version (since installing one tends to remove another).
   -
     if [[ "${CXX}" == "clang++" ]]; then
-      # Use the previously installed clang version (since installing one tends to remove another).
       export CXX="clang++-$CLANG_VERSION";
     fi
 
