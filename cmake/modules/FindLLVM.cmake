@@ -138,6 +138,7 @@ else()
     llvm_set(CXXFLAGS cxxflags)
     llvm_set(HOST_TARGET host-target)
     llvm_set(INCLUDE_DIRS includedir true)
+    llvm_set(OBJ_ROOT obj-root true)
     llvm_set(ROOT_DIR prefix true)
 
     if(${LLVM_VERSION_STRING} MATCHES "^3\\.[0-2][\\.0-9A-Za-z]*")

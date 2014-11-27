@@ -26,7 +26,7 @@ set(CMAKE_MODULE_PATH
 # --- Compiler Properties
 
 set(LOCIC_VERSION_MAJOR 1)
-set(LOCIC_VERSION_MINOR 1)
+set(LOCIC_VERSION_MINOR 2)
 set(LOCIC_VERSION_PATCH 0)
 set(LOCIC_VERSION_BUILD 0)
 set(LOCIC_VERSION ${LOCIC_VERSION_MAJOR}.${LOCIC_VERSION_MINOR}.${LOCIC_VERSION_PATCH}.${LOCIC_VERSION_BUILD})
@@ -56,6 +56,30 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_MAJOR=${LOCIC_VERSION_MA
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_MINOR=${LOCIC_VERSION_MINOR}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_PATCH=${LOCIC_VERSION_PATCH}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_BUILD=${LOCIC_VERSION_BUILD}")
+
+# --- User config
+
+set(LLVM_ROOT_DIR "" CACHE STRING "Set LLVM root directory.")
+set(CLANG_BINARY_NAME "" CACHE STRING "Set Clang binary name.")
+set(CLANG_ROOT_DIR "" CACHE STRING "Set Clang root directory.")
+
+if(NOT "${LLVM_ROOT_DIR}" STREQUAL "")
+	message(STATUS "Using LLVM_ROOT_DIR=${LLVM_ROOT_DIR}")
+else(NOT "${LLVM_ROOT_DIR}" STREQUAL "")
+	message(STATUS "LLVM_ROOT_DIR wasn't specified (you can use this to search for LLVM in a particular path).")
+endif(NOT "${LLVM_ROOT_DIR}" STREQUAL "")
+
+if(NOT "${CLANG_BINARY_NAME}" STREQUAL "")
+	message(STATUS "Using CLANG_BINARY_NAME=${CLANG_BINARY_NAME}")
+else(NOT "${CLANG_BINARY_NAME}" STREQUAL "")
+	message(STATUS "CLANG_BINARY_NAME wasn't specified (you can use this to search for Clang by a particular name).")
+endif(NOT "${CLANG_BINARY_NAME}" STREQUAL "")
+
+if(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
+	message(STATUS "Using CLANG_ROOT_DIR=${CLANG_ROOT_DIR}")
+else(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
+	message(STATUS "CLANG_ROOT_DIR wasn't specified (you can use this to search for Clang in a particular path).")
+endif(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 
 # --- Dependencies
 
@@ -88,7 +112,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_LLVM_VERSION_MINOR=${LLVM_VERSIO
 message(STATUS "    LLVM definitions: ${LLVM_DEFINITIONS}")
 add_definitions(${LLVM_DEFINITIONS})
 
-set(LOCIC_LLVM_INCLUDE_DIRS "${LLVM_INCLUDE_DIRS}" CACHE STRING "Set LLVM include directories.")
+# Also use LLVM_OBJ_ROOT here for custom builds of LLVM.
+set(LOCIC_LLVM_INCLUDE_DIRS
+	"${LLVM_OBJ_ROOT}/include"
+	"${LLVM_INCLUDE_DIRS}"
+	CACHE STRING "Set LLVM include directories."
+)
 set(LOCIC_LLVM_LIBRARY_DIRS "${LLVM_LIBRARY_DIRS}" CACHE STRING "Set LLVM library directories.")
 
 message(STATUS "    LLVM include directories: ${LOCIC_LLVM_INCLUDE_DIRS}")
@@ -108,11 +137,19 @@ message(STATUS "        llc path: ${LLVMBINARIES_LLC_EXECUTABLE}")
 message(STATUS "        llvm-nm path: ${LLVMBINARIES_NM_EXECUTABLE}")
 message(STATUS "        opt path: ${LLVMBINARIES_OPT_EXECUTABLE}")
 
+function(add_to_paths var extra)
+	foreach(oldpath ${ARGN})
+		list(APPEND newpaths "${oldpath}/${extra}")
+	endforeach()
+	set(${var} ${newpaths} PARENT_SCOPE)
+endfunction()
+
 # Workaround for Ubuntu LLVM 3.5 package putting DIBuilder.h
 # in 'llvm/' directory rather than 'llvm/IR/'.
+add_to_paths(LLVM_IR_INCLUDE_DIRS "llvm/IR" ${LOCIC_LLVM_INCLUDE_DIRS})
 find_file(LLVM_DIBUILDER_H
 	NAMES "DIBuilder.h"
-	PATHS "${LOCIC_LLVM_INCLUDE_DIRS}/llvm/IR"
+	PATHS ${LLVM_IR_INCLUDE_DIRS}
 	NO_DEFAULT_PATH
 )
 
@@ -123,9 +160,10 @@ endif(LLVM_DIBUILDER_H)
 
 # Workaround for Ubuntu LLVM 3.5 package putting Linker.h
 # in 'llvm/' directory rather than 'llvm/Linker/'.
-find_file(LLVM_LINKER_H
+add_to_paths(LLVM_LINKER_INCLUDE_DIRS "llvm/Linker" ${LOCIC_LLVM_INCLUDE_DIRS})
+find_path(LLVM_LINKER_H
 	NAMES "Linker.h"
-	PATHS "${LOCIC_LLVM_INCLUDE_DIRS}/llvm/Linker"
+	PATHS ${LLVM_LINKER_INCLUDE_DIRS}
 	NO_DEFAULT_PATH
 )
 
