@@ -12,6 +12,7 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 
 namespace locic {
@@ -86,7 +87,7 @@ namespace locic {
 					const auto memberOffsetValue = genMemberOffset(function, var->constructType(), i);
 					const auto childInitialiseValue = function.getBuilder().CreateInBoundsGEP(castInitialiseValue, memberOffsetValue);
 					const auto castChildInitialiseValue = function.getBuilder().CreatePointerCast(childInitialiseValue, genPointerType(module, childVar->constructType()));
-					const auto loadedChildInitialiseValue = genLoad(function, castChildInitialiseValue, childVar->constructType());
+					const auto loadedChildInitialiseValue = genMoveLoad(function, castChildInitialiseValue, childVar->constructType());
 					genVarInitialise(function, childVar, loadedChildInitialiseValue);
 				}
 			} else {

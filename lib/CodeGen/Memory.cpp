@@ -1,10 +1,13 @@
 #include <stdexcept>
 
 #include <locic/SEM.hpp>
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -128,7 +131,7 @@ namespace locic {
 			const auto varType = semVar->type();
 			
 			if (valueType == varType) {
-				genStore(function, value, var, varType);
+				genMoveStore(function, value, var, varType);
 			} else {
 				// If the variable type wasn't actually an lval
 				// (very likely), then a value_lval will be created
@@ -138,10 +141,19 @@ namespace locic {
 		}
 		
 		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type) {
-			assert(!type->isBuiltInReference());
+			if (type->isBuiltInReference()) {
+				// Already got the reference value.
+				return value;
+			}
 			
+			// Members must have a pointer to the object, which
+			// may require generating a fresh 'alloca'.
 			const auto ptrValue = genAlloca(function, type);
-			genStore(function, value, ptrValue, type);
+			genMoveStore(function, value, ptrValue, type);
+			
+			// Call destructor for the object at the end of the current scope.
+			scheduleDestructorCall(function, type, ptrValue);
+			
 			return ptrValue;
 		}
 		

@@ -6,6 +6,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
@@ -20,6 +21,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -112,7 +114,7 @@ namespace locic {
 				
 				case SEM::Value::DEREF_REFERENCE: {
 					llvm::Value* refValue = genValue(function, value->derefReference.value);
-					return genLoad(function, refValue, value->type());
+					return genMoveLoad(function, refValue, value->type());
 				}
 				
 				case SEM::Value::UNIONTAG: {
@@ -124,7 +126,7 @@ namespace locic {
 					if (!unionValue->getType()->isPointerTy()) {
 						// TODO: remove this unnecessary alloc.
 						unionValuePtr = genAlloca(function, unionType);
-						genStore(function, unionValue, unionValuePtr, unionType);
+						genMoveStore(function, unionValue, unionValuePtr, unionType);
 					} else {
 						unionValuePtr = unionValue;
 					}
@@ -250,9 +252,9 @@ namespace locic {
 								// Store the union value.
 								const auto unionValueType = genType(function.module(), sourceType);
 								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-								genStore(function, codeValue, castedUnionValuePtr, sourceType);
+								genMoveStore(function, codeValue, castedUnionValuePtr, sourceType);
 								
-								return genLoad(function, unionValue, destType);
+								return genMoveLoad(function, unionValue, destType);
 							}
 							
 							assert(false && "Casts between named types not implemented.");
@@ -386,7 +388,7 @@ namespace locic {
 						}
 					}
 					
-					return genLoad(function, objectValue, type);
+					return genMoveLoad(function, objectValue, type);
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
@@ -397,9 +399,7 @@ namespace locic {
 					
 					// Members must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
-					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
-						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
-					const auto dataPointer = isValuePtr ? llvmDataValue : genValuePtr(function, llvmDataValue, dataValue->type());
+					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue->type());
 					
 					const auto type = dataValue->type()->isBuiltInReference() ? dataValue->type()->refTarget() : dataValue->type();
 					return genMemberPtr(function, dataPointer, type, memberIndex);
@@ -408,13 +408,7 @@ namespace locic {
 				case SEM::Value::REFVALUE: {
 					const auto dataValue = value->refValue.value;
 					const auto llvmDataValue = genValue(function, dataValue);
-					
-					const auto llvmPtrValue = genValuePtr(function, llvmDataValue, dataValue->type());
-					
-					// Call destructor for the object at the end of the current scope.
-					scheduleDestructorCall(function, dataValue->type(), llvmPtrValue);
-					
-					return llvmPtrValue;
+					return genValuePtr(function, llvmDataValue, dataValue->type());
 				}
 				
 				case SEM::Value::TYPEREF: {

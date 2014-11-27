@@ -15,10 +15,10 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -96,7 +96,7 @@ namespace locic {
 					const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
 											argsStructPtr, 0, offset);
 											
-					if (isTypeSizeAlwaysKnown(module, argTypes[offset])) {
+					if (canPassByValue(module, argTypes[offset])) {
 						const auto argAlloca = function.getEntryBuilder().CreateAlloca(args[offset]->getType());
 						function.getBuilder().CreateStore(args[offset], argAlloca);
 						const auto castArg = function.getBuilder().CreatePointerCast(argAlloca, i8PtrType);
@@ -226,7 +226,7 @@ namespace locic {
 				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args);
 				
 				// If the return type isn't void, load the return value from the stack.
-				return hasReturnVar ? genLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
+				return hasReturnVar ? genMoveLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
 			}
 			
 			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
@@ -397,7 +397,7 @@ namespace locic {
 						const auto argPtr = builder.CreateLoad(argPtrPtr, "argPtr");
 						const auto castArgPtr = builder.CreatePointerCast(argPtr, genPointerType(module, paramType));
 						
-						if (isTypeSizeAlwaysKnown(module, paramType)) {
+						if (canPassByValue(module, paramType)) {
 							parameters.push_back(builder.CreateLoad(castArgPtr));
 						} else {
 							parameters.push_back(castArgPtr);

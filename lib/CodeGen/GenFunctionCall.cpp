@@ -5,6 +5,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -13,10 +14,10 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
@@ -61,7 +62,7 @@ namespace locic {
 			// potentially being unknown).
 			llvm::Value* returnVarValue = nullptr;
 			
-			if (!isTypeSizeAlwaysKnown(module, returnType)) {
+			if (!canPassByValue(module, returnType)) {
 				returnVarValue = genAlloca(function, returnType);
 				parameters.push_back(returnVarValue);
 				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
@@ -129,7 +130,7 @@ namespace locic {
 			if (returnVarValue != nullptr) {
 				// As above, if the return value pointer is used,
 				// this should be loaded (and used instead).
-				return genLoad(function, returnVarValue, returnType);
+				return genMoveLoad(function, returnVarValue, returnType);
 			} else {
 				return decodeReturnValue(function, encodedCallReturnValue, genABIType(function.module(), returnType), genType(function.module(), returnType));
 			}

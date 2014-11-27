@@ -1,0 +1,33 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+class TestClass(int v) {
+	static Create(int v) {
+		testPrint(C"TestClass.Create(%d)", v);
+		return @(v);
+	}
+	
+	int getValue() const noexcept {
+		return @v;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto testInstance = TestClass(10);
+	testPrint(C"testInstance.getValue() = %d", testInstance.getValue());
+	
+	auto testInstance2 = TestClass(20);
+	testPrint(C"testInstance2.getValue() = %d", testInstance2.getValue());
+	
+	// This is very dangerous (since it messes around the destructors)!
+	// It's only used here since we can make reasonable assumptions about
+	// the compiler.
+	testInstance.__move_to(reinterpret_cast<TestClass*, void*>(&testInstance2), 0u);
+	
+	testPrint(C"testInstance.getValue() = %d", testInstance.getValue());
+	testPrint(C"testInstance2.getValue() = %d", testInstance2.getValue());
+	
+	return 0;
+}
+

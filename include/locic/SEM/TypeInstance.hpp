@@ -112,6 +112,9 @@ namespace locic {
 				void setParent(const Type* parent);
 				const Type* parent() const;
 				
+				void setHasCustomMove(bool pHasCustomMove);
+				bool hasCustomMove() const;
+				
 				std::string refToString() const;
 				
 				std::string toString() const;
@@ -135,6 +138,7 @@ namespace locic {
 				
 				std::map<std::string, Function*> functions_;
 				std::vector<const Type*> constructTypes_;
+				bool hasCustomMove_;
 				
 		};
 		

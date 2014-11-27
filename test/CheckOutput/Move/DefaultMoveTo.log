@@ -1,0 +1,6 @@
+TestClass.Create(10)
+testInstance.getValue() = 10
+TestClass.Create(20)
+testInstance2.getValue() = 20
+testInstance.getValue() = 10
+testInstance2.getValue() = 10

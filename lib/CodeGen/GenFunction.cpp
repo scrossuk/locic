@@ -4,6 +4,7 @@
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -15,11 +16,11 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -101,7 +102,7 @@ namespace locic {
 			module.getFunctionMap().insert(mangledName, llvmFunction);
 			module.getFunctionDeclMap().insert(std::make_pair(function, llvmFunction));
 			
-			if (!isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType())) {
+			if (!canPassByValue(module, function->type()->getFunctionReturnType())) {
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller
 				// and callee must, for the sake of optimisation,
@@ -225,7 +226,7 @@ namespace locic {
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const bool hasReturnVar = !isTypeSizeAlwaysKnown(module, function->type()->getFunctionReturnType());
+			const bool hasReturnVar = !canPassByValue(module, function->type()->getFunctionReturnType());
 			
 			if (hasReturnVar) {
 				// Class return values are allocated by the caller,
@@ -263,7 +264,7 @@ namespace locic {
 			const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
 			
 			if (hasReturnVar) {
-				genStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
+				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
 				functionGenerator.getBuilder().CreateRetVoid();
 			} else if (result->getType()->isVoidTy()) {
 				functionGenerator.getBuilder().CreateRetVoid();

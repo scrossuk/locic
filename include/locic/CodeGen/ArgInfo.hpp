@@ -106,6 +106,8 @@ namespace locic {
 				
 		};
 		
+		bool canPassByValue(Module& module, const SEM::Type* type);
+		
 		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType);
 		
 		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function);

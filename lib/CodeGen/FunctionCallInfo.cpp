@@ -2,6 +2,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
@@ -13,7 +14,6 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
@@ -138,13 +138,13 @@ namespace locic {
 				case SEM::Value::REFVALUE: {
 					const auto dataValue = value->refValue.value;
 					const bool isContextRef = dataValue->type()->isBuiltInReference()
-						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+						|| !canPassByValue(function.module(), dataValue->type());
 					return std::make_pair(genValue(function, dataValue), isContextRef);
 				}
 				
 				default:
 					const bool isContextRef = value->type()->isBuiltInReference()
-						|| !isTypeSizeAlwaysKnown(function.module(), value->type());
+						|| !canPassByValue(function.module(), value->type());
 					return std::make_pair(genValue(function, value), isContextRef);
 			}
 		}
@@ -190,7 +190,7 @@ namespace locic {
 					const auto dataValue = value->methodObject.methodOwner;
 					const auto llvmDataValue = genValue(function, dataValue);
 					const bool isContextRef = dataValue->type()->isBuiltInReference()
-						|| !isTypeSizeAlwaysKnown(function.module(), dataValue->type());
+						|| !canPassByValue(function.module(), dataValue->type());
 					
 					if (isContextRef && !dataValue->type()->isRef()) {
 						// Call destructor for the object at the end of the current scope.
@@ -251,14 +251,7 @@ namespace locic {
 					
 					// Methods must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
-					const bool isValuePtr = dataValue->type()->isBuiltInReference() ||
-						!isTypeSizeAlwaysKnown(function.module(), dataValue->type());
-					const auto dataPointer = isValuePtr ? llvmDataValue : genValuePtr(function, llvmDataValue, dataValue->type());
-					
-					if (!dataValue->type()->isRef()) {
-						// Call destructor for the object at the end of the current scope.
-						scheduleDestructorCall(function, dataValue->type(), dataPointer);
-					}
+					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue->type());
 					
 					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
 					

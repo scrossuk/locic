@@ -7,8 +7,8 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -35,7 +35,7 @@ namespace locic {
 			
 			// Store the new child value.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genStore(function, value, targetPtr, varType->lvalTarget());
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
 		void genStoreMemberLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
@@ -45,7 +45,7 @@ namespace locic {
 			// A member lval just contains its target type,
 			// so just store that directly.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genStore(function, value, targetPtr, varType->lvalTarget());
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
 		void genStoreFinalLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
@@ -55,7 +55,7 @@ namespace locic {
 			// A final lval just contains its target type,
 			// so just store that directly.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genStore(function, value, targetPtr, varType->lvalTarget());
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
 		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {

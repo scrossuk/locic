@@ -18,6 +18,7 @@
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -242,7 +243,7 @@ namespace locic {
 					
 					if (!switchValue->getType()->isPointerTy()) {
 						switchValuePtr = genAlloca(function, switchType);
-						genStore(function, switchValue, switchValuePtr, switchType);
+						genMoveStore(function, switchValue, switchValuePtr, switchType);
 					} else {
 						switchValuePtr = switchValue;
 					}
@@ -283,7 +284,8 @@ namespace locic {
 						{
 							ScopeLifetime switchCaseLifetime(function);
 							genVarAlloca(function, switchCase->var());
-							genVarInitialise(function, switchCase->var(), genLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
+							genVarInitialise(function, switchCase->var(),
+								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
 						}
 						
@@ -367,7 +369,7 @@ namespace locic {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								// Store the return value into the return value pointer.
-								genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 							} else {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
@@ -387,7 +389,7 @@ namespace locic {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								// Store the return value into the return value pointer.
-								genStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
 								
 								returnInst = function.getBuilder().CreateRetVoid();
 							} else {
@@ -527,7 +529,7 @@ namespace locic {
 					
 					// Store value into allocated space.
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
-					genStore(function, exceptionValue, castedAllocatedException, throwType);
+					genMoveStore(function, exceptionValue, castedAllocatedException, throwType);
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);

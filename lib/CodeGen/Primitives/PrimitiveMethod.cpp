@@ -180,7 +180,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			if (arg.second && !type->isRef()) {
-				return genLoad(function, builder.CreatePointerCast(arg.first, genPointerType(module, type)), type);
+				return genMoveLoad(function, builder.CreatePointerCast(arg.first, genPointerType(module, type)), type);
 			} else {
 				return arg.first;
 			}
@@ -356,7 +356,7 @@ namespace locic {
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				genStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, castedDestPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "create") {
 				return zero;
@@ -488,7 +488,7 @@ namespace locic {
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				genStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, castedDestPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "create") {
 				return zero;
@@ -742,7 +742,7 @@ namespace locic {
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				genStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, castedDestPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "create") {
 				return ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
@@ -842,7 +842,7 @@ namespace locic {
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				genStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, castedDestPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "null") {
 				return ConstantGenerator(module).getNull(genType(module, type));
@@ -946,7 +946,7 @@ namespace locic {
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				genStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, castedDestPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
@@ -962,7 +962,7 @@ namespace locic {
 					genDestructorCall(function, targetType, methodOwner);
 					
 					// Assign new value.
-					genStore(function, operand, methodOwner, targetType);
+					genMoveStore(function, operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				} else {
@@ -972,11 +972,11 @@ namespace locic {
 				const auto operand = loadArg(function, args[1], targetType);
 				
 				// Assign new value.
-				genStore(function, operand, methodOwner, targetType);
+				genMoveStore(function, operand, methodOwner, targetType);
 				
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "__extract_value") {
-				return genLoad(function, methodOwner, targetType);
+				return genMoveLoad(function, methodOwner, targetType);
 			} else if (methodName == "__destroy_value") {
 				// Destroy existing value.
 				genDestructorCall(function, targetType, methodOwner);
@@ -994,13 +994,12 @@ namespace locic {
 			const auto targetType = type->templateArguments().front();
 			
 			if (methodName == "__empty") {
-				return genLoad(function, genAlloca(function, type), type);
+				return genMoveLoad(function, genAlloca(function, type), type);
 			}
 			
 			const auto methodOwner = allocArg(function, args[0], type);
 			
 			if (methodName == "__move_to") {
-				// TODO: must call __move_to() of child!
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
 				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
 				
@@ -1011,7 +1010,7 @@ namespace locic {
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
 				
 				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				genStore(function, genLoad(function, targetPtr, targetType), castedDestPtr, targetType);
+				genMoveStore(function, genMoveLoad(function, targetPtr, targetType), castedDestPtr, targetType);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
@@ -1028,7 +1027,7 @@ namespace locic {
 					
 					// Assign new value.
 					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-					genStore(function, operand, targetPtr, targetType);
+					genMoveStore(function, operand, targetPtr, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				} else {
@@ -1038,11 +1037,11 @@ namespace locic {
 				const auto operand = loadArg(function, args[1], targetType);
 				
 				// Assign new value.
-				genStore(function, operand, methodOwner, targetType);
+				genMoveStore(function, operand, methodOwner, targetType);
 				
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "__extract_value") {
-				return genLoad(function, methodOwner, targetType);
+				return genMoveLoad(function, methodOwner, targetType);
 			} else if (methodName == "__destroy_value") {
 				// Destroy existing value.
 				genDestructorCall(function, targetType, methodOwner);
@@ -1060,7 +1059,7 @@ namespace locic {
 			const auto targetType = type->templateArguments().front();
 			
 			if (methodName == "__empty") {
-				return genLoad(function, genAlloca(function, type), type);
+				return genMoveLoad(function, genAlloca(function, type), type);
 			}
 			
 			const auto methodOwner = allocArg(function, args[0], type);
@@ -1077,7 +1076,7 @@ namespace locic {
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
 				
 				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				genStore(function, genLoad(function, targetPtr, targetType), castedDestPtr, targetType);
+				genMoveStore(function, genMoveLoad(function, targetPtr, targetType), castedDestPtr, targetType);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
@@ -1089,11 +1088,11 @@ namespace locic {
 				const auto operand = loadArg(function, args[1], targetType);
 				
 				// Assign new value.
-				genStore(function, operand, methodOwner, targetType);
+				genMoveStore(function, operand, methodOwner, targetType);
 				
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "__extract_value") {
-				return genLoad(function, methodOwner, targetType);
+				return genMoveLoad(function, methodOwner, targetType);
 			} else if (methodName == "__destroy_value") {
 				// Destroy existing value.
 				genDestructorCall(function, targetType, methodOwner);
@@ -1116,7 +1115,7 @@ namespace locic {
 				
 				// Store the object.
 				const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
-				genStore(function, operand, targetPtr, targetType);
+				genMoveStore(function, operand, targetPtr, targetType);
 				
 				if (needsLivenessIndicator(module, targetType)) {
 					// Set the liveness indicator.
@@ -1126,7 +1125,7 @@ namespace locic {
 					builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
 				}
 				
-				return genLoad(function, objectVar, type);
+				return genMoveLoad(function, objectVar, type);
 			}
 			
 			ConstantGenerator constGen(module);
@@ -1155,6 +1154,15 @@ namespace locic {
 				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
 				const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
 				
+				// Store the 'liveness indicator' into the new object.
+				const auto rawDestPointer = makeRawMoveDest(function, destValue, positionValue);
+				const auto destPointer = builder.CreatePointerCast(rawDestPointer, castType);
+				const auto isLiveRawDestPointer = typeSizeIsKnown ?
+					builder.CreateConstInBoundsGEP2_32(destPointer, 0, 1) :
+					builder.CreateInBoundsGEP(destPointer, genSizeOf(function, targetType));
+				const auto isLiveDestPointer = builder.CreatePointerCast(isLiveRawDestPointer, TypeGenerator(module).getI1Type()->getPointerTo());
+				builder.CreateStore(isLive, isLiveDestPointer);
+				
 				const auto isLiveBB = function.createBasicBlock("is_live");
 				const auto afterBB = function.createBasicBlock("");
 				
@@ -1182,7 +1190,7 @@ namespace locic {
 					}
 					
 					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-					return genLoad(function, targetPtr, targetType);
+					return genMoveLoad(function, targetPtr, targetType);
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
@@ -1215,10 +1223,10 @@ namespace locic {
 					
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
 						const auto targetPointer = builder.CreateConstInBoundsGEP2_32(methodOwner, 0, 0);
-						genStore(function, operand, targetPointer, targetType);
+						genMoveStore(function, operand, targetPointer, targetType);
 					} else {
 						const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-						genStore(function, operand, targetPointer, targetType);
+						genMoveStore(function, operand, targetPointer, targetType);
 					}
 					return ConstantGenerator(module).getVoidUndef();
 				} else {
@@ -1340,7 +1348,7 @@ namespace locic {
 			for (size_t i = 0; i < argTypes.size(); i++) {
 				const auto argType = argTypes.at(i);
 				const bool isRef = argType->isBuiltInReference()
-					|| !isTypeSizeAlwaysKnown(module, argType);
+					|| !canPassByValue(module, argType);
 				args.push_back(std::make_pair(function.getArg(i), isRef));
 			}
 			
@@ -1350,7 +1358,7 @@ namespace locic {
 			
 			// Return the result in the appropriate way.
 			if (argInfo.hasReturnVarArgument()) {
-				genStore(function, result, function.getReturnVar(), returnType);
+				genMoveStore(function, result, function.getReturnVar(), returnType);
 				function.getBuilder().CreateRetVoid();
 			} else if (!returnType->isBuiltInVoid()) {
 				function.returnValue(result);

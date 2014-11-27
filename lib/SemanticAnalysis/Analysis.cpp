@@ -818,10 +818,15 @@ namespace locic {
 			}
 			
 			// Add default move method.
-			if (HasDefaultMove(context, typeInstance)) {
+			const bool hasDefaultMove = HasDefaultMove(context, typeInstance);
+			if (hasDefaultMove) {
 				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "__moveto");
 				typeInstance->functions().insert(std::make_pair("__moveto", methodDecl));
 			}
+			
+			// Slightly hacky way to pass information to CodeGen about
+			// whether the move method is auto-generated.
+			typeInstance->setHasCustomMove(!hasDefaultMove);
 			
 			// All non-class types can also get various other default methods implicitly
 			// (which must be specified explicitly for classes).

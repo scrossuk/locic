@@ -5,6 +5,7 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/Type.hpp>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -12,14 +13,13 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
 		llvm_abi::Type* genABIArgType(Module& module, const SEM::Type* type) {
-			if (isTypeSizeAlwaysKnown(module, type)) {
+			if (canPassByValue(module, type)) {
 				return genABIType(module, type);
 			} else {
 				return llvm_abi::Type::Pointer(module.abiContext());

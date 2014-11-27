@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -13,14 +14,13 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
 		llvm::Type* genArgType(Module& module, const SEM::Type* type) {
-			if (isTypeSizeAlwaysKnown(module, type)) {
+			if (canPassByValue(module, type)) {
 				return genType(module, type);
 			} else {
 				return genPointerType(module, type);

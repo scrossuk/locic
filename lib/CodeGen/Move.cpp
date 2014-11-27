@@ -3,12 +3,14 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/SEM.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
+#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -52,8 +54,9 @@ namespace locic {
 				
 				return false;
 			} else {
-				const auto methodIterator = typeInstance->functions().find("__moveto");
-				if (methodIterator != typeInstance->functions().end()) {
+				// Semantic Analysis uses this to tell us whether
+				// it auto-generated a move method.
+				if (typeInstance->hasCustomMove()) {
 					return true;
 				}
 				
@@ -67,16 +70,68 @@ namespace locic {
 			}
 		}
 		
-		ArgInfo moveBasicArgInfo(Module& module, const bool hasTemplateArgs) {
-			const TypePair types[] = { pointerTypePair(module), sizeTypePair(module) };
-			const auto argInfo = hasTemplateArgs ?
+		llvm::Value* makeRawMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
+			auto& module = function.module();
+			const auto startDestValueI8Ptr = function.getBuilder().CreatePointerCast(startDestValue, TypeGenerator(module).getI8PtrType());
+			return function.getBuilder().CreateInBoundsGEP(startDestValueI8Ptr, positionValue);
+		}
+		
+		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue, const SEM::Type* type) {
+			const auto rawMoveDest = makeRawMoveDest(function, startDestValue, positionValue);
+			return function.getBuilder().CreatePointerCast(rawMoveDest, genType(function.module(), type));
+		}
+		
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
+			if (typeHasCustomMove(function.module(), type)) {
+				// Can't load since we need to run the move method.
+				return var;
+			} else {
+				// Use a normal load.
+				return genLoad(function, var, type);
+			}
+		}
+		
+		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type) {
+			assert(var->getType()->isPointerTy());
+			assert(var->getType() == genPointerType(function.module(), type));
+			
+			if (typeHasCustomMove(function.module(), type)) {
+				// Can't store since we need to run the move method.
+				assert(value->getType()->isPointerTy());
+				assert(value->getType() == genPointerType(function.module(), type));
+				
+				// Use 0 for the position value since this is the top level of the move.
+				const auto positionValue = ConstantGenerator(function.module()).getSizeTValue(0);
+				genMoveCall(function, type, value, var, positionValue);
+			} else {
+				// Use a normal store.
+				genStore(function, value, var, type);
+			}
+		}
+		
+		namespace {
+			
+			ArgInfo moveBasicArgInfo(Module& module, const bool hasTemplateArgs) {
+				const TypePair types[] = { pointerTypePair(module), sizeTypePair(module) };
+				const auto argInfo = hasTemplateArgs ?
 				ArgInfo::VoidTemplateAndContextWithArgs(module, types) :
 				ArgInfo::VoidContextWithArgs(module, types);
-			return argInfo.withNoExcept();
+				return argInfo.withNoExcept();
+			}
+			
 		}
 		
 		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
+		}
+		
+		namespace {
+			
+			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
+				const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
+				genStore(function, genLoad(function, sourceValue, type), destValue, type);
+			}
+			
 		}
 		
 		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
@@ -84,8 +139,8 @@ namespace locic {
 			
 			if (type->isObject()) {
 				if (!typeHasCustomMove(module, type)) {
-					// TODO: generate a memcpy here.
-					throw std::logic_error("TODO!");
+					genBasicMove(function, type, sourceValue, destValue, positionValue);
+					return;
 				}
 				
 				if (type->isPrimitive()) {

@@ -1,0 +1,28 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...) noexcept;
+
+class TestClass() {
+	static Create() {
+		testPrint(C"TestClass.Create");
+		return @();
+	}
+	
+	void __move_to(void* ptr, size_t position) noexcept {
+		testPrint(C"TestClass.__move_to");
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	testPrint(C"auto testInstance = TestClass();");
+	auto testInstance = TestClass();
+	
+	testPrint(C"auto testInstanceMoved = move testInstance;");
+	auto testInstanceMoved = move testInstance;
+	
+	testPrint(C"auto testInstanceMovedAgain = move testInstanceMoved;");
+	auto testInstanceMovedAgain = move testInstanceMoved;
+	
+	return 0;
+}
+

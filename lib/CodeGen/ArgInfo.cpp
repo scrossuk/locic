@@ -11,6 +11,7 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -229,13 +230,22 @@ namespace locic {
 				noReturn() ? "true" : "false");
 		}
 		
+		bool canPassByValue(Module& module, const SEM::Type* type) {
+			// Can only pass by value if the type's size is always known
+			// (it's not enough for its size to be known in this module
+			// since other modules may end up using it) and if it
+			// doesn't have a custom move method (which means it
+			// must stay in memory and we must hold references to it).
+			return isTypeSizeAlwaysKnown(module, type) && !typeHasCustomMove(module, type);
+		}
+		
 		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType) {
 			assert(functionType->isFunction());
 			
 			const auto semReturnType = functionType->getFunctionReturnType();
 			
 			const bool isVarArg = functionType->isFunctionVarArg();
-			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, semReturnType);
+			const bool hasReturnVarArg = !canPassByValue(module, semReturnType);
 			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplated();
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
@@ -262,7 +272,7 @@ namespace locic {
 			const auto semReturnType = functionType->getFunctionReturnType();
 			
 			const bool isVarArg = functionType->isFunctionVarArg();
-			const bool hasReturnVarArg = !isTypeSizeAlwaysKnown(module, semReturnType);
+			const bool hasReturnVarArg = !canPassByValue(module, semReturnType);
 			const bool hasTemplateGeneratorArg = true;
 			const bool hasContextArg = functionType->isFunctionMethod();
 			
