@@ -1,5 +1,5 @@
-Loci Compiler Tools documentation
-=================================
+Loci - Programming Language
+===========================
 
 Version 1.1 is now available! See :doc:`Releases <Releases>` for more information.
 

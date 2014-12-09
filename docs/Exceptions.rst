@@ -116,7 +116,7 @@ This code is not valid and will be **rejected** by the compiler, since the *noex
 Exception Specifiers
 --------------------
 
-*noexcept* is actually just a special case of Loci's *exception specifiers*, which follow a similar syntax to C++ but that are statically checked by the compiler. For example:
+*noexcept* is actually just a special case of Loci's *exception specifiers*, which follow a similar syntax to C++ but that are **statically checked** by the compiler. For example:
 
 .. code-block:: c++
 

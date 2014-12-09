@@ -9,6 +9,8 @@ This section lists completed releases of the Loci Compiler Tools, in reverse ver
 v1.1
 ~~~~
 
+Available here: `locic-1.1.src_.tar.gz <http://loci-lang.org/releases/locic-1.1.src_.tar.gz>`_
+
 Released on 27th August 2014, version 1.1 provides:
 
 **Language features**
@@ -41,6 +43,8 @@ Released on 27th August 2014, version 1.1 provides:
 
 v1.0
 ~~~~
+
+Available here: `locic-1.0.src_.tar.gz <http://loci-lang.org/releases/locic-1.0.src_.tar.gz>`_
 
 Released on 6th April 2014, version 1.0 provides:
 
@@ -107,3 +111,13 @@ The following features have not yet been assigned a release:
 * Run-time 'reflection'
 * Compile-time checking of assertions, invariants, pre-conditions and post-conditions
 
+Development
+-----------
+
+The Loci Compiler Tools are under active development in `this repository <https://github.com/scross99/locic>`_. You can checkout the latest version by:
+
+.. code-block:: bash
+
+	git clone https://github.com/scross99/locic.git
+
+You can then follow the :doc:`Getting Started Guide <GettingStarted>` to build the compiler.

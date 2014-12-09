@@ -7,6 +7,7 @@ function (add_sphinx_target builder)
 	set(SPHINX_BUILDER_TARGET_NAME docs-${builder})
 	
 	file(GLOB SPHINX_INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
+	list(APPEND SPHINX_INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/conf.py")
 	
 	if ("${builder}" STREQUAL "pdf")
 		# PDF needs special handling since Sphinx will generate
