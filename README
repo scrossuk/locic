@@ -2,7 +2,7 @@
 --- Loci Compiler Tools ---
 ---------------------------
 
-Website: loci-lang.org
+Website: [loci-lang.org](loci-lang.org)
 
 This directory contains the compiler (and related tools) 'LOCIC', for the programming language Loci.
 
