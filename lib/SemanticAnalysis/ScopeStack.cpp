@@ -52,33 +52,21 @@ namespace locic {
 			return nullptr;
 		}
 		
-		SEM::TypeInstance* getSpecType(const ScopeStack& scopeStack, SEM::TemplateVar* const templateVar) {
+		const SEM::Predicate& lookupRequiresPredicate(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto& element = scopeStack.at(pos);
 				
 				if (element.isFunction()) {
-					const auto function = element.function();
-					const auto it = function->typeRequirements().find(templateVar);
-					if (it != function->typeRequirements().end()) {
-						return it->second;
-					}
+					return element.function()->requiresPredicate();
 				} else if (element.isTypeAlias()) {
-					const auto typeAlias = element.typeAlias();
-					const auto it = typeAlias->typeRequirements().find(templateVar);
-					if (it != typeAlias->typeRequirements().end()) {
-						return it->second;
-					}
+					return element.typeAlias()->requiresPredicate();
 				} else if (element.isTypeInstance()) {
-					const auto typeInstance = element.typeInstance();
-					const auto it = typeInstance->typeRequirements().find(templateVar);
-					if (it != typeInstance->typeRequirements().end()) {
-						return it->second;
-					}
+					return element.typeInstance()->requiresPredicate();
 				}
 			}
 			
-			throw std::runtime_error("Failed to find template var spec type.");
+			throw std::runtime_error("Failed to find requires predicate.");
 		}
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
@@ -87,7 +75,7 @@ namespace locic {
 			return function->type()->getFunctionReturnType();
 		}
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName) {
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, const std::vector<const SEM::Type*>& templateArgs) {
 			const auto rootElement = scopeStack.at(0);
 			assert(rootElement.isNamespace());
 			
@@ -98,9 +86,11 @@ namespace locic {
 			assert(value.isTypeInstance() || value.isTypeAlias());
 			
 			if (value.isTypeInstance()) {
-				return value.typeInstance()->selfType();
+				assert(templateArgs.size() == value.typeInstance()->templateVariables().size());
+				return SEM::Type::Object(value.typeInstance(), templateArgs);
 			} else {
-				return value.typeAlias()->selfType();
+				assert(templateArgs.size() == value.typeAlias()->templateVariables().size());
+				return SEM::Type::Alias(value.typeAlias(), templateArgs);
 			}
 		}
 		

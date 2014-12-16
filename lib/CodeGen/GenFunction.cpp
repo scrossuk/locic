@@ -216,17 +216,15 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, SEM::Function* function) {
-			assert(function->isMethod());
-			
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const std::string& functionName, const SEM::Type* const functionType) {
 			// --- Generate function declaration.
-			const auto argInfo = getTemplateVarFunctionStubArgInfo(module, function);
+			const auto argInfo = getFunctionArgInfo(module, functionType);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, "templateFunctionStub");
 			
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const bool hasReturnVar = !canPassByValue(module, function->type()->getFunctionReturnType());
+			const bool hasReturnVar = !canPassByValue(module, functionType->getFunctionReturnType());
 			
 			if (hasReturnVar) {
 				// Class return values are allocated by the caller,
@@ -255,16 +253,16 @@ namespace locic {
 			const auto context = argInfo.hasContextArgument() ? functionGenerator.getRawContextValue() : ConstantGenerator(module).getNull(i8PtrT);
 			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, context, typeInfoValue);
 			
-			const auto methodHash = CreateMethodNameHash(function->name().last());
+			const auto methodHash = CreateMethodNameHash(functionName);
 			const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 			const auto interfaceMethodValue = makeInterfaceMethodValue(functionGenerator, interfaceStructValue, methodHashValue);
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			const auto result = VirtualCall::generateCall(functionGenerator, function->type(), interfaceMethodValue, argList);
+			const auto result = VirtualCall::generateCall(functionGenerator, functionType, interfaceMethodValue, argList);
 			
 			if (hasReturnVar) {
-				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), function->type()->getFunctionReturnType());
+				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType->getFunctionReturnType());
 				functionGenerator.getBuilder().CreateRetVoid();
 			} else if (result->getType()->isVoidTy()) {
 				functionGenerator.getBuilder().CreateRetVoid();

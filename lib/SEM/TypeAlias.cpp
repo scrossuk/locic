@@ -1,6 +1,7 @@
 #include <locic/Name.hpp>
 #include <locic/String.hpp>
 
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeAlias.hpp>
 
@@ -9,7 +10,10 @@ namespace locic {
 	namespace SEM {
 	
 		TypeAlias::TypeAlias(Context& pContext, const Name& pName)
-			: context_(pContext), name_(pName), value_(nullptr) { }
+			: context_(pContext),
+			name_(pName),
+			requiresPredicate_(Predicate::True()),
+			value_(nullptr) { }
 		
 		Context& TypeAlias::context() const {
 			return context_;
@@ -47,12 +51,12 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
-		TemplateRequireMap& TypeAlias::typeRequirements() {
-			return typeRequirements_;
+		const Predicate& TypeAlias::requiresPredicate() const {
+			return requiresPredicate_;
 		}
 		
-		const TemplateRequireMap& TypeAlias::typeRequirements() const {
-			return typeRequirements_;
+		void TypeAlias::setRequiresPredicate(Predicate predicate) {
+			requiresPredicate_ = std::move(predicate);
 		}
 		
 		const Type* TypeAlias::value() const {

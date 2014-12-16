@@ -154,7 +154,7 @@ void goGet(an_interface& interfaceRef, TestClass2 val) {
 datatype Something(int a, int b);
 
 void datatypeDemo() {
-	const auto i = Something(41, 42);
+	auto i = Something(41, 42);
 	printf(C"Something(%d, %d)\n", i.a, i.b);
 	const Something(int a, _) = move i;
 	printf(C"a = %d\n", a);

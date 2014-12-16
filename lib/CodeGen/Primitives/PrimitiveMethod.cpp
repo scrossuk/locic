@@ -233,17 +233,17 @@ namespace locic {
 			
 			if (methodName == "implicit_copy" || methodName == "copy") {
 				return methodOwner;
-			} else if (methodName == "isEqual") {
+			} else if (methodName == "is_equal") {
 				return builder.CreateICmpEQ(methodOwner, equalValue);
-			} else if (methodName == "isNotEqual") {
+			} else if (methodName == "is_not_equal") {
 				return builder.CreateICmpNE(methodOwner, equalValue);
-			} else if (methodName == "isLessThan") {
+			} else if (methodName == "is_less_than") {
 				return builder.CreateICmpEQ(methodOwner, lessThanValue);
-			} else if (methodName == "isLessThanOrEqual") {
+			} else if (methodName == "is_less_than_or_equal") {
 				return builder.CreateICmpNE(methodOwner, greaterThanValue);
-			} else if (methodName == "isGreaterThan") {
+			} else if (methodName == "is_greater_than") {
 				return builder.CreateICmpEQ(methodOwner, greaterThanValue);
-			} else if (methodName == "isGreaterThanOrEqual") {
+			} else if (methodName == "is_greater_than_or_equal") {
 				return builder.CreateICmpNE(methodOwner, lessThanValue);
 			} else {
 				llvm_unreachable("Unknown compare_result_t method.");

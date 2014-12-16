@@ -171,11 +171,21 @@ namespace locic {
 			return value;
 		}
 		
-		Value* Value::FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
+		Value* Value::FunctionRef(const Type* const parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap) {
+			assert(parentType == NULL || parentType->isObject());
 			Value* value = new Value(FUNCTIONREF, function->type()->substitute(templateVarMap));
 			value->functionRef.parentType = parentType;
 			value->functionRef.function = function;
 			value->functionRef.templateArguments = templateArguments;
+			return value;
+		}
+		
+		Value* Value::TemplateFunctionRef(const Type* const parentType, const std::string& name, const Type* const functionType) {
+			assert(parentType->isTemplateVar());
+			Value* value = new Value(TEMPLATEFUNCTIONREF, functionType);
+			value->templateFunctionRef.parentType = parentType;
+			value->templateFunctionRef.name = name;
+			value->templateFunctionRef.functionType = functionType;
 			return value;
 		}
 		
@@ -321,6 +331,11 @@ namespace locic {
 									  functionRef.parentType != nullptr ?
 									  	functionRef.parentType->toString().c_str() :
 									 	 "[NONE]");
+									  
+				case TEMPLATEFUNCTIONREF:
+					return makeString("TemplateFunctionRef(name: %s, parentType: %s)",
+						templateFunctionRef.name.c_str(),
+						templateFunctionRef.parentType->toString().c_str());
 									  
 				case METHODOBJECT:
 					return makeString("MethodObject(method: %s, object: %s)",

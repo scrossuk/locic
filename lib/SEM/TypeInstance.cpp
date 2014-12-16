@@ -8,6 +8,7 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/ModuleScope.hpp>
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -23,6 +24,7 @@ namespace locic {
 			kind_(std::move(k)),
 			moduleScope_(std::move(m)),
 			parent_(nullptr),
+			requiresPredicate_(Predicate::True()),
 			hasCustomMove_(false) { }
 		
 		Context& TypeInstance::context() const {
@@ -77,10 +79,6 @@ namespace locic {
 			return kind() == EXCEPTION;
 		}
 		
-		bool TypeInstance::isTemplateType() const {
-			return kind() == TEMPLATETYPE;
-		}
-		
 		const Type* TypeInstance::selfType() const {
 			// TODO: remove const_cast.
 			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());
@@ -114,12 +112,12 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
-		TemplateRequireMap& TypeInstance::typeRequirements() {
-			return typeRequirements_;
+		const Predicate& TypeInstance::requiresPredicate() const {
+			return requiresPredicate_;
 		}
 		
-		const TemplateRequireMap& TypeInstance::typeRequirements() const {
-			return typeRequirements_;
+		void TypeInstance::setRequiresPredicate(Predicate predicate) {
+			requiresPredicate_ = std::move(predicate);
 		}
 		
 		std::vector<TypeInstance*>& TypeInstance::variants() {
@@ -211,10 +209,6 @@ namespace locic {
 				
 				case EXCEPTION:
 					return makeString("Exception(name: %s)",
-									  name().toString().c_str());
-									  
-				case TEMPLATETYPE:
-					return makeString("TemplateType(name: %s)",
 									  name().toString().c_str());
 			}
 			

@@ -1,0 +1,9 @@
+template <typename T>
+interface dissolvable {
+	T& dissolve();
+}
+
+template <typename T>
+interface const_dissolvable {
+	const T& dissolve() const;
+}

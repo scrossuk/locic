@@ -16,8 +16,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -46,7 +47,7 @@ namespace locic {
 		
 		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
-			semFunction->typeRequirements() = typeInstance->typeRequirements();
+			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
 			
@@ -57,11 +58,10 @@ namespace locic {
 			// Move never throws.
 			const bool isNoExcept = true;
 			
-			const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
-			const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
-			const auto voidPtrType = SEM::Type::Object(ptrTypeInstance, { voidType });
+			const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
+			const auto voidPtrType = getBuiltInType(context.scopeStack(), "__ptr", { voidType });
 			
-			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
+			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t", {});
 			
 			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType, sizeType };
 			
@@ -174,7 +174,7 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
-			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t");
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t", {});
 			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType }));
 			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
 			return semFunction;
@@ -338,8 +338,8 @@ namespace locic {
 			const auto positionVar = function->parameters().at(1);
 			const auto positionValue = createLocalVarRef(context, positionVar);
 			
-			const auto ubyteType = getBuiltInType(context.scopeStack(), "ubyte_t");
-			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t");
+			const auto ubyteType = getBuiltInType(context.scopeStack(), "ubyte_t", {});
+			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t", {});
 			
 			if (typeInstance->isUnionDatatype()) {
 				{
@@ -437,7 +437,7 @@ namespace locic {
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
-			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t");
+			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t", {});
 			
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = createLocalVarRef(context, operandVar);

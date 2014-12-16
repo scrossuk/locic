@@ -8,8 +8,10 @@
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
@@ -259,132 +261,6 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		static bool methodNamesMatch(const std::string& first, const std::string& second) {
-			return CanonicalizeMethodName(first) == CanonicalizeMethodName(second);
-		}
-		
-		static bool interfaceFunctionTypesCompatible(const SEM::Type* sourceType, const SEM::Type* destType) {
-			assert(sourceType->isFunction());
-			assert(destType->isFunction());
-			
-			if (sourceType == destType) {
-				return true;
-			}
-			
-			assert(!sourceType->isLval());
-			assert(!destType->isLval());
-			assert(!sourceType->isRef());
-			assert(!destType->isRef());
-			assert(!sourceType->isFunctionVarArg());
-			assert(!destType->isFunctionVarArg());
-			
-			const auto& firstList = sourceType->getFunctionParameterTypes();
-			const auto& secondList = destType->getFunctionParameterTypes();
-			
-			if (firstList.size() != secondList.size()) {
-				return false;
-			}
-			
-			for (size_t i = 0; i < firstList.size(); i++) {
-				if (firstList.at(i) != secondList.at(i)) {
-					return false;
-				}
-			}
-			
-			const auto castReturnType =
-				ImplicitCastTypeFormatOnly(
-					sourceType->getFunctionReturnType(),
-					destType->getFunctionReturnType(),
-					Debug::SourceLocation::Null());
-			if (castReturnType == nullptr) {
-				return false;
-			}
-			
-			if (sourceType->isFunctionMethod() != destType->isFunctionMethod()) {
-				return false;
-			}
-			
-			if (!sourceType->isFunctionNoExcept() && destType->isFunctionNoExcept()) {
-				// Can't add 'noexcept' specifier.
-				return false;
-			}
-			
-			return true;
-		}
-		
-		bool TypeSatisfiesInterface(Context& context, const SEM::Type* objectType, const SEM::Type* interfaceType) {
-			assert(objectType->isObjectOrTemplateVar());
-			assert(interfaceType->isInterface());
-			
-			const auto objectInstance = getObjectOrSpecType(context, objectType);
-			const auto interfaceInstance = interfaceType->getObjectType();
-			
-			const auto objectTemplateVarMap = objectType->generateTemplateVarMap();
-			const auto interfaceTemplateVarMap = interfaceType->generateTemplateVarMap();
-			
-			auto objectIterator = objectInstance->functions().begin();
-			auto interfaceIterator = interfaceInstance->functions().begin();
-			
-			while (interfaceIterator != interfaceInstance->functions().end()) {
-				const auto interfaceFunction = interfaceIterator->second;
-				
-				if (interfaceType->isConst() && !interfaceFunction->isConstMethod()) {
-					// Skip this method.
-					++interfaceIterator;
-					continue;
-				}
-				
-				if (objectIterator == objectInstance->functions().end()) {
-					// If all the object methods have been considered, but
-					// there's still an interface method to consider, then
-					// that method must not be present in the object type.
-					printf("\n\nMethod not found:\n\n%s\n\n",
-						interfaceFunction->name().toString().c_str());
-					return false;
-				}
-				
-				const auto objectFunction = objectIterator->second;
-				
-				if (!methodNamesMatch(objectFunction->name().last(), interfaceFunction->name().last())) {
-					++objectIterator;
-					continue;
-				}
-				
-				// Can't use method since object type is const.
-				if (objectType->isConst() && !objectFunction->isConstMethod()) {
-					printf("\n\nNot const-compatible:\n\n%s\n\n%s\n\n",
-						objectFunction->name().toString().c_str(),
-						interfaceFunction->name().toString().c_str());
-					return false;
-				}
-				
-				// Can't cast mutator method to const method.
-				if (!objectFunction->isConstMethod() && interfaceFunction->isConstMethod()) {
-					printf("\n\nNot const-compatible:\n\n%s\n\n%s\n\n",
-						objectFunction->name().toString().c_str(),
-						interfaceFunction->name().toString().c_str());
-					return false;
-				}
-					
-				// Substitute any template variables in the function types.
-				const auto objectFunctionType = objectFunction->type()->substitute(objectTemplateVarMap);
-				const auto interfaceFunctionType = interfaceFunction->type()->substitute(interfaceTemplateVarMap);
-				
-				// Function types must be equivalent.
-				if (!interfaceFunctionTypesCompatible(objectFunctionType, interfaceFunctionType)) {
-					printf("\n\nNot compatible:\n\n%s\n\n%s\n\n",
-						objectFunctionType->toString().c_str(),
-						interfaceFunctionType->toString().c_str());
-					return false;
-				}
-				
-				++interfaceIterator;
-				++objectIterator;
-			}
-			
-			return true;
-		}
-		
 		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
 		
 		static SEM::Value* PolyCastRefValueToType(Context& context, SEM::Value* value, const SEM::Type* destType) {
@@ -394,7 +270,10 @@ location, bool isTopLevel) {
 			const auto sourceTargetType = sourceType->refTarget();
 			const auto destTargetType = destType->refTarget();
 			
-			return TypeSatisfiesInterface(context, sourceTargetType, destTargetType) ?
+			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
+			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
+			
+			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
 				SEM::Value::PolyCast(destType, value) :
 				nullptr;
 		}
@@ -406,7 +285,10 @@ location, bool isTopLevel) {
 			const auto sourceTargetType = sourceType->staticRefTarget();
 			const auto destTargetType = destType->staticRefTarget();
 			
-			return TypeSatisfiesInterface(context, sourceTargetType, destTargetType) ?
+			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
+			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
+			
+			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
 				SEM::Value::PolyCast(destType, value) :
 				nullptr;
 		}
@@ -415,21 +297,20 @@ location, bool isTopLevel) {
 		SEM::Value* ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value* rawValue, const SEM::Type* destType, const Debug::SourceLocation& location) {
 			const auto value = derefValue(rawValue);
 			const auto sourceDerefType = getDerefType(value->type());
-			const auto destDerefType = getDerefType(destType);
+			
+			// Use a mutable type for the destination so that it's movable.
+			const auto destDerefType = getDerefType(destType)->createMutableType();
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(sourceDerefType)) {
 				const auto castFunction = sourceDerefType->getObjectType()->functions().at("implicitcast");
-				const auto& castTemplateVar = castFunction->templateVariables().front();
 				
-				const auto specTypeInstance = castFunction->typeRequirements().at(castTemplateVar);
+				const auto& requiresPredicate = castFunction->requiresPredicate();
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
+				const auto& castTemplateVar = castFunction->templateVariables().front();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
-				const auto sourceType = getTemplateTypeInstance(context, destDerefType);
-				const auto requireType = std::make_pair(specTypeInstance, combinedTemplateVarMap);
-				
-				if (TemplateValueSatisfiesRequirement(sourceType, requireType)) {
+				if (evaluateRequiresPredicate(context, requiresPredicate, combinedTemplateVarMap)) {
 					const auto method = GetTemplatedMethod(context, value, "implicitcast", { destDerefType }, location);
 					const auto castValue = CallValue(context, method, {}, location);
 					
@@ -584,7 +465,7 @@ location, bool isTopLevel) {
 					// report this error to the user.
 					errors.push_back(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitcopy' method, "
 							"in cast from type %s to type %s at position %s.",
-						sourceDerefType->nameToString().c_str(),
+						sourceDerefType->toString().c_str(),
 						sourceType->toString().c_str(),
 						destType->toString().c_str(),
 						location.toString().c_str()));

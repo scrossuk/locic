@@ -34,7 +34,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope, const SEM::TemplateRequireMap& parentRequireMap) {
+		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
 			const SEM::Type* semReturnType = NULL;
@@ -71,12 +71,6 @@ namespace locic {
 						astFunctionNode.location().toString().c_str()));
 			}
 			
-			// Add require instance for each parent template variable.
-			for (const auto& parentRequirement: parentRequireMap) {
-				const auto semTemplateVar = parentRequirement.first;
-				addRequireTypeInstance(context, semFunction->typeRequirements(), semTemplateVar);
-			}
-			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
@@ -97,8 +91,6 @@ namespace locic {
 				
 				semFunction->templateVariables().push_back(semTemplateVar);
 				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
-				
-				addRequireTypeInstance(context, semFunction->typeRequirements(), semTemplateVar);
 			}
 			
 			// Enable lookups for function template variables.

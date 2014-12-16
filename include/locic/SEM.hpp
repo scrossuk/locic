@@ -7,9 +7,11 @@
 #include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Namespace.hpp>
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
+#include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeAlias.hpp>

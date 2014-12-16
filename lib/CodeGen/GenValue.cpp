@@ -450,7 +450,8 @@ namespace locic {
 					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc);
 				}
 				
-				case SEM::Value::FUNCTIONREF: {
+				case SEM::Value::FUNCTIONREF:
+				case SEM::Value::TEMPLATEFUNCTIONREF: {
 					const auto callInfo = genFunctionCallInfo(function, value);
 					
 					if (callInfo.templateGenerator != nullptr) {

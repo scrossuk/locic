@@ -267,33 +267,6 @@ namespace locic {
 			return argInfo;
 		}
 		
-		ArgInfo getTemplateVarFunctionStubArgInfo(Module& module, SEM::Function* function) {
-			const auto functionType = function->type();
-			const auto semReturnType = functionType->getFunctionReturnType();
-			
-			const bool isVarArg = functionType->isFunctionVarArg();
-			const bool hasReturnVarArg = !canPassByValue(module, semReturnType);
-			const bool hasTemplateGeneratorArg = true;
-			const bool hasContextArg = functionType->isFunctionMethod();
-			
-			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
-			
-			std::vector<TypePair> argTypes;
-			argTypes.reserve(functionType->getFunctionParameterTypes().size());
-			
-			for (const auto paramType: functionType->getFunctionParameterTypes()) {
-				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
-			}
-			
-			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
-			
-			if (functionType->isFunctionNoExcept()) {
-				argInfo = argInfo.withNoExcept();
-			}
-			
-			return argInfo;
-		}
-		
 	}
 	
 }

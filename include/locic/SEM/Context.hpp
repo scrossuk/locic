@@ -18,14 +18,14 @@ namespace locic {
 				
 				const Type* getType(Type type) const;
 				
-				SEM::Namespace* rootNamespace();
+				Namespace* rootNamespace();
 				
 			private:
 				// Non-copyable.
 				Context(const Context&) = delete;
 				Context& operator=(const Context&) = delete;
 				
-				std::unique_ptr<SEM::Namespace> rootNamespace_;
+				std::unique_ptr<Namespace> rootNamespace_;
 				mutable std::set<Type> types_;
 				
 		};

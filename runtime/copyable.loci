@@ -1,0 +1,9 @@
+template <typename T: movable>
+interface copyable {
+	T copy() const;
+}
+
+template <typename T: movable>
+interface implicit_copyable {
+	T implicit_copy() const;
+}

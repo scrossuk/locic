@@ -5,6 +5,8 @@
 #include <vector>
 
 #include <locic/Name.hpp>
+#include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 
 namespace locic {
@@ -15,7 +17,7 @@ namespace locic {
 		class Type;
 		class TypeAlias;
 		
-		class TypeAlias {
+		class TypeAlias: public TemplatedObject {
 			public:
 				TypeAlias(Context& pContext, const Name& pName);
 				
@@ -48,8 +50,8 @@ namespace locic {
 				
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				
-				TemplateRequireMap& typeRequirements();
-				const TemplateRequireMap& typeRequirements() const;
+				const Predicate& requiresPredicate() const;
+				void setRequiresPredicate(Predicate predicate);
 				
 				const Type* value() const;
 				void setValue(const Type* pValue);
@@ -61,7 +63,7 @@ namespace locic {
 				Name name_;
 				std::vector<TemplateVar*> templateVars_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
-				TemplateRequireMap typeRequirements_;
+				Predicate requiresPredicate_;
 				const Type* value_;
 				
 		};

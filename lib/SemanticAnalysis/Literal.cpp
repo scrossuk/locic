@@ -160,18 +160,17 @@ namespace locic {
 				case Constant::STRING: {
 					// C strings have the type 'const ubyte * const', as opposed to just a
 					// type name, so their type needs to be generated specially.
-					const auto byteType = getBuiltInType(context.scopeStack(), "ubyte_t");
-					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
+					const auto byteType = getBuiltInType(context.scopeStack(), "ubyte_t", {});
 					
 					// Generate type 'const ubyte'.
 					const auto constByteType = byteType->createConstType();
 					
 					// Generate type 'const ptr<const ubyte>'.
-					return SEM::Type::Object(ptrTypeInstance, { constByteType })->createConstType();
+					return getBuiltInType(context.scopeStack(), "__ptr", { constByteType })->createConstType();
 				}
 				default: {
 					const auto typeName = getLiteralTypeName(specifier, constant);
-					return getBuiltInType(context.scopeStack(), typeName);
+					return getBuiltInType(context.scopeStack(), typeName, {});
 				}
 			}
 		}

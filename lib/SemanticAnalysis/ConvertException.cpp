@@ -60,13 +60,14 @@ namespace locic {
 			
 		}
 		
-		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance) {
+		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parent() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + "create");
 			}
 			
 			const auto semFunction = new SEM::Function(semTypeInstance->name() + "create", semTypeInstance->moduleScope());
+			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -121,8 +122,7 @@ namespace locic {
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, typeRefValue, "create", location), parentArguments, location));
 			
 			for (const auto semVar: function->parameters()) {
-				const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
-				const auto varType = SEM::Type::Object(referenceTypeInst, { semVar->type() })->createRefType(semVar->type());
+				const auto varType = getBuiltInType(context.scopeStack(), "__ref", { semVar->type() })->createRefType(semVar->type());
 				const auto varValue = SEM::Value::LocalVar(semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.

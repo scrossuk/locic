@@ -7,7 +7,7 @@ add_library(locic-semanalysis
 	ConvertFunctionDecl.cpp
 	ConvertFunctionDef.cpp
 	ConvertNamespace.cpp
-	ConvertRequireSpecifier.cpp
+	ConvertPredicate.cpp
 	ConvertScope.cpp
 	ConvertStatement.cpp
 	ConvertType.cpp
@@ -18,6 +18,7 @@ add_library(locic-semanalysis
 	ExitStates.cpp
 	Literal.cpp
 	Lval.cpp
+	MethodSet.cpp
 	NameSearch.cpp
 	Ref.cpp
 	ScopeElement.cpp

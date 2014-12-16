@@ -1,0 +1,6 @@
+constValue = 4
+constValue (by pointer) = 4
+mutableValue = 5
+mutableValue (by pointer) = 5
+mutableValue (by const pointer) = 5
+mutableValue (by const pointer after modification) = 6

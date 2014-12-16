@@ -1,5 +1,5 @@
 template <typename T>
-class wrap_buffer(T* const data, size_t size) {
+class wrap_buffer(T* data, size_t size) {
 	static create = default;
 	
 	T* data() const noexcept {

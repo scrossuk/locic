@@ -68,6 +68,11 @@ namespace locic {
 			return validVarArgTypes_;
 		}
 		
+		const MethodSet* Context::getMethodSet(MethodSet methodSet) const {
+			const auto result = methodSets_.insert(std::move(methodSet));
+			return &(*(result.first));
+		}
+		
 		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());

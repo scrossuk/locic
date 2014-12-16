@@ -1,0 +1,4 @@
+template <typename T>
+interface comparable {
+	compare_result_t compare(const T& other) const;
+}

@@ -16,7 +16,7 @@
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
-#include <locic/SemanticAnalysis/ConvertRequireSpecifier.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
@@ -130,8 +130,6 @@ namespace locic {
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
 				semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
-				
-				addRequireTypeInstance(context, semTypeInstance->typeRequirements(), semTemplateVar);
 			}
 			
 			if (semTypeInstance->isUnionDatatype()) {
@@ -140,7 +138,6 @@ namespace locic {
 					variantTypeInstance->setParent(semTypeInstance->selfType());
 					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables();
 					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables();
-					variantTypeInstance->typeRequirements() = semTypeInstance->typeRequirements();
 					semTypeInstance->variants().push_back(variantTypeInstance);
 				}
 			}
@@ -230,8 +227,6 @@ namespace locic {
 					
 					semTypeAlias->templateVariables().push_back(semTemplateVar);
 					semTypeAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
-					
-					addRequireTypeInstance(context, semTypeAlias->typeRequirements(), semTemplateVar);
 				}
 			}
 			
@@ -426,7 +421,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope, const SEM::TemplateRequireMap& parentRequireMap) {
+		SEM::Function* AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
 			const auto moduleScope = getFunctionScope(astFunctionNode, parentModuleScope);
@@ -462,19 +457,11 @@ namespace locic {
 				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				const auto semFunction = CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
+				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
 					fullName, astFunctionNode.location());
-				
-				// Add require instance for each parent template variable.
-				for (const auto& parentRequirement: parentRequireMap) {
-					const auto semTemplateVar = parentRequirement.first;
-					addRequireTypeInstance(context, semFunction->typeRequirements(), semTemplateVar);
-				}
-				
-				return semFunction;
 			}
 			
-			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope, parentRequireMap);
+			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope);
 			
 			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
 			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
@@ -523,7 +510,7 @@ namespace locic {
 						fullName.toString().c_str(), name.location().toString().c_str()));
 				}
 				
-				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope, SEM::TemplateRequireMap());
+				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
 				parentNamespace->items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(semFunction)));
 			} else {
@@ -548,7 +535,7 @@ namespace locic {
 				
 				const auto fullName = parentTypeInstance->name() + name->last();
 				
-				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope, parentTypeInstance->typeRequirements());
+				const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
 				parentTypeInstance->functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), semFunction));
 			}
@@ -567,7 +554,7 @@ namespace locic {
 					fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 			}
 			
-			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope, parentTypeInstance->typeRequirements());
+			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 			
 			parentTypeInstance->functions().insert(std::make_pair(canonicalMethodName, semFunction));
 		}
@@ -611,9 +598,10 @@ namespace locic {
 			const auto typeAlias = context.scopeStack().back().typeAlias();
 			
 			// Add any requirements in require() specifier.
-			if (!astTypeAliasNode->requireSpecifier.isNull()) {
-				ConvertRequireSpecifier(context, astTypeAliasNode->requireSpecifier, typeAlias->typeRequirements());
-			}
+			auto predicate =
+				(!astTypeAliasNode->requireSpecifier.isNull()) ?
+					ConvertPredicate(context, astTypeAliasNode->requireSpecifier) :
+					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
@@ -629,18 +617,22 @@ namespace locic {
 			 	
 			 	const auto semSpecType = ConvertType(context, astSpecType);
 			 	
-			 	// Add the specificaton to the type requirements.
-				addTypeToRequirement(context, typeAlias->typeRequirements().at(semTemplateVar), semSpecType);
+			 	// Add the satisfies requirement to the predicate.
+				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar, semSpecType);
+				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
+			
+			typeAlias->setRequiresPredicate(simplifyPredicate(predicate));
 		}
 		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto typeInstance = context.scopeStack().back().typeInstance();
 			
 			// Add any requirements in require() specifier.
-			if (!astTypeInstanceNode->requireSpecifier.isNull()) {
-				ConvertRequireSpecifier(context, astTypeInstanceNode->requireSpecifier, typeInstance->typeRequirements());
-			}
+			auto predicate =
+				(!astTypeInstanceNode->requireSpecifier.isNull()) ?
+					ConvertPredicate(context, astTypeInstanceNode->requireSpecifier) :
+					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
@@ -655,10 +647,20 @@ namespace locic {
 				}
 				
 				const auto semSpecType = ConvertType(context, astSpecType);
-				
-				// Add the specification to the type requirements.
-				addTypeToRequirement(context, typeInstance->typeRequirements().at(semTemplateVar), semSpecType);
+			 	
+			 	// Add the satisfies requirement to the predicate.
+				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar, semSpecType);
+				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
+			
+			predicate = simplifyPredicate(predicate);
+			
+			// Copy requires predicate to all variant types.
+			for (const auto variantTypeInstance: typeInstance->variants()) {
+				variantTypeInstance->setRequiresPredicate(predicate.copy());
+			}
+			
+			typeInstance->setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteNamespaceDataTypeTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
@@ -696,19 +698,15 @@ namespace locic {
 			}
 		}
 		
-		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::TemplateRequireMap& parentRequireMap) {
+		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::Predicate& parentRequiresPredicate) {
 			const auto function = context.scopeStack().back().function();
 			
 			// Add any requirements specified by parent.
-			for (const auto& parentRequirement: parentRequireMap) {
-				const auto semTemplateVar = parentRequirement.first;
-				const auto requireInstance = parentRequirement.second;
-				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), requireInstance->selfType());
-			}
+			auto predicate = parentRequiresPredicate.copy();
 			
 			// Add any requirements in require() specifier.
 			if (!astFunctionNode->requireSpecifier().isNull()) {
-				ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier(), function->typeRequirements());
+				predicate = SEM::Predicate::And(std::move(predicate), ConvertPredicate(context, astFunctionNode->requireSpecifier()));
 			}
 			
 			// Add requirements specified inline for template variables.
@@ -724,10 +722,13 @@ namespace locic {
 				}
 			 	
 			 	const auto semSpecType = ConvertType(context, astSpecType);
-				
-				// Add the specificaton to the type requirements.
-				addTypeToRequirement(context, function->typeRequirements().at(semTemplateVar), semSpecType);
+			 	
+			 	// Add the satisfies requirement to the predicate.
+				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar, semSpecType);
+				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
+			
+			function->setRequiresPredicate(simplifyPredicate(predicate));
 		}
 		
 		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
@@ -741,7 +742,7 @@ namespace locic {
 				
 				if (name->size() == 1) {
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
-					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::TemplateRequireMap());
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::Predicate::True());
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
 					const auto parentTypeInstance = searchResult.typeInstance();
@@ -751,7 +752,7 @@ namespace locic {
 					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					
-					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance->typeRequirements());
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance->requiresPredicate());
 				}
 			}
 			
@@ -775,7 +776,7 @@ namespace locic {
 					const auto semChildFunction = semChildTypeInstance->functions().at(methodName);
 					
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
-					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance->typeRequirements());
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance->requiresPredicate());
 				}
 			}
 		}
@@ -793,9 +794,9 @@ namespace locic {
 			
 			completedTypes.insert(typeInstance);
 			
-			if (typeInstance->isInterface() || typeInstance->isPrimitive() || typeInstance->isTemplateType()) {
-				// Skip interfaces, primitives and template types since
-				// default method generation doesn't apply to them.
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				// Skip interfaces and primitives since default
+				// method generation doesn't apply to them.
 				return;
 			}
 			
@@ -875,20 +876,46 @@ namespace locic {
 			GenerateNamespaceDefaultMethods(context, semNamespace, completedTypes);
 		}
 		
+		class SwapScopeStack {
+			public:
+				SwapScopeStack(ScopeStack& first,
+					ScopeStack& second)
+					: first_(first), second_(second) {
+						std::swap(first_, second_);
+					}
+					
+				~SwapScopeStack() {
+					std::swap(first_, second_);
+				}
+				
+			private:
+				ScopeStack& first_;
+				ScopeStack& second_;
+				
+		};
+		
 		void CheckTemplateInstantiationsPass(Context& context) {
 			auto& templateInsts = context.templateInstantiations();
 			
-			for (const auto& inst: templateInsts) {
-				const auto templateVariable = std::get<0>(inst);
-				const auto& sourceType = std::get<1>(inst);
-				const auto& requireType = std::get<2>(inst);
+			// std::tuple<ScopeStack, SEM::TemplateVarMap, const SEM::HasRequiresPredicate*, Name, Debug::SourceLocation>
+			for (auto& inst: templateInsts) {
+				auto& savedScopeStack = std::get<0>(inst);
+				const auto& variableAssignments = std::get<1>(inst);
+				const auto hasRequiresPredicate = std::get<2>(inst);
 				const auto parentName = std::get<3>(inst);
 				const auto location = std::get<4>(inst);
 				
-				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
-					throw ErrorException(makeString("Type does not satisfy "
-						"constraint for template parameter '%s' of function or type '%s' at position %s.",
-						templateVariable->name().last().c_str(),
+				const auto& requiresPredicate = hasRequiresPredicate->requiresPredicate();
+				
+				// Swap the current scope stack with the saved stack so we
+				// can reproduce the environment of the template instantiation
+				// (and then swap them back afterwards).
+				SwapScopeStack swapScopeStack(context.scopeStack(), savedScopeStack);
+				
+				if (!evaluateRequiresPredicate(context, requiresPredicate, variableAssignments)) {
+					throw ErrorException(makeString("Template arguments do not satisfy "
+						"requires predicate '%s' of function or type '%s' at position %s.",
+						requiresPredicate.toString().c_str(),
 						parentName.toString().c_str(),
 						location.toString().c_str()));
 				}

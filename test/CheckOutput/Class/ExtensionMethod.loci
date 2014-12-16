@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * const str, ...);
 
 // Class definition.
-class TestClass(const ubyte* const text) {
+class TestClass(const ubyte* text) {
 	static Create = default;
 	
 	const ubyte* getText() const {

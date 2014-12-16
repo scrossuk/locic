@@ -2,7 +2,7 @@ import std.string 0.1.0 {
 	
 	namespace std {
 		
-		exception utf8_decode_error(const ubyte* const error);
+		exception utf8_decode_error(const ubyte* error);
 		
 		template <typename LvalType: readable_lval<const unichar>>
 		void utf8_encode(input_range<const unichar, LvalType>& source, output_range<ubyte>& dest) require(LvalType : movable);

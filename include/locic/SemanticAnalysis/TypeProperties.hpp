@@ -42,7 +42,9 @@ namespace locic {
 		
 		bool supportsCompare(Context& context, const SEM::Type* type);
 		
-		bool supportsMove(Context& context, const SEM::Type* const rawType);
+		bool supportsMove(Context& context, const SEM::Type* const type);
+		
+		bool supportsDissolve(Context& context, const SEM::Type* const type);
 		
 	}
 	

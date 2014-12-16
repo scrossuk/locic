@@ -5,6 +5,7 @@ add_library(locic-sem
 	IfClause.cpp
 	ModuleScope.cpp
 	Namespace.cpp
+	Predicate.cpp
 	Scope.cpp
 	Statement.cpp
 	SwitchCase.cpp

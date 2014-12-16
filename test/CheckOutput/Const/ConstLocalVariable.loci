@@ -1,0 +1,27 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	const int constValue = 4;
+	testPrint(C"constValue = %d", constValue);
+	
+	const int* constValuePtr = &constValue;
+	testPrint(C"constValue (by pointer) = %d", *constValuePtr);
+	
+	int mutableValue = 5;
+	testPrint(C"mutableValue = %d", mutableValue);
+	
+	int* mutableValuePtr = &mutableValue;
+	testPrint(C"mutableValue (by pointer) = %d", *mutableValuePtr);
+	
+	const int* constMutableValuePtr = mutableValuePtr;
+	testPrint(C"mutableValue (by const pointer) = %d", *constMutableValuePtr);
+	
+	mutableValue = 6;
+	
+	testPrint(C"mutableValue (by const pointer after modification) = %d", *constMutableValuePtr);
+	
+	return 0;
+}
+

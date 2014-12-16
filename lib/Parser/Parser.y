@@ -147,7 +147,7 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
 	
 	// Require specifier.
-	locic::AST::Node<locic::AST::RequireExpr>* requireExpr;
+	locic::AST::Node<locic::AST::RequireExpr>* predicateExpr;
 	locic::AST::Node<locic::AST::RequireSpecifier>* requireSpecifier;
 	
 	// Symbol names.
@@ -268,6 +268,7 @@ const T& GETSYM(T* value) {
 %token VOID
 %token FINAL
 %token CONST
+%token MUTABLE
 %token STAR
 %token COMMA
 %token IF
@@ -348,9 +349,9 @@ const T& GETSYM(T* value) {
 %type <boolVal> constSpecifier
 %type <boolVal> noexceptSpecifier
 
-%type <requireExpr> requireExpr_precedence0
-%type <requireExpr> requireExpr_precedence1
-%type <requireExpr> requireExpr
+%type <predicateExpr> predicateExpr_precedence0
+%type <predicateExpr> predicateExpr_precedence1
+%type <predicateExpr> predicateExpr
 %type <requireSpecifier> requireSpecifier
 
 %type <type> staticMethodReturn
@@ -605,6 +606,10 @@ constSpecifier:
 	{
 		$$ = true;
 	}
+	| MUTABLE
+	{
+		$$ = false;
+	}
 	;
 
 noexceptSpecifier:
@@ -618,8 +623,8 @@ noexceptSpecifier:
 	}
 	;
 
-requireExpr_precedence0:
-	LROUNDBRACKET requireExpr RROUNDBRACKET
+predicateExpr_precedence0:
+	LROUNDBRACKET predicateExpr RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireExpr::Bracket(GETSYM($2))));
 	}
@@ -629,19 +634,19 @@ requireExpr_precedence0:
 	}
 	;
 
-requireExpr_precedence1:
-	requireExpr_precedence0
+predicateExpr_precedence1:
+	predicateExpr_precedence0
 	{
 		$$ = $1;
 	}
-	| requireExpr_precedence1 AND requireExpr_precedence0
+	| predicateExpr_precedence1 AND predicateExpr_precedence0
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireExpr::And(GETSYM($1), GETSYM($3))));
 	}
 	;
 
-requireExpr:
-	requireExpr_precedence1
+predicateExpr:
+	predicateExpr_precedence1
 	{
 		$$ = $1;
 	}
@@ -652,7 +657,7 @@ requireSpecifier:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireSpecifier::None()));
 	}
-	| REQUIRE LROUNDBRACKET requireExpr RROUNDBRACKET
+	| REQUIRE LROUNDBRACKET predicateExpr RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireSpecifier::Expr(GETSYM($3))));
 	}
@@ -1206,6 +1211,14 @@ typePrecision3:
 	| CONST typePrecision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
+	}
+	| CONST LTRIBRACKET predicateExpr RTRIBRACKET typePrecision4
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::ConstPredicate(GETSYM($3), GETSYM($5))));
+	}
+	| MUTABLE typePrecision4
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Mutable(GETSYM($2))));
 	}
 	;
 

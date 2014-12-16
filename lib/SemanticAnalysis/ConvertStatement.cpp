@@ -61,7 +61,7 @@ namespace locic {
 							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
 								value->toString().c_str(), location.toString().c_str()));
 						}
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, value));
 					} else {
 						if (!value->type()->isBuiltInVoid()) {
@@ -75,7 +75,7 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
@@ -188,7 +188,7 @@ namespace locic {
 					
 					auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					auto advanceScope = SEM::Scope::Create();
-					const auto loopCondition = ImplicitCast(context, condition, getBuiltInType(context.scopeStack(), "bool"), location);
+					const auto loopCondition = ImplicitCast(context, condition, getBuiltInType(context.scopeStack(), "bool", {}), location);
 					return SEM::Statement::Loop(loopCondition, std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
@@ -317,7 +317,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(opResult);
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
 						const auto voidCastedValue = SEM::Value::Cast(voidType, opResult);
 						return SEM::Statement::ValueStmt(voidCastedValue);
 					}
@@ -331,7 +331,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(opResult);
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t");
+						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
 						const auto voidCastedValue = SEM::Value::Cast(voidType, opResult);
 						return SEM::Statement::ValueStmt(voidCastedValue);
 					}
@@ -476,7 +476,7 @@ namespace locic {
 				case AST::Statement::ASSERT: {
 					assert(statement->assertStmt.value.get() != nullptr);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
 					const auto condition = ConvertValue(context, statement->assertStmt.value);
 					const auto boolValue = ImplicitCast(context, condition, boolType->createConstType(), location);
 					return SEM::Statement::Assert(boolValue, statement->assertStmt.name);

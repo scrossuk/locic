@@ -6,16 +6,16 @@
 
 #include <locic/Debug.hpp>
 
-#include <locic/SEM/Context.hpp>
+#include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		using TemplatedTypeInstance = std::pair<const SEM::TypeInstance*, SEM::TemplateVarMap>;
-		using TemplateInstTuple = std::tuple<const SEM::TemplateVar*, TemplatedTypeInstance, TemplatedTypeInstance, Name, Debug::SourceLocation>;
+		using TemplateInstTuple = std::tuple<ScopeStack, SEM::TemplateVarMap, const SEM::TemplatedObject*, Name, Debug::SourceLocation>;
 		
 		class Context {
 			public:
@@ -43,7 +43,9 @@ namespace locic {
 				void setTemplateRequirementsComplete();
 				
 				const std::set<std::string>& validVarArgTypes() const;
-			
+				
+				const MethodSet* getMethodSet(MethodSet methodSet) const;
+				
 			private:
 				// Non-copyable.
 				Context(const Context&) = delete;
@@ -55,6 +57,7 @@ namespace locic {
 				bool templateRequirementsComplete_;
 				std::vector<TemplateInstTuple> templateInstantiations_;
 				std::set<std::string> validVarArgTypes_;
+				mutable std::set<MethodSet> methodSets_;
 				
 		};
 		

@@ -180,7 +180,7 @@ export std.string 0.1.0 {
 		}
 		
 		template <typename T>
-		class ptr_range (T* const ptr) {
+		class ptr_range (T* ptr) {
 			static create = default;
 			
 			bool empty() const {

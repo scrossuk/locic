@@ -21,7 +21,7 @@ namespace locic {
 		const Type* applyType(T function, const Type* type);
 		
 		template <typename T>
-		const Type* doApplyType(T function, const Type* type) {
+		const Type* doApplyType(T function, const Type* const type) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type;
@@ -63,7 +63,7 @@ namespace locic {
 				}
 				
 				case Type::TEMPLATEVAR: {
-					return type;
+					return Type::TemplateVarRef(type->getTemplateVar());
 				}
 				
 				case Type::ALIAS: {
@@ -73,7 +73,7 @@ namespace locic {
 						templateArgs.push_back(applyType<T>(function, templateArg));
 					}
 					
-					return SEM::Type::Alias(type->getTypeAlias(), templateArgs);
+					return Type::Alias(type->getTypeAlias(), templateArgs);
 				}
 			}
 			
@@ -243,6 +243,12 @@ namespace locic {
 		const Type* Type::createConstType() const {
 			Type typeCopy(*this);
 			typeCopy.isConst_ = true;
+			return context_.getType(typeCopy);
+		}
+		
+		const Type* Type::createMutableType() const {
+			Type typeCopy(*this);
+			typeCopy.isConst_ = false;
 			return context_.getType(typeCopy);
 		}
 		

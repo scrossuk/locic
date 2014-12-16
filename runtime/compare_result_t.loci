@@ -6,12 +6,12 @@ __primitive compare_result_t {
 	compare_result_t implicit_copy() const noexcept;
 	compare_result_t copy() const noexcept;
 	
-	bool isEqual() const noexcept;
-	bool isNotEqual() const noexcept;
-	bool isLessThan() const noexcept;
-	bool isLessThanOrEqual() const noexcept;
-	bool isGreaterThan() const noexcept;
-	bool isGreaterThanOrEqual() const noexcept;
+	bool is_equal() const noexcept;
+	bool is_not_equal() const noexcept;
+	bool is_less_than() const noexcept;
+	bool is_less_than_or_equal() const noexcept;
+	bool is_greater_than() const noexcept;
+	bool is_greater_than_or_equal() const noexcept;
 	
 	void __move_to(void* ptr, size_t position) noexcept;
 }

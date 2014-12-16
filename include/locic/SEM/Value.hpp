@@ -49,6 +49,7 @@ namespace locic {
 					TYPEREF,
 					FUNCTIONCALL,
 					FUNCTIONREF,
+					TEMPLATEFUNCTIONREF,
 					METHODOBJECT,
 					INTERFACEMETHODOBJECT,
 					STATICINTERFACEMETHODOBJECT,
@@ -159,6 +160,12 @@ namespace locic {
 				} functionRef;
 				
 				struct {
+					const Type* parentType;
+					std::string name;
+					const Type* functionType;
+				} templateFunctionRef;
+				
+				struct {
 					Value* method;
 					Value* methodOwner;
 				} methodObject;
@@ -227,6 +234,8 @@ namespace locic {
 				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
 				
 				static Value* FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap);
+				
+				static Value* TemplateFunctionRef(const Type* parentType, const std::string& name, const Type* functionType);
 				
 				static Value* MethodObject(Value* method, Value* methodOwner);
 				

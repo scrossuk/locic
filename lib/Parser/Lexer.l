@@ -110,6 +110,7 @@ __primitive             { return PRIMITIVE; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
+mutable                 { return MUTABLE; }
 final                   { return FINAL; }
 lval                    { return LVAL; }
 nolval                  { return NOLVAL; }

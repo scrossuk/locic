@@ -6,10 +6,11 @@
 
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
-#include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 
@@ -63,30 +64,41 @@ namespace locic {
 					methodName.c_str(), targetType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = getObjectOrSpecType(context, targetType);
+			const auto methodSet = getTypeMethodSet(context, targetType);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
-			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
+			const auto methodIterator = methodSet->find(canonicalMethodName);
 			
-			if (methodIterator == typeInstance->functions().end()) {
+			if (methodIterator == methodSet->end()) {
 				throw ErrorException(makeString("Cannot find static method '%s' for type '%s' at position %s.",
-					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
+					methodName.c_str(),
+					targetType->toString().c_str(),
+					location.toString().c_str()));
 			}
 			
-			const auto function = methodIterator->second;
-			assert(function->isMethod());
+			const auto& methodElement = methodIterator->second;
 			
-			if (!function->isStaticMethod()) {
+			if (!methodElement.isStatic()) {
 				throw ErrorException(makeString("Cannot call non-static method '%s' for type '%s' at position %s.",
-					methodName.c_str(), typeInstance->refToString().c_str(), location.toString().c_str()));
+					methodName.c_str(),
+					targetType->toString().c_str(),
+					location.toString().c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, targetType->generateTemplateVarMap());
-			
-			if (targetType->isInterface()) {
-				return SEM::Value::StaticInterfaceMethodObject(functionRef, value);
+			if (targetType->isObject()) {
+				// Get the actual function so we can refer to it.
+				const auto function = targetType->getObjectType()->functions().at(canonicalMethodName);
+				const auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, targetType->generateTemplateVarMap());
+				
+				if (targetType->isInterface()) {
+					return SEM::Value::StaticInterfaceMethodObject(functionRef, value);
+				} else {
+					return functionRef;
+				}
 			} else {
-				return functionRef;
+				const bool isTemplated = true;
+				const auto functionType = methodElement.createFunctionType(isTemplated);
+				return SEM::Value::TemplateFunctionRef(targetType, methodName, functionType);
 			}
 		}
 		
@@ -110,91 +122,97 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value* GetTemplatedMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* const type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = getObjectOrSpecType(context, type);
+			const auto methodSet = getTypeMethodSet(context, type);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
-			const auto methodIterator = typeInstance->functions().find(canonicalMethodName);
+			const auto methodIterator = methodSet->find(canonicalMethodName);
 			
-			if (methodIterator == typeInstance->functions().end()) {
-				throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
-					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
+			if (methodIterator == methodSet->end()) {
+				// The method may have been filtered out, so let's find out why.
+				const auto filterReason = methodSet->getFilterReason(canonicalMethodName);
+				
+				if (filterReason == MethodSet::IsMutator) {
+					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
+						methodName.c_str(),
+						type->toString().c_str(),
+						location.toString().c_str()));
+				} else {
+					throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
+						methodName.c_str(),
+						type->toString().c_str(),
+						location.toString().c_str()));
+				}
 			}
 			
-			const auto function = methodIterator->second;
-			assert(function->isMethod());
-			
-			if (function->isStaticMethod()) {
+			const auto& methodElement = methodIterator->second;
+			if (methodElement.isStatic()) {
 				throw ErrorException(makeString("Cannot access static method '%s' for value of type '%s' at position %s.",
 					methodName.c_str(),
-					typeInstance->refToString().c_str(), location.toString().c_str()));
-			}
-			
-			if (type->isConst() && !function->isConstMethod()) {
-				throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
-					function->name().toString().c_str(),
-					type->toString().c_str(), location.toString().c_str()));
-			}
-			
-			const auto templateVariables = function->templateVariables();
-			if (templateVariables.size() != templateArguments.size()) {
-				throw ErrorException(makeString("Incorrect number of template "
-					"arguments provided for method '%s'; %llu were required, "
-					"but %llu were provided at position %s.",
-					function->name().toString().c_str(),
-					(unsigned long long) templateVariables.size(),
-					(unsigned long long) templateArguments.size(),
+					type->toString().c_str(),
 					location.toString().c_str()));
 			}
 			
-			// Create map from variables to values for both the method
-			// and its parent type.
-			auto combinedTemplateVarMap = type->generateTemplateVarMap();
-			for (size_t i = 0; i < templateArguments.size(); i++) {
-				const auto templateVariable = templateVariables.at(i);
-				const auto templateTypeValue = templateArguments.at(i)->resolveAliases();
+			if (type->isObject()) {
+				// Get the actual function so we can check its template arguments and refer to it.
+				const auto function = type->getObjectType()->functions().at(canonicalMethodName);
+				const auto templateVariables = function->templateVariables();
 				
-				if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
-					throw ErrorException(makeString("Invalid type '%s' passed "
-						"as template parameter '%s' for method '%s' at position %s.",
-						templateTypeValue->toString().c_str(),
-						templateVariable->name().toString().c_str(),
+				if (templateVariables.size() != templateArguments.size()) {
+					throw ErrorException(makeString("Incorrect number of template "
+						"arguments provided for method '%s'; %llu were required, "
+						"but %llu were provided at position %s.",
+						function->name().toString().c_str(),
+						(unsigned long long) templateVariables.size(),
+						(unsigned long long) templateArguments.size(),
+						location.toString().c_str()));
+				}
+				
+				// Create map from variables to values for both the method
+				// and its parent type.
+				auto templateVariableAssignments = type->generateTemplateVarMap();
+				for (size_t i = 0; i < templateArguments.size(); i++) {
+					const auto templateVariable = templateVariables.at(i);
+					const auto templateTypeValue = templateArguments.at(i)->resolveAliases();
+					
+					if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
+						throw ErrorException(makeString("Invalid type '%s' passed "
+							"as template parameter '%s' for method '%s' at position %s.",
+							templateTypeValue->toString().c_str(),
+							templateVariable->name().toString().c_str(),
+							function->name().toString().c_str(),
+							location.toString().c_str()));
+					}
+					
+					templateVariableAssignments.insert(std::make_pair(templateVariable, templateTypeValue));
+				}
+				
+				// Now check the template arguments satisfy the requires predicate.
+				const auto& requiresPredicate = function->requiresPredicate();
+				if (!evaluateRequiresPredicate(context, requiresPredicate, templateVariableAssignments)) {
+					throw ErrorException(makeString("Template arguments do not satisfy "
+						"requires predicate '%s' of method '%s' at position %s.",
+						requiresPredicate.toString().c_str(),
 						function->name().toString().c_str(),
 						location.toString().c_str()));
 				}
 				
-				combinedTemplateVarMap.insert(std::make_pair(templateVariable, templateTypeValue));
-			}
-			
-			// Now check all the arguments are valid.
-			for (const auto& templateAssignment: combinedTemplateVarMap) {
-				const auto templateVariable = templateAssignment.first;
-				const auto templateValue = templateAssignment.second;
-				const auto specTypeInstance = function->typeRequirements().at(templateVariable);
+				const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, templateVariableAssignments);
 				
-				const auto sourceType = getTemplateTypeInstance(context, templateValue);
-				const auto requireType = std::make_pair(specTypeInstance, combinedTemplateVarMap);
-				
-				if (!TemplateValueSatisfiesRequirement(sourceType, requireType)) {
-					throw ErrorException(makeString("Type '%s' does not satisfy "
-						"constraint for template parameter '%s' of method '%s' at position %s.",
-						templateValue->toString().c_str(),
-						templateVariable->name().toString().c_str(),
-						function->name().toString().c_str(),
-						location.toString().c_str()));
+				if (type->isInterface()) {
+					return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));
+				} else {
+					return SEM::Value::MethodObject(functionRef, derefValue(value));
 				}
-			}
-			
-			const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, combinedTemplateVarMap);
-			
-			if (typeInstance->isInterface()) {
-				return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));
 			} else {
+				const bool isTemplated = true;
+				const auto functionType = methodElement.createFunctionType(isTemplated);
+				const auto functionRef = SEM::Value::TemplateFunctionRef(type, methodName, functionType);
 				return SEM::Value::MethodObject(functionRef, derefValue(value));
 			}
 		}
@@ -237,34 +255,27 @@ namespace locic {
 			return SEM::Value::FunctionCall(value, CastFunctionArguments(context, args, typeList, location));
 		}
 		
-		bool supportsNullConstruction(Context& context, const SEM::Type* type) {
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-					return false;
-					
-				case SEM::Type::OBJECT: {
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("null");
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->isMethod()) return false;
-					if (!function->isStaticMethod()) return false;
-					if (function->isConstMethod()) return false;
-					if (!function->parameters().empty()) return false;
-					
-					return true;
-				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsNullConstruction(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
+		bool checkCapability(Context& context, const SEM::Type* const rawType, const std::string& capability, const std::vector<const SEM::Type*>& templateArgs) {
+			const auto type = rawType->resolveAliases();
+			if (!type->isObject() && !type->isTemplateVar()) {
+				return false;
 			}
+			
+			auto resolvedArgs = templateArgs;
+			for (auto& arg: resolvedArgs) {
+				arg = arg->resolveAliases()->withoutLvalOrRef();
+			}
+			
+			const auto requireType = getBuiltInType(context.scopeStack(), capability, resolvedArgs)->resolveAliases();
+			
+			const auto sourceMethodSet = getTypeMethodSet(context, type->withoutLvalOrRef());
+			const auto requireMethodSet = getTypeMethodSet(context, requireType);
+			
+			return methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
+		}
+		
+		bool supportsNullConstruction(Context& context, const SEM::Type* type) {
+			return checkCapability(context, type, "null_constructible", {});
 		}
 		
 		bool supportsImplicitCast(const SEM::Type* type) {
@@ -301,139 +312,34 @@ namespace locic {
 			}
 		}
 		
-		bool supportsCopy(Context& context, const SEM::Type* const type, const std::string& functionName) {
-			assert(!type->isAlias());
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::STATICINTERFACEMETHOD:
-					// Built-in types can be copied.
-					return true;
-					
-				case SEM::Type::OBJECT: {
-					// Named types must have a method for copying.
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find(functionName);
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->isMethod()) return false;
-					if (function->isStaticMethod()) return false;
-					if (!function->isConstMethod()) return false;
-					if (!function->parameters().empty()) return false;
-					
-					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
-					if (returnType->isLvalOrRef()) return false;
-					
-					return true;
-				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsCopy(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType(), functionName);
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
-			}
-		}
-		
-		bool supportsNoExceptCopy(Context& context, const SEM::Type* const type, const std::string& functionName) {
-			assert(!type->isAlias());
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::STATICINTERFACEMETHOD:
-					// Built-in types can be copied noexcept.
-					return true;
-					
-				case SEM::Type::OBJECT: {
-					// Named types must have a method for copying noexcept.
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find(functionName);
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->type()->isFunctionNoExcept()) return false;
-					if (!function->isMethod()) return false;
-					if (function->isStaticMethod()) return false;
-					if (!function->isConstMethod()) return false;
-					if (!function->parameters().empty()) return false;
-					
-					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
-					if (returnType->isLvalOrRef()) return false;
-					
-					return true;
-				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsNoExceptCopy(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType(), functionName);
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
-			}
-		}
-		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsCopy(context, type->resolveAliases(), "implicitcopy");
+			return checkCapability(context, type, "implicit_copyable", { type });
 		}
 		
 		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsNoExceptCopy(context, type->resolveAliases(), "implicitcopy");
+			return checkCapability(context, type, "noexcept_implicit_copyable", { type });
 		}
 		
 		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsCopy(context, type->resolveAliases(), "copy");
+			return checkCapability(context, type, "copyable", { type });
 		}
 		
 		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsNoExceptCopy(context, type->resolveAliases(), "copy");
+			return checkCapability(context, type, "noexcept_copyable", { type });
 		}
 		
-		bool supportsCompare(Context& context, const SEM::Type* const rawType) {
-			const SEM::Type* const type = rawType->resolveAliases();
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::STATICINTERFACEMETHOD:
-					return false;
-					
-				case SEM::Type::OBJECT: {
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("compare");
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->isMethod()) return false;
-					if (function->isStaticMethod()) return false;
-					if (!function->isConstMethod()) return false;
-					if (function->parameters().size() != 1) return false;
-					
-					const auto firstArgType = function->parameters().at(0)->constructType();
-					if (!firstArgType->isRef()) return false;
-					if (!firstArgType->isBuiltInReference()) return false;
-					if (!firstArgType->refTarget()->isConst()) return false;
-					if (firstArgType->refTarget() != type->createConstType()) return false;
-					
-					return true;
-				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsCompare(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
-			}
+		bool supportsCompare(Context& context, const SEM::Type* const type) {
+			return checkCapability(context, type, "comparable", { type });
 		}
 		
-		bool supportsMove(Context& context, const SEM::Type* const rawType) {
-			const SEM::Type* const type = rawType->resolveAliases();
-			const SEM::Type* const interfaceType = getBuiltInType(context.scopeStack(), "movable");
-			return TypeSatisfiesInterface(context, type, interfaceType);
+		bool supportsMove(Context& context, const SEM::Type* const type) {
+			return checkCapability(context, type, "movable", {});
+		}
+		
+		bool supportsDissolve(Context& context, const SEM::Type* const type) {
+			assert(type->isLval());
+			return checkCapability(context, type, "dissolvable", { type->lvalTarget() }) ||
+				checkCapability(context, type, "const_dissolvable", { type->lvalTarget() });
 		}
 		
 	}

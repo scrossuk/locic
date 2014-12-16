@@ -14,20 +14,17 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		const SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "value_lval")->getObjectType();
-			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), "value_lval", { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "member_lval")->getObjectType();
-			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), "member_lval", { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeFinalLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalTypeInstance = getBuiltInType(context.scopeStack(), "final_lval")->getObjectType();
-			const auto lvalType = SEM::Type::Object(lvalTypeInstance, { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), "final_lval", { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
@@ -54,40 +51,6 @@ namespace locic {
 				type = getDerefType(type->lvalTarget());
 			}
 			return count;
-		}
-		
-		bool supportsDissolve(Context& context, const SEM::Type* type) {
-			switch (type->kind()) {
-				case SEM::Type::AUTO:
-				case SEM::Type::ALIAS:
-					// Invalid here.
-					std::terminate();
-				
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::STATICINTERFACEMETHOD:
-					return false;
-					
-				case SEM::Type::OBJECT: {
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("dissolve");
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->isMethod()) return false;
-					if (function->isStaticMethod()) return false;
-					if (!function->parameters().empty()) return false;
-					
-					return true;
-				}
-				
-				case SEM::Type::TEMPLATEVAR:
-					return supportsDissolve(context, getSpecType(context.scopeStack(), type->getTemplateVar())->selfType());
-			}
-			
-			std::terminate();
 		}
 		
 		bool canDissolveValue(Context& context, SEM::Value* value) {

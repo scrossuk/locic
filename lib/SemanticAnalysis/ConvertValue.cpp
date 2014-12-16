@@ -116,11 +116,10 @@ namespace locic {
 					binaryOpToString(opKind).c_str(), derefType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = getObjectOrSpecType(context, derefType);
-			
+			const auto methodSet = getTypeMethodSet(context, derefType);
 			const auto methodName = binaryOpName(opKind);
 			
-			if (typeInstance->functions().find(CanonicalizeMethodName(methodName)) != typeInstance->functions().end()) {
+			if (methodSet->hasMethod(CanonicalizeMethodName(methodName))) {
 				return GetMethod(context, value, methodName, location);
 			} else {
 				return nullptr;
@@ -136,10 +135,12 @@ namespace locic {
 					memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto typeInstance = getObjectOrSpecType(context, derefType);
+			const auto methodSet = getTypeMethodSet(context, derefType);
+			
+			const auto filterReason = methodSet->getFilterReason(CanonicalizeMethodName(memberName));
 			
 			// Look for methods.
-			if (typeInstance->functions().find(CanonicalizeMethodName(memberName)) != typeInstance->functions().end()) {
+			if (filterReason != MethodSet::NotFound) {
 				if (getDerefType(value->type())->isStaticRef()) {
 					return GetStaticMethod(context, value, memberName, location);
 				} else {
@@ -149,15 +150,18 @@ namespace locic {
 			
 			// TODO: this should be replaced by falling back on 'property' methods.
 			// Look for variables.
-			if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct()) {
-				const auto variableIterator = typeInstance->namedVariables().find(memberName);
-				if (variableIterator != typeInstance->namedVariables().end()) {
-					return createMemberVarRef(context, value, variableIterator->second);
+			if (derefType->isObject()) {
+				const auto typeInstance = derefType->getObjectType();
+				if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct()) {
+					const auto variableIterator = typeInstance->namedVariables().find(memberName);
+					if (variableIterator != typeInstance->namedVariables().end()) {
+						return createMemberVarRef(context, value, variableIterator->second);
+					}
 				}
 			}
 			
 			throw ErrorException(makeString("Can't access member '%s' in type '%s' at position %s.",
-				memberName.c_str(), typeInstance->name().toString().c_str(), location.toString().c_str()));
+				memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
 		}
 		
 		static Name getCanonicalName(const Name& name) {
@@ -204,8 +208,7 @@ namespace locic {
 					
 					const auto selfType = thisTypeInstance->selfType();
 					const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
-					const auto ptrTypeInstance = getBuiltInType(context.scopeStack(), "__ptr")->getObjectType();
-					return SEM::Value::This(SEM::Type::Object(ptrTypeInstance, { selfConstType })->createConstType());
+					return SEM::Value::This(getBuiltInType(context.scopeStack(), "__ptr", { selfConstType })->createConstType());
 				}
 				case AST::Value::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;
@@ -256,7 +259,7 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t", {});
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isTypeAlias()) {
@@ -264,7 +267,7 @@ namespace locic {
 						const auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
 						assert(templateArguments.size() == typeAlias->templateVariables().size());
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t", {});
 						const auto resolvedType = SEM::Type::Alias(typeAlias, templateArguments)->resolveAliases();
 						return SEM::Value::TypeRef(resolvedType, typenameType->createStaticRefType(resolvedType));
 					} else if (searchResult.isVar()) {
@@ -273,13 +276,12 @@ namespace locic {
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						const auto referenceTypeInst = getBuiltInType(context.scopeStack(), "__ref")->getObjectType();
 						const auto var = searchResult.var();
-						return SEM::Value::LocalVar(var, SEM::Type::Object(referenceTypeInst, { var->type() })->createRefType(var->type()));
+						return SEM::Value::LocalVar(var, getBuiltInType(context.scopeStack(), "__ref", { var->type() })->createRefType(var->type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = searchResult.templateVar();
-						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t");
+						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t", {});
 						const auto templateVarType = SEM::Type::TemplateVarRef(templateVar);
 						return SEM::Value::TypeRef(templateVarType, typenameType->createStaticRefType(templateVarType));
 					}
@@ -304,7 +306,7 @@ namespace locic {
 					return createMemberVarRef(context, selfValue, variableIterator->second);
 				}
 				case AST::Value::SIZEOF: {
-					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t"));
+					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), "size_t", {}));
 				}
 				case AST::Value::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
@@ -444,7 +446,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LOGICALAND: {
-							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
 							const auto boolValue = ImplicitCast(context, leftOperand, boolType->createConstType(), location);
 							
 							// Logical AND only evaluates the right operand if the left
@@ -452,7 +454,7 @@ namespace locic {
 							return SEM::Value::Ternary(boolValue, rightOperand, SEM::Value::Constant(Constant::False(), boolType));
 						}
 						case AST::OP_LOGICALOR: {
-							const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+							const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
 							const auto boolValue = ImplicitCast(context, leftOperand, boolType->createConstType(), location);
 							
 							// Logical OR only evaluates the right operand if the left
@@ -482,7 +484,7 @@ namespace locic {
 				case AST::Value::TERNARY: {
 					const auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool");
+					const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
 					const auto boolValue = ImplicitCast(context, cond, boolType->createConstType(), location);
 					
 					const auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);

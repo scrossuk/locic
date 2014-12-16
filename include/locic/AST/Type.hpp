@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include <locic/AST/Node.hpp>
 
 namespace locic {
@@ -13,6 +14,7 @@ namespace locic {
 		
 		typedef std::vector<Node<Type>> TypeList;
 		
+		class RequireExpr;
 		class Symbol;
 		
 		struct Type {
@@ -25,6 +27,8 @@ namespace locic {
 			enum TypeEnum {
 				AUTO,
 				CONST,
+				CONSTPREDICATE,
+				MUTABLE,
 				LVAL,
 				REF,
 				STATICREF,
@@ -45,6 +49,15 @@ namespace locic {
 			struct {
 				Node<Type> targetType;
 			} constType;
+			
+			struct {
+				Node<RequireExpr> predicate;
+				Node<Type> targetType;
+			} constPredicateType;
+			
+			struct {
+				Node<Type> targetType;
+			} mutableType;
 			
 			struct {
 				Node<Type> targetType;
@@ -109,6 +122,19 @@ namespace locic {
 			inline static Type* Const(Node<Type> targetType) {
 				Type* type = new Type(CONST);
 				type->constType.targetType = targetType;
+				return type;
+			}
+			
+			inline static Type* ConstPredicate(Node<RequireExpr> predicate, Node<Type> targetType) {
+				Type* type = new Type(CONSTPREDICATE);
+				type->constPredicateType.predicate = predicate;
+				type->constPredicateType.targetType = targetType;
+				return type;
+			}
+			
+			inline static Type* Mutable(Node<Type> targetType) {
+				Type* type = new Type(MUTABLE);
+				type->mutableType.targetType = targetType;
 				return type;
 			}
 			
@@ -204,6 +230,29 @@ namespace locic {
 			inline Node<Type> getConstTarget() const {
 				assert(isConst());
 				return constType.targetType;
+			}
+			
+			inline bool isConstPredicate() const {
+				return typeEnum == CONSTPREDICATE;
+			}
+			
+			inline Node<RequireExpr> getConstPredicate() const {
+				assert(isConstPredicate());
+				return constPredicateType.predicate;
+			}
+			
+			inline Node<Type> getConstPredicateTarget() const {
+				assert(isConstPredicate());
+				return constPredicateType.targetType;
+			}
+			
+			inline bool isMutable() const {
+				return typeEnum == MUTABLE;
+			}
+			
+			inline Node<Type> getMutableTarget() const {
+				assert(isMutable());
+				return mutableType.targetType;
 			}
 			
 			inline bool isLval() const {

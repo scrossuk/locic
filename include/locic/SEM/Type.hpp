@@ -59,9 +59,11 @@ namespace locic {
 				const Type* lvalOrRefTarget() const;
 				
 				const Type* createConstType() const;
+				const Type* createMutableType() const;
 				const Type* createLvalType(const Type* targetType) const;
 				const Type* createRefType(const Type* targetType) const;
 				const Type* createStaticRefType(const Type* targetType) const;
+				const Type* withoutConst() const;
 				const Type* withoutLval() const;
 				const Type* withoutRef() const;
 				const Type* withoutLvalOrRef() const;

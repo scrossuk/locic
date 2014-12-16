@@ -8,6 +8,8 @@
 #include <locic/Map.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM/ModuleScope.hpp>
+#include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 
 namespace locic {
@@ -19,7 +21,7 @@ namespace locic {
 		class TemplateVar;
 		class Var;
 		
-		class TypeInstance {
+		class TypeInstance: public TemplatedObject {
 			public:
 				enum Kind {
 					PRIMITIVE,
@@ -29,8 +31,7 @@ namespace locic {
 					DATATYPE,
 					UNION_DATATYPE,
 					INTERFACE,
-					EXCEPTION,
-					TEMPLATETYPE
+					EXCEPTION
 				};
 				
 				TypeInstance(Context& c, Name n, Kind k, ModuleScope m);
@@ -60,8 +61,6 @@ namespace locic {
 				bool isInterface() const;
 				
 				bool isException() const;
-				
-				bool isTemplateType() const;
 				
 				bool isName() const;
 				
@@ -94,8 +93,8 @@ namespace locic {
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
 				
-				TemplateRequireMap& typeRequirements();
-				const TemplateRequireMap& typeRequirements() const;
+				const Predicate& requiresPredicate() const;
+				void setRequiresPredicate(Predicate predicate);
 				
 				// TODO: replace with 'property' methods.
 				std::map<std::string, Var*>& namedVariables();
@@ -131,7 +130,7 @@ namespace locic {
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
-				TemplateRequireMap typeRequirements_;
+				Predicate requiresPredicate_;
 				
 				std::vector<Var*> variables_;
 				std::map<std::string, Var*> namedVariables_;

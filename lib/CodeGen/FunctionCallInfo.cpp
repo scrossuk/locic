@@ -126,8 +126,6 @@ namespace locic {
 				return genFunctionDecl(module, nullptr, function);
 			} else if (parentType->isObject()) {
 				return genFunctionDecl(module, parentType->getObjectType(), function);
-			} else if (parentType->isTemplateVar()) {
-				return genTemplateFunctionStub(module, parentType->getTemplateVar(), function);
 			} else {
 				llvm_unreachable("Unknown parent type in function ref.");
 			}
@@ -218,21 +216,45 @@ namespace locic {
 					const auto parentType = value->functionRef.parentType;
 					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
 					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					
+					// There may need to be a stub generated to handle issues with types being
+					// passed/returned by value versus via a pointer (which happens when primitives
+					// are used in templates).
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
 					if (value->type()->isFunctionTemplated()) {
-						if (parentType != nullptr && parentType->isTemplateVar()) {
-							callInfo.templateGenerator = function.getTemplateGenerator();
+						if (!value->functionRef.templateArguments.empty()) {
+							// The function is templated on the function (and potentially also the parent object).
+							const auto templateInst = TemplateInst::Function(parentType, value->functionRef.function, value->functionRef.templateArguments);
+							callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
 						} else {
-							if (!value->functionRef.templateArguments.empty()) {
-								const auto templateInst = TemplateInst::Function(parentType, value->functionRef.function, value->functionRef.templateArguments);
-								callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
-							} else {
-								callInfo.templateGenerator = getTemplateGenerator(function, TemplateInst::Type(parentType));
-							}
+							// The function is only templated on the parent object.
+							callInfo.templateGenerator = getTemplateGenerator(function, TemplateInst::Type(parentType));
 						}
 					}
 					
+					return callInfo;
+				}
+				
+				case SEM::Value::TEMPLATEFUNCTIONREF: {
+					FunctionCallInfo callInfo;
+					
+					const auto parentType = value->templateFunctionRef.parentType;
+					const auto& functionName = value->templateFunctionRef.name;
+					const auto functionType = value->templateFunctionRef.functionType;
+					
+					// Template function references involve creating a stub that performs
+					// a virtual call to the actual call. Since the virtual call mechanism
+					// doesn't actually allow us to get a pointer to the function we want
+					// to call, we need to create the stub and refer to that instead.
+					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType);
+					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
+					
+					// The stub will extract the template variable's value for the
+					// current function's template context, so we can just use the
+					// current function's template generator.
+					callInfo.templateGenerator = function.getTemplateGenerator();
 					return callInfo;
 				}
 				

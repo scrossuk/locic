@@ -19,6 +19,12 @@ namespace locic {
 				case CONST:
 					return std::string("const ") + getConstTarget()->toString();
 					
+				case CONSTPREDICATE:
+					return std::string("const<[TODO]> ") + getConstPredicateTarget()->toString();
+					
+				case MUTABLE:
+					return std::string("mutable ") + getMutableTarget()->toString();
+					
 				case LVAL:
 					return std::string("lval <") + getLvalTarget()->toString() + "> " + getLvalType()->toString();
 					

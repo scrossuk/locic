@@ -42,11 +42,11 @@ namespace locic {
 		
 		SEM::Function* lookupParentFunction(const ScopeStack& scopeStack);
 		
-		SEM::TypeInstance* getSpecType(const ScopeStack& scopeStack, SEM::TemplateVar* const templateVar);
+		const SEM::Predicate& lookupRequiresPredicate(const ScopeStack& scopeStack);
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName);
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, const std::vector<const SEM::Type*>& templateArgs);
 		
 	}
 	

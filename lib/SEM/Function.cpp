@@ -1,6 +1,7 @@
 #include <locic/String.hpp>
 
 #include <locic/SEM/Function.hpp>
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Var.hpp>
@@ -16,6 +17,7 @@ namespace locic {
 			  isConstMethod_(false),
 			  type_(nullptr),
 			  name_(std::move(pName)),
+			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
 		
 		const Name& Function::name() const {
@@ -95,12 +97,12 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
-		TemplateRequireMap& Function::typeRequirements() {
-			return typeRequirements_;
+		const Predicate& Function::requiresPredicate() const {
+			return requiresPredicate_;
 		}
 		
-		const TemplateRequireMap& Function::typeRequirements() const {
-			return typeRequirements_;
+		void Function::setRequiresPredicate(Predicate predicate) {
+			requiresPredicate_ = std::move(predicate);
 		}
 		
 		void Function::setParameters(std::vector<Var*> pParameters) {
