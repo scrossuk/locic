@@ -1,3 +1,3 @@
 Parser Error: Failed to parse file '(.*)/MultipleElse\.loci' with 2 errors:
-Parser Error \(at SourceLocation\(filename = (.*)/MultipleElse\.loci, range = \(line 7, column 13\) to \(line 7, column 17\)\)\): syntax error, unexpected ELSE
-Parser Error \(at SourceLocation\(filename = (.*)/MultipleElse\.loci, range = \(line 7, column 13\) to \(line 7, column 17\)\)\): Invalid statement\.
+Parser Error \(at SourceLocation\(filename = (.*)/MultipleElse\.loci, range = \(line 7, column 4\) to \(line 7, column 8\)\)\): syntax error, unexpected ELSE
+Parser Error \(at SourceLocation\(filename = (.*)/MultipleElse\.loci, range = \(line 7, column 4\) to \(line 7, column 8\)\)\): Invalid statement\.
