@@ -87,7 +87,12 @@ namespace locic {
 					const auto templateVar = requiresPredicate.satisfiesTemplateVar();
 					const auto requireType = requiresPredicate.satisfiesRequirement();
 					
-					const auto templateValue = variableAssignments.at(templateVar);
+					const auto templateValue = variableAssignments.at(templateVar)->resolveAliases();
+					if (templateValue->isAuto()) {
+						// Presumably this will work.
+						return true;
+					}
+					
 					// Some of the requirements can depend on the template values provided.
 					const auto substitutedRequireType = requireType->substitute(variableAssignments);
 					

@@ -1,0 +1,5 @@
+
+// Class members can't be const since
+// this would affect the movability
+// of the object.
+class TestClass(const int value) { }

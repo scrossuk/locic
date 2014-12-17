@@ -1,7 +1,9 @@
 # Const tests.
 
 test_check_error(CallNonConstMethodOnConstObject)
+test_check_error(ConstClassMember)
 test_check_error(ModifyConstLocalVariable)
 test_check_error(ModifyConstParamVariable)
+test_check_error(ModifyConstValuePointer)
 test_check_error(ModifyInsideConstMethod)
 

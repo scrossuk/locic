@@ -177,7 +177,7 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 "/="                    { return DIVEQUAL; }
 "%="                    { return PERCENTEQUAL; }
 
-\/\/(.*?)\n             { }
+\/\/(.*?)               { yyextra->advanceColumn(yyleng); }
 
 "++"                    { return DOUBLE_PLUS; }
 "--"                    { return DOUBLE_MINUS; }

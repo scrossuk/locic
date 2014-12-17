@@ -1,0 +1,48 @@
+// Test output.
+import void testPrint(const ubyte * const str, ...);
+
+class IntWrapper(int value) {
+	static create = default;
+	
+	IntWrapper implicitCopy() const {
+		// Should not be called!
+		testPrint(C"IntWrapper.implicitCopy()");
+		unreachable;
+	}
+	
+	int get() const {
+		return @value;
+	}
+}
+
+class TestClass(const IntWrapper& valueRef) {
+	static create = default;
+	
+	const IntWrapper& getValue() const {
+		return @valueRef;
+	}
+	
+	TestClass copy() const {
+		return @(@valueRef);
+	}
+}
+
+// Entry point.
+export int testEntryPoint(int argc, ubyte ** argv) {
+	auto value = IntWrapper(10);
+	
+	auto mutableInst = TestClass(value);
+	
+	testPrint(C"mutableInst.getValue() = %d", mutableInst.getValue().get());
+	
+	const auto& constInst = mutableInst;
+	
+	testPrint(C"constInst.getValue() = %d", constInst.getValue().get());
+	
+	value = IntWrapper(20);
+	
+	testPrint(C"constInst.getValue() = %d (after modification)", constInst.getValue().get());
+	
+	return 0;
+}
+

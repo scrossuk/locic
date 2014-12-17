@@ -1,0 +1,3 @@
+void f(const int* value) {
+	*value = 1;
+}

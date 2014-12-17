@@ -263,12 +263,12 @@ namespace locic {
 			
 			auto resolvedArgs = templateArgs;
 			for (auto& arg: resolvedArgs) {
-				arg = arg->resolveAliases()->withoutLvalOrRef();
+				arg = arg->resolveAliases();
 			}
 			
 			const auto requireType = getBuiltInType(context.scopeStack(), capability, resolvedArgs)->resolveAliases();
 			
-			const auto sourceMethodSet = getTypeMethodSet(context, type->withoutLvalOrRef());
+			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);
 			
 			return methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
@@ -313,23 +313,23 @@ namespace locic {
 		}
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "implicit_copyable", { type });
+			return checkCapability(context, type, "implicit_copyable", { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "noexcept_implicit_copyable", { type });
+			return checkCapability(context, type, "noexcept_implicit_copyable", { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "copyable", { type });
+			return checkCapability(context, type, "copyable", { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "noexcept_copyable", { type });
+			return checkCapability(context, type, "noexcept_copyable", { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "comparable", { type });
+			return checkCapability(context, type, "comparable", { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsMove(Context& context, const SEM::Type* const type) {
