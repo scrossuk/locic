@@ -13,48 +13,18 @@ Before building and using LOCIC, it's first necessary to build and install its d
 * Boost Program Options - *debian package: libboost-program-options-dev*
 * Boost Regex - *debian package: libboost-regex-dev*
 * Boost System - *debian package: libboost-system-dev*
-* LLVM 3.3/3.4/3.5 (build with instructions below)
+* LLVM 3.3/3.4/3.5 (development build) - *debian package: llvm-dev*
+* Clang 3.3/3.4/3.5 - *debian package: clang*
 * Sphinx (documentation) - *debian package: python-sphinx*
+* Bison (parser generator) - *debian package: bison*
 
 Also, the following dependencies are optional:
 
 * LaTeX (documentation PDF output)
 
-Specific versions of LLVM are given since its API tends to be incompatible between releases.
+Specific versions of LLVM are given since its API tends to be incompatible between releases. The version of Clang used should match the version of LLVM.
 
 LOCIC is written in C++11, and hence must be built by a C++ compiler with C++11 support.
-
-Building LLVM
-~~~~~~~~~~~~~
-
-Default Ubuntu packages tend not to include the LLVMConfig.cmake file, which LOCIC relies on to discover information about the LLVM build (such as the include directories). It's therefore recommended to download the latest version of LLVM and build it using CMake.
-
-Assuming the following directory structure, where 'llvm-src' contains the source directory tree for the relevant LLVM version:
-
-..
-
-	/ -> llvm -> llvm-src
-
-To build LLVM, you'll typically want to run something like the following commands:
-
-.. code-block:: bash
-
-	pushd llvm
-	mkdir llvm-build
-	cd llvm-build
-	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ../llvm-src
-	make -j
-	popd
-
-These commands create an out-of-source build directory in which to build LLVM. They then run CMake with the appropriate flags to create a Release build that will be installed to '/usr' on the host system.
-
-(Note that the ‘-j’ option tells make how many recipes may execute at once; use this to your advantage to reduce the build time on multi-core machines.)
-
-It's not required for building LOCIC, but at this point you can install LLVM into your system directories by running the following command **as root**:
-
-.. code-block:: bash
-
-	make install
 
 How to build
 ------------
@@ -65,25 +35,44 @@ Once the dependencies have been installed, create a build directory alongside th
 
 	cmake ../locic-src
 
+CMake will output various information about the build configuration; make sure to check the paths it has discovered are correct. Here's an example output:
+
+::
+
+	-- Building Loci Compiler Tools version 1.2.0.0 using build type ''.
+	--     Source directory is '/home/user/locic/locic-src'.
+	--     Build directory is '/home/user/locic/build'.
+	-- LLVM_ROOT_DIR wasn't specified (you can use this to search for LLVM in a particular path).
+	-- CLANG_BINARY_NAME wasn't specified (you can use this to search for Clang by a particular name).
+	-- CLANG_ROOT_DIR wasn't specified (you can use this to search for Clang in a particular path).
+	-- Found LLVM: /usr/lib/llvm-3.5 (found version "3.5") 
+	-- Using LLVM 3.5 (name is '3_5').
+	--     LLVM binary directory: /usr/lib/llvm-3.5/bin
+	--         llc path: /usr/lib/llvm-3.5/bin/llc
+	--         llvm-dis path: /usr/lib/llvm-3.5/bin/llvm-dis
+	--         llvm-link path: /usr/lib/llvm-3.5/bin/llvm-link
+	--         llvm-nm path: /usr/lib/llvm-3.5/bin/llvm-nm
+	--         opt path: /usr/lib/llvm-3.5/bin/opt
+	--     LLVM include directories: /usr/lib/llvm-3.5/include;/usr/lib/llvm-3.5/build/include
+	--         (if this is wrong, specify LOCIC_LLVM_INCLUDE_DIRS)
+	--     LLVM library directories: /usr/lib/llvm-3.5/lib
+	--         (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)
+	-- Found Sphinx: /usr/bin/sphinx-build  
+	-- Found Clang: /usr/bin/clang  
+
 You can then just run:
 
 .. code-block:: bash
 
-	make
+	make -j
 
-If you're building against an LLVM build that you haven't installed, you can use CMAKE_PREFIX_PATH to find it:
+(Note that the ‘-j’ option tells make how many recipes may execute at once; use this to your advantage to reduce the build time on multi-core machines.)
 
-.. code-block:: bash
-
-	cmake -DCMAKE_PREFIX_PATH=/path/to/llvm/build ../locic-src
-
-The CMake script will show you the information it found for LLVM (or fail if it couldn't find the LLVMConfig.cmake file). For LLVM versions **before 3.5** you'll probably find that the include directories and library directories are **incorrect**. In this case, you should specify these manually:
+If you want to build Locic for Debug or Release, add the relevant CMake variable:
 
 .. code-block:: bash
 
-	export LLVM_SOURCE=/path/to/llvm/source
-	export LLVM_BUILD=/path/to/llvm/build
-	cmake -DCMAKE_PREFIX_PATH="$LLVM_BUILD" -DLOCIC_LLVM_INCLUDE_DIRS="$LLVM_SOURCE/include;$LLVM_BUILD/lib" -DLOCIC_LLVM_LIBRARY_DIRS="$LLVM_BUILD/lib" ../locic-src
+	cmake -DCMAKE_BUILD_TYPE=Release ../locic-src
 
 Documentation
 -------------
@@ -126,3 +115,39 @@ output of all failing tests.
 
 	ctest --output-on-failure
 
+Building LLVM
+~~~~~~~~~~~~~
+
+If you install LLVM from a package manager Locic should be able to find this by searching for llvm-config and using that to get the include directories and libraries for LLVM. In some cases you may want to use your own custom build of LLVM; this section explains how to build LLVM and how to get Locic to build with your custom build of LLVM.
+
+Assuming the following directory structure, where 'llvm-src' contains the source directory tree for the relevant LLVM version:
+
+..
+
+	/ -> llvm -> llvm-src
+
+To build LLVM, you'll typically want to run something like the following commands:
+
+.. code-block:: bash
+
+	pushd llvm
+	mkdir llvm-build
+	cd llvm-build
+	cmake -DCMAKE_BUILD_TYPE=Release ../llvm-src
+	make -j
+	popd
+
+These commands create an out-of-source build directory in which to build LLVM. They then run CMake with the appropriate flags to create a Release build.
+
+You can now tell Locic where to find your LLVM build by using the *LLVM_ROOT_DIR* variable.
+
+.. code-block:: bash
+
+	pushd locic
+	mkdir locic-build
+	cd locic-build
+	cmake -DLLVM_ROOT_DIR=/path/to/your/llvm/build ../locic-src
+	make -j
+	popd
+
+You can follow similar steps for Clang by using the *CLANG_ROOT_DIR* variable.

@@ -79,28 +79,37 @@ This section lists planned releases of the Loci Compiler Tools, in reverse versi
 v1.2
 ~~~~
 
-Planned for the end of 2014, version 1.2 aims to provide:
+Planned for end of February 2015, version 1.2 aims to provide:
 
+* Continuous Integration - verifying support for LLVM 3.3/3.4/3.5
+* Requires predicates
+* move_to methods
+* Fixing const rules
 * Clarifying/defining implicit casting rules
 * C enums and unions
 * Statically checked exception specifications
-* :doc:`Vectorised types <VectorTypes>`
-* Lambdas
-* Value-templates, including lists of types
-* Variadic templates
-* User-defined :doc:`reference types <References>`
-* User-defined function types
+* Improvements to standard library strings
 * Standard library fibers and threads
 * Standard library events and networking
-* Null coalescing operator
+* :doc:`Vectorised types <VectorTypes>`
 * Const-templated functions/methods (to allow a function/method to support both const and non-const usage)
-* Union datatype function 'overloading' (i.e. splitting a function into multiple functions similar to a type-switch)
+* Const predicates
+* Unused variables and values (replacing void cast syntax)
 
 In Consideration
 ~~~~~~~~~~~~~~~~
 
 The following features have not yet been assigned a release:
 
+* Windows and Mac support
+* ARM ABI support
+* Lambdas
+* Value-templates, including lists of types
+* Variadic templates
+* Null coalescing operator
+* Union datatype function 'overloading' (i.e. splitting a function into multiple functions similar to a type-switch)
+* User-defined :doc:`reference types <References>`
+* User-defined function types
 * Automatic generation of :doc:`imports from exports <Modules>`.
 * Automatic generation of imports from C header files.
 * Automatic parallelisation through 'spawn' and 'sync'
