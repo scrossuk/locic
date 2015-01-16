@@ -30,7 +30,7 @@ namespace locic {
 		
 		bool supportsNullConstruction(Context& context, const SEM::Type* type);
 		
-		bool supportsImplicitCast(const SEM::Type* type);
+		bool supportsImplicitCast(Context& context, const SEM::Type* type);
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* type);
 		

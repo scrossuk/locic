@@ -9,9 +9,11 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode);
+		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode);
 		
-		bool evaluateRequiresPredicate(Context& context, const SEM::Predicate& requiresPredicate, const SEM::TemplateVarMap& variableAssignments);
+		SEM::Predicate ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode);
+		
+		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
 		
 		// TODO: take a value rather than a reference.
 		SEM::Predicate simplifyPredicate(const SEM::Predicate& predicate);

@@ -19,7 +19,7 @@ namespace locic {
 		}
 		
 		Predicate Predicate::False() {
-			return Predicate(TRUE);
+			return Predicate(FALSE);
 		}
 		
 		Predicate Predicate::And(Predicate left, Predicate right) {
@@ -33,6 +33,12 @@ namespace locic {
 			Predicate predicate(SATISFIES);
 			predicate.templateVar_ = templateVar;
 			predicate.requirement_ = requirement;
+			return predicate;
+		}
+		
+		Predicate Predicate::Variable(TemplateVar* templateVar) {
+			Predicate predicate(VARIABLE);
+			predicate.templateVar_ = templateVar;
 			return predicate;
 		}
 		
@@ -55,6 +61,10 @@ namespace locic {
 				case SATISFIES:
 				{
 					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement());
+				}
+				case VARIABLE:
+				{
+					return Predicate::Variable(variableTemplateVar());
 				}
 			}
 			
@@ -81,6 +91,10 @@ namespace locic {
 			return kind_ == SATISFIES;
 		}
 		
+		bool Predicate::isVariable() const {
+			return kind_ == VARIABLE;
+		}
+		
 		const Predicate& Predicate::andLeft() const {
 			assert(isAnd());
 			return *left_;
@@ -99,6 +113,11 @@ namespace locic {
 		const Type* Predicate::satisfiesRequirement() const {
 			assert(isSatisfies());
 			return requirement_;
+		}
+		
+		TemplateVar* Predicate::variableTemplateVar() const {
+			assert(isVariable());
+			return templateVar_;
 		}
 		
 		std::string Predicate::toString() const {
@@ -122,6 +141,11 @@ namespace locic {
 					return makeString("satisfies(templateVar: %s, requirement: %s)",
 						satisfiesTemplateVar()->toString().c_str(),
 						satisfiesRequirement()->toString().c_str());
+				}
+				case VARIABLE:
+				{
+					return makeString("variable(templateVar: %s)",
+						variableTemplateVar()->toString().c_str());
 				}
 			}
 			

@@ -52,17 +52,6 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
-			switch (kind) {
-				case AST::TemplateTypeVar::TYPENAME:
-					return SEM::TEMPLATEVAR_TYPENAME;
-				case AST::TemplateTypeVar::POLYMORPHIC:
-					return SEM::TEMPLATEVAR_POLYMORPHIC;
-			}
-			
-			std::terminate();
-		}
-		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
 			const auto parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -117,7 +106,6 @@ namespace locic {
 				const auto templateVarFullName = fullTypeName + templateVarName;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
-						ConvertTemplateVarType(astTemplateVarNode->kind),
 						templateVarFullName,
 						templateVarIndex++);
 				
@@ -216,7 +204,6 @@ namespace locic {
 					const auto templateVarFullName = fullTypeName + templateVarName;
 					const auto semTemplateVar =
 						new SEM::TemplateVar(context.semContext(),
-							ConvertTemplateVarType(astTemplateVarNode->kind),
 							templateVarFullName,
 							templateVarIndex++);
 					
@@ -600,7 +587,7 @@ namespace locic {
 			// Add any requirements in require() specifier.
 			auto predicate =
 				(!astTypeAliasNode->requireSpecifier.isNull()) ?
-					ConvertPredicate(context, astTypeAliasNode->requireSpecifier) :
+					ConvertRequireSpecifier(context, astTypeAliasNode->requireSpecifier) :
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
@@ -631,7 +618,7 @@ namespace locic {
 			// Add any requirements in require() specifier.
 			auto predicate =
 				(!astTypeInstanceNode->requireSpecifier.isNull()) ?
-					ConvertPredicate(context, astTypeInstanceNode->requireSpecifier) :
+					ConvertRequireSpecifier(context, astTypeInstanceNode->requireSpecifier) :
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
@@ -706,7 +693,7 @@ namespace locic {
 			
 			// Add any requirements in require() specifier.
 			if (!astFunctionNode->requireSpecifier().isNull()) {
-				predicate = SEM::Predicate::And(std::move(predicate), ConvertPredicate(context, astFunctionNode->requireSpecifier()));
+				predicate = SEM::Predicate::And(std::move(predicate), ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier()));
 			}
 			
 			// Add requirements specified inline for template variables.
@@ -912,7 +899,7 @@ namespace locic {
 				// (and then swap them back afterwards).
 				SwapScopeStack swapScopeStack(context.scopeStack(), savedScopeStack);
 				
-				if (!evaluateRequiresPredicate(context, requiresPredicate, variableAssignments)) {
+				if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
 					throw ErrorException(makeString("Template arguments do not satisfy "
 						"requires predicate '%s' of function or type '%s' at position %s.",
 						requiresPredicate.toString().c_str(),

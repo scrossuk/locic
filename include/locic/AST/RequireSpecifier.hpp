@@ -4,55 +4,11 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/Predicate.hpp>
 
 namespace locic {
 
 	namespace AST {
-	
-		class RequireExpr {
-			public:
-				enum Kind {
-					BRACKET,
-					TYPESPEC,
-					AND
-				};
-				
-				static RequireExpr* Bracket(const Node<RequireExpr>& expr);
-				
-				static RequireExpr* TypeSpec(const std::string& name, const Node<Type>& specType);
-				
-				static RequireExpr* And(const Node<RequireExpr>& left, const Node<RequireExpr>& right);
-				
-				Kind kind() const;
-				
-				const Node<RequireExpr>& bracketExpr() const;
-				
-				const std::string& typeSpecName() const;
-				const Node<Type>& typeSpecType() const;
-				
-				const Node<RequireExpr>& andLeft() const;
-				const Node<RequireExpr>& andRight() const;
-				
-			private:
-				Kind kind_;
-				
-				struct {
-					Node<RequireExpr> expr;
-				} bracket_;
-				
-				struct {
-					std::string name;
-					Node<Type> type;
-				} typeSpec_;
-				
-				struct {
-					Node<RequireExpr> left;
-					Node<RequireExpr> right;
-				} and_;
-			
-				RequireExpr(Kind pKind) : kind_(pKind) { }
-		};
 		
 		class RequireSpecifier {
 			public:
@@ -63,17 +19,17 @@ namespace locic {
 				
 				static RequireSpecifier* None();
 				
-				static RequireSpecifier* Expr(const Node<RequireExpr>& expr);
+				static RequireSpecifier* Expr(const Node<Predicate>& expr);
 				
 				Kind kind() const;
 				
-				const Node<RequireExpr>& expr() const;
+				const Node<Predicate>& expr() const;
 				
 			private:
 				Kind kind_;
-				Node<RequireExpr> expr_;
+				Node<Predicate> predicate_;
 			
-				RequireSpecifier(Kind pKind) : kind_(pKind) { }
+				RequireSpecifier(const Kind pKind) : kind_(pKind) { }
 		};
 		
 	}

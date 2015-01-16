@@ -14,7 +14,7 @@ namespace locic {
 		
 		typedef std::vector<Node<Type>> TypeList;
 		
-		class RequireExpr;
+		class Predicate;
 		class Symbol;
 		
 		struct Type {
@@ -51,7 +51,7 @@ namespace locic {
 			} constType;
 			
 			struct {
-				Node<RequireExpr> predicate;
+				Node<Predicate> predicate;
 				Node<Type> targetType;
 			} constPredicateType;
 			
@@ -125,7 +125,7 @@ namespace locic {
 				return type;
 			}
 			
-			inline static Type* ConstPredicate(Node<RequireExpr> predicate, Node<Type> targetType) {
+			inline static Type* ConstPredicate(Node<Predicate> predicate, Node<Type> targetType) {
 				Type* type = new Type(CONSTPREDICATE);
 				type->constPredicateType.predicate = predicate;
 				type->constPredicateType.targetType = targetType;
@@ -236,7 +236,7 @@ namespace locic {
 				return typeEnum == CONSTPREDICATE;
 			}
 			
-			inline Node<RequireExpr> getConstPredicate() const {
+			inline Node<Predicate> getConstPredicate() const {
 				assert(isConstPredicate());
 				return constPredicateType.predicate;
 			}

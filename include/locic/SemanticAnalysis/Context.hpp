@@ -63,6 +63,8 @@ namespace locic {
 		
 		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location);
 		
+		SEM::Value* getThisValue(Context& context, const Debug::SourceLocation& location);
+		
 	}
 	
 }

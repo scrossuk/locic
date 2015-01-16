@@ -109,7 +109,7 @@ namespace locic {
 						// Requires predicate is already known so check it immediately.
 						const auto& requiresPredicate = templatedObject->requiresPredicate();
 						
-						if (!evaluateRequiresPredicate(context, requiresPredicate, variableAssignments)) {
+						if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
 							throw ErrorException(makeString("Template arguments do not satisfy "
 								"requires predicate '%s' of function or type '%s' at position %s.",
 								requiresPredicate.toString().c_str(),

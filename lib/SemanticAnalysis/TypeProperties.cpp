@@ -194,7 +194,7 @@ namespace locic {
 				
 				// Now check the template arguments satisfy the requires predicate.
 				const auto& requiresPredicate = function->requiresPredicate();
-				if (!evaluateRequiresPredicate(context, requiresPredicate, templateVariableAssignments)) {
+				if (!evaluatePredicate(context, requiresPredicate, templateVariableAssignments)) {
 					throw ErrorException(makeString("Template arguments do not satisfy "
 						"requires predicate '%s' of method '%s' at position %s.",
 						requiresPredicate.toString().c_str(),
@@ -278,7 +278,7 @@ namespace locic {
 			return checkCapability(context, type, "null_constructible", {});
 		}
 		
-		bool supportsImplicitCast(const SEM::Type* type) {
+		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -295,7 +295,7 @@ namespace locic {
 					if (function->type()->isFunctionVarArg()) return false;
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;
-					if (!function->isConstMethod()) return false;
+					if (!evaluatePredicate(context, function->constPredicate(), type->generateTemplateVarMap())) return false;
 					if (!function->parameters().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					

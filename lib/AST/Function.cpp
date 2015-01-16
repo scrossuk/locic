@@ -14,36 +14,41 @@ namespace locic {
 
 	namespace AST {
 	
-		Function* Function::Decl(bool isVarArg, bool isStatic, bool isConst, bool isNoExcept,
-				const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
+		Function* Function::Decl(bool isVarArg, bool isStatic, bool isNoExcept,
+				const Node<Type>& returnType, const Node<Name>& name,
+				const Node<TypeVarList>& parameters,
+				const Node<ConstSpecifier>& constSpecifier,
 				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = false;
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = isVarArg;
-			function->isConst_ = isConst;
 			function->isStatic_ = isStatic;
 			function->isNoExcept_ = isNoExcept;
 			function->returnType_ = returnType;
 			function->parameters_ = parameters;
 			function->scope_ = Node<Scope>();
+			function->constSpecifier_ = constSpecifier;
 			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
 		
-		Function* Function::Def(bool isVarArg, bool isStatic, bool isConst, bool isNoExcept,
-				const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
-				const Node<Scope>& scope, const Node<RequireSpecifier>& requireSpecifier) {
+		Function* Function::Def(bool isVarArg, bool isStatic, bool isNoExcept,
+				const Node<Type>& returnType, const Node<Name>& name,
+				const Node<TypeVarList>& parameters,
+				const Node<Scope>& scope,
+				const Node<ConstSpecifier>& constSpecifier,
+				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = isVarArg;
-			function->isConst_ = isConst;
 			function->isStatic_ = isStatic;
 			function->isNoExcept_ = isNoExcept;
 			function->returnType_ = returnType;
 			function->parameters_ = parameters;
 			function->scope_ = scope;
+			function->constSpecifier_ = constSpecifier;
 			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
@@ -53,7 +58,6 @@ namespace locic {
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
-			function->isConst_ = false;
 			function->isStatic_ = true;
 			function->isNoExcept_ = false;
 			function->returnType_ = Node<Type>();
@@ -67,7 +71,6 @@ namespace locic {
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
-			function->isConst_ = false;
 			function->isStatic_ = false;
 			function->isNoExcept_ = false;
 			function->returnType_ = Node<Type>();
@@ -81,7 +84,6 @@ namespace locic {
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = false;
-			function->isConst_ = false;
 			function->isStatic_ = false;
 			function->isNoExcept_ = true;
 			function->returnType_ = makeNode(scope.location(), Type::Void());
@@ -92,7 +94,7 @@ namespace locic {
 		
 		Function::Function(const Node<Name>& pName) :
 			isDefinition_(false), isDefaultDefinition_(false),
-			isVarArg_(false), isConst_(false), isStatic_(false),
+			isVarArg_(false), isStatic_(false),
 			isNoExcept_(false), isImported_(false), isExported_(false),
 			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()) { }
 		
@@ -106,10 +108,6 @@ namespace locic {
 		
 		bool Function::isDefaultDefinition() const {
 			return isDefinition() && isDefaultDefinition_;
-		}
-		
-		bool Function::isConst() const {
-			return isConst_;
 		}
 		
 		bool Function::isStatic() const {
@@ -153,6 +151,10 @@ namespace locic {
 		const Node<Scope>& Function::scope() const {
 			assert(isDefinition() && !isDefaultDefinition());
 			return scope_;
+		}
+		
+		const Node<ConstSpecifier>& Function::constSpecifier() const {
+			return constSpecifier_;
 		}
 		
 		const Node<RequireSpecifier>& Function::requireSpecifier() const {

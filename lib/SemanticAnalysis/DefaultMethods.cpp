@@ -126,7 +126,7 @@ namespace locic {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
 			semFunction->setMethod(true);
-			semFunction->setConstMethod(true);
+			semFunction->setConstPredicate(SEM::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
@@ -144,7 +144,7 @@ namespace locic {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
 			semFunction->setMethod(true);
-			semFunction->setConstMethod(true);
+			semFunction->setConstPredicate(SEM::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
@@ -162,7 +162,7 @@ namespace locic {
 			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
 			
 			semFunction->setMethod(true);
-			semFunction->setConstMethod(true);
+			semFunction->setConstPredicate(SEM::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod =true;

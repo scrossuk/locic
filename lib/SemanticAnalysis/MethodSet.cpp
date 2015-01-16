@@ -7,6 +7,7 @@
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 
 namespace locic {
@@ -174,6 +175,7 @@ namespace locic {
 			switch (requiresPredicate.kind()) {
 				case SEM::Predicate::TRUE:
 				case SEM::Predicate::FALSE:
+				case SEM::Predicate::VARIABLE:
 				{
 					return MethodSet::getEmpty(context);
 				}
@@ -218,8 +220,10 @@ namespace locic {
 				const auto& functionName = functionPair.first;
 				const auto& function = functionPair.second;
 				
+				const auto isConstMethod = evaluatePredicate(context, function->constPredicate(), objectType->generateTemplateVarMap());
+				
 				// TODO: also skip unsatisfied requirement specifiers.
-				if (objectType->isConst() && !function->isConstMethod() && !function->isStaticMethod()) {
+				if (objectType->isConst() && !isConstMethod && !function->isStaticMethod()) {
 					// Filter out this function.
 					filters.push_back(std::make_pair(functionName, MethodSet::IsMutator));
 					continue;
@@ -227,11 +231,10 @@ namespace locic {
 				
 				const auto functionType = function->type()->substitute(templateVarMap);
 				
-				const bool isConst = function->isConstMethod();
 				const bool isNoExcept = functionType->isFunctionNoExcept();
 				const bool isStatic = function->isStaticMethod();
 				MethodSetElement functionElement(
-					isConst, isNoExcept, isStatic,
+					isConstMethod, isNoExcept, isStatic,
 					functionType->getFunctionReturnType(),
 					functionType->getFunctionParameterTypes());
 				

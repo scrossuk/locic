@@ -18,16 +18,16 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::Predicate ConvertPredicateExpr(Context& context, const AST::Node<AST::RequireExpr>& astRequireExprNode) {
-			const auto& location = astRequireExprNode.location();
+		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::Predicate>& astPredicateNode) {
+			const auto& location = astPredicateNode.location();
 			
-			switch (astRequireExprNode->kind()) {
-				case AST::RequireExpr::BRACKET: {
-					return ConvertPredicateExpr(context, astRequireExprNode->bracketExpr());
+			switch (astPredicateNode->kind()) {
+				case AST::Predicate::BRACKET: {
+					return ConvertPredicate(context, astPredicateNode->bracketExpr());
 				}
-				case AST::RequireExpr::TYPESPEC: {
-					const auto& typeSpecName = astRequireExprNode->typeSpecName();
-					const auto& typeSpecType = astRequireExprNode->typeSpecType();
+				case AST::Predicate::TYPESPEC: {
+					const auto& typeSpecName = astPredicateNode->typeSpecName();
+					const auto& typeSpecType = astPredicateNode->typeSpecType();
 					
 					const auto searchResult = performSearch(context, Name::Relative() + typeSpecName);
 					if (!searchResult.isTemplateVar()) {
@@ -42,32 +42,65 @@ namespace locic {
 					
 					return SEM::Predicate::Satisfies(semTemplateVar, semSpecType);
 				}
-				case AST::RequireExpr::AND: {
-					auto leftExpr = ConvertPredicateExpr(context, astRequireExprNode->andLeft());
-					auto rightExpr = ConvertPredicateExpr(context, astRequireExprNode->andRight());
+				case AST::Predicate::VARIABLE: {
+					const auto& variableName = astPredicateNode->variableName();
+					
+					const auto searchResult = performSearch(context, Name::Relative() + variableName);
+					if (!searchResult.isTemplateVar()) {
+						throw ErrorException(makeString("Failed to find template var '%s' "
+							"in require expression, at position %s.",
+							variableName.c_str(),
+							location.toString().c_str()));
+					}
+					
+					return SEM::Predicate::Variable(searchResult.templateVar());
+				}
+				case AST::Predicate::AND: {
+					auto leftExpr = ConvertPredicate(context, astPredicateNode->andLeft());
+					auto rightExpr = ConvertPredicate(context, astPredicateNode->andRight());
 					return SEM::Predicate::And(std::move(leftExpr), std::move(rightExpr));
 				}
 			}
 			
-			throw std::logic_error("Unknown AST RequireExpr kind.");
+			throw std::logic_error("Unknown AST Predicate kind.");
 		}
 		
-		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
+		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode) {
+			switch (astConstSpecifierNode->kind()) {
+				case AST::ConstSpecifier::NONE:
+					// No specifier means it's false (i.e. always not const).
+					return SEM::Predicate::False();
+				case AST::ConstSpecifier::CONST:
+					// 'const' means it's true (i.e. always const).
+					return SEM::Predicate::True();
+				case AST::ConstSpecifier::MUTABLE:
+					// 'mutable' means it's false (i.e. always not const).
+					return SEM::Predicate::False();
+				case AST::ConstSpecifier::EXPR:
+				{
+					return ConvertPredicate(context, astConstSpecifierNode->predicate());
+				}
+			}
+			
+			throw std::logic_error("Unknown AST ConstSpecifier kind.");
+		}
+		
+		SEM::Predicate ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
 			switch (astRequireSpecifierNode->kind()) {
 				case AST::RequireSpecifier::NONE:
 					// No specifier means it's always true.
 					return SEM::Predicate::True();
 				case AST::RequireSpecifier::EXPR:
 				{
-					return ConvertPredicateExpr(context, astRequireSpecifierNode->expr());
+					return ConvertPredicate(context, astRequireSpecifierNode->expr());
 				}
 			}
 			
 			throw std::logic_error("Unknown AST RequireSpecifier kind.");
 		}
 		
-		bool evaluateRequiresPredicate(Context& context, const SEM::Predicate& requiresPredicate, const SEM::TemplateVarMap& variableAssignments) {
-			switch (requiresPredicate.kind()) {
+		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
+			switch (predicate.kind()) {
 				case SEM::Predicate::TRUE:
 				{
 					return true;
@@ -78,14 +111,14 @@ namespace locic {
 				}
 				case SEM::Predicate::AND:
 				{
-					const auto leftIsTrue = evaluateRequiresPredicate(context, requiresPredicate.andLeft(), variableAssignments);
-					const auto rightIsTrue = evaluateRequiresPredicate(context, requiresPredicate.andRight(), variableAssignments);
+					const auto leftIsTrue = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
+					const auto rightIsTrue = evaluatePredicate(context, predicate.andRight(), variableAssignments);
 					return leftIsTrue && rightIsTrue;
 				}
 				case SEM::Predicate::SATISFIES:
 				{
-					const auto templateVar = requiresPredicate.satisfiesTemplateVar();
-					const auto requireType = requiresPredicate.satisfiesRequirement();
+					const auto templateVar = predicate.satisfiesTemplateVar();
+					const auto requireType = predicate.satisfiesRequirement();
 					
 					const auto templateValue = variableAssignments.at(templateVar)->resolveAliases();
 					if (templateValue->isAuto()) {
@@ -101,6 +134,17 @@ namespace locic {
 					
 					return methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
 				}
+				case SEM::Predicate::VARIABLE:
+				{
+					const auto templateVar = predicate.variableTemplateVar();
+					
+					const auto templateValue = variableAssignments.at(templateVar);
+					
+					// TODO: need to evaluate template value as boolean!
+					(void) templateValue;
+					
+					return true;
+				}
 			}
 			
 			throw std::logic_error("Unknown predicate kind.");
@@ -112,6 +156,7 @@ namespace locic {
 				case SEM::Predicate::TRUE:
 				case SEM::Predicate::FALSE:
 				case SEM::Predicate::SATISFIES:
+				case SEM::Predicate::VARIABLE:
 				{
 					return predicate.copy();
 				}

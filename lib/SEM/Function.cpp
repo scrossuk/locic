@@ -14,9 +14,9 @@ namespace locic {
 			: isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
-			  isConstMethod_(false),
 			  type_(nullptr),
 			  name_(std::move(pName)),
+			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
 		
@@ -71,16 +71,6 @@ namespace locic {
 			return isStaticMethod_;
 		}
 		
-		void Function::setConstMethod(bool pIsConstMethod) {
-			// isConstMethod() implies isMethod().
-			assert(!pIsConstMethod || isMethod());
-			isConstMethod_ = pIsConstMethod;
-		}
-		
-		bool Function::isConstMethod() const {
-			return isConstMethod_;
-		}
-		
 		std::vector<TemplateVar*>& Function::templateVariables() {
 			return templateVariables_;
 		}
@@ -95,6 +85,14 @@ namespace locic {
 		
 		const std::map<std::string, TemplateVar*>& Function::namedTemplateVariables() const {
 			return namedTemplateVariables_;
+		}
+		
+		const Predicate& Function::constPredicate() const {
+			return constPredicate_;
+		}
+		
+		void Function::setConstPredicate(Predicate predicate) {
+			constPredicate_ = std::move(predicate);
 		}
 		
 		const Predicate& Function::requiresPredicate() const {
@@ -126,43 +124,6 @@ namespace locic {
 			return *scope_;
 		}
 		
-		Function* Function::createTemplatedDecl() const {
-			assert(templateVariables().empty());
-			assert(type() != nullptr);
-			
-			const auto newFunction = new SEM::Function(name(), moduleScope());
-			newFunction->setMethod(isMethod());
-			newFunction->setStaticMethod(isStaticMethod());
-			newFunction->setConstMethod(isConstMethod());
-			newFunction->setType(type()->makeTemplatedFunction());
-			newFunction->setParameters(parameters());
-			return newFunction;
-		}
-		
-		Function* Function::fullSubstitute(Name declName, const TemplateVarMap& templateVarMap) const {
-			assert(isDeclaration());
-			assert(templateVariables().empty());
-			assert(type() != nullptr);
-			
-			const auto newFunction = new SEM::Function(std::move(declName), moduleScope());
-			newFunction->setMethod(isMethod());
-			newFunction->setStaticMethod(isStaticMethod());
-			newFunction->setConstMethod(isConstMethod());
-			newFunction->setType(type()->substitute(templateVarMap));
-			
-			// Parameter types need to be substituted.
-			std::vector<Var*> substitutedParam;
-			substitutedParam.reserve(parameters().size());
-			
-			for (const auto param: parameters()) {
-				substitutedParam.push_back(param->substitute(templateVarMap));
-			}
-			
-			newFunction->setParameters(std::move(substitutedParam));
-			
-			return newFunction;
-		}
-		
 		void Function::setScope(std::unique_ptr<Scope> newScope) {
 			assert(scope_.get() == nullptr);
 			assert(newScope.get() != nullptr);
@@ -171,18 +132,18 @@ namespace locic {
 		
 		std::string Function::toString() const {
 			if (isDeclaration()) {
-				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, isConst: %s, type: %s)",
+				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
-								  isConstMethod() ? "Yes" : "No",
+								  constPredicate().toString().c_str(),
 								  type()->toString().c_str());
 			} else {
-				return makeString("FunctionDefinition(name: %s, isMethod: %s, isStatic: %s, isConst: %s, type: %s, scope: %s)",
+				return makeString("FunctionDefinition(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s, scope: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
-								  isConstMethod() ? "Yes" : "No",
+								  constPredicate().toString().c_str(),
 								  type()->toString().c_str(),
 								  scope().toString().c_str());
 			}

@@ -5,6 +5,7 @@
 #include <locic/AST.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -13,17 +14,6 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
-		static SEM::TemplateVarType ConvertTemplateVarType(AST::TemplateTypeVar::Kind kind){
-			switch (kind) {
-				case AST::TemplateTypeVar::TYPENAME:
-					return SEM::TEMPLATEVAR_TYPENAME;
-				case AST::TemplateTypeVar::POLYMORPHIC:
-					return SEM::TEMPLATEVAR_POLYMORPHIC;
-			}
-			
-			std::terminate();
-		}
 		
 		Name getParentName(const ScopeElement& topElement) {
 			assert(topElement.isNamespace() || topElement.isTypeInstance());
@@ -48,8 +38,8 @@ namespace locic {
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
-			if (!isMethod && astFunctionNode->isConst()) {
-				throw ErrorException(makeString("Non-method function '%s' cannot be const, at location %s.",
+			if (!isMethod && !astFunctionNode->constSpecifier()->isNone()) {
+				throw ErrorException(makeString("Non-method function '%s' cannot have const specifier, at location %s.",
 						name.c_str(), astFunctionNode.location().toString().c_str()));
 			}
 			
@@ -63,7 +53,6 @@ namespace locic {
 			
 			semFunction->setMethod(isMethod);
 			semFunction->setStaticMethod(astFunctionNode->isStatic());
-			semFunction->setConstMethod(astFunctionNode->isConst());
 			
 			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
 				throw ErrorException(makeString("Interface '%s' has templated method '%s' (interfaces may only contain non-templated methods), at location %s.",
@@ -78,7 +67,6 @@ namespace locic {
 				const auto templateVarFullName = semFunction->name() + templateVarName;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
-						ConvertTemplateVarType(astTemplateVarNode->kind),
 						templateVarFullName,
 						templateVarIndex++);
 				
@@ -95,6 +83,11 @@ namespace locic {
 			
 			// Enable lookups for function template variables.
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semFunction));
+			
+			// Convert const specifier.
+			if (!astFunctionNode->constSpecifier().isNull()) {
+				semFunction->setConstPredicate(ConvertConstSpecifier(context, astFunctionNode->constSpecifier()));
+			}
 			
 			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
 				// Undefined return type means this must be a class

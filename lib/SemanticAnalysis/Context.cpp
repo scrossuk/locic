@@ -1,6 +1,7 @@
 #include <locic/Debug.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -87,8 +88,35 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance->selfType();
-			const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
+			
+			// TODO: we need to actually put the predicate in the type that's returned!
+			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), {});
+			
+			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
 			return createSelfRef(context, selfConstType);
+		}
+		
+		SEM::Value* getThisValue(Context& context, const Debug::SourceLocation& location) {
+			const auto thisTypeInstance = lookupParentType(context.scopeStack());
+			const auto thisFunction = lookupParentFunction(context.scopeStack());
+			
+			if (thisTypeInstance == nullptr) {
+				throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
+					location.toString().c_str()));
+			}
+			
+			if (thisFunction->isStaticMethod()) {
+				throw ErrorException(makeString("Cannot access 'this' in static method at %s.",
+					location.toString().c_str()));
+			}
+			
+			const auto selfType = thisTypeInstance->selfType();
+			
+			// TODO: we need to actually put the predicate in the type that's returned!
+			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), {});
+			
+			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
+			return SEM::Value::This(getBuiltInType(context.scopeStack(), "__ptr", { selfConstType }));
 		}
 		
 	}

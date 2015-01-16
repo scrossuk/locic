@@ -11,41 +11,32 @@ namespace locic {
 	namespace AST {
 	
 		struct TemplateTypeVar {
-			enum Kind {
-				TYPENAME,
-				POLYMORPHIC
-			} kind;
+			Node<Type> varType;
 			std::string name;
 			Node<Type> specType;
 			
-			inline static TemplateTypeVar* Typename(const std::string& name) {
-				TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
+			static TemplateTypeVar* NoSpec(Node<Type> varType, const std::string& name) {
+				TemplateTypeVar* typeVar = new TemplateTypeVar();
+				typeVar->varType = varType;
 				typeVar->name = name;
 				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
 				return typeVar;
 			}
 			
-			inline static TemplateTypeVar* TypenameSpec(const std::string& name, Node<Type> specType) {
+			static TemplateTypeVar* WithSpec(Node<Type> varType, const std::string& name, Node<Type> specType) {
 				assert(!specType.isNull());
-				TemplateTypeVar* typeVar = new TemplateTypeVar(TYPENAME);
+				TemplateTypeVar* typeVar = new TemplateTypeVar();
+				typeVar->varType = varType;
 				typeVar->name = name;
 				typeVar->specType = specType;
 				return typeVar;
 			}
 			
-			inline static TemplateTypeVar* Polymorphic(const std::string& name) {
-				TemplateTypeVar* typeVar = new TemplateTypeVar(POLYMORPHIC);
-				typeVar->name = name;
-				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
-				return typeVar;
-			}
-			
-			inline TemplateTypeVar(Kind k)
-				: kind(k) { }
+			TemplateTypeVar() { }
 				
-			inline std::string toString() const {
-				return makeString("TemplateTypeVar(name = %s, specType = %s)",
-					name.c_str(), specType.toString().c_str());
+			std::string toString() const {
+				return makeString("TemplateTypeVar(varType = %s, name = %s, specType = %s)",
+					varType.toString().c_str(), name.c_str(), specType.toString().c_str());
 			}
 		};
 		

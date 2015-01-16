@@ -14,28 +14,25 @@ namespace locic {
 		class Type;
 		class TypeInstance;
 		
-		enum TemplateVarType {
-			TEMPLATEVAR_TYPENAME,
-			TEMPLATEVAR_POLYMORPHIC
-		};
-		
 		class TemplateVar {
 			public:
-				TemplateVar(Context& pContext, TemplateVarType t, const Name& name, size_t i);
+				TemplateVar(Context& pContext, const Name& name, size_t i);
 				
 				Context& context() const;
-				
-				TemplateVarType type() const;
 				
 				const Name& name() const;
 				
 				size_t index() const;
 				
+				void setType(const Type* type);
+				
+				const Type* type() const;
+				
 				std::string toString() const;
 				
 			private:
 				Context& context_;
-				TemplateVarType type_;
+				const Type* type_;
 				Name name_;
 				size_t index_;
 				

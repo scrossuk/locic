@@ -16,7 +16,8 @@ namespace locic {
 					TRUE,
 					FALSE,
 					AND,
-					SATISFIES
+					SATISFIES,
+					VARIABLE
 				};
 				
 				static Predicate True();
@@ -26,6 +27,8 @@ namespace locic {
 				static Predicate And(Predicate left, Predicate right);
 				
 				static Predicate Satisfies(TemplateVar* templateVar, const Type* requirement);
+				
+				static Predicate Variable(TemplateVar* templateVar);
 				
 				Predicate(Predicate&&) = default;
 				Predicate& operator=(Predicate&&) = default;
@@ -38,12 +41,15 @@ namespace locic {
 				bool isFalse() const;
 				bool isAnd() const;
 				bool isSatisfies() const;
+				bool isVariable() const;
 				
 				const Predicate& andLeft() const;
 				const Predicate& andRight() const;
 				
 				TemplateVar* satisfiesTemplateVar() const;
 				const Type* satisfiesRequirement() const;
+				
+				TemplateVar* variableTemplateVar() const;
 				
 				std::string toString() const;
 				

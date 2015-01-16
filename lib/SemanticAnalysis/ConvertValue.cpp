@@ -193,22 +193,7 @@ namespace locic {
 					return getSelfValue(context, location);
 				}
 				case AST::Value::THIS: {
-					const auto thisTypeInstance = lookupParentType(context.scopeStack());
-					const auto thisFunction = lookupParentFunction(context.scopeStack());
-					
-					if (thisTypeInstance == nullptr) {
-						throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
-							location.toString().c_str()));
-					}
-					
-					if (thisFunction->isStaticMethod()) {
-						throw ErrorException(makeString("Cannot access 'this' in static method at %s.",
-							location.toString().c_str()));
-					}
-					
-					const auto selfType = thisTypeInstance->selfType();
-					const auto selfConstType = thisFunction->isConstMethod() ? selfType->createConstType() : selfType;
-					return SEM::Value::This(getBuiltInType(context.scopeStack(), "__ptr", { selfConstType })->createConstType());
+					return getThisValue(context, location);
 				}
 				case AST::Value::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;

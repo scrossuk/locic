@@ -146,8 +146,11 @@ const T& GETSYM(T* value) {
 	// Exception initializer.
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
 	
-	// Require specifier.
-	locic::AST::Node<locic::AST::RequireExpr>* predicateExpr;
+	// Predicate.
+	locic::AST::Node<locic::AST::Predicate>* predicateExpr;
+	
+	// Specifiers.
+	locic::AST::Node<locic::AST::ConstSpecifier>* constSpecifier;
 	locic::AST::Node<locic::AST::RequireSpecifier>* requireSpecifier;
 	
 	// Symbol names.
@@ -346,12 +349,13 @@ const T& GETSYM(T* value) {
 %type <function> functionDecl
 %type <function> functionDef
 
-%type <boolVal> constSpecifier
 %type <boolVal> noexceptSpecifier
 
 %type <predicateExpr> predicateExpr_precedence0
 %type <predicateExpr> predicateExpr_precedence1
 %type <predicateExpr> predicateExpr
+
+%type <constSpecifier> constSpecifier
 %type <requireSpecifier> requireSpecifier
 
 %type <type> staticMethodReturn
@@ -600,15 +604,19 @@ structVarList:
 constSpecifier:
 	/* empty */
 	{
-		$$ = false;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ConstSpecifier::None()));
 	}
 	| CONST
 	{
-		$$ = true;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ConstSpecifier::Const()));
 	}
 	| MUTABLE
 	{
-		$$ = false;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ConstSpecifier::Mutable()));
+	}
+	| CONST LROUNDBRACKET predicateExpr RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ConstSpecifier::Expr(GETSYM($3))));
 	}
 	;
 
@@ -626,11 +634,15 @@ noexceptSpecifier:
 predicateExpr_precedence0:
 	LROUNDBRACKET predicateExpr RROUNDBRACKET
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireExpr::Bracket(GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Bracket(GETSYM($2))));
 	}
 	| NAME COLON type
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireExpr::TypeSpec(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::TypeSpec(GETSYM($1), GETSYM($3))));
+	}
+	| NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Variable(GETSYM($1))));
 	}
 	;
 
@@ -641,7 +653,7 @@ predicateExpr_precedence1:
 	}
 	| predicateExpr_precedence1 AND predicateExpr_precedence0
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::RequireExpr::And(GETSYM($1), GETSYM($3))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::And(GETSYM($1), GETSYM($3))));
 	}
 	;
 
@@ -668,19 +680,19 @@ nonTemplatedFunctionDecl:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($8))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($6), GETSYM($8))));
 	}
 	| STATIC type functionName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier SEMICOLON
 	{
 		const bool isVarArg = false;
 		const bool isStatic = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($9))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7), GETSYM($9))));
 	}
 	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier SEMICOLON
 	{
 		const bool isVarArg = true;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $9, $10, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($11))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $10, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($11))));
 	}
 	
 	// Error cases
@@ -689,21 +701,21 @@ nonTemplatedFunctionDecl:
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@6));
 		const bool isVarArg = false;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($8))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($6), GETSYM($8))));
 	}
 	| STATIC type functionName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@6));
 		const bool isVarArg = false;
 		const bool isStatic = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($9))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7), GETSYM($9))));
 	}
 	| type functionName LROUNDBRACKET nonEmptyTypeVarList DOT DOT DOT RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier error
 	{
 		parserContext->error("Function declaration must be terminated with a semicolon.", LOC(&@9));
 		const bool isVarArg = true;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $9, $10, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($11))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $10, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($11))));
 	}
 	;
 
@@ -724,13 +736,13 @@ nonTemplatedFunctionDef:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($8))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($6), GETSYM($8))));
 	}
 	| STATIC type functionName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier scope
 	{
 		const bool isVarArg = false;
 		const bool isStatic = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $7, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($10), GETSYM($9))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($10), GETSYM($7), GETSYM($9))));
 	}
 	;
 
@@ -751,7 +763,7 @@ nonTemplatedStaticMethodDecl:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($9))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($7), GETSYM($9))));
 	}
 	;
 
@@ -764,7 +776,7 @@ nonTemplatedMethodDecl:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($8))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Decl(isVarArg, isStatic, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($6), GETSYM($8))));
 	}
 	;
 
@@ -812,7 +824,7 @@ nonTemplatedStaticMethodDef:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = true;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $7, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($10), GETSYM($9))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $8, GETSYM($2), GETSYM($3), GETSYM($5), GETSYM($10), GETSYM($7), GETSYM($9))));
 	}
 	;
 
@@ -833,7 +845,7 @@ nonTemplatedMethodDef:
 	{
 		const bool isVarArg = false;
 		const bool isStatic = false;
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $6, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($8))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $7, GETSYM($1), GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($6), GETSYM($8))));
 	}
 	;
 
@@ -862,13 +874,13 @@ methodDefList:
 	;
 
 templateTypeVar:
-	TYPENAME NAME
+	type NAME
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TemplateTypeVar::Typename(GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TemplateTypeVar::NoSpec(GETSYM($1), GETSYM($2))));
 	}
-	| TYPENAME NAME COLON type
+	| type NAME COLON type
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TemplateTypeVar::TypenameSpec(GETSYM($2), GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TemplateTypeVar::WithSpec(GETSYM($1), GETSYM($2), GETSYM($4))));
 	}
 	;
 

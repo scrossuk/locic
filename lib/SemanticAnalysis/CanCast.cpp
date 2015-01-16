@@ -301,7 +301,7 @@ location, bool isTopLevel) {
 			// Use a mutable type for the destination so that it's movable.
 			const auto destDerefType = getDerefType(destType)->createMutableType();
 			
-			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(sourceDerefType)) {
+			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
 				const auto castFunction = sourceDerefType->getObjectType()->functions().at("implicitcast");
 				
 				const auto& requiresPredicate = castFunction->requiresPredicate();
@@ -310,7 +310,7 @@ location, bool isTopLevel) {
 				const auto& castTemplateVar = castFunction->templateVariables().front();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
-				if (evaluateRequiresPredicate(context, requiresPredicate, combinedTemplateVarMap)) {
+				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
 					const auto method = GetTemplatedMethod(context, value, "implicitcast", { destDerefType }, location);
 					const auto castValue = CallValue(context, method, {}, location);
 					

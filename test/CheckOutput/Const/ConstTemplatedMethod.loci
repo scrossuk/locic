@@ -24,16 +24,16 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	
 	testPrint(C"mutableInst value = %d", mutableInst.getValue());
 	
-	testPrint(C"mutableInst value (by pointer) = %d", *(mutableInst.pointer<mutable>()));
+	testPrint(C"mutableInst value (by pointer) = %d", *(mutableInst.pointer<false>()));
 	
-	testPrint(C"mutableInst value (by const pointer) = %d", *(mutableInst.pointer<const>()));
+	testPrint(C"mutableInst value (by const pointer) = %d", *(mutableInst.pointer<true>()));
 	
 	mutableInst.setValue(104);
 	
-	const int* constPtr = mutableInst.pointer<const>();
+	const int* constPtr = mutableInst.pointer<true>();
 	testPrint(C"mutableInst value (by const pointer after first modification) = %d", *constPtr);
 	
-	*(mutableInst.pointer<mutable>()) = 105;
+	*(mutableInst.pointer<false>()) = 105;
 	
 	testPrint(C"mutableInst value (by const pointer after second modification) = %d", *constPtr);
 	

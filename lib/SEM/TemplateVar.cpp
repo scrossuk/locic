@@ -8,15 +8,11 @@ namespace locic {
 
 	namespace SEM {
 	
-		TemplateVar::TemplateVar(Context& pContext, TemplateVarType t, const Name& pName, size_t i)
-			: context_(pContext), type_(t), name_(pName), index_(i) { }
+		TemplateVar::TemplateVar(Context& pContext, const Name& pName, size_t i)
+			: context_(pContext), type_(nullptr), name_(pName), index_(i) { }
 		
 		Context& TemplateVar::context() const {
 			return context_;
-		}
-		
-		TemplateVarType TemplateVar::type() const {
-			return type_;
 		}
 		
 		const Name& TemplateVar::name() const {
@@ -27,8 +23,20 @@ namespace locic {
 			return index_;
 		}
 		
+		void TemplateVar::setType(const Type* const newType) {
+			assert(type_ == nullptr);
+			assert(newType != nullptr);
+			type_ = newType;
+		}
+		
+		const Type* TemplateVar::type() const {
+			assert(type_ != nullptr);
+			return type_;
+		}
+		
 		std::string TemplateVar::toString() const {
-			return makeString("TemplateVar(name = %s, index = %llu)",
+			return makeString("TemplateVar(type = %s, name = %s, index = %llu)",
+				type_ != nullptr ? type()->toString().c_str() : "[NULL]",
 				name().toString().c_str(),
 				(unsigned long long) index());
 		}

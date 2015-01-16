@@ -49,14 +49,14 @@ namespace locic {
 				void setStaticMethod(bool pIsStaticMethod);
 				bool isStaticMethod() const;
 				
-				void setConstMethod(bool pIsConstMethod);
-				bool isConstMethod() const;
-				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
 				std::map<std::string, TemplateVar*>& namedTemplateVariables();
 				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
+				
+				const Predicate& constPredicate() const;
+				void setConstPredicate(Predicate predicate);
 				
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
@@ -70,20 +70,17 @@ namespace locic {
 				void setScope(std::unique_ptr<Scope> newScope);
 				const Scope& scope() const;
 				
-				Function* createTemplatedDecl() const;
-				
-				Function* fullSubstitute(Name declName, const TemplateVarMap& templateVarMap) const;
-				
 				std::string toString() const;
 				
 			private:
 				bool isPrimitive_;
-				bool isMethod_, isStaticMethod_, isConstMethod_;
+				bool isMethod_, isStaticMethod_;
 				const Type* type_;
 				Name name_;
 				
 				std::vector<TemplateVar*> templateVariables_;
 				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				Predicate constPredicate_;
 				Predicate requiresPredicate_;
 				std::vector<Var*> parameters_;
 				std::map<std::string, Var*> namedVariables_;

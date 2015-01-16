@@ -86,7 +86,6 @@ void runTCPExample() {
 		readData.resize(buffer.size());
 		connectSyncStream.sync_read(readData);
 		
-		readData.push_back(0u);
 		printf(C"Read data = %s\n", readData.data());
 	}
 	
