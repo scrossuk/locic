@@ -110,29 +110,29 @@ namespace locic {
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
 			
-			std::vector<SEM::Value*> parentArguments;
+			std::vector<SEM::Value> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {
 				parentArguments.push_back(ConvertValue(context, astValueNode));
 			}
 			
-			std::vector<SEM::Value*> constructValues;
+			std::vector<SEM::Value> constructValues;
 			
 			// Call parent constructor.
-			const auto typeRefValue = createTypeRef(context, semTypeInstance->parent());
-			constructValues.push_back(CallValue(context, GetStaticMethod(context, typeRefValue, "create", location), parentArguments, location));
+			auto typeRefValue = createTypeRef(context, semTypeInstance->parent());
+			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), "create", location), std::move(parentArguments), location));
 			
 			for (const auto semVar: function->parameters()) {
 				const auto varType = getBuiltInType(context.scopeStack(), "__ref", { semVar->type() })->createRefType(semVar->type());
-				const auto varValue = SEM::Value::LocalVar(semVar, varType);
+				auto varValue = SEM::Value::LocalVar(semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.
-				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(varValue), "move", location), {}, location));
+				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), "move", location), {}, location));
 			}
 			
-			const auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, constructValues);
+			auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, std::move(constructValues));
 			
 			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
-			scope->statements().push_back(SEM::Statement::Return(returnValue));
+			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));
 			function->setScope(std::move(scope));
 		}
 		

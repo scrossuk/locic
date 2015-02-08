@@ -248,23 +248,25 @@ location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location, isTopLevel);
 		}
 		
-		SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location) {
-			auto resultType = ImplicitCastTypeFormatOnly(value->type(), destType, location);
-			if (resultType == nullptr) return nullptr;
+		Optional<SEM::Value> ImplicitCastFormatOnly(SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location) {
+			auto resultType = ImplicitCastTypeFormatOnly(value.type(), destType, location);
+			if (resultType == nullptr) {
+				return Optional<SEM::Value>();
+			}
 			
 			// The value's type needs to reflect the successful cast, however
 			// this shouldn't be added unless necessary.
-			if (value->type() != resultType) {
-				return SEM::Value::Cast(resultType, value);
+			if (value.type() != resultType) {
+				return make_optional(SEM::Value::Cast(resultType, std::move(value)));
 			} else {
-				return value;
+				return make_optional(std::move(value));
 			}
 		}
 		
-		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
+		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
 		
-		static SEM::Value* PolyCastRefValueToType(Context& context, SEM::Value* value, const SEM::Type* destType) {
-			const auto sourceType = value->type();
+		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
+			const auto sourceType = value.type();
 			assert(sourceType->isRef() && destType->isRef());
 			
 			const auto sourceTargetType = sourceType->refTarget();
@@ -274,12 +276,12 @@ location, bool isTopLevel) {
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
 			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
-				SEM::Value::PolyCast(destType, value) :
-				nullptr;
+				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
+				Optional<SEM::Value>();
 		}
 		
-		static SEM::Value* PolyCastStaticRefValueToType(Context& context, SEM::Value* value, const SEM::Type* destType) {
-			const auto sourceType = value->type();
+		static Optional<SEM::Value> PolyCastStaticRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
+			const auto sourceType = value.type();
 			assert(sourceType->isStaticRef() && destType->isStaticRef());
 			
 			const auto sourceTargetType = sourceType->staticRefTarget();
@@ -289,14 +291,14 @@ location, bool isTopLevel) {
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
 			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
-				SEM::Value::PolyCast(destType, value) :
-				nullptr;
+				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
+				Optional<SEM::Value>();
 		}
 		
 		// User-defined casts.
-		SEM::Value* ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value* rawValue, const SEM::Type* destType, const Debug::SourceLocation& location) {
-			const auto value = derefValue(rawValue);
-			const auto sourceDerefType = getDerefType(value->type());
+		Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value rawValue, const SEM::Type* destType, const Debug::SourceLocation& location) {
+			auto value = derefValue(std::move(rawValue));
+			const auto sourceDerefType = getDerefType(value.type());
 			
 			// Use a mutable type for the destination so that it's movable.
 			const auto destDerefType = getDerefType(destType)->createMutableType();
@@ -311,18 +313,18 @@ location, bool isTopLevel) {
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
 				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
-					const auto method = GetTemplatedMethod(context, value, "implicitcast", { destDerefType }, location);
-					const auto castValue = CallValue(context, method, {}, location);
+					auto method = GetTemplatedMethod(context, std::move(value), "implicitcast", { destDerefType }, location);
+					auto castValue = CallValue(context, std::move(method), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
-					return ImplicitCastConvert(context, errors, castValue, destType, location);
+					return ImplicitCastConvert(context, errors, std::move(castValue), destType, location);
 				} else {
 					errors.push_back(makeString("User cast failed from type '%s' to type '%s' at position %s.",
 						sourceDerefType->toString().c_str(), destDerefType->toString().c_str(), location.toString().c_str()));
 				}
 			}
 			
-			return nullptr;
+			return Optional<SEM::Value>();
 		}
 		
 		bool isStructurallyEqual(const SEM::Type* firstType, const SEM::Type* secondType) {
@@ -339,20 +341,20 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		SEM::Value* ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
-				auto castResult = ImplicitCastFormatOnly(value, destType, location);
-				if (castResult != nullptr) {
+				auto castResult = ImplicitCastFormatOnly(value.copy(), destType, location);
+				if (castResult) {
 					return castResult;
 				} else if (formatOnly) {
 					throw ErrorException(makeString("Format only cast failed from type %s to type %s at position %s.",
-						value->type()->toString().c_str(), destType->toString().c_str(), location.toString().c_str()));
+						value.type()->toString().c_str(), destType->toString().c_str(), location.toString().c_str()));
 				}
 			}
 			
-			const auto sourceType = value->type()->resolveAliases();
+			const auto sourceType = value.type()->resolveAliases();
 			
 			// Try to cast datatype to its parent union datatype.
 			if (sourceType->isDatatype()) {
@@ -367,9 +369,9 @@ location, bool isTopLevel) {
 					}
 					
 					if (found) {
-						const auto castValue = SEM::Value::Cast(destDerefType, value);
-						const auto castResult = ImplicitCastConvert(context, errors, castValue, destType, location);
-						if (castResult != nullptr) {
+						auto castValue = SEM::Value::Cast(destDerefType, value.copy());
+						auto castResult = ImplicitCastConvert(context, errors, std::move(castValue), destType, location);
+						if (castResult) {
 							return castResult;
 						}
 					}
@@ -385,15 +387,17 @@ location, bool isTopLevel) {
 				// Can only ever reduce a reference to another
 				// reference count without implicitCopy.
 				if (sourceCount > destCount && destCount > 0) {
-					auto reducedValue = value;
+					auto reducedValue = value.copy();
 					
 					const auto numReduce = sourceCount - destCount;
 					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = derefOne(reducedValue);
+						reducedValue = derefOne(std::move(reducedValue));
 					}
 					
-					auto castResult = ImplicitCastConvert(context, errors, reducedValue, destType, location);
-					if (castResult != nullptr) return castResult;
+					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location);
+					if (castResult) {
+						return castResult;
+					}
 				}
 			}
 			
@@ -403,15 +407,15 @@ location, bool isTopLevel) {
 				const auto sourceCount = getLvalCount(sourceType);
 				const auto destCount = getLvalCount(destType);
 				if (sourceCount > destCount) {
-					auto reducedValue = value;
+					auto reducedValue = value.copy();
 					
 					const auto numReduce = sourceCount - destCount;
 					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = dissolveLval(context, derefValue(reducedValue), location);
+						reducedValue = dissolveLval(context, derefValue(std::move(reducedValue)), location);
 					}
 					
-					const auto castResult = ImplicitCastConvert(context, errors, reducedValue, destType, location);
-					if (castResult != nullptr) {
+					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location);
+					if (castResult) {
 						return castResult;
 					}
 				}
@@ -425,8 +429,10 @@ location, bool isTopLevel) {
 					const auto destTarget = destType->refTarget();
 					
 					if (!sourceTarget->isConst() || destTarget->isConst()) {
-						const auto castResult = PolyCastRefValueToType(context, value, destType);
-						if (castResult != nullptr) return castResult;
+						auto castResult = PolyCastRefValueToType(context, value.copy(), destType);
+						if (castResult) {
+							return castResult;
+						}
 					}
 				}
 			}
@@ -437,8 +443,10 @@ location, bool isTopLevel) {
 				const auto destTarget = destType->staticRefTarget();
 				
 				if (!sourceTarget->isConst() || destTarget->isConst()) {
-					const auto castResult = PolyCastStaticRefValueToType(context, value, destType);
-					if (castResult != nullptr) return castResult;
+					auto castResult = PolyCastStaticRefValueToType(context, value.copy(), destType);
+					if (castResult) {
+						return castResult;
+					}
 				}
 			}
 			
@@ -447,16 +455,16 @@ location, bool isTopLevel) {
 			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (supportsImplicitCopy(context, sourceDerefType)) {
-					const auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						CallValue(context, GetSpecialMethod(context, derefValue(value), "implicitcopy", location), {}, location) :
-						derefAll(value);
+					auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
+						CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), "implicitcopy", location), {}, location) :
+						derefAll(value.copy());
 					
-					const auto copyRefValue = sourceDerefType->isStaticRef() ?
-						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), copyValue) :
-						copyValue;
+					auto copyRefValue = sourceDerefType->isStaticRef() ?
+						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
+						std::move(copyValue);
 					
-					const auto convertCast = ImplicitCastConvert(context, errors, copyRefValue, destType, location);
-					if (convertCast != nullptr) {
+					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyRefValue), destType, location);
+					if (convertCast) {
 						return convertCast;
 					}
 				} else if (sourceDerefType->isObjectOrTemplateVar() && CanDoImplicitCast(context, sourceDerefType, destType, location)) {
@@ -475,10 +483,10 @@ location, bool isTopLevel) {
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
 					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
-				const auto copyValue = CallValue(context, GetSpecialMethod(context, value, "implicitcopy", location), {}, location);
-				if (!copyValue->type()->isConst()) {
-					auto convertCast = ImplicitCastConvert(context, errors, copyValue, destType, location);
-					if (convertCast != nullptr) {
+				auto copyValue = CallValue(context, GetSpecialMethod(context, value.copy(), "implicitcopy", location), {}, location);
+				if (!copyValue.type()->isConst()) {
+					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location);
+					if (convertCast) {
 						return convertCast;
 					}
 				}
@@ -490,38 +498,42 @@ location, bool isTopLevel) {
 					(!sourceType->isConst() || destType->refTarget()->isConst()) &&
 					isStructurallyEqual(sourceType, destType->refTarget())) {
 				const auto newType = createReferenceType(context, sourceType);
-				const auto refValue = SEM::Value::RefValue(value, newType);
-				const auto castResult = ImplicitCastConvert(context, errors, refValue, destType, location);
-				if (castResult != nullptr) {
+				auto refValue = SEM::Value::RefValue(value.copy(), newType);
+				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location);
+				if (castResult) {
 					return castResult;
 				}
 			}
 			
 			// Try a user cast.
 			{
-				const auto castResult = ImplicitCastUser(context, errors, value, destType, location);
-				if (castResult != nullptr) {
+				auto castResult = ImplicitCastUser(context, errors, value.copy(), destType, location);
+				if (castResult) {
 					return castResult;
 				}
 			}
 			
-			return nullptr;
+			return Optional<SEM::Value>();
 		}
 		
-		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		SEM::Value ImplicitCast(Context& context, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
-			auto result = ImplicitCastConvert(context, errors, value, destType->resolveAliases(), location, formatOnly);
-			if (result != nullptr) return result;
+			const auto valueKind = value.kind();
+			const auto valueType = value.type();
+			auto result = ImplicitCastConvert(context, errors, std::move(value), destType->resolveAliases(), location, formatOnly);
+			if (result) {
+				return std::move(*result);
+			}
 			
 			if (errors.empty()) {
-				if (value->kind() == SEM::Value::CASTDUMMYOBJECT) {
+				if (valueKind == SEM::Value::CASTDUMMYOBJECT) {
 					throw ErrorException(makeString("Can't implicitly cast type '%s' to type '%s' at position %s.",
-						value->type()->toString().c_str(),
+						valueType->toString().c_str(),
 						destType->toString().c_str(),
 						location.toString().c_str()));
 				} else {
 					throw ErrorException(makeString("Can't implicitly cast value of type '%s' to type '%s' at position %s.",
-						value->type()->toString().c_str(),
+						valueType->toString().c_str(),
 						destType->toString().c_str(),
 						location.toString().c_str()));
 				}
@@ -534,7 +546,7 @@ location, bool isTopLevel) {
 			const auto formatOnly = false;
 			std::vector<std::string> errors;
 			const auto result = ImplicitCastConvert(context, errors, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
-			return result != nullptr;
+			return result;
 		}
 		
 		namespace {

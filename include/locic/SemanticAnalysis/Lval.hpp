@@ -20,11 +20,13 @@ namespace locic {
 		
 		size_t getLvalCount(const SEM::Type* type);
 		
-		bool canDissolveValue(Context& context, SEM::Value* value);
+		bool canDissolveType(Context& context, const SEM::Type* const rawType);
 		
-		SEM::Value* dissolveLval(Context& context, SEM::Value* lvalValue, const Debug::SourceLocation& location);
+		bool canDissolveValue(Context& context, const SEM::Value& value);
 		
-		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location);
+		SEM::Value dissolveLval(Context& context, SEM::Value lvalValue, const Debug::SourceLocation& location);
+		
+		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location);
 		
 	}
 	

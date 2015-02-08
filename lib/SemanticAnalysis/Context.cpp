@@ -74,7 +74,7 @@ namespace locic {
 			return &(*(result.first));
 		}
 		
-		SEM::Value* getSelfValue(Context& context, const Debug::SourceLocation& location) {
+		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
@@ -96,7 +96,7 @@ namespace locic {
 			return createSelfRef(context, selfConstType);
 		}
 		
-		SEM::Value* getThisValue(Context& context, const Debug::SourceLocation& location) {
+		SEM::Value getThisValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			

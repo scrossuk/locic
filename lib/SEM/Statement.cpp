@@ -18,9 +18,9 @@ namespace locic {
 
 	namespace SEM {
 	
-		Statement* Statement::ValueStmt(Value* value) {
+		Statement* Statement::ValueStmt(Value value) {
 			Statement* statement = new Statement(VALUE);
-			statement->valueStmt_.value = value;
+			statement->valueStmt_.value = std::move(value);
 			return statement;
 		}
 		
@@ -30,10 +30,10 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::InitialiseStmt(Var* var, Value* value) {
+		Statement* Statement::InitialiseStmt(Var* var, Value value) {
 			Statement* statement = new Statement(INITIALISE);
 			statement->initialiseStmt_.var = var;
-			statement->initialiseStmt_.value = value;
+			statement->initialiseStmt_.value = std::move(value);
 			return statement;
 		}
 		
@@ -45,17 +45,17 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::Switch(Value* value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
+		Statement* Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
 			Statement* statement = new Statement(SWITCH);
-			statement->switchStmt_.value = value;
+			statement->switchStmt_.value = std::move(value);
 			statement->switchStmt_.caseList = caseList;
 			statement->switchStmt_.defaultScope = std::move(defaultScope);
 			return statement;
 		}
 		
-		Statement* Statement::Loop(Value* condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
+		Statement* Statement::Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
 			Statement* statement = new Statement(LOOP);
-			statement->loopStmt_.condition = condition;
+			statement->loopStmt_.condition = std::move(condition);
 			statement->loopStmt_.iterationScope = std::move(iterationScope);
 			statement->loopStmt_.advanceScope = std::move(advanceScope);
 			return statement;
@@ -76,20 +76,18 @@ namespace locic {
 		}
 		
 		Statement* Statement::ReturnVoid() {
+			return new Statement(RETURNVOID);
+		}
+		
+		Statement* Statement::Return(Value value) {
 			Statement* statement = new Statement(RETURN);
-			statement->returnStmt_.value = NULL;
+			statement->returnStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::Return(Value* value) {
-			Statement* statement = new Statement(RETURN);
-			statement->returnStmt_.value = value;
-			return statement;
-		}
-		
-		Statement* Statement::Throw(Value* value) {
+		Statement* Statement::Throw(Value value) {
 			Statement* statement = new Statement(THROW);
-			statement->throwStmt_.value = value;
+			statement->throwStmt_.value = std::move(value);
 			return statement;
 		}
 		
@@ -105,9 +103,9 @@ namespace locic {
 			return new Statement(CONTINUE);
 		}
 		
-		Statement* Statement::Assert(Value* value, const std::string& name) {
+		Statement* Statement::Assert(Value value, const std::string& name) {
 			Statement* statement = new Statement(ASSERT);
-			statement->assertStmt_.value = value;
+			statement->assertStmt_.value = std::move(value);
 			statement->assertStmt_.name = name;
 			return statement;
 		}
@@ -116,8 +114,7 @@ namespace locic {
 			return new Statement(UNREACHABLE);
 		}
 		
-		Statement::Statement(Kind k)
-			: kind_(k) { }
+		Statement::Statement(const Kind k) : kind_(k) { }
 			
 		Statement::Kind Statement::kind() const {
 			return kind_;
@@ -127,7 +124,7 @@ namespace locic {
 			return kind() == VALUE;
 		}
 		
-		Value* Statement::getValue() const {
+		const Value& Statement::getValue() const {
 			assert(isValueStatement());
 			return valueStmt_.value;
 		}
@@ -150,7 +147,7 @@ namespace locic {
 			return initialiseStmt_.var;
 		}
 		
-		Value* Statement::getInitialiseValue() const {
+		const Value& Statement::getInitialiseValue() const {
 			assert(isInitialiseStatement());
 			return initialiseStmt_.value;
 		}
@@ -173,7 +170,7 @@ namespace locic {
 			return kind() == SWITCH;
 		}
 		
-		Value* Statement::getSwitchValue() const {
+		const Value& Statement::getSwitchValue() const {
 			assert(isSwitchStatement());
 			return switchStmt_.value;
 		}
@@ -192,7 +189,7 @@ namespace locic {
 			return kind() == LOOP;
 		}
 		
-		Value* Statement::getLoopCondition() const {
+		const Value& Statement::getLoopCondition() const {
 			assert(isLoopStatement());
 			return loopStmt_.condition;
 		}
@@ -239,7 +236,7 @@ namespace locic {
 			return kind() == RETURN;
 		}
 		
-		Value* Statement::getReturnValue() const {
+		const Value& Statement::getReturnValue() const {
 			assert(isReturnStatement());
 			return returnStmt_.value;
 		}
@@ -248,7 +245,7 @@ namespace locic {
 			return kind() == THROW;
 		}
 		
-		Value* Statement::getThrowValue() const {
+		const Value& Statement::getThrowValue() const {
 			assert(isThrowStatement());
 			return throwStmt_.value;
 		}
@@ -269,7 +266,7 @@ namespace locic {
 			return kind() == ASSERT;
 		}
 		
-		Value* Statement::getAssertValue() const {
+		const Value& Statement::getAssertValue() const {
 			assert(isAssertStatement());
 			return assertStmt_.value;
 		}
@@ -287,63 +284,66 @@ namespace locic {
 			switch (kind_) {
 				case VALUE: {
 					return makeString("ValueStatement(value: %s)",
-									  valueStmt_.value->toString().c_str());
+						valueStmt_.value.toString().c_str());
 				}
 				
 				case SCOPE: {
 					return makeString("ScopeStatement(scope: %s)",
-									  scopeStmt_.scope->toString().c_str());
+						scopeStmt_.scope->toString().c_str());
 				}
 				
 				case INITIALISE: {
 					return makeString("InitialiseStatement(var: %s, value: %s)",
-									  initialiseStmt_.var->toString().c_str(),
-									  initialiseStmt_.value->toString().c_str());
+						initialiseStmt_.var->toString().c_str(),
+						initialiseStmt_.value.toString().c_str());
 				}
 				
 				case IF: {
 					return makeString("IfStatement(clauseList: %s, elseScope: %s)",
-									  makeArrayString(ifStmt_.clauseList).c_str(),
-									  ifStmt_.elseScope->toString().c_str());
+						makeArrayPtrString(ifStmt_.clauseList).c_str(),
+						ifStmt_.elseScope->toString().c_str());
 				}
 				
 				case SWITCH: {
 					return makeString("SwitchStatement(value: %s, caseList: %s, defaultScope: %s)",
-									  switchStmt_.value->toString().c_str(),
-									  makeArrayString(switchStmt_.caseList).c_str(),
-									  switchStmt_.defaultScope != nullptr ?
-									  	switchStmt_.defaultScope->toString().c_str() :
-									  	"[NONE]");
+						switchStmt_.value.toString().c_str(),
+						makeArrayPtrString(switchStmt_.caseList).c_str(),
+						switchStmt_.defaultScope != nullptr ?
+							switchStmt_.defaultScope->toString().c_str() :
+							"[NONE]");
 				}
 				
 				case LOOP: {
 					return makeString("LoopStatement(condition: %s, iteration: %s, advance: %s)",
-									  loopStmt_.condition->toString().c_str(),
-									  loopStmt_.iterationScope->toString().c_str(),
-									  loopStmt_.advanceScope->toString().c_str());
+						loopStmt_.condition.toString().c_str(),
+						loopStmt_.iterationScope->toString().c_str(),
+						loopStmt_.advanceScope->toString().c_str());
 				}
 				
 				case TRY: {
 					return makeString("TryStatement(scope: %s, catchList: %s)",
-									  tryStmt_.scope->toString().c_str(),
-									  makeArrayString(tryStmt_.catchList).c_str());
+						tryStmt_.scope->toString().c_str(),
+						makeArrayPtrString(tryStmt_.catchList).c_str());
 				}
 				
 				case SCOPEEXIT: {
 					return makeString("ScopeExitStatement(state: %s, scope: %s)",
-									  getScopeExitState().c_str(),
-									  getScopeExitScope().toString().c_str());
+						getScopeExitState().c_str(),
+						getScopeExitScope().toString().c_str());
 				}
 				
 				case RETURN: {
 					return makeString("ReturnStatement(value: %s)",
-									  returnStmt_.value == NULL ? "[VOID]" :
-									  returnStmt_.value->toString().c_str());
+						returnStmt_.value.toString().c_str());
+				}
+				
+				case RETURNVOID: {
+					return "ReturnVoidStatement";
 				}
 				
 				case THROW: {
 					return makeString("ThrowStatement(value: %s)",
-									  throwStmt_.value->toString().c_str());
+						throwStmt_.value.toString().c_str());
 				}
 				
 				case RETHROW: {
@@ -359,7 +359,9 @@ namespace locic {
 				}
 				
 				case ASSERT: {
-					return makeString("AssertStatement(value: %s, name: %s)", getAssertValue()->toString().c_str(), getAssertName().c_str());
+					return makeString("AssertStatement(value: %s, name: %s)",
+						getAssertValue().toString().c_str(),
+						getAssertName().c_str());
 				}
 				
 				case UNREACHABLE: {

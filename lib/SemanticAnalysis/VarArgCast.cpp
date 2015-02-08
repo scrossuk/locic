@@ -24,50 +24,60 @@ namespace locic {
 			return validTypes.find(name) != validTypes.end();
 		}
 		
-		static inline SEM::Value* VarArgCastSearch(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			if (isValidVarArgType(context, value->type()->resolveAliases())) {
+		Optional<SEM::Value> VarArgCastSearch(Context& context, SEM::Value rawValue, const Debug::SourceLocation& location) {
+			auto value = derefValue(std::move(rawValue));
+			
+			if (isValidVarArgType(context, value.type()->resolveAliases())) {
 				// Already a valid var arg type.
-				return value;
+				return make_optional(std::move(value));
 			}
 			
-			auto derefType = getDerefType(value->type()->resolveAliases());
+			const auto derefType = getDerefType(value.type()->resolveAliases());
 			assert(!derefType->isRef());
 			
-			if (derefType->isLval() && canDissolveValue(context, derefValue(value))) {
+			if (derefType->isLval() && canDissolveValue(context, value)) {
 				// Dissolve lval.
-				auto dissolvedValue = dissolveLval(context, derefValue(value), location);
+				// TODO: remove this value copy!
+				auto dissolvedValue = dissolveLval(context, value.copy(), location);
 				
 				// See if this results in
 				// a valid var arg value.
-				auto result = VarArgCastSearch(context, dissolvedValue, location);
+				auto result = VarArgCastSearch(context, std::move(dissolvedValue), location);
 				
-				if (result != nullptr) return result;
+				if (result) {
+					return result;
+				}
 			}
 			
-			if (value->type()->isRef() && supportsImplicitCopy(context, derefType)) {
+			if (value.type()->isRef() && supportsImplicitCopy(context, derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallValue(context, GetMethod(context, value, "implicitcopy", location), {}, location) :
-					derefAll(value);
+					CallValue(context, GetMethod(context, std::move(value), "implicitcopy", location), {}, location) :
+					derefAll(std::move(value));
 				
 				// See if this results in
 				// a valid var arg value.
-				auto result = VarArgCastSearch(context, copyValue, location);
+				auto result = VarArgCastSearch(context, std::move(copyValue), location);
 				
-				if (result != nullptr) return result;
+				if (result) {
+					return result;
+				}
 			}
 			
-			return nullptr;
+			return Optional<SEM::Value>();
 		}
 		
-		SEM::Value* VarArgCast(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			auto result = VarArgCastSearch(context, value, location);
-			if (result == nullptr) {
+		SEM::Value VarArgCast(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+			const std::string valueString = value.toString();
+			const auto valueType = value.type();
+			auto result = VarArgCastSearch(context, std::move(value), location);
+			if (!result) {
 				throw ErrorException(makeString("Var arg parameter '%s' has invalid type '%s' at position %s.",
-					value->toString().c_str(), value->type()->toString().c_str(),
+					valueString.c_str(),
+					valueType->toString().c_str(),
 					location.toString().c_str()));
 			}
-			return result;
+			return std::move(*result);
 		}
 		
 	}

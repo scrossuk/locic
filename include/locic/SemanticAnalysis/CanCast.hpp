@@ -2,6 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_CANCAST_HPP
 
 #include <locic/Debug.hpp>
+#include <locic/Optional.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -27,11 +28,11 @@ namespace locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value* ImplicitCast(Context& context, SEM::Value* value, const SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
+		SEM::Value ImplicitCast(Context& context, SEM::Value value, const SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
 		
 		const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location);
 		
-		SEM::Value* ImplicitCastFormatOnly(SEM::Value* value, const SEM::Type* destType, const Debug::SourceLocation& location);
+		Optional<SEM::Value> ImplicitCastFormatOnly(SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location);
 		
 		bool TypeSatisfiesInterface(Context& context, const SEM::Type* objectType, const SEM::Type* interfaceType);
 		

@@ -17,8 +17,8 @@ namespace locic {
 			const std::string functionName = "__loci_allocate_exception";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -37,8 +37,8 @@ namespace locic {
 			const std::string functionName = "__loci_free_exception";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -57,8 +57,8 @@ namespace locic {
 			const std::string functionName = "__loci_throw";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -77,8 +77,8 @@ namespace locic {
 			const std::string functionName = "__loci_rethrow";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -98,8 +98,8 @@ namespace locic {
 			const std::string functionName = "__loci_personality_v0";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -115,8 +115,8 @@ namespace locic {
 			const std::string functionName = "__loci_get_exception";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			auto& abiContext = module.abiContext();

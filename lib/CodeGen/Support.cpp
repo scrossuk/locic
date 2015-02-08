@@ -14,8 +14,8 @@ namespace locic {
 			const auto name = "__vtable";
 			
 			const auto result = module.getTypeMap().tryGet(name);
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			TypeGenerator typeGen(module);

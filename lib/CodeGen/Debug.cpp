@@ -141,12 +141,10 @@ namespace locic {
 			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, varValue);
 		}
 		
-		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, SEM::Value* value) {
-			auto& module = function.module();
-			auto& valueMap = module.debugModule().valueMap;
-			const auto iterator = valueMap.find(value);
-			if (iterator != valueMap.end()) {
-				const auto debugSourceLocation = iterator->second.location;
+		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value) {
+			const auto valueInfo = value.debugInfo();
+			if (valueInfo) {
+				const auto debugSourceLocation = valueInfo->location;
 				const auto debugStartPosition = debugSourceLocation.range().start();
 				return boost::make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
 			} else {

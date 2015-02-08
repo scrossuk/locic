@@ -44,8 +44,8 @@ namespace locic {
 		
 		std::string Scope::toString() const {
 			return makeString("Scope(vars: %s, statements: %s)",
-					makeArrayString(variables_).c_str(),
-					makeArrayString(statementList_).c_str());
+					makeArrayPtrString(variables_).c_str(),
+					makeArrayPtrString(statementList_).c_str());
 		}
 		
 	}

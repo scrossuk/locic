@@ -96,7 +96,7 @@ namespace locic {
 							type()->toString().c_str());
 				case COMPOSITE:
 					return makeString("Var[COMPOSITE](type: %s, children: %s)", type()->toString().c_str(),
-							makeArrayString(children()).c_str());
+							makeArrayPtrString(children()).c_str());
 				default:
 					throw std::runtime_error("Unknown var kind.");
 			}

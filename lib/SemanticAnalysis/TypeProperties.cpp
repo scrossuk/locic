@@ -20,22 +20,22 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value*> CastFunctionArguments(Context& context, const std::vector<SEM::Value*>& arguments, const std::vector<const SEM::Type*>& types, const Debug::SourceLocation& location) {
-				std::vector<SEM::Value*> castValues;
+			std::vector<SEM::Value> CastFunctionArguments(Context& context, std::vector<SEM::Value> arguments, const std::vector<const SEM::Type*>& types, const Debug::SourceLocation& location) {
+				std::vector<SEM::Value> castValues;
 				castValues.reserve(arguments.size());
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
-					const auto argumentValue = arguments.at(i);
+					auto& argumentValue = arguments.at(i);
 					
 					// Cast arguments to the function type's corresponding
 					// argument type; var-arg arguments should be cast to
 					// one of the allowed types (since there's no specific
 					// destination type).
-					const auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(context, argumentValue, types.at(i), location) :
-						VarArgCast(context, argumentValue, location);
+					auto castArgumentValue = (i < types.size()) ?
+						ImplicitCast(context, std::move(argumentValue), types.at(i), location) :
+						VarArgCast(context, std::move(argumentValue), location);
 					
-					castValues.push_back(castArgumentValue);
+					castValues.push_back(std::move(castArgumentValue));
 				}
 				
 				return castValues;
@@ -55,9 +55,9 @@ namespace locic {
 			
 		}
 		
-		SEM::Value* GetStaticMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
-			const auto value = derefAll(rawValue);
-			const auto targetType = value->type()->staticRefTarget();
+		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			auto value = derefAll(std::move(rawValue));
+			const auto targetType = value.type()->staticRefTarget();
 			
 			if (!targetType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
@@ -88,10 +88,11 @@ namespace locic {
 			if (targetType->isObject()) {
 				// Get the actual function so we can refer to it.
 				const auto function = targetType->getObjectType()->functions().at(canonicalMethodName);
-				const auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, targetType->generateTemplateVarMap());
+				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
+				auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, function->type()->substitute(functionTypeTemplateMap));
 				
 				if (targetType->isInterface()) {
-					return SEM::Value::StaticInterfaceMethodObject(functionRef, value);
+					return SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value));
 				} else {
 					return functionRef;
 				}
@@ -102,27 +103,28 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* GetMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
-			return GetTemplatedMethod(context, rawValue, methodName, {}, location);
+		SEM::Value GetMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+			return GetTemplatedMethod(context, std::move(rawValue), methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethod(Context& context, SEM::Value* rawValue, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
-			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
-			const auto type = getDerefType(value->type())->resolveAliases();
+		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
+			const auto type = getDerefType(value.type())->resolveAliases();
 			
-			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, templateArguments, location);
+			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, templateArguments, location);
 		}
 		
 		// Gets the method without dissolving or derefencing the object.
-		SEM::Value* GetSpecialMethod(Context& context, SEM::Value* value, const std::string& methodName, const Debug::SourceLocation& location) {
-			return GetMethodWithoutResolution(context, value, getSingleDerefType(value->type())->resolveAliases(), methodName, location);
+		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const std::string& methodName, const Debug::SourceLocation& location) {
+			const auto type = getSingleDerefType(value.type())->resolveAliases();
+			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		
-		SEM::Value* GetMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
-			return GetTemplatedMethodWithoutResolution(context, value, type, methodName, {}, location);
+		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
+			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
-		SEM::Value* GetTemplatedMethodWithoutResolution(Context& context, SEM::Value* value, const SEM::Type* const type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -202,41 +204,41 @@ namespace locic {
 						location.toString().c_str()));
 				}
 				
-				const auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, templateVariableAssignments);
+				auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, function->type()->substitute(templateVariableAssignments));
 				
 				if (type->isInterface()) {
-					return SEM::Value::InterfaceMethodObject(functionRef, derefValue(value));
+					return SEM::Value::InterfaceMethodObject(std::move(functionRef), derefValue(std::move(value)));
 				} else {
-					return SEM::Value::MethodObject(functionRef, derefValue(value));
+					return SEM::Value::MethodObject(std::move(functionRef), derefValue(std::move(value)));
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
-				const auto functionRef = SEM::Value::TemplateFunctionRef(type, methodName, functionType);
-				return SEM::Value::MethodObject(functionRef, derefValue(value));
+				auto functionRef = SEM::Value::TemplateFunctionRef(type, methodName, functionType);
+				return SEM::Value::MethodObject(std::move(functionRef), derefValue(std::move(value)));
 			}
 		}
 		
-		SEM::Value* CallValue(Context& context, SEM::Value* rawValue, const std::vector<SEM::Value*>& args, const Debug::SourceLocation& location) {
-			const auto value = tryDissolveValue(context, derefValue(rawValue), location);
+		SEM::Value CallValue(Context& context, SEM::Value rawValue, std::vector<SEM::Value> args, const Debug::SourceLocation& location) {
+			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
-			if (getDerefType(value->type())->isStaticRef()) {
-				return CallValue(context, GetStaticMethod(context, value, "create", location), args, location);
+			if (getDerefType(value.type())->isStaticRef()) {
+				return CallValue(context, GetStaticMethod(context, std::move(value), "create", location), std::move(args), location);
 			}
 			
-			if (!isCallableType(value->type())) {
+			if (!isCallableType(value.type())) {
 				throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
-					value->toString().c_str(), location.toString().c_str()));
+					value.toString().c_str(), location.toString().c_str()));
 			}
 			
-			const auto functionType = value->type()->getCallableFunctionType();
+			const auto functionType = value.type()->getCallableFunctionType();
 			const auto& typeList = functionType->getFunctionParameterTypes();
 			
 			if (functionType->isFunctionVarArg()) {
 				if (args.size() < typeList.size()) {
 					throw ErrorException(makeString("Var Arg Function [%s] called with %llu "
 						"parameters; expected at least %llu at position %s.",
-						value->toString().c_str(),
+						value.toString().c_str(),
 						(unsigned long long) args.size(),
 						(unsigned long long) typeList.size(),
 						location.toString().c_str()));
@@ -245,14 +247,14 @@ namespace locic {
 				if (args.size() != typeList.size()) {
 					throw ErrorException(makeString("Function [%s] called with %llu "
 						"parameters; expected %llu at position %s.",
-						value->toString().c_str(),
+						value.toString().c_str(),
 						(unsigned long long) args.size(),
 						(unsigned long long) typeList.size(),
 						location.toString().c_str()));
 				}
 			}
 			
-			return SEM::Value::FunctionCall(value, CastFunctionArguments(context, args, typeList, location));
+			return SEM::Value::FunctionCall(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
 		}
 		
 		bool checkCapability(Context& context, const SEM::Type* const rawType, const std::string& capability, const std::vector<const SEM::Type*>& templateArgs) {

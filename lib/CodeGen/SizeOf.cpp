@@ -50,8 +50,8 @@ namespace locic {
 				mangleMethodName(typeInstance, std::string("__alignmask") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto argInfo = alignMaskArgInfo(module, typeInstance);
@@ -173,8 +173,8 @@ namespace locic {
 				mangleMethodName(typeInstance, std::string("__sizeof") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto argInfo = sizeOfArgInfo(module, typeInstance);

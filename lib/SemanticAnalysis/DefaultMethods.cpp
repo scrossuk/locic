@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <locic/Constant.hpp>
+#include <locic/MakeArray.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -315,14 +316,14 @@ namespace locic {
 			
 			assert(!typeInstance->isUnionDatatype());
 			
-			std::vector<SEM::Value*> constructValues;
-			for (const auto argVar: function->parameters()) {
-				const auto argVarValue = createLocalVarRef(context, argVar);
-				constructValues.push_back(CallValue(context, GetSpecialMethod(context, argVarValue, "move", location), {}, location));
+			std::vector<SEM::Value> constructValues;
+			for (const auto& argVar: function->parameters()) {
+				auto argVarValue = createLocalVarRef(context, argVar);
+				constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), "move", location), {}, location));
 			}
 			
-			const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, constructValues);
-			functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
+			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));
+			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			
 			function->setScope(std::move(functionScope));
 		}
@@ -344,43 +345,43 @@ namespace locic {
 			if (typeInstance->isUnionDatatype()) {
 				{
 					// Move the tag.
-					const auto tagValue = SEM::Value::UnionTag(derefAll(selfValue), ubyteType);
-					const std::vector<SEM::Value*> moveArgs = { ptrValue, positionValue };
-					const auto moveResult = CallValue(context, GetSpecialMethod(context, tagValue, "__moveto", location), moveArgs, location);
-					functionScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+					auto tagValue = SEM::Value::UnionTag(derefAll(selfValue.copy()), ubyteType);
+					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), positionValue.copy() );
+					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(tagValue), "__moveto", location), std::move(moveArgs), location);
+					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
 				}
 				
 				// Calculate the position of the union data so that this
 				// can be passed to the move methods of the union types.
-				const auto unionDataOffset = SEM::Value::UnionDataOffset(typeInstance, sizeType);
-				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue, "add", location), { unionDataOffset }, location);
+				auto unionDataOffset = SEM::Value::UnionDataOffset(typeInstance, sizeType);
+				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue.copy(), "add", location), makeArray( std::move(unionDataOffset) ), location);
 				
 				std::vector<SEM::SwitchCase*> switchCases;
 				for (const auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantType = variantTypeInstance->selfType();
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					const auto caseVarValue = createLocalVarRef(context, caseVar);
+					auto caseVarValue = createLocalVarRef(context, caseVar);
 					
 					auto caseScope = SEM::Scope::Create();
-					const std::vector<SEM::Value*> moveArgs = { ptrValue, unionDataPosition };
-					const auto moveResult = CallValue(context, GetSpecialMethod(context, caseVarValue, "__moveto", location), moveArgs, location);
-					caseScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), unionDataPosition.copy() );
+					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(caseVarValue), "__moveto", location), std::move(moveArgs), location);
+					caseScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
 					caseScope->statements().push_back(SEM::Statement::ReturnVoid());
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), switchCases, nullptr));
 			} else {
 				for (size_t i = 0; i < typeInstance->variables().size(); i++) {
 					const auto& memberVar = typeInstance->variables().at(i);
-					const auto memberOffset = SEM::Value::MemberOffset(typeInstance, i, sizeType);
-					const auto memberPosition = CallValue(context, GetMethod(context, positionValue, "add", location), { memberOffset }, location);
+					auto memberOffset = SEM::Value::MemberOffset(typeInstance, i, sizeType);
+					auto memberPosition = CallValue(context, GetMethod(context, positionValue.copy(), "add", location), makeArray( std::move(memberOffset) ), location);
 					
-					const std::vector<SEM::Value*> moveArgs = { ptrValue, memberPosition };
-					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
-					const auto moveResult = CallValue(context, GetSpecialMethod(context, selfMember, "__moveto", location), moveArgs, location);
+					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), std::move(memberPosition) );
+					auto selfMember = createMemberVarRef(context, selfValue.copy(), memberVar);
+					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), "__moveto", location), std::move(moveArgs), location);
 					
-					functionScope->statements().push_back(SEM::Statement::ValueStmt(moveResult));
+					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
 				}
 				
 				functionScope->statements().push_back(SEM::Statement::ReturnVoid());
@@ -400,27 +401,27 @@ namespace locic {
 				for (const auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantType = variantTypeInstance->selfType();
 					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					const auto caseVarValue = createLocalVarRef(context, caseVar);
+					auto caseVarValue = createLocalVarRef(context, caseVar);
 					
 					auto caseScope = SEM::Scope::Create();
-					const auto copyResult = CallValue(context, GetSpecialMethod(context, caseVarValue, functionName, location), {}, location);
-					const auto copyResultCast = SEM::Value::Cast(selfType, copyResult);
-					caseScope->statements().push_back(SEM::Statement::Return(copyResultCast));
+					auto copyResult = CallValue(context, GetSpecialMethod(context, std::move(caseVarValue), functionName, location), {}, location);
+					auto copyResultCast = SEM::Value::Cast(selfType, std::move(copyResult));
+					caseScope->statements().push_back(SEM::Statement::Return(std::move(copyResultCast)));
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), std::move(switchCases), nullptr));
 			} else {
-				std::vector<SEM::Value*> copyValues;
+				std::vector<SEM::Value> copyValues;
 				
 				for (const auto memberVar: typeInstance->variables()) {
-					const auto selfMember = dissolveLval(context, createMemberVarRef(context, selfValue, memberVar), location);
-					const auto copyResult = CallValue(context, GetSpecialMethod(context, selfMember, functionName, location), {}, location);
-					copyValues.push_back(copyResult);
+					auto selfMember = dissolveLval(context, createMemberVarRef(context, selfValue.copy(), memberVar), location);
+					auto copyResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), functionName, location), {}, location);
+					copyValues.push_back(std::move(copyResult));
 				}
 				
-				const auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, copyValues);
-				functionScope->statements().push_back(SEM::Statement::Return(internalConstructedValue));
+				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(copyValues));
+				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			}
 			
 			function->setScope(std::move(functionScope));
@@ -459,54 +460,54 @@ namespace locic {
 						const auto subVariantTypeInstance = typeInstance->variants().at(j);
 						const auto subVariantType = subVariantTypeInstance->selfType();
 						const auto subCaseVar = SEM::Var::Basic(subVariantType, subVariantType);
-						const auto subCaseVarValue = createLocalVarRef(context, subCaseVar);
+						auto subCaseVarValue = createLocalVarRef(context, subCaseVar);
 						
 						auto subCaseScope = SEM::Scope::Create();
-						const auto minusOneConstant = SEM::Value::Constant(Constant::Integer(-1), compareResultType);
-						const auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), compareResultType);
+						auto minusOneConstant = SEM::Value::Constant(Constant::Integer(-1), compareResultType);
+						auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), compareResultType);
 						if (i < j) {
-							subCaseScope->statements().push_back(SEM::Statement::Return(minusOneConstant));
+							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(minusOneConstant)));
 						} else if (i > j) {
-							subCaseScope->statements().push_back(SEM::Statement::Return(plusOneConstant));
+							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(plusOneConstant)));
 						} else {
-							const auto compareResult = CallValue(context, GetMethod(context, caseVarValue, "compare", location), { subCaseVarValue }, location);
-							subCaseScope->statements().push_back(SEM::Statement::Return(compareResult));
+							auto compareResult = CallValue(context, GetMethod(context, caseVarValue.copy(), "compare", location), makeArray( std::move(subCaseVarValue) ), location);
+							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(compareResult)));
 						}
 						
 						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, std::move(subCaseScope)));
 					}
 					
-					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue), subSwitchCases, nullptr));
+					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue.copy()), subSwitchCases, nullptr));
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
 				
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue), switchCases, nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), switchCases, nullptr));
 			} else {
 				auto currentScope = functionScope.get();
 				
 				for (const auto memberVar: typeInstance->variables()) {
-					const auto selfMember = createMemberVarRef(context, selfValue, memberVar);
-					const auto operandMember = createMemberVarRef(context, operandValue, memberVar);
+					auto selfMember = createMemberVarRef(context, selfValue.copy(), memberVar);
+					auto operandMember = createMemberVarRef(context, operandValue.copy(), memberVar);
 					
-					const auto compareResult = CallValue(context, GetMethod(context, selfMember, "compare", location), { operandMember }, location);
-					const auto isEqual = CallValue(context, GetMethod(context, compareResult, "isEqual", location), {}, location);
+					auto compareResult = CallValue(context, GetMethod(context, std::move(selfMember), "compare", location), makeArray( std::move(operandMember) ), location);
+					auto isEqual = CallValue(context, GetMethod(context, compareResult.copy(), "isEqual", location), {}, location);
 					
 					auto ifTrueScope = SEM::Scope::Create();
 					auto ifFalseScope = SEM::Scope::Create();
 					
 					const auto nextScope = ifTrueScope.get();
 					
-					ifFalseScope->statements().push_back(SEM::Statement::Return(compareResult));
+					ifFalseScope->statements().push_back(SEM::Statement::Return(std::move(compareResult)));
 					
-					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(isEqual, std::move(ifTrueScope)) }, std::move(ifFalseScope));
+					const auto ifStatement = SEM::Statement::If({ new SEM::IfClause(std::move(isEqual), std::move(ifTrueScope)) }, std::move(ifFalseScope));
 					currentScope->statements().push_back(ifStatement);
 					
 					currentScope = nextScope;
 				}
 				
-				const auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), compareResultType);
-				currentScope->statements().push_back(SEM::Statement::Return(zeroConstant));
+				auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), compareResultType);
+				currentScope->statements().push_back(SEM::Statement::Return(std::move(zeroConstant)));
 			}
 			
 			function->setScope(std::move(functionScope));

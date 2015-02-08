@@ -23,7 +23,7 @@ namespace locic {
 		
 		std::bitset<UnwindState_MAX> GetStatementExitStates(SEM::Statement* statement);
 		
-		std::bitset<UnwindState_MAX> GetValueExitStates(SEM::Value* value);
+		std::bitset<UnwindState_MAX> GetValueExitStates(const SEM::Value& value);
 		
 	}
 	

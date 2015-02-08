@@ -5,6 +5,8 @@
 #include <vector>
 
 #include <locic/Map.hpp>
+#include <locic/Optional.hpp>
+#include <locic/Debug/ValueInfo.hpp>
 
 namespace locic {
 	
@@ -66,7 +68,7 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					Value* operand;
+					std::unique_ptr<Value> operand;
 				} unionTag;
 				
 				struct {
@@ -83,65 +85,65 @@ namespace locic {
 				} memberOffset;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} reinterpretValue;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} derefReference;
 				
 				struct {
-					Value* condition, * ifTrue, * ifFalse;
+					std::unique_ptr<Value> condition, ifTrue, ifFalse;
 				} ternary;
 				
 				struct {
 					const Type* targetType;
-					Value* value;
+					std::unique_ptr<Value> value;
 				} cast;
 				
 				struct {
 					const Type* targetType;
-					Value* value;
+					std::unique_ptr<Value> value;
 				} polyCast;
 				
 				struct {
 					const Type* targetType;
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeLval;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeNoLval;
 				
 				struct {
 					const Type* targetType;
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeRef;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeNoRef;
 				
 				struct {
 					const Type* targetType;
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeStaticRef;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} makeNoStaticRef;
 				
 				struct {
-					std::vector<Value*> parameters;
+					std::vector<Value> parameters;
 				} internalConstruct;
 				
 				struct {
-					Value* object;
+					std::unique_ptr<Value> object;
 					Var* memberVar;
 				} memberAccess;
 				
 				struct {
-					Value* value;
+					std::unique_ptr<Value> value;
 				} refValue;
 				
 				struct {
@@ -149,8 +151,8 @@ namespace locic {
 				} typeRef;
 				
 				struct {
-					Value* functionValue;
-					std::vector<Value*> parameters;
+					std::unique_ptr<Value> functionValue;
+					std::vector<Value> parameters;
 				} functionCall;
 				
 				struct {
@@ -163,100 +165,116 @@ namespace locic {
 					const Type* parentType;
 					std::string name;
 					const Type* functionType;
+					TemplateVarMap templateVarMap;
 				} templateFunctionRef;
 				
 				struct {
-					Value* method;
-					Value* methodOwner;
+					std::unique_ptr<Value> method;
+					std::unique_ptr<Value> methodOwner;
 				} methodObject;
 				
 				struct {
-					Value* methodValue;
-					std::vector<Value*> parameters;
+					std::unique_ptr<Value> methodValue;
+					std::vector<Value> parameters;
 				} methodCall;
 				
 				struct {
-					Value* method;
-					Value* methodOwner;
+					std::unique_ptr<Value> method;
+					std::unique_ptr<Value> methodOwner;
 				} interfaceMethodObject;
 				
 				struct {
-					Value* method;
-					Value* typeRef;
+					std::unique_ptr<Value> method;
+					std::unique_ptr<Value> typeRef;
 				} staticInterfaceMethodObject;
 				
-				static Value* Self(const Type* type);
+				static Value Self(const Type* type);
 				
-				static Value* This(const Type* type);
+				static Value This(const Type* type);
 				
-				static Value* Constant(const Constant* constant, const Type* type);
+				static Value Constant(const Constant* constant, const Type* type);
 				
-				static Value* LocalVar(Var* var, const Type* type);
+				static Value LocalVar(Var* var, const Type* type);
 				
-				static Value* UnionTag(Value* operand, const Type* type);
+				static Value UnionTag(Value operand, const Type* type);
 				
-				static Value* SizeOf(const Type* targetType, const Type* sizeType);
+				static Value SizeOf(const Type* targetType, const Type* sizeType);
 				
-				static Value* UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType);
+				static Value UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType);
 				
-				static Value* MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
+				static Value MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
 				
-				static Value* Reinterpret(Value* operand, const Type* type);
+				static Value Reinterpret(Value operand, const Type* type);
 				
-				static Value* DerefReference(Value* operand);
+				static Value DerefReference(Value operand);
 				
-				static Value* Ternary(Value* condition, Value* ifTrue, Value* ifFalse);
+				static Value Ternary(Value condition, Value ifTrue, Value ifFalse);
 				
-				static Value* Cast(const Type* targetType, Value* operand);
+				static Value Cast(const Type* targetType, Value operand);
 				
-				static Value* PolyCast(const Type* targetType, Value* operand);
+				static Value PolyCast(const Type* targetType, Value operand);
 				
-				static Value* Lval(const Type* targetType, Value* operand);
+				static Value Lval(const Type* targetType, Value operand);
 				
-				static Value* NoLval(Value* operand);
+				static Value NoLval(Value operand);
 				
-				static Value* Ref(const Type* targetType, Value* operand);
+				static Value Ref(const Type* targetType, Value operand);
 				
-				static Value* NoRef(Value* operand);
+				static Value NoRef(Value operand);
 				
-				static Value* StaticRef(const Type* targetType, Value* operand);
+				static Value StaticRef(const Type* targetType, Value operand);
 				
-				static Value* NoStaticRef(Value* operand);
+				static Value NoStaticRef(Value operand);
 				
-				static Value* InternalConstruct(TypeInstance* typeInstance, const std::vector<Value*>& parameters);
+				static Value InternalConstruct(TypeInstance* typeInstance, std::vector<Value> parameters);
 				
-				static Value* MemberAccess(Value* object, Var* var, const Type* type);
+				static Value MemberAccess(Value object, Var* var, const Type* type);
 				
-				static Value* RefValue(Value* operand, const Type* type);
+				static Value RefValue(Value operand, const Type* type);
 				
-				static Value* TypeRef(const Type* targetType, const Type* type);
+				static Value TypeRef(const Type* targetType, const Type* type);
 				
-				static Value* FunctionCall(Value* functionValue, const std::vector<Value*>& parameters);
+				static Value FunctionCall(Value functionValue, std::vector<Value> parameters);
 				
-				static Value* FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const TemplateVarMap& templateVarMap);
+				static Value FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const Type* const type);
 				
-				static Value* TemplateFunctionRef(const Type* parentType, const std::string& name, const Type* functionType);
+				static Value TemplateFunctionRef(const Type* parentType, const std::string& name, const Type* functionType);
 				
-				static Value* MethodObject(Value* method, Value* methodOwner);
+				static Value MethodObject(Value method, Value methodOwner);
 				
-				static Value* InterfaceMethodObject(Value* method, Value* methodOwner);
+				static Value InterfaceMethodObject(Value method, Value methodOwner);
 				
-				static Value* StaticInterfaceMethodObject(Value* method, Value* typeRef);
+				static Value StaticInterfaceMethodObject(Value method, Value typeRef);
 				
-				static Value* CastDummy(const Type* type);
+				static Value CastDummy(const Type* type);
+				
+				Value();
+				
+				Value(Value&&) = default;
+				Value& operator=(Value&&) = default;
 				
 				Kind kind() const;
 				
+				Value copy() const;
+				
 				const Type* type() const;
+				
+				void setDebugInfo(Debug::ValueInfo debugInfo);
+				
+				Optional<Debug::ValueInfo> debugInfo() const;
 				
 				std::string toString() const;
 				
 			private:
-				// Value();
 				Value(Kind k, const Type* t);
+				
+				// Non-copyable.
+				Value(const Value&) = delete;
+				Value& operator=(const Value&) = delete;
 				
 				Kind kind_;
 				const Type* type_;
+				Optional<Debug::ValueInfo> debugInfo_;
 				
 		};
 		

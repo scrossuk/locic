@@ -17,11 +17,11 @@ namespace locic {
 		
 		const SEM::Type* getDerefType(const SEM::Type* type);
 		
-		SEM::Value* derefOne(SEM::Value* value);
+		SEM::Value derefOne(SEM::Value value);
 		
-		SEM::Value* derefValue(SEM::Value* value);
+		SEM::Value derefValue(SEM::Value value);
 		
-		SEM::Value* derefAll(SEM::Value* value);
+		SEM::Value derefAll(SEM::Value value);
 		
 		size_t getStaticRefCount(const SEM::Type* type);
 		
@@ -29,21 +29,21 @@ namespace locic {
 		
 		const SEM::Type* getStaticDerefType(const SEM::Type* type);
 		
-		SEM::Value* staticDerefOne(SEM::Value* value);
+		SEM::Value staticDerefOne(SEM::Value value);
 		
-		SEM::Value* staticDerefValue(SEM::Value* value);
+		SEM::Value staticDerefValue(SEM::Value value);
 		
-		SEM::Value* staticDerefAll(SEM::Value* value);
+		SEM::Value staticDerefAll(SEM::Value value);
 		
-		SEM::Value* createTypeRef(Context& context, const SEM::Type* targetType);
+		SEM::Value createTypeRef(Context& context, const SEM::Type* targetType);
 		
 		const SEM::Type* createReferenceType(Context& context, const SEM::Type* varType);
 		
-		SEM::Value* createSelfRef(Context& context, const SEM::Type* selfType);
+		SEM::Value createSelfRef(Context& context, const SEM::Type* selfType);
 		
-		SEM::Value* createLocalVarRef(Context& context, SEM::Var* var);
+		SEM::Value createLocalVarRef(Context& context, SEM::Var* var);
 		
-		SEM::Value* createMemberVarRef(Context& context, SEM::Value* object, SEM::Var* var);
+		SEM::Value createMemberVarRef(Context& context, SEM::Value object, SEM::Var* var);
 		
 	}
 	

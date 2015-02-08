@@ -10,8 +10,7 @@ namespace locic {
 		struct ValueInfo {
 			SourceLocation location;
 			
-			inline ValueInfo()
-				: location(SourceLocation::Null()) { }
+			ValueInfo() : location(SourceLocation::Null()) { }
 		};
 		
 	}

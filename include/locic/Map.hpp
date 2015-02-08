@@ -106,8 +106,8 @@ namespace locic{
 			
 			Value get(const Key& key) const{
 				Optional<Value> value = tryGet(key);
-				assert(value.hasValue());
-				return value.getValue();
+				assert(value);
+				return *value;
 			}
 			
 			bool has(const Key& key) const{

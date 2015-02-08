@@ -848,7 +848,7 @@ namespace locic {
 				case FUNCTION:
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
 									  getFunctionReturnType()->toString().c_str(),
-									  makeArrayString(getFunctionParameterTypes()).c_str(),
+									  makeArrayPtrString(getFunctionParameterTypes()).c_str(),
 									  isFunctionVarArg() ? "Yes" : "No");
 									  
 				case METHOD:

@@ -40,7 +40,7 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc) {
+		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, const std::vector<SEM::Value>& args, boost::optional<llvm::DebugLoc> debugLoc) {
 			assert(callInfo.functionPtr != nullptr);
 			
 			auto& module = function.module();
@@ -82,21 +82,21 @@ namespace locic {
 			const auto intSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveInt));
 			const auto doubleSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveDouble));
 			
-			for (const auto param: args) {
+			for (const auto& param: args) {
 				llvm::Value* argValue = genValue(function, param);
-				llvm_abi::Type* argABIType = genABIArgType(module, param->type());
+				llvm_abi::Type* argABIType = genABIArgType(module, param.type());
 				
 				// When calling var-args functions, all 'char' and 'short'
 				// values must be extended to 'int' values, and all 'float'
 				// values must be converted to 'double' values.
-				if (llvmFunctionType->isFunctionVarArg() && param->type()->isPrimitive()) {
+				if (llvmFunctionType->isFunctionVarArg() && param.type()->isPrimitive()) {
 					const auto typeSize = module.abi().typeSize(argABIType);
 					
 					if (argABIType->isInteger() && typeSize < intSize) {
-						if (isSignedIntegerType(module, param->type())) {
+						if (isSignedIntegerType(module, param.type())) {
 							// Need to extend to int (i.e. sign extend).
 							argValue = function.getBuilder().CreateSExt(argValue, intType);
-						} else if (isUnsignedIntegerType(module, param->type())) {
+						} else if (isUnsignedIntegerType(module, param.type())) {
 							// Need to extend to unsigned int (i.e. zero extend).
 							argValue = function.getBuilder().CreateZExt(argValue, intType);
 						}

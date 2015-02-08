@@ -15,7 +15,7 @@ namespace locic {
 		
 		// TODO: reduce number of arguments to this function.
 		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo,
-			const SEM::Type* functionType, const std::vector<SEM::Value*>& args, boost::optional<llvm::DebugLoc> debugLoc);
+			const SEM::Type* functionType, const std::vector<SEM::Value>& args, boost::optional<llvm::DebugLoc> debugLoc);
 		
 		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
 			llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc = boost::none);

@@ -91,8 +91,8 @@ namespace locic {
 				 
 			const auto result = module.getFunctionMap().tryGet(mangledName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto argInfo = getFunctionArgInfo(module, function->type());

@@ -62,8 +62,8 @@ namespace locic {
 			const std::string functionName = "__loci_assert_failed";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto function = createLLVMFunction(module, assertFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
@@ -81,8 +81,8 @@ namespace locic {
 			const std::string functionName = "__loci_unreachable_failed";
 			const auto result = module.getFunctionMap().tryGet(functionName);
 			
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto function = createLLVMFunction(module, unreachableFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
@@ -101,7 +101,7 @@ namespace locic {
 			
 			switch (statement->kind()) {
 				case SEM::Statement::VALUE: {
-					assert(statement->getValue()->type()->isBuiltInVoid());
+					assert(statement->getValue().type()->isBuiltInVoid());
 					(void) genValue(function, statement->getValue());
 					break;
 				}
@@ -237,7 +237,7 @@ namespace locic {
 				
 				case SEM::Statement::SWITCH: {
 					const auto switchValue = genValue(function, statement->getSwitchValue());
-					const auto switchType = statement->getSwitchValue()->type();
+					const auto switchType = statement->getSwitchValue().type();
 					
 					llvm::Value* switchValuePtr = nullptr;
 					
@@ -362,19 +362,31 @@ namespace locic {
 					break;
 				}
 				
+				case SEM::Statement::RETURNVOID: {
+					if (anyUnwindActions(function, UnwindStateReturn)) {
+						genUnwind(function, UnwindStateReturn);
+					} else {
+						const auto returnInst = function.getBuilder().CreateRetVoid();
+						if (hasDebugInfo) {
+							returnInst->setDebugLoc(debugLocation);
+						}
+					}
+					break;
+				}
+				
 				case SEM::Statement::RETURN: {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
-						if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
+						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());
 							} else {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement->getReturnValue()->type()));
+									genABIType(function.module(), statement->getReturnValue().type()));
 								
 								function.setReturnValue(encodedReturnValue);
 							}
@@ -384,19 +396,19 @@ namespace locic {
 					} else {
 						llvm::Instruction* returnInst = nullptr;
 						
-						if (statement->getReturnValue() != nullptr && !statement->getReturnValue()->type()->isBuiltInVoid()) {
+						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue()->type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());
 								
 								returnInst = function.getBuilder().CreateRetVoid();
 							} else {
 								const auto returnValue = genValue(function, statement->getReturnValue());
 								
 								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement->getReturnValue()->type()));
+									genABIType(function.module(), statement->getReturnValue().type()));
 								
 								returnInst = function.getBuilder().CreateRet(encodedReturnValue);
 							}
@@ -516,7 +528,7 @@ namespace locic {
 				}
 				
 				case SEM::Statement::THROW: {
-					const auto throwType = statement->getThrowValue()->type();
+					const auto throwType = statement->getThrowValue().type();
 					
 					const auto exceptionValue = genValue(function, statement->getThrowValue());
 					const auto exceptionType = genType(module, throwType);

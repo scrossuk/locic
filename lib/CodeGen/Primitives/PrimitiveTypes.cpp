@@ -100,8 +100,8 @@ namespace locic {
 		
 		llvm::Type* getLvalStruct(Module& module, const std::string& name) {
 			const auto existingType = module.getTypeMap().tryGet(name);
-			if (existingType.hasValue()) {
-				return existingType.getValue();
+			if (existingType) {
+				return *existingType;
 			}
 			
 			const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);

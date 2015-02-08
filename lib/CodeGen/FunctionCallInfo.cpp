@@ -131,30 +131,30 @@ namespace locic {
 			}
 		}
 		
-		ArgPair genCallValue(Function& function, SEM::Value* value) {
-			switch (value->kind()) {
+		ArgPair genCallValue(Function& function, const SEM::Value& value) {
+			switch (value.kind()) {
 				case SEM::Value::REFVALUE: {
-					const auto dataValue = value->refValue.value;
-					const bool isContextRef = dataValue->type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), dataValue->type());
+					const auto& dataValue = *(value.refValue.value);
+					const bool isContextRef = dataValue.type()->isBuiltInReference()
+						|| !canPassByValue(function.module(), dataValue.type());
 					return std::make_pair(genValue(function, dataValue), isContextRef);
 				}
 				
 				default:
-					const bool isContextRef = value->type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), value->type());
+					const bool isContextRef = value.type()->isBuiltInReference()
+						|| !canPassByValue(function.module(), value.type());
 					return std::make_pair(genValue(function, value), isContextRef);
 			}
 		}
 		
-		bool isTrivialFunction(Module& module, SEM::Value* value) {
-			switch (value->kind()) {
+		bool isTrivialFunction(Module& module, const SEM::Value& value) {
+			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					return value->functionRef.function->isPrimitive();
+					return value.functionRef.function->isPrimitive();
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					return isTrivialFunction(module, value->methodObject.method);
+					return isTrivialFunction(module, *(value.methodObject.method));
 				}
 				
 				default: {
@@ -163,8 +163,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue) {
-			switch (value->kind()) {
+		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args, ArgPair contextValue) {
+			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					llvm::SmallVector<ArgPair, 10> llvmArgs;
 					
@@ -176,26 +176,26 @@ namespace locic {
 						llvmArgs.push_back(genCallValue(function, arg));
 					}
 					
-					if (value->functionRef.function->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, value->functionRef.parentType,
-							value->functionRef.function, llvmArgs);
+					if (value.functionRef.function->isPrimitive()) {
+						return genTrivialPrimitiveFunctionCall(function, value.functionRef.parentType,
+							value.functionRef.function, llvmArgs);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					const auto dataValue = value->methodObject.methodOwner;
+					const auto& dataValue = *(value.methodObject.methodOwner);
 					const auto llvmDataValue = genValue(function, dataValue);
-					const bool isContextRef = dataValue->type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), dataValue->type());
+					const bool isContextRef = dataValue.type()->isBuiltInReference()
+						|| !canPassByValue(function.module(), dataValue.type());
 					
-					if (isContextRef && !dataValue->type()->isRef()) {
+					if (isContextRef && !dataValue.type()->isRef()) {
 						// Call destructor for the object at the end of the current scope.
-						scheduleDestructorCall(function, dataValue->type(), llvmDataValue);
+						scheduleDestructorCall(function, dataValue.type(), llvmDataValue);
 					}
 					
-					return genTrivialFunctionCall(function, value->methodObject.method, args, std::make_pair(llvmDataValue, isContextRef));
+					return genTrivialFunctionCall(function, *(value.methodObject.method), args, std::make_pair(llvmDataValue, isContextRef));
 				}
 				
 				default: {
@@ -204,28 +204,28 @@ namespace locic {
 			}
 		}
 		
-		FunctionCallInfo genFunctionCallInfo(Function& function, SEM::Value* value) {
+		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			const auto debugLoc = getDebugLocation(function, value);
 			
-			switch (value->kind()) {
+			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
-					const auto parentType = value->functionRef.parentType;
-					const auto functionRefPtr = genFunctionRef(module, parentType, value->functionRef.function);
-					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					const auto parentType = value.functionRef.parentType;
+					const auto functionRefPtr = genFunctionRef(module, parentType, value.functionRef.function);
+					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					
 					// There may need to be a stub generated to handle issues with types being
 					// passed/returned by value versus via a pointer (which happens when primitives
 					// are used in templates).
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
-					if (value->type()->isFunctionTemplated()) {
-						if (!value->functionRef.templateArguments.empty()) {
+					if (value.type()->isFunctionTemplated()) {
+						if (!value.functionRef.templateArguments.empty()) {
 							// The function is templated on the function (and potentially also the parent object).
-							const auto templateInst = TemplateInst::Function(parentType, value->functionRef.function, value->functionRef.templateArguments);
+							const auto templateInst = TemplateInst::Function(parentType, value.functionRef.function, value.functionRef.templateArguments);
 							callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
 						} else {
 							// The function is only templated on the parent object.
@@ -239,16 +239,16 @@ namespace locic {
 				case SEM::Value::TEMPLATEFUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
-					const auto parentType = value->templateFunctionRef.parentType;
-					const auto& functionName = value->templateFunctionRef.name;
-					const auto functionType = value->templateFunctionRef.functionType;
+					const auto parentType = value.templateFunctionRef.parentType;
+					const auto& functionName = value.templateFunctionRef.name;
+					const auto functionType = value.templateFunctionRef.functionType;
 					
 					// Template function references involve creating a stub that performs
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
 					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType);
-					const auto functionPtrType = genFunctionType(module, value->type())->getPointerTo();
+					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
 					// The stub will extract the template variable's value for the
@@ -259,21 +259,21 @@ namespace locic {
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					assert(value->type()->isMethod());
+					assert(value.type()->isMethod());
 					
 					FunctionCallInfo callInfo;
 					
-					const auto functionCallInfo = genFunctionCallInfo(function, value->methodObject.method);
+					const auto functionCallInfo = genFunctionCallInfo(function, *(value.methodObject.method));
 					
 					callInfo.functionPtr = functionCallInfo.functionPtr;
 					callInfo.templateGenerator = functionCallInfo.templateGenerator;
 					
-					const auto dataValue = value->methodObject.methodOwner;
+					const auto& dataValue = *(value.methodObject.methodOwner);
 					const auto llvmDataValue = genValue(function, dataValue);
 					
 					// Methods must have a pointer to the object, which
 					// may require generating a fresh 'alloca'.
-					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue->type());
+					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue.type());
 					
 					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
 					
@@ -283,22 +283,22 @@ namespace locic {
 				}
 				
 				default: {
-					assert(value->type()->isFunction() || value->type()->isMethod());
+					assert(value.type()->isFunction() || value.type()->isMethod());
 					
 					const auto llvmValue = genValue(function, value);
 					
 					FunctionCallInfo callInfo;
 					
-					callInfo.contextPointer = value->type()->isMethod() ?
+					callInfo.contextPointer = value.type()->isMethod() ?
 						builder.CreateExtractValue(llvmValue, { 0 }) :
 						nullptr;
 					
-					const auto functionValue = value->type()->isMethod() ?
+					const auto functionValue = value.type()->isMethod() ?
 						builder.CreateExtractValue(llvmValue, { 1 }) :
 						llvmValue;
 					
-					const auto functionType = value->type()->isMethod() ?
-						value->type()->getMethodFunctionType() : value->type();
+					const auto functionType = value.type()->isMethod() ?
+						value.type()->getMethodFunctionType() : value.type();
 					const bool isTemplatedMethod = functionType->isFunctionTemplated();
 					callInfo.functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
 					callInfo.templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;

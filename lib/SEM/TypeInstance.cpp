@@ -220,8 +220,8 @@ namespace locic {
 							  "templateVariables: %s, variables: %s, "
 							  "functions: %s)",
 							  refToString().c_str(),
-							  makeArrayString(templateVariables_).c_str(),
-							  makeArrayString(variables_).c_str(),
+							  makeArrayPtrString(templateVariables_).c_str(),
+							  makeArrayPtrString(variables_).c_str(),
 							  makeMapString(functions_).c_str());
 		}
 		

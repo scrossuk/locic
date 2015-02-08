@@ -79,8 +79,8 @@ namespace locic {
 			const auto name = "__template_generator";
 			
 			const auto result = module.getTypeMap().tryGet(name);
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			TypeGenerator typeGen(module);
@@ -379,8 +379,8 @@ namespace locic {
 			const auto mangledName = mangleTemplateGenerator(templatedObject);
 			
 			const auto result = module.getFunctionMap().tryGet(mangledName);
-			if (result.hasValue()) {
-				return result.getValue();
+			if (result) {
+				return *result;
 			}
 			
 			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionArgInfo(module), getTemplatedObjectLinkage(templatedObject), mangledName);

@@ -167,7 +167,8 @@ namespace locic {
 					exitStates.set(UnwindStateNormal);
 					return exitStates;
 				}
-				case SEM::Statement::RETURN: {
+				case SEM::Statement::RETURN:
+				case SEM::Statement::RETURNVOID: {
 					std::bitset<UnwindState_MAX> exitStates;
 					exitStates.set(UnwindStateReturn);
 					return exitStates;
@@ -200,58 +201,58 @@ namespace locic {
 			std::terminate();
 		}
 		
-		std::bitset<UnwindState_MAX> GetValueExitStates(SEM::Value* value) {
-			switch (value->kind()) {
+		std::bitset<UnwindState_MAX> GetValueExitStates(const SEM::Value& value) {
+			switch (value.kind()) {
 				case SEM::Value::REINTERPRET: {
-					return GetValueExitStates(value->reinterpretValue.value);
+					return GetValueExitStates(*(value.reinterpretValue.value));
 				}
 				case SEM::Value::DEREF_REFERENCE: {
-					return GetValueExitStates(value->derefReference.value);
+					return GetValueExitStates(*(value.derefReference.value));
 				}
 				case SEM::Value::TERNARY: {
-					return GetValueExitStates(value->ternary.condition) |
-						GetValueExitStates(value->ternary.ifTrue) |
-						GetValueExitStates(value->ternary.ifFalse);
+					return GetValueExitStates(*(value.ternary.condition)) |
+						GetValueExitStates(*(value.ternary.ifTrue)) |
+						GetValueExitStates(*(value.ternary.ifFalse));
 				}
 				case SEM::Value::CAST: {
-					return GetValueExitStates(value->cast.value);
+					return GetValueExitStates(*(value.cast.value));
 				}
 				case SEM::Value::POLYCAST: {
-					return GetValueExitStates(value->polyCast.value);
+					return GetValueExitStates(*(value.polyCast.value));
 				}
 				case SEM::Value::LVAL: {
-					return GetValueExitStates(value->makeLval.value);
+					return GetValueExitStates(*(value.makeLval.value));
 				}
 				case SEM::Value::NOLVAL: {
-					return GetValueExitStates(value->makeNoLval.value);
+					return GetValueExitStates(*(value.makeNoLval.value));
 				}
 				case SEM::Value::REF: {
-					return GetValueExitStates(value->makeRef.value);
+					return GetValueExitStates(*(value.makeRef.value));
 				}
 				case SEM::Value::NOREF: {
-					return GetValueExitStates(value->makeNoRef.value);
+					return GetValueExitStates(*(value.makeNoRef.value));
 				}
 				case SEM::Value::INTERNALCONSTRUCT: {
 					std::bitset<UnwindState_MAX> exitStates;
-					for (const auto parameter: value->internalConstruct.parameters) {
+					for (const auto& parameter: value.internalConstruct.parameters) {
 						exitStates |= GetValueExitStates(parameter);
 					}
 					return exitStates;
 				}
 				case SEM::Value::MEMBERACCESS: {
-					return GetValueExitStates(value->memberAccess.object);
+					return GetValueExitStates(*(value.memberAccess.object));
 				}
 				case SEM::Value::REFVALUE: {
-					return GetValueExitStates(value->refValue.value);
+					return GetValueExitStates(*(value.refValue.value));
 				}
 				case SEM::Value::FUNCTIONCALL: {
 					std::bitset<UnwindState_MAX> exitStates;
-					for (const auto parameter: value->functionCall.parameters) {
+					for (const auto& parameter: value.functionCall.parameters) {
 						exitStates |= GetValueExitStates(parameter);
 					}
 					
-					const auto functionValue = value->functionCall.functionValue;
-					const auto functionType = functionValue->type()->getCallableFunctionType();
+					const auto& functionValue = *(value.functionCall.functionValue);
+					const auto functionType = functionValue.type()->getCallableFunctionType();
 					assert(functionType->isFunction());
 					
 					if (!functionType->isFunctionNoExcept()) {

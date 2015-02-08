@@ -67,7 +67,7 @@ namespace locic {
 				const bool formatOnly = !isTopLevel;
 				
 				const auto value = ImplicitCast(context, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
-				return value->type();
+				return value.type();
 			}
 			
 			SEM::Var* ConvertInitialisedVarRecurse(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {

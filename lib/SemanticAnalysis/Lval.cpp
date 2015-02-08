@@ -53,18 +53,26 @@ namespace locic {
 			return count;
 		}
 		
-		bool canDissolveValue(Context& context, SEM::Value* value) {
-			const auto type = getSingleDerefType(value->type());
+		bool canDissolveType(Context& context, const SEM::Type* const rawType) {
+			const auto type = getSingleDerefType(rawType);
 			return type->isLval() && type->isObjectOrTemplateVar() && supportsDissolve(context, type);
 		}
 		
-		SEM::Value* dissolveLval(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			assert (canDissolveValue(context, value));
-			return CallValue(context, GetSpecialMethod(context, value, "dissolve", location), {}, location);
+		bool canDissolveValue(Context& context, const SEM::Value& value) {
+			return canDissolveType(context, value.type());
 		}
 		
-		SEM::Value* tryDissolveValue(Context& context, SEM::Value* value, const Debug::SourceLocation& location) {
-			return canDissolveValue(context, value) ? dissolveLval(context, value, location) : value;
+		SEM::Value dissolveLval(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+			assert (canDissolveValue(context, value));
+			return CallValue(context, GetSpecialMethod(context, std::move(value), "dissolve", location), {}, location);
+		}
+		
+		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+			if (canDissolveValue(context, value)) {
+				return dissolveLval(context, std::move(value), location);
+			} else {
+				return value;
+			}
 		}
 		
 	}

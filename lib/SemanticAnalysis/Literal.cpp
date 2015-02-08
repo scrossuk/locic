@@ -8,6 +8,7 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
+#include <locic/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -175,8 +176,8 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value* getLiteralValue(Context& context, const std::string& specifier, const Constant& constant, const Debug::SourceLocation& location) {
-			const auto constantValue = SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
+		SEM::Value getLiteralValue(Context& context, const std::string& specifier, const Constant& constant, const Debug::SourceLocation& location) {
+			auto constantValue = SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
 			
 			if (constant.kind() != Constant::STRING || specifier == "C") {
 				return constantValue;
@@ -190,8 +191,8 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			const auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, SEM::TemplateVarMap());
-			return CallValue(context, functionRef, { constantValue }, location);
+			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, searchResult.function()->type());
+			return CallValue(context, std::move(functionRef), makeArray( std::move(constantValue) ), location);
 		}
 		
 	}

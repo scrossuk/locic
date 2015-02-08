@@ -33,24 +33,24 @@ namespace locic {
 			return type;
 		}
 		
-		SEM::Value* derefOne(SEM::Value* value) {
-			assert(value->type()->isRef() && value->type()->refTarget()->isRef());
+		SEM::Value derefOne(SEM::Value value) {
+			assert(value.type()->isRef() && value.type()->refTarget()->isRef());
 			// TODO: add support for custom ref types.
-			return SEM::Value::DerefReference(value);
+			return SEM::Value::DerefReference(std::move(value));
 		}
 		
-		SEM::Value* derefValue(SEM::Value* value) {
-			while (value->type()->isRef() && value->type()->refTarget()->isRef()) {
+		SEM::Value derefValue(SEM::Value value) {
+			while (value.type()->isRef() && value.type()->refTarget()->isRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(value);
+				value = SEM::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value* derefAll(SEM::Value* value) {
-			while (value->type()->isRef()) {
+		SEM::Value derefAll(SEM::Value value) {
+			while (value.type()->isRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(value);
+				value = SEM::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
@@ -78,29 +78,29 @@ namespace locic {
 			return type;
 		}
 		
-		SEM::Value* staticDerefOne(SEM::Value* value) {
-			assert(value->type()->isStaticRef() && value->type()->staticRefTarget()->isStaticRef());
+		SEM::Value staticDerefOne(SEM::Value value) {
+			assert(value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef());
 			// TODO: add support for custom ref types.
-			return SEM::Value::DerefReference(value);
+			return SEM::Value::DerefReference(std::move(value));
 		}
 		
-		SEM::Value* staticDerefValue(SEM::Value* value) {
-			while (value->type()->isStaticRef() && value->type()->staticRefTarget()->isStaticRef()) {
+		SEM::Value staticDerefValue(SEM::Value value) {
+			while (value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(value);
+				value = SEM::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value* staticDerefAll(SEM::Value* value) {
-			while (value->type()->isStaticRef()) {
+		SEM::Value staticDerefAll(SEM::Value value) {
+			while (value.type()->isStaticRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(value);
+				value = SEM::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value* createTypeRef(Context& context, const SEM::Type* targetType) {
+		SEM::Value createTypeRef(Context& context, const SEM::Type* targetType) {
 			const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t", {});
 			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
@@ -109,21 +109,21 @@ namespace locic {
 			return getBuiltInType(context.scopeStack(), "__ref", { varType})->createRefType(varType);
 		}
 		
-		SEM::Value* createSelfRef(Context& context, const SEM::Type* selfType) {
+		SEM::Value createSelfRef(Context& context, const SEM::Type* selfType) {
 			return SEM::Value::Self(createReferenceType(context, selfType));
 		}
 		
-		SEM::Value* createLocalVarRef(Context& context, SEM::Var* var) {
+		SEM::Value createLocalVarRef(Context& context, SEM::Var* var) {
 			return SEM::Value::LocalVar(var, createReferenceType(context, var->type()));
 		}
 		
-		SEM::Value* createMemberVarRef(Context& context, SEM::Value* object, SEM::Var* var) {
+		SEM::Value createMemberVarRef(Context& context, SEM::Value object, SEM::Var* var) {
 			// If the object type is const, then
 			// the members must also be.
-			const auto derefType = getDerefType(object->type());
+			const auto derefType = getDerefType(object.type());
 			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
 			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
-			return SEM::Value::MemberAccess(derefValue(object), var, createReferenceType(context, memberTypeSub));
+			return SEM::Value::MemberAccess(derefValue(std::move(object)), var, createReferenceType(context, memberTypeSub));
 		}
 		
 	}

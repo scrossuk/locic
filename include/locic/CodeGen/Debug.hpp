@@ -70,7 +70,7 @@ namespace locic {
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
 		
-		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, SEM::Value* value);
+		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value);
 		
 	}
 	

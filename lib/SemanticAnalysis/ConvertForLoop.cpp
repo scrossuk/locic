@@ -49,47 +49,47 @@ namespace locic {
 			{
 				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(outerScope.get()));
 				
-				const auto initValue = ConvertValue(context, astInitValueNode);
+				auto initValue = ConvertValue(context, astInitValueNode);
 				
-				const auto initVarType = (initValue->type()->isLvalOrRef()) ?
-						createReferenceType(context, initValue->type()->lvalOrRefTarget()) :
-						initValue->type();
+				const auto initVarType = (initValue.type()->isLvalOrRef()) ?
+						createReferenceType(context, initValue.type()->lvalOrRefTarget()) :
+						initValue.type();
 				
 				const auto initVar = SEM::Var::Basic(initVarType, initVarType);
 				outerScope->variables().push_back(initVar);
 				
-				outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(context, initValue, initVarType, location)));
+				outerScope->statements().push_back(SEM::Statement::InitialiseStmt(initVar, ImplicitCast(context, std::move(initValue), initVarType, location)));
 				
 				{
 					PushScopeElement pushLoop(context.scopeStack(), ScopeElement::Loop());
 					
-					const auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "empty", location), {}, location);
-					const auto isNotEmpty = CallValue(context, GetMethod(context, isEmpty, "not", location), {}, location);
-					const auto loopCondition = ImplicitCast(context, isNotEmpty, getBuiltInType(context.scopeStack(), "bool", {}), location);
+					auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "empty", location), {}, location);
+					auto isNotEmpty = CallValue(context, GetMethod(context, std::move(isEmpty), "not", location), {}, location);
+					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), getBuiltInType(context.scopeStack(), "bool", {}), location);
 					
 					auto iterationScope = SEM::Scope::Create();
 					
 					{
 						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope.get()));
 						
-						const auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "front", location), {}, location);
+						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "front", location), {}, location);
 						
 						const bool isMember = false;
-						const auto loopVar = ConvertInitialisedVar(context, isMember, astTypeVarNode, currentValue->type());
+						const auto loopVar = ConvertInitialisedVar(context, isMember, astTypeVarNode, currentValue.type());
 						iterationScope->variables().push_back(loopVar);
 						
 						iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar,
-							ImplicitCast(context, currentValue, loopVar->constructType(), location)));
+							ImplicitCast(context, std::move(currentValue), loopVar->constructType(), location)));
 						
 						auto innerScope = ConvertScope(context, astScopeNode);
 						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(std::move(innerScope)));
 					}
 					
 					auto advanceScope = SEM::Scope::Create();
-					const auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "skipfront", location), {}, location);
-					advanceScope->statements().push_back(SEM::Statement::ValueStmt(advanceCurrentValue));
+					auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), "skipfront", location), {}, location);
+					advanceScope->statements().push_back(SEM::Statement::ValueStmt(std::move(advanceCurrentValue)));
 					
-					outerScope->statements().push_back(SEM::Statement::Loop(loopCondition, std::move(iterationScope), std::move(advanceScope)));
+					outerScope->statements().push_back(SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope)));
 				}
 			}
 			

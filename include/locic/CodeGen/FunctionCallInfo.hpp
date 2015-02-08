@@ -15,7 +15,7 @@ namespace locic {
 			llvm::Value* templateGenerator;
 			llvm::Value* contextPointer;
 			
-			inline FunctionCallInfo()
+			FunctionCallInfo()
 				: functionPtr(nullptr),
 				templateGenerator(nullptr),
 				contextPointer(nullptr) { }
@@ -25,11 +25,11 @@ namespace locic {
 		
 		llvm::Function* genFunctionRef(Module& module, const SEM::Type* parentType, SEM::Function* function);
 		
-		bool isTrivialFunction(Module& module, SEM::Value* value);
+		bool isTrivialFunction(Module& module, const SEM::Value& value);
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, SEM::Value* value, llvm::ArrayRef<SEM::Value*> args, ArgPair contextValue = ArgPair(nullptr, 0));
+		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args, ArgPair contextValue = ArgPair(nullptr, 0));
 		
-		FunctionCallInfo genFunctionCallInfo(Function& function, SEM::Value* value);
+		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value);
 		
 	}
 	

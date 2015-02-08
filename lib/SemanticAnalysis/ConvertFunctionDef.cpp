@@ -22,6 +22,7 @@ namespace locic {
 				case SEM::Statement::VALUE:
 				case SEM::Statement::INITIALISE:
 				case SEM::Statement::RETURN:
+				case SEM::Statement::RETURNVOID:
 				case SEM::Statement::THROW:
 				case SEM::Statement::RETHROW:
 				case SEM::Statement::BREAK:

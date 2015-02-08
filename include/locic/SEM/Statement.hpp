@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <locic/SEM/Value.hpp>
+
 namespace locic {
 
 	namespace SEM {
@@ -14,7 +16,6 @@ namespace locic {
 		class Scope;
 		class SwitchCase;
 		class Type;
-		class Value;
 		class Var;
 		
 		class Statement {
@@ -29,6 +30,7 @@ namespace locic {
 					TRY,
 					SCOPEEXIT,
 					RETURN,
+					RETURNVOID,
 					THROW,
 					RETHROW,
 					BREAK,
@@ -37,17 +39,17 @@ namespace locic {
 					UNREACHABLE
 				};
 				
-				static Statement* ValueStmt(Value* value);
+				static Statement* ValueStmt(Value value);
 				
 				static Statement* ScopeStmt(std::unique_ptr<Scope> scope);
 				
-				static Statement* InitialiseStmt(Var* var, Value* value);
+				static Statement* InitialiseStmt(Var* var, Value value);
 				
 				static Statement* If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
 				
-				static Statement* Switch(Value* value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
+				static Statement* Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
 				
-				static Statement* Loop(Value* condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
+				static Statement* Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
 				
 				static Statement* Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
 				
@@ -55,9 +57,9 @@ namespace locic {
 				
 				static Statement* ReturnVoid();
 				
-				static Statement* Return(Value* value);
+				static Statement* Return(Value value);
 				
-				static Statement* Throw(Value* value);
+				static Statement* Throw(Value value);
 				
 				static Statement* Rethrow();
 				
@@ -65,7 +67,7 @@ namespace locic {
 				
 				static Statement* Continue();
 				
-				static Statement* Assert(Value* value, const std::string& name);
+				static Statement* Assert(Value value, const std::string& name);
 				
 				static Statement* Unreachable();
 				
@@ -73,7 +75,7 @@ namespace locic {
 				
 				bool isValueStatement() const;
 				
-				Value* getValue() const;
+				const Value& getValue() const;
 				
 				bool isScope() const;
 				
@@ -83,7 +85,7 @@ namespace locic {
 				
 				Var* getInitialiseVar() const;
 				
-				Value* getInitialiseValue() const;
+				const Value& getInitialiseValue() const;
 				
 				bool isIfStatement() const;
 				
@@ -93,7 +95,7 @@ namespace locic {
 				
 				bool isSwitchStatement() const;
 				
-				Value* getSwitchValue() const;
+				const Value& getSwitchValue() const;
 				
 				const std::vector<SwitchCase*>& getSwitchCaseList() const;
 				
@@ -101,7 +103,7 @@ namespace locic {
 				
 				bool isLoopStatement() const;
 				
-				Value* getLoopCondition() const;
+				const Value& getLoopCondition() const;
 				
 				Scope& getLoopIterationScope() const;
 				
@@ -121,11 +123,11 @@ namespace locic {
 				
 				bool isReturnStatement() const;
 				
-				Value* getReturnValue() const;
+				const Value& getReturnValue() const;
 				
 				bool isThrowStatement() const;
 				
-				Value* getThrowValue() const;
+				const Value& getThrowValue() const;
 				
 				bool isRethrowStatement() const;
 				
@@ -135,7 +137,7 @@ namespace locic {
 				
 				bool isAssertStatement() const;
 				
-				Value* getAssertValue() const;
+				const Value& getAssertValue() const;
 				
 				const std::string& getAssertName() const;
 				
@@ -149,7 +151,7 @@ namespace locic {
 				Kind kind_;
 				
 				struct {
-					Value* value;
+					Value value;
 				} valueStmt_;
 				
 				struct {
@@ -158,7 +160,7 @@ namespace locic {
 				
 				struct {
 					Var* var;
-					Value* value;
+					Value value;
 				} initialiseStmt_;
 				
 				struct {
@@ -167,13 +169,13 @@ namespace locic {
 				} ifStmt_;
 				
 				struct {
-					Value* value;
+					Value value;
 					std::vector<SwitchCase*> caseList;
 					std::unique_ptr<Scope> defaultScope;
 				} switchStmt_;
 				
 				struct {
-					Value* condition;
+					Value condition;
 					std::unique_ptr<Scope> iterationScope;
 					std::unique_ptr<Scope> advanceScope;
 				} loopStmt_;
@@ -189,15 +191,15 @@ namespace locic {
 				} scopeExitStmt_;
 				
 				struct {
-					Value* value;
+					Value value;
 				} returnStmt_;
 				
 				struct {
-					Value* value;
+					Value value;
 				} throwStmt_;
 				
 				struct {
-					Value* value;
+					Value value;
 					std::string name;
 				} assertStmt_;
 				

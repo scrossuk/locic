@@ -109,7 +109,7 @@ namespace locic {
 			getBuilder().CreateRet(values.at(0));
 		}
 		
-		void Function::setReturnValue(llvm::Value* value) {
+		void Function::setReturnValue(llvm::Value* const value) {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
 			
