@@ -90,7 +90,7 @@ namespace locic {
 			const auto selfType = thisTypeInstance->selfType();
 			
 			// TODO: we need to actually put the predicate in the type that's returned!
-			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), {});
+			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), SEM::TemplateVarMap());
 			
 			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
 			return createSelfRef(context, selfConstType);
@@ -113,7 +113,7 @@ namespace locic {
 			const auto selfType = thisTypeInstance->selfType();
 			
 			// TODO: we need to actually put the predicate in the type that's returned!
-			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), {});
+			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), SEM::TemplateVarMap());
 			
 			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
 			return SEM::Value::This(getBuiltInType(context.scopeStack(), "__ptr", { selfConstType }));
