@@ -1,12 +1,12 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
-#include <set>
 #include <tuple>
+#include <unordered_map>
 
 #include <locic/Debug.hpp>
-
 #include <locic/SEM.hpp>
+#include <locic/StableSet.hpp>
 
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -46,10 +46,18 @@ namespace locic {
 				
 				const MethodSet* getMethodSet(MethodSet methodSet) const;
 				
+				Optional<bool> getCapability(const SEM::Type* type, const char* capability) const;
+				
+				void setCapability(const SEM::Type* type, const char* capability, bool isCapable);
+				
 			private:
 				// Non-copyable.
 				Context(const Context&) = delete;
 				Context& operator=(const Context&) = delete;
+				
+				struct hashPair {
+					std::size_t operator()(const std::pair<const SEM::Type*, const char*>& pair) const;
+				};
 				
 				Debug::Module& debugModule_;
 				ScopeStack scopeStack_;
@@ -57,7 +65,8 @@ namespace locic {
 				bool templateRequirementsComplete_;
 				std::vector<TemplateInstTuple> templateInstantiations_;
 				std::set<std::string> validVarArgTypes_;
-				mutable std::set<MethodSet> methodSets_;
+				mutable StableSet<MethodSet> methodSets_;
+				std::unordered_map<std::pair<const SEM::Type*, const char*>, bool, hashPair> capabilities_;
 				
 		};
 		

@@ -129,6 +129,10 @@ namespace locic {
 				
 				std::string toString() const;
 				
+				std::size_t hash() const;
+				
+				bool operator==(const Type& type) const;
+				
 				bool operator<(const Type& type) const;
 				
 			private:

@@ -257,10 +257,15 @@ namespace locic {
 			return SEM::Value::FunctionCall(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
 		}
 		
-		bool checkCapability(Context& context, const SEM::Type* const rawType, const std::string& capability, const std::vector<const SEM::Type*>& templateArgs) {
+		bool checkCapability(Context& context, const SEM::Type* const rawType, const char* const capability, const std::vector<const SEM::Type*>& templateArgs) {
 			const auto type = rawType->resolveAliases();
 			if (!type->isObject() && !type->isTemplateVar()) {
 				return false;
+			}
+			
+			const Optional<bool> previousResult = context.getCapability(type, capability);
+			if (previousResult) {
+				return *previousResult;
 			}
 			
 			auto resolvedArgs = templateArgs;
@@ -273,7 +278,9 @@ namespace locic {
 			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);
 			
-			return methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
+			const bool result = methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
+			context.setCapability(type, capability, result);
+			return result;
 		}
 		
 		bool supportsNullConstruction(Context& context, const SEM::Type* type) {

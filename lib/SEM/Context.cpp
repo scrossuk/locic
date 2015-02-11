@@ -1,4 +1,5 @@
 #include <set>
+#include <unordered_set>
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Namespace.hpp>

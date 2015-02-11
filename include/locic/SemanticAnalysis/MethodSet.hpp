@@ -29,6 +29,10 @@ namespace locic {
 				
 				const SEM::Type* createFunctionType(bool isTemplated) const;
 				
+				std::size_t hash() const;
+				
+				bool operator==(const MethodSetElement& methodSetElement) const;
+				
 				bool operator<(const MethodSetElement& methodSetElement) const;
 				
 			private:
@@ -75,6 +79,10 @@ namespace locic {
 				FilterReason getFilterReason(const std::string& name) const;
 				
 				const MethodSet* substitute(const SEM::TemplateVarMap& templateAssignments) const;
+				
+				std::size_t hash() const;
+				
+				bool operator==(const MethodSet& methodSet) const;
 				
 				bool operator<(const MethodSet& methodSet) const;
 				

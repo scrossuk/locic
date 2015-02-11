@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 #include <locic/Map.hpp>
 #include <locic/String.hpp>
 
@@ -17,11 +19,11 @@ namespace locic {
 
 	namespace SEM {
 	
-		template <typename T>
-		const Type* applyType(T function, const Type* type);
+		template <typename PreFunction, typename PostFunction>
+		const Type* applyType(const Type* type, PreFunction preFunction, PostFunction postFunction);
 		
-		template <typename T>
-		const Type* doApplyType(T function, const Type* const type) {
+		template <typename PreFunction, typename PostFunction>
+		const Type* doApplyType(const Type* const type, PreFunction preFunction, PostFunction postFunction) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type;
@@ -29,37 +31,72 @@ namespace locic {
 				
 				case Type::OBJECT: {
 					std::vector<const Type*> templateArgs;
+					templateArgs.reserve(type->templateArguments().size());
+					
+					bool changed = false;
 					
 					for (const auto& templateArg : type->templateArguments()) {
-						templateArgs.push_back(applyType<T>(function, templateArg));
+						const auto appliedArg = applyType<PreFunction, PostFunction>(templateArg, preFunction, postFunction);
+						changed |= (appliedArg != templateArg);
+						templateArgs.push_back(appliedArg);
 					}
 					
-					return Type::Object(type->getObjectType(), templateArgs);
+					if (changed) {
+						return Type::Object(type->getObjectType(), templateArgs);
+					} else {
+						return type;
+					}
 				}
 				
 				case Type::FUNCTION: {
 					std::vector<const Type*> args;
+					args.reserve(type->getFunctionParameterTypes().size());
+					
+					bool changed = false;
 					
 					for (const auto& paramType : type->getFunctionParameterTypes()) {
-						args.push_back(applyType<T>(function, paramType));
+						const auto appliedType = applyType<PreFunction, PostFunction>(paramType, preFunction, postFunction);
+						changed |= (appliedType != paramType);
+						args.push_back(appliedType);
 					}
 					
-					const auto returnType = applyType<T>(function, type->getFunctionReturnType());
-					return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-						type->isFunctionTemplated(),
-						type->isFunctionNoExcept(), returnType, args);
+					const auto returnType = applyType<PreFunction, PostFunction>(type->getFunctionReturnType(), preFunction, postFunction);
+					changed |= (returnType != type->getFunctionReturnType());
+					
+					if (changed) {
+						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
+							type->isFunctionTemplated(),
+							type->isFunctionNoExcept(), returnType, args);
+					} else {
+						return type;
+					}
 				}
 				
 				case Type::METHOD: {
-					return Type::Method(applyType<T>(function, type->getMethodFunctionType()));
+					const auto appliedType = applyType<PreFunction, PostFunction>(type->getMethodFunctionType(), preFunction, postFunction);
+					if (appliedType != type->getMethodFunctionType()) {
+						return Type::Method(appliedType);
+					} else {
+						return type;
+					}
 				}
 				
 				case Type::INTERFACEMETHOD: {
-					return Type::InterfaceMethod(applyType<T>(function, type->getInterfaceMethodFunctionType()));
+					const auto appliedType = applyType<PreFunction, PostFunction>(type->getInterfaceMethodFunctionType(), preFunction, postFunction);
+					if (appliedType != type->getInterfaceMethodFunctionType()) {
+						return Type::InterfaceMethod(appliedType);
+					} else {
+						return type;
+					}
 				}
 				
 				case Type::STATICINTERFACEMETHOD: {
-					return Type::StaticInterfaceMethod(applyType<T>(function, type->getStaticInterfaceMethodFunctionType()));
+					const auto appliedType = applyType<PreFunction, PostFunction>(type->getStaticInterfaceMethodFunctionType(), preFunction, postFunction);
+					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
+						return Type::StaticInterfaceMethod(appliedType);
+					} else {
+						return type;
+					}
 				}
 				
 				case Type::TEMPLATEVAR: {
@@ -68,37 +105,46 @@ namespace locic {
 				
 				case Type::ALIAS: {
 					std::vector<const Type*> templateArgs;
+					templateArgs.reserve(type->typeAliasArguments().size());
+					
+					bool changed = false;
 					
 					for (const auto& templateArg : type->typeAliasArguments()) {
-						templateArgs.push_back(applyType<T>(function, templateArg));
+						const auto appliedArg = applyType<PreFunction, PostFunction>(templateArg, preFunction, postFunction);
+						changed |= (appliedArg != templateArg);
+						templateArgs.push_back(appliedArg);
 					}
 					
-					return Type::Alias(type->getTypeAlias(), templateArgs);
+					if (changed) {
+						return Type::Alias(type->getTypeAlias(), templateArgs);
+					} else {
+						return type;
+					}
 				}
 			}
 			
 			std::terminate();
 		}
 		
-		template <typename T>
-		const Type* applyType(T function, const Type* type) {
-			const auto basicType = doApplyType<T>(function, type);
+		template <typename PreFunction, typename PostFunction>
+		const Type* applyType(const Type* const type, PreFunction preFunction, PostFunction postFunction) {
+			const auto basicType = preFunction(doApplyType<PreFunction, PostFunction>(type, preFunction, postFunction));
 			
 			const auto constType = type->isConst() ? basicType->createConstType() : basicType;
 			
 			const auto lvalType = type->isLval() ?
-				constType->createLvalType(applyType<T>(function, type->lvalTarget())) :
+				constType->createLvalType(applyType<PreFunction, PostFunction>(type->lvalTarget(), preFunction, postFunction)) :
 				constType;
 			
 			const auto refType = type->isRef() ?
-				lvalType->createRefType(applyType<T>(function, type->refTarget())) :
+				lvalType->createRefType(applyType<PreFunction, PostFunction>(type->refTarget(), preFunction, postFunction)) :
 				lvalType;
 			
 			const auto staticRefType = type->isStaticRef() ?
-				refType->createStaticRefType(applyType<T>(function, type->staticRefTarget())) :
+				refType->createStaticRefType(applyType<PreFunction, PostFunction>(type->staticRefTarget(), preFunction, postFunction)) :
 				refType;
 			
-			return function(staticRefType);
+			return postFunction(staticRefType);
 		}
 		
 		const std::vector<const Type*> Type::NO_TEMPLATE_ARGS = std::vector<const Type*>();
@@ -241,40 +287,61 @@ namespace locic {
 		}
 		
 		const Type* Type::createConstType() const {
+			if (isConst()) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.isConst_ = true;
 			return context_.getType(typeCopy);
 		}
 		
 		const Type* Type::createMutableType() const {
+			if (!isConst()) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.isConst_ = false;
 			return context_.getType(typeCopy);
 		}
 		
-		const Type* Type::createLvalType(const Type* targetType) const {
-			assert(!isLval() && !isRef() && !isStaticRef());
+		const Type* Type::createLvalType(const Type* const targetType) const {
+			if (isLval() && lvalTarget() == targetType) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.lvalTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
-		const Type* Type::createRefType(const Type* targetType) const {
-			assert(!isLval() && !isRef() && !isStaticRef());
+		const Type* Type::createRefType(const Type* const targetType) const {
+			if (isRef() && refTarget() == targetType) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.refTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
-		const Type* Type::createStaticRefType(const Type* targetType) const {
-			assert(!isLval() && !isRef() && !isStaticRef());
+		const Type* Type::createStaticRefType(const Type* const targetType) const {
+			if (isStaticRef() && staticRefTarget() == targetType) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.staticRefTarget_ = targetType;
 			return context_.getType(typeCopy);
 		}
 		
 		const Type* Type::withoutLval() const {
-			return applyType([&](const Type* type) {
+			return applyType(this,
+				[] (const Type* const type) {
+					return type;
+				},
+				[&](const Type* const type) {
 					if (type->isLval()) {
 						Type typeCopy(*type);
 						typeCopy.lvalTarget_ = nullptr;
@@ -282,11 +349,15 @@ namespace locic {
 					} else {
 						return type;
 					}
-				}, this);
+				});
 		}
 		
 		const Type* Type::withoutRef() const {
-			return applyType([&](const Type* type) {
+			return applyType(this,
+				[] (const Type* const type) {
+					return type;
+				},
+				[&](const Type* const type) {
 					if (type->isRef()) {
 						Type typeCopy(*type);
 						typeCopy.refTarget_ = nullptr;
@@ -294,11 +365,15 @@ namespace locic {
 					} else {
 						return type;
 					}
-				}, this);
+				});
 		}
 		
 		const Type* Type::withoutLvalOrRef() const {
-			return applyType([&](const Type* type) {
+			return applyType(this,
+				[] (const Type* const type) {
+					return type;
+				},
+				[&](const Type* const type) {
 					if (type->isRef()) {
 						Type typeCopy(*type);
 						typeCopy.lvalTarget_ = nullptr;
@@ -308,10 +383,14 @@ namespace locic {
 					} else {
 						return type;
 					}
-				}, this);
+				});
 		}
 		
 		const Type* Type::withoutTags() const {
+			if (!isConst() && !isLval() && !isRef() && !isStaticRef()) {
+				return this;
+			}
+			
 			Type typeCopy(*this);
 			typeCopy.isConst_ = false;
 			typeCopy.lvalTarget_ = nullptr;
@@ -553,81 +632,23 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		namespace {
-		
-			const Type* doSubstitute(const Type* type, const TemplateVarMap& templateVarMap) {
-				switch (type->kind()) {
-					case Type::OBJECT: {
-						std::vector<const Type*> templateArgs;
-						
-						for (const auto& templateArg : type->templateArguments()) {
-							templateArgs.push_back(templateArg->substitute(templateVarMap));
-						}
-						
-						return Type::Object(type->getObjectType(), templateArgs);
-					}
-					
-					case Type::FUNCTION: {
-						std::vector<const Type*> args;
-						
-						for (const auto& paramType : type->getFunctionParameterTypes()) {
-							args.push_back(paramType->substitute(templateVarMap));
-						}
-						
-						const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
-						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(),
-							type->isFunctionNoExcept(), returnType, args);
-					}
-					
-					case Type::METHOD: {
-						const auto functionType = type->getMethodFunctionType()->substitute(templateVarMap);
-						return Type::Method(functionType);
-					}
-					
-					case Type::INTERFACEMETHOD: {
-						const auto functionType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
-						return Type::InterfaceMethod(functionType);
-					}
-					
-					case Type::STATICINTERFACEMETHOD: {
-						const auto functionType = type->getStaticInterfaceMethodFunctionType()->substitute(templateVarMap);
-						return Type::StaticInterfaceMethod(functionType);
-					}
-					
-					case Type::TEMPLATEVAR: {
+		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
+			return applyType(this,
+				[&](const Type* const type) {
+					if (type->isTemplateVar()) {
 						const auto iterator = templateVarMap.find(type->getTemplateVar());
 						if (iterator != templateVarMap.end()) {
 							return iterator->second;
 						} else {
-							return Type::TemplateVarRef(type->getTemplateVar());
+							return type;
 						}
+					} else {
+						return type;
 					}
-					
-					case Type::ALIAS: {
-						std::vector<const Type*> templateArgs;
-						
-						for (const auto& templateArg : type->typeAliasArguments()) {
-							templateArgs.push_back(templateArg->substitute(templateVarMap));
-						}
-						
-						return SEM::Type::Alias(type->getTypeAlias(), templateArgs);
-					}
-					
-					default:
-						throw std::runtime_error("Unknown type kind for template var substitution.");
-				}
-			}
-			
-		}
-		
-		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
-			const auto substitutedType = doSubstitute(this, templateVarMap);
-			const auto constType = isConst() ? substitutedType->createConstType() : substitutedType;
-			const auto lvalType = isLval() ? constType->createLvalType(lvalTarget()->substitute(templateVarMap)) : constType;
-			const auto refType = isRef() ? lvalType->createRefType(refTarget()->substitute(templateVarMap)) : lvalType;
-			const auto staticRefType = isStaticRef() ? refType->createStaticRefType(staticRefTarget()->substitute(templateVarMap)) : refType;
-			return staticRefType;
+				},
+				[](const Type* const type) {
+					return type;
+				});
 		}
 		
 		const Type* Type::makeTemplatedFunction() const {
@@ -637,95 +658,26 @@ namespace locic {
 				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes());
 		}
 		
-		namespace {
-		
-			const Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap);
-			
-			const Type* doResolveSwitch(const Type* type, const TemplateVarMap& templateVarMap) {
-				switch (type->kind()) {
-					case Type::AUTO: {
-						return Type::Auto(type->context());
-					}
-					
-					case Type::OBJECT: {
-						std::vector<const Type*> templateArgs;
-						templateArgs.reserve(type->templateArguments().size());
-						
-						for (const auto& templateArg: type->templateArguments()) {
-							templateArgs.push_back(doResolve(templateArg, templateVarMap));
-						}
-						
-						return Type::Object(type->getObjectType(), templateArgs);
-					}
-					
-					case Type::FUNCTION: {
-						std::vector<const Type*> args;
-						args.reserve(type->getFunctionParameterTypes().size());
-						for (const auto& paramType: type->getFunctionParameterTypes()) {
-							args.push_back(doResolve(paramType, templateVarMap));
-						}
-						
-						const auto returnType = doResolve(type->getFunctionReturnType(), templateVarMap);
-						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(),
-							type->isFunctionNoExcept(), returnType, args);
-					}
-					
-					case Type::METHOD: {
-						const auto functionType = doResolve(type->getMethodFunctionType(), templateVarMap);
-						return Type::Method(functionType);
-					}
-					
-					case Type::INTERFACEMETHOD: {
-						const auto functionType = doResolve(type->getInterfaceMethodFunctionType(), templateVarMap);
-						return Type::InterfaceMethod(functionType);
-					}
-					
-					case Type::STATICINTERFACEMETHOD: {
-						const auto functionType = doResolve(type->getStaticInterfaceMethodFunctionType(), templateVarMap);
-						return Type::StaticInterfaceMethod(functionType);
-					}
-					
-					case Type::TEMPLATEVAR: {
-						const auto iterator = templateVarMap.find(type->getTemplateVar());
-						if (iterator != templateVarMap.end()) {
-							return iterator->second;
-						} else {
-							return Type::TemplateVarRef(type->getTemplateVar());
-						}
-					}
-					
-					case Type::ALIAS: {
+		const Type* Type::resolveAliases() const {
+			return applyType(this,
+				[](const Type* const type) {
+					if (type->isAlias()) {
 						const auto& templateVars = type->getTypeAlias()->templateVariables();
 						const auto& templateArgs = type->typeAliasArguments();
 						
-						TemplateVarMap newTemplateVarMap = templateVarMap;
+						TemplateVarMap templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
-							const auto resolvedType = doResolve(templateArgs.at(i), templateVarMap);
-							newTemplateVarMap.insert(std::make_pair(templateVars.at(i), resolvedType));
+							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
 						}
 						
-						return doResolve(type->getTypeAlias()->value(), newTemplateVarMap);
+						return type->getTypeAlias()->value()->substitute(templateVarMap)->resolveAliases();
+					} else {
+						return type;
 					}
-					
-					default:
-						throw std::runtime_error("Unknown type kind for alias resolution.");
-				}
-			}
-			
-			const Type* doResolve(const Type* type, const TemplateVarMap& templateVarMap) {
-				const auto substitutedType = doResolveSwitch(type, templateVarMap);
-				const auto constType = type->isConst() ? substitutedType->createConstType() : substitutedType;
-				const auto lvalType = type->isLval() ? constType->createLvalType(doResolve(type->lvalTarget(), templateVarMap)) : constType;
-				const auto refType = type->isRef() ? lvalType->createRefType(doResolve(type->refTarget(), templateVarMap)) : lvalType;
-				const auto staticRefType = type->isStaticRef() ? refType->createStaticRefType(type->staticRefTarget()->substitute(templateVarMap)) : refType;
-				return staticRefType;
-			}
-			
-		}
-		
-		const Type* Type::resolveAliases() const {
-			return doResolve(this, SEM::TemplateVarMap());
+				},
+				[](const Type* const type) {
+					return type;
+				});
 		}
 		
 		std::string Type::nameToString() const {
@@ -918,6 +870,211 @@ namespace locic {
 				refStr;
 				
 			return staticRefStr;
+		}
+		
+		std::size_t Type::hash() const {
+			std::size_t seed = 0;
+			boost::hash_combine(seed, kind());
+			boost::hash_combine(seed, isConst());
+			boost::hash_combine(seed, isLval() ? lvalTarget() : NULL);
+			boost::hash_combine(seed, isRef() ? refTarget() : NULL);
+			boost::hash_combine(seed, isStaticRef() ? staticRefTarget() : NULL);
+			
+			switch (kind()) {
+				case AUTO: {
+					break;
+				}
+				
+				case ALIAS: {
+					boost::hash_combine(seed, typeAliasArguments().size());
+					
+					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
+						boost::hash_combine(seed, typeAliasArguments().at(i));
+					}
+					
+					break;
+				}
+				
+				case OBJECT: {
+					boost::hash_combine(seed, templateArguments().size());
+					
+					for (size_t i = 0; i < templateArguments().size(); i++) {
+						boost::hash_combine(seed, templateArguments().at(i));
+					}
+					
+					break;
+				}
+				
+				case FUNCTION: {
+					const auto& paramList = getFunctionParameterTypes();
+					
+					boost::hash_combine(seed, paramList.size());
+					
+					for (size_t i = 0; i < paramList.size(); i++) {
+						boost::hash_combine(seed, paramList.at(i));
+					}
+					
+					boost::hash_combine(seed, getFunctionReturnType());
+					boost::hash_combine(seed, isFunctionVarArg());
+					boost::hash_combine(seed, isFunctionMethod());
+					boost::hash_combine(seed, isFunctionTemplated());
+					boost::hash_combine(seed, isFunctionNoExcept());
+					break;
+				}
+				
+				case METHOD: {
+					boost::hash_combine(seed, getMethodFunctionType());
+					break;
+				}
+				
+				case INTERFACEMETHOD: {
+					boost::hash_combine(seed, getInterfaceMethodFunctionType());
+					break;
+				}
+				
+				case STATICINTERFACEMETHOD: {
+					boost::hash_combine(seed, getStaticInterfaceMethodFunctionType());
+					break;
+				}
+				
+				case TEMPLATEVAR: {
+					boost::hash_combine(seed, getTemplateVar());
+					break;
+				}
+			}
+			
+			return seed;
+		}
+		
+		bool Type::operator==(const Type& type) const {
+			if (kind() != type.kind()) {
+				return false;
+			}
+			
+			if (isConst() != type.isConst()) {
+				return false;
+			}
+			
+			if (isLval() != type.isLval()) {
+				return false;
+			}
+			
+			if (isLval() && lvalTarget() != type.lvalTarget()) {
+				return false;
+			}
+			
+			if (isRef() != type.isRef()) {
+				return false;
+			}
+			
+			if (isRef() && refTarget() != type.refTarget()) {
+				return false;
+			}
+			
+			if (isStaticRef() != type.isStaticRef()) {
+				return false;
+			}
+			
+			if (isStaticRef() && staticRefTarget() != type.staticRefTarget()) {
+				return false;
+			}
+			
+			switch (kind()) {
+				case AUTO: {
+					return true;
+				}
+				
+				case ALIAS: {
+					if (getTypeAlias() != type.getTypeAlias()) {
+						return false;
+					}
+					
+					if (typeAliasArguments().size() != type.typeAliasArguments().size()) {
+						return false;
+					}
+					
+					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
+						if (typeAliasArguments().at(i) != type.typeAliasArguments().at(i)) {
+							return false;
+						}
+					}
+					
+					return true;
+				}
+				
+				case OBJECT: {
+					if (getObjectType() != type.getObjectType()) {
+						return false;
+					}
+					
+					if (templateArguments().size() != type.templateArguments().size()) {
+						return false;
+					}
+					
+					for (size_t i = 0; i < templateArguments().size(); i++) {
+						if (templateArguments().at(i) != type.templateArguments().at(i)) {
+							return false;
+						}
+					}
+					
+					return true;
+				}
+				
+				case FUNCTION: {
+					const auto& firstList = getFunctionParameterTypes();
+					const auto& secondList = type.getFunctionParameterTypes();
+					
+					if (getFunctionReturnType() != type.getFunctionReturnType()) {
+						return false;
+					}
+					
+					if (firstList.size() != secondList.size()) {
+						return false;
+					}
+					
+					for (size_t i = 0; i < firstList.size(); i++) {
+						if (firstList.at(i) != secondList.at(i)) {
+							return false;
+						}
+					}
+					
+					if (isFunctionVarArg() != type.isFunctionVarArg()) {
+						return false;
+					}
+					
+					if (isFunctionMethod() != type.isFunctionMethod()) {
+						return false;
+					}
+					
+					if (isFunctionTemplated() != type.isFunctionTemplated()) {
+						return false;
+					}
+					
+					if (isFunctionNoExcept() != type.isFunctionNoExcept()) {
+						return false;
+					}
+					
+					return true;
+				}
+				
+				case METHOD: {
+					return getMethodFunctionType() == type.getMethodFunctionType();
+				}
+				
+				case INTERFACEMETHOD: {
+					return getInterfaceMethodFunctionType() == type.getInterfaceMethodFunctionType();
+				}
+				
+				case STATICINTERFACEMETHOD: {
+					return getStaticInterfaceMethodFunctionType() == type.getStaticInterfaceMethodFunctionType();
+				}
+				
+				case TEMPLATEVAR: {
+					return getTemplateVar() == type.getTemplateVar();
+				}
+			}
+			
+			throw std::logic_error("Unknown type kind.");
 		}
 		
 		bool Type::operator<(const Type& type) const {

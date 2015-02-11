@@ -3,6 +3,8 @@
 #include <map>
 #include <string>
 
+#include <boost/functional/hash.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
@@ -49,6 +51,29 @@ namespace locic {
 			const bool isVarArg = false;
 			const bool isMethod = !isStatic();
 			return SEM::Type::Function(isVarArg, isMethod, isTemplated, isNoExcept(), returnType(), parameterTypes());
+		}
+		
+		std::size_t MethodSetElement::hash() const {
+			std::size_t seed = 0;
+			
+			boost::hash_combine(seed, isConst());
+			boost::hash_combine(seed, isNoExcept());
+			boost::hash_combine(seed, isStatic());
+			boost::hash_combine(seed, returnType());
+			
+			for (const auto& parameterType: parameterTypes()) {
+				boost::hash_combine(seed, parameterType);
+			}
+			
+			return seed;
+		}
+		
+		bool MethodSetElement::operator==(const MethodSetElement& methodSetElement) const {
+			return returnType() == methodSetElement.returnType() &&
+				parameterTypes() == methodSetElement.parameterTypes() &&
+				isConst() == methodSetElement.isConst() &&
+				isNoExcept() == methodSetElement.isNoExcept() &&
+				isStatic() == methodSetElement.isStatic();
 		}
 		
 		bool MethodSetElement::operator<(const MethodSetElement& methodSetElement) const {
@@ -162,6 +187,26 @@ namespace locic {
 			
 			return MethodSet::get(context(), std::move(elements));
 		}*/
+		
+		std::size_t MethodSet::hash() const {
+			std::size_t seed = 0;
+			
+			for (const auto& filter: filters_) {
+				boost::hash_combine(seed, filter.first);
+				boost::hash_combine(seed, filter.second);
+			}
+			
+			for (const auto& element: elements_) {
+				boost::hash_combine(seed, element.first);
+				boost::hash_combine(seed, element.second.hash());
+			}
+			
+			return seed;
+		}
+		
+		bool MethodSet::operator==(const MethodSet& methodSet) const {
+			return filters_ == methodSet.filters_ && elements_ == methodSet.elements_;
+		}
 		
 		bool MethodSet::operator<(const MethodSet& methodSet) const {
 			if (filters_ != methodSet.filters_) {
@@ -328,7 +373,7 @@ namespace locic {
 			return MethodSet::get(setA->context(), std::move(elements), std::move(filters));
 		}
 		
-		bool methodSetSatisfiesRequirement(const MethodSet* checkSet, const MethodSet* requireSet) {
+		bool methodSetSatisfiesRequirement(const MethodSet* const checkSet, const MethodSet* const requireSet) {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			
@@ -381,9 +426,9 @@ namespace locic {
 				
 				for (size_t i = 0; i < firstList.size(); i++) {
 					if (firstList.at(i) != secondList.at(i)) {
-						printf("\n\nParameter type not compatible:\n\n%s\n\n%s\n\n",
-							checkFunctionName.c_str(),
-							requireFunctionName.c_str());
+						printf("\n\nParameter type not compatible:\n\n%s : %s\n\n%s : %s\n\n",
+							checkFunctionName.c_str(), firstList.at(i)->toString().c_str(),
+							requireFunctionName.c_str(), secondList.at(i)->toString().c_str());
 						return false;
 					}
 				}

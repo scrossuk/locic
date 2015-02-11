@@ -2,8 +2,8 @@
 #define LOCIC_SEM_CONTEXT_HPP
 
 #include <memory>
-#include <set>
 
+#include <locic/StableSet.hpp>
 #include <locic/SEM/Type.hpp>
 
 namespace locic {
@@ -26,7 +26,7 @@ namespace locic {
 				Context& operator=(const Context&) = delete;
 				
 				std::unique_ptr<Namespace> rootNamespace_;
-				mutable std::set<Type> types_;
+				mutable StableSet<Type> types_;
 				
 		};
 		

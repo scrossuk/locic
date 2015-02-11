@@ -1,3 +1,5 @@
+#include <boost/functional/hash.hpp>
+
 #include <locic/Debug.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -72,6 +74,26 @@ namespace locic {
 		const MethodSet* Context::getMethodSet(MethodSet methodSet) const {
 			const auto result = methodSets_.insert(std::move(methodSet));
 			return &(*(result.first));
+		}
+		
+		Optional<bool> Context::getCapability(const SEM::Type* const type, const char* const capability) const {
+			const auto iterator = capabilities_.find(std::make_pair(type, capability));
+			if (iterator != capabilities_.end()) {
+				return make_optional(iterator->second);
+			} else {
+				return Optional<bool>();
+			}
+		}
+		
+		void Context::setCapability(const SEM::Type* type, const char* capability, const bool isCapable) {
+			(void) capabilities_.insert(std::make_pair(std::make_pair(type, capability), isCapable));
+		}
+		
+		std::size_t Context::hashPair::operator()(const std::pair<const SEM::Type*, const char*>& pair) const {
+			std::size_t seed = 0;
+			boost::hash_combine(seed, pair.first);
+			boost::hash_combine(seed, pair.second);
+			return seed;
 		}
 		
 		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
