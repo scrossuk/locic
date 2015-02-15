@@ -27,8 +27,8 @@ namespace locic {
 			return Type::Alias(const_cast<TypeAlias*>(this), selfTemplateArgs());
 		}
 		
-		std::vector<const Type*> TypeAlias::selfTemplateArgs() const {
-			std::vector<const SEM::Type*> templateArgs;
+		TypeArray TypeAlias::selfTemplateArgs() const {
+			TypeArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {

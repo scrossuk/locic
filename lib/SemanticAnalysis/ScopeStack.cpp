@@ -75,7 +75,7 @@ namespace locic {
 			return function->type()->getFunctionReturnType();
 		}
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, const std::vector<const SEM::Type*>& templateArgs) {
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, SEM::TypeArray templateArgs) {
 			const auto rootElement = scopeStack.at(0);
 			assert(rootElement.isNamespace());
 			
@@ -87,10 +87,10 @@ namespace locic {
 			
 			if (value.isTypeInstance()) {
 				assert(templateArgs.size() == value.typeInstance()->templateVariables().size());
-				return SEM::Type::Object(value.typeInstance(), templateArgs);
+				return SEM::Type::Object(value.typeInstance(), std::move(templateArgs));
 			} else {
 				assert(templateArgs.size() == value.typeAlias()->templateVariables().size());
-				return SEM::Type::Alias(value.typeAlias(), templateArgs);
+				return SEM::Type::Alias(value.typeAlias(), std::move(templateArgs));
 			}
 		}
 		

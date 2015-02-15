@@ -8,6 +8,7 @@
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/TypeArray.hpp>
 
 namespace locic {
 
@@ -43,7 +44,7 @@ namespace locic {
 				 * 
 				 */
 				const Type* selfType() const;
-				std::vector<const Type*> selfTemplateArgs() const;
+				TypeArray selfTemplateArgs() const;
 				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;

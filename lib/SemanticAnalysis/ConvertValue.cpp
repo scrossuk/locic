@@ -217,7 +217,7 @@ namespace locic {
 						const auto function = searchResult.function();
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
-						const auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
+						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
 						const auto functionType = function->type()->substitute(templateVarMap);
 						
 						if (function->isMethod()) {
@@ -231,12 +231,12 @@ namespace locic {
 							
 							const auto typeInstance = typeSearchResult.typeInstance();
 							
-							const auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance->templateVariables());
-							const auto parentType = SEM::Type::Object(typeInstance, parentTemplateArguments);
+							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance->templateVariables());
+							const auto parentType = SEM::Type::Object(typeInstance, std::move(parentTemplateArguments));
 							
-							return SEM::Value::FunctionRef(parentType, function, functionTemplateArguments, functionType);
+							return SEM::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
 						} else {
-							return SEM::Value::FunctionRef(nullptr, function, functionTemplateArguments, functionType);
+							return SEM::Value::FunctionRef(nullptr, function, std::move(functionTemplateArguments), functionType);
 						}
 					} else if (searchResult.isTypeInstance()) {
 						const auto typeInstance = searchResult.typeInstance();
@@ -251,11 +251,11 @@ namespace locic {
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isTypeAlias()) {
 						const auto typeAlias = searchResult.typeAlias();
-						const auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
+						auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
 						assert(templateArguments.size() == typeAlias->templateVariables().size());
 						
 						const auto typenameType = getBuiltInType(context.scopeStack(), "typename_t", {});
-						const auto resolvedType = SEM::Type::Alias(typeAlias, templateArguments)->resolveAliases();
+						const auto resolvedType = SEM::Type::Alias(typeAlias, std::move(templateArguments))->resolveAliases();
 						return SEM::Value::TypeRef(resolvedType, typenameType->createStaticRefType(resolvedType));
 					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,
@@ -598,14 +598,14 @@ namespace locic {
 					const auto& memberName = astValueNode->templatedMemberAccess.memberName;
 					auto object = ConvertValue(context, astValueNode->templatedMemberAccess.object);
 					
-					std::vector<const SEM::Type*> templateArguments;
+					SEM::TypeArray templateArguments;
 					templateArguments.reserve(astValueNode->templatedMemberAccess.typeList->size());
 					
 					for (const auto typeArg: *(astValueNode->templatedMemberAccess.typeList)) {
 						templateArguments.push_back(ConvertType(context, typeArg));
 					}
 					
-					return GetTemplatedMethod(context, std::move(object), memberName, templateArguments, astValueNode.location());
+					return GetTemplatedMethod(context, std::move(object), memberName, std::move(templateArguments), astValueNode.location());
 				}
 				case AST::Value::FUNCTIONCALL: {
 					auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);

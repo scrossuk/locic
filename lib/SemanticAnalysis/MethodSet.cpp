@@ -19,13 +19,17 @@ namespace locic {
 		MethodSetElement::MethodSetElement(
 				const bool pIsConst, const bool pIsNoExcept, const bool pIsStatic,
 				const SEM::Type* const pReturnType,
-				const std::vector<const SEM::Type*>& pParameterTypes
+				SEM::TypeArray pParameterTypes
 			)
 			: isConst_(pIsConst),
 			isNoExcept_(pIsNoExcept),
 			isStatic_(pIsStatic),
 			returnType_(pReturnType),
-			parameterTypes_(pParameterTypes) { }
+			parameterTypes_(std::move(pParameterTypes)) { }
+		
+		MethodSetElement MethodSetElement::copy() const {
+			return MethodSetElement(isConst(), isNoExcept(), isStatic(), returnType(), parameterTypes().copy());
+		}
 		
 		bool MethodSetElement::isConst() const {
 			return isConst_;
@@ -43,14 +47,14 @@ namespace locic {
 			return returnType_;
 		}
 		
-		const std::vector<const SEM::Type*>& MethodSetElement::parameterTypes() const {
+		const SEM::TypeArray& MethodSetElement::parameterTypes() const {
 			return parameterTypes_;
 		}
 		
 		const SEM::Type* MethodSetElement::createFunctionType(const bool isTemplated) const {
 			const bool isVarArg = false;
 			const bool isMethod = !isStatic();
-			return SEM::Type::Function(isVarArg, isMethod, isTemplated, isNoExcept(), returnType(), parameterTypes());
+			return SEM::Type::Function(isVarArg, isMethod, isTemplated, isNoExcept(), returnType(), parameterTypes().copy());
 		}
 		
 		std::size_t MethodSetElement::hash() const {
@@ -281,7 +285,7 @@ namespace locic {
 				MethodSetElement functionElement(
 					isConstMethod, isNoExcept, isStatic,
 					functionType->getFunctionReturnType(),
-					functionType->getFunctionParameterTypes());
+					functionType->getFunctionParameterTypes().copy());
 				
 				elements.push_back(std::make_pair(functionName, std::move(functionElement)));
 			}
@@ -345,10 +349,10 @@ namespace locic {
 				const auto& nameB = iteratorB->first;
 				
 				if (nameA < nameB) {
-					elements.push_back(*iteratorA);
+					elements.push_back(std::make_pair(nameA, iteratorA->second.copy()));
 					iteratorA++;
 				} else if (nameB < nameA) {
-					elements.push_back(*iteratorB);
+					elements.push_back(std::make_pair(nameB, iteratorB->second.copy()));
 					iteratorB++;
 				} else {
 					// Merge methods!
@@ -361,7 +365,7 @@ namespace locic {
 			const auto endIterator = (iteratorA != setA->end()) ? setA->end() : setB->end();
 			
 			while (addIterator != endIterator) {
-				elements.push_back(*addIterator);
+				elements.push_back(std::make_pair(addIterator->first, addIterator->second.copy()));
 				addIterator++;
 			}
 			

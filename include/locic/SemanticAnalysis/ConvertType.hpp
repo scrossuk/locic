@@ -16,8 +16,6 @@ namespace locic {
 		
 		SEM::TemplateVarMap GenerateBasicTemplateVarMap(Context& context, const AST::Node<AST::TypeList>& astTypeListNode);
 		
-		std::vector<const SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
-		
 		/**
 		 * \brief Convert symbol to semantic object type.
 		 */

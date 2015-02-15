@@ -60,7 +60,7 @@ namespace locic {
 						return nullptr;
 					}
 					
-					std::vector<const SEM::Type*> templateArgs;
+					SEM::TypeArray templateArgs;
 					templateArgs.reserve(sourceType->templateArguments().size());
 					
 					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
@@ -73,7 +73,7 @@ namespace locic {
 						templateArgs.push_back(templateArg);
 					}
 					
-					return SEM::Type::Object(sourceType->getObjectType(), templateArgs);
+					return SEM::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
 				}
 				case SEM::Type::FUNCTION: {
 					// Check return type.
@@ -88,7 +88,8 @@ namespace locic {
 						return nullptr;
 					}
 					
-					std::vector<const SEM::Type*> paramTypes;
+					SEM::TypeArray paramTypes;
+					paramTypes.reserve(sourceList.size());
 					
 					// Check contra-variance for argument types.
 					for (std::size_t i = 0; i < sourceList.size(); i++) {
@@ -116,7 +117,7 @@ namespace locic {
 					
 					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionMethod(),
 						sourceType->isFunctionTemplated(),
-						sourceType->isFunctionNoExcept(), returnType, paramTypes);
+						sourceType->isFunctionNoExcept(), returnType, std::move(paramTypes));
 				}
 				case SEM::Type::METHOD: {
 					const auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);

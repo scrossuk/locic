@@ -18,8 +18,10 @@ namespace locic {
 	
 		namespace {
 			
-			std::vector<const SEM::Type*> getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
-				std::vector<const SEM::Type*> types;
+			SEM::TypeArray getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
+				assert(!variables.empty());
+				SEM::TypeArray types;
+				types.reserve(variables.size() - 1);
 				bool isFirst = true;
 				for (const auto var: variables) {
 					if (isFirst) {
@@ -31,7 +33,7 @@ namespace locic {
 				return types;
 			}
 			
-			std::vector<SEM::Var*> getParameters(Context& context, const std::vector<const SEM::Type*>& constructTypes) {
+			std::vector<SEM::Var*> getParameters(Context& context, const SEM::TypeArray& constructTypes) {
 				std::vector<SEM::Var*> parameters;
 				for (const auto varType: constructTypes) {
 					const bool isLvalConst = false;
@@ -79,10 +81,9 @@ namespace locic {
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
-			const auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
-			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), constructTypes));
+			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			semFunction->setParameters(getParameters(context, constructTypes));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		

@@ -46,7 +46,7 @@ namespace locic {
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, const std::vector<const SEM::Type*>& templateArgs);
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, SEM::TypeArray templateArgs);
 		
 	}
 	

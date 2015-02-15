@@ -103,7 +103,9 @@ namespace locic {
 			}
 			
 			std::vector<SEM::Var*> parameterVars;
-			std::vector<const SEM::Type*> parameterTypes;
+			parameterVars.reserve(astFunctionNode->parameters()->size());
+			SEM::TypeArray parameterTypes;
+			parameterTypes.reserve(astFunctionNode->parameters()->size());
 			
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters())) {
 				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
@@ -136,7 +138,7 @@ namespace locic {
 			
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(),
 				isDynamicMethod, isTemplatedMethod,
-				astFunctionNode->isNoExcept(), semReturnType, parameterTypes);
+				astFunctionNode->isNoExcept(), semReturnType, std::move(parameterTypes));
 			semFunction->setType(functionType);
 			
 			assert(semFunction->isDeclaration());

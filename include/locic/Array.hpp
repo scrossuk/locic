@@ -1,8 +1,9 @@
 #ifndef LOCIC_ARRAY_HPP
 #define LOCIC_ARRAY_HPP
 
-#include <cassert>
 #include <array>
+#include <cassert>
+#include <initializer_list>
 #include <vector>
 
 namespace locic{
@@ -10,24 +11,51 @@ namespace locic{
 	template <typename T, size_t BaseSize>
 	class Array {
 		public:
-			typedef typename const T* const_iterator;
-			typedef typename T* iterator;
+			typedef const T* const_iterator;
+			typedef T* iterator;
+			typedef T value_type;
+			typedef size_t size_type;
+			typedef T& reference;
+			typedef const T& const_reference;
 			
-			Array() : size_(0) { }
+			inline Array() : size_(0) { }
 			
-			bool using_static_space() const {
-				return using_static_space();
+			Array(std::initializer_list<T> list)
+			: size_(0) {
+				reserve(list.size());
+				for (auto& element: list) {
+					push_back(std::move(element));
+				}
 			}
 			
-			bool empty() const {
-				return size() != 0;
+			Array(Array<T, BaseSize>&&) = default;
+			Array<T, BaseSize>& operator=(Array<T, BaseSize>&&) = default;
+			
+			Array<T, BaseSize> copy() const {
+				return Array<T, BaseSize>(*this);
 			}
 			
-			size_t size() const {
+			inline bool using_static_space() const {
+				return size_ <= BaseSize;
+			}
+			
+			inline bool empty() const {
+				return size() == 0;
+			}
+			
+			inline T* data() {
+				return begin();
+			}
+			
+			inline const T* data() const {
+				return begin();
+			}
+			
+			inline size_t size() const {
 				return size_;
 			}
 			
-			size_t capacity() const {
+			inline size_t capacity() const {
 				if (using_static_space()) {
 					return BaseSize;
 				} else {
@@ -35,7 +63,7 @@ namespace locic{
 				}
 			}
 			
-			iterator begin() {
+			inline iterator begin() {
 				if (using_static_space()) {
 					return &array_[0];
 				} else {
@@ -43,7 +71,7 @@ namespace locic{
 				}
 			}
 			
-			const_iterator begin() const {
+			inline const_iterator begin() const {
 				if (using_static_space()) {
 					return &array_[0];
 				} else {
@@ -51,7 +79,7 @@ namespace locic{
 				}
 			}
 			
-			iterator end() {
+			inline iterator end() {
 				if (using_static_space()) {
 					return &array_[size()];
 				} else {
@@ -59,7 +87,7 @@ namespace locic{
 				}
 			}
 			
-			const_iterator end() const {
+			inline const_iterator end() const {
 				if (using_static_space()) {
 					return &array_[size()];
 				} else {
@@ -67,7 +95,23 @@ namespace locic{
 				}
 			}
 			
-			T& operator[](const size_t index) {
+			inline T& operator[](const size_t index) {
+				if (using_static_space()) {
+					return array_[index];
+				} else {
+					return vector_[index];
+				}
+			}
+			
+			inline const T& operator[](const size_t index) const {
+				if (using_static_space()) {
+					return array_[index];
+				} else {
+					return vector_[index];
+				}
+			}
+			
+			inline T& at(const size_t index) {
 				if (using_static_space()) {
 					return array_.at(index);
 				} else {
@@ -75,7 +119,7 @@ namespace locic{
 				}
 			}
 			
-			const T& operator[](const size_t index) const {
+			inline const T& at(const size_t index) const {
 				if (using_static_space()) {
 					return array_.at(index);
 				} else {
@@ -83,22 +127,22 @@ namespace locic{
 				}
 			}
 			
-			T& front() {
+			inline T& front() {
 				assert(!empty());
 				return *(begin());
 			}
 			
-			const T& front() const {
+			inline const T& front() const {
 				assert(!empty());
 				return *(begin());
 			}
 			
-			T& back() {
+			inline T& back() {
 				assert(!empty());
 				return *(end() - 1);
 			}
 			
-			const T& back() const {
+			inline const T& back() const {
 				assert(!empty());
 				return *(end() - 1);
 			}
@@ -143,7 +187,80 @@ namespace locic{
 				size_--;
 			}
 			
+			void clear() {
+				for (size_t i = 0; i < BaseSize; i++) {
+					array_[i] = T();
+				}
+				vector_.clear();
+				size_ = 0;
+			}
+			
+			inline bool operator==(const Array<T, BaseSize>& other) const {
+				if (size() != other.size()) {
+					return false;
+				}
+				
+				for (size_t i = 0; i < size(); i++) {
+					if (!((*this)[i] == other[i])) {
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			
+			inline bool operator!=(const Array<T, BaseSize>& other) const {
+				if (size() != other.size()) {
+					return true;
+				}
+				
+				for (size_t i = 0; i < size(); i++) {
+					if ((*this)[i] != other[i]) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+			inline bool operator<(const Array<T, BaseSize>& other) const {
+				if (size() != other.size()) {
+					return size() < other.size();
+				}
+				
+				for (size_t i = 0; i < size(); i++) {
+					if ((*this)[i] < other[i]) {
+						return true;
+					}
+					if (other[i] < (*this)[i]) {
+						return false;
+					}
+				}
+				
+				return false;
+			}
+			
+			inline bool operator>(const Array<T, BaseSize>& other) const {
+				if (size() != other.size()) {
+					return size() > other.size();
+				}
+				
+				for (size_t i = 0; i < size(); i++) {
+					if ((*this)[i] > other[i]) {
+						return true;
+					}
+					if (other[i] > (*this)[i]) {
+						return false;
+					}
+				}
+				
+				return false;
+			}
+			
 		private:
+			Array(const Array<T, BaseSize>&) = default;
+			Array<T, BaseSize>& operator=(const Array<T, BaseSize>&) = delete;
+			
 			size_t size_;
 			std::array<T, BaseSize> array_;
 			std::vector<T> vector_;

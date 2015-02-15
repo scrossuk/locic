@@ -12,6 +12,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -225,7 +226,7 @@ namespace locic {
 					if (value.type()->isFunctionTemplated()) {
 						if (!value.functionRef.templateArguments.empty()) {
 							// The function is templated on the function (and potentially also the parent object).
-							const auto templateInst = TemplateInst::Function(parentType, value.functionRef.function, value.functionRef.templateArguments);
+							const auto templateInst = TemplateInst::Function(parentType, value.functionRef.function, arrayRef(value.functionRef.templateArguments));
 							callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
 						} else {
 							// The function is only templated on the parent object.

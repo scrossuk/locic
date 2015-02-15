@@ -175,13 +175,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, Function* function, const std::vector<const Type*>& templateArguments, const Type* const type) {
+		Value Value::FunctionRef(const Type* const parentType, Function* function, TypeArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isFunction());
 			Value value(FUNCTIONREF, type);
 			value.functionRef.parentType = parentType;
 			value.functionRef.function = function;
-			value.functionRef.templateArguments = templateArguments;
+			value.functionRef.templateArguments = std::move(templateArguments);
 			return value;
 		}
 		
@@ -305,7 +305,7 @@ namespace locic {
 					return Value::FunctionCall(functionCall.functionValue->copy(), std::move(parameters));
 				}
 				case FUNCTIONREF:
-					return Value::FunctionRef(functionRef.parentType, functionRef.function, functionRef.templateArguments, type());
+					return Value::FunctionRef(functionRef.parentType, functionRef.function, functionRef.templateArguments.copy(), type());
 				case TEMPLATEFUNCTIONREF:
 					return Value::TemplateFunctionRef(templateFunctionRef.parentType, templateFunctionRef.name, templateFunctionRef.functionType);
 				case METHODOBJECT:

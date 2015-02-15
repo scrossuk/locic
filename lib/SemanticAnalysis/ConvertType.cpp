@@ -55,10 +55,10 @@ namespace locic {
 				
 				assert(templateVarMap.size() == typeAlias->templateVariables().size());
 				
-				const auto templateValues = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
+				auto templateValues = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
 				assert(templateValues.size() == typeAlias->templateVariables().size());
 				
-				return SEM::Type::Alias(typeAlias, templateValues);
+				return SEM::Type::Alias(typeAlias, std::move(templateValues));
 			} else {
 				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
 					name.toString().c_str(), symbol.location().toString().c_str()));
@@ -124,7 +124,7 @@ namespace locic {
 					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
 					
-					std::vector<const SEM::Type*> parameterTypes;
+					SEM::TypeArray parameterTypes;
 					parameterTypes.reserve(astParameterTypes->size());
 					
 					for (const auto& astParamType: *astParameterTypes) {
@@ -146,7 +146,7 @@ namespace locic {
 					// Currently no syntax exists to express a type with 'noexcept'.
 					const bool isNoExcept = false;
 					
-					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, isNoExcept, returnType, parameterTypes);
+					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, isNoExcept, returnType, std::move(parameterTypes));
 				}
 			}
 			

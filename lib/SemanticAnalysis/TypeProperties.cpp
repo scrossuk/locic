@@ -20,7 +20,7 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value> CastFunctionArguments(Context& context, std::vector<SEM::Value> arguments, const std::vector<const SEM::Type*>& types, const Debug::SourceLocation& location) {
+			std::vector<SEM::Value> CastFunctionArguments(Context& context, std::vector<SEM::Value> arguments, const SEM::TypeArray& types, const Debug::SourceLocation& location) {
 				std::vector<SEM::Value> castValues;
 				castValues.reserve(arguments.size());
 				
@@ -41,7 +41,7 @@ namespace locic {
 				return castValues;
 			}
 			
-			bool isCallableType(const SEM::Type* type) {
+			bool isCallableType(const SEM::Type* const type) {
 				switch (type->kind()) {
 					case SEM::Type::FUNCTION:
 					case SEM::Type::METHOD:
@@ -107,11 +107,11 @@ namespace locic {
 			return GetTemplatedMethod(context, std::move(rawValue), methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const std::string& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			const auto type = getDerefType(value.type())->resolveAliases();
 			
-			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, templateArguments, location);
+			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, std::move(templateArguments), location);
 		}
 		
 		// Gets the method without dissolving or derefencing the object.
@@ -124,7 +124,7 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const std::string& methodName, const std::vector<const SEM::Type*>& templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const std::string& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -204,7 +204,7 @@ namespace locic {
 						location.toString().c_str()));
 				}
 				
-				auto functionRef = SEM::Value::FunctionRef(type, function, templateArguments, function->type()->substitute(templateVariableAssignments));
+				auto functionRef = SEM::Value::FunctionRef(type, function, std::move(templateArguments), function->type()->substitute(templateVariableAssignments));
 				
 				if (type->isInterface()) {
 					return SEM::Value::InterfaceMethodObject(std::move(functionRef), derefValue(std::move(value)));
@@ -257,7 +257,7 @@ namespace locic {
 			return SEM::Value::FunctionCall(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
 		}
 		
-		bool checkCapability(Context& context, const SEM::Type* const rawType, const char* const capability, const std::vector<const SEM::Type*>& templateArgs) {
+		bool checkCapability(Context& context, const SEM::Type* const rawType, const char* const capability, SEM::TypeArray templateArgs) {
 			const auto type = rawType->resolveAliases();
 			if (!type->isObject() && !type->isTemplateVar()) {
 				return false;
@@ -268,12 +268,11 @@ namespace locic {
 				return *previousResult;
 			}
 			
-			auto resolvedArgs = templateArgs;
-			for (auto& arg: resolvedArgs) {
+			for (auto& arg: templateArgs) {
 				arg = arg->resolveAliases();
 			}
 			
-			const auto requireType = getBuiltInType(context.scopeStack(), capability, resolvedArgs)->resolveAliases();
+			const auto requireType = getBuiltInType(context.scopeStack(), capability, std::move(templateArgs))->resolveAliases();
 			
 			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);

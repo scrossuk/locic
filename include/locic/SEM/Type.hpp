@@ -3,13 +3,11 @@
 
 #include <string>
 #include <unordered_map>
-#include <vector>
+
+#include <locic/SEM/TypeArray.hpp>
 
 namespace locic {
 	
-	template <typename Key, typename Value>
-	class Map;
-
 	namespace SEM {
 	
 		class Context;
@@ -33,13 +31,13 @@ namespace locic {
 					TEMPLATEVAR
 				};
 				
-				static const std::vector<const Type*> NO_TEMPLATE_ARGS;
+				static const TypeArray NO_TEMPLATE_ARGS;
 				
 				static const Type* Auto(const Context& context);
-				static const Type* Alias(TypeAlias* typeAlias, const std::vector<const Type*>& templateArguments);
-				static const Type* Object(TypeInstance* typeInstance, const std::vector<const Type*>& templateArguments);
+				static const Type* Alias(TypeAlias* typeAlias, TypeArray templateArguments);
+				static const Type* Object(TypeInstance* typeInstance, TypeArray templateArguments);
 				static const Type* TemplateVarRef(TemplateVar* templateVar);
-				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, const std::vector<const Type*>& parameterTypes);
+				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, TypeArray parameterTypes);
 				static const Type* Method(const Type* functionType);
 				static const Type* InterfaceMethod(const Type* functionType);
 				static const Type* StaticInterfaceMethod(const Type* functionType);
@@ -73,7 +71,7 @@ namespace locic {
 				bool isAlias() const;
 				
 				SEM::TypeAlias* getTypeAlias() const;
-				const std::vector<const Type*>& typeAliasArguments() const;
+				const TypeArray& typeAliasArguments() const;
 				
 				bool isBuiltInVoid() const;
 				bool isBuiltInReference() const;
@@ -84,7 +82,7 @@ namespace locic {
 				bool isFunctionTemplated() const;
 				bool isFunctionNoExcept() const;
 				const Type* getFunctionReturnType() const;
-				const std::vector<const Type*>& getFunctionParameterTypes() const;
+				const TypeArray& getFunctionParameterTypes() const;
 				
 				bool isMethod() const;
 				const Type* getMethodFunctionType() const;
@@ -97,7 +95,7 @@ namespace locic {
 				
 				bool isObject() const;
 				TypeInstance* getObjectType() const;
-				const std::vector<const Type*>& templateArguments() const;
+				const TypeArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
 				TemplateVar* getTemplateVar() const;
@@ -138,6 +136,8 @@ namespace locic {
 			private:
 				Type(const Context& pContext, Kind pKind);
 				
+				Type copy() const;
+				
 				const Context& context_;
 				Kind kind_;
 				bool isConst_;
@@ -147,12 +147,12 @@ namespace locic {
 				
 				struct {
 					TypeAlias* typeAlias;
-					std::vector<const Type*> templateArguments;
+					TypeArray templateArguments;
 				} aliasType_;
 				
 				struct {
 					TypeInstance* typeInstance;
-					std::vector<const Type*> templateArguments;
+					TypeArray templateArguments;
 				} objectType_;
 				
 				struct FunctionType {
@@ -161,7 +161,7 @@ namespace locic {
 					bool isTemplated;
 					bool isNoExcept;
 					const Type* returnType;
-					std::vector<const Type*> parameterTypes;
+					TypeArray parameterTypes;
 				} functionType_;
 				
 				struct {

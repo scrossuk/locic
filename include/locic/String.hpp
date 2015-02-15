@@ -11,7 +11,7 @@ namespace locic{
 		__attribute__((format(printf, 1, 2)));
 	
 	template <typename T>
-	std::string makeArrayString(const std::vector<T>& array){
+	std::string makeArrayString(const T& array){
 		auto s = makeString("Array [size = %llu] {",
 			(unsigned long long) array.size());
 		
@@ -28,7 +28,7 @@ namespace locic{
 	}
 	
 	template <typename T>
-	std::string makeArrayPtrString(const std::vector<T>& array){
+	std::string makeArrayPtrString(const T& array){
 		auto s = makeString("Array [size = %llu] {",
 			(unsigned long long) array.size());
 		
@@ -91,7 +91,7 @@ namespace locic{
 	}
 	
 	template <typename T>
-	std::string makeNameArrayString(const std::vector<T>& array){
+	std::string makeNameArrayString(const T& array){
 		std::string s = makeString("Array[size = %llu]{",
 			(unsigned long long) array.size());;
 		

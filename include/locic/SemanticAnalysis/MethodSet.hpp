@@ -14,18 +14,18 @@ namespace locic {
 		
 		class MethodSetElement {
 			public:
-				MethodSetElement(bool isConst, bool isNoExcept, bool isStatic, const SEM::Type* returnType, const std::vector<const SEM::Type*>& parameterTypes);
+				MethodSetElement(bool isConst, bool isNoExcept, bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
 				
-				MethodSetElement(const MethodSetElement&) = default;
 				MethodSetElement(MethodSetElement&&) = default;
-				MethodSetElement& operator=(const MethodSetElement&) = default;
 				MethodSetElement& operator=(MethodSetElement&&) = default;
+				
+				MethodSetElement copy() const;
 				
 				bool isConst() const;
 				bool isNoExcept() const;
 				bool isStatic() const;
 				const SEM::Type* returnType() const;
-				const std::vector<const SEM::Type*>& parameterTypes() const;
+				const SEM::TypeArray& parameterTypes() const;
 				
 				const SEM::Type* createFunctionType(bool isTemplated) const;
 				
@@ -38,7 +38,7 @@ namespace locic {
 			private:
 				bool isConst_, isNoExcept_, isStatic_;
 				const SEM::Type* returnType_;
-				std::vector<const SEM::Type*> parameterTypes_;
+				SEM::TypeArray parameterTypes_;
 				
 		};
 		

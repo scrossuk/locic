@@ -3,6 +3,7 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TemplatedObject.hpp>
 
 namespace locic {
@@ -94,7 +95,7 @@ namespace locic {
 		TemplateInst TemplateInst::Type(const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject());
-			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), type->templateArguments());
+			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), arrayRef(type->templateArguments()));
 		}
 		
 		TemplateInst TemplateInst::Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<const SEM::Type*> functionArgs) {

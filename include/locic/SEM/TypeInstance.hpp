@@ -82,7 +82,7 @@ namespace locic {
 				 * 
 				 */
 				const Type* selfType() const;
-				std::vector<const Type*> selfTemplateArgs() const;
+				TypeArray selfTemplateArgs() const;
 				
 				std::vector<TypeInstance*>& variants();
 				const std::vector<TypeInstance*>& variants() const;
@@ -106,7 +106,7 @@ namespace locic {
 				std::map<std::string, Function*>& functions();
 				const std::map<std::string, Function*>& functions() const;
 				
-				std::vector<const Type*> constructTypes() const;
+				TypeArray constructTypes() const;
 				
 				void setParent(const Type* parent);
 				const Type* parent() const;
@@ -136,7 +136,6 @@ namespace locic {
 				std::map<std::string, Var*> namedVariables_;
 				
 				std::map<std::string, Function*> functions_;
-				std::vector<const Type*> constructTypes_;
 				bool hasCustomMove_;
 				
 		};

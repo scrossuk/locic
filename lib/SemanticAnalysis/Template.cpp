@@ -136,8 +136,8 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		std::vector<const SEM::Type*> GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
-			std::vector<const SEM::Type*> templateArguments;
+		SEM::TypeArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
+			SEM::TypeArray templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {
 				templateArguments.push_back(templateVarMap.at(templateVar));

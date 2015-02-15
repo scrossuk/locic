@@ -32,9 +32,10 @@ namespace locic {
 			// throw the constructor never throws.
 			const bool isNoExcept = true;
 			
-			const auto constructTypes = typeInstance->constructTypes();
+			auto constructTypes = typeInstance->constructTypes();
 			
 			std::vector<SEM::Var*> argVars;
+			argVars.reserve(constructTypes.size());
 			for (const auto constructType: constructTypes) {
 				const bool isLvalConst = false;
 				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
@@ -42,7 +43,7 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), constructTypes));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		
@@ -64,9 +65,13 @@ namespace locic {
 			
 			const auto sizeType = getBuiltInType(context.scopeStack(), "size_t", {});
 			
-			const auto argTypes = std::vector<const SEM::Type*>{ voidPtrType, sizeType };
+			SEM::TypeArray argTypes;
+			argTypes.reserve(2);
+			argTypes.push_back(voidPtrType);
+			argTypes.push_back(sizeType);
 			
 			std::vector<SEM::Var*> argVars;
+			argVars.reserve(2);
 			
 			{
 				const bool isLvalConst = false;
@@ -81,7 +86,7 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, voidType, argTypes));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, voidType, std::move(argTypes)));
 			return semFunction;
 		}
 		
@@ -176,7 +181,12 @@ namespace locic {
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
 			const auto compareResultType = getBuiltInType(context.scopeStack(), "compare_result_t", {});
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, { argType }));
+			
+			SEM::TypeArray argTypes;
+			argTypes.reserve(1);
+			argTypes.push_back(argType);
+			
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, std::move(argTypes)));
 			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
 			return semFunction;
 		}

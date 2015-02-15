@@ -7,6 +7,7 @@
 #include <locic/Map.hpp>
 #include <locic/Optional.hpp>
 #include <locic/Debug/ValueInfo.hpp>
+#include <locic/SEM/TypeArray.hpp>
 
 namespace locic {
 	
@@ -158,7 +159,7 @@ namespace locic {
 				struct {
 					const Type* parentType;
 					Function* function;
-					std::vector<const Type*> templateArguments;
+					TypeArray templateArguments;
 				} functionRef;
 				
 				struct {
@@ -236,7 +237,7 @@ namespace locic {
 				
 				static Value FunctionCall(Value functionValue, std::vector<Value> parameters);
 				
-				static Value FunctionRef(const Type* parentType, Function* function, const std::vector<const Type*>& templateArguments, const Type* const type);
+				static Value FunctionRef(const Type* parentType, Function* function, TypeArray templateArguments, const Type* const type);
 				
 				static Value TemplateFunctionRef(const Type* parentType, const std::string& name, const Type* functionType);
 				

@@ -17,6 +17,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
@@ -202,7 +203,7 @@ namespace locic {
 				
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
-				const auto argsStructPtr = makeArgsStruct(function, functionType->getFunctionParameterTypes(), args);
+				const auto argsStructPtr = makeArgsStruct(function, arrayRef(functionType->getFunctionParameterTypes()), args);
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.

@@ -84,8 +84,8 @@ namespace locic {
 			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());
 		}
 		
-		std::vector<const Type*> TypeInstance::selfTemplateArgs() const {
-			std::vector<const SEM::Type*> templateArgs;
+		TypeArray TypeInstance::selfTemplateArgs() const {
+			TypeArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
@@ -152,8 +152,9 @@ namespace locic {
 			return functions_;
 		}
 		
-		std::vector<const Type*> TypeInstance::constructTypes() const {
-			std::vector<const Type*> types;
+		TypeArray TypeInstance::constructTypes() const {
+			TypeArray types;
+			types.reserve(variables().size());
 			for (const auto var: variables()) {
 				types.push_back(var->constructType());
 			}

@@ -30,11 +30,11 @@ namespace locic {
 		bool isRootType(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
-					return isRootTypeList(type->templateArguments());
+					return isRootTypeList(arrayRef(type->templateArguments()));
 				}
 				
 				case SEM::Type::FUNCTION: {
-					return isRootType(type->getFunctionReturnType()) && isRootTypeList(type->getFunctionParameterTypes());
+					return isRootType(type->getFunctionReturnType()) && isRootTypeList(arrayRef(type->getFunctionParameterTypes()));
 				}
 				
 				case SEM::Type::METHOD: {

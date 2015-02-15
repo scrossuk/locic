@@ -30,7 +30,7 @@ namespace locic {
 				}
 				
 				case Type::OBJECT: {
-					std::vector<const Type*> templateArgs;
+					TypeArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
@@ -42,14 +42,14 @@ namespace locic {
 					}
 					
 					if (changed) {
-						return Type::Object(type->getObjectType(), templateArgs);
+						return Type::Object(type->getObjectType(), std::move(templateArgs));
 					} else {
 						return type;
 					}
 				}
 				
 				case Type::FUNCTION: {
-					std::vector<const Type*> args;
+					TypeArray args;
 					args.reserve(type->getFunctionParameterTypes().size());
 					
 					bool changed = false;
@@ -66,7 +66,7 @@ namespace locic {
 					if (changed) {
 						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
 							type->isFunctionTemplated(),
-							type->isFunctionNoExcept(), returnType, args);
+							type->isFunctionNoExcept(), returnType, std::move(args));
 					} else {
 						return type;
 					}
@@ -104,7 +104,7 @@ namespace locic {
 				}
 				
 				case Type::ALIAS: {
-					std::vector<const Type*> templateArgs;
+					TypeArray templateArgs;
 					templateArgs.reserve(type->typeAliasArguments().size());
 					
 					bool changed = false;
@@ -116,7 +116,7 @@ namespace locic {
 					}
 					
 					if (changed) {
-						return Type::Alias(type->getTypeAlias(), templateArgs);
+						return Type::Alias(type->getTypeAlias(), std::move(templateArgs));
 					} else {
 						return type;
 					}
@@ -147,41 +147,41 @@ namespace locic {
 			return postFunction(staticRefType);
 		}
 		
-		const std::vector<const Type*> Type::NO_TEMPLATE_ARGS = std::vector<const Type*>();
+		const TypeArray Type::NO_TEMPLATE_ARGS = TypeArray();
 		
 		const Type* Type::Auto(const Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(TypeAlias* typeAlias, const std::vector<const Type*>& templateArguments) {
+		const Type* Type::Alias(TypeAlias* const typeAlias, TypeArray templateArguments) {
 			assert(typeAlias->templateVariables().size() == templateArguments.size());
 			auto& context = typeAlias->context();
 			
 			Type type(context, ALIAS);
 			type.aliasType_.typeAlias = typeAlias;
-			type.aliasType_.templateArguments = templateArguments;
-			return context.getType(type);
+			type.aliasType_.templateArguments = std::move(templateArguments);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Object(TypeInstance* typeInstance, const std::vector<const Type*>& templateArguments) {
+		const Type* Type::Object(TypeInstance* const typeInstance, TypeArray templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
 			
 			Type type(context, OBJECT);
 			type.objectType_.typeInstance = typeInstance;
-			type.objectType_.templateArguments = templateArguments;
-			return context.getType(type);
+			type.objectType_.templateArguments = std::move(templateArguments);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::TemplateVarRef(TemplateVar* templateVar) {
+		const Type* Type::TemplateVarRef(TemplateVar* const templateVar) {
 			auto& context = templateVar->context();
 			
 			Type type(context, TEMPLATEVAR);
 			type.templateVarRef_.templateVar = templateVar;
-			return context.getType(type);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, const std::vector<const Type*>& parameterTypes) {
+		const Type* Type::Function(const bool isVarArg, const bool isMethod, const bool isTemplated, const bool isNoExcept, const Type* const returnType, TypeArray parameterTypes) {
 			assert(returnType != nullptr);
 			
 			auto& context = returnType->context();
@@ -193,12 +193,12 @@ namespace locic {
 			type.functionType_.isTemplated = isTemplated;
 			type.functionType_.isNoExcept = isNoExcept;
 			type.functionType_.returnType = returnType;
-			type.functionType_.parameterTypes = parameterTypes;
+			type.functionType_.parameterTypes = std::move(parameterTypes);
 			
-			return context.getType(type);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Method(const Type* functionType) {
+		const Type* Type::Method(const Type* const functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -206,10 +206,10 @@ namespace locic {
 			
 			type.methodType_.functionType = functionType;
 			
-			return context.getType(type);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::InterfaceMethod(const Type* functionType) {
+		const Type* Type::InterfaceMethod(const Type* const functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -217,10 +217,10 @@ namespace locic {
 			
 			type.interfaceMethodType_.functionType = functionType;
 			
-			return context.getType(type);
+			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::StaticInterfaceMethod(const Type* functionType) {
+		const Type* Type::StaticInterfaceMethod(const Type* const functionType) {
 			assert(functionType->isFunction());
 			auto& context = functionType->context();
 			
@@ -228,10 +228,10 @@ namespace locic {
 			
 			type.staticInterfaceMethodType_.functionType = functionType;
 			
-			return context.getType(type);
+			return context.getType(std::move(type));
 		}
 		
-		Type::Type(const Context& pContext, Kind pKind) :
+		Type::Type(const Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind),
 			isConst_(false), lvalTarget_(nullptr),
 			refTarget_(nullptr), staticRefTarget_(nullptr) { }
@@ -291,9 +291,9 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.isConst_ = true;
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		const Type* Type::createMutableType() const {
@@ -301,9 +301,9 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.isConst_ = false;
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		const Type* Type::createLvalType(const Type* const targetType) const {
@@ -311,9 +311,9 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.lvalTarget_ = targetType;
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		const Type* Type::createRefType(const Type* const targetType) const {
@@ -321,9 +321,9 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.refTarget_ = targetType;
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		const Type* Type::createStaticRefType(const Type* const targetType) const {
@@ -331,9 +331,9 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.staticRefTarget_ = targetType;
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		const Type* Type::withoutLval() const {
@@ -343,9 +343,9 @@ namespace locic {
 				},
 				[&](const Type* const type) {
 					if (type->isLval()) {
-						Type typeCopy(*type);
+						Type typeCopy = type->copy();
 						typeCopy.lvalTarget_ = nullptr;
-						return context_.getType(typeCopy);
+						return context_.getType(std::move(typeCopy));
 					} else {
 						return type;
 					}
@@ -359,9 +359,9 @@ namespace locic {
 				},
 				[&](const Type* const type) {
 					if (type->isRef()) {
-						Type typeCopy(*type);
+						Type typeCopy = type->copy();
 						typeCopy.refTarget_ = nullptr;
-						return context_.getType(typeCopy);
+						return context_.getType(std::move(typeCopy));
 					} else {
 						return type;
 					}
@@ -375,11 +375,11 @@ namespace locic {
 				},
 				[&](const Type* const type) {
 					if (type->isRef()) {
-						Type typeCopy(*type);
+						Type typeCopy = type->copy();
 						typeCopy.lvalTarget_ = nullptr;
 						typeCopy.refTarget_ = nullptr;
 						typeCopy.staticRefTarget_ = nullptr;
-						return context_.getType(typeCopy);
+						return context_.getType(std::move(typeCopy));
 					} else {
 						return type;
 					}
@@ -391,13 +391,13 @@ namespace locic {
 				return this;
 			}
 			
-			Type typeCopy(*this);
+			Type typeCopy = copy();
 			typeCopy.isConst_ = false;
 			typeCopy.lvalTarget_ = nullptr;
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
 			
-			return context_.getType(typeCopy);
+			return context_.getType(std::move(typeCopy));
 		}
 		
 		bool Type::isAuto() const {
@@ -412,7 +412,7 @@ namespace locic {
 			return aliasType_.typeAlias;
 		}
 		
-		const std::vector<const Type*>& Type::typeAliasArguments() const {
+		const TypeArray& Type::typeAliasArguments() const {
 			return aliasType_.templateArguments;
 		}
 		
@@ -453,7 +453,7 @@ namespace locic {
 			return functionType_.returnType;
 		}
 		
-		const std::vector<const Type*>& Type::getFunctionParameterTypes() const {
+		const TypeArray& Type::getFunctionParameterTypes() const {
 			assert(isFunction());
 			return functionType_.parameterTypes;
 		}
@@ -499,7 +499,7 @@ namespace locic {
 			return objectType_.typeInstance;
 		}
 		
-		const std::vector<const Type*>& Type::templateArguments() const {
+		const TypeArray& Type::templateArguments() const {
 			assert(isObject());
 			return objectType_.templateArguments;
 		}
@@ -655,7 +655,7 @@ namespace locic {
 			assert(isFunction());
 			const bool isTemplated = true;
 			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
-				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes());
+				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes().copy());
 		}
 		
 		const Type* Type::resolveAliases() const {
@@ -946,6 +946,64 @@ namespace locic {
 			return seed;
 		}
 		
+		Type Type::copy() const {
+			Type type(context(), kind());
+			
+			switch (kind()) {
+				case AUTO: {
+					break;
+				}
+				
+				case ALIAS: {
+					type.aliasType_.typeAlias = getTypeAlias();
+					type.aliasType_.templateArguments = typeAliasArguments().copy();
+					break;
+				}
+				
+				case OBJECT: {
+					type.objectType_.typeInstance = getObjectType();
+					type.objectType_.templateArguments = templateArguments().copy();
+					break;
+				}
+				
+				case FUNCTION: {
+					type.functionType_.isVarArg = isFunctionVarArg();
+					type.functionType_.isMethod = isFunctionMethod();
+					type.functionType_.isTemplated = isFunctionTemplated();
+					type.functionType_.isNoExcept = isFunctionNoExcept();
+					type.functionType_.returnType = getFunctionReturnType();
+					type.functionType_.parameterTypes = getFunctionParameterTypes().copy();
+					break;
+				}
+				
+				case METHOD: {
+					type.methodType_.functionType = getMethodFunctionType();
+					break;
+				}
+				
+				case INTERFACEMETHOD: {
+					type.interfaceMethodType_.functionType = getInterfaceMethodFunctionType();
+					break;
+				}
+				
+				case STATICINTERFACEMETHOD: {
+					type.staticInterfaceMethodType_.functionType = getStaticInterfaceMethodFunctionType();
+					break;
+				}
+				
+				case TEMPLATEVAR: {
+					type.templateVarRef_.templateVar = getTemplateVar();
+					break;
+				}
+			}
+			
+			type.isConst_ = isConst();
+			type.lvalTarget_ = isLval() ? lvalTarget() : nullptr;
+			type.refTarget_ = isRef() ? refTarget() : nullptr;
+			type.staticRefTarget_ = isStaticRef() ? staticRefTarget() : nullptr;
+			return type;
+		}
+		
 		bool Type::operator==(const Type& type) const {
 			if (kind() != type.kind()) {
 				return false;
@@ -993,10 +1051,8 @@ namespace locic {
 						return false;
 					}
 					
-					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
-						if (typeAliasArguments().at(i) != type.typeAliasArguments().at(i)) {
-							return false;
-						}
+					if (typeAliasArguments() != type.typeAliasArguments()) {
+						return false;
 					}
 					
 					return true;
@@ -1007,14 +1063,8 @@ namespace locic {
 						return false;
 					}
 					
-					if (templateArguments().size() != type.templateArguments().size()) {
+					if (templateArguments() != type.templateArguments()) {
 						return false;
-					}
-					
-					for (size_t i = 0; i < templateArguments().size(); i++) {
-						if (templateArguments().at(i) != type.templateArguments().at(i)) {
-							return false;
-						}
 					}
 					
 					return true;
@@ -1028,14 +1078,8 @@ namespace locic {
 						return false;
 					}
 					
-					if (firstList.size() != secondList.size()) {
+					if (firstList != secondList) {
 						return false;
-					}
-					
-					for (size_t i = 0; i < firstList.size(); i++) {
-						if (firstList.at(i) != secondList.at(i)) {
-							return false;
-						}
 					}
 					
 					if (isFunctionVarArg() != type.isFunctionVarArg()) {
