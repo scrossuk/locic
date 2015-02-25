@@ -16,7 +16,7 @@ namespace locic {
 		
 		class TemplateVar {
 			public:
-				TemplateVar(Context& pContext, const Name& name, size_t i);
+				TemplateVar(Context& pContext, Name name, size_t i);
 				
 				Context& context() const;
 				
@@ -37,13 +37,6 @@ namespace locic {
 				size_t index_;
 				
 		};
-		
-		/**
-		 * \brief Template Var Map
-		 * 
-		 * An assignment of type values for template variables.
-		 */
-		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 	}
 	

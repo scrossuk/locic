@@ -34,7 +34,7 @@ namespace locic {
 					EXCEPTION
 				};
 				
-				TypeInstance(Context& c, Name n, Kind k, ModuleScope m);
+				TypeInstance(Context& c, Name name, Kind k, ModuleScope m);
 				
 				Context& context() const;
 				

@@ -286,6 +286,7 @@ namespace locic {
 					return Value::NoStaticRef(makeNoStaticRef.value->copy());
 				case INTERNALCONSTRUCT: {
 					std::vector<Value> parameters;
+					parameters.reserve(internalConstruct.parameters.size());
 					for (const auto& parameter: internalConstruct.parameters) {
 						parameters.push_back(parameter.copy());
 					}
@@ -299,6 +300,7 @@ namespace locic {
 					return Value::TypeRef(typeRef.targetType, type());
 				case FUNCTIONCALL: {
 					std::vector<Value> parameters;
+					parameters.reserve(functionCall.parameters.size());
 					for (const auto& parameter: functionCall.parameters) {
 						parameters.push_back(parameter.copy());
 					}

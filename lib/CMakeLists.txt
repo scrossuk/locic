@@ -1,3 +1,5 @@
+add_compile_options(${LOCIC_BUILD_WARNINGS})
+
 # Build abstract syntax tree structures.
 add_subdirectory(AST)
 
@@ -18,5 +20,5 @@ add_library(locic-support
 	Name.cpp
 	String.cpp
 	Version.cpp
-	)
+)
 

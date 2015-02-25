@@ -5,6 +5,8 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertStatement.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
 

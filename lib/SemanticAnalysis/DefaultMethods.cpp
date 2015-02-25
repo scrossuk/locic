@@ -11,6 +11,8 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -18,7 +20,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
@@ -48,7 +50,7 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
@@ -129,7 +131,7 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -147,7 +149,7 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -165,7 +167,7 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name, typeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());

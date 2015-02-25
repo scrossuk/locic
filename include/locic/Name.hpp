@@ -4,14 +4,17 @@
 #include <cassert>
 #include <cstddef>
 #include <string>
-#include <vector>
+
+#include <locic/Array.hpp>
 
 namespace locic{
-
-	class Name{
-		typedef std::vector<std::string> ListType;
-		typedef ListType::const_iterator CItType;
 	
+	constexpr size_t NameBaseSize = 4;
+	
+	class Name{
+		typedef Array<std::string, NameBaseSize> ListType;
+		typedef ListType::const_iterator CItType;
+		
 		public:
 			Name();
 			
@@ -26,6 +29,12 @@ namespace locic{
 			static Name Absolute();
 			
 			static Name Relative();
+			
+			Name(Name&&) = default;
+			
+			Name copy() const;
+			
+			Name& operator=(Name&&) = default;
 			
 			bool operator==(const Name& name) const;
 			
@@ -45,19 +54,19 @@ namespace locic{
 			
 			std::string genString() const;
 			
-			std::string first() const;
+			const std::string& first() const;
 			
-			std::string last() const;
+			const std::string& last() const;
 			
-			std::string onlyElement() const;
+			const std::string& onlyElement() const;
 			
 			bool empty() const;
 			
 			std::size_t size() const;
 			
-			std::string at(std::size_t i) const;
+			const std::string& at(std::size_t i) const;
 			
-			std::string revAt(std::size_t i) const;
+			const std::string& revAt(std::size_t i) const;
 			
 			Name substr(std::size_t substrSize) const;
 			
@@ -76,6 +85,9 @@ namespace locic{
 			ListType::const_iterator end() const;
 			
 		private:
+			Name(const Name&) = delete;
+			Name& operator=(const Name&) = delete;
+			
 			bool isAbsolute_;
 			ListType list_;
 			

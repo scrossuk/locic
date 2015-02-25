@@ -63,7 +63,7 @@ namespace locic {
 		
 		class Namespace {
 			public:
-				Namespace(const Name& n);
+				Namespace(Name name);
 					
 				const Name& name() const;
 				

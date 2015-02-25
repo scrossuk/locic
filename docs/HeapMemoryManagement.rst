@@ -29,7 +29,7 @@ Unlike C++, Loci does not provide *new* or *delete* operators. Instead standard 
 		std::delete_raw<Type>(heapMoved);
 	}
 
-In particular, C++ forces the new operator to call a type constructor, so that stack objects are moved to the heap by a copy constructor. Loci, however, makes it easy to move objects without running any code (other than memcpy), and therefore heap allocation functions have been designed to be applied to any R-value (the details of which are described later) of the desired type, and will move that value onto the heap.
+In particular, C++ forces the new operator to call a type constructor, so that stack objects are moved to the heap by a copy constructor. Loci, however, makes it easy to move objects without running any code (other than the class' *__move* method, which by default is just a memcpy), and therefore heap allocation functions have been designed to be applied to any R-value (the details of which are described later) of the desired type, and will move that value onto the heap.
 
 In the example code the function *std::new_raw* is called, meaning that the developer is responsible for calling *std::delete_raw* on the pointers when finished with them (i.e. as with *new* and *delete* in C++). Also note that due to template type inference, the template parameter to heap allocation functions can be omitted:
 
@@ -50,10 +50,10 @@ The previous sample code showed *raw* allocations, in which allocation and const
 	void function() {
 		// Automatically freed when leaving scope,
 		// but only one instance can exist.
-		std::unique_ptr<Type> uniquePtr = new_unique<Type>(Type(0));
+		std::unique_ptr<Type> uniquePtr = std::new_unique<Type>(Type(0));
 		
 		// Above is essentially equivalent to...
-		std::unique_ptr<Type> uniquePtr1 = std::unique_ptr<Type>(new_raw<Type>(Type(0)));
+		std::unique_ptr<Type> uniquePtr1 = std::unique_ptr<Type>(std::new_raw<Type>(Type(0)));
 		
 		// Invalid - cannot copy unique pointers.
 		std::unique_ptr<Type> uniquePtr2 = uniquePtr;

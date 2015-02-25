@@ -186,6 +186,8 @@ The *open* constructor method could now be implemented as:
 		}
 	}
 
+Note that any change to the derived exception types (i.e. with an unchanged exception specifier) thrown by a function is generally *not* considered a breaking change to the API.
+
 Overriding Static Analysis with Assert
 --------------------------------------
 
@@ -227,7 +229,7 @@ The compiler will reject this code as invalid, since *readFile* may throw but *r
 		}
 	}
 
-This means the compiler will generate code to check this property at run-time when configured to do so (e.g. for a debug build), and otherwise trust the programmer and assume the property is true. Hence no error will be produced by the error in this case. Given that this overrides the assistance of static analysis, this should be done **with great care!**
+This means the compiler will generate code to check this property at run-time when configured to do so (e.g. for a debug build), and otherwise trust the programmer and assume the property is true. Hence no error will be produced by the compiler in this case. Given that this overrides the assistance of static analysis, this should be done **with great care!**
 
 A similar construct can be used for exception specifiers:
 
@@ -436,3 +438,4 @@ This will output:
 	Scope failure!
 	Scope exit!
 
+Note that it's not possible (without the assert statements described above) to throw from a *scope(exit)* or *scope(failure)* block since these may be executed in the case of an exception being thrown, and it's not possible to throw multiple exceptions simultaneously.

@@ -10,6 +10,8 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -55,7 +57,7 @@ namespace locic {
 					
 					const auto insertResult = function->namedVariables().insert(std::make_pair(varName, semVar));
 					if (!insertResult.second) {
-						throw ParamVariableClashException(function->name(), varName);
+						throw ParamVariableClashException(function->name().copy(), varName);
 					}
 				}
 			}
@@ -68,7 +70,7 @@ namespace locic {
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + "create");
 			}
 			
-			const auto semFunction = new SEM::Function(semTypeInstance->name() + "create", semTypeInstance->moduleScope());
+			const auto semFunction = new SEM::Function(semTypeInstance->name() + "create", semTypeInstance->moduleScope().copy());
 			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <cassert>
-#include <boost/optional.hpp>
 
 #include <locic/String.hpp>
 

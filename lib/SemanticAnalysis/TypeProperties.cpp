@@ -11,6 +11,7 @@
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 

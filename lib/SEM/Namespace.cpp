@@ -96,8 +96,8 @@ namespace locic {
 				data_.ptr = nullptr;
 			}
 		
-		Namespace::Namespace(const Name& n)
-			: name_(n) { }
+		Namespace::Namespace(Name n)
+			: name_(std::move(n)) { }
 			
 		const Name& Namespace::name() const {
 			return name_;

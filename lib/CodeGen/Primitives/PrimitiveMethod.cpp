@@ -256,6 +256,7 @@ namespace locic {
 			const auto methodName = semFunction->name().last();
 			
 			if (methodName == "create") {
+				(void) args;
 				assert(args.empty());
 				return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
 			} else {

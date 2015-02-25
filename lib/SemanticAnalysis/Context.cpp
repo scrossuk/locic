@@ -1,10 +1,18 @@
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include <boost/functional/hash.hpp>
 
+#include <locic/Array.hpp>
 #include <locic/Debug.hpp>
+#include <locic/StableSet.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
@@ -12,73 +20,99 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Context::Context(Debug::Module& pDebugModule, SEM::Context& pSemContext)
-			: debugModule_(pDebugModule), semContext_(pSemContext),
-			templateRequirementsComplete_(false) {
-				validVarArgTypes_.insert("byte_t");
-				validVarArgTypes_.insert("ubyte_t");
-				validVarArgTypes_.insert("short_t");
-				validVarArgTypes_.insert("ushort_t");
-				validVarArgTypes_.insert("int_t");
-				validVarArgTypes_.insert("uint_t");
-				validVarArgTypes_.insert("long_t");
-				validVarArgTypes_.insert("ulong_t");
-				validVarArgTypes_.insert("longlong_t");
-				validVarArgTypes_.insert("ulonglong_t");
-				validVarArgTypes_.insert("int8_t");
-				validVarArgTypes_.insert("uint8_t");
-				validVarArgTypes_.insert("int16_t");
-				validVarArgTypes_.insert("uint16_t");
-				validVarArgTypes_.insert("int32_t");
-				validVarArgTypes_.insert("uint32_t");
-				validVarArgTypes_.insert("int64_t");
-				validVarArgTypes_.insert("uint64_t");
-				validVarArgTypes_.insert("float_t");
-				validVarArgTypes_.insert("double_t");
-				validVarArgTypes_.insert("longdouble_t");
-				validVarArgTypes_.insert("__ptr");
+		class ContextImpl {
+		public:
+			ContextImpl(Debug::Module& pDebugModule, SEM::Context& pSemContext)
+			: debugModule(pDebugModule), semContext(pSemContext),
+			templateRequirementsComplete(false) {
+				validVarArgTypes.insert("byte_t");
+				validVarArgTypes.insert("ubyte_t");
+				validVarArgTypes.insert("short_t");
+				validVarArgTypes.insert("ushort_t");
+				validVarArgTypes.insert("int_t");
+				validVarArgTypes.insert("uint_t");
+				validVarArgTypes.insert("long_t");
+				validVarArgTypes.insert("ulong_t");
+				validVarArgTypes.insert("longlong_t");
+				validVarArgTypes.insert("ulonglong_t");
+				validVarArgTypes.insert("int8_t");
+				validVarArgTypes.insert("uint8_t");
+				validVarArgTypes.insert("int16_t");
+				validVarArgTypes.insert("uint16_t");
+				validVarArgTypes.insert("int32_t");
+				validVarArgTypes.insert("uint32_t");
+				validVarArgTypes.insert("int64_t");
+				validVarArgTypes.insert("uint64_t");
+				validVarArgTypes.insert("float_t");
+				validVarArgTypes.insert("double_t");
+				validVarArgTypes.insert("longdouble_t");
+				validVarArgTypes.insert("__ptr");
 			}
+			
+			struct hashPair {
+				std::size_t operator()(const std::pair<const SEM::Type*, const char*>& pair) const {
+					std::size_t seed = 0;
+					boost::hash_combine(seed, pair.first);
+					boost::hash_combine(seed, pair.second);
+					return seed;
+				}
+			};
+			
+			Debug::Module& debugModule;
+			ScopeStack scopeStack;
+			SEM::Context& semContext;
+			bool templateRequirementsComplete;
+			std::vector<TemplateInstTuple> templateInstantiations;
+			std::set<std::string> validVarArgTypes;
+			mutable StableSet<MethodSet> methodSets;
+			std::unordered_map<std::pair<const SEM::Type*, const char*>, bool, hashPair> capabilities;
+		};
+		
+		Context::Context(Debug::Module& pDebugModule, SEM::Context& pSemContext)
+		: impl_(new ContextImpl(pDebugModule, pSemContext)) { }
+		
+		Context::~Context() { }
 		
 		Debug::Module& Context::debugModule() {
-			return debugModule_;
+			return impl_->debugModule;
 		}
 		
 		ScopeStack& Context::scopeStack() {
-			return scopeStack_;
+			return impl_->scopeStack;
 		}
 		
 		const ScopeStack& Context::scopeStack() const {
-			return scopeStack_;
+			return impl_->scopeStack;
 		}
 		
 		SEM::Context& Context::semContext() {
-			return semContext_;
+			return impl_->semContext;
 		}
 		
 		std::vector<TemplateInstTuple>& Context::templateInstantiations() {
-			return templateInstantiations_;
+			return impl_->templateInstantiations;
 		}
 		
 		bool Context::templateRequirementsComplete() const {
-			return templateRequirementsComplete_;
+			return impl_->templateRequirementsComplete;
 		}
 		
 		void Context::setTemplateRequirementsComplete() {
-			templateRequirementsComplete_ = true;
+			impl_->templateRequirementsComplete = true;
 		}
 		
 		const std::set<std::string>& Context::validVarArgTypes() const {
-			return validVarArgTypes_;
+			return impl_->validVarArgTypes;
 		}
 		
 		const MethodSet* Context::getMethodSet(MethodSet methodSet) const {
-			const auto result = methodSets_.insert(std::move(methodSet));
+			const auto result = impl_->methodSets.insert(std::move(methodSet));
 			return &(*(result.first));
 		}
 		
 		Optional<bool> Context::getCapability(const SEM::Type* const type, const char* const capability) const {
-			const auto iterator = capabilities_.find(std::make_pair(type, capability));
-			if (iterator != capabilities_.end()) {
+			const auto iterator = impl_->capabilities.find(std::make_pair(type, capability));
+			if (iterator != impl_->capabilities.end()) {
 				return make_optional(iterator->second);
 			} else {
 				return Optional<bool>();
@@ -86,14 +120,7 @@ namespace locic {
 		}
 		
 		void Context::setCapability(const SEM::Type* type, const char* capability, const bool isCapable) {
-			(void) capabilities_.insert(std::make_pair(std::make_pair(type, capability), isCapable));
-		}
-		
-		std::size_t Context::hashPair::operator()(const std::pair<const SEM::Type*, const char*>& pair) const {
-			std::size_t seed = 0;
-			boost::hash_combine(seed, pair.first);
-			boost::hash_combine(seed, pair.second);
-			return seed;
+			(void) impl_->capabilities.insert(std::make_pair(std::make_pair(type, capability), isCapable));
 		}
 		
 		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {

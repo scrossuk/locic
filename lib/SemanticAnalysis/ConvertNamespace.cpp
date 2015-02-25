@@ -8,6 +8,8 @@
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
 

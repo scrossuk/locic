@@ -9,12 +9,8 @@
 #include <vector>
 
 #include <llvm-abi/ABI.hpp>
-#include <llvm-abi/Context.hpp>
-
-#include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/BuildOptions.hpp>
-#include <locic/Debug.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -22,7 +18,13 @@
 #include <locic/CodeGen/TemplateBuilder.hpp>
 
 namespace locic {
-
+	
+	namespace Debug {
+		
+		class Module;
+		
+	}
+	
 	namespace CodeGen {
 	
 		typedef std::pair<llvm_abi::Type*, llvm::Type*> TypePair;
@@ -59,9 +61,11 @@ namespace locic {
 		typedef Map<std::string, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
+		class InternalContext;
+		
 		class Module {
 			public:
-				Module(const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
+				Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
 				
 				void dump() const;
 				
@@ -126,10 +130,9 @@ namespace locic {
 				PrimitiveKind primitiveKind(const std::string& name) const;
 				
 			private:
+				InternalContext& context_;
 				std::unique_ptr<llvm::Module> module_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
-				llvm_abi::Context abiContext_;
-				
 				AttributeMap attributeMap_;
 				BitsRequiredGlobalMap bitsRequiredGlobalMap_;
 				DestructorMap destructorMap_;

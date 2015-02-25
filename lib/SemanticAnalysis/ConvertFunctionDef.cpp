@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <list>
 #include <locic/AST.hpp>
+#include <locic/Debug/Module.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
@@ -9,6 +10,8 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ExitStates.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -132,7 +135,7 @@ namespace locic {
 			if (exitStates.test(UnwindStateNormal)) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
-					throw MissingReturnStatementException(semFunction->name());
+					throw MissingReturnStatementException(semFunction->name().copy());
 				} else {
 					// Need to add a void return statement if the program didn't.
 					semScope->statements().push_back(SEM::Statement::ReturnVoid());

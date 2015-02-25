@@ -4,7 +4,7 @@
 #include <cassert>
 #include <map>
 #include <string>
-#include <boost/utility.hpp>
+
 #include <locic/Optional.hpp>
 
 namespace locic{

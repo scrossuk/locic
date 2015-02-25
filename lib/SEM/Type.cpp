@@ -35,7 +35,7 @@ namespace locic {
 					
 					bool changed = false;
 					
-					for (const auto& templateArg : type->templateArguments()) {
+					for (const auto& templateArg: type->templateArguments()) {
 						const auto appliedArg = applyType<PreFunction, PostFunction>(templateArg, preFunction, postFunction);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(appliedArg);
@@ -54,7 +54,7 @@ namespace locic {
 					
 					bool changed = false;
 					
-					for (const auto& paramType : type->getFunctionParameterTypes()) {
+					for (const auto& paramType: type->getFunctionParameterTypes()) {
 						const auto appliedType = applyType<PreFunction, PostFunction>(paramType, preFunction, postFunction);
 						changed |= (appliedType != paramType);
 						args.push_back(appliedType);
@@ -158,8 +158,8 @@ namespace locic {
 			auto& context = typeAlias->context();
 			
 			Type type(context, ALIAS);
-			type.aliasType_.typeAlias = typeAlias;
-			type.aliasType_.templateArguments = std::move(templateArguments);
+			type.data_.aliasType.typeAlias = typeAlias;
+			type.typeArray_ = std::move(templateArguments);
 			return context.getType(std::move(type));
 		}
 		
@@ -168,8 +168,8 @@ namespace locic {
 			auto& context = typeInstance->context();
 			
 			Type type(context, OBJECT);
-			type.objectType_.typeInstance = typeInstance;
-			type.objectType_.templateArguments = std::move(templateArguments);
+			type.data_.objectType.typeInstance = typeInstance;
+			type.typeArray_ = std::move(templateArguments);
 			return context.getType(std::move(type));
 		}
 		
@@ -177,7 +177,7 @@ namespace locic {
 			auto& context = templateVar->context();
 			
 			Type type(context, TEMPLATEVAR);
-			type.templateVarRef_.templateVar = templateVar;
+			type.data_.templateVarRef.templateVar = templateVar;
 			return context.getType(std::move(type));
 		}
 		
@@ -188,12 +188,12 @@ namespace locic {
 			
 			Type type(context, FUNCTION);
 			
-			type.functionType_.isVarArg = isVarArg;
-			type.functionType_.isMethod = isMethod;
-			type.functionType_.isTemplated = isTemplated;
-			type.functionType_.isNoExcept = isNoExcept;
-			type.functionType_.returnType = returnType;
-			type.functionType_.parameterTypes = std::move(parameterTypes);
+			type.data_.functionType.isVarArg = isVarArg;
+			type.data_.functionType.isMethod = isMethod;
+			type.data_.functionType.isTemplated = isTemplated;
+			type.data_.functionType.isNoExcept = isNoExcept;
+			type.data_.functionType.returnType = returnType;
+			type.typeArray_ = std::move(parameterTypes);
 			
 			return context.getType(std::move(type));
 		}
@@ -204,7 +204,7 @@ namespace locic {
 			
 			Type type(context, METHOD);
 			
-			type.methodType_.functionType = functionType;
+			type.data_.methodType.functionType = functionType;
 			
 			return context.getType(std::move(type));
 		}
@@ -215,7 +215,7 @@ namespace locic {
 			
 			Type type(context, INTERFACEMETHOD);
 			
-			type.interfaceMethodType_.functionType = functionType;
+			type.data_.interfaceMethodType.functionType = functionType;
 			
 			return context.getType(std::move(type));
 		}
@@ -226,7 +226,7 @@ namespace locic {
 			
 			Type type(context, STATICINTERFACEMETHOD);
 			
-			type.staticInterfaceMethodType_.functionType = functionType;
+			type.data_.staticInterfaceMethodType.functionType = functionType;
 			
 			return context.getType(std::move(type));
 		}
@@ -409,11 +409,11 @@ namespace locic {
 		}
 		
 		SEM::TypeAlias* Type::getTypeAlias() const {
-			return aliasType_.typeAlias;
+			return data_.aliasType.typeAlias;
 		}
 		
 		const TypeArray& Type::typeAliasArguments() const {
-			return aliasType_.templateArguments;
+			return typeArray_;
 		}
 		
 		bool Type::isBuiltInVoid() const {
@@ -430,32 +430,32 @@ namespace locic {
 		
 		bool Type::isFunctionVarArg() const {
 			assert(isFunction());
-			return functionType_.isVarArg;
+			return data_.functionType.isVarArg;
 		}
 		
 		bool Type::isFunctionMethod() const {
 			assert(isFunction());
-			return functionType_.isMethod;
+			return data_.functionType.isMethod;
 		}
 		
 		bool Type::isFunctionTemplated() const {
 			assert(isFunction());
-			return functionType_.isTemplated;
+			return data_.functionType.isTemplated;
 		}
 		
 		bool Type::isFunctionNoExcept() const {
 			assert(isFunction());
-			return functionType_.isNoExcept;
+			return data_.functionType.isNoExcept;
 		}
 		
 		const Type* Type::getFunctionReturnType() const {
 			assert(isFunction());
-			return functionType_.returnType;
+			return data_.functionType.returnType;
 		}
 		
 		const TypeArray& Type::getFunctionParameterTypes() const {
 			assert(isFunction());
-			return functionType_.parameterTypes;
+			return typeArray_;
 		}
 		
 		bool Type::isMethod() const {
@@ -464,7 +464,7 @@ namespace locic {
 		
 		const Type* Type::getMethodFunctionType() const {
 			assert(isMethod());
-			return methodType_.functionType;
+			return data_.methodType.functionType;
 		}
 		
 		bool Type::isInterfaceMethod() const {
@@ -473,7 +473,7 @@ namespace locic {
 		
 		const Type* Type::getInterfaceMethodFunctionType() const {
 			assert(isInterfaceMethod());
-			return interfaceMethodType_.functionType;
+			return data_.interfaceMethodType.functionType;
 		}
 		
 		bool Type::isStaticInterfaceMethod() const {
@@ -482,12 +482,12 @@ namespace locic {
 		
 		const Type* Type::getStaticInterfaceMethodFunctionType() const {
 			assert(isStaticInterfaceMethod());
-			return staticInterfaceMethodType_.functionType;
+			return data_.staticInterfaceMethodType.functionType;
 		}
 		
 		TemplateVar* Type::getTemplateVar() const {
 			assert(isTemplateVar());
-			return templateVarRef_.templateVar;
+			return data_.templateVarRef.templateVar;
 		}
 		
 		bool Type::isObject() const {
@@ -496,12 +496,12 @@ namespace locic {
 		
 		TypeInstance* Type::getObjectType() const {
 			assert(isObject());
-			return objectType_.typeInstance;
+			return data_.objectType.typeInstance;
 		}
 		
 		const TypeArray& Type::templateArguments() const {
 			assert(isObject());
-			return objectType_.templateArguments;
+			return typeArray_;
 		}
 		
 		const Type* Type::getCallableFunctionType() const {
@@ -633,6 +633,10 @@ namespace locic {
 		}
 		
 		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
+			if (templateVarMap.empty()) {
+				return this;
+			}
+			
 			return applyType(this,
 				[&](const Type* const type) {
 					if (type->isTemplateVar()) {
@@ -955,44 +959,44 @@ namespace locic {
 				}
 				
 				case ALIAS: {
-					type.aliasType_.typeAlias = getTypeAlias();
-					type.aliasType_.templateArguments = typeAliasArguments().copy();
+					type.data_.aliasType.typeAlias = getTypeAlias();
+					type.typeArray_ = typeAliasArguments().copy();
 					break;
 				}
 				
 				case OBJECT: {
-					type.objectType_.typeInstance = getObjectType();
-					type.objectType_.templateArguments = templateArguments().copy();
+					type.data_.objectType.typeInstance = getObjectType();
+					type.typeArray_ = templateArguments().copy();
 					break;
 				}
 				
 				case FUNCTION: {
-					type.functionType_.isVarArg = isFunctionVarArg();
-					type.functionType_.isMethod = isFunctionMethod();
-					type.functionType_.isTemplated = isFunctionTemplated();
-					type.functionType_.isNoExcept = isFunctionNoExcept();
-					type.functionType_.returnType = getFunctionReturnType();
-					type.functionType_.parameterTypes = getFunctionParameterTypes().copy();
+					type.data_.functionType.isVarArg = isFunctionVarArg();
+					type.data_.functionType.isMethod = isFunctionMethod();
+					type.data_.functionType.isTemplated = isFunctionTemplated();
+					type.data_.functionType.isNoExcept = isFunctionNoExcept();
+					type.data_.functionType.returnType = getFunctionReturnType();
+					type.typeArray_ = getFunctionParameterTypes().copy();
 					break;
 				}
 				
 				case METHOD: {
-					type.methodType_.functionType = getMethodFunctionType();
+					type.data_.methodType.functionType = getMethodFunctionType();
 					break;
 				}
 				
 				case INTERFACEMETHOD: {
-					type.interfaceMethodType_.functionType = getInterfaceMethodFunctionType();
+					type.data_.interfaceMethodType.functionType = getInterfaceMethodFunctionType();
 					break;
 				}
 				
 				case STATICINTERFACEMETHOD: {
-					type.staticInterfaceMethodType_.functionType = getStaticInterfaceMethodFunctionType();
+					type.data_.staticInterfaceMethodType.functionType = getStaticInterfaceMethodFunctionType();
 					break;
 				}
 				
 				case TEMPLATEVAR: {
-					type.templateVarRef_.templateVar = getTemplateVar();
+					type.data_.templateVarRef.templateVar = getTemplateVar();
 					break;
 				}
 			}

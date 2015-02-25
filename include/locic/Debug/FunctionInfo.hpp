@@ -16,6 +16,12 @@ namespace locic {
 			
 			inline FunctionInfo()
 				: isDefinition(false), name(), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
+			
+			FunctionInfo(const FunctionInfo& other)
+			: isDefinition(other.isDefinition),
+			name(other.name.copy()),
+			declLocation(other.declLocation),
+			scopeLocation(other.scopeLocation) { }
 		};
 		
 	}

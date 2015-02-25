@@ -1,8 +1,8 @@
 #include <cassert>
 #include <cstddef>
 #include <string>
-#include <vector>
 
+#include <locic/Array.hpp>
 #include <locic/Name.hpp>
 
 namespace locic {
@@ -14,17 +14,17 @@ namespace locic {
 	: isAbsolute_(isNameAbsolute){ }
 	
 	Name::Name(const Name& name, size_t substrSize)
-	: isAbsolute_(name.isAbsolute()){
-		
+	: isAbsolute_(name.isAbsolute()) {
 		assert(substrSize <= name.size());
-		
+		list_.reserve(substrSize);
 		for(std::size_t i = 0; i < substrSize; i++){
 			list_.push_back(name.at(i));
-		}	
+		}
 	}
 	
 	Name::Name(const Name& prefix, const std::string& suffix)
-	: isAbsolute_(prefix.isAbsolute()){
+	: isAbsolute_(prefix.isAbsolute()) {
+		list_.reserve(prefix.size() + 1);
 		for(std::size_t i = 0; i < prefix.size(); i++){
 			list_.push_back(prefix.at(i));
 		}
@@ -36,7 +36,8 @@ namespace locic {
 	}
 	
 	Name::Name(const Name& prefix, const Name& suffix)
-	: isAbsolute_(prefix.isAbsolute()){
+	: isAbsolute_(prefix.isAbsolute()) {
+		list_.reserve(prefix.size() + suffix.size());
 		for(std::size_t i = 0; i < prefix.size(); i++){
 			list_.push_back(prefix.at(i));
 		}
@@ -45,12 +46,18 @@ namespace locic {
 		}
 	}
 	
-	Name Name::Absolute(){
+	Name Name::Absolute() {
 		return Name(true);
 	}
 	
-	Name Name::Relative(){
+	Name Name::Relative() {
 		return Name(false);
+	}
+	
+	Name Name::copy() const {
+		Name newName;
+		newName.list_ = list_.copy();
+		return newName;
 	}
 	
 	bool Name::operator==(const Name& name) const{
@@ -70,9 +77,9 @@ namespace locic {
 	Name Name::makeAbsolute(const Name& name) const{
 		assert(isAbsolute());
 		assert(!name.empty());
-		if(name.isAbsolute()){
-			return name;
-		}else{
+		if(name.isAbsolute()) {
+			return name.copy();
+		} else {
 			return concat(name);
 		}
 	}
@@ -119,17 +126,17 @@ namespace locic {
 		return str;
 	}
 	
-	std::string Name::first() const{
+	const std::string& Name::first() const{
 		return list_.front();
 	}
 	
-	std::string Name::last() const{
+	const std::string& Name::last() const{
 		assert(list_.back() == revAt(0)
 		&& "The last element must be the first element when the list is in reverse order");
 		return list_.back();
 	}
 	
-	std::string Name::onlyElement() const{
+	const std::string& Name::onlyElement() const{
 		assert(list_.size() == 1
 		&& "Getting the only element of a name means there must be exactly one element");
 		return list_.front();
@@ -143,12 +150,12 @@ namespace locic {
 		return list_.size();
 	}
 	
-	std::string Name::at(std::size_t i) const{
+	const std::string& Name::at(std::size_t i) const{
 		assert(i < list_.size());
 		return list_.at(i);
 	}
 	
-	std::string Name::revAt(std::size_t i) const{
+	const std::string& Name::revAt(std::size_t i) const{
 		assert(i < list_.size());
 		return list_.at(list_.size() - i - 1);
 	}

@@ -3,10 +3,11 @@
 
 namespace locic{
 
-	struct BuildOptions {
+	class BuildOptions {
+	public:
 		bool unsafe;
 		
-		inline BuildOptions()
+		BuildOptions()
 			: unsafe(false) { }
 	};
 

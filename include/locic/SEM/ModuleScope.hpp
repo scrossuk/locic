@@ -22,6 +22,8 @@ namespace locic {
 				static ModuleScope Import(Name moduleName, Version moduleVersion);
 				static ModuleScope Export(Name moduleName, Version moduleVersion);
 				
+				ModuleScope copy() const;
+				
 				Kind kind() const;
 				
 				bool isInternal() const;

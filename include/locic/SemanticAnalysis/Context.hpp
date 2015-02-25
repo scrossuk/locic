@@ -1,25 +1,47 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 #define LOCIC_SEMANTICANALYSIS_CONTEXT_HPP
 
+#include <memory>
+#include <set>
+#include <string>
 #include <tuple>
-#include <unordered_map>
+#include <vector>
 
-#include <locic/Debug.hpp>
-#include <locic/SEM.hpp>
-#include <locic/StableSet.hpp>
-
-#include <locic/SemanticAnalysis/MethodSet.hpp>
-#include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SEM/TemplateVarMap.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
+	template <typename T>
+	class Optional;
+	
+	namespace Debug {
+		
+		class Module;
+		class SourceLocation;
+		
+	}
+	
+	namespace SEM {
+		
+		class Context;
+		class MethodSet;
+		class TemplatedObject;
+		class TemplateVar;
+		class Type;
+		class Value;
+		
+	}
+	
+	namespace SemanticAnalysis {
+		
+		class MethodSet;
+		class ScopeStack;
 		using TemplateInstTuple = std::tuple<ScopeStack, SEM::TemplateVarMap, const SEM::TemplatedObject*, Name, Debug::SourceLocation>;
 		
 		class Context {
 			public:
 				Context(Debug::Module& pDebugModule, SEM::Context& pSemContext);
+				~Context();
 				
 				Debug::Module& debugModule();
 				
@@ -55,18 +77,7 @@ namespace locic {
 				Context(const Context&) = delete;
 				Context& operator=(const Context&) = delete;
 				
-				struct hashPair {
-					std::size_t operator()(const std::pair<const SEM::Type*, const char*>& pair) const;
-				};
-				
-				Debug::Module& debugModule_;
-				ScopeStack scopeStack_;
-				SEM::Context& semContext_;
-				bool templateRequirementsComplete_;
-				std::vector<TemplateInstTuple> templateInstantiations_;
-				std::set<std::string> validVarArgTypes_;
-				mutable StableSet<MethodSet> methodSets_;
-				std::unordered_map<std::pair<const SEM::Type*, const char*>, bool, hashPair> capabilities_;
+				std::unique_ptr<class ContextImpl> impl_;
 				
 		};
 		

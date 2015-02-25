@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <algorithm>
 #include <map>
 #include <string>
 
@@ -11,6 +12,8 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
 
@@ -350,10 +353,10 @@ namespace locic {
 				
 				if (nameA < nameB) {
 					elements.push_back(std::make_pair(nameA, iteratorA->second.copy()));
-					iteratorA++;
+					++iteratorA;
 				} else if (nameB < nameA) {
 					elements.push_back(std::make_pair(nameB, iteratorB->second.copy()));
-					iteratorB++;
+					++iteratorB;
 				} else {
 					// Merge methods!
 					throw std::runtime_error("Merging methods not supported!");
@@ -366,12 +369,15 @@ namespace locic {
 			
 			while (addIterator != endIterator) {
 				elements.push_back(std::make_pair(addIterator->first, addIterator->second.copy()));
-				addIterator++;
+				++addIterator;
 			}
 			
 			// TODO: merge these properly!
-			MethodSet::FilterSet filters = setA->filterSet();
-			filters.insert(filters.end(), setB->filterSet().begin(), setB->filterSet().end());
+			MethodSet::FilterSet filters = setA->filterSet().copy();
+			filters.reserve(filters.size() + setB->filterSet().size());
+			for (const auto& filter: setB->filterSet()) {
+				filters.push_back(filter);
+			}
 			std::sort(filters.begin(), filters.end(), comparePairKeys<MethodSet::Filter>);
 			
 			return MethodSet::get(setA->context(), std::move(elements), std::move(filters));

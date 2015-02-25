@@ -11,26 +11,15 @@
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
 
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/IRReader/IRReader.h>
-
-#if defined(LLVM_3_5) && defined(LLVM_LINKER_IN_LINKER)
-#include <llvm/Linker/Linker.h>
-#else
-#include <llvm/Linker.h>
-#endif
-
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/Support/Path.h>
-#include <llvm/Support/SourceMgr.h>
-
 #include <locic/AST.hpp>
+#include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
 #include <locic/Parser/DefaultParser.hpp>
-#include <locic/CodeGen/CodeGen.hpp>
+#include <locic/CodeGen/Context.hpp>
+#include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
-#include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Linker.hpp>
 #include <locic/SemanticAnalysis.hpp>
 
 using namespace locic;
@@ -123,22 +112,6 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 	boost::regex expectedErrorRegex(expectedErrorCopy);
 	
 	return boost::regex_match(testErrorCopy, expectedErrorRegex);
-}
-
-llvm::Module* loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
-#ifdef LLVM_3_3
-	llvm::sys::Path fileNamePath;
-	if (!fileNamePath.set(fileName)) {
-		printf("Invalid file name '%s'.\n", fileName.c_str());
-		return nullptr;
-	}
-	
-	llvm::SMDiagnostic error;
-	return llvm::ParseIRFile(fileNamePath.str(), error, context);
-#else
-	llvm::SMDiagnostic error;
-	return llvm::ParseIRFile(fileName, error, context);
-#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -297,7 +270,8 @@ int main(int argc, char* argv[]) {
 		// Perform code generation.
 		printf("Performing code generation...\n");
 		
-		CodeGen::CodeGenerator codeGenerator("test", debugModule, buildOptions);
+		CodeGen::Context codeGenContext;
+		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());
 		
@@ -310,27 +284,14 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		
-		llvm::Module* linkedModule = codeGenerator.module().getLLVMModulePtr();
+		CodeGen::Linker linker(codeGenContext, codeGenerator.module());
 		
 		for (const auto& dependencyModuleName: dependencyModules) {
-			const auto dependencyModule = loadBitcodeFile(dependencyModuleName, linkedModule->getContext());
-			if (dependencyModule == nullptr) {
-				printf("Test FAILED: Failed to load dependency module '%s'.\n",
-					dependencyModuleName.c_str());
-				return -1;
-			}
-			
-			std::string errorMessage;
-			const bool linkFailed = llvm::Linker::LinkModules(linkedModule, dependencyModule, llvm::Linker::DestroySource, &errorMessage);
-			if (linkFailed) {
-				printf("Test FAILED: Couldn't link with dependency module '%s'; error given was '%s'.\n",
-					dependencyModuleName.c_str(), errorMessage.c_str());
-				return -1;
-			}
+			linker.loadModule(dependencyModuleName);
 		}
 		
 		// Interpret the code.
-		CodeGen::Interpreter interpreter(linkedModule);
+		CodeGen::Interpreter interpreter(codeGenContext, linker.module());
 		
 		// Treat entry point function as if it is 'main'.
 		programArgs.insert(programArgs.begin(), "testProgram");

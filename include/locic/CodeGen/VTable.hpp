@@ -1,22 +1,25 @@
 #ifndef LOCIC_CODEGEN_VTABLE_HPP
 #define LOCIC_CODEGEN_VTABLE_HPP
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <list>
 #include <string>
 #include <vector>
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
-
 #include <locic/Map.hpp>
 
-#include <locic/CodeGen/Module.hpp>
+namespace llvm {
+	
+	class Value;
+	
+}
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace CodeGen {
+		
+		class Module;
+		
 		const size_t VTABLE_SIZE = 10;
 		
 		/**

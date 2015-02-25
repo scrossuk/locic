@@ -1,9 +1,9 @@
 #ifndef LOCIC_SEMANTICANALYSIS_METHODSET_HPP
 #define LOCIC_SEMANTICANALYSIS_METHODSET_HPP
 
-#include <map>
 #include <string>
 
+#include <locic/Array.hpp>
 #include <locic/SEM.hpp>
 
 namespace locic {
@@ -42,6 +42,9 @@ namespace locic {
 				
 		};
 		
+		constexpr size_t MethodSetElementBaseSize = 32;
+		constexpr size_t MethodSetFilterBaseSize = 8;
+		
 		class MethodSet {
 			public:
 				enum FilterReason {
@@ -51,11 +54,11 @@ namespace locic {
 				};
 				
 				typedef std::pair<std::string, MethodSetElement> Element;
-				typedef std::vector<Element> ElementSet;
+				typedef Array<Element, MethodSetElementBaseSize> ElementSet;
 				typedef ElementSet::const_iterator iterator;
 				
 				typedef std::pair<std::string, FilterReason> Filter;
-				typedef std::vector<Filter> FilterSet;
+				typedef Array<Filter, MethodSetFilterBaseSize> FilterSet;
 				
 				static const MethodSet* getEmpty(const Context& context);
 				

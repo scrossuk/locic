@@ -1,23 +1,34 @@
-#ifndef LOCIC_CODEGEN_HPP
-#define LOCIC_CODEGEN_HPP
+#ifndef LOCIC_CODEGEN_CODEGENERATOR_HPP
+#define LOCIC_CODEGEN_CODEGENERATOR_HPP
 
 #include <cstddef>
 #include <memory>
 #include <string>
 
-#include <locic/BuildOptions.hpp>
-#include <locic/Debug.hpp>
-#include <locic/SEM.hpp>
-
 namespace locic {
-
-	namespace CodeGen {
 	
+	class BuildOptions;
+	
+	namespace Debug {
+		
+		class Module;
+		
+	}
+	
+	namespace SEM {
+		
+		class Namespace;
+		
+	}
+	
+	namespace CodeGen {
+		
+		class Context;
 		class Module;
 		
 		class CodeGenerator {
 			public:
-				CodeGenerator(const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions);
+				CodeGenerator(Context& context, const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions);
 				~CodeGenerator();
 				
 				Module& module();

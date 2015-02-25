@@ -7,6 +7,7 @@
 #include <locic/Map.hpp>
 #include <locic/Optional.hpp>
 #include <locic/Debug/ValueInfo.hpp>
+#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 
 namespace locic {
@@ -20,8 +21,6 @@ namespace locic {
 		class Type;
 		class TypeInstance;
 		class Var;
-		
-		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 	
 		class Value {
 			public:

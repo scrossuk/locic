@@ -9,13 +9,15 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		Name getParentName(const ScopeElement& topElement) {
+		const Name& getParentName(const ScopeElement& topElement) {
 			assert(topElement.isNamespace() || topElement.isTypeInstance());
 			if (topElement.isNamespace()) {
 				return topElement.nameSpace()->name();
@@ -34,7 +36,7 @@ namespace locic {
 			const auto name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
-			const auto semFunction = new SEM::Function(fullName, std::move(moduleScope));
+			const auto semFunction = new SEM::Function(fullName.copy(), std::move(moduleScope));
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
@@ -64,10 +66,9 @@ namespace locic {
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto templateVarFullName = semFunction->name() + templateVarName;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
-						templateVarFullName,
+						semFunction->name() + templateVarName,
 						templateVarIndex++);
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
@@ -115,7 +116,7 @@ namespace locic {
 				const auto semParamType = ConvertType(context, astParamTypeNode);
 				
 				if (semParamType->isBuiltInVoid()) {
-					throw ParamVoidTypeException(fullName, astTypeVarNode->namedVar.name);
+					throw ParamVoidTypeException(fullName.copy(), astTypeVarNode->namedVar.name);
 				}
 				
 				parameterTypes.push_back(semParamType);

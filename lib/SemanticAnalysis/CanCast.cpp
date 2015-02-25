@@ -23,6 +23,10 @@ namespace locic {
 		static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
 		
 		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(const SEM::Type* sourceType, const SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
+			if (sourceType == destType) {
+				return sourceType;
+			}
+			
 			if (destType->isAuto()) {
 				// 'auto' is pattern matching, so in this
 				// case it can match the source type.

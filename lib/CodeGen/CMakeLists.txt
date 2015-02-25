@@ -2,8 +2,9 @@ add_subdirectory(llvm-abi)
 
 add_library(locic-codegen
 	ArgInfo.cpp
-	CodeGen.cpp
+	CodeGenerator.cpp
 	ConstantGenerator.cpp
+	Context.cpp
 	ControlFlow.cpp
 	Debug.cpp
 	Destructor.cpp
@@ -20,7 +21,9 @@ add_library(locic-codegen
 	GenVar.cpp
 	GenVTable.cpp
 	Interface.cpp
+	InternalContext.cpp
 	Interpreter.cpp
+	Linker.cpp
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp
@@ -45,5 +48,13 @@ add_library(locic-codegen
 	UnwindAction.cpp
 	VTable.cpp
 	VirtualCall/VirtualCall-Default.cpp
-	)
+)
+
+include(PrecompiledHeader)
+
+add_precompiled_header(locic-codegen LLVMIncludes.hpp
+	FORCEINCLUDE
+	SOURCE_CXX LLVMIncludes.cpp
+)
+
 

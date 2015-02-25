@@ -4,17 +4,16 @@
 #include <string>
 #include <vector>
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
-
 namespace locic {
 
 	namespace CodeGen {
-	
+		
+		class Context;
 		class Module;
 		
 		class Interpreter {
 			public:
-				Interpreter(llvm::Module* module);
+				Interpreter(Context& context, Module& module);
 				~Interpreter();
 				
 				void* getFunctionPointer(const std::string& functionName);
@@ -22,8 +21,7 @@ namespace locic {
 				int runAsMain(const std::string& functionName, const std::vector<std::string>& args);
 				
 			private:
-				llvm::Module* module_;
-				llvm::ExecutionEngine* executionEngine_;
+				std::unique_ptr<class InterpreterImpl> impl_;
 				
 		};
 		

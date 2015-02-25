@@ -2,19 +2,16 @@
 #define LOCIC_SEM_VAR_HPP
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-#include <locic/Map.hpp>
+#include <locic/SEM/TemplateVarMap.hpp>
 
 namespace locic {
-
+	
 	namespace SEM {
 	
 		class TemplateVar;
 		class Type;
-		
-		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Var {
 			public:

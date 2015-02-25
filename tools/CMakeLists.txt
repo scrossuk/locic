@@ -1,6 +1,8 @@
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
+add_compile_options(${LOCIC_BUILD_WARNINGS})
+
 set(REQ_LIBS
 	${LLVM_LIBRARIES}
 	boost_filesystem
@@ -33,7 +35,7 @@ target_link_libraries(locic
 # Build test tool.
 add_executable(loci-test
 	loci-test.cpp
-	)
+)
 
 target_link_libraries(loci-test
 	locic-parser

@@ -1,6 +1,8 @@
 find_package(LLVM REQUIRED)
 find_package(Clang REQUIRED)
 
+add_compile_options(${LOCIC_BUILD_WARNINGS})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 
 set(RUNTIME_FILES

@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 
+#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 
 namespace locic {
@@ -15,8 +16,6 @@ namespace locic {
 		class Type;
 		class TypeAlias;
 		class TypeInstance;
-		
-		typedef std::unordered_map<TemplateVar*, const Type*> TemplateVarMap;
 		
 		class Type {
 			public:
@@ -145,40 +144,41 @@ namespace locic {
 				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
-				struct {
-					TypeAlias* typeAlias;
-					TypeArray templateArguments;
-				} aliasType_;
+				TypeArray typeArray_;
 				
-				struct {
-					TypeInstance* typeInstance;
-					TypeArray templateArguments;
-				} objectType_;
-				
-				struct FunctionType {
-					bool isVarArg;
-					bool isMethod;
-					bool isTemplated;
-					bool isNoExcept;
-					const Type* returnType;
-					TypeArray parameterTypes;
-				} functionType_;
-				
-				struct {
-					const Type* functionType;
-				} methodType_;
-				
-				struct {
-					const Type* functionType;
-				} interfaceMethodType_;
-				
-				struct {
-					const Type* functionType;
-				} staticInterfaceMethodType_;
-				
-				struct {
-					TemplateVar* templateVar;
-				} templateVarRef_;
+				union {
+					struct {
+						TypeAlias* typeAlias;
+					} aliasType;
+					
+					struct {
+						TypeInstance* typeInstance;
+					} objectType;
+					
+					struct FunctionType {
+						bool isVarArg;
+						bool isMethod;
+						bool isTemplated;
+						bool isNoExcept;
+						const Type* returnType;
+					} functionType;
+					
+					struct {
+						const Type* functionType;
+					} methodType;
+					
+					struct {
+						const Type* functionType;
+					} interfaceMethodType;
+					
+					struct {
+						const Type* functionType;
+					} staticInterfaceMethodType;
+					
+					struct {
+						TemplateVar* templateVar;
+					} templateVarRef;
+				} data_;
 				
 		};
 		

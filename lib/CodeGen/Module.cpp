@@ -10,20 +10,20 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
-#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
-		Module::Module(const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
-			: module_(new llvm::Module(name.c_str(), llvm::getGlobalContext())),
+		Module::Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
+			: context_(context), module_(new llvm::Module(name.c_str(), context.llvmContext())),
 			  abi_(llvm_abi::createABI(module_.get(), llvm::sys::getDefaultTargetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
 			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
 			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-
+			
 #ifndef LLVM_3_3
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
 #endif
@@ -92,11 +92,11 @@ namespace locic {
 		}
 		
 		llvm_abi::Context& Module::abiContext() {
-			return abiContext_;
+			return context_.llvmABIContext();
 		}
 		
 		llvm::LLVMContext& Module::getLLVMContext() const {
-			return module_->getContext();
+			return context_.llvmContext();
 		}
 		
 		llvm::Module& Module::getLLVMModule() const {

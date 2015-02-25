@@ -7,6 +7,7 @@
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
 

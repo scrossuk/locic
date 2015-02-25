@@ -3,18 +3,17 @@
 
 #include <memory>
 
-#include <locic/StableSet.hpp>
-#include <locic/SEM/Type.hpp>
-
 namespace locic {
 
 	namespace SEM {
 	
 		class Namespace;
+		class Type;
 		
 		class Context {
 			public:
 				Context();
+				~Context();
 				
 				const Type* getType(Type type) const;
 				
@@ -25,8 +24,7 @@ namespace locic {
 				Context(const Context&) = delete;
 				Context& operator=(const Context&) = delete;
 				
-				std::unique_ptr<Namespace> rootNamespace_;
-				mutable StableSet<Type> types_;
+				std::unique_ptr<class ContextImpl> impl_;
 				
 		};
 		

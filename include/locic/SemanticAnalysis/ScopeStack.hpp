@@ -13,8 +13,56 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
-		typedef std::vector<ScopeElement> ScopeStack;
+		
+		class ScopeStack {
+		public:
+			typedef Array<ScopeElement, 8> ArrayType;
+			
+			ScopeStack() { }
+			
+			ScopeStack(ArrayType argArray)
+			: array_(std::move(argArray)) { }
+			
+			ScopeStack copy() const {
+				return ScopeStack(array_.copy());
+			}
+			
+			bool empty() const {
+				return array_.empty();
+			}
+			
+			size_t size() const {
+				return array_.size();
+			}
+			
+			ScopeElement& back() {
+				return array_.back();
+			}
+			
+			const ScopeElement& back() const {
+				return array_.back();
+			}
+			
+			void push_back(ScopeElement element) {
+				array_.push_back(std::move(element));
+			}
+			
+			void pop_back() {
+				array_.pop_back();
+			}
+			
+			ScopeElement& operator[](const size_t index) {
+				return array_[index];
+			}
+			
+			const ScopeElement& operator[](const size_t index) const {
+				return array_[index];
+			}
+			
+		private:
+			ArrayType array_;
+			
+		};
 		
 		class PushScopeElement {
 			public:

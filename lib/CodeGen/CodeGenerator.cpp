@@ -1,5 +1,3 @@
-#include <locic/CodeGen/LLVMIncludes.hpp>
-
 #include <assert.h>
 #include <cstdio>
 #include <fstream>
@@ -13,8 +11,9 @@
 #include <locic/SEM.hpp>
 #include <locic/String.hpp>
 
-#include <locic/CodeGen/CodeGen.hpp>
+#include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Context.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -110,8 +109,8 @@ namespace locic {
 			}
 		}
 		
-		CodeGenerator::CodeGenerator(const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions)
-			: module_(new Module(moduleName, debugModule, buildOptions)) {
+		CodeGenerator::CodeGenerator(Context& context, const std::string& moduleName, Debug::Module& debugModule, const BuildOptions& buildOptions)
+			: module_(new Module(context.internal(), moduleName, debugModule, buildOptions)) {
 			// TODO: fill these in correctly.
 			DebugCompileUnit compileUnit;
 			compileUnit.compilerName = "Loci Compiler";

@@ -20,7 +20,7 @@ namespace locic {
 		
 		class TypeAlias: public TemplatedObject {
 			public:
-				TypeAlias(Context& pContext, const Name& pName);
+				TypeAlias(Context& context, Name name);
 				
 				Context& context() const;
 				

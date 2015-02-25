@@ -10,10 +10,12 @@
 #include <boost/program_options.hpp>
 
 #include <locic/AST.hpp>
+#include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
 #include <locic/Parser/DefaultParser.hpp>
-#include <locic/CodeGen/CodeGen.hpp>
+#include <locic/CodeGen/CodeGenerator.hpp>
+#include <locic/CodeGen/Context.hpp>
 #include <locic/SemanticAnalysis.hpp>
 
 using namespace locic;
@@ -227,7 +229,8 @@ int main(int argc, char* argv[]) {
 		// TODO: name this based on output file name.
 		const auto outputName = "output";
 		
-		CodeGen::CodeGenerator codeGenerator(outputName, debugModule, buildOptions);
+		CodeGen::Context codeGenContext;
+		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputName, debugModule, buildOptions);
 		
 		{
 			Timer timer;

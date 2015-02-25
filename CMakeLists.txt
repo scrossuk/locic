@@ -30,7 +30,7 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
-	)
+)
 
 # --- Compiler Properties
 
@@ -46,21 +46,34 @@ message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
 
 # --- Compiler Flags
 
-add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
+add_definitions(
+	-D__STDC_LIMIT_MACROS
+	-D__STDC_CONSTANT_MACROS
+)
 
 # Enable most warnings.
-set(LOCIC_BUILD_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_BUILD_WARNINGS}")
+set(LOCIC_BUILD_WARNINGS
+	-pedantic
+	-Wall
+	-Wextra
+	-Wshadow
+	-Wundef
+	-Wpointer-arith
+	-Wcast-align
+	-Wwrite-strings
+)
 
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Add version as preprocessor defines.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION=${LOCIC_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_MAJOR=${LOCIC_VERSION_MAJOR}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_MINOR=${LOCIC_VERSION_MINOR}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_PATCH=${LOCIC_VERSION_PATCH}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLOCIC_VERSION_BUILD=${LOCIC_VERSION_BUILD}")
+add_definitions(
+	"-DLOCIC_VERSION=${LOCIC_VERSION}"
+	"-DLOCIC_VERSION_MAJOR=${LOCIC_VERSION_MAJOR}"
+	"-DLOCIC_VERSION_MINOR=${LOCIC_VERSION_MINOR}"
+	"-DLOCIC_VERSION_PATCH=${LOCIC_VERSION_PATCH}"
+	"-DLOCIC_VERSION_BUILD=${LOCIC_VERSION_BUILD}"
+)
 
 # --- User config
 
@@ -177,7 +190,7 @@ endif(LLVM_LINKER_H)
 include_directories (
 	"${CMAKE_SOURCE_DIR}/include"
 	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
-	)
+)
 
 set (STD_CONCURRENCY_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/condition_variable.loci"
@@ -186,11 +199,11 @@ set (STD_CONCURRENCY_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/mutex.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/runnable.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/concurrency/api/thread.loci"
-	)
+)
 
 set (STD_CONCURRENCY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/concurrency/std_concurrency.bc"
-	)
+)
 
 set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
@@ -198,32 +211,32 @@ set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/range.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/types.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/varray.loci"
-	)
+)
 
 set (STD_CONTAINER_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
-	)
+)
 
 set (STD_EVENT_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/generator.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/source.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/wait_set.loci"
-	)
+)
 
 set (STD_EVENT_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/event/std_event.bc"
-	)
+)
 
 set (STD_MEMORY_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/alloc.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/raw.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/shared.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/unique.loci"
-	)
+)
 
 set (STD_MEMORY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/memory/std_memory.bc"
-	)
+)
 
 set (STD_NETWORK_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/ip/address.loci"
@@ -233,11 +246,11 @@ set (STD_NETWORK_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/listener.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/stream.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/tcp/sync_stream.loci"
-	)
+)
 
 set (STD_NETWORK_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/network/std_network.bc"
-	)
+)
 
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
@@ -247,11 +260,11 @@ set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/unichar.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8_buffer.loci"
-	)
+)
 
 set (STD_STRING_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/string/std_string.bc"
-	)
+)
 
 # Documentation.
 add_subdirectory(docs)
@@ -268,9 +281,15 @@ add_subdirectory(runtime)
 # Standard library.
 add_subdirectory(stdlib)
 
-# Compiler tests.
+# Compiler tests (e.g. that particular source files compile or don't compile).
 add_subdirectory(test)
 
 # Compiler tools (such as the 'locic' command line tool).
 add_subdirectory(tools)
+
+# Unit tests.
+add_subdirectory(unittests)
+
+# Utilities.
+add_subdirectory(utils)
 

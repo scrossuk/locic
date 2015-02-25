@@ -5,7 +5,7 @@
 
 namespace locic{
 
-	class Exception{
+	class Exception {
 		public:
 			virtual std::string toString() const = 0;
 		

@@ -15,6 +15,8 @@
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/ExitStates.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -359,7 +361,7 @@ namespace locic {
 					// Check this is not being used inside a scope action.
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
-						const auto& element = context.scopeStack().at(pos);
+						const auto& element = context.scopeStack()[pos];
 						if (element.isScopeAction()) {
 							throw ErrorException(makeString("Cannot 'return' in scope action at position %s.",
 								location.toString().c_str()));
@@ -392,7 +394,7 @@ namespace locic {
 					// (apart from inside scope(success), which is allowed).
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
-						const auto& element = context.scopeStack().at(pos);
+						const auto& element = context.scopeStack()[pos];
 						if (element.isScopeAction() && element.scopeActionState() != "success") {
 							throw ErrorException(makeString("Cannot 'throw' in scope action with state '%s' at position %s.",
 								element.scopeActionState().c_str(), location.toString().c_str()));
@@ -413,7 +415,7 @@ namespace locic {
 					
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
-						const auto& element = context.scopeStack().at(pos);
+						const auto& element = context.scopeStack()[pos];
 						
 						if (element.isCatchClause()) {
 							foundCatchClause = true;
@@ -439,7 +441,7 @@ namespace locic {
 					bool foundLoop = false;
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
-						const auto& element = context.scopeStack().at(pos);
+						const auto& element = context.scopeStack()[pos];
 						if (element.isLoop()) {
 							foundLoop = true;
 							break;
@@ -462,7 +464,7 @@ namespace locic {
 					bool foundLoop = false;
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
-						const auto& element = context.scopeStack().at(pos);
+						const auto& element = context.scopeStack()[pos];
 						if (element.isLoop()) {
 							foundLoop = true;
 							break;

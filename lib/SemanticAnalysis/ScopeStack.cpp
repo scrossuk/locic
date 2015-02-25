@@ -16,7 +16,7 @@ namespace locic {
 			Name name = Name::Absolute();
 			
 			for (size_t i = 0; i < scopeStack.size(); i++) {
-				const auto& element = scopeStack.at(i);
+				const auto& element = scopeStack[i];
 				
 				if (element.hasName()) {
 					name = name + element.name();
@@ -29,7 +29,7 @@ namespace locic {
 		SEM::TypeInstance* lookupParentType(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
-				const auto& element = scopeStack.at(pos);
+				const auto& element = scopeStack[pos];
 				
 				if (element.isTypeInstance()) {
 					return element.typeInstance();
@@ -42,7 +42,7 @@ namespace locic {
 		SEM::Function* lookupParentFunction(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
-				const auto& element = scopeStack.at(pos);
+				const auto& element = scopeStack[pos];
 				
 				if (element.isFunction()) {
 					return element.function();
@@ -55,7 +55,7 @@ namespace locic {
 		const SEM::Predicate& lookupRequiresPredicate(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
-				const auto& element = scopeStack.at(pos);
+				const auto& element = scopeStack[pos];
 				
 				if (element.isFunction()) {
 					return element.function()->requiresPredicate();
@@ -76,7 +76,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, SEM::TypeArray templateArgs) {
-			const auto rootElement = scopeStack.at(0);
+			const auto rootElement = scopeStack[0];
 			assert(rootElement.isNamespace());
 			
 			const auto iterator = rootElement.nameSpace()->items().find(typeName);

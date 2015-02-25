@@ -9,9 +9,9 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeAlias::TypeAlias(Context& pContext, const Name& pName)
-			: context_(pContext),
-			name_(pName),
+		TypeAlias::TypeAlias(Context& argContext, Name argName)
+			: context_(argContext),
+			name_(std::move(argName)),
 			requiresPredicate_(Predicate::True()),
 			value_(nullptr) { }
 		

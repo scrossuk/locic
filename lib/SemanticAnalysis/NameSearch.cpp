@@ -171,7 +171,7 @@ namespace locic {
 			const size_t startPosition = name.isAbsolute() ? scopeStack.size() - 1 : 0;
 			for (size_t i = startPosition; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
-				const auto result = performInnerSearch(scopeStack.at(pos), name);
+				const auto result = performInnerSearch(scopeStack[pos], name);
 				if (!result.isNone()) return result;
 			}
 			

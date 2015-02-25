@@ -42,10 +42,10 @@ namespace locic {
 		
 		class CastTypeMismatchException: public CastException {
 			public:
-				inline CastTypeMismatchException(SEM::Value* value, const SEM::Type* sourceType, const SEM::Type* destType)
+				CastTypeMismatchException(SEM::Value* value, const SEM::Type* sourceType, const SEM::Type* destType)
 					: value_(value), sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Fundamental type mismatch in cast of value '%s' from type '%s' to type '%s'.",
 							value_->toString().c_str(),
 							sourceType_->toString().c_str(),
@@ -61,10 +61,10 @@ namespace locic {
 		
 		class CastConstCorrectnessViolationException: public CastException {
 			public:
-				inline CastConstCorrectnessViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastConstCorrectnessViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Const-correctness violation in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -78,10 +78,10 @@ namespace locic {
 		
 		class CastLValueToRValueException: public CastException {
 			public:
-				inline CastLValueToRValueException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastLValueToRValueException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Unable to convert lvalue to rvalue in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -95,10 +95,10 @@ namespace locic {
 		
 		class CastRValueToReferenceException: public CastException {
 			public:
-				inline CastRValueToReferenceException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastRValueToReferenceException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Unable to convert rvalue to reference in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -112,10 +112,10 @@ namespace locic {
 		
 		class CastObjectTypeMismatchException: public CastException {
 			public:
-				inline CastObjectTypeMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastObjectTypeMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Object types don't match in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -129,10 +129,10 @@ namespace locic {
 		
 		class CastConstChainingViolationException: public CastException {
 			public:
-				inline CastConstChainingViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastConstChainingViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Const chaining violation in cast from type '%s' to type '%s'; "
 							"a template argument target type can only be cast to const if ALL of its parent types are also const.",
 							sourceType_->toString().c_str(),
@@ -147,10 +147,10 @@ namespace locic {
 		
 		class CastFunctionParameterNumberMismatchException: public CastException {
 			public:
-				inline CastFunctionParameterNumberMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastFunctionParameterNumberMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Function parameter counts don't match in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -164,10 +164,10 @@ namespace locic {
 		
 		class CastFunctionVarArgsMismatchException: public CastException {
 			public:
-				inline CastFunctionVarArgsMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
+				CastFunctionVarArgsMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
 					
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Function 'varargs' property doesn't match in cast from type '%s' to type '%s'.",
 							sourceType_->toString().c_str(),
 							destType_->toString().c_str());
@@ -181,12 +181,12 @@ namespace locic {
 		
 		class PolyCastMissingMethodException: public CastException {
 			public:
-				inline PolyCastMissingMethodException(const SEM::Type* sourceType, const SEM::Type* destType,
+				PolyCastMissingMethodException(const SEM::Type* sourceType, const SEM::Type* destType,
 						SEM::Function* methodFunction)
 					: sourceType_(sourceType), destType_(destType),
 					  methodFunction_(methodFunction) { }
 					  
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Method '%s' missing in source type of polymorphic cast (from type '%s' to type '%s').",
 							methodFunction_->name().toString().c_str(),
 							sourceType_->toString().c_str(),
@@ -202,14 +202,14 @@ namespace locic {
 		
 		class PolyCastMethodMismatchException: public CastException {
 			public:
-				inline PolyCastMethodMismatchException(const Name& methodName,
+				PolyCastMethodMismatchException(Name methodName,
 						const SEM::Type* sourceType, const SEM::Type* destType,
 						const SEM::Type* sourceMethodType, const SEM::Type* destMethodType)
-					: methodName_(methodName),
+					: methodName_(std::move(methodName)),
 					  sourceType_(sourceType), destType_(destType),
 					  sourceMethodType_(sourceMethodType), destMethodType_(destMethodType) { }
 					  
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Method '%s' doesn't have matching types ('%s' vs '%s') in polymorphic cast (from type '%s' to type '%s').",
 							methodName_.toString().c_str(),
 							sourceMethodType_->toString().c_str(),

@@ -23,6 +23,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 
 namespace locic {
@@ -69,7 +70,7 @@ namespace locic {
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
 			
 			// Create a placeholder type instance.
-			auto semTypeInstance = new SEM::TypeInstance(context.semContext(), fullTypeName, typeInstanceKind, moduleScope);
+			auto semTypeInstance = new SEM::TypeInstance(context.semContext(), fullTypeName.copy(), typeInstanceKind, moduleScope.copy());
 			
 			switch (moduleScope.kind()) {
 				case SEM::ModuleScope::INTERNAL: {
@@ -103,10 +104,9 @@ namespace locic {
 			size_t templateVarIndex = 0;
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto templateVarFullName = fullTypeName + templateVarName;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
-						templateVarFullName,
+						fullTypeName + templateVarName,
 						templateVarIndex++);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
@@ -194,22 +194,21 @@ namespace locic {
 						fullTypeName.toString().c_str(), astTypeAliasNode.location().toString().c_str()));
 				}
 				
-				const auto semTypeAlias = new SEM::TypeAlias(context.semContext(), fullTypeName);
+				const auto semTypeAlias = new SEM::TypeAlias(context.semContext(), fullTypeName.copy());
 				semNamespace->items().insert(std::make_pair(typeAliasName, SEM::NamespaceItem::TypeAlias(semTypeAlias)));
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
 				for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
 					const auto& templateVarName = astTemplateVarNode->name;
-					const auto templateVarFullName = fullTypeName + templateVarName;
 					const auto semTemplateVar =
 						new SEM::TemplateVar(context.semContext(),
-							templateVarFullName,
+							fullTypeName + templateVarName,
 							templateVarIndex++);
 					
 					const auto templateVarIterator = semTypeAlias->namedTemplateVariables().find(templateVarName);
 					if (templateVarIterator != semTypeAlias->namedTemplateVariables().end()) {
-						throw TemplateVariableClashException(fullTypeName, templateVarName);
+						throw TemplateVariableClashException(fullTypeName.copy(), templateVarName);
 					}
 					
 					semTypeAlias->templateVariables().push_back(semTemplateVar);
@@ -382,7 +381,7 @@ namespace locic {
 		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& astFunctionNode, SEM::Function* semFunction) {
 			Debug::FunctionInfo functionInfo;
 			functionInfo.isDefinition = astFunctionNode->isDefinition();
-			functionInfo.name = semFunction->name();
+			functionInfo.name = semFunction->name().copy();
 			functionInfo.declLocation = astFunctionNode.location();
 			
 			// TODO
@@ -404,7 +403,7 @@ namespace locic {
 				}
 				return SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
 			} else {
-				return moduleScope;
+				return moduleScope.copy();
 			}
 		}
 		
@@ -448,7 +447,7 @@ namespace locic {
 					fullName, astFunctionNode.location());
 			}
 			
-			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope);
+			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope.copy());
 			
 			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
 			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
@@ -467,7 +466,7 @@ namespace locic {
 				
 				const auto iterator = semFunction->namedVariables().find(varName);
 				if (iterator != semFunction->namedVariables().end()) {
-					throw ParamVariableClashException(fullName, varName);
+					throw ParamVariableClashException(fullName.copy(), varName);
 				}
 				
 				semFunction->namedVariables().insert(std::make_pair(varName, semVar));
@@ -889,7 +888,7 @@ namespace locic {
 				auto& savedScopeStack = std::get<0>(inst);
 				const auto& variableAssignments = std::get<1>(inst);
 				const auto hasRequiresPredicate = std::get<2>(inst);
-				const auto parentName = std::get<3>(inst);
+				const auto& parentName = std::get<3>(inst);
 				const auto location = std::get<4>(inst);
 				
 				const auto& requiresPredicate = hasRequiresPredicate->requiresPredicate();

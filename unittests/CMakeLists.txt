@@ -1,0 +1,32 @@
+# Unit tests.
+# Run 'make test' or 'ctest' to execute these.
+
+find_package(Threads REQUIRED)
+
+include_directories(SYSTEM
+	"${PROJECT_SOURCE_DIR}/utils/googletest/include"
+)
+
+add_compile_options(${LOCIC_BUILD_WARNINGS})
+
+add_library(locic-unittestmain STATIC
+	TestMain.cpp
+)
+
+function(add_unit_test name)
+	add_executable(locic-unittest-${name}
+		${ARGN}
+	)
+	
+	target_link_libraries(locic-unittest-${name}
+		locic-unittestmain
+		locic-util-gtest
+		${CMAKE_DL_LIBS}
+		${CMAKE_THREAD_LIBS_INIT}
+	)
+	
+	add_test(NAME UnitTest${name} COMMAND locic-unittest-${name})
+endfunction()
+
+add_subdirectory(Support)
+

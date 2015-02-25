@@ -23,6 +23,10 @@ namespace locic {
 			return ModuleScope(EXPORT, std::move(moduleName), std::move(moduleVersion));
 		}
 		
+		ModuleScope ModuleScope::copy() const {
+			return ModuleScope(kind(), moduleName_.copy(), moduleVersion_);
+		}
+		
 		ModuleScope::Kind ModuleScope::kind() const {
 			return kind_;
 		}
