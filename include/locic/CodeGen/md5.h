@@ -36,6 +36,12 @@ documentation and/or software.
 #include <string>
 #include <iostream>
 
+namespace locic {
+	
+	class String;
+	
+}
+
 
 // a small class for calculating MD5 hashes of strings or byte arrays
 // it is not meant to be fast or secure
@@ -53,11 +59,11 @@ public:
   typedef unsigned int size_type; // must be 32bit
 
   MD5();
-  MD5(const std::string& text);
+  MD5(const locic::String& text);
   void update(const unsigned char *buf, size_type length);
   void update(const char *buf, size_type length);
   MD5& finalize();
-  std::string hexdigest() const;
+  std::array<char, 32> hexdigest() const;
   friend std::ostream& operator<<(std::ostream&, MD5 md5);
 
 private:
@@ -88,6 +94,6 @@ private:
   static inline void II(uint4 &a, uint4 b, uint4 c, uint4 d, uint4 x, uint4 s, uint4 ac);
 };
 
-std::string md5(const std::string str);
+std::array<char, 32> md5(const locic::String& str);
 
 #endif

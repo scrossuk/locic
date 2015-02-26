@@ -22,7 +22,7 @@ namespace locic {
 					str += "::";
 				}
 				
-				str += at(i)->name();
+				str += at(i)->name().toString();
 				
 				const auto& templateArgs = at(i)->templateArguments();
 				

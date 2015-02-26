@@ -67,8 +67,8 @@ namespace locic {
 			
 			const auto& functions = typeInstance->functions();
 			
-			for (const auto functionPair: functions) {
-				const auto function = functionPair.second;
+			for (const auto& functionPair: functions) {
+				const auto& function = functionPair.second;
 				
 				if (function->isPrimitive()) {
 					// Only generate 'primitive' functions when needed.

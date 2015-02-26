@@ -28,43 +28,51 @@ namespace locic {
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
 #endif
 			
-			primitiveMap_.insert(std::make_pair("void_t", PrimitiveVoid));
-			primitiveMap_.insert(std::make_pair("null_t", PrimitiveNull));
-			primitiveMap_.insert(std::make_pair("bool", PrimitiveBool));
-			primitiveMap_.insert(std::make_pair("float_t", PrimitiveFloat));
-			primitiveMap_.insert(std::make_pair("double_t", PrimitiveDouble));
-			primitiveMap_.insert(std::make_pair("longdouble_t", PrimitiveLongDouble));
-			primitiveMap_.insert(std::make_pair("__ref", PrimitiveRef));
-			primitiveMap_.insert(std::make_pair("__ptr", PrimitivePtr));
-			primitiveMap_.insert(std::make_pair("ptr_lval", PrimitivePtrLval));
-			primitiveMap_.insert(std::make_pair("value_lval", PrimitiveValueLval));
-			primitiveMap_.insert(std::make_pair("member_lval", PrimitiveMemberLval));
-			primitiveMap_.insert(std::make_pair("final_lval", PrimitiveFinalLval));
-			primitiveMap_.insert(std::make_pair("typename_t", PrimitiveTypename));
-			primitiveMap_.insert(std::make_pair("compare_result_t", PrimitiveCompareResult));
+			primitiveMap_.insert(std::make_pair(getCString("void_t"), PrimitiveVoid));
+			primitiveMap_.insert(std::make_pair(getCString("null_t"), PrimitiveNull));
+			primitiveMap_.insert(std::make_pair(getCString("bool"), PrimitiveBool));
+			primitiveMap_.insert(std::make_pair(getCString("float_t"), PrimitiveFloat));
+			primitiveMap_.insert(std::make_pair(getCString("double_t"), PrimitiveDouble));
+			primitiveMap_.insert(std::make_pair(getCString("longdouble_t"), PrimitiveLongDouble));
+			primitiveMap_.insert(std::make_pair(getCString("__ref"), PrimitiveRef));
+			primitiveMap_.insert(std::make_pair(getCString("__ptr"), PrimitivePtr));
+			primitiveMap_.insert(std::make_pair(getCString("ptr_lval"), PrimitivePtrLval));
+			primitiveMap_.insert(std::make_pair(getCString("value_lval"), PrimitiveValueLval));
+			primitiveMap_.insert(std::make_pair(getCString("member_lval"), PrimitiveMemberLval));
+			primitiveMap_.insert(std::make_pair(getCString("final_lval"), PrimitiveFinalLval));
+			primitiveMap_.insert(std::make_pair(getCString("typename_t"), PrimitiveTypename));
+			primitiveMap_.insert(std::make_pair(getCString("compare_result_t"), PrimitiveCompareResult));
 			
-			primitiveMap_.insert(std::make_pair("int8_t", PrimitiveInt8));
-			primitiveMap_.insert(std::make_pair("int16_t", PrimitiveInt16));
-			primitiveMap_.insert(std::make_pair("int32_t", PrimitiveInt32));
-			primitiveMap_.insert(std::make_pair("int64_t", PrimitiveInt64));
-			primitiveMap_.insert(std::make_pair("byte_t", PrimitiveByte));
-			primitiveMap_.insert(std::make_pair("short_t", PrimitiveShort));
-			primitiveMap_.insert(std::make_pair("int_t", PrimitiveInt));
-			primitiveMap_.insert(std::make_pair("long_t", PrimitiveLong));
-			primitiveMap_.insert(std::make_pair("longlong_t", PrimitiveLongLong));
-			primitiveMap_.insert(std::make_pair("ssize_t", PrimitiveSSize));
-			primitiveMap_.insert(std::make_pair("ptrdiff_t", PrimitivePtrDiff));
+			primitiveMap_.insert(std::make_pair(getCString("int8_t"), PrimitiveInt8));
+			primitiveMap_.insert(std::make_pair(getCString("int16_t"), PrimitiveInt16));
+			primitiveMap_.insert(std::make_pair(getCString("int32_t"), PrimitiveInt32));
+			primitiveMap_.insert(std::make_pair(getCString("int64_t"), PrimitiveInt64));
+			primitiveMap_.insert(std::make_pair(getCString("byte_t"), PrimitiveByte));
+			primitiveMap_.insert(std::make_pair(getCString("short_t"), PrimitiveShort));
+			primitiveMap_.insert(std::make_pair(getCString("int_t"), PrimitiveInt));
+			primitiveMap_.insert(std::make_pair(getCString("long_t"), PrimitiveLong));
+			primitiveMap_.insert(std::make_pair(getCString("longlong_t"), PrimitiveLongLong));
+			primitiveMap_.insert(std::make_pair(getCString("ssize_t"), PrimitiveSSize));
+			primitiveMap_.insert(std::make_pair(getCString("ptrdiff_t"), PrimitivePtrDiff));
 			
-			primitiveMap_.insert(std::make_pair("uint8_t", PrimitiveUInt8));
-			primitiveMap_.insert(std::make_pair("uint16_t", PrimitiveUInt16));
-			primitiveMap_.insert(std::make_pair("uint32_t", PrimitiveUInt32));
-			primitiveMap_.insert(std::make_pair("uint64_t", PrimitiveUInt64));
-			primitiveMap_.insert(std::make_pair("ubyte_t", PrimitiveUByte));
-			primitiveMap_.insert(std::make_pair("ushort_t", PrimitiveUShort));
-			primitiveMap_.insert(std::make_pair("uint_t", PrimitiveUInt));
-			primitiveMap_.insert(std::make_pair("ulong_t", PrimitiveULong));
-			primitiveMap_.insert(std::make_pair("ulonglong_t", PrimitiveULongLong));
-			primitiveMap_.insert(std::make_pair("size_t", PrimitiveSize));
+			primitiveMap_.insert(std::make_pair(getCString("uint8_t"), PrimitiveUInt8));
+			primitiveMap_.insert(std::make_pair(getCString("uint16_t"), PrimitiveUInt16));
+			primitiveMap_.insert(std::make_pair(getCString("uint32_t"), PrimitiveUInt32));
+			primitiveMap_.insert(std::make_pair(getCString("uint64_t"), PrimitiveUInt64));
+			primitiveMap_.insert(std::make_pair(getCString("ubyte_t"), PrimitiveUByte));
+			primitiveMap_.insert(std::make_pair(getCString("ushort_t"), PrimitiveUShort));
+			primitiveMap_.insert(std::make_pair(getCString("uint_t"), PrimitiveUInt));
+			primitiveMap_.insert(std::make_pair(getCString("ulong_t"), PrimitiveULong));
+			primitiveMap_.insert(std::make_pair(getCString("ulonglong_t"), PrimitiveULongLong));
+			primitiveMap_.insert(std::make_pair(getCString("size_t"), PrimitiveSize));
+		}
+		
+		String Module::getCString(const char* const cString) const {
+			return String(context_.stringHost(), cString);
+		}
+		
+		String Module::getString(std::string stringValue) const {
+			return String(context_.stringHost(), std::move(stringValue));
 		}
 		
 		void Module::dump() const {
@@ -131,6 +139,10 @@ namespace locic {
 			return functionPtrStubMap_;
 		}
 		
+		MangledNameMap& Module::mangledNameMap() {
+			return mangledNameMap_;
+		}
+		
 		MemberOffsetFunctionMap& Module::memberOffsetFunctionMap() {
 			return memberOffsetFunctionMap_;
 		}
@@ -171,11 +183,11 @@ namespace locic {
 			return typeInstanceMap_;
 		}
 		
-		llvm::GlobalVariable* Module::createConstGlobal(const std::string& name,
+		llvm::GlobalVariable* Module::createConstGlobal(const String& name,
 				llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
 				llvm::Constant* value) {
 			const bool isConstant = true;
-			return new llvm::GlobalVariable(getLLVMModule(), type, isConstant, linkage, value, name);
+			return new llvm::GlobalVariable(getLLVMModule(), type, isConstant, linkage, value, name.c_str());
 		}
 		
 		DebugBuilder& Module::debugBuilder() {
@@ -190,7 +202,7 @@ namespace locic {
 			return buildOptions_;
 		}
 		
-		PrimitiveKind Module::primitiveKind(const std::string& name) const {
+		PrimitiveKind Module::primitiveKind(const String& name) const {
 			const auto iterator = primitiveMap_.find(name);
 			assert(iterator != primitiveMap_.end() && "Failed to find primitive type!");
 			return iterator->second;

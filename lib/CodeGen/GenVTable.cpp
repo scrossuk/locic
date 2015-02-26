@@ -23,8 +23,8 @@ namespace locic {
 			
 			const auto& functions = typeInstance->functions();
 			
-			for (const auto functionPair: functions) {
-				if (functionPair.first.find("__") == 0) {
+			for (const auto& functionPair: functions) {
+				if (functionPair.first.starts_with("__")) {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
@@ -51,9 +51,9 @@ namespace locic {
 		llvm::GlobalVariable* genVTable(Module& module, const SEM::Type* rawType) {
 			const auto type = rawType->resolveAliases();
 			const auto typeInstance = type->getObjectType();
-			const auto mangledName = std::string("__type_vtable_") + mangleObjectType(typeInstance);
+			const auto mangledName = module.getCString("__type_vtable_") + mangleObjectType(module, typeInstance);
 			
-			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName);
+			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName.c_str());
 			if (existingGlobal != nullptr) {
 				return existingGlobal;
 			}

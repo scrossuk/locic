@@ -19,17 +19,13 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		static MethodHash getMethodHash(const std::string& hash) {
-			return strtoul(hash.substr(0, 16).c_str(), NULL, 16);
+		static MethodHash getMethodHash(const std::array<char, 32>& hash) {
+			return strtoul(std::string(hash.begin(), hash.begin() + 16).c_str(), NULL, 16);
 		}
 		
-		MethodHash CreateMethodNameHash(const std::string& methodName) {
-			const std::string md5Hash = md5(CanonicalizeMethodName(methodName));
+		MethodHash CreateMethodNameHash(const String& methodName) {
+			const auto md5Hash = md5(CanonicalizeMethodName(methodName));
 			return getMethodHash(md5Hash);
-		}
-		
-		llvm::Value* CreateHashValue(Module& module, const std::string& methodName) {
-			return ConstantGenerator(module).getI64(CreateMethodNameHash(methodName));
 		}
 		
 		VirtualTable VirtualTable::CalculateFromHashes(const std::vector<MethodHash>& methods) {
@@ -45,7 +41,7 @@ namespace locic {
 			return table;
 		}
 		
-		VirtualTable VirtualTable::CalculateFromNames(const std::vector<std::string>& methods) {
+		VirtualTable VirtualTable::CalculateFromNames(const std::vector<String>& methods) {
 			std::vector<MethodHash> hashes;
 			
 			for (size_t i = 0; i < methods.size(); i++) {
@@ -92,7 +88,7 @@ namespace locic {
 			return s;
 		}
 		
-		std::string VirtualTable::toStringWithMapping(const Map<MethodHash, std::string>& mapping) const {
+		std::string VirtualTable::toStringWithMapping(const Map<MethodHash, String>& mapping) const {
 			std::string s = "VirtualTable{";
 			
 			for (size_t i = 0; i < VTABLE_SIZE; i++) {
@@ -102,7 +98,7 @@ namespace locic {
 				
 				s += makeString("%llu: ", (unsigned long long) i);
 								
-				const std::list<MethodHash>& slotList = table_.at(i);
+				const auto& slotList = table_.at(i);
 				
 				s += "(";
 				

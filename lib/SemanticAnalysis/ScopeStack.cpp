@@ -75,7 +75,7 @@ namespace locic {
 			return function->type()->getFunctionReturnType();
 		}
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, SEM::TypeArray templateArgs) {
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const String& typeName, SEM::TypeArray templateArgs) {
 			const auto rootElement = scopeStack[0];
 			assert(rootElement.isNamespace());
 			

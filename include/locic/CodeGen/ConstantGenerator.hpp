@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-#include <string>
-
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
-
+	
+	class String;
+	
 	namespace CodeGen {
 	
 		class Module;
@@ -41,9 +41,9 @@ namespace locic {
 				
 				llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const;
 				
-				llvm::ConstantInt* getPrimitiveInt(const std::string& primitiveName, long long intValue) const;
+				llvm::ConstantInt* getPrimitiveInt(const String& primitiveName, long long intValue) const;
 				
-				llvm::Constant* getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const;
+				llvm::Constant* getPrimitiveFloat(const String& primitiveName, long double floatValue) const;
 				
 				llvm::Constant* getFloat(float value) const;
 				
@@ -55,7 +55,7 @@ namespace locic {
 				
 				llvm::Constant* getStruct(llvm::StructType* structType, llvm::ArrayRef<llvm::Constant*> values) const;
 				
-				llvm::Constant* getString(const std::string& value, bool withNullTerminator = true) const;
+				llvm::Constant* getString(const String& value, bool withNullTerminator = true) const;
 				
 				llvm::Constant* getPointerCast(llvm::Constant* value, llvm::Type* targetType) const;
 				

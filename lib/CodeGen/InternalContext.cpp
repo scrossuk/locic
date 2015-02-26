@@ -6,9 +6,13 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		InternalContext::InternalContext() { }
+		InternalContext::InternalContext(const StringHost& stringHost) : stringHost_(stringHost) { }
 		
 		InternalContext::~InternalContext() { }
+		
+		const StringHost& InternalContext::stringHost() const {
+			return stringHost_;
+		}
 		
 		llvm::LLVMContext& InternalContext::llvmContext() {
 			return llvmContext_;

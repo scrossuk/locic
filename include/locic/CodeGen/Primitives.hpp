@@ -8,7 +8,9 @@
 #include <locic/SEM.hpp>
 
 namespace locic {
-
+	
+	class String;
+	
 	namespace CodeGen {
 		
 		enum PrimitiveKind {
@@ -81,11 +83,11 @@ namespace locic {
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind);
-		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name);
+		llvm::Type* getNamedPrimitiveType(Module& module, const String& name);
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind);
-		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name);
+		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type);

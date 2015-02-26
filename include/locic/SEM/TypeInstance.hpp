@@ -5,8 +5,9 @@
 #include <string>
 #include <vector>
 
-#include <locic/Map.hpp>
+#include <locic/FastMap.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
@@ -90,21 +91,21 @@ namespace locic {
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
-				std::map<std::string, TemplateVar*>& namedTemplateVariables();
-				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
+				FastMap<String, TemplateVar*>& namedTemplateVariables();
+				const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
 				
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
 				
 				// TODO: replace with 'property' methods.
-				std::map<std::string, Var*>& namedVariables();
-				const std::map<std::string, Var*>& namedVariables() const;
+				FastMap<String, Var*>& namedVariables();
+				const FastMap<String, Var*>& namedVariables() const;
 				
 				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
 				
-				std::map<std::string, Function*>& functions();
-				const std::map<std::string, Function*>& functions() const;
+				FastMap<String, Function*>& functions();
+				const FastMap<String, Function*>& functions() const;
 				
 				TypeArray constructTypes() const;
 				
@@ -129,13 +130,13 @@ namespace locic {
 				std::vector<TypeInstance*> variants_;
 				
 				std::vector<TemplateVar*> templateVariables_;
-				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
 				
 				std::vector<Var*> variables_;
-				std::map<std::string, Var*> namedVariables_;
+				FastMap<String, Var*> namedVariables_;
 				
-				std::map<std::string, Function*> functions_;
+				FastMap<String, Function*> functions_;
 				bool hasCustomMove_;
 				
 		};

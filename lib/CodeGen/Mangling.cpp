@@ -4,6 +4,7 @@
 #include <locic/String.hpp>
 
 #include <locic/CodeGen/Mangling.hpp>
+#include <locic/CodeGen/Module.hpp>
 
 namespace locic {
 
@@ -39,91 +40,100 @@ namespace locic {
 			}
 		}
 		
-		std::string mangleName(const char* prefix, const Name& name) {
+		String mangleName(Module& module, const String& prefix, const Name& name) {
 			assert(!name.empty());
 			assert(name.isAbsolute());
+			
+			const auto iterator = module.mangledNameMap().find(std::make_pair(prefix, name.copy()));
+			if (iterator != module.mangledNameMap().end()) {
+				return iterator->second;
+			}
 			
 			std::string s;
 			s.reserve(name.size() * 10);
 			
-			s += prefix;
+			s += prefix.asStdString();
 			s += uintToString(name.size());
 			
 			for (size_t i = 0; i < name.size(); i++) {
 				s += "N";
 				s += uintToString(name.at(i).size());
-				s += name.at(i);
+				s += name.at(i).asStdString();
 			}
 			
-			return s;
+			const auto result = module.getString(std::move(s));
+			module.mangledNameMap().insert(std::make_pair(std::make_pair(prefix, name.copy()), result));
+			return result;
 		}
 		
-		std::string mangleFunctionName(const Name& name) {
+		String mangleFunctionName(Module& module, const Name& name) {
 			if (name.size() == 1) {
 				// Special case for compatibility with C functions.
 				return name.last();
 			}
 			
-			return mangleName("F", name);
+			return mangleName(module, module.getCString("F"), name);
 		}
 		
-		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName) {
+		String mangleMethodName(Module& module, SEM::TypeInstance* const typeInstance, const String& methodName) {
 			std::string s = "M";
 			s.reserve(10 + methodName.size());
-			s += mangleObjectType(typeInstance);
-			s += mangleName("F", Name::Absolute() + methodName);
-			return s;
+			s += mangleObjectType(module, typeInstance).asStdString();
+			s += mangleName(module, module.getCString("F"), Name::Absolute() + methodName).asStdString();
+			return module.getString(std::move(s));
 		}
 		
-		std::string mangleMoveName(SEM::TypeInstance* typeInstance) {
-			return mangleMethodName(typeInstance, "__moveto");
+		String mangleMoveName(Module& module, SEM::TypeInstance* typeInstance) {
+			return mangleMethodName(module, typeInstance, module.getCString("__moveto"));
 		}
 		
-		std::string mangleDestructorName(SEM::TypeInstance* typeInstance) {
-			return mangleMethodName(typeInstance, "__destroy");
+		String mangleDestructorName(Module& module, SEM::TypeInstance* typeInstance) {
+			return mangleMethodName(module, typeInstance, module.getCString("__destroy"));
 		}
 		
-		std::string mangleObjectType(SEM::TypeInstance* typeInstance) {
+		String mangleObjectType(Module& module, SEM::TypeInstance* const typeInstance) {
 			assert(typeInstance != nullptr);
-			return mangleTypeName(typeInstance->name());
+			return mangleTypeName(module, typeInstance->name());
 		}
 		
-		std::string mangleTypeName(const Name& name) {
-			return mangleName("T", name);
+		String mangleTypeName(Module& module, const Name& name) {
+			return mangleName(module, module.getCString("T"), name);
 		}
 		
-		std::string mangleModuleScopeFields(const Name& name, const Version& version) {
-			if (name.empty()) return "";
+		String mangleModuleScopeFields(Module& module, const Name& name, const Version& version) {
+			if (name.empty()) {
+				return module.getCString("");
+			}
 			
 			const auto versionString =
 				uintToString(version.majorVersion()) + "_" +
 				uintToString(version.minorVersion()) + "_" +
 				uintToString(version.buildVersion()) + "_";
 			
-			return mangleName("P", name) + "V" + versionString;
+			return mangleName(module, module.getCString("P"), name) + "V" + versionString;
 		}
 		
-		std::string mangleModuleScope(const SEM::ModuleScope& moduleScope) {
+		String mangleModuleScope(Module& module, const SEM::ModuleScope& moduleScope) {
 			if (moduleScope.isInternal()) {
-				return "";
+				return module.getCString("");
 			}
 			
-			return mangleModuleScopeFields(moduleScope.moduleName(), moduleScope.moduleVersion());
+			return mangleModuleScopeFields(module, moduleScope.moduleName(), moduleScope.moduleVersion());
 		}
 		
-		std::string mangleTemplateGenerator(TemplatedObject templatedObject) {
+		String mangleTemplateGenerator(Module& module, const TemplatedObject templatedObject) {
 			std::string s = "TPLGEN";
 			switch (templatedObject.kind()) {
 				case TemplatedObject::TYPEINSTANCE:
-					s += mangleObjectType(templatedObject.typeInstance());
+					s += mangleObjectType(module, templatedObject.typeInstance()).asStdString();
 					break;
 				case TemplatedObject::FUNCTION:
-					s += mangleFunctionName(templatedObject.function()->name());
+					s += mangleFunctionName(module, templatedObject.function()->name()).asStdString();
 					break;
 				default:	
 					llvm_unreachable("Unknown templated object kind.");
 			}
-			return s;
+			return module.getString(std::move(s));
 		}
 		
 	}

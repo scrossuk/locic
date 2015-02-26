@@ -1,12 +1,12 @@
 #ifndef LOCIC_SEMANTICANALYSIS_SCOPESTACK_HPP
 #define LOCIC_SEMANTICANALYSIS_SCOPESTACK_HPP
 
-#include <string>
 #include <vector>
 
 #include <locic/Debug.hpp>
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
 
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 
@@ -94,7 +94,7 @@ namespace locic {
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const std::string& typeName, SEM::TypeArray templateArgs);
+		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const String& typeName, SEM::TypeArray templateArgs);
 		
 	}
 	

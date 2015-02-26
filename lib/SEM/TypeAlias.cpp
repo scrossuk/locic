@@ -47,7 +47,7 @@ namespace locic {
 			return templateVars_;
 		}
 		
-		std::map<std::string, TemplateVar*>& TypeAlias::namedTemplateVariables() {
+		FastMap<String, TemplateVar*>& TypeAlias::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		

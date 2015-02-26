@@ -331,7 +331,7 @@ namespace locic {
 				const auto stubArgInfo = getStubArgInfo(module);
 				const auto linkage = llvm::Function::PrivateLinkage;
 				
-				const auto llvmFunction = createLLVMFunction(module, stubArgInfo, linkage, "__slot_conflict_resolution_stub");
+				const auto llvmFunction = createLLVMFunction(module, stubArgInfo, linkage, module.getCString("__slot_conflict_resolution_stub"));
 				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));
 				
 				Function function(module, *llvmFunction, stubArgInfo);

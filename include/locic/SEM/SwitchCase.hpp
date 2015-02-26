@@ -1,9 +1,11 @@
 #ifndef LOCIC_SEM_SWITCHCASE_HPP
 #define LOCIC_SEM_SWITCHCASE_HPP
 
-#include <map>
 #include <memory>
 #include <string>
+
+#include <locic/FastMap.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -23,8 +25,8 @@ namespace locic {
 				
 				Var* var() const;
 				
-				std::map<std::string, Var*>& namedVariables();
-				const std::map<std::string, Var*>& namedVariables() const;
+				FastMap<String, Var*>& namedVariables();
+				const FastMap<String, Var*>& namedVariables() const;
 				
 				Scope& scope() const;
 				
@@ -32,7 +34,7 @@ namespace locic {
 				
 			private:
 				Var* var_;
-				std::map<std::string, Var*> namedVariables_;
+				FastMap<String, Var*> namedVariables_;
 				std::unique_ptr<Scope> scope_;
 				
 		};

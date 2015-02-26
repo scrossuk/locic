@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
+#include <locic/FastMap.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -49,7 +51,7 @@ namespace locic {
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
-				std::map<std::string, TemplateVar*>& namedTemplateVariables();
+				FastMap<String, TemplateVar*>& namedTemplateVariables();
 				
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
@@ -63,7 +65,7 @@ namespace locic {
 				Context& context_;
 				Name name_;
 				std::vector<TemplateVar*> templateVars_;
-				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
 				const Type* value_;
 				

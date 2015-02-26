@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include <locic/String.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -28,10 +28,10 @@ namespace locic {
 		};
 		
 		struct Namespace {
-			std::string name;
+			String name;
 			AST::Node<NamespaceData> data;
 			
-			Namespace(const std::string& n, AST::Node<NamespaceData> d);
+			Namespace(const String& n, AST::Node<NamespaceData> d);
 				
 			std::string toString() const;
 		};

@@ -309,7 +309,7 @@ location, bool isTopLevel) {
 			const auto destDerefType = getDerefType(destType)->createMutableType();
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
-				const auto castFunction = sourceDerefType->getObjectType()->functions().at("implicitcast");
+				const auto castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
 				
 				const auto& requiresPredicate = castFunction->requiresPredicate();
 				
@@ -318,7 +318,7 @@ location, bool isTopLevel) {
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
 				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
-					auto method = GetTemplatedMethod(context, std::move(value), "implicitcast", { destDerefType }, location);
+					auto method = GetTemplatedMethod(context, std::move(value), context.getCString("implicitcast"), { destDerefType }, location);
 					auto castValue = CallValue(context, std::move(method), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
@@ -461,7 +461,7 @@ location, bool isTopLevel) {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (supportsImplicitCopy(context, sourceDerefType)) {
 					auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), "implicitcopy", location), {}, location) :
+						CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location) :
 						derefAll(value.copy());
 					
 					auto copyRefValue = sourceDerefType->isStaticRef() ?
@@ -488,7 +488,7 @@ location, bool isTopLevel) {
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
 					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
-				auto copyValue = CallValue(context, GetSpecialMethod(context, value.copy(), "implicitcopy", location), {}, location);
+				auto copyValue = CallValue(context, GetSpecialMethod(context, value.copy(), context.getCString("implicitcopy"), location), {}, location);
 				if (!copyValue.type()->isConst()) {
 					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location);
 					if (convertCast) {

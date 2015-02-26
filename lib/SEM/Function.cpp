@@ -79,11 +79,11 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		std::map<std::string, TemplateVar*>& Function::namedTemplateVariables() {
+		FastMap<String, TemplateVar*>& Function::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		
-		const std::map<std::string, TemplateVar*>& Function::namedTemplateVariables() const {
+		const FastMap<String, TemplateVar*>& Function::namedTemplateVariables() const {
 			return namedTemplateVariables_;
 		}
 		
@@ -111,11 +111,11 @@ namespace locic {
 			return parameters_;
 		}
 		
-		std::map<std::string, Var*>& Function::namedVariables() {
+		FastMap<String, Var*>& Function::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const std::map<std::string, Var*>& Function::namedVariables() const {
+		const FastMap<String, Var*>& Function::namedVariables() const {
 			return namedVariables_;
 		}
 		

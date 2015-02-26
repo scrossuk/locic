@@ -21,7 +21,7 @@ namespace locic {
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 				
-				if (methodName == "__moveto") {
+				if (methodName == context.getCString("__moveto")) {
 					createdMove = true;
 				}
 				
@@ -34,19 +34,19 @@ namespace locic {
 			// Generate default move for applicable types.
 			if ((semTypeInstance->isClassDef() || semTypeInstance->isException() || semTypeInstance->isStruct() ||
 					semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) && !createdMove) {
-				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at("__moveto"), astTypeInstanceNode.location());
+				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("__moveto")), astTypeInstanceNode.location());
 			}
 			
 			// Generate default constructor for applicable types.
 			if (semTypeInstance->isException()) {
-				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at("create"));
+				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")));
 			} else if (semTypeInstance->isDatatype() ||semTypeInstance->isStruct() || semTypeInstance->isException()) {
-				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at("create"), astTypeInstanceNode.location());
+				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")), astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
 			if (semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
-				const auto iterator = semTypeInstance->functions().find("implicitcopy");
+				const auto iterator = semTypeInstance->functions().find(context.getCString("implicitcopy"));
 				if (iterator != semTypeInstance->functions().end()) {
 					CreateDefaultMethod(context, semTypeInstance, iterator->second, astTypeInstanceNode.location());
 				}
@@ -54,7 +54,7 @@ namespace locic {
 			
 			// Generate default compare if relevant.
 			if (semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
-				const auto iterator = semTypeInstance->functions().find("compare");
+				const auto iterator = semTypeInstance->functions().find(context.getCString("compare"));
 				if (iterator != semTypeInstance->functions().end()) {
 					CreateDefaultMethod(context, semTypeInstance, iterator->second, astTypeInstanceNode.location());
 				}

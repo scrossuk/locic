@@ -75,7 +75,7 @@ namespace locic {
 		
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
 			bool isNormalBlocked = false;
-			for (const auto statement: scope.statements()) {
+			for (const auto& statement: scope.statements()) {
 				DeadCodeSearchStatement(context, statement);
 				
 				if (isNormalBlocked) {
@@ -86,8 +86,8 @@ namespace locic {
 						iterator->second.location.toString().c_str()));
 				}
 				
-				const auto exitStates = GetStatementExitStates(statement);
-				if (!exitStates.test(UnwindStateNormal)) {
+				const auto exitStates = statement->exitStates();
+				if (!exitStates.hasNormalExit()) {
 					isNormalBlocked = true;
 				}
 			}
@@ -126,13 +126,13 @@ namespace locic {
 			
 			const auto returnType = semFunction->type()->getFunctionReturnType();
 			
-			const auto exitStates = GetScopeExitStates(*semScope);
+			const auto exitStates = semScope->exitStates();
 			
-			assert(!exitStates.test(UnwindStateBreak));
-			assert(!exitStates.test(UnwindStateContinue));
-			assert(!exitStates.test(UnwindStateRethrow));
+			assert(!exitStates.hasBreakExit());
+			assert(!exitStates.hasContinueExit());
+			assert(!exitStates.hasRethrowExit());
 			
-			if (exitStates.test(UnwindStateNormal)) {
+			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
 					throw MissingReturnStatementException(semFunction->name().copy());
@@ -144,7 +144,7 @@ namespace locic {
 			
 			DeadCodeSearchScope(context, *semScope);
 			
-			if (semFunction->type()->isFunctionNoExcept() && exitStates.test(UnwindStateThrow)) {
+			if (semFunction->type()->isFunctionNoExcept() && exitStates.hasThrowExit()) {
 				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
 					semFunction->name().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));

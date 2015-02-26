@@ -150,7 +150,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
-			const auto typeName = type->getObjectType()->name().last();
+			const auto& typeName = type->getObjectType()->name().last();
 			if (typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front();
 				return genAlignMask(function, targetType);
@@ -166,7 +166,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
-			const auto typeName = type->getObjectType()->name().last();
+			const auto& typeName = type->getObjectType()->name().last();
 			if (typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front();
 				return function.getBuilder().CreateAdd(genAlignOf(function, targetType), genSizeOf(function, targetType));

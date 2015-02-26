@@ -125,7 +125,7 @@ namespace locic {
 					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
 					variantTypeInstance->setParent(semTypeInstance->selfType());
 					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables();
-					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables();
+					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables().copy();
 					semTypeInstance->variants().push_back(variantTypeInstance);
 				}
 			}
@@ -136,7 +136,7 @@ namespace locic {
 		Name stringListToName(const AST::Node<AST::StringList>& astStringListNode) {
 			Name name = Name::Absolute();
 			for (const auto& stringNode: *astStringListNode) {
-				name = name + *stringNode;
+				name = name + stringNode;
 			}
 			return name;
 		}
@@ -530,8 +530,8 @@ namespace locic {
 		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			const auto parentTypeInstance = context.scopeStack().back().typeInstance();
 			
-			const auto name = astFunctionNode->name()->last();
-			const auto canonicalMethodName = CanonicalizeMethodName(name);
+			const auto& name = astFunctionNode->name()->last();
+			auto canonicalMethodName = CanonicalizeMethodName(name);
 			const auto fullName = parentTypeInstance->name() + name;
 			
 			const auto iterator = parentTypeInstance->functions().find(canonicalMethodName);
@@ -542,7 +542,7 @@ namespace locic {
 			
 			const auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 			
-			parentTypeInstance->functions().insert(std::make_pair(canonicalMethodName, semFunction));
+			parentTypeInstance->functions().insert(std::make_pair(std::move(canonicalMethodName), semFunction));
 		}
 		
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
@@ -807,8 +807,8 @@ namespace locic {
 			// Add default move method.
 			const bool hasDefaultMove = HasDefaultMove(context, typeInstance);
 			if (hasDefaultMove) {
-				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + "__moveto");
-				typeInstance->functions().insert(std::make_pair("__moveto", methodDecl));
+				const auto methodDecl = CreateDefaultMoveDecl(context, typeInstance, typeInstance->name() + context.getCString("__moveto"));
+				typeInstance->functions().insert(std::make_pair(context.getCString("__moveto"), methodDecl));
 			}
 			
 			// Slightly hacky way to pass information to CodeGen about
@@ -825,21 +825,21 @@ namespace locic {
 					const auto methodDecl =
 					typeInstance->isException() ?
 					CreateExceptionConstructorDecl(context, typeInstance) :
-					CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + "create");
-					typeInstance->functions().insert(std::make_pair("create", methodDecl));
+					CreateDefaultConstructorDecl(context, typeInstance, typeInstance->name() + context.getCString("create"));
+					typeInstance->functions().insert(std::make_pair(context.getCString("create"), methodDecl));
 				}
 				
 				if (!typeInstance->isException()) {
 					// Add default implicit copy if available.
 					if (HasDefaultImplicitCopy(context, typeInstance)) {
-						const auto methodDecl = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + "implicitcopy");
-						typeInstance->functions().insert(std::make_pair("implicitcopy", methodDecl));
+						const auto methodDecl = CreateDefaultImplicitCopyDecl(context, typeInstance, typeInstance->name() + context.getCString("implicitcopy"));
+						typeInstance->functions().insert(std::make_pair(context.getCString("implicitcopy"), methodDecl));
 					}
 					
 					// Add default compare for datatypes if available.
 					if (HasDefaultCompare(context, typeInstance)) {
-						const auto methodDecl = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + "compare");
-						typeInstance->functions().insert(std::make_pair("compare", methodDecl));
+						const auto methodDecl = CreateDefaultCompareDecl(context, typeInstance, typeInstance->name() + context.getCString("compare"));
+						typeInstance->functions().insert(std::make_pair(context.getCString("compare"), methodDecl));
 					}
 				}
 			}
@@ -911,10 +911,10 @@ namespace locic {
 			context.setTemplateRequirementsComplete();
 		}
 		
-		void Run(const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
+		void Run(const StringHost& stringHost, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
 			try {
 				// Create 'context' to hold information about code structures.
-				Context context(debugModule, semContext);
+				Context context(stringHost, debugModule, semContext);
 				
 				// Push root namespace on to the stack.
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semContext.rootNamespace()));

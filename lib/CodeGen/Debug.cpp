@@ -67,9 +67,9 @@ namespace locic {
 				flags, isOptimised, function);
 		}
 		
-		llvm::DIVariable DebugBuilder::createVar(llvm::DIDescriptor scope, bool isParam, const std::string& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type) {
+		llvm::DIVariable DebugBuilder::createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type) {
 			const auto tag = isParam ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable;
-			return builder_.createLocalVariable(tag, scope, name, file, lineNumber, type);
+			return builder_.createLocalVariable(tag, scope, name.c_str(), file, lineNumber, type);
 		}
 		
 		llvm::DIType DebugBuilder::createVoidType() {
@@ -93,10 +93,10 @@ namespace locic {
 			return builder_.createPointerType(type, pointerSize);
 		}
 		
-		llvm::DIType DebugBuilder::createIntType(const std::string& name) {
+		llvm::DIType DebugBuilder::createIntType(const String& name) {
 			const auto& abi = module_.abi();
 			const auto abiType = getNamedPrimitiveABIType(module_, name);
-			return builder_.createBasicType(name, abi.typeSize(abiType), abi.typeAlign(abiType), llvm::dwarf::DW_ATE_signed);
+			return builder_.createBasicType(name.c_str(), abi.typeSize(abiType), abi.typeAlign(abiType), llvm::dwarf::DW_ATE_signed);
 		}
 		
 		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {

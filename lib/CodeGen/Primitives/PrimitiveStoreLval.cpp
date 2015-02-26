@@ -61,7 +61,7 @@ namespace locic {
 		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
-			const auto typeName = varType->getObjectType()->name().last();
+			const auto& typeName = varType->getObjectType()->name().last();
 			if (typeName == "value_lval") {
 				genStoreValueLval(function, value, var, varType);
 			} else if (typeName == "member_lval") {

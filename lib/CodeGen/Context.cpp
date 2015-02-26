@@ -2,11 +2,11 @@
 #include <locic/CodeGen/InternalContext.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
-		Context::Context()
-		: internalContext_(new InternalContext()) { }
+		Context::Context(const StringHost& stringHost)
+		: internalContext_(new InternalContext(stringHost)) { }
 		
 		Context::~Context() { }
 		

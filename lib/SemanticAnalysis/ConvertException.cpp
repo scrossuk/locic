@@ -67,10 +67,10 @@ namespace locic {
 		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parent() == nullptr) {
 				// No parent, so just create a normal default constructor.
-				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + "create");
+				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + context.getCString("create"));
 			}
 			
-			const auto semFunction = new SEM::Function(semTypeInstance->name() + "create", semTypeInstance->moduleScope().copy());
+			const auto semFunction = new SEM::Function(semTypeInstance->name() + context.getCString("create"), semTypeInstance->moduleScope().copy());
 			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
@@ -122,14 +122,14 @@ namespace locic {
 			
 			// Call parent constructor.
 			auto typeRefValue = createTypeRef(context, semTypeInstance->parent());
-			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), "create", location), std::move(parentArguments), location));
+			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
 			for (const auto semVar: function->parameters()) {
-				const auto varType = getBuiltInType(context.scopeStack(), "__ref", { semVar->type() })->createRefType(semVar->type());
+				const auto varType = getBuiltInType(context.scopeStack(), context.getCString("__ref"), { semVar->type() })->createRefType(semVar->type());
 				auto varValue = SEM::Value::LocalVar(semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.
-				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), "move", location), {}, location));
+				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));
 			}
 			
 			auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, std::move(constructValues));

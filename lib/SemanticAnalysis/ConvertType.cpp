@@ -19,16 +19,16 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const std::string& nameString) {
+		const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const String& nameString) {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
-			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? makeString("u%s_t", nameString.c_str()) : makeString("%s_t", nameString.c_str());
+			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
 			return getBuiltInType(context.scopeStack(), fullNameString, {});
 		}
 		
-		const SEM::Type* ConvertFloatType(Context& context, const std::string& nameString) {
+		const SEM::Type* ConvertFloatType(Context& context, const String& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
-			const auto fullNameString = makeString("%s_t", nameString.c_str());
+			const auto fullNameString = nameString + "_t";
 			return getBuiltInType(context.scopeStack(), fullNameString, {});
 		}
 		
@@ -66,8 +66,8 @@ namespace locic {
 			}
 		}
 		
-		const SEM::Type* createPointerType(Context& context, const SEM::Type* varType) {
-			return getBuiltInType(context.scopeStack(), "__ptr", { varType });
+		const SEM::Type* createPointerType(Context& context, const SEM::Type* const varType) {
+			return getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { varType });
 		}
 		
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
@@ -101,7 +101,7 @@ namespace locic {
 					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
 				}
 				case AST::Type::VOID: {
-					return getBuiltInType(context.scopeStack(), "void_t", {});
+					return getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);

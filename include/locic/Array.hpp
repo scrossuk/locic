@@ -7,6 +7,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <locic/Copy.hpp>
+
 namespace locic{
 	
 	/**
@@ -319,15 +321,10 @@ namespace locic{
 			
 		private:
 			Array(const Array<T, BaseSize>& other)
-			: size_(other.size()) {
-				if (other.using_static_space()) {
-					// Call copy constructors.
-					for (size_t i = 0; i < other.size(); i++) {
-						// TODO: handle case where this throws!
-						new(&(static_index(i))) T(other.static_index(i));
-					}
-				} else {
-					vector_ = other.vector_;
+			: size_(0) {
+				reserve(other.size());
+				for (size_t i = 0; i < other.size(); i++) {
+					push_back(copyObject(other[i]));
 				}
 			}
 			

@@ -14,9 +14,9 @@ namespace locic {
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
 		TypeVar::TypeVar(Kind pKind)
-			: kind(pKind) { }
+		: kind(pKind) { }
 		
-		TypeVar* TypeVar::NamedVar(const Node<Type>& type, const std::string& name) {
+		TypeVar* TypeVar::NamedVar(const Node<Type>& type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar.isFinal = false;
 			typeVar->namedVar.type = type;
@@ -24,7 +24,7 @@ namespace locic {
 			return typeVar;
 		}
 		
-		TypeVar* TypeVar::FinalNamedVar(const Node<Type>& type, const std::string& name) {
+		TypeVar* TypeVar::FinalNamedVar(const Node<Type>& type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar.isFinal = true;
 			typeVar->namedVar.type = type;

@@ -1,9 +1,8 @@
 #ifndef LOCIC_SEMANTICANALYSIS_SCOPEELEMENT_HPP
 #define LOCIC_SEMANTICANALYSIS_SCOPEELEMENT_HPP
 
-#include <string>
-
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -40,7 +39,7 @@ namespace locic {
 				
 				static ScopeElement Loop();
 				
-				static ScopeElement ScopeAction(const std::string& state);
+				static ScopeElement ScopeAction(const String& state);
 				
 				static ScopeElement TryScope();
 				
@@ -64,10 +63,10 @@ namespace locic {
 				SEM::Scope* scope() const;
 				SEM::SwitchCase* switchCase() const;
 				SEM::CatchClause* catchClause() const;
-				const std::string& scopeActionState() const;
+				const String& scopeActionState() const;
 				
 				bool hasName() const;
-				std::string name() const;
+				const String& name() const;
 				
 			private:
 				ScopeElement(Kind pKind);
@@ -83,9 +82,8 @@ namespace locic {
 					SEM::Scope* scope;
 					SEM::SwitchCase* switchCase;
 					SEM::CatchClause* catchClause;
+					String scopeActionState;
 				} data_;
-				
-				std::string scopeActionState_;
 				
 		};
 		

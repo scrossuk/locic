@@ -1,5 +1,6 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/String.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -58,17 +59,17 @@ namespace locic {
 			return getInt(64, value);
 		}
 		
-		llvm::ConstantInt* ConstantGenerator::getSizeTValue(unsigned long long sizeValue) const {
+		llvm::ConstantInt* ConstantGenerator::getSizeTValue(const unsigned long long sizeValue) const {
 			const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
 			return getInt(sizeTypeWidth * 8, sizeValue);
 		}
 		
-		llvm::ConstantInt* ConstantGenerator::getPrimitiveInt(const std::string& primitiveName, long long intValue) const {
+		llvm::ConstantInt* ConstantGenerator::getPrimitiveInt(const String& primitiveName, const long long intValue) const {
 			const size_t primitiveWidth = module_.abi().typeSize(getNamedPrimitiveABIType(module_, primitiveName));
 			return getInt(primitiveWidth * 8, intValue);
 		}
 		
-		llvm::Constant* ConstantGenerator::getPrimitiveFloat(const std::string& primitiveName, long double floatValue) const {
+		llvm::Constant* ConstantGenerator::getPrimitiveFloat(const String& primitiveName, const long double floatValue) const {
 			if (primitiveName == "float_t") {
 				return getFloat(floatValue);
 			} else if (primitiveName == "double_t") {
@@ -80,15 +81,15 @@ namespace locic {
 			}
 		}
 		
-		llvm::Constant* ConstantGenerator::getFloat(float value) const {
+		llvm::Constant* ConstantGenerator::getFloat(const float value) const {
 			return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
 		}
 		
-		llvm::Constant* ConstantGenerator::getDouble(double value) const {
+		llvm::Constant* ConstantGenerator::getDouble(const double value) const {
 			return llvm::ConstantFP::get(module_.getLLVMContext(), llvm::APFloat(value));
 		}
 		
-		llvm::Constant* ConstantGenerator::getLongDouble(long double value) const {
+		llvm::Constant* ConstantGenerator::getLongDouble(const long double value) const {
 			return llvm::ConstantFP::get(module_.abi().longDoubleType(), value);
 		}
 		
@@ -100,9 +101,9 @@ namespace locic {
 			return llvm::ConstantStruct::get(structType, values);
 		}
 		
-		llvm::Constant* ConstantGenerator::getString(const std::string& value, bool withNullTerminator) const {
+		llvm::Constant* ConstantGenerator::getString(const String& value, bool withNullTerminator) const {
 			return llvm::ConstantDataArray::getString(module_.getLLVMContext(),
-								  value, withNullTerminator);
+								  value.c_str(), withNullTerminator);
 		}
 		
 		llvm::Constant* ConstantGenerator::getPointerCast(llvm::Constant* value, llvm::Type* targetType) const {

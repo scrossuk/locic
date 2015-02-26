@@ -1,8 +1,6 @@
-#include <string>
-
 #include <locic/SEM.hpp>
-
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -54,9 +52,9 @@ namespace locic {
 			return ScopeElement(LOOP);
 		}
 		
-		ScopeElement ScopeElement::ScopeAction(const std::string& state) {
+		ScopeElement ScopeElement::ScopeAction(const String& state) {
 			ScopeElement element(SCOPEACTION);
-			element.scopeActionState_ = state;
+			element.data_.scopeActionState = state;
 			return element;
 		}
 		
@@ -143,16 +141,16 @@ namespace locic {
 			return data_.catchClause;
 		}
 		
-		const std::string& ScopeElement::scopeActionState() const {
+		const String& ScopeElement::scopeActionState() const {
 			assert(isScopeAction());
-			return scopeActionState_;
+			return data_.scopeActionState;
 		}
 		
 		bool ScopeElement::hasName() const {
 			return (isNamespace() && !nameSpace()->name().empty()) || isTypeAlias() || isTypeInstance() || isFunction();
 		}
 		
-		std::string ScopeElement::name() const {
+		const String& ScopeElement::name() const {
 			assert(hasName());
 			if (isNamespace()) {
 				return nameSpace()->name().last();
@@ -163,7 +161,7 @@ namespace locic {
 			} else if (isFunction()) {
 				return function()->name().last();
 			} else {
-				return "";
+				throw std::logic_error("Can't access name of unnamed scope element.");
 			}
 		}
 		

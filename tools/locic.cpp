@@ -152,6 +152,8 @@ int main(int argc, char* argv[]) {
 		
 		inputFileNames.push_back("BuiltInTypes.loci");
 		
+		StringHost stringHost;
+		
 		AST::NamespaceList astRootNamespaceList;
 		
 		{
@@ -166,7 +168,7 @@ int main(int argc, char* argv[]) {
 					return 1;
 				}
 				
-				Parser::DefaultParser parser(astRootNamespaceList, file, filename);
+				Parser::DefaultParser parser(stringHost, astRootNamespaceList, file, filename);
 				
 				if (!parser.parseFile()) {
 					const auto errors = parser.getErrors();
@@ -212,7 +214,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		{
 			Timer timer;
-			SemanticAnalysis::Run(astRootNamespaceList, semContext, debugModule);
+			SemanticAnalysis::Run(stringHost, astRootNamespaceList, semContext, debugModule);
 			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
 		}
 		
@@ -229,7 +231,7 @@ int main(int argc, char* argv[]) {
 		// TODO: name this based on output file name.
 		const auto outputName = "output";
 		
-		CodeGen::Context codeGenContext;
+		CodeGen::Context codeGenContext(stringHost);
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputName, debugModule, buildOptions);
 		
 		{

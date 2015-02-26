@@ -2,8 +2,11 @@
 #include <cstddef>
 #include <string>
 
+#include <boost/functional/hash.hpp>
+
 #include <locic/Array.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -22,15 +25,15 @@ namespace locic {
 		}
 	}
 	
-	Name::Name(const Name& prefix, const std::string& suffix)
+	Name::Name(const Name& prefix, const String& suffix)
 	: isAbsolute_(prefix.isAbsolute()) {
 		list_.reserve(prefix.size() + 1);
-		for(std::size_t i = 0; i < prefix.size(); i++){
+		for (std::size_t i = 0; i < prefix.size(); i++) {
 			list_.push_back(prefix.at(i));
 		}
 		
 		// No member of a name can be an empty string.
-		if(suffix.size() > 0){
+		if (suffix.size() > 0) {
 			list_.push_back(suffix);
 		}
 	}
@@ -61,16 +64,26 @@ namespace locic {
 	}
 	
 	bool Name::operator==(const Name& name) const{
-		if(size() != name.size()) return false;
-		for(std::size_t i = 0; i < size(); i++){
-			if(at(i) != name.at(i)){
+		if (size() != name.size()) return false;
+		for (std::size_t i = 0; i < size(); i++) {
+			if (at(i) != name.at(i)) {
 				return false;
 			}
 		}
 		return true;
 	}
 	
-	Name Name::operator+(const std::string& name) const{
+	bool Name::operator<(const Name& name) const{
+		if (size() != name.size()) return size() < name.size();
+		for (std::size_t i = 0; i < size(); i++) {
+			if (at(i) != name.at(i)) {
+				return at(i) < name.at(i);
+			}
+		}
+		return false;
+	}
+	
+	Name Name::operator+(const String& name) const{
 		return Name(*this, name);
 	}
 	
@@ -112,31 +125,32 @@ namespace locic {
 		
 		for (CItType it = list_.begin(); it != list_.end(); ++it) {
 			if (it != list_.begin()) str += "::";
-			str += *it;
+			str += it->toString();
 		}
 		return str;
 	}
 	
-	std::string Name::genString() const{
-		std::string str;
-		for(CItType it = list_.begin(); it != list_.end(); ++it){
-			if(it != list_.begin()) str += "__";
-			str += *it;
+	String Name::genString() const {
+		assert(!empty());
+		std::string str = list_.front().asStdString();
+		for (CItType it = list_.begin() + 1; it != list_.end(); ++it) {
+			str += "::";
+			str += it->asStdString();
 		}
-		return str;
+		return String(list_.front().host(), std::move(str));
 	}
 	
-	const std::string& Name::first() const{
+	const String& Name::first() const{
 		return list_.front();
 	}
 	
-	const std::string& Name::last() const{
+	const String& Name::last() const{
 		assert(list_.back() == revAt(0)
 		&& "The last element must be the first element when the list is in reverse order");
 		return list_.back();
 	}
 	
-	const std::string& Name::onlyElement() const{
+	const String& Name::onlyElement() const{
 		assert(list_.size() == 1
 		&& "Getting the only element of a name means there must be exactly one element");
 		return list_.front();
@@ -150,12 +164,12 @@ namespace locic {
 		return list_.size();
 	}
 	
-	const std::string& Name::at(std::size_t i) const{
+	const String& Name::at(std::size_t i) const{
 		assert(i < list_.size());
 		return list_.at(i);
 	}
 	
-	const std::string& Name::revAt(std::size_t i) const{
+	const String& Name::revAt(std::size_t i) const{
 		assert(i < list_.size());
 		return list_.at(list_.size() - i - 1);
 	}
@@ -168,7 +182,7 @@ namespace locic {
 		return Name(*this, suffix);
 	}
 	
-	Name Name::append(const std::string& suffix) const{
+	Name Name::append(const String& suffix) const{
 		return Name(*this, suffix);
 	}
 	
@@ -193,34 +207,13 @@ namespace locic {
 		return list_.end();
 	}
 	
-	std::string CanonicalizeMethodName(const std::string& name) {
-		std::string canonicalName;
-		bool preserveUnderscores = true;
-		
-		for (size_t i = 0; i < name.size(); i++) {
-			const auto c = name.at(i);
-			
-			// Preserve underscores at the beginning of the name.
-			if (preserveUnderscores && c == '_') {
-				canonicalName += "_";
-				continue;
-			}
-			
-			preserveUnderscores = false;
-			
-			if (c == '_') {
-				continue;
-			}
-			
-			if (c >= 'A' && c <= 'Z') {
-				canonicalName += 'a' + (c - 'A');
-				continue;
-			}
-			
-			canonicalName += c;
+	std::size_t Name::hash() const {
+		std::size_t seed = 0;
+		std::hash<String> stringHashFn;
+		for (size_t i = 0; i < size(); i++) {
+			boost::hash_combine(seed, stringHashFn(at(i)));
 		}
-		
-		return canonicalName;
+		return seed;
 	}
 	
 }

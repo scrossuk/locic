@@ -40,7 +40,7 @@ namespace locic {
 				
 				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function);
 				
-				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const std::string& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
+				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
 				
 				llvm::DIType createVoidType();
 				
@@ -50,7 +50,7 @@ namespace locic {
 				
 				llvm::DIType createPointerType(llvm::DIType type);
 				
-				llvm::DIType createIntType(const std::string& name);
+				llvm::DIType createIntType(const String& name);
 				
 				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
 				

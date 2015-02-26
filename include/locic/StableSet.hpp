@@ -271,7 +271,8 @@ namespace locic{
 		
 		struct hashTypePtr {
 			inline std::size_t operator()(const Value* const value) const {
-				return value->hash();
+				std::hash<Value> hashFn;
+				return hashFn(*value);
 			}
 		};
 		

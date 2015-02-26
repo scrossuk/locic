@@ -52,16 +52,7 @@ add_definitions(
 )
 
 # Enable most warnings.
-set(LOCIC_BUILD_WARNINGS
-	-pedantic
-	-Wall
-	-Wextra
-	-Wshadow
-	-Wundef
-	-Wpointer-arith
-	-Wcast-align
-	-Wwrite-strings
-)
+set(LOCIC_BUILD_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
 
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

@@ -14,11 +14,11 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::Function* getExceptionAllocateFunction(Module& module) {
-			const std::string functionName = "__loci_allocate_exception";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_allocate_exception");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -29,16 +29,16 @@ namespace locic {
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
 		llvm::Function* getExceptionFreeFunction(Module& module) {
-			const std::string functionName = "__loci_free_exception";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_free_exception");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -49,16 +49,16 @@ namespace locic {
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
 		llvm::Function* getExceptionThrowFunction(Module& module) {
-			const std::string functionName = "__loci_throw";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_throw");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -69,16 +69,16 @@ namespace locic {
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
 		llvm::Function* getExceptionRethrowFunction(Module& module) {
-			const std::string functionName = "__loci_rethrow";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_rethrow");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -89,17 +89,17 @@ namespace locic {
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			
 			return function;
 		}
 		
 		llvm::Function* getExceptionPersonalityFunction(Module& module) {
-			const std::string functionName = "__loci_personality_v0";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_personality_v0");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -107,16 +107,16 @@ namespace locic {
 			const auto argInfo = ArgInfo::VarArgs(module, int32Type, {}).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
 		llvm::Function* getExceptionPtrFunction(Module& module) {
-			const std::string functionName = "__loci_get_exception";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_get_exception");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			auto& abiContext = module.abiContext();
@@ -126,7 +126,7 @@ namespace locic {
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept().withNoMemoryAccess();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			
 			return function;
 		}
@@ -227,14 +227,14 @@ namespace locic {
 			return landingPadBB;
 		}
 		
-		llvm::Constant* getTypeNameGlobal(Module& module, const std::string& typeName) {
+		llvm::Constant* getTypeNameGlobal(Module& module, const String& typeName) {
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);
 			
 			// Generate the name of the exception type as a constant C string.
-			const auto typeNameConstant = constGen.getString(typeName.c_str());
+			const auto typeNameConstant = constGen.getString(typeName);
 			const auto typeNameType = typeGen.getArrayType(typeGen.getI8Type(), typeName.size() + 1);
-			const auto typeNameGlobal = module.createConstGlobal("type_name", typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
+			const auto typeNameGlobal = module.createConstGlobal(module.getCString("type_name"), typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
 			typeNameGlobal->setAlignment(1);
 			
 			// Convert array to a pointer.
@@ -244,7 +244,7 @@ namespace locic {
 		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance) {
 			assert(catchTypeInstance->isException());
 			
-			const auto typeName = catchTypeInstance->name().toString();
+			const auto typeName = catchTypeInstance->name().genString();
 			const auto typeNameGlobalPtr = getTypeNameGlobal(module, typeName);
 			
 			ConstantGenerator constGen(module);
@@ -264,20 +264,20 @@ namespace locic {
 			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
 			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*> {constGen.getI32(offset), castedTypeNamePtr});
 			
-			const auto typeInfoGlobal = module.createConstGlobal("catch_type_info", typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
+			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("catch_type_info"), typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
 			
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* throwTypeInstance) {
+		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* const throwTypeInstance) {
 			assert(throwTypeInstance->isException());
 			
-			std::vector<std::string> typeNames;
+			Array<String, 10> typeNames;
 			
 			// Add type names in REVERSE order.
 			auto currentInstance = throwTypeInstance;
 			while (currentInstance != nullptr) {
-				typeNames.push_back(currentInstance->name().toString());
+				typeNames.push_back(currentInstance->name().genString());
 				currentInstance = currentInstance->parent() != nullptr ?
 					currentInstance->parent()->getObjectType() : nullptr;
 			}
@@ -286,7 +286,7 @@ namespace locic {
 			
 			// Since type names were added in reverse
 			// order, fix this by reversing the array.
-			std::reverse(std::begin(typeNames), std::end(typeNames));
+			std::reverse(typeNames.begin(), typeNames.end());
 			
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);
@@ -306,7 +306,7 @@ namespace locic {
 			const auto typeNameArray = constGen.getArray(typeNameArrayType, typeNameConstants);
 			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*> {constGen.getI32(typeNames.size()), typeNameArray});
 			
-			const auto typeInfoGlobal = module.createConstGlobal("throw_type_info", typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
+			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("throw_type_info"), typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
 			
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}

@@ -182,7 +182,7 @@ namespace locic {
 			// Create stub to call a move function with no template generator.
 			const bool hasTemplateArgs = true;
 			const auto argInfo = moveBasicArgInfo(module, hasTemplateArgs);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString(""));
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
@@ -203,7 +203,7 @@ namespace locic {
 			}
 			
 			// Use custom 'moveto' method if available.
-			const auto semFunction = typeInstance->functions().at("__moveto");
+			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto"));
 			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
 			
 			module.getMoveFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));

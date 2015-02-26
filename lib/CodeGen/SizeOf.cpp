@@ -46,17 +46,17 @@ namespace locic {
 		
 		llvm::Function* genAlignMaskFunction(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
-			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
-				mangleMethodName(typeInstance, std::string("__alignmask") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
-			const auto result = module.getFunctionMap().tryGet(mangledName);
+			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
+				mangleMethodName(module, typeInstance, module.getCString("__alignmask") + module.getCString(hasVirtualTypeArgument(type) ? "_virtual" : ""));
+			const auto iterator = module.getFunctionMap().find(mangledName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto argInfo = alignMaskArgInfo(module, typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			
 			assert(!typeInstance->isInterface());
 			
@@ -169,17 +169,17 @@ namespace locic {
 		
 		llvm::Function* genSizeOfFunction(Module& module, const SEM::Type* type) {
 			const auto typeInstance = type->getObjectType();
-			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) +
-				mangleMethodName(typeInstance, std::string("__sizeof") + (hasVirtualTypeArgument(type) ? "_virtual" : ""));
-			const auto result = module.getFunctionMap().tryGet(mangledName);
+			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
+				mangleMethodName(module, typeInstance, module.getCString("__sizeof") + module.getCString(hasVirtualTypeArgument(type) ? "_virtual" : ""));
+			const auto iterator = module.getFunctionMap().find(mangledName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto argInfo = sizeOfArgInfo(module, typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			
 			assert(!typeInstance->isInterface());
 			
@@ -336,7 +336,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto mangledName = mangleMethodName(typeInstance, "__memberoffset");
+			const auto mangledName = mangleMethodName(module, typeInstance, module.getCString("__memberoffset"));
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
 			

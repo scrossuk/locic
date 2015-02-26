@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
 
@@ -14,10 +15,10 @@ namespace locic {
 	
 		class SymbolElement {
 			public:
-				SymbolElement(const std::string& n, const Node<TypeList>& t)
-					: name_(n), templateArguments_(t) { }
-					
-				const std::string& name() const {
+				SymbolElement(String n, const Node<TypeList>& t)
+				: name_(std::move(n)), templateArguments_(t) { }
+				
+				const String& name() const {
 					return name_;
 				}
 				
@@ -26,7 +27,7 @@ namespace locic {
 				}
 				
 			private:
-				std::string name_;
+				String name_;
 				Node<TypeList> templateArguments_;
 				
 		};
@@ -80,7 +81,7 @@ namespace locic {
 					return size() == 1 && first()->templateArguments()->empty();
 				}
 				
-				std::string trivialString() const {
+				const String& trivialString() const {
 					assert(isTrivial());
 					return createName().first();
 				}

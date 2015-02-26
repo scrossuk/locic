@@ -1,14 +1,14 @@
 #ifndef LOCIC_CODEGEN_TYPEGENERATOR_HPP
 #define LOCIC_CODEGEN_TYPEGENERATOR_HPP
 
-#include <vector>
-
 #include <locic/CodeGen/Module.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
-	
+		
+		class Module;
+		
 		class TypeGenerator {
 			public:
 				inline TypeGenerator(Module& module)
@@ -89,8 +89,8 @@ namespace locic {
 					return llvm::StructType::create(module_.getLLVMContext());
 				}
 				
-				inline llvm::StructType* getForwardDeclaredStructType(const std::string& name) const {
-					return llvm::StructType::create(module_.getLLVMContext(), name);
+				inline llvm::StructType* getForwardDeclaredStructType(const String& name) const {
+					return llvm::StructType::create(module_.getLLVMContext(), name.c_str());
 				}
 				
 			private:

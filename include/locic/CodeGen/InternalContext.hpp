@@ -5,18 +5,23 @@
 
 namespace locic {
 	
+	class StringHost;
+	
 	namespace CodeGen {
 		
 		class InternalContext {
 			public:
-				InternalContext();
+				InternalContext(const StringHost& stringHost);
 				~InternalContext();
+				
+				const StringHost& stringHost() const;
 				
 				llvm::LLVMContext& llvmContext();
 				
 				llvm_abi::Context& llvmABIContext();
 				
 			private:
+				const StringHost& stringHost_;
 				llvm::LLVMContext llvmContext_;
 				llvm_abi::Context llvmABIContext_;
 				

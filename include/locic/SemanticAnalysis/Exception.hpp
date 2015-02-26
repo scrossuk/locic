@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+
 #include <locic/Exception.hpp>
 #include <locic/Name.hpp>
 #include <locic/String.hpp>
@@ -30,7 +31,7 @@ namespace locic {
 				
 				NameClashException(Kind kind, Name name)
 					: kind_(kind), name_(std::move(name)) { }
-					
+				
 				Kind getKind() const {
 					return kind_;
 				}
@@ -71,8 +72,8 @@ namespace locic {
 		
 		class TemplateVariableClashException: public Exception {
 			public:
-				TemplateVariableClashException(Name typeName, const std::string& varName)
-					: typeName_(std::move(typeName)), varName_(varName) { }
+				TemplateVariableClashException(Name typeName, String varName)
+					: typeName_(std::move(typeName)), varName_(std::move(varName)) { }
 					
 				std::string toString() const {
 					return makeString("More than one template variable shares name '%s' in type '%s'.", varName_.c_str(), typeName_.toString().c_str());
@@ -80,14 +81,14 @@ namespace locic {
 				
 			private:
 				Name typeName_;
-				std::string varName_;
+				String varName_;
 				
 		};
 		
 		class MemberVariableClashException: public Exception {
 			public:
-				MemberVariableClashException(Name typeName, const std::string& varName)
-					: typeName_(std::move(typeName)), varName_(varName) { }
+				MemberVariableClashException(Name typeName, String varName)
+					: typeName_(std::move(typeName)), varName_(std::move(varName)) { }
 					
 				std::string toString() const {
 					return makeString("More than one member variable shares name '%s' in type '%s'.", varName_.c_str(), typeName_.toString().c_str());
@@ -95,7 +96,7 @@ namespace locic {
 				
 			private:
 				Name typeName_;
-				std::string varName_;
+				String varName_;
 				
 		};
 		
@@ -115,9 +116,9 @@ namespace locic {
 		
 		class NonUnifiableFunctionsException: public Exception {
 			public:
-				NonUnifiableFunctionsException(Name name, const std::string& newType, const std::string& existingType)
-					: name_(std::move(name)), newType_(newType),
-					  existingType_(existingType) { }
+				NonUnifiableFunctionsException(Name name, String newType, String existingType)
+					: name_(std::move(name)), newType_(std::move(newType)),
+					  existingType_(std::move(existingType)) { }
 					  
 				std::string toString() const {
 					return makeString("Declarations of function '%s' don't match: %s and %s.",
@@ -128,8 +129,8 @@ namespace locic {
 				
 			private:
 				Name name_;
-				std::string newType_;
-				std::string existingType_;
+				String newType_;
+				String existingType_;
 				
 		};
 		
@@ -149,8 +150,8 @@ namespace locic {
 		
 		class ParamVariableClashException: public Exception {
 			public:
-				ParamVariableClashException(Name functionName, const std::string& paramName)
-					: functionName_(std::move(functionName)), paramName_(paramName) { }
+				ParamVariableClashException(Name functionName, String paramName)
+					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
 					
 				std::string toString() const {
 					return makeString("Parameter variable '%s' is defined more than once, in function '%s'.", paramName_.c_str(), functionName_.toString().c_str());
@@ -158,14 +159,14 @@ namespace locic {
 				
 			private:
 				Name functionName_;
-				std::string paramName_;
+				String paramName_;
 				
 		};
 		
 		class LocalVariableClashException: public Exception {
 			public:
-				LocalVariableClashException(Name functionName, const std::string& paramName)
-					: functionName_(std::move(functionName)), paramName_(paramName) { }
+				LocalVariableClashException(Name functionName, String paramName)
+					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
 					
 				std::string toString() const {
 					return makeString("Local variable '%s' is defined more than once, in function '%s'.", paramName_.c_str(), functionName_.toString().c_str());
@@ -173,7 +174,7 @@ namespace locic {
 				
 			private:
 				Name functionName_;
-				std::string paramName_;
+				String paramName_;
 				
 		};
 		
@@ -193,8 +194,8 @@ namespace locic {
 		
 		class ParamVoidTypeException: public Exception {
 			public:
-				ParamVoidTypeException(Name functionName, const std::string& paramName)
-					: functionName_(std::move(functionName)), paramName_(paramName) { }
+				ParamVoidTypeException(Name functionName, String paramName)
+					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
 					
 				std::string toString() const {
 					return makeString("Parameter variable '%s' cannot have void type, in function '%s'.", paramName_.c_str(), functionName_.toString().c_str());
@@ -202,21 +203,21 @@ namespace locic {
 				
 			private:
 				Name functionName_;
-				std::string paramName_;
+				String paramName_;
 				
 		};
 		
 		class LocalVariableShadowingException: public Exception {
 			public:
-				LocalVariableShadowingException(const std::string& varName)
-					: varName_(varName) { }
+				LocalVariableShadowingException(String varName)
+					: varName_(std::move(varName)) { }
 					
 				std::string toString() const {
 					return makeString("Local variable '%s' shadows existing local variable of the same name.", varName_.c_str());
 				}
 				
 			private:
-				std::string varName_;
+				String varName_;
 				
 		};
 		

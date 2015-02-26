@@ -1,15 +1,15 @@
 #ifndef LOCIC_CODEGEN_GENFUNCTION_HPP
 #define LOCIC_CODEGEN_GENFUNCTION_HPP
 
-#include <string>
-
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
 
 namespace locic {
-
+	
+	class String;
+	
 	namespace CodeGen {
 		
 		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::Function* function);
@@ -20,7 +20,7 @@ namespace locic {
 		
 		llvm::Function* genFunctionDef(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
-		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const std::string& functionName, const SEM::Type* functionType);
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* functionType);
 		
 	}
 	

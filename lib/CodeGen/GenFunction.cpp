@@ -77,29 +77,33 @@ namespace locic {
 				assert(typeInstance == nullptr);
 			}
 			
-			const auto iterator = module.getFunctionDeclMap().find(function);
-			
-			if (iterator != module.getFunctionDeclMap().end()) {
-				return iterator->second;
+			{
+				const auto iterator = module.getFunctionDeclMap().find(function);
+				
+				if (iterator != module.getFunctionDeclMap().end()) {
+					return iterator->second;
+				}
 			}
 			
 			const auto mangledName =
-				mangleModuleScope(function->moduleScope()) +
+				mangleModuleScope(module, function->moduleScope()) +
 				(function->isMethod() ?
-				 mangleMethodName(typeInstance, function->name().last()) :
-				 mangleFunctionName(function->name()));
-				 
-			const auto result = module.getFunctionMap().tryGet(mangledName);
+				 mangleMethodName(module, typeInstance, function->name().last()) :
+				 mangleFunctionName(module, function->name()));
 			
-			if (result) {
-				return *result;
+			{
+				const auto iterator = module.getFunctionMap().find(mangledName);
+				
+				if (iterator != module.getFunctionMap().end()) {
+					return iterator->second;
+				}
 			}
 			
 			const auto argInfo = getFunctionArgInfo(module, function->type());
 			const auto linkage = getFunctionLinkage(function);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
 			
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			module.getFunctionDeclMap().insert(std::make_pair(function, llvmFunction));
 			
 			if (!canPassByValue(module, function->type()->getFunctionReturnType())) {
@@ -216,10 +220,10 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const std::string& functionName, const SEM::Type* const functionType) {
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, "templateFunctionStub");
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString("templateFunctionStub"));
 			
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);

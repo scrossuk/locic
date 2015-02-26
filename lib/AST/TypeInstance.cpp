@@ -15,43 +15,43 @@ namespace locic {
 
 	namespace AST {
 	
-		TypeInstance::TypeInstance(Kind k, const std::string& n, const Node<TypeVarList>& v, const Node<FunctionList>& f)
+		TypeInstance::TypeInstance(Kind k, const String& n, const Node<TypeVarList>& v, const Node<FunctionList>& f)
 			: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
 			  variants(makeDefaultNode<TypeInstanceList>()),
 			  variables(v), functions(f),
 			  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())) { }
 		
-		TypeInstance* TypeInstance::Primitive(const std::string& name, const Node<FunctionList>& functions) {
+		TypeInstance* TypeInstance::Primitive(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), functions);
 		}
 		
-		TypeInstance* TypeInstance::ClassDecl(const std::string& name, const Node<FunctionList>& functions) {
+		TypeInstance* TypeInstance::ClassDecl(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(CLASSDECL, name, makeDefaultNode<TypeVarList>(), functions);
 		}
 		
-		TypeInstance* TypeInstance::ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions) {
+		TypeInstance* TypeInstance::ClassDef(const String& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions) {
 			return new TypeInstance(CLASSDEF, name, variables, functions);
 		}
 		
-		TypeInstance* TypeInstance::Datatype(const std::string& name, const Node<TypeVarList>& variables) {
+		TypeInstance* TypeInstance::Datatype(const String& name, const Node<TypeVarList>& variables) {
 			return new TypeInstance(DATATYPE, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::UnionDatatype(const std::string& name, const Node<TypeInstanceList>& variants) {
+		TypeInstance* TypeInstance::UnionDatatype(const String& name, const Node<TypeInstanceList>& variants) {
 			TypeInstance* typeInstance = new TypeInstance(UNION_DATATYPE, name,  makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
 			typeInstance->variants = variants;
 			return typeInstance;
 		}
 		
-		TypeInstance* TypeInstance::Interface(const std::string& name, const Node<FunctionList>& functions) {
+		TypeInstance* TypeInstance::Interface(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(INTERFACE, name, makeDefaultNode<TypeVarList>(), functions);
 		}
 		
-		TypeInstance* TypeInstance::Struct(const std::string& name, const Node<TypeVarList>& variables) {
+		TypeInstance* TypeInstance::Struct(const String& name, const Node<TypeVarList>& variables) {
 			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::Exception(const std::string& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer) {
+		TypeInstance* TypeInstance::Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer) {
 			const auto typeInstance = new TypeInstance(EXCEPTION, name, variables, makeDefaultNode<FunctionList>());
 			typeInstance->initializer = initializer;
 			return typeInstance;

@@ -16,17 +16,17 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		const SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), "value_lval", { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("value_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), "member_lval", { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("member_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeFinalLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), "final_lval", { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("final_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
@@ -66,7 +66,7 @@ namespace locic {
 		
 		SEM::Value dissolveLval(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
 			assert (canDissolveValue(context, value));
-			return CallValue(context, GetSpecialMethod(context, std::move(value), "dissolve", location), {}, location);
+			return CallValue(context, GetSpecialMethod(context, std::move(value), context.getCString("dissolve"), location), {}, location);
 		}
 		
 		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location) {

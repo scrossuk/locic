@@ -3,6 +3,7 @@
 
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Context.hpp>
+#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/ModuleScope.hpp>

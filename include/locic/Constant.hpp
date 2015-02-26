@@ -7,7 +7,9 @@
 #include <locic/String.hpp>
 
 namespace locic{
-
+	
+	class String;
+	
 	class Constant{
 		public:
 			enum Kind {
@@ -23,71 +25,71 @@ namespace locic{
 			typedef long double FloatVal;
 			typedef uint32_t CharVal;
 			
-			static inline Constant * Null(){
+			static Constant * Null(){
 				return new Constant(NULLVAL);
 			}
 			
-			static inline Constant * True(){
+			static Constant * True(){
 				Constant * constant = new Constant(BOOLEAN);
 				constant->bool_ = true;
 				return constant;
 			}
 			
-			static inline Constant * False(){
+			static Constant * False(){
 				Constant * constant = new Constant(BOOLEAN);
 				constant->bool_ = false;
 				return constant;
 			}
 			
-			static inline Constant * Integer(IntegerVal value){
+			static Constant * Integer(IntegerVal value){
 				Constant * constant = new Constant(INTEGER);
 				constant->integer_ = value;
 				return constant;
 			}
 			
-			static inline Constant * Float(FloatVal value){
+			static Constant * Float(FloatVal value){
 				Constant * constant = new Constant(FLOATINGPOINT);
 				constant->float_ = value;
 				return constant;
 			}
 			
-			static inline Constant * Character(CharVal value){
+			static Constant * Character(CharVal value){
 				Constant * constant = new Constant(CHARACTER);
 				constant->character_ = value;
 				return constant;
 			}
 			
-			static inline Constant * String(const std::string& value){
+			static Constant * StringVal(const String value){
 				Constant * constant = new Constant(STRING);
 				constant->string_ = value;
 				return constant;
 			}
 			
-			inline Kind kind() const{
+			Kind kind() const{
 				return kind_;
 			}
 			
-			inline bool boolValue() const{
+			bool boolValue() const{
 				assert(kind_ == BOOLEAN);
 				return bool_;
 			}
 			
-			inline IntegerVal integerValue() const{
+			IntegerVal integerValue() const{
 				assert(kind_ == INTEGER);
 				return integer_;
 			}
 			
-			inline FloatVal floatValue() const{
+			FloatVal floatValue() const{
 				assert(kind_ == FLOATINGPOINT);
 				return float_;
 			}
 			
-			inline CharVal characterValue() const{
+			CharVal characterValue() const{
 				assert(kind_ == CHARACTER);
 				return character_;
 			}
 			
-			inline const std::string& stringValue() const{
+			const String& stringValue() const{
 				assert(kind_ == STRING);
 				return string_;
 			}
@@ -105,14 +107,14 @@ namespace locic{
 					case CHARACTER:
 						return makeString("CharacterConstant(%llu)", (unsigned long long) characterValue());
 					case STRING:
-						return makeString("StringConstant(\"%s\")", escapeString(stringValue()).c_str());
+						return makeString("StringConstant(\"%s\")", escapeString(stringValue().asStdString()).c_str());
 					default:
 						return "[UNKNOWN CONSTANT]";
 				}
 			}
 			
 		private:
-			inline Constant(Kind pKind)
+			Constant(Kind pKind)
 				: kind_(pKind) { }
 			
 			Kind kind_;
@@ -122,9 +124,8 @@ namespace locic{
 				IntegerVal integer_;
 				FloatVal float_;
 				CharVal character_;
+				String string_;
 			};
-			
-			std::string string_;
 		
 	};
 

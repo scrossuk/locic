@@ -16,6 +16,8 @@ namespace llvm {
 
 namespace locic {
 	
+	class String;
+	
 	namespace CodeGen {
 		
 		class Module;
@@ -29,21 +31,21 @@ namespace locic {
 		 */
 		typedef uint64_t MethodHash;
 		
-		MethodHash CreateMethodNameHash(const std::string& methodName);
+		MethodHash CreateMethodNameHash(const String& methodName);
 		
-		llvm::Value* CreateHashValue(Module& module, const std::string& methodName);
+		llvm::Value* CreateHashValue(Module& module, const String& methodName);
 		
 		class VirtualTable {
 			public:
 				static VirtualTable CalculateFromHashes(const std::vector<MethodHash>& methods);
 				
-				static VirtualTable CalculateFromNames(const std::vector<std::string>& methods);
+				static VirtualTable CalculateFromNames(const std::vector<String>& methods);
 				
 				const std::vector< std::list<MethodHash> >& table() const;
 				
 				std::string toString() const;
 				
-				std::string toStringWithMapping(const Map<MethodHash, std::string>& mapping) const;
+				std::string toStringWithMapping(const Map<MethodHash, String>& mapping) const;
 				
 			private:
 				VirtualTable();

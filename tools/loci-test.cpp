@@ -21,6 +21,7 @@
 #include <locic/CodeGen/Interpreter.hpp>
 #include <locic/CodeGen/Linker.hpp>
 #include <locic/SemanticAnalysis.hpp>
+#include <locic/Support/StringHost.hpp>
 
 using namespace locic;
 
@@ -204,6 +205,8 @@ int main(int argc, char* argv[]) {
 	try {
 		AST::NamespaceList astRootNamespaceList;
 		
+		StringHost stringHost;
+		
 		std::stringstream parseErrors;
 		
 		// Parse all source files.
@@ -215,7 +218,7 @@ int main(int argc, char* argv[]) {
 				return -1;
 			}
 			
-			Parser::DefaultParser parser(astRootNamespaceList, file, filename);
+			Parser::DefaultParser parser(stringHost, astRootNamespaceList, file, filename);
 			
 			if (!parser.parseFile()) {
 				const auto errors = parser.getErrors();
@@ -260,7 +263,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		printf("Performing semantic analysis...\n");
 		SEM::Context semContext;
-		SemanticAnalysis::Run(astRootNamespaceList, semContext, debugModule);
+		SemanticAnalysis::Run(stringHost, astRootNamespaceList, semContext, debugModule);
 		
 		// Dump SEM tree information.
 		const auto semDebugFileName = testName + "_semdebug.txt";
@@ -270,7 +273,7 @@ int main(int argc, char* argv[]) {
 		// Perform code generation.
 		printf("Performing code generation...\n");
 		
-		CodeGen::Context codeGenContext;
+		CodeGen::Context codeGenContext(stringHost);
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());

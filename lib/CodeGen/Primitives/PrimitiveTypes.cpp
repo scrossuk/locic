@@ -1,8 +1,8 @@
 #include <assert.h>
 
 #include <stdexcept>
-#include <string>
 
+#include <locic/String.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -98,14 +98,14 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getLvalStruct(Module& module, const std::string& name) {
-			const auto existingType = module.getTypeMap().tryGet(name);
-			if (existingType) {
-				return *existingType;
+		llvm::Type* getLvalStruct(Module& module, const String& name) {
+			const auto iterator = module.getTypeMap().find(name);
+			if (iterator != module.getTypeMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
-			module.getTypeMap().insert(name, type);
+			module.getTypeMap().insert(std::make_pair(name, type));
 			return type;
 		}
 		
@@ -153,11 +153,11 @@ namespace locic {
 				case PrimitivePtrLval:
 					return TypeGenerator(module).getI8PtrType();
 				case PrimitiveValueLval:
-					return getLvalStruct(module, "value_lval");
+					return getLvalStruct(module, module.getCString("value_lval"));
 				case PrimitiveMemberLval:
-					return getLvalStruct(module, "member_lval");
+					return getLvalStruct(module, module.getCString("member_lval"));
 				case PrimitiveFinalLval:
-					return getLvalStruct(module, "final_lval");
+					return getLvalStruct(module, module.getCString("final_lval"));
 				case PrimitiveTypename:
 					return typeInfoType(module).second;
 				default:
@@ -165,7 +165,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getNamedPrimitiveType(Module& module, const std::string& name) {
+		llvm::Type* getNamedPrimitiveType(Module& module, const String& name) {
 			return getBasicPrimitiveType(module, module.primitiveKind(name));
 		}
 		
@@ -213,7 +213,7 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const std::string& name) {
+		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name) {
 			return getBasicPrimitiveABIType(module, module.primitiveKind(name));
 		}
 		

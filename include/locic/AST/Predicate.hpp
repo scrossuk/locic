@@ -1,10 +1,9 @@
 #ifndef LOCIC_AST_PREDICATE_HPP
 #define LOCIC_AST_PREDICATE_HPP
 
-#include <string>
-
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -21,9 +20,9 @@ namespace locic {
 				
 				static Predicate* Bracket(const Node<Predicate>& expr);
 				
-				static Predicate* TypeSpec(const std::string& name, const Node<Type>& specType);
+				static Predicate* TypeSpec(const String& name, const Node<Type>& specType);
 				
-				static Predicate* Variable(const std::string& name);
+				static Predicate* Variable(const String& name);
 				
 				static Predicate* And(const Node<Predicate>& left, const Node<Predicate>& right);
 				
@@ -31,10 +30,10 @@ namespace locic {
 				
 				const Node<Predicate>& bracketExpr() const;
 				
-				const std::string& typeSpecName() const;
+				const String& typeSpecName() const;
 				const Node<Type>& typeSpecType() const;
 				
-				const std::string& variableName() const;
+				const String& variableName() const;
 				
 				const Node<Predicate>& andLeft() const;
 				const Node<Predicate>& andRight() const;
@@ -47,12 +46,12 @@ namespace locic {
 				} bracket_;
 				
 				struct {
-					std::string name;
+					String name;
 					Node<Type> type;
 				} typeSpec_;
 				
 				struct {
-					std::string name;
+					String name;
 				} variable_;
 				
 				struct {

@@ -1,13 +1,14 @@
 #ifndef LOCIC_SEM_FUNCTION_HPP
 #define LOCIC_SEM_FUNCTION_HPP
 
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include <locic/FastMap.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
@@ -52,8 +53,8 @@ namespace locic {
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;
 				
-				std::map<std::string, TemplateVar*>& namedTemplateVariables();
-				const std::map<std::string, TemplateVar*>& namedTemplateVariables() const;
+				FastMap<String, TemplateVar*>& namedTemplateVariables();
+				const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
 				
 				const Predicate& constPredicate() const;
 				void setConstPredicate(Predicate predicate);
@@ -64,8 +65,8 @@ namespace locic {
 				void setParameters(std::vector<Var*> pParameters);
 				const std::vector<Var*>& parameters() const;
 				
-				std::map<std::string, Var*>& namedVariables();
-				const std::map<std::string, Var*>& namedVariables() const;
+				FastMap<String, Var*>& namedVariables();
+				const FastMap<String, Var*>& namedVariables() const;
 				
 				void setScope(std::unique_ptr<Scope> newScope);
 				const Scope& scope() const;
@@ -79,11 +80,11 @@ namespace locic {
 				Name name_;
 				
 				std::vector<TemplateVar*> templateVariables_;
-				std::map<std::string, TemplateVar*> namedTemplateVariables_;
+				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate constPredicate_;
 				Predicate requiresPredicate_;
 				std::vector<Var*> parameters_;
-				std::map<std::string, Var*> namedVariables_;
+				FastMap<String, Var*> namedVariables_;
 				
 				ModuleScope moduleScope_;
 				std::unique_ptr<Scope> scope_;

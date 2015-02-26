@@ -1,4 +1,4 @@
-add_compile_options(${LOCIC_BUILD_WARNINGS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_BUILD_WARNINGS}")
 
 # Build abstract syntax tree structures.
 add_subdirectory(AST)
@@ -16,9 +16,5 @@ add_subdirectory(SEM)
 add_subdirectory(SemanticAnalysis)
 
 # Build support library.
-add_library(locic-support
-	Name.cpp
-	String.cpp
-	Version.cpp
-)
+add_subdirectory(Support)
 

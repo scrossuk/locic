@@ -14,14 +14,14 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate* Predicate::TypeSpec(const std::string& name, const Node<Type>& specType) {
+		Predicate* Predicate::TypeSpec(const String& name, const Node<Type>& specType) {
 			Predicate* predicate = new Predicate(TYPESPEC);
 			predicate->typeSpec_.name = name;
 			predicate->typeSpec_.type = specType;
 			return predicate;
 		}
 		
-		Predicate* Predicate::Variable(const std::string& name) {
+		Predicate* Predicate::Variable(const String& name) {
 			Predicate* predicate = new Predicate(VARIABLE);
 			predicate->variable_.name = name;
 			return predicate;
@@ -43,7 +43,7 @@ namespace locic {
 			return bracket_.expr;
 		}
 		
-		const std::string& Predicate::typeSpecName() const {
+		const String& Predicate::typeSpecName() const {
 			assert(kind() == TYPESPEC);
 			return typeSpec_.name;
 		}
@@ -53,7 +53,7 @@ namespace locic {
 			return typeSpec_.type;
 		}
 		
-		const std::string& Predicate::variableName() const {
+		const String& Predicate::variableName() const {
 			assert(kind() == VARIABLE);
 			return variable_.name;
 		}

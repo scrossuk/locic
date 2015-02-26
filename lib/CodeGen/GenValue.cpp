@@ -68,7 +68,7 @@ namespace locic {
 						case locic::Constant::CHARACTER: {
 							const auto characterValue = value.constant->characterValue();
 							
-							const auto typeName = value.type()->resolveAliases()->getObjectType()->name().last();
+							const auto& typeName = value.type()->resolveAliases()->getObjectType()->name().last();
 							
 							if (typeName == "uint8_t") {
 								return ConstantGenerator(module).getI8(characterValue);
@@ -78,15 +78,15 @@ namespace locic {
 						}
 						
 						case locic::Constant::STRING: {
-							const auto stringValue = value.constant->stringValue();
+							const auto& stringValue = value.constant->stringValue();
 							
 							const auto arrayType =
 								TypeGenerator(module).getArrayType(
 									TypeGenerator(module).getI8Type(),
 										stringValue.size() + 1);
-							const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
+							const auto constArray = ConstantGenerator(module).getString(stringValue);
 							const auto globalArray =
-								module.createConstGlobal("cstring_constant",
+								module.createConstGlobal(module.getCString("cstring_constant"),
 										arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
 							globalArray->setAlignment(1);
 							
@@ -394,7 +394,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const auto memberIndex = module.getMemberVarMap().get(value.memberAccess.memberVar);
+					const auto memberIndex = module.getMemberVarMap().at(value.memberAccess.memberVar);
 					
 					const auto& dataValue = *(value.memberAccess.object);
 					const auto llvmDataValue = genValue(function, dataValue);

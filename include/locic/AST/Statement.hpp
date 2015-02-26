@@ -1,14 +1,13 @@
 #ifndef LOCIC_AST_STATEMENT_HPP
 #define LOCIC_AST_STATEMENT_HPP
 
-#include <string>
-
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -86,7 +85,7 @@ namespace locic {
 			} tryStmt;
 			
 			struct {
-				std::string state;
+				String state;
 				Node<Scope> scope;
 			} scopeExitStmt;
 			
@@ -119,7 +118,7 @@ namespace locic {
 			
 			struct {
 				Node<Value> value;
-				std::string name;
+				String name;
 			} assertStmt;
 				
 			inline Statement(TypeEnum e)
@@ -182,7 +181,7 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* ScopeExit(const std::string& state, const Node<Scope>& scope) {
+			inline static Statement* ScopeExit(const String& state, const Node<Scope>& scope) {
 				Statement* statement = new Statement(SCOPEEXIT);
 				statement->scopeExitStmt.state = state;
 				statement->scopeExitStmt.scope = scope;
@@ -244,7 +243,7 @@ namespace locic {
 				return new Statement(CONTINUE);
 			}
 			
-			inline static Statement* Assert(const Node<Value>& value, const std::string& name) {
+			inline static Statement* Assert(const Node<Value>& value, const String& name) {
 				Statement* statement = new Statement(ASSERT);
 				statement->assertStmt.value = value;
 				statement->assertStmt.name = name;

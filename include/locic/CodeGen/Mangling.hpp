@@ -6,6 +6,7 @@
 
 #include <locic/Name.hpp>
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
 #include <locic/Version.hpp>
 
 #include <locic/CodeGen/TemplatedObject.hpp>
@@ -13,24 +14,26 @@
 namespace locic {
 
 	namespace CodeGen {
-	
-		std::string mangleFunctionName(const Name& name);
 		
-		std::string mangleMethodName(SEM::TypeInstance* typeInstance, const std::string& methodName);
+		class Module;
 		
-		std::string mangleMoveName(SEM::TypeInstance* typeInstance);
+		String mangleFunctionName(Module& module, const Name& name);
 		
-		std::string mangleDestructorName(SEM::TypeInstance* typeInstance);
+		String mangleMethodName(Module& module, SEM::TypeInstance* typeInstance, const String& methodName);
 		
-		std::string mangleObjectType(SEM::TypeInstance* typeInstance);
+		String mangleMoveName(Module& module, SEM::TypeInstance* typeInstance);
 		
-		std::string mangleTypeName(const Name& name);
+		String mangleDestructorName(Module& module, SEM::TypeInstance* typeInstance);
 		
-		std::string mangleModuleScopeFields(const Name& name, const Version& version);
+		String mangleObjectType(Module& module, SEM::TypeInstance* typeInstance);
 		
-		std::string mangleModuleScope(const SEM::ModuleScope& moduleScope);
+		String mangleTypeName(Module& module, const Name& name);
 		
-		std::string mangleTemplateGenerator(TemplatedObject templatedObject);
+		String mangleModuleScopeFields(Module& module, const Name& name, const Version& version);
+		
+		String mangleModuleScope(Module& module, const SEM::ModuleScope& moduleScope);
+		
+		String mangleTemplateGenerator(Module& module, TemplatedObject templatedObject);
 		
 	}
 	

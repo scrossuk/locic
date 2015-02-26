@@ -127,7 +127,7 @@ import std.string 0.1.0 {
 		std::string serialize(ulonglong_t value);
 		
 		class string_lval {
-			const unichar& dissolve() const;
+			const unichar& dissolve() const noexcept;
 		}
 		
 	}

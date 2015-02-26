@@ -55,12 +55,12 @@ static locic::Constant::IntegerVal parseHex(const char* const data) {
 <COMMENT_STATE>\n             { yyextra->resetColumn(); }
 <COMMENT_STATE>"*"+"/"        { BEGIN(INITIAL); }
 
-"\""                          { yyextra->resetStringConstant(); BEGIN(STRING_STATE); }
+"\""                          { BEGIN(STRING_STATE); }
 <STRING_STATE>"\\\""          { yyextra->appendStringConstant("\""); }
 <STRING_STATE>"\\\\"          { yyextra->appendStringConstant("\\"); }
 <STRING_STATE>"\\n"           { yyextra->appendStringConstant("\n"); }
 <STRING_STATE>"\\t"           { yyextra->appendStringConstant("\t"); }
-<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::String(yyextra->getStringConstant());
+<STRING_STATE>"\""            { yylval->lexer_constant = locic::Constant::StringVal(yyextra->releaseStringConstant());
 				BEGIN(INITIAL);
 				return CONSTANT; }
 <STRING_STATE>.               { yyextra->appendStringConstant(yytext); }
@@ -163,7 +163,7 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 
 "_"                     { return UNDERSCORE; }
 
-[A-Za-z_][A-Za-z0-9_]*  { yylval->lexer_str = new std::string(yytext); return NAME; }
+[A-Za-z_][A-Za-z0-9_]*  { yylval->lexer_str = yyextra->getString(yytext); return NAME; }
 
 "=="                    { return ISEQUAL; }
 "!="                    { return NOTEQUAL; }

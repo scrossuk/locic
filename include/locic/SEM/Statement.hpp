@@ -5,7 +5,9 @@
 #include <string>
 #include <vector>
 
+#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Value.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -53,7 +55,7 @@ namespace locic {
 				
 				static Statement* Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
 				
-				static Statement* ScopeExit(const std::string& state, std::unique_ptr<Scope> scope);
+				static Statement* ScopeExit(const String& state, std::unique_ptr<Scope> scope);
 				
 				static Statement* ReturnVoid();
 				
@@ -67,11 +69,13 @@ namespace locic {
 				
 				static Statement* Continue();
 				
-				static Statement* Assert(Value value, const std::string& name);
+				static Statement* Assert(Value value, const String& name);
 				
 				static Statement* Unreachable();
 				
 				Kind kind() const;
+				
+				ExitStates exitStates() const;
 				
 				bool isValueStatement() const;
 				
@@ -117,7 +121,7 @@ namespace locic {
 				
 				bool isScopeExitStatement() const;
 				
-				const std::string& getScopeExitState() const;
+				const String& getScopeExitState() const;
 				
 				Scope& getScopeExitScope() const;
 				
@@ -139,16 +143,17 @@ namespace locic {
 				
 				const Value& getAssertValue() const;
 				
-				const std::string& getAssertName() const;
+				const String& getAssertName() const;
 				
 				bool isUnreachableStatement() const;
 				
 				std::string toString() const;
 				
 			private:
-				Statement(Kind k);
+				Statement(Kind kind, ExitStates exitStates);
 					
 				Kind kind_;
+				ExitStates exitStates_;
 				
 				struct {
 					Value value;
@@ -186,7 +191,7 @@ namespace locic {
 				} tryStmt_;
 				
 				struct {
-					std::string state;
+					String state;
 					std::unique_ptr<Scope> scope;
 				} scopeExitStmt_;
 				
@@ -200,7 +205,7 @@ namespace locic {
 				
 				struct {
 					Value value;
-					std::string name;
+					String name;
 				} assertStmt_;
 				
 		};

@@ -11,7 +11,7 @@ namespace locic {
 
 	namespace AST {
 	
-		TypeAlias::TypeAlias(const std::string& pName, AST::Node<Type> pValue)
+		TypeAlias::TypeAlias(const String& pName, AST::Node<Type> pValue)
 			: name(pName), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
 			requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
 			value(pValue) { }

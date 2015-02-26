@@ -1,10 +1,13 @@
 #ifndef LOCIC_SEM_SCOPE_HPP
 #define LOCIC_SEM_SCOPE_HPP
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <locic/FastMap.hpp>
+#include <locic/String.hpp>
+#include <locic/SEM/ExitStates.hpp>
 
 namespace locic {
 
@@ -21,11 +24,13 @@ namespace locic {
 				Scope(Scope&&) = default;
 				Scope& operator=(Scope&&) = default;
 				
+				ExitStates exitStates() const;
+				
 				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
 				
-				std::map<std::string, Var*>& namedVariables();
-				const std::map<std::string, Var*>& namedVariables() const;
+				FastMap<String, Var*>& namedVariables();
+				const FastMap<String, Var*>& namedVariables() const;
 				
 				std::vector<Statement*>& statements();
 				const std::vector<Statement*>& statements() const;
@@ -38,7 +43,7 @@ namespace locic {
 				Scope& operator=(const Scope&);
 				
 				std::vector<Var*> variables_;
-				std::map<std::string, Var*> namedVariables_;
+				FastMap<String, Var*> namedVariables_;
 				std::vector<Statement*> statementList_;
 				
 		};

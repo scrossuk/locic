@@ -4,7 +4,9 @@
 #include <map>
 #include <string>
 
+#include <locic/FastMap.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -67,14 +69,14 @@ namespace locic {
 					
 				const Name& name() const;
 				
-				std::map<std::string, NamespaceItem>& items();
-				const std::map<std::string, NamespaceItem>& items() const;
+				FastMap<String, NamespaceItem>& items();
+				const FastMap<String, NamespaceItem>& items() const;
 				
 				std::string toString() const;
 				
 			private:
 				Name name_;
-				std::map<std::string, NamespaceItem> items_;
+				FastMap<String, NamespaceItem> items_;
 				
 		};
 		

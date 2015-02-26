@@ -8,7 +8,7 @@
 #include <locic/String.hpp>
 
 namespace locic {
-
+	
 	std::string makeString(const char* format, ...) {
 		va_list varArgList;
 		
@@ -149,6 +149,10 @@ namespace locic {
 		}
 		
 		return stringComponents;
+	}
+	
+	String CanonicalizeMethodName(const String& name) {
+		return String(name.host(), name.host().getCanonicalString(name.internal()));
 	}
 	
 }

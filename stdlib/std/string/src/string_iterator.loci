@@ -3,7 +3,7 @@ export std.string 0.1.0 {
 	namespace std {
 		
 		class string_iterator (const std::varray<ubyte>& stringData, size_t position) {
-			static _fromPos(const std::varray<ubyte>& stringData, size_t position) {
+			static _fromPos(const std::varray<ubyte>& stringData, size_t position) noexcept {
 				return @(stringData, position);
 			}
 			
@@ -11,20 +11,20 @@ export std.string 0.1.0 {
 			
 			copy = default;
 			
-			const std::varray<ubyte>& _stringData() const {
+			const std::varray<ubyte>& _stringData() const noexcept {
 				return @stringData;
 			}
 			
-			size_t _stringPos() const {
+			size_t _stringPos() const noexcept {
 				return @position;
 			}
 			
-			void decrement() {
+			void decrement() noexcept {
 				assert !self.is_begin();
 				@position -= 1u;
 			}
 			
-			void increment() {
+			void increment() noexcept {
 				assert !self.is_end();
 				@position += 1u;
 			}
@@ -39,11 +39,11 @@ export std.string 0.1.0 {
 				return @position.compare(other._stringPos());
 			}
 			
-			bool is_begin() const {
+			bool is_begin() const noexcept {
 				return @position == 0u;
 			}
 			
-			bool is_end() const {
+			bool is_end() const noexcept {
 				return @position == @stringData.size();
 			}
 		}

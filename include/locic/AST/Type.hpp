@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -76,11 +77,11 @@ namespace locic {
 			
 			struct {
 				SignedModifier signedModifier;
-				std::string name;
+				String name;
 			} integerType;
 			
 			struct {
-				std::string name;
+				String name;
 			} floatType;
 			
 			struct {
@@ -159,14 +160,14 @@ namespace locic {
 				return type;
 			}
 			
-			inline static Type* Integer(SignedModifier signedModifier, const std::string& name) {
+			inline static Type* Integer(SignedModifier signedModifier, const String& name) {
 				Type* type = new Type(INTEGER);
 				type->integerType.signedModifier = signedModifier;
 				type->integerType.name = name;
 				return type;
 			}
 			
-			inline static Type* Float(const std::string& name) {
+			inline static Type* Float(const String& name) {
 				Type* type = new Type(FLOAT);
 				type->floatType.name = name;
 				return type;
@@ -328,7 +329,7 @@ namespace locic {
 				return integerType.signedModifier;
 			}
 			
-			inline const std::string& integerName() const {
+			inline const String& integerName() const {
 				assert(isInteger());
 				return integerType.name;
 			}
@@ -337,7 +338,7 @@ namespace locic {
 				return typeEnum == FLOAT;
 			}
 			
-			inline const std::string& floatName() const {
+			inline const String& floatName() const {
 				assert(isFloat());
 				return floatType.name;
 			}

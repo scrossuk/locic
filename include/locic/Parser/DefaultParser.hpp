@@ -3,16 +3,19 @@
 
 #include <cstdio>
 #include <string>
+
 #include <locic/AST.hpp>
 #include <locic/Parser/Context.hpp>
 
-namespace locic{
-
-	namespace Parser{
-
-		class DefaultParser{
+namespace locic {
+	
+	class StringHost;
+	
+	namespace Parser {
+		
+		class DefaultParser {
 			public:
-				DefaultParser(AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName);
+				DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName);
 				~DefaultParser();
 				
 				bool parseFile();

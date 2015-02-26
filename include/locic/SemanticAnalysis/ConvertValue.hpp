@@ -5,6 +5,7 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -14,7 +15,7 @@ namespace locic {
 		
 		class BuiltInTypeMissingException: public Exception {
 			public:
-				inline BuiltInTypeMissingException(const std::string& typeName)
+				inline BuiltInTypeMissingException(const String& typeName)
 					: typeName_(typeName) { }
 					
 				inline std::string toString() const {
@@ -22,7 +23,7 @@ namespace locic {
 				}
 				
 			private:
-				std::string typeName_;
+				String typeName_;
 				
 		};
 		

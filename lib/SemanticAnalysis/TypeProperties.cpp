@@ -56,7 +56,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefAll(std::move(rawValue));
 			const auto targetType = value.type()->staticRefTarget();
 			
@@ -104,11 +104,11 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value GetMethod(Context& context, SEM::Value rawValue, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value GetMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethod(context, std::move(rawValue), methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const std::string& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			const auto type = getDerefType(value.type())->resolveAliases();
 			
@@ -116,16 +116,16 @@ namespace locic {
 		}
 		
 		// Gets the method without dissolving or derefencing the object.
-		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location) {
 			const auto type = getSingleDerefType(value.type())->resolveAliases();
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		
-		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* type, const std::string& methodName, const Debug::SourceLocation& location) {
+		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* type, const String& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const std::string& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -224,7 +224,7 @@ namespace locic {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
 			if (getDerefType(value.type())->isStaticRef()) {
-				return CallValue(context, GetStaticMethod(context, std::move(value), "create", location), std::move(args), location);
+				return CallValue(context, GetStaticMethod(context, std::move(value), context.getCString("create"), location), std::move(args), location);
 			}
 			
 			if (!isCallableType(value.type())) {
@@ -258,7 +258,7 @@ namespace locic {
 			return SEM::Value::FunctionCall(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
 		}
 		
-		bool checkCapability(Context& context, const SEM::Type* const rawType, const char* const capability, SEM::TypeArray templateArgs) {
+		bool checkCapability(Context& context, const SEM::Type* const rawType, const String& capability, SEM::TypeArray templateArgs) {
 			const auto type = rawType->resolveAliases();
 			if (!type->isObject() && !type->isTemplateVar()) {
 				return false;
@@ -284,7 +284,7 @@ namespace locic {
 		}
 		
 		bool supportsNullConstruction(Context& context, const SEM::Type* type) {
-			return checkCapability(context, type, "null_constructible", {});
+			return checkCapability(context, type, context.getCString("null_constructible"), {});
 		}
 		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
@@ -297,7 +297,7 @@ namespace locic {
 					
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find("implicitcast");
+					const auto methodIterator = typeInstance->functions().find(context.getCString("implicitcast"));
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
 					const auto function = methodIterator->second;
@@ -322,33 +322,37 @@ namespace locic {
 		}
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "implicit_copyable", { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("implicit_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "noexcept_implicit_copyable", { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("noexcept_implicit_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "copyable", { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "noexcept_copyable", { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("noexcept_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "comparable", { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("comparable"), { type->resolveAliases()->withoutTags() });
+		}
+		
+		bool supportsNoExceptCompare(Context& context, const SEM::Type* const type) {
+			return checkCapability(context, type, context.getCString("noexcept_comparable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsMove(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, "movable", {});
+			return checkCapability(context, type, context.getCString("movable"), {});
 		}
 		
 		bool supportsDissolve(Context& context, const SEM::Type* const type) {
 			assert(type->isLval());
-			return checkCapability(context, type, "dissolvable", { type->lvalTarget() }) ||
-				checkCapability(context, type, "const_dissolvable", { type->lvalTarget() });
+			return checkCapability(context, type, context.getCString("dissolvable"), { type->lvalTarget() }) ||
+				checkCapability(context, type, context.getCString("const_dissolvable"), { type->lvalTarget() });
 		}
 		
 	}

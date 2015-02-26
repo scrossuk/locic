@@ -104,11 +104,11 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		std::map<std::string, TemplateVar*>& TypeInstance::namedTemplateVariables() {
+		FastMap<String, TemplateVar*>& TypeInstance::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		
-		const std::map<std::string, TemplateVar*>& TypeInstance::namedTemplateVariables() const {
+		const FastMap<String, TemplateVar*>& TypeInstance::namedTemplateVariables() const {
 			return namedTemplateVariables_;
 		}
 		
@@ -128,11 +128,11 @@ namespace locic {
 			return variants_;
 		}
 		
-		std::map<std::string, Var*>& TypeInstance::namedVariables() {
+		FastMap<String, Var*>& TypeInstance::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const std::map<std::string, Var*>& TypeInstance::namedVariables() const {
+		const FastMap<String, Var*>& TypeInstance::namedVariables() const {
 			return namedVariables_;
 		}
 		
@@ -144,11 +144,11 @@ namespace locic {
 			return variables_;
 		}
 		
-		std::map<std::string, Function*>& TypeInstance::functions() {
+		FastMap<String, Function*>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const std::map<std::string, Function*>& TypeInstance::functions() const {
+		const FastMap<String, Function*>& TypeInstance::functions() const {
 			return functions_;
 		}
 		
@@ -223,7 +223,7 @@ namespace locic {
 							  refToString().c_str(),
 							  makeArrayPtrString(templateVariables_).c_str(),
 							  makeArrayPtrString(variables_).c_str(),
-							  makeMapString(functions_).c_str());
+							  makeMapPtrString(functions_).c_str());
 		}
 		
 	}

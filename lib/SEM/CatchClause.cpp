@@ -30,11 +30,11 @@ namespace locic {
 			return var_;
 		}
 		
-		std::map<std::string, Var*>& CatchClause::namedVariables() {
+		FastMap<String, Var*>& CatchClause::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const std::map<std::string, Var*>& CatchClause::namedVariables() const {
+		const FastMap<String, Var*>& CatchClause::namedVariables() const {
 			return namedVariables_;
 		}
 		

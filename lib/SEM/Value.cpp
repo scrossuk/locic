@@ -5,6 +5,7 @@
 #include <locic/Optional.hpp>
 #include <locic/String.hpp>
 
+#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -15,161 +16,175 @@ namespace locic {
 
 	namespace SEM {
 	
-		Value Value::Self(const Type* type) {
-			return Value(SELF, type);
+		Value Value::Self(const Type* const type) {
+			return Value(SELF, type, ExitStates::Normal());
 		}
 		
-		Value Value::This(const Type* type) {
-			return Value(THIS, type);
+		Value Value::This(const Type* const type) {
+			return Value(THIS, type, ExitStates::Normal());
 		}
 		
 		Value Value::Constant(const locic::Constant* const constant, const Type* type) {
-			Value value(CONSTANT, type);
+			Value value(CONSTANT, type, ExitStates::Normal());
 			value.constant = constant;
 			return value;
 		}
 		
-		Value Value::LocalVar(Var* var, const Type* type) {
+		Value Value::LocalVar(Var* const var, const Type* type) {
 			assert(type->isRef() && type->isBuiltInReference());
-			Value value(LOCALVAR, type);
+			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.localVar.var = var;
 			return value;
 		}
 		
-		Value Value::UnionTag(Value operand, const Type* type) {
-			Value value(UNIONTAG, type);
+		Value Value::UnionTag(Value operand, const Type* const type) {
+			Value value(UNIONTAG, type, operand.exitStates());
 			value.unionTag.operand = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::SizeOf(const Type* targetType, const Type* sizeType) {
-			Value value(SIZEOF, sizeType);
+		Value Value::SizeOf(const Type* const targetType, const Type* const sizeType) {
+			Value value(SIZEOF, sizeType, ExitStates::Normal());
 			value.sizeOf.targetType = targetType;
 			return value;
 		}
 		
-		Value Value::UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType) {
-			Value value(UNIONDATAOFFSET, sizeType);
+		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const Type* const sizeType) {
+			Value value(UNIONDATAOFFSET, sizeType, ExitStates::Normal());
 			value.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
-		Value Value::MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType) {
-			Value value(MEMBEROFFSET, sizeType);
+		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
+			Value value(MEMBEROFFSET, sizeType, ExitStates::Normal());
 			value.memberOffset.typeInstance = typeInstance;
 			value.memberOffset.memberIndex = memberIndex;
 			return value;
 		}
 		
-		Value Value::Reinterpret(Value operand, const Type* type) {
-			Value value(REINTERPRET, type);
+		Value Value::Reinterpret(Value operand, const Type* const type) {
+			Value value(REINTERPRET, type, operand.exitStates());
 			value.reinterpretValue.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
 		Value Value::DerefReference(Value operand) {
 			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
-			Value value(DEREF_REFERENCE, operand.type()->refTarget());
+			Value value(DEREF_REFERENCE, operand.type()->refTarget(), operand.exitStates());
 			value.derefReference.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
 		Value Value::Ternary(Value condition, Value ifTrue, Value ifFalse) {
 			assert(ifTrue.type() == ifFalse.type());
-			Value value(TERNARY, ifTrue.type());
+			Value value(TERNARY, ifTrue.type(), condition.exitStates() | ifTrue.exitStates() | ifFalse.exitStates());
 			value.ternary.condition = std::unique_ptr<Value>(new Value(std::move(condition)));
 			value.ternary.ifTrue = std::unique_ptr<Value>(new Value(std::move(ifTrue)));
 			value.ternary.ifFalse = std::unique_ptr<Value>(new Value(std::move(ifFalse)));
 			return value;
 		}
 		
-		Value Value::Cast(const Type* targetType, Value operand) {
-			Value value(CAST, targetType);
+		Value Value::Cast(const Type* const targetType, Value operand) {
+			Value value(CAST, targetType, operand.exitStates());
 			value.cast.targetType = targetType;
 			value.cast.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::PolyCast(const Type* targetType, Value operand) {
-			Value value(POLYCAST, targetType);
+		Value Value::PolyCast(const Type* const targetType, Value operand) {
+			Value value(POLYCAST, targetType, operand.exitStates());
 			value.polyCast.targetType = targetType;
 			value.polyCast.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::Lval(const Type* targetType, Value operand) {
-			Value value(LVAL, operand.type()->createLvalType(targetType));
+		Value Value::Lval(const Type* const targetType, Value operand) {
+			Value value(LVAL, operand.type()->createLvalType(targetType), operand.exitStates());
 			value.makeLval.targetType = targetType;
 			value.makeLval.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
 		Value Value::NoLval(Value operand) {
-			Value value(NOLVAL, operand.type()->withoutLval());
+			Value value(NOLVAL, operand.type()->withoutLval(), operand.exitStates());
 			value.makeNoLval.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::Ref(const Type* targetType, Value operand) {
-			Value value(REF, operand.type()->createRefType(targetType));
+		Value Value::Ref(const Type* const targetType, Value operand) {
+			Value value(REF, operand.type()->createRefType(targetType), operand.exitStates());
 			value.makeRef.targetType = targetType;
 			value.makeRef.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
 		Value Value::NoRef(Value operand) {
-			Value value(NOREF, operand.type()->withoutRef());
+			Value value(NOREF, operand.type()->withoutRef(), operand.exitStates());
 			value.makeNoRef.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::StaticRef(const Type* targetType, Value operand) {
-			Value value(STATICREF, operand.type()->createStaticRefType(targetType));
+		Value Value::StaticRef(const Type* const targetType, Value operand) {
+			Value value(STATICREF, operand.type()->createStaticRefType(targetType), operand.exitStates());
 			value.makeStaticRef.targetType = targetType;
 			value.makeStaticRef.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
 		Value Value::NoStaticRef(Value operand) {
-			Value value(NOSTATICREF, operand.type()->withoutLvalOrRef());
+			Value value(NOSTATICREF, operand.type()->withoutLvalOrRef(), operand.exitStates());
 			value.makeNoStaticRef.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::InternalConstruct(TypeInstance* typeInstance, std::vector<Value> parameters) {
-			Value value(INTERNALCONSTRUCT, typeInstance->selfType());
+		Value Value::InternalConstruct(TypeInstance* const typeInstance, std::vector<Value> parameters) {
+			ExitStates exitStates = ExitStates::Normal();
+			for (const auto& param: parameters) {
+				exitStates |= param.exitStates();
+			}
+			Value value(INTERNALCONSTRUCT, typeInstance->selfType(), exitStates);
 			value.internalConstruct.parameters = std::move(parameters);
 			return value;
 		}
 		
-		Value Value::MemberAccess(Value object, Var* var, const Type* type) {
+		Value Value::MemberAccess(Value object, Var* const var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
 			// the members must also be.
 			//const auto derefType = object->type()->isRef() ? object->type()->refTarget() : object->type();
 			//const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
 			//SEM::Type::Reference(memberType)->createRefType(memberType)
-			Value value(MEMBERACCESS, type);
+			Value value(MEMBERACCESS, type, object.exitStates());
 			value.memberAccess.object = std::unique_ptr<Value>(new Value(std::move(object)));
 			value.memberAccess.memberVar = var;
 			return value;
 		}
 		
-		Value Value::RefValue(Value operand, const Type* type) {
-			Value value(REFVALUE, type);
+		Value Value::RefValue(Value operand, const Type* const type) {
+			Value value(REFVALUE, type, operand.exitStates());
 			value.refValue.value = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
 		
-		Value Value::TypeRef(const Type* targetType, const Type* type) {
-			Value value(TYPEREF, type);
+		Value Value::TypeRef(const Type* const targetType, const Type* const type) {
+			Value value(TYPEREF, type, ExitStates::Normal());
 			value.typeRef.targetType = targetType;
 			return value;
 		}
 		
 		Value Value::FunctionCall(Value functionValue, std::vector<Value> parameters) {
 			const auto functionType = functionValue.type()->getCallableFunctionType();
-			Value value(FUNCTIONCALL, functionType->getFunctionReturnType());
+			
+			ExitStates exitStates = functionValue.exitStates();
+			for (const auto& param: parameters) {
+				exitStates |= param.exitStates();
+			}
+			
+			if (!functionType->isFunctionNoExcept()) {
+				exitStates |= ExitStates::Throw();
+			}
+			
+			Value value(FUNCTIONCALL, functionType->getFunctionReturnType(), exitStates);
 			value.functionCall.functionValue = std::unique_ptr<Value>(new Value(std::move(functionValue)));
 			value.functionCall.parameters = std::move(parameters);
 			return value;
@@ -178,16 +193,16 @@ namespace locic {
 		Value Value::FunctionRef(const Type* const parentType, Function* function, TypeArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isFunction());
-			Value value(FUNCTIONREF, type);
+			Value value(FUNCTIONREF, type, ExitStates::Normal());
 			value.functionRef.parentType = parentType;
 			value.functionRef.function = function;
 			value.functionRef.templateArguments = std::move(templateArguments);
 			return value;
 		}
 		
-		Value Value::TemplateFunctionRef(const Type* const parentType, const std::string& name, const Type* const functionType) {
+		Value Value::TemplateFunctionRef(const Type* const parentType, const String& name, const Type* const functionType) {
 			assert(parentType->isTemplateVar());
-			Value value(TEMPLATEFUNCTIONREF, functionType);
+			Value value(TEMPLATEFUNCTIONREF, functionType, ExitStates::Normal());
 			value.templateFunctionRef.parentType = parentType;
 			value.templateFunctionRef.name = name;
 			value.templateFunctionRef.functionType = functionType;
@@ -196,7 +211,7 @@ namespace locic {
 		
 		Value Value::MethodObject(Value method, Value methodOwner) {
 			assert(method.type()->isFunction());
-			Value value(METHODOBJECT, SEM::Type::Method(method.type()));
+			Value value(METHODOBJECT, SEM::Type::Method(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.methodObject.method = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.methodObject.methodOwner = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
@@ -204,7 +219,7 @@ namespace locic {
 		
 		Value Value::InterfaceMethodObject(Value method, Value methodOwner) {
 			assert(method.type()->isFunction());
-			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()));
+			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.interfaceMethodObject.method = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.interfaceMethodObject.methodOwner = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
@@ -212,20 +227,22 @@ namespace locic {
 		
 		Value Value::StaticInterfaceMethodObject(Value method, Value typeRef) {
 			assert(method.type()->isFunction());
-			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()));
+			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()), method.exitStates() | typeRef.exitStates());
 			value.staticInterfaceMethodObject.method = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.staticInterfaceMethodObject.typeRef = std::unique_ptr<Value>(new Value(std::move(typeRef)));
 			return value;
 		}
 		
 		Value Value::CastDummy(const Type* type) {
-			return Value(CASTDUMMYOBJECT, type);
+			return Value(CASTDUMMYOBJECT, type, ExitStates::Normal());
 		}
 		
-		Value::Value() : kind_(NONE), type_(NULL) { }
+		Value::Value() : kind_(NONE), exitStates_(ExitStates::None()), type_(NULL) { }
 		
-		Value::Value(const Kind k, const Type* const t) : kind_(k), type_(t) {
+		Value::Value(const Kind argKind, const Type* const argType, const ExitStates argExitStates)
+		: kind_(argKind), exitStates_(argExitStates), type_(argType) {
 			assert(type_ != NULL);
+			assert(exitStates_.hasNormalExit() || exitStates_.hasThrowExit());
 		}
 		
 		Value::Kind Value::kind() const {
@@ -234,6 +251,11 @@ namespace locic {
 		
 		const Type* Value::type() const {
 			return type_;
+		}
+		
+		ExitStates Value::exitStates() const {
+			assert(exitStates_.hasNormalExit() || exitStates_.hasThrowExit());
+			return exitStates_;
 		}
 		
 		void Value::setDebugInfo(const Debug::ValueInfo newDebugInfo) {

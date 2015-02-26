@@ -52,7 +52,7 @@ namespace locic {
 				
 				return false;
 			} else {
-				const auto methodIterator = typeInstance->functions().find("__destructor");
+				const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
 				if (methodIterator != typeInstance->functions().end()) {
 					return true;
 				}
@@ -150,19 +150,19 @@ namespace locic {
 		}
 		
 		llvm::Function* getNullDestructorFunction(Module& module) {
-			const auto mangledName = "__null_destructor";
+			const auto mangledName = module.getCString("__null_destructor");
 			
-			const auto result = module.getFunctionMap().tryGet(mangledName);
+			const auto iterator = module.getFunctionMap().find(mangledName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept().withNoMemoryAccess();
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, mangledName);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			
 			Function function(module, *llvmFunction, argInfo);
 			function.getBuilder().CreateRetVoid();
@@ -183,7 +183,7 @@ namespace locic {
 			
 			// Create stub to call destructor with no template generator.
 			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept();
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, NO_FUNCTION_NAME);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString(""));
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
@@ -205,7 +205,7 @@ namespace locic {
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto linkage = getTypeInstanceLinkage(typeInstance);
 			
-			const auto mangledName = mangleModuleScope(typeInstance->moduleScope()) + mangleDestructorName(typeInstance);
+			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) + mangleDestructorName(module, typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
 			
 			if (argInfo.hasTemplateGeneratorArgument()) {
@@ -248,7 +248,7 @@ namespace locic {
 			const auto contextValue = function.getRawContextValue();
 			
 			// Call the custom destructor function, if one exists.
-			const auto methodIterator = typeInstance->functions().find("__destructor");
+			const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
 			
 			if (methodIterator != typeInstance->functions().end()) {
 				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
@@ -264,7 +264,7 @@ namespace locic {
 			// parent object, in *reverse order*.
 			for (size_t i = 0; i < memberVars.size(); i++) {
 				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
-				const size_t memberIndex = module.getMemberVarMap().get(memberVar);
+				const size_t memberIndex = module.getMemberVarMap().at(memberVar);
 				const auto memberOffsetValue = genMemberOffset(function, typeInstance->selfType(), memberIndex);
 				const auto ptrToMember = function.getBuilder().CreateInBoundsGEP(contextValue, memberOffsetValue);
 				genDestructorCall(function, memberVar->type(), ptrToMember);

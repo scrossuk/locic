@@ -7,8 +7,10 @@
 #include <locic/Map.hpp>
 #include <locic/Optional.hpp>
 #include <locic/Debug/ValueInfo.hpp>
+#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 	
@@ -163,7 +165,7 @@ namespace locic {
 				
 				struct {
 					const Type* parentType;
-					std::string name;
+					String name;
 					const Type* functionType;
 					TemplateVarMap templateVarMap;
 				} templateFunctionRef;
@@ -238,7 +240,7 @@ namespace locic {
 				
 				static Value FunctionRef(const Type* parentType, Function* function, TypeArray templateArguments, const Type* const type);
 				
-				static Value TemplateFunctionRef(const Type* parentType, const std::string& name, const Type* functionType);
+				static Value TemplateFunctionRef(const Type* parentType, const String& name, const Type* functionType);
 				
 				static Value MethodObject(Value method, Value methodOwner);
 				
@@ -259,6 +261,8 @@ namespace locic {
 				
 				const Type* type() const;
 				
+				ExitStates exitStates() const;
+				
 				void setDebugInfo(Debug::ValueInfo debugInfo);
 				
 				Optional<Debug::ValueInfo> debugInfo() const;
@@ -266,13 +270,14 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Value(Kind k, const Type* t);
+				Value(Kind k, const Type* t, ExitStates exitStates);
 				
 				// Non-copyable.
 				Value(const Value&) = delete;
 				Value& operator=(const Value&) = delete;
 				
 				Kind kind_;
+				ExitStates exitStates_;
 				const Type* type_;
 				Optional<Debug::ValueInfo> debugInfo_;
 				

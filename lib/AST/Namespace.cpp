@@ -49,7 +49,7 @@ namespace locic {
 			return s;
 		}
 		
-		Namespace::Namespace(const std::string& n, AST::Node<NamespaceData> d)
+		Namespace::Namespace(const String& n, AST::Node<NamespaceData> d)
 				: name(n), data(d) { }
 		
 		std::string Namespace::toString() const {

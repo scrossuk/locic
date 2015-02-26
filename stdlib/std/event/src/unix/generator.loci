@@ -48,7 +48,7 @@ export std.event 0.1.0 {
 					}
 				}
 				
-				source event_source() const {
+				source event_source() const noexcept {
 					const bool notifyRead = true;
 					const bool notifyWrite = false;
 					return source._handle(@handlePair.read, notifyRead, notifyWrite);

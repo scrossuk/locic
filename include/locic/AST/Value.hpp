@@ -1,11 +1,11 @@
 #ifndef LOCIC_AST_VALUE_HPP
 #define LOCIC_AST_VALUE_HPP
 
-#include <string>
 #include <vector>
 
 #include <locic/Constant.hpp>
 #include <locic/Name.hpp>
+#include <locic/String.hpp>
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
@@ -72,7 +72,7 @@ namespace locic {
 			} typeEnum;
 			
 			struct {
-				std::string specifier;
+				String specifier;
 				Node<Constant> constant;
 			} literal;
 			
@@ -85,7 +85,7 @@ namespace locic {
 			} symbolRef;
 			
 			struct {
-				std::string name;
+				String name;
 			} memberRef;
 			
 			struct {
@@ -143,12 +143,12 @@ namespace locic {
 			
 			struct {
 				Node<Value> object;
-				std::string memberName;
+				String memberName;
 			} memberAccess;
 			
 			struct {
 				Node<Value> object;
-				std::string memberName;
+				String memberName;
 				Node<TypeList> typeList;
 			} templatedMemberAccess;
 			
@@ -175,7 +175,7 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* Literal(const std::string& specifier, const Node<Constant>& constant) {
+			inline static Value* Literal(const String& specifier, const Node<Constant>& constant) {
 				Value* value = new Value(LITERAL);
 				value->literal.specifier = specifier;
 				value->literal.constant = constant;
@@ -188,7 +188,7 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* MemberRef(const std::string& name) {
+			inline static Value* MemberRef(const String& name) {
 				Value* value = new Value(MEMBERREF);
 				value->memberRef.name = name;
 				return value;
@@ -264,14 +264,14 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* MemberAccess(Node<Value> object, const std::string& memberName) {
+			inline static Value* MemberAccess(Node<Value> object, const String& memberName) {
 				Value* value = new Value(MEMBERACCESS);
 				value->memberAccess.object = object;
 				value->memberAccess.memberName = memberName;
 				return value;
 			}
 			
-			inline static Value* TemplatedMemberAccess(Node<Value> object, const std::string& memberName, const Node<TypeList>& typeList) {
+			inline static Value* TemplatedMemberAccess(Node<Value> object, const String& memberName, const Node<TypeList>& typeList) {
 				Value* value = new Value(TEMPLATEDMEMBERACCESS);
 				value->templatedMemberAccess.object = object;
 				value->templatedMemberAccess.memberName = memberName;

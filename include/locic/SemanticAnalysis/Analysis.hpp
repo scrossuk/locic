@@ -8,10 +8,12 @@
 #include <locic/SEM.hpp>
 
 namespace locic {
-
+	
+	class StringHost;
+	
 	namespace SemanticAnalysis {
 	
-		void Run(const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
+		void Run(const StringHost& stringHost, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
 		
 	}
 	

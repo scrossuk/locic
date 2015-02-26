@@ -33,7 +33,7 @@ namespace locic {
 			
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
-			const auto name = astFunctionNode->name()->last();
+			const auto& name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
 			const auto semFunction = new SEM::Function(fullName.copy(), std::move(moduleScope));

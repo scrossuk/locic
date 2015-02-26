@@ -6,6 +6,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -37,7 +38,7 @@ namespace locic {
 				EXCEPTION
 			} kind;
 			
-			std::string name;
+			String name;
 			Node<TemplateTypeVarList> templateVariables;
 			Node<TypeInstanceList> variants;
 			Node<TypeVarList> variables;
@@ -46,21 +47,21 @@ namespace locic {
 			Node<RequireSpecifier> requireSpecifier;
 			
 			public:
-				static TypeInstance* Primitive(const std::string& name, const Node<FunctionList>& functions);
+				static TypeInstance* Primitive(const String& name, const Node<FunctionList>& functions);
 				
-				static TypeInstance* Struct(const std::string& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Struct(const String& name, const Node<TypeVarList>& variables);
 				
-				static TypeInstance* ClassDecl(const std::string& name, const Node<FunctionList>& functions);
+				static TypeInstance* ClassDecl(const String& name, const Node<FunctionList>& functions);
 				
-				static TypeInstance* ClassDef(const std::string& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions);
+				static TypeInstance* ClassDef(const String& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions);
 				
-				static TypeInstance* Datatype(const std::string& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Datatype(const String& name, const Node<TypeVarList>& variables);
 				
-				static TypeInstance* UnionDatatype(const std::string& name, const Node<TypeInstanceList>& variants);
+				static TypeInstance* UnionDatatype(const String& name, const Node<TypeInstanceList>& variants);
 				
-				static TypeInstance* Interface(const std::string& name, const Node<FunctionList>& functions);
+				static TypeInstance* Interface(const String& name, const Node<FunctionList>& functions);
 				
-				static TypeInstance* Exception(const std::string& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
+				static TypeInstance* Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
 				
 				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
@@ -68,7 +69,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				TypeInstance(Kind k, const std::string& n,
+				TypeInstance(Kind k, const String& n,
 					const Node<TypeVarList>& v, const Node<FunctionList>& f);
 				
 		};

@@ -35,23 +35,23 @@ namespace locic {
 				case AST::ASSIGN_DIRECT:
 					return operandValue;
 				case AST::ASSIGN_ADD: {
-					auto opMethod = GetMethod(context, std::move(varValue), "add", location);
+					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("add"), location);
 					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_SUB: {
-					auto opMethod = GetMethod(context, std::move(varValue), "subtract", location);
+					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("subtract"), location);
 					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_MUL: {
-					auto opMethod = GetMethod(context, std::move(varValue), "multiply", location);
+					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("multiply"), location);
 					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_DIV: {
-					auto opMethod = GetMethod(context, std::move(varValue), "divide", location);
+					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("divide"), location);
 					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_MOD: {
-					auto opMethod = GetMethod(context, std::move(varValue), "modulo", location);
+					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("modulo"), location);
 					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
 				}
 			}
@@ -70,7 +70,7 @@ namespace locic {
 							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
 								value.toString().c_str(), location.toString().c_str()));
 						}
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
+						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
@@ -84,7 +84,7 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
+					const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
@@ -197,7 +197,7 @@ namespace locic {
 					
 					auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					auto advanceScope = SEM::Scope::Create();
-					auto loopCondition = ImplicitCast(context, std::move(condition), getBuiltInType(context.scopeStack(), "bool", {}), location);
+					auto loopCondition = ImplicitCast(context, std::move(condition), getBuiltInType(context.scopeStack(), context.getCString("bool"), {}), location);
 					return SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
@@ -212,7 +212,10 @@ namespace locic {
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TryScope());
 						tryScope = ConvertScope(context, statement->tryStmt.scope);
 						
-						if (!GetScopeExitStates(*tryScope).test(UnwindStateThrow)) {
+						const auto exitStates = tryScope->exitStates();
+						assert(!exitStates.hasRethrowExit());
+						
+						if (!exitStates.hasThrowExit()) {
 							throw ErrorException(makeString("Try statement wraps a scope that cannot throw, at position %s.",
 								location.toString().c_str()));
 						}
@@ -263,14 +266,14 @@ namespace locic {
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
 					
 					auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
-					const auto exitStates = GetScopeExitStates(*scopeExitScope);
+					const auto exitStates = scopeExitScope->exitStates();
 					
-					assert(!exitStates.test(UnwindStateReturn));
-					assert(!exitStates.test(UnwindStateBreak));
-					assert(!exitStates.test(UnwindStateContinue));
+					assert(!exitStates.hasReturnExit());
+					assert(!exitStates.hasBreakExit());
+					assert(!exitStates.hasContinueExit());
 					
 					// scope(success) is allowed to throw.
-					if (scopeExitState != "success" && (exitStates.test(UnwindStateThrow) || exitStates.test(UnwindStateRethrow))) {
+					if (scopeExitState != "success" && (exitStates.hasThrowExit() || exitStates.hasRethrowExit())) {
 						throw ErrorException(makeString("Scope exit action (for state '%s') can throw, at position %s.",
 								scopeExitState.c_str(), location.toString().c_str()));
 					}
@@ -314,33 +317,33 @@ namespace locic {
 					
 					// TODO: fix this to not copy the value!
 					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
-					auto opMethod = GetSpecialMethod(context, std::move(semVarValue), "assign", location);
+					auto opMethod = GetSpecialMethod(context, std::move(semVarValue), context.getCString("assign"), location);
 					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeArray( std::move(semAssignValue) ), location));
 				}
 				case AST::Statement::INCREMENT: {
 					auto semOperandValue = ConvertValue(context, statement->incrementStmt.value);
-					auto opMethod = GetMethod(context, std::move(semOperandValue), "increment", location);
+					auto opMethod = GetMethod(context, std::move(semOperandValue), context.getCString("increment"), location);
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
+						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
 				}
 				case AST::Statement::DECREMENT: {
 					auto semOperandValue = ConvertValue(context, statement->decrementStmt.value);
-					auto opMethod = GetMethod(context, std::move(semOperandValue), "decrement", location);
+					auto opMethod = GetMethod(context, std::move(semOperandValue), context.getCString("decrement"), location);
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), "void_t", {});
+						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
@@ -484,7 +487,7 @@ namespace locic {
 				case AST::Statement::ASSERT: {
 					assert(statement->assertStmt.value.get() != nullptr);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), "bool", {});
+					const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
 					auto condition = ConvertValue(context, statement->assertStmt.value);
 					auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
 					return SEM::Statement::Assert(std::move(boolValue), statement->assertStmt.name);

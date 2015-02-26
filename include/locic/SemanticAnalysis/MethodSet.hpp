@@ -5,6 +5,7 @@
 
 #include <locic/Array.hpp>
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -53,11 +54,11 @@ namespace locic {
 					IsMutator
 				};
 				
-				typedef std::pair<std::string, MethodSetElement> Element;
+				typedef std::pair<String, MethodSetElement> Element;
 				typedef Array<Element, MethodSetElementBaseSize> ElementSet;
 				typedef ElementSet::const_iterator iterator;
 				
-				typedef std::pair<std::string, FilterReason> Filter;
+				typedef std::pair<String, FilterReason> Filter;
 				typedef Array<Filter, MethodSetFilterBaseSize> FilterSet;
 				
 				static const MethodSet* getEmpty(const Context& context);
@@ -74,12 +75,12 @@ namespace locic {
 				
 				size_t size() const;
 				
-				iterator find(const std::string& name) const;
+				iterator find(const String& name) const;
 				
-				bool hasMethod(const std::string& name) const;
+				bool hasMethod(const String& name) const;
 				
 				const FilterSet& filterSet() const;
-				FilterReason getFilterReason(const std::string& name) const;
+				FilterReason getFilterReason(const String& name) const;
 				
 				const MethodSet* substitute(const SEM::TemplateVarMap& templateAssignments) const;
 				
@@ -115,6 +116,18 @@ namespace locic {
 		bool methodSetSatisfiesRequirement(const MethodSet* checkSet, const MethodSet* requireSet);
 		
 	}
+	
+}
+
+namespace std {
+	
+	template <> struct hash<locic::SemanticAnalysis::MethodSet>
+	{
+		size_t operator()(const locic::SemanticAnalysis::MethodSet& value) const
+		{
+			return value.hash();
+		}
+	};
 	
 }
 

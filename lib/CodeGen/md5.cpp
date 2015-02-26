@@ -30,6 +30,8 @@ documentation and/or software.
 
 */
 
+#include <locic/String.hpp>
+
 /* interface header */
 #include <locic/CodeGen/md5.h>
 
@@ -39,7 +41,6 @@ documentation and/or software.
 #include <stdlib.h>
 #include <string.h>
 #include <array>
-
 
 // Constants for MD5Transform routine.
 #define S11 7
@@ -111,7 +112,7 @@ MD5::MD5() {
 //////////////////////////////////////////////
 
 // nifty shortcut ctor, compute MD5 for string and finalize it right away
-MD5::MD5(const std::string& text) {
+MD5::MD5(const locic::String& text) {
 	init();
 	update(text.c_str(), text.length());
 	finalize();
@@ -360,12 +361,10 @@ static std::array<char, 2> makeHexPair(unsigned char c) {
 }
 
 // return hex representation of digest as string
-std::string MD5::hexdigest() const {
-	if (!finalized) {
-		return "";
-	}
+std::array<char, 32> MD5::hexdigest() const {
+	assert(finalized);
 	
-	char buf[33];
+	std::array<char, 32> buf;
 	
 	for (int i = 0; i < 16; i++) {
 		const std::array<char, 2> hexPair = makeHexPair(digest[i]);
@@ -373,22 +372,13 @@ std::string MD5::hexdigest() const {
 		buf[i * 2 + 1] = hexPair[1];
 	}
 	
-	buf[32] = 0;
-	
-	return std::string(buf);
+	return buf;
 }
 
 //////////////////////////////
 
-std::ostream& operator<<(std::ostream& out, MD5 md5) {
-	return out << md5.hexdigest();
-}
-
-//////////////////////////////
-
-std::string md5(const std::string str) {
-	MD5 md5 = MD5(str);
-	
+std::array<char, 32> md5(const locic::String& str) {
+	MD5 md5(str);
 	return md5.hexdigest();
 }
 

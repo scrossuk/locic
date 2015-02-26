@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
 
@@ -25,7 +26,7 @@ namespace locic {
 			struct {
 				bool isFinal;
 				Node<Type> type;
-				std::string name;
+				String name;
 			} namedVar;
 			
 			struct {
@@ -34,9 +35,9 @@ namespace locic {
 			} patternVar;
 			
 			public:
-				static TypeVar* NamedVar(const Node<Type>& type, const std::string& name);
+				static TypeVar* NamedVar(const Node<Type>& type, String name);
 				
-				static TypeVar* FinalNamedVar(const Node<Type>& type, const std::string& name);
+				static TypeVar* FinalNamedVar(const Node<Type>& type, String name);
 				
 				static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
 				

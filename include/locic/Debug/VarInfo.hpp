@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -15,12 +16,12 @@ namespace locic {
 				VAR_ARG,
 				VAR_MEMBER
 			} kind;
-			std::string name;
+			String name;
 			SourceLocation declLocation;
 			SourceLocation scopeLocation;
 			
 			inline VarInfo()
-				: kind(VAR_AUTO), name(), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
+			: kind(VAR_AUTO), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
 		};
 		
 	}

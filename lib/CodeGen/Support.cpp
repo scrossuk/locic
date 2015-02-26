@@ -11,17 +11,17 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::StructType* vtableType(Module& module) {
-			const auto name = "__vtable";
+			const auto name = module.getCString("__vtable");
 			
-			const auto result = module.getTypeMap().tryGet(name);
-			if (result) {
-				return *result;
+			const auto iterator = module.getTypeMap().find(name);
+			if (iterator != module.getTypeMap().end()) {
+				return iterator->second;
 			}
 			
 			TypeGenerator typeGen(module);
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
-			module.getTypeMap().insert(name, structType);
+			module.getTypeMap().insert(std::make_pair(name, structType));
 			
 			std::vector<llvm::Type*> structElements;
 			

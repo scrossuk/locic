@@ -2,7 +2,6 @@
 #define LOCIC_SEM_TYPE_HPP
 
 #include <string>
-#include <unordered_map>
 
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
@@ -183,6 +182,18 @@ namespace locic {
 		};
 		
 	}
+	
+}
+
+namespace std {
+	
+	template <> struct hash<locic::SEM::Type>
+	{
+		size_t operator()(const locic::SEM::Type& value) const
+		{
+			return value.hash();
+		}
+	};
 	
 }
 

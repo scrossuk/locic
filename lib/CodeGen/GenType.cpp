@@ -130,7 +130,7 @@ namespace locic {
 							case PrimitivePtr:
 								return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
 							case PrimitiveInt:
-								return module.debugBuilder().createIntType("int_t");
+								return module.debugBuilder().createIntType(module.getCString("int_t"));
 							case PrimitiveRef:
 								return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front()));
 							default:
@@ -183,7 +183,7 @@ namespace locic {
 					// TODO!
 					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 					const auto lineNumber = 12;
-					const auto name = Name::Absolute() + "T";
+					const auto name = Name::Absolute() + module.getCString("T");
 					
 					return module.debugBuilder().createObjectType(file, lineNumber, name);
 				}

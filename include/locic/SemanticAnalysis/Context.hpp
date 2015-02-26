@@ -13,6 +13,8 @@ namespace locic {
 	
 	template <typename T>
 	class Optional;
+	class String;
+	class StringHost;
 	
 	namespace Debug {
 		
@@ -24,7 +26,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
-		class MethodSet;
 		class TemplatedObject;
 		class TemplateVar;
 		class Type;
@@ -40,8 +41,10 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(Debug::Module& pDebugModule, SEM::Context& pSemContext);
+				Context(const StringHost& stringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext);
 				~Context();
+				
+				String getCString(const char* cString) const;
 				
 				Debug::Module& debugModule();
 				
@@ -49,6 +52,9 @@ namespace locic {
 				const ScopeStack& scopeStack() const;
 				
 				SEM::Context& semContext();
+				
+				const MethodSet* findMethodSet(const SEM::Type* type) const;
+				void addMethodSet(const SEM::Type* type, const MethodSet* methodSet);
 				
 				/**
 				 * \brief Maintains a list of pairs of a template var
@@ -64,13 +70,13 @@ namespace locic {
 				bool templateRequirementsComplete() const;
 				void setTemplateRequirementsComplete();
 				
-				const std::set<std::string>& validVarArgTypes() const;
+				const std::set<String>& validVarArgTypes() const;
 				
 				const MethodSet* getMethodSet(MethodSet methodSet) const;
 				
-				Optional<bool> getCapability(const SEM::Type* type, const char* capability) const;
+				Optional<bool> getCapability(const SEM::Type* type, const String& capability) const;
 				
-				void setCapability(const SEM::Type* type, const char* capability, bool isCapable);
+				void setCapability(const SEM::Type* type, const String& capability, bool isCapable);
 				
 			private:
 				// Non-copyable.

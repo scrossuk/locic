@@ -17,75 +17,82 @@ namespace locic{
 			std::string message;
 			Debug::SourceLocation location;
 			
-			inline Error(const std::string& m, const Debug::SourceLocation& l)
+			Error(const std::string& m, const Debug::SourceLocation& l)
 				: message(m), location(l) { }
 		};
 		
 		class Context{
 			public:
-				inline Context(AST::NamespaceList& l, const std::string& n)
-					: rootNamespaceList_(l), fileName_(n),
+				Context(const StringHost& h, AST::NamespaceList& l, const std::string& n)
+					: stringHost_(h), rootNamespaceList_(l), fileName_(n),
 					nextAnonymousVariable_(0), column_(1),
 					byteOffset_(0), columnByteOffset_(0) { }
 				
-				inline const std::string& fileName() const {
+				const std::string& fileName() const {
 					return fileName_;
 				}
 				
-				inline void error(const std::string& message, const Debug::SourceLocation& location) {
+				void error(const std::string& message, const Debug::SourceLocation& location) {
 					errors_.push_back(Error(message, location));
 				}
 				
-				inline void fileCompleted(const AST::Node<AST::Namespace>& namespaceNode) {
+				void fileCompleted(const AST::Node<AST::Namespace>& namespaceNode) {
 					rootNamespaceList_.push_back(namespaceNode);
 				}
 				
-				inline std::string getAnonymousVariableName() {
+				std::string getAnonymousVariableName() {
 					return makeString("__anon_var_%llu", (unsigned long long) nextAnonymousVariable_++);
 				}
 				
-				inline const std::vector<Error>& errors() const {
+				const std::vector<Error>& errors() const {
 					return errors_;
 				}
 				
-				inline size_t columnPosition() const {
+				size_t columnPosition() const {
 					return column_;
 				}
 				
-				inline void advanceColumn(size_t columnIncrease) {
+				void advanceColumn(size_t columnIncrease) {
 					column_ += columnIncrease;
 				}
 				
-				inline void resetColumn() {
+				void resetColumn() {
 					column_ = 1;
 					columnByteOffset_ = byteOffset_;
 				}
 				
-				inline void addByteOffset(size_t pByteOffset) {
+				void addByteOffset(size_t pByteOffset) {
 					byteOffset_ += pByteOffset;
 				}
 				
-				inline size_t byteOffset() const {
+				size_t byteOffset() const {
 					return byteOffset_;
 				}
 				
-				inline size_t columnByteOffset() const {
+				size_t columnByteOffset() const {
 					return columnByteOffset_;
 				}
 				
-				inline const std::string& getStringConstant() const {
-					return stringConstant_;
+				String releaseStringConstant() {
+					String result(stringHost_, std::move(stringConstant_));
+					stringConstant_ = "";
+					return result;
 				}
 				
-				inline void appendStringConstant(const std::string& appendString) {
+				void appendStringConstant(const std::string& appendString) {
 					stringConstant_ += appendString;
 				}
 				
-				inline void resetStringConstant() {
-					stringConstant_ = "";
+				String getCString(const char* const cStringValue) const {
+					return String(stringHost_, cStringValue);
+				}
+				
+				String getString(std::string stringValue) const {
+					return String(stringHost_, std::move(stringValue));
 				}
 				
 			private:
+				const StringHost& stringHost_;
 				AST::NamespaceList& rootNamespaceList_;
 				std::string fileName_;
 				std::vector<Error> errors_;

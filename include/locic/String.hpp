@@ -1,118 +1,166 @@
 #ifndef LOCIC_STRING_HPP
 #define LOCIC_STRING_HPP
 
-#include <map>
+#include <cassert>
 #include <string>
-#include <vector>
+
+#include <locic/MakeString.hpp>
+#include <locic/StringHost.hpp>
 
 namespace locic{
-
-	std::string makeString(const char * format, ...)
-		__attribute__((format(printf, 1, 2)));
 	
-	template <typename T>
-	std::string makeArrayString(const T& array){
-		auto s = makeString("Array [size = %llu] {",
-			(unsigned long long) array.size());
+	class String {
+	public:
+		String() = default;
 		
-		for(size_t i = 0; i < array.size(); i++){
-			if(i > 0) s += ", ";
-			s += makeString("%llu: %s",
-				(unsigned long long) i,
-				array.at(i).toString().c_str());
+		String(const StringHost& argHost)
+		: host_(&argHost), string_(host_->getCString("")) { }
+		
+		String(const StringHost& argHost, const char* const cString)
+		: host_(&argHost), string_(host_->getCString(cString)) { }
+		
+		String(const StringHost& argHost, std::string stringValue)
+		: host_(&argHost), string_(host_->getString(std::move(stringValue))) { }
+		
+		String(const StringHost& argHost, const std::string* const stringPointer)
+		: host_(&argHost), string_(stringPointer) { }
+		
+		bool empty() const {
+			return string_ != nullptr ? string_->empty() : true;
 		}
 		
-		s += "}";
-		
-		return s;
-	}
-	
-	template <typename T>
-	std::string makeArrayPtrString(const T& array){
-		auto s = makeString("Array [size = %llu] {",
-			(unsigned long long) array.size());
-		
-		for(size_t i = 0; i < array.size(); i++){
-			if(i > 0) s += ", ";
-			s += makeString("%llu: %s",
-				(unsigned long long) i,
-				array.at(i)->toString().c_str());
+		size_t size() const {
+			return string_ != nullptr ? string_->size() : 0;
 		}
 		
-		s += "}";
+		size_t length() const {
+			return size();
+		}
 		
-		return s;
-	}
-	
-	template <typename T>
-	std::string makeMapString(const std::map<std::string, T>& map){
-		auto s = makeString("Map [size = %llu] {",
-			(unsigned long long) map.size());
+		size_t capacity() const {
+			return string_ != nullptr ? string_->capacity() : 0;
+		}
 		
-		bool isFirst = true;
-		for (const auto& pair: map) {
-			if (isFirst) {
-				isFirst = false;
-			} else {
-				s += ", ";
+		size_t hash() const {
+			if (string_ == nullptr) {
+				return 0;
 			}
 			
-			s += makeString("%s: %s",
-				pair.first.c_str(),
-				pair.second.toString().c_str());
+			std::hash<std::string> hashFn;
+			return hashFn(*string_);
 		}
 		
-		s += "}";
+		char operator[](const size_t index) const {
+			assert(index < size());
+			return (*string_)[index];
+		}
 		
-		return s;
-	}
-	
-	template <typename T>
-	std::string makeMapString(const std::map<std::string, T*>& map){
-		auto s = makeString("Map [size = %llu] {",
-			(unsigned long long) map.size());
-		
-		bool isFirst = true;
-		for (const auto& pair: map) {
-			if (isFirst) {
-				isFirst = false;
-			} else {
-				s += ", ";
+		bool starts_with(const std::string& other) const {
+			if (string_ == nullptr) {
+				return false;
 			}
 			
-			s += makeString("%s: %s",
-				pair.first.c_str(),
-				pair.second->toString().c_str());
+			if (other.size() > size()) {
+				return false;
+			}
+			
+			for (size_t i = 0; i < other.size(); i++) {
+				if ((*this)[i] != other[i]) {
+					return false;
+				}
+			}
+			
+			return true;
 		}
 		
-		s += "}";
-		
-		return s;
-	}
-	
-	template <typename T>
-	std::string makeNameArrayString(const T& array){
-		std::string s = makeString("Array[size = %llu]{",
-			(unsigned long long) array.size());;
-		
-		for(size_t i = 0; i < array.size(); i++){
-			if(i > 0) s += ", ";
-			s += makeString("%llu: %s",
-				(unsigned long long) i,
-				array.at(i)->nameToString().c_str());
+		String operator+(const String& other) const {
+			assert(string_ != nullptr);
+			return String(host(), *string_ + *(other.string_));
 		}
 		
-		s += "}";
+		String operator+(const std::string& other) const {
+			assert(string_ != nullptr);
+			return String(host(), *string_ + other);
+		}
 		
-		return s;
-	}
+		String substr(const size_t start, const size_t substrLength) const {
+			assert(string_ != nullptr);
+			return String(host(), string_->substr(start, substrLength));
+		}
+		
+		bool operator==(const String& other) const {
+			assert(string_ != nullptr);
+			assert(&(host()) == &(other.host()));
+			return string_ == other.string_;
+		}
+		
+		bool operator==(const std::string& other) const {
+			assert(string_ != nullptr);
+			return *string_ == other;
+		}
+		
+		bool operator!=(const std::string& other) const {
+			assert(string_ != nullptr);
+			return *string_ != other;
+		}
+		
+		bool operator!=(const String& other) const {
+			assert(string_ != nullptr);
+			assert(&(host()) == &(other.host()));
+			return string_ != other.string_;
+		}
+		
+		bool operator<(const String& other) const {
+			assert(string_ != nullptr);
+			assert(&(host()) == &(other.host()));
+			return string_ < other.string_;
+		}
+		
+		const std::string& asStdString() const {
+			assert(string_ != nullptr);
+			return *string_;
+		}
+		
+		std::string toString() const {
+			assert(string_ != nullptr);
+			return asStdString();
+		}
+		
+		const char* c_str() const {
+			assert(string_ != nullptr);
+			return string_->c_str();
+		}
+		
+		const StringHost& host() const {
+			assert(string_ != nullptr);
+			return *host_;
+		}
+		
+		const std::string* internal() const {
+			assert(string_ != nullptr);
+			return string_;
+		}
+		
+	private:
+		const StringHost* host_;
+		const std::string* string_;
+		
+	};
 	
-	std::string escapeString(const std::string& string);
-	
-	std::string formatMessage(const std::string& message);
-	
-	std::vector<std::string> splitString(const std::string& str, const std::string& separator);
+	String CanonicalizeMethodName(const String& name);
 
+}
+
+namespace std {
+	
+	template <> struct hash<locic::String>
+	{
+		size_t operator()(const locic::String& stringValue) const
+		{
+			return stringValue.hash();
+		}
+	};
+	
 }
 
 #endif

@@ -22,29 +22,29 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		std::string integerSpecifierType(const std::string& specifier) {
+		String integerSpecifierType(Context& context, const String& specifier) {
 			if (specifier == "i8") {
-				return "int8_t";
+				return context.getCString("int8_t");
 			} else if (specifier == "i16") {
-				return "int16_t";
+				return context.getCString("int16_t");
 			} else if (specifier == "i32") {
-				return "int32_t";
+				return context.getCString("int32_t");
 			} else if (specifier == "i64") {
-				return "int64_t";
+				return context.getCString("int64_t");
 			} else if (specifier == "u8") {
-				return "uint8_t";
+				return context.getCString("uint8_t");
 			} else if (specifier == "u16") {
-				return "uint16_t";
+				return context.getCString("uint16_t");
 			} else if (specifier == "u32") {
-				return "uint32_t";
+				return context.getCString("uint32_t");
 			} else if (specifier == "u64") {
-				return "uint64_t";
+				return context.getCString("uint64_t");
 			}
 			
 			throw ErrorException(makeString("Invalid integer literal specifier '%s'.", specifier.c_str()));
 		}
 		
-		unsigned long long integerMax(const std::string& typeName) {
+		unsigned long long integerMax(const String& typeName) {
 			if (typeName == "int8_t") {
 				return std::numeric_limits<int8_t>::max();
 			} else if (typeName == "int16_t") {
@@ -66,14 +66,14 @@ namespace locic {
 			throw std::runtime_error(makeString("Invalid integer type '%s'.", typeName.c_str()));
 		}
 		
-		std::string getIntegerConstantType(const std::string& specifier, const Constant& constant) {
+		String getIntegerConstantType(Context& context, const String& specifier, const Constant& constant) {
 			assert(constant.kind() == Constant::INTEGER);
 			
 			const auto integerValue = constant.integerValue();
 			
 			// Use a specifier if available.
 			if (!specifier.empty() && specifier != "u") {
-				const auto typeName = integerSpecifierType(specifier);
+				const auto typeName = integerSpecifierType(context, specifier);
 				const auto typeMax = integerMax(typeName);
 				if (integerValue > typeMax) {
 					throw ErrorException(makeString("Integer literal '%llu' exceeds maximum of specifier '%s'.",
@@ -83,11 +83,11 @@ namespace locic {
 			}
 			
 			// Otherwise determine type based on value.
-			std::vector<std::string> types;
-			types.push_back("int8_t");
-			types.push_back("int16_t");
-			types.push_back("int32_t");
-			types.push_back("int64_t");
+			std::vector<String> types;
+			types.push_back(context.getCString("int8_t"));
+			types.push_back(context.getCString("int16_t"));
+			types.push_back(context.getCString("int32_t"));
+			types.push_back(context.getCString("int64_t"));
 			
 			for (const auto& typeName: types) {
 				const auto specTypeName = specifier + typeName;
@@ -101,25 +101,25 @@ namespace locic {
 				integerValue));
 		}
 		
-		std::string getFloatingPointConstantType(const std::string& specifier, const Constant& constant) {
+		String getFloatingPointConstantType(Context& context, const String& specifier, const Constant& constant) {
 			assert(constant.kind() == Constant::FLOATINGPOINT);
 			(void) constant;
 			
 			if (specifier == "f") {
-				return "float_t";
+				return context.getCString("float_t");
 			} else if (specifier.empty() || specifier == "d") {
-				return "double_t";
+				return context.getCString("double_t");
 			} else {
 				throw ErrorException(makeString("Invalid floating point literal specifier '%s'.",
 					specifier.c_str()));
 			}
 		}
 		
-		std::string getLiteralTypeName(const std::string& specifier, const Constant& constant) {
+		String getLiteralTypeName(Context& context, const String& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::NULLVAL: {
 					if (specifier.empty()) {
-						return "null_t";
+						return context.getCString("null_t");
 					} else {
 						throw ErrorException(makeString("Invalid null literal specifier '%s'.",
 							specifier.c_str()));
@@ -127,23 +127,23 @@ namespace locic {
 				}
 				case Constant::BOOLEAN: {
 					if (specifier.empty()) {
-						return "bool";
+						return context.getCString("bool");
 					} else {
 						throw ErrorException(makeString("Invalid boolean literal specifier '%s'.",
 							specifier.c_str()));
 					}
 				}
 				case Constant::INTEGER: {
-					return getIntegerConstantType(specifier, constant);
+					return getIntegerConstantType(context, specifier, constant);
 				}
 				case Constant::FLOATINGPOINT: {
-					return getFloatingPointConstantType(specifier, constant);
+					return getFloatingPointConstantType(context, specifier, constant);
 				}
 				case Constant::CHARACTER: {
 					if (specifier == "") {
-						return "unichar";
+						return context.getCString("unichar");
 					} else if (specifier == "C") {
-						return "ubyte_t";
+						return context.getCString("ubyte_t");
 					} else {
 						throw ErrorException(makeString("Invalid character literal specifier '%s'.",
 							specifier.c_str()));
@@ -158,34 +158,34 @@ namespace locic {
 			std::terminate();
 		}
 		
-		const SEM::Type* getLiteralType(Context& context, const std::string& specifier, const Constant& constant) {
+		const SEM::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant) {
 			switch (constant.kind()) {
 				case Constant::STRING: {
 					// C strings have the type 'const ubyte * const', as opposed to just a
 					// type name, so their type needs to be generated specially.
-					const auto byteType = getBuiltInType(context.scopeStack(), "ubyte_t", {});
+					const auto byteType = getBuiltInType(context.scopeStack(), context.getCString("ubyte_t"), {});
 					
 					// Generate type 'const ubyte'.
 					const auto constByteType = byteType->createConstType();
 					
 					// Generate type 'const ptr<const ubyte>'.
-					return getBuiltInType(context.scopeStack(), "__ptr", { constByteType })->createConstType();
+					return getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { constByteType })->createConstType();
 				}
 				default: {
-					const auto typeName = getLiteralTypeName(specifier, constant);
+					const auto typeName = getLiteralTypeName(context, specifier, constant);
 					return getBuiltInType(context.scopeStack(), typeName, {});
 				}
 			}
 		}
 		
-		SEM::Value getLiteralValue(Context& context, const std::string& specifier, const Constant& constant, const Debug::SourceLocation& location) {
+		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
 			auto constantValue = SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
 			
 			if (constant.kind() != Constant::STRING || specifier == "C") {
 				return constantValue;
 			}
 			
-			const auto functionName = std::string("string_literal") + (!specifier.empty() ? std::string("_") + specifier : std::string(""));
+			const auto functionName = context.getCString("string_literal") + (!specifier.empty() ? context.getCString("_") + specifier : context.getCString(""));
 			
 			const auto searchResult = performSearch(context, Name::Absolute() + functionName);
 			if (!searchResult.isFunction()) {

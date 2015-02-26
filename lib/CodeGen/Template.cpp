@@ -76,17 +76,17 @@ namespace locic {
 		}
 		
 		llvm::StructType* templateGeneratorLLVMType(Module& module) {
-			const auto name = "__template_generator";
+			const auto name = module.getCString("__template_generator");
 			
-			const auto result = module.getTypeMap().tryGet(name);
-			if (result) {
-				return *result;
+			const auto iterator = module.getTypeMap().find(name);
+			if (iterator != module.getTypeMap().end()) {
+				return iterator->second;
 			}
 			
 			TypeGenerator typeGen(module);
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
-			module.getTypeMap().insert(name, structType);
+			module.getTypeMap().insert(std::make_pair(name, structType));
 			
 			llvm::SmallVector<llvm::Type*, 2> structMembers;
 			structMembers.push_back(typeGen.getI8PtrType());
@@ -116,7 +116,7 @@ namespace locic {
 		
 		llvm::Type* typeInfoLLVMType(Module& module) {
 			TypeGenerator typeGen(module);
-			const auto name = "__type_info";
+			const auto name = module.getCString("__type_info");
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
 			llvm::SmallVector<llvm::Type*, 2> structMembers;
@@ -273,7 +273,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = rootFunctionArgInfo(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, "template_root");
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString("template_root"));
 			
 			module.templateRootFunctionMap().insert(std::make_pair(templateInst, llvmFunction));
 			
@@ -376,15 +376,15 @@ namespace locic {
 		
 		llvm::Function* genTemplateIntermediateFunctionDecl(Module& module, TemplatedObject templatedObject) {
 			assert(!templatedObject.isTypeInstance() || !templatedObject.typeInstance()->isPrimitive());
-			const auto mangledName = mangleTemplateGenerator(templatedObject);
+			const auto mangledName = mangleTemplateGenerator(module, templatedObject);
 			
-			const auto result = module.getFunctionMap().tryGet(mangledName);
-			if (result) {
-				return *result;
+			const auto iterator = module.getFunctionMap().find(mangledName);
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionArgInfo(module), getTemplatedObjectLinkage(templatedObject), mangledName);
-			module.getFunctionMap().insert(mangledName, llvmFunction);
+			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			return llvmFunction;
 		}
 		

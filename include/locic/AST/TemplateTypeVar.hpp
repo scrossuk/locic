@@ -2,9 +2,10 @@
 #define LOCIC_AST_TEMPLATETYPEVAR_HPP
 
 #include <string>
-#include <locic/String.hpp>
+
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
@@ -12,10 +13,10 @@ namespace locic {
 	
 		struct TemplateTypeVar {
 			Node<Type> varType;
-			std::string name;
+			String name;
 			Node<Type> specType;
 			
-			static TemplateTypeVar* NoSpec(Node<Type> varType, const std::string& name) {
+			static TemplateTypeVar* NoSpec(Node<Type> varType, const String& name) {
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
 				typeVar->varType = varType;
 				typeVar->name = name;
@@ -23,7 +24,7 @@ namespace locic {
 				return typeVar;
 			}
 			
-			static TemplateTypeVar* WithSpec(Node<Type> varType, const std::string& name, Node<Type> specType) {
+			static TemplateTypeVar* WithSpec(Node<Type> varType, const String& name, Node<Type> specType) {
 				assert(!specType.isNull());
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
 				typeVar->varType = varType;

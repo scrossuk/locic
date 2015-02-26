@@ -7,7 +7,7 @@ namespace CR {
 		| Red()
 		| Blue();
 	
-	Value opposite(Value value) {
+	Value opposite(Value value) noexcept {
 		switch (value) {
 			case Red() {
 				return Blue();

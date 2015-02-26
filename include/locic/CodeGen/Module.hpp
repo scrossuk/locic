@@ -8,11 +8,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 #include <llvm-abi/ABI.hpp>
 
 #include <locic/BuildOptions.hpp>
+#include <locic/FastMap.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
+#include <locic/String.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
@@ -44,21 +48,34 @@ namespace locic {
 			TypeInfoType
 		};
 		
-		typedef std::map<AttributeKind, llvm::AttributeSet> AttributeMap;
+		template <typename Key, typename Value>
+		struct hashPair {
+			std::size_t operator()(const std::pair<Key, Value>& pair) const {
+				std::size_t seed = 0;
+				std::hash<Key> keyHashFn;
+				boost::hash_combine(seed, keyHashFn(pair.first));
+				std::hash<Value> valueHashFn;
+				boost::hash_combine(seed, valueHashFn(pair.second));
+				return seed;
+			}
+		};
+		
+		typedef FastMap<AttributeKind, llvm::AttributeSet> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
-		typedef Map<std::string, llvm::Function*> FunctionMap;
-		typedef std::map<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
+		typedef FastMap<String, llvm::Function*> FunctionMap;
+		typedef FastMap<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
+		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
-		typedef Map<SEM::Var*, size_t> MemberVarMap;
+		typedef FastMap<SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
-		typedef std::unordered_map<std::string, PrimitiveKind> PrimitiveMap;
-		typedef std::map<StandardTypeKind, TypePair> StandardTypeMap;
-		typedef std::map<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
-		typedef std::map<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
-		typedef Map<SEM::TemplateVar*, const SEM::Type*> TemplateVarMap;
-		typedef Map<std::string, llvm::StructType*> TypeMap;
+		typedef std::unordered_map<String, PrimitiveKind> PrimitiveMap;
+		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
+		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
+		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
+		typedef FastMap<SEM::TemplateVar*, const SEM::Type*> TemplateVarMap;
+		typedef FastMap<String, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class InternalContext;
@@ -66,6 +83,10 @@ namespace locic {
 		class Module {
 			public:
 				Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
+				
+				String getCString(const char* cString) const;
+				
+				String getString(std::string stringValue) const;
 				
 				void dump() const;
 				
@@ -97,6 +118,8 @@ namespace locic {
 				
 				FunctionPtrStubMap& functionPtrStubMap();
 				
+				MangledNameMap& mangledNameMap();
+				
 				MemberOffsetFunctionMap& memberOffsetFunctionMap();
 				
 				MemberVarMap& getMemberVarMap();
@@ -117,7 +140,7 @@ namespace locic {
 				
 				TypeInstanceMap& typeInstanceMap();
 				
-				llvm::GlobalVariable* createConstGlobal(const std::string& name,
+				llvm::GlobalVariable* createConstGlobal(const String& name,
 					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
 					llvm::Constant* value = nullptr);
 				
@@ -127,7 +150,7 @@ namespace locic {
 				
 				const BuildOptions& buildOptions() const;
 				
-				PrimitiveKind primitiveKind(const std::string& name) const;
+				PrimitiveKind primitiveKind(const String& name) const;
 				
 			private:
 				InternalContext& context_;
@@ -139,6 +162,7 @@ namespace locic {
 				FunctionMap functionMap_;
 				FunctionDeclMap functionDeclMap_;
 				FunctionPtrStubMap functionPtrStubMap_;
+				MangledNameMap mangledNameMap_;
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				MoveFunctionMap moveFunctionMap_;

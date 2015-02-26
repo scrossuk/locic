@@ -45,11 +45,11 @@ namespace locic {
 								""
 							)
 						);
-					return std::string("[integer type: ") + signedString + " " + integerName() + std::string("]");	
+					return std::string("[integer type: ") + signedString + " " + integerName().asStdString() + std::string("]");	
 				}
 				
 				case FLOAT: {
-					return std::string("[float type: ") + floatName() + std::string("]");	
+					return std::string("[float type: ") + floatName().asStdString() + std::string("]");	
 				}
 				
 				case OBJECT:

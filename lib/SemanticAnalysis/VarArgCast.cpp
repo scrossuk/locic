@@ -13,13 +13,12 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		bool isValidVarArgType(Context& context, const SEM::Type* type) {
+		bool isValidVarArgType(Context& context, const SEM::Type* const type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
 			if (type->isLval() || type->isRef()) return false;
 			
-			const auto name = type->getObjectType()->name().first();
-			
+			const auto& name = type->getObjectType()->name().first();
 			const auto& validTypes = context.validVarArgTypes();
 			return validTypes.find(name) != validTypes.end();
 		}
@@ -52,7 +51,7 @@ namespace locic {
 			if (value.type()->isRef() && supportsImplicitCopy(context, derefType)) {
 				// Try to copy.
 				auto copyValue = derefType->isObject() ?
-					CallValue(context, GetMethod(context, std::move(value), "implicitcopy", location), {}, location) :
+					CallValue(context, GetMethod(context, std::move(value), context.getCString("implicitcopy"), location), {}, location) :
 					derefAll(std::move(value));
 				
 				// See if this results in

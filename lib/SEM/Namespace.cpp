@@ -103,11 +103,11 @@ namespace locic {
 			return name_;
 		}
 		
-		std::map<std::string, NamespaceItem>& Namespace::items() {
+		FastMap<String, NamespaceItem>& Namespace::items() {
 			return items_;
 		}
 		
-		const std::map<std::string, NamespaceItem>& Namespace::items() const {
+		const FastMap<String, NamespaceItem>& Namespace::items() const {
 			return items_;
 		}
 		

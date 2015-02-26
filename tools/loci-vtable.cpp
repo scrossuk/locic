@@ -4,9 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <locic/Map.hpp>
-#include <locic/String.hpp>
 #include <locic/CodeGen/VTable.hpp>
+#include <locic/Map.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/StringHost.hpp>
 
 using namespace locic::CodeGen;
 
@@ -17,17 +18,19 @@ int main(int argc, char * argv[]){
 	}
 	assert(argc >= 2);
 	
-	std::vector<std::string> methodNames;
+	locic::StringHost stringHost;
+	
+	std::vector<locic::String> methodNames;
 	
 	for(int i = 1; i < argc; i++){
-		methodNames.push_back(std::string(argv[i]));
+		methodNames.push_back(locic::String(stringHost, std::string(argv[i])));
 	}
 	
 	printf("Given %llu method names.\n\n", (unsigned long long) methodNames.size());
 	
-	locic::Map<MethodHash, std::string> namesMap;
+	locic::Map<MethodHash, locic::String> namesMap;
 	
-	for (auto name: methodNames) {
+	for (const auto& name: methodNames) {
 		namesMap.insert(CreateMethodNameHash(name), name);
 	}
 	

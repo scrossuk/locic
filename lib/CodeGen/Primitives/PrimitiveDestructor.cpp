@@ -31,7 +31,7 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
-			const auto typeName = type->getObjectType()->name().last();
+			const auto& typeName = type->getObjectType()->name().last();
 			
 			if (typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front();
@@ -67,14 +67,14 @@ namespace locic {
 		
 		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type) {
 			assert(type->isPrimitive());
-			const auto name = type->getObjectType()->name().first();
+			const auto& name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);
 			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasDestructor(module, type->templateArguments().front());
 		}
 		
 		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
-			const auto name = typeInstance->name().first();
+			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);
 			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval);
 		}

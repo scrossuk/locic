@@ -33,11 +33,11 @@ namespace locic {
 			return var_;
 		}
 		
-		std::map<std::string, Var*>& SwitchCase::namedVariables() {
+		FastMap<String, Var*>& SwitchCase::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const std::map<std::string, Var*>& SwitchCase::namedVariables() const {
+		const FastMap<String, Var*>& SwitchCase::namedVariables() const {
 			return namedVariables_;
 		}
 		

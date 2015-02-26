@@ -25,12 +25,12 @@ import std.string 0.1.0 {
 			/**
 			 * \brief Move to previous character.
 			 */
-			void decrement();
+			void decrement() noexcept;
 			
 			/**
 			 * \brief Move to next character.
 			 */
-			void increment();
+			void increment() noexcept;
 			
 			/**
 			 * \brief Get character at current position.
@@ -52,14 +52,14 @@ import std.string 0.1.0 {
 			 * 
 			 * \return Whether the iterator is at the beginning of the string.
 			 */
-			bool is_begin() const;
+			bool is_begin() const noexcept;
 			
 			/**
 			 * \brief Get whether the iterator is at the end of the string.
 			 * 
 			 * \return Whether the iterator is at the end of the string.
 			 */
-			bool is_end() const;
+			bool is_end() const noexcept;
 		}
 		
 	}

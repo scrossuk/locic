@@ -7,19 +7,20 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/String.hpp>
 
 namespace locic {
 
 	namespace AST {
 	
 		struct TypeAlias {
-			std::string name;
+			String name;
 			Node<TemplateTypeVarList> templateVariables;
 			Node<RequireSpecifier> requireSpecifier;
 			AST::Node<AST::Type> value;
 			
 			public:
-				TypeAlias(const std::string& pName, AST::Node<Type> pValue);
+				TypeAlias(const String& pName, AST::Node<Type> pValue);
 				
 				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);

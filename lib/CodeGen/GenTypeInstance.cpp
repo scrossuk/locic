@@ -18,7 +18,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto mangledName = mangleObjectType(typeInstance);
+			const auto mangledName = mangleObjectType(module, typeInstance);
 			const auto structType = TypeGenerator(module).getForwardDeclaredStructType(mangledName);
 			
 			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
@@ -27,7 +27,9 @@ namespace locic {
 			// indexes within their parent.
 			for (size_t i = 0; i < typeInstance->variables().size(); i++) {
 				const auto var = typeInstance->variables().at(i);
-				module.getMemberVarMap().forceInsert(var, i);
+				const auto result = module.getMemberVarMap().insert(std::make_pair(var, i));
+				assert(result.second);
+				(void) result;
 			}
 			
 			// If the size isn't known then just return an opaque struct.

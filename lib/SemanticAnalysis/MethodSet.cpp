@@ -157,11 +157,11 @@ namespace locic {
 			
 		}
 		
-		MethodSet::iterator MethodSet::find(const std::string& name) const {
+		MethodSet::iterator MethodSet::find(const String& name) const {
 			return pairBinarySearch(begin(), end(), name);
 		}
 		
-		bool MethodSet::hasMethod(const std::string& name) const {
+		bool MethodSet::hasMethod(const String& name) const {
 			return find(name) != end();
 		}
 		
@@ -169,7 +169,7 @@ namespace locic {
 			return filters_;
 		}
 		
-		MethodSet::FilterReason MethodSet::getFilterReason(const std::string& name) const {
+		MethodSet::FilterReason MethodSet::getFilterReason(const String& name) const {
 			if (hasMethod(name)) {
 				return NotFiltered;
 			}
@@ -199,12 +199,12 @@ namespace locic {
 			std::size_t seed = 0;
 			
 			for (const auto& filter: filters_) {
-				boost::hash_combine(seed, filter.first);
+				boost::hash_combine(seed, filter.first.hash());
 				boost::hash_combine(seed, filter.second);
 			}
 			
 			for (const auto& element: elements_) {
-				boost::hash_combine(seed, element.first);
+				boost::hash_combine(seed, element.first.hash());
 				boost::hash_combine(seed, element.second.hash());
 			}
 			
@@ -262,6 +262,11 @@ namespace locic {
 		const MethodSet* getMethodSetForObjectType(Context& context, const SEM::Type* const objectType) {
 			assert(objectType->isObject());
 			
+			const auto existingMethodSet = context.findMethodSet(objectType);
+			if (existingMethodSet != nullptr) {
+				return existingMethodSet;
+			}
+			
 			MethodSet::ElementSet elements;
 			MethodSet::FilterSet filters;
 			
@@ -297,7 +302,9 @@ namespace locic {
 			std::sort(elements.begin(), elements.end(), comparePairKeys<MethodSet::Element>);
 			std::sort(filters.begin(), filters.end(), comparePairKeys<MethodSet::Filter>);
 			
-			return MethodSet::get(context, std::move(elements), std::move(filters));
+			const auto result = MethodSet::get(context, std::move(elements), std::move(filters));
+			context.addMethodSet(objectType, result);
+			return result;
 		}
 		
 		const MethodSet* getTypeMethodSet(Context& context, const SEM::Type* const rawType) {
@@ -373,8 +380,11 @@ namespace locic {
 			}
 			
 			// TODO: merge these properly!
-			MethodSet::FilterSet filters = setA->filterSet().copy();
-			filters.reserve(filters.size() + setB->filterSet().size());
+			MethodSet::FilterSet filters;
+			filters.reserve(setA->filterSet().size() + setB->filterSet().size());
+			for (const auto& filter: setA->filterSet()) {
+				filters.push_back(filter);
+			}
 			for (const auto& filter: setB->filterSet()) {
 				filters.push_back(filter);
 			}

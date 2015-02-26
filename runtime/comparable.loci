@@ -2,3 +2,8 @@ template <typename T>
 interface comparable {
 	compare_result_t compare(const T& other) const;
 }
+
+template <typename T>
+interface noexcept_comparable {
+	compare_result_t compare(const T& other) const noexcept;
+}

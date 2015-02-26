@@ -172,7 +172,7 @@ export std.string 0.1.0 {
 			return serialize(self);
 		}
 		
-		std::string serialize(ulonglong_t value) {
+		std::string serialize(const ulonglong_t value) {
 			auto bytes = std::varray<ubyte>();
 			bytes.resize(10u);
 			(void) sprintf(bytes.data(), C"%llu", value);
@@ -183,15 +183,15 @@ export std.string 0.1.0 {
 		class ptr_range (T* ptr) {
 			static create = default;
 			
-			bool empty() const {
+			bool empty() const noexcept {
 				return false;
 			}
 			
-			lval<T> ptr_lval<T> front() const {
+			lval<T> ptr_lval<T> front() const noexcept {
 				return *@ptr;
 			}
 			
-			void skip_front() {
+			void skip_front() noexcept {
 				@ptr += 1;
 			}
 		}
@@ -202,7 +202,7 @@ export std.string 0.1.0 {
 				return @(utf8_decode_character<ptr_lval<const ubyte>>(ptrRange));
 			}
 			
-			const unichar& dissolve() const {
+			const unichar& dissolve() const noexcept {
 				return @character;
 			}
 		}

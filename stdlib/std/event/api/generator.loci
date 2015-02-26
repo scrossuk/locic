@@ -27,7 +27,7 @@ import std.event 0.1.0 {
 				 * 
 				 * Obtains the generator's internal event source.
 				 */
-				source event_source() const;
+				source event_source() const noexcept;
 			}
 			
 		}

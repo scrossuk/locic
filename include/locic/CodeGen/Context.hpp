@@ -5,13 +5,15 @@
 
 namespace locic {
 	
+	class StringHost;
+	
 	namespace CodeGen {
 		
 		class InternalContext;
 		
 		class Context {
 			public:
-				Context();
+				Context(const StringHost& stringHost);
 				~Context();
 				
 				InternalContext& internal();

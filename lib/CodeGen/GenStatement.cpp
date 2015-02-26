@@ -59,15 +59,15 @@ namespace locic {
 		}
 		
 		llvm::Function* getAssertFailedFunction(Module& module) {
-			const std::string functionName = "__loci_assert_failed";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_assert_failed");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto function = createLLVMFunction(module, assertFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
@@ -78,15 +78,15 @@ namespace locic {
 		}
 		
 		llvm::Function* getUnreachableFailedFunction(Module& module) {
-			const std::string functionName = "__loci_unreachable_failed";
-			const auto result = module.getFunctionMap().tryGet(functionName);
+			const auto functionName = module.getCString("__loci_unreachable_failed");
+			const auto iterator = module.getFunctionMap().find(functionName);
 			
-			if (result) {
-				return *result;
+			if (iterator != module.getFunctionMap().end()) {
+				return iterator->second;
 			}
 			
 			const auto function = createLLVMFunction(module, unreachableFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
-			module.getFunctionMap().insert(functionName, function);
+			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
 		
@@ -663,11 +663,11 @@ namespace locic {
 					function.selectBasicBlock(failBB);
 					
 					if (!module.buildOptions().unsafe) {
-						const auto stringValue = statement->getAssertName();
+						const auto& stringValue = statement->getAssertName();
 						
 						const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), stringValue.size() + 1);
-						const auto constArray = ConstantGenerator(module).getString(stringValue.c_str());
-						const auto globalArray = module.createConstGlobal("assert_name_constant", arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+						const auto constArray = ConstantGenerator(module).getString(stringValue);
+						const auto globalArray = module.createConstGlobal(module.getCString("assert_name_constant"), arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
 						globalArray->setAlignment(1);
 						const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
 						

@@ -31,7 +31,7 @@ namespace locic {
 		
 		namespace {
 			
-			bool insertVar(const ScopeElement& element, const std::string& name, SEM::Var* var) {
+			bool insertVar(const ScopeElement& element, const String& name, SEM::Var* var) {
 				if (element.isScope()) {
 					return element.scope()->namedVariables().insert(std::make_pair(name, var)).second;
 				} else if (element.isSwitchCase()) {
@@ -47,7 +47,7 @@ namespace locic {
 		}
 		
 		// Attach the variable to the SemanticAnalysis node tree.
-		void attachVar(Context& context, const std::string& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
+		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
 			assert(var->isBasic());
 			
 			const auto insertResult = insertVar(context.scopeStack().back(), name, var);
