@@ -27,14 +27,14 @@ class TestClass (int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass inst1 = TestClass(1);
 	
 	// Should have no effect.
-	TestClass& inst1Ref = inst1;
+	unused TestClass& inst1Ref = inst1;
 	
 	// Should have no effect.
-	lval<TestClass> value_lval<TestClass>& inst1LvalRef = inst1;
+	unused lval<TestClass> value_lval<TestClass>& inst1LvalRef = inst1;
 	
 	TestClass inst2 = inst1;
 	

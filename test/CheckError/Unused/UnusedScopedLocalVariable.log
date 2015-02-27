@@ -1,0 +1,1 @@
+Local variable 'scopedLocalVariable' is unused, at position SourceLocation\(filename = (.*)/UnusedScopedLocalVariable\.loci, range = \(line 3, column 3\) to \(line 3, column 26\)\)\.

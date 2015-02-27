@@ -34,7 +34,7 @@ namespace CR {
 			return None();
 		}
 		
-		void gameOver(bool win) { }
+		void gameOver(unused bool win) { }
 	}
 	
 }

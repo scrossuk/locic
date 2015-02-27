@@ -7,7 +7,7 @@ void function0(staticref<TestClass> typename_t typeValue) {
 void function1(staticref<TestClass> int typeValue) { }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	function0(TestClass);
 	return 0;
 }

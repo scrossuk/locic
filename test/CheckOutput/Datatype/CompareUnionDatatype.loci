@@ -23,7 +23,7 @@ void checkValue(TestData data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	checkValue(TestData1());
 	checkValue(TestData2(false));
 	checkValue(TestData2(true));

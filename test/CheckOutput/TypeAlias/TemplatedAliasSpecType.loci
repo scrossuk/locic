@@ -29,7 +29,7 @@ require(T : Printable and T : movable)
 using TestClassAlias = TestClass<T>;
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<PrintableClass> object = TestClass<PrintableClass>(PrintableClass(50));
 	testPrint(C"testEntryPoint: Printing object...");
 	object.print();

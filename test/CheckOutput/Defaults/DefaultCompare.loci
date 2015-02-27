@@ -14,7 +14,7 @@ class TestClass (int a, int b, int c) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestDatatype data = TestDatatype(1, 2, 3);
 	
 	testPrint(C"testEntryPoint: data = TestDatatype(a = %d, b = %d, c = %d)",

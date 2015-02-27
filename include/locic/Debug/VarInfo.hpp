@@ -20,7 +20,7 @@ namespace locic {
 			SourceLocation declLocation;
 			SourceLocation scopeLocation;
 			
-			inline VarInfo()
+			VarInfo()
 			: kind(VAR_AUTO), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
 		};
 		

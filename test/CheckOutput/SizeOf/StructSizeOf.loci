@@ -55,7 +55,7 @@ struct I {
 };
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"sizeof(A) = %llu", sizeof(A).cast<ulonglong_t>());
 	testPrint(C"sizeof(B) = %llu", sizeof(B).cast<ulonglong_t>());
 	testPrint(C"sizeof(C) = %llu", sizeof(C).cast<ulonglong_t>());

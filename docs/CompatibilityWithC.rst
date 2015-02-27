@@ -151,3 +151,29 @@ This facilities code like the following:
 		Example(int x, _) = value;
 	}
 
+Calling to/from C
+-----------------
+
+All Loci functions/methods are generated to use the standard C calling convention on the target platform. This means it's trivial to call to/from C code. For example:
+
+.. code-block:: c
+
+	struct CStruct {
+		int value;
+	};
+	
+	void doSomeProcessingInC(struct CStruct* data) {
+		data->value = 42;
+	}
+
+If this is some C code, then you can call into it from Loci with essentially identical code:
+
+.. code-block:: c++
+
+	struct CStruct {
+		int value;
+	};
+	
+	void doSomeProcessingInC(CStruct* data) noexcept;
+
+Note that the :doc:`noexcept qualifier <Exceptions>` has been added to the function in Loci; this is not required but clearly represents the fact that the C function won't throw an exception and this aids static analysis of exception safety in Loci.

@@ -472,7 +472,7 @@ namespace locic {
 				semFunction->namedVariables().insert(std::make_pair(varName, semVar));
 				
 				const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_ARG, astTypeVarNode);
-				context.debugModule().varMap.insert(std::make_pair(semVar, varInfo));
+				semVar->setDebugInfo(varInfo);
 			}
 			
 			assert(semFunction->isDeclaration());

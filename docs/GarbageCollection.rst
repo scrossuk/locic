@@ -3,6 +3,8 @@ Garbage Collection
 
 See :doc:`Heap Memory Management <HeapMemoryManagement>`.
 
+**NOTE**: Garbage collection is not a default feature of Loci (and is currently not implemented!). However the plan is to provide an alternative implementation of *std.memory* that supports garbage collection in the future.
+
 Many languages now include garbage collection, including high-level scripting languages such as Python as well as slightly lower-level languages such as Java and C#. C and C++ have not adopted garbage collection as a core language feature, focusing instead on manual memory management and smart pointers; D is a very low-level language that does include garbage collection.
 
 Loci combines garbage collection with the memory management approaches taken by C++, so that developers can choose the allocation method that is appropriate to their application. The aim is to make it possible to use manual memory management, smart pointers and deterministic destruction alongside garbage collected data.

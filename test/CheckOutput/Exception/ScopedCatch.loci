@@ -16,11 +16,11 @@ exception ExampleError(long value);
 exception ExampleError2(long value);
 
 void throwFunction(bool throwFirst) {
-	auto value1 = ExampleClass(1);
-	auto value2 = ExampleClass(2);
+	unused auto value1 = ExampleClass(1);
+	unused auto value2 = ExampleClass(2);
 	
 	try {
-		auto value3 = ExampleClass(3);
+		unused auto value3 = ExampleClass(3);
 		if (throwFirst) {
 			throw ExampleError(424242);
 		} else {
@@ -32,14 +32,14 @@ void throwFunction(bool throwFirst) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"Started.");
 	try {
-		auto value0 = ExampleClass(0);
+		unused auto value0 = ExampleClass(0);
 		throwFunction(false);
 		throwFunction(true);
 	} catch (ExampleError error) {
-		auto value4 = ExampleClass(4);
+		unused auto value4 = ExampleClass(4);
 		testPrint(C"Caught exception with value %ld!", error.value);
 	}
 	testPrint(C"Finished.");

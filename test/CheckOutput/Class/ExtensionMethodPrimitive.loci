@@ -6,7 +6,7 @@ void int_t::printSelf() const {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	int i = 20;
 	i.printSelf();
 	int j = 30;

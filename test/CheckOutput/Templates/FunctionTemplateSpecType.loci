@@ -22,7 +22,7 @@ class PrintableValue (int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	function<PrintableValue>(PrintableValue(101));
 	function<PrintableValue>(PrintableValue(212));
 	function<PrintableValue>(PrintableValue(323));

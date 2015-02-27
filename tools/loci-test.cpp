@@ -117,7 +117,7 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 
 int main(int argc, char* argv[]) {
 	if (argc < 1) {
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	const auto programName = boost::filesystem::path(argv[0]).stem().string();
@@ -163,41 +163,34 @@ int main(int argc, char* argv[]) {
 		printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	if (!variableMap["help"].empty()) {
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	if (testName.empty()) {
 		printf("%s: No test name specified.\n", programName.c_str());
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	if (inputFileNames.empty()) {
 		printf("%s: No files provided.\n", programName.c_str());
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return -1;
-	}
-	
-	if (expectedErrorFileName.empty() && expectedOutputFileName.empty()) {
-		printf("%s: Must specify either an error filename or expected output filename.\n", programName.c_str());
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	if (!expectedErrorFileName.empty() && !expectedOutputFileName.empty()) {
 		printf("%s: Cannot specify both an error filename and expected output filename.\n", programName.c_str());
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return -1;
+		return EXIT_FAILURE;
 	}
 	
 	inputFileNames.push_back("BuiltInTypes.loci");
@@ -215,7 +208,7 @@ int main(int argc, char* argv[]) {
 			
 			if (file == NULL) {
 				printf("Test FAILED: Failed to open file '%s'.\n", filename.c_str());
-				return -1;
+				return EXIT_FAILURE;
 			}
 			
 			Parser::DefaultParser parser(stringHost, astRootNamespaceList, file, filename);
@@ -239,17 +232,17 @@ int main(int argc, char* argv[]) {
 				if (checkError(parseErrorString, expectedError)) {
 					printf("Test PASSED (with expected error).\n");
 					printf("Error:\n%s\n", parseErrorString.c_str());
-					return 0;
+					return EXIT_SUCCESS;
 				} else {
 					printf("Test FAILED: Actual error doesn't match expected error.\n");
 					printf("---Expected error:\n%s\n", expectedError.c_str());
 					printf("---Actual error:\n%s\n", parseErrorString.c_str());
-					return -1;
+					return EXIT_FAILURE;
 				}
 			} else {
 				printf("Test FAILED: Compilation failed unexpectedly.\n");
 				printf("Error:\n%s\n", parseErrorString.c_str());
-				return -1;
+				return EXIT_FAILURE;
 			}
 		}
 		
@@ -284,14 +277,25 @@ int main(int argc, char* argv[]) {
 		
 		if (!expectedErrorFileName.empty()) {
 			printf("Test FAILED: Program compiled successfully when it was expected to fail.\n");
-			return -1;
+			return EXIT_FAILURE;
+		}
+		
+		if (expectedOutputFileName.empty()) {
+			// No output file was specified, so we just needed to
+			// check that the input files can be compiled.
+			printf("Test PASSED.\n\n");
+			return EXIT_SUCCESS;
 		}
 		
 		CodeGen::Linker linker(codeGenContext, codeGenerator.module());
 		
+		printf("Linking...\n");
+		
 		for (const auto& dependencyModuleName: dependencyModules) {
 			linker.loadModule(dependencyModuleName);
 		}
+		
+		printf("Starting interpreter...\n");
 		
 		// Interpret the code.
 		CodeGen::Interpreter interpreter(codeGenContext, linker.module());
@@ -299,13 +303,17 @@ int main(int argc, char* argv[]) {
 		// Treat entry point function as if it is 'main'.
 		programArgs.insert(programArgs.begin(), "testProgram");
 		
+		printf("Running...\n");
+		
 		const int result = interpreter.runAsMain(entryPointName, programArgs);
 		
 		if (result != expectedResult) {
 			printf("Test FAILED: Result '%d' doesn't match expected result '%d'.\n",
 				   result, expectedResult);
-			return -1;
+			return EXIT_FAILURE;
 		}
+		
+		printf("Analysing output...\n");
 		
 		std::ifstream expectedOutputFileStream(expectedOutputFileName.c_str());
 		std::stringstream expectedOutputBuffer;
@@ -317,13 +325,13 @@ int main(int argc, char* argv[]) {
 			printf("Test FAILED: Actual output doesn't match expected output.\n");
 			printf("---Expected output:\n%s\n", expectedOutput.c_str());
 			printf("---Actual output:\n%s\n", testOutput.c_str());
-			return -1;
+			return EXIT_FAILURE;
 		}
 		
 		printf("Test PASSED.\n\n");
 		printf("Output:\n%s\n", testOutput.c_str());
 		
-		return 0;
+		return EXIT_SUCCESS;
 	} catch (const Exception& e) {
 		if (!expectedErrorFileName.empty()) {
 			const auto testError = e.toString();
@@ -332,16 +340,16 @@ int main(int argc, char* argv[]) {
 			if (checkError(testError, expectedError)) {
 				printf("Test PASSED.\n\n");
 				printf("Error:\n%s\n", testError.c_str());
-				return 0;
+				return EXIT_SUCCESS;
 			} else {
 				printf("Test FAILED: Actual error doesn't match expected error.\n");
 				printf("---Expected error:\n%s\n", expectedError.c_str());
 				printf("---Actual error:\n%s\n", testError.c_str());
-				return -1;
+				return EXIT_FAILURE;
 			}
 		} else {
 			printf("Test FAILED: Compilation failed unexpectedly (errors should be shown above).\n");
-			return -1;
+			return EXIT_FAILURE;
 		}
 	}
 }

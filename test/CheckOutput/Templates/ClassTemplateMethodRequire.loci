@@ -46,7 +46,7 @@ class PrintBothAble(int first, int second) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<PrintFirstAble> printFirstAble = TestClass<PrintFirstAble>(PrintFirstAble(2500));
 	printFirstAble.indirectPrintFirst();
 	

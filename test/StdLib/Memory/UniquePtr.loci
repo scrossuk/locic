@@ -18,7 +18,7 @@ void function(std::unique_ptr<TestClass> testObject) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto uniquePtr = std::new_unique<TestClass>(TestClass(1));
 	
 	testPrint(C"Calling function().");

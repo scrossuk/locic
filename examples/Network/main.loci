@@ -2,7 +2,7 @@
 // it's ignored just use 'void'.
 import void printf(const ubyte* const str, ...) noexcept;
 
-export int main(int argc, ubyte** argv) {
+export int main(unused int argc, unused ubyte** argv) {
 	runTCPExample();
 	return 0;
 }

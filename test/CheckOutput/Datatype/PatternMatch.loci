@@ -6,7 +6,7 @@ datatype Data(int a, int b);
 datatype Data2(int v, Data data);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	Data data = Data(1, 2);
 	
 	testPrint(C"testEntryPoint: data = Data(a = %d, b = %d)",

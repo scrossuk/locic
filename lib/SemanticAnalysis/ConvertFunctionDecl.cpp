@@ -127,8 +127,9 @@ namespace locic {
 				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
 				
 				const auto lvalType = makeLvalType(context, isMember, isLvalConst, semParamType);
-				
-				parameterVars.push_back(SEM::Var::Basic(semParamType, lvalType));
+				const auto paramVar = SEM::Var::Basic(semParamType, lvalType);
+				paramVar->setMarkedUnused(astTypeVarNode->namedVar.isUnused);
+				parameterVars.push_back(paramVar);
 			}
 			
 			semFunction->setParameters(std::move(parameterVars));

@@ -53,7 +53,7 @@ void polymorphicPrintBoth(TestInterfaceBoth& object) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto testInstance = TestClass(5, 6);
 	
 	polymorphicPrintBoth(testInstance);

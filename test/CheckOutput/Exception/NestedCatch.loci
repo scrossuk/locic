@@ -4,7 +4,7 @@ import void testPrint(const ubyte * const str, ...);
 exception ExampleError(int value);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	try {
 		testPrint(C"2: Executing 1.");
 		try {

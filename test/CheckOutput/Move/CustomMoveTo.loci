@@ -7,13 +7,13 @@ class TestClass() {
 		return @();
 	}
 	
-	void __move_to(void* ptr, size_t position) noexcept {
+	void __move_to(unused void* ptr, unused size_t position) noexcept {
 		testPrint(C"TestClass.__move_to");
 	}
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"auto testInstance = TestClass();");
 	auto testInstance = TestClass();
 	
@@ -21,7 +21,7 @@ export int testEntryPoint(int argc, ubyte ** argv) {
 	auto testInstanceMoved = move testInstance;
 	
 	testPrint(C"auto testInstanceMovedAgain = move testInstanceMoved;");
-	auto testInstanceMovedAgain = move testInstanceMoved;
+	unused auto testInstanceMovedAgain = move testInstanceMoved;
 	
 	return 0;
 }

@@ -73,7 +73,7 @@ Loci has a simple infrastructure for implicit casts between objects, using a met
 
 Since Loci doesn't support :doc:`Method Overloading <FunctionOverloading>`, the *implicitCast* method cannot be duplicated for each potential destination type. Instead, it should be :doc:`templated <Templates>` with any potential destination type, which must then have a static method to accept the source type.
 
-Here's an example straight for the language primitives:
+Here's an example straight from the language primitives:
 
 .. code-block:: c++
 
@@ -102,7 +102,7 @@ Here's an example straight for the language primitives:
 		// etc.
 	}
 
-Here, *int_t* is the actual type name of *int* (which is actually just a keyword that is translated by the compiler). You can see that *int_t* has both an *implicitCast* and a *cast* method above, where the former is a 'magic method' that allows implicit casts and the latter requires an explicit call by the developer.
+Here, *int_t* is the actual type name of *int* (which is actually just a keyword that is translated by the compiler). You can see that *int_t* has both an *implicit_cast* and a *cast* method above, where the former is a 'magic method' that allows implicit casts and the latter requires an explicit call by the developer.
 
 The design of primitive casts is based around the principle that extension casts are **OK** (no information is lost), so they can be implicit. However, truncation casts are **DANGEROUS**, so must be explicit. You can see this in the specification of *int*, which can be implicitly casted from the smaller types *byte_t* and *short_t*, but requires an explicit cast from the larger type *long_t*.
 

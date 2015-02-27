@@ -59,7 +59,7 @@ void moveFunction(lval<int> custom_lval& objectLval) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	lval<int> custom_lval value = lval<int>(custom_lval(4));
 	
 	testPrint(C"testEntryPoint: Value = %d", value);

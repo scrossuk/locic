@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * const str, ...);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	int i = 0;
 	int j = 1;
 	

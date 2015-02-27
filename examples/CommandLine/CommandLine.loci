@@ -40,7 +40,7 @@ std::varray<std::string> readCommandLine() {
 	return move components;
 }
 
-export int main(int argc, ubyte** argv) {
+export int main(unused int argc, unused ubyte** argv) {
 	try {
 		auto values = std::varray<int>();
 		

@@ -26,7 +26,7 @@ void testFunction(int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(unused int argc, char ** argv) {
 	scope (exit) {
 		testPrint(C"testEntryPoint: Program exit");
 	}

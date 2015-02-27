@@ -57,7 +57,7 @@ class TestClass(T value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<TestClassInt> intObject = TestClass<TestClassInt>(TestClassInt(99));
 	
 	intObject.print();

@@ -14,4 +14,5 @@ add_subdirectory(Loop)
 add_subdirectory(NameRef)
 add_subdirectory(StaticRef)
 add_subdirectory(Templates)
+add_subdirectory(Unused)
 

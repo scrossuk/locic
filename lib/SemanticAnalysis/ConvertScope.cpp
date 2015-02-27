@@ -5,6 +5,7 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertStatement.hpp>
+#include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
@@ -26,6 +27,26 @@ namespace locic {
 				assert(statement != nullptr);
 				
 				semScope->statements().push_back(statement);
+			}
+			
+			// Check all variables are either used and not marked unused,
+			// or are unused and marked as such.
+			for (const auto& varPair: semScope->namedVariables()) {
+				const auto& varName = varPair.first;
+				const auto& var = varPair.second;
+				if (var->isUsed() && var->isMarkedUnused()) {
+					const auto& debugInfo = var->debugInfo();
+					assert(debugInfo);
+					const auto& location = debugInfo->declLocation;
+					throw ErrorException(makeString("Local variable '%s' is marked as unused but is used in scope, at position %s.",
+						varName.c_str(), location.toString().c_str()));
+				} else if (!var->isUsed() && !var->isMarkedUnused()) {
+					const auto& debugInfo = var->debugInfo();
+					assert(debugInfo);
+					const auto& location = debugInfo->declLocation;
+					throw ErrorException(makeString("Local variable '%s' is unused, at position %s.",
+						varName.c_str(), location.toString().c_str()));
+				}
 			}
 			
 			return semScope;

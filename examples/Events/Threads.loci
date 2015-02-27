@@ -8,31 +8,31 @@ class example_thread(std::concurrency::mutex& mutex, std::concurrency::mutex& lo
 		sleep(rand() % 5);
 		
 		{
-			auto logLock = std::concurrency::unique_lock(@logMutex);
+			unused auto logLock = std::concurrency::unique_lock(@logMutex);
 			printf(C"  Thread %llu: Obtaining lock...\n", @id.cast<ulonglong_t>());
 		}
 		
-		auto lock = std::concurrency::unique_lock(@mutex);
+		unused auto lock = std::concurrency::unique_lock(@mutex);
 		
 		{
-			auto logLock = std::concurrency::unique_lock(@logMutex);
+			unused auto logLock = std::concurrency::unique_lock(@logMutex);
 			printf(C"  Thread %llu: Got lock!\n", @id.cast<ulonglong_t>());
 		}
 		
 		{
-			auto logLock = std::concurrency::unique_lock(@logMutex);
+			unused auto logLock = std::concurrency::unique_lock(@logMutex);
 			printf(C"    Thread %llu: Starting 1 second sleep...\n", @id.cast<ulonglong_t>());
 		}
 		
 		sleep(1);
 		
 		{
-			auto logLock = std::concurrency::unique_lock(@logMutex);
+			unused auto logLock = std::concurrency::unique_lock(@logMutex);
 			printf(C"    Thread %llu: Finished sleep.\n", @id.cast<ulonglong_t>());
 		}
 		
 		{
-			auto logLock = std::concurrency::unique_lock(@logMutex);
+			unused auto logLock = std::concurrency::unique_lock(@logMutex);
 			printf(C"  Thread %llu: Done.\n", @id.cast<ulonglong_t>());
 		}
 	}
@@ -43,7 +43,7 @@ import void sleep(int seconds) noexcept;
 bool checkThreads(std::concurrency::mutex& logMutex, std::varray<std::concurrency::thread>& threads) {
 	bool anyRunning = false;
 	
-	auto logLock = std::concurrency::unique_lock(logMutex);
+	unused auto logLock = std::concurrency::unique_lock(logMutex);
 	
 	bool b = false;
 	
@@ -88,7 +88,7 @@ void runThreadsExample() {
 	}
 	
 	{
-		auto logLock = std::concurrency::unique_lock(logMutex);
+		unused auto logLock = std::concurrency::unique_lock(logMutex);
 		printf(C"Waiting for any terminate events...\n");
 	}
 	
@@ -99,7 +99,7 @@ void runThreadsExample() {
 	for (auto i: std::counter<size_t>(0u, threadArray.size(), 1u)) {
 		auto& thread = threadArray[i];
 		{
-			auto logLock = std::concurrency::unique_lock(logMutex);
+			unused auto logLock = std::concurrency::unique_lock(logMutex);
 			printf(C"Joining %llu...\n", i.cast<ulonglong_t>());
 		}
 		thread.join();

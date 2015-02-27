@@ -57,8 +57,7 @@ namespace locic {
 			}
 			
 			// TODO: add support for member and parameter variables.
-			const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode);
-			context.debugModule().varMap.insert(std::make_pair(var, makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode)));
+			var->setDebugInfo(makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode));
 		}
 		
 		namespace {
@@ -105,6 +104,7 @@ namespace locic {
 						const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 						
 						const auto var = SEM::Var::Basic(varType, lvalType);
+						var->setMarkedUnused(astTypeVarNode->namedVar.isUnused);
 						attachVar(context, varName, astTypeVarNode, var);
 						return var;
 					}

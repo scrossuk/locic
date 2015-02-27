@@ -7,7 +7,7 @@ T function(T arg) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	int i = function<int>(20);
 	testPrint(C"i = %d", i);
 	

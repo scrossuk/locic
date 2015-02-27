@@ -32,7 +32,7 @@ class PrintClass(int i) {
 	}
 }
 
-export int main(int argc, ubyte ** argv) {
+export int main(unused int argc, unused ubyte ** argv) {
 	auto testClass = TestClass<PrintClass>(PrintClass(50));
 	testClass.print();
 	

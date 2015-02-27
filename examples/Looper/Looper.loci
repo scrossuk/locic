@@ -14,7 +14,7 @@ size_t makeSum(size_t val) {
 	return counter;
 }
 
-export int main(int argc, ubyte ** argv) {
+export int main(unused int argc, unused ubyte ** argv) {
 	size_t i = 0u;
 	size_t j = 0u;
 	

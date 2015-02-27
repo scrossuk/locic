@@ -30,7 +30,7 @@ class TestClass(OtherClass value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	StructType1 structType = StructType1(1, StructType2(2, 3));
 	testPrint(C"StructType1(%d, StructType2(%d, %d))", structType.var1, structType.var2.var1, structType.var2.var2);
 	

@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto varray = std::varray<uint32_t>();
 	
 	varray.reserve(10000u);

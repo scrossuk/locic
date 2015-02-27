@@ -2,7 +2,7 @@ exception Exception1(int value) : Exception2(value);
 exception Exception2(int value) : Exception1(value);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	return 0;
 }
 

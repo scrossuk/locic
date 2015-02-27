@@ -14,9 +14,11 @@
 #define YYSTYPE locic::Parser::Token
 #define YYLTYPE locic::Parser::LocationInfo
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
-	yylloc->first_column = yyextra->columnPosition(); yylloc->last_column = yyextra->columnPosition() + yyleng; \
+	yylloc->first_column = yyextra->columnPosition(); \
+	yylloc->last_column = yyextra->columnPosition() + yyleng; \
 	yyextra->advanceColumn(yyleng); \
-	yylloc->first_byte = yyextra->byteOffset(); yylloc->last_byte = yyextra->byteOffset() + yyleng; \
+	yylloc->first_byte = yyextra->byteOffset(); \
+	yylloc->last_byte = yyextra->byteOffset() + yyleng; \
 	yylloc->first_line_byte = yyextra->columnByteOffset(); yylloc->last_line_byte = yyextra->byteOffset() + yyleng; \
 	yyextra->addByteOffset(yyleng);
 
@@ -95,6 +97,7 @@ template                { return TEMPLATE; }
 typename                { return TYPENAME; }
 virtual                 { return VIRTUAL; }
 require                 { return REQUIRE; }
+unused                  { return UNUSED; }
 
 self                    { return SELF; }
 this                    { return THIS; }

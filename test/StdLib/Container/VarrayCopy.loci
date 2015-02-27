@@ -18,14 +18,14 @@ class TestClass(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto varray = std::varray<TestClass>();
 	
 	for (auto i: std::counter<int>(50, 500, 50)) {
 		varray.push_back(TestClass(i));
 	}
 	
-	auto varrayCopy = varray.copy();
+	unused auto varrayCopy = varray.copy();
 	
 	return 0;
 }

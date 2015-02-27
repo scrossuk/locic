@@ -226,6 +226,7 @@ const T& GETSYM(T* value) {
 %token TYPENAME
 %token VIRTUAL
 %token REQUIRE
+%token UNUSED
 
 %token USING
 %token ENUM
@@ -1358,6 +1359,14 @@ typeVar:
 	| FINAL type NAME
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), $3)));
+	}
+	| UNUSED type NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::UnusedNamedVar(GETSYM($2), $3)));
+	}
+	| UNUSED FINAL type NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::UnusedFinalNamedVar(GETSYM($3), $4)));
 	}
 	| patternTypeVar
 	{

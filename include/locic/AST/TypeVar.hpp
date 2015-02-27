@@ -25,6 +25,7 @@ namespace locic {
 			
 			struct {
 				bool isFinal;
+				bool isUnused;
 				Node<Type> type;
 				String name;
 			} namedVar;
@@ -38,6 +39,10 @@ namespace locic {
 				static TypeVar* NamedVar(const Node<Type>& type, String name);
 				
 				static TypeVar* FinalNamedVar(const Node<Type>& type, String name);
+				
+				static TypeVar* UnusedNamedVar(const Node<Type>& type, String name);
+				
+				static TypeVar* UnusedFinalNamedVar(const Node<Type>& type, String name);
 				
 				static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
 				

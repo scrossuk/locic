@@ -82,7 +82,7 @@ class OuterClass (MiddleClass<S, T, R> member, R& r, S& s, T& t) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	FirstClass r = FirstClass(1);
 	SecondClass s = SecondClass(2);
 	ThirdClass t = ThirdClass(3);

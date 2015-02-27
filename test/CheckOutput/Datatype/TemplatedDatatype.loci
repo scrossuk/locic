@@ -30,7 +30,7 @@ void printUnionDatatype(TestUnionDatatype<int> data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	printBasicDatatype(TestBasicDatatype<int>(9, 99, 999));
 	printUnionDatatype(TestUnionDatatype0<int>(9));
 	printUnionDatatype(TestUnionDatatype1<int>(9, 99));

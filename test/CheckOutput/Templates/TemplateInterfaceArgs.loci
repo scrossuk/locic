@@ -49,7 +49,7 @@ class PolymorphicClass(Printable& printable) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	FirstClass a = FirstClass(100);
 	SecondClass b = SecondClass(200);
 	

@@ -1,0 +1,8 @@
+void function() {
+	unused int localVariable = 0;
+}
+
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	function();
+	return 0;
+}

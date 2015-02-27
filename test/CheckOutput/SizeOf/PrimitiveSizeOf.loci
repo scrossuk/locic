@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * const str, ...);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"sizeof(byte) = %llu", sizeof(byte).cast<ulonglong_t>());
 	testPrint(C"sizeof(short) = %llu", sizeof(short).cast<ulonglong_t>());
 	testPrint(C"sizeof(int) = %llu", sizeof(int).cast<ulonglong_t>());

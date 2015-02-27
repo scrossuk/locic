@@ -6,7 +6,7 @@ import test.module 1.0.0 {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, char ** argv) {
+export int testEntryPoint(unused int argc, char ** argv) {
 	testPrint(C"testEntryPoint: moduleAPI() returned %d", moduleAPI());
 	
 	return 0;

@@ -23,7 +23,7 @@ class TestClass(const ubyte * n, int i, int j){
 		return 42;
 	}
 	
-	TestClass multiply(const TestClass& arg) const {
+	TestClass multiply(unused const TestClass& arg) const {
 		return @(C"Multiply", @i, @j);
 	}
 	

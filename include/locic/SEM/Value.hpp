@@ -264,7 +264,6 @@ namespace locic {
 				ExitStates exitStates() const;
 				
 				void setDebugInfo(Debug::ValueInfo debugInfo);
-				
 				Optional<Debug::ValueInfo> debugInfo() const;
 				
 				std::string toString() const;

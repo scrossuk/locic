@@ -13,7 +13,7 @@ class TestClass(int v) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto testInstance = TestClass(10);
 	testPrint(C"testInstance.getValue() = %d", testInstance.getValue());
 	

@@ -30,14 +30,14 @@ class OwnerClass(int id, std::shared_ptr<TestClass> ptr) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto sharedPtr = std::new_shared<TestClass>(TestClass(10));
 	
 	auto owner0 = OwnerClass(0, sharedPtr);
 	auto owner1 = OwnerClass(1, sharedPtr);
 	
 	{
-		auto owner2 = owner0;
+		unused auto owner2 = owner0;
 	}
 	
 	(void) move sharedPtr;

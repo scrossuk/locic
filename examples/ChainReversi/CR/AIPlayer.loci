@@ -76,7 +76,7 @@ namespace CR {
 			return Some(bestPosition);
 		}
 		
-		void gameOver(bool win) { }
+		void gameOver(unused bool win) { }
 	}
 	
 }

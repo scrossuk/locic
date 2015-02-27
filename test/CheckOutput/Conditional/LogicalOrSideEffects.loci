@@ -11,7 +11,7 @@ bool logicalOr(bool first, bool second) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"testEntryPoint: logicalOr(false, false) = %s", logicalOr(false, false) ? C"true" : C"false");
 	testPrint(C"testEntryPoint: logicalOr(false, true) = %s", logicalOr(false, true) ? C"true" : C"false");
 	testPrint(C"testEntryPoint: logicalOr(true, false) = %s", logicalOr(true, false) ? C"true" : C"false");

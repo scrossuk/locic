@@ -10,12 +10,12 @@ class TestClass(int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	int i = 0;
 	while (i < 10) {
 		testPrint(C"testEntryPoint: Value = %d", i);
 		scope (exit) {
-			auto testObject = TestClass(i);
+			unused auto testObject = TestClass(i);
 			testPrint(C"testEntryPoint: Exiting loop scope with value = %d", i);
 		}
 		

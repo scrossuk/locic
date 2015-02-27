@@ -151,6 +151,27 @@ namespace locic {
 			}
 			
 			semFunction->setScope(std::move(semScope));
+			
+			// Check all variables are either used and not marked unused,
+			// or are unused and marked as such.
+			for (const auto& varPair: semFunction->namedVariables()) {
+				const auto& varName = varPair.first;
+				const auto& var = varPair.second;
+				if (var->isUsed() && var->isMarkedUnused()) {
+					const auto& debugInfo = var->debugInfo();
+					assert(debugInfo);
+					const auto& location = debugInfo->declLocation;
+					throw ErrorException(makeString("Parameter variable '%s' is marked unused but is used in function '%s', at position %s.",
+						varName.c_str(), semFunction->name().toString().c_str(), location.toString().c_str()));
+				} else if (!var->isUsed() && !var->isMarkedUnused()) {
+					const auto& debugInfo = var->debugInfo();
+					assert(debugInfo);
+					const auto& location = debugInfo->declLocation;
+					throw ErrorException(makeString("Parameter variable '%s' is unused in function '%s', at position %s.",
+						varName.c_str(), semFunction->name().toString().c_str(), location.toString().c_str()));
+				}
+			}
+			
 		}
 		
 	}

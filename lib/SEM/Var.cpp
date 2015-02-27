@@ -34,7 +34,7 @@ namespace locic {
 			return var;
 		}
 		
-		Var::Var() : kind_(ANY), constructType_(NULL), type_(NULL) { }
+		Var::Var() : kind_(ANY), constructType_(NULL), type_(NULL), isUsed_(false), isMarkedUnused_(false) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
@@ -83,6 +83,30 @@ namespace locic {
 				default:
 					throw std::runtime_error("Unknown var kind.");
 			}
+		}
+		
+		bool Var::isUsed() const {
+			return isUsed_;
+		}
+		
+		void Var::setUsed() {
+			isUsed_ = true;
+		}
+		
+		bool Var::isMarkedUnused() const {
+			return isMarkedUnused_;
+		}
+		
+		void Var::setMarkedUnused(const bool argIsMarkedUnused) {
+			isMarkedUnused_ = argIsMarkedUnused;
+		}
+		
+		void Var::setDebugInfo(const Debug::VarInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::VarInfo> Var::debugInfo() const {
+			return debugInfo_;
 		}
 		
 		std::string Var::toString() const {

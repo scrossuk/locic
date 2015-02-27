@@ -23,7 +23,7 @@ template <typename T : movable>
 using TestClassAlias3 = TestClassAlias2<T>;
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<int> object = TestClass<int>(101);
 	testPrint(C"From object: %d", object.getValue());
 	

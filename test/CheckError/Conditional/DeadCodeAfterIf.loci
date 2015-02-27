@@ -1,5 +1,5 @@
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	if (true) {
 		return 1;
 	} else if (false) {

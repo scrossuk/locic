@@ -11,7 +11,7 @@ bool getBool(bool* value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"testEntryPoint: selectValue(true, 1, 2) = %d", selectValue(true, 1, 2));
 	testPrint(C"testEntryPoint: selectValue(false, 1, 2) = %d", selectValue(false, 1, 2));
 	testPrint(C"testEntryPoint: selectValue(true, -1, -2) = %d", selectValue(true, -1, -2));

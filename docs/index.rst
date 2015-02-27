@@ -122,10 +122,12 @@ Language
 	Modules
 	MoveVersusCopy
 	OperatorOverloading
+	Predicates
 	PrimitiveObjects
 	References
 	StructuralTyping
 	Templates
+	UnusedValues
 
 Standard Library
 ----------------

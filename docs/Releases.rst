@@ -6,6 +6,38 @@ Available Releases
 
 This section lists completed releases of the Loci Compiler Tools, in reverse version order.
 
+v1.2
+~~~~
+
+Available here: [TODO]
+
+Released on [TODO] March 2015, version 1.2 provides:
+
+**Language features**
+
+* :doc:`Require and Const predicates <Predicates>`
+* :doc:`move_to methods <MoveVersusCopy>`
+* Fixing :doc:`Const <Const>` rules
+* Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>`
+* :doc:`C enums and unions <CompatibilityWithC>`
+* Statically checked :doc:`exception specifications <Exceptions>`
+* :doc:`Vectorised types <VectorTypes>`
+* :doc:`Unused variables and values <UnusedValues>` (replacing void cast syntax)
+
+**Standard library**
+
+* Improvements to :doc:`Standard library strings <Strings>`
+* Standard library fibers and threads
+* Standard library events and networking
+
+**Other**
+
+* Continuous Integration - verifying support for LLVM 3.3/3.4/3.5/3.6
+
+**Dependencies**
+
+* Tested to build and work with LLVM 3.3/3.4/3.5/3.6
+
 v1.1
 ~~~~
 
@@ -76,25 +108,20 @@ Future Releases
 
 This section lists planned releases of the Loci Compiler Tools, in reverse version order.
 
-v1.2
+v1.3
 ~~~~
 
-Planned for end of February 2015, version 1.2 aims to provide:
+Planned for June 2015, version 1.3 aims to provide:
 
-* Continuous Integration - verifying support for LLVM 3.3/3.4/3.5
-* Requires predicates
-* move_to methods
-* Fixing const rules
-* Clarifying/defining implicit casting rules
-* C enums and unions
-* Statically checked exception specifications
-* Improvements to standard library strings
-* Standard library fibers and threads
-* Standard library events and networking
-* :doc:`Vectorised types <VectorTypes>`
-* Const-templated functions/methods (to allow a function/method to support both const and non-const usage)
-* Const predicates
-* Unused variables and values (replacing void cast syntax)
+* ARM ABI support
+* Lambdas
+* Value-templates
+* Variadic templates
+* Template argument deduction
+* User-defined :doc:`reference types <References>`
+* User-defined function types
+* Automatic generation of :doc:`imports from exports <Modules>`.
+* Automatic generation of imports from C header files.
 
 In Consideration
 ~~~~~~~~~~~~~~~~
@@ -102,16 +129,8 @@ In Consideration
 The following features have not yet been assigned a release:
 
 * Windows and Mac support
-* ARM ABI support
-* Lambdas
-* Value-templates, including lists of types
-* Variadic templates
 * Null coalescing operator
 * Union datatype function 'overloading' (i.e. splitting a function into multiple functions similar to a type-switch)
-* User-defined :doc:`reference types <References>`
-* User-defined function types
-* Automatic generation of :doc:`imports from exports <Modules>`.
-* Automatic generation of imports from C header files.
 * Automatic parallelisation through 'spawn' and 'sync'
 * Class invariants
 * Unit test functions

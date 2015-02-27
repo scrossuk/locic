@@ -1,0 +1,6 @@
+void function(unused int parameterVariable) { }
+
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	function(1);
+	return 0;
+}

@@ -27,11 +27,6 @@ namespace locic {
 		}
 		
 		Context::~Context() {
-			printf("Context: Average = %f, Max = %f, Num values = %llu, Bucket count = %llu\n",
-				impl_->types.load_factor(),
-				impl_->types.max_load_factor(),
-				(unsigned long long) impl_->types.unique_count(),
-				(unsigned long long) impl_->types.bucket_count());
 		}
 		
 		const Type* Context::getType(Type type) const {

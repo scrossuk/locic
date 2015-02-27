@@ -103,7 +103,7 @@ class OuterClass(T& valueRef, MiddleClass<T> value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass testObject = TestClass(1900);
 	OuterClass<TestClass> object = OuterClass<TestClass>(testObject);
 	object.print();

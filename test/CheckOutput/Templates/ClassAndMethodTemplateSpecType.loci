@@ -63,7 +63,7 @@ class PrintOtherClassTemplated() {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<PrintableClass> testObject = TestClass<PrintableClass>(PrintableClass(4242));
 	
 	testObject.printObject();

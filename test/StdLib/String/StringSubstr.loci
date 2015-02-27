@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * const str, ...) noexcept;
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto string = "Hello world";
 	
 	testPrint(C"string = %s", string.make_buffer().c_str());

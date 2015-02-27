@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 
+#include <locic/Debug/VarInfo.hpp>
+#include <locic/Optional.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 
 namespace locic {
 	
 	namespace SEM {
-	
+		
 		class TemplateVar;
 		class Type;
 		
@@ -39,6 +41,15 @@ namespace locic {
 				
 				Var* substitute(const TemplateVarMap& templateVarMap) const;
 				
+				bool isUsed() const;
+				void setUsed();
+				
+				bool isMarkedUnused() const;
+				void setMarkedUnused(bool isMarkedUnused);
+				
+				void setDebugInfo(Debug::VarInfo debugInfo);
+				Optional<Debug::VarInfo> debugInfo() const;
+				
 				std::string toString() const;
 				
 			private:
@@ -48,6 +59,9 @@ namespace locic {
 				const Type* constructType_;
 				const Type* type_;
 				std::vector<Var*> children_;
+				bool isUsed_;
+				bool isMarkedUnused_;
+				Optional<Debug::VarInfo> debugInfo_;
 				
 		};
 		

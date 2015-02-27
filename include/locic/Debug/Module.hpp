@@ -23,7 +23,6 @@ namespace locic {
 			std::map<SEM::Function*, FunctionInfo> functionMap;
 			std::map<SEM::Statement*, StatementInfo> statementMap;
 			std::map<SEM::TypeInstance*, TypeInstanceInfo> typeInstanceMap;
-			std::map<SEM::Var*, VarInfo> varMap;
 		};
 		
 	}

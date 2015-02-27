@@ -18,7 +18,7 @@ void intermediateFunction() {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	try {
 		intermediateFunction();
 	} catch (ExampleError error) {

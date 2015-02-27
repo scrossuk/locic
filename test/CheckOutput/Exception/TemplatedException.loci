@@ -14,7 +14,7 @@ require(T : Copyable<T> and T : movable)
 exception ChildError(T value0, T value1) : ParentError<T>(value0);
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	try {
 		throw ChildError<int>(111, 222);
 	} catch (ChildError<int> error) {

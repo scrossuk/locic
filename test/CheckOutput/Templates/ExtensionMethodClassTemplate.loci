@@ -21,7 +21,7 @@ T& TestClass::getValueRef() {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass<int> object = TestClass<int>(11111);
 	testPrint(C"object.getValue() = %d", object.getValue());
 	testPrint(C"object.getValueRef() = %d", object.getValueRef());

@@ -19,6 +19,7 @@ namespace locic {
 		TypeVar* TypeVar::NamedVar(const Node<Type>& type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar.isFinal = false;
+			typeVar->namedVar.isUnused = false;
 			typeVar->namedVar.type = type;
 			typeVar->namedVar.name = name;
 			return typeVar;
@@ -27,6 +28,25 @@ namespace locic {
 		TypeVar* TypeVar::FinalNamedVar(const Node<Type>& type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar.isFinal = true;
+			typeVar->namedVar.isUnused = false;
+			typeVar->namedVar.type = type;
+			typeVar->namedVar.name = name;
+			return typeVar;
+		}
+		
+		TypeVar* TypeVar::UnusedNamedVar(const Node<Type>& type, const String name) {
+			TypeVar* typeVar = new TypeVar(NAMEDVAR);
+			typeVar->namedVar.isFinal = false;
+			typeVar->namedVar.isUnused = true;
+			typeVar->namedVar.type = type;
+			typeVar->namedVar.name = name;
+			return typeVar;
+		}
+		
+		TypeVar* TypeVar::UnusedFinalNamedVar(const Node<Type>& type, const String name) {
+			TypeVar* typeVar = new TypeVar(NAMEDVAR);
+			typeVar->namedVar.isFinal = true;
+			typeVar->namedVar.isUnused = true;
 			typeVar->namedVar.type = type;
 			typeVar->namedVar.name = name;
 			return typeVar;

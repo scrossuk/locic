@@ -15,16 +15,16 @@ class TestClass(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
-	auto testInstance1 = TestClass(1);
-	auto testInstance2 = TestClass(2);
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	unused auto testInstance1 = TestClass(1);
+	unused auto testInstance2 = TestClass(2);
 	
 	{
 		(void) TestClass(3);
-		auto testInstance3 = TestClass(4);
+		unused auto testInstance3 = TestClass(4);
 	}
 	
-	auto testInstance5 = TestClass(5);
+	unused auto testInstance5 = TestClass(5);
 	
 	return 0;
 }

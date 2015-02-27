@@ -3,10 +3,37 @@ Classes
 
 The ability to create and manipulate objects, which are instances of a class, provides a useful way to encapsulate a set of behaviour around a particular data type, and maintaining the necessary invariants needed by that type. Therefore Loci, like many other languages, includes support for object oriented programming.
 
+Declarations
+------------
+
+Perhaps most interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase because Loci can find the class definitions and produce their corresponding declarations automatically.
+
+Additionally, Loci uses :doc:`multi-pass compilation <MultiPassCompilation>` so there is no requirement to define types or functions before they are used and hence there is no need to declare a class which is later defined in the same code base, something that is common in C and C++. However, if a class is to be used across an API boundary (see :doc:`Modules <Modules>`) then declarations should be used.
+
+Here's a class declaration:
+
+.. code-block:: c++
+
+	class Bucket {
+		static Bucket create(bool b, int v);
+	
+		bool containsValue() const;
+		
+		void placeValue(int value);
+		
+		int getValue() const;
+	}
+
+Clearly, the class method implementations have been removed, however the member variables have also been removed. This is because, unlike C++, class declarations in Loci **do not need to include the types (or names) of the member variables**.
+
+From a design perspective, this prevents the need to use forward struct declarations (or similar) and heap allocations that are needed in C and C++, and is part of fulfilling Loci's goal to be an excellent language for defining, implementing and using APIs. Therefore clients of a library do not need to be recompiled when a class in the library changes its member variables, since this is private information.
+
+Also note that an auto-generated default constructor (see below for explanation) has to be specified explicitly here, since users of the class declaration have no knowledge of the types (or number, or order) of the member variables and therefore cannot know the type of the constructor.
+
 Definitions
 -----------
 
-Here's an example of a Loci class definition:
+Here's a class definition:
 
 .. code-block:: c++
 
@@ -67,9 +94,9 @@ Here the *@* symbol being called is the *internal constructor*, and performs the
 
 	// This is C++ code.
 	class Bucket{
-		public:
-			Bucket(bool b, int value)
-				: b_(b), value_(value){ }
+	public:
+		Bucket(bool b, int value)
+		: b_(b), value_(value){ }
 	};
 
 Avoiding initialization lists makes it easy to express complex logic in constructors, such as loops:
@@ -112,35 +139,6 @@ Other named constructors can also be created:
 		Bucket emptyBucket = Bucket::WithNoValue();
 		Bucket zeroBucket = Bucket::WithZeroValue();
 	}
-
-Declarations
-------------
-
-Perhaps most interesting is the ability to declare classes. Unlike C++ where this is commonly needed, declarations typically won't be needed within a shared codebase, because Loci can find the class definitions and produce their corresponding declarations automatically.
-
-Additionally, Loci uses multiple pass compilation so there is no requirement to define types or functions before they are used, and hence there is no need to declare a class which is later defined in the same code base, something that is common in C and C++.
-
-However, if a class is to be used across an API boundary (for example, the class is defined inside a static library, and a program uses the declaration to create instances of the class and call its methods) then declarations should be used.
-
-Here's a declaration of the Bucket class:
-
-.. code-block:: c++
-
-	class Bucket {
-		static Bucket create(bool b, int v);
-	
-		bool containsValue() const;
-		
-		void placeValue(int value);
-		
-		int getValue() const;
-	}
-
-Clearly, the class method implementations have been removed, however the member variables have also been removed. This is because, unlike C++, class declarations in Loci do not need to include the types (or names) of the member variables.
-
-From a design perspective, this prevents the need to use forward struct declarations (or similar) and heap allocations that are needed in C and C++, and is part of fulfilling Loci's goal to be an excellent language for defining, implementing and using APIs. Therefore clients of a library do not need to be recompiled when a class in the library changes its member variables, since this is private information.
-
-Also note that the auto-generated default constructor has to be specified explicitly here, since users of the class declaration have no knowledge of the types (or number, or order) of the member variables and therefore cannot know the type of the constructor.
 
 This and Self
 -------------

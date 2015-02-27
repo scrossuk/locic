@@ -23,7 +23,7 @@ class test_range(int i) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"testEntryPoint: START");
 	
 	for (auto i: test_range()) {

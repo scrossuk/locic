@@ -84,12 +84,12 @@ export std.concurrency 0.1.0 {
 				}
 				
 				void cancel() {
-					auto lock = unique_lock(@mutex);
+					unused auto lock = unique_lock(@mutex);
 					// TODO...
 				}
 				
 				void join() {
-					auto lock = unique_lock(@mutex);
+					unused auto lock = unique_lock(@mutex);
 					if (!@hasJoined) {
 						final int result = pthread_join(@threadObject, null);
 						if (result != 0) {

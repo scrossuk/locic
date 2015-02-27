@@ -22,7 +22,7 @@ int getVal(TestData data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestData data0 = getValue(0, 1, 2);
 	TestData data1 = getValue(1, 3, 4);
 	

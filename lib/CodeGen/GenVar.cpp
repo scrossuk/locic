@@ -26,17 +26,15 @@ namespace locic {
 			
 			if (var->isBasic()) {
 				auto& module = function.module();
-				auto& varMap = module.debugModule().varMap;
 				
 				// Create an alloca for this variable.
 				const auto stackObject = genAlloca(function, var->type());
 				
 				// Generate debug information for the variable
 				// if any is available.
-				const auto iterator = varMap.find(var);
-				
-				if (iterator != varMap.end()) {
-					const auto& varInfo = iterator->second;
+				const auto& debugInfo = var->debugInfo();
+				if (debugInfo) {
+					const auto& varInfo = *debugInfo;
 					const auto debugType = genDebugType(module, var->constructType());
 					const auto debugDeclare = genDebugVar(function, varInfo, debugType, stackObject);
 					

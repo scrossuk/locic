@@ -12,13 +12,13 @@ export std.concurrency 0.1.0 {
 				}
 				
 				bool empty() const {
-					auto lock = unique_lock(@mutex);
+					unused auto lock = unique_lock(@mutex);
 					assert @position <= @array.size();
 					return @position == @array.size();
 				}
 				
 				void send(T message) require(T : movable) {
-					auto lock = unique_lock(@mutex);
+					unused auto lock = unique_lock(@mutex);
 					assert @position <= @array.size();
 					@array.push_back(move message);
 					assert @position < @array.size();
@@ -26,7 +26,7 @@ export std.concurrency 0.1.0 {
 				}
 				
 				T receive() require(T : movable) {
-					auto lock = unique_lock(@mutex);
+					unused auto lock = unique_lock(@mutex);
 					
 					assert @position < @array.size();
 					// TODO: use a queue<T>!

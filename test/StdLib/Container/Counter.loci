@@ -24,7 +24,7 @@ class CountObject(int value) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"Counting from 0 to 0 in increments of 1.");
 	{
 		int position = 0;

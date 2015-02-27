@@ -75,7 +75,7 @@ an_interface& getPtrAsInterfaceRef(TestClass2 * testClassPointer){
 
 void function(TestClass2 * object){
 	const TestClass2& testClassRef = *object;
-	const TestClass2& testClassRef2 = testClassRef;
+	unused const TestClass2& testClassRef2 = testClassRef;
 	printf(C"Value from fn: %d\n", testClassRef.getValue());
 }
 
@@ -238,9 +238,9 @@ export int main(int argc, ubyte ** argv){
 	custLval = 101;
 	lvalFunc(custLval);
 	
-	TestClass nullThing = null;
+	unused TestClass nullThing = null;
 	
-	auto templatedInstance = ExampleTemplatedClass0<int>();
+	unused auto templatedInstance = ExampleTemplatedClass0<int>();
 	
 	auto polyInst = PolyClass<int>(21);
 	const int res000 = polyInst.function(8);
@@ -255,16 +255,16 @@ export int main(int argc, ubyte ** argv){
 	printf(C"res002 = %f.\n", res002);
 	
 	{
-		auto templatedInstancee = ExampleTemplatedClass0<int>();
+		unused auto templatedInstancee = ExampleTemplatedClass0<int>();
 	}
 	
 	auto firstTestClass = TestClass(1);
-	auto firstTestClassMoved = move firstTestClass;
+	unused auto firstTestClassMoved = move firstTestClass;
 	
 	{
 		auto tmpValue = TestClass2(50).getValue();
 		printf(C"TMPVALUE: %d\n", tmpValue);
-		auto toDestroy = TestClass2(99);
+		unused auto toDestroy = TestClass2(99);
 	}
 	
 	auto testObject = TestClass2(argc * 2);
@@ -294,7 +294,7 @@ export int main(int argc, ubyte ** argv){
 	
 	{
 		auto t = PolyClass<TestClass>(TestClass(0));
-		auto t2 = t.function(TestClass(1));
+		unused auto t2 = t.function(TestClass(1));
 		printf(C"PolyClass<TestClass>\n");
 	}
 	

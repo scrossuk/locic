@@ -24,7 +24,7 @@ class test_range(int value, int position, int limit) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	
 	for (auto value: test_range(8)) {
 		testPrint(C"testEntryPoint(up to 2^8): value = %d", value);

@@ -17,7 +17,7 @@ void printData(UnionDataType data) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	printData(TestDatatype1(1));
 	printData(TestDatatype2(2, 3));
 	return 0;

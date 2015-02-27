@@ -39,7 +39,7 @@ class PrintableDouble(double d) {
 }
 
 // Entry point.
-export int testEntryPoint(int argc, ubyte ** argv) {
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	TestClass testObject = TestClass();
 	
 	testObject.printObject<PrintableInt>(PrintableInt(3));
