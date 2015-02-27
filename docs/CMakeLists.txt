@@ -23,7 +23,6 @@ function (add_sphinx_target builder)
 				-b "latex"
 				-d "${SPHINX_DOC_TREE_DIR}"
 				-q # Quiet: no output other than errors and warnings.
-				-W # Warnings are errors.
 				"${CMAKE_CURRENT_SOURCE_DIR}" # Source
 				"${SPHINX_BUILD_DIR}" # Output
 			# Run make to generate the PDF documentation.
@@ -44,7 +43,6 @@ function (add_sphinx_target builder)
 				-b ${builder}
 				-d "${SPHINX_DOC_TREE_DIR}"
 				-q # Quiet: no output other than errors and warnings.
-				-W # Warnings are errors.
 				"${CMAKE_CURRENT_SOURCE_DIR}" # Source
 				"${SPHINX_BUILD_DIR}" # Output
 			DEPENDS ${SPHINX_INPUT_FILES}
