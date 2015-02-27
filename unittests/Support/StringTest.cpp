@@ -5,13 +5,6 @@
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
 
-TEST(StringTest, Empty) {
-	locic::String string;
-	EXPECT_TRUE(string.empty());
-	EXPECT_EQ(0, string.size());
-	EXPECT_EQ(0, string.length());
-}
-
 TEST(StringTest, EmptyLiteral) {
 	locic::StringHost stringHost;
 	locic::String string0(stringHost, "");

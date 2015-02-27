@@ -83,7 +83,6 @@ function(export_all_flags _filename)
 		list(APPEND _compile_flags "-isystem${_include_dir}")
 	endforeach()
 	
-	message(STATUS "PCH Compile flags: ${_compile_flags}")
 	join_list("${_compile_flags}" "\n" _compile_flags_string)
 	file(WRITE "${_filename}" "${_compile_flags_string}")
 endfunction()
