@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <set>
 #include <stdexcept>
-#include <tuple>
 #include <unordered_set>
 
 #include <locic/AST.hpp>
@@ -25,6 +24,7 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/SemanticAnalysis/TemplateInst.hpp>
 
 namespace locic {
 
@@ -885,11 +885,11 @@ namespace locic {
 			
 			// std::tuple<ScopeStack, SEM::TemplateVarMap, const SEM::HasRequiresPredicate*, Name, Debug::SourceLocation>
 			for (auto& inst: templateInsts) {
-				auto& savedScopeStack = std::get<0>(inst);
-				const auto& variableAssignments = std::get<1>(inst);
-				const auto hasRequiresPredicate = std::get<2>(inst);
-				const auto& parentName = std::get<3>(inst);
-				const auto location = std::get<4>(inst);
+				auto& savedScopeStack = inst.scopeStack();
+				const auto& variableAssignments = inst.templateVarMap();
+				const auto hasRequiresPredicate = inst.templatedObject();
+				const auto& parentName = inst.name();
+				const auto& location = inst.location();
 				
 				const auto& requiresPredicate = hasRequiresPredicate->requiresPredicate();
 				

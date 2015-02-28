@@ -15,6 +15,7 @@
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/SemanticAnalysis/TemplateInst.hpp>
 
 namespace locic {
 
@@ -119,7 +120,7 @@ namespace locic {
 					} else {
 						// Record this instantiation to be checked later.
 						context.templateInstantiations().push_back(
-							std::make_tuple(context.scopeStack().copy(), variableAssignments.copy(), templatedObject, name.copy(), location));
+							TemplateInst(context.scopeStack().copy(), variableAssignments.copy(), templatedObject, name.copy(), location));
 					}
 				} else {
 					if (numTemplateArguments > 0) {

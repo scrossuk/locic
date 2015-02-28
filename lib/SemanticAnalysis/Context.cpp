@@ -16,6 +16,7 @@
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TemplateInst.hpp>
 
 namespace locic {
 
@@ -67,7 +68,7 @@ namespace locic {
 			ScopeStack scopeStack;
 			SEM::Context& semContext;
 			bool templateRequirementsComplete;
-			std::vector<TemplateInstTuple> templateInstantiations;
+			std::vector<TemplateInst> templateInstantiations;
 			std::set<String> validVarArgTypes;
 			mutable StableSet<MethodSet> methodSets;
 			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
@@ -114,7 +115,7 @@ namespace locic {
 			impl_->methodSetMap.insert(std::make_pair(std::make_pair(type, typeInstance->functions().size()), methodSet));
 		}
 		
-		std::vector<TemplateInstTuple>& Context::templateInstantiations() {
+		std::vector<TemplateInst>& Context::templateInstantiations() {
 			return impl_->templateInstantiations;
 		}
 		

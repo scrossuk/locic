@@ -4,7 +4,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include <locic/SEM/TemplateVarMap.hpp>
@@ -37,7 +36,7 @@ namespace locic {
 		
 		class MethodSet;
 		class ScopeStack;
-		using TemplateInstTuple = std::tuple<ScopeStack, SEM::TemplateVarMap, const SEM::TemplatedObject*, Name, Debug::SourceLocation>;
+		class TemplateInst;
 		
 		class Context {
 			public:
@@ -66,7 +65,7 @@ namespace locic {
 				 * later pass. A subsequent pass then re-visits these
 				 * instantiations to check they're valid.
 				 */
-				std::vector<TemplateInstTuple>& templateInstantiations();
+				std::vector<TemplateInst>& templateInstantiations();
 				bool templateRequirementsComplete() const;
 				void setTemplateRequirementsComplete();
 				
