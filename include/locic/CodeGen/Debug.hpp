@@ -25,6 +25,12 @@ namespace locic {
 		class Function;
 		class Module;
 		
+#if defined(LLVM_3_6)
+		using LLVMMetadataValue = llvm::Metadata;
+#else
+		using LLVMMetadataValue = llvm::Value;
+#endif
+		
 		class DebugBuilder {
 			public:
 				DebugBuilder(Module& module);
@@ -54,7 +60,7 @@ namespace locic {
 				
 				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
 				
-				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<llvm::Value*>& parameters);
+				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<LLVMMetadataValue*>& parameters);
 				
 				llvm::Instruction* insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue);
 				

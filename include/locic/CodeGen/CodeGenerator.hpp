@@ -25,6 +25,7 @@ namespace locic {
 		
 		class Context;
 		class Module;
+		class ModulePtr;
 		
 		class CodeGenerator {
 			public:
@@ -32,6 +33,8 @@ namespace locic {
 				~CodeGenerator();
 				
 				Module& module();
+				
+				ModulePtr releaseModule();
 				
 				void applyOptimisations(size_t optLevel);
 				

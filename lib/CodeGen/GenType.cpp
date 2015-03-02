@@ -154,7 +154,7 @@ namespace locic {
 					// TODO!
 					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 					
-					std::vector<llvm::Value*> parameterTypes;
+					std::vector<LLVMMetadataValue*> parameterTypes;
 					parameterTypes.push_back(genDebugType(module, type->getFunctionReturnType()));
 					
 					for (const auto paramType: type->getFunctionParameterTypes()) {

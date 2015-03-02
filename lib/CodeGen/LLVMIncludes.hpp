@@ -5,7 +5,7 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/Passes.h>
 
-#ifdef LLVM_3_5
+#if defined(LLVM_3_5) || defined(LLVM_3_6)
 #include <llvm/IR/Verifier.h>
 #else
 #include <llvm/Analysis/Verifier.h>
@@ -13,20 +13,29 @@
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
-#ifdef LLVM_3_5
+#if defined(LLVM_3_5) || defined(LLVM_3_6)
 #include <llvm/DebugInfo/DIContext.h>
 #else
 #include <llvm/DebugInfo.h>
 #endif
 
-#if defined(LLVM_3_5) && defined(LLVM_DIBUILDER_IN_IR)
+#if defined(LLVM_3_6)
+#include <llvm/IR/DiagnosticInfo.h>
+#include <llvm/IR/DiagnosticPrinter.h>
+#endif
+
+#if (defined(LLVM_3_5) || defined(LLVM_3_6)) && defined(LLVM_DIBUILDER_IN_IR)
 #include <llvm/IR/DIBuilder.h>
 #else
 #include <llvm/DIBuilder.h>
 #endif
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+
+#if !defined(LLVM_3_6)
 #include <llvm/ExecutionEngine/JIT.h>
+#endif
+
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/Constants.h>
@@ -43,7 +52,7 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IRReader/IRReader.h>
 
-#if defined(LLVM_3_5) && defined(LLVM_LINKER_IN_LINKER)
+#if (defined(LLVM_3_5) || defined(LLVM_3_6)) && defined(LLVM_LINKER_IN_LINKER)
 #include <llvm/Linker/Linker.h>
 #else
 #include <llvm/Linker.h>

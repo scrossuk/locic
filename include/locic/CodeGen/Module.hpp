@@ -102,6 +102,8 @@ namespace locic {
 				
 				llvm::LLVMContext& getLLVMContext() const;
 				
+				std::unique_ptr<llvm::Module> releaseLLVMModule();
+				
 				llvm::Module& getLLVMModule() const;
 				
 				llvm::Module* getLLVMModulePtr() const;

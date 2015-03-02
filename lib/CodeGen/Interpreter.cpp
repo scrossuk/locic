@@ -4,6 +4,7 @@
 
 #include <locic/CodeGen/Interpreter.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/ModulePtr.hpp>
 
 namespace locic {
 
@@ -11,14 +12,14 @@ namespace locic {
 		
 		class InterpreterImpl {
 		public:
-			InterpreterImpl(Module& argModule, llvm::ExecutionEngine* const argExecutionEngine)
+			InterpreterImpl(llvm::Module& argModule, llvm::ExecutionEngine* const argExecutionEngine)
 			: module_(argModule), executionEngine_(argExecutionEngine) { }
 			
-			Module& module() {
+			llvm::Module& module() {
 				return module_;
 			}
 			
-			const Module& module() const {
+			const llvm::Module& module() const {
 				return module_;
 			}
 			
@@ -35,13 +36,13 @@ namespace locic {
 			}
 			
 		private:
-			Module& module_;
+			llvm::Module& module_;
 			llvm::ExecutionEngine* executionEngine_;
 			
 		};
 		
-		Interpreter::Interpreter(Context& /*context*/, Module& module)
-		: impl_(new InterpreterImpl(module, nullptr)) {
+		Interpreter::Interpreter(Context& /*context*/, ModulePtr module)
+		: impl_(new InterpreterImpl(module->getLLVMModule(), nullptr)) {
 			llvm::InitializeNativeTarget();
 			llvm::InitializeNativeTargetAsmPrinter();
 			
@@ -49,12 +50,19 @@ namespace locic {
 #ifdef LLVM_3_3
 			targetOptions.JITExceptionHandling = true;
 #endif
-			
-			llvm::EngineBuilder engineBuilder(module.getLLVMModulePtr());
+
+#ifdef LLVM_3_6
+			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule());
+#else
+			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule().release());
+#endif
 			
 			engineBuilder.setEngineKind(llvm::EngineKind::JIT);
 			engineBuilder.setTargetOptions(targetOptions);
+			
+#ifndef LLVM_3_6
 			engineBuilder.setUseMCJIT(true);
+#endif
 			
 			std::string errorString;
 			llvm::ExecutionEngine* const executionEngine = engineBuilder.setErrorStr(&errorString).create();
@@ -67,7 +75,7 @@ namespace locic {
 		Interpreter::~Interpreter() { }
 		
 		void* Interpreter::getFunctionPointer(const std::string& functionName) {
-			llvm::Function* const function = impl_->module().getLLVMModule().getFunction(functionName);
+			llvm::Function* const function = impl_->module().getFunction(functionName);
 			if (function == nullptr) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}
@@ -78,7 +86,7 @@ namespace locic {
 		}
 		
 		int Interpreter::runAsMain(const std::string& functionName, const std::vector<std::string>& args) {
-			llvm::Function* const function = impl_->module().getLLVMModule().getFunction(functionName);
+			llvm::Function* const function = impl_->module().getFunction(functionName);
 			if (function == nullptr) {
 				throw std::runtime_error(std::string("Interpreter failed: No function '") + functionName + std::string("' exists in module."));
 			}

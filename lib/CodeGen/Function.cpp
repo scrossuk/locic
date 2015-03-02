@@ -250,13 +250,14 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
-#ifdef LLVM_3_5
+#if defined(LLVM_3_5) || defined(LLVM_3_6)
 			llvm::raw_os_ostream cerrStream(std::cerr);
 			const bool result = llvm::verifyFunction(function_, &cerrStream);
 			if (result)
 			{
 				const std::string functionName = getLLVMFunction().getName();
 				getLLVMFunction().dump();
+				module().getLLVMModule().dump();
 				throw std::runtime_error(makeString("Verification failed for function '%s'.", functionName.c_str()));
 			}
 #else

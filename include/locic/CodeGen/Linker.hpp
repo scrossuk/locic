@@ -10,10 +10,11 @@ namespace locic {
 		
 		class Context;
 		class Module;
+		class ModulePtr;
 		
 		class Linker {
 			public:
-				Linker(Context& context, Module& module);
+				Linker(Context& context, ModulePtr module);
 				~Linker();
 				
 				void loadModule(const std::string& fileName);
@@ -21,6 +22,8 @@ namespace locic {
 				Module& module();
 				
 				const Module& module() const;
+				
+				ModulePtr releaseModule();
 				
 			private:
 				std::unique_ptr<class LinkerImpl> impl_;

@@ -20,6 +20,7 @@
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
 #include <locic/CodeGen/Linker.hpp>
+#include <locic/CodeGen/ModulePtr.hpp>
 #include <locic/SemanticAnalysis.hpp>
 #include <locic/Support/StringHost.hpp>
 
@@ -287,7 +288,7 @@ int main(int argc, char* argv[]) {
 			return EXIT_SUCCESS;
 		}
 		
-		CodeGen::Linker linker(codeGenContext, codeGenerator.module());
+		CodeGen::Linker linker(codeGenContext, codeGenerator.releaseModule());
 		
 		printf("Linking...\n");
 		
@@ -298,7 +299,7 @@ int main(int argc, char* argv[]) {
 		printf("Starting interpreter...\n");
 		
 		// Interpret the code.
-		CodeGen::Interpreter interpreter(codeGenContext, linker.module());
+		CodeGen::Interpreter interpreter(codeGenContext, linker.releaseModule());
 		
 		// Treat entry point function as if it is 'main'.
 		programArgs.insert(programArgs.begin(), "testProgram");

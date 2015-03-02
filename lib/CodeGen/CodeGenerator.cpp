@@ -23,6 +23,7 @@
 #include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/ModulePtr.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Optimisations.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -125,6 +126,12 @@ namespace locic {
 		
 		Module& CodeGenerator::module() {
 			return *module_;
+		}
+		
+		ModulePtr CodeGenerator::releaseModule() {
+			auto releasedValue = std::move(module_);
+			module_ = std::unique_ptr<Module>();
+			return std::move(releasedValue);
 		}
 		
 		void CodeGenerator::applyOptimisations(size_t optLevel) {

@@ -10,10 +10,11 @@ namespace locic {
 		
 		class Context;
 		class Module;
+		class ModulePtr;
 		
 		class Interpreter {
 			public:
-				Interpreter(Context& context, Module& module);
+				Interpreter(Context& context, ModulePtr module);
 				~Interpreter();
 				
 				void* getFunctionPointer(const std::string& functionName);

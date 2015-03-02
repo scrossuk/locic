@@ -113,14 +113,21 @@ namespace locic {
 				flags, derivedFrom, elements);
 		}
 		
-		llvm::DIType DebugBuilder::createFunctionType(llvm::DIFile file, const std::vector<llvm::Value*>& parameters) {
+		llvm::DIType DebugBuilder::createFunctionType(llvm::DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
+#if defined(LLVM_3_6)
+			return builder_.createSubroutineType(file, builder_.getOrCreateTypeArray(parameters));
+#else
 			return builder_.createSubroutineType(file, builder_.getOrCreateArray(parameters));
+#endif
 		}
 		
 		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue) {
-			const auto dbgDeclareIntrinsic = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::dbg_declare);
-			llvm::Value* args[] = { llvm::MDNode::get(varValue->getContext(), varValue), variable };
-			return function.getEntryBuilder().CreateCall(dbgDeclareIntrinsic, args);
+#if defined(LLVM_3_6)
+			const auto declareInstruction = builder_.insertDeclare(varValue, variable, builder_.createExpression(), function.getEntryBuilder().GetInsertPoint());
+#else
+			const auto declareInstruction = builder_.insertDeclare(varValue, variable, function.getEntryBuilder().GetInsertPoint());
+#endif
+			return declareInstruction;
 		}
 		
 		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function) {
