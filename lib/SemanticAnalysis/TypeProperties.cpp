@@ -255,7 +255,7 @@ namespace locic {
 				}
 			}
 			
-			return SEM::Value::FunctionCall(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
+			return SEM::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
 		}
 		
 		bool checkCapability(Context& context, const SEM::Type* const rawType, const String& capability, SEM::TypeArray templateArgs) {

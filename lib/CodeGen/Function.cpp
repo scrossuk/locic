@@ -250,6 +250,8 @@ namespace locic {
 		}
 		
 		void Function::verify() const {
+			// Only verify functions when built in debug mode.
+#if !defined(NDEBUG)
 #if defined(LLVM_3_5) || defined(LLVM_3_6)
 			llvm::raw_os_ostream cerrStream(std::cerr);
 			const bool result = llvm::verifyFunction(function_, &cerrStream);
@@ -262,6 +264,7 @@ namespace locic {
 			}
 #else
 			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
+#endif
 #endif
 		}
 		

@@ -98,6 +98,7 @@ typename                { return TYPENAME; }
 virtual                 { return VIRTUAL; }
 require                 { return REQUIRE; }
 unused                  { return UNUSED; }
+unused_result           { return UNUSED_RESULT; }
 
 self                    { return SELF; }
 this                    { return THIS; }
@@ -114,7 +115,9 @@ __primitive             { return PRIMITIVE; }
 auto                    { return AUTO; }
 const                   { return CONST; }
 mutable                 { return MUTABLE; }
+__override_const        { return OVERRIDE_CONST; }
 final                   { return FINAL; }
+
 lval                    { return LVAL; }
 nolval                  { return NOLVAL; }
 ref                     { return REF; }

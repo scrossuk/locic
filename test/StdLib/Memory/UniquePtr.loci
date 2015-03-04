@@ -14,7 +14,7 @@ class TestClass(int value) {
 
 void function(std::unique_ptr<TestClass> testObject) {
 	testPrint(C"function()!");
-	(void) testObject;
+	unused_result testObject;
 }
 
 // Entry point.

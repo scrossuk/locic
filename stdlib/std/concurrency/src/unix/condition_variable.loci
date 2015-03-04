@@ -37,19 +37,19 @@ export std.concurrency 0.1.0 {
 				}
 				
 				~ {
-					(void) pthread_cond_destroy(&@conditionObject);
+					unused_result pthread_cond_destroy(&@conditionObject);
 				}
 				
 				void notify_one() noexcept {
-					(void) pthread_cond_signal(&@conditionObject);
+					unused_result pthread_cond_signal(&@conditionObject);
 				}
 				
 				void notify_all() noexcept {
-					(void) pthread_cond_broadcast(&@conditionObject);
+					unused_result pthread_cond_broadcast(&@conditionObject);
 				}
 				
 				void wait(mutex_locker& locker) {
-					(void) pthread_cond_wait(&@conditionObject, locker.internal_mutex().__handle());
+					unused_result pthread_cond_wait(&@conditionObject, locker.internal_mutex().__handle());
 				}
 			}
 			

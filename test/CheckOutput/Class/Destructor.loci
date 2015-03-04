@@ -20,7 +20,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	unused auto testInstance2 = TestClass(2);
 	
 	{
-		(void) TestClass(3);
+		unused_result TestClass(3);
 		unused auto testInstance3 = TestClass(4);
 	}
 	

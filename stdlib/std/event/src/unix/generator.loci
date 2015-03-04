@@ -31,7 +31,7 @@ export std.event 0.1.0 {
 				}
 				
 				~ {
-					(void) std_event_generator_closepipe(@handlePair);
+					unused_result std_event_generator_closepipe(@handlePair);
 				}
 				
 				void notify() {

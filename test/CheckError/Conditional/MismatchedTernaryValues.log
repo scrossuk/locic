@@ -1,1 +1,1 @@
-User cast failed from type 'double_t' to type 'int8_t' at position SourceLocation\(filename = (.*)/MismatchedTernaryValues\.loci, range = \(line 3, column 9\) to \(line 3, column 23\)\)\.
+User cast failed from type 'double_t' to type 'int8_t' at position SourceLocation\(filename = (.*)/MismatchedTernaryValues\.loci, range = \(line 3, column 16\) to \(line 3, column 30\)\)\.

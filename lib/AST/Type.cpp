@@ -13,9 +13,6 @@ namespace locic {
 				case AUTO:
 					return "auto";
 					
-				case BRACKET:
-					return std::string("(") + getBracketTarget()->toString() + ")";
-					
 				case CONST:
 					return std::string("const ") + getConstTarget()->toString();
 					

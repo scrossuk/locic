@@ -46,7 +46,7 @@ namespace sf {
 		}
 		
 		void restart() {
-			(void) sfClock_restart(@clock);
+			unused_result sfClock_restart(@clock);
 		}
 	}
 	

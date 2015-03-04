@@ -40,7 +40,7 @@ export std.concurrency 0.1.0 {
 				}
 				
 				~ {
-					(void) pthread_mutex_destroy(&@mutexObject);
+					unused_result pthread_mutex_destroy(&@mutexObject);
 				}
 				
 				pthread_mutex_t* __handle() noexcept {
@@ -55,7 +55,7 @@ export std.concurrency 0.1.0 {
 				}
 				
 				void unlock() noexcept {
-					(void) pthread_mutex_unlock(&@mutexObject);
+					unused_result pthread_mutex_unlock(&@mutexObject);
 				}
 			}
 			

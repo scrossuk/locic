@@ -33,7 +33,6 @@ namespace locic {
 				LVAL,
 				REF,
 				STATICREF,
-				BRACKET,
 				VOID,
 				INTEGER,
 				FLOAT,
@@ -42,10 +41,6 @@ namespace locic {
 				POINTER,
 				FUNCTION
 			} typeEnum;
-			
-			struct {
-				Node<Type> targetType;
-			} bracketType;
 			
 			struct {
 				Node<Type> targetType;
@@ -112,12 +107,6 @@ namespace locic {
 			
 			inline static Type* Void() {
 				return new Type(VOID);
-			}
-			
-			inline static Type* Bracket(Node<Type> targetType) {
-				Type* type = new Type(BRACKET);
-				type->bracketType.targetType = targetType;
-				return type;
 			}
 			
 			inline static Type* Const(Node<Type> targetType) {
@@ -213,15 +202,6 @@ namespace locic {
 			
 			inline bool isVoid() const {
 				return typeEnum == VOID;
-			}
-			
-			inline bool isBracket() const {
-				return typeEnum == BRACKET;
-			}
-			
-			inline Node<Type> getBracketTarget() const {
-				assert(isBracket());
-				return bracketType.targetType;
 			}
 			
 			inline bool isConst() const {

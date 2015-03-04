@@ -73,7 +73,7 @@ export std.concurrency 0.1.0 {
 					thread_runnable& internalRunnableRef = *internalRunnable;
 					
 					// TODO: fix this!
-					(void) internalRunnable.release();
+					unused_result internalRunnable.release();
 					
 					return @(internalRunnableRef, mutex(), false, threadObject);
 				}

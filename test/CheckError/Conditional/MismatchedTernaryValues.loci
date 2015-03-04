@@ -1,6 +1,6 @@
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	(void) true ? 1 : 1.0;
+	unused_result(true ? 1 : 1.0);
 	return 0;
 }
 

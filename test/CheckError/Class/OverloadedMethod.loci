@@ -5,11 +5,11 @@ class TestClass(int value) {
 	static Create = default;
 	
 	void doSomething(int i) {
-		(void) i;
+		unused_result i;
 	}
 	
 	void doSomething(float f) {
-		(void) f;
+		unused_result f;
 	}
 }
 

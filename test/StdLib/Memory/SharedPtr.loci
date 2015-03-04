@@ -40,9 +40,9 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 		unused auto owner2 = owner0;
 	}
 	
-	(void) move sharedPtr;
-	(void) move owner0;
-	(void) move owner1;
+	unused_result move sharedPtr;
+	unused_result move owner0;
+	unused_result move owner1;
 	
 	testPrint(C"All pointers destroyed...");
 	

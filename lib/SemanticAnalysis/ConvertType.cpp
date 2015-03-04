@@ -75,9 +75,6 @@ namespace locic {
 				case AST::Type::AUTO: {
 					return SEM::Type::Auto(context.semContext());
 				}
-				case AST::Type::BRACKET: {
-					return ConvertType(context, type->getBracketTarget());
-				}
 				case AST::Type::CONST: {
 					return ConvertType(context, type->getConstTarget())->createConstType();
 				}

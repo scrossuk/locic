@@ -9,7 +9,7 @@ class TestClass (int value) {
 }
 
 void function() noexcept {
-	(void) (TestClass(1) + 1);
+	unused_result(TestClass(1) + 1);
 }
 
 // Entry point.

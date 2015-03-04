@@ -1,12 +1,12 @@
 Const
 =====
 
-The 'const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides 'const', but with some syntactic and semantic changes.
+The 'const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides 'const', but with some simple syntactic and semantic changes.
 
-Const and Final
----------------
+Const Values
+------------
 
-One of the most notable changes for programming languages, which ties in with the concept of 'lvals', is a modification in the application of 'const' so it (generally) only applies to 'r-values' and not to 'l-values'. Consider the following example in C:
+As in C and C++ 'const' prevents modifications of values. For example, the following code is invalid:
 
 .. code-block:: c++
 
@@ -15,88 +15,89 @@ One of the most notable changes for programming languages, which ties in with th
 		i = 1;
 	}
 
-This is invalid C code, since the assignment is attempting to assign to a variable declared 'const'. In constrast, this code is valid in Loci, and the 'const' is essentially meaningless, since it applies to the 'int' type rather than the 'lval' that holds the 'int'. To make this clearer, here is an equivalent example with explicit lval types:
+In this case the compiler will complain that the underlying :doc:`lvalue <LvaluesAndRvalues>` has a :doc:`require predicate <Predicates>` for its 'assign' method that specifies the templated type must be movable; const types are NOT movable and therefore the assignment cannot occur.
 
-.. code-block:: c++
-
-	void function() {
-		lval<const int> value_lval<const int> i = lval<const int>(value_lval<const int>(0));
-		i = 1;
-	}
-
-It's then clearer in this case that while 'int' is declared as const, the implicitly generated 'value_lval' is not (and so its non-const 'assign' method can be called). The correct solution to this problem in Loci is to use 'final':
-
-.. code-block:: c++
-
-	void function() {
-		final int i = 0;
-		i = 1;
-	}
-
-This has the desired result of generating a suitable compile time error for the assignment. Again, for clarity, here's the explicit form:
-
-.. code-block:: c++
-
-	void function() {
-		lval<int> const value_lval<int> i = lval<int>(value_lval<int>(0));
-		i = 1;
-	}
-
-So 'final' provides a way to specify that the implicitly generated lval is const. To understand the rationale for this decision, consider:
-
-.. code-block:: c++
-
-	class ExampleClass {
-		static ExampleClass create();
-		void modify();
-	}
-	
-	void function(final const ExampleClass * const examplePtr) {
-		examplePtr = null;
-		*examplePtr = ExampleClass();
-		examplePtr->modify();
-	}
-
-Each statement in 'function' tests a different 'node' in the type tree, and are allowable or not dependent on whether that node is const. Each statement in the function generates a compile-time error, since:
-
-* The application of 'final' means the lval is const, hence the variable can't be re-assigned.
-* The application of 'const' after the asterisk means the pointer is const, hence its 'deref' method generates a const lval (in this case, a 'ptr_lval') and so the value it points-to cannot be re-assigned.
-* The application of 'const' before 'ExampleClass' means the object being pointed to is also const, and therefore also cannot be modified. This prevents any calls to non-const methods (such as 'modify').
-
-Const Chains
-------------
-
-Const implicit casting rules follow a concept of 'const chains', meaning that a type node may only become const when all its parent nodes have become const (i.e. there is a chain from the 'root' to the type node of const types). Here's an example:
-
-..
-
-	Valid:   int ** -> int ** const
-	
-	Invalid: int ** -> int * const *
-	
-	Valid:   int ** const -> int * const * const
-	
-	Invalid: int ** const -> int const ** const
-	
-	Valid:   int ** const -> int const * const * const
-	
-	Valid:   int ** -> int const * const * const
-	
-	Invalid: int * const * -> int const * const *
-	
-	Valid:   int * const * -> int const * const * const
-
-Note that, in the last case, a type such as 'int\* const\*' can be achieved by code such as following:
+Here's another example of invalid code in both C++ and Loci:
 
 .. code-block:: c++
 
 	void function() {
 		int i = 0;
-		int* j = &i;
-		int* const k = j;
-		int* const * l = &k;
-		// etc.
+		const int* p = &i;
+		*p = 1;
 	}
+
+Again the template type of the dereferenced pointer lvalue is const and hence not movable.
+
+Transitivity
+------------
+
+Consider the following C++ code:
+
+.. code-block:: c++
+
+	void function() {
+		int i = 0;
+		int* const p = &i;
+		*p = 1;
+	}
+
+Here the pointer is declared const but the value it points to is **not** const, which means the code is accepted. Note that while const is transitive within values in C++, it is **not** transitive across pointers.
+
+In Loci const is transitive in all cases, so the code might look like:
+
+.. code-block:: c++
+
+	void function() {
+		int i = 0;
+		const(int*) p = &i;
+		*p = 1;
+	}
+
+This program will be rejected by the compiler, because 'p' is a const pointer to a const int, due to the transitivity of const.
+
+Not only is the syntax much simpler here but the semantics of transitive const are much more obvious. For example, consider:
+
+.. code-block:: c++
+
+	struct Example {
+		int* value;
+	};
+	
+	void function(const Example exampleInstance) {
+		*(exampleInstance.value) = 42;
+	}
+
+This code would be valid in C++ but is *invalid* in Loci. The intention behind this approach is to provide behaviour that is clearer and more closely matches the intuition of developers.
+
+Final
+-----
+
+Consider the following code:
+
+.. code-block:: c++
+
+	void function() {
+		int i = 0;
+		const(int*) p = &i;
+		*p = 1;
+	}
+
+In this case we may have intended to use const to prevent accidental assignments to p, but in this case due to the transitivity of const we've also disabled assignments to the value it points-to.
+
+Fortunately the 'final' keyword provides a way to prevent assignments to an lvalue without having to mark it const. So the above code would become:
+
+.. code-block:: c++
+
+	void function() {
+		int i = 0;
+		final int* p = &i;
+		*p = 1;
+	}
+
+Now the code will compile, but any assignments to 'p' itself fails. The implementation of this keyword is to use a 'final_lval' as the underlying lvalue type, which doesn't support assignment in any case, rather than 'value_lval' (which does support assignment for non-const types).
+
+Note that 'final' is an lvalue qualifier (or 'variable qualifier') rather than a type qualifier, so doesn't affect Loci's type system in any way.
 
 Logical Const
 -------------
@@ -127,15 +128,15 @@ Compilers are allowed to optimise (note also that optimisations can only be perf
 
 .. code-block:: c++
 
-	// A type alias. Note that 'const CString' is actually 'char* const'.
-	using CString = char *;
+	// A type alias.
+	using CString = const uchar *;
 	
 	void unknownStringOperation(const CString string);
 	void printSize(size_t size);
 	void printStringLength(const CString string) {
 		size_t length = 0;
 		CString ptr = string;
-			while(*ptr != 0x00){
+		while(*ptr != 0x00u){
 			length++;
 			ptr++;
 		}
@@ -175,19 +176,19 @@ Which, in combination with other transformations (such as inlining), leads to th
 		printSize(cast<size_t>(16));
 	}
 
-Mutable
--------
+Overriding Const
+----------------
 
-As part of 'logical const', Loci provides the 'mutable' keyword, which allows developers to explicitly ignore const markers if needed:
+As part of 'logical const', Loci provides the '__override_const' keyword, which allows developers to explicitly ignore const markers if needed:
 
 .. code-block:: c++
 
-	struct Struct{
+	struct Struct {
 		int normalField;
-		mutable int mutableField;
+		__override_const int mutableField;
 	};
 	
-	void function(const Struct& ref){
+	void function(const Struct& ref) {
 		// Invalid - 'normalField' is now const.
 		ref.normalField = 1;
 		
@@ -195,13 +196,11 @@ As part of 'logical const', Loci provides the 'mutable' keyword, which allows de
 		ref.mutableField = 1;
 	}
 
-Following the rules of logical const, 'mutable' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations occur based on const, it is important that developers only use 'mutable' when absolutely necessary and ensure correctness when it is used.
+Following the rules of logical const, '__override_const' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations occur based on const, it is important that developers only use '__override_const' when absolutely necessary and ensure correctness when it is used.
 
-Of course this means the example given for 'mutable' (involving the mutable field of a struct) is an incorrect use, since the field marked as 'mutable' is directly accessible to functions 'f' and 'g'footnote{Consider the case where 'f' modifies the mutable field, and 'g' reads it.}.
+A good example of its correct use would be in a reference counting smart pointer class, in which the reference count field can (and should) be marked as '__override_const'. Considering the transformation above once again, it doesn't matter whether 'f' modifies the reference count (it could, for example, create a copy of the smart pointer and store it somewhere, increasing the reference count), because 'g' only depends on a count greater than 0 (and the reference counting invariant is intended to ensure that is always true until the last smart pointer object is destroyed).
 
-A good example of its correct use would be in a reference counting smart pointer class, in which the reference count field can (and should) be marked as 'mutable'. Considering the transformation above once again, it doesn't matter whether 'f' modifies the reference countfootnote{It could, for example, create a copy of the smart pointer and store it somewhere, increasing the reference count.}, because 'g' only depends on a count greater than 0 (and the reference counting invariant is intended to ensure that is always true until the last smart pointer object is destroyed).
-
-Marking class member variable mutexes as 'mutable' is another example of a good use of the keyword, since 'lock' and 'unlock' methods modify the external behaviour of the mutexfootnote{Consider calling 'lock' twice in a row, without calling 'unlock'.} and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
+Marking class member variable mutexes as '__override_const' is another example of a good use of the keyword, since 'lock' and 'unlock' methods modify the external behaviour of the mutexfootnote{Consider calling 'lock' twice in a row, without calling 'unlock'.} and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
 
 .. code-block:: c++
 
@@ -221,7 +220,7 @@ Marking class member variable mutexes as 'mutable' is another example of a good 
 		}
 	}
 	
-	class CustomType(mutable Mutex mutex, Type value){
+	class CustomType(__override_const Mutex mutex, Type value){
 		// ...
 		
 		void setValue(Type value) {
@@ -244,7 +243,7 @@ Methods can be marked as 'const' to indicate they do not modify their owning obj
 
 .. code-block:: c++
 
-	class ClassObject{
+	class ClassObject {
 		void normalMethod();
 		void constMethod() const;
 	}
@@ -258,6 +257,15 @@ Methods can be marked as 'const' to indicate they do not modify their owning obj
 		object.constMethod();
 	}
 
+It's possible to specify a :doc:`predicate <Predicates>` within the const declaration. For example:
+
+.. code-block:: c++
+
+	template <bool IsConst>
+	class ClassObject {
+		void method() const(IsConst);
+	}
+
 Casting Const Away
 ------------------
 
@@ -267,11 +275,11 @@ Const can be cast away if needed with 'const_cast', but doing so could be very d
 
 	void doSomething(int i);
 	
-	void oldAPI(int * i){
+	void oldAPI(int* i) {
 		doSomething(*i);
 	}
 	
-	void f(const int * const i){
+	void f(const(int*) i) {
 		oldAPI(const_cast<int *>(i));
 	}
 

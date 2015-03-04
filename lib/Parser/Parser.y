@@ -97,13 +97,37 @@ const T& GETSYM(T* value) {
 // Use the GLR parsing algorithm.
 %glr-parser
 
-// Expecting to get a certain number of shift/reduce
-// and reduce/reduce conflicts.
-%expect 7
+// Shift/reduce conflicts occur due to the triangle bracket
+// template syntax conflicting with the less-than operator.
+// 
+// For example, you can have:
+// 
+// Type < Arg0, Arg1 >( values... )
+// 
+// ...and:
+// 
+// Value < Value
+// 
+// Ultimately it's unambiguous whether the expression is
+// a template type or a more-than expression but due to
+// limited lookup shift/reduce conflicts occur.
+%expect 3
 
 // Reduce-reduce conflicts occur due to the clash between
 // variable definitions and value assignments (resolved
 // by favouring the latter; see below for more information).
+// 
+// For example, you can have:
+// 
+// Type * var = value;
+// 
+// ...and:
+// 
+// value * value = value;
+// 
+// Obviously the former case will be preferred, but this
+// technical ambiguity generates reduce/reduce conflicts.
+// This applies for the following tokens: '*', '&', '(' and ')'.
 %expect-rr 4
 
 %lex-param {void * scanner}
@@ -227,6 +251,7 @@ const T& GETSYM(T* value) {
 %token VIRTUAL
 %token REQUIRE
 %token UNUSED
+%token UNUSED_RESULT
 
 %token USING
 %token ENUM
@@ -273,6 +298,8 @@ const T& GETSYM(T* value) {
 %token FINAL
 %token CONST
 %token MUTABLE
+%token OVERRIDE_CONST
+
 %token STAR
 %token COMMA
 %token IF
@@ -359,8 +386,6 @@ const T& GETSYM(T* value) {
 %type <constSpecifier> constSpecifier
 %type <requireSpecifier> requireSpecifier
 
-%type <type> staticMethodReturn
-
 %type <function> nonTemplatedStaticMethodDecl
 %type <function> nonTemplatedStaticMethodDef
 %type <function> nonTemplatedMethodDecl
@@ -388,7 +413,6 @@ const T& GETSYM(T* value) {
 %type <typeList> emptyTypeList
 %type <typeList> nonEmptyTypeList
 %type <typeList> typeList
-%type <typeList> templateTypeList
 %type <typeVar> patternTypeVar
 %type <typeVar> typeVar
 %type <typeVarList> nonEmptyTypeVarList
@@ -396,6 +420,10 @@ const T& GETSYM(T* value) {
 %type <typeVarList> structVarList
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarList> templateTypeVarList
+
+%type <type> templateArgument
+%type <typeList> templateArgumentList
+%type <typeList> templateValueList
 
 %type <string> functionNameElement
 %type <name> functionName
@@ -805,23 +833,19 @@ methodDeclList:
 	}
 	;
 
-staticMethodReturn:
-	/* empty */
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
-	}
-	| type
-	{
-		$$ = $1;
-	}
-	;
-
 nonTemplatedStaticMethodDef:
 	STATIC methodName SETEQUAL DEFAULT SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::DefaultStaticMethodDef(GETSYM($2))));
 	}
-	| STATIC staticMethodReturn methodName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier scope
+	| STATIC methodName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier scope
+	{
+		const auto returnType = locic::AST::makeNode(LOC(&@1), locic::AST::Type::Auto());
+		const bool isVarArg = false;
+		const bool isStatic = true;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Function::Def(isVarArg, isStatic, $7, returnType, GETSYM($2), GETSYM($4), GETSYM($9), GETSYM($6), GETSYM($8))));
+	}
+	| STATIC type methodName LROUNDBRACKET typeVarList RROUNDBRACKET constSpecifier noexceptSpecifier requireSpecifier scope
 	{
 		const bool isVarArg = false;
 		const bool isStatic = true;
@@ -1024,11 +1048,12 @@ destructorName:
 	;
 
 symbolElement:
-	NAME emptyTypeList
+	NAME
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, GETSYM($2))));
+		const auto emptyTypeList = locic::AST::makeNode(LOC(&@1), new locic::AST::TypeList());
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, emptyTypeList)));
 	}
-	| NAME LTRIBRACKET templateTypeList RTRIBRACKET
+	| NAME LTRIBRACKET templateValueList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, GETSYM($3))));
 	}
@@ -1197,10 +1222,6 @@ typePrecision4:
 	{
 		$$ = $1;
 	}
-	| LROUNDBRACKET typePrecision0 RROUNDBRACKET
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Bracket(GETSYM($2))));
-	}
 	| LROUNDBRACKET STAR RROUNDBRACKET LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Function(GETSYM($5), GETSYM($8))));
@@ -1209,11 +1230,12 @@ typePrecision4:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::VarArgFunction(GETSYM($5), GETSYM($8))));
 	}
-	| LROUNDBRACKET error RROUNDBRACKET
+	// To be brought back if existing reduce/reduce conflicts can be eliminated...
+	/*| error
 	{
-		parserContext->error("Invalid type.", LOC(&@2));
+		parserContext->error("Invalid type.", LOC(&@1));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Auto()));
-	}
+	}*/
 	;
 
 typePrecision3:
@@ -1225,13 +1247,25 @@ typePrecision3:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
 	}
+	| CONST LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($3))));
+	}
 	| CONST LTRIBRACKET predicateExpr RTRIBRACKET typePrecision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::ConstPredicate(GETSYM($3), GETSYM($5))));
 	}
+	| CONST LTRIBRACKET predicateExpr RTRIBRACKET LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::ConstPredicate(GETSYM($3), GETSYM($6))));
+	}
 	| MUTABLE typePrecision4
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Mutable(GETSYM($2))));
+	}
+	| MUTABLE LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Mutable(GETSYM($3))));
 	}
 	;
 
@@ -1244,13 +1278,25 @@ typePrecision2:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($5))));
 	}
+	| LVAL LTRIBRACKET type RTRIBRACKET LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($6))));
+	}
 	| REF LTRIBRACKET type RTRIBRACKET typePrecision3
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($5))));
 	}
+	| REF LTRIBRACKET type RTRIBRACKET LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($6))));
+	}
 	| STATICREF LTRIBRACKET type RTRIBRACKET typePrecision3
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::StaticRef(GETSYM($3), GETSYM($5))));
+	}
+	| STATICREF LTRIBRACKET type RTRIBRACKET LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::StaticRef(GETSYM($3), GETSYM($6))));
 	}
 	;
 
@@ -1325,19 +1371,38 @@ typeList:
 	}
 	;
 
-// Template type lists are actually considered as tuples, and brackets can be
-// added to resolve ambiguities; from a syntactic point of view no-brackets is
-// actually the special case.
-templateTypeList:
-	nonEmptyTypeList
+templateArgument:
+	type
 	{
 		$$ = $1;
 	}
-	| LROUNDBRACKET nonEmptyTypeList COMMA RROUNDBRACKET
+	;
+
+templateArgumentList:
+	templateArgument
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeList(1, GETSYM($1))));
+	}
+	| templateArgumentList COMMA templateArgument
+	{
+		(GETSYM($1))->push_back(GETSYM($3));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+// Template value lists are actually considered as tuples, and brackets can be
+// added to resolve ambiguities; from a syntactic point of view no-brackets is
+// actually the special case.
+templateValueList:
+	templateArgumentList
+	{
+		$$ = $1;
+	}
+	| LROUNDBRACKET templateArgumentList COMMA RROUNDBRACKET
 	{
 		$$ = $2;
 	}
-	| LROUNDBRACKET nonEmptyTypeList COMMA type RROUNDBRACKET
+	| LROUNDBRACKET templateArgumentList COMMA templateArgument RROUNDBRACKET
 	{
 		(GETSYM($2))->push_back(GETSYM($4));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($2)).get()));
@@ -1638,9 +1703,9 @@ normalStatement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(GETSYM($1))));
 	}
-	| LROUNDBRACKET VOID RROUNDBRACKET value
+	| UNUSED_RESULT value
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmtVoidCast(GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmtVoidCast(GETSYM($2))));
 	}
 	| RETURN
 	{
@@ -1703,7 +1768,7 @@ castKind:
 	;
 	
 value_precedence0:
-	LROUNDBRACKET value_precedence8 RROUNDBRACKET
+	LROUNDBRACKET value RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Bracket(GETSYM($2))));
 	}
@@ -1774,7 +1839,7 @@ value_precedence1:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), $3)));
 	}
-	| value_precedence1 DOT functionNameElement LTRIBRACKET templateTypeList RTRIBRACKET
+	| value_precedence1 DOT functionNameElement LTRIBRACKET templateValueList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), $3, GETSYM($5))));
 	}

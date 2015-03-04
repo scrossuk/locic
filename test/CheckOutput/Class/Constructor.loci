@@ -16,9 +16,9 @@ class TestClass(int value) {
 
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	(void) TestClass(1);
-	(void) TestClass::Create(2);
-	(void) TestClass::Other(3);
+	unused_result TestClass(1);
+	unused_result TestClass::Create(2);
+	unused_result TestClass::Other(3);
 	return 0;
 }
 

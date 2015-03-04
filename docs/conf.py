@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Loci Programming Language'
-copyright = u'2014, Stephen Cross'
+copyright = u'2015, Stephen Cross'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -135,7 +135,7 @@ namespace locic {
 		ArgPair genCallValue(Function& function, const SEM::Value& value) {
 			switch (value.kind()) {
 				case SEM::Value::REFVALUE: {
-					const auto& dataValue = *(value.refValue.value);
+					const auto& dataValue = value.refValueOperand();
 					const bool isContextRef = dataValue.type()->isBuiltInReference()
 						|| !canPassByValue(function.module(), dataValue.type());
 					return std::make_pair(genValue(function, dataValue), isContextRef);
@@ -151,11 +151,11 @@ namespace locic {
 		bool isTrivialFunction(Module& module, const SEM::Value& value) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					return value.functionRef.function->isPrimitive();
+					return value.functionRefFunction()->isPrimitive();
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					return isTrivialFunction(module, *(value.methodObject.method));
+					return isTrivialFunction(module, value.methodObject());
 				}
 				
 				default: {
@@ -177,16 +177,16 @@ namespace locic {
 						llvmArgs.push_back(genCallValue(function, arg));
 					}
 					
-					if (value.functionRef.function->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, value.functionRef.parentType,
-							value.functionRef.function, llvmArgs);
+					if (value.functionRefFunction()->isPrimitive()) {
+						return genTrivialPrimitiveFunctionCall(function, value.functionRefParentType(),
+							value.functionRefFunction(), llvmArgs);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					const auto& dataValue = *(value.methodObject.methodOwner);
+					const auto& dataValue = value.methodOwner();
 					const auto llvmDataValue = genValue(function, dataValue);
 					const bool isContextRef = dataValue.type()->isBuiltInReference()
 						|| !canPassByValue(function.module(), dataValue.type());
@@ -196,7 +196,7 @@ namespace locic {
 						scheduleDestructorCall(function, dataValue.type(), llvmDataValue);
 					}
 					
-					return genTrivialFunctionCall(function, *(value.methodObject.method), args, std::make_pair(llvmDataValue, isContextRef));
+					return genTrivialFunctionCall(function, value.methodObject(), args, std::make_pair(llvmDataValue, isContextRef));
 				}
 				
 				default: {
@@ -214,8 +214,8 @@ namespace locic {
 				case SEM::Value::FUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
-					const auto parentType = value.functionRef.parentType;
-					const auto functionRefPtr = genFunctionRef(module, parentType, value.functionRef.function);
+					const auto parentType = value.functionRefParentType();
+					const auto functionRefPtr = genFunctionRef(module, parentType, value.functionRefFunction());
 					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					
 					// There may need to be a stub generated to handle issues with types being
@@ -224,9 +224,9 @@ namespace locic {
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
 					if (value.type()->isFunctionTemplated()) {
-						if (!value.functionRef.templateArguments.empty()) {
+						if (!value.functionRefTemplateArguments().empty()) {
 							// The function is templated on the function (and potentially also the parent object).
-							const auto templateInst = TemplateInst::Function(parentType, value.functionRef.function, arrayRef(value.functionRef.templateArguments));
+							const auto templateInst = TemplateInst::Function(parentType, value.functionRefFunction(), arrayRef(value.functionRefTemplateArguments()));
 							callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
 						} else {
 							// The function is only templated on the parent object.
@@ -240,9 +240,9 @@ namespace locic {
 				case SEM::Value::TEMPLATEFUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
-					const auto parentType = value.templateFunctionRef.parentType;
-					const auto& functionName = value.templateFunctionRef.name;
-					const auto functionType = value.templateFunctionRef.functionType;
+					const auto parentType = value.templateFunctionRefParentType();
+					const auto& functionName = value.templateFunctionRefName();
+					const auto functionType = value.templateFunctionRefFunctionType();
 					
 					// Template function references involve creating a stub that performs
 					// a virtual call to the actual call. Since the virtual call mechanism
@@ -264,12 +264,12 @@ namespace locic {
 					
 					FunctionCallInfo callInfo;
 					
-					const auto functionCallInfo = genFunctionCallInfo(function, *(value.methodObject.method));
+					const auto functionCallInfo = genFunctionCallInfo(function, value.methodObject());
 					
 					callInfo.functionPtr = functionCallInfo.functionPtr;
 					callInfo.templateGenerator = functionCallInfo.templateGenerator;
 					
-					const auto& dataValue = *(value.methodObject.methodOwner);
+					const auto& dataValue = value.methodOwner();
 					const auto llvmDataValue = genValue(function, dataValue);
 					
 					// Methods must have a pointer to the object, which

@@ -109,22 +109,22 @@ This differs significantly from C, in which types and names can overlap in confu
 .. code-block:: c
 
 	void (*f)(); // C
-	void (*)() f; // Loci
+	(*)(void)() f; // Loci
 	
 	int (*f)(); // C
-	int (*)() f; // Loci
+	(*)(int)() f; // Loci
 	
 	int (*f)(int, int); // C
-	*(int)(int, int) f; // Loci
+	(*)(int)(int, int) f; // Loci
 
 Similarly, typedefs are much clearer in Loci:
 
 .. code-block:: c
 
 	typedef ReturnType (*NewName)(ParamType param); // C
-	typedef *(ReturnType)(ParamType) NewName; // Loci
+	typedef (*)(ReturnType)(ParamType) NewName; // Loci
 
-Some types (such as structs and datatypes) also support pattern matching, with the following structure:
+Some types (such as structs and datatypes) also support pattern matching, with the following (rough) structure:
 
 .. code-block:: c
 

@@ -46,27 +46,27 @@ namespace locic {
 					return function.getContextValue(value.type()->templateArguments().at(0)->getObjectType());
 				}
 				case SEM::Value::CONSTANT: {
-					switch (value.constant->kind()) {
+					switch (value.constant()->kind()) {
 						case locic::Constant::NULLVAL:
 							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getI8PtrType());
 									   
 						case locic::Constant::BOOLEAN:
-							return ConstantGenerator(module).getI1(value.constant->boolValue());
+							return ConstantGenerator(module).getI1(value.constant()->boolValue());
 						
 						case locic::Constant::INTEGER: {
 							assert(value.type()->isObject());
-							const auto integerValue = value.constant->integerValue();
+							const auto integerValue = value.constant()->integerValue();
 							return ConstantGenerator(module).getPrimitiveInt(value.type()->getObjectType()->name().last(), integerValue);
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
 							assert(value.type()->isObject());
-							const auto floatValue = value.constant->floatValue();
+							const auto floatValue = value.constant()->floatValue();
 							return ConstantGenerator(module).getPrimitiveFloat(value.type()->getObjectType()->name().last(), floatValue);
 						}
 						
 						case locic::Constant::CHARACTER: {
-							const auto characterValue = value.constant->characterValue();
+							const auto characterValue = value.constant()->characterValue();
 							
 							const auto& typeName = value.type()->resolveAliases()->getObjectType()->name().last();
 							
@@ -78,7 +78,7 @@ namespace locic {
 						}
 						
 						case locic::Constant::STRING: {
-							const auto& stringValue = value.constant->stringValue();
+							const auto& stringValue = value.constant()->stringValue();
 							
 							const auto arrayType =
 								TypeGenerator(module).getArrayType(
@@ -100,12 +100,12 @@ namespace locic {
 				}
 				
 				case SEM::Value::LOCALVAR: {
-					const auto var = value.localVar.var;
+					const auto& var = value.localVar();
 					return function.getLocalVarMap().get(var);
 				}
 				
 				case SEM::Value::REINTERPRET: {
-					const auto sourceValue = genValue(function, *(value.reinterpretValue.value));
+					const auto sourceValue = genValue(function, value.reinterpretOperand());
 					const auto targetType = genType(module, value.type());
 					
 					// Currently, reinterpret_cast is only implemented for pointers.
@@ -113,13 +113,13 @@ namespace locic {
 				}
 				
 				case SEM::Value::DEREF_REFERENCE: {
-					llvm::Value* refValue = genValue(function, *(value.derefReference.value));
+					llvm::Value* refValue = genValue(function, value.derefOperand());
 					return genMoveLoad(function, refValue, value.type());
 				}
 				
 				case SEM::Value::UNIONTAG: {
-					const auto unionType = value.unionTag.operand->type();
-					const auto unionValue = genValue(function, *(value.unionTag.operand));
+					const auto unionType = value.unionTagOperand().type();
+					const auto unionValue = genValue(function, value.unionTagOperand());
 					
 					llvm::Value* unionValuePtr = nullptr;
 					
@@ -137,23 +137,23 @@ namespace locic {
 				}
 				
 				case SEM::Value::SIZEOF: {
-					return genSizeOf(function, value.sizeOf.targetType);
+					return genSizeOf(function, value.sizeOfType());
 				}
 				
 				case SEM::Value::UNIONDATAOFFSET: {
 					// Offset of union datatype data is equivalent to its
 					// alignment size.
-					return genAlignOf(function, value.unionDataOffset.typeInstance->selfType());
+					return genAlignOf(function, value.unionDataOffsetTypeInstance()->selfType());
 				}
 				
 				case SEM::Value::MEMBEROFFSET: {
 					// Offset of union datatype data is equivalent to its
 					// alignment size.
-					return genMemberOffset(function, value.memberOffset.typeInstance->selfType(), value.memberOffset.memberIndex);
+					return genMemberOffset(function, value.memberOffsetTypeInstance()->selfType(), value.memberOffsetMemberIndex());
 				}
 				
 				case SEM::Value::TERNARY: {
-					const auto condValue = genValue(function, *(value.ternary.condition));
+					const auto condValue = genValue(function, value.ternaryCondition());
 					
 					const auto ifTrueBB = function.createBasicBlock("");
 					const auto ifFalseBB = function.createBasicBlock("");
@@ -162,13 +162,13 @@ namespace locic {
 					const auto currentBB = function.getBuilder().GetInsertBlock();
 					
 					function.selectBasicBlock(ifTrueBB);
-					const auto ifTrueValue = genValue(function, *(value.ternary.ifTrue));
+					const auto ifTrueValue = genValue(function, value.ternaryIfTrue());
 					const auto ifTrueTermBlock = function.getBuilder().GetInsertBlock();
 					const auto ifTrueIsEmpty = ifTrueBB->empty();
 					function.getBuilder().CreateBr(afterCondBB);
 					
 					function.selectBasicBlock(ifFalseBB);
-					const auto ifFalseValue = genValue(function, *(value.ternary.ifFalse));
+					const auto ifFalseValue = genValue(function, value.ternaryIfFalse());
 					const auto ifFalseTermBlock = function.getBuilder().GetInsertBlock();
 					const auto ifFalseIsEmpty = ifFalseBB->empty();
 					function.getBuilder().CreateBr(afterCondBB);
@@ -207,7 +207,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::CAST: {
-					const auto& castValue = *(value.cast.value);
+					const auto& castValue = value.castOperand();
 					const auto codeValue = genValue(function, castValue);
 					const auto sourceType = castValue.type()->resolveAliases();
 					const auto destType = value.type()->resolveAliases();
@@ -281,7 +281,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::POLYCAST: {
-					const auto& castValue = *(value.polyCast.value);
+					const auto& castValue = value.polyCastOperand();
 					const auto rawValue = genValue(function, castValue);
 					const auto sourceType = castValue.type();
 					
@@ -330,31 +330,31 @@ namespace locic {
 				}
 				
 				case SEM::Value::LVAL: {
-					return genValue(function, *(value.makeLval.value));
+					return genValue(function, value.makeLvalOperand());
 				}
 				
 				case SEM::Value::NOLVAL: {
-					return genValue(function, *(value.makeNoLval.value));
+					return genValue(function, value.makeNoLvalOperand());
 				}
 				
 				case SEM::Value::REF: {
-					return genValue(function, *(value.makeRef.value));
+					return genValue(function, value.makeRefOperand());
 				}
 				
 				case SEM::Value::NOREF: {
-					return genValue(function, *(value.makeNoRef.value));
+					return genValue(function, value.makeNoRefOperand());
 				}
 				
 				case SEM::Value::STATICREF: {
-					return genValue(function, *(value.makeStaticRef.value));
+					return genValue(function, value.makeStaticRefOperand());
 				}
 				
 				case SEM::Value::NOSTATICREF: {
-					return genValue(function, *(value.makeNoStaticRef.value));
+					return genValue(function, value.makeNoStaticRefOperand());
 				}
 				
 				case SEM::Value::INTERNALCONSTRUCT: {
-					const auto& parameterValues = value.internalConstruct.parameters;
+					const auto& parameterValues = value.internalConstructParameters();
 					const auto& parameterVars = value.type()->getObjectType()->variables();
 					
 					const auto type = value.type();
@@ -394,9 +394,9 @@ namespace locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const auto memberIndex = module.getMemberVarMap().at(value.memberAccess.memberVar);
+					const auto memberIndex = module.getMemberVarMap().at(value.memberAccessVar());
 					
-					const auto& dataValue = *(value.memberAccess.object);
+					const auto& dataValue = value.memberAccessObject();
 					const auto llvmDataValue = genValue(function, dataValue);
 					
 					// Members must have a pointer to the object, which
@@ -408,13 +408,13 @@ namespace locic {
 				}
 				
 				case SEM::Value::REFVALUE: {
-					const auto& dataValue = *(value.refValue.value);
+					const auto& dataValue = value.refValueOperand();
 					const auto llvmDataValue = genValue(function, dataValue);
 					return genValuePtr(function, llvmDataValue, dataValue.type());
 				}
 				
 				case SEM::Value::TYPEREF: {
-					const auto targetType = value.typeRef.targetType;
+					const auto targetType = value.typeRefType();
 					
 					const auto vtablePointer = genVTable(module, targetType);
 					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(targetType));
@@ -423,9 +423,9 @@ namespace locic {
 					return makeTypeInfoValue(function, vtablePointer, templateGenerator);
 				}
 				
-				case SEM::Value::FUNCTIONCALL: {
-					const auto& semFunctionValue = *(value.functionCall.functionValue);
-					const auto& semArgumentValues = value.functionCall.parameters;
+				case SEM::Value::CALL: {
+					const auto& semFunctionValue = value.callValue();
+					const auto& semArgumentValues = value.callParameters();
 					
 					if (semFunctionValue.type()->isInterfaceMethod() || semFunctionValue.type()->isStaticInterfaceMethod()) {
 						const auto methodValue = genValue(function, semFunctionValue);
@@ -486,24 +486,24 @@ namespace locic {
 				}
 				
 				case SEM::Value::INTERFACEMETHODOBJECT: {
-					const auto& method = *(value.interfaceMethodObject.method);
-					const auto methodOwner = genValue(function, *(value.interfaceMethodObject.methodOwner));
+					const auto& method = value.interfaceMethodObject();
+					const auto methodOwner = genValue(function, value.interfaceMethodOwner());
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					
-					const auto interfaceFunction = method.functionRef.function;
+					const auto interfaceFunction = method.functionRefFunction();
 					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 					return makeInterfaceMethodValue(function, methodOwner, methodHashValue);
 				}
 				
 				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
-					const auto& method = *(value.staticInterfaceMethodObject.method);
-					const auto typeRef = genValue(function, *(value.staticInterfaceMethodObject.typeRef));
+					const auto& method = value.staticInterfaceMethodObject();
+					const auto typeRef = genValue(function, value.staticInterfaceMethodOwner());
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					
-					const auto interfaceFunction = method.functionRef.function;
+					const auto interfaceFunction = method.functionRefFunction();
 					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 					return makeStaticInterfaceMethodValue(function, typeRef, methodHashValue);

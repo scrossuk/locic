@@ -22,7 +22,7 @@ export std.event 0.1.0 {
 				}
 				
 				~ {
-					(void) std_event_wait_destroy(@waitHandle);
+					unused_result std_event_wait_destroy(@waitHandle);
 				}
 				
 				static wait_set edge_triggered() {
