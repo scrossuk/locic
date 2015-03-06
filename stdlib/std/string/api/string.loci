@@ -1,6 +1,6 @@
 import std.string 0.1.0 {
 	
-	std::string string_literal(const ubyte* const stringConstant);
+	std::string string_literal(const ubyte* stringConstant);
 	
 	namespace std {
 		
@@ -27,7 +27,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \return A string containing the given string constant.
 			 */
-			static string cstring(const ubyte* const stringConstant);
+			static string cstring(const ubyte* stringConstant);
 			
 			/**
 			 * \brief Implicitly copy this string.

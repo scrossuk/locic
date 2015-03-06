@@ -111,6 +111,19 @@ namespace locic {
 			return getBuiltInType(context.scopeStack(), context.getCString("__ref"), { varType})->createRefType(varType);
 		}
 		
+		SEM::Value bindReference(Context& context, SEM::Value value) {
+			const auto refType = createReferenceType(context, value.type());
+			return SEM::Value::BindReference(std::move(value), refType);
+		}
+		
+		SEM::Value derefOrBindValue(Context& context, SEM::Value value) {
+			if (value.type()->isRef()) {
+				return derefValue(std::move(value));
+			} else {
+				return bindReference(context, std::move(value));
+			}
+		}
+		
 		SEM::Value createSelfRef(Context& context, const SEM::Type* selfType) {
 			return SEM::Value::Self(createReferenceType(context, selfType));
 		}
@@ -125,7 +138,7 @@ namespace locic {
 			const auto derefType = getDerefType(object.type());
 			const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
 			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
-			return SEM::Value::MemberAccess(derefValue(std::move(object)), var, createReferenceType(context, memberTypeSub));
+			return SEM::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var, createReferenceType(context, memberTypeSub));
 		}
 		
 	}

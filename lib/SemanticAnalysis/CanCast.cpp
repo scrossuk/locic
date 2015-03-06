@@ -318,7 +318,8 @@ location, bool isTopLevel) {
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
 				
 				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
-					auto method = GetTemplatedMethod(context, std::move(value), context.getCString("implicitcast"), { destDerefType }, location);
+					auto boundValue = bindReference(context, std::move(value));
+					auto method = GetTemplatedMethod(context, std::move(boundValue), context.getCString("implicitcast"), { destDerefType }, location);
 					auto castValue = CallValue(context, std::move(method), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
@@ -460,9 +461,7 @@ location, bool isTopLevel) {
 			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (supportsImplicitCopy(context, sourceDerefType)) {
-					auto copyValue = sourceDerefType->isObjectOrTemplateVar() ?
-						CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location) :
-						derefAll(value.copy());
+					auto copyValue = CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location);
 					
 					auto copyRefValue = sourceDerefType->isStaticRef() ?
 						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
@@ -488,12 +487,25 @@ location, bool isTopLevel) {
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
 					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
-				auto copyValue = CallValue(context, GetSpecialMethod(context, value.copy(), context.getCString("implicitcopy"), location), {}, location);
-				if (!copyValue.type()->isConst()) {
-					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location);
-					if (convertCast) {
-						return convertCast;
-					}
+				auto boundValue = bindReference(context, value.copy());
+				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
+				assert(!copyValue.type()->isConst());
+				
+				auto copyLvalValue = sourceType->isLval() ?
+						SEM::Value::Lval(sourceType->lvalTarget(), std::move(copyValue)) :
+						std::move(copyValue);
+				
+				auto copyRefValue = sourceType->isRef() ?
+						SEM::Value::Ref(sourceType->refTarget(), std::move(copyLvalValue)) :
+						std::move(copyLvalValue);
+				
+				auto copyStaticRefValue = sourceType->isStaticRef() ?
+						SEM::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
+						std::move(copyRefValue);
+				
+				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyStaticRefValue), destType, location);
+				if (convertCast) {
+					return convertCast;
 				}
 			}
 			
@@ -502,8 +514,7 @@ location, bool isTopLevel) {
 					destType->isBuiltInReference() &&
 					(!sourceType->isConst() || destType->refTarget()->isConst()) &&
 					isStructurallyEqual(sourceType, destType->refTarget())) {
-				const auto newType = createReferenceType(context, sourceType);
-				auto refValue = SEM::Value::RefValue(value.copy(), newType);
+				auto refValue = bindReference(context, value.copy());
 				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location);
 				if (castResult) {
 					return castResult;

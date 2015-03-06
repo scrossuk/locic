@@ -16,18 +16,18 @@ namespace locic {
 					FUNCTION
 				};
 				
-				static TemplatedObject TypeInstance(SEM::TypeInstance* typeInstance);
+				static TemplatedObject TypeInstance(const SEM::TypeInstance* typeInstance);
 				
-				static TemplatedObject Function(SEM::TypeInstance* parentTypeInstance, SEM::Function* function);
+				static TemplatedObject Function(const SEM::TypeInstance* parentTypeInstance, SEM::Function* function);
 				
 				Kind kind() const;
 				
 				bool isTypeInstance() const;
 				bool isFunction() const;
 				
-				SEM::TypeInstance* typeInstance() const;
+				const SEM::TypeInstance* typeInstance() const;
 				
-				SEM::TypeInstance* parentTypeInstance() const;
+				const SEM::TypeInstance* parentTypeInstance() const;
 				SEM::Function* function() const;
 				
 				bool operator==(const TemplatedObject& other) const;
@@ -40,9 +40,9 @@ namespace locic {
 				Kind kind_;
 				
 				union {
-					SEM::TypeInstance* typeInstance;
+					const SEM::TypeInstance* typeInstance;
 					struct {
-						SEM::TypeInstance* parentTypeInstance;
+						const SEM::TypeInstance* parentTypeInstance;
 						SEM::Function* function;
 					} functionPair;
 				} data_;

@@ -84,7 +84,15 @@ function(export_all_flags _filename)
 	endforeach()
 	
 	join_list("${_compile_flags}" "\n" _compile_flags_string)
-	file(WRITE "${_filename}" "${_compile_flags_string}")
+	set(_current_compile_flags_string "")
+	
+	if(EXISTS "${_filename}")
+		file(READ "${_filename}" _current_compile_flags_string)
+	endif()
+	
+	if(NOT " ${_compile_flags_string}" STREQUAL " ${_current_compile_flags_string}")
+		file(WRITE "${_filename}" "${_compile_flags_string}")
+	endif()
 endfunction()
 
 function(add_precompiled_header _target _input)

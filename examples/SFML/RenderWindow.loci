@@ -16,21 +16,21 @@ import {
 	
 	void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit) noexcept;
 	
-	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* const view) noexcept;
+	void sfRenderWindow_setView(sfRenderWindow* renderWindow, const sfView* view) noexcept;
 	
-	const sfView* sfRenderWindow_getView(const sfRenderWindow* const renderWindow) noexcept;
+	const sfView* sfRenderWindow_getView(const sfRenderWindow* renderWindow) noexcept;
 	
-	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* const renderWindow, sfVector2i point, const sfView* const view) noexcept;
+	sfVector2f sfRenderWindow_mapPixelToCoords(const sfRenderWindow* renderWindow, sfVector2i point, const sfView* view) noexcept;
 	
 	void sfRenderWindow_display(sfRenderWindow* renderWindow) noexcept;
 	
-	void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* const object, const sfRenderStates* const states) noexcept;
+	void sfRenderWindow_drawCircleShape(sfRenderWindow* renderWindow, const sfCircleShape* object, const sfRenderStates* states) noexcept;
 	
-	void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* const object, const sfRenderStates* const states) noexcept;
+	void sfRenderWindow_drawRectangleShape(sfRenderWindow* renderWindow, const sfRectangleShape* object, const sfRenderStates* states) noexcept;
 	
-	void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* const object, const sfRenderStates* const states) noexcept;
+	void sfRenderWindow_drawText(sfRenderWindow* renderWindow, const sfText* object, const sfRenderStates* states) noexcept;
 	
-	uint8_t sfWindow_isOpen(const sfRenderWindow* const window) noexcept;
+	uint8_t sfWindow_isOpen(const sfRenderWindow* window) noexcept;
 	
 	uint8_t sfWindow_pollEvent(sfRenderWindow* window, sfEvent* event) noexcept;
 	
@@ -41,6 +41,10 @@ import {
 }
 
 namespace sf {
+	
+	interface Drawable {
+		void draw(RenderWindow& window) const;
+	}
 	
 	class RenderWindow(sfRenderWindow* window) {
 		static Create (VideoMode videoMode, const ubyte* title) {
@@ -91,12 +95,16 @@ namespace sf {
 			sfRenderWindow_clear(@window, sfColor(color.r, color.g, color.b, color.a));
 		}
 		
-		void setFramerateLimit(int limit) {
-			sfRenderWindow_setFramerateLimit(@window, limit);
+		void setFramerateLimit(unsigned int limit) {
+			sfRenderWindow_setFramerateLimit(@window, limit.signed_value());
 		}
 		
 		void display() {
 			sfRenderWindow_display(@window);
+		}
+		
+		void draw(const Drawable& drawable) {
+			drawable.draw(self);
 		}
 		
 		void drawCircle(const CircleShape& shape) {

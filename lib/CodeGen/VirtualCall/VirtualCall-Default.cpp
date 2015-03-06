@@ -151,7 +151,8 @@ namespace locic {
 				}
 			}
 			
-			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer,
+					llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -207,10 +208,11 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters, debugLoc);
 			}
 			
-			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args) {
+			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, llvm::Value* interfaceMethodValue,
+					llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
 				const bool isStatic = callableType->isStaticInterfaceMethod();
 				
 				const auto functionType = callableType->getCallableFunctionType();
@@ -224,7 +226,7 @@ namespace locic {
 				// If the return type isn't void, allocate space on the stack for the return value.
 				const auto returnVarValue = hasReturnVar ? genAlloca(function, returnType) : constGen.getNullPointer(i8PtrType);
 				
-				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args);
+				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args, debugLoc);
 				
 				// If the return type isn't void, load the return value from the stack.
 				return hasReturnVar ? genMoveLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
@@ -320,7 +322,7 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			
-			llvm::Constant* generateVTableSlot(Module& module, SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
+			llvm::Constant* generateVTableSlot(Module& module, const SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
 				ConstantGenerator constGen(module);
 				TypeGenerator typeGen(module);
 				

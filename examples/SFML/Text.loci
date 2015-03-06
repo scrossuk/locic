@@ -6,7 +6,7 @@ import {
 	
 	sfText* sfText_create() noexcept;
 	
-	sfText* sfText_copy(const sfText* const text) noexcept;
+	sfText* sfText_copy(const sfText* text) noexcept;
 	
 	void sfText_destroy(sfText* text) noexcept;
 	
@@ -18,15 +18,15 @@ import {
 	
 	void sfText_setCharacterSize(sfText* text, unsigned int size) noexcept;
 	
-	void sfText_setString(sfText* text, const ubyte* const string) noexcept;
+	void sfText_setString(sfText* text, const ubyte* string) noexcept;
 	
 	void sfText_setOrigin(sfText* text, sfVector2f position) noexcept;
 	
-	void sfText_setFont(sfText* text, const sfFont* const font) noexcept;
+	void sfText_setFont(sfText* text, const sfFont* font) noexcept;
 	
-	sfFloatRect sfText_getLocalBounds(const sfText* const text) noexcept;
+	sfFloatRect sfText_getLocalBounds(const sfText* text) noexcept;
 	
-	sfFloatRect sfText_getGlobalBounds(const sfText* const text) noexcept;
+	sfFloatRect sfText_getGlobalBounds(const sfText* text) noexcept;
 	
 }
 
@@ -65,11 +65,11 @@ namespace sf {
 			sfText_setCharacterSize(@text, size);
 		}
 		
-		void setString(const ubyte* const string) {
+		void setString(const ubyte* string) {
 			sfText_setString(@text, string);
 		}
 		
-		void setOrigin(Vector2f position) {
+		void setOrigin(const Vector2f position) {
 			sfText_setOrigin(@text, sfVector2f(position.x, position.y));
 		}
 		
@@ -85,6 +85,10 @@ namespace sf {
 		FloatRect getGlobalBounds() const {
 			final auto rect = sfText_getGlobalBounds(@text);
 			return FloatRect(Vector2f(rect.left, rect.top), Vector2f(rect.width, rect.height));
+		}
+		
+		void draw(RenderWindow& window) const {
+			window.drawText(self);
 		}
 		
 	}

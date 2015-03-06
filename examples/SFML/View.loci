@@ -8,7 +8,7 @@ import {
 	
 	sfView* sfView_createFromRect(sfFloatRect rectangle) noexcept;
 	
-	sfView* sfView_copy(const sfView* const view) noexcept;
+	sfView* sfView_copy(const sfView* view) noexcept;
 	
 	void sfView_destroy(sfView* view) noexcept;
 	

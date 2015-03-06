@@ -124,7 +124,7 @@ namespace locic {
 			}
 		}
 		
-		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar) {
+		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar) {
 			assert(semVar->isBasic());
 			
 			const auto valueType = semVar->constructType();
@@ -141,11 +141,6 @@ namespace locic {
 		}
 		
 		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type) {
-			if (type->isBuiltInReference()) {
-				// Already got the reference value.
-				return value;
-			}
-			
 			// Members must have a pointer to the object, which
 			// may require generating a fresh 'alloca'.
 			const auto ptrValue = genAlloca(function, type);

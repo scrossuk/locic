@@ -1,0 +1,69 @@
+
+namespace Simulations {
+
+	namespace Gravity {
+		
+		class System(std::map<size_t, Particle> particles, double gravConstant) {
+			
+			static Create(const double gravConstant) {
+				return @(std::map<size_t, Particle>(), gravConstant);
+			}
+			
+			void addParticle(size_t id, const Particle& particle) {
+				@particles.insert(std::pair<size_t, Particle>(id, particle));
+			}
+			
+			Particle getParticle(size_t id) {
+				return @particles[id];
+			}
+			
+			const std::map<size_t, Particle>& getParticles() const {
+				return @particles;
+			}
+			
+			size_t countParticles() const {
+				return @particles.size();
+			}
+			
+			void step() {
+				for (final auto& outerPair: @particles.all()) {
+					Particle& particle = outerPair.second;
+					auto acceleration = Vector.Zero();
+					
+					for (final auto& innerPair: @particles.all()) {
+						if (outerPair.first == innerPair.first){
+							// Same particle.
+							continue;
+						}
+						
+						const Particle& targetParticle = innerPair.second;
+						
+						const Vector offset = targetParticle.position - particle.position;
+						
+						const double distance = offset.size();
+						
+						const double scaling = (@gravConstant * particle.mass * targetParticle.mass) / (distance * distance);
+						
+						const Vector offsetForce = offset.unit() * scaling;
+						
+						const Vector offsetAcceleration = offsetForce / particle.mass;
+						
+						if (distance > 5.0) {
+							acceleration += offsetAcceleration;
+						}
+					}
+					
+					particle.velocity += acceleration;
+				}
+				
+				for (auto& pair: @particles.all()) {
+					Particle& particle = pair.second;
+					particle.position += particle.velocity;
+				}
+			}
+			
+		}
+	
+	}
+	
+}

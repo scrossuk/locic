@@ -1,0 +1,12 @@
+
+import int rand() noexcept;
+
+namespace Simulations {
+	
+	double RandomDouble(double low, double high) {
+		assert low < high;
+		const double randValue = (rand() % 1000).cast<float>() / 1000.0f;
+		return low + randValue * (high - low);
+	}
+	
+}

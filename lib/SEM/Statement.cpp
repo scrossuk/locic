@@ -61,6 +61,7 @@ namespace locic {
 		}
 		
 		Statement* Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
+			assert(value.type()->isUnionDatatype() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isUnionDatatype()));
 			ExitStates exitStates = ExitStates::None();
 			
 			const auto switchValueExitStates = value.exitStates();

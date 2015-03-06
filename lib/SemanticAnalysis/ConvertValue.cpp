@@ -324,11 +324,11 @@ namespace locic {
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 						case AST::OP_ADDRESS: {
-							auto opMethod = GetSpecialMethod(context, derefValue(std::move(operand)), context.getCString("address"), location);
+							auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(operand)), context.getCString("address"), location);
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 						case AST::OP_MOVE: {
-							auto opMethod = GetSpecialMethod(context, derefValue(std::move(operand)), context.getCString("move"), location);
+							auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(operand)), context.getCString("move"), location);
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 					}

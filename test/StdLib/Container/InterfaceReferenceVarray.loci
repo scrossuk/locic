@@ -1,0 +1,40 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TestClass() {
+	static create = default;
+	
+	void doSomething() {
+		testPrint(C"TestClass::doSomething()");
+	}
+}
+
+interface TestInterface {
+	void doSomething();
+}
+
+void f(TestInterface& objectRef) {
+	objectRef.doSomething();
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	auto object = TestClass();
+	TestInterface& interfaceRef = object;
+	
+	auto varray = std::varray<TestInterface&>();
+	
+	for (auto i: std::counter<int>(0, 10, 1)) {
+		varray.push_back(interfaceRef);
+	}
+	
+	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
+		testPrint(C"TestInterface& objectRef = varray[%llu];", i.cast<ulonglong_t>());
+		TestInterface& objectRef = varray[i];
+		testPrint(C"objectRef.doSomething();");
+		f(objectRef);
+	}
+	
+	return 0;
+}
+

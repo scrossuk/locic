@@ -62,21 +62,21 @@ namespace locic {
 		
 		typedef FastMap<AttributeKind, llvm::AttributeSet> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
-		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> DestructorMap;
+		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef FastMap<String, llvm::Function*> FunctionMap;
 		typedef FastMap<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
-		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
+		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef FastMap<SEM::Var*, size_t> MemberVarMap;
-		typedef std::unordered_map<SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
+		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
 		typedef std::unordered_map<String, PrimitiveKind> PrimitiveMap;
 		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
 		typedef FastMap<SEM::TemplateVar*, const SEM::Type*> TemplateVarMap;
 		typedef FastMap<String, llvm::StructType*> TypeMap;
-		typedef std::unordered_map<SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
+		typedef std::unordered_map<const SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class InternalContext;
 		
@@ -153,6 +153,8 @@ namespace locic {
 				const BuildOptions& buildOptions() const;
 				
 				PrimitiveKind primitiveKind(const String& name) const;
+				
+				void verify() const;
 				
 			private:
 				InternalContext& context_;

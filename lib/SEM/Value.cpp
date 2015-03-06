@@ -24,13 +24,13 @@ namespace locic {
 			return Value(THIS, type, ExitStates::Normal());
 		}
 		
-		Value Value::Constant(const locic::Constant* const constant, const Type* type) {
+		Value Value::Constant(const locic::Constant* const constant, const Type* const type) {
 			Value value(CONSTANT, type, ExitStates::Normal());
 			value.union_.constant_ = constant;
 			return value;
 		}
 		
-		Value Value::LocalVar(Var* const var, const Type* type) {
+		Value Value::LocalVar(Var* const var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.union_.localVar_.var = var;
@@ -38,6 +38,8 @@ namespace locic {
 		}
 		
 		Value Value::UnionTag(Value operand, const Type* const type) {
+			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
+			assert(operand.type()->refTarget()->isUnionDatatype());
 			Value value(UNIONTAG, type, operand.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
@@ -70,6 +72,7 @@ namespace locic {
 		
 		Value Value::DerefReference(Value operand) {
 			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
+			assert(operand.type()->refTarget()->isRef() && operand.type()->refTarget()->isBuiltInReference());
 			Value value(DEREF_REFERENCE, operand.type()->refTarget(), operand.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
@@ -148,6 +151,7 @@ namespace locic {
 		}
 		
 		Value Value::MemberAccess(Value object, Var* const var, const Type* const type) {
+			assert(object.type()->isRef() && object.type()->isBuiltInReference());
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
 			// the members must also be.
@@ -160,8 +164,10 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::RefValue(Value operand, const Type* const type) {
-			Value value(REFVALUE, type, operand.exitStates());
+		Value Value::BindReference(Value operand, const Type* const type) {
+			assert(type->isRef() && type->isBuiltInReference());
+			assert(operand.type() == type->refTarget());
+			Value value(BIND_REFERENCE, type, operand.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
 			return value;
 		}
@@ -211,6 +217,7 @@ namespace locic {
 		
 		Value Value::MethodObject(Value method, Value methodOwner) {
 			assert(method.type()->isFunction());
+			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			Value value(METHODOBJECT, SEM::Type::Method(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
@@ -219,17 +226,20 @@ namespace locic {
 		
 		Value Value::InterfaceMethodObject(Value method, Value methodOwner) {
 			assert(method.type()->isFunction());
+			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
+			assert(methodOwner.type()->refTarget()->isInterface());
 			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
-		Value Value::StaticInterfaceMethodObject(Value method, Value typeRef) {
+		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner) {
 			assert(method.type()->isFunction());
-			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()), method.exitStates() | typeRef.exitStates());
+			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
+			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
-			value.value1_ = std::unique_ptr<Value>(new Value(std::move(typeRef)));
+			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
@@ -482,12 +492,12 @@ namespace locic {
 			return union_.memberAccess_.memberVar;
 		}
 		
-		bool Value::isRefValue() const {
-			return kind() == REFVALUE;
+		bool Value::isBindReference() const {
+			return kind() == BIND_REFERENCE;
 		}
 		
-		const Value& Value::refValueOperand() const {
-			assert(isRefValue());
+		const Value& Value::bindReferenceOperand() const {
+			assert(isBindReference());
 			return *(value0_);
 		}
 		
@@ -602,85 +612,93 @@ namespace locic {
 			return debugInfo_;
 		}
 		
-		Value Value::copy() const {
-			switch (kind()) {
-				case SELF:
-					return Value::Self(type());
-				case THIS:
-					return Value::This(type());
-				case CONSTANT:
-					return Value::Constant(constant(), type());
-				case LOCALVAR:
-					return Value::LocalVar(localVar(), type());
-				case UNIONTAG:
-					return Value::UnionTag(unionTagOperand().copy(), type());
-				case SIZEOF:
-					return Value::SizeOf(sizeOfType(), type());
-				case UNIONDATAOFFSET:
-					return Value::UnionDataOffset(unionDataOffsetTypeInstance(), type());
-				case MEMBEROFFSET:
-					return Value::MemberOffset(memberOffsetTypeInstance(), memberOffsetMemberIndex(), type());
-				case REINTERPRET:
-					return Value::Reinterpret(reinterpretOperand().copy(), type());
-				case DEREF_REFERENCE:
-					return Value::DerefReference(derefOperand().copy());
-				case TERNARY:
-					return Value::Ternary(ternaryCondition().copy(), ternaryIfTrue().copy(), ternaryIfFalse().copy());
-				case CAST:
-					return Value::Cast(castTargetType(), castOperand().copy());
-				case POLYCAST:
-					return Value::PolyCast(polyCastTargetType(), polyCastOperand().copy());
-				case LVAL:
-					return Value::Lval(makeLvalTargetType(), makeLvalOperand().copy());
-				case NOLVAL:
-					return Value::NoLval(makeNoLvalOperand().copy());
-				case REF:
-					return Value::Ref(makeRefTargetType(), makeRefOperand().copy());
-				case NOREF:
-					return Value::NoRef(makeNoRefOperand().copy());
-				case STATICREF:
-					return Value::StaticRef(makeStaticRefTargetType(), makeStaticRefOperand().copy());
-				case NOSTATICREF:
-					return Value::NoStaticRef(makeNoStaticRefOperand().copy());
-				case INTERNALCONSTRUCT: {
+		static Value basicCopyValue(const Value& value) {
+			switch (value.kind()) {
+				case Value::SELF:
+					return Value::Self(value.type());
+				case Value::THIS:
+					return Value::This(value.type());
+				case Value::CONSTANT:
+					return Value::Constant(value.constant(), value.type());
+				case Value::LOCALVAR:
+					return Value::LocalVar(value.localVar(), value.type());
+				case Value::UNIONTAG:
+					return Value::UnionTag(value.unionTagOperand().copy(), value.type());
+				case Value::SIZEOF:
+					return Value::SizeOf(value.sizeOfType(), value.type());
+				case Value::UNIONDATAOFFSET:
+					return Value::UnionDataOffset(value.unionDataOffsetTypeInstance(), value.type());
+				case Value::MEMBEROFFSET:
+					return Value::MemberOffset(value.memberOffsetTypeInstance(), value.memberOffsetMemberIndex(), value.type());
+				case Value::REINTERPRET:
+					return Value::Reinterpret(value.reinterpretOperand().copy(), value.type());
+				case Value::DEREF_REFERENCE:
+					return Value::DerefReference(value.derefOperand().copy());
+				case Value::TERNARY:
+					return Value::Ternary(value.ternaryCondition().copy(), value.ternaryIfTrue().copy(), value.ternaryIfFalse().copy());
+				case Value::CAST:
+					return Value::Cast(value.castTargetType(), value.castOperand().copy());
+				case Value::POLYCAST:
+					return Value::PolyCast(value.polyCastTargetType(), value.polyCastOperand().copy());
+				case Value::LVAL:
+					return Value::Lval(value.makeLvalTargetType(), value.makeLvalOperand().copy());
+				case Value::NOLVAL:
+					return Value::NoLval(value.makeNoLvalOperand().copy());
+				case Value::REF:
+					return Value::Ref(value.makeRefTargetType(), value.makeRefOperand().copy());
+				case Value::NOREF:
+					return Value::NoRef(value.makeNoRefOperand().copy());
+				case Value::STATICREF:
+					return Value::StaticRef(value.makeStaticRefTargetType(), value.makeStaticRefOperand().copy());
+				case Value::NOSTATICREF:
+					return Value::NoStaticRef(value.makeNoStaticRefOperand().copy());
+				case Value::INTERNALCONSTRUCT: {
 					std::vector<Value> parameters;
-					parameters.reserve(internalConstructParameters().size());
-					for (const auto& parameter: internalConstructParameters()) {
+					parameters.reserve(value.internalConstructParameters().size());
+					for (const auto& parameter: value.internalConstructParameters()) {
 						parameters.push_back(parameter.copy());
 					}
-					return Value::InternalConstruct(type()->getObjectType(), std::move(parameters));
+					return Value::InternalConstruct(value.type()->getObjectType(), std::move(parameters));
 				}
-				case MEMBERACCESS:
-					return Value::MemberAccess(memberAccessObject().copy(), memberAccessVar(), type());
-				case REFVALUE:
-					return Value::RefValue(refValueOperand().copy(), type());
-				case TYPEREF:
-					return Value::TypeRef(typeRefType(), type());
-				case CALL: {
+				case Value::MEMBERACCESS:
+					return Value::MemberAccess(value.memberAccessObject().copy(), value.memberAccessVar(), value.type());
+				case Value::BIND_REFERENCE:
+					return Value::BindReference(value.bindReferenceOperand().copy(), value.type());
+				case Value::TYPEREF:
+					return Value::TypeRef(value.typeRefType(), value.type());
+				case Value::CALL: {
 					std::vector<Value> parameters;
-					parameters.reserve(callParameters().size());
-					for (const auto& parameter: callParameters()) {
+					parameters.reserve(value.callParameters().size());
+					for (const auto& parameter: value.callParameters()) {
 						parameters.push_back(parameter.copy());
 					}
-					return Value::Call(callValue().copy(), std::move(parameters));
+					return Value::Call(value.callValue().copy(), std::move(parameters));
 				}
-				case FUNCTIONREF:
-					return Value::FunctionRef(functionRefParentType(), functionRefFunction(), functionRefTemplateArguments().copy(), type());
-				case TEMPLATEFUNCTIONREF:
-					return Value::TemplateFunctionRef(templateFunctionRefParentType(), templateFunctionRefName(), templateFunctionRefFunctionType());
-				case METHODOBJECT:
-					return Value::MethodObject(methodObject().copy(), methodOwner().copy());
-				case INTERFACEMETHODOBJECT:
-					return Value::InterfaceMethodObject(interfaceMethodObject().copy(), interfaceMethodOwner().copy());
-				case STATICINTERFACEMETHODOBJECT:
-					return Value::StaticInterfaceMethodObject(staticInterfaceMethodObject().copy(), staticInterfaceMethodOwner().copy());
-				case CASTDUMMYOBJECT:
-					return Value::CastDummy(type());
-				case NONE:
+				case Value::FUNCTIONREF:
+					return Value::FunctionRef(value.functionRefParentType(), value.functionRefFunction(), value.functionRefTemplateArguments().copy(), value.type());
+				case Value::TEMPLATEFUNCTIONREF:
+					return Value::TemplateFunctionRef(value.templateFunctionRefParentType(), value.templateFunctionRefName(), value.templateFunctionRefFunctionType());
+				case Value::METHODOBJECT:
+					return Value::MethodObject(value.methodObject().copy(), value.methodOwner().copy());
+				case Value::INTERFACEMETHODOBJECT:
+					return Value::InterfaceMethodObject(value.interfaceMethodObject().copy(), value.interfaceMethodOwner().copy());
+				case Value::STATICINTERFACEMETHODOBJECT:
+					return Value::StaticInterfaceMethodObject(value.staticInterfaceMethodObject().copy(), value.staticInterfaceMethodOwner().copy());
+				case Value::CASTDUMMYOBJECT:
+					return Value::CastDummy(value.type());
+				case Value::NONE:
 					return Value();
 			}
 			
 			throw std::logic_error("Unknown value kind.");
+		}
+		
+		Value Value::copy() const {
+			auto copyValue = basicCopyValue(*this);
+			if (debugInfo()) {
+				copyValue.setDebugInfo(*debugInfo());
+			}
+			return copyValue;
 		}
 		
 		std::string Value::toString() const {
@@ -745,8 +763,8 @@ namespace locic {
 					return makeString("MemberAccess(object: %s, var: %s)",
 						memberAccessObject().toString().c_str(),
 						memberAccessVar()->toString().c_str());
-				case REFVALUE:
-					return makeString("RefValue(value: %s)", refValueOperand().toString().c_str());
+				case BIND_REFERENCE:
+					return makeString("BindReference(value: %s)", bindReferenceOperand().toString().c_str());
 				case TYPEREF:
 					return makeString("TypeRef(targetType: %s)", typeRefType()->toString().c_str());
 				case CALL:

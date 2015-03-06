@@ -1,0 +1,111 @@
+
+export std.container 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T0 : movable, typename T1 : movable>
+		datatype pair(T0 first, T1 second);
+		
+		template <typename Key : movable, typename Value : movable>
+		class map_range(varray_range<pair<Key, Value>> range) {
+			static create = default;
+			
+			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> front() {
+				return @range.front();
+			}
+			
+			void skip_front() {
+				@range.skip_front();
+			}
+			
+			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> back() {
+				return @range.back();
+			}
+			
+			void skip_back() {
+				@range.skip_back();
+			}
+			
+			bool empty() const noexcept {
+				return @range.empty();
+			}
+		}
+		
+		template <typename T>
+		interface comparable {
+			compare_result_t compare(const T& other) const noexcept;
+		}
+		
+		template <typename T : movable>
+		interface default_constructible {
+			static T create();
+		}
+		
+		/**
+		 * \brief Map.
+		 */
+		template <typename Key: comparable<Key>, typename Value : movable>
+		require(Key : movable)
+		// TODO: use a proper tree structure rather than an array!
+		class map(std::varray<pair<Key, Value>> array) {
+			static map<Key, Value> create() {
+				return @(std::varray<pair<Key, Value>>());
+			}
+			
+			bool empty() const noexcept {
+				return @array.empty();
+			}
+			
+			size_t size() const noexcept {
+				return @array.size();
+			}
+			
+			void clear() noexcept {
+				@array.clear();
+			}
+			
+			lval<Value> ptr_lval<Value> index(const Key& key) const noexcept {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i].first == key) {
+						return *(&(@array[i].second));
+					}
+				}
+				unreachable;
+			}
+			
+			void insert(pair<Key, Value> value) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					assert @array[i].first != value.first;
+				}
+				@array.push_back(move value);
+			}
+			
+			bool try_insert(pair<Key, Value> value) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i].first == value.first) {
+						return false;
+					}
+				}
+				@array.push_back(move value);
+				return true;
+			}
+			
+			Value& get_or_insert(const Key& key) require(Key : copyable<Key> and Value : default_constructible<Value>) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i].first == key) {
+						return @array[i].second;
+					}
+				}
+				@array.push_back(pair<Key, Value>(key.copy(), Value()));
+				return @array[@array.size() - 1u].second;
+			}
+			
+			map_range<Key, Value> all() const noexcept {
+				return map_range<Key, Value>(@array.all());
+			}
+		}
+		
+	}
+	
+}
+

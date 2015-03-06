@@ -13,7 +13,6 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
-#include <locic/SemanticAnalysis/ExitStates.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -317,7 +316,7 @@ namespace locic {
 					
 					// TODO: fix this to not copy the value!
 					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
-					auto opMethod = GetSpecialMethod(context, std::move(semVarValue), context.getCString("assign"), location);
+					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(semVarValue)), context.getCString("assign"), location);
 					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeArray( std::move(semAssignValue) ), location));
 				}
 				case AST::Statement::INCREMENT: {

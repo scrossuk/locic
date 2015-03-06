@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...);
+import void testPrint(const ubyte * str, ...);
 
 // The VTable hash table should have 20 slots,
 // so this should cause multiple clashes.

@@ -3,6 +3,7 @@
 
 #include <locic/SEM.hpp>
 
+#include <locic/CodeGen/ArgPair.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
@@ -20,8 +21,6 @@ namespace locic {
 				templateGenerator(nullptr),
 				contextPointer(nullptr) { }
 		};
-		
-		typedef std::pair<llvm::Value*, bool> ArgPair;
 		
 		llvm::Function* genFunctionRef(Module& module, const SEM::Type* parentType, SEM::Function* function);
 		

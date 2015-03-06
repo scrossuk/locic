@@ -35,7 +35,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genValue(Function& function, const SEM::Value& value) {
+		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
 			switch (value.kind()) {
@@ -113,26 +113,17 @@ namespace locic {
 				}
 				
 				case SEM::Value::DEREF_REFERENCE: {
-					llvm::Value* refValue = genValue(function, value.derefOperand());
+					llvm::Value* const refValue = genValue(function, value.derefOperand());
 					return genMoveLoad(function, refValue, value.type());
 				}
 				
 				case SEM::Value::UNIONTAG: {
-					const auto unionType = value.unionTagOperand().type();
-					const auto unionValue = genValue(function, value.unionTagOperand());
-					
-					llvm::Value* unionValuePtr = nullptr;
-					
-					if (!unionValue->getType()->isPointerTy()) {
-						// TODO: remove this unnecessary alloc.
-						unionValuePtr = genAlloca(function, unionType);
-						genMoveStore(function, unionValue, unionValuePtr, unionType);
-					} else {
-						unionValuePtr = unionValue;
-					}
+					const auto& unionRefValue = value.unionTagOperand();
+					assert(unionRefValue.type()->isRef() && unionRefValue.type()->isBuiltInReference());
+					const auto unionValuePtr = genValue(function, unionRefValue);
+					const auto unionType = unionRefValue.type()->refTarget();
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, unionType, unionValuePtr);
-					
 					return function.getBuilder().CreateLoad(unionDatatypePointers.first);
 				}
 				
@@ -162,13 +153,13 @@ namespace locic {
 					const auto currentBB = function.getBuilder().GetInsertBlock();
 					
 					function.selectBasicBlock(ifTrueBB);
-					const auto ifTrueValue = genValue(function, value.ternaryIfTrue());
+					const auto ifTrueValue = genValue(function, value.ternaryIfTrue(), hintResultValue);
 					const auto ifTrueTermBlock = function.getBuilder().GetInsertBlock();
 					const auto ifTrueIsEmpty = ifTrueBB->empty();
 					function.getBuilder().CreateBr(afterCondBB);
 					
 					function.selectBasicBlock(ifFalseBB);
-					const auto ifFalseValue = genValue(function, value.ternaryIfFalse());
+					const auto ifFalseValue = genValue(function, value.ternaryIfFalse(), hintResultValue);
 					const auto ifFalseTermBlock = function.getBuilder().GetInsertBlock();
 					const auto ifFalseIsEmpty = ifFalseBB->empty();
 					function.getBuilder().CreateBr(afterCondBB);
@@ -200,10 +191,15 @@ namespace locic {
 					
 					function.selectBasicBlock(afterCondBB);
 					
-					const auto phiNode = function.getBuilder().CreatePHI(ifTrueValue->getType(), 2);
-					phiNode->addIncoming(ifTrueValue, ifTrueReceiveBB);
-					phiNode->addIncoming(ifFalseValue, ifFalseReceiveBB);
-					return phiNode;
+					if (ifTrueValue->stripPointerCasts() == ifFalseValue->stripPointerCasts()) {
+						assert(ifTrueValue->getType()->isPointerTy() && ifFalseValue->getType()->isPointerTy());
+						return function.getBuilder().CreatePointerCast(ifTrueValue, genPointerType(module, value.type()));
+					} else {
+						const auto phiNode = function.getBuilder().CreatePHI(ifTrueValue->getType(), 2);
+						phiNode->addIncoming(ifTrueValue, ifTrueReceiveBB);
+						phiNode->addIncoming(ifFalseValue, ifFalseReceiveBB);
+						return phiNode;
+					}
 				}
 				
 				case SEM::Value::CAST: {
@@ -243,7 +239,7 @@ namespace locic {
 									variantKind++;
 								}
 								
-								const auto unionValue = genAlloca(function, destType);
+								const auto unionValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, destType);
 								
 								const auto unionDatatypePointers = getUnionDatatypePointers(function, destType, unionValue);
 								
@@ -295,7 +291,7 @@ namespace locic {
 						}
 						
 						// Generate the vtable and template generator.
-						const auto vtablePointer = genVTable(module, sourceTarget);
+						const auto vtablePointer = genVTable(module, sourceTarget->resolveAliases()->getObjectType());
 						const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
 						
 						// Build the new type info struct with these values.
@@ -319,7 +315,7 @@ namespace locic {
 									TypeGenerator(module).getI8PtrType());
 						
 						// Generate the vtable and template generator.
-						const auto vtablePointer = genVTable(module, sourceTarget);
+						const auto vtablePointer = genVTable(module, sourceTarget->resolveAliases()->getObjectType());
 						const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
 						
 						// Build the new interface struct with these values.
@@ -330,27 +326,27 @@ namespace locic {
 				}
 				
 				case SEM::Value::LVAL: {
-					return genValue(function, value.makeLvalOperand());
+					return genValue(function, value.makeLvalOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::NOLVAL: {
-					return genValue(function, value.makeNoLvalOperand());
+					return genValue(function, value.makeNoLvalOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::REF: {
-					return genValue(function, value.makeRefOperand());
+					return genValue(function, value.makeRefOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::NOREF: {
-					return genValue(function, value.makeNoRefOperand());
+					return genValue(function, value.makeNoRefOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::STATICREF: {
-					return genValue(function, value.makeStaticRefOperand());
+					return genValue(function, value.makeStaticRefOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::NOSTATICREF: {
-					return genValue(function, value.makeNoStaticRefOperand());
+					return genValue(function, value.makeNoStaticRefOperand(), hintResultValue);
 				}
 				
 				case SEM::Value::INTERNALCONSTRUCT: {
@@ -358,13 +354,13 @@ namespace locic {
 					const auto& parameterVars = value.type()->getObjectType()->variables();
 					
 					const auto type = value.type();
-					const auto objectValue = genAlloca(function, type);
+					const auto objectValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, type);
 					
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
-							const auto llvmParamValue = genValue(function, parameterValues.at(i));
 							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
 					} else {
@@ -373,13 +369,16 @@ namespace locic {
 						
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
-							const auto llvmParamValue = genValue(function, parameterValues.at(i));
 							
 							// Align offset for field.
 							offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 							
 							const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
 							const auto castInsertPointer = function.getBuilder().CreatePointerCast(llvmInsertPointer, genPointerType(module, var->type()));
+							const auto insertHintPointer = function.getBuilder().CreatePointerCast(castInsertPointer, genPointerType(module, parameterValues.at(i).type()));
+							
+							const auto llvmParamValue = genValue(function, parameterValues.at(i), insertHintPointer);
+							
 							genStoreVar(function, llvmParamValue, castInsertPointer, var);
 							
 							if ((i + 1) != parameterValues.size()) {
@@ -396,19 +395,15 @@ namespace locic {
 				case SEM::Value::MEMBERACCESS: {
 					const auto memberIndex = module.getMemberVarMap().at(value.memberAccessVar());
 					
-					const auto& dataValue = value.memberAccessObject();
-					const auto llvmDataValue = genValue(function, dataValue);
+					const auto& dataRefValue = value.memberAccessObject();
+					assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());
 					
-					// Members must have a pointer to the object, which
-					// may require generating a fresh 'alloca'.
-					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue.type());
-					
-					const auto type = dataValue.type()->isBuiltInReference() ? dataValue.type()->refTarget() : dataValue.type();
-					return genMemberPtr(function, dataPointer, type, memberIndex);
+					const auto llvmDataRefValue = genValue(function, dataRefValue);
+					return genMemberPtr(function, llvmDataRefValue, dataRefValue.type()->refTarget(), memberIndex);
 				}
 				
-				case SEM::Value::REFVALUE: {
-					const auto& dataValue = value.refValueOperand();
+				case SEM::Value::BIND_REFERENCE: {
+					const auto& dataValue = value.bindReferenceOperand();
 					const auto llvmDataValue = genValue(function, dataValue);
 					return genValuePtr(function, llvmDataValue, dataValue.type());
 				}
@@ -416,7 +411,7 @@ namespace locic {
 				case SEM::Value::TYPEREF: {
 					const auto targetType = value.typeRefType();
 					
-					const auto vtablePointer = genVTable(module, targetType);
+					const auto vtablePointer = genVTable(module, targetType->resolveAliases()->getObjectType());
 					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(targetType));
 					
 					// Build the new type info struct with these values.
@@ -435,7 +430,8 @@ namespace locic {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						return VirtualCall::generateCall(function, semFunctionValue.type(), methodValue, llvmArgs);
+						const auto debugLoc = getDebugLocation(function, value);
+						return VirtualCall::generateCall(function, semFunctionValue.type(), methodValue, llvmArgs, debugLoc);
 					}
 					
 					assert(semFunctionValue.type()->isFunction() || semFunctionValue.type()->isMethod());
@@ -449,7 +445,7 @@ namespace locic {
 						semFunctionValue.type()->getMethodFunctionType() : semFunctionValue.type();
 					
 					const auto debugLoc = getDebugLocation(function, value);
-					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc);
+					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc, hintResultValue);
 				}
 				
 				case SEM::Value::FUNCTIONREF:
@@ -499,7 +495,8 @@ namespace locic {
 				
 				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
 					const auto& method = value.staticInterfaceMethodObject();
-					const auto typeRef = genValue(function, value.staticInterfaceMethodOwner());
+					const auto typeRefPtr = genValue(function, value.staticInterfaceMethodOwner());
+					const auto typeRef = function.getBuilder().CreateLoad(typeRefPtr);
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					

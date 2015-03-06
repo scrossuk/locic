@@ -18,7 +18,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		Map<MethodHash, SEM::Function*> CreateFunctionHashMap(SEM::TypeInstance* typeInstance) {
+		Map<MethodHash, SEM::Function*> CreateFunctionHashMap(const SEM::TypeInstance* const typeInstance) {
 			Map<MethodHash, SEM::Function*> hashMap;
 			
 			const auto& functions = typeInstance->functions();
@@ -48,9 +48,15 @@ namespace locic {
 			return hashArray;
 		}
 		
-		llvm::GlobalVariable* genVTable(Module& module, const SEM::Type* rawType) {
-			const auto type = rawType->resolveAliases();
-			const auto typeInstance = type->getObjectType();
+		llvm::Value* genVTable(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto llvmVtableType = vtableType(module);
+			
+			if (typeInstance->isInterface()) {
+				// Interfaces are abstract types so can't have a vtable;
+				// we return a NULL pointer to signify this.
+				return ConstantGenerator(module).getNullPointer(llvmVtableType->getPointerTo());
+			}
+			
 			const auto mangledName = module.getCString("__type_vtable_") + mangleObjectType(module, typeInstance);
 			
 			const auto existingGlobal = module.getLLVMModule().getNamedGlobal(mangledName.c_str());
@@ -60,7 +66,7 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			const auto globalVariable = module.createConstGlobal(mangledName, vtableType(module), llvm::Function::PrivateLinkage);
+			const auto globalVariable = module.createConstGlobal(mangledName, llvmVtableType, llvm::Function::PrivateLinkage);
 			
 			// Generate the vtable.
 			const auto functionHashMap = CreateFunctionHashMap(typeInstance);
@@ -79,10 +85,10 @@ namespace locic {
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Alignmask.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunction(module, type), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Sizeof.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunction(module, type), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Method slots.
 			std::vector<llvm::Constant*> methodSlotElements;

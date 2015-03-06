@@ -7,7 +7,7 @@ struct sfEvent {
 
 namespace sf {
 	
-	// ...
+	datatype Event(int type);
 	
 }
 

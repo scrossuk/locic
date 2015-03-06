@@ -11,19 +11,19 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		ArgInfo alignMaskArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo alignMaskArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		ArgInfo sizeOfArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo sizeOfArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo memberOffsetArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genAlignMaskFunction(Module& module, const SEM::Type* type);
+		llvm::Function* genAlignMaskFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		llvm::Value* genAlignOf(Function& function, const SEM::Type* type);
 		
 		llvm::Value* genAlignMask(Function& function, const SEM::Type* type);
 		
-		llvm::Function* genSizeOfFunction(Module& module, const SEM::Type* type);
+		llvm::Function* genSizeOfFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		llvm::Value* genSizeOf(Function& function, const SEM::Type* type);
 		

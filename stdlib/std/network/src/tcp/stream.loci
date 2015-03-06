@@ -7,7 +7,7 @@ import int std_tcp_iswouldblock(const int error) noexcept;
 import int std_tcp_isinprogress(const int error) noexcept;
 
 import int std_tcp_socket() noexcept;
-import int std_tcp_connect(const int handle, const std_ipv6_address* const address, const uint16_t port) noexcept;
+import int std_tcp_connect(const int handle, const std_ipv6_address* address, const uint16_t port) noexcept;
 import int std_tcp_setnosigpipe(const int handle, const int value) noexcept;
 import int std_tcp_setnonblocking(const int handle, const int value) noexcept;
 import int std_tcp_setipv6only(const int handle, const int value) noexcept;
@@ -16,8 +16,8 @@ import int std_tcp_geterror(const int handle) noexcept;
 import int std_tcp_bind(const int handle, const uint16_t port) noexcept;
 import int std_tcp_listen(const int handle, const int backlog) noexcept;
 import int std_tcp_accept(int listenHandle, std_ipv6_address* peerAddressValue, uint16_t* peerPort) noexcept;
-import ssize_t std_tcp_read(const int eventHandle, uint8_t* const data, const size_t size) noexcept;
-import ssize_t std_tcp_write(const int eventHandle, const uint8_t* const data, const size_t size) noexcept;
+import ssize_t std_tcp_read(const int eventHandle, uint8_t* data, const size_t size) noexcept;
+import ssize_t std_tcp_write(const int eventHandle, const uint8_t* data, const size_t size) noexcept;
 import void std_tcp_close(const int eventHandle) noexcept;
 
 bool isWouldBlock(final int error) noexcept {

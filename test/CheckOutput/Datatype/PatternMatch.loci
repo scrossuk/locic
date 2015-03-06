@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...);
+import void testPrint(const ubyte * str, ...);
 
 datatype Data(int a, int b);
 

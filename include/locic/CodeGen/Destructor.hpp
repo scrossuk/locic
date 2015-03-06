@@ -12,21 +12,21 @@ namespace locic {
 	
 		bool typeHasDestructor(Module& module, const SEM::Type* type);
 		
-		bool typeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
+		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
 		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
-		llvm::FunctionType* destructorFunctionType(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::FunctionType* destructorFunctionType(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genDestructorFunctionDef(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genDestructorFunctionDef(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		
 	}
 	

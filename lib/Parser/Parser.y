@@ -1320,11 +1320,6 @@ typePrecision1:
 	{
 		$$ = $1;
 	}
-	| pointerType CONST
-	{
-		// Create 'const ptr<TYPE>'.
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($1))));
-	}
 	;
 
 typePrecision0:

@@ -212,7 +212,7 @@ namespace locic {
 			return getRawArg(argInfo_.contextArgumentOffset());
 		}
 		
-		llvm::Value* Function::getContextValue(SEM::TypeInstance* typeInstance) {
+		llvm::Value* Function::getContextValue(const SEM::TypeInstance* const typeInstance) {
 			return getBuilder().CreatePointerCast(getRawContextValue(), genPointerType(module(), typeInstance->selfType()));
 		}
 		
@@ -259,7 +259,6 @@ namespace locic {
 			{
 				const std::string functionName = getLLVMFunction().getName();
 				getLLVMFunction().dump();
-				module().getLLVMModule().dump();
 				throw std::runtime_error(makeString("Verification failed for function '%s'.", functionName.c_str()));
 			}
 #else

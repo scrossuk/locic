@@ -1,0 +1,15 @@
+// Simulation abstraction.
+
+namespace Simulations {
+
+	interface Simulation {
+		std::string getName() const;
+		
+		bool handleEvent(const sf::Event& event);
+		
+		void update(sf::RenderWindow& renderWindow);
+		
+		void render(sf::RenderWindow& renderWindow);
+	}
+
+}

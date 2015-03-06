@@ -1,0 +1,27 @@
+// CSFML Color.
+struct sfColor {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
+};
+
+namespace sf {
+	
+	datatype Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	
+	static Color Color::Black() {
+		return Color(0u, 0u, 0u, 255u);
+	}
+	
+	static Color Color::Green() {
+		return Color(0u, 255u, 0u, 255u);
+	}
+	
+	static Color Color::White() {
+		return Color(255u, 255u, 255u, 255u);
+	}
+	
+}
+
+

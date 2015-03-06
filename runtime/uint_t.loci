@@ -25,6 +25,8 @@ __primitive uint_t {
 	
 	bool isZero() const noexcept;
 	
+	int_t signed_value() const noexcept;
+	
 	void __move_to(void* ptr, size_t position) noexcept;
 }
 

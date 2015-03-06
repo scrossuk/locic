@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...);
+import void testPrint(const ubyte * str, ...);
 
 class TestClass (int first, int second) {
 	static Create(int first, int second) {

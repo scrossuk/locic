@@ -33,7 +33,7 @@ namespace locic {
 			}
 		}
 		
-		bool typeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isClassDecl()) {
 				// Assume a destructor exists.
 				return true;
@@ -67,7 +67,7 @@ namespace locic {
 			}
 		}
 		
-		ArgInfo destructorArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
 			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
 			const auto argInfo = hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
 			return argInfo.withNoExcept();
@@ -114,7 +114,7 @@ namespace locic {
 			function.pushUnwindAction(UnwindAction::Destructor(type, value));
 		}
 		
-		void genUnionDestructor(Function& function, SEM::TypeInstance* typeInstance) {
+		void genUnionDestructor(Function& function, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isUnionDatatype());
 			
 			const auto contextValue = function.getContextValue(typeInstance);
@@ -170,7 +170,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance* typeInstance) {
 			if (!typeInstanceHasDestructor(module, typeInstance)) {
 				return getNullDestructorFunction(module);
 			}
@@ -195,7 +195,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance) {
 			const auto iterator = module.getDestructorMap().find(typeInstance);
 			
 			if (iterator != module.getDestructorMap().end()) {
@@ -223,7 +223,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunctionDef(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genDestructorFunctionDef(Module& module, const SEM::TypeInstance* typeInstance) {
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto llvmFunction = genDestructorFunctionDecl(module, typeInstance);
 			

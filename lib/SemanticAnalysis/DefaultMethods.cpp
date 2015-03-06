@@ -376,9 +376,12 @@ namespace locic {
 			if (typeInstance->isUnionDatatype()) {
 				{
 					// Move the tag.
-					auto tagValue = SEM::Value::UnionTag(derefAll(selfValue.copy()), ubyteType);
+					auto tagValue = SEM::Value::UnionTag(selfValue.copy(), ubyteType);
+					auto tagRefValue = bindReference(context, std::move(tagValue));
+					
 					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), positionValue.copy() );
-					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(tagValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
+					
+					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(tagRefValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
 					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
 				}
 				
@@ -401,7 +404,7 @@ namespace locic {
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), switchCases, nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), switchCases, nullptr));
 			} else {
 				for (size_t i = 0; i < typeInstance->variables().size(); i++) {
 					const auto& memberVar = typeInstance->variables().at(i);
@@ -441,7 +444,7 @@ namespace locic {
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), std::move(switchCases), nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), std::move(switchCases), nullptr));
 			} else {
 				std::vector<SEM::Value> copyValues;
 				
@@ -508,12 +511,12 @@ namespace locic {
 						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, std::move(subCaseScope)));
 					}
 					
-					caseScope->statements().push_back(SEM::Statement::Switch(derefAll(operandValue.copy()), subSwitchCases, nullptr));
+					caseScope->statements().push_back(SEM::Statement::Switch(derefValue(operandValue.copy()), subSwitchCases, nullptr));
 					
 					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
 				}
 				
-				functionScope->statements().push_back(SEM::Statement::Switch(derefAll(selfValue.copy()), switchCases, nullptr));
+				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), switchCases, nullptr));
 			} else {
 				auto currentScope = functionScope.get();
 				

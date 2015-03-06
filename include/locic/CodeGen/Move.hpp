@@ -32,7 +32,7 @@ namespace locic {
 		 * method if one of their child types has a custom move
 		 * method, so this will also return true in that case.
 		 */
-		bool typeInstanceHasCustomMove(Module& module, SEM::TypeInstance* typeInstance);
+		bool typeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		/**
 		 * \brief Make an i8* to a move destination.
@@ -69,17 +69,15 @@ namespace locic {
 		 */
 		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
 		
-		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance);
+		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
-		void genUnionMove(Function& function, SEM::TypeInstance* typeInstance);
+		void genUnionMove(Function& function, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genVTableMoveFunction(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genMoveFunctionDecl(Module& module, SEM::TypeInstance* typeInstance);
-		
-		llvm::Function* genMoveFunctionDef(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::Function* genMoveFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
 		
 	}
 	

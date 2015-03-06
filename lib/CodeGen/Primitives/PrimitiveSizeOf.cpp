@@ -11,6 +11,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
@@ -29,10 +30,8 @@ namespace locic {
 			
 		}
 		
-		void createPrimitiveAlignOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction) {
+		void createPrimitiveAlignOf(Module& module, const SEM::TypeInstance* const typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
-			
-			const auto typeInstance = type->getObjectType();
 			
 			Function function(module, llvmFunction, alignMaskArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
@@ -55,29 +54,36 @@ namespace locic {
 				//     alignof(value_lval) = alignof(T).
 				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "__ref") {
-				size_t align = 0;
-				if (hasVirtualTypeArgument(type)) {
-					// If it has a virtual argument, then it will store
-					// the type information internally.
-					align = module.abi().typeAlign(interfaceStructType(module).first);
-				} else {
-					// If the argument is statically known, then the
-					// type information is provided via template generators.
-					align = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
-				}
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(align - 1));
+				// Look at our template argument to see if it's virtual.
+				const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { 0 });
+				const auto argVTablePointer = function.getBuilder().CreateExtractValue(argTypeInfo, { 0 });
+				
+				// If the VTable pointer is NULL, it's a virtual type, which
+				// means we are larger (to store the type information etc.).
+				const auto nullVtablePtr = ConstantGenerator(module).getNullPointer(vtableType(module)->getPointerTo());
+				const auto isVirtualCondition = function.getBuilder().CreateICmpEQ(argVTablePointer, nullVtablePtr, "isVirtual");
+				
+				// If it has a virtual argument, then it will store
+				// the type information internally.
+				const auto virtualAlign = module.abi().typeAlign(interfaceStructType(module).first);
+				const auto virtualAlignValue = ConstantGenerator(module).getSizeTValue(virtualAlign);
+				
+				// If the argument is statically known, then the
+				// type information is provided via template generators.
+				const auto nonVirtualAlign = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
+				const auto nonVirtualAlignValue = ConstantGenerator(module).getSizeTValue(nonVirtualAlign);
+				
+				function.getBuilder().CreateRet(function.getBuilder().CreateSelect(isVirtualCondition, virtualAlignValue, nonVirtualAlignValue));
 			} else {
 				// Everything else already has a known alignment.
-				const auto abiType = genABIType(module, type);
+				const auto abiType = genABIType(module, typeInstance->selfType());
 				const auto align = module.abi().typeAlign(abiType);
 				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(align - 1));
 			}
 		}
 		
-		void createPrimitiveSizeOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction) {
+		void createPrimitiveSizeOf(Module& module, const SEM::TypeInstance* const typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
-			
-			const auto typeInstance = type->getObjectType();
 			
 			Function function(module, llvmFunction, sizeOfArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
@@ -127,26 +133,35 @@ namespace locic {
 				const auto templateVarSize = genSizeOf(function, templateVarRef);
 				function.getBuilder().CreateRet(function.getBuilder().CreateAdd(templateVarAlign, templateVarSize));
 			} else if (name == "__ref") {
-				size_t size = 0;
-				if (hasVirtualTypeArgument(type)) {
-					// If it has a virtual argument, then it will store
-					// the type information internally.
-					size = module.abi().typeSize(interfaceStructType(module).first);
-				} else {
-					// If the argument is statically known, then the
-					// type information is provided via template generators.
-					size = module.abi().typeSize(llvm_abi::Type::Pointer(module.abiContext()));
-				}
-				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(size));
+				// Look at our template argument to see if it's virtual.
+				const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { 0 });
+				const auto argVTablePointer = function.getBuilder().CreateExtractValue(argTypeInfo, { 0 });
+				
+				// If the VTable pointer is NULL, it's a virtual type, which
+				// means we are larger (to store the type information etc.).
+				const auto nullVtablePtr = ConstantGenerator(module).getNullPointer(vtableType(module)->getPointerTo());
+				const auto isVirtualCondition = function.getBuilder().CreateICmpEQ(argVTablePointer, nullVtablePtr, "isVirtual");
+				
+				// If it has a virtual argument, then it will store
+				// the type information internally.
+				const auto virtualSize = module.abi().typeSize(interfaceStructType(module).first);
+				const auto virtualSizeValue = ConstantGenerator(module).getSizeTValue(virtualSize);
+				
+				// If the argument is statically known, then the
+				// type information is provided via template generators.
+				const auto nonVirtualSize = module.abi().typeSize(llvm_abi::Type::Pointer(module.abiContext()));
+				const auto nonVirtualSizeValue = ConstantGenerator(module).getSizeTValue(nonVirtualSize);
+				
+				function.getBuilder().CreateRet(function.getBuilder().CreateSelect(isVirtualCondition, virtualSizeValue, nonVirtualSizeValue));
 			} else {
 				// Everything else already has a known size.
-				const auto abiType = genABIType(module, type);
+				const auto abiType = genABIType(module, typeInstance->selfType());
 				const auto size = module.abi().typeSize(abiType);
 				function.getBuilder().CreateRet(ConstantGenerator(module).getSizeTValue(size));
 			}
 		}
 		
-		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type) {
+		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* const type) {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
@@ -162,7 +177,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type) {
+		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* const type) {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			

@@ -214,6 +214,22 @@ namespace locic {
 			return iterator->second;
 		}
 		
+		void Module::verify() const {
+			// Only verify modules when built in debug mode.
+#if !defined(NDEBUG)
+#if defined(LLVM_3_5) || defined(LLVM_3_6)
+			llvm::raw_os_ostream cerrStream(std::cerr);
+			const bool result = llvm::verifyModule(*module_, &cerrStream);
+			if (result)
+			{
+				throw std::runtime_error("Verification failed for module.");
+			}
+#else
+			(void) llvm::verifyModule(module_, llvm::AbortProcessAction);
+#endif
+#endif
+		}
+		
 	}
 	
 }

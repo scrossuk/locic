@@ -97,6 +97,7 @@ namespace locic {
 			switch(c){
 				case '{':
 				case '(':
+				case '<':
 					tabLevel++;
 					resultString += c;
 					resultString += '\n';
@@ -104,6 +105,7 @@ namespace locic {
 					break;
 				case '}':
 				case ')':
+				case '>':
 					if(tabLevel >= 2) tabLevel--;
 					resultString += '\n';
 					resultString += createTabs(tabLevel);

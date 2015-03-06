@@ -9,6 +9,9 @@ __primitive uint8_t {
 	static uint8_t cast_uint64_t(uint64_t value) noexcept;
 	static uint8_t cast_uint_t(uint_t value) noexcept;
 	
+	static uint8_t cast_float_t(float_t value) noexcept;
+	static uint8_t cast_double_t(double_t value) noexcept;
+	
 	uint8_t implicit_copy() const noexcept;
 	uint8_t copy() const noexcept;
 

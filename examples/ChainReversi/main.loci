@@ -1,8 +1,8 @@
 // Program entry point.
 
-import int rand();
+import int rand() noexcept;
 
-import void printf(const ubyte* text, ...);
+import void printf(const ubyte* text, ...) noexcept;
 
 double Random() {
 	// Not a great random number generator...
@@ -215,7 +215,7 @@ export int main(int argc, ubyte ** argv) {
 	
 	try {
 		auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Chain Reversi");
-		renderWindow.setFramerateLimit(25);
+		renderWindow.setFramerateLimit(25u);
 		
 		const auto view = sf::View::FromRect(sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(800.0f, 800.0f)));
 		renderWindow.setView(view);

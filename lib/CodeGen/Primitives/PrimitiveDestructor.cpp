@@ -16,7 +16,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
@@ -72,7 +72,7 @@ namespace locic {
 			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasDestructor(module, type->templateArguments().front());
 		}
 		
-		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance) {
+		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);

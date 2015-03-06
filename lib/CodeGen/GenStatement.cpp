@@ -113,7 +113,10 @@ namespace locic {
 				
 				case SEM::Statement::INITIALISE: {
 					const auto var = statement->getInitialiseVar();
-					const auto value = genValue(function, statement->getInitialiseValue());
+					const auto varAllocaOptional = function.getLocalVarMap().tryGet(var);
+					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
+					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
+					const auto value = genValue(function, statement->getInitialiseValue(), castVarAlloca);
 					genVarInitialise(function, var, value);
 					break;
 				}
@@ -236,16 +239,22 @@ namespace locic {
 				}
 				
 				case SEM::Statement::SWITCH: {
-					const auto switchValue = genValue(function, statement->getSwitchValue());
-					const auto switchType = statement->getSwitchValue().type();
+					const auto& switchValue = statement->getSwitchValue();
+					assert(switchValue.type()->isUnionDatatype() || (switchValue.type()->isRef() && switchValue.type()->isBuiltInReference()));
+					
+					const bool isSwitchValueRef = switchValue.type()->isRef();
+					const auto switchType = isSwitchValueRef ? switchValue.type()->refTarget() : switchValue.type();
+					assert(switchType->isUnionDatatype());
+					
+					const auto llvmSwitchValue = genValue(function, switchValue);
 					
 					llvm::Value* switchValuePtr = nullptr;
 					
-					if (!switchValue->getType()->isPointerTy()) {
-						switchValuePtr = genAlloca(function, switchType);
-						genMoveStore(function, switchValue, switchValuePtr, switchType);
+					if (isSwitchValueRef) {
+						switchValuePtr = llvmSwitchValue;
 					} else {
-						switchValuePtr = switchValue;
+						switchValuePtr = genAlloca(function, switchType);
+						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType);
 					}
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
@@ -378,7 +387,7 @@ namespace locic {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
 						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement->getReturnValue());
+								const auto returnValue = genValue(function, statement->getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
 								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());
@@ -398,7 +407,7 @@ namespace locic {
 						
 						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement->getReturnValue());
+								const auto returnValue = genValue(function, statement->getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
 								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());

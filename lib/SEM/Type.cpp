@@ -19,11 +19,11 @@ namespace locic {
 
 	namespace SEM {
 	
-		template <typename PreFunction, typename PostFunction>
+		template <typename CheckFunction, typename PreFunction, typename PostFunction>
 		const Type* applyType(const Type* type, PreFunction preFunction, PostFunction postFunction);
 		
-		template <typename PreFunction, typename PostFunction>
-		const Type* doApplyType(const Type* const type, PreFunction preFunction, PostFunction postFunction) {
+		template <typename CheckFunction, typename PreFunction, typename PostFunction>
+		const Type* doApplyType(const Type* const type, CheckFunction checkFunction, PreFunction preFunction, PostFunction postFunction) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type;
@@ -36,7 +36,7 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg: type->templateArguments()) {
-						const auto appliedArg = applyType<PreFunction, PostFunction>(templateArg, preFunction, postFunction);
+						const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg, checkFunction, preFunction, postFunction);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(appliedArg);
 					}
@@ -55,12 +55,12 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& paramType: type->getFunctionParameterTypes()) {
-						const auto appliedType = applyType<PreFunction, PostFunction>(paramType, preFunction, postFunction);
+						const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(paramType, checkFunction, preFunction, postFunction);
 						changed |= (appliedType != paramType);
 						args.push_back(appliedType);
 					}
 					
-					const auto returnType = applyType<PreFunction, PostFunction>(type->getFunctionReturnType(), preFunction, postFunction);
+					const auto returnType = applyType<CheckFunction, PreFunction, PostFunction>(type->getFunctionReturnType(), checkFunction, preFunction, postFunction);
 					changed |= (returnType != type->getFunctionReturnType());
 					
 					if (changed) {
@@ -73,7 +73,7 @@ namespace locic {
 				}
 				
 				case Type::METHOD: {
-					const auto appliedType = applyType<PreFunction, PostFunction>(type->getMethodFunctionType(), preFunction, postFunction);
+					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getMethodFunctionType(), checkFunction, preFunction, postFunction);
 					if (appliedType != type->getMethodFunctionType()) {
 						return Type::Method(appliedType);
 					} else {
@@ -82,7 +82,7 @@ namespace locic {
 				}
 				
 				case Type::INTERFACEMETHOD: {
-					const auto appliedType = applyType<PreFunction, PostFunction>(type->getInterfaceMethodFunctionType(), preFunction, postFunction);
+					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getInterfaceMethodFunctionType(), checkFunction, preFunction, postFunction);
 					if (appliedType != type->getInterfaceMethodFunctionType()) {
 						return Type::InterfaceMethod(appliedType);
 					} else {
@@ -91,7 +91,7 @@ namespace locic {
 				}
 				
 				case Type::STATICINTERFACEMETHOD: {
-					const auto appliedType = applyType<PreFunction, PostFunction>(type->getStaticInterfaceMethodFunctionType(), preFunction, postFunction);
+					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getStaticInterfaceMethodFunctionType(), checkFunction, preFunction, postFunction);
 					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
 						return Type::StaticInterfaceMethod(appliedType);
 					} else {
@@ -110,7 +110,7 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg : type->typeAliasArguments()) {
-						const auto appliedArg = applyType<PreFunction, PostFunction>(templateArg, preFunction, postFunction);
+						const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg, checkFunction, preFunction, postFunction);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(appliedArg);
 					}
@@ -126,22 +126,26 @@ namespace locic {
 			std::terminate();
 		}
 		
-		template <typename PreFunction, typename PostFunction>
-		const Type* applyType(const Type* const type, PreFunction preFunction, PostFunction postFunction) {
-			const auto basicType = preFunction(doApplyType<PreFunction, PostFunction>(type, preFunction, postFunction));
+		template <typename CheckFunction, typename PreFunction, typename PostFunction>
+		const Type* applyType(const Type* const type, CheckFunction checkFunction, PreFunction preFunction, PostFunction postFunction) {
+			if (!checkFunction(type)) {
+				return type;
+			}
+			
+			const auto basicType = preFunction(doApplyType<CheckFunction, PreFunction, PostFunction>(type, checkFunction, preFunction, postFunction));
 			
 			const auto constType = type->isConst() ? basicType->createConstType() : basicType;
 			
 			const auto lvalType = type->isLval() ?
-				constType->createLvalType(applyType<PreFunction, PostFunction>(type->lvalTarget(), preFunction, postFunction)) :
+				constType->createLvalType(applyType<CheckFunction, PreFunction, PostFunction>(type->lvalTarget(), checkFunction, preFunction, postFunction)) :
 				constType;
 			
 			const auto refType = type->isRef() ?
-				lvalType->createRefType(applyType<PreFunction, PostFunction>(type->refTarget(), preFunction, postFunction)) :
+				lvalType->createRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->refTarget(), checkFunction, preFunction, postFunction)) :
 				lvalType;
 			
 			const auto staticRefType = type->isStaticRef() ?
-				refType->createStaticRefType(applyType<PreFunction, PostFunction>(type->staticRefTarget(), preFunction, postFunction)) :
+				refType->createStaticRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->staticRefTarget(), checkFunction, preFunction, postFunction)) :
 				refType;
 			
 			return postFunction(staticRefType);
@@ -338,6 +342,11 @@ namespace locic {
 		
 		const Type* Type::withoutLval() const {
 			return applyType(this,
+				[] (const Type* const) {
+					// Whether or not this type is an lval,
+					// it may contain lval types.
+					return true;
+				},
 				[] (const Type* const type) {
 					return type;
 				},
@@ -354,6 +363,11 @@ namespace locic {
 		
 		const Type* Type::withoutRef() const {
 			return applyType(this,
+				[] (const Type* const) {
+					// Whether or not this type is a ref,
+					// it may contain ref types.
+					return true;
+				},
 				[] (const Type* const type) {
 					return type;
 				},
@@ -370,6 +384,11 @@ namespace locic {
 		
 		const Type* Type::withoutLvalOrRef() const {
 			return applyType(this,
+				[] (const Type* const) {
+					// Whether or not this type is an lval
+					// or ref, it may contain lval or ref types.
+					return true;
+				},
 				[] (const Type* const type) {
 					return type;
 				},
@@ -638,6 +657,11 @@ namespace locic {
 			}
 			
 			return applyType(this,
+				[] (const Type* const) {
+					// Unknown whether the type contains template
+					// variables, so assume it does.
+					return true;
+				},
 				[&](const Type* const type) {
 					if (type->isTemplateVar()) {
 						const auto iterator = templateVarMap.find(type->getTemplateVar());
@@ -664,6 +688,11 @@ namespace locic {
 		
 		const Type* Type::resolveAliases() const {
 			return applyType(this,
+				[] (const Type* const) {
+					// Unknown whether the type contains aliases,
+					// so assume it does.
+					return true;
+				},
 				[](const Type* const type) {
 					if (type->isAlias()) {
 						const auto& templateVars = type->getTypeAlias()->templateVariables();

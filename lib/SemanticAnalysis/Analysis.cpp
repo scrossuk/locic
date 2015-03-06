@@ -63,8 +63,11 @@ namespace locic {
 			// Check if there's anything with the same name.
 			const auto iterator = parentNamespace->items().find(typeInstanceName);
 			if (iterator != parentNamespace->items().end()) {
-				throw ErrorException(makeString("Type instance name '%s' clashes with existing name, at position %s.",
-					fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				const auto existingTypeInstance = iterator->second.typeInstance();
+				const auto& debugInfo = context.debugModule().typeInstanceMap.at(existingTypeInstance);
+				throw ErrorException(makeString("Type instance name '%s', at position %s, clashes with existing name, at position %s.",
+					fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str(),
+					debugInfo.location.toString().c_str()));
 			}
 			
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);

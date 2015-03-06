@@ -20,21 +20,21 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		ArgInfo alignMaskArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo alignMaskArgInfo(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		ArgInfo sizeOfArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo sizeOfArgInfo(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		ArgInfo memberOffsetArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo memberOffsetArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
 			std::vector<TypePair> argTypes;
 			argTypes.push_back(sizeTypePair(module));
 			
@@ -44,10 +44,9 @@ namespace locic {
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		llvm::Function* genAlignMaskFunction(Module& module, const SEM::Type* type) {
-			const auto typeInstance = type->getObjectType();
+		llvm::Function* genAlignMaskFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
-				mangleMethodName(module, typeInstance, module.getCString("__alignmask") + module.getCString(hasVirtualTypeArgument(type) ? "_virtual" : ""));
+				mangleMethodName(module, typeInstance, module.getCString("__alignmask"));
 			const auto iterator = module.getFunctionMap().find(mangledName);
 			
 			if (iterator != module.getFunctionMap().end()) {
@@ -68,7 +67,7 @@ namespace locic {
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveAlignOf(module, type, *llvmFunction);
+				createPrimitiveAlignOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -136,7 +135,7 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
-					const auto alignMaskFunction = genAlignMaskFunction(module, type);
+					const auto alignMaskFunction = genAlignMaskFunction(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
@@ -167,10 +166,9 @@ namespace locic {
 			return alignMaskValue;
 		}
 		
-		llvm::Function* genSizeOfFunction(Module& module, const SEM::Type* type) {
-			const auto typeInstance = type->getObjectType();
+		llvm::Function* genSizeOfFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
-				mangleMethodName(module, typeInstance, module.getCString("__sizeof") + module.getCString(hasVirtualTypeArgument(type) ? "_virtual" : ""));
+				mangleMethodName(module, typeInstance, module.getCString("__sizeof"));
 			const auto iterator = module.getFunctionMap().find(mangledName);
 			
 			if (iterator != module.getFunctionMap().end()) {
@@ -192,7 +190,7 @@ namespace locic {
 			
 			// Primitives have known sizes.
 			if (typeInstance->isPrimitive()) {
-				createPrimitiveSizeOf(module, type, *llvmFunction);
+				createPrimitiveSizeOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
 			
@@ -257,7 +255,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* type) {
+		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* const type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
@@ -279,7 +277,7 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
-					const auto sizeOfFunction = genSizeOfFunction(module, type);
+					const auto sizeOfFunction = genSizeOfFunction(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
@@ -299,7 +297,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genSizeOf(Function& function, const SEM::Type* type) {
+		llvm::Value* genSizeOf(Function& function, const SEM::Type* const type) {
 			const auto it = function.sizeOfMap().find(type);
 			if (it != function.sizeOfMap().end()) {
 				return it->second;
@@ -310,7 +308,7 @@ namespace locic {
 			return sizeOfValue;
 		}
 		
-		llvm::Value* makeAligned(Function& function, llvm::Value* size, llvm::Value* alignMask) {
+		llvm::Value* makeAligned(Function& function, llvm::Value* const size, llvm::Value* const alignMask) {
 			const auto sizePlusMask = function.getBuilder().CreateAdd(size, alignMask, "sizePlusMask");
 			const auto inverseMask = function.getBuilder().CreateNot(alignMask, "inverseMask");
 			return function.getBuilder().CreateAnd(sizePlusMask, inverseMask, "alignedValue");
@@ -330,7 +328,7 @@ namespace locic {
 		 *     return makeAligned(offset, memberAlignMask(memberIndex));
 		 * }
 		 */
-		llvm::Value* genMemberOffsetFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Value* genMemberOffsetFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto iterator = module.memberOffsetFunctionMap().find(typeInstance);
 			if (iterator != module.memberOffsetFunctionMap().end()) {
 				return iterator->second;
@@ -394,7 +392,7 @@ namespace locic {
 			return (position + (align - 1)) & (~(align - 1));
 		}
 		
-		llvm::Value* genMemberOffset(Function& function, const SEM::Type* type, size_t memberIndex) {
+		llvm::Value* genMemberOffset(Function& function, const SEM::Type* const type, const size_t memberIndex) {
 			assert(type->isObject());
 			
 			auto& module = function.module();
@@ -454,7 +452,8 @@ namespace locic {
 			return callResult;
 		}
 		
-		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, const SEM::Type* objectType, size_t memberIndex) {
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* const objectPointer, const SEM::Type* const objectType, const size_t memberIndex) {
+			assert(objectType->isObject());
 			auto& module = function.module();
 			
 			if (isTypeSizeKnownInThisModule(module, objectType)) {
@@ -464,11 +463,13 @@ namespace locic {
 			} else {
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getI8PtrType());
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
-				return function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
+				const auto memberPtr = function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
+				const auto memberType = objectType->getObjectType()->variables().at(memberIndex)->type()->substitute(objectType->generateTemplateVarMap());
+				return function.getBuilder().CreatePointerCast(memberPtr, genPointerType(module, memberType));
 			}
 		}
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* type, llvm::Value* objectPtr) {
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* const type, llvm::Value* const objectPtr) {
 			assert(type->isObject() && type->getObjectType()->isUnionDatatype());
 			auto& module = function.module();
 			

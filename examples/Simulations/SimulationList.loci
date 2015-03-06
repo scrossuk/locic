@@ -1,0 +1,57 @@
+// List of simulations.
+
+namespace Simulations {
+
+	class SimulationList(std::varray<Simulation&> simulations, size_t index) {
+		static Create() {
+			return @(std::varray<Simulation&>(), 0u);
+		}
+		
+		void addSimulation(Simulation& simulation) {
+			@simulations.push_back(simulation);
+		}
+		
+		std::string getName() const {
+			if (!@simulations.empty()) {
+				return @simulations[@index].getName();
+			} else {
+				return "<None>";
+			}
+		}
+		
+		bool handleEvent(const sf::Event& event) {
+			if (!@simulations.empty()) {
+				return @simulations[@index].handleEvent(event);
+			} else {
+				return false;
+			}
+		}
+		
+		void update(sf::RenderWindow& renderWindow) {
+			if (!@simulations.empty()) {
+				@simulations[@index].update(renderWindow);
+			}
+		}
+		
+		void render(sf::RenderWindow& renderWindow) {
+			if (!@simulations.empty()) {
+				@simulations[@index].render(renderWindow);
+			}
+		}
+		
+		void moveLeft() {
+			if (@index > 0u) {
+				@index--;
+			}
+		}
+		
+		void moveRight() {
+			assert @simulations.size() > 0u;
+			if (@index < (@simulations.size() - 1u)) {
+				@index++;
+			}
+		}
+	
+	}
+
+}

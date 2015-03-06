@@ -11,9 +11,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Value* generateLValue(Function& function, const SEM::Value& value);
-		
-		llvm::Value* genValue(Function& function, const SEM::Value& value);
+		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* hintResultValue = nullptr);
 		
 	}
 	

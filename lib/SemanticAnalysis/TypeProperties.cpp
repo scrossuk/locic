@@ -57,8 +57,10 @@ namespace locic {
 		}
 		
 		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
-			auto value = derefAll(std::move(rawValue));
-			const auto targetType = value.type()->staticRefTarget();
+			auto value = derefOrBindValue(context, std::move(rawValue));
+			assert(value.type()->isRef() && value.type()->isBuiltInReference());
+			assert(value.type()->refTarget()->isStaticRef());
+			const auto targetType = value.type()->refTarget()->staticRefTarget();
 			
 			if (!targetType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
@@ -109,14 +111,14 @@ namespace locic {
 		}
 		
 		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
-			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
+			auto value = derefOrBindValue(context, tryDissolveValue(context, derefOrBindValue(context, std::move(rawValue)), location));
 			const auto type = getDerefType(value.type())->resolveAliases();
-			
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, std::move(templateArguments), location);
 		}
 		
 		// Gets the method without dissolving or derefencing the object.
 		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location) {
+			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			const auto type = getSingleDerefType(value.type())->resolveAliases();
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
@@ -126,6 +128,7 @@ namespace locic {
 		}
 		
 		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
+			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
@@ -208,15 +211,15 @@ namespace locic {
 				auto functionRef = SEM::Value::FunctionRef(type, function, std::move(templateArguments), function->type()->substitute(templateVariableAssignments));
 				
 				if (type->isInterface()) {
-					return SEM::Value::InterfaceMethodObject(std::move(functionRef), derefValue(std::move(value)));
+					return SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value));
 				} else {
-					return SEM::Value::MethodObject(std::move(functionRef), derefValue(std::move(value)));
+					return SEM::Value::MethodObject(std::move(functionRef), std::move(value));
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
 				auto functionRef = SEM::Value::TemplateFunctionRef(type, methodName, functionType);
-				return SEM::Value::MethodObject(std::move(functionRef), derefValue(std::move(value)));
+				return SEM::Value::MethodObject(std::move(functionRef), std::move(value));
 			}
 		}
 		

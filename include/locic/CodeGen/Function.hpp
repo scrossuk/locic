@@ -69,7 +69,7 @@ namespace locic {
 				
 				llvm::Value* getRawContextValue() const;
 				
-				llvm::Value* getContextValue(SEM::TypeInstance* typeInstance);
+				llvm::Value* getContextValue(const SEM::TypeInstance* typeInstance);
 				
 				TemplateBuilder& templateBuilder();
 				

@@ -12,8 +12,8 @@ bool isStrEqual(const ubyte * s1, const ubyte * s2) noexcept {
 export int main(int argc, ubyte ** argv) {
 	printf(C"* Welcome to Calculator! *\n");
 	
-	const ubyte * const usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
-	const ubyte * const answerText = C"Here's your answer";
+	const ubyte * usage = C"loci-calc [add|sub|mul|div] int int (e.g. loci-calc mul 3 4)";
+	const ubyte * answerText = C"Here's your answer";
 	
 	if (argc < 4) {
 		printf(C"Too few arguments! You need to give 3 arguments:\n");
@@ -27,7 +27,7 @@ export int main(int argc, ubyte ** argv) {
 		return 1;
 	}
 	
-	const ubyte * const op = argv[1u];
+	const ubyte * op = argv[1u];
 	int arg1 = atoi(argv[2u]);
 	int arg2 = atoi(argv[3u]);
 	

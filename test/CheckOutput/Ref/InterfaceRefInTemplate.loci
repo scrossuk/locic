@@ -1,0 +1,37 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+template <typename T>
+require(T : movable)
+class TemplatedClass(T object) {
+	static create(T object) noexcept {
+		return @(move object);
+	}
+	
+	lval<T> member_lval<T>& get() noexcept {
+		return @object;
+	}
+}
+
+class TestClass() {
+	static create = default;
+	
+	void doSomething() noexcept {
+		testPrint(C"TestClass::doSomething()");
+	}
+}
+
+interface TestInterface {
+	void doSomething() noexcept;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) noexcept {
+	auto inst = TestClass();
+	TestInterface& interfaceRef = inst;
+	auto templatedInst = TemplatedClass<TestInterface&>(interfaceRef);
+	TestInterface& objectRef = templatedInst.get();
+	objectRef.doSomething();
+	return 0;
+}
+

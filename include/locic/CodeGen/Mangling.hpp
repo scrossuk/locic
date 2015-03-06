@@ -19,13 +19,13 @@ namespace locic {
 		
 		String mangleFunctionName(Module& module, const Name& name);
 		
-		String mangleMethodName(Module& module, SEM::TypeInstance* typeInstance, const String& methodName);
+		String mangleMethodName(Module& module, const SEM::TypeInstance* typeInstance, const String& methodName);
 		
-		String mangleMoveName(Module& module, SEM::TypeInstance* typeInstance);
+		String mangleMoveName(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		String mangleDestructorName(Module& module, SEM::TypeInstance* typeInstance);
+		String mangleDestructorName(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		String mangleObjectType(Module& module, SEM::TypeInstance* typeInstance);
+		String mangleObjectType(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		String mangleTypeName(Module& module, const Name& name);
 		

@@ -20,6 +20,49 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		/**
+		 * \brief Create translation function stub.
+		 * 
+		 * This creates a function that performs a translation between
+		 * accepting/returning values by pointer versus by value.
+		 * 
+		 * For example:
+		 * 
+		 * template <typename T : movable>
+		 * void f(T value);
+		 * 
+		 * f<int>(10);
+		 * 
+		 * Here the function is called with an integer value and as
+		 * with all primitives it will be passed by value. However
+		 * the function is templated and therefore must accept its
+		 * argument by pointer (to support non-primitive types).
+		 * 
+		 * This problem is resolved by creating a translation
+		 * function stub that is roughly:
+		 * 
+		 * void translateFunctionForF(int value) {
+		 *   int* stackMemoryPtr = alloca(sizeof(int));
+		 *   *stackMemoryPtr = value;
+		 *   f(stackMemoryPtr);
+		 * }
+		 * 
+		 * This translation could be performed inline while the
+		 * code is generated, but this would prevent referencing
+		 * the function without calling it; for example:
+		 * 
+		 * auto theFunction = f<int>;
+		 * theFunction(10);
+		 * 
+		 * It is of course notable that the function reference
+		 * here actually refers to the *stub* and not to the
+		 * templated function.
+		 * 
+		 * \param module The module in which code is being generated.
+		 * \param functionRefPtr The function we ultimately want to call.
+		 * \param newFunctionType The function signature we'd like to use.
+		 * \return The translation function stub.
+		 */
 		llvm::Function* genFunctionPtrStub(Module& module, llvm::Function* functionRefPtr, llvm::FunctionType* newFunctionType) {
 			const auto stubIdPair = std::make_pair(functionRefPtr, newFunctionType);
 			const auto iterator = module.functionPtrStubMap().find(stubIdPair);
@@ -29,7 +72,8 @@ namespace locic {
 			
 			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
 			
-			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::PrivateLinkage, "translateFunctionStub", module.getLLVMModulePtr());
+			const auto functionName = module.getCString("translateStub_") + functionRefPtr->getName();
+			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::PrivateLinkage, functionName.c_str(), module.getLLVMModulePtr());
 			
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			
@@ -59,10 +103,15 @@ namespace locic {
 				const auto oldParamType = oldFunctionType->getParamType(offset);
 				const auto newParamType = it->getType();
 				
-				if (oldParamType->isPointerTy() && !newParamType->isPointerTy()) {
-					const auto argAlloca = builder.CreateAlloca(newParamType);
-					builder.CreateStore(it, argAlloca);
-					args.push_back(builder.CreatePointerCast(argAlloca, TypeGenerator(module).getI8PtrType()));
+				if (oldParamType->isPointerTy()) {
+					if (!newParamType->isPointerTy()) {
+						const auto argAlloca = builder.CreateAlloca(newParamType);
+						builder.CreateStore(it, argAlloca);
+						args.push_back(builder.CreatePointerCast(argAlloca, oldParamType));
+					} else {
+						// Make sure our pointers have the right type.
+						args.push_back(builder.CreatePointerCast(it, oldParamType));
+					}
 				} else {
 					args.push_back(it);
 				}
@@ -134,17 +183,13 @@ namespace locic {
 		
 		ArgPair genCallValue(Function& function, const SEM::Value& value) {
 			switch (value.kind()) {
-				case SEM::Value::REFVALUE: {
-					const auto& dataValue = value.refValueOperand();
-					const bool isContextRef = dataValue.type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), dataValue.type());
-					return std::make_pair(genValue(function, dataValue), isContextRef);
+				case SEM::Value::BIND_REFERENCE: {
+					const auto& dataValue = value.bindReferenceOperand();
+					return ArgPair(genValue(function, dataValue), true);
 				}
 				
 				default:
-					const bool isContextRef = value.type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), value.type());
-					return std::make_pair(genValue(function, value), isContextRef);
+					return ArgPair(genValue(function, value), false);
 			}
 		}
 		
@@ -169,7 +214,7 @@ namespace locic {
 				case SEM::Value::FUNCTIONREF: {
 					llvm::SmallVector<ArgPair, 10> llvmArgs;
 					
-					if (contextValue.first != nullptr) {
+					if (contextValue.llvmValue() != nullptr) {
 						llvmArgs.push_back(contextValue);
 					}
 					
@@ -187,16 +232,8 @@ namespace locic {
 				
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
-					const auto llvmDataValue = genValue(function, dataValue);
-					const bool isContextRef = dataValue.type()->isBuiltInReference()
-						|| !canPassByValue(function.module(), dataValue.type());
-					
-					if (isContextRef && !dataValue.type()->isRef()) {
-						// Call destructor for the object at the end of the current scope.
-						scheduleDestructorCall(function, dataValue.type(), llvmDataValue);
-					}
-					
-					return genTrivialFunctionCall(function, value.methodObject(), args, std::make_pair(llvmDataValue, isContextRef));
+					const auto dataValuePair = genCallValue(function, dataValue);
+					return genTrivialFunctionCall(function, value.methodObject(), args, dataValuePair);
 				}
 				
 				default: {
@@ -269,16 +306,14 @@ namespace locic {
 					callInfo.functionPtr = functionCallInfo.functionPtr;
 					callInfo.templateGenerator = functionCallInfo.templateGenerator;
 					
-					const auto& dataValue = value.methodOwner();
-					const auto llvmDataValue = genValue(function, dataValue);
+					const auto& dataRefValue = value.methodOwner();
+					assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());
 					
-					// Methods must have a pointer to the object, which
-					// may require generating a fresh 'alloca'.
-					const auto dataPointer = genValuePtr(function, llvmDataValue, dataValue.type());
+					const auto llvmDataRefValue = genValue(function, dataRefValue);
 					
-					assert(dataPointer != nullptr && "MethodObject requires a valid data pointer");
+					assert(llvmDataRefValue != nullptr && "MethodObject requires a valid data pointer");
 					
-					callInfo.contextPointer = function.getBuilder().CreatePointerCast(dataPointer, TypeGenerator(module).getI8PtrType());
+					callInfo.contextPointer = function.getBuilder().CreatePointerCast(llvmDataRefValue, TypeGenerator(module).getI8PtrType());
 					
 					return callInfo;
 				}

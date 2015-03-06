@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...);
+import void testPrint(const ubyte * str, ...);
 
 bool evaluateBool(bool value) {
 	testPrint(C"evaluateBool: value is %s", value ? C"TRUE" : C"FALSE");

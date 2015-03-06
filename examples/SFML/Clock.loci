@@ -6,11 +6,11 @@ import {
 	
 	sfClock* sfClock_create() noexcept;
 	
-	sfClock* sfClock_copy(const sfClock* const clock) noexcept;
+	sfClock* sfClock_copy(const sfClock* clock) noexcept;
 	
 	void sfClock_destroy(sfClock* clock) noexcept;
 	
-	sfTime sfClock_getElapsedTime(const sfClock* const clock) noexcept;
+	sfTime sfClock_getElapsedTime(const sfClock* clock) noexcept;
 	
 	sfTime sfClock_restart(sfClock* clock) noexcept;
 	

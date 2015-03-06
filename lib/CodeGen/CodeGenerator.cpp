@@ -82,8 +82,8 @@ namespace locic {
 			// Only generate primitives as needed.
 			if (!typeInstance->isPrimitive()) {
 				(void) genDestructorFunctionDef(module, typeInstance);
-				(void) genAlignMaskFunction(module, typeInstance->selfType());
-				(void) genSizeOfFunction(module, typeInstance->selfType());
+				(void) genAlignMaskFunction(module, typeInstance);
+				(void) genSizeOfFunction(module, typeInstance);
 				
 				if (!typeInstance->templateVariables().empty()) {
 					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(typeInstance));
@@ -149,6 +149,7 @@ namespace locic {
 			genNamespaceTypes(*module_, nameSpace);
 			genNamespaceFunctions(*module_, nameSpace);
 			module_->debugBuilder().finalize();
+			module_->verify();
 		}
 		
 		void CodeGenerator::writeToFile(const std::string& fileName) {

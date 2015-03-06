@@ -1,0 +1,26 @@
+// Support routines.
+
+namespace Simulations {
+	
+	sf::CircleShape MakeCircleShape(float x, float y, float radius, const sf::Color& color, float outline, const sf::Color& outlineColor) {
+		auto shape = sf::CircleShape();
+		shape.setRadius(radius);
+		shape.setFillColor(color);
+		shape.setPosition(sf::Vector2f(x, y));
+		shape.setOrigin(sf::Vector2f(radius, radius));
+		shape.setOutlineThickness(outline);
+		shape.setOutlineColor(outlineColor);
+		return move shape;
+	}
+	
+	sf::RectangleShape MakeRectangleShape(float p0X, float p0Y, float p1X, float p1Y, const sf::Color& color) {
+		assert p0X <= p1X;
+		assert p0Y <= p1Y;
+		auto shape = sf::RectangleShape();
+		shape.setFillColor(color);
+		shape.setPosition(sf::Vector2f(p0X, p0Y));
+		shape.setSize(sf::Vector2f(p1X - p0X, p1Y - p0Y));
+		return move shape;
+	}
+	
+}

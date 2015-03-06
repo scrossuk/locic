@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...) noexcept;
+import void testPrint(const ubyte * str, ...) noexcept;
 
 exception ExampleError1(int value1);
 exception ExampleError2(int value1, int value2);

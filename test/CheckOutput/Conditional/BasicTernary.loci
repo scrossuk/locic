@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...);
+import void testPrint(const ubyte * str, ...);
 
 int selectValue(bool getFirst, int first, int second) {
 	return getFirst ? first : second;

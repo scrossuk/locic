@@ -16,7 +16,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveMove(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+		void createPrimitiveMove(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			Function function(module, llvmFunction, moveArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
@@ -74,7 +74,7 @@ namespace locic {
 			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasCustomMove(module, type->templateArguments().front());
 		}
 		
-		bool primitiveTypeInstanceHasCustomMove(Module& module, SEM::TypeInstance* typeInstance) {
+		bool primitiveTypeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);

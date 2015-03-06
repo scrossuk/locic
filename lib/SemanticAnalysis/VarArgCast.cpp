@@ -50,9 +50,7 @@ namespace locic {
 			
 			if (value.type()->isRef() && supportsImplicitCopy(context, derefType)) {
 				// Try to copy.
-				auto copyValue = derefType->isObject() ?
-					CallValue(context, GetMethod(context, std::move(value), context.getCString("implicitcopy"), location), {}, location) :
-					derefAll(std::move(value));
+				auto copyValue = CallValue(context, GetMethod(context, std::move(value), context.getCString("implicitcopy"), location), {}, location);
 				
 				// See if this results in
 				// a valid var arg value.

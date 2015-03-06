@@ -51,7 +51,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::GlobalValue::LinkageTypes getTypeInstanceLinkage(SEM::TypeInstance* typeInstance) {
+		llvm::GlobalValue::LinkageTypes getTypeInstanceLinkage(const SEM::TypeInstance* typeInstance) {
 			if (typeInstance->isPrimitive()) {
 				// Primitive type.
 				return llvm::Function::LinkOnceODRLinkage;
@@ -70,7 +70,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genFunctionDecl(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+		llvm::Function* genFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			if (function->isMethod()) {
 				assert(typeInstance != nullptr);
 			} else {
@@ -159,7 +159,7 @@ namespace locic {
 			
 		}
 		
-		llvm::Function* genFunctionDef(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function) {
+		llvm::Function* genFunctionDef(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			const auto llvmFunction = genFunctionDecl(module, typeInstance, function);
 			
 			// --- Generate function code.
@@ -220,6 +220,29 @@ namespace locic {
 			return llvmFunction;
 		}
 		
+		/**
+		 * \brief Create template function stub.
+		 * 
+		 * This creates a function to be referenced when calling methods
+		 * on a templated type. For example:
+		 * 
+		 * template <typename T : SomeRequirement>
+		 * void f(T& value) {
+		 *     value.method();
+		 * }
+		 * 
+		 * It would be possible to generate the virtual call inline,
+		 * but it's possible to reference the method itself. For example:
+		 * 
+		 * template <typename T : SomeRequirement>
+		 * void f(T& value) {
+		 *     auto methodValue = value.method;
+		 *     methodValue();
+		 * }
+		 * 
+		 * Hence this function needs to be created so it can be
+		 * subsequently referenced.
+		 */
 		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);

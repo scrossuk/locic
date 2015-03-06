@@ -3,30 +3,21 @@ find_package(Clang REQUIRED)
 
 set(LOCIC "${CMAKE_BINARY_DIR}/tools/locic")
 
-macro(copy_source_file output_name name)
-	get_filename_component(name_file "${name}" NAME)
-	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name_file}"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${name}" "${CMAKE_CURRENT_BINARY_DIR}/${name_file}"
-		MAIN_DEPENDENCY "${name}"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-	set(${output_name} "${CMAKE_CURRENT_BINARY_DIR}/${name_file}")
-endmacro(copy_source_file)
-
 function(loci_module name output_name flags)
-	set(${name}_Sources ${ARGN})
-	set(${name}_BuildSources "")
+	set(_sources ${ARGN})
+	set(_build_sources "")
 	
-	foreach(file_source_name ${${name}_Sources})
-		copy_source_file(file_build_source_name ${file_source_name})
-		list(APPEND ${name}_BuildSources ${file_build_source_name})
-	endforeach(file_source_name)
+	foreach(_file_source_name ${_sources})
+		get_filename_component(_absolute_source_name "${_file_source_name}" REALPATH)
+		list(APPEND _build_sources "${_absolute_source_name}")
+	endforeach(_file_source_name)
 	
 	separate_arguments(flags)
 	
 	add_custom_command(OUTPUT ${output_name} ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
 		COMMAND # Run compiler.
-			${LOCIC} ${flags} -o ${output_name} --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${${name}_BuildSources}
-		DEPENDS ${LOCIC} ${${name}_BuildSources}
+			${LOCIC} ${flags} -o ${output_name} --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${_build_sources}
+		DEPENDS ${LOCIC} ${_build_sources}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
 	add_custom_target(${name} ALL DEPENDS ${output_name})
@@ -70,7 +61,8 @@ function(loci_link name binary_name flags primary_module)
 			# Use 'clang' to generate optimised platform binary.
 			${CLANG_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
 		DEPENDS ${primary_module} ${${name}_Sources} loci-runtime-bc
-		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
 	
 	add_custom_target(${name} ALL DEPENDS ${binary_name})
 endfunction(loci_link)
@@ -80,12 +72,28 @@ function(loci_example name binary_name flags)
 	loci_link("${name}" "${binary_name}" "${flags}" "${binary_name}.bc")
 endfunction(loci_example)
 
+set(SFML_API_FILES
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/CircleShape.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Clock.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Color.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Event.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Font.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Mouse.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Rect.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/RectangleShape.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/RenderWindow.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Text.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Vector.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/VideoMode.loci"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/View.loci"
+)
+
 add_subdirectory(Calculator)
 add_subdirectory(ChainReversi)
 add_subdirectory(CommandLine)
 add_subdirectory(Events)
-add_subdirectory(General)
 add_subdirectory(Looper)
 add_subdirectory(Network)
+add_subdirectory(Simulations)
 add_subdirectory(SplitModule)
 

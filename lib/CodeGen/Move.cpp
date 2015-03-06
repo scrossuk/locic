@@ -35,7 +35,7 @@ namespace locic {
 			}
 		}
 		
-		bool typeInstanceHasCustomMove(Module& module, SEM::TypeInstance* const typeInstance) {
+		bool typeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isClassDecl()) {
 				// Assume a custom move function exists.
 				return true;
@@ -91,7 +91,7 @@ namespace locic {
 			}
 		}
 		
-		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type) {
+		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -99,6 +99,12 @@ namespace locic {
 				// Can't store since we need to run the move method.
 				assert(value->getType()->isPointerTy());
 				assert(value->getType() == genPointerType(function.module(), type));
+				
+				if (value->stripPointerCasts() == var->stripPointerCasts()) {
+					// Source and destination are same pointer, so no
+					// move operation required!
+					return;
+				}
 				
 				// Use 0 for the position value since this is the top level of the move.
 				const auto positionValue = ConstantGenerator(function.module()).getSizeTValue(0);
@@ -121,7 +127,7 @@ namespace locic {
 			
 		}
 		
-		ArgInfo moveArgInfo(Module& module, SEM::TypeInstance* typeInstance) {
+		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
@@ -172,7 +178,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genVTableMoveFunction(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto moveFunction = genMoveFunctionDecl(module, typeInstance);
 			
 			if (!typeInstance->templateVariables().empty()) {
@@ -195,7 +201,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genMoveFunctionDecl(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::Function* genMoveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto iterator = module.getMoveFunctionMap().find(typeInstance);
 			
 			if (iterator != module.getMoveFunctionMap().end()) {

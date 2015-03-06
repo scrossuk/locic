@@ -1,0 +1,80 @@
+// Vector utility class.
+
+namespace Simulations {
+	
+	class Vector(double x, double y, double z) {
+		static Zero() {
+			return @(0.0, 0.0, 0.0);
+		}
+		
+		static Create = default;
+		
+		implicitCopy = default;
+		
+		Vector scale(double scalingFactor) const noexcept {
+			return @(@x * scalingFactor, @y * scalingFactor, @z * scalingFactor);
+		}
+		
+		compare = default;
+		
+		Vector plus() const noexcept {
+			return self;
+		}
+		
+		Vector minus() const noexcept {
+			return @(-@x, -@y, -@z);
+		}
+		
+		Vector add(const Vector& other) const noexcept {
+			return @(@x + other.x(), @y + other.y(), @z + other.z());
+		}
+		
+		Vector subtract(const Vector& other) const noexcept {
+			return @(@x - other.x(), @y - other.y(), @z - other.z());
+		}
+		
+		Vector multiply(const double scalingFactor) const noexcept {
+			return self.scale(scalingFactor);
+		}
+		
+		Vector divide(const double scalingFactor) const noexcept {
+			return self.scale(1.0 / scalingFactor);
+		}
+		
+		double dotProduct(const Vector& other) const noexcept {
+			return @x * other.x() + @y * other.y() + @z * other.z();
+		}
+		
+		double sizeSquared() const noexcept {
+			return @x * @x + @y * @y + @z * @z;
+		}
+		
+		double size() const noexcept {
+			return self.sizeSquared().sqrt();
+		}
+		
+		double x() const noexcept {
+			return @x;
+		}
+		
+		double y() const noexcept {
+			return @y;
+		}
+		
+		double z() const noexcept {
+			return @z;
+		}
+		
+		Vector unit() const noexcept {
+			const double thisSize = self.size();
+			return self.scale(thisSize != 0.0 ? (1.0 / thisSize) : 1.0);
+		}
+		
+		double cosAngle(const Vector& other) const noexcept {
+			const double divide = self.size() * other.size();
+			return (divide != 0.0) ? (self.dotProduct(other) / divide) : 0.0;
+		}
+		
+	}
+	
+}

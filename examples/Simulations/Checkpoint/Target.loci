@@ -1,0 +1,9 @@
+namespace Simulations {
+
+	namespace Checkpoint {
+	
+		datatype Target(Vector position, Vector velocity, double radius);
+		
+	}
+	
+}

@@ -1,5 +1,5 @@
 // Test output.
-import void testPrint(const ubyte * const str, ...) noexcept;
+import void testPrint(const ubyte * str, ...) noexcept;
 
 class TestClass (int value) {
 	static Create(int value) {

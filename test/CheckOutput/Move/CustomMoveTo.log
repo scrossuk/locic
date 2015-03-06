@@ -1,7 +1,5 @@
 auto testInstance = TestClass();
 TestClass.Create
-TestClass.__move_to
-TestClass.__move_to
 auto testInstanceMoved = move testInstance;
 TestClass.__move_to
 auto testInstanceMovedAgain = move testInstanceMoved;

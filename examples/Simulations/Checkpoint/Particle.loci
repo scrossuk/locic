@@ -1,0 +1,10 @@
+
+namespace Simulations {
+
+	namespace Checkpoint {
+	
+		datatype Particle(Vector position, Vector velocity);
+		
+	}
+	
+}

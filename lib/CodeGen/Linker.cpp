@@ -77,6 +77,8 @@ namespace locic {
 				throw std::runtime_error(makeString("Couldn't link with module '%s'; error given was '%s'.",
 					fileName.c_str(), errorMessage.c_str()));
 			}
+			
+			impl_->linkedModule().verify();
 		}
 		
 		Module& Linker::module() {

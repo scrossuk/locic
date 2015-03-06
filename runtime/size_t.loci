@@ -5,6 +5,12 @@ __primitive size_t {
 	static size_t implicit_cast_uint16_t(uint16_t value) noexcept;
 	static size_t implicit_cast_ushort_t(ushort_t value) noexcept;
 	
+	static size_t cast_uint8_t(uint8_t value) noexcept;
+	static size_t cast_uint16_t(uint16_t value) noexcept;
+	static size_t cast_uint32_t(uint32_t value) noexcept;
+	static size_t cast_uint64_t(uint64_t value) noexcept;
+	static size_t cast_uint_t(uint_t value) noexcept;
+	
 	static size_t cast_int_t(int_t value) noexcept;
 	static size_t cast_float_t(float_t value) noexcept;
 	static size_t cast_double_t(double_t value) noexcept;
@@ -30,9 +36,12 @@ __primitive size_t {
 	
 	bool isZero() const noexcept;
 	
-	ssize_t signedValue() const noexcept;
+	ssize_t signed_value() const noexcept;
 	
 	void __move_to(void* ptr, size_t position) noexcept;
+	
+	void increment() noexcept;
+	void decrement() noexcept;
 }
 
 template <typename T : movable>

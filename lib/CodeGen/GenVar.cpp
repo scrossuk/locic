@@ -19,7 +19,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genVarAlloca(Function& function, SEM::Var* var) {
+		void genVarAlloca(Function& function, SEM::Var* const var) {
 			if (var->isAny()) {
 				return;
 			}
@@ -55,7 +55,7 @@ namespace locic {
 			}
 		}
 		
-		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue) {
+		void genVarInitialise(Function& function, SEM::Var* const var, llvm::Value* initialiseValue) {
 			auto& module = function.module();
 			
 			if (var->isAny()) {

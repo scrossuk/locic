@@ -1,0 +1,30 @@
+TestInterface& objectRef = varray[0];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[1];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[2];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[3];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[4];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[5];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[6];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[7];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[8];
+objectRef.doSomething();
+TestClass::doSomething()
+TestInterface& objectRef = varray[9];
+objectRef.doSomething();
+TestClass::doSomething()

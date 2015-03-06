@@ -1,0 +1,135 @@
+
+namespace Simulations {
+
+	namespace Checkpoint {
+		
+		double calculateReverseAccelerationValue(const double position, const double acceleration, const double min, const double max) {
+			if (position < min) {
+				return acceleration.abs();
+			} else if (position > max) {
+				return -acceleration.abs();
+			} else {
+				return acceleration;
+			}
+		}
+		
+		Vector calculateReverseAcceleration(const Vector position, const Vector acceleration, const Vector topLeft, const Vector bottomRight) {
+			const auto x = calculateReverseAccelerationValue(position.x(), acceleration.x(), topLeft.x(), bottomRight.x());
+			const auto y = calculateReverseAccelerationValue(position.y(), acceleration.y(), topLeft.y(), bottomRight.y());
+			const auto z = calculateReverseAccelerationValue(position.z(), acceleration.z(), topLeft.z(), bottomRight.z());
+			return Vector(x, y, z);
+		}
+		
+		class RandomSimulation(Particle particle, std::varray<Target> targets, size_t currentTarget) {
+			static Create() {
+				auto particle = Particle(Vector.Zero(), Vector.Zero());
+				
+				const size_t NumTargets = 1000u;
+				
+				auto targets = std::varray<Target>();
+				targets.reserve(NumTargets);
+				
+				for (const size_t i: std::counter<size_t>(0u, NumTargets, 1u)) {
+					const auto position = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
+					const auto velocity = Vector(RandomDouble(-0.1, 0.1), RandomDouble(-0.1, 0.1), 0.0);
+					const auto radius = RandomDouble(2.0f, 6.0f);
+					targets.push_back(Target(position, velocity, radius));
+				}
+				
+				return @(move particle, move targets, 0u);
+			}
+			
+			std::string getName() const {
+				return "Asteroids";
+			}
+			
+			bool handleEvent(unused const sf::Event& event) {
+				// Doesn't handle any events.
+				return false;
+			}
+			
+			void update(sf::RenderWindow& renderWindow) {
+				const Target& currentTarget = @targets[@currentTarget];
+				
+				const Vector toCurrentTarget = currentTarget.position - @particle.position;
+				
+				const sf::Vector2i mousePosInt = sf::Mouse::getPosition(renderWindow);
+				const sf::Vector2f mousePos = renderWindow.mapPixelToCoords(mousePosInt);
+				
+				const Vector mousePosition = Vector(mousePos.x, mousePos.y, 0.0);
+				
+				const Vector toMouse = mousePosition - @particle.position;
+				
+				Vector acceleration = (toCurrentTarget.unit() * 1.0) + (toMouse.unit() * 0.1);
+				
+				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+					const Target& target = @targets[i];
+					
+					const Vector toTarget = target.position - @particle.position;
+					
+					const double toTargetSize = toTarget.size();
+					
+					const Vector toTargetUnit = toTarget / toTargetSize;
+					
+					const double distanceToTarget = (toTargetSize >= target.radius) ? (toTargetSize - target.radius) : 0.0;
+					
+					// Curve around.
+					const Vector curveAroundVector = Vector(-toTargetUnit.y(), toTargetUnit.x(), 0.0);
+					
+					const double curveAroundSpeed = @particle.velocity.dotProduct(curveAroundVector);
+					
+					const Vector curveAroundVelocity = (curveAroundSpeed > 0.0) ? curveAroundVector : -curveAroundVector;
+					
+					acceleration += curveAroundVelocity * (50.0 / (distanceToTarget * distanceToTarget));
+					
+					// Repel.
+					acceleration += -toTargetUnit * (2000.0 / (distanceToTarget * distanceToTarget * distanceToTarget));
+				}
+				
+				@particle.velocity += acceleration;
+				
+				// Don't let the velocity exceed a certain limit.
+				if (@particle.velocity.size() > 4.0) {
+					@particle.velocity = @particle.velocity.unit().scale(4.0);
+				}
+				
+				@particle.position += @particle.velocity;
+				
+				if (toCurrentTarget.size() < (currentTarget.radius + 15.0)) {
+					@currentTarget = RandomDouble(0.0, (@targets.size() - 1u).cast<double>()).cast<size_t>();
+				}
+				
+				// Move targets.
+				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+					Target& target = @targets[i];
+					const Vector targetAccelerationBase = Vector(RandomDouble(-0.02, 0.02), RandomDouble(-0.02, 0.02), 0.0);
+					
+					// If we're heading out of the screen rectangle direct the acceleration
+					// so that we head back into the screen rectangle.
+					const Vector targetAcceleration = calculateReverseAcceleration(target.position, targetAccelerationBase, Vector(0.0, 0.0, 0.0), Vector(1000.0, 1000.0, 0.0));
+					
+					target.velocity += targetAcceleration;
+					target.velocity *= 0.999;
+					target.position += target.velocity;
+				}
+			}
+			
+			void render(sf::RenderWindow& renderWindow) {
+				// Draw targets.
+				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+					const Target& target = @targets[i];
+					sf::Color color = (i == @currentTarget) ? sf::Color::Green() : sf::Color(50u, 50u, 50u, 255u);				
+					auto shape = MakeCircleShape(target.position.x().cast<float>(), target.position.y().cast<float>(), target.radius.cast<float>(), color, 0.0f, sf::Color::Black());
+					renderWindow.drawCircle(shape);
+				}
+				
+				// Draw particle.
+				renderWindow.drawCircle(MakeCircleShape(@particle.position.x().cast<float>(), @particle.position.y().cast<float>(), 4.0f, sf::Color::White(), 0.0f, sf::Color::Black()));
+			}
+		
+		}
+		
+	}
+}
+
+

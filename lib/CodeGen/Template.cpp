@@ -30,7 +30,10 @@ namespace locic {
 		bool isRootType(const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
-					return isRootTypeList(arrayRef(type->templateArguments()));
+					// Interface type template arguments don't affect
+					// code generation in any way so they can be
+					// ignored here.
+					return type->getObjectType()->isInterface() || isRootTypeList(arrayRef(type->templateArguments()));
 				}
 				
 				case SEM::Type::FUNCTION: {
@@ -200,16 +203,12 @@ namespace locic {
 			
 			ConstantGenerator constGen(module);
 			
-			if (templateInst.arguments().empty()) {
-				// If the type doesn't have any template arguments, then
-				// provide a 'null' root function.
-				return nullTemplateGenerator(module);
-			} else if (templateInst.object().isTypeInstance() && hasTemplateVirtualTypeArgument(templateInst.arguments())) {
-				// If virtual type arguments are provided
-				// and the templated object is a type instance
-				// then set the 'null' template generator,
-				// since the template arguments should already
-				// be stored inside the object.
+			const auto typeInstance = templateInst.object().isTypeInstance() ? templateInst.object().typeInstance() : templateInst.object().parentTypeInstance();
+			if (templateInst.arguments().empty() || (typeInstance != nullptr && typeInstance->isInterface())) {
+				// If the type doesn't have any template arguments or we're
+				// generating for an interface type (for which the arguments
+				// are ignored in code generation) then provide a 'null'
+				// root function.
 				return nullTemplateGenerator(module);
 			} else if (isRootTypeList(templateInst.arguments())) {
 				// If there are only 'root' arguments (i.e. statically known),
@@ -291,7 +290,7 @@ namespace locic {
 			
 			for (size_t i = 0; i < templateInst.arguments().size(); i++) {
 				const auto& templateArg = templateInst.arguments()[i];
-				const auto vtablePointer = genVTable(module, templateArg);
+				const auto vtablePointer = genVTable(module, templateArg->resolveAliases()->getObjectType());
 				
 				// Create type info struct.
 				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
@@ -443,7 +442,7 @@ namespace locic {
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
-						const auto vtablePointer = genVTable(module, templateUseArg);
+						const auto vtablePointer = genVTable(module, templateUseArg->resolveAliases()->getObjectType());
 						
 						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 						typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });

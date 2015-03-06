@@ -217,7 +217,7 @@ namespace locic {
 			return getBasicPrimitiveABIType(module, module.primitiveKind(name));
 		}
 		
-		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type) {
+		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {
 			assert(isTypeSizeKnownInThisModule(module, type));
 			
 			const auto typeInstance = type->getObjectType();

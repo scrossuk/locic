@@ -1,0 +1,136 @@
+
+namespace Simulations {
+	
+	// TODO: change these to constexpr once the compiler supports that.
+	
+	double GravitationalConstant() { return 0.05; }
+	size_t NumParticles() { return 20u; }
+	size_t NumTrackersPerParticle() { return 500u; }
+	double TrackersPerSec() { return 5.0; }
+	double TrackerTime() { return 1.0 / TrackersPerSec(); }
+	
+	namespace Gravity {
+		
+		class CentralOrbitSimulation(System system, size_t frameNumber, size_t frameRate,
+			std::map<size_t, sf::Color> particleColors,
+			std::map<size_t, std::list<Vector>> trackers) {
+			
+			static Create(const size_t frameRate) {
+				const auto centralParticlePosition = Vector(500.0, 500.0, 0.0);
+				const auto centralParticleVelocity = Vector.Zero();
+				const auto centralParticleMass = 1000.0;
+				const auto centralParticle = Particle(centralParticlePosition, centralParticleVelocity, centralParticleMass);
+				
+				auto system = System(GravitationalConstant());
+				auto particleColors = std::map<size_t, sf::Color>();
+				
+				system.addParticle(0u, centralParticle);
+				particleColors.insert(std::pair<size_t, sf::Color>(0u, sf::Color::White()));
+				
+				for (const size_t i: std::counter<size_t>(0u, NumParticles(), 1u)) {
+					const auto particlePosition = Vector(RandomDouble(0.0f, 499.0f), RandomDouble(0.0f, 499.0f), 0.0);
+					const auto particleVelocity = Vector.Zero();
+					const auto particleMass = 0.1;
+					auto particle = Particle(particlePosition, particleVelocity, particleMass);
+					
+					// Vector from this particle to the central particle.
+					const Vector toCenter = centralParticle.position - particle.position;
+					
+					const double distanceFromCenter = toCenter.size();
+					
+					// Unit vector (i.e. of size 1) to central particle.
+					const Vector toCenterUnit = toCenter / distanceFromCenter;
+					
+					// Random velocity vector.
+					const Vector velocity = Vector(RandomDouble(0.1f, 1.0f), 0.0, 0.0);
+					
+					// A projection of the velocity onto the distance vector (i.e. how much of the velocity is towards the central particle).
+					const Vector toCenterVelocity = toCenterUnit * velocity.dotProduct(toCenterUnit);
+					
+					// Calculates velocity required for a circular orbit at the particle's mass and distance from the central particle.
+					const double circularOrbitVelocity = ((GravitationalConstant() * (centralParticle.mass + particle.mass)) / distanceFromCenter).sqrt();
+					
+					// A unit vector that is perpendicular to the central particle vector.
+					const Vector unitVelocity = (velocity - toCenterVelocity).unit();
+					
+					// This is used to prevent orbits from being perfectly circular.
+					const double distortion = RandomDouble(0.7f, 1.3f);
+					
+					// Circular orbit velocity vector with distortion applied.
+					particle.velocity = unitVelocity * circularOrbitVelocity *  distortion;
+					
+					system.addParticle(i + 1u, particle);
+					
+					const auto particleColor = sf::Color(RandomDouble(0.0, 255.0).cast<uint8_t>(), RandomDouble(0.0, 255.0).cast<uint8_t>(), RandomDouble(0.0, 255.0).cast<uint8_t>(), 255u);
+					
+					particleColors.insert(std::pair<size_t, sf::Color>(i + 1u, particleColor));
+				}
+				
+				return @(move system, 0u, frameRate, move particleColors, std::map<size_t, std::list<Vector>>());
+			}
+			
+			std::string getName() const {
+				return "Gravity - Central Orbit";
+			}
+			
+			bool handleEvent(unused const sf::Event& event) {
+				// Doesn't handle any events.
+				return false;
+			}
+			
+			void update(unused sf::RenderWindow& window) {
+				@system.step();
+				
+				@frameNumber++;
+				if ((@frameNumber.cast<double>() / @frameRate.cast<double>()) >= TrackerTime()) {
+					@frameNumber = 0u;
+					const auto& particles = @system.getParticles();
+					
+					for (const auto& pair: particles.all()) {
+						const size_t id = pair.first;
+						const Particle particle = pair.second;
+						
+						auto& positions = @trackers.get_or_insert(id);
+						
+						if (positions.size() == NumTrackersPerParticle()) {
+							positions.pop_front();
+						}
+						
+						positions.push_back(particle.position);
+					}
+				}
+			}
+			
+			void render(sf::RenderWindow& renderWindow) {
+				// Draw trackers first.
+				for (const size_t id: std::counter<size_t>(0u, NumParticles(), 1u)) {
+					const auto& color = @particleColors[id];
+					
+					const auto& positions = @trackers.get_or_insert(id);
+					
+					for (const auto& position: positions.all()) {
+						auto trackerShape = MakeRectangleShape((position.x() - 0.5).cast<float>(), (position.y() - 0.5).cast<float>(),
+							(position.x() + 0.5).cast<float>(), (position.y() + 0.5).cast<float>(), color);
+						trackerShape.setOutlineThickness(0.0f);
+						renderWindow.draw(trackerShape);
+					}
+				}
+				
+				// Draw the particles.
+				for (const size_t id: std::counter<size_t>(0u, NumParticles(), 1u)) {
+					sf::Color color = @particleColors[id];
+					
+					const Particle particle = @system.getParticle(id);
+					
+					const sf::CircleShape shape = MakeCircleShape(particle.position.x().cast<float>(), particle.position.y().cast<float>(), 4.0f, color, 0.5f, sf::Color::White());
+					
+					renderWindow.draw(shape);
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+

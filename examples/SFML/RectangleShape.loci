@@ -6,7 +6,7 @@ import {
 	
 	sfRectangleShape* sfRectangleShape_create() noexcept;
 	
-	sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* const shape) noexcept;
+	sfRectangleShape* sfRectangleShape_copy(const sfRectangleShape* shape) noexcept;
 	
 	void sfRectangleShape_destroy(sfRectangleShape* shape) noexcept;
 
@@ -21,6 +21,10 @@ import {
 	void sfRectangleShape_setFillColor(sfRectangleShape* shape, sfColor color) noexcept;
 	
 	void sfRectangleShape_setSize(sfRectangleShape* shape, sfVector2f size) noexcept;
+	
+	void sfRectangleShape_setOutlineColor(sfRectangleShape* shape, sfColor color) noexcept;
+	
+	void sfRectangleShape_setOutlineThickness(sfRectangleShape* shape, float thickness) noexcept;
 	
 }
 
@@ -39,32 +43,44 @@ namespace sf {
 			sfRectangleShape_destroy(@shape);
 		}
 		
-		sfRectangleShape* raw() const {
+		sfRectangleShape* raw() const noexcept {
 			return @shape;
 		}
 		
-		void setOrigin(Vector2f position) {
+		void setOrigin(Vector2f position) noexcept {
 			sfRectangleShape_setOrigin(@shape, sfVector2f(position.x, position.y));
 		}
 		
-		void setPosition(Vector2f position) {
+		void setPosition(Vector2f position) noexcept {
 			sfRectangleShape_setPosition(@shape, sfVector2f(position.x, position.y));
 		}
 		
-		void setRotation(float angle) {
+		void setRotation(float angle) noexcept {
 			sfRectangleShape_setRotation(@shape, angle);
 		}
 		
-		void setScale(Vector2f scale) {
+		void setScale(Vector2f scale) noexcept {
 			sfRectangleShape_setScale(@shape, sfVector2f(scale.x, scale.y));
 		}
 		
-		void setFillColor(Color color) {
+		void setFillColor(Color color) noexcept {
 			sfRectangleShape_setFillColor(@shape, sfColor(color.r, color.g, color.b, color.a));
 		}
 		
-		void setSize(Vector2f size) {
+		void setSize(Vector2f size) noexcept {
 			sfRectangleShape_setSize(@shape, sfVector2f(size.x, size.y));
+		}
+		
+		void setOutlineColor(Color color) noexcept {
+			sfRectangleShape_setOutlineColor(@shape, sfColor(color.r, color.g, color.b, color.a));
+		}
+		
+		void setOutlineThickness(float thickness) noexcept {
+			sfRectangleShape_setOutlineThickness(@shape, thickness);
+		}
+		
+		void draw(RenderWindow& window) const {
+			window.drawRectangle(self);
 		}
 		
 	}

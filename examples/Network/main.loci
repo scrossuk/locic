@@ -1,6 +1,6 @@
 // Printf has an 'int' return type, but since
 // it's ignored just use 'void'.
-import void printf(const ubyte* const str, ...) noexcept;
+import void printf(const ubyte* str, ...) noexcept;
 
 export int main(unused int argc, unused ubyte** argv) {
 	runTCPExample();

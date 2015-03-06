@@ -1,9 +1,9 @@
-import int sprintf(ubyte* str, const ubyte* const format, ...) noexcept;
-import size_t strlen(const ubyte* const stringConstant) noexcept;
+import int sprintf(ubyte* str, const ubyte * format, ...) noexcept;
+import size_t strlen(const ubyte * stringConstant) noexcept;
 
 export std.string 0.1.0 {
 	
-	std::string string_literal(const ubyte* const stringConstant) {
+	std::string string_literal(const ubyte* stringConstant) {
 		return std::string::cstring(stringConstant);
 	}
 	
@@ -16,7 +16,7 @@ export std.string 0.1.0 {
 				return string::cstring(C"");
 			}
 			
-			static cstring(const ubyte* const stringConstant) {
+			static cstring(const ubyte * stringConstant) {
 				// Work out number of bytes until NULL terminator.
 				final auto length = strlen(stringConstant);
 				
@@ -197,7 +197,7 @@ export std.string 0.1.0 {
 		}
 		
 		class string_lval(unichar character) {
-			static create(const ubyte* const utf8Ptr) {
+			static create(const ubyte* utf8Ptr) {
 				auto ptrRange = ptr_range<const ubyte>(utf8Ptr);
 				return @(utf8_decode_character<ptr_lval<const ubyte>>(ptrRange));
 			}

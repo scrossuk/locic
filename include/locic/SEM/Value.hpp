@@ -49,7 +49,7 @@ namespace locic {
 					NOSTATICREF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
-					REFVALUE,
+					BIND_REFERENCE,
 					TYPEREF,
 					CALL,
 					FUNCTIONREF,
@@ -238,9 +238,9 @@ namespace locic {
 				 * \brief Bind Value Reference
 				 * 
 				 * Automatically generates an lvalue in which to store the given
-				 * rvalue and returns a reference to that lvalue.
+				 * rvalue and returns a reference to the value in that lvalue.
 				 */
-				static Value RefValue(Value operand, const Type* type);
+				static Value BindReference(Value operand, const Type* type);
 				
 				/**
 				 * \brief Type Reference
@@ -388,8 +388,8 @@ namespace locic {
 				const Value& memberAccessObject() const;
 				Var* memberAccessVar() const;
 				
-				bool isRefValue() const;
-				const Value& refValueOperand() const;
+				bool isBindReference() const;
+				const Value& bindReferenceOperand() const;
 				
 				bool isTypeRef() const;
 				const Type* typeRefType() const;

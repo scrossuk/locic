@@ -20,6 +20,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -121,12 +122,13 @@ namespace locic {
 				methodName == "deref" ||
 				methodName == "dissolve" ||
 				methodName == "move" ||
-				methodName == "signedValue" ||
-				methodName == "unsignedValue" ||
+				methodName == "signed_value" ||
+				methodName == "unsigned_value" ||
 				methodName == "count_leading_zeroes" ||
 				methodName == "count_leading_ones" ||
 				methodName == "count_trailing_zeroes" ||
-				methodName == "count_trailing_ones";
+				methodName == "count_trailing_ones" ||
+				methodName == "sqrt";
 		}
 		
 		bool isBinaryOp(const String& methodName) {
@@ -150,36 +152,54 @@ namespace locic {
 				methodName == "right_shift";
 		}
 		
-		static llvm::Value* allocArg(Function& function, std::pair<llvm::Value*, bool> arg, const SEM::Type* type) {
+		static llvm::Value* allocArg(Function& function, const ArgPair arg, const SEM::Type* const type) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
-			if (arg.second) {
-				return builder.CreatePointerCast(arg.first, genPointerType(module, type));
+			if (arg.hasPendingBind()) {
+				// The bind operation hasn't been performed,
+				// but we need a reference value so do it here.
+				return genValuePtr(function, arg.llvmValue(), type);
 			} else {
-				return genValuePtr(function, arg.first, type);
+				// Already have a reference argument so just
+				// cast the pointer.
+				return builder.CreatePointerCast(arg.llvmValue(), genPointerType(module, type));
 			}
 		}
 		
-		static llvm::Value* loadArg(Function& function, std::pair<llvm::Value*, bool> arg, const SEM::Type* type) {
+		static llvm::Value* loadArg(Function& function, const ArgPair arg, const SEM::Type* const type) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
-			if (arg.second && !type->isRef()) {
-				return genMoveLoad(function, builder.CreatePointerCast(arg.first, genPointerType(module, type)), type);
+			if (arg.hasPendingBind()) {
+				// The bind operation hasn't been performed, which is good
+				// since we didn't want to bind anyway.
+				return arg.llvmValue();
 			} else {
-				return arg.first;
+				// The value is already bound to a reference, so we need to
+				// load (which may involve calling a __move_to method).
+				return genMoveLoad(function, builder.CreatePointerCast(arg.llvmValue(), genPointerType(module, type)), type);
 			}
 		}
 		
-		static llvm::Value* loadArgRaw(Function& function, std::pair<llvm::Value*, bool> arg, llvm::Type* type) {
+		static llvm::Value* getArg(Function& /*function*/, const ArgPair arg, const SEM::Type* const /*type*/) {
+			assert(!arg.hasPendingBind());
+			return arg.llvmValue();
+		}
+		
+		static llvm::Value* loadArgRaw(Function& function, const ArgPair arg, llvm::Type* const type) {
 			auto& builder = function.getBuilder();
-			if (arg.second) {
-				return builder.CreateLoad(builder.CreatePointerCast(arg.first, type->getPointerTo()));
+			if (arg.hasPendingBind()) {
+				return arg.llvmValue();
 			} else {
-				return arg.first;
+				return builder.CreateLoad(builder.CreatePointerCast(arg.llvmValue(), type->getPointerTo()));
 			}
 		}
 		
-		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>>) {
+		static llvm::Value* getArgRaw(Function& /*function*/, const ArgPair arg, llvm::Type* const /*type*/) {
+			assert(!arg.hasPendingBind());
+			return arg.llvmValue();
+		}
+		
+		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, SEM::Function* semFunction, llvm::ArrayRef<ArgPair>) {
 			auto& module = function.module();
 			
 			const auto& methodName = semFunction->name().last();
@@ -192,7 +212,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -207,7 +227,7 @@ namespace locic {
 				return lessThanValue;
 			} else if (methodName == "equal") {
 				assert(args.empty());
-				return  equalValue;
+				return equalValue;
 			} else if (methodName == "greater_than") {
 				assert(args.empty());
 				return greaterThanValue;
@@ -234,7 +254,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genNullPrimitiveMethodCall(Function& function, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genNullPrimitiveMethodCall(Function& function, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			
 			const auto& methodName = semFunction->name().last();
@@ -248,7 +268,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -316,7 +336,7 @@ namespace locic {
 			return builder.CreateExtractValue(addResult, resultPosition);
 		}
 		
-		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -333,10 +353,10 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
@@ -349,7 +369,7 @@ namespace locic {
 				return unit;
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
 				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
-				const auto operand = loadArg(function, args[0], argType);
+				const auto operand = getArg(function, args[0], argType);
 				if (isFloatType(module, argType)) {
 					return builder.CreateFPToSI(operand, selfType);
 				} else {
@@ -366,7 +386,7 @@ namespace locic {
 					return builder.CreateICmpSGT(methodOwner, zero);
 				} else if (methodName == "isNegative") {
 					return builder.CreateICmpSLT(methodOwner, zero);
-				} else if (methodName == "unsignedValue") {
+				} else if (methodName == "unsigned_value") {
 					return methodOwner;
 				} else if (methodName == "abs") {
 					// Generates: (value < 0) ? -value : value.
@@ -448,7 +468,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -465,15 +485,27 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
 				genMoveStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "increment") {
+				// TODO: add safety checks!
+				const auto methodOwnerPtr = allocArg(function, args[0], type);
+				const auto incrementedValue = builder.CreateAdd(methodOwner, unit);
+				builder.CreateStore(incrementedValue, methodOwnerPtr);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "decrement") {
+				// TODO: add safety checks!
+				const auto methodOwnerPtr = allocArg(function, args[0], type);
+				const auto decrementedValue = builder.CreateSub(methodOwner, unit);
+				builder.CreateStore(decrementedValue, methodOwnerPtr);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "create") {
 				return zero;
@@ -483,7 +515,7 @@ namespace locic {
 				return unit;
 			} else if (methodName == "leading_ones") {
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto operand = loadArgRaw(function, args[0], sizeTType);
+				const auto operand = getArgRaw(function, args[0], sizeTType);
 				
 				if (!unsafe) {
 					// Check that operand <= sizeof(type) * 8.
@@ -511,7 +543,7 @@ namespace locic {
 				return builder.CreateIntCast(result, selfType, isSigned);
 			} else if (methodName == "trailing_ones") {
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto operand = loadArgRaw(function, args[0], sizeTType);
+				const auto operand = getArgRaw(function, args[0], sizeTType);
 				
 				if (!unsafe) {
 					// Check that operand <= sizeof(type) * 8.
@@ -534,7 +566,7 @@ namespace locic {
 				return builder.CreateIntCast(result, selfType, isSigned);
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
 				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
-				const auto operand = loadArg(function, args[0], argType);
+				const auto operand = getArg(function, args[0], argType);
 				if (isFloatType(module, argType)) {
 					return builder.CreateFPToUI(operand, selfType);
 				} else {
@@ -545,7 +577,7 @@ namespace locic {
 					return methodOwner;
 				} else if (methodName == "isZero") {
 					return builder.CreateICmpEQ(methodOwner, zero);
-				} else if (methodName == "signedValue") {
+				} else if (methodName == "signed_value") {
 					return methodOwner;
 				} else if (methodName == "count_leading_zeroes") {
 					const auto bitCount = countLeadingZeroes(function, methodOwner);
@@ -695,8 +727,8 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else if (methodName == "in_range") {
-				const auto leftOperand = loadArg(function, args[1], type);
-				const auto rightOperand = loadArg(function, args[2], type);
+				const auto leftOperand = getArg(function, args[1], type);
+				const auto rightOperand = getArg(function, args[2], type);
 				
 				return builder.CreateAnd(
 						builder.CreateICmpULE(leftOperand, methodOwner),
@@ -708,7 +740,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -719,10 +751,10 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
@@ -733,7 +765,7 @@ namespace locic {
 				return ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
 				const auto argType = semFunction->type()->getFunctionParameterTypes().front();
-				const auto operand = loadArg(function, args[0], argType);
+				const auto operand = getArg(function, args[0], argType);
 				const auto selfType = genType(module, type);
 				if (isFloatType(module, argType)) {
 					if (methodName.starts_with("implicit_cast_")) {
@@ -765,6 +797,11 @@ namespace locic {
 					// Generates: (value < 0) ? -value : value.
 					const auto lessThanZero = builder.CreateFCmpOLT(methodOwner, zero);
 					return builder.CreateSelect(lessThanZero, builder.CreateFNeg(methodOwner), methodOwner);
+				} else if (methodName == "sqrt") {
+					llvm::Type* const intrinsicTypes[] = { methodOwner->getType() };
+					const auto sqrtIntrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::sqrt, intrinsicTypes);
+					llvm::Value* const sqrtArgs[] = { methodOwner };
+					return builder.CreateCall(sqrtIntrinsic, sqrtArgs);
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
@@ -809,7 +846,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -819,10 +856,10 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
@@ -865,7 +902,7 @@ namespace locic {
 					return builder.CreateSub(firstPtrInt, secondPtrInt);
 				} else if (methodName == "index") {
 					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-					const auto operand = loadArgRaw(function, args[1], sizeTType);
+					const auto operand = getArgRaw(function, args[1], sizeTType);
 					const auto targetType = type->templateArguments().front();
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
@@ -912,7 +949,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -923,10 +960,10 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
@@ -940,7 +977,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				if (methodName == "assign") {
 					// Destroy existing value.
@@ -954,7 +991,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else if (methodName == "__set_value") {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				// Assign new value.
 				genMoveStore(function, operand, methodOwner, targetType);
@@ -971,7 +1008,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genMemberLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genMemberLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -986,10 +1023,10 @@ namespace locic {
 			
 			if (methodName == "__move_to") {
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
@@ -1004,7 +1041,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				if (methodName == "assign") {
 					// Destroy existing value.
@@ -1019,7 +1056,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else if (methodName == "__set_value") {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				// Assign new value.
 				genMoveStore(function, operand, methodOwner, targetType);
@@ -1036,7 +1073,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -1052,10 +1089,10 @@ namespace locic {
 			if (methodName == "__move_to") {
 				// TODO: must call __move_to() of child!
 				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-				const auto moveToPtr = loadArgRaw(function, args[1], i8PtrType);
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto moveToPosition = loadArgRaw(function, args[2], sizeTType);
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
 				
 				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
@@ -1070,7 +1107,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (methodName == "__set_value") {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				// Assign new value.
 				genMoveStore(function, operand, methodOwner, targetType);
@@ -1087,7 +1124,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -1096,7 +1133,7 @@ namespace locic {
 			
 			if (methodName == "create") {
 				const auto objectVar = genAlloca(function, type);
-				const auto operand = loadArg(function, args[0], targetType);
+				const auto operand = getArg(function, args[0], targetType);
 				
 				// Store the object.
 				const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
@@ -1122,10 +1159,10 @@ namespace locic {
 				
 				const auto sourceValue = methodOwner;
 				const auto i8PtrType = typeGen.getI8PtrType();
-				const auto destValue = loadArgRaw(function, args[1], i8PtrType);
+				const auto destValue = getArgRaw(function, args[1], i8PtrType);
 				
 				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-				const auto positionValue = loadArgRaw(function, args[2], sizeTType);
+				const auto positionValue = getArgRaw(function, args[2], sizeTType);
 				
 				const auto castType = typeSizeIsKnown ? genPointerType(module, type) : TypeGenerator(module).getI8PtrType();
 				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
@@ -1180,7 +1217,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = loadArg(function, args[1], targetType);
+				const auto operand = getArg(function, args[1], targetType);
 				
 				if (methodName == "assign") {
 					if (needsLivenessIndicator(module, targetType)) {
@@ -1222,7 +1259,88 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genRefPrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genRefBasicPrimitiveMethodCall(Function& function, llvm::Type* const llvmType, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
+			auto& builder = function.getBuilder();
+			auto& module = function.module();
+			
+			const auto& methodName = semFunction->name().last();
+			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArgRaw(function, args[0], llvmType);
+			
+			if (methodName == "__move_to") {
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto moveToPtr = getArgRaw(function, args[1], i8PtrType);
+				
+				const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
+				const auto moveToPosition = getArgRaw(function, args[2], sizeTType);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, methodOwner->getType()->getPointerTo());
+				
+				builder.CreateStore(methodOwner, castedDestPtr);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (isUnaryOp(methodName)) {
+				if (methodName == "implicit_copy" || methodName == "copy") {
+					return methodOwner;
+				} else {
+					llvm_unreachable("Unknown primitive unary op.");
+				}
+			} else {
+				llvm_unreachable("Unknown primitive method.");
+			}
+		}
+		
+		llvm::Value* genRefPrimitiveMethodCall(Function& function, const SEM::Type* const type, SEM::Function* const semFunction, llvm::ArrayRef<ArgPair> args) {
+			auto& module = function.module();
+			
+			const auto refTarget = type->templateArguments().at(0);
+			assert(!refTarget->isAlias());
+			if (!refTarget->isTemplateVar()
+				// TODO: remove this and implement other methods (such as implicit copy) properly!
+				|| semFunction->name().last() != "__move_to") {
+				// A reference has a different type depending on whether its
+				// argument type is virtual (i.e. an interface) or not.
+				const auto llvmType = refTarget->isInterface() ? interfaceStructType(module).second : genPointerType(module, refTarget);
+				return genRefBasicPrimitiveMethodCall(function, llvmType, semFunction, args);
+			}
+			
+			// Look at our template argument to see if it's virtual.
+			const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) refTarget->getTemplateVar()->index() });
+			const auto argVTablePointer = function.getBuilder().CreateExtractValue(argTypeInfo, { 0 });
+			
+			// If the VTable pointer is NULL, it's a virtual type, which
+			// means we are larger (to store the type information etc.).
+			const auto nullVtablePtr = ConstantGenerator(module).getNullPointer(vtableType(module)->getPointerTo());
+			const auto isVirtualCondition = function.getBuilder().CreateICmpEQ(argVTablePointer, nullVtablePtr, "isVirtual");
+			
+			const auto ifVirtualBlock = function.createBasicBlock("ifRefVirtual");
+			const auto ifNotVirtualBlock = function.createBasicBlock("ifRefNotVirtual");
+			const auto mergeBlock = function.createBasicBlock("mergeRefVirtual");
+			
+			function.getBuilder().CreateCondBr(isVirtualCondition, ifVirtualBlock, ifNotVirtualBlock);
+			
+			function.selectBasicBlock(ifVirtualBlock);
+			const auto virtualResult = genRefBasicPrimitiveMethodCall(function, interfaceStructType(module).second, semFunction, args);
+			function.getBuilder().CreateBr(mergeBlock);
+			
+			function.selectBasicBlock(ifNotVirtualBlock);
+			const auto notVirtualResult = genRefBasicPrimitiveMethodCall(function, genPointerType(module, refTarget), semFunction, args);
+			function.getBuilder().CreateBr(mergeBlock);
+			
+			function.selectBasicBlock(mergeBlock);
+			
+			if (!virtualResult->getType()->isVoidTy()) {
+				assert(!notVirtualResult->getType()->isVoidTy());
+				const auto phiNode = function.getBuilder().CreatePHI(virtualResult->getType(), 2);
+				phiNode->addIncoming(virtualResult, ifVirtualBlock);
+				phiNode->addIncoming(notVirtualResult, ifNotVirtualBlock);
+				return phiNode;
+			} else {
+				assert(notVirtualResult->getType()->isVoidTy());
+				return ConstantGenerator(module).getVoidUndef();
+			}
+		}
+		
+		llvm::Value* genTypenamePrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			const auto& methodName = semFunction->name().last();
 			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
 			
@@ -1237,22 +1355,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTypenamePrimitiveMethodCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
-			const auto& methodName = semFunction->name().last();
-			const auto methodOwner = isConstructor(methodName) ? nullptr : loadArg(function, args[0], type);
-			
-			if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_copy" || methodName == "copy") {
-					return methodOwner;
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
-				}
-			} else {
-				llvm_unreachable("Unknown primitive method.");
-			}
-		}
-		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args) {
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args) {
 			auto& module = function.module();
 			
 			const auto& typeName = type->getObjectType()->name().last();
@@ -1317,22 +1420,19 @@ namespace locic {
 			}
 		}
 		
-		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
 			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
 			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
-			// Collect together arguments, and whether they're reference arguments.
-			llvm::SmallVector<std::pair<llvm::Value*, bool>, 10> args;
+			// Collect together arguments and whether they're reference arguments.
+			llvm::SmallVector<ArgPair, 10> args;
 			if (argInfo.hasContextArgument()) {
-				args.push_back(std::make_pair(function.getRawContextValue(), true));
+				args.push_back(ArgPair(function.getRawContextValue(), false));
 			}
 			
 			const auto& argTypes = semFunction->type()->getFunctionParameterTypes();
 			for (size_t i = 0; i < argTypes.size(); i++) {
-				const auto argType = argTypes.at(i);
-				const bool isRef = argType->isBuiltInReference()
-					|| !canPassByValue(module, argType);
-				args.push_back(std::make_pair(function.getArg(i), isRef));
+				args.push_back(ArgPair(function.getArg(i), false));
 			}
 			
 			const auto result = genTrivialPrimitiveFunctionCall(function, typeInstance->selfType(), semFunction, args);

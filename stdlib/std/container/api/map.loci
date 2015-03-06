@@ -1,0 +1,60 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T0 : movable, typename T1 : movable>
+		datatype pair(T0 first, T1 second);
+		
+		template <typename Key : movable, typename Value : movable>
+		class map_range {
+			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> front();
+			
+			void skip_front();
+			
+			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> back();
+			
+			void skip_back();
+			
+			bool empty() const noexcept;
+		}
+		
+		template <typename T>
+		interface comparable {
+			compare_result_t compare(const T& other) const noexcept;
+		}
+		
+		template <typename T : movable>
+		interface default_constructible {
+			static T create();
+		}
+		
+		/**
+		 * \brief Map.
+		 */
+		template <typename Key: comparable<Key>, typename Value : movable>
+		require(Key : movable)
+		class map {
+			static map<Key, Value> create();
+			
+			bool empty() const noexcept;
+			
+			size_t size() const noexcept;
+			
+			void clear() noexcept;
+			
+			lval<Value> ptr_lval<Value> index(const Key& key) const noexcept;
+			
+			void insert(pair<Key, Value> value);
+			
+			bool try_insert(pair<Key, Value> value);
+			
+			Value& get_or_insert(const Key& key) require(Key : copyable<Key> and Value : default_constructible<Value>);
+			
+			map_range<Key, Value> all() const noexcept;
+		}
+		
+	}
+	
+}
+

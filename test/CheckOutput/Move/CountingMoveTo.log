@@ -1,6 +1,6 @@
 auto testInstance = TestClass();
-Move Count = 2
+Move Count = 0
 auto testInstanceMoved = move testInstance;
-Move Count = 3
+Move Count = 1
 auto testInstanceMovedAgain = move testInstanceMoved;
-Move Count = 4
+Move Count = 2

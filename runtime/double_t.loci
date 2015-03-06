@@ -1,4 +1,17 @@
 __primitive double_t {
+	static double_t cast_byte_t(byte_t value) noexcept;
+	static double_t cast_uint8_t(uint8_t value) noexcept;
+	static double_t cast_short_t(short_t value) noexcept;
+	static double_t cast_ushort_t(ushort_t value) noexcept;
+	static double_t cast_int_t(int_t value) noexcept;
+	static double_t cast_uint_t(uint_t value) noexcept;
+	static double_t cast_long_t(long_t value) noexcept;
+	static double_t cast_ulong_t(ulong_t value) noexcept;
+	static double_t cast_longlong_t(longlong_t value) noexcept;
+	static double_t cast_ulonglong_t(ulonglong_t value) noexcept;
+	static double_t cast_ssize_t(ssize_t value) noexcept;
+	static double_t cast_size_t(size_t value) noexcept;
+	
 	static double_t implicit_cast_float_t(float_t value) noexcept;
 	
 	static double_t cast_longdouble_t(longdouble_t value) noexcept;
@@ -10,6 +23,7 @@ __primitive double_t {
 	double_t minus() const noexcept;
 	
 	double_t abs() const noexcept;
+	double_t sqrt() const noexcept;
 
 	double_t add(const double_t& v) const noexcept;
 	double_t subtract(const double_t& v) const noexcept;

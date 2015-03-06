@@ -3,6 +3,7 @@
 
 #include <llvm-abi/Type.hpp>
 
+#include <locic/CodeGen/ArgPair.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/SEM.hpp>
@@ -63,19 +64,19 @@ namespace locic {
 		
 		bool isUnsignedIntegerType(Module& module, const SEM::Type* type);
 		
-		void createPrimitiveAlignOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction);
+		void createPrimitiveAlignOf(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
-		void createPrimitiveSizeOf(Module& module, const SEM::Type* type, llvm::Function& llvmFunction);
+		void createPrimitiveSizeOf(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		
-		void createPrimitiveMethod(Module& module, SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
+		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
-		void createPrimitiveMove(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void createPrimitiveMove(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
-		void createPrimitiveDestructor(Module& module, SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
+		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<std::pair<llvm::Value*, bool>> args);
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args);
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
 		
@@ -91,10 +92,10 @@ namespace locic {
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type);
-		bool primitiveTypeInstanceHasCustomMove(Module& module, SEM::TypeInstance* typeInstance);
+		bool primitiveTypeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type);
-		bool primitiveTypeInstanceHasDestructor(Module& module, SEM::TypeInstance* typeInstance);
+		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type);
 		

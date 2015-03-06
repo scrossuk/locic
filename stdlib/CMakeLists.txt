@@ -13,62 +13,65 @@ macro(copy_source_file output_name name)
 endmacro(copy_source_file)
 
 macro(loci_module name output_name flags)
-	set(${name}_Sources ${ARGN})
-	set(${name}_CBuildSources "")
-	set(${name}_LociBuildSources "")
+	set(_sources ${ARGN})
+	set(_c_build_sources "")
+	set(_loci_build_sources "")
 	
-	foreach (file_source_name ${${name}_Sources})
-		copy_source_file(file_build_source_name ${file_source_name})
-		if ("${file_source_name}" MATCHES "^(.+)\\.c$")
-			list(APPEND ${name}_CBuildSources ${file_build_source_name})
-		elseif ("${file_source_name}" MATCHES "^(.+)\\.loci$")
-			list(APPEND ${name}_LociBuildSources ${file_build_source_name})
-		else ()
-			message (FATAL_ERROR "Unknown source file type for file '${file_source_name}'.")
-		endif ()
-	endforeach (file_source_name)
+	foreach(_file_source_name ${_sources})
+		get_filename_component(_absolute_source_name "${_file_source_name}" REALPATH)
+		if("${_file_source_name}" MATCHES "^(.+)\\.c$")
+			list(APPEND _c_build_sources "${_absolute_source_name}")
+		elseif("${_file_source_name}" MATCHES "^(.+)\\.loci$")
+			list(APPEND _loci_build_sources "${_absolute_source_name}")
+		else()
+			message (FATAL_ERROR "Unknown source file type for file '${_file_source_name}'.")
+		endif()
+	endforeach(_file_source_name)
 	
 	separate_arguments(flags)
 	
-	set (LOCIMODULE_OUTPUT_NAME "${CMAKE_CURRENT_BINARY_DIR}/LociModule_${output_name}")
+	set (_locimodule_output_name "${CMAKE_CURRENT_BINARY_DIR}/LociModule_${output_name}")
 	
-	add_custom_command(OUTPUT "${LOCIMODULE_OUTPUT_NAME}" ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
+	add_custom_command(OUTPUT "${_locimodule_output_name}" ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
 		COMMAND # Run compiler.
-			${LOCIC} ${flags} -o ${LOCIMODULE_OUTPUT_NAME} --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${${name}_LociBuildSources}
-		DEPENDS ${LOCIC} ${${name}_LociBuildSources}
-		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+			${LOCIC} ${flags} -o "${_locimodule_output_name}" --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${_loci_build_sources}
+		DEPENDS ${LOCIC} ${_loci_build_sources}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
 	
 	# Use clang to build C source files into LLVM bitcode.
-	if (${name}_CBuildSources)
-		set (CMODULE_OUTPUT_NAME "${CMAKE_CURRENT_BINARY_DIR}/CModule_${output_name}")
-		
+	if(_c_build_sources)
 		set (CFLAGS ${LOCIC_C_WARNINGS})
 		separate_arguments(CFLAGS)
 		
-		set(${name}_CBuildObjects "")
+		set(_c_build_objects "")
 		
-		foreach (file_source_name ${${name}_CBuildSources})
-			set(file_object_name "${file_source_name}.bc")
-			list(APPEND ${name}_CBuildObjects "${file_object_name}")
-			add_custom_command(OUTPUT "${file_object_name}"
+		foreach(_file_source_path ${_c_build_sources})
+			get_filename_component(_file_source_name "${_file_source_path}" NAME)
+			set(_file_object_name "${CMAKE_CURRENT_BINARY_DIR}/CModule_${_file_source_name}.bc")
+			list(APPEND _c_build_objects "${_file_object_name}")
+			add_custom_command(OUTPUT "${_file_object_name}"
 				COMMAND
-					${CLANG_EXECUTABLE} -o "${file_object_name}" ${CFLAGS} -c -emit-llvm "${file_source_name}"
-				DEPENDS ${file_source_name}
-				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-		endforeach (file_source_name)
+					${CLANG_EXECUTABLE} -o "${_file_object_name}" ${CFLAGS} -c -emit-llvm "${_file_source_path}"
+				DEPENDS "${_file_source_path}"
+				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+			)
+		endforeach(_file_source_path)
 		
-		add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
-				COMMAND
-					${LLVM_LINK_EXECUTABLE} -o "${CMAKE_CURRENT_BINARY_DIR}/${output_name}" ${${name}_CBuildObjects} "${LOCIMODULE_OUTPUT_NAME}"
-				DEPENDS ${${name}_CBuildObjects} "${LOCIMODULE_OUTPUT_NAME}"
-				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-	else ()
-		add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
-				COMMAND
-					${CMAKE_COMMAND} -E copy_if_different "${LOCIMODULE_OUTPUT_NAME}" "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
-				DEPENDS "${LOCIMODULE_OUTPUT_NAME}"
-				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-	endif ()
+		add_custom_command(
+			OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
+			COMMAND ${LLVM_LINK_EXECUTABLE} -o "${CMAKE_CURRENT_BINARY_DIR}/${output_name}" ${_c_build_objects} "${_locimodule_output_name}"
+			DEPENDS ${_c_build_objects} "${_locimodule_output_name}"
+			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		)
+	else()
+		add_custom_command(
+			OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_locimodule_output_name}" "${CMAKE_CURRENT_BINARY_DIR}/${output_name}"
+			DEPENDS "${_locimodule_output_name}"
+			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		)
+	endif()
 	
 	add_custom_target(${name} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${output_name}")
 endmacro(loci_module)

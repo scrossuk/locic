@@ -13,7 +13,7 @@ import std.container 0.1.0 {
 			
 			void skip_front();
 			
-			lval<T> LvalType front() const require(LvalType : movable);
+			lval<const T> LvalType front() const require(LvalType : movable);
 		}
 		
 		template <typename T, typename LvalType>

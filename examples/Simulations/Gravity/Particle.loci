@@ -1,0 +1,10 @@
+
+namespace Simulations {
+	
+	namespace Gravity {
+		
+		datatype Particle(Vector position, Vector velocity, double mass);
+		
+	}
+	
+}

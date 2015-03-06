@@ -66,6 +66,10 @@ namespace locic {
 		
 		SEM::Value dissolveLval(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
 			assert (canDissolveValue(context, value));
+			assert(value.type()->isLval() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isLval()));
+			if (!value.type()->isRef()) {
+				value = bindReference(context, std::move(value));
+			}
 			return CallValue(context, GetSpecialMethod(context, std::move(value), context.getCString("dissolve"), location), {}, location);
 		}
 		
