@@ -1,0 +1,75 @@
+
+namespace Simulations {
+	
+	namespace Flocking {
+		
+		size_t NumBoids() { return 200u; }
+		size_t NumObstacles() { return 100u; }
+		
+		class FollowingSimulation(System system, std::list<Obstacle> obstacles,
+			std::list<Field> fields, std::map<size_t, sf::Color> boidColorMap) {
+			
+			static create() {
+				auto system = System();
+				auto obstacles = std::list<Obstacle>();
+				auto fields = std::list<Field>();
+				auto boidColorMap = std::map<size_t, sf::Color>();
+				
+				for (const size_t id: std::counter<size_t>(0u, NumBoids(), 1u)) {
+					const auto boidPosition = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
+					const auto boidVelocity = Vector(RandomDouble(-5.0, 5.0), RandomDouble(-5.0, 5.0), 0.0);
+					const auto boid = Boid(boidPosition, boidVelocity);
+					system.addBoid(id, boid);
+					boidColorMap.insert(std::pair<size_t, sf::Color>(id, RandomColor()));
+				}
+				
+				for (unused const size_t id: std::counter<size_t>(0u, NumObstacles(), 1u)) {
+					const auto obstacleRadius = RandomDouble(1.0, 10.0);
+					const auto obstaclePosition = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
+					const auto obstacle = Obstacle(obstacleRadius, obstaclePosition);
+					obstacles.push_back(obstacle);
+				}
+				
+				// Boids should be attracted towards the mouse.
+				const auto mouseField = Field(0.1, Vector.Zero());
+				fields.push_back(mouseField);
+				
+				return @(move system, move obstacles, move fields, move boidColorMap);
+			}
+			
+			std::string getName() const {
+				return "Flocking";
+			}
+			
+			bool handleEvent(unused const sf::Event& event) {
+				// Doesn't handle any events.
+				return false;
+			}
+			
+			void update(sf::RenderWindow& renderWindow) {
+				const auto mousePosInt = sf::Mouse::getPosition(renderWindow);
+				const auto mousePos = renderWindow.mapPixelToCoords(mousePosInt);
+				@fields.front().position = Vector(mousePos.x, mousePos.y, 0.0);
+				
+				@system.step(@obstacles, @fields);
+			}
+			
+			void render(sf::RenderWindow& renderWindow) {
+				for (const size_t id: std::counter<size_t>(0u, NumBoids(), 1u)) {
+					const Boid boid = @system.getBoid(id);
+					const auto shape = MakeCircleShape(boid.position.x().cast<float>(), boid.position.y().cast<float>(), 2.0f, @boidColorMap[id], 0.0f, sf::Color::Black());
+					renderWindow.draw(shape);
+				}
+				
+				for (const auto& obstacle: @obstacles.all()) {
+					const auto shape = MakeCircleShape(obstacle.position.x().cast<float>(), obstacle.position.y().cast<float>(),
+						obstacle.radius.cast<float>() * 2.0f, sf::Color(50u, 50u, 50u, 255u), 0.0f, sf::Color::Black());
+					renderWindow.draw(shape);
+				}
+			}
+			
+		}
+		
+	}
+}
+

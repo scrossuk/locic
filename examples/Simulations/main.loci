@@ -2,20 +2,20 @@
 // Entry point.
 export int main(unused int argc, unused ubyte ** argv) {
 	const unsigned int frameRate = 25u;
-	unused const double zoomRate = 1.1;
-	unused const double moveRate = 0.1;
-	const double size = 1000.0;
-	unused const double halfSize = size / 2.0;
-	unused const double minZoom = 0.5;
-	unused const double maxZoom = 10.0;
+	const float zoomRate = 1.1f;
+	const float moveRate = 0.1f;
+	const float size = 1000.0f;
+	const float halfSize = size / 2.0f;
+	const float minZoom = 0.5f;
+	const float maxZoom = 10.0f;
 	
-	unused double currentZoom = 1.0;
+	float currentZoom = 1.0f;
 	
 	const auto font = sf::Font(C"Data/font.ttf");
 	
-	auto renderWindow = sf::RenderWindow(sf::VideoMode(600u, 600u, 32u), C"Simulations");
+	auto renderWindow = sf::RenderWindow(sf::VideoMode(800u, 800u, 32u), C"Simulations");
 	
-	const auto view = sf::View::FromRect(sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(size.cast<float>(), size.cast<float>())));
+	auto view = sf::View::FromRect(sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(size, size)));
 	renderWindow.setView(view);
 	
 	renderWindow.setFramerateLimit(frameRate);
@@ -28,105 +28,124 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	uint8_t simulationNameTextAlpha = 255u;
 	
-	//auto checkpointSimulation = Simulations::Checkpoint::RandomSimulation();
-	//Flocking::FollowingSimulation followingSimulation;
-	auto checkpointSimulation = Simulations::Gravity::CentralOrbitSimulation(frameRate.cast<size_t>());
+	auto checkpointSimulation = Simulations::Checkpoint::RandomSimulation();
+	auto followingSimulation = Simulations::Flocking::FollowingSimulation();
+	auto centralOrbitSimulation = Simulations::Gravity::CentralOrbitSimulation(frameRate.cast<size_t>());
 	
 	auto simulationList = Simulations::SimulationList();
 	simulationList.addSimulation(checkpointSimulation);
-	//simulationList.addSimulation(followingSimulation);
-	//simulationList.addSimulation(centralOrbitSimulation);
+	simulationList.addSimulation(followingSimulation);
+	simulationList.addSimulation(centralOrbitSimulation);
 	
 	while (renderWindow.isOpen()) {
 		// Clear screen to black.
-		renderWindow.clear(sf::Color(0u, 0u, 0u, 255u));
+		renderWindow.clear(sf::Color::Black());
 		
-		auto event = sfEvent(0, 0u);
-		
-		while (renderWindow.pollEvent(&event)) {
-			/*if (event.type == sf::Event::KeyPressed) {
-				if (event.key.code == sf::Keyboard::Left) {
-					simulationList.moveLeft();
-					simulationNameTextAlpha = 255;
-				}else if (event.key.code == sf::Keyboard::Right) {
-					simulationList.moveRight();
-					simulationNameTextAlpha = 255;
-				}else if(event.key.code == sf::Keyboard::Up){
-					currentZoom *= zoomRate;
-					if(currentZoom > maxZoom){
-						currentZoom = maxZoom;
-					}
-					
-					view.setSize(2.0 * (halfSize / currentZoom), 2.0 * (halfSize / currentZoom));
-				}else if(event.key.code == sf::Keyboard::Down){
-					currentZoom *= 1.0 / zoomRate;
-					if(currentZoom < minZoom){
-						currentZoom = minZoom;
-					}
-					
-					view.setSize(2.0 * (halfSize / currentZoom), 2.0 * (halfSize / currentZoom));
-				}else if(event.key.code == sf::Keyboard::W){
-					sf::Vector2f center = view.getCenter();
-					const sf::Vector2f halfSize = view.getSize() / 2.0f;
-					center.y -= halfSize.y * moveRate;
-					
-					if(center.y < 0.0f){
-						center.y = 0.0f;
-					}
-					
-					view.setCenter(center);
-				}else if(event.key.code == sf::Keyboard::A){
-					sf::Vector2f center = view.getCenter();
-					const sf::Vector2f halfSize = view.getSize() / 2.0f;
-					center.x -= halfSize.x * moveRate;
-					
-					if(center.x < 0.0f){
-						center.x = 0.0f;
-					}
-					
-					view.setCenter(center);
-				}else if(event.key.code == sf::Keyboard::S){
-					sf::Vector2f center = view.getCenter();
-					const sf::Vector2f halfSize = view.getSize() / 2.0f;
-					center.y += halfSize.y * moveRate;
-					
-					if(center.y > size){
-						center.y = size;
-					}
-					
-					view.setCenter(center);
-				}else if(event.key.code == sf::Keyboard::D){
-					sf::Vector2f center = view.getCenter();
-					const sf::Vector2f halfSize = view.getSize() / 2.0f;
-					center.x += halfSize.x * moveRate;
-					
-					if(center.x > size){
-						center.x = size;
-					}
-					
-					view.setCenter(center);
-				}else if (event.key.code == sf::Keyboard::Escape) {
+		while (true) {
+			const auto optionalEvent = renderWindow.pollEvent();
+			if (optionalEvent.empty()) {
+				break;
+			}
+			
+			const auto event = optionalEvent.get();
+			switch (event) {
+				case sf::CloseEvent() {
 					renderWindow.close();
-				}else{
-					simulationList.handleEvent(event);
 				}
-			} else */if(event.type == 0) {
-				renderWindow.close();
-			} else {
-				//simulationList.handleEvent(event);
+				case sf::KeyPressed(sf::Keyboard::Code keyCode) {
+					switch (keyCode) {
+						case sf::Keyboard::Left() {
+							simulationList.moveLeft();
+							simulationNameTextAlpha = 255u;
+						}
+						case sf::Keyboard::Right() {
+							simulationList.moveRight();
+							simulationNameTextAlpha = 255u;
+						}
+						case sf::Keyboard::Up() {
+							currentZoom *= zoomRate;
+							if (currentZoom > maxZoom) {
+								currentZoom = maxZoom;
+							}
+							
+							view.setSize(sf::Vector2f(2.0f * (halfSize / currentZoom), 2.0f * (halfSize / currentZoom)));
+						}
+						case sf::Keyboard::Down() {
+							currentZoom *= 1.0f / zoomRate;
+							if (currentZoom < minZoom) {
+								currentZoom = minZoom;
+							}
+							
+							view.setSize(sf::Vector2f(2.0f * (halfSize / currentZoom), 2.0f * (halfSize / currentZoom)));
+						}
+						case sf::Keyboard::W() {
+							sf::Vector2f center = view.getCenter();
+							const sf::Vector2f halfSizeVector = view.getSize() / 2.0f;
+							center.y -= halfSizeVector.y * moveRate;
+							
+							if (center.y < 0.0f) {
+								center.y = 0.0f;
+							}
+							
+							view.setCenter(center);
+						}
+						case sf::Keyboard::A() {
+							sf::Vector2f center = view.getCenter();
+							const sf::Vector2f halfSizeVector = view.getSize() / 2.0f;
+							center.x -= halfSizeVector.x * moveRate;
+							
+							if(center.x < 0.0f){
+								center.x = 0.0f;
+							}
+							
+							view.setCenter(center);
+						}
+						case sf::Keyboard::S() {
+							sf::Vector2f center = view.getCenter();
+							const sf::Vector2f halfSizeVector = view.getSize() / 2.0f;
+							center.y += halfSizeVector.y * moveRate;
+							
+							if(center.y > size){
+								center.y = size;
+							}
+							
+							view.setCenter(center);
+						}
+						case sf::Keyboard::D() {
+							sf::Vector2f center = view.getCenter();
+							const sf::Vector2f halfSizeVector = view.getSize() / 2.0f;
+							center.x += halfSizeVector.x * moveRate;
+							
+							if(center.x > size){
+								center.x = size;
+							}
+							
+							view.setCenter(center);
+						}
+						case sf::Keyboard::Escape() {
+							renderWindow.close();
+						}
+						default {
+							// Ignore all other keys.
+						}
+					}
+				}
+				default {
+					// Ignore all other events.
+				}
 			}
 		}
 		
 		renderWindow.setView(view);
 		
-		//simulationList.update(renderWindow);
-		checkpointSimulation.update(renderWindow);
+		simulationList.update(renderWindow);
 		
-		//simulationList.render(renderWindow);
-		checkpointSimulation.render(renderWindow);
+		simulationList.render(renderWindow);
 		
-		//simulationNameText.setString(simulationList.getName().make_buffer().c_str());
-		simulationNameText.setString(checkpointSimulation.getName().make_buffer().c_str());
+		// Reset view for drawing string.
+		renderWindow.setView(sf::View::FromRect(sf::FloatRect(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(size, size))));
+		
+		simulationNameText.setString(simulationList.getName().make_buffer().c_str());
 		
 		simulationNameText.setColor(sf::Color(255u, 255u, 255u, simulationNameTextAlpha));
 		if (simulationNameTextAlpha > 0u) {

@@ -1,0 +1,10 @@
+
+namespace Simulations {
+
+	namespace Flocking {
+		
+		datatype Boid(Vector position, Vector velocity);
+		
+	}
+
+}

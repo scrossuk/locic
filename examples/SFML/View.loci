@@ -12,6 +12,14 @@ import {
 	
 	void sfView_destroy(sfView* view) noexcept;
 	
+	void sfView_setSize(sfView* view, sfVector2f size) noexcept;
+	
+	sfVector2f sfView_getSize(const sfView* view) noexcept;
+	
+	void sfView_setCenter(sfView* view, sfVector2f size) noexcept;
+	
+	sfVector2f sfView_getCenter(const sfView* view) noexcept;
+	
 }
 
 namespace sf {
@@ -33,8 +41,24 @@ namespace sf {
 			sfView_destroy(@view);
 		}
 		
-		sfView* raw() const {
+		sfView* raw() const noexcept {
 			return @view;
+		}
+		
+		void setSize(Vector2f size) noexcept {
+			sfView_setSize(@view, size.raw());
+		}
+		
+		Vector2f getSize() const noexcept {
+			return Vector2f::FromRaw(sfView_getSize(@view));
+		}
+		
+		void setCenter(Vector2f size) noexcept {
+			sfView_setCenter(@view, size.raw());
+		}
+		
+		Vector2f getCenter() const noexcept {
+			return Vector2f::FromRaw(sfView_getCenter(@view));
 		}
 		
 	}

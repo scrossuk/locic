@@ -9,4 +9,8 @@ namespace Simulations {
 		return low + randValue * (high - low);
 	}
 	
+	sf::Color RandomColor() {
+		return sf::Color(RandomDouble(0.0, 255.0).cast<uint8_t>(), RandomDouble(0.0, 255.0).cast<uint8_t>(), RandomDouble(0.0, 255.0).cast<uint8_t>(), 255u);
+	}
+	
 }

@@ -1,0 +1,178 @@
+
+namespace Simulations {
+	
+	namespace Flocking {
+		
+		class System(std::map<size_t, Boid> boids) {
+			static create() {
+				return @(std::map<size_t, Boid>());
+			}
+			
+			void addBoid(size_t id, const Boid& boid) {
+				@boids.insert(std::pair<size_t, Boid>(id, boid));
+			}
+			
+			Boid getBoid(const size_t id) {
+				return @boids[id];
+			}
+			
+			void step(const std::list<Obstacle>& obstacles, const std::list<Field>& fields) {
+				for (auto& boidPair: @boids.all()) {
+					const auto boidId = boidPair.first;
+					auto& boid = boidPair.second;
+					
+					Vector acceleration = Vector::Zero();
+					
+					// Rule 1: Aim for center of nearby boids.
+					{
+						Vector center = Vector::Zero();
+						
+						size_t count = 0u;
+						
+						for (const auto& otherBoidPair: @boids.all()) {
+							const auto& otherBoid = otherBoidPair.second;
+							
+							if ((otherBoid.position - boid.position).size() < 30.0) {
+								center += otherBoid.position;
+								count++;
+							}
+						}
+						
+						center /= count.cast<double>();
+						
+						const Vector toCenter = center - boid.position;
+						
+						acceleration += toCenter / 300.0;
+					}
+					
+					// Rule 2: Avoid collisions with other boids.
+					{
+						
+						for (const auto& otherBoidPair: @boids.all()) {
+							const auto otherBoidId = otherBoidPair.first;
+							const auto& otherBoid = otherBoidPair.second;
+							if (boidId == otherBoidId) {
+								continue;
+							}
+							
+							const Vector fromOtherBoid = boid.position - otherBoid.position;
+							const double distance = fromOtherBoid.size();
+							
+							if (distance < 20.0) {
+								acceleration += fromOtherBoid / (distance * distance);
+							}
+						}
+						
+					}
+					
+					// Rule 3: Match neighbouring boids' velocity.
+					{
+						
+						size_t count = 0u;
+						
+						Vector averageVelocity = Vector.Zero();
+						
+						for (const auto& otherBoidPair: @boids.all()) {
+							const auto& otherBoid = otherBoidPair.second;
+							
+							const Vector toOtherBoid = otherBoid.position - boid.position;
+							
+							if (toOtherBoid.size() < 30.0) {
+								averageVelocity += otherBoid.velocity;
+								count++;
+							}
+						}
+						
+						averageVelocity /= count.cast<double>();
+						
+						const Vector velocityChange = averageVelocity - boid.velocity;
+						
+						acceleration += velocityChange / 8.0;
+						
+					}
+					
+					// Rule 4: Avoid obstacles.
+					{
+						
+						for (const auto& obstacle: obstacles.all()) {
+							const Vector toObstacle = obstacle.position - boid.position;
+							
+							const double distance = (toObstacle.size() - obstacle.radius).abs();
+							
+							const double curveX = toObstacle.y();
+							const double curveY = toObstacle.x();
+							
+							Vector curveVector = Vector.Zero();
+							
+							if ((boid.velocity.x() + curveX).abs() < (boid.velocity.x() - curveX).abs()) {
+								curveVector = Vector(-curveX, curveY, 0.0);
+							} else {
+								curveVector = Vector(curveX, -curveY, 0.0);
+							}
+							
+							acceleration += curveVector.unit() * (10000.0 / (distance * distance * distance));
+						}
+						
+					}
+					
+					// Rule 5: React to fields.
+					{
+						
+						for (const auto& field: fields.all()) {
+							const Vector toField = field.position - boid.position;
+							
+							acceleration += toField.unit() * field.strength;
+						}
+						
+					}
+					
+					// Rule 6: Stay inside screen.
+					{
+						
+						const double l = 100.0;
+						const double h = 900.0;
+						
+						const double lb = (l + h) / 4.0;
+						const double hb = lb * 3.0;
+						
+						double xAcceleration = 0.0;
+						double yAcceleration = 0.0;
+						
+						if (boid.position.x() < lb) {
+							xAcceleration = (lb - boid.position.x()) / 1000.0;
+						} else if (boid.position.x() > hb) {
+							xAcceleration = (hb - boid.position.x()) / 1000.0;
+						}
+						
+						if (boid.position.y() < lb) {
+							yAcceleration = (lb - boid.position.y()) / 1000.0;
+						} else if (boid.position.y() > hb) {
+							yAcceleration = (hb - boid.position.y()) / 1000.0;
+						}
+						
+						acceleration += Vector(xAcceleration, yAcceleration, 0.0);
+						
+					}
+					
+					boid.velocity += acceleration;
+				}
+				
+				for (auto& boidPair: @boids.all()) {
+					auto& boid = boidPair.second;
+					
+					// Enforce maximum velocity.
+					if (boid.velocity.size() > 4.0) {
+						boid.velocity *= 4.0 / boid.velocity.size();
+					}
+					
+					boid.position += boid.velocity;
+				}
+			}
+			
+		}
+		
+	}
+	
+}
+
+

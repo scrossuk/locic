@@ -1,0 +1,9 @@
+namespace Simulations {
+	
+	namespace Flocking {
+		
+		datatype Field(double strength, Vector position);
+		
+	}
+	
+}

@@ -10,6 +10,11 @@ loci_module(Simulations_Module simulations.bc ""
 	Checkpoint/Particle.loci
 	Checkpoint/RandomSimulation.loci
 	Checkpoint/Target.loci
+	Flocking/Boid.loci
+	Flocking/Field.loci
+	Flocking/FollowingSimulation.loci
+	Flocking/Obstacle.loci
+	Flocking/System.loci
 	Gravity/CentralOrbitSimulation.loci
 	Gravity/Particle.loci
 	Gravity/System.loci

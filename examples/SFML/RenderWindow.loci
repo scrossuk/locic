@@ -87,8 +87,13 @@ namespace sf {
 			return Vector2f(coordsPosition.x, coordsPosition.y);
 		}
 		
-		bool pollEvent(sfEvent* event) {
-			return sfWindow_pollEvent(@window, event) != 0u;
+		OptionalEvent pollEvent() {
+			auto eventValue = sfEvent(0, 0u);
+			if (sfWindow_pollEvent(@window, &eventValue) == 0u) {
+				return OptionalEvent::None();
+			}
+			
+			return OptionalEvent(translateEvent(&eventValue));
 		}
 		
 		void clear(Color color) {

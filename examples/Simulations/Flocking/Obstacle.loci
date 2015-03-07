@@ -1,0 +1,10 @@
+
+namespace Simulations {
+	
+	namespace Flocking {
+		
+		datatype Obstacle(double radius, Vector position);
+		
+	}
+	
+}

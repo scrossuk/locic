@@ -52,11 +52,20 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 	final auto font = sf::Font(C"Data/font.ttf");
 	
 	while (renderWindow.isOpen()) {
-		auto event = sfEvent(0, 0u);
-		
-		while (renderWindow.pollEvent(&event)) {
-			if (event.type == 0) {
-				renderWindow.close();
+		while (true) {
+			const auto optionalEvent = renderWindow.pollEvent();
+			if (optionalEvent.empty()) {
+				break;
+			}
+			
+			const auto event = optionalEvent.get();
+			switch (event) {
+				case sf::CloseEvent() {
+					renderWindow.close();
+				}
+				default {
+					// Ignore all other events.
+				}
 			}
 		}
 		

@@ -15,6 +15,18 @@ namespace sf {
 	datatype Vector2i(int x, int y);
 	datatype Vector2f(float x, float y);
 	
+	static Vector2f Vector2f::FromRaw(const sfVector2f value) noexcept {
+		return Vector2f(value.x, value.y);
+	}
+	
+	Vector2f Vector2f::divide(const float divisor) const noexcept {
+		return Vector2f(self.x / divisor, self.y / divisor);
+	}
+	
+	sfVector2f Vector2f::raw() const noexcept {
+		return sfVector2f(self.x, self.y);
+	}
+	
 }
 
 
