@@ -47,6 +47,10 @@ namespace locic {
 			return kind() == PRIMITIVE;
 		}
 		
+		bool TypeInstance::isEnum() const {
+			return kind() == ENUM;
+		}
+		
 		bool TypeInstance::isStruct() const {
 			return kind() == STRUCT;
 		}
@@ -182,6 +186,10 @@ namespace locic {
 			switch (kind()) {
 				case PRIMITIVE:
 					return makeString("Primitive(name: %s)",
+									  name().toString().c_str());
+									  
+				case ENUM:
+					return makeString("Enum(name: %s)",
 									  name().toString().c_str());
 									  
 				case STRUCT:

@@ -256,11 +256,8 @@ namespace locic {
 		}
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(typeInstance->isClass() ||
-				typeInstance->isDatatype() ||
-				typeInstance->isUnionDatatype() ||
-				typeInstance->isException() ||
-				typeInstance->isStruct());
+			assert(!typeInstance->isInterface() &&
+				!typeInstance->isPrimitive());
 			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
@@ -268,11 +265,9 @@ namespace locic {
 		}
 		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(typeInstance->isClassDef() ||
-				typeInstance->isDatatype() ||
-				typeInstance->isUnionDatatype() ||
-				typeInstance->isException() ||
-				typeInstance->isStruct());
+			assert(!typeInstance->isClassDecl() &&
+				!typeInstance->isInterface() &&
+				!typeInstance->isPrimitive());
 			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
@@ -293,11 +288,9 @@ namespace locic {
 		}
 		
 		bool HasDefaultExplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(typeInstance->isClassDef() ||
-				typeInstance->isDatatype() ||
-				typeInstance->isUnionDatatype() ||
-				typeInstance->isException() ||
-				typeInstance->isStruct());
+			assert(!typeInstance->isClassDecl() &&
+				!typeInstance->isInterface() &&
+				!typeInstance->isPrimitive());
 			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
@@ -318,11 +311,9 @@ namespace locic {
 		}
 		
 		bool HasDefaultCompare(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(typeInstance->isClassDef() ||
-				typeInstance->isDatatype() ||
-				typeInstance->isUnionDatatype() ||
-				typeInstance->isException() ||
-				typeInstance->isStruct());
+			assert(!typeInstance->isClassDecl() &&
+				!typeInstance->isInterface() &&
+				!typeInstance->isPrimitive());
 			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
@@ -449,7 +440,7 @@ namespace locic {
 				std::vector<SEM::Value> copyValues;
 				
 				for (const auto memberVar: typeInstance->variables()) {
-					auto selfMember = dissolveLval(context, createMemberVarRef(context, selfValue.copy(), memberVar), location);
+					auto selfMember = tryDissolveValue(context, createMemberVarRef(context, selfValue.copy(), memberVar), location);
 					auto copyResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), functionName, location), {}, location);
 					copyValues.push_back(std::move(copyResult));
 				}
@@ -547,9 +538,8 @@ namespace locic {
 			function->setScope(std::move(functionScope));
 		}
 		
-		void CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			assert(!typeInstance->isClassDecl());
-			assert(!typeInstance->isInterface());
+		void CreateDefaultMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+			assert(!typeInstance->isClassDecl() && !typeInstance->isInterface());
 			assert(function->isDeclaration());
 			
 			const auto& name = function->name();

@@ -372,6 +372,8 @@ const T& GETSYM(T* value) {
 %type <typeInstance> typeInstance
 %type <typeInstance> nonTemplatedTypeInstance
 
+%type <stringList> enumValueList
+
 %type <function> nonTemplatedFunctionDecl
 %type <function> nonTemplatedFunctionDef
 %type <function> functionDecl
@@ -964,10 +966,26 @@ exceptionInitializer:
 	}
 	;
 
+enumValueList:
+	NAME
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::StringList(1, $1)));
+	}
+	| enumValueList COMMA NAME
+	{
+		(GETSYM($1))->push_back($3);
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
 nonTemplatedTypeInstance:
 	PRIMITIVE NAME LCURLYBRACKET methodDeclList RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Primitive($2, GETSYM($4))));
+	}
+	| ENUM NAME LCURLYBRACKET enumValueList RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Enum($2, GETSYM($4))));
 	}
 	| STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
 	{

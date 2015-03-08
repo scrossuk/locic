@@ -9,7 +9,9 @@ namespace locic {
 	namespace CodeGen {
 	
 		bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType) {
-			if (objectType->isStruct()) {
+			if (objectType->isEnum()) {
+				return true;
+			} else if (objectType->isStruct()) {
 				// Structs can only contain known size members.
 				return true;
 			} else if (objectType->isClassDef() || objectType->isDatatype() || objectType->isException()) {

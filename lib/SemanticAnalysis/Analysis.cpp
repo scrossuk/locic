@@ -34,6 +34,8 @@ namespace locic {
 			switch (kind) {
 				case AST::TypeInstance::PRIMITIVE:
 					return SEM::TypeInstance::PRIMITIVE;
+				case AST::TypeInstance::ENUM:
+					return SEM::TypeInstance::ENUM;
 				case AST::TypeInstance::STRUCT:
 					return SEM::TypeInstance::STRUCT;
 				case AST::TypeInstance::CLASSDECL:
@@ -265,6 +267,13 @@ namespace locic {
 			
 			assert(semTypeInstance->variables().empty());
 			assert(semTypeInstance->constructTypes().empty());
+			
+			if (semTypeInstance->isEnum()) {
+				// Enums have underlying type 'int'.
+				const auto underlyingType = getBuiltInType(context.scopeStack(), context.getCString("int_t"), {});
+				const auto var = SEM::Var::Basic(underlyingType, underlyingType);
+				semTypeInstance->variables().push_back(var);
+			}
 			
 			if (semTypeInstance->isException()) {
 				// Add exception type parent using initializer.
@@ -548,6 +557,35 @@ namespace locic {
 			parentTypeInstance->functions().insert(std::make_pair(std::move(canonicalMethodName), semFunction));
 		}
 		
+		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+			const auto semTypeInstance = context.scopeStack().back().typeInstance();
+			
+			for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
+				const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
+				auto fullName = semTypeInstance->name() + constructorName;
+				
+				const auto iterator = semTypeInstance->functions().find(canonicalMethodName);
+				if (iterator != semTypeInstance->functions().end()) {
+				throw ErrorException(makeString("Enum constructor name '%s' clashes with existing name, at position %s.",
+					fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				}
+				
+				const auto semFunction = new SEM::Function(std::move(fullName), semTypeInstance->moduleScope().copy());
+				
+				semFunction->setMethod(true);
+				semFunction->setStaticMethod(true);
+				
+				const bool isVarArg = false;
+				const bool isDynamicMethod = false;
+				const bool isTemplatedMethod = false;
+				const bool isNoExcept = true;
+				const auto returnType = semTypeInstance->selfType();
+				semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, returnType, {}));
+				
+				semTypeInstance->functions().insert(std::make_pair(canonicalMethodName, semFunction));
+			}
+		}
+		
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
@@ -573,6 +611,10 @@ namespace locic {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
+				}
+				
+				if (semChildTypeInstance->isEnum()) {
+					AddEnumConstructorDecls(context, astTypeInstanceNode);
 				}
 			}
 		}

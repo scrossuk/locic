@@ -11,7 +11,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
-			assert(typeInstance->isClass() || typeInstance->isStruct() || typeInstance->isDatatype() || typeInstance->isUnionDatatype() || typeInstance->isException());
+			assert(!typeInstance->isInterface());
 			
 			const auto iterator = module.typeInstanceMap().find(typeInstance);
 			if (iterator != module.typeInstanceMap().end()) {

@@ -26,6 +26,7 @@ namespace locic {
 			public:
 				enum Kind {
 					PRIMITIVE,
+					ENUM,
 					STRUCT,
 					CLASSDECL,
 					CLASSDEF,
@@ -46,6 +47,8 @@ namespace locic {
 				const ModuleScope& moduleScope() const;
 				
 				bool isPrimitive() const;
+				
+				bool isEnum() const;
 				
 				bool isStruct() const;
 				

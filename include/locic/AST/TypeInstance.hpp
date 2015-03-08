@@ -6,6 +6,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/AST/StringList.hpp>
 #include <locic/String.hpp>
 
 namespace locic {
@@ -29,6 +30,7 @@ namespace locic {
 		struct TypeInstance {
 			enum Kind {
 				PRIMITIVE,
+				ENUM,
 				STRUCT,
 				CLASSDECL,
 				CLASSDEF,
@@ -39,6 +41,7 @@ namespace locic {
 			} kind;
 			
 			String name;
+			Node<StringList> constructors;
 			Node<TemplateTypeVarList> templateVariables;
 			Node<TypeInstanceList> variants;
 			Node<TypeVarList> variables;
@@ -48,6 +51,8 @@ namespace locic {
 			
 			public:
 				static TypeInstance* Primitive(const String& name, const Node<FunctionList>& functions);
+				
+				static TypeInstance* Enum(const String& name, const Node<StringList>& constructors);
 				
 				static TypeInstance* Struct(const String& name, const Node<TypeVarList>& variables);
 				

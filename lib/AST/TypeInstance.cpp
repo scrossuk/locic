@@ -7,6 +7,7 @@
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/AST/StringList.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>
@@ -23,6 +24,16 @@ namespace locic {
 		
 		TypeInstance* TypeInstance::Primitive(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), functions);
+		}
+		
+		TypeInstance* TypeInstance::Enum(const String& name, const Node<StringList>& constructors) {
+			const auto typeInstance = new TypeInstance(ENUM, name, makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
+			typeInstance->constructors = constructors;
+			return typeInstance;
+		}
+		
+		TypeInstance* TypeInstance::Struct(const String& name, const Node<TypeVarList>& variables) {
+			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
 		TypeInstance* TypeInstance::ClassDecl(const String& name, const Node<FunctionList>& functions) {
@@ -45,10 +56,6 @@ namespace locic {
 		
 		TypeInstance* TypeInstance::Interface(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(INTERFACE, name, makeDefaultNode<TypeVarList>(), functions);
-		}
-		
-		TypeInstance* TypeInstance::Struct(const String& name, const Node<TypeVarList>& variables) {
-			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
 		TypeInstance* TypeInstance::Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer) {

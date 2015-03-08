@@ -88,7 +88,7 @@ namespace sf {
 		}
 		
 		OptionalEvent pollEvent() {
-			auto eventValue = sfEvent(0, 0u);
+			auto eventValue = sfEvent(sfEventType.sfEvtClosed(), 0u);
 			if (sfWindow_pollEvent(@window, &eventValue) == 0u) {
 				return OptionalEvent::None();
 			}
