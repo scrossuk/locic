@@ -10,6 +10,48 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		class UnionSizer {
+		public:
+			UnionSizer(Module& module)
+			: dataLayout_(module.getLLVMModulePtr()),
+			maxType_(TypeGenerator(module).getI8Type()),
+			maxAlign_(1),
+			maxSize_(1) { }
+			
+			llvm::Type* maxType() const {
+				return maxType_;
+			}
+			
+			size_t maxAlign() const {
+				return maxAlign_;
+			}
+			
+			size_t maxSize() const {
+				return maxSize_;
+			}
+			
+			void addType(llvm::Type* const type) {
+				assert(type != nullptr);
+				const auto typeSize = dataLayout_.getTypeAllocSize(type);
+				const auto typeAlign = dataLayout_.getABITypeAlignment(type);
+				
+				if (typeAlign > maxAlign_ || (typeAlign == maxAlign_ && typeSize > maxSize_)) {
+					maxType_ = type;
+					maxAlign_ = typeAlign;
+					maxSize_ = typeSize;
+				} else {
+					assert(typeAlign <= maxAlign_ && typeSize <= maxSize_);
+				}
+			}
+			
+		private:
+			llvm::DataLayout dataLayout_;
+			llvm::Type* maxType_;
+			size_t maxAlign_;
+			size_t maxSize_;
+			
+		};
+		
 		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
 			assert(!typeInstance->isInterface());
 			
@@ -37,47 +79,44 @@ namespace locic {
 				return structType;
 			}
 			
-			if (typeInstance->isUnionDatatype()) {
-				llvm::DataLayout dataLayout(module.getLLVMModulePtr());
+			if (typeInstance->isUnion()) {
+				UnionSizer sizer(module);
+				
+				assert(!typeInstance->variables().empty());
+				
+				for (const auto& var: typeInstance->variables()) {
+					sizer.addType(genType(module, var->type()));
+				}
+				
+				llvm::SmallVector<llvm::Type*, 1> structMembers;
+				structMembers.push_back(sizer.maxType());
+				structType->setBody(structMembers);
+				return structType;
+			} else if (typeInstance->isUnionDatatype()) {
+				UnionSizer sizer(module);
 				
 				assert(!typeInstance->variants().empty());
 				
-				llvm::Type* maxStructType = nullptr;
-				size_t maxStructSize = 0;
-				size_t maxStructAlign = 0;
-				
 				for (auto variantTypeInstance: typeInstance->variants()) {
-					const auto variantStructType = genTypeInstance(module, variantTypeInstance);
-					const auto variantStructSize = dataLayout.getTypeAllocSize(variantStructType);
-					const auto variantStructAlign = dataLayout.getABITypeAlignment(variantStructType);
-					
-					if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
-						maxStructType = variantStructType;
-						maxStructSize = variantStructSize;
-						maxStructAlign = variantStructAlign;
-					} else {
-						assert(variantStructAlign <= maxStructAlign && variantStructSize <= maxStructSize);
-					}
+					sizer.addType(genTypeInstance(module, variantTypeInstance));
 				}
 				
-				assert(maxStructType != nullptr);
-				
-				std::vector<llvm::Type*> structMembers;
+				llvm::SmallVector<llvm::Type*, 2> structMembers;
 				structMembers.push_back(TypeGenerator(module).getI8Type());
-				structMembers.push_back(maxStructType);
+				structMembers.push_back(sizer.maxType());
 				structType->setBody(structMembers);
 				return structType;
 			} else {
 				// Generating the type for a class or struct definition, so
 				// the size and contents of the type instance is known and
 				// hence the contents can be specified.
-				std::vector<llvm::Type*> structVariables;
+				llvm::SmallVector<llvm::Type*, 10> structMembers;
 				
 				for (const auto& var: typeInstance->variables()) {
-					structVariables.push_back(genType(module, var->type()));
+					structMembers.push_back(genType(module, var->type()));
 				}
 				
-				structType->setBody(structVariables);
+				structType->setBody(structMembers);
 			}
 			
 			return structType;

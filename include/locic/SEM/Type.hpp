@@ -101,17 +101,21 @@ namespace locic {
 				const Type* getCallableFunctionType() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
+				
 				bool isClassDecl() const;
 				bool isClassDef() const;
 				bool isClass() const;
+				bool isDatatype() const;
+				bool isEnum() const;
+				bool isException() const;
 				bool isInterface() const;
 				bool isPrimitive() const;
-				bool isDatatype() const;
-				bool isUnionDatatype() const;
 				bool isStruct() const;
+				bool isUnion() const;
+				bool isUnionDatatype() const;
+				
 				bool isClassOrTemplateVar() const;
 				bool isObjectOrTemplateVar() const;
-				bool isException() const;
 				
 				TemplateVarMap generateTemplateVarMap() const;
 				

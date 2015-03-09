@@ -159,7 +159,7 @@ namespace locic {
 			// Look for variables.
 			if (derefType->isObject()) {
 				const auto typeInstance = derefType->getObjectType();
-				if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct()) {
+				if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct() || typeInstance->isUnion()) {
 					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					if (variableIterator != typeInstance->namedVariables().end()) {
 						return createMemberVarRef(context, std::move(value), variableIterator->second);

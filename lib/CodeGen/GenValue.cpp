@@ -39,6 +39,13 @@ namespace locic {
 			auto& module = function.module();
 			
 			switch (value.kind()) {
+				case SEM::Value::ZEROINITIALISE: {
+					return ConstantGenerator(module).getNull(genType(module, value.type()));
+				}
+				case SEM::Value::MEMCOPY: {
+					const auto copyFromValue = genValue(function, value.memCopyOperand(), hintResultValue);
+					return genMoveLoad(function, copyFromValue, value.type());
+				}
 				case SEM::Value::SELF: {
 					return function.getContextValue(value.type()->refTarget()->getObjectType());
 				}
@@ -354,6 +361,8 @@ namespace locic {
 					const auto& parameterVars = value.type()->getObjectType()->variables();
 					
 					const auto type = value.type();
+					assert(!type->isUnion());
+					
 					const auto objectValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, type);
 					
 					if (isTypeSizeKnownInThisModule(module, type)) {

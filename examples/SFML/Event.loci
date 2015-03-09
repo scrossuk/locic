@@ -1,5 +1,7 @@
-// Workaround for the fact locic doesn't
-// yet support opaque types.
+////////////////////////////////////////////////////////////
+/// \brief Definition of all the event types
+///
+////////////////////////////////////////////////////////////
 enum sfEventType {
 	sfEvtClosed,
 	sfEvtResized,
@@ -19,12 +21,145 @@ enum sfEventType {
 	sfEvtJoystickMoved,
 	sfEvtJoystickConnected,
 	sfEvtJoystickDisconnected
-}
+};
 
-struct sfEvent {
+using sfBool = int;
+
+////////////////////////////////////////////////////////////
+/// \brief Keyboard event parameters
+///
+////////////////////////////////////////////////////////////
+struct sfKeyEvent {
 	sfEventType type;
-	unsigned long long data;
-}
+	sfKeyCode   code;
+	sfBool      alt;
+	sfBool      control;
+	sfBool      shift;
+	sfBool      system;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Text event parameters
+///
+////////////////////////////////////////////////////////////
+struct sfTextEvent {
+	sfEventType type;
+	uint32_t    unicode;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Mouse move event parameters
+///
+////////////////////////////////////////////////////////////
+struct sfMouseMoveEvent {
+	sfEventType type;
+	int         x;
+	int         y;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Mouse buttons events parameters
+///
+////////////////////////////////////////////////////////////
+struct sfMouseButtonEvent {
+	sfEventType   type;
+	sfMouseButton button;
+	int           x;
+	int           y;
+};
+
+enum sfMouseButton {
+	sfMouseLeft,       ///< The left mouse button
+	sfMouseRight,      ///< The right mouse button
+	sfMouseMiddle,     ///< The middle (wheel) mouse button
+	sfMouseXButton1,   ///< The first extra mouse button
+	sfMouseXButton2,   ///< The second extra mouse button
+	
+	sfMouseButtonCount ///< Keep last -- the total number of mouse buttons
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Mouse wheel events parameters
+///
+////////////////////////////////////////////////////////////
+struct sfMouseWheelEvent {
+	sfEventType type;
+	int         delta;
+	int         x;
+	int         y;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Joystick axis move event parameters
+///
+////////////////////////////////////////////////////////////
+struct sfJoystickMoveEvent {
+	sfEventType    type;
+	unsigned int   joystickId;
+	sfJoystickAxis axis;
+	float          position;
+};
+
+enum sfJoystickAxis {
+	sfJoystickX,    ///< The X axis
+	sfJoystickY,    ///< The Y axis
+	sfJoystickZ,    ///< The Z axis
+	sfJoystickR,    ///< The R axis
+	sfJoystickU,    ///< The U axis
+	sfJoystickV,    ///< The V axis
+	sfJoystickPovX, ///< The X axis of the point-of-view hat
+	sfJoystickPovY  ///< The Y axis of the point-of-view hat
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Joystick buttons events parameters
+///
+////////////////////////////////////////////////////////////
+struct sfJoystickButtonEvent {
+	sfEventType  type;
+	unsigned int joystickId;
+	unsigned int button;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Joystick connection/disconnection event parameters
+///
+////////////////////////////////////////////////////////////
+struct sfJoystickConnectEvent {
+	sfEventType  type;
+	unsigned int joystickId;
+};
+
+////////////////////////////////////////////////////////////
+/// \brief Size events parameters
+///
+////////////////////////////////////////////////////////////
+struct sfSizeEvent {
+	sfEventType  type;
+	unsigned int width;
+	unsigned int height;
+};
+
+
+////////////////////////////////////////////////////////////
+/// \brief sfEvent defines a system event and its parameters
+///
+////////////////////////////////////////////////////////////
+union sfEvent {
+	////////////////////////////////////////////////////////////
+	// Member data
+	////////////////////////////////////////////////////////////
+	sfEventType            type; ///< Type of the event
+	sfSizeEvent            size;
+	sfKeyEvent             key;
+	sfTextEvent            text;
+	sfMouseMoveEvent       mouseMove;
+	sfMouseButtonEvent     mouseButton;
+	sfMouseWheelEvent      mouseWheel;
+	sfJoystickMoveEvent    joystickMove;
+	sfJoystickButtonEvent  joystickButton;
+	sfJoystickConnectEvent joystickConnect;
+};
 
 enum sfKeyCode {
 	sfKeyA,            ///< The A key
@@ -132,11 +267,6 @@ enum sfKeyCode {
 	sfKeyCount      ///< Keep last -- the total number of keyboard keys
 }
 
-struct sfKeyEvent {
-	sfEventType type;
-	sfKeyCode code;
-}
-
 namespace sf {
 	
 	namespace Keyboard {
@@ -153,7 +283,7 @@ namespace sf {
 		if (event->type == sfEventType.sfEvtClosed()) {
 			return CloseEvent();
 		} else if (event->type == sfEventType.sfEvtKeyPressed()) {
-			const auto keyEventPtr = reinterpret_cast<const sfEvent*, const sfKeyEvent*>(event);
+			const auto* keyEventPtr = &(event->key);
 			if (keyEventPtr->code == sfKeyCode.sfKeyA()) {
 				return KeyPressed(Keyboard::A());
 			} else if (keyEventPtr->code == sfKeyCode.sfKeyD()) {

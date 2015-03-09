@@ -1,0 +1,18 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+union TestUnion {
+	int intValue;
+};
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	auto unionValue = TestUnion();
+	// Set to garbage value to try to trigger a bug.
+	unionValue.intValue = 546;
+	
+	unionValue = TestUnion();
+	testPrint(C"unionValue.intValue = %d", unionValue.intValue);
+	return 0;
+}
+

@@ -36,6 +36,10 @@ namespace locic {
 			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
 		}
 		
+		TypeInstance* TypeInstance::Union(const String& name, const Node<TypeVarList>& variables) {
+			return new TypeInstance(UNION, name, variables, makeDefaultNode<FunctionList>());
+		}
+		
 		TypeInstance* TypeInstance::ClassDecl(const String& name, const Node<FunctionList>& functions) {
 			return new TypeInstance(CLASSDECL, name, makeDefaultNode<TypeVarList>(), functions);
 		}

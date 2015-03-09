@@ -32,6 +32,7 @@ namespace locic {
 				PRIMITIVE,
 				ENUM,
 				STRUCT,
+				UNION,
 				CLASSDECL,
 				CLASSDEF,
 				DATATYPE,
@@ -55,6 +56,8 @@ namespace locic {
 				static TypeInstance* Enum(const String& name, const Node<StringList>& constructors);
 				
 				static TypeInstance* Struct(const String& name, const Node<TypeVarList>& variables);
+				
+				static TypeInstance* Union(const String& name, const Node<TypeVarList>& variables);
 				
 				static TypeInstance* ClassDecl(const String& name, const Node<FunctionList>& functions);
 				

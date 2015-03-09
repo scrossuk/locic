@@ -16,6 +16,25 @@ namespace locic {
 
 	namespace SEM {
 	
+		Value Value::ZeroInitialise(const Type* const type) {
+			// Currently only works for unions.
+			assert(type->isUnion());
+			
+			return Value(ZEROINITIALISE, type, ExitStates::Normal());
+		}
+		
+		Value Value::MemCopy(Value operand, const Type* const type) {
+			// Currently only works for unions.
+			assert(type->isUnion());
+			
+			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
+			assert(operand.type()->refTarget() == type);
+			
+			Value value(MEMCOPY, type, ExitStates::Normal());
+			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			return value;
+		}
+		
 		Value Value::Self(const Type* const type) {
 			return Value(SELF, type, ExitStates::Normal());
 		}
@@ -266,6 +285,19 @@ namespace locic {
 		ExitStates Value::exitStates() const {
 			assert(exitStates_.hasNormalExit() || exitStates_.hasThrowExit());
 			return exitStates_;
+		}
+		
+		bool Value::isZeroInitialise() const {
+			return kind() == ZEROINITIALISE;
+		}
+		
+		bool Value::isMemCopy() const {
+			return kind() == MEMCOPY;
+		}
+		
+		const Value& Value::memCopyOperand() const {
+			assert(isMemCopy());
+			return *(value0_);
 		}
 		
 		bool Value::isSelf() const {
@@ -614,6 +646,10 @@ namespace locic {
 		
 		static Value basicCopyValue(const Value& value) {
 			switch (value.kind()) {
+				case Value::ZEROINITIALISE:
+					return Value::ZeroInitialise(value.type());
+				case Value::MEMCOPY:
+					return Value::MemCopy(value.memCopyOperand().copy(), value.type());
 				case Value::SELF:
 					return Value::Self(value.type());
 				case Value::THIS:
@@ -703,6 +739,10 @@ namespace locic {
 		
 		std::string Value::toString() const {
 			switch (kind()) {
+				case ZEROINITIALISE:
+					return makeString("ZeroInitialise(type: %s)", type()->toString().c_str());
+				case MEMCOPY:
+					return makeString("MemCopy(operand: %s)", memCopyOperand().toString().c_str());
 				case SELF:
 					return "self";
 				case THIS:

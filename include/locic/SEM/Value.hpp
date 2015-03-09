@@ -28,6 +28,8 @@ namespace locic {
 			public:
 				enum Kind {
 					NONE,
+					ZEROINITIALISE,
+					MEMCOPY,
 					SELF,
 					THIS,
 					CONSTANT,
@@ -62,6 +64,20 @@ namespace locic {
 					// value to test if types can be cast.
 					CASTDUMMYOBJECT
 				};
+				
+				/**
+				 * \brief Zero Initialise
+				 * 
+				 * Zero initialise a data value.
+				 */
+				static Value ZeroInitialise(const Type* type);
+				
+				/**
+				 * \brief Copy Memory
+				 * 
+				 * Copy memory from the reference given.
+				 */
+				static Value MemCopy(Value operand, const Type* type);
 				
 				/**
 				 * \brief Self
@@ -318,6 +334,11 @@ namespace locic {
 				const Type* type() const;
 				
 				ExitStates exitStates() const;
+				
+				bool isZeroInitialise() const;
+				
+				bool isMemCopy() const;
+				const Value& memCopyOperand() const;
 				
 				bool isSelf() const;
 				bool isThis() const;

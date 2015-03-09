@@ -28,6 +28,7 @@ namespace locic {
 					PRIMITIVE,
 					ENUM,
 					STRUCT,
+					UNION,
 					CLASSDECL,
 					CLASSDEF,
 					DATATYPE,
@@ -51,6 +52,8 @@ namespace locic {
 				bool isEnum() const;
 				
 				bool isStruct() const;
+				
+				bool isUnion() const;
 				
 				bool isClassDecl() const;
 				

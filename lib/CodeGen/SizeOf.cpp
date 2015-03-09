@@ -397,11 +397,11 @@ namespace locic {
 			
 			auto& module = function.module();
 			
-			if (memberIndex == 0) {
+			if (memberIndex == 0 || type->isUnion()) {
 				return ConstantGenerator(module).getSizeTValue(0);
 			}
 			
-			if (type->isObject() && isTypeSizeKnownInThisModule(module, type)) {
+			if (isTypeSizeKnownInThisModule(module, type)) {
 				auto& abi = module.abi();
 				const auto objectType = type->getObjectType();
 				assert(memberIndex < objectType->variables().size());
@@ -456,7 +456,7 @@ namespace locic {
 			assert(objectType->isObject());
 			auto& module = function.module();
 			
-			if (isTypeSizeKnownInThisModule(module, objectType)) {
+			if (isTypeSizeKnownInThisModule(module, objectType) && !objectType->isUnion()) {
 				const auto llvmObjectPointerType = genPointerType(module, objectType);
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
 				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
@@ -470,7 +470,7 @@ namespace locic {
 		}
 		
 		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* const type, llvm::Value* const objectPtr) {
-			assert(type->isObject() && type->getObjectType()->isUnionDatatype());
+			assert(type->isUnionDatatype());
 			auto& module = function.module();
 			
 			if (isTypeSizeKnownInThisModule(module, type)) {

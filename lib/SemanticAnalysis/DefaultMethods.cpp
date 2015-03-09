@@ -252,7 +252,7 @@ namespace locic {
 		}
 		
 		bool HasDefaultConstructor(Context&, SEM::TypeInstance* const typeInstance) {
-			return typeInstance->isDatatype() || typeInstance->isStruct() || typeInstance->isException();
+			return typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct() || typeInstance->isUnion();
 		}
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -315,6 +315,11 @@ namespace locic {
 				!typeInstance->isInterface() &&
 				!typeInstance->isPrimitive());
 			
+			if (typeInstance->isUnion()) {
+				// No compare method for unions.
+				return false;
+			}
+			
 			if (typeInstance->isUnionDatatype()) {
 				for (auto variantTypeInstance: typeInstance->variants()) {
 					if (!supportsCompare(context, variantTypeInstance->selfType())) {
@@ -333,24 +338,29 @@ namespace locic {
 			}
 		}
 		
-		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			auto functionScope = SEM::Scope::Create();
-			
+		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnionDatatype());
 			
-			std::vector<SEM::Value> constructValues;
-			for (const auto& argVar: function->parameters()) {
-				auto argVarValue = createLocalVarRef(context, argVar);
-				constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), context.getCString("move"), location), {}, location));
+			auto functionScope = SEM::Scope::Create();
+			
+			if (typeInstance->isUnion()) {
+				functionScope->statements().push_back(SEM::Statement::Return(SEM::Value::ZeroInitialise(typeInstance->selfType())));
+				function->setScope(std::move(functionScope));
+			} else {
+				std::vector<SEM::Value> constructValues;
+				for (const auto& argVar: function->parameters()) {
+					auto argVarValue = createLocalVarRef(context, argVar);
+					constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), context.getCString("move"), location), {}, location));
+				}
+				
+				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));
+				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
+				
+				function->setScope(std::move(functionScope));
 			}
-			
-			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));
-			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
-			
-			function->setScope(std::move(functionScope));
 		}
 		
-		void CreateDefaultMove(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		void CreateDefaultMove(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
 			auto functionScope = SEM::Scope::Create();
@@ -364,7 +374,10 @@ namespace locic {
 			const auto ubyteType = getBuiltInType(context.scopeStack(), context.getCString("ubyte_t"), {});
 			const auto sizeType = getBuiltInType(context.scopeStack(), context.getCString("size_t"), {});
 			
-			if (typeInstance->isUnionDatatype()) {
+			if (typeInstance->isUnion()) {
+				// TODO!
+				functionScope->statements().push_back(SEM::Statement::ReturnVoid());
+			} else if (typeInstance->isUnionDatatype()) {
 				{
 					// Move the tag.
 					auto tagValue = SEM::Value::UnionTag(selfValue.copy(), ubyteType);
@@ -417,11 +430,13 @@ namespace locic {
 		
 		void CreateDefaultCopy(Context& context, const String& functionName, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
-			const auto selfValue = createSelfRef(context, typeInstance->selfType());
+			const auto selfValue = createSelfRef(context, selfType);
 			
 			auto functionScope = SEM::Scope::Create();
 			
-			if (typeInstance->isUnionDatatype()) {
+			if (typeInstance->isUnion()) {
+				functionScope->statements().push_back(SEM::Statement::Return(SEM::Value::MemCopy(selfValue.copy(), selfType)));
+			} else if (typeInstance->isUnionDatatype()) {
 				std::vector<SEM::SwitchCase*> switchCases;
 				for (const auto variantTypeInstance: typeInstance->variants()) {
 					const auto variantType = variantTypeInstance->selfType();
@@ -461,6 +476,7 @@ namespace locic {
 		}
 		
 		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			assert(!typeInstance->isUnion());
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
 			const auto compareResultType = getBuiltInType(context.scopeStack(), context.getCString("compare_result_t"), {});

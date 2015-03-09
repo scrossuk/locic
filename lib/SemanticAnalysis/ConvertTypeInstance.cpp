@@ -62,19 +62,20 @@ namespace locic {
 			// Generate default move for applicable types.
 			if ((semTypeInstance->isClassDef() || semTypeInstance->isException() || semTypeInstance->isStruct() ||
 					semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype() ||
-					semTypeInstance->isEnum()) && !createdMove) {
+					semTypeInstance->isEnum() || semTypeInstance->isUnion()) && !createdMove) {
 				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(moveString), astTypeInstanceNode.location());
 			}
 			
 			// Generate default constructor for applicable types.
 			if (semTypeInstance->isException()) {
 				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")));
-			} else if (semTypeInstance->isDatatype() || semTypeInstance->isStruct()) {
+			} else if (semTypeInstance->isDatatype() || semTypeInstance->isStruct() || semTypeInstance->isUnion()) {
 				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")), astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
-			if (semTypeInstance->isEnum() || semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
+			if (semTypeInstance->isEnum() || semTypeInstance->isStruct() || semTypeInstance->isDatatype() ||
+					semTypeInstance->isUnionDatatype() || semTypeInstance->isUnion()) {
 				const auto iterator = semTypeInstance->functions().find(context.getCString("implicitcopy"));
 				if (iterator != semTypeInstance->functions().end()) {
 					CreateDefaultMethod(context, semTypeInstance, iterator->second, astTypeInstanceNode.location());

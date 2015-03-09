@@ -1,0 +1,30 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+union TestUnion {
+	int intValue;
+	float floatValue;
+};
+
+TestUnion getUnionWithInt() {
+	auto value = TestUnion();
+	value.intValue = 10;
+	return value;
+}
+
+TestUnion getUnionWithFloat() {
+	auto value = TestUnion();
+	value.floatValue = 10.0f;
+	return value;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	const auto intUnion = getUnionWithInt();
+	testPrint(C"intUnion.intValue = %d", intUnion.intValue);
+	
+	const auto floatUnion = getUnionWithFloat();
+	testPrint(C"floatUnion.floatValue = %.1f", floatUnion.floatValue);
+	return 0;
+}
+

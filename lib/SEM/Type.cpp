@@ -570,6 +570,30 @@ namespace locic {
 			return getObjectType()->isClass();
 		}
 		
+		bool Type::isDatatype() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isDatatype();
+		}
+		
+		bool Type::isEnum() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isEnum();
+		}
+		
+		bool Type::isException() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isException();
+		}
+		
 		bool Type::isInterface() const {
 			if (!isObject()) {
 				return false;
@@ -586,12 +610,20 @@ namespace locic {
 			return getObjectType()->isPrimitive();
 		}
 		
-		bool Type::isDatatype() const {
+		bool Type::isStruct() const {
 			if (!isObject()) {
 				return false;
 			}
 			
-			return getObjectType()->isDatatype();
+			return getObjectType()->isStruct();
+		}
+		
+		bool Type::isUnion() const {
+			if (!isObject()) {
+				return false;
+			}
+			
+			return getObjectType()->isUnion();
 		}
 		
 		bool Type::isUnionDatatype() const {
@@ -600,14 +632,6 @@ namespace locic {
 			}
 			
 			return getObjectType()->isUnionDatatype();
-		}
-		
-		bool Type::isStruct() const {
-			if (!isObject()) {
-				return false;
-			}
-			
-			return getObjectType()->isStruct();
 		}
 		
 		bool Type::isTemplateVar() const {
@@ -620,14 +644,6 @@ namespace locic {
 		
 		bool Type::isObjectOrTemplateVar() const {
 			return isObject() || isTemplateVar();
-		}
-		
-		bool Type::isException() const {
-			if (!isObject()) {
-				return false;
-			}
-			
-			return getObjectType()->isException();
 		}
 		
 		TemplateVarMap Type::generateTemplateVarMap() const {

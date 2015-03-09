@@ -419,7 +419,7 @@ const T& GETSYM(T* value) {
 %type <typeVar> typeVar
 %type <typeVarList> nonEmptyTypeVarList
 %type <typeVarList> typeVarList
-%type <typeVarList> structVarList
+%type <typeVarList> cTypeVarList
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarList> templateTypeVarList
 
@@ -616,17 +616,17 @@ typeAlias:
 	}
 	;
 
-structVarList:
+cTypeVarList:
 	// empty
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeVarList()));
 	}
-	| structVarList typeVar SEMICOLON
+	| cTypeVarList typeVar SEMICOLON
 	{
 		(GETSYM($1))->push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
-	| structVarList SEMICOLON
+	| cTypeVarList SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
@@ -987,9 +987,13 @@ nonTemplatedTypeInstance:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Enum($2, GETSYM($4))));
 	}
-	| STRUCT NAME LCURLYBRACKET structVarList RCURLYBRACKET
+	| STRUCT NAME LCURLYBRACKET cTypeVarList RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Struct($2, GETSYM($4))));
+	}
+	| UNION NAME LCURLYBRACKET cTypeVarList RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Union($2, GETSYM($4))));
 	}
 	| CLASS NAME LCURLYBRACKET methodDeclList RCURLYBRACKET
 	{

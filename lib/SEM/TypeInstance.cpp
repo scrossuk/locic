@@ -55,6 +55,10 @@ namespace locic {
 			return kind() == STRUCT;
 		}
 		
+		bool TypeInstance::isUnion() const {
+			return kind() == UNION;
+		}
+		
 		bool TypeInstance::isClassDecl() const {
 			return kind() == CLASSDECL;
 		}
@@ -158,6 +162,11 @@ namespace locic {
 		
 		TypeArray TypeInstance::constructTypes() const {
 			TypeArray types;
+			if (isUnion()) {
+				// Unions are constructed with no arguments (zero initialised).
+				return types;
+			}
+			
 			types.reserve(variables().size());
 			for (const auto var: variables()) {
 				types.push_back(var->constructType());
@@ -194,6 +203,10 @@ namespace locic {
 									  
 				case STRUCT:
 					return makeString("Struct(name: %s)",
+									  name().toString().c_str());
+									  
+				case UNION:
+					return makeString("Union(name: %s)",
 									  name().toString().c_str());
 									  
 				case CLASSDECL:
