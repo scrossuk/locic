@@ -30,6 +30,7 @@ add_library(locic-codegen
 	Module.cpp
 	ModulePtr.cpp
 	Move.cpp
+	PendingResult.cpp
 	Primitives/PrimitiveDestructor.cpp
 	Primitives/PrimitiveMethod.cpp
 	Primitives/PrimitiveMove.cpp
@@ -45,6 +46,7 @@ add_library(locic-codegen
 	Template.cpp
 	TemplateBuilder.cpp
 	TemplatedObject.cpp
+	TypeGenerator.cpp
 	TypeSizeKnowledge.cpp
 	UnwindAction.cpp
 	VTable.cpp

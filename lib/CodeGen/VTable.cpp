@@ -7,8 +7,8 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/md5.h>

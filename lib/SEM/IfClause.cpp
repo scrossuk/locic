@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/Scope.hpp>

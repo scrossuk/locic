@@ -1,6 +1,6 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

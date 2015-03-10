@@ -4,9 +4,9 @@
 #include <vector>
 
 #include <locic/Debug.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 

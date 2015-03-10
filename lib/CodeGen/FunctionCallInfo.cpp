@@ -73,7 +73,7 @@ namespace locic {
 			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
 			
 			const auto functionName = module.getCString("translateStub_") + functionRefPtr->getName();
-			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::PrivateLinkage, functionName.c_str(), module.getLLVMModulePtr());
+			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::InternalLinkage, functionName.c_str(), module.getLLVMModulePtr());
 			
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			
@@ -171,7 +171,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genFunctionRef(Module& module, const SEM::Type* parentType, SEM::Function* function) {
+		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* parentType, SEM::Function* function) {
 			if (parentType == nullptr) {
 				return genFunctionDecl(module, nullptr, function);
 			} else if (parentType->isObject()) {
@@ -181,15 +181,27 @@ namespace locic {
 			}
 		}
 		
-		ArgPair genCallValue(Function& function, const SEM::Value& value) {
+		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* const semFunction, const SEM::Type* const functionType) {
+			auto& module = function.module();
+			const auto functionRefPtr = genFunctionDeclRef(module, parentType, semFunction);
+			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();
+			
+			// There may need to be a stub generated to handle issues with types being
+			// passed/returned by value versus via a pointer (which happens when primitives
+			// are used in templates).
+			return genFunctionPtr(function, functionRefPtr, functionPtrType);
+		}
+		
+		PendingResult genCallValue(Function& function, const SEM::Value& value) {
 			switch (value.kind()) {
 				case SEM::Value::BIND_REFERENCE: {
-					const auto& dataValue = value.bindReferenceOperand();
-					return ArgPair(genValue(function, dataValue), true);
+					auto result = genCallValue(function, value.bindReferenceOperand());
+					result.add(PendingAction::Bind(value.bindReferenceOperand().type()));
+					return result;
 				}
 				
 				default:
-					return ArgPair(genValue(function, value), false);
+					return PendingResult(genValue(function, value));
 			}
 		}
 		
@@ -209,22 +221,23 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args, ArgPair contextValue) {
+		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs, Optional<PendingResult> contextValue) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					llvm::SmallVector<ArgPair, 10> llvmArgs;
+					PendingResultArray args;
 					
-					if (contextValue.llvmValue() != nullptr) {
-						llvmArgs.push_back(contextValue);
+					if (contextValue) {
+						args.push_back(std::move(*contextValue));
 					}
 					
-					for (const auto& arg: args) {
-						llvmArgs.push_back(genCallValue(function, arg));
+					for (const auto& valueArg: valueArgs) {
+						args.push_back(genCallValue(function, valueArg));
 					}
 					
 					if (value.functionRefFunction()->isPrimitive()) {
-						return genTrivialPrimitiveFunctionCall(function, value.functionRefParentType(),
-							value.functionRefFunction(), llvmArgs);
+						MethodInfo methodInfo(value.functionRefParentType(), value.functionRefFunction()->name().last(),
+							value.type(), value.functionRefTemplateArguments().copy());
+						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args));
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -232,8 +245,8 @@ namespace locic {
 				
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
-					const auto dataValuePair = genCallValue(function, dataValue);
-					return genTrivialFunctionCall(function, value.methodObject(), args, dataValuePair);
+					auto dataResult = genCallValue(function, dataValue);
+					return genTrivialFunctionCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)));
 				}
 				
 				default: {
@@ -252,13 +265,11 @@ namespace locic {
 					FunctionCallInfo callInfo;
 					
 					const auto parentType = value.functionRefParentType();
-					const auto functionRefPtr = genFunctionRef(module, parentType, value.functionRefFunction());
-					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					
 					// There may need to be a stub generated to handle issues with types being
 					// passed/returned by value versus via a pointer (which happens when primitives
 					// are used in templates).
-					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
+					callInfo.functionPtr = genFunctionRef(function, parentType, value.functionRefFunction(), value.type());
 					
 					if (value.type()->isFunctionTemplated()) {
 						if (!value.functionRefTemplateArguments().empty()) {

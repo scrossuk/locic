@@ -1,9 +1,10 @@
 #include <stdexcept>
 #include <string>
 
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
-#include <locic/Version.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/Version.hpp>
 
 #include <locic/SEM/ModuleScope.hpp>
 

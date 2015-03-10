@@ -19,8 +19,8 @@ namespace locic {
 	
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope);
 		
-		void DeadCodeSearchStatement(Context& context, SEM::Statement* statement) {
-			switch(statement->kind()) {
+		void DeadCodeSearchStatement(Context& context, const SEM::Statement& statement) {
+			switch(statement.kind()) {
 				case SEM::Statement::VALUE:
 				case SEM::Statement::INITIALISE:
 				case SEM::Statement::RETURN:
@@ -34,37 +34,37 @@ namespace locic {
 					return;
 				}
 				case SEM::Statement::SCOPE: {
-					DeadCodeSearchScope(context, statement->getScope());
+					DeadCodeSearchScope(context, statement.getScope());
 					return;
 				}
 				case SEM::Statement::IF: {
-					for (const auto ifClause: statement->getIfClauseList()) {
+					for (const auto ifClause: statement.getIfClauseList()) {
 						DeadCodeSearchScope(context, ifClause->scope());
 					}
 					
-					DeadCodeSearchScope(context, statement->getIfElseScope());
+					DeadCodeSearchScope(context, statement.getIfElseScope());
 					return;
 				}
 				case SEM::Statement::SWITCH: {
-					for (auto switchCase: statement->getSwitchCaseList()) {
+					for (auto switchCase: statement.getSwitchCaseList()) {
 						DeadCodeSearchScope(context, switchCase->scope());
 					}
 					return;
 				}
 				case SEM::Statement::LOOP: {
-					DeadCodeSearchScope(context, statement->getLoopIterationScope());
-					DeadCodeSearchScope(context, statement->getLoopAdvanceScope());
+					DeadCodeSearchScope(context, statement.getLoopIterationScope());
+					DeadCodeSearchScope(context, statement.getLoopAdvanceScope());
 					return;
 				}
 				case SEM::Statement::TRY: {
-					DeadCodeSearchScope(context, statement->getTryScope());
-					for (auto catchClause: statement->getTryCatchList()) {
+					DeadCodeSearchScope(context, statement.getTryScope());
+					for (auto catchClause: statement.getTryCatchList()) {
 						DeadCodeSearchScope(context, catchClause->scope());
 					}
 					return;
 				}
 				case SEM::Statement::SCOPEEXIT: {
-					DeadCodeSearchScope(context, statement->getScopeExitScope());
+					DeadCodeSearchScope(context, statement.getScopeExitScope());
 					return;
 				}
 			}
@@ -78,14 +78,13 @@ namespace locic {
 				DeadCodeSearchStatement(context, statement);
 				
 				if (isNormalBlocked) {
-					auto& debugModule = context.debugModule();
-					const auto iterator = debugModule.statementMap.find(statement);
-					assert(iterator != debugModule.statementMap.end());
+					const auto debugInfo = statement.debugInfo();
+					assert(debugInfo);
 					throw ErrorException(makeString("Function contains dead code beginning with statement at position %s.",
-						iterator->second.location.toString().c_str()));
+						debugInfo->location.toString().c_str()));
 				}
 				
-				const auto exitStates = statement->exitStates();
+				const auto exitStates = statement.exitStates();
 				if (!exitStates.hasNormalExit()) {
 					isNormalBlocked = true;
 				}

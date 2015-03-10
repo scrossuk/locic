@@ -2,7 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_SCOPEELEMENT_HPP
 
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

@@ -1,9 +1,9 @@
-#include <cstdio>
 #include <string>
 
+#include <locic/MakeString.hpp>
 #include <locic/Map.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>

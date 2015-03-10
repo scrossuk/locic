@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>

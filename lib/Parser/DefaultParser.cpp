@@ -5,7 +5,7 @@
 
 #include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
-#include <locic/StringHost.hpp>
+#include <locic/Support/StringHost.hpp>
 
 #include "Lexer.hpp"
 #include "Token.hpp"

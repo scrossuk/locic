@@ -7,7 +7,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/StringList.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

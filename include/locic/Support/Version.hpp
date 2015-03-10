@@ -1,8 +1,7 @@
-#ifndef LOCIC_VERSION_HPP
-#define LOCIC_VERSION_HPP
+#ifndef LOCIC_SUPPORT_VERSION_HPP
+#define LOCIC_SUPPORT_VERSION_HPP
 
 #include <string>
-#include <vector>
 
 namespace locic {
 	

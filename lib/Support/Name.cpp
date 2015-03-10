@@ -4,9 +4,9 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <locic/Array.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Array.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

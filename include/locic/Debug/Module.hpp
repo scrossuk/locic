@@ -21,7 +21,6 @@ namespace locic {
 		public:
 			CompilerInfo compiler;
 			std::map<SEM::Function*, FunctionInfo> functionMap;
-			std::map<SEM::Statement*, StatementInfo> statementMap;
 			std::map<SEM::TypeInstance*, TypeInstanceInfo> typeInstanceMap;
 		};
 		

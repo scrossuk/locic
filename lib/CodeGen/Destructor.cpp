@@ -159,7 +159,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept().withNoMemoryAccess();
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, mangledName);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, mangledName);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
@@ -183,7 +183,7 @@ namespace locic {
 			
 			// Create stub to call destructor with no template generator.
 			const auto argInfo = ArgInfo::VoidTemplateAndContext(module).withNoExcept();
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString(""));
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString(""));
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);

@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 #include <locic/Debug.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>

@@ -188,7 +188,7 @@ namespace locic {
 			// Create stub to call a move function with no template generator.
 			const bool hasTemplateArgs = true;
 			const auto argInfo = moveBasicArgInfo(module, hasTemplateArgs);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString(""));
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString(""));
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);

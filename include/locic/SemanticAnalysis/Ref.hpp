@@ -45,9 +45,9 @@ namespace locic {
 		
 		SEM::Value createSelfRef(Context& context, const SEM::Type* selfType);
 		
-		SEM::Value createLocalVarRef(Context& context, SEM::Var* var);
+		SEM::Value createLocalVarRef(Context& context, const SEM::Var& var);
 		
-		SEM::Value createMemberVarRef(Context& context, SEM::Value object, SEM::Var* var);
+		SEM::Value createMemberVarRef(Context& context, SEM::Value object, const SEM::Var& var);
 		
 	}
 	

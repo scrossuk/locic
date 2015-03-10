@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <locic/AST.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
@@ -126,7 +126,7 @@ namespace locic {
 			
 			for (const auto semVar: function->parameters()) {
 				const auto varType = getBuiltInType(context.scopeStack(), context.getCString("__ref"), { semVar->type() })->createRefType(semVar->type());
-				auto varValue = SEM::Value::LocalVar(semVar, varType);
+				auto varValue = SEM::Value::LocalVar(*semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.
 				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));

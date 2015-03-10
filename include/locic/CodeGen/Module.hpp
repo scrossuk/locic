@@ -16,7 +16,7 @@
 #include <locic/FastMap.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
@@ -68,7 +68,7 @@ namespace locic {
 		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
-		typedef FastMap<SEM::Var*, size_t> MemberVarMap;
+		typedef FastMap<const SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
 		typedef std::unordered_map<String, PrimitiveKind> PrimitiveMap;
 		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;

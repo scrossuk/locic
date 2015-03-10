@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 
 #include <locic/AST/ConstSpecifier.hpp>
 #include <locic/AST/Node.hpp>

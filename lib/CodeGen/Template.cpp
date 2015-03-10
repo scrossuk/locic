@@ -272,7 +272,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = rootFunctionArgInfo(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString("template_root"));
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("template_root"));
 			
 			module.templateRootFunctionMap().insert(std::make_pair(templateInst, llvmFunction));
 			

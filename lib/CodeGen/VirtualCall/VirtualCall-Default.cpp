@@ -129,7 +129,7 @@ namespace locic {
 					hashValue(pHashValue) { }
 			};
 			
-			MethodComponents getComponents(Function& function, bool isStatic, llvm::Value* interfaceMethodValue) {
+			MethodComponents getComponents(Function& function, const bool isStatic, llvm::Value* interfaceMethodValue) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -152,7 +152,7 @@ namespace locic {
 			}
 			
 			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer,
-					llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
+					llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -212,7 +212,7 @@ namespace locic {
 			}
 			
 			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, llvm::Value* interfaceMethodValue,
-					llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
+					llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 				const bool isStatic = callableType->isStaticInterfaceMethod();
 				
 				const auto functionType = callableType->getCallableFunctionType();
@@ -224,7 +224,8 @@ namespace locic {
 				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
-				const auto returnVarValue = hasReturnVar ? genAlloca(function, returnType) : constGen.getNullPointer(i8PtrType);
+				const auto returnVarValue = hasReturnVar ?
+					(hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType)) : constGen.getNullPointer(i8PtrType);
 				
 				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args, debugLoc);
 				
@@ -331,7 +332,7 @@ namespace locic {
 				}
 				
 				const auto stubArgInfo = getStubArgInfo(module);
-				const auto linkage = llvm::Function::PrivateLinkage;
+				const auto linkage = llvm::Function::InternalLinkage;
 				
 				const auto llvmFunction = createLLVMFunction(module, stubArgInfo, linkage, module.getCString("__slot_conflict_resolution_stub"));
 				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));

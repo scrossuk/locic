@@ -34,7 +34,7 @@ namespace locic {
 				genVarAlloca(function, localVar);
 			}
 			
-			for (const auto statement : scope.statements()) {
+			for (const auto& statement : scope.statements()) {
 				genStatement(function, statement);
 			}
 		}
@@ -90,39 +90,37 @@ namespace locic {
 			return function;
 		}
 		
-		void genStatement(Function& function, SEM::Statement* statement) {
+		void genStatement(Function& function, const SEM::Statement& statement) {
 			auto& module = function.module();
-			auto& statementMap = module.debugModule().statementMap;
-			const auto iterator = statementMap.find(statement);
-			const auto hasDebugInfo = (iterator != statementMap.end());
-			const auto debugSourceLocation = hasDebugInfo ? iterator->second.location : Debug::SourceLocation::Null();
+			const auto debugInfo = statement.debugInfo();
+			const auto debugSourceLocation = debugInfo ? debugInfo->location : Debug::SourceLocation::Null();
 			const auto debugStartPosition = debugSourceLocation.range().start();
 			const auto debugLocation = llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo());
 			
-			switch (statement->kind()) {
+			switch (statement.kind()) {
 				case SEM::Statement::VALUE: {
-					assert(statement->getValue().type()->isBuiltInVoid());
-					(void) genValue(function, statement->getValue());
+					assert(statement.getValue().type()->isBuiltInVoid());
+					(void) genValue(function, statement.getValue());
 					break;
 				}
 				
 				case SEM::Statement::SCOPE: {
-					genScope(function, statement->getScope());
+					genScope(function, statement.getScope());
 					break;
 				}
 				
 				case SEM::Statement::INITIALISE: {
-					const auto var = statement->getInitialiseVar();
+					const auto var = statement.getInitialiseVar();
 					const auto varAllocaOptional = function.getLocalVarMap().tryGet(var);
 					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
-					const auto value = genValue(function, statement->getInitialiseValue(), castVarAlloca);
+					const auto value = genValue(function, statement.getInitialiseValue(), castVarAlloca);
 					genVarInitialise(function, var, value);
 					break;
 				}
 				
 				case SEM::Statement::IF: {
-					const auto& ifClauseList = statement->getIfClauseList();
+					const auto& ifClauseList = statement.getIfClauseList();
 					assert(!ifClauseList.empty());
 					
 					// Create basic blocks in program order.
@@ -133,7 +131,7 @@ namespace locic {
 					}
 					const auto mergeBB = function.createBasicBlock("ifMerge");
 					
-					const auto& elseScope = statement->getIfElseScope();
+					const auto& elseScope = statement.getIfElseScope();
 					const bool hasElseScope = !elseScope.statements().empty();
 					
 					bool allTerminate = true;
@@ -214,7 +212,7 @@ namespace locic {
 					// Only generate the else basic block if there is
 					// an else scope, otherwise erase it.
 					if (hasElseScope) {
-						genScope(function, statement->getIfElseScope());
+						genScope(function, statement.getIfElseScope());
 						
 						if (!lastInstructionTerminates(function)) {
 							allTerminate = false;
@@ -239,7 +237,7 @@ namespace locic {
 				}
 				
 				case SEM::Statement::SWITCH: {
-					const auto& switchValue = statement->getSwitchValue();
+					const auto& switchValue = statement.getSwitchValue();
 					assert(switchValue.type()->isUnionDatatype() || (switchValue.type()->isRef() && switchValue.type()->isBuiltInReference()));
 					
 					const bool isSwitchValueRef = switchValue.type()->isRef();
@@ -264,11 +262,11 @@ namespace locic {
 					const auto defaultBB = function.createBasicBlock("");
 					const auto endBB = function.createBasicBlock("switchEnd");
 					
-					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, defaultBB, statement->getSwitchCaseList().size());
+					const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, defaultBB, statement.getSwitchCaseList().size());
 					
 					bool allTerminate = true;
 					
-					for (auto switchCase : statement->getSwitchCaseList()) {
+					for (auto switchCase : statement.getSwitchCaseList()) {
 						const auto caseType = switchCase->var()->constructType();
 						uint8_t tag = 0;
 						
@@ -306,8 +304,8 @@ namespace locic {
 					
 					function.selectBasicBlock(defaultBB);
 					
-					if (statement->getSwitchDefaultScope() != nullptr) {
-						genScope(function, *(statement->getSwitchDefaultScope()));
+					if (statement.getSwitchDefaultScope() != nullptr) {
+						genScope(function, *(statement.getSwitchDefaultScope()));
 						
 						if (!lastInstructionTerminates(function)) {
 							allTerminate = false;
@@ -341,7 +339,7 @@ namespace locic {
 					// before the branch instruction.
 					{
 						ScopeLifetime conditionScopeLifetime(function);
-						condition = genValue(function, statement->getLoopCondition());
+						condition = genValue(function, statement.getLoopCondition());
 					}
 					
 					function.getBuilder().CreateCondBr(condition, loopIterationBB, loopEndBB);
@@ -351,20 +349,24 @@ namespace locic {
 					
 					{
 						ControlFlowScope controlFlowScope(function, loopEndBB, loopAdvanceBB);
-						genScope(function, statement->getLoopIterationScope());
+						genScope(function, statement.getLoopIterationScope());
 					}
 					
 					// At the end of a loop iteration, branch to
 					// the advance block to update any data for
 					// the next iteration.
-					function.getBuilder().CreateBr(loopAdvanceBB);
+					if (!lastInstructionTerminates(function)) {
+						function.getBuilder().CreateBr(loopAdvanceBB);
+					}
 					
 					function.selectBasicBlock(loopAdvanceBB);
 					
-					genScope(function, statement->getLoopAdvanceScope());
+					genScope(function, statement.getLoopAdvanceScope());
 					
 					// Now branch back to the start to re-check the condition.
-					function.getBuilder().CreateBr(loopConditionBB);
+					if (!lastInstructionTerminates(function)) {
+						function.getBuilder().CreateBr(loopConditionBB);
+					}
 					
 					// Create after loop basic block (which is where execution continues).
 					function.selectBasicBlock(loopEndBB);
@@ -376,7 +378,7 @@ namespace locic {
 						genUnwind(function, UnwindStateReturn);
 					} else {
 						const auto returnInst = function.getBuilder().CreateRetVoid();
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							returnInst->setDebugLoc(debugLocation);
 						}
 					}
@@ -385,17 +387,17 @@ namespace locic {
 				
 				case SEM::Statement::RETURN: {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
-						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
+						if (!statement.getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement->getReturnValue(), function.getReturnVar());
+								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
 							} else {
-								const auto returnValue = genValue(function, statement->getReturnValue());
+								const auto returnValue = genValue(function, statement.getReturnValue());
 								
 								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement->getReturnValue().type()));
+									genABIType(function.module(), statement.getReturnValue().type()));
 								
 								function.setReturnValue(encodedReturnValue);
 							}
@@ -405,19 +407,19 @@ namespace locic {
 					} else {
 						llvm::Instruction* returnInst = nullptr;
 						
-						if (!statement->getReturnValue().type()->isBuiltInVoid()) {
+						if (!statement.getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement->getReturnValue(), function.getReturnVar());
+								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement->getReturnValue().type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
 								
 								returnInst = function.getBuilder().CreateRetVoid();
 							} else {
-								const auto returnValue = genValue(function, statement->getReturnValue());
+								const auto returnValue = genValue(function, statement.getReturnValue());
 								
 								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement->getReturnValue().type()));
+									genABIType(function.module(), statement.getReturnValue().type()));
 								
 								returnInst = function.getBuilder().CreateRet(encodedReturnValue);
 							}
@@ -425,7 +427,7 @@ namespace locic {
 							returnInst = function.getBuilder().CreateRetVoid();
 						}
 						
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							returnInst->setDebugLoc(debugLocation);
 						}
 					}
@@ -434,16 +436,16 @@ namespace locic {
 				}
 				
 				case SEM::Statement::TRY: {
-					assert(!statement->getTryCatchList().empty());
+					assert(!statement.getTryCatchList().empty());
 					
 					// Get list of exception types to be caught by this statement.
 					llvm::SmallVector<llvm::Constant*, 5> catchTypeList;
 					
-					for (const auto catchClause : statement->getTryCatchList()) {
+					for (const auto catchClause : statement.getTryCatchList()) {
 						catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
 					}
 					
-					assert(catchTypeList.size() == statement->getTryCatchList().size());
+					assert(catchTypeList.size() == statement.getTryCatchList().size());
 					
 					const auto catchBB = function.createBasicBlock("catch");
 					const auto afterCatchBB = function.createBasicBlock("");
@@ -452,7 +454,7 @@ namespace locic {
 					// handlers onto the unwind stack.
 					{
 						TryScope tryScope(function, catchBB, catchTypeList);
-						genScope(function, statement->getTryScope());
+						genScope(function, statement.getTryScope());
 					}
 					
 					bool allTerminate = true;
@@ -470,8 +472,8 @@ namespace locic {
 					const auto thrownExceptionValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned> {0});
 					const auto throwSelectorValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned> {1});
 					
-					for (size_t i = 0; i < statement->getTryCatchList().size(); i++) {
-						const auto catchClause = statement->getTryCatchList().at(i);
+					for (size_t i = 0; i < statement.getTryCatchList().size(); i++) {
+						const auto catchClause = statement.getTryCatchList().at(i);
 						const auto executeCatchBB = function.createBasicBlock("executeCatch");
 						const auto tryNextCatchBB = function.createBasicBlock("tryNextCatch");
 						
@@ -537,9 +539,9 @@ namespace locic {
 				}
 				
 				case SEM::Statement::THROW: {
-					const auto throwType = statement->getThrowValue().type();
+					const auto throwType = statement.getThrowValue().type();
 					
-					const auto exceptionValue = genValue(function, statement->getThrowValue());
+					const auto exceptionValue = genValue(function, statement.getThrowValue());
 					const auto exceptionType = genType(module, throwType);
 					
 					// Allocate space for exception.
@@ -566,7 +568,7 @@ namespace locic {
 						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
 						throwInvoke->setDoesNotReturn();
 						
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							throwInvoke->setDebugLoc(debugLocation);
 						}
 						
@@ -577,7 +579,7 @@ namespace locic {
 						const auto callInst = function.getBuilder().CreateCall(throwFunction, args);
 						callInst->setDoesNotReturn();
 						
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							callInst->setDebugLoc(debugLocation);
 						}
 						
@@ -616,7 +618,7 @@ namespace locic {
 						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
 						throwInvoke->setDoesNotReturn();
 						
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							throwInvoke->setDebugLoc(debugLocation);
 						}
 						
@@ -627,7 +629,7 @@ namespace locic {
 						const auto callInst = function.getBuilder().CreateCall(rethrowFunction, args);
 						callInst->setDoesNotReturn();
 						
-						if (hasDebugInfo) {
+						if (debugInfo) {
 							callInst->setDebugLoc(debugLocation);
 						}
 						
@@ -640,15 +642,15 @@ namespace locic {
 				case SEM::Statement::SCOPEEXIT: {
 					ScopeExitState state = SCOPEEXIT_ALWAYS;
 					
-					if (statement->getScopeExitState() == "exit") {
+					if (statement.getScopeExitState() == "exit") {
 						state = SCOPEEXIT_ALWAYS;
-					} else if (statement->getScopeExitState() == "success") {
+					} else if (statement.getScopeExitState() == "success") {
 						state = SCOPEEXIT_SUCCESS;
-					} else if (statement->getScopeExitState() == "failure") {
+					} else if (statement.getScopeExitState() == "failure") {
 						state = SCOPEEXIT_FAILURE;
 					}
 					
-					function.pushUnwindAction(UnwindAction::ScopeExit(state, &(statement->getScopeExitScope())));
+					function.pushUnwindAction(UnwindAction::ScopeExit(state, &(statement.getScopeExitScope())));
 					break;
 				}
 				
@@ -666,17 +668,17 @@ namespace locic {
 					const auto failBB = function.createBasicBlock("assertFail");
 					const auto successBB = function.createBasicBlock("assertSuccess");
 					
-					const auto conditionValue = genValue(function, statement->getAssertValue());
+					const auto conditionValue = genValue(function, statement.getAssertValue());
 					function.getBuilder().CreateCondBr(conditionValue, successBB, failBB);
 					
 					function.selectBasicBlock(failBB);
 					
 					if (!module.buildOptions().unsafe) {
-						const auto& stringValue = statement->getAssertName();
+						const auto& stringValue = statement.getAssertName();
 						
 						const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(), stringValue.size() + 1);
 						const auto constArray = ConstantGenerator(module).getString(stringValue);
-						const auto globalArray = module.createConstGlobal(module.getCString("assert_name_constant"), arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+						const auto globalArray = module.createConstGlobal(module.getCString("assert_name_constant"), arrayType, llvm::GlobalValue::InternalLinkage, constArray);
 						globalArray->setAlignment(1);
 						const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
 						

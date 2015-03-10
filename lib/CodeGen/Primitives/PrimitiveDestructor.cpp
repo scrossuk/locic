@@ -69,14 +69,14 @@ namespace locic {
 			assert(type->isPrimitive());
 			const auto& name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasDestructor(module, type->templateArguments().front());
+			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front());
 		}
 		
 		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval);
+			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
 		}
 		
 	}

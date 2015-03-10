@@ -4,18 +4,17 @@
 #include <unordered_map>
 #include <vector>
 
+#include <locic/Constant.hpp>
 #include <locic/Map.hpp>
-#include <locic/Optional.hpp>
 #include <locic/Debug/ValueInfo.hpp>
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Optional.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
-	class Constant;
-
 	namespace SEM {
 		
 		class Function;
@@ -23,7 +22,7 @@ namespace locic {
 		class Type;
 		class TypeInstance;
 		class Var;
-	
+		
 		class Value {
 			public:
 				enum Kind {
@@ -98,14 +97,14 @@ namespace locic {
 				 * 
 				 * A constant value (e.g. 0, 1.2, true etc.).
 				 */
-				static Value Constant(const Constant* constant, const Type* type);
+				static Value Constant(Constant constant, const Type* type);
 				
 				/**
 				 * \brief Local Variable
 				 * 
 				 * A reference to a local variable.
 				 */
-				static Value LocalVar(Var* var, const Type* type);
+				static Value LocalVar(const Var& var, const Type* type);
 				
 				/**
 				 * \brief Union Tag
@@ -248,7 +247,7 @@ namespace locic {
 				 * Accesses a member variable of the given object.
 				 * This will return a reference to an lvalue type.
 				 */
-				static Value MemberAccess(Value object, Var* var, const Type* type);
+				static Value MemberAccess(Value object, const Var& var, const Type* type);
 				
 				/**
 				 * \brief Bind Value Reference
@@ -344,10 +343,10 @@ namespace locic {
 				bool isThis() const;
 				
 				bool isConstant() const;
-				const locic::Constant* constant() const;
+				const locic::Constant& constant() const;
 				
 				bool isLocalVarRef() const;
-				Var* localVar() const;
+				const Var& localVar() const;
 				
 				bool isUnionTag() const;
 				const Value& unionTagOperand() const;
@@ -407,7 +406,7 @@ namespace locic {
 				
 				bool isMemberAccess() const;
 				const Value& memberAccessObject() const;
-				Var* memberAccessVar() const;
+				const Var& memberAccessVar() const;
 				
 				bool isBindReference() const;
 				const Value& bindReferenceOperand() const;
@@ -463,63 +462,63 @@ namespace locic {
 				std::vector<Value> valueArray_;
 				
 				union {
-				const locic::Constant* constant_;
-				
-				struct {
-					Var* var;
-				} localVar_;
-				
-				struct {
-					const Type* targetType;
-				} sizeOf_;
-				
-				struct {
-					const TypeInstance* typeInstance;
-				} unionDataOffset_;
-				
-				struct {
-					const TypeInstance* typeInstance;
-					size_t memberIndex;
-				} memberOffset_;
-				
-				struct {
-					const Type* targetType;
-				} cast_;
-				
-				struct {
-					const Type* targetType;
-				} polyCast_;
-				
-				struct {
-					const Type* targetType;
-				} makeLval_;
-				
-				struct {
-					const Type* targetType;
-				} makeRef_;
-				
-				struct {
-					const Type* targetType;
-				} makeStaticRef_;
-				
-				struct {
-					Var* memberVar;
-				} memberAccess_;
-				
-				struct {
-					const Type* targetType;
-				} typeRef_;
-				
-				struct {
-					const Type* parentType;
-					Function* function;
-				} functionRef_;
-				
-				struct {
-					const Type* parentType;
-					String name;
-					const Type* functionType;
-				} templateFunctionRef_;
+					locic::Constant constant_;
+					
+					struct {
+						const Var* var;
+					} localVar_;
+					
+					struct {
+						const Type* targetType;
+					} sizeOf_;
+					
+					struct {
+						const TypeInstance* typeInstance;
+					} unionDataOffset_;
+					
+					struct {
+						const TypeInstance* typeInstance;
+						size_t memberIndex;
+					} memberOffset_;
+					
+					struct {
+						const Type* targetType;
+					} cast_;
+					
+					struct {
+						const Type* targetType;
+					} polyCast_;
+					
+					struct {
+						const Type* targetType;
+					} makeLval_;
+					
+					struct {
+						const Type* targetType;
+					} makeRef_;
+					
+					struct {
+						const Type* targetType;
+					} makeStaticRef_;
+					
+					struct {
+						const Var* memberVar;
+					} memberAccess_;
+					
+					struct {
+						const Type* targetType;
+					} typeRef_;
+					
+					struct {
+						const Type* parentType;
+						Function* function;
+					} functionRef_;
+					
+					struct {
+						const Type* parentType;
+						String name;
+						const Type* functionType;
+					} templateFunctionRef_;
 				} union_;
 				
 		};

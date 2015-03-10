@@ -30,7 +30,7 @@ documentation and/or software.
 
 */
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 /* interface header */
 #include <locic/CodeGen/md5.h>

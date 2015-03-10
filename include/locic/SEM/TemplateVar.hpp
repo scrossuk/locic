@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 
 namespace locic {
 

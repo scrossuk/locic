@@ -1,7 +1,7 @@
 #include <vector>
 
 #include <locic/Debug/SourceLocation.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
@@ -39,7 +39,7 @@ namespace locic {
 			
 			if (moduleScope.isInternal()) {
 				// Internal functions.
-				return llvm::Function::PrivateLinkage;
+				return llvm::Function::InternalLinkage;
 			} else if (moduleScope.isImport() && function->isDefinition()) {
 				// Auto-generated type method (e.g. an implicitcopy for a struct).
 				return llvm::Function::LinkOnceODRLinkage;
@@ -61,7 +61,7 @@ namespace locic {
 			
 			if (moduleScope.isInternal()) {
 				// Internal definition.
-				return llvm::Function::PrivateLinkage;
+				return llvm::Function::InternalLinkage;
 			} else if (typeInstance->isClass()) {
 				return llvm::Function::ExternalLinkage;
 			} else {
@@ -195,7 +195,8 @@ namespace locic {
 			if (iterator != functionMap.end()) {
 				const auto debugSubprogramType = genDebugType(module, function->type());
 				const auto& functionInfo = iterator->second;
-				const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction);
+				const bool isInternal = function->moduleScope().isInternal();
+				const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal);
 				functionGenerator.attachDebugInfo(debugSubprogram);
 			}
 			
@@ -206,9 +207,6 @@ namespace locic {
 			
 			genFunctionCode(functionGenerator, function);
 			
-			// Check the generated function is correct.
-			functionGenerator.verify();
-			
 			if (!function->templateVariables().empty()) {
 				(void) genTemplateIntermediateFunction(module, templatedObject, templateBuilder);
 				
@@ -216,6 +214,9 @@ namespace locic {
 				// with the correct value (now it is known).
 				templateBuilder.updateAllInstructions(module);
 			}
+			
+			// Check the generated function is correct.
+			functionGenerator.verify();
 			
 			return llvmFunction;
 		}
@@ -246,7 +247,7 @@ namespace locic {
 		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::PrivateLinkage, module.getCString("templateFunctionStub"));
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("templateFunctionStub"));
 			
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -286,7 +287,10 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			const auto result = VirtualCall::generateCall(functionGenerator, functionType, interfaceMethodValue, argList);
+			// TODO: add debug info.
+			const auto debugLoc = None;
+			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
+			const auto result = VirtualCall::generateCall(functionGenerator, functionType, interfaceMethodValue, argList, debugLoc, hintResultValue);
 			
 			if (hasReturnVar) {
 				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType->getFunctionReturnType());

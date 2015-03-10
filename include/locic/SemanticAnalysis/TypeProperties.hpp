@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

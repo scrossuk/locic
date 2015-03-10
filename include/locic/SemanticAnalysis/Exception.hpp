@@ -8,8 +8,8 @@
 #include <vector>
 
 #include <locic/Exception.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

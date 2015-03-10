@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstddef>
 
-#include <locic/Array.hpp>
+#include <locic/Support/Array.hpp>
 
 namespace locic {
 

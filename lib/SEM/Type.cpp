@@ -1,12 +1,12 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/MakeString.hpp>
 #include <locic/Map.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>

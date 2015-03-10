@@ -4,7 +4,8 @@
 #include <stdexcept>
 #include <string>
 
-#include <locic/String.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>

@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
-#include <locic/Version.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/Version.hpp>
 
 #include <locic/CodeGen/TemplatedObject.hpp>
 

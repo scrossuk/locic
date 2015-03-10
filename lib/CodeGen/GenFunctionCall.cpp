@@ -6,24 +6,28 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
-#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
+#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VTable.hpp>
 #include <locic/CodeGen/Template.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
-		static llvm::Instruction* addDebugLoc(llvm::Instruction* instruction, const boost::optional<llvm::DebugLoc>& debugLocation) {
+		static llvm::Instruction* addDebugLoc(llvm::Instruction* instruction, const Optional<llvm::DebugLoc>& debugLocation) {
 			if (debugLocation) {
 				instruction->setDebugLoc(*debugLocation);
 			}
@@ -41,7 +45,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, const std::vector<SEM::Value>& args,
-				boost::optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			assert(callInfo.functionPtr != nullptr);
 			
 			auto& module = function.module();
@@ -138,7 +142,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
-				llvm::ArrayRef<llvm::Value*> args, boost::optional<llvm::DebugLoc> debugLoc) {
+				llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc) {
 			
 			assert(args.size() == argInfo.argumentTypes().size());
 			
@@ -194,6 +198,112 @@ namespace locic {
 			
 			// Return values need to be decoded according to the ABI.
 			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first, argInfo.returnType().second);
+		}
+		
+		llvm::Value* genTemplateMethodCall(Function& function, MethodInfo methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+			const auto parentType = methodInfo.parentType;
+			assert(parentType->isTemplateVar());
+			
+			const auto templateVar = parentType->getTemplateVar();
+			
+			const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) templateVar->index() });
+			
+			const auto methodHash = CreateMethodNameHash(methodInfo.name);
+			const auto methodHashValue = ConstantGenerator(function.module()).getI64(methodHash);
+			if (methodOwner) {
+				// A dynamic method.
+				assert(methodInfo.functionType->isFunctionMethod());
+				const auto contextPointer = methodOwner->resolve(function);
+				
+				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+				llvmArgs.reserve(args.size());
+				for (auto& arg: args) {
+					llvmArgs.push_back(arg.resolve(function));
+				}
+				
+				const auto interfaceStructValue = makeInterfaceStructValue(function, contextPointer, typeInfo);
+				const auto interfaceMethodValue = makeInterfaceMethodValue(function, interfaceStructValue, methodHashValue);
+				const auto interfaceMethodType = SEM::Type::InterfaceMethod(methodInfo.functionType);
+				return VirtualCall::generateCall(function, interfaceMethodType, interfaceMethodValue, llvmArgs, debugLoc, hintResultValue);
+			} else {
+				// A static method.
+				assert(!methodInfo.functionType->isFunctionMethod());
+				
+				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+				llvmArgs.reserve(args.size());
+				for (auto& arg: args) {
+					llvmArgs.push_back(arg.resolve(function));
+				}
+				
+				const auto staticInterfaceMethodValue = makeStaticInterfaceMethodValue(function, typeInfo, methodHashValue);
+				const auto staticInterfaceMethodType = SEM::Type::StaticInterfaceMethod(methodInfo.functionType);
+				return VirtualCall::generateCall(function, staticInterfaceMethodType, staticInterfaceMethodValue, llvmArgs, debugLoc, hintResultValue);
+			}
+		}
+		
+		llvm::Value* genMethodCall(Function& function, MethodInfo methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+			const auto type = methodInfo.parentType;
+			
+			assert(type != nullptr);
+			assert(type->isObjectOrTemplateVar());
+			assert(methodInfo.functionType->isFunction());
+			
+			if (type->isObject()) {
+				if (type->isPrimitive()) {
+					PendingResultArray newArgs;
+					if (methodOwner) {
+						newArgs.push_back(std::move(*methodOwner));
+					}
+					
+					for (auto& arg: args) {
+						newArgs.push_back(std::move(arg));
+					}
+					
+					return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(newArgs), debugLoc, hintResultValue);
+				} else {
+					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name));
+					const auto argInfo = getFunctionArgInfo(function.module(), methodInfo.functionType);
+					const auto functionPtr = genFunctionRef(function, type, targetFunction, methodInfo.functionType);
+					
+					llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+					
+					llvm::Value* returnVar = nullptr;
+					if (argInfo.hasReturnVarArgument()) {
+						returnVar = hintResultValue != nullptr ? hintResultValue : genAlloca(function, methodInfo.functionType->getFunctionReturnType());
+						llvmArgs.push_back(returnVar);
+					}
+					
+					if (methodOwner) {
+						llvmArgs.push_back(methodOwner->resolve(function));
+					}
+					
+					for (auto& pendingResult: args) {
+						llvmArgs.push_back(pendingResult.resolve(function));
+					}
+					
+					const auto result = genRawFunctionCall(function, argInfo, functionPtr, llvmArgs, debugLoc);
+					
+					if (argInfo.hasReturnVarArgument()) {
+						return genMoveLoad(function, returnVar, methodInfo.functionType->getFunctionReturnType());
+					} else {
+						return result;
+					}
+				}
+			} else {
+				return genTemplateMethodCall(function, std::move(methodInfo), std::move(methodOwner), std::move(args), debugLoc, hintResultValue);
+			}
+		}
+		
+		llvm::Value* genDynamicMethodCall(Function& function, MethodInfo methodInfo, PendingResult methodOwner, PendingResultArray args,
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+			return genMethodCall(function, std::move(methodInfo), Optional<PendingResult>(std::move(methodOwner)), std::move(args), debugLoc, hintResultValue);
+		}
+		
+		llvm::Value* genStaticMethodCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+			return genMethodCall(function, std::move(methodInfo), None, std::move(args), debugLoc, hintResultValue);
 		}
 		
 	}

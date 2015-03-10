@@ -234,7 +234,7 @@ namespace locic {
 			// Generate the name of the exception type as a constant C string.
 			const auto typeNameConstant = constGen.getString(typeName);
 			const auto typeNameType = typeGen.getArrayType(typeGen.getI8Type(), typeName.size() + 1);
-			const auto typeNameGlobal = module.createConstGlobal(module.getCString("type_name"), typeNameType, llvm::GlobalValue::PrivateLinkage, typeNameConstant);
+			const auto typeNameGlobal = module.createConstGlobal(module.getCString("type_name"), typeNameType, llvm::GlobalValue::InternalLinkage, typeNameConstant);
 			typeNameGlobal->setAlignment(1);
 			
 			// Convert array to a pointer.
@@ -264,7 +264,7 @@ namespace locic {
 			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
 			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*> {constGen.getI32(offset), castedTypeNamePtr});
 			
-			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("catch_type_info"), typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
+			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("catch_type_info"), typeInfoType, llvm::GlobalValue::InternalLinkage, typeInfoValue);
 			
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
@@ -306,7 +306,7 @@ namespace locic {
 			const auto typeNameArray = constGen.getArray(typeNameArrayType, typeNameConstants);
 			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*> {constGen.getI32(typeNames.size()), typeNameArray});
 			
-			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("throw_type_info"), typeInfoType, llvm::GlobalValue::PrivateLinkage, typeInfoValue);
+			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("throw_type_info"), typeInfoType, llvm::GlobalValue::InternalLinkage, typeInfoValue);
 			
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}

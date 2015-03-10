@@ -2,7 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_CANCAST_HPP
 
 #include <locic/Debug.hpp>
-#include <locic/Optional.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>

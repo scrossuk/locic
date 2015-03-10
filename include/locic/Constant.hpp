@@ -4,13 +4,12 @@
 #include <stdint.h>
 #include <cassert>
 
-#include <locic/String.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic{
 	
-	class String;
-	
-	class Constant{
+	class Constant {
 		public:
 			enum Kind {
 				NULLVAL,
@@ -25,45 +24,49 @@ namespace locic{
 			typedef long double FloatVal;
 			typedef uint32_t CharVal;
 			
-			static Constant * Null(){
-				return new Constant(NULLVAL);
+			static Constant Null(){
+				return Constant(NULLVAL);
 			}
 			
-			static Constant * True(){
-				Constant * constant = new Constant(BOOLEAN);
-				constant->bool_ = true;
+			static Constant True(){
+				Constant constant(BOOLEAN);
+				constant.bool_ = true;
 				return constant;
 			}
 			
-			static Constant * False(){
-				Constant * constant = new Constant(BOOLEAN);
-				constant->bool_ = false;
+			static Constant False(){
+				Constant constant(BOOLEAN);
+				constant.bool_ = false;
 				return constant;
 			}
 			
-			static Constant * Integer(IntegerVal value){
-				Constant * constant = new Constant(INTEGER);
-				constant->integer_ = value;
+			static Constant Integer(IntegerVal value){
+				Constant constant(INTEGER);
+				constant.integer_ = value;
 				return constant;
 			}
 			
-			static Constant * Float(FloatVal value){
-				Constant * constant = new Constant(FLOATINGPOINT);
-				constant->float_ = value;
+			static Constant Float(FloatVal value){
+				Constant constant(FLOATINGPOINT);
+				constant.float_ = value;
 				return constant;
 			}
 			
-			static Constant * Character(CharVal value){
-				Constant * constant = new Constant(CHARACTER);
-				constant->character_ = value;
+			static Constant Character(CharVal value){
+				Constant constant(CHARACTER);
+				constant.character_ = value;
 				return constant;
 			}
 			
-			static Constant * StringVal(const String value){
-				Constant * constant = new Constant(STRING);
-				constant->string_ = value;
+			static Constant StringVal(const String value){
+				Constant constant(STRING);
+				constant.string_ = value;
 				return constant;
 			}
+			
+			// Default (non-initialising!) constructor allows
+			// placing this type in unions.
+			Constant() = default;
 			
 			Kind kind() const{
 				return kind_;
@@ -115,7 +118,7 @@ namespace locic{
 			
 		private:
 			Constant(Kind pKind)
-				: kind_(pKind) { }
+			: kind_(pKind) { }
 			
 			Kind kind_;
 			

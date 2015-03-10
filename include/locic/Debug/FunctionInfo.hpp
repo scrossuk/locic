@@ -2,7 +2,7 @@
 #define LOCIC_DEBUG_FUNCTIONINFO_HPP
 
 #include <locic/Debug/SourceLocation.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 
 namespace locic {
 

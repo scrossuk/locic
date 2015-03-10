@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 
-#include <locic/String.hpp>
-#include <locic/Version.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/Version.hpp>
 
 namespace locic {
 

@@ -13,7 +13,7 @@ namespace locic {
 	
 		void genScope(Function& function, const SEM::Scope& scope);
 		
-		void genStatement(Function& function, SEM::Statement* statement);
+		void genStatement(Function& function, const SEM::Statement& statement);
 		
 	}
 	

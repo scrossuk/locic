@@ -10,12 +10,12 @@
 #include <vector>
 
 #include <locic/AST.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
-#include <locic/Version.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Parser/Context.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/Version.hpp>
 
 #include "Lexer.hpp"
 #include "LocationInfo.hpp"
@@ -110,7 +110,7 @@ const T& GETSYM(T* value) {
 // 
 // Ultimately it's unambiguous whether the expression is
 // a template type or a more-than expression but due to
-// limited lookup shift/reduce conflicts occur.
+// limited lookahead shift/reduce conflicts occur.
 %expect 3
 
 // Reduce-reduce conflicts occur due to the clash between
@@ -138,7 +138,7 @@ const T& GETSYM(T* value) {
 %union{
 	// Lexer.
 	locic::String lexer_str;
-	locic::Constant* lexer_constant;
+	locic::Constant lexer_constant;
 	locic::Version* lexer_version;
 	
 	// Names.
@@ -1761,11 +1761,11 @@ normalStatement:
 constant:
 	CONSTANT
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), $1));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::Constant($1)));
 	}
 	| NULLVAL
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::Constant::Null()));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::Constant(locic::Constant::Null())));
 	}
 	;
 

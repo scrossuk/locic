@@ -5,7 +5,7 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>

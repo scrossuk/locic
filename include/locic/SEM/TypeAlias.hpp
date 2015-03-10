@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <locic/FastMap.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>

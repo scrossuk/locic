@@ -1,6 +1,6 @@
 #include <string>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>

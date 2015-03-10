@@ -5,10 +5,10 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <locic/Array.hpp>
+#include <locic/Support/Array.hpp>
 #include <locic/Debug.hpp>
 #include <locic/StableSet.hpp>
-#include <locic/StringHost.hpp>
+#include <locic/Support/StringHost.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>

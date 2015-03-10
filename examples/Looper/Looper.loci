@@ -2,9 +2,9 @@
 // it's ignored just use 'void'.
 import void printf(const ubyte * str, ...);
 
-size_t makeSum(size_t val) {
-	size_t i = 0u;
-	size_t counter = 0u;
+uint64_t makeSum(uint64_t val) {
+	uint64_t i = 0u;
+	uint64_t counter = 0u;
 	
 	while (i < 100u) {
 		counter = counter + val;
@@ -15,10 +15,10 @@ size_t makeSum(size_t val) {
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
-	size_t i = 0u;
-	size_t j = 0u;
+	uint64_t i = 0u;
+	uint64_t j = 0u;
 	
-	while (i < 50000u) {
+	while (i < 500000u) {
 		j = j + makeSum(i);
 		i = i + 1u;
 	}

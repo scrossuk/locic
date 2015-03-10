@@ -6,6 +6,12 @@ __primitive byte_t {
 	byte_t implicit_copy() const noexcept;
 	byte_t copy() const noexcept;
 	
+	template <typename T>
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_byte_t<T> and T : movable);
+	
+	template <typename T>
+	T cast() const noexcept require(T : __cast_from_byte_t<T> and T : movable);
+	
 	byte_t plus() const noexcept;
 	byte_t minus() const noexcept;
 	
@@ -39,15 +45,5 @@ interface __implicit_cast_from_byte_t {
 template <typename T : movable>
 interface __cast_from_byte_t {
 	static T cast_byte_t(byte_t value) noexcept;
-}
-
-template <typename T: __implicit_cast_from_byte_t<T>>
-T byte_t::implicitCast() const noexcept require(T : movable) {
-	return T.implicit_cast_byte_t(self);
-}
-
-template <typename T: __cast_from_byte_t<T>>
-T byte_t::cast() const noexcept require(T : movable) {
-	return T.cast_byte_t(self);
 }
 

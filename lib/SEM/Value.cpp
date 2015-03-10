@@ -1,9 +1,9 @@
-
 #include <vector>
 
 #include <locic/Constant.hpp>
-#include <locic/Optional.hpp>
-#include <locic/String.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/Optional.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Function.hpp>
@@ -43,16 +43,16 @@ namespace locic {
 			return Value(THIS, type, ExitStates::Normal());
 		}
 		
-		Value Value::Constant(const locic::Constant* const constant, const Type* const type) {
+		Value Value::Constant(const locic::Constant constant, const Type* const type) {
 			Value value(CONSTANT, type, ExitStates::Normal());
 			value.union_.constant_ = constant;
 			return value;
 		}
 		
-		Value Value::LocalVar(Var* const var, const Type* const type) {
+		Value Value::LocalVar(const Var& var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
-			value.union_.localVar_.var = var;
+			value.union_.localVar_.var = &var;
 			return value;
 		}
 		
@@ -169,7 +169,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::MemberAccess(Value object, Var* const var, const Type* const type) {
+		Value Value::MemberAccess(Value object, const Var& var, const Type* const type) {
 			assert(object.type()->isRef() && object.type()->isBuiltInReference());
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
@@ -179,7 +179,7 @@ namespace locic {
 			//SEM::Type::Reference(memberType)->createRefType(memberType)
 			Value value(MEMBERACCESS, type, object.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(object)));
-			value.union_.memberAccess_.memberVar = var;
+			value.union_.memberAccess_.memberVar = &var;
 			return value;
 		}
 		
@@ -312,7 +312,7 @@ namespace locic {
 			return kind() == CONSTANT;
 		}
 		
-		const locic::Constant* Value::constant() const {
+		const locic::Constant& Value::constant() const {
 			assert(isConstant());
 			return union_.constant_;
 		}
@@ -321,9 +321,9 @@ namespace locic {
 			return kind() == LOCALVAR;
 		}
 		
-		Var* Value::localVar() const {
+		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
-			return union_.localVar_.var;
+			return *(union_.localVar_.var);
 		}
 		
 		bool Value::isUnionTag() const {
@@ -519,9 +519,9 @@ namespace locic {
 			return *(value0_);
 		}
 		
-		Var* Value::memberAccessVar() const {
+		const Var& Value::memberAccessVar() const {
 			assert(isMemberAccess());
-			return union_.memberAccess_.memberVar;
+			return *(union_.memberAccess_.memberVar);
 		}
 		
 		bool Value::isBindReference() const {
@@ -748,9 +748,9 @@ namespace locic {
 				case THIS:
 					return "this";
 				case CONSTANT:
-					return makeString("Constant(%s)", constant()->toString().c_str());
+					return makeString("Constant(%s)", constant().toString().c_str());
 				case LOCALVAR:
-					return makeString("LocalVar(%s)", localVar()->toString().c_str());
+					return makeString("LocalVar(%s)", localVar().toString().c_str());
 				case UNIONTAG:
 					return makeString("UnionTag(%s)", unionTagOperand().toString().c_str());
 				case SIZEOF:
@@ -802,7 +802,7 @@ namespace locic {
 				case MEMBERACCESS:
 					return makeString("MemberAccess(object: %s, var: %s)",
 						memberAccessObject().toString().c_str(),
-						memberAccessVar()->toString().c_str());
+						memberAccessVar().toString().c_str());
 				case BIND_REFERENCE:
 					return makeString("BindReference(value: %s)", bindReferenceOperand().toString().c_str());
 				case TYPEREF:

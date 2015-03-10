@@ -20,7 +20,13 @@ function(loci_module name output_name flags)
 		DEPENDS ${LOCIC} ${_build_sources}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
-	add_custom_target(${name} ALL DEPENDS ${output_name})
+	add_custom_command(OUTPUT ${output_name}.unsafe.bc ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
+		COMMAND # Run compiler.
+			${LOCIC} ${flags} -o ${output_name}.unsafe.bc --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll --unsafe ${_build_sources}
+		DEPENDS ${LOCIC} ${_build_sources}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+	
+	add_custom_target(${name} ALL DEPENDS ${output_name} ${output_name}.unsafe.bc)
 endfunction(loci_module)
 
 set(RUNTIME_MODULE "${CMAKE_BINARY_DIR}/runtime/loci-runtime.bc")
@@ -35,14 +41,23 @@ function(loci_link name binary_name flags primary_module)
 			# Create a file of all symbols in the primary module.
 			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c12- > "${primary_module}.symbols.txt"
 		COMMAND
+			# Create a file of all symbols in the primary module.
+			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}.unsafe.bc" | cut -c12- > "${primary_module}.unsafe.symbols.txt"
+		COMMAND
 			# Link bitcode files together.
 			${LLVM_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
+		COMMAND
+			# Link bitcode files together.
+			${LLVM_LINK_EXECUTABLE} "${primary_module}.unsafe.bc" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_unsafe_raw.bc"
 		COMMAND
 			# Internalize all dependency symbols in linked module.
 			${LLVM_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.symbols.txt" -o "${binary_name}_linked.bc" "${binary_name}_linked_raw.bc"
 		COMMAND
+			# Internalize all dependency symbols in linked module.
+			${LLVM_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.unsafe.symbols.txt" -o "${binary_name}_linked_unsafe.bc" "${binary_name}_linked_unsafe_raw.bc"
+		COMMAND
 			# Run 'opt' multiple times for maximum optimisation.
-			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_linked.bc -o ${binary_name}_opt0.bc &&
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_linked_unsafe.bc -o ${binary_name}_opt0.bc &&
 			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
 			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
 			
@@ -60,7 +75,7 @@ function(loci_link name binary_name flags primary_module)
 			
 			# Use 'clang' to generate optimised platform binary.
 			${CLANG_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
-		DEPENDS ${primary_module} ${${name}_Sources} loci-runtime-bc
+		DEPENDS ${primary_module} ${primary_module}.unsafe.bc ${${name}_Sources} loci-runtime-bc
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	)
 	

@@ -2,7 +2,7 @@
 #include <vector>
 
 #include <locic/Debug.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Exception.hpp>

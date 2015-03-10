@@ -8,7 +8,8 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 
@@ -55,8 +56,10 @@ namespace locic {
 			return builder_.createFile(components.second, components.first);
 		}
 		
-		llvm::DISubprogram DebugBuilder::createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function) {
-			const bool isLocalToUnit = false;
+		llvm::DISubprogram DebugBuilder::createFunction(llvm::DIFile file, const unsigned int lineNumber,
+				const bool isInternal, const bool isDefinition, const Name& name,
+				llvm::DIType functionType, llvm::Function* const function) {
+			const bool isLocalToUnit = isInternal;
 			const auto scopeLine = lineNumber;
 			const auto flags = llvm::DIDescriptor::FlagPrototyped;
 			const bool isOptimised = false;
@@ -130,11 +133,11 @@ namespace locic {
 			return declareInstruction;
 		}
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function) {
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function, const bool isInternal) {
 			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
 			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
-			return module.debugBuilder().createFunction(file, lineNumber, functionInfo.isDefinition,
-				functionInfo.name, functionType, function);
+			return module.debugBuilder().createFunction(file, lineNumber, isInternal,
+				functionInfo.isDefinition, functionInfo.name, functionType, function);
 		}
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
@@ -148,14 +151,14 @@ namespace locic {
 			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, varValue);
 		}
 		
-		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value) {
+		Optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value) {
 			const auto valueInfo = value.debugInfo();
 			if (valueInfo) {
 				const auto debugSourceLocation = valueInfo->location;
 				const auto debugStartPosition = debugSourceLocation.range().start();
-				return boost::make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
+				return make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
 			} else {
-				return boost::none;
+				return None;
 			}
 		}
 		

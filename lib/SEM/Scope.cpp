@@ -1,8 +1,7 @@
-#include <map>
 #include <string>
-#include <vector>
 
-#include <locic/String.hpp>
+#include <locic/Support/Array.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Scope.hpp>
@@ -37,7 +36,7 @@ namespace locic {
 			ExitStates scopeSuccessPendingStates = ExitStates::None();
 			
 			for (const auto& statement: statementList) {
-				auto statementExitStates = statement->exitStates();
+				auto statementExitStates = statement.exitStates();
 				
 				// Block 'normal' exit state until we
 				// reach the end of the scope.
@@ -59,8 +58,8 @@ namespace locic {
 				
 				// Handle scope(success) specially, since these statements can
 				// be run in a 'normal' state
-				if (statement->kind() == SEM::Statement::SCOPEEXIT && statement->getScopeExitState() == "success") {
-					const auto scopeSuccessStates = statement->getScopeExitScope().exitStates();
+				if (statement.kind() == SEM::Statement::SCOPEEXIT && statement.getScopeExitState() == "success") {
+					const auto scopeSuccessStates = statement.getScopeExitScope().exitStates();
 					assert((scopeSuccessStates & ~(ExitStates::Normal() | ExitStates::Throw() | ExitStates::Rethrow())) == ExitStates::None());
 					
 					if (!scopeSuccessStates.hasNormalExit()) {
@@ -89,7 +88,7 @@ namespace locic {
 				}
 			}
 			
-			auto lastStatementExitStates = statementList.back()->exitStates();
+			auto lastStatementExitStates = statementList.back().exitStates();
 			
 			if ((lastStatementExitStates & (ExitStates::Normal() | ExitStates::Return() | ExitStates::Break() | ExitStates::Continue())) != ExitStates::None()) {
 				scopeExitStates |= scopeSuccessPendingStates;
@@ -104,11 +103,11 @@ namespace locic {
 			return scopeExitStates;
 		}
 		
-		std::vector<Var*>& Scope::variables() {
+		Array<Var*, 10>& Scope::variables() {
 			return variables_;
 		}
 		
-		const std::vector<Var*>& Scope::variables() const {
+		const Array<Var*, 10>& Scope::variables() const {
 			return variables_;
 		}
 		
@@ -120,18 +119,18 @@ namespace locic {
 			return namedVariables_;
 		}
 		
-		std::vector<Statement*>& Scope::statements() {
+		Array<Statement, 10>& Scope::statements() {
 			return statementList_;
 		}
 		
-		const std::vector<Statement*>& Scope::statements() const {
+		const Array<Statement, 10>& Scope::statements() const {
 			return statementList_;
 		}
 		
 		std::string Scope::toString() const {
 			return makeString("Scope(vars: %s, statements: %s)",
 					makeArrayPtrString(variables_).c_str(),
-					makeArrayPtrString(statementList_).c_str());
+					makeArrayString(statementList_).c_str());
 		}
 		
 	}

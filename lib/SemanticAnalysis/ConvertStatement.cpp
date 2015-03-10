@@ -58,7 +58,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::Statement* ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
+		SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
 			switch (statement->typeEnum) {
@@ -505,9 +505,9 @@ namespace locic {
 			return statementInfo;
 		}
 		
-		SEM::Statement* ConvertStatement(Context& context, const AST::Node<AST::Statement>& astStatementNode) {
-			const auto semStatement = ConvertStatementData(context, astStatementNode);
-			context.debugModule().statementMap.insert(std::make_pair(semStatement, makeStatementInfo(astStatementNode)));
+		SEM::Statement ConvertStatement(Context& context, const AST::Node<AST::Statement>& astStatementNode) {
+			auto semStatement = ConvertStatementData(context, astStatementNode);
+			semStatement.setDebugInfo(makeStatementInfo(astStatementNode));
 			return semStatement;
 		}
 		

@@ -3,8 +3,8 @@
 
 #include <llvm-abi/Type.hpp>
 
-#include <locic/CodeGen/ArgPair.hpp>
-#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/MethodInfo.hpp>
+#include <locic/CodeGen/PendingResult.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -76,7 +76,8 @@ namespace locic {
 		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const SEM::Type* type, SEM::Function* semFunction, llvm::ArrayRef<ArgPair> args);
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
+			Optional<llvm::DebugLoc> debugLoc = None, llvm::Value* const hintResultValue = nullptr);
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
 		

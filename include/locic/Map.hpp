@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include <locic/Optional.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic{
 

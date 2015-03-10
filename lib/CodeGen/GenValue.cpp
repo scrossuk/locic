@@ -53,27 +53,27 @@ namespace locic {
 					return function.getContextValue(value.type()->templateArguments().at(0)->getObjectType());
 				}
 				case SEM::Value::CONSTANT: {
-					switch (value.constant()->kind()) {
+					switch (value.constant().kind()) {
 						case locic::Constant::NULLVAL:
 							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getI8PtrType());
 									   
 						case locic::Constant::BOOLEAN:
-							return ConstantGenerator(module).getI1(value.constant()->boolValue());
+							return ConstantGenerator(module).getI1(value.constant().boolValue());
 						
 						case locic::Constant::INTEGER: {
 							assert(value.type()->isObject());
-							const auto integerValue = value.constant()->integerValue();
+							const auto integerValue = value.constant().integerValue();
 							return ConstantGenerator(module).getPrimitiveInt(value.type()->getObjectType()->name().last(), integerValue);
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
 							assert(value.type()->isObject());
-							const auto floatValue = value.constant()->floatValue();
+							const auto floatValue = value.constant().floatValue();
 							return ConstantGenerator(module).getPrimitiveFloat(value.type()->getObjectType()->name().last(), floatValue);
 						}
 						
 						case locic::Constant::CHARACTER: {
-							const auto characterValue = value.constant()->characterValue();
+							const auto characterValue = value.constant().characterValue();
 							
 							const auto& typeName = value.type()->resolveAliases()->getObjectType()->name().last();
 							
@@ -85,7 +85,7 @@ namespace locic {
 						}
 						
 						case locic::Constant::STRING: {
-							const auto& stringValue = value.constant()->stringValue();
+							const auto& stringValue = value.constant().stringValue();
 							
 							const auto arrayType =
 								TypeGenerator(module).getArrayType(
@@ -94,7 +94,7 @@ namespace locic {
 							const auto constArray = ConstantGenerator(module).getString(stringValue);
 							const auto globalArray =
 								module.createConstGlobal(module.getCString("cstring_constant"),
-										arrayType, llvm::GlobalValue::PrivateLinkage, constArray);
+										arrayType, llvm::GlobalValue::InternalLinkage, constArray);
 							globalArray->setAlignment(1);
 							
 							// Convert array to a pointer.
@@ -108,7 +108,7 @@ namespace locic {
 				
 				case SEM::Value::LOCALVAR: {
 					const auto& var = value.localVar();
-					return function.getLocalVarMap().get(var);
+					return function.getLocalVarMap().get(&var);
 				}
 				
 				case SEM::Value::REINTERPRET: {
@@ -402,7 +402,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const auto memberIndex = module.getMemberVarMap().at(value.memberAccessVar());
+					const auto memberIndex = module.getMemberVarMap().at(&(value.memberAccessVar()));
 					
 					const auto& dataRefValue = value.memberAccessObject();
 					assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());

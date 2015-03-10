@@ -19,6 +19,12 @@ __primitive size_t {
 	size_t implicit_copy() const noexcept;
 	size_t copy() const noexcept;
 	
+	template <typename T>
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_size_t<T> and T : movable);
+	
+	template <typename T>
+	T cast() const noexcept require(T : __cast_from_size_t<T> and T : movable);
+	
 	size_t add(const size_t& v) const noexcept;
 	size_t subtract(const size_t& v) const noexcept;
 	size_t multiply(const size_t& v) const noexcept;
@@ -52,14 +58,4 @@ interface __implicit_cast_from_size_t {
 template <typename T : movable>
 interface __cast_from_size_t {
 	static T cast_size_t(size_t value) noexcept;
-}
-
-template <typename T: __implicit_cast_from_size_t<T>>
-T size_t::implicitCast() const noexcept require(T : movable) {
-	return T.implicit_cast_size_t(self);
-}
-
-template <typename T: __cast_from_size_t<T>>
-T size_t::cast() const noexcept require(T : movable) {
-	return T.cast_size_t(self);
 }

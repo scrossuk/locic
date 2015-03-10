@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <locic/Debug/VarInfo.hpp>
-#include <locic/Optional.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 
 namespace locic {

@@ -3,9 +3,9 @@
 
 #include <string>
 
-#include <locic/Array.hpp>
+#include <locic/Support/Array.hpp>
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

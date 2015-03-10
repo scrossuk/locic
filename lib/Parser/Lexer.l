@@ -3,8 +3,8 @@
 #include <string>
 
 #include <locic/AST.hpp>
-#include <locic/Version.hpp>
 #include <locic/Parser/Context.hpp>
+#include <locic/Support/Version.hpp>
 
 #include "Lexer.hpp"
 #include "LocationInfo.hpp"

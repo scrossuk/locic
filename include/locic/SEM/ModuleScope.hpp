@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include <locic/Name.hpp>
-#include <locic/Version.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/Version.hpp>
 
 namespace locic {
 	

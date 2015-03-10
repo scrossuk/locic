@@ -179,7 +179,7 @@ namespace locic {
 		}
 		
 		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
-			auto constantValue = SEM::Value::Constant(&constant, getLiteralType(context, specifier, constant));
+			auto constantValue = SEM::Value::Constant(constant, getLiteralType(context, specifier, constant));
 			
 			if (constant.kind() != Constant::STRING || specifier == "C") {
 				return constantValue;

@@ -4,11 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
-
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/Debug.hpp>
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/SEM.hpp>
 
 namespace locic {
@@ -44,7 +43,9 @@ namespace locic {
 				
 				llvm::DIFile createFile(const std::string& path);
 				
-				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber, bool isDefinition, const Name& name, llvm::DIType functionType, llvm::Function* function);
+				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber,
+					bool isInternal, bool isDefinition, const Name& name,
+					llvm::DIType functionType, llvm::Function* function);
 				
 				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
 				
@@ -72,11 +73,11 @@ namespace locic {
 		
 		std::pair<std::string, std::string> splitPath(const std::string& path);
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function);
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function, bool isInternal);
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
 		
-		boost::optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value);
+		Optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value);
 		
 	}
 	

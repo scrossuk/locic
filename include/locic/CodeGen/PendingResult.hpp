@@ -1,11 +1,45 @@
 #ifndef LOCIC_CODEGEN_PENDINGRESULT_HPP
 #define LOCIC_CODEGEN_PENDINGRESULT_HPP
 
+#include <locic/Support/Array.hpp>
+
 namespace locic {
+	
+	namespace SEM {
+		
+		class Type;
+		
+	}
 	
 	namespace CodeGen {
 		
 		class Function;
+		
+		class PendingAction {
+		public:
+			enum Kind {
+				BIND
+			};
+			
+			static PendingAction Bind(const SEM::Type* type);
+			
+			Kind kind() const;
+			
+			bool isBind() const;
+			const SEM::Type* bindType() const;
+			
+			llvm::Value* resolve(Function& function, llvm::Value* input) const;
+			
+		private:
+			PendingAction(Kind kind);
+			
+			Kind kind_;
+			
+			union {
+				const SEM::Type* type;
+			} union_;
+			
+		};
 		
 		/**
 		 * \brief Pending result.
@@ -28,19 +62,27 @@ namespace locic {
 		public:
 			PendingResult(llvm::Value* value);
 			
-			PendingResult bind(Function& function) const;
+			PendingResult(PendingResult&&) = default;
+			PendingResult& operator=(PendingResult&&) = default;
 			
-			llvm::Value* resolveValue(Function& function) const;
+			void add(PendingAction action);
 			
-			llvm::Value* allocValue() const;
+			llvm::Value* resolve(Function& function);
 			
-			llvm::Value* loadValue() const;
+			llvm::Value* resolveWithoutBind(Function& function, const SEM::Type* type);
+			
+			llvm::Value* resolveWithoutBindRaw(Function& function, llvm::Type* type);
 			
 		private:
-			llvm::Value* llvmValue_;
-			bool hasPendingBind_;
+			PendingResult(const PendingResult&) = delete;
+			PendingResult& operator=(const PendingResult&) = delete;
+			
+			llvm::Value* value_;
+			Array<PendingAction, 10> actions_;
 			
 		};
+		
+		using PendingResultArray = Array<PendingResult, 10>;
 		
 	}
 	

@@ -7,7 +7,7 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

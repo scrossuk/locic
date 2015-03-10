@@ -66,7 +66,7 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			const auto globalVariable = module.createConstGlobal(mangledName, llvmVtableType, llvm::Function::PrivateLinkage);
+			const auto globalVariable = module.createConstGlobal(mangledName, llvmVtableType, llvm::Function::InternalLinkage);
 			
 			// Generate the vtable.
 			const auto functionHashMap = CreateFunctionHashMap(typeInstance);
@@ -94,10 +94,10 @@ namespace locic {
 			std::vector<llvm::Constant*> methodSlotElements;
 			
 			for (size_t i = 0; i < VTABLE_SIZE; i++) {
-				const std::list<MethodHash>& slotList = virtualTable.table().at(i);
+				const auto& slotList = virtualTable.table().at(i);
 				
 				std::vector<SEM::Function*> methods;
-				for (auto methodHash: slotList) {
+				for (const auto methodHash: slotList) {
 					methods.push_back(functionHashMap.get(methodHash));
 				}
 				
@@ -106,12 +106,12 @@ namespace locic {
 			}
 			
 			const auto slotTableType = TypeGenerator(module).getArrayType(i8PtrType, VTABLE_SIZE);
-												 
+			
 			const auto methodSlotTable = ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
 			const auto vtableStruct = ConstantGenerator(module).getStruct(vtableType(module), vtableStructElements);
-				
+			
 			globalVariable->setInitializer(vtableStruct);
 			
 			return globalVariable;

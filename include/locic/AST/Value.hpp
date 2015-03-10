@@ -4,8 +4,8 @@
 #include <vector>
 
 #include <locic/Constant.hpp>
-#include <locic/Name.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>

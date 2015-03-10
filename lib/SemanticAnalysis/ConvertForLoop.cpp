@@ -65,7 +65,7 @@ namespace locic {
 				{
 					PushScopeElement pushLoop(context.scopeStack(), ScopeElement::Loop());
 					
-					auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), context.getCString("empty"), location), {}, location);
+					auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("empty"), location), {}, location);
 					auto isNotEmpty = CallValue(context, GetMethod(context, std::move(isEmpty), context.getCString("not"), location), {}, location);
 					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), getBuiltInType(context.scopeStack(), context.getCString("bool"), {}), location);
 					
@@ -74,7 +74,7 @@ namespace locic {
 					{
 						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope.get()));
 						
-						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), context.getCString("front"), location), {}, location);
+						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("front"), location), {}, location);
 						
 						const bool isMember = false;
 						const auto loopVar = ConvertInitialisedVar(context, isMember, astTypeVarNode, currentValue.type());
@@ -88,7 +88,7 @@ namespace locic {
 					}
 					
 					auto advanceScope = SEM::Scope::Create();
-					auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, initVar), context.getCString("skipfront"), location), {}, location);
+					auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("skipfront"), location), {}, location);
 					advanceScope->statements().push_back(SEM::Statement::ValueStmt(std::move(advanceCurrentValue)));
 					
 					outerScope->statements().push_back(SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope)));

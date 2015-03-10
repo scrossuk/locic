@@ -3,19 +3,19 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <locic/FastMap.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Array.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/SEM/ExitStates.hpp>
+#include <locic/SEM/Statement.hpp>
 
 namespace locic {
 
 	namespace SEM {
 		
-		class Statement;
 		class Var;
-	
+		
 		class Scope {
 			public:
 				static std::unique_ptr<Scope> Create();
@@ -26,14 +26,14 @@ namespace locic {
 				
 				ExitStates exitStates() const;
 				
-				std::vector<Var*>& variables();
-				const std::vector<Var*>& variables() const;
+				Array<Var*, 10>& variables();
+				const Array<Var*, 10>& variables() const;
 				
 				FastMap<String, Var*>& namedVariables();
 				const FastMap<String, Var*>& namedVariables() const;
 				
-				std::vector<Statement*>& statements();
-				const std::vector<Statement*>& statements() const;
+				Array<Statement, 10>& statements();
+				const Array<Statement, 10>& statements() const;
 				
 				std::string toString() const;
 				
@@ -42,9 +42,9 @@ namespace locic {
 				Scope(const Scope&);
 				Scope& operator=(const Scope&);
 				
-				std::vector<Var*> variables_;
+				Array<Var*, 10> variables_;
 				FastMap<String, Var*> namedVariables_;
-				std::vector<Statement*> statementList_;
+				Array<Statement, 10> statementList_;
 				
 		};
 		

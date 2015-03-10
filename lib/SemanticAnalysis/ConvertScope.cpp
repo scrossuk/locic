@@ -23,10 +23,7 @@ namespace locic {
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
 			for (const auto& astStatementNode: *(astScope->statements)) {
-				const auto statement = ConvertStatement(context, astStatementNode);
-				assert(statement != nullptr);
-				
-				semScope->statements().push_back(statement);
+				semScope->statements().push_back(ConvertStatement(context, astStatementNode));
 			}
 			
 			// Check all variables are either used and not marked unused,

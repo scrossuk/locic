@@ -1,6 +1,6 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>

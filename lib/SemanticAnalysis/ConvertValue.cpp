@@ -162,7 +162,7 @@ namespace locic {
 				if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct() || typeInstance->isUnion()) {
 					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					if (variableIterator != typeInstance->namedVariables().end()) {
-						return createMemberVarRef(context, std::move(value), variableIterator->second);
+						return createMemberVarRef(context, std::move(value), *(variableIterator->second));
 					}
 				}
 			}
@@ -271,7 +271,7 @@ namespace locic {
 						assert(astSymbolNode->first()->templateArguments()->empty());
 						const auto var = searchResult.var();
 						var->setUsed();
-						return SEM::Value::LocalVar(var, getBuiltInType(context.scopeStack(), context.getCString("__ref"), { var->type() })->createRefType(var->type()));
+						return SEM::Value::LocalVar(*var, getBuiltInType(context.scopeStack(), context.getCString("__ref"), { var->type() })->createRefType(var->type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = searchResult.templateVar();
@@ -297,7 +297,7 @@ namespace locic {
 							memberName.c_str(), location.toString().c_str()));
 					}
 					
-					return createMemberVarRef(context, std::move(selfValue), variableIterator->second);
+					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
 				case AST::Value::SIZEOF: {
 					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), context.getCString("size_t"), {}));

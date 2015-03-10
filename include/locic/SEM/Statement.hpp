@@ -5,9 +5,11 @@
 #include <string>
 #include <vector>
 
+#include <locic/Debug/StatementInfo.hpp>
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Value.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/Optional.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 
@@ -41,37 +43,40 @@ namespace locic {
 					UNREACHABLE
 				};
 				
-				static Statement* ValueStmt(Value value);
+				static Statement ValueStmt(Value value);
 				
-				static Statement* ScopeStmt(std::unique_ptr<Scope> scope);
+				static Statement ScopeStmt(std::unique_ptr<Scope> scope);
 				
-				static Statement* InitialiseStmt(Var* var, Value value);
+				static Statement InitialiseStmt(Var* var, Value value);
 				
-				static Statement* If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
+				static Statement If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
 				
-				static Statement* Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
+				static Statement Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
 				
-				static Statement* Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
+				static Statement Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
 				
-				static Statement* Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
+				static Statement Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
 				
-				static Statement* ScopeExit(const String& state, std::unique_ptr<Scope> scope);
+				static Statement ScopeExit(const String& state, std::unique_ptr<Scope> scope);
 				
-				static Statement* ReturnVoid();
+				static Statement ReturnVoid();
 				
-				static Statement* Return(Value value);
+				static Statement Return(Value value);
 				
-				static Statement* Throw(Value value);
+				static Statement Throw(Value value);
 				
-				static Statement* Rethrow();
+				static Statement Rethrow();
 				
-				static Statement* Break();
+				static Statement Break();
 				
-				static Statement* Continue();
+				static Statement Continue();
 				
-				static Statement* Assert(Value value, const String& name);
+				static Statement Assert(Value value, const String& name);
 				
-				static Statement* Unreachable();
+				static Statement Unreachable();
+				
+				Statement(Statement&&) = default;
+				Statement& operator=(Statement&&) = default;
 				
 				Kind kind() const;
 				
@@ -147,13 +152,20 @@ namespace locic {
 				
 				bool isUnreachableStatement() const;
 				
+				void setDebugInfo(Debug::StatementInfo debugInfo);
+				Optional<Debug::StatementInfo> debugInfo() const;
+				
 				std::string toString() const;
 				
 			private:
 				Statement(Kind kind, ExitStates exitStates);
+				
+				Statement(const Statement&) = delete;
+				Statement& operator=(const Statement&) = delete;
 					
 				Kind kind_;
 				ExitStates exitStates_;
+				Optional<Debug::StatementInfo> debugInfo_;
 				
 				struct {
 					Value value;

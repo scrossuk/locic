@@ -9,7 +9,7 @@
 #include <locic/Debug.hpp>
 #include <locic/Map.hpp>
 #include <locic/SEM.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

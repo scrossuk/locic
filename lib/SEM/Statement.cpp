@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/IfClause.hpp>
@@ -18,26 +18,26 @@ namespace locic {
 
 	namespace SEM {
 	
-		Statement* Statement::ValueStmt(Value value) {
-			Statement* statement = new Statement(VALUE, value.exitStates());
-			statement->valueStmt_.value = std::move(value);
+		Statement Statement::ValueStmt(Value value) {
+			Statement statement(VALUE, value.exitStates());
+			statement.valueStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::ScopeStmt(std::unique_ptr<Scope> scope) {
-			Statement* statement = new Statement(SCOPE, scope->exitStates());
-			statement->scopeStmt_.scope = std::move(scope);
+		Statement Statement::ScopeStmt(std::unique_ptr<Scope> scope) {
+			Statement statement(SCOPE, scope->exitStates());
+			statement.scopeStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
-		Statement* Statement::InitialiseStmt(Var* const var, Value value) {
-			Statement* statement = new Statement(INITIALISE, value.exitStates());
-			statement->initialiseStmt_.var = var;
-			statement->initialiseStmt_.value = std::move(value);
+		Statement Statement::InitialiseStmt(Var* const var, Value value) {
+			Statement statement(INITIALISE, value.exitStates());
+			statement.initialiseStmt_.var = var;
+			statement.initialiseStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope) {
+		Statement Statement::If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope) {
 			assert(elseScope != nullptr);
 			
 			ExitStates exitStates = ExitStates::None();
@@ -54,13 +54,13 @@ namespace locic {
 			
 			exitStates |= elseScope->exitStates();
 			
-			Statement* statement = new Statement(IF, exitStates);
-			statement->ifStmt_.clauseList = ifClauses;
-			statement->ifStmt_.elseScope = std::move(elseScope);
+			Statement statement(IF, exitStates);
+			statement.ifStmt_.clauseList = ifClauses;
+			statement.ifStmt_.elseScope = std::move(elseScope);
 			return statement;
 		}
 		
-		Statement* Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
+		Statement Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
 			assert(value.type()->isUnionDatatype() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isUnionDatatype()));
 			ExitStates exitStates = ExitStates::None();
 			
@@ -77,14 +77,14 @@ namespace locic {
 				exitStates |= defaultScope->exitStates();
 			}
 			
-			Statement* statement = new Statement(SWITCH, exitStates);
-			statement->switchStmt_.value = std::move(value);
-			statement->switchStmt_.caseList = caseList;
-			statement->switchStmt_.defaultScope = std::move(defaultScope);
+			Statement statement(SWITCH, exitStates);
+			statement.switchStmt_.value = std::move(value);
+			statement.switchStmt_.caseList = caseList;
+			statement.switchStmt_.defaultScope = std::move(defaultScope);
 			return statement;
 		}
 		
-		Statement* Statement::Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
+		Statement Statement::Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
 			// If the loop condition can be exited normally then the loop
 			// can be exited normally (i.e. because the condition can be false).
 			ExitStates exitStates = condition.exitStates();
@@ -111,14 +111,14 @@ namespace locic {
 			
 			exitStates |= advanceScopeExitStates;
 			
-			Statement* statement = new Statement(LOOP, exitStates);
-			statement->loopStmt_.condition = std::move(condition);
-			statement->loopStmt_.iterationScope = std::move(iterationScope);
-			statement->loopStmt_.advanceScope = std::move(advanceScope);
+			Statement statement(LOOP, exitStates);
+			statement.loopStmt_.condition = std::move(condition);
+			statement.loopStmt_.iterationScope = std::move(iterationScope);
+			statement.loopStmt_.advanceScope = std::move(advanceScope);
 			return statement;
 		}
 		
-		Statement* Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
+		Statement Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
 			ExitStates exitStates = ExitStates::None();
 			
 			exitStates |= scope->exitStates();
@@ -135,13 +135,13 @@ namespace locic {
 				exitStates |= catchExitStates;
 			}
 			
-			Statement* statement = new Statement(TRY, exitStates);
-			statement->tryStmt_.scope = std::move(scope);
-			statement->tryStmt_.catchList = catchList;
+			Statement statement(TRY, exitStates);
+			statement.tryStmt_.scope = std::move(scope);
+			statement.tryStmt_.catchList = catchList;
 			return statement;
 		}
 		
-		Statement* Statement::ScopeExit(const String& state, std::unique_ptr<Scope> scope) {
+		Statement Statement::ScopeExit(const String& state, std::unique_ptr<Scope> scope) {
 			if (state == "exit" || state == "failure") {
 				assert((scope->exitStates() & ~(ExitStates::Normal())) == ExitStates::None());
 			} else {
@@ -151,54 +151,54 @@ namespace locic {
 			// The exit actions here is for when we first visit this statement,
 			// which itself actually has no effect; the effect occurs on unwinding
 			// and so this is handled by the owning scope.
-			Statement* statement = new Statement(SCOPEEXIT, ExitStates::Normal());
-			statement->scopeExitStmt_.state = state;
-			statement->scopeExitStmt_.scope = std::move(scope);
+			Statement statement(SCOPEEXIT, ExitStates::Normal());
+			statement.scopeExitStmt_.state = state;
+			statement.scopeExitStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
-		Statement* Statement::ReturnVoid() {
-			return new Statement(RETURNVOID, ExitStates::Return());
+		Statement Statement::ReturnVoid() {
+			return Statement(RETURNVOID, ExitStates::Return());
 		}
 		
-		Statement* Statement::Return(Value value) {
+		Statement Statement::Return(Value value) {
 			ExitStates exitStates = ExitStates::Return();
 			if (value.exitStates().hasThrowExit()) {
 				exitStates |= ExitStates::Throw();
 			}
 			
-			Statement* statement = new Statement(RETURN, exitStates);
-			statement->returnStmt_.value = std::move(value);
+			Statement statement(RETURN, exitStates);
+			statement.returnStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::Throw(Value value) {
-			Statement* statement = new Statement(THROW, ExitStates::Throw());
-			statement->throwStmt_.value = std::move(value);
+		Statement Statement::Throw(Value value) {
+			Statement statement(THROW, ExitStates::Throw());
+			statement.throwStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::Rethrow() {
-			return new Statement(RETHROW, ExitStates::Rethrow());
+		Statement Statement::Rethrow() {
+			return Statement(RETHROW, ExitStates::Rethrow());
 		}
 		
-		Statement* Statement::Break() {
-			return new Statement(BREAK, ExitStates::Break());
+		Statement Statement::Break() {
+			return Statement(BREAK, ExitStates::Break());
 		}
 		
-		Statement* Statement::Continue() {
-			return new Statement(CONTINUE, ExitStates::Continue());
+		Statement Statement::Continue() {
+			return Statement(CONTINUE, ExitStates::Continue());
 		}
 		
-		Statement* Statement::Assert(Value value, const String& name) {
-			Statement* statement = new Statement(ASSERT, value.exitStates());
-			statement->assertStmt_.value = std::move(value);
-			statement->assertStmt_.name = name;
+		Statement Statement::Assert(Value value, const String& name) {
+			Statement statement(ASSERT, value.exitStates());
+			statement.assertStmt_.value = std::move(value);
+			statement.assertStmt_.name = name;
 			return statement;
 		}
 		
-		Statement* Statement::Unreachable() {
-			return new Statement(UNREACHABLE, ExitStates::None());
+		Statement Statement::Unreachable() {
+			return Statement(UNREACHABLE, ExitStates::None());
 		}
 		
 		Statement::Statement(const Kind argKind, const ExitStates argExitStates)
@@ -370,6 +370,14 @@ namespace locic {
 		
 		bool Statement::isUnreachableStatement() const {
 			return kind() == UNREACHABLE;
+		}
+		
+		void Statement::setDebugInfo(Debug::StatementInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::StatementInfo> Statement::debugInfo() const {
+			return debugInfo_;
 		}
 		
 		std::string Statement::toString() const {

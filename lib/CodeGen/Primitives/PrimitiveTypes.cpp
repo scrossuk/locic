@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>

@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_SUPPORT_HPP
 #define LOCIC_CODEGEN_SUPPORT_HPP
 
-#include <locic/Array.hpp>
+#include <locic/Support/Array.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>

@@ -7,7 +7,7 @@
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

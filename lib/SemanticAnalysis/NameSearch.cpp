@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <locic/Name.hpp>
+#include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/NameSearch.hpp>

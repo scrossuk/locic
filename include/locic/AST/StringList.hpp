@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

@@ -5,7 +5,7 @@
 #include <string>
 
 #include <locic/FastMap.hpp>
-#include <locic/String.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

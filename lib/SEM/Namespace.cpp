@@ -1,7 +1,8 @@
 #include <string>
 #include <vector>
 
-#include <locic/String.hpp>
+#include <locic/MakeString.hpp>
+#include <locic/Support/String.hpp>
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
