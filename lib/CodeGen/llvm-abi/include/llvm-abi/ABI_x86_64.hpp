@@ -36,9 +36,9 @@ namespace llvm_abi {
 			
 			llvm::Type* longDoubleType() const;
 			
-			void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes);
+			void encodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes);
 			
-			void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes);
+			void decodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes);
 			
 			llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType);
 			

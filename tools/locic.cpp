@@ -103,6 +103,7 @@ int main(int argc, char* argv[]) {
 		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
 		("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
+		("timings", "Print out timings of the compiler stages")
 		;
 		
 		po::options_description hiddenOptions;
@@ -147,6 +148,8 @@ int main(int argc, char* argv[]) {
 			return 1;
 		}
 		
+		const bool timingsEnabled = !variableMap["timings"].empty();
+		
 		BuildOptions buildOptions;
 		buildOptions.unsafe = !variableMap["unsafe"].empty();
 		
@@ -184,7 +187,9 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			
-			printf("Parser: %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Parser: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		if (!astDebugFileName.empty()) {
@@ -203,7 +208,9 @@ int main(int argc, char* argv[]) {
 				ofs << std::endl << std::endl;
 			}
 			
-			printf("Dump AST: %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Dump AST: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		// Debug information.
@@ -215,7 +222,10 @@ int main(int argc, char* argv[]) {
 		{
 			Timer timer;
 			SemanticAnalysis::Run(stringHost, astRootNamespaceList, semContext, debugModule);
-			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
+			
+			if (timingsEnabled) {
+				printf("Semantic Analysis: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		if (!semDebugFileName.empty()) {
@@ -225,7 +235,9 @@ int main(int argc, char* argv[]) {
 			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
 			ofs << formatMessage(semContext.rootNamespace()->toString());
 			
-			printf("Dump SEM: %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Dump SEM: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		// TODO: name this based on output file name.
@@ -237,7 +249,10 @@ int main(int argc, char* argv[]) {
 		{
 			Timer timer;
 			codeGenerator.genNamespace(semContext.rootNamespace());
-			printf("Code Generation: %f seconds.\n", timer.getTime());
+			
+			if (timingsEnabled) {
+				printf("Code Generation: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		if (!codeGenDebugFileName.empty()) {
@@ -246,13 +261,17 @@ int main(int argc, char* argv[]) {
 			// If requested, dump LLVM IR prior to optimisation.
 			codeGenerator.dumpToFile(codeGenDebugFileName);
 			
-			printf("Dump LLVM IR (pre optimisation): %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Dump LLVM IR (pre optimisation): %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		{
 			Timer timer;
 			codeGenerator.applyOptimisations(optimisationLevel);
-			printf("Optimisation: %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Optimisation: %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		if (!optDebugFileName.empty()) {
@@ -261,16 +280,22 @@ int main(int argc, char* argv[]) {
 			// If requested, dump LLVM IR after optimisation.
 			codeGenerator.dumpToFile(optDebugFileName);
 			
-			printf("Dump LLVM IR (post optimisation): %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Dump LLVM IR (post optimisation): %f seconds.\n", timer.getTime());
+			}
 		}
 		
 		{
 			Timer timer;
 			codeGenerator.writeToFile(outputFileName);
-			printf("Write Bitcode: %f seconds.\n", timer.getTime());
+			if (timingsEnabled) {
+				printf("Write Bitcode: %f seconds.\n", timer.getTime());
+			}
 		}
 		
-		printf("--- Total time: %f seconds.\n", totalTimer.getTime());
+		if (timingsEnabled) {
+			printf("--- Total time: %f seconds.\n", totalTimer.getTime());
+		}
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
 		return 1;

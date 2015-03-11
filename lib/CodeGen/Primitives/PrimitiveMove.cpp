@@ -11,6 +11,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
 
@@ -20,13 +21,16 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			Function function(module, llvmFunction, moveArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			genPrimitiveMoveCall(function, typeInstance->selfType(), function.getRawContextValue(), function.getArg(0), function.getArg(1));
+			// TODO: add debug info.
+			const auto debugInfo = None;
+			genPrimitiveMoveCall(function, typeInstance->selfType(), function.getRawContextValue(), function.getArg(0), function.getArg(1), debugInfo);
 			function.getBuilder().CreateRetVoid();
 			
 			function.verify();
 		}
 		
-		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
+		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue,
+				llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
 			assert(sourceValue->getType()->isPointerTy());
 			assert(destValue->getType()->isPointerTy());
 			
@@ -57,13 +61,13 @@ namespace locic {
 				
 				// If it is live, run the child value's move method.
 				function.selectBasicBlock(isLiveBB);
-				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
+				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue, debugLoc);
 				builder.CreateBr(afterBB);
 				
 				function.selectBasicBlock(afterBB);
 			} else if (typeName == "final_lval" || typeName == "member_lval") {
 				const auto targetType = type->templateArguments().front();
-				genMoveCall(function, targetType, sourceValue, destValue, positionValue);
+				genMoveCall(function, targetType, sourceValue, destValue, positionValue, debugLoc);
 			}
 		}
 		

@@ -14,14 +14,20 @@ namespace locic {
 			SourceLocation declLocation;
 			SourceLocation scopeLocation;
 			
-			inline FunctionInfo()
-				: isDefinition(false), name(), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
+			FunctionInfo()
+			: isDefinition(false), name(), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
 			
 			FunctionInfo(const FunctionInfo& other)
 			: isDefinition(other.isDefinition),
 			name(other.name.copy()),
 			declLocation(other.declLocation),
 			scopeLocation(other.scopeLocation) { }
+			
+			FunctionInfo& operator=(const FunctionInfo& other) {
+				FunctionInfo tmp(other);
+				std::swap(*this, tmp);
+				return *this;
+			}
 		};
 		
 	}

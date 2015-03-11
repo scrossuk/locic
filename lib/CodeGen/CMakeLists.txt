@@ -27,6 +27,7 @@ add_library(locic-codegen
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp
+	MethodInfo.cpp
 	Module.cpp
 	ModulePtr.cpp
 	Move.cpp

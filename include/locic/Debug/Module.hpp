@@ -20,7 +20,6 @@ namespace locic {
 		class Module {
 		public:
 			CompilerInfo compiler;
-			std::map<SEM::Function*, FunctionInfo> functionMap;
 			std::map<SEM::TypeInstance*, TypeInstanceInfo> typeInstanceMap;
 		};
 		

@@ -21,6 +21,18 @@ namespace llvm_abi {
 	
 	typedef llvm::IRBuilder<> IRBuilder;
 	
+	class Builder {
+	public:
+		virtual IRBuilder& getEntryBuilder() = 0;
+		
+		virtual IRBuilder& getBuilder() = 0;
+		
+	protected:
+		// Prevent destructor calls via this class.
+		~Builder() { }
+		
+	};
+	
 	class ABI {
 		public:
 			inline virtual ~ABI() { }
@@ -37,9 +49,9 @@ namespace llvm_abi {
 			
 			virtual llvm::Type* longDoubleType() const = 0;
 			
-			virtual void encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) = 0;
+			virtual void encodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) = 0;
 			
-			virtual void decodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) = 0;
+			virtual void decodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) = 0;
 			
 			virtual llvm::FunctionType* rewriteFunctionType(llvm::FunctionType* llvmFunctionType, const FunctionType& functionType) = 0;
 		

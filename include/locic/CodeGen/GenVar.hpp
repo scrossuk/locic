@@ -10,9 +10,9 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		void genVarAlloca(Function& function, SEM::Var* var);
+		void genVarAlloca(Function& function, SEM::Var* var, Optional<llvm::DebugLoc> debugLoc = None);
 		
-		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue);
+		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue, Optional<llvm::DebugLoc> debugLoc = None);
 		
 	}
 	

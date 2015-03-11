@@ -1,13 +1,20 @@
 #ifndef LOCIC_CODEGEN_MOVE_HPP
 #define LOCIC_CODEGEN_MOVE_HPP
 
-#include <locic/SEM.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class TypeInstance;
+		class Type;
+		
+	}
+	
 	namespace CodeGen {
 		
 		/**
@@ -58,7 +65,7 @@ namespace locic {
 		 * value pointer (as passed to it) if the type has a custom
 		 * move method, since this means the object must be kept in memory.
 		 */
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type);
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		/**
 		 * \brief Move a value by storing it into a memory location.
@@ -67,13 +74,13 @@ namespace locic {
 		 * generate a trivial store where possible but will invoke the
 		 * move method if the type has a custom move method.
 		 */
-		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
+		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
+		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc = None);
 		
-		void genUnionMove(Function& function, const SEM::TypeInstance* typeInstance);
+		void genUnionMove(Function& function, const SEM::TypeInstance* typeInstance, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		

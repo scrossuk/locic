@@ -71,15 +71,15 @@ namespace locic {
 		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
 		
 		void createPrimitiveMove(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
-		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
+		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc);
 		
 		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value, Optional<llvm::DebugLoc> debugLoc);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
 			Optional<llvm::DebugLoc> debugLoc = None, llvm::Value* const hintResultValue = nullptr);
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType, Optional<llvm::DebugLoc> debugLoc);
 		
 		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type);
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);

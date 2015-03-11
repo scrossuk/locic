@@ -39,16 +39,6 @@ namespace locic {
 			}
 		}
 		
-		static llvm::Value* encodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type* type) {
-			std::vector<llvm::Value*> values;
-			values.push_back(value);
-			
-			llvm_abi::Type* const abiTypes[] = { type };
-			function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), values, abiTypes);
-			
-			return values.at(0);
-		}
-		
 		ArgInfo assertFailedArgInfo(Module& module) {
 			auto& abiContext = module.abiContext();
 			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
@@ -95,7 +85,7 @@ namespace locic {
 			const auto debugInfo = statement.debugInfo();
 			const auto debugSourceLocation = debugInfo ? debugInfo->location : Debug::SourceLocation::Null();
 			const auto debugStartPosition = debugSourceLocation.range().start();
-			const auto debugLocation = llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo());
+			const auto debugLocation = debugInfo ? make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo())) : None;
 			
 			switch (statement.kind()) {
 				case SEM::Statement::VALUE: {
@@ -115,7 +105,7 @@ namespace locic {
 					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
 					const auto value = genValue(function, statement.getInitialiseValue(), castVarAlloca);
-					genVarInitialise(function, var, value);
+					genVarInitialise(function, var, value, debugLocation);
 					break;
 				}
 				
@@ -251,8 +241,8 @@ namespace locic {
 					if (isSwitchValueRef) {
 						switchValuePtr = llvmSwitchValue;
 					} else {
-						switchValuePtr = genAlloca(function, switchType);
-						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType);
+						switchValuePtr = genAlloca(function, switchType, debugLocation);
+						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType, debugLocation);
 					}
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
@@ -290,9 +280,9 @@ namespace locic {
 						
 						{
 							ScopeLifetime switchCaseLifetime(function);
-							genVarAlloca(function, switchCase->var());
+							genVarAlloca(function, switchCase->var(), debugLocation);
 							genVarInitialise(function, switchCase->var(),
-								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
+								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()), debugLocation);
 							genScope(function, switchCase->scope());
 						}
 						
@@ -379,7 +369,7 @@ namespace locic {
 					} else {
 						const auto returnInst = function.getBuilder().CreateRetVoid();
 						if (debugInfo) {
-							returnInst->setDebugLoc(debugLocation);
+							returnInst->setDebugLoc(*debugLocation);
 						}
 					}
 					break;
@@ -392,14 +382,13 @@ namespace locic {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type(), debugLocation);
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
 								
-								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement.getReturnValue().type()));
-								
-								function.setReturnValue(encodedReturnValue);
+								// Set the return value to be returned directly later
+								// (after executing unwind actions).
+								function.setReturnValue(returnValue);
 							}
 						}
 						
@@ -412,23 +401,19 @@ namespace locic {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type(), debugLocation);
 								
 								returnInst = function.getBuilder().CreateRetVoid();
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
-								
-								const auto encodedReturnValue = encodeReturnValue(function, returnValue,
-									genABIType(function.module(), statement.getReturnValue().type()));
-								
-								returnInst = function.getBuilder().CreateRet(encodedReturnValue);
+								returnInst = function.returnValue(returnValue);
 							}
 						} else {
 							returnInst = function.getBuilder().CreateRetVoid();
 						}
 						
 						if (debugInfo) {
-							returnInst->setDebugLoc(debugLocation);
+							returnInst->setDebugLoc(*debugLocation);
 						}
 					}
 					
@@ -552,7 +537,7 @@ namespace locic {
 					
 					// Store value into allocated space.
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
-					genMoveStore(function, exceptionValue, castedAllocatedException, throwType);
+					genMoveStore(function, exceptionValue, castedAllocatedException, throwType, debugLocation);
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
@@ -569,7 +554,7 @@ namespace locic {
 						throwInvoke->setDoesNotReturn();
 						
 						if (debugInfo) {
-							throwInvoke->setDebugLoc(debugLocation);
+							throwInvoke->setDebugLoc(*debugLocation);
 						}
 						
 						// 'throw' function should never return normally.
@@ -580,7 +565,7 @@ namespace locic {
 						callInst->setDoesNotReturn();
 						
 						if (debugInfo) {
-							callInst->setDebugLoc(debugLocation);
+							callInst->setDebugLoc(*debugLocation);
 						}
 						
 						// 'throw' function should never return normally.
@@ -619,7 +604,7 @@ namespace locic {
 						throwInvoke->setDoesNotReturn();
 						
 						if (debugInfo) {
-							throwInvoke->setDebugLoc(debugLocation);
+							throwInvoke->setDebugLoc(*debugLocation);
 						}
 						
 						// 'rethrow' function should never return normally.
@@ -630,7 +615,7 @@ namespace locic {
 						callInst->setDoesNotReturn();
 						
 						if (debugInfo) {
-							callInst->setDebugLoc(debugLocation);
+							callInst->setDebugLoc(*debugLocation);
 						}
 						
 						// 'rethrow' function should never return normally.

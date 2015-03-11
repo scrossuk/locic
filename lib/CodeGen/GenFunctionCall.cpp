@@ -15,12 +15,14 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
+#include <locic/CodeGen/Template.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
-#include <locic/CodeGen/Template.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -34,13 +36,13 @@ namespace locic {
 			return instruction;
 		}
 		
-		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* value, llvm_abi::Type* type, llvm::Type* llvmType) {
+		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* const value, llvm_abi::Type* const type, llvm::Type* const llvmType) {
 			std::vector<llvm_abi::Type*> abiTypes;
 			abiTypes.push_back(type);
 			
 			std::vector<llvm::Value*> values;
 			values.push_back(value);
-			function.module().abi().decodeValues(function.getEntryBuilder(), function.getBuilder(), values, abiTypes, {llvmType});
+			function.decodeABIValues(values, abiTypes, {llvmType});
 			return values.at(0);
 		}
 		
@@ -117,7 +119,7 @@ namespace locic {
 				parameterABITypes.push_back(argABIType);
 			}
 			
-			module.abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), parameters, parameterABITypes);
+			function.encodeABIValues(parameters, parameterABITypes);
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
@@ -157,7 +159,7 @@ namespace locic {
 			
 			// Parameters need to be encoded according to the ABI.
 			std::vector<llvm::Value*> encodedParameters = args.vec();
-			function.module().abi().encodeValues(function.getEntryBuilder(), function.getBuilder(), encodedParameters, argABITypes);
+			function.encodeABIValues(encodedParameters, argABITypes);
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
@@ -211,34 +213,28 @@ namespace locic {
 			
 			const auto methodHash = CreateMethodNameHash(methodInfo.name);
 			const auto methodHashValue = ConstantGenerator(function.module()).getI64(methodHash);
+			
+			const auto contextPointer = methodOwner ? methodOwner->resolve(function) : ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getI8PtrType());
+			
+			llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+			llvmArgs.reserve(args.size());
+			for (auto& arg: args) {
+				llvmArgs.push_back(arg.resolve(function));
+			}
+			
+			const VirtualObjectComponents objectComponents(getTypeInfoComponents(function, typeInfo), contextPointer);
+			const VirtualMethodComponents methodComponents(objectComponents, methodHashValue);
+			
 			if (methodOwner) {
 				// A dynamic method.
 				assert(methodInfo.functionType->isFunctionMethod());
-				const auto contextPointer = methodOwner->resolve(function);
-				
-				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
-				llvmArgs.reserve(args.size());
-				for (auto& arg: args) {
-					llvmArgs.push_back(arg.resolve(function));
-				}
-				
-				const auto interfaceStructValue = makeInterfaceStructValue(function, contextPointer, typeInfo);
-				const auto interfaceMethodValue = makeInterfaceMethodValue(function, interfaceStructValue, methodHashValue);
 				const auto interfaceMethodType = SEM::Type::InterfaceMethod(methodInfo.functionType);
-				return VirtualCall::generateCall(function, interfaceMethodType, interfaceMethodValue, llvmArgs, debugLoc, hintResultValue);
+				return VirtualCall::generateCall(function, interfaceMethodType, methodComponents, llvmArgs, debugLoc, hintResultValue);
 			} else {
 				// A static method.
 				assert(!methodInfo.functionType->isFunctionMethod());
-				
-				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
-				llvmArgs.reserve(args.size());
-				for (auto& arg: args) {
-					llvmArgs.push_back(arg.resolve(function));
-				}
-				
-				const auto staticInterfaceMethodValue = makeStaticInterfaceMethodValue(function, typeInfo, methodHashValue);
 				const auto staticInterfaceMethodType = SEM::Type::StaticInterfaceMethod(methodInfo.functionType);
-				return VirtualCall::generateCall(function, staticInterfaceMethodType, staticInterfaceMethodValue, llvmArgs, debugLoc, hintResultValue);
+				return VirtualCall::generateCall(function, staticInterfaceMethodType, methodComponents, llvmArgs, debugLoc, hintResultValue);
 			}
 		}
 		

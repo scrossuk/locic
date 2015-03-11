@@ -81,17 +81,17 @@ namespace locic {
 			return function.getBuilder().CreatePointerCast(rawMoveDest, genType(function.module(), type));
 		}
 		
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			if (typeHasCustomMove(function.module(), type)) {
 				// Can't load since we need to run the move method.
 				return var;
 			} else {
 				// Use a normal load.
-				return genLoad(function, var, type);
+				return genLoad(function, var, type, debugLoc);
 			}
 		}
 		
-		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
+		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -108,10 +108,10 @@ namespace locic {
 				
 				// Use 0 for the position value since this is the top level of the move.
 				const auto positionValue = ConstantGenerator(function.module()).getSizeTValue(0);
-				genMoveCall(function, type, value, var, positionValue);
+				genMoveCall(function, type, value, var, positionValue, debugLoc);
 			} else {
 				// Use a normal store.
-				genStore(function, value, var, type);
+				genStore(function, value, var, type, debugLoc);
 			}
 		}
 		
@@ -133,24 +133,25 @@ namespace locic {
 		
 		namespace {
 			
-			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
+			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
 				const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
-				genStore(function, genLoad(function, sourceValue, type), destValue, type);
+				const auto loadedValue = genLoad(function, sourceValue, type, debugLoc);
+				genStore(function, loadedValue, destValue, type, debugLoc);
 			}
 			
 		}
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
+		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
 				if (!typeHasCustomMove(module, type)) {
-					genBasicMove(function, type, sourceValue, destValue, positionValue);
+					genBasicMove(function, type, sourceValue, destValue, positionValue, debugLoc);
 					return;
 				}
 				
 				if (type->isPrimitive()) {
-					genPrimitiveMoveCall(function, type, sourceValue, destValue, positionValue);
+					genPrimitiveMoveCall(function, type, sourceValue, destValue, positionValue, debugLoc);
 					return;
 				}
 				
@@ -169,12 +170,12 @@ namespace locic {
 				args.push_back(castDestValue);
                                 args.push_back(positionValue);
 				
-				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
+				(void) genRawFunctionCall(function, argInfo, moveFunction, args, debugLoc);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getI8PtrType());
 				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getI8PtrType());
-				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue);
+				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue, debugLoc);
 			}
 		}
 		

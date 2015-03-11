@@ -8,10 +8,16 @@
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
-#include <locic/SEM.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class Function;
+		class Value;
+		
+	}
+	
 	namespace CodeGen {
 		
 		struct DebugCompileUnit {
@@ -49,6 +55,8 @@ namespace locic {
 				
 				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
 				
+				llvm::DIType createUnspecifiedType(const String& name);
+				
 				llvm::DIType createVoidType();
 				
 				llvm::DIType createNullType();
@@ -75,9 +83,15 @@ namespace locic {
 		
 		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function, bool isInternal);
 		
+		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* function, llvm::Function* llvmFunction);
+		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
 		
-		Optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value);
+		llvm::DebugLoc getDebugLocation(Function& function, const Debug::SourceLocation& debugSourceLocation);
+		
+		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function, const SEM::Function& semFunction);
+		
+		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function, const SEM::Value& value);
 		
 	}
 	

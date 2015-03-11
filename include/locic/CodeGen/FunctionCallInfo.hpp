@@ -18,6 +18,7 @@ namespace locic {
 		class Function;
 		class Module;
 		class PendingResult;
+		struct VirtualMethodComponents;
 		
 		struct FunctionCallInfo {
 			llvm::Value* functionPtr;
@@ -34,9 +35,16 @@ namespace locic {
 		
 		bool isTrivialFunction(Module& module, const SEM::Value& value);
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args, Optional<PendingResult> contextValue = None);
+		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args,
+			Optional<llvm::DebugLoc> debugLoc = None, llvm::Value* const hintResultValue = nullptr);
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value);
+		
+		TypeInfoComponents genTypeInfoComponents(Function& function, const SEM::Value& value);
+		
+		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const SEM::Value& value);
+		
+		VirtualMethodComponents genVirtualMethodComponents(Function& function, const SEM::Value& value);
 		
 	}
 	

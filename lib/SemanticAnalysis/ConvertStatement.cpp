@@ -317,7 +317,7 @@ namespace locic {
 					// TODO: fix this to not copy the value!
 					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
 					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(semVarValue)), context.getCString("assign"), location);
-					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeArray( std::move(semAssignValue) ), location));
+					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeArray(std::move(semAssignValue)), location));
 				}
 				case AST::Statement::INCREMENT: {
 					auto semOperandValue = ConvertValue(context, statement->incrementStmt.value);

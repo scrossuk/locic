@@ -17,32 +17,39 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type) {
+		static llvm::Instruction* addDebugLoc(llvm::Instruction* instruction, const Optional<llvm::DebugLoc>& debugLocation) {
+			if (debugLocation) {
+				instruction->setDebugLoc(*debugLocation);
+			}
+			return instruction;
+		}
+		
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateAlloca(genType(module, type));
+					return addDebugLoc(function.getBuilder().CreateAlloca(genType(module, type)), debugLoc);
 				}
 				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
-						return function.getBuilder().CreateAlloca(genType(module, type));
+						return addDebugLoc(function.getBuilder().CreateAlloca(genType(module, type)), debugLoc);
 					} else {
 						const auto alloca =
-							function.getEntryBuilder().CreateAlloca(
+							addDebugLoc(function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
-								genSizeOf(function, type));
+								genSizeOf(function, type)), debugLoc);
 						return function.getBuilder().CreatePointerCast(alloca,
 							genPointerType(module, type));
 					}
 				}
 				
 				case SEM::Type::ALIAS: {
-					return genAlloca(function, type->resolveAliases());
+					return genAlloca(function, type->resolveAliases(), debugLoc);
 				}
 				
 				default: {
@@ -51,27 +58,27 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
+		llvm::Value* genLoad(Function& function, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateLoad(var);
+					return addDebugLoc(function.getBuilder().CreateLoad(var), debugLoc);
 				}
 				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
-						return function.getBuilder().CreateLoad(var);
+						return addDebugLoc(function.getBuilder().CreateLoad(var), debugLoc);
 					} else {
 						return var;
 					}
 				}
 				
 				case SEM::Type::ALIAS: {
-					return genLoad(function, var, type->resolveAliases());
+					return genLoad(function, var, type->resolveAliases(), debugLoc);
 				}
 				
 				default: {
@@ -80,14 +87,14 @@ namespace locic {
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type) {
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					function.getBuilder().CreateStore(value, var);
+					(void) addDebugLoc(function.getBuilder().CreateStore(value, var), debugLoc);
 					return;
 				}
 				
@@ -96,7 +103,7 @@ namespace locic {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
-						function.getBuilder().CreateStore(value, var);
+						(void) addDebugLoc(function.getBuilder().CreateStore(value, var), debugLoc);
 						return;
 					} else {
 						if (isTypeSizeKnownInThisModule(function.module(), type)) {
@@ -104,18 +111,18 @@ namespace locic {
 							// better to generate an explicit load
 							// and store (optimisations will be able
 							// to make more sense of this).
-							function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
+							(void) addDebugLoc(function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var), debugLoc);
 						} else {
 							// If the type size isn't known, then
 							// a memcpy is unavoidable.
-							function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1);
+							(void) addDebugLoc(function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1), debugLoc);
 						}
 						return;
 					}
 				}
 				
 				case SEM::Type::ALIAS: {
-					return genStore(function, value, var, type->resolveAliases());
+					return genStore(function, value, var, type->resolveAliases(), debugLoc);
 				}
 				
 				default: {
@@ -124,27 +131,27 @@ namespace locic {
 			}
 		}
 		
-		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar) {
+		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar, Optional<llvm::DebugLoc> debugLoc) {
 			assert(semVar->isBasic());
 			
 			const auto valueType = semVar->constructType();
 			const auto varType = semVar->type();
 			
 			if (valueType == varType) {
-				genMoveStore(function, value, var, varType);
+				genMoveStore(function, value, var, varType, debugLoc);
 			} else {
 				// If the variable type wasn't actually an lval
 				// (very likely), then a value_lval will be created
 				// to hold it, and this needs to be constructed.
-				genStorePrimitiveLval(function, value, var, varType);
+				genStorePrimitiveLval(function, value, var, varType, debugLoc);
 			}
 		}
 		
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type) {
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
 			// Members must have a pointer to the object, which
 			// may require generating a fresh 'alloca'.
-			const auto ptrValue = genAlloca(function, type);
-			genMoveStore(function, value, ptrValue, type);
+			const auto ptrValue = genAlloca(function, type, debugLoc);
+			genMoveStore(function, value, ptrValue, type, debugLoc);
 			
 			// Call destructor for the object at the end of the current scope.
 			scheduleDestructorCall(function, type, ptrValue);

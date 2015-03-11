@@ -1,12 +1,19 @@
 #ifndef LOCIC_CODEGEN_MEMORY_HPP
 #define LOCIC_CODEGEN_MEMORY_HPP
 
-#include <locic/SEM.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class Type;
+		class Var;
+		
+	}
+	
 	namespace CodeGen {
 		
 		/**
@@ -15,7 +22,7 @@ namespace locic {
 		 * This will allocate stack space for the given
 		 * type, and return a pointer to that space.
 		 */
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type);
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		/**
 		 * \brief Load a value from a memory location.
@@ -26,7 +33,7 @@ namespace locic {
 		 * to it as-is, since class types should always be
 		 * handled as pointers.
 		 */
-		llvm::Value* genLoad(Function& function, llvm::Value* source, const SEM::Type* type);
+		llvm::Value* genLoad(Function& function, llvm::Value* source, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		/**
 		 * \brief Store a value into a memory location.
@@ -37,7 +44,7 @@ namespace locic {
 		 * (such as classes) by copying the memory from
 		 * one pointer to another.
 		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
+		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		/**
 		 * \brief Store a value into a variable.
@@ -46,7 +53,7 @@ namespace locic {
 		 * while also performing any necessary conversion
 		 * operations needed to create implicit lval types.
 		 */
-		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar);
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, SEM::Var* semVar, Optional<llvm::DebugLoc> debugLoc = None);
 		
 		/**
 		 * \brief Allocate and store a value on the stack,
@@ -55,7 +62,7 @@ namespace locic {
 		 * (This is typically used to generate a pointer
 		 * passed as the context pointer to methods.)
 		 */
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type);
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc = None);
 		
 	}
 	

@@ -1,8 +1,6 @@
 #ifndef LOCIC_DEBUG_VARINFO_HPP
 #define LOCIC_DEBUG_VARINFO_HPP
 
-#include <string>
-
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Support/String.hpp>
 

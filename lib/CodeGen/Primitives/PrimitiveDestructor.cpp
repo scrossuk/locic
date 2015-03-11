@@ -11,6 +11,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
 
@@ -20,13 +21,16 @@ namespace locic {
 			assert(llvmFunction.isDeclaration());
 			
 			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			genPrimitiveDestructorCall(function, typeInstance->selfType(), function.getRawContextValue());
+			
+			// TODO: add debug info.
+			const auto debugInfo = None;
+			genPrimitiveDestructorCall(function, typeInstance->selfType(), function.getRawContextValue(), debugInfo);
 			function.getBuilder().CreateRetVoid();
 			
 			function.verify();
 		}
 		
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value, Optional<llvm::DebugLoc> debugLoc) {
 			assert(value->getType()->isPointerTy());
 			
 			auto& builder = function.getBuilder();
@@ -55,13 +59,13 @@ namespace locic {
 				
 				// If it is live, run the child value's destructor.
 				function.selectBasicBlock(isLiveBB);
-				genDestructorCall(function, targetType, objectPointer);
+				genDestructorCall(function, targetType, objectPointer, debugLoc);
 				builder.CreateBr(afterBB);
 				
 				function.selectBasicBlock(afterBB);
 			} else if (typeName == "final_lval" || typeName == "member_lval") {
 				const auto targetType = type->templateArguments().front();
-				genDestructorCall(function, targetType, value);
+				genDestructorCall(function, targetType, value, debugLoc);
 			}
 		}
 		

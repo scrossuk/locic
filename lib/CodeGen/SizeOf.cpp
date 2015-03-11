@@ -14,6 +14,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {

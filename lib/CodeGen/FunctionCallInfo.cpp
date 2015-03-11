@@ -3,18 +3,21 @@
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
+#include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
 
@@ -194,14 +197,23 @@ namespace locic {
 		
 		PendingResult genCallValue(Function& function, const SEM::Value& value) {
 			switch (value.kind()) {
+				case SEM::Value::CAST: {
+					if (value.castOperand().type()->isDatatype()) {
+						return PendingResult(genValue(function, value));
+					} else {
+						return genCallValue(function, value.castOperand());
+					}
+				}
+				
 				case SEM::Value::BIND_REFERENCE: {
 					auto result = genCallValue(function, value.bindReferenceOperand());
 					result.add(PendingAction::Bind(value.bindReferenceOperand().type()));
 					return result;
 				}
 				
-				default:
+				default: {
 					return PendingResult(genValue(function, value));
+				}
 			}
 		}
 		
@@ -221,7 +233,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs, Optional<PendingResult> contextValue) {
+		llvm::Value* genTrivialMethodCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
+				Optional<PendingResult> contextValue, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					PendingResultArray args;
@@ -237,7 +250,7 @@ namespace locic {
 					if (value.functionRefFunction()->isPrimitive()) {
 						MethodInfo methodInfo(value.functionRefParentType(), value.functionRefFunction()->name().last(),
 							value.type(), value.functionRefTemplateArguments().copy());
-						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args));
+						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), debugLoc, hintResultValue);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -246,7 +259,7 @@ namespace locic {
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
 					auto dataResult = genCallValue(function, dataValue);
-					return genTrivialFunctionCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)));
+					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)), debugLoc, hintResultValue);
 				}
 				
 				default: {
@@ -255,10 +268,15 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
+				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+			return genTrivialMethodCall(function, value, valueArgs, None, debugLoc, hintResultValue);
+		}
+		
 		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
-			const auto debugLoc = getDebugLocation(function, value);
+			const auto debugLoc = getValueDebugLocation(function, value);
 			
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
@@ -296,7 +314,7 @@ namespace locic {
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
-					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType);
+					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, debugLoc);
 					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					
@@ -350,6 +368,76 @@ namespace locic {
 					callInfo.functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
 					callInfo.templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
 					return callInfo;
+				}
+			}
+		}
+		
+		TypeInfoComponents genTypeInfoComponents(Function& function, const SEM::Value& value) {
+			auto& module = function.module();
+			
+			switch (value.kind()) {
+				case SEM::Value::TYPEREF: {
+					const auto targetType = value.typeRefType();
+					const auto vtablePointer = genVTable(module, targetType->resolveAliases()->getObjectType());
+					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(targetType));
+					return TypeInfoComponents(vtablePointer, templateGenerator);
+				}
+				
+				default: {
+					return getTypeInfoComponents(function, genValue(function, value));
+				}
+			}
+		}
+		
+		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const SEM::Value& value) {
+			switch (value.kind()) {
+				case SEM::Value::BIND_REFERENCE: {
+					return genTypeInfoComponents(function, value.bindReferenceOperand());
+				}
+				
+				default: {
+					return getTypeInfoComponents(function, function.getBuilder().CreateLoad(genValue(function, value)));
+				}
+			}
+		}
+		
+		VirtualMethodComponents genVirtualMethodComponents(Function& function, const SEM::Value& value) {
+			assert(value.type()->isInterfaceMethod() || value.type()->isStaticInterfaceMethod());
+			auto& module = function.module();
+			
+			switch (value.kind()) {
+				case SEM::Value::INTERFACEMETHODOBJECT: {
+					const auto& method = value.interfaceMethodObject();
+					const auto methodOwner = genValue(function, value.interfaceMethodOwner());
+					
+					assert(method.kind() == SEM::Value::FUNCTIONREF);
+					
+					const auto interfaceFunction = method.functionRefFunction();
+					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
+					
+					return VirtualMethodComponents(getVirtualObjectComponents(function, methodOwner), methodHashValue);
+				}
+				
+				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
+					const auto& method = value.staticInterfaceMethodObject();
+					const auto typeInfoComponents = genBoundTypeInfoComponents(function, value.staticInterfaceMethodOwner());
+					
+					assert(method.kind() == SEM::Value::FUNCTIONREF);
+					
+					const auto interfaceFunction = method.functionRefFunction();
+					
+					const auto contextPointer = ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getI8PtrType());
+					
+					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
+					
+					return VirtualMethodComponents(VirtualObjectComponents(typeInfoComponents, contextPointer), methodHashValue);
+				}
+				
+				default: {
+					const bool isStatic = value.type()->isStaticInterfaceMethod();
+					return getVirtualMethodComponents(function, isStatic, genValue(function, value));
 				}
 			}
 		}

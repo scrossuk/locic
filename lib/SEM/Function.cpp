@@ -130,6 +130,14 @@ namespace locic {
 			scope_ = std::move(newScope);
 		}
 		
+		void Function::setDebugInfo(const Debug::FunctionInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::FunctionInfo> Function::debugInfo() const {
+			return debugInfo_;
+		}
+		
 		std::string Function::toString() const {
 			if (isDeclaration()) {
 				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s)",

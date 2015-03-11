@@ -42,6 +42,7 @@ namespace locic {
 			: module_(pModule), function_(function),
 			  entryBuilder_(pModule.getLLVMContext()),
 			  builder_(pModule.getLLVMContext()),
+			  createdEntryBlock_(false),
 			  useEntryBuilder_(false),
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
@@ -59,18 +60,7 @@ namespace locic {
 			// Add bottom level action for this function.
 			unwindStack().push_back(UnwindAction::FunctionMarker());
 			
-			// Create an 'entry' basic block for holding
-			// instructions like allocas and debug_declares
-			// which must only be executed once per function.
-			const auto entryBB = createBasicBlock("");
 			const auto startBB = createBasicBlock("");
-			
-			entryBuilder_.SetInsertPoint(entryBB);
-			const auto startBranch = entryBuilder_.CreateBr(startBB);
-			
-			// Insert entry instructions before the branch.
-			entryBuilder_.SetInsertPoint(startBranch);
-			
 			builder_.SetInsertPoint(startBB);
 			
 			argValues_.reserve(function_.arg_size());
@@ -91,10 +81,18 @@ namespace locic {
 			}
 			
 			// Decode arguments according to ABI.
-			module_.abi().decodeValues(getEntryBuilder(), getEntryBuilder(), argValues_, argABITypes, argLLVMTypes);
+			decodeABIValues(argValues_, argABITypes, argLLVMTypes);
 		}
 		
-		void Function::returnValue(llvm::Value* value) {
+		void Function::encodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes) {
+			module().abi().encodeValues(*this, values, argTypes);
+		}
+		
+		void Function::decodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) {
+			module().abi().decodeValues(*this, values, argTypes, llvmArgTypes);
+		}
+		
+		llvm::Instruction* Function::returnValue(llvm::Value* const value) {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
 			
@@ -104,9 +102,10 @@ namespace locic {
 			
 			std::vector<llvm::Value*> values;
 			values.push_back(value);
-			module().abi().encodeValues(getEntryBuilder(), getBuilder(), values, abiTypes);
 			
-			getBuilder().CreateRet(values.at(0));
+			encodeABIValues(values, abiTypes);
+			
+			return getBuilder().CreateRet(values.at(0));
 		}
 		
 		void Function::setReturnValue(llvm::Value* const value) {
@@ -119,7 +118,8 @@ namespace locic {
 			
 			std::vector<llvm::Value*> values;
 			values.push_back(value);
-			module().abi().encodeValues(getEntryBuilder(), getBuilder(), values, abiTypes);
+			
+			encodeABIValues(values, abiTypes);
 			
 			const auto encodedValue = values.at(0);
 			
@@ -228,14 +228,31 @@ namespace locic {
 		// Returns an 'entry' builder for creating instructions
 		// in the first ('entry') basic block.
 		llvm::IRBuilder<>& Function::getEntryBuilder() {
+			if (!createdEntryBlock_) {
+				const auto startBB = &(function_.getEntryBlock());
+				
+				// Create an 'entry' basic block for holding
+				// instructions like allocas and debug_declares
+				// which must only be executed once per function.
+				const auto entryBB = llvm::BasicBlock::Create(module_.getLLVMContext(), "", &function_, startBB);
+				entryBuilder_.SetInsertPoint(entryBB);
+				
+				// Create a branch to the first code block.
+				const auto startBranch = entryBuilder_.CreateBr(startBB);
+				
+				// Insert entry instructions before the branch.
+				entryBuilder_.SetInsertPoint(startBranch);
+				
+				createdEntryBlock_ = true;
+			}
 			return entryBuilder_;
 		}
 		
 		llvm::IRBuilder<>& Function::getBuilder() {
-			return useEntryBuilder_ ? entryBuilder_ : builder_;
+			return useEntryBuilder_ ? getEntryBuilder() : builder_;
 		}
 		
-		bool Function::setUseEntryBuilder(bool useEntryBuilder) {
+		bool Function::setUseEntryBuilder(const bool useEntryBuilder) {
 			const bool previous = useEntryBuilder_;
 			useEntryBuilder_ = useEntryBuilder;
 			return previous;

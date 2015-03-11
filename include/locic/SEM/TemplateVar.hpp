@@ -2,9 +2,10 @@
 #define LOCIC_SEM_TEMPLATEVAR_HPP
 
 #include <string>
-#include <unordered_map>
 
+#include <locic/Debug/TemplateVarInfo.hpp>
 #include <locic/Support/Name.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 
@@ -28,6 +29,9 @@ namespace locic {
 				
 				const Type* type() const;
 				
+				void setDebugInfo(Debug::TemplateVarInfo debugInfo);
+				Optional<Debug::TemplateVarInfo> debugInfo() const;
+				
 				std::string toString() const;
 				
 			private:
@@ -35,6 +39,7 @@ namespace locic {
 				const Type* type_;
 				Name name_;
 				size_t index_;
+				Optional<Debug::TemplateVarInfo> debugInfo_;
 				
 		};
 		

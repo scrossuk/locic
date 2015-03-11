@@ -514,7 +514,7 @@ namespace llvm_abi {
 		return llvm::Type::getX86_FP80Ty(llvmContext_);
 	}
 	
-	void ABI_x86_64::encodeValues(IRBuilder& entryBuilder, IRBuilder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) {
+	void ABI_x86_64::encodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
@@ -525,8 +525,10 @@ namespace llvm_abi {
 				continue;
 			}
 			
+			auto& entryBuilder = builder.getEntryBuilder();
+			auto& currentBuilder = builder.getBuilder();
+			
 			const auto argValuePtr = entryBuilder.CreateAlloca(argValue->getType());
-			builder.CreateStore(argValue, argValuePtr);
 			const auto encodedValuePtr = entryBuilder.CreateAlloca(llvmAbiType);
 			
 			const auto i8PtrType = llvm::Type::getInt8PtrTy(llvmContext_);
@@ -534,20 +536,22 @@ namespace llvm_abi {
 			const auto i32Type = llvm::Type::getInt32Ty(llvmContext_);
 			const auto i64Type = llvm::Type::getInt64Ty(llvmContext_);
 			
-			const auto sourceValue = builder.CreatePointerCast(argValuePtr, i8PtrType);
-			const auto destValue = builder.CreatePointerCast(encodedValuePtr, i8PtrType);
+			currentBuilder.CreateStore(argValue, argValuePtr);
+			
+			const auto sourceValue = currentBuilder.CreatePointerCast(argValuePtr, i8PtrType);
+			const auto destValue = currentBuilder.CreatePointerCast(encodedValuePtr, i8PtrType);
 			
 			llvm::Value* args[] = { destValue, sourceValue,
 				llvm::ConstantInt::get(i64Type, typeSize(argType)),
 				llvm::ConstantInt::get(i32Type, typeAlign(argType)),
 				llvm::ConstantInt::get(i1Type, 0) };
-			builder.CreateCall(memcpyIntrinsic_, args);
+			currentBuilder.CreateCall(memcpyIntrinsic_, args);
 			
-			argValues.at(i) = builder.CreateLoad(encodedValuePtr);
+			argValues.at(i) = currentBuilder.CreateLoad(encodedValuePtr);
 		}
 	}
 	
-	void ABI_x86_64::decodeValues(llvm::IRBuilder<>& entryBuilder, llvm::IRBuilder<>& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) {
+	void ABI_x86_64::decodeValues(Builder& builder, std::vector<llvm::Value*>& argValues, llvm::ArrayRef<Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) {
 		assert(argValues.size() == argTypes.size());
 		
 		for (size_t i = 0; i < argValues.size(); i++) {
@@ -558,8 +562,10 @@ namespace llvm_abi {
 				continue;
 			}
 			
+			auto& entryBuilder = builder.getEntryBuilder();
+			auto& currentBuilder = builder.getBuilder();
+			
 			const auto encodedValuePtr = entryBuilder.CreateAlloca(encodedValue->getType());
-			builder.CreateStore(encodedValue, encodedValuePtr);
 			
 			assert(llvmArgTypes[i] != nullptr);
 			const auto argValuePtr = entryBuilder.CreateAlloca(llvmArgTypes[i]);
@@ -569,16 +575,18 @@ namespace llvm_abi {
 			const auto i32Type = llvm::Type::getInt32Ty(llvmContext_);
 			const auto i64Type = llvm::Type::getInt64Ty(llvmContext_);
 			
-			const auto sourceValue = builder.CreatePointerCast(encodedValuePtr, i8PtrType);
-			const auto destValue = builder.CreatePointerCast(argValuePtr, i8PtrType);
+			currentBuilder.CreateStore(encodedValue, encodedValuePtr);
+			
+			const auto sourceValue = currentBuilder.CreatePointerCast(encodedValuePtr, i8PtrType);
+			const auto destValue = currentBuilder.CreatePointerCast(argValuePtr, i8PtrType);
 			
 			llvm::Value* args[] = { destValue, sourceValue,
 				llvm::ConstantInt::get(i64Type, typeSize(argType)),
 				llvm::ConstantInt::get(i32Type, typeAlign(argType)),
 				llvm::ConstantInt::get(i1Type, 0) };
-			builder.CreateCall(memcpyIntrinsic_, args);
+			currentBuilder.CreateCall(memcpyIntrinsic_, args);
 			
-			argValues.at(i) = builder.CreateLoad(argValuePtr);
+			argValues.at(i) = currentBuilder.CreateLoad(argValuePtr);
 		}
 	}
 	

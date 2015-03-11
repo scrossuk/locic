@@ -54,6 +54,13 @@ namespace locic {
 				}
 			}
 			
+			SEM::Value addDebugInfo(SEM::Value value, const Debug::SourceLocation& location) {
+				Debug::ValueInfo valueInfo;
+				valueInfo.location = location;
+				value.setDebugInfo(valueInfo);
+				return value;
+			}
+			
 		}
 		
 		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
@@ -92,17 +99,17 @@ namespace locic {
 				// Get the actual function so we can refer to it.
 				const auto function = targetType->getObjectType()->functions().at(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
-				auto functionRef = SEM::Value::FunctionRef(targetType, function, {}, function->type()->substitute(functionTypeTemplateMap));
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function, {}, function->type()->substitute(functionTypeTemplateMap)), location);
 				
 				if (targetType->isInterface()) {
-					return SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value));
+					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value)), location);
 				} else {
 					return functionRef;
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
-				return SEM::Value::TemplateFunctionRef(targetType, methodName, functionType);
+				return addDebugInfo(SEM::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
 			}
 		}
 		
@@ -208,18 +215,18 @@ namespace locic {
 						location.toString().c_str()));
 				}
 				
-				auto functionRef = SEM::Value::FunctionRef(type, function, std::move(templateArguments), function->type()->substitute(templateVariableAssignments));
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), function->type()->substitute(templateVariableAssignments)), location);
 				
 				if (type->isInterface()) {
-					return SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value));
+					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
 				} else {
-					return SEM::Value::MethodObject(std::move(functionRef), std::move(value));
+					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
-				auto functionRef = SEM::Value::TemplateFunctionRef(type, methodName, functionType);
-				return SEM::Value::MethodObject(std::move(functionRef), std::move(value));
+				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
+				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
 			}
 		}
 		
@@ -258,7 +265,7 @@ namespace locic {
 				}
 			}
 			
-			return SEM::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location));
+			return addDebugInfo(SEM::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
 		}
 		
 		bool checkCapability(Context& context, const SEM::Type* const rawType, const String& capability, SEM::TypeArray templateArgs) {

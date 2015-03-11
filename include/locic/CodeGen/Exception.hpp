@@ -6,11 +6,12 @@
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
-	
+		
 		llvm::Function* getExceptionAllocateFunction(Module& module);
 		
 		llvm::Function* getExceptionFreeFunction(Module& module);

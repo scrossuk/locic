@@ -115,7 +115,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genDebugType(Module& module, const SEM::Type* type) {
+		llvm::DIType genDebugType(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
@@ -146,7 +146,7 @@ namespace locic {
 						const auto lineNumber = location.range().start().lineNumber();
 						return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
 					} else {
-						return module.debugBuilder().createNullType();
+						return module.debugBuilder().createUnspecifiedType(objectType->name().last());
 					}
 				}
 				
@@ -166,26 +166,31 @@ namespace locic {
 				
 				case SEM::Type::METHOD: {
 					// TODO!
-					return module.debugBuilder().createNullType();
+					return module.debugBuilder().createUnspecifiedType(module.getCString("method"));
 				}
 				
 				case SEM::Type::INTERFACEMETHOD: {
 					// TODO!
-					return module.debugBuilder().createNullType();
+					return module.debugBuilder().createUnspecifiedType(module.getCString("interfacemethod"));
 				}
 				
 				case SEM::Type::STATICINTERFACEMETHOD: {
 					// TODO!
-					return module.debugBuilder().createNullType();
+					return module.debugBuilder().createUnspecifiedType(module.getCString("staticinterfacemethod"));
 				}
 				
 				case SEM::Type::TEMPLATEVAR: {
-					// TODO!
-					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
-					const auto lineNumber = 12;
-					const auto name = Name::Absolute() + module.getCString("T");
+					const auto templateVar = type->getTemplateVar();
+					const auto debugInfo = templateVar->debugInfo();
 					
-					return module.debugBuilder().createObjectType(file, lineNumber, name);
+					if (debugInfo) {
+						const auto& templateVarInfo = *debugInfo;
+						const auto file = module.debugBuilder().createFile(templateVarInfo.declLocation.fileName());
+						const auto lineNumber = templateVarInfo.declLocation.range().start().lineNumber();
+						return module.debugBuilder().createObjectType(file, lineNumber, templateVar->name());
+					} else {
+						return module.debugBuilder().createUnspecifiedType(templateVar->name().last());
+					}
 				}
 				
 				case SEM::Type::ALIAS: {

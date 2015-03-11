@@ -73,7 +73,7 @@ namespace locic {
 			return argInfo.withNoExcept();
 		}
 		
-		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
+		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value, Optional<llvm::DebugLoc> debugLoc) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -82,7 +82,7 @@ namespace locic {
 				}
 				
 				if (type->isPrimitive()) {
-					genPrimitiveDestructorCall(function, type, value);
+					genPrimitiveDestructorCall(function, type, value, debugLoc);
 					return;
 				}
 				
@@ -98,11 +98,11 @@ namespace locic {
 				}
 				args.push_back(castValue);
 								  
-				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
+				(void) genRawFunctionCall(function, argInfo, destructorFunction, args, debugLoc);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
-				VirtualCall::generateDestructorCall(function, typeInfo, castValue);
+				VirtualCall::generateDestructorCall(function, typeInfo, castValue, debugLoc);
 			}
 		}
 		

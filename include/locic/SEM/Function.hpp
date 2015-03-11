@@ -7,12 +7,14 @@
 #include <vector>
 
 #include <locic/FastMap.hpp>
-#include <locic/Support/Name.hpp>
-#include <locic/Support/String.hpp>
+#include <locic/Debug/FunctionInfo.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/Optional.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
@@ -71,6 +73,9 @@ namespace locic {
 				void setScope(std::unique_ptr<Scope> newScope);
 				const Scope& scope() const;
 				
+				void setDebugInfo(Debug::FunctionInfo debugInfo);
+				Optional<Debug::FunctionInfo> debugInfo() const;
+				
 				std::string toString() const;
 				
 			private:
@@ -78,6 +83,7 @@ namespace locic {
 				bool isMethod_, isStaticMethod_;
 				const Type* type_;
 				Name name_;
+				Optional<Debug::FunctionInfo> debugInfo_;
 				
 				std::vector<TemplateVar*> templateVariables_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;

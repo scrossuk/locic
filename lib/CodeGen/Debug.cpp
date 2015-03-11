@@ -5,9 +5,11 @@
 
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/LLVMIncludes.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/SEM/Function.hpp>
+#include <locic/SEM/Value.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -75,6 +77,10 @@ namespace locic {
 			return builder_.createLocalVariable(tag, scope, name.c_str(), file, lineNumber, type);
 		}
 		
+		llvm::DIType DebugBuilder::createUnspecifiedType(const String& name) {
+			return builder_.createUnspecifiedType(name.c_str());
+		}
+		
 		llvm::DIType DebugBuilder::createVoidType() {
 			return llvm::DIType();
 		}
@@ -140,6 +146,19 @@ namespace locic {
 				functionInfo.isDefinition, functionInfo.name, functionType, function);
 		}
 		
+		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* const function, llvm::Function* const llvmFunction) {
+			const auto debugInfo = function->debugInfo();
+			
+			if (debugInfo) {
+				const auto debugSubprogramType = genDebugType(module, function->type());
+				const auto& functionInfo = *debugInfo;
+				const bool isInternal = function->moduleScope().isInternal();
+				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal));
+			} else {
+				return None;
+			}
+		}
+		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
 			assert(type.isType());
 			auto& module = function.module();
@@ -151,12 +170,26 @@ namespace locic {
 			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, varValue);
 		}
 		
-		Optional<llvm::DebugLoc> getDebugLocation(Function& function, const SEM::Value& value) {
-			const auto valueInfo = value.debugInfo();
-			if (valueInfo) {
-				const auto debugSourceLocation = valueInfo->location;
-				const auto debugStartPosition = debugSourceLocation.range().start();
-				return make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
+		llvm::DebugLoc getDebugLocation(Function& function, const Debug::SourceLocation& debugSourceLocation) {
+			const auto debugStartPosition = debugSourceLocation.range().start();
+			return llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo());
+		}
+		
+		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function, const SEM::Function& semFunction) {
+			const auto debugInfo = semFunction.debugInfo();
+			if (debugInfo) {
+				const auto debugSourceLocation = debugInfo->declLocation;
+				return make_optional(getDebugLocation(function, debugSourceLocation));
+			} else {
+				return None;
+			}
+		}
+		
+		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function, const SEM::Value& value) {
+			const auto debugInfo = value.debugInfo();
+			if (debugInfo) {
+				const auto debugSourceLocation = debugInfo->location;
+				return make_optional(getDebugLocation(function, debugSourceLocation));
 			} else {
 				return None;
 			}

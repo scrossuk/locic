@@ -1,5 +1,6 @@
 #include <vector>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -8,6 +9,7 @@
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
 

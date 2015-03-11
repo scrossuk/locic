@@ -24,6 +24,14 @@ namespace locic {
 			return index_;
 		}
 		
+		void TemplateVar::setDebugInfo(const Debug::TemplateVarInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::TemplateVarInfo> TemplateVar::debugInfo() const {
+			return debugInfo_;
+		}
+		
 		std::string TemplateVar::toString() const {
 			return makeString("TemplateVar(name = %s, index = %llu)",
 				name().toString().c_str(),

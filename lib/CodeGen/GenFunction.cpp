@@ -16,6 +16,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -189,15 +190,9 @@ namespace locic {
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			
-			const auto& functionMap = module.debugModule().functionMap;
-			const auto iterator = functionMap.find(function);
-			
-			if (iterator != functionMap.end()) {
-				const auto debugSubprogramType = genDebugType(module, function->type());
-				const auto& functionInfo = iterator->second;
-				const bool isInternal = function->moduleScope().isInternal();
-				const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal);
-				functionGenerator.attachDebugInfo(debugSubprogram);
+			const auto debugSubprogram = genDebugFunctionInfo(module, function, llvmFunction);
+			if (debugSubprogram) {
+				functionGenerator.attachDebugInfo(*debugSubprogram);
 			}
 			
 			// Generate allocas for parameters.
@@ -244,7 +239,7 @@ namespace locic {
 		 * Hence this function needs to be created so it can be
 		 * subsequently referenced.
 		 */
-		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType) {
+		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType, Optional<llvm::DebugLoc> debugLoc) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("templateFunctionStub"));
@@ -278,19 +273,18 @@ namespace locic {
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
 			
 			const auto i8PtrT = TypeGenerator(module).getI8PtrType();
-			const auto context = argInfo.hasContextArgument() ? functionGenerator.getRawContextValue() : ConstantGenerator(module).getNull(i8PtrT);
-			const auto interfaceStructValue = makeInterfaceStructValue(functionGenerator, context, typeInfoValue);
+			const auto contextPointer = argInfo.hasContextArgument() ? functionGenerator.getRawContextValue() : ConstantGenerator(module).getNull(i8PtrT);
 			
 			const auto methodHash = CreateMethodNameHash(functionName);
 			const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
-			const auto interfaceMethodValue = makeInterfaceMethodValue(functionGenerator, interfaceStructValue, methodHashValue);
+			
+			const VirtualObjectComponents objectComponents(getTypeInfoComponents(functionGenerator, typeInfoValue), contextPointer);
+			const VirtualMethodComponents methodComponents(objectComponents, methodHashValue);
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			// TODO: add debug info.
-			const auto debugLoc = None;
 			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
-			const auto result = VirtualCall::generateCall(functionGenerator, functionType, interfaceMethodValue, argList, debugLoc, hintResultValue);
+			const auto result = VirtualCall::generateCall(functionGenerator, functionType, methodComponents, argList, debugLoc, hintResultValue);
 			
 			if (hasReturnVar) {
 				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType->getFunctionReturnType());

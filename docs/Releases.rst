@@ -21,7 +21,6 @@ Released on [TODO] March 2015, version 1.2 provides:
 * Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>`
 * :doc:`C enums and unions <CompatibilityWithC>`
 * Statically checked :doc:`exception specifications <Exceptions>`
-* :doc:`Vectorised types <VectorTypes>`
 * :doc:`Unused variables and values <UnusedValues>` (replacing void cast syntax)
 
 **Standard library**
@@ -29,6 +28,26 @@ Released on [TODO] March 2015, version 1.2 provides:
 * Improvements to :doc:`Standard library strings <Strings>`
 * Standard library fibers and threads
 * Standard library events and networking
+
+**Compiler**
+
+* Added 'Array', 'StableSet' and other containers for improved performance
+* Added 'String' class for uniquifying strings
+* Substantially improved Semantic Analysis performance
+* Eliminated unnecessary generation of vtables and template generators for primitive cast/implicit_cast methods
+* Fixed various CodeGen issues by enforcing stricter rules in SEM for binding references
+* Fixed ownership semantics for various SEM types
+* Added pre-compiled header for LLVM
+
+**Examples**
+
+* Added 'Simulations' example
+* Removed 'General' example
+
+**Test**
+
+* Larger set of tests (e.g. for C enums and unions)
+* Added some initial unit tests
 
 **Other**
 
@@ -111,23 +130,24 @@ This section lists planned releases of the Loci Compiler Tools, in reverse versi
 v1.3
 ~~~~
 
-Planned for June 2015, version 1.3 aims to provide:
+Planned for Summer 2015, version 1.3 aims to provide:
 
-* ARM ABI support
-* Lambdas
 * Value-templates
 * Variadic templates
 * Template argument deduction
 * User-defined :doc:`reference types <References>`
 * User-defined function types
+* Lambdas
 * Automatic generation of :doc:`imports from exports <Modules>`.
-* Automatic generation of imports from C header files.
+* :doc:`Vectorised types <VectorTypes>`
 
 In Consideration
 ~~~~~~~~~~~~~~~~
 
 The following features have not yet been assigned a release:
 
+* ARM ABI support
+* Automatic generation of imports from C header files.
 * Windows and Mac support
 * Null coalescing operator
 * Union datatype function 'overloading' (i.e. splitting a function into multiple functions similar to a type-switch)

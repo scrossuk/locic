@@ -20,6 +20,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
+#include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -37,6 +38,7 @@ namespace locic {
 		
 		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
+			const auto debugLoc = getValueDebugLocation(function, value);
 			
 			switch (value.kind()) {
 				case SEM::Value::ZEROINITIALISE: {
@@ -44,7 +46,7 @@ namespace locic {
 				}
 				case SEM::Value::MEMCOPY: {
 					const auto copyFromValue = genValue(function, value.memCopyOperand(), hintResultValue);
-					return genMoveLoad(function, copyFromValue, value.type());
+					return genMoveLoad(function, copyFromValue, value.type(), debugLoc);
 				}
 				case SEM::Value::SELF: {
 					return function.getContextValue(value.type()->refTarget()->getObjectType());
@@ -121,7 +123,7 @@ namespace locic {
 				
 				case SEM::Value::DEREF_REFERENCE: {
 					llvm::Value* const refValue = genValue(function, value.derefOperand());
-					return genMoveLoad(function, refValue, value.type());
+					return genMoveLoad(function, refValue, value.type(), debugLoc);
 				}
 				
 				case SEM::Value::UNIONTAG: {
@@ -222,7 +224,7 @@ namespace locic {
 						   
 					if (destType->isBuiltInVoid()) {
 						// Call destructor for the value.
-						genDestructorCall(function, sourceType, codeValue);
+						genDestructorCall(function, sourceType, codeValue, debugLoc);
 						
 						// All casts to void have the same outcome.
 						return ConstantGenerator(module).getVoidUndef();
@@ -256,9 +258,9 @@ namespace locic {
 								// Store the union value.
 								const auto unionValueType = genType(function.module(), sourceType);
 								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-								genMoveStore(function, codeValue, castedUnionValuePtr, sourceType);
+								genMoveStore(function, codeValue, castedUnionValuePtr, sourceType, debugLoc);
 								
-								return genMoveLoad(function, unionValue, destType);
+								return genMoveLoad(function, unionValue, destType, debugLoc);
 							}
 							
 							assert(false && "Casts between named types not implemented.");
@@ -363,14 +365,14 @@ namespace locic {
 					const auto type = value.type();
 					assert(!type->isUnion());
 					
-					const auto objectValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, type);
+					const auto objectValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, type, debugLoc);
 					
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
 							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
 							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
-							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
+							genStoreVar(function, llvmParamValue, llvmInsertPointer, var, debugLoc);
 						}
 					} else {
 						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
@@ -388,7 +390,7 @@ namespace locic {
 							
 							const auto llvmParamValue = genValue(function, parameterValues.at(i), insertHintPointer);
 							
-							genStoreVar(function, llvmParamValue, castInsertPointer, var);
+							genStoreVar(function, llvmParamValue, castInsertPointer, var, debugLoc);
 							
 							if ((i + 1) != parameterValues.size()) {
 								// If this isn't the last field, add its size for calculating
@@ -398,7 +400,7 @@ namespace locic {
 						}
 					}
 					
-					return genMoveLoad(function, objectValue, type);
+					return genMoveLoad(function, objectValue, type, debugLoc);
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
@@ -414,7 +416,7 @@ namespace locic {
 				case SEM::Value::BIND_REFERENCE: {
 					const auto& dataValue = value.bindReferenceOperand();
 					const auto llvmDataValue = genValue(function, dataValue);
-					return genValuePtr(function, llvmDataValue, dataValue.type());
+					return genValuePtr(function, llvmDataValue, dataValue.type(), debugLoc);
 				}
 				
 				case SEM::Value::TYPEREF: {
@@ -428,32 +430,30 @@ namespace locic {
 				}
 				
 				case SEM::Value::CALL: {
-					const auto& semFunctionValue = value.callValue();
+					const auto& semCallValue = value.callValue();
 					const auto& semArgumentValues = value.callParameters();
 					
-					if (semFunctionValue.type()->isInterfaceMethod() || semFunctionValue.type()->isStaticInterfaceMethod()) {
-						const auto methodValue = genValue(function, semFunctionValue);
+					if (semCallValue.type()->isInterfaceMethod() || semCallValue.type()->isStaticInterfaceMethod()) {
+						const auto methodComponents = genVirtualMethodComponents(function, semCallValue);
 						
 						llvm::SmallVector<llvm::Value*, 10> llvmArgs;
 						for (const auto& arg: semArgumentValues) {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						const auto debugLoc = getDebugLocation(function, value);
-						return VirtualCall::generateCall(function, semFunctionValue.type(), methodValue, llvmArgs, debugLoc);
+						return VirtualCall::generateCall(function, semCallValue.type(), methodComponents, llvmArgs, debugLoc, hintResultValue);
 					}
 					
-					assert(semFunctionValue.type()->isFunction() || semFunctionValue.type()->isMethod());
+					assert(semCallValue.type()->isFunction() || semCallValue.type()->isMethod());
 					
-					if (isTrivialFunction(module, semFunctionValue)) {
-						return genTrivialFunctionCall(function, semFunctionValue, semArgumentValues);
+					if (isTrivialFunction(module, semCallValue)) {
+						return genTrivialFunctionCall(function, semCallValue, semArgumentValues, debugLoc, hintResultValue);
 					}
 					
-					const auto callInfo = genFunctionCallInfo(function, semFunctionValue);
-					const auto functionType = semFunctionValue.type()->isMethod() ?
-						semFunctionValue.type()->getMethodFunctionType() : semFunctionValue.type();
+					const auto callInfo = genFunctionCallInfo(function, semCallValue);
+					const auto functionType = semCallValue.type()->isMethod() ?
+						semCallValue.type()->getMethodFunctionType() : semCallValue.type();
 					
-					const auto debugLoc = getDebugLocation(function, value);
 					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc, hintResultValue);
 				}
 				

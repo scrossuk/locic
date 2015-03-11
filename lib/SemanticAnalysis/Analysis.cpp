@@ -29,7 +29,27 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
+		
+		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& astFunctionNode, SEM::Function* semFunction) {
+			Debug::FunctionInfo functionInfo;
+			functionInfo.isDefinition = astFunctionNode->isDefinition();
+			functionInfo.name = semFunction->name().copy();
+			functionInfo.declLocation = astFunctionNode.location();
+			
+			// TODO
+			functionInfo.scopeLocation = Debug::SourceLocation::Null();
+			return functionInfo;
+		}
+		
+		Debug::TemplateVarInfo makeTemplateVarInfo(const AST::Node<AST::TemplateTypeVar>& astTemplateVarNode) {
+			Debug::TemplateVarInfo templateVarInfo;
+			templateVarInfo.declLocation = astTemplateVarNode.location();
+			
+			// TODO
+			templateVarInfo.scopeLocation = Debug::SourceLocation::Null();
+			return templateVarInfo;
+		}
+		
 		SEM::TypeInstance::Kind ConvertTypeInstanceKind(AST::TypeInstance::Kind kind) {
 			switch (kind) {
 				case AST::TypeInstance::PRIMITIVE:
@@ -109,7 +129,7 @@ namespace locic {
 			
 			// Add template variables.
 			size_t templateVarIndex = 0;
-			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
+			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
@@ -122,6 +142,8 @@ namespace locic {
 						templateVarName.c_str(), fullTypeName.toString().c_str(),
 						astTemplateVarNode.location().toString().c_str()));
 				}
+				
+				semTemplateVar->setDebugInfo(makeTemplateVarInfo(astTemplateVarNode));
 				
 				semTypeInstance->templateVariables().push_back(semTemplateVar);
 				semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
@@ -392,17 +414,6 @@ namespace locic {
 			}
 		}
 		
-		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& astFunctionNode, SEM::Function* semFunction) {
-			Debug::FunctionInfo functionInfo;
-			functionInfo.isDefinition = astFunctionNode->isDefinition();
-			functionInfo.name = semFunction->name().copy();
-			functionInfo.declLocation = astFunctionNode.location();
-			
-			// TODO
-			functionInfo.scopeLocation = Debug::SourceLocation::Null();
-			return functionInfo;
-		}
-		
 		SEM::ModuleScope getFunctionScope(const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			if (astFunctionNode->isImported()) {
 				if (!moduleScope.isInternal()) {
@@ -464,7 +475,7 @@ namespace locic {
 			const auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope.copy());
 			
 			const auto functionInfo = makeFunctionInfo(astFunctionNode, semFunction);
-			context.debugModule().functionMap.insert(std::make_pair(semFunction, functionInfo));
+			semFunction->setDebugInfo(functionInfo);
 			
 			const auto& astParametersNode = astFunctionNode->parameters();
 			

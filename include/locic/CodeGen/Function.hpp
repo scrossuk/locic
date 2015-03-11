@@ -4,23 +4,33 @@
 #include <map>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
-
-#include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/Map.hpp>
 
-#include <locic/CodeGen/ArgInfo.hpp>
-#include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/TemplateBuilder.hpp>
-#include <locic/CodeGen/TemplatedObject.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/UnwindAction.hpp>
+#include <llvm-abi/ABI.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	class String;
+	
+	namespace SEM {
+		
+		class Type;
+		class TypeInstance;
+		class Var;
+		
+	}
+	
+	namespace CodeGen {
+		
+		class ArgInfo;
+		class Module;
+		class TemplateBuilder;
+		class TemplateInst;
+		class UnwindAction;
+		
 		static const std::string NO_FUNCTION_NAME = "";
 		
 		llvm::Function* createLLVMFunction(Module& module, const ArgInfo& argInfo, llvm::GlobalValue::LinkageTypes linkage, const String& name);
@@ -33,14 +43,47 @@ namespace locic {
 		typedef std::map<TemplateInst, llvm::Value*> TemplateGeneratorMap;
 		typedef std::vector<UnwindAction> UnwindStack;
 		
-		class Function {
+		class Function: public llvm_abi::Builder {
 			public:
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
-				void returnValue(llvm::Value* value);
+				void encodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes);
 				
+				void decodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes);
+				
+				/**
+				 * \brief Generate return instruction
+				 * 
+				 * This creates a return instruction for the value, passing
+				 * it out of the function by value (rather than setting a
+				 * return value pointer).
+				 * 
+				 * This method handles encoding the value according to the ABI.
+				 */
+				llvm::Instruction* returnValue(llvm::Value* value);
+				
+				/**
+				 * \brief Set return value for later return
+				 * 
+				 * This creates an instruction that stores the value into
+				 * allocated stack memory. A subsequent call to
+				 * getRawReturnValue() can then retrieve this.
+				 * 
+				 * This functionality is useful if the return value must
+				 * be stored before executing some number of unwind
+				 * actions (e.g. calling destructors) and then eventually
+				 * loading and returning this value.
+				 * 
+				 * This method handles encoding the value according to the ABI.
+				 */
 				void setReturnValue(llvm::Value* value);
 				
+				/**
+				 * \brief Retrieve previously stored return value
+				 * 
+				 * Retrieves the previously stored return value from
+				 * setReturnValue().
+				 */
 				llvm::Value* getRawReturnValue();
 				
 				llvm::Function& getLLVMFunction();
@@ -143,6 +186,7 @@ namespace locic {
 				llvm::Function& function_;
 				
 				llvm::IRBuilder<> entryBuilder_, builder_;
+				bool createdEntryBlock_;
 				bool useEntryBuilder_;
 				
 				const ArgInfo& argInfo_;

@@ -20,6 +20,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -111,53 +112,10 @@ namespace locic {
 				return argsStructPtr;
 			}
 			
-			struct MethodComponents {
-				llvm::Value* objectPointer;
-				llvm::Value* vtablePointer;
-				llvm::Value* templateGeneratorValue;
-				llvm::Value* hashValue;
-				
-				inline MethodComponents(
-					llvm::Value* pObjectPointer,
-					llvm::Value* pVtablePointer,
-					llvm::Value* pTemplateGeneratorValue,
-					llvm::Value* pHashValue
-					) :
-					objectPointer(pObjectPointer),
-					vtablePointer(pVtablePointer),
-					templateGeneratorValue(pTemplateGeneratorValue),
-					hashValue(pHashValue) { }
-			};
-			
-			MethodComponents getComponents(Function& function, const bool isStatic, llvm::Value* interfaceMethodValue) {
+			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, llvm::Value* returnVarPointer,
+					const VirtualMethodComponents methodComponents, llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
-				
-				if (isStatic) {
-					const auto objectPointer = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
-					const auto typeInfoValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "typeInfo");
-					const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
-					const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
-					const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
-					return MethodComponents(objectPointer, vtablePointer, templateGeneratorValue, hashValue);
-				} else {
-					const auto interfaceValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "interface");
-					const auto objectPointer = builder.CreateExtractValue(interfaceValue, { 0 }, "object");
-					const auto typeInfoValue = builder.CreateExtractValue(interfaceValue, { 1 }, "typeInfo");
-					const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
-					const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
-					const auto hashValue = builder.CreateExtractValue(interfaceMethodValue, { 1 }, "methodHash");
-					return MethodComponents(objectPointer, vtablePointer, templateGeneratorValue, hashValue);
-				}
-			}
-			
-			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, bool isStatic, llvm::Value* returnVarPointer,
-					llvm::Value* interfaceMethodValue, llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc) {
-				auto& builder = function.getBuilder();
-				auto& module = function.module();
-				
-				// Extract the components of the interface method struct.
-				const auto methodComponents = getComponents(function, isStatic, interfaceMethodValue);
 				
 				// Calculate the slot for the virtual call.
 				ConstantGenerator constantGen(function.module());
@@ -172,7 +130,7 @@ namespace locic {
 				vtableEntryGEP.push_back(constantGen.getI32(4));
 				vtableEntryGEP.push_back(castVTableOffsetValue);
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(methodComponents.vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = builder.CreateInBoundsGEP(methodComponents.object.typeInfo.vtablePointer, vtableEntryGEP, "vtableEntryPointer");
 				
 				// Load the slot.
 				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
@@ -194,10 +152,10 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(returnVarPointer, i8PtrType, "castedReturnVarPtr"));
 				
 				// Pass in the template generator.
-				parameters.push_back(methodComponents.templateGeneratorValue);
+				parameters.push_back(methodComponents.object.typeInfo.templateGenerator);
 				
 				// Pass in the object pointer.
-				parameters.push_back(builder.CreatePointerCast( methodComponents.objectPointer, i8PtrType, "castedObjectPtr"));
+				parameters.push_back(builder.CreatePointerCast(methodComponents.object.objectPointer, i8PtrType, "castedObjectPtr"));
 				
 				// Pass in the method hash value.
 				parameters.push_back(methodComponents.hashValue);
@@ -211,11 +169,10 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters, debugLoc);
 			}
 			
-			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, llvm::Value* interfaceMethodValue,
+			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, const VirtualMethodComponents methodComponents,
 					llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
-				const bool isStatic = callableType->isStaticInterfaceMethod();
-				
 				const auto functionType = callableType->getCallableFunctionType();
+				assert(functionType->isFunction());
 				
 				const auto returnType = functionType->getFunctionReturnType();
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
@@ -227,13 +184,13 @@ namespace locic {
 				const auto returnVarValue = hasReturnVar ?
 					(hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType)) : constGen.getNullPointer(i8PtrType);
 				
-				generateCallWithReturnVar(function, functionType, isStatic, returnVarValue, interfaceMethodValue, args, debugLoc);
+				generateCallWithReturnVar(function, functionType, returnVarValue, methodComponents, args, debugLoc);
 				
 				// If the return type isn't void, load the return value from the stack.
 				return hasReturnVar ? genMoveLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
 			}
 			
-			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
+			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind, Optional<llvm::DebugLoc> debugLoc) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -256,7 +213,7 @@ namespace locic {
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue });
+				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue }, debugLoc);
 			}
 			
 			ArgInfo virtualMoveArgInfo(Module& module) {
@@ -265,7 +222,7 @@ namespace locic {
 			}
 			
 			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue,
-					llvm::Value* destValue, llvm::Value* positionValue) {
+					llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -289,14 +246,14 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args, debugLoc);
 			}
 			
 			ArgInfo virtualDestructorArgInfo(Module& module) {
 				return ArgInfo::VoidTemplateAndContext(module).withNoExcept();
 			}
 			
-			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue) {
+			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue, Optional<llvm::DebugLoc> debugLoc) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -320,7 +277,7 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, objectValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args, debugLoc);
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, const SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
