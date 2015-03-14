@@ -1,0 +1,4 @@
+template <bool V>
+class C () { }
+
+import C<true> f();

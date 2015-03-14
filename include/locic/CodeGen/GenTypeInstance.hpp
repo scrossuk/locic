@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance);
+		llvm::StructType* genTypeInstance(Module& module, const SEM::TypeInstance* typeInstance);
 		
 	}
 	

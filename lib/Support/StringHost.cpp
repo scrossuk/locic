@@ -1,8 +1,8 @@
 #include <memory>
 #include <string>
 
-#include <locic/FastMap.hpp>
-#include <locic/StableSet.hpp>
+#include <locic/Support/FastMap.hpp>
+#include <locic/Support/StableSet.hpp>
 #include <locic/Support/StringHost.hpp>
 
 namespace locic {

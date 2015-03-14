@@ -67,7 +67,7 @@ namespace locic {
 					
 					auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("empty"), location), {}, location);
 					auto isNotEmpty = CallValue(context, GetMethod(context, std::move(isEmpty), context.getCString("not"), location), {}, location);
-					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), getBuiltInType(context.scopeStack(), context.getCString("bool"), {}), location);
+					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), getBuiltInType(context, context.getCString("bool"), {}), location);
 					
 					auto iterationScope = SEM::Scope::Create();
 					

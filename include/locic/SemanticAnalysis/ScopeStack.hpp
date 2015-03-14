@@ -94,7 +94,9 @@ namespace locic {
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		
-		const SEM::Type* getBuiltInType(const ScopeStack& scopeStack, const String& typeName, SEM::TypeArray templateArgs);
+		class Context;
+		
+		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs);
 		
 	}
 	

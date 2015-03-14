@@ -1,4 +1,4 @@
-#include <locic/StableSet.hpp>
+#include <locic/Support/StableSet.hpp>
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Namespace.hpp>

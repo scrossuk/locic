@@ -3,13 +3,14 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
@@ -69,32 +70,43 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
-					// Add template var -> type assignments to map.
+					// Add template var -> value assignments to map.
 					for (size_t j = 0; j < templateVariables.size(); j++) {
-						const auto templateTypeValue = ConvertType(context, astTemplateArgs->at(j))->resolveAliases();
+						const auto& templateVar = templateVariables[j];
+						auto templateValue = ConvertValue(context, astTemplateArgs->at(j));
+						
+						if (templateVar->type() != templateValue.type()->withoutTags()) {
+							throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
+								templateValue.toString().c_str(), templateValue.type()->toString().c_str(),
+								templateVar->type()->toString().c_str(),
+								templateVar->name().toString().c_str(), location.toString().c_str()));
+						}
 						
 						// Presumably auto will always work...
-						if (!templateTypeValue->isAuto()) {
-							if (!templateTypeValue->isObjectOrTemplateVar()) {
-								throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
-									"as template parameter %llu for function or type '%s' at position %s.",
-									templateTypeValue->toString().c_str(),
-									(unsigned long long) j,
-									name.toString().c_str(),
-									location.toString().c_str()));
-							}
-							
-							if (templateTypeValue->isInterface()) {
-								throw ErrorException(makeString("Cannot use abstract type '%s' "
-									"as template parameter %llu for function or type '%s' at position %s.",
-									templateTypeValue->getObjectType()->name().toString().c_str(),
-									(unsigned long long) j,
-									name.toString().c_str(),
-									location.toString().c_str()));
+						if (templateValue.isTypeRef()) {
+							const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
+							if (!templateTypeValue->isAuto()) {
+								if (!templateTypeValue->isObjectOrTemplateVar()) {
+									throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
+										"as template parameter %llu for function or type '%s' at position %s.",
+										templateTypeValue->toString().c_str(),
+										(unsigned long long) j,
+										name.toString().c_str(),
+										location.toString().c_str()));
+								}
+								
+								if (templateTypeValue->isInterface()) {
+									throw ErrorException(makeString("Cannot use abstract type '%s' "
+										"as template parameter %llu for function or type '%s' at position %s.",
+										templateTypeValue->getObjectType()->name().toString().c_str(),
+										(unsigned long long) j,
+										name.toString().c_str(),
+										location.toString().c_str()));
+								}
 							}
 						}
 						
-						variableAssignments.insert(std::make_pair(templateVariables.at(j), templateTypeValue));
+						variableAssignments.insert(std::make_pair(templateVariables.at(j), std::move(templateValue)));
 					}
 					
 					// Check the assignments satisfy the requires predicate.
@@ -110,7 +122,10 @@ namespace locic {
 						// Requires predicate is already known so check it immediately.
 						const auto& requiresPredicate = templatedObject->requiresPredicate();
 						
-						if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
+						// Conservatively assume require predicate is not satisified if result is undetermined.
+						const bool satisfiesRequiresDefault = false;
+						
+						if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
 							throw ErrorException(makeString("Template arguments do not satisfy "
 								"requires predicate '%s' of function or type '%s' at position %s.",
 								requiresPredicate.toString().c_str(),
@@ -137,12 +152,25 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		SEM::TypeArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
-			SEM::TypeArray templateArguments;
+		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
+			SEM::ValueArray templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {
-				templateArguments.push_back(templateVarMap.at(templateVar));
+				templateArguments.push_back(templateVarMap.at(templateVar).copy());
 			}
+			return templateArguments;
+		}
+		
+		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray) {
+			SEM::ValueArray templateArguments;
+			templateArguments.reserve(typeArray.size());
+			
+			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+			
+			for (const auto& arg: typeArray) {
+				templateArguments.push_back(SEM::Value::TypeRef(arg, typenameType));
+			}
+			
 			return templateArguments;
 		}
 		

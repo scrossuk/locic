@@ -1,0 +1,9 @@
+# Template tests.
+
+test_check_success(ClassBoolTemplate)
+test_check_success(ClassBoolTemplateConstPredicate)
+test_check_success(ClassBoolTemplateRequirePredicate)
+test_check_success(ClassBoolTemplateValue)
+test_check_success(ClassTypenameTemplate)
+test_check_success(ClassTypenameTemplateValue)
+

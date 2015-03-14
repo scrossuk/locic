@@ -9,7 +9,7 @@
 
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
 
 namespace locic {
 	

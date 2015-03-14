@@ -22,19 +22,19 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveRef: {
-					if (type->templateArguments().at(0)->isInterface()) {
+					if (type->templateArguments().front().typeRefType()->isInterface()) {
 						return interfaceStructType(module).second;
 					} else {
-						return genPointerType(module, type->templateArguments().at(0));
+						return genPointerType(module, type->templateArguments().front().typeRefType());
 					}
 				}
 				case PrimitivePtr:
 				case PrimitivePtrLval:
-					return genPointerType(module, type->templateArguments().at(0));
+					return genPointerType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveValueLval: {
 					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
 						TypeGenerator typeGen(module);
-						const auto targetType = genType(module, type->templateArguments().at(0));
+						const auto targetType = genType(module, type->templateArguments().front().typeRefType());
 						llvm::Type* const types[] = { targetType, typeGen.getI1Type() };
 						return typeGen.getStructType(types);
 					}
@@ -43,7 +43,7 @@ namespace locic {
 				case PrimitiveMemberLval:
 				case PrimitiveFinalLval: {
 					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
-						return genType(module, type->templateArguments().at(0));
+						return genType(module, type->templateArguments().front().typeRefType());
 					}
 					break;
 				}
@@ -228,7 +228,7 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveRef: {
-					if (type->templateArguments().at(0)->isInterface()) {
+					if (type->templateArguments().front().typeRefType()->isInterface()) {
 						return interfaceStructType(module).first;
 					} else {
 						return llvm_abi::Type::Pointer(abiContext);
@@ -239,13 +239,13 @@ namespace locic {
 					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveValueLval: {
 					llvm::SmallVector<llvm_abi::Type*, 2> members;
-					members.push_back(genABIType(module, type->templateArguments().at(0)));
+					members.push_back(genABIType(module, type->templateArguments().front().typeRefType()));
 					members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Bool));
 					return llvm_abi::Type::AutoStruct(abiContext, members);
 				}
 				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
-					return genABIType(module, type->templateArguments().at(0));
+					return genABIType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveTypename:
 					return typeInfoType(module).first;
 				default:

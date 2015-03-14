@@ -41,7 +41,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	
 	testPrint(C"constInst value = %d", constInst.getValue());
 	
-	testPrint(C"constInst value (by const pointer) = %d", *(constInst.pointer<const>()));
+	testPrint(C"constInst value (by const pointer) = %d", *(constInst.pointer<true>()));
 	
 	return 0;
 }

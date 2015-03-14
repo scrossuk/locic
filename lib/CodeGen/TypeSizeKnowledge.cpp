@@ -8,7 +8,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool isObjectTypeSizeKnownInThisModule(Module& module, SEM::TypeInstance* objectType) {
+		bool isObjectTypeSizeKnownInThisModule(Module& module, const SEM::TypeInstance* const objectType) {
 			if (objectType->isEnum() || objectType->isStruct() || objectType->isUnion()) {
 				// C types can only contain known size members.
 				return true;
@@ -33,7 +33,7 @@ namespace locic {
 			}
 		}
 		
-		bool isTypeSizeKnownInThisModule(Module& module, const SEM::Type* type) {
+		bool isTypeSizeKnownInThisModule(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
@@ -55,7 +55,7 @@ namespace locic {
 			}
 		}
 		
-		bool isObjectTypeSizeAlwaysKnown(Module& module, SEM::TypeInstance* objectType) {
+		bool isObjectTypeSizeAlwaysKnown(Module& module, const SEM::TypeInstance* const objectType) {
 			if (objectType->isEnum() || objectType->isStruct() || objectType->isUnion()) {
 				// C types can only contain known size members.
 				return true;
@@ -80,7 +80,7 @@ namespace locic {
 			}
 		}
 		
-		bool isTypeSizeAlwaysKnown(Module& module, const SEM::Type* type) {
+		bool isTypeSizeAlwaysKnown(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:

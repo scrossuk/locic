@@ -88,7 +88,7 @@ namespace locic {
 			const auto iterator = parentNamespace->items().find(typeInstanceName);
 			if (iterator != parentNamespace->items().end()) {
 				const auto existingTypeInstance = iterator->second.typeInstance();
-				const auto& debugInfo = context.debugModule().typeInstanceMap.at(existingTypeInstance);
+				const auto& debugInfo = *(existingTypeInstance->debugInfo());
 				throw ErrorException(makeString("Type instance name '%s', at position %s, clashes with existing name, at position %s.",
 					fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str(),
 					debugInfo.location.toString().c_str()));
@@ -125,7 +125,7 @@ namespace locic {
 			
 			parentNamespace->items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(semTypeInstance)));
 			
-			context.debugModule().typeInstanceMap.insert(std::make_pair(semTypeInstance, Debug::TypeInstanceInfo(astTypeInstanceNode.location())));
+			semTypeInstance->setDebugInfo(Debug::TypeInstanceInfo(astTypeInstanceNode.location()));
 			
 			// Add template variables.
 			size_t templateVarIndex = 0;
@@ -152,7 +152,7 @@ namespace locic {
 			if (semTypeInstance->isUnionDatatype()) {
 				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
-					variantTypeInstance->setParent(semTypeInstance->selfType());
+					variantTypeInstance->setParent(semTypeInstance);
 					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables();
 					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables().copy();
 					semTypeInstance->variants().push_back(variantTypeInstance);
@@ -257,6 +257,69 @@ namespace locic {
 			}
 		}
 		
+		void AddTypeAliasTemplateVariableTypes(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
+			const auto typeAlias = context.scopeStack().back().typeAlias();
+			
+			// Add types of template variables.
+			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = typeAlias->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astVarType = astTemplateVarNode->varType;
+				const auto semVarType = ConvertType(context, astVarType);
+				semTemplateVar->setType(semVarType);
+			}
+		}
+		
+		void AddTypeInstanceTemplateVariableTypes(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+			const auto typeInstance = context.scopeStack().back().typeInstance();
+			
+			// Add types of template variables.
+			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
+				const auto& templateVarName = astTemplateVarNode->name;
+				const auto semTemplateVar = typeInstance->namedTemplateVariables().at(templateVarName);
+				
+				const auto& astVarType = astTemplateVarNode->varType;
+				const auto semVarType = ConvertType(context, astVarType);
+				semTemplateVar->setType(semVarType);
+			}
+		}
+		
+		void AddNamespaceDataTypeTemplateVariableTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				AddNamespaceDataTypeTemplateVariableTypes(context, astModuleScopeNode->data);
+			}
+			
+			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data);
+			}
+			
+			for (auto astTypeAliasNode: astNamespaceDataNode->typeAliases) {
+				const auto semChildTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(semChildTypeAlias));
+				AddTypeAliasTemplateVariableTypes(context, astTypeAliasNode);
+			}
+			
+			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				AddTypeInstanceTemplateVariableTypes(context, astTypeInstanceNode);
+			}
+		}
+		
+		void AddTemplateVariableTypesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (auto astNamespaceNode: rootASTNamespaces) {
+				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data);
+			}
+		}
+		
 		void AddNamespaceDataAliasValues(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			
@@ -294,7 +357,7 @@ namespace locic {
 			
 			if (semTypeInstance->isEnum()) {
 				// Enums have underlying type 'int'.
-				const auto underlyingType = getBuiltInType(context.scopeStack(), context.getCString("int_t"), {});
+				const auto underlyingType = getBuiltInType(context, context.getCString("int_t"), {});
 				const auto var = SEM::Var::Basic(underlyingType, underlyingType);
 				semTypeInstance->variables().push_back(var);
 			}
@@ -324,8 +387,8 @@ namespace locic {
 							}
 							
 							if (childTypeInstance->isException()) {
-								if (childTypeInstance->parent() != nullptr) {
-									visitFn(visitFnVoid, childTypeInstance->parent());
+								if (childTypeInstance->parentType() != nullptr) {
+									visitFn(visitFnVoid, childTypeInstance->parentType());
 								}
 							}
 							
@@ -337,7 +400,7 @@ namespace locic {
 					
 					visitor(&visitor, semType);
 					
-					semTypeInstance->setParent(semType);
+					semTypeInstance->setParentType(semType);
 					
 					// Also add parent as first member variable.
 					const auto var = SEM::Var::Basic(semType, semType);
@@ -852,13 +915,15 @@ namespace locic {
 					GenerateTypeDefaultMethods(context, variantTypeInstance, completedTypes);
 				}
 			} else {
-				if (typeInstance->isException() && typeInstance->parent() != nullptr) {
-					GenerateTypeDefaultMethods(context, typeInstance->parent()->getObjectType(), completedTypes);
+				if (typeInstance->isException() && typeInstance->parentType() != nullptr) {
+					// TODO: remove const_cast
+					GenerateTypeDefaultMethods(context, const_cast<SEM::TypeInstance*>(typeInstance->parentType()->getObjectType()), completedTypes);
 				}
 				
 				for (const auto var: typeInstance->variables()) {
 					if (!var->constructType()->isObject()) continue;
-					GenerateTypeDefaultMethods(context, var->constructType()->getObjectType(), completedTypes);
+					// TODO: remove const_cast
+					GenerateTypeDefaultMethods(context, const_cast<SEM::TypeInstance*>(var->constructType()->getObjectType()), completedTypes);
 				}
 			}
 			
@@ -956,7 +1021,10 @@ namespace locic {
 				// (and then swap them back afterwards).
 				SwapScopeStack swapScopeStack(context.scopeStack(), savedScopeStack);
 				
-				if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
+				// Conservatively assume require predicate is not satisified if result is undetermined.
+				const bool satisfiesRequiresDefault = false;
+				
+				if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
 					throw ErrorException(makeString("Template arguments do not satisfy "
 						"requires predicate '%s' of function or type '%s' at position %s.",
 						requiresPredicate.toString().c_str(),
@@ -980,28 +1048,32 @@ namespace locic {
 				// ---- Pass 1: Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);
 				
-				// ---- Pass 2: Add alias values.
+				// ---- Pass 2: Add types of template variables.
+				AddTemplateVariableTypesPass(context, rootASTNamespaces);
+				
+				// ---- Pass 3: Add alias values.
 				AddAliasValuesPass(context, rootASTNamespaces);
 				
-				// ---- Pass 3: Add type member variables.
+				// ---- Pass 4: Add type member variables.
 				AddTypeMemberVariablesPass(context, rootASTNamespaces);
 				
-				// ---- Pass 4: Create function declarations.
+				// ---- Pass 5: Create function declarations.
 				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 5: Complete type template variable requirements.
+				// ---- Pass 6: Complete type template variable requirements.
 				CompleteTypeTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 6: Complete function template variable requirements.
+				// ---- Pass 7: Complete function template variable requirements.
 				CompleteFunctionTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 7: Generate default methods.
+				// ---- Pass 8: Generate default methods.
 				GenerateDefaultMethodsPass(context);
 				
-				// ---- Pass 8: Check all previous template instantiations are correct.
+				// ---- Pass 9: Check all previous template instantiations are correct
+				//              (all methods created by this point).
 				CheckTemplateInstantiationsPass(context);
 				
-				// ---- Pass 9: Fill in function code.
+				// ---- Pass 10: Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());

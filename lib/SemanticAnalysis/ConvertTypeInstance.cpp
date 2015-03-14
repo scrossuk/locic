@@ -18,10 +18,10 @@ namespace locic {
 			
 			auto functionScope = SEM::Scope::Create();
 			
-			std::vector<SEM::Value> constructValues;
+			HeapArray<SEM::Value> constructValues;
 			
 			const auto intConstant = Constant::Integer(static_cast<Constant::IntegerVal>(value));
-			const auto intType = getBuiltInType(context.scopeStack(), context.getCString("int_t"), {});
+			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
 			constructValues.push_back(SEM::Value::Constant(intConstant, intType));
 			
 			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));

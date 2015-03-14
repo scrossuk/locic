@@ -2,7 +2,7 @@
 #include <vector>
 
 #include <locic/Constant.hpp>
-#include <locic/MakeArray.hpp>
+#include <locic/Support/MakeArray.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -62,10 +62,10 @@ namespace locic {
 			// Move never throws.
 			const bool isNoExcept = true;
 			
-			const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
-			const auto voidPtrType = getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { voidType });
+			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+			const auto voidPtrType = getBuiltInType(context, context.getCString("__ptr"), { voidType });
 			
-			const auto sizeType = getBuiltInType(context.scopeStack(), context.getCString("size_t"), {});
+			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(2);
@@ -201,7 +201,7 @@ namespace locic {
 			
 			const auto selfType = typeInstance->selfType();
 			const auto argType = createReferenceType(context, selfType->createConstType());
-			const auto compareResultType = getBuiltInType(context.scopeStack(), context.getCString("compare_result_t"), {});
+			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(1);
@@ -347,7 +347,9 @@ namespace locic {
 				functionScope->statements().push_back(SEM::Statement::Return(SEM::Value::ZeroInitialise(typeInstance->selfType())));
 				function->setScope(std::move(functionScope));
 			} else {
-				std::vector<SEM::Value> constructValues;
+				HeapArray<SEM::Value> constructValues;
+				constructValues.reserve(function->parameters().size());
+				
 				for (const auto& argVar: function->parameters()) {
 					auto argVarValue = createLocalVarRef(context, *argVar);
 					constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), context.getCString("move"), location), {}, location));
@@ -371,8 +373,8 @@ namespace locic {
 			const auto positionVar = function->parameters().at(1);
 			const auto positionValue = createLocalVarRef(context, *positionVar);
 			
-			const auto ubyteType = getBuiltInType(context.scopeStack(), context.getCString("ubyte_t"), {});
-			const auto sizeType = getBuiltInType(context.scopeStack(), context.getCString("size_t"), {});
+			const auto ubyteType = getBuiltInType(context, context.getCString("ubyte_t"), {});
+			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
 			
 			if (typeInstance->isUnion()) {
 				// TODO!
@@ -383,7 +385,7 @@ namespace locic {
 					auto tagValue = SEM::Value::UnionTag(selfValue.copy(), ubyteType);
 					auto tagRefValue = bindReference(context, std::move(tagValue));
 					
-					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), positionValue.copy() );
+					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), positionValue.copy() );
 					
 					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(tagRefValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
 					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
@@ -392,7 +394,7 @@ namespace locic {
 				// Calculate the position of the union data so that this
 				// can be passed to the move methods of the union types.
 				auto unionDataOffset = SEM::Value::UnionDataOffset(typeInstance, sizeType);
-				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeArray( std::move(unionDataOffset) ), location);
+				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeHeapArray( std::move(unionDataOffset) ), location);
 				
 				std::vector<SEM::SwitchCase*> switchCases;
 				for (const auto variantTypeInstance: typeInstance->variants()) {
@@ -401,7 +403,7 @@ namespace locic {
 					auto caseVarValue = createLocalVarRef(context, *caseVar);
 					
 					auto caseScope = SEM::Scope::Create();
-					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), unionDataPosition.copy() );
+					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), unionDataPosition.copy() );
 					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(caseVarValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
 					caseScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
 					caseScope->statements().push_back(SEM::Statement::ReturnVoid());
@@ -413,9 +415,9 @@ namespace locic {
 				for (size_t i = 0; i < typeInstance->variables().size(); i++) {
 					const auto& memberVar = typeInstance->variables().at(i);
 					auto memberOffset = SEM::Value::MemberOffset(typeInstance, i, sizeType);
-					auto memberPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeArray( std::move(memberOffset) ), location);
+					auto memberPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeHeapArray( std::move(memberOffset) ), location);
 					
-					std::vector<SEM::Value> moveArgs = makeArray( ptrValue.copy(), std::move(memberPosition) );
+					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), std::move(memberPosition) );
 					auto selfMember = createMemberVarRef(context, selfValue.copy(), *memberVar);
 					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), context.getCString("__moveto"), location), std::move(moveArgs), location);
 					
@@ -452,7 +454,8 @@ namespace locic {
 				}
 				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), std::move(switchCases), nullptr));
 			} else {
-				std::vector<SEM::Value> copyValues;
+				HeapArray<SEM::Value> copyValues;
+				copyValues.reserve(typeInstance->variables().size());
 				
 				for (const auto memberVar: typeInstance->variables()) {
 					auto selfMember = tryDissolveValue(context, createMemberVarRef(context, selfValue.copy(), *memberVar), location);
@@ -479,7 +482,7 @@ namespace locic {
 			assert(!typeInstance->isUnion());
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
-			const auto compareResultType = getBuiltInType(context.scopeStack(), context.getCString("compare_result_t"), {});
+			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
 			
 			const auto operandVar = function->parameters().at(0);
 			const auto operandValue = createLocalVarRef(context, *operandVar);
@@ -511,7 +514,7 @@ namespace locic {
 						} else if (i > j) {
 							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(plusOneConstant)));
 						} else {
-							auto compareResult = CallValue(context, GetMethod(context, caseVarValue.copy(), context.getCString("compare"), location), makeArray( std::move(subCaseVarValue) ), location);
+							auto compareResult = CallValue(context, GetMethod(context, caseVarValue.copy(), context.getCString("compare"), location), makeHeapArray( std::move(subCaseVarValue) ), location);
 							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(compareResult)));
 						}
 						
@@ -531,7 +534,7 @@ namespace locic {
 					auto selfMember = createMemberVarRef(context, selfValue.copy(), *memberVar);
 					auto operandMember = createMemberVarRef(context, operandValue.copy(), *memberVar);
 					
-					auto compareResult = CallValue(context, GetMethod(context, std::move(selfMember), context.getCString("compare"), location), makeArray( std::move(operandMember) ), location);
+					auto compareResult = CallValue(context, GetMethod(context, std::move(selfMember), context.getCString("compare"), location), makeHeapArray( std::move(operandMember) ), location);
 					auto isEqual = CallValue(context, GetMethod(context, compareResult.copy(), context.getCString("isEqual"), location), {}, location);
 					
 					auto ifTrueScope = SEM::Scope::Create();

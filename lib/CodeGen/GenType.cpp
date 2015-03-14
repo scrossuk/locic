@@ -128,20 +128,21 @@ namespace locic {
 							case PrimitiveNull:
 								return module.debugBuilder().createNullType();
 							case PrimitivePtr:
-								return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front()));
+								return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front().typeRefType()));
 							case PrimitiveInt:
 								return module.debugBuilder().createIntType(module.getCString("int_t"));
 							case PrimitiveRef:
-								return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front()));
+								return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
 							default:
 								break;
 						}
 					}
 					
-					const auto iterator = module.debugModule().typeInstanceMap.find(objectType);
+					const auto debugInfo = objectType->debugInfo();
 					
-					if (iterator != module.debugModule().typeInstanceMap.end()) {
-						const auto& location = iterator->second.location;
+					if (debugInfo) {
+						const auto& typeInstanceInfo = *debugInfo;
+						const auto& location = typeInstanceInfo.location;
 						const auto file = module.debugBuilder().createFile(location.fileName());
 						const auto lineNumber = location.range().start().lineNumber();
 						return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());

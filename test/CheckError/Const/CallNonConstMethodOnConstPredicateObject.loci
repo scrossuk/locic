@@ -1,0 +1,18 @@
+template <bool IsConst>
+class TestClass(int value) {
+	static create = default;
+	
+	void doSomething() const(IsConst) {
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	const auto constPredicatedObject = TestClass<true>(10);
+	constPredicatedObject.doSomething();
+	
+	const auto object = TestClass<false>(10);
+	object.doSomething();
+	return 0;
+}
+

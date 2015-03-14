@@ -423,9 +423,10 @@ const T& GETSYM(T* value) {
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarList> templateTypeVarList
 
-%type <type> templateArgument
-%type <typeList> templateArgumentList
-%type <typeList> templateValueList
+%type <value> templateArgument
+%type <valueList> emptyTemplateArgumentList
+%type <valueList> templateArgumentList
+%type <valueList> templateValueList
 
 %type <string> functionNameElement
 %type <name> functionName
@@ -1072,16 +1073,16 @@ destructorName:
 symbolElement:
 	NAME
 	{
-		const auto emptyTypeList = locic::AST::makeNode(LOC(&@1), new locic::AST::TypeList());
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, emptyTypeList)));
+		const auto emptyArgList = locic::AST::makeNode(LOC(&@1), new locic::AST::ValueList());
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, emptyArgList)));
 	}
 	| NAME LTRIBRACKET templateValueList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement($1, GETSYM($3))));
 	}
-	| TYPENAME emptyTypeList
+	| TYPENAME emptyTemplateArgumentList
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement(parserContext->getCString("typename_type"), GETSYM($2))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::SymbolElement(parserContext->getCString("typename_t"), GETSYM($2))));
 	}
 	;
 
@@ -1388,17 +1389,28 @@ typeList:
 	}
 	;
 
+emptyTemplateArgumentList:
+	// empty
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList()));
+	}
+	;
+
 templateArgument:
 	type
 	{
-		$$ = $1;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
+	}
+	| constant
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Literal(parserContext->getCString(""), GETSYM($1))));
 	}
 	;
 
 templateArgumentList:
 	templateArgument
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeList(1, GETSYM($1))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList(1, GETSYM($1))));
 	}
 	| templateArgumentList COMMA templateArgument
 	{

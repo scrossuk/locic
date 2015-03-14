@@ -2,6 +2,7 @@
 #define LOCIC_DEBUG_HPP
 
 #include <locic/Debug/CompilerInfo.hpp>
+#include <locic/Debug/FunctionInfo.hpp>
 #include <locic/Debug/Module.hpp>
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/StatementInfo.hpp>

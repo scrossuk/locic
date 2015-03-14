@@ -14,6 +14,7 @@ namespace locic {
 		class Context;
 		class Type;
 		class TypeInstance;
+		class Value;
 		
 		class TemplateVar {
 			public:
@@ -26,8 +27,9 @@ namespace locic {
 				size_t index() const;
 				
 				void setType(const Type* type);
-				
 				const Type* type() const;
+				
+				Value selfRefValue() const;
 				
 				void setDebugInfo(Debug::TemplateVarInfo debugInfo);
 				Optional<Debug::TemplateVarInfo> debugInfo() const;

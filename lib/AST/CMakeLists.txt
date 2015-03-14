@@ -9,5 +9,7 @@ add_library(locic-ast
 	Type.cpp
 	TypeAlias.cpp
 	TypeInstance.cpp
-	TypeVar.cpp)
+	TypeVar.cpp
+	Value.cpp
+)
 

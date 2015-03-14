@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <locic/Copy.hpp>
+#include <locic/Support/Copy.hpp>
 
 namespace locic{
 	

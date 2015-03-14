@@ -4,17 +4,19 @@
 #include <vector>
 
 #include <locic/AST.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
+	
 	namespace SemanticAnalysis {
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
-		SEM::TypeArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
+		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
+		
+		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray);
 		
 	}
 	

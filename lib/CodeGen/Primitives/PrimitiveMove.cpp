@@ -39,7 +39,7 @@ namespace locic {
 			const auto& typeName = type->getObjectType()->name().last();
 			
 			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
 				
 				const auto castType = typeSizeIsKnown ? genPointerType(module, type) : TypeGenerator(module).getI8PtrType();
@@ -66,7 +66,7 @@ namespace locic {
 				
 				function.selectBasicBlock(afterBB);
 			} else if (typeName == "final_lval" || typeName == "member_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				genMoveCall(function, targetType, sourceValue, destValue, positionValue, debugLoc);
 			}
 		}
@@ -75,7 +75,7 @@ namespace locic {
 			assert(type->isPrimitive());
 			const auto& name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasCustomMove(module, type->templateArguments().front());
+			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
 		}
 		
 		bool primitiveTypeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance) {

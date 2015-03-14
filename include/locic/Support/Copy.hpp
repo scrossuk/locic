@@ -1,7 +1,8 @@
-#ifndef LOCIC_COPY_HPP
-#define LOCIC_COPY_HPP
+#ifndef LOCIC_SUPPORT_COPY_HPP
+#define LOCIC_SUPPORT_COPY_HPP
 
 #include <type_traits>
+#include <utility>
 
 namespace locic{
 	
@@ -24,6 +25,11 @@ namespace locic{
 	typename std::enable_if<!std::is_copy_constructible<T>::value, T>::type
 	copyObject(const T& object) {
 		return object.copy();
+	}
+	
+	template <typename A, typename B>
+	std::pair<A, B> copyObject(const std::pair<A, B>& object) {
+		return std::make_pair(copyObject(object.first), copyObject(object.second));
 	}
 	
 }

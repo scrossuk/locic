@@ -168,10 +168,10 @@ namespace locic {
 			
 			const auto& typeName = type->getObjectType()->name().last();
 			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				return genAlignMask(function, targetType);
 			} else if (typeName == "member_lval" || typeName == "final_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				return genAlignMask(function, targetType);
 			} else {
 				return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
@@ -184,10 +184,10 @@ namespace locic {
 			
 			const auto& typeName = type->getObjectType()->name().last();
 			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				return function.getBuilder().CreateAdd(genAlignOf(function, targetType), genSizeOf(function, targetType));
 			} else if (typeName == "member_lval" || typeName == "final_lval") {
-				const auto targetType = type->templateArguments().front();
+				const auto targetType = type->templateArguments().front().typeRefType();
 				return genSizeOf(function, targetType);
 			} else {
 				return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));

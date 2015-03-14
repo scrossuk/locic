@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
@@ -23,13 +23,13 @@ namespace locic {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
 			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
-			return getBuiltInType(context.scopeStack(), fullNameString, {});
+			return getBuiltInType(context, fullNameString, {});
 		}
 		
 		const SEM::Type* ConvertFloatType(Context& context, const String& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = nameString + "_t";
-			return getBuiltInType(context.scopeStack(), fullNameString, {});
+			return getBuiltInType(context, fullNameString, {});
 		}
 		
 		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
@@ -67,7 +67,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* createPointerType(Context& context, const SEM::Type* const varType) {
-			return getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { varType });
+			return getBuiltInType(context, context.getCString("__ptr"), { varType });
 		}
 		
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
@@ -98,7 +98,7 @@ namespace locic {
 					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
 				}
 				case AST::Type::VOID: {
-					return getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
+					return getBuiltInType(context, context.getCString("void_t"), {});
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);

@@ -8,7 +8,7 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
-#include <locic/MakeArray.hpp>
+#include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -163,17 +163,17 @@ namespace locic {
 				case Constant::STRING: {
 					// C strings have the type 'const ubyte *', as opposed to just a
 					// type name, so their type needs to be generated specially.
-					const auto byteType = getBuiltInType(context.scopeStack(), context.getCString("ubyte_t"), {});
+					const auto byteType = getBuiltInType(context, context.getCString("ubyte_t"), {});
 					
 					// Generate type 'const ubyte'.
 					const auto constByteType = byteType->createConstType();
 					
 					// Generate type 'const ubyte *'.
-					return getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { constByteType });
+					return getBuiltInType(context, context.getCString("__ptr"), { constByteType });
 				}
 				default: {
 					const auto typeName = getLiteralTypeName(context, specifier, constant);
-					return getBuiltInType(context.scopeStack(), typeName, {});
+					return getBuiltInType(context, typeName, {});
 				}
 			}
 		}
@@ -194,7 +194,7 @@ namespace locic {
 			}
 			
 			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, searchResult.function()->type());
-			return CallValue(context, std::move(functionRef), makeArray( std::move(constantValue) ), location);
+			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
 		}
 		
 	}

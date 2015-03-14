@@ -52,7 +52,7 @@ namespace locic {
 					return function.getContextValue(value.type()->refTarget()->getObjectType());
 				}
 				case SEM::Value::THIS: {
-					return function.getContextValue(value.type()->templateArguments().at(0)->getObjectType());
+					return function.getContextValue(value.type()->templateArguments().at(0).typeRefType()->getObjectType());
 				}
 				case SEM::Value::CONSTANT: {
 					switch (value.constant().kind()) {
@@ -447,14 +447,14 @@ namespace locic {
 					assert(semCallValue.type()->isFunction() || semCallValue.type()->isMethod());
 					
 					if (isTrivialFunction(module, semCallValue)) {
-						return genTrivialFunctionCall(function, semCallValue, semArgumentValues, debugLoc, hintResultValue);
+						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), debugLoc, hintResultValue);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semCallValue);
 					const auto functionType = semCallValue.type()->isMethod() ?
 						semCallValue.type()->getMethodFunctionType() : semCallValue.type();
 					
-					return genFunctionCall(function, callInfo, functionType, semArgumentValues, debugLoc, hintResultValue);
+					return genFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), debugLoc, hintResultValue);
 				}
 				
 				case SEM::Value::FUNCTIONREF:

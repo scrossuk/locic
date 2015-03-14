@@ -10,10 +10,10 @@ namespace locic {
 		struct TypeInstanceInfo {
 			SourceLocation location;
 			
-			inline TypeInstanceInfo()
+			TypeInstanceInfo()
 				: location(SourceLocation::Null()) { }
 			
-			inline TypeInstanceInfo(SourceLocation pLocation)
+			TypeInstanceInfo(SourceLocation pLocation)
 				: location(pLocation) { }
 		};
 		

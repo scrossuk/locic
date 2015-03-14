@@ -1,4 +1,4 @@
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
@@ -25,16 +25,16 @@ namespace locic {
 		}
 		
 		const Type* TypeAlias::selfType() const {
-			return Type::Alias(const_cast<TypeAlias*>(this), selfTemplateArgs());
+			return Type::Alias(this, selfTemplateArgs());
 		}
 		
-		TypeArray TypeAlias::selfTemplateArgs() const {
-			TypeArray templateArgs;
+		ValueArray TypeAlias::selfTemplateArgs() const {
+			ValueArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
 				// Refer to the template variables of this type alias.
-				templateArgs.push_back(SEM::Type::TemplateVarRef(templateVar));
+				templateArgs.push_back(templateVar->selfRefValue());
 			}
 			
 			return templateArgs;
@@ -64,7 +64,7 @@ namespace locic {
 			return value_;
 		}
 		
-		void TypeAlias::setValue(const Type* pValue) {
+		void TypeAlias::setValue(const Type* const pValue) {
 			assert(value_ == nullptr);
 			assert(pValue != nullptr);
 			value_ = pValue;

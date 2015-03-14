@@ -7,5 +7,6 @@ macro(test_check_success name)
 endmacro(test_check_success)
 
 add_subdirectory(Exception)
+add_subdirectory(Templates)
 add_subdirectory(Unused)
 

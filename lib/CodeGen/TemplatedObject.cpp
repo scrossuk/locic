@@ -98,15 +98,15 @@ namespace locic {
 			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), arrayRef(type->templateArguments()));
 		}
 		
-		TemplateInst TemplateInst::Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<const SEM::Type*> functionArgs) {
+		TemplateInst TemplateInst::Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<SEM::Value> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());
-				llvm::SmallVector<const SEM::Type*, 10> args;
-				for (auto arg: parentType->templateArguments()) {
-					args.push_back(arg);
+				llvm::SmallVector<SEM::Value, 10> args;
+				for (const auto& arg: parentType->templateArguments()) {
+					args.push_back(arg.copy());
 				}
 				for (size_t i = 0; i < functionArgs.size(); i++) {
-					args.push_back(functionArgs[i]);
+					args.push_back(functionArgs[i].copy());
 				}
 				return TemplateInst(TemplatedObject::Function(parentType->getObjectType(), function), args);
 			} else {
@@ -114,19 +114,23 @@ namespace locic {
 			}
 		}
 		
-		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<const SEM::Type*> pArguments)
+		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Value> pArguments)
 			: object_(pObject) {
 				for (size_t i = 0; i < pArguments.size(); i++) {
-					arguments_.push_back(pArguments[i]);
+					arguments_.push_back(pArguments[i].copy());
 				}
 			}
+		
+		TemplateInst TemplateInst::copy() const {
+			return TemplateInst(object(), arguments());
+		}
 		
 		TemplatedObject TemplateInst::object() const {
 			return object_;
 		}
 		
-		llvm::ArrayRef<const SEM::Type*> TemplateInst::arguments() const {
-			return arguments_;
+		llvm::ArrayRef<SEM::Value> TemplateInst::arguments() const {
+			return arrayRef(arguments_);
 		}
 		
 		bool TemplateInst::operator<(const TemplateInst& other) const {
@@ -140,7 +144,7 @@ namespace locic {
 			
 			for (size_t i = 0; i < arguments().size(); i++) {
 				if (arguments()[i] != other.arguments()[i]) {
-					return arguments()[i] < other.arguments()[i];
+					return arguments()[i].hash() < other.arguments()[i].hash();
 				}
 			}
 			

@@ -9,7 +9,7 @@
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
-#include <locic/MakeArray.hpp>
+#include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
@@ -252,7 +252,7 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), context.getCString("typename_t"), {});
+						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isTypeAlias()) {
@@ -260,7 +260,7 @@ namespace locic {
 						auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
 						assert(templateArguments.size() == typeAlias->templateVariables().size());
 						
-						const auto typenameType = getBuiltInType(context.scopeStack(), context.getCString("typename_t"), {});
+						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 						const auto resolvedType = SEM::Type::Alias(typeAlias, std::move(templateArguments))->resolveAliases();
 						return SEM::Value::TypeRef(resolvedType, typenameType->createStaticRefType(resolvedType));
 					} else if (searchResult.isVar()) {
@@ -271,16 +271,19 @@ namespace locic {
 						assert(astSymbolNode->first()->templateArguments()->empty());
 						const auto var = searchResult.var();
 						var->setUsed();
-						return SEM::Value::LocalVar(*var, getBuiltInType(context.scopeStack(), context.getCString("__ref"), { var->type() })->createRefType(var->type()));
+						return SEM::Value::LocalVar(*var, getBuiltInType(context, context.getCString("__ref"), { var->type() })->createRefType(var->type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						const auto templateVar = searchResult.templateVar();
-						const auto typenameType = getBuiltInType(context.scopeStack(), context.getCString("typename_t"), {});
-						const auto templateVarType = SEM::Type::TemplateVarRef(templateVar);
-						return SEM::Value::TypeRef(templateVarType, typenameType->createStaticRefType(templateVarType));
+						return templateVar->selfRefValue();
 					}
 					
 					std::terminate();
+				}
+				case AST::Value::TYPEREF: {
+					const auto type = ConvertType(context, astValueNode->typeRef.type);
+					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					return SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 				}
 				case AST::Value::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
@@ -300,7 +303,7 @@ namespace locic {
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
 				case AST::Value::SIZEOF: {
-					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context.scopeStack(), context.getCString("size_t"), {}));
+					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context, context.getCString("size_t"), {}));
 				}
 				case AST::Value::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
@@ -343,33 +346,33 @@ namespace locic {
 					switch (binaryOp) {
 						case AST::OP_ADD: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("add"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_SUBTRACT: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("subtract"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_MULTIPLY: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("multiply"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_DIVIDE: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("divide"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_MODULO: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("modulo"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_ISEQUAL: {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isEqual"), location);
 								return CallValue(context, std::move(isEqualMethod), {}, location);
 							}
@@ -378,11 +381,11 @@ namespace locic {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isNotEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isNotEqual"), location);
 								return CallValue(context, std::move(isNotEqualMethod), {}, location);
 							}
@@ -391,11 +394,11 @@ namespace locic {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isNotEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isLessThan"), location);
 								return CallValue(context, std::move(isNotEqualMethod), {}, location);
 							}
@@ -404,11 +407,11 @@ namespace locic {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isNotEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isLessThanOrEqual"), location);
 								return CallValue(context, std::move(isNotEqualMethod), {}, location);
 							}
@@ -417,11 +420,11 @@ namespace locic {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isNotEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isGreaterThan"), location);
 								return CallValue(context, std::move(isNotEqualMethod), {}, location);
 							}
@@ -430,17 +433,17 @@ namespace locic {
 							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
-								return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 							} else {
 								// Fall back on 'compare' method.
 								auto compareMethod = GetMethod(context, std::move(objectValue), context.getCString("compare"), location);
-								auto compareResult = CallValue(context, std::move(compareMethod), makeArray( std::move(rightOperand) ), location);
+								auto compareResult = CallValue(context, std::move(compareMethod), makeHeapArray( std::move(rightOperand) ), location);
 								auto isNotEqualMethod = GetMethod(context, std::move(compareResult), context.getCString("isGreaterThanOrEqual"), location);
 								return CallValue(context, std::move(isNotEqualMethod), {}, location);
 							}
 						}
 						case AST::OP_LOGICALAND: {
-							const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
+							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType->createConstType(), location);
 							
 							// Logical AND only evaluates the right operand if the left
@@ -448,7 +451,7 @@ namespace locic {
 							return SEM::Value::Ternary(std::move(boolValue), std::move(rightOperand), SEM::Value::Constant(Constant::False(), boolType));
 						}
 						case AST::OP_LOGICALOR: {
-							const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
+							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType->createConstType(), location);
 							
 							// Logical OR only evaluates the right operand if the left
@@ -457,19 +460,19 @@ namespace locic {
 						}
 						case AST::OP_BITWISEAND: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("bitwise_and"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_BITWISEOR: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("bitwise_or"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_LEFTSHIFT: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("left_shift"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_RIGHTSHIFT: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("right_shift"), location);
-							return CallValue(context, std::move(opMethod), makeArray( std::move(rightOperand) ), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 					}
 					
@@ -478,7 +481,7 @@ namespace locic {
 				case AST::Value::TERNARY: {
 					auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
+					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 					auto boolValue = ImplicitCast(context, std::move(cond), boolType->createConstType(), location);
 					
 					auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
@@ -584,7 +587,8 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
-					std::vector<SEM::Value> semValues;
+					HeapArray<SEM::Value> semValues;
+					semValues.reserve(thisTypeInstance->variables().size());
 					
 					for (size_t i = 0; i < thisTypeInstance->variables().size(); i++) {
 						const auto semVar = thisTypeInstance->variables().at(i);
@@ -605,11 +609,11 @@ namespace locic {
 					const auto& memberName = astValueNode->templatedMemberAccess.memberName;
 					auto object = ConvertValue(context, astValueNode->templatedMemberAccess.object);
 					
-					SEM::TypeArray templateArguments;
-					templateArguments.reserve(astValueNode->templatedMemberAccess.typeList->size());
+					SEM::ValueArray templateArguments;
+					templateArguments.reserve(astValueNode->templatedMemberAccess.templateArgs->size());
 					
-					for (const auto typeArg: *(astValueNode->templatedMemberAccess.typeList)) {
-						templateArguments.push_back(ConvertType(context, typeArg));
+					for (const auto& arg: *(astValueNode->templatedMemberAccess.templateArgs)) {
+						templateArguments.push_back(ConvertValue(context, arg));
 					}
 					
 					return GetTemplatedMethod(context, std::move(object), memberName, std::move(templateArguments), astValueNode.location());
@@ -617,7 +621,7 @@ namespace locic {
 				case AST::Value::FUNCTIONCALL: {
 					auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);
 					
-					std::vector<SEM::Value> argumentValues;
+					HeapArray<SEM::Value> argumentValues;
 					
 					for (const auto& astArgumentValueNode: *(astValueNode->functionCall.parameters)) {
 						argumentValues.push_back(ConvertValue(context, astArgumentValueNode));

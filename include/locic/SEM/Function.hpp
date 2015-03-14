@@ -6,12 +6,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <locic/FastMap.hpp>
 #include <locic/Debug/FunctionInfo.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>

@@ -64,17 +64,24 @@ namespace locic {
 						return nullptr;
 					}
 					
-					SEM::TypeArray templateArgs;
+					SEM::ValueArray templateArgs;
 					templateArgs.reserve(sourceType->templateArguments().size());
 					
 					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
-						const auto sourceTemplateArg = sourceType->templateArguments().at(i);
-						const auto destTemplateArg = destType->templateArguments().at(i);
+						const auto& sourceTemplateArg = sourceType->templateArguments()[i];
+						const auto& destTemplateArg = destType->templateArguments()[i];
 						
-						auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg, destTemplateArg, hasConstChain, location);
-						if (templateArg == nullptr) return nullptr;
-						
-						templateArgs.push_back(templateArg);
+						if (sourceTemplateArg.isTypeRef() && destTemplateArg.isTypeRef()) {
+							const auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg.typeRefType(), destTemplateArg.typeRefType(), hasConstChain, location);
+							if (templateArg == nullptr) return nullptr;
+							
+							templateArgs.push_back(SEM::Value::TypeRef(templateArg, sourceTemplateArg.type()));
+						} else {
+							if (sourceTemplateArg != destTemplateArg) {
+								return nullptr;
+							}
+							templateArgs.push_back(sourceTemplateArg.copy());
+						}
 					}
 					
 					return SEM::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
@@ -315,11 +322,14 @@ location, bool isTopLevel) {
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
 				const auto& castTemplateVar = castFunction->templateVariables().front();
-				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, destDerefType));
+				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type())));
 				
-				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
+				// Conservatively assume require predicate is not satisified if result is undetermined.
+				const bool satisfiesRequiresDefault = false;
+				
+				if (evaluatePredicateWithDefault(context, requiresPredicate, combinedTemplateVarMap, satisfiesRequiresDefault)) {
 					auto boundValue = bindReference(context, std::move(value));
-					auto method = GetTemplatedMethod(context, std::move(boundValue), context.getCString("implicitcast"), { destDerefType }, location);
+					auto method = GetTemplatedMethod(context, std::move(boundValue), context.getCString("implicitcast"), makeTemplateArgs(context, { destDerefType }), location);
 					auto castValue = CallValue(context, std::move(method), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
@@ -576,7 +586,11 @@ location, bool isTopLevel) {
 					return nullptr;
 				}
 				
-				return type->getObjectType()->parent()->substitute(type->generateTemplateVarMap());
+				if (type->getObjectType()->parent() == nullptr) {
+					return nullptr;
+				}
+				
+				return type->getObjectType()->parent()->selfType()->substitute(type->generateTemplateVarMap());
 			}
 			
 		}

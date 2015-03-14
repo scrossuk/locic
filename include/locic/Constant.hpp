@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <cassert>
 
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/Hasher.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic{
@@ -97,6 +98,56 @@ namespace locic{
 				return string_;
 			}
 			
+			bool operator==(const Constant& other) const {
+				if (kind() != other.kind()) {
+					return false;
+				}
+				
+				switch (kind()) {
+					case NULLVAL:
+						return true;
+					case BOOLEAN:
+						return boolValue() == other.boolValue();
+					case INTEGER:
+						return integerValue() == other.integerValue();
+					case FLOATINGPOINT:
+						return floatValue() == other.floatValue();
+					case CHARACTER:
+						return characterValue() == other.characterValue();
+					case STRING:
+						return stringValue() == other.stringValue();
+				}
+				
+				return false;
+			}
+			
+			size_t hash() const {
+				Hasher hasher;
+				hasher.add(kind());
+				
+				switch (kind()) {
+					case NULLVAL:
+						break;
+					case BOOLEAN:
+						hasher.add(boolValue());
+						break;
+					case INTEGER:
+						hasher.add(integerValue());
+						break;
+					case FLOATINGPOINT:
+						hasher.add(floatValue());
+						break;
+					case CHARACTER:
+						hasher.add(characterValue());
+						break;
+					case STRING:
+						hasher.add(stringValue());
+						break;
+				}
+				
+				return hasher.get();
+			}
+			
 			std::string toString() const {
 				switch (kind_) {
 					case NULLVAL:
@@ -111,9 +162,9 @@ namespace locic{
 						return makeString("CharacterConstant(%llu)", (unsigned long long) characterValue());
 					case STRING:
 						return makeString("StringConstant(\"%s\")", escapeString(stringValue().asStdString()).c_str());
-					default:
-						return "[UNKNOWN CONSTANT]";
 				}
+				
+				return "[UNKNOWN CONSTANT]";
 			}
 			
 		private:

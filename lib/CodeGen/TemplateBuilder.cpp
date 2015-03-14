@@ -43,11 +43,12 @@ namespace locic {
 			}
 			
 			const size_t nextId = templateUseMap_.size();
-			templateUseMap_.insert(std::make_pair(templateInst, nextId));
+			templateUseMap_.insert(std::make_pair(templateInst.copy(), nextId));
 			
 			for (const auto& arg: templateInst.arguments()) {
-				if (arg->isObject() && !arg->templateArguments().empty()) {
-					(void) addUse(TemplateInst::Type(arg));
+				const auto typeArg = arg.typeRefType();
+				if (typeArg->isObject() && !typeArg->templateArguments().empty()) {
+					(void) addUse(TemplateInst::Type(typeArg));
 				}
 			}
 			

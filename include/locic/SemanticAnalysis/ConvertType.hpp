@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <locic/AST.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 

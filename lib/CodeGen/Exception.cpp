@@ -243,7 +243,7 @@ namespace locic {
 			return constGen.getGetElementPtr(typeNameGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance) {
+		llvm::Constant* genCatchInfo(Module& module, const SEM::TypeInstance* const catchTypeInstance) {
 			assert(catchTypeInstance->isException());
 			
 			const auto typeName = catchTypeInstance->name().genString();
@@ -257,10 +257,10 @@ namespace locic {
 			
 			// Calculate offset to check based on number of parents.
 			size_t offset = 0;
-			auto currentInstance = catchTypeInstance;
-			while (currentInstance->parent() != nullptr) {
+			const SEM::TypeInstance* currentInstance = catchTypeInstance;
+			while (currentInstance->parentType() != nullptr) {
 				offset++;
-				currentInstance = currentInstance->parent()->getObjectType();
+				currentInstance = currentInstance->parentType()->getObjectType();
 			}
 			
 			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
@@ -271,17 +271,17 @@ namespace locic {
 			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* const throwTypeInstance) {
+		llvm::Constant* genThrowInfo(Module& module,const  SEM::TypeInstance* const throwTypeInstance) {
 			assert(throwTypeInstance->isException());
 			
 			Array<String, 10> typeNames;
 			
 			// Add type names in REVERSE order.
-			auto currentInstance = throwTypeInstance;
+			const SEM::TypeInstance* currentInstance = throwTypeInstance;
 			while (currentInstance != nullptr) {
 				typeNames.push_back(currentInstance->name().genString());
-				currentInstance = currentInstance->parent() != nullptr ?
-					currentInstance->parent()->getObjectType() : nullptr;
+				currentInstance = currentInstance->parentType() != nullptr ?
+					currentInstance->parentType()->getObjectType() : nullptr;
 			}
 			
 			assert(!typeNames.empty());

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 
 namespace llvm {
 	

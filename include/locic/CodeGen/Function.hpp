@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 
 #include <llvm-abi/ABI.hpp>
 

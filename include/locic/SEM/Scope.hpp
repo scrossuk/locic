@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 
-#include <locic/FastMap.hpp>
 #include <locic/Support/Array.hpp>
+#include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Statement.hpp>

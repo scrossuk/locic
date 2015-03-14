@@ -5,6 +5,7 @@
 
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
+#include <locic/SEM/ValueArray.hpp>
 
 namespace locic {
 	
@@ -29,12 +30,12 @@ namespace locic {
 					TEMPLATEVAR
 				};
 				
-				static const TypeArray NO_TEMPLATE_ARGS;
+				static const ValueArray NO_TEMPLATE_ARGS;
 				
 				static const Type* Auto(const Context& context);
-				static const Type* Alias(TypeAlias* typeAlias, TypeArray templateArguments);
-				static const Type* Object(TypeInstance* typeInstance, TypeArray templateArguments);
-				static const Type* TemplateVarRef(TemplateVar* templateVar);
+				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
+				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
+				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, TypeArray parameterTypes);
 				static const Type* Method(const Type* functionType);
 				static const Type* InterfaceMethod(const Type* functionType);
@@ -68,11 +69,12 @@ namespace locic {
 				bool isAuto() const;
 				bool isAlias() const;
 				
-				SEM::TypeAlias* getTypeAlias() const;
-				const TypeArray& typeAliasArguments() const;
+				const SEM::TypeAlias* getTypeAlias() const;
+				const ValueArray& typeAliasArguments() const;
 				
 				bool isBuiltInVoid() const;
 				bool isBuiltInReference() const;
+				bool isBuiltInTypename() const;
 				
 				bool isFunction() const;
 				bool isFunctionVarArg() const;
@@ -92,11 +94,11 @@ namespace locic {
 				const Type* getStaticInterfaceMethodFunctionType() const;
 				
 				bool isObject() const;
-				TypeInstance* getObjectType() const;
-				const TypeArray& templateArguments() const;
+				const TypeInstance* getObjectType() const;
+				const ValueArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
-				TemplateVar* getTemplateVar() const;
+				const TemplateVar* getTemplateVar() const;
 				
 				const Type* getCallableFunctionType() const;
 				
@@ -132,8 +134,10 @@ namespace locic {
 				std::size_t hash() const;
 				
 				bool operator==(const Type& type) const;
-				
-				bool operator<(const Type& type) const;
+				bool operator!=(const Type& type) const {
+					return !(*this == type);
+				}
+				//bool operator<(const Type& type) const;
 				
 			private:
 				Type(const Context& pContext, Kind pKind);
@@ -148,14 +152,15 @@ namespace locic {
 				const Type* staticRefTarget_;
 				
 				TypeArray typeArray_;
+				ValueArray valueArray_;
 				
 				union {
 					struct {
-						TypeAlias* typeAlias;
+						const TypeAlias* typeAlias;
 					} aliasType;
 					
 					struct {
-						TypeInstance* typeInstance;
+						const TypeInstance* typeInstance;
 					} objectType;
 					
 					struct FunctionType {
@@ -179,7 +184,7 @@ namespace locic {
 					} staticInterfaceMethodType;
 					
 					struct {
-						TemplateVar* templateVar;
+						const TemplateVar* templateVar;
 					} templateVarRef;
 				} data_;
 				

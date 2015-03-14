@@ -5,13 +5,17 @@
 #include <string>
 #include <vector>
 
-#include <locic/FastMap.hpp>
-#include <locic/Support/Name.hpp>
-#include <locic/Support/String.hpp>
+#include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/TypeArray.hpp>
+#include <locic/SEM/ValueArray.hpp>
+#include <locic/Support/FastMap.hpp>
+#include <locic/Support/Name.hpp>
+#include <locic/Support/Optional.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
@@ -89,7 +93,7 @@ namespace locic {
 				 * 
 				 */
 				const Type* selfType() const;
-				TypeArray selfTemplateArgs() const;
+				ValueArray selfTemplateArgs() const;
 				
 				std::vector<TypeInstance*>& variants();
 				const std::vector<TypeInstance*>& variants() const;
@@ -103,7 +107,6 @@ namespace locic {
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
 				
-				// TODO: replace with 'property' methods.
 				FastMap<String, Var*>& namedVariables();
 				const FastMap<String, Var*>& namedVariables() const;
 				
@@ -115,11 +118,17 @@ namespace locic {
 				
 				TypeArray constructTypes() const;
 				
-				void setParent(const Type* parent);
-				const Type* parent() const;
+				void setParent(const TypeInstance* parent);
+				const TypeInstance* parent() const;
+				
+				void setParentType(const Type* parent);
+				const Type* parentType() const;
 				
 				void setHasCustomMove(bool pHasCustomMove);
 				bool hasCustomMove() const;
+				
+				void setDebugInfo(Debug::TypeInstanceInfo debugInfo);
+				Optional<Debug::TypeInstanceInfo> debugInfo() const;
 				
 				std::string refToString() const;
 				
@@ -130,8 +139,10 @@ namespace locic {
 				Name name_;
 				Kind kind_;
 				ModuleScope moduleScope_;
+				Optional<Debug::TypeInstanceInfo> debugInfo_;
 				
-				const Type* parent_;
+				const TypeInstance* parent_;
+				const Type* parentType_;
 				
 				std::vector<TypeInstance*> variants_;
 				

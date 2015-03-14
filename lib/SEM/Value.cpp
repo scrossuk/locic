@@ -1,7 +1,7 @@
-#include <vector>
-
 #include <locic/Constant.hpp>
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/Hasher.hpp>
+#include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
@@ -159,7 +159,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::InternalConstruct(TypeInstance* const typeInstance, std::vector<Value> parameters) {
+		Value Value::InternalConstruct(const TypeInstance* const typeInstance, HeapArray<Value> parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
 				exitStates |= param.exitStates();
@@ -197,7 +197,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Call(Value functionValue, std::vector<Value> parameters) {
+		Value Value::TemplateVarRef(const TemplateVar* const targetVar, const Type* const type) {
+			Value value(TEMPLATEVARREF, type, ExitStates::Normal());
+			value.union_.templateVarRef_.templateVar = targetVar;
+			return value;
+		}
+		
+		Value Value::Call(Value functionValue, HeapArray<Value> parameters) {
 			const auto functionType = functionValue.type()->getCallableFunctionType();
 			
 			ExitStates exitStates = functionValue.exitStates();
@@ -215,13 +221,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, Function* function, TypeArray templateArguments, const Type* const type) {
+		Value Value::FunctionRef(const Type* const parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isFunction());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
 			value.union_.functionRef_.parentType = parentType;
 			value.union_.functionRef_.function = function;
-			value.typeArray_ = std::move(templateArguments);
+			value.valueArray_ = std::move(templateArguments);
 			return value;
 		}
 		
@@ -505,7 +511,7 @@ namespace locic {
 			return kind() == INTERNALCONSTRUCT;
 		}
 		
-		const std::vector<Value>& Value::internalConstructParameters() const {
+		const HeapArray<Value>& Value::internalConstructParameters() const {
 			assert(isInternalConstruct());
 			return valueArray_;
 		}
@@ -542,6 +548,15 @@ namespace locic {
 			return union_.typeRef_.targetType;
 		}
 		
+		bool Value::isTemplateVarRef() const {
+			return kind() == TEMPLATEVARREF;
+		}
+		
+		const TemplateVar* Value::templateVar() const {
+			assert(isTemplateVarRef());
+			return union_.templateVarRef_.templateVar;
+		}
+		
 		bool Value::isCall() const {
 			return kind() == CALL;
 		}
@@ -551,7 +566,7 @@ namespace locic {
 			return *(value0_);
 		}
 		
-		const std::vector<Value>& Value::callParameters() const {
+		const HeapArray<Value>& Value::callParameters() const {
 			assert(isCall());
 			return valueArray_;
 		}
@@ -570,9 +585,9 @@ namespace locic {
 			return union_.functionRef_.function;
 		}
 		
-		const TypeArray& Value::functionRefTemplateArguments() const {
+		const HeapArray<Value>& Value::functionRefTemplateArguments() const {
 			assert(isFunctionRef());
-			return typeArray_;
+			return valueArray_;
 		}
 		
 		bool Value::isTemplateFunctionRef() const {
@@ -644,6 +659,309 @@ namespace locic {
 			return debugInfo_;
 		}
 		
+		size_t Value::hash() const {
+			Hasher hasher;
+			hasher.add(kind());
+			hasher.add(type());
+			
+			switch (kind()) {
+				case Value::ZEROINITIALISE:
+					break;
+				case Value::MEMCOPY:
+					hasher.add(memCopyOperand());
+					break;
+				case Value::SELF:
+					break;
+				case Value::THIS:
+					break;
+				case Value::CONSTANT:
+					hasher.add(constant());
+					break;
+				case Value::LOCALVAR:
+					hasher.add(&(localVar()));
+					break;
+				case Value::UNIONTAG:
+					hasher.add(unionTagOperand());
+					break;
+				case Value::SIZEOF:
+					hasher.add(sizeOfType());
+					break;
+				case Value::UNIONDATAOFFSET:
+					hasher.add(unionDataOffsetTypeInstance());
+					break;
+				case Value::MEMBEROFFSET:
+					hasher.add(memberOffsetTypeInstance());
+					hasher.add(memberOffsetMemberIndex());
+					break;
+				case Value::REINTERPRET:
+					hasher.add(reinterpretOperand());
+					break;
+				case Value::DEREF_REFERENCE:
+					hasher.add(derefOperand());
+					break;
+				case Value::TERNARY:
+					hasher.add(ternaryCondition());
+					hasher.add(ternaryIfTrue());
+					hasher.add(ternaryIfFalse());
+					break;
+				case Value::CAST:
+					hasher.add(castTargetType());
+					hasher.add(castOperand());
+					break;
+				case Value::POLYCAST:
+					hasher.add(polyCastTargetType());
+					hasher.add(polyCastOperand());
+					break;
+				case Value::LVAL:
+					hasher.add(makeLvalTargetType());
+					hasher.add(makeLvalOperand());
+					break;
+				case Value::NOLVAL:
+					hasher.add(makeNoLvalOperand());
+					break;
+				case Value::REF:
+					hasher.add(makeRefTargetType());
+					hasher.add(makeRefOperand());
+					break;
+				case Value::NOREF:
+					hasher.add(makeNoRefOperand());
+					break;
+				case Value::STATICREF:
+					hasher.add(makeStaticRefTargetType());
+					hasher.add(makeStaticRefOperand());
+					break;
+				case Value::NOSTATICREF:
+					hasher.add(makeNoStaticRefOperand());
+					break;
+				case Value::INTERNALCONSTRUCT:
+					hasher.add(internalConstructParameters().size());
+					for (const auto& param: internalConstructParameters()) {
+						hasher.add(param);
+					}
+					break;
+				case Value::MEMBERACCESS:
+					hasher.add(memberAccessObject());
+					hasher.add(&(memberAccessVar()));
+					break;
+				case Value::BIND_REFERENCE:
+					hasher.add(bindReferenceOperand());
+					break;
+				case Value::TYPEREF:
+					hasher.add(typeRefType());
+					break;
+				case Value::TEMPLATEVARREF:
+					hasher.add(templateVar());
+					break;
+				case Value::CALL:
+					hasher.add(callValue());
+					hasher.add(callParameters().size());
+					for (const auto& param: callParameters()) {
+						hasher.add(param);
+					}
+					break;
+				case Value::FUNCTIONREF:
+					hasher.add(functionRefParentType());
+					hasher.add(functionRefFunction());
+					hasher.add(functionRefTemplateArguments().size());
+					for (const auto& arg: functionRefTemplateArguments()) {
+						hasher.add(arg);
+					}
+					break;
+				case Value::TEMPLATEFUNCTIONREF:
+					hasher.add(templateFunctionRefParentType());
+					hasher.add(templateFunctionRefName());
+					hasher.add(templateFunctionRefFunctionType());
+					break;
+				case Value::METHODOBJECT:
+					hasher.add(methodObject());
+					hasher.add(methodOwner());
+					break;
+				case Value::INTERFACEMETHODOBJECT:
+					hasher.add(interfaceMethodObject());
+					hasher.add(interfaceMethodOwner());
+					break;
+				case Value::STATICINTERFACEMETHODOBJECT:
+					hasher.add(staticInterfaceMethodObject());
+					hasher.add(staticInterfaceMethodOwner());
+					break;
+				case Value::CASTDUMMYOBJECT:
+					break;
+				case Value::NONE:
+					break;
+			}
+			
+			return hasher.get();
+		}
+		
+		bool Value::operator==(const Value& value) const {
+			if (kind() != value.kind()) {
+				return false;
+			}
+			
+			if (type() != value.type()) {
+				return false;
+			}
+			
+			switch (value.kind()) {
+				case Value::ZEROINITIALISE:
+					return true;
+				case Value::MEMCOPY:
+					return memCopyOperand() == value.memCopyOperand();
+				case Value::SELF:
+					return true;
+				case Value::THIS:
+					return true;
+				case Value::CONSTANT:
+					return constant() == value.constant();
+				case Value::LOCALVAR:
+					return &(localVar()) == &(value.localVar());
+				case Value::UNIONTAG:
+					return unionTagOperand() == value.unionTagOperand();
+				case Value::SIZEOF:
+					return sizeOfType() == value.sizeOfType();
+				case Value::UNIONDATAOFFSET:
+					return unionDataOffsetTypeInstance() == value.unionDataOffsetTypeInstance();
+				case Value::MEMBEROFFSET:
+					return memberOffsetTypeInstance() == value.memberOffsetTypeInstance() && memberOffsetMemberIndex() == value.memberOffsetMemberIndex();
+				case Value::REINTERPRET:
+					return reinterpretOperand() == value.reinterpretOperand();
+				case Value::DEREF_REFERENCE:
+					return derefOperand() == value.derefOperand();
+				case Value::TERNARY:
+					return ternaryCondition() == value.ternaryCondition() && ternaryIfTrue() == value.ternaryIfTrue() && ternaryIfFalse() == value.ternaryIfFalse();
+				case Value::CAST:
+					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
+				case Value::POLYCAST:
+					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
+				case Value::LVAL:
+					return makeLvalTargetType() == value.makeLvalTargetType() && makeLvalOperand() == value.makeLvalOperand();
+				case Value::NOLVAL:
+					return makeNoLvalOperand() == value.makeNoLvalOperand();
+				case Value::REF:
+					return makeRefTargetType() == value.makeRefTargetType() && makeRefOperand() == value.makeRefOperand();
+				case Value::NOREF:
+					return makeNoRefOperand() == value.makeNoRefOperand();
+				case Value::STATICREF:
+					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
+				case Value::NOSTATICREF:
+					return makeNoStaticRefOperand() == value.makeNoStaticRefOperand();
+				case Value::INTERNALCONSTRUCT:
+					return internalConstructParameters() == value.internalConstructParameters();
+				case Value::MEMBERACCESS:
+					return memberAccessObject() == value.memberAccessObject() && &(memberAccessVar()) == &(value.memberAccessVar());
+				case Value::BIND_REFERENCE:
+					return bindReferenceOperand() == value.bindReferenceOperand();
+				case Value::TYPEREF:
+					return typeRefType() == value.typeRefType();
+				case Value::TEMPLATEVARREF:
+					return templateVar() == value.templateVar();
+				case Value::CALL:
+					return callValue() == value.callValue() && callParameters() == value.callParameters();
+				case Value::FUNCTIONREF:
+					return functionRefParentType() == value.functionRefParentType() && functionRefFunction() == value.functionRefFunction() &&
+						functionRefTemplateArguments() == value.functionRefTemplateArguments();
+				case Value::TEMPLATEFUNCTIONREF:
+					return templateFunctionRefParentType() == value.templateFunctionRefParentType() && templateFunctionRefName() == value.templateFunctionRefName() &&
+						templateFunctionRefFunctionType() == value.templateFunctionRefFunctionType();
+				case Value::METHODOBJECT:
+					return methodObject() == value.methodObject() && methodOwner() == value.methodOwner();
+				case Value::INTERFACEMETHODOBJECT:
+					return interfaceMethodObject() == value.interfaceMethodObject() && interfaceMethodOwner() == value.interfaceMethodOwner();
+				case Value::STATICINTERFACEMETHODOBJECT:
+					return staticInterfaceMethodObject() == value.staticInterfaceMethodObject() && staticInterfaceMethodOwner() == value.staticInterfaceMethodOwner();
+				case Value::CASTDUMMYOBJECT:
+					return true;
+				case Value::NONE:
+					return true;
+			}
+			
+			throw std::logic_error("Unknown value kind.");
+		}
+		
+		/*bool Value::operator<(const Value& other) const {
+			if (kind() != value.kind()) {
+				return kind() < value.kind();
+			}
+			
+			if (type() != value.type()) {
+				return type() < value.type();
+			}
+			
+			switch (value.kind()) {
+				case Value::ZEROINITIALISE:
+					return false;
+				case Value::MEMCOPY:
+					return memCopyOperand() < value.memCopyOperand();
+				case Value::SELF:
+					return false;
+				case Value::THIS:
+					return false;
+				case Value::CONSTANT:
+					return constant() < value.constant();
+				case Value::LOCALVAR:
+					return localVar() < value.localVar();
+				case Value::UNIONTAG:
+					return unionTagOperand() < value.unionTagOperand();
+				case Value::SIZEOF:
+					return sizeOfType() < value.sizeOfType();
+				case Value::UNIONDATAOFFSET:
+					return unionDataOffsetTypeInstance() == value.unionDataOffsetTypeInstance();
+				case Value::MEMBEROFFSET:
+					return memberOffsetTypeInstance() == value.memberOffsetTypeInstance() && memberOffsetMemberIndex() == value.memberOffsetMemberIndex();
+				case Value::REINTERPRET:
+					return reinterpretOperand() == value.reinterpretOperand();
+				case Value::DEREF_REFERENCE:
+					return derefOperand() == value.derefOperand();
+				case Value::TERNARY:
+					return ternaryCondition() == value.ternaryCondition() && ternaryIfTrue() == value.ternaryIfTrue() && ternaryIfFalse() == value.ternaryIfFalse();
+				case Value::CAST:
+					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
+				case Value::POLYCAST:
+					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
+				case Value::LVAL:
+					return makeLvalTargetType() == value.makeLvalTargetType() && makeLvalOperand() == value.makeLvalOperand();
+				case Value::NOLVAL:
+					return makeNoLvalOperand() == value.makeNoLvalOperand();
+				case Value::REF:
+					return makeRefTargetType() == value.makeRefTargetType() && makeRefOperand() == value.makeRefOperand();
+				case Value::NOREF:
+					return makeNoRefOperand() == value.makeNoRefOperand();
+				case Value::STATICREF:
+					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
+				case Value::NOSTATICREF:
+					return makeNoStaticRefOperand() == value.makeNoStaticRefOperand();
+				case Value::INTERNALCONSTRUCT: {
+					return internalConstructParameters() == value.internalConstructParameters();
+				}
+				case Value::MEMBERACCESS:
+					return memberAccessObject() == value.memberAccessObject() && memberAccessVar() == value.memberAccessVar();
+				case Value::BIND_REFERENCE:
+					return bindReferenceOperand() == value.bindReferenceOperand();
+				case Value::TYPEREF:
+					return typeRefType() == value.typeRefType();
+				case Value::CALL:
+					return callValue() == value.callValue() && callParameters() == value.callParameters();
+				case Value::FUNCTIONREF:
+					return functionRefParentType() == value.functionRefParentType() && functionRefFunction() == value.functionRefFunction() &&
+						functionRefTemplateArguments() == value.functionRefTemplateArguments();
+				case Value::TEMPLATEFUNCTIONREF:
+					return templateFunctionRefParentType() == value.templateFunctionRefParentType() && templateFunctionRefName() == value.templateFunctionRefName() &&
+						templateFunctionRefFunctionType() == value.templateFunctionRefFunctionType();
+				case Value::METHODOBJECT:
+					return methodObject() == value.methodObject() && methodOwner() == value.methodOwner();
+				case Value::INTERFACEMETHODOBJECT:
+					return interfaceMethodObject() == value.interfaceMethodObject() && interfaceMethodOwner() == value.interfaceMethodOwner();
+				case Value::STATICINTERFACEMETHODOBJECT:
+					return staticInterfaceMethodObject() == value.staticInterfaceMethodObject() && staticInterfaceMethodOwner() == value.staticInterfaceMethodOwner();
+				case Value::CASTDUMMYOBJECT:
+					return true;
+				case Value::NONE:
+					return true;
+			}
+			
+			throw std::logic_error("Unknown value kind.");
+		}*/
+		
 		static Value basicCopyValue(const Value& value) {
 			switch (value.kind()) {
 				case Value::ZEROINITIALISE:
@@ -689,7 +1007,7 @@ namespace locic {
 				case Value::NOSTATICREF:
 					return Value::NoStaticRef(value.makeNoStaticRefOperand().copy());
 				case Value::INTERNALCONSTRUCT: {
-					std::vector<Value> parameters;
+					HeapArray<Value> parameters;
 					parameters.reserve(value.internalConstructParameters().size());
 					for (const auto& parameter: value.internalConstructParameters()) {
 						parameters.push_back(parameter.copy());
@@ -702,8 +1020,10 @@ namespace locic {
 					return Value::BindReference(value.bindReferenceOperand().copy(), value.type());
 				case Value::TYPEREF:
 					return Value::TypeRef(value.typeRefType(), value.type());
+				case Value::TEMPLATEVARREF:
+					return Value::TemplateVarRef(value.templateVar(), value.type());
 				case Value::CALL: {
-					std::vector<Value> parameters;
+					HeapArray<Value> parameters;
 					parameters.reserve(value.callParameters().size());
 					for (const auto& parameter: value.callParameters()) {
 						parameters.push_back(parameter.copy());
@@ -807,6 +1127,8 @@ namespace locic {
 					return makeString("BindReference(value: %s)", bindReferenceOperand().toString().c_str());
 				case TYPEREF:
 					return makeString("TypeRef(targetType: %s)", typeRefType()->toString().c_str());
+				case TEMPLATEVARREF:
+					return makeString("TemplateVarRef(templateVar: %s)", templateVar()->toString().c_str());
 				case CALL:
 					return makeString("Call(funcValue: %s, args: %s)",
 						callValue().toString().c_str(),

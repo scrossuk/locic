@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
 
 namespace locic {
 

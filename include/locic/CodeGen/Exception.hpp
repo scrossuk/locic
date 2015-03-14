@@ -26,9 +26,9 @@ namespace locic {
 		
 		llvm::BasicBlock* genLandingPad(Function& function, UnwindState unwindState);
 		
-		llvm::Constant* genCatchInfo(Module& module, SEM::TypeInstance* catchTypeInstance);
+		llvm::Constant* genCatchInfo(Module& module, const SEM::TypeInstance* catchTypeInstance);
 		
-		llvm::Constant* genThrowInfo(Module& module, SEM::TypeInstance* throwTypeInstance);
+		llvm::Constant* genThrowInfo(Module& module, const SEM::TypeInstance* throwTypeInstance);
 		
 		class TryScope {
 			public:

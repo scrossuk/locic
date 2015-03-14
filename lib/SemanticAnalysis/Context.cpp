@@ -7,7 +7,7 @@
 
 #include <locic/Support/Array.hpp>
 #include <locic/Debug.hpp>
-#include <locic/StableSet.hpp>
+#include <locic/Support/StableSet.hpp>
 #include <locic/Support/StringHost.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -164,8 +164,11 @@ namespace locic {
 			
 			const auto selfType = thisTypeInstance->selfType();
 			
+			// Conservatively assume self is const if result is undetermined.
+			const bool isConstDefault = true;
+			
 			// TODO: we need to actually put the predicate in the type that's returned!
-			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), SEM::TemplateVarMap());
+			const bool selfIsConst = evaluatePredicateWithDefault(context, thisFunction->constPredicate(), selfType->generateTemplateVarMap(), isConstDefault);
 			
 			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
 			return createSelfRef(context, selfConstType);
@@ -187,11 +190,14 @@ namespace locic {
 			
 			const auto selfType = thisTypeInstance->selfType();
 			
+			// Conservatively assume this is const if result is undetermined.
+			const bool isConstDefault = true;
+			
 			// TODO: we need to actually put the predicate in the type that's returned!
-			const auto selfIsConst = evaluatePredicate(context, thisFunction->constPredicate(), SEM::TemplateVarMap());
+			const bool selfIsConst = evaluatePredicateWithDefault(context, thisFunction->constPredicate(), selfType->generateTemplateVarMap(), isConstDefault);
 			
 			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
-			return SEM::Value::This(getBuiltInType(context.scopeStack(), context.getCString("__ptr"), { selfConstType }));
+			return SEM::Value::This(getBuiltInType(context, context.getCString("__ptr"), { selfConstType }));
 		}
 		
 	}

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/MakeString.hpp>
+#include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 

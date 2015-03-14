@@ -1,12 +1,20 @@
 #ifndef LOCIC_CODEGEN_TEMPLATEDOBJECT_HPP
 #define LOCIC_CODEGEN_TEMPLATEDOBJECT_HPP
 
-#include <locic/SEM.hpp>
+#include <locic/SEM/Value.hpp>
+#include <locic/Support/Array.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class Function;
+		class TypeInstance;
+		
+	}
+	
 	namespace CodeGen {
 		
 		class TemplatedObject {
@@ -53,19 +61,21 @@ namespace locic {
 			public:
 				static TemplateInst Type(const SEM::Type* type);
 				
-				static TemplateInst Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<const SEM::Type*> functionArgs);
+				static TemplateInst Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<SEM::Value> functionArgs);
 				
-				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<const SEM::Type*> pArguments);
+				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Value> pArguments);
+				
+				TemplateInst copy() const;
 				
 				TemplatedObject object() const;
 				
-				llvm::ArrayRef<const SEM::Type*> arguments() const;
+				llvm::ArrayRef<SEM::Value> arguments() const;
 				
 				bool operator<(const TemplateInst& other) const;
 				
 			private:
 				TemplatedObject object_;
-				llvm::SmallVector<const SEM::Type*, 10> arguments_;
+				Array<SEM::Value, 10> arguments_;
 				
 		};
 		

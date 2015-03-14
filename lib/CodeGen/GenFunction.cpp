@@ -239,7 +239,8 @@ namespace locic {
 		 * Hence this function needs to be created so it can be
 		 * subsequently referenced.
 		 */
-		llvm::Function* genTemplateFunctionStub(Module& module, SEM::TemplateVar* templateVar, const String& functionName, const SEM::Type* const functionType, Optional<llvm::DebugLoc> debugLoc) {
+		llvm::Function* genTemplateFunctionStub(Module& module, const SEM::TemplateVar* templateVar, const String& functionName,
+				const SEM::Type* const functionType, Optional<llvm::DebugLoc> debugLoc) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("templateFunctionStub"));

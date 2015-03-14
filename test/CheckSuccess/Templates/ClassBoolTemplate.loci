@@ -1,0 +1,2 @@
+template <bool V>
+class C () { }

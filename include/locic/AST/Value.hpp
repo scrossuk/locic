@@ -8,13 +8,13 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
 
 namespace locic {
 
 	namespace AST {
-	
+		
+		class Symbol;
 		struct Value;
 		
 		typedef std::vector<Node<Value>> ValueList;
@@ -55,6 +55,7 @@ namespace locic {
 				BRACKET,
 				LITERAL,
 				SYMBOLREF,
+				TYPEREF,
 				MEMBERREF,
 				SIZEOF,
 				UNARYOP,
@@ -83,6 +84,10 @@ namespace locic {
 			struct {
 				Node<Symbol> symbol;
 			} symbolRef;
+			
+			struct {
+				Node<Type> type;
+			} typeRef;
 			
 			struct {
 				String name;
@@ -149,7 +154,7 @@ namespace locic {
 			struct {
 				Node<Value> object;
 				String memberName;
-				Node<TypeList> typeList;
+				Node<ValueList> templateArgs;
 			} templatedMemberAccess;
 			
 			struct {
@@ -157,57 +162,63 @@ namespace locic {
 				Node<ValueList> parameters;
 			} functionCall;
 			
-			inline Value() : typeEnum(static_cast<TypeEnum>(-1)) { }
+			Value() : typeEnum(static_cast<TypeEnum>(-1)) { }
 			
-			inline Value(TypeEnum e) : typeEnum(e) { }
+			Value(TypeEnum e) : typeEnum(e) { }
 			
-			inline static Value* Self() {
+			static Value* Self() {
 				return new Value(SELF);
 			}
 			
-			inline static Value* This() {
+			static Value* This() {
 				return new Value(THIS);
 			}
 			
-			inline static Value* Bracket(Node<Value> operand) {
+			static Value* Bracket(Node<Value> operand) {
 				Value* value = new Value(BRACKET);
 				value->bracket.value = operand;
 				return value;
 			}
 			
-			inline static Value* Literal(const String& specifier, const Node<Constant>& constant) {
+			static Value* Literal(const String& specifier, const Node<Constant>& constant) {
 				Value* value = new Value(LITERAL);
 				value->literal.specifier = specifier;
 				value->literal.constant = constant;
 				return value;
 			}
 			
-			inline static Value* SymbolRef(const Node<Symbol>& symbol) {
+			static Value* SymbolRef(const Node<Symbol>& symbol) {
 				Value* value = new Value(SYMBOLREF);
 				value->symbolRef.symbol = symbol;
 				return value;
 			}
 			
-			inline static Value* MemberRef(const String& name) {
+			static Value* TypeRef(const Node<Type>& type) {
+				Value* value = new Value(TYPEREF);
+				value->typeRef.type = type;
+				return value;
+			}
+			
+			static Value* MemberRef(const String& name) {
 				Value* value = new Value(MEMBERREF);
 				value->memberRef.name = name;
 				return value;
 			}
 			
-			inline static Value* SizeOf(const Node<Type>& type) {
+			static Value* SizeOf(const Node<Type>& type) {
 				Value* value = new Value(SIZEOF);
 				value->sizeOf.type = type;
 				return value;
 			}
 			
-			inline static Value* UnaryOp(UnaryOpKind kind, Node<Value> operand) {
+			static Value* UnaryOp(UnaryOpKind kind, Node<Value> operand) {
 				Value* value = new Value(UNARYOP);
 				value->unaryOp.kind = kind;
 				value->unaryOp.operand = operand;
 				return value;
 			}
 			
-			inline static Value* BinaryOp(BinaryOpKind kind, Node<Value> leftOperand, Node<Value> rightOperand) {
+			static Value* BinaryOp(BinaryOpKind kind, Node<Value> leftOperand, Node<Value> rightOperand) {
 				Value* value = new Value(BINARYOP);
 				value->binaryOp.kind = kind;
 				value->binaryOp.leftOperand = leftOperand;
@@ -215,7 +226,7 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* Ternary(Node<Value> condition, Node<Value> ifTrue, Node<Value> ifFalse) {
+			static Value* Ternary(Node<Value> condition, Node<Value> ifTrue, Node<Value> ifFalse) {
 				Value* value = new Value(TERNARY);
 				value->ternary.condition = condition;
 				value->ternary.ifTrue = ifTrue;
@@ -223,7 +234,7 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* Cast(CastKind castKind, Node<Type> sourceType, Node<Type> targetType, Node<Value> operand) {
+			static Value* Cast(CastKind castKind, Node<Type> sourceType, Node<Type> targetType, Node<Value> operand) {
 				Value* value = new Value(CAST);
 				value->cast.castKind = castKind;
 				value->cast.sourceType = sourceType;
@@ -232,59 +243,61 @@ namespace locic {
 				return value;
 			}
 			
-			inline static Value* Lval(const Node<Type>& targetType, const Node<Value>& operand) {
+			static Value* Lval(const Node<Type>& targetType, const Node<Value>& operand) {
 				Value* value = new Value(LVAL);
 				value->makeLval.targetType = targetType;
 				value->makeLval.value = operand;
 				return value;
 			}
 			
-			inline static Value* NoLval(const Node<Value>& operand) {
+			static Value* NoLval(const Node<Value>& operand) {
 				Value* value = new Value(NOLVAL);
 				value->makeNoLval.value = operand;
 				return value;
 			}
 			
-			inline static Value* Ref(const Node<Type>& targetType, const Node<Value>& operand) {
+			static Value* Ref(const Node<Type>& targetType, const Node<Value>& operand) {
 				Value* value = new Value(REF);
 				value->makeRef.targetType = targetType;
 				value->makeRef.value = operand;
 				return value;
 			}
 			
-			inline static Value* NoRef(const Node<Value>& operand) {
+			static Value* NoRef(const Node<Value>& operand) {
 				Value* value = new Value(NOREF);
 				value->makeNoRef.value = operand;
 				return value;
 			}
 			
-			inline static Value* InternalConstruct(const Node<ValueList>& parameters) {
+			static Value* InternalConstruct(const Node<ValueList>& parameters) {
 				Value* value = new Value(INTERNALCONSTRUCT);
 				value->internalConstruct.parameters = parameters;
 				return value;
 			}
 			
-			inline static Value* MemberAccess(Node<Value> object, const String& memberName) {
+			static Value* MemberAccess(Node<Value> object, const String& memberName) {
 				Value* value = new Value(MEMBERACCESS);
 				value->memberAccess.object = object;
 				value->memberAccess.memberName = memberName;
 				return value;
 			}
 			
-			inline static Value* TemplatedMemberAccess(Node<Value> object, const String& memberName, const Node<TypeList>& typeList) {
+			static Value* TemplatedMemberAccess(Node<Value> object, const String& memberName, const Node<ValueList>& templateArgs) {
 				Value* value = new Value(TEMPLATEDMEMBERACCESS);
 				value->templatedMemberAccess.object = object;
 				value->templatedMemberAccess.memberName = memberName;
-				value->templatedMemberAccess.typeList = typeList;
+				value->templatedMemberAccess.templateArgs = templateArgs;
 				return value;
 			}
 			
-			inline static Value* FunctionCall(Node<Value> functionValue, const Node<ValueList>& parameters) {
+			static Value* FunctionCall(Node<Value> functionValue, const Node<ValueList>& parameters) {
 				Value* value = new Value(FUNCTIONCALL);
 				value->functionCall.functionValue = functionValue;
 				value->functionCall.parameters = parameters;
 				return value;
 			}
+			
+			std::string toString() const;
 		};
 		
 	}

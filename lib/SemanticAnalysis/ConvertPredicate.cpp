@@ -14,6 +14,7 @@
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 
@@ -49,12 +50,22 @@ namespace locic {
 					const auto searchResult = performSearch(context, Name::Relative() + variableName);
 					if (!searchResult.isTemplateVar()) {
 						throw ErrorException(makeString("Failed to find template var '%s' "
-							"in require expression, at position %s.",
+							"in predicate, at position %s.",
 							variableName.c_str(),
 							location.toString().c_str()));
 					}
 					
-					return SEM::Predicate::Variable(searchResult.templateVar());
+					const auto templateVar = searchResult.templateVar();
+					
+					if (templateVar->type()->isObject() && templateVar->type()->getObjectType()->name().last() == "bool") {
+						return SEM::Predicate::Variable(templateVar);
+					} else {
+						throw ErrorException(makeString("Template variable '%s' has non-boolean type '%s' "
+							"and therefore cannot be used in predicate, at position %s.",
+							variableName.c_str(),
+							templateVar->type()->toString().c_str(),
+							location.toString().c_str()));
+					}
 				}
 				case AST::Predicate::AND: {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->andLeft());
@@ -100,31 +111,39 @@ namespace locic {
 			throw std::logic_error("Unknown AST RequireSpecifier kind.");
 		}
 		
-		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
+		Optional<bool> evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
 			switch (predicate.kind()) {
 				case SEM::Predicate::TRUE:
 				{
-					return true;
+					return make_optional(true);
 				}
 				case SEM::Predicate::FALSE:
 				{
-					return false;
+					return make_optional(false);
 				}
 				case SEM::Predicate::AND:
 				{
 					const auto leftIsTrue = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
+					if (!leftIsTrue) {
+						return None;
+					}
+					
 					const auto rightIsTrue = evaluatePredicate(context, predicate.andRight(), variableAssignments);
-					return leftIsTrue && rightIsTrue;
+					if (!rightIsTrue) {
+						return None;
+					}
+					
+					return make_optional(*leftIsTrue && *rightIsTrue);
 				}
 				case SEM::Predicate::SATISFIES:
 				{
 					const auto templateVar = predicate.satisfiesTemplateVar();
 					const auto requireType = predicate.satisfiesRequirement();
 					
-					const auto templateValue = variableAssignments.at(templateVar)->resolveAliases();
+					const auto templateValue = variableAssignments.at(templateVar).typeRefType()->resolveAliases();
 					if (templateValue->isAuto()) {
 						// Presumably this will work.
-						return true;
+						return make_optional(true);
 					}
 					
 					// Some of the requirements can depend on the template values provided.
@@ -133,22 +152,29 @@ namespace locic {
 					const auto sourceMethodSet = getTypeMethodSet(context, templateValue);
 					const auto requireMethodSet = getTypeMethodSet(context, substitutedRequireType);
 					
-					return methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
+					return make_optional(methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet));
 				}
 				case SEM::Predicate::VARIABLE:
 				{
 					const auto templateVar = predicate.variableTemplateVar();
+					const auto& templateValue = variableAssignments.at(templateVar);
 					
-					const auto templateValue = variableAssignments.at(templateVar);
-					
-					// TODO: need to evaluate template value as boolean!
-					(void) templateValue;
-					
-					return true;
+					if (templateValue.isConstant()) {
+						assert(templateValue.constant().kind() == Constant::BOOLEAN);
+						return make_optional(templateValue.constant().boolValue());
+					} else {
+						// Unknown result since we don't know the variable's value.
+						return None;
+					}
 				}
 			}
 			
 			throw std::logic_error("Unknown predicate kind.");
+		}
+		
+		bool evaluatePredicateWithDefault(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments, const bool defaultValue) {
+			const auto result = evaluatePredicate(context, predicate, variableAssignments);
+			return result ? *result : defaultValue;
 		}
 		
 		

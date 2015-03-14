@@ -1,10 +1,10 @@
-#ifndef LOCIC_FASTMAP_HPP
-#define LOCIC_FASTMAP_HPP
+#ifndef LOCIC_SUPPORT_FASTMAP_HPP
+#define LOCIC_SUPPORT_FASTMAP_HPP
 
 #include <cassert>
 #include <map>
 
-#include <locic/Copy.hpp>
+#include <locic/Support/Copy.hpp>
 
 namespace locic {
 	

@@ -1,0 +1,13 @@
+template <bool V>
+class C () {
+	static create = default;
+	
+	bool get() const require(V) {
+		return true;
+	}
+}
+
+bool f() {
+	const auto value = C<true>();
+	return value.get();
+}

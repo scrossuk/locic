@@ -2,14 +2,13 @@
 #define LOCIC_SEM_VALUE_HPP
 
 #include <unordered_map>
-#include <vector>
 
 #include <locic/Constant.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/Debug/ValueInfo.hpp>
 #include <locic/SEM/ExitStates.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
+#include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
@@ -52,6 +51,7 @@ namespace locic {
 					MEMBERACCESS,
 					BIND_REFERENCE,
 					TYPEREF,
+					TEMPLATEVARREF,
 					CALL,
 					FUNCTIONREF,
 					TEMPLATEFUNCTIONREF,
@@ -239,7 +239,7 @@ namespace locic {
 				 * This creates an instance of the parent object type using
 				 * the 'internal constructor', a special auto-generated method.
 				 */
-				static Value InternalConstruct(TypeInstance* typeInstance, std::vector<Value> parameters);
+				static Value InternalConstruct(const TypeInstance* typeInstance, HeapArray<Value> parameters);
 				
 				/**
 				 * \brief Access member variable
@@ -266,11 +266,18 @@ namespace locic {
 				static Value TypeRef(const Type* targetType, const Type* type);
 				
 				/**
+				 * \brief Template Variable Reference
+				 * 
+				 * A reference to a template variable.
+				 */
+				static Value TemplateVarRef(const TemplateVar* targetVar, const Type* type);
+				
+				/**
 				 * \brief Call
 				 * 
 				 * Calls a (callable) value with the given parameters.
 				 */
-				static Value Call(Value functionValue, std::vector<Value> parameters);
+				static Value Call(Value functionValue, HeapArray<Value> parameters);
 				
 				/**
 				 * \brief Function Reference
@@ -279,7 +286,7 @@ namespace locic {
 				 * The function could be a method hence the parent type should be
 				 * set, otherwise it should be NULL.
 				 */
-				static Value FunctionRef(const Type* parentType, Function* function, TypeArray templateArguments, const Type* const type);
+				static Value FunctionRef(const Type* parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type);
 				
 				/**
 				 * \brief Template Function Reference
@@ -402,7 +409,7 @@ namespace locic {
 				const Value& makeNoStaticRefOperand() const;
 				
 				bool isInternalConstruct() const;
-				const std::vector<Value>& internalConstructParameters() const;
+				const HeapArray<Value>& internalConstructParameters() const;
 				
 				bool isMemberAccess() const;
 				const Value& memberAccessObject() const;
@@ -414,14 +421,17 @@ namespace locic {
 				bool isTypeRef() const;
 				const Type* typeRefType() const;
 				
+				bool isTemplateVarRef() const;
+				const TemplateVar* templateVar() const;
+				
 				bool isCall() const;
 				const Value& callValue() const;
-				const std::vector<Value>& callParameters() const;
+				const HeapArray<Value>& callParameters() const;
 				
 				bool isFunctionRef() const;
 				const Type* functionRefParentType() const;
 				Function* functionRefFunction() const;
-				const TypeArray& functionRefTemplateArguments() const;
+				const HeapArray<Value>& functionRefTemplateArguments() const;
 				
 				bool isTemplateFunctionRef() const;
 				const Type* templateFunctionRefParentType() const;
@@ -443,6 +453,15 @@ namespace locic {
 				void setDebugInfo(Debug::ValueInfo debugInfo);
 				Optional<Debug::ValueInfo> debugInfo() const;
 				
+				size_t hash() const;
+				
+				bool operator==(const Value& value) const;
+				bool operator!=(const Value& value) const {
+					return !(*this == value);
+				}
+				
+				//bool operator<(const Value& other) const;
+				
 				std::string toString() const;
 				
 			private:
@@ -459,7 +478,7 @@ namespace locic {
 				
 				std::unique_ptr<Value> value0_, value1_, value2_;
 				TypeArray typeArray_;
-				std::vector<Value> valueArray_;
+				HeapArray<Value> valueArray_;
 				
 				union {
 					locic::Constant constant_;
@@ -508,6 +527,10 @@ namespace locic {
 					struct {
 						const Type* targetType;
 					} typeRef_;
+					
+					struct {
+						const TemplateVar* templateVar;
+					} templateVarRef_;
 					
 					struct {
 						const Type* parentType;

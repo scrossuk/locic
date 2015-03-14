@@ -46,7 +46,7 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, const std::vector<SEM::Value>& args,
+		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, llvm::ArrayRef<SEM::Value> args,
 				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			assert(callInfo.functionPtr != nullptr);
 			

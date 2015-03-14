@@ -4,8 +4,8 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <locic/MakeString.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
@@ -30,15 +30,19 @@ namespace locic {
 				}
 				
 				case Type::OBJECT: {
-					TypeArray templateArgs;
+					ValueArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
 					
 					for (const auto& templateArg: type->templateArguments()) {
-						const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg, checkFunction, preFunction, postFunction);
-						changed |= (appliedArg != templateArg);
-						templateArgs.push_back(appliedArg);
+						if (templateArg.isTypeRef()) {
+							const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg.typeRefType(), checkFunction, preFunction, postFunction);
+							changed |= (appliedArg != templateArg.typeRefType());
+							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+						} else {
+							templateArgs.push_back(templateArg.copy());
+						}
 					}
 					
 					if (changed) {
@@ -104,15 +108,19 @@ namespace locic {
 				}
 				
 				case Type::ALIAS: {
-					TypeArray templateArgs;
+					ValueArray templateArgs;
 					templateArgs.reserve(type->typeAliasArguments().size());
 					
 					bool changed = false;
 					
 					for (const auto& templateArg : type->typeAliasArguments()) {
-						const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg, checkFunction, preFunction, postFunction);
-						changed |= (appliedArg != templateArg);
-						templateArgs.push_back(appliedArg);
+						if (templateArg.isTypeRef()) {
+							const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg.typeRefType(), checkFunction, preFunction, postFunction);
+							changed |= (appliedArg != templateArg.typeRefType());
+							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+						} else {
+							templateArgs.push_back(templateArg.copy());
+						}
 					}
 					
 					if (changed) {
@@ -151,33 +159,34 @@ namespace locic {
 			return postFunction(staticRefType);
 		}
 		
-		const TypeArray Type::NO_TEMPLATE_ARGS = TypeArray();
+		const ValueArray Type::NO_TEMPLATE_ARGS = ValueArray();
 		
 		const Type* Type::Auto(const Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(TypeAlias* const typeAlias, TypeArray templateArguments) {
+		const Type* Type::Alias(const TypeAlias* const typeAlias, ValueArray templateArguments) {
 			assert(typeAlias->templateVariables().size() == templateArguments.size());
 			auto& context = typeAlias->context();
 			
 			Type type(context, ALIAS);
 			type.data_.aliasType.typeAlias = typeAlias;
-			type.typeArray_ = std::move(templateArguments);
+			type.valueArray_ = std::move(templateArguments);
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Object(TypeInstance* const typeInstance, TypeArray templateArguments) {
+		const Type* Type::Object(const TypeInstance* const typeInstance, ValueArray templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
 			
 			Type type(context, OBJECT);
 			type.data_.objectType.typeInstance = typeInstance;
-			type.typeArray_ = std::move(templateArguments);
+			type.valueArray_ = std::move(templateArguments);
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::TemplateVarRef(TemplateVar* const templateVar) {
+		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
+			assert(templateVar->type()->isObject() && templateVar->type()->getObjectType()->name().last() == "typename_t");
 			auto& context = templateVar->context();
 			
 			Type type(context, TEMPLATEVAR);
@@ -427,12 +436,12 @@ namespace locic {
 			return kind() == ALIAS;
 		}
 		
-		SEM::TypeAlias* Type::getTypeAlias() const {
+		const SEM::TypeAlias* Type::getTypeAlias() const {
 			return data_.aliasType.typeAlias;
 		}
 		
-		const TypeArray& Type::typeAliasArguments() const {
-			return typeArray_;
+		const ValueArray& Type::typeAliasArguments() const {
+			return valueArray_;
 		}
 		
 		bool Type::isBuiltInVoid() const {
@@ -441,6 +450,10 @@ namespace locic {
 		
 		bool Type::isBuiltInReference() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
+		}
+		
+		bool Type::isBuiltInTypename() const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "typename_t";
 		}
 		
 		bool Type::isFunction() const {
@@ -504,7 +517,7 @@ namespace locic {
 			return data_.staticInterfaceMethodType.functionType;
 		}
 		
-		TemplateVar* Type::getTemplateVar() const {
+		const TemplateVar* Type::getTemplateVar() const {
 			assert(isTemplateVar());
 			return data_.templateVarRef.templateVar;
 		}
@@ -513,14 +526,14 @@ namespace locic {
 			return kind() == OBJECT;
 		}
 		
-		TypeInstance* Type::getObjectType() const {
+		const TypeInstance* Type::getObjectType() const {
 			assert(isObject());
 			return data_.objectType.typeInstance;
 		}
 		
-		const TypeArray& Type::templateArguments() const {
+		const ValueArray& Type::templateArguments() const {
 			assert(isObject());
-			return typeArray_;
+			return valueArray_;
 		}
 		
 		const Type* Type::getCallableFunctionType() const {
@@ -661,10 +674,157 @@ namespace locic {
 			TemplateVarMap templateVarMap;
 			
 			for (size_t i = 0; i < templateVars.size(); i++) {
-				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
+				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 			}
 			
 			return templateVarMap;
+		}
+		
+		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
+			switch (type->kind()) {
+				case Type::AUTO: {
+					return type;
+				}
+				
+				case Type::OBJECT: {
+					ValueArray templateArgs;
+					templateArgs.reserve(type->templateArguments().size());
+					
+					bool changed = false;
+					
+					for (const auto& templateArg: type->templateArguments()) {
+						if (templateArg.isTypeRef()) {
+							const auto appliedArg = templateArg.typeRefType()->substitute(templateVarMap);
+							changed |= (appliedArg != templateArg.typeRefType());
+							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+						} else if (templateArg.isTemplateVarRef()) {
+							const auto iterator = templateVarMap.find(templateArg.templateVar());
+							if (iterator != templateVarMap.end()) {
+								const auto& substituteValue = iterator->second;
+								changed = true;
+								templateArgs.push_back(substituteValue.copy());
+							} else {
+								templateArgs.push_back(templateArg.copy());
+							}
+						} else {
+							templateArgs.push_back(templateArg.copy());
+						}
+					}
+					
+					if (changed) {
+						return Type::Object(type->getObjectType(), std::move(templateArgs));
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::FUNCTION: {
+					TypeArray args;
+					args.reserve(type->getFunctionParameterTypes().size());
+					
+					bool changed = false;
+					
+					for (const auto& paramType: type->getFunctionParameterTypes()) {
+						const auto appliedType = paramType->substitute(templateVarMap);
+						changed |= (appliedType != paramType);
+						args.push_back(appliedType);
+					}
+					
+					const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
+					changed |= (returnType != type->getFunctionReturnType());
+					
+					if (changed) {
+						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
+							type->isFunctionTemplated(),
+							type->isFunctionNoExcept(), returnType, std::move(args));
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::METHOD: {
+					const auto appliedType = type->getMethodFunctionType()->substitute(templateVarMap);
+					if (appliedType != type->getMethodFunctionType()) {
+						return Type::Method(appliedType);
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::INTERFACEMETHOD: {
+					const auto appliedType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
+					if (appliedType != type->getInterfaceMethodFunctionType()) {
+						return Type::InterfaceMethod(appliedType);
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::STATICINTERFACEMETHOD: {
+					const auto appliedType = type->getStaticInterfaceMethodFunctionType()->substitute(templateVarMap);
+					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
+						return Type::StaticInterfaceMethod(appliedType);
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::TEMPLATEVAR: {
+					const auto iterator = templateVarMap.find(type->getTemplateVar());
+					if (iterator != templateVarMap.end()) {
+						const auto& substituteValue = iterator->second;
+						assert(substituteValue.isTypeRef());
+						return substituteValue.typeRefType();
+					} else {
+						return type;
+					}
+				}
+				
+				case Type::ALIAS: {
+					ValueArray templateArgs;
+					templateArgs.reserve(type->typeAliasArguments().size());
+					
+					bool changed = false;
+					
+					for (const auto& templateArg : type->typeAliasArguments()) {
+						if (templateArg.isTypeRef()) {
+							const auto appliedArg = templateArg.typeRefType()->substitute(templateVarMap);
+							changed |= (appliedArg != templateArg.typeRefType());
+							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+						} else {
+							templateArgs.push_back(templateArg.copy());
+						}
+					}
+					
+					if (changed) {
+						return Type::Alias(type->getTypeAlias(), std::move(templateArgs));
+					} else {
+						return type;
+					}
+				}
+			}
+			
+			std::terminate();
+		}
+		
+		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
+			const auto basicType = basicSubstitute(type, templateVarMap);
+			
+			const auto constType = type->isConst() ? basicType->createConstType() : basicType;
+			
+			const auto lvalType = type->isLval() ?
+				constType->createLvalType(type->lvalTarget()->substitute(templateVarMap)) :
+				constType;
+			
+			const auto refType = type->isRef() ?
+				lvalType->createRefType(type->refTarget()->substitute(templateVarMap)) :
+				lvalType;
+			
+			const auto staticRefType = type->isStaticRef() ?
+				refType->createStaticRefType(type->staticRefTarget()->substitute(templateVarMap)) :
+				refType;
+			
+			return staticRefType;
 		}
 		
 		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
@@ -672,27 +832,7 @@ namespace locic {
 				return this;
 			}
 			
-			return applyType(this,
-				[] (const Type* const) {
-					// Unknown whether the type contains template
-					// variables, so assume it does.
-					return true;
-				},
-				[&](const Type* const type) {
-					if (type->isTemplateVar()) {
-						const auto iterator = templateVarMap.find(type->getTemplateVar());
-						if (iterator != templateVarMap.end()) {
-							return iterator->second;
-						} else {
-							return type;
-						}
-					} else {
-						return type;
-					}
-				},
-				[](const Type* const type) {
-					return type;
-				});
+			return doSubstitute(this, templateVarMap);
 		}
 		
 		const Type* Type::makeTemplatedFunction() const {
@@ -716,7 +856,7 @@ namespace locic {
 						
 						TemplateVarMap templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
-							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i)));
+							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 						}
 						
 						return type->getTypeAlias()->value()->substitute(templateVarMap)->resolveAliases();
@@ -737,7 +877,7 @@ namespace locic {
 				case OBJECT: {
 					if (isBuiltInReference()) {
 						assert(templateArguments().size() == 1);
-						return templateArguments().front()->nameToString() + "&";
+						return templateArguments().front().typeRefType()->nameToString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->name().toString(false);
@@ -748,13 +888,13 @@ namespace locic {
 						stream << objectName << "<";
 						
 						bool isFirst = true;
-						for (const auto templateArg: templateArguments()) {
+						for (const auto& templateArg: templateArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
 								stream << ", ";
 							}
-							stream << templateArg->nameToString();
+							stream << templateArg.toString();
 						}
 						
 						stream << ">";
@@ -793,13 +933,13 @@ namespace locic {
 						stream << aliasName << "<";
 						
 						bool isFirst = true;
-						for (const auto templateArg: typeAliasArguments()) {
+						for (const auto& templateArg: typeAliasArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
 								stream << ", ";
 							}
-							stream << templateArg->nameToString();
+							stream << templateArg.toString();
 						}
 						
 						stream << ">";
@@ -821,7 +961,7 @@ namespace locic {
 				case OBJECT: {
 					if (isBuiltInReference()) {
 						assert(templateArguments().size() == 1);
-						return templateArguments().front()->toString() + "&";
+						return templateArguments().front().typeRefType()->toString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->name().toString(false);
@@ -832,13 +972,18 @@ namespace locic {
 						stream << objectName << "<";
 						
 						bool isFirst = true;
-						for (const auto templateArg: templateArguments()) {
+						for (const auto& templateArg: templateArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
 								stream << ", ";
 							}
-							stream << templateArg->toString();
+							
+							if (templateArg.isTypeRef()) {
+								stream << templateArg.typeRefType()->toString();
+							} else {
+								stream << templateArg.toString();
+							}
 						}
 						
 						stream << ">";
@@ -877,13 +1022,13 @@ namespace locic {
 						stream << aliasName << "<";
 						
 						bool isFirst = true;
-						for (const auto templateArg: typeAliasArguments()) {
+						for (const auto& templateArg: typeAliasArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
 								stream << ", ";
 							}
-							stream << templateArg->nameToString();
+							stream << templateArg.toString();
 						}
 						
 						stream << ">";
@@ -938,7 +1083,7 @@ namespace locic {
 					boost::hash_combine(seed, typeAliasArguments().size());
 					
 					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
-						boost::hash_combine(seed, typeAliasArguments().at(i));
+						boost::hash_combine(seed, typeAliasArguments().at(i).hash());
 					}
 					
 					break;
@@ -948,7 +1093,7 @@ namespace locic {
 					boost::hash_combine(seed, templateArguments().size());
 					
 					for (size_t i = 0; i < templateArguments().size(); i++) {
-						boost::hash_combine(seed, templateArguments().at(i));
+						boost::hash_combine(seed, templateArguments().at(i).hash());
 					}
 					
 					break;
@@ -1005,13 +1150,13 @@ namespace locic {
 				
 				case ALIAS: {
 					type.data_.aliasType.typeAlias = getTypeAlias();
-					type.typeArray_ = typeAliasArguments().copy();
+					type.valueArray_ = typeAliasArguments().copy();
 					break;
 				}
 				
 				case OBJECT: {
 					type.data_.objectType.typeInstance = getObjectType();
-					type.typeArray_ = templateArguments().copy();
+					type.valueArray_ = templateArguments().copy();
 					break;
 				}
 				
@@ -1170,7 +1315,7 @@ namespace locic {
 			throw std::logic_error("Unknown type kind.");
 		}
 		
-		bool Type::operator<(const Type& type) const {
+		/*bool Type::operator<(const Type& type) const {
 			if (kind() != type.kind()) {
 				return kind() < type.kind();
 			}
@@ -1291,7 +1436,7 @@ namespace locic {
 			}
 			
 			throw std::logic_error("Unknown type kind.");
-		}
+		}*/
 		
 	}
 	

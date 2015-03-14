@@ -15,7 +15,7 @@ namespace locic {
 		SEM::Value GetMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location);
 		
 		SEM::Value GetTemplatedMethod(Context& context, SEM::Value value, const String& methodName,
-			SEM::TypeArray templateArguments, const Debug::SourceLocation& location);
+			SEM::ValueArray templateArguments, const Debug::SourceLocation& location);
 		
 		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location);
 		
@@ -29,10 +29,10 @@ namespace locic {
 			SEM::Value value,
 			const SEM::Type* type,
 			const String& methodName,
-			SEM::TypeArray templateArguments,
+			SEM::ValueArray templateArguments,
 			const Debug::SourceLocation& location);
 		
-		SEM::Value CallValue(Context& context, SEM::Value value, std::vector<SEM::Value> args, const Debug::SourceLocation& location);
+		SEM::Value CallValue(Context& context, SEM::Value value, HeapArray<SEM::Value> args, const Debug::SourceLocation& location);
 		
 		bool supportsNullConstruction(Context& context, const SEM::Type* type);
 		

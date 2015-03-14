@@ -13,8 +13,8 @@
 #include <llvm-abi/ABI.hpp>
 
 #include <locic/BuildOptions.hpp>
-#include <locic/FastMap.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/FastMap.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/CodeGen/Debug.hpp>

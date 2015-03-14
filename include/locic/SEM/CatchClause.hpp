@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <locic/FastMap.hpp>
+#include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {

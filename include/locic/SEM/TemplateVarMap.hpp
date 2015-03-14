@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 
+#include <locic/SEM/Value.hpp>
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -11,7 +12,6 @@ namespace locic {
 	namespace SEM {
 	
 		class TemplateVar;
-		class Type;
 		
 		constexpr size_t TemplateVarMapBaseSize = 8;
 		
@@ -29,7 +29,7 @@ namespace locic {
 		class TemplateVarMap {
 			public:
 				using key_type = const TemplateVar*;
-				using mapped_type = const Type*;
+				using mapped_type = Value;
 				using value_type = std::pair<key_type, mapped_type>;
 				using ArrayType = Array<value_type, TemplateVarMapBaseSize>;
 				using iterator = ArrayType::iterator;

@@ -21,7 +21,7 @@ namespace locic {
 				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
-					return isTypeSizeAlwaysKnown(module, type->templateArguments().at(0));
+					return isTypeSizeAlwaysKnown(module, type->templateArguments().front().typeRefType());
 				default:
 					return true;
 			}
@@ -37,7 +37,7 @@ namespace locic {
 				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
-					return isTypeSizeKnownInThisModule(module, type->templateArguments().at(0));
+					return isTypeSizeKnownInThisModule(module, type->templateArguments().front().typeRefType());
 				default:
 					return true;
 			}

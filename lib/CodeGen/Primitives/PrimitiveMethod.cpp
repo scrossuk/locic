@@ -238,7 +238,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::TypeArray& templateArgs,
+		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, llvm::ArrayRef<SEM::Value> templateArgs,
 				PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
@@ -247,14 +247,14 @@ namespace locic {
 				assert(args.empty());
 				return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
 			} else if (methodName == "implicit_cast") {
-				return callRawCastMethod(function, nullptr, type, module.getCString("null"), templateArgs.front(), debugLoc, hintResultValue);
+				return callRawCastMethod(function, nullptr, type, module.getCString("null"), templateArgs.front().typeRefType(), debugLoc, hintResultValue);
 			} else {
 				llvm_unreachable("Unknown null_t method.");
 			}
 		}
 		
 		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
-				const SEM::TypeArray& templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -265,7 +265,7 @@ namespace locic {
 				return ConstantGenerator(module).getI1(false);
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front(), debugLoc, hintResultValue);
+					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), debugLoc, hintResultValue);
 				} else if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else if (methodName == "not") {
@@ -324,7 +324,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
-				const SEM::TypeArray& templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -361,7 +361,7 @@ namespace locic {
 				}
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front(), debugLoc, hintResultValue);
+					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), debugLoc, hintResultValue);
 				} else if (methodName == "implicit_copy" || methodName == "copy" || methodName == "plus") {
 					return methodOwner;
 				} else if (methodName == "minus") {
@@ -455,7 +455,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
-				const SEM::TypeArray& templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -555,7 +555,7 @@ namespace locic {
 				}
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front(), debugLoc, hintResultValue);
+					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), debugLoc, hintResultValue);
 				} else if (methodName == "implicit_copy" || methodName == "copy") {
 					return methodOwner;
 				} else if (methodName == "isZero") {
@@ -724,7 +724,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
-				const SEM::TypeArray& templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -764,7 +764,7 @@ namespace locic {
 				const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
 				
 				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front(), debugLoc, hintResultValue);
+					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), debugLoc, hintResultValue);
 				} else if (methodName == "implicit_copy" || methodName == "copy" || methodName == "plus") {
 					return methodOwner;
 				} else if (methodName == "minus") {
@@ -858,7 +858,7 @@ namespace locic {
 				if (methodName == "add") {
 					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
 					const auto operand = args[1].resolveWithoutBindRaw(function, ptrDiffTType);
-					const auto targetType = type->templateArguments().front();
+					const auto targetType = type->templateArguments().front().typeRefType();
 					
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
@@ -881,7 +881,7 @@ namespace locic {
 				} else if (methodName == "index") {
 					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
 					const auto operand = args[1].resolve(function);
-					const auto targetType = type->templateArguments().front();
+					const auto targetType = type->templateArguments().front().typeRefType();
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
@@ -933,7 +933,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = args[0].resolveWithoutBind(function, type);
-			const auto targetType = type->templateArguments().front();
+			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			if (methodName == "__move_to") {
 				const auto moveToPtr = args[1].resolve(function);
@@ -987,7 +987,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto targetType = type->templateArguments().front();
+			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			if (methodName == "__empty") {
 				return genMoveLoad(function, genAlloca(function, type), type, debugLoc);
@@ -1050,7 +1050,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto targetType = type->templateArguments().front();
+			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			if (methodName == "__empty") {
 				return genMoveLoad(function, genAlloca(function, type, debugLoc), type, debugLoc);
@@ -1098,7 +1098,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto targetType = type->templateArguments().front();
+			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			if (methodName == "create") {
 				const auto objectVar = genAlloca(function, type, debugLoc);
@@ -1254,7 +1254,7 @@ namespace locic {
 		llvm::Value* genRefPrimitiveMethodCall(Function& function, const SEM::Type* const type, const String& methodName, const SEM::Type* const /*functionType*/, PendingResultArray args) {
 			auto& module = function.module();
 			
-			const auto refTarget = type->templateArguments().at(0);
+			const auto refTarget = type->templateArguments().at(0).typeRefType();
 			assert(!refTarget->isAlias());
 			if (!refTarget->isTemplateVar()
 				// TODO: remove this and implement other methods (such as implicit copy) properly!
@@ -1337,9 +1337,9 @@ namespace locic {
 				case PrimitiveCompareResult:
 					return genCompareResultPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveNull:
-					return genNullPrimitiveMethodCall(function, type, methodName, templateArgs, std::move(args), debugLoc, hintResultValue);
+					return genNullPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), debugLoc, hintResultValue);
 				case PrimitiveBool:
-					return genBoolPrimitiveMethodCall(function, type, methodName, functionType, templateArgs, std::move(args), debugLoc, hintResultValue);
+					return genBoolPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), debugLoc, hintResultValue);
 				case PrimitiveValueLval:
 					return genValueLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), debugLoc);
 				case PrimitiveMemberLval:
@@ -1361,7 +1361,7 @@ namespace locic {
 				case PrimitiveLongLong:
 				case PrimitiveSSize:
 				case PrimitivePtrDiff:
-					return genSignedIntegerPrimitiveMethodCall(function, type, methodName, functionType, templateArgs, std::move(args), debugLoc, hintResultValue);
+					return genSignedIntegerPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), debugLoc, hintResultValue);
 				case PrimitiveUInt8:
 				case PrimitiveUInt16:
 				case PrimitiveUInt32:
@@ -1372,11 +1372,11 @@ namespace locic {
 				case PrimitiveULong:
 				case PrimitiveULongLong:
 				case PrimitiveSize:
-					return genUnsignedIntegerPrimitiveMethodCall(function, type, methodName, functionType, templateArgs, std::move(args), debugLoc, hintResultValue);
+					return genUnsignedIntegerPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), debugLoc, hintResultValue);
 				case PrimitiveFloat:
 				case PrimitiveDouble:
 				case PrimitiveLongDouble:
-					return genFloatPrimitiveMethodCall(function, type, methodName, functionType, templateArgs, std::move(args), debugLoc, hintResultValue);
+					return genFloatPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), debugLoc, hintResultValue);
 				case PrimitiveTypename:
 					return genTypenamePrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveRef:
@@ -1396,9 +1396,9 @@ namespace locic {
 				function.attachDebugInfo(*debugSubprogram);
 			}
 			
-			SEM::TypeArray templateArgs;
+			SEM::ValueArray templateArgs;
 			for (const auto& templateVar: semFunction->templateVariables()) {
-				templateArgs.push_back(SEM::Type::TemplateVarRef(templateVar));
+				templateArgs.push_back(SEM::Value::TypeRef(SEM::Type::TemplateVarRef(templateVar), templateVar->type()));
 			}
 			
 			// Collect together arguments and whether they're reference arguments.

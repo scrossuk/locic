@@ -52,7 +52,7 @@ namespace locic {
 			
 		};
 		
-		llvm::StructType* genTypeInstance(Module& module, SEM::TypeInstance* typeInstance) {
+		llvm::StructType* genTypeInstance(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(!typeInstance->isInterface());
 			
 			const auto iterator = module.typeInstanceMap().find(typeInstance);

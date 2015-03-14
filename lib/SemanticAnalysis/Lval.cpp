@@ -16,17 +16,17 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		const SEM::Type* makeValueLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("value_lval"), { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context, context.getCString("value_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeMemberLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("member_lval"), { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context, context.getCString("member_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		
 		const SEM::Type* makeFinalLvalType(Context& context, bool isLvalConst, const SEM::Type* valueType) {
-			const auto lvalType = getBuiltInType(context.scopeStack(), context.getCString("final_lval"), { valueType })->createLvalType(valueType);
+			const auto lvalType = getBuiltInType(context, context.getCString("final_lval"), { valueType })->createLvalType(valueType);
 			return isLvalConst ? lvalType->createConstType() : lvalType;
 		}
 		

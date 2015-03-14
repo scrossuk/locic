@@ -65,7 +65,7 @@ namespace locic {
 		}
 		
 		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
-			if (semTypeInstance->parent() == nullptr) {
+			if (semTypeInstance->parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + context.getCString("create"));
 			}
@@ -98,14 +98,14 @@ namespace locic {
 			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
 			
 			if (!hasParent) {
-				assert(semTypeInstance->parent() == nullptr);
+				assert(semTypeInstance->parentType() == nullptr);
 				
 				// No parent, so just create a normal default constructor.
 				CreateDefaultConstructor(context, semTypeInstance, function, location);
 				return;
 			}
 			
-			assert(semTypeInstance->parent() != nullptr);
+			assert(semTypeInstance->parentType() != nullptr);
 			
 			// Attach parameters to the function.
 			attachParameters(function, astTypeInstanceNode->variables, function->parameters());
@@ -113,19 +113,20 @@ namespace locic {
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
 			
-			std::vector<SEM::Value> parentArguments;
+			HeapArray<SEM::Value> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {
 				parentArguments.push_back(ConvertValue(context, astValueNode));
 			}
 			
-			std::vector<SEM::Value> constructValues;
+			HeapArray<SEM::Value> constructValues;
+			constructValues.reserve(1 + function->parameters().size());
 			
 			// Call parent constructor.
-			auto typeRefValue = createTypeRef(context, semTypeInstance->parent());
+			auto typeRefValue = createTypeRef(context, semTypeInstance->parentType());
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
 			for (const auto semVar: function->parameters()) {
-				const auto varType = getBuiltInType(context.scopeStack(), context.getCString("__ref"), { semVar->type() })->createRefType(semVar->type());
+				const auto varType = getBuiltInType(context, context.getCString("__ref"), { semVar->type() })->createRefType(semVar->type());
 				auto varValue = SEM::Value::LocalVar(*semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.

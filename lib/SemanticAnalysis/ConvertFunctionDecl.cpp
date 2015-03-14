@@ -64,7 +64,7 @@ namespace locic {
 			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
-			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
@@ -77,6 +77,11 @@ namespace locic {
 						templateVarName.c_str(), semFunction->name().toString().c_str(),
 						astTemplateVarNode.location().toString().c_str()));
 				}
+				
+				// Also adding the function template variable type here.
+				const auto& astVarType = astTemplateVarNode->varType;
+				const auto semVarType = ConvertType(context, astVarType);
+				semTemplateVar->setType(semVarType);
 				
 				semFunction->templateVariables().push_back(semTemplateVar);
 				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));

@@ -13,10 +13,10 @@ namespace locic {
 			const SEM::Type* parentType;
 			String name;
 			const SEM::Type* functionType;
-			SEM::TypeArray templateArgs;
+			HeapArray<SEM::Value> templateArgs;
 			
 			MethodInfo(const SEM::Type* const argParentType, const String& argName,
-				const SEM::Type* const argFunctionType, SEM::TypeArray argTemplateArgs)
+				const SEM::Type* const argFunctionType, HeapArray<SEM::Value> argTemplateArgs)
 			: parentType(argParentType), name(argName), functionType(argFunctionType), templateArgs(std::move(argTemplateArgs)) { }
 		};
 		

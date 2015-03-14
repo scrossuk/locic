@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <locic/CodeGen/VTable.hpp>
-#include <locic/MakeString.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
 

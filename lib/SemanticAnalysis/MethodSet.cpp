@@ -223,7 +223,7 @@ namespace locic {
 			}
 		}
 		
-		const MethodSet* getMethodSetForRequiresPredicate(Context& context, SEM::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate) {
+		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const SEM::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate) {
 			switch (requiresPredicate.kind()) {
 				case SEM::Predicate::TRUE:
 				case SEM::Predicate::FALSE:
@@ -277,7 +277,10 @@ namespace locic {
 				const auto& functionName = functionPair.first;
 				const auto& function = functionPair.second;
 				
-				const auto isConstMethod = evaluatePredicate(context, function->constPredicate(), objectType->generateTemplateVarMap());
+				// Conservatively assume method is not const if result is undetermined.
+				const bool isConstMethodDefault =  false;
+				
+				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), objectType->generateTemplateVarMap(), isConstMethodDefault);
 				
 				// TODO: also skip unsatisfied requirement specifiers.
 				if (objectType->isConst() && !isConstMethod && !function->isStaticMethod()) {

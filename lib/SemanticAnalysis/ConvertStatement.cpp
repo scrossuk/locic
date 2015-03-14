@@ -5,6 +5,7 @@
 #include <string>
 
 #include <locic/AST.hpp>
+#include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -22,36 +23,29 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		template <typename T>
-		std::vector<T> makeArray(T value) {
-			std::vector<T> array;
-			array.push_back(std::move(value));
-			return array;
-		}
-		
 		SEM::Value GetAssignValue(Context& context, AST::AssignKind assignKind, SEM::Value varValue, SEM::Value operandValue, const Debug::SourceLocation& location) {
 			switch (assignKind) {
 				case AST::ASSIGN_DIRECT:
 					return operandValue;
 				case AST::ASSIGN_ADD: {
 					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("add"), location);
-					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
+					return CallValue(context, std::move(opMethod), makeHeapArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_SUB: {
 					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("subtract"), location);
-					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
+					return CallValue(context, std::move(opMethod), makeHeapArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_MUL: {
 					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("multiply"), location);
-					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
+					return CallValue(context, std::move(opMethod), makeHeapArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_DIV: {
 					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("divide"), location);
-					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
+					return CallValue(context, std::move(opMethod), makeHeapArray( std::move(operandValue) ), location);
 				}
 				case AST::ASSIGN_MOD: {
 					auto opMethod = GetMethod(context, std::move(varValue), context.getCString("modulo"), location);
-					return CallValue(context, std::move(opMethod), makeArray( std::move(operandValue) ), location);
+					return CallValue(context, std::move(opMethod), makeHeapArray( std::move(operandValue) ), location);
 				}
 			}
 			
@@ -69,7 +63,7 @@ namespace locic {
 							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
 								value.toString().c_str(), location.toString().c_str()));
 						}
-						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
+						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
@@ -83,7 +77,7 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
+					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
@@ -100,7 +94,7 @@ namespace locic {
 				case AST::Statement::SWITCH: {
 					auto value = ConvertValue(context, statement->switchStmt.value);
 					
-					std::map<SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
+					std::map<const SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
@@ -136,7 +130,7 @@ namespace locic {
 					
 					// Check that all switch cases are based
 					// on the same union datatype.
-					const auto switchType = firstSwitchTypeIterator->first->parent();
+					const auto switchTypeInstance = firstSwitchTypeIterator->first->parent();
 					for (auto caseTypePair: switchCaseTypes) {
 						const auto caseTypeInstance = caseTypePair.first;
 						const auto caseTypeInstanceParent = caseTypeInstance->parent();
@@ -147,7 +141,7 @@ namespace locic {
 								location.toString().c_str()));
 						}
 						
-						if (caseTypeInstanceParent->getObjectType() != switchType->getObjectType()) {
+						if (caseTypeInstanceParent != switchTypeInstance) {
 							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
 								caseTypeInstance->refToString().c_str(),
 								(firstSwitchTypeIterator->first)->refToString().c_str(),
@@ -155,7 +149,7 @@ namespace locic {
 						}
 					}
 					
-					const auto substitutedSwitchType = switchType->substitute(firstSwitchTypeIterator->second->generateTemplateVarMap());
+					const auto substitutedSwitchType = switchTypeInstance->selfType()->substitute(firstSwitchTypeIterator->second->generateTemplateVarMap());
 					
 					// Case value to switch type.
 					auto castValue = ImplicitCast(context, std::move(value), substitutedSwitchType, location);
@@ -166,7 +160,7 @@ namespace locic {
 					std::vector<SEM::TypeInstance*> unhandledCases;
 					
 					// Check whether all cases are handled.
-					for (auto variantTypeInstance: switchType->getObjectType()->variants()) {
+					for (auto variantTypeInstance: switchTypeInstance->variants()) {
 						if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
 							unhandledCases.push_back(variantTypeInstance);
 						}
@@ -196,7 +190,7 @@ namespace locic {
 					
 					auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					auto advanceScope = SEM::Scope::Create();
-					auto loopCondition = ImplicitCast(context, std::move(condition), getBuiltInType(context.scopeStack(), context.getCString("bool"), {}), location);
+					auto loopCondition = ImplicitCast(context, std::move(condition), getBuiltInType(context, context.getCString("bool"), {}), location);
 					return SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
@@ -317,7 +311,7 @@ namespace locic {
 					// TODO: fix this to not copy the value!
 					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
 					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(semVarValue)), context.getCString("assign"), location);
-					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeArray(std::move(semAssignValue)), location));
+					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(semAssignValue)), location));
 				}
 				case AST::Statement::INCREMENT: {
 					auto semOperandValue = ConvertValue(context, statement->incrementStmt.value);
@@ -328,7 +322,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
+						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
@@ -342,7 +336,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context.scopeStack(), context.getCString("void_t"), {});
+						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
@@ -486,7 +480,7 @@ namespace locic {
 				case AST::Statement::ASSERT: {
 					assert(statement->assertStmt.value.get() != nullptr);
 					
-					const auto boolType = getBuiltInType(context.scopeStack(), context.getCString("bool"), {});
+					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 					auto condition = ConvertValue(context, statement->assertStmt.value);
 					auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
 					return SEM::Statement::Assert(std::move(boolValue), statement->assertStmt.name);

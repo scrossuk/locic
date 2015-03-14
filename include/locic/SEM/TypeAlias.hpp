@@ -4,13 +4,13 @@
 #include <string>
 #include <vector>
 
-#include <locic/FastMap.hpp>
+#include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
-#include <locic/SEM/TypeArray.hpp>
+#include <locic/SEM/ValueArray.hpp>
 
 namespace locic {
 
@@ -46,7 +46,7 @@ namespace locic {
 				 * 
 				 */
 				const Type* selfType() const;
-				TypeArray selfTemplateArgs() const;
+				ValueArray selfTemplateArgs() const;
 				
 				std::vector<TemplateVar*>& templateVariables();
 				const std::vector<TemplateVar*>& templateVariables() const;

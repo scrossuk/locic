@@ -1,7 +1,7 @@
 #include <string>
 
-#include <locic/MakeString.hpp>
-#include <locic/Map.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
@@ -24,6 +24,7 @@ namespace locic {
 			kind_(std::move(k)),
 			moduleScope_(std::move(m)),
 			parent_(nullptr),
+			parentType_(nullptr),
 			requiresPredicate_(Predicate::True()),
 			hasCustomMove_(false) { }
 		
@@ -88,17 +89,16 @@ namespace locic {
 		}
 		
 		const Type* TypeInstance::selfType() const {
-			// TODO: remove const_cast.
-			return SEM::Type::Object(const_cast<TypeInstance*>(this), selfTemplateArgs());
+			return SEM::Type::Object(this, selfTemplateArgs());
 		}
 		
-		TypeArray TypeInstance::selfTemplateArgs() const {
-			TypeArray templateArgs;
+		ValueArray TypeInstance::selfTemplateArgs() const {
+			ValueArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
 				// Refer to the template variables of this type instance.
-				templateArgs.push_back(SEM::Type::TemplateVarRef(templateVar));
+				templateArgs.push_back(templateVar->selfRefValue());
 			}
 			
 			return templateArgs;
@@ -182,13 +182,28 @@ namespace locic {
 			return hasCustomMove_;
 		}
 		
-		void TypeInstance::setParent(const Type* pParent) {
-			assert(pParent->isObject());
+		void TypeInstance::setParent(const TypeInstance* const pParent) {
 			parent_ = pParent;
 		}
 		
-		const Type* TypeInstance::parent() const {
+		const TypeInstance* TypeInstance::parent() const {
 			return parent_;
+		}
+		
+		void TypeInstance::setParentType(const Type* const argParent) {
+			parentType_ = argParent;
+		}
+		
+		const Type* TypeInstance::parentType() const {
+			return parentType_;
+		}
+		
+		void TypeInstance::setDebugInfo(const Debug::TypeInstanceInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::TypeInstanceInfo> TypeInstance::debugInfo() const {
+			return debugInfo_;
 		}
 		
 		std::string TypeInstance::refToString() const {

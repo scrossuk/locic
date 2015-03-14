@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include <locic/FastMap.hpp>
+#include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 

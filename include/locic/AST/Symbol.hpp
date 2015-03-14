@@ -7,7 +7,7 @@
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 
@@ -15,20 +15,20 @@ namespace locic {
 	
 		class SymbolElement {
 			public:
-				SymbolElement(String n, const Node<TypeList>& t)
+				SymbolElement(String n, const Node<ValueList>& t)
 				: name_(std::move(n)), templateArguments_(t) { }
 				
 				const String& name() const {
 					return name_;
 				}
 				
-				const Node<TypeList>& templateArguments() const {
+				const Node<ValueList>& templateArguments() const {
 					return templateArguments_;
 				}
 				
 			private:
 				String name_;
-				Node<TypeList> templateArguments_;
+				Node<ValueList> templateArguments_;
 				
 		};
 		

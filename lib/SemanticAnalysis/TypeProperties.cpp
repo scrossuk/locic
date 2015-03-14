@@ -21,8 +21,8 @@ namespace locic {
 		
 		namespace {
 			
-			std::vector<SEM::Value> CastFunctionArguments(Context& context, std::vector<SEM::Value> arguments, const SEM::TypeArray& types, const Debug::SourceLocation& location) {
-				std::vector<SEM::Value> castValues;
+			HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments, const SEM::TypeArray& types, const Debug::SourceLocation& location) {
+				HeapArray<SEM::Value> castValues;
 				castValues.reserve(arguments.size());
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
@@ -117,7 +117,7 @@ namespace locic {
 			return GetTemplatedMethod(context, std::move(rawValue), methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, tryDissolveValue(context, derefOrBindValue(context, std::move(rawValue)), location));
 			const auto type = getDerefType(value.type())->resolveAliases();
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, std::move(templateArguments), location);
@@ -134,7 +134,7 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::TypeArray templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			if (!type->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
@@ -191,7 +191,7 @@ namespace locic {
 				auto templateVariableAssignments = type->generateTemplateVarMap();
 				for (size_t i = 0; i < templateArguments.size(); i++) {
 					const auto templateVariable = templateVariables.at(i);
-					const auto templateTypeValue = templateArguments.at(i)->resolveAliases();
+					const auto templateTypeValue = templateArguments.at(i).typeRefType()->resolveAliases();
 					
 					if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
 						throw ErrorException(makeString("Invalid type '%s' passed "
@@ -202,12 +202,16 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
-					templateVariableAssignments.insert(std::make_pair(templateVariable, templateTypeValue));
+					templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateArguments.at(i).type())));
 				}
 				
 				// Now check the template arguments satisfy the requires predicate.
 				const auto& requiresPredicate = function->requiresPredicate();
-				if (!evaluatePredicate(context, requiresPredicate, templateVariableAssignments)) {
+				
+				// Conservatively assume require predicate is not satisified if result is undetermined.
+				const bool satisfiesRequiresDefault = false;
+				
+				if (!evaluatePredicateWithDefault(context, requiresPredicate, templateVariableAssignments, satisfiesRequiresDefault)) {
 					throw ErrorException(makeString("Template arguments do not satisfy "
 						"requires predicate '%s' of method '%s' at position %s.",
 						requiresPredicate.toString().c_str(),
@@ -230,7 +234,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value CallValue(Context& context, SEM::Value rawValue, std::vector<SEM::Value> args, const Debug::SourceLocation& location) {
+		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
 			if (getDerefType(value.type())->isStaticRef()) {
@@ -283,7 +287,7 @@ namespace locic {
 				arg = arg->resolveAliases();
 			}
 			
-			const auto requireType = getBuiltInType(context.scopeStack(), capability, std::move(templateArgs))->resolveAliases();
+			const auto requireType = getBuiltInType(context, capability, std::move(templateArgs))->resolveAliases();
 			
 			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);
@@ -314,7 +318,11 @@ namespace locic {
 					if (function->type()->isFunctionVarArg()) return false;
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;
-					if (!evaluatePredicate(context, function->constPredicate(), type->generateTemplateVarMap())) return false;
+					
+					// Conservatively assume method is not const if result is undetermined.
+					const bool isConstMethodDefault = false;
+					
+					if (!evaluatePredicateWithDefault(context, function->constPredicate(), type->generateTemplateVarMap(), isConstMethodDefault)) return false;
 					if (!function->parameters().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					

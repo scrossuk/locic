@@ -27,6 +27,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments);
+		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments);
 		
 		bool isRootType(const SEM::Type* type) {
 			switch (type->kind()) {
@@ -66,6 +67,15 @@ namespace locic {
 		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments) {
 			for (size_t i = 0; i < templateArguments.size(); i++) {
 				if (!isRootType(templateArguments[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments) {
+			for (size_t i = 0; i < templateArguments.size(); i++) {
+				if (templateArguments[i].isTypeRef() && !isRootType(templateArguments[i].typeRefType())) {
 					return false;
 				}
 			}
@@ -260,7 +270,7 @@ namespace locic {
 			}
 			
 			const auto value = computeTemplateGenerator(function, templateInst);
-			function.templateGeneratorMap().insert(std::make_pair(templateInst, value));
+			function.templateGeneratorMap().insert(std::make_pair(templateInst.copy(), value));
 			return value;
 		}
 		
@@ -275,7 +285,7 @@ namespace locic {
 			const auto argInfo = rootFunctionArgInfo(module);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("template_root"));
 			
-			module.templateRootFunctionMap().insert(std::make_pair(templateInst, llvmFunction));
+			module.templateRootFunctionMap().insert(std::make_pair(templateInst.copy(), llvmFunction));
 			
 			// Always inline template generators.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -291,16 +301,30 @@ namespace locic {
 			
 			for (size_t i = 0; i < templateInst.arguments().size(); i++) {
 				const auto& templateArg = templateInst.arguments()[i];
-				const auto vtablePointer = genVTable(module, templateArg->resolveAliases()->getObjectType());
-				
-				// Create type info struct.
-				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-				typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
-				
-				const auto generator = getTemplateGenerator(function, TemplateInst::Type(templateArg));
-				typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
-				
-				newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+				if (templateArg.isTypeRef()) {
+					const auto vtablePointer = genVTable(module, templateArg.typeRefType()->resolveAliases()->getObjectType());
+					
+					// Create type info struct.
+					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+					typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+					
+					const auto generator = getTemplateGenerator(function, TemplateInst::Type(templateArg.typeRefType()));
+					typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
+					
+					newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+				} else {
+					// TODO: insert the actual value!
+					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+					
+					const auto llvmVtableType = vtableType(module);
+					const auto vtablePointer = ConstantGenerator(module).getNullPointer(llvmVtableType->getPointerTo());
+					typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+					
+					const auto generator = nullTemplateGenerator(module);
+					typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
+					
+					newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+				}
 			}
 			
 			if (templateInst.object().isTypeInstance() && templateInst.object().typeInstance()->isPrimitive()) {
@@ -433,7 +457,7 @@ namespace locic {
 				
 				// Loop through each template argument and generate it.
 				for (size_t i = 0; i < templateUseInst.arguments().size(); i++) {
-					const auto& templateUseArg = templateUseInst.arguments()[i];
+					const auto& templateUseArg = templateUseInst.arguments()[i].typeRefType();
 					if (templateUseArg->isTemplateVar()) {
 						// For template variables, just copy across the existing type
 						// from the types provided to us by the caller.
