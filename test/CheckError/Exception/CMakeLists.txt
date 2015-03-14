@@ -1,5 +1,6 @@
 # Exception tests.
 
+test_check_error(AssertNoExceptAroundNoExcept)
 test_check_error(CircularInheritedException)
 test_check_error(RethrowInsideTry)
 test_check_error(SelfInheritedException)

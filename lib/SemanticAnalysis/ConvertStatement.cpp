@@ -491,6 +491,16 @@ namespace locic {
 					auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
 					return SEM::Statement::Assert(std::move(boolValue), statement->assertStmt.name);
 				}
+				case AST::Statement::ASSERTNOEXCEPT: {
+					auto scope = ConvertScope(context, statement->assertNoExceptStmt.scope);
+					const auto scopeExitStates = scope->exitStates();
+					if (!scopeExitStates.hasThrowExit() && !scopeExitStates.hasRethrowExit()) {
+						throw ErrorException(makeString("Cannot place 'assert noexcept' around scope that is statically verified to not throw, at position %s.",
+							location.toString().c_str()));
+					}
+					
+					return SEM::Statement::AssertNoExcept(std::move(scope));
+				}
 				case AST::Statement::UNREACHABLE: {
 					return SEM::Statement::Unreachable();
 				}

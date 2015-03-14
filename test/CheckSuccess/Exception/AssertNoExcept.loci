@@ -1,0 +1,7 @@
+import int externalFunctionThatCouldThrow(int valueThatIfZeroPreventsThrowing);
+
+export int functionThatWillNotThrow() noexcept {
+	assert noexcept {
+		return externalFunctionThatCouldThrow(0);
+	}
+}

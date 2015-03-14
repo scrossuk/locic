@@ -91,12 +91,12 @@ namespace locic {
 				case SEM::Statement::VALUE: {
 					assert(statement.getValue().type()->isBuiltInVoid());
 					(void) genValue(function, statement.getValue());
-					break;
+					return;
 				}
 				
 				case SEM::Statement::SCOPE: {
 					genScope(function, statement.getScope());
-					break;
+					return;
 				}
 				
 				case SEM::Statement::INITIALISE: {
@@ -106,7 +106,7 @@ namespace locic {
 					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
 					const auto value = genValue(function, statement.getInitialiseValue(), castVarAlloca);
 					genVarInitialise(function, var, value, debugLocation);
-					break;
+					return;
 				}
 				
 				case SEM::Statement::IF: {
@@ -223,7 +223,7 @@ namespace locic {
 						// Select merge block (which is where execution continues).
 						function.selectBasicBlock(mergeBB);
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::SWITCH: {
@@ -310,7 +310,7 @@ namespace locic {
 					} else {
 						function.selectBasicBlock(endBB);
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::LOOP: {
@@ -360,7 +360,7 @@ namespace locic {
 					
 					// Create after loop basic block (which is where execution continues).
 					function.selectBasicBlock(loopEndBB);
-					break;
+					return;
 				}
 				
 				case SEM::Statement::RETURNVOID: {
@@ -372,7 +372,7 @@ namespace locic {
 							returnInst->setDebugLoc(*debugLocation);
 						}
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::RETURN: {
@@ -417,7 +417,7 @@ namespace locic {
 						}
 					}
 					
-					break;
+					return;
 				}
 				
 				case SEM::Statement::TRY: {
@@ -520,7 +520,7 @@ namespace locic {
 					} else {
 						afterCatchBB->eraseFromParent();
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::THROW: {
@@ -571,7 +571,7 @@ namespace locic {
 						// 'throw' function should never return normally.
 						function.getBuilder().CreateUnreachable();
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::RETHROW: {
@@ -621,7 +621,7 @@ namespace locic {
 						// 'rethrow' function should never return normally.
 						function.getBuilder().CreateUnreachable();
 					}
-					break;
+					return;
 				}
 				
 				case SEM::Statement::SCOPEEXIT: {
@@ -636,17 +636,17 @@ namespace locic {
 					}
 					
 					function.pushUnwindAction(UnwindAction::ScopeExit(state, &(statement.getScopeExitScope())));
-					break;
+					return;
 				}
 				
 				case SEM::Statement::BREAK: {
 					genUnwind(function, UnwindStateBreak);
-					break;
+					return;
 				}
 				
 				case SEM::Statement::CONTINUE: {
 					genUnwind(function, UnwindStateContinue);
-					break;
+					return;
 				}
 				
 				case SEM::Statement::ASSERT: {
@@ -679,7 +679,13 @@ namespace locic {
 					function.getBuilder().CreateUnreachable();
 					
 					function.selectBasicBlock(successBB);
-					break;
+					return;
+				}
+				
+				case SEM::Statement::ASSERTNOEXCEPT: {
+					// Basically a no-op.
+					genScope(function, statement.getAssertNoExceptScope());
+					return;
 				}
 				
 				case SEM::Statement::UNREACHABLE: {
@@ -690,12 +696,11 @@ namespace locic {
 						callInst->setDoesNotReturn();
 					}
 					function.getBuilder().CreateUnreachable();
-					break;
+					return;
 				}
-				
-				default:
-					llvm_unreachable("Unknown statement type");
 			}
+			
+			llvm_unreachable("Unknown statement type");
 		}
 		
 	}

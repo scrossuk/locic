@@ -197,6 +197,15 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
+			assert(scope->exitStates().hasThrowExit() || scope->exitStates().hasRethrowExit());
+			
+			const auto exitStates = scope->exitStates().remove(ExitStates::Throw() | ExitStates::Rethrow());
+			Statement statement(ASSERTNOEXCEPT, exitStates);
+			statement.assertNoExceptStmt_.scope = std::move(scope);
+			return statement;
+		}
+		
 		Statement Statement::Unreachable() {
 			return Statement(UNREACHABLE, ExitStates::None());
 		}
@@ -368,6 +377,15 @@ namespace locic {
 			return assertStmt_.name;
 		}
 		
+		bool Statement::isAssertNoExceptStatement() const {
+			return kind() == ASSERTNOEXCEPT;
+		}
+		
+		const Scope& Statement::getAssertNoExceptScope() const {
+			assert(isAssertNoExceptStatement());
+			return *(assertNoExceptStmt_.scope);
+		}
+		
 		bool Statement::isUnreachableStatement() const {
 			return kind() == UNREACHABLE;
 		}
@@ -462,6 +480,11 @@ namespace locic {
 					return makeString("AssertStatement(value: %s, name: %s)",
 						getAssertValue().toString().c_str(),
 						getAssertName().c_str());
+				}
+				
+				case ASSERTNOEXCEPT: {
+					return makeString("AssertNoExceptStatement(scope: %s)",
+						getAssertNoExceptScope().toString().c_str());
 				}
 				
 				case UNREACHABLE: {

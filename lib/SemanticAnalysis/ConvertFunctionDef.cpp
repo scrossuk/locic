@@ -67,6 +67,10 @@ namespace locic {
 					DeadCodeSearchScope(context, statement.getScopeExitScope());
 					return;
 				}
+				case SEM::Statement::ASSERTNOEXCEPT: {
+					DeadCodeSearchScope(context, statement.getAssertNoExceptScope());
+					return;
+				}
 			}
 			
 			std::terminate();

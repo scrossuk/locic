@@ -1654,6 +1654,10 @@ scopedStatement:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ScopeExit($3, GETSYM($5))));
 	}
+	| ASSERT NOEXCEPT scope
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::AssertNoExcept(GETSYM($3))));
+	}
 	;
 	
 normalStatement:

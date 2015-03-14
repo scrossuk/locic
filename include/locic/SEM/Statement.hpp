@@ -40,6 +40,7 @@ namespace locic {
 					BREAK,
 					CONTINUE,
 					ASSERT,
+					ASSERTNOEXCEPT,
 					UNREACHABLE
 				};
 				
@@ -72,6 +73,8 @@ namespace locic {
 				static Statement Continue();
 				
 				static Statement Assert(Value value, const String& name);
+				
+				static Statement AssertNoExcept(std::unique_ptr<Scope> scope);
 				
 				static Statement Unreachable();
 				
@@ -150,6 +153,10 @@ namespace locic {
 				
 				const String& getAssertName() const;
 				
+				bool isAssertNoExceptStatement() const;
+				
+				const Scope& getAssertNoExceptScope() const;
+				
 				bool isUnreachableStatement() const;
 				
 				void setDebugInfo(Debug::StatementInfo debugInfo);
@@ -219,6 +226,10 @@ namespace locic {
 					Value value;
 					String name;
 				} assertStmt_;
+				
+				struct {
+					std::unique_ptr<Scope> scope;
+				} assertNoExceptStmt_;
 				
 		};
 		

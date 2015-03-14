@@ -45,6 +45,7 @@ namespace locic {
 				BREAK,
 				CONTINUE,
 				ASSERT,
+				ASSERTNOEXCEPT,
 				UNREACHABLE
 			} typeEnum;
 			
@@ -120,6 +121,10 @@ namespace locic {
 				Node<Value> value;
 				String name;
 			} assertStmt;
+			
+			struct {
+				Node<Scope> scope;
+			} assertNoExceptStmt;
 				
 			inline Statement(TypeEnum e)
 				: typeEnum(e) { }
@@ -247,6 +252,12 @@ namespace locic {
 				Statement* statement = new Statement(ASSERT);
 				statement->assertStmt.value = value;
 				statement->assertStmt.name = name;
+				return statement;
+			}
+			
+			inline static Statement* AssertNoExcept(const Node<Scope>& scope) {
+				Statement* statement = new Statement(ASSERTNOEXCEPT);
+				statement->assertNoExceptStmt.scope = scope;
 				return statement;
 			}
 			
