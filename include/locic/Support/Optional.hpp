@@ -2,6 +2,7 @@
 #define LOCIC_SUPPORT_OPTIONAL_HPP
 
 #include <cassert>
+#include <type_traits>
 
 namespace locic{
 	
@@ -120,18 +121,16 @@ namespace locic{
 			
 		private:
 			Value* ptr() {
-				return reinterpret_cast<Value*>(&(data_.bytes[0]));
+				return reinterpret_cast<Value*>(&data_);
 			}
 			
 			const Value* ptr() const {
-				return reinterpret_cast<const Value*>(&(data_.bytes[0]));
+				return reinterpret_cast<const Value*>(&data_);
 			}
 			
 			bool hasValue_;
 			
-			struct Data {
-				char bytes[sizeof(Value)];
-			};
+			typedef typename std::aligned_storage<sizeof(Value), alignof(Value)>::type Data;
 			Data data_;
 		
 	};
