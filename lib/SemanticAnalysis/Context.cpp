@@ -163,14 +163,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance->selfType();
-			
-			// Conservatively assume self is const if result is undetermined.
-			const bool isConstDefault = true;
-			
-			// TODO: we need to actually put the predicate in the type that's returned!
-			const bool selfIsConst = evaluatePredicateWithDefault(context, thisFunction->constPredicate(), selfType->generateTemplateVarMap(), isConstDefault);
-			
-			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
+			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
 			return createSelfRef(context, selfConstType);
 		}
 		
@@ -189,14 +182,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance->selfType();
-			
-			// Conservatively assume this is const if result is undetermined.
-			const bool isConstDefault = true;
-			
-			// TODO: we need to actually put the predicate in the type that's returned!
-			const bool selfIsConst = evaluatePredicateWithDefault(context, thisFunction->constPredicate(), selfType->generateTemplateVarMap(), isConstDefault);
-			
-			const auto selfConstType = selfIsConst ? selfType->createConstType() : selfType;
+			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
 			return SEM::Value::This(getBuiltInType(context, context.getCString("__ptr"), { selfConstType }));
 		}
 		

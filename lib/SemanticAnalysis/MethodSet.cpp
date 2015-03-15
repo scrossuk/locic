@@ -273,17 +273,27 @@ namespace locic {
 			const auto typeInstance = objectType->getObjectType();
 			const auto templateVarMap = objectType->generateTemplateVarMap();
 			
+			// Conservatively assume object type is const if result is undetermined.
+			const bool isConstObjectDefault = true;
+			
+			const bool isConstObject = evaluatePredicateWithDefault(context, objectType->constPredicate(), templateVarMap, isConstObjectDefault);
+			
 			for (const auto& functionPair: typeInstance->functions()) {
 				const auto& functionName = functionPair.first;
 				const auto& function = functionPair.second;
 				
-				// Conservatively assume method is not const if result is undetermined.
-				const bool isConstMethodDefault =  false;
+				auto methodTemplateVarMap = templateVarMap.copy();
+				for (const auto& methodTemplateVar: function->templateVariables()) {
+					methodTemplateVarMap.insert(std::make_pair(methodTemplateVar, methodTemplateVar->selfRefValue()));
+				}
 				
-				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), objectType->generateTemplateVarMap(), isConstMethodDefault);
+				// Conservatively assume method is not const if result is undetermined.
+				const bool isConstMethodDefault = false;
+				
+				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), methodTemplateVarMap, isConstMethodDefault);
 				
 				// TODO: also skip unsatisfied requirement specifiers.
-				if (objectType->isConst() && !isConstMethod && !function->isStaticMethod()) {
+				if (isConstObject && !isConstMethod && !function->isStaticMethod()) {
 					// Filter out this function.
 					filters.push_back(std::make_pair(functionName, MethodSet::IsMutator));
 					continue;

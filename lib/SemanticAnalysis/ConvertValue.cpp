@@ -444,7 +444,7 @@ namespace locic {
 						}
 						case AST::OP_LOGICALAND: {
 							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
-							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType->createConstType(), location);
+							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
 							
 							// Logical AND only evaluates the right operand if the left
 							// operand is TRUE, otherwise it returns FALSE.
@@ -452,7 +452,7 @@ namespace locic {
 						}
 						case AST::OP_LOGICALOR: {
 							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
-							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType->createConstType(), location);
+							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
 							
 							// Logical OR only evaluates the right operand if the left
 							// operand is FALSE, otherwise it returns TRUE.
@@ -482,7 +482,7 @@ namespace locic {
 					auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
-					auto boolValue = ImplicitCast(context, std::move(cond), boolType->createConstType(), location);
+					auto boolValue = ImplicitCast(context, std::move(cond), boolType, location);
 					
 					auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
 					auto ifFalse = ConvertValue(context, astValueNode->ternary.ifFalse);

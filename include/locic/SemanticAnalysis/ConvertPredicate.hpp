@@ -17,6 +17,8 @@ namespace locic {
 		
 		class Context;
 		
+		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::Predicate>& astPredicateNode);
+		
 		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode);
 		
 		SEM::Predicate ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode);
@@ -24,6 +26,8 @@ namespace locic {
 		Optional<bool> evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
 		
 		bool evaluatePredicateWithDefault(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments, bool defaultValue);
+		
+		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
 		
 		// TODO: take a value rather than a reference.
 		SEM::Predicate simplifyPredicate(const SEM::Predicate& predicate);

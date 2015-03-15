@@ -8,6 +8,7 @@
 
 #include <locic/SemanticAnalysis/CanCast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
@@ -76,10 +77,12 @@ namespace locic {
 					return SEM::Type::Auto(context.semContext());
 				}
 				case AST::Type::CONST: {
-					return ConvertType(context, type->getConstTarget())->createConstType();
+					return ConvertType(context, type->getConstTarget())->createConstType(SEM::Predicate::True());
 				}
 				case AST::Type::CONSTPREDICATE: {
-					throw std::logic_error("Const predicate type not yet implemented.");
+					auto constPredicate = ConvertPredicate(context, type->getConstPredicate());
+					const auto constTarget = ConvertType(context, type->getConstPredicateTarget());
+					return constTarget->createConstType(std::move(constPredicate));
 				}
 				case AST::Type::MUTABLE: {
 					// Mutable is the default so doesn't affect the type.

@@ -4,12 +4,14 @@
 #include <stdexcept>
 #include <string>
 
-#include <locic/Support/MakeString.hpp>
-#include <locic/Support/String.hpp>
-
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/Type.hpp>
+#include <locic/SEM/Value.hpp>
+#include <locic/Support/Hasher.hpp>
+#include <locic/Support/MakeString.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 
@@ -72,6 +74,46 @@ namespace locic {
 			throw std::logic_error("Unknown predicate kind.");
 		}
 		
+		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap) const {
+			switch (kind()) {
+				case TRUE:
+				{
+					return Predicate::True();
+				}
+				case FALSE:
+				{
+					return Predicate::False();
+				}
+				case AND:
+				{
+					return Predicate::And(andLeft().substitute(templateVarMap), andRight().substitute(templateVarMap));
+				}
+				case SATISFIES:
+				{
+					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement()->substitute(templateVarMap));
+				}
+				case VARIABLE:
+				{
+					const auto iterator = templateVarMap.find(variableTemplateVar());
+					
+					if (iterator == templateVarMap.end()) {
+						return Predicate::Variable(variableTemplateVar());
+					}
+					
+					const auto& templateValue = iterator->second;
+					
+					if (templateValue.isConstant()) {
+						assert(templateValue.constant().kind() == Constant::BOOLEAN);
+						return templateValue.constant().boolValue() ? Predicate::True() : Predicate::False();
+					} else {
+						return Predicate::Variable(variableTemplateVar());
+					}
+				}
+			}
+			
+			throw std::logic_error("Unknown predicate kind.");
+		}
+		
 		Predicate::Kind Predicate::kind() const {
 			return kind_;
 		}
@@ -119,6 +161,67 @@ namespace locic {
 		TemplateVar* Predicate::variableTemplateVar() const {
 			assert(isVariable());
 			return templateVar_;
+		}
+		
+		bool Predicate::operator==(const Predicate& other) const {
+			if (kind() != other.kind()) {
+				return false;
+			}
+			
+			switch (kind()) {
+				case TRUE:
+				case FALSE:
+				{
+					return true;
+				}
+				case AND:
+				{
+					return andLeft() == other.andLeft() && andRight() == other.andRight();
+				}
+				case SATISFIES:
+				{
+					return satisfiesTemplateVar() == other.satisfiesTemplateVar() &&
+						satisfiesRequirement() == other.satisfiesRequirement();
+				}
+				case VARIABLE:
+				{
+					return variableTemplateVar() == other.variableTemplateVar();
+				}
+			}
+			
+			throw std::logic_error("Unknown predicate kind.");
+		}
+		
+		size_t Predicate::hash() const {
+			Hasher hasher;
+			hasher.add(kind());
+			
+			switch (kind()) {
+				case TRUE:
+				case FALSE:
+				{
+					break;
+				}
+				case AND:
+				{
+					hasher.add(andLeft());
+					hasher.add(andRight());
+					break;
+				}
+				case SATISFIES:
+				{
+					hasher.add(satisfiesTemplateVar());
+					hasher.add(satisfiesRequirement());
+					break;
+				}
+				case VARIABLE:
+				{
+					hasher.add(variableTemplateVar());
+					break;
+				}
+			}
+			
+			return hasher.get();
 		}
 		
 		std::string Predicate::toString() const {

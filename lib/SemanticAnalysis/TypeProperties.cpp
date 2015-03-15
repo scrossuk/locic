@@ -141,6 +141,8 @@ namespace locic {
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
 			}
 			
+			// TODO: only get method set for template variables, since object
+			// methods can have templated methods.
 			const auto methodSet = getTypeMethodSet(context, type);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
@@ -151,10 +153,13 @@ namespace locic {
 				const auto filterReason = methodSet->getFilterReason(canonicalMethodName);
 				
 				if (filterReason == MethodSet::IsMutator) {
-					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
-						methodName.c_str(),
-						type->toString().c_str(),
-						location.toString().c_str()));
+					// Only check for template variables.
+					if (!type->isObject()) {
+						throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
+							methodName.c_str(),
+							type->toString().c_str(),
+							location.toString().c_str()));
+					}
 				} else {
 					throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
 						methodName.c_str(),
@@ -191,18 +196,24 @@ namespace locic {
 				auto templateVariableAssignments = type->generateTemplateVarMap();
 				for (size_t i = 0; i < templateArguments.size(); i++) {
 					const auto templateVariable = templateVariables.at(i);
-					const auto templateTypeValue = templateArguments.at(i).typeRefType()->resolveAliases();
+					auto& templateValue = templateArguments.at(i);
 					
-					if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
-						throw ErrorException(makeString("Invalid type '%s' passed "
-							"as template parameter '%s' for method '%s' at position %s.",
-							templateTypeValue->toString().c_str(),
-							templateVariable->name().toString().c_str(),
-							function->name().toString().c_str(),
-							location.toString().c_str()));
+					if (templateValue.isTypeRef()) {
+						const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
+						
+						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
+							throw ErrorException(makeString("Invalid type '%s' passed "
+								"as template parameter '%s' for method '%s' at position %s.",
+								templateTypeValue->toString().c_str(),
+								templateVariable->name().toString().c_str(),
+								function->name().toString().c_str(),
+								location.toString().c_str()));
+						}
+						
+						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateArguments.at(i).type())));
+					} else {
+						templateVariableAssignments.insert(std::make_pair(templateVariable, std::move(templateValue)));
 					}
-					
-					templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateArguments.at(i).type())));
 				}
 				
 				// Now check the template arguments satisfy the requires predicate.
@@ -216,6 +227,23 @@ namespace locic {
 						"requires predicate '%s' of method '%s' at position %s.",
 						requiresPredicate.toString().c_str(),
 						function->name().toString().c_str(),
+						location.toString().c_str()));
+				}
+				
+				// Conservatively assume object type is const if result is undetermined.
+				const bool isConstObjectDefault = true;
+				
+				const bool isConstObject = evaluatePredicateWithDefault(context, type->constPredicate(), templateVariableAssignments, isConstObjectDefault);
+				
+				// Conservatively assume method is not const if result is undetermined.
+				const bool isConstMethodDefault = false;
+				
+				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), templateVariableAssignments, isConstMethodDefault);
+				
+				if (isConstObject && !isConstMethod) {
+					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
+						methodName.c_str(),
+						type->toString().c_str(),
 						location.toString().c_str()));
 				}
 				

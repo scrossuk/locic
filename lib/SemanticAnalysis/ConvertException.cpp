@@ -38,8 +38,7 @@ namespace locic {
 			std::vector<SEM::Var*> getParameters(Context& context, const SEM::TypeArray& constructTypes) {
 				std::vector<SEM::Var*> parameters;
 				for (const auto varType: constructTypes) {
-					const bool isLvalConst = false;
-					const auto lvalType = makeValueLvalType(context, isLvalConst, varType);
+					const auto lvalType = makeValueLvalType(context, varType);
 					parameters.push_back(SEM::Var::Basic(varType, lvalType));
 				}
 				return parameters;

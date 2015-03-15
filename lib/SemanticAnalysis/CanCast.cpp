@@ -161,14 +161,18 @@ namespace locic {
 		
 		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& 
 location, bool isTopLevel) {
+			// TODO: fix this to evaluate the const predicates.
+			const bool isSourceConst = !sourceType->constPredicate().isFalse();
+			const bool isDestConst = !destType->constPredicate().isFalse();
+			
 			// Can't cast const to non-const, unless the destination type is
 			// 'auto', since that can match 'const T'.
-			if (sourceType->isConst() && !destType->isConst() && !destType->isAuto()) {
+			if (isSourceConst && !isDestConst && !destType->isAuto()) {
 				// No copying can be done now, so this is just an error.
 				return nullptr;
 			}
 			
-			if (!hasParentConstChain && !sourceType->isConst() && destType->isConst()) {
+			if (!hasParentConstChain && !isSourceConst && isDestConst) {
 				// Must be a const chain for mutable-to-const cast to succeed.
 				// For example, the following cast is invalid:
 				//         ptr<T> -> ptr<const T>
@@ -179,7 +183,7 @@ location, bool isTopLevel) {
 			
 			// There is a chain of const if all parents of the destination type are const,
 			// and the destination type itself is const.
-			const bool hasConstChain = isTopLevel || (hasParentConstChain && destType->isConst());
+			const bool hasConstChain = isTopLevel || (hasParentConstChain && isDestConst);
 			
 			const SEM::Type* lvalTarget = nullptr;
 			
@@ -239,10 +243,10 @@ location, bool isTopLevel) {
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
-			const bool isConst = destType->isAuto() && !destType->isConst() ?
-				sourceType->isConst() : destType->isConst();
+			auto newConstPredicate = destType->isAuto() && !isDestConst ?
+				sourceType->constPredicate().copy() : destType->constPredicate().copy();
 			
-			return isConst ? resultType->createConstType() : resultType;
+			return resultType->createConstType(std::move(newConstPredicate));
 		}
 		
 		inline static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
@@ -313,7 +317,7 @@ location, bool isTopLevel) {
 			const auto sourceDerefType = getDerefType(value.type());
 			
 			// Use a mutable type for the destination so that it's movable.
-			const auto destDerefType = getDerefType(destType)->createMutableType();
+			const auto destDerefType = getDerefType(destType)->createConstType(SEM::Predicate::False());
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
 				const auto castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
@@ -444,7 +448,7 @@ location, bool isTopLevel) {
 					const auto sourceTarget = sourceType->refTarget();
 					const auto destTarget = destType->refTarget();
 					
-					if (!sourceTarget->isConst() || destTarget->isConst()) {
+					if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
 						auto castResult = PolyCastRefValueToType(context, value.copy(), destType);
 						if (castResult) {
 							return castResult;
@@ -458,7 +462,7 @@ location, bool isTopLevel) {
 				const auto sourceTarget = sourceType->staticRefTarget();
 				const auto destTarget = destType->staticRefTarget();
 				
-				if (!sourceTarget->isConst() || destTarget->isConst()) {
+				if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
 					auto castResult = PolyCastStaticRefValueToType(context, value.copy(), destType);
 					if (castResult) {
 						return castResult;
@@ -495,11 +499,12 @@ location, bool isTopLevel) {
 			}
 			
 			// Try to use implicitCopy to make a value non-const.
-			if (getRefCount(sourceType) == getRefCount(destType) && sourceType->isConst() && !destType->isConst() &&
+			if (getRefCount(sourceType) == getRefCount(destType) &&
+					!doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->constPredicate()) &&
 					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
 				auto boundValue = bindReference(context, value.copy());
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
-				assert(!copyValue.type()->isConst());
+				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
 				auto copyLvalValue = sourceType->isLval() ?
 						SEM::Value::Lval(sourceType->lvalTarget(), std::move(copyValue)) :
@@ -522,7 +527,7 @@ location, bool isTopLevel) {
 			// Try to bind value to reference (e.g. T -> T&).
 			if (!sourceType->isLval() && !sourceType->isRef() && destType->isRef() &&
 					destType->isBuiltInReference() &&
-					(!sourceType->isConst() || destType->refTarget()->isConst()) &&
+					doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->refTarget()->constPredicate()) &&
 					isStructurallyEqual(sourceType, destType->refTarget())) {
 				auto refValue = bindReference(context, value.copy());
 				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location);

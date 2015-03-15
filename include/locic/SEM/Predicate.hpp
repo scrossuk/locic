@@ -8,6 +8,7 @@ namespace locic {
 	namespace SEM {
 		
 		class TemplateVar;
+		class TemplateVarMap;
 		class Type;
 		
 		class Predicate {
@@ -34,6 +35,7 @@ namespace locic {
 				Predicate& operator=(Predicate&&) = default;
 				
 				Predicate copy() const;
+				Predicate substitute(const TemplateVarMap&) const;
 				
 				Kind kind() const;
 				
@@ -50,6 +52,13 @@ namespace locic {
 				const Type* satisfiesRequirement() const;
 				
 				TemplateVar* variableTemplateVar() const;
+				
+				bool operator==(const Predicate& other) const;
+				bool operator!=(const Predicate& other) const {
+					return !(*this == other);
+				}
+				
+				size_t hash() const;
 				
 				std::string toString() const;
 				

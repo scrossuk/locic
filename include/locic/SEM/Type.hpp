@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -44,7 +45,8 @@ namespace locic {
 				const Context& context() const;
 				Kind kind() const;
 				
-				bool isConst() const;
+				const Predicate& constPredicate() const;
+				
 				bool isLval() const;
 				bool isRef() const;
 				bool isStaticRef() const;
@@ -55,8 +57,7 @@ namespace locic {
 				const Type* staticRefTarget() const;
 				const Type* lvalOrRefTarget() const;
 				
-				const Type* createConstType() const;
-				const Type* createMutableType() const;
+				const Type* createConstType(Predicate predicate) const;
 				const Type* createLvalType(const Type* targetType) const;
 				const Type* createRefType(const Type* targetType) const;
 				const Type* createStaticRefType(const Type* targetType) const;
@@ -146,7 +147,7 @@ namespace locic {
 				
 				const Context& context_;
 				Kind kind_;
-				bool isConst_;
+				Predicate constPredicate_;
 				const Type* lvalTarget_;
 				const Type* refTarget_;
 				const Type* staticRefTarget_;

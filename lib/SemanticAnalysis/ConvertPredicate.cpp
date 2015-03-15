@@ -157,7 +157,14 @@ namespace locic {
 				case SEM::Predicate::VARIABLE:
 				{
 					const auto templateVar = predicate.variableTemplateVar();
-					const auto& templateValue = variableAssignments.at(templateVar);
+					const auto iterator = variableAssignments.find(templateVar);
+					
+					if (iterator == variableAssignments.end()) {
+						// Unknown result since we don't know the variable's value.
+						return None;
+					}
+					
+					const auto& templateValue = iterator->second;
 					
 					if (templateValue.isConstant()) {
 						assert(templateValue.constant().kind() == Constant::BOOLEAN);
@@ -177,6 +184,20 @@ namespace locic {
 			return result ? *result : defaultValue;
 		}
 		
+		bool doesPredicateImplyPredicate(Context& /*context*/, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate) {
+			// TODO: actually prove in the general case that one implies the other.
+			
+			if (firstPredicate == secondPredicate) {
+				// Equivalent predicates imply each other.
+				return true;
+			} else if (firstPredicate.isFalse() || secondPredicate.isTrue()) {
+				// F => anything
+				// anything => T
+				return true;
+			} else {
+				return false;
+			}
+		}
 		
 		SEM::Predicate simplifyPredicate(const SEM::Predicate& predicate) {
 			switch (predicate.kind()) {

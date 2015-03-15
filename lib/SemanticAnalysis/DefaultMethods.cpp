@@ -39,8 +39,7 @@ namespace locic {
 			std::vector<SEM::Var*> argVars;
 			argVars.reserve(constructTypes.size());
 			for (const auto constructType: constructTypes) {
-				const bool isLvalConst = false;
-				const auto lvalType = makeValueLvalType(context, isLvalConst, constructType);
+				const auto lvalType = makeValueLvalType(context, constructType);
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
 			}
 			
@@ -76,14 +75,12 @@ namespace locic {
 			argVars.reserve(2);
 			
 			{
-				const bool isLvalConst = false;
-				const auto lvalType = makeValueLvalType(context, isLvalConst, voidPtrType);
+				const auto lvalType = makeValueLvalType(context, voidPtrType);
 				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType));
 			}
 			
 			{
-				const bool isLvalConst = false;
-				const auto lvalType = makeValueLvalType(context, isLvalConst, sizeType);
+				const auto lvalType = makeValueLvalType(context, sizeType);
 				argVars.push_back(SEM::Var::Basic(sizeType, lvalType));
 			}
 			
@@ -200,7 +197,7 @@ namespace locic {
 			const bool isNoExcept = HasNoExceptCompare(context, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context, selfType->createConstType());
+			const auto argType = createReferenceType(context, selfType->createConstType(SEM::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
 			
 			SEM::TypeArray argTypes;
