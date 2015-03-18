@@ -9,7 +9,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	elements.push_back("C - 3");
 	
 	auto range = elements.all();
-	auto joinedString = ", ".join<ptr_lval<std::string>>(range);
+	auto joinedString = ", ".join<ptr_lval<const std::string>>(range);
 	
 	testPrint(C"joinedString = %s", joinedString.make_buffer().c_str());
 	

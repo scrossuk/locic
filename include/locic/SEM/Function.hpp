@@ -11,6 +11,7 @@
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
@@ -52,8 +53,8 @@ namespace locic {
 				void setStaticMethod(bool pIsStaticMethod);
 				bool isStaticMethod() const;
 				
-				std::vector<TemplateVar*>& templateVariables();
-				const std::vector<TemplateVar*>& templateVariables() const;
+				TemplateVarArray& templateVariables();
+				const TemplateVarArray& templateVariables() const;
 				
 				FastMap<String, TemplateVar*>& namedTemplateVariables();
 				const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
@@ -85,7 +86,7 @@ namespace locic {
 				Name name_;
 				Optional<Debug::FunctionInfo> debugInfo_;
 				
-				std::vector<TemplateVar*> templateVariables_;
+				TemplateVarArray templateVariables_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate constPredicate_;
 				Predicate requiresPredicate_;

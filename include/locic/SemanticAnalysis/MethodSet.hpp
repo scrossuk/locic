@@ -15,14 +15,17 @@ namespace locic {
 		
 		class MethodSetElement {
 			public:
-				MethodSetElement(bool isConst, bool isNoExcept, bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
+				MethodSetElement(Array<SEM::TemplateVar*, 8> templateVariables, SEM::Predicate constPredicate,
+					bool isNoExcept, bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
 				
 				MethodSetElement(MethodSetElement&&) = default;
 				MethodSetElement& operator=(MethodSetElement&&) = default;
 				
 				MethodSetElement copy() const;
 				
-				bool isConst() const;
+				const SEM::TemplateVarArray& templateVariables() const;
+				const SEM::Predicate& constPredicate() const;
+				
 				bool isNoExcept() const;
 				bool isStatic() const;
 				const SEM::Type* returnType() const;
@@ -34,10 +37,12 @@ namespace locic {
 				
 				bool operator==(const MethodSetElement& methodSetElement) const;
 				
-				bool operator<(const MethodSetElement& methodSetElement) const;
+				//bool operator<(const MethodSetElement& methodSetElement) const;
 				
 			private:
-				bool isConst_, isNoExcept_, isStatic_;
+				SEM::TemplateVarArray templateVariables_;
+				SEM::Predicate constPredicate_;
+				bool isNoExcept_, isStatic_;
 				const SEM::Type* returnType_;
 				SEM::TypeArray parameterTypes_;
 				
@@ -88,7 +93,7 @@ namespace locic {
 				
 				bool operator==(const MethodSet& methodSet) const;
 				
-				bool operator<(const MethodSet& methodSet) const;
+				//bool operator<(const MethodSet& methodSet) const;
 				
 			private:
 				// Non-copyable.

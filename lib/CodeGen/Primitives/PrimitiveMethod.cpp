@@ -1398,7 +1398,7 @@ namespace locic {
 			
 			SEM::ValueArray templateArgs;
 			for (const auto& templateVar: semFunction->templateVariables()) {
-				templateArgs.push_back(SEM::Value::TypeRef(SEM::Type::TemplateVarRef(templateVar), templateVar->type()));
+				templateArgs.push_back(templateVar->selfRefValue());
 			}
 			
 			// Collect together arguments and whether they're reference arguments.

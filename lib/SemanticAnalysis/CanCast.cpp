@@ -167,12 +167,12 @@ location, bool isTopLevel) {
 			
 			// Can't cast const to non-const, unless the destination type is
 			// 'auto', since that can match 'const T'.
-			if (isSourceConst && !isDestConst && !destType->isAuto()) {
+			if (!sourceType->constPredicate().implies(destType->constPredicate()) && !destType->isAuto()) {
 				// No copying can be done now, so this is just an error.
 				return nullptr;
 			}
 			
-			if (!hasParentConstChain && !isSourceConst && isDestConst) {
+			if (!hasParentConstChain && sourceType->constPredicate().implies(destType->constPredicate()) && !isSourceConst && isDestConst) {
 				// Must be a const chain for mutable-to-const cast to succeed.
 				// For example, the following cast is invalid:
 				//         ptr<T> -> ptr<const T>
@@ -243,10 +243,7 @@ location, bool isTopLevel) {
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
-			auto newConstPredicate = destType->isAuto() && !isDestConst ?
-				sourceType->constPredicate().copy() : destType->constPredicate().copy();
-			
-			return resultType->createConstType(std::move(newConstPredicate));
+			return resultType->createConstType(SEM::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
 		
 		inline static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {

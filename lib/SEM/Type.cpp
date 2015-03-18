@@ -143,7 +143,7 @@ namespace locic {
 			
 			const auto basicType = preFunction(doApplyType<CheckFunction, PreFunction, PostFunction>(type, checkFunction, preFunction, postFunction));
 			
-			const auto constType = basicType->createConstType(type->constPredicate().copy());
+			const auto constType = basicType->createConstType(SEM::Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
 			
 			const auto lvalType = type->isLval() ?
 				constType->createLvalType(applyType<CheckFunction, PreFunction, PostFunction>(type->lvalTarget(), checkFunction, preFunction, postFunction)) :
@@ -338,6 +338,27 @@ namespace locic {
 			Type typeCopy = copy();
 			typeCopy.staticRefTarget_ = targetType;
 			return context_.getType(std::move(typeCopy));
+		}
+		
+		const Type* Type::withoutConst() const {
+			return applyType(this,
+				[] (const Type* const) {
+					// Whether or not this type is an lval,
+					// it may contain lval types.
+					return true;
+				},
+				[] (const Type* const type) {
+					return type;
+				},
+				[&](const Type* const type) {
+					if (!type->constPredicate().isFalse()) {
+						Type typeCopy = type->copy();
+						typeCopy.constPredicate_ = SEM::Predicate::False();
+						return context_.getType(std::move(typeCopy));
+					} else {
+						return type;
+					}
+				});
 		}
 		
 		const Type* Type::withoutLval() const {
@@ -801,9 +822,7 @@ namespace locic {
 		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			const auto basicType = basicSubstitute(type, templateVarMap);
 			
-			const auto constType = !type->constPredicate().isFalse() ?
-				basicType->createConstType(type->constPredicate().substitute(templateVarMap)) :
-				basicType;
+			const auto constType = basicType->createConstType(SEM::Predicate::Or(basicType->constPredicate().substitute(templateVarMap), type->constPredicate().substitute(templateVarMap)));
 			
 			const auto lvalType = type->isLval() ?
 				constType->createLvalType(type->lvalTarget()->substitute(templateVarMap)) :
@@ -860,6 +879,138 @@ namespace locic {
 				[](const Type* const type) {
 					return type;
 				});
+		}
+		
+		bool Type::dependsOn(const TemplateVar* const templateVar) const {
+			// TODO: remove const cast.
+			return dependsOnAny({ const_cast<TemplateVar*>(templateVar) });
+		}
+		
+		bool Type::dependsOnAny(const TemplateVarArray& array) const {
+			if (constPredicate().dependsOnAny(array)) {
+				return true;
+			}
+			
+			if (isLval() && lvalTarget()->dependsOnAny(array)) {
+				return true;
+			}
+			
+			if (isRef() && refTarget()->dependsOnAny(array)) {
+				return true;
+			}
+			
+			if (isStaticRef() && staticRefTarget()->dependsOnAny(array)) {
+				return true;
+			}
+			
+			switch (kind()) {
+				case AUTO:
+					return false;
+					
+				case OBJECT: {
+					for (const auto& templateArg: templateArguments()) {
+						if (templateArg.dependsOnAny(array)) {
+							return true;
+						}
+					}
+					return false;
+				}
+				
+				case FUNCTION: {
+					if (getFunctionReturnType()->dependsOnAny(array)) {
+						return true;
+					}
+					for (const auto& paramType: getFunctionParameterTypes()) {
+						if (paramType->dependsOnAny(array)) {
+							return true;
+						}
+					}
+					return false;
+				}
+									  
+				case METHOD:
+					return getMethodFunctionType()->dependsOnAny(array);
+									  
+				case INTERFACEMETHOD:
+					return getInterfaceMethodFunctionType()->dependsOnAny(array);
+									  
+				case STATICINTERFACEMETHOD:
+					return getStaticInterfaceMethodFunctionType()->dependsOnAny(array);
+					
+				case TEMPLATEVAR:
+					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
+				
+				case ALIAS: {
+					return resolveAliases()->dependsOnAny(array);
+				}
+			}
+			
+			std::terminate();
+		}
+		
+		bool Type::dependsOnOnly(const TemplateVarArray& array) const {
+			if (!constPredicate().dependsOnOnly(array)) {
+				return false;
+			}
+			
+			if (isLval() && !lvalTarget()->dependsOnOnly(array)) {
+				return false;
+			}
+			
+			if (isRef() && !refTarget()->dependsOnOnly(array)) {
+				return false;
+			}
+			
+			if (isStaticRef() && !staticRefTarget()->dependsOnOnly(array)) {
+				return false;
+			}
+			
+			switch (kind()) {
+				case AUTO:
+					return true;
+					
+				case OBJECT: {
+					for (const auto& templateArg: templateArguments()) {
+						if (!templateArg.dependsOnOnly(array)) {
+							return false;
+						}
+					}
+					
+					return true;
+				}
+				
+				case FUNCTION: {
+					if (!getFunctionReturnType()->dependsOnOnly(array)) {
+						return false;
+					}
+					
+					for (const auto& paramType: getFunctionParameterTypes()) {
+						if (!paramType->dependsOnOnly(array)) {
+							return false;
+						}
+					}
+					
+					return true;
+				}
+									  
+				case METHOD:
+					return getMethodFunctionType()->dependsOnOnly(array);
+									  
+				case INTERFACEMETHOD:
+					return getInterfaceMethodFunctionType()->dependsOnOnly(array);
+				
+				case STATICINTERFACEMETHOD:
+					return getStaticInterfaceMethodFunctionType()->dependsOnOnly(array);
+					
+				case TEMPLATEVAR:
+					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
+				
+				case ALIAS: {
+					return resolveAliases()->dependsOnOnly(array);
+				}
+			}
+			
+			std::terminate();
 		}
 		
 		std::string Type::nameToString() const {

@@ -10,7 +10,7 @@ namespace locic {
 	namespace AST {
 	
 		struct Scope;
-		struct TypeVar;
+		class TypeVar;
 		
 		struct CatchClause {
 			Node<TypeVar> var;

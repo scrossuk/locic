@@ -104,11 +104,11 @@ namespace locic {
 			return templateArgs;
 		}
 		
-		std::vector<TemplateVar*>& TypeInstance::templateVariables() {
+		TemplateVarArray& TypeInstance::templateVariables() {
 			return templateVariables_;
 		}
 		
-		const std::vector<TemplateVar*>& TypeInstance::templateVariables() const {
+		const TemplateVarArray& TypeInstance::templateVariables() const {
 			return templateVariables_;
 		}
 		

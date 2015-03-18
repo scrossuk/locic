@@ -18,37 +18,43 @@ import std.container 0.1.0 {
 			
 			bool empty() const noexcept;
 			
-			T* data() const noexcept;
+			template <bool IsConst>
+			const<IsConst>(T)* data() const(IsConst) noexcept;
 			
 			size_t size() const noexcept;
 			
-			lval<T> ptr_lval<T> index(size_t index) const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
 			
 			void clear() noexcept;
 			
-			void push_back(T value);
+			void push_back(T value) require (T : movable);
 			
 			void pop_back() noexcept;
 			
-			varray<T> copy() const require(T: copyable<T>);
+			template <bool IsConst>
+			varray<const<IsConst>(T)> copy() const(IsConst) require(T: copyable<T>);
 			
-			varray_range<T> all() const noexcept;
+			template <bool IsConst>
+			varray_range<T, IsConst> all() const(IsConst) noexcept;
 			
 		}
 		
-		template <typename T>
+		template <typename T, bool IsArrayConst>
 		class varray_range {
-			varray_range<T> implicitCopy() const noexcept;
+			varray_range<T, IsArrayConst> implicitCopy() const noexcept;
 			
 			bool empty() const noexcept;
 			
 			void skip_front() noexcept;
 			
-			lval<T> ptr_lval<T> front() const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> front() const(IsConst) noexcept;
 			
 			void skip_back() noexcept;
 			
-			lval<T> ptr_lval<T> back() const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> back() const(IsConst) noexcept;
 		}
 		
 	}

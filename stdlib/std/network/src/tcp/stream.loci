@@ -72,8 +72,15 @@ export std.network 0.1.0 {
 			exception geterror_failed(int error) : socket_error("Failed to get socket error.");
 			
 			template <typename T>
-			interface buffer {
-				T* data() const;
+			interface in_buffer {
+				const T* data() const;
+				
+				size_t size() const;
+			}
+			
+			template <typename T>
+			interface out_buffer {
+				T* data();
 				
 				size_t size() const;
 			}
@@ -113,7 +120,7 @@ export std.network 0.1.0 {
 					return @peer;
 				}
 				
-				size_t read_some(buffer<uint8_t>& destBuffer) {
+				size_t read_some(out_buffer<uint8_t>& destBuffer) {
 					const size_t bufferSize = destBuffer.size();
 					if (bufferSize == 0u) {
 						return 0u;
@@ -130,7 +137,7 @@ export std.network 0.1.0 {
 					return result.unsigned_value();
 				}
 				
-				size_t write_some(const buffer<const uint8_t>& sourceBuffer) {
+				size_t write_some(const in_buffer<const uint8_t>& sourceBuffer) {
 					const size_t bufferSize = sourceBuffer.size();
 					if (bufferSize == 0u) {
 						return 0u;

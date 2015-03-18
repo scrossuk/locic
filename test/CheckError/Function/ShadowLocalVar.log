@@ -1,0 +1,1 @@
+Variable 'value' shadows existing object at position SourceLocation\(filename = (.*)/ShadowLocalVar\.loci, range = \(line 4, column 3\) to \(line 4, column 12\)\)\.

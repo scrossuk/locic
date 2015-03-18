@@ -13,6 +13,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -71,6 +72,11 @@ namespace locic {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->andLeft());
 					auto rightExpr = ConvertPredicate(context, astPredicateNode->andRight());
 					return SEM::Predicate::And(std::move(leftExpr), std::move(rightExpr));
+				}
+				case AST::Predicate::OR: {
+					auto leftExpr = ConvertPredicate(context, astPredicateNode->orLeft());
+					auto rightExpr = ConvertPredicate(context, astPredicateNode->orRight());
+					return SEM::Predicate::Or(std::move(leftExpr), std::move(rightExpr));
 				}
 			}
 			
@@ -135,6 +141,20 @@ namespace locic {
 					
 					return make_optional(*leftIsTrue && *rightIsTrue);
 				}
+				case SEM::Predicate::OR:
+				{
+					const auto leftIsTrue = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
+					if (!leftIsTrue) {
+						return None;
+					}
+					
+					const auto rightIsTrue = evaluatePredicate(context, predicate.orRight(), variableAssignments);
+					if (!rightIsTrue) {
+						return None;
+					}
+					
+					return make_optional(*leftIsTrue || *rightIsTrue);
+				}
 				case SEM::Predicate::SATISFIES:
 				{
 					const auto templateVar = predicate.satisfiesTemplateVar();
@@ -197,34 +217,6 @@ namespace locic {
 			} else {
 				return false;
 			}
-		}
-		
-		SEM::Predicate simplifyPredicate(const SEM::Predicate& predicate) {
-			switch (predicate.kind()) {
-				case SEM::Predicate::TRUE:
-				case SEM::Predicate::FALSE:
-				case SEM::Predicate::SATISFIES:
-				case SEM::Predicate::VARIABLE:
-				{
-					return predicate.copy();
-				}
-				case SEM::Predicate::AND:
-				{
-					auto left = simplifyPredicate(predicate.andLeft());
-					auto right = simplifyPredicate(predicate.andRight());
-					if (left.isTrue()) {
-						return right;
-					} else if (right.isTrue()) {
-						return left;
-					} else if (left.isFalse() || right.isFalse()) {
-						return SEM::Predicate::False();
-					} else {
-						return SEM::Predicate::And(std::move(left), std::move(right));
-					}
-				}
-			}
-			
-			throw std::logic_error("Unknown predicate kind.");
 		}
 		
 	}

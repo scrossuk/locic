@@ -7,7 +7,7 @@ import std.concurrency 0.1.0 {
 			template <typename T>
 			require (T : runnable and T : movable)
 			class fiber {
-				static fiber<T> create(T runnable);
+				static fiber<T> create(T runnable_object);
 				
 				void cancel();
 				

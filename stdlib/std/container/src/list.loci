@@ -9,7 +9,8 @@ export std.container 0.1.0 {
 		class list_range (list_node<T>* begin, list_node<T>* end) {
 			static create = default;
 			
-			lval<T> ptr_lval<T> front() const {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
@@ -24,7 +25,8 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			lval<T> ptr_lval<T> back() const {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -83,12 +85,14 @@ export std.container 0.1.0 {
 				@size = 0u;
 			}
 			
-			lval<T> ptr_lval<T> front() {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
 			
-			lval<T> ptr_lval<T> back() {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}

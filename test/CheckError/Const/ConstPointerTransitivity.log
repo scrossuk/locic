@@ -1,0 +1,1 @@
+Template arguments do not satisfy requires predicate 'satisfies\(templateVar: TemplateVar\(name = ::ptr_lval::T, index = 0\), requirement: movable\)' of method '::ptr_lval::assign' at position SourceLocation\(filename = (.*)/ConstPointerTransitivity\.loci, range = \(line 6, column 2\) to \(line 6, column 17\)\)\.

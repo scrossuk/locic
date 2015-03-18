@@ -12,9 +12,9 @@ namespace locic {
 		
 		class TemplatedObject {
 			public:
-				virtual std::vector<TemplateVar*>& templateVariables() = 0;
+				virtual TemplateVarArray& templateVariables() = 0;
 				
-				virtual const std::vector<TemplateVar*>& templateVariables() const = 0;
+				virtual const TemplateVarArray& templateVariables() const = 0;
 				
 				virtual const Predicate& requiresPredicate() const = 0;
 				

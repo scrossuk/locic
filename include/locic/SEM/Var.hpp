@@ -47,6 +47,9 @@ namespace locic {
 				bool isMarkedUnused() const;
 				void setMarkedUnused(bool isMarkedUnused);
 				
+				bool isOverrideConst() const;
+				void setOverrideConst(bool isOverrideConst);
+				
 				void setDebugInfo(Debug::VarInfo debugInfo);
 				Optional<Debug::VarInfo> debugInfo() const;
 				
@@ -61,6 +64,7 @@ namespace locic {
 				std::vector<Var*> children_;
 				bool isUsed_;
 				bool isMarkedUnused_;
+				bool isOverrideConst_;
 				Optional<Debug::VarInfo> debugInfo_;
 				
 		};

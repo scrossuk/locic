@@ -49,6 +49,20 @@ namespace locic {
 			return value;
 		}
 		
+		Value Value::PredicateExpr(Predicate predicate, const Type* const boolType) {
+			if (predicate.isTrue()) {
+				return Value::Constant(Constant::True(), boolType);
+			} else if (predicate.isFalse()) {
+				return Value::Constant(Constant::False(), boolType);
+			} else if (predicate.isVariable()) {
+				return Value::TemplateVarRef(predicate.variableTemplateVar(), boolType);
+			}
+			
+			Value value(PREDICATE, boolType, ExitStates::Normal());
+			value.predicate_ = make_optional(std::move(predicate));
+			return value;
+		}
+		
 		Value Value::LocalVar(const Var& var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
@@ -321,6 +335,15 @@ namespace locic {
 		const locic::Constant& Value::constant() const {
 			assert(isConstant());
 			return union_.constant_;
+		}
+		
+		bool Value::isPredicate() const {
+			return kind() == PREDICATE;
+		}
+		
+		const Predicate& Value::predicate() const {
+			assert(isPredicate());
+			return *predicate_;
 		}
 		
 		bool Value::isLocalVarRef() const {
@@ -677,6 +700,9 @@ namespace locic {
 				case Value::CONSTANT:
 					hasher.add(constant());
 					break;
+				case Value::PREDICATE:
+					hasher.add(predicate());
+					break;
 				case Value::LOCALVAR:
 					hasher.add(&(localVar()));
 					break;
@@ -813,6 +839,8 @@ namespace locic {
 					return true;
 				case Value::CONSTANT:
 					return constant() == value.constant();
+				case Value::PREDICATE:
+					return predicate() == value.predicate();
 				case Value::LOCALVAR:
 					return &(localVar()) == &(value.localVar());
 				case Value::UNIONTAG:
@@ -878,90 +906,6 @@ namespace locic {
 			throw std::logic_error("Unknown value kind.");
 		}
 		
-		/*bool Value::operator<(const Value& other) const {
-			if (kind() != value.kind()) {
-				return kind() < value.kind();
-			}
-			
-			if (type() != value.type()) {
-				return type() < value.type();
-			}
-			
-			switch (value.kind()) {
-				case Value::ZEROINITIALISE:
-					return false;
-				case Value::MEMCOPY:
-					return memCopyOperand() < value.memCopyOperand();
-				case Value::SELF:
-					return false;
-				case Value::THIS:
-					return false;
-				case Value::CONSTANT:
-					return constant() < value.constant();
-				case Value::LOCALVAR:
-					return localVar() < value.localVar();
-				case Value::UNIONTAG:
-					return unionTagOperand() < value.unionTagOperand();
-				case Value::SIZEOF:
-					return sizeOfType() < value.sizeOfType();
-				case Value::UNIONDATAOFFSET:
-					return unionDataOffsetTypeInstance() == value.unionDataOffsetTypeInstance();
-				case Value::MEMBEROFFSET:
-					return memberOffsetTypeInstance() == value.memberOffsetTypeInstance() && memberOffsetMemberIndex() == value.memberOffsetMemberIndex();
-				case Value::REINTERPRET:
-					return reinterpretOperand() == value.reinterpretOperand();
-				case Value::DEREF_REFERENCE:
-					return derefOperand() == value.derefOperand();
-				case Value::TERNARY:
-					return ternaryCondition() == value.ternaryCondition() && ternaryIfTrue() == value.ternaryIfTrue() && ternaryIfFalse() == value.ternaryIfFalse();
-				case Value::CAST:
-					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
-				case Value::POLYCAST:
-					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
-				case Value::LVAL:
-					return makeLvalTargetType() == value.makeLvalTargetType() && makeLvalOperand() == value.makeLvalOperand();
-				case Value::NOLVAL:
-					return makeNoLvalOperand() == value.makeNoLvalOperand();
-				case Value::REF:
-					return makeRefTargetType() == value.makeRefTargetType() && makeRefOperand() == value.makeRefOperand();
-				case Value::NOREF:
-					return makeNoRefOperand() == value.makeNoRefOperand();
-				case Value::STATICREF:
-					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
-				case Value::NOSTATICREF:
-					return makeNoStaticRefOperand() == value.makeNoStaticRefOperand();
-				case Value::INTERNALCONSTRUCT: {
-					return internalConstructParameters() == value.internalConstructParameters();
-				}
-				case Value::MEMBERACCESS:
-					return memberAccessObject() == value.memberAccessObject() && memberAccessVar() == value.memberAccessVar();
-				case Value::BIND_REFERENCE:
-					return bindReferenceOperand() == value.bindReferenceOperand();
-				case Value::TYPEREF:
-					return typeRefType() == value.typeRefType();
-				case Value::CALL:
-					return callValue() == value.callValue() && callParameters() == value.callParameters();
-				case Value::FUNCTIONREF:
-					return functionRefParentType() == value.functionRefParentType() && functionRefFunction() == value.functionRefFunction() &&
-						functionRefTemplateArguments() == value.functionRefTemplateArguments();
-				case Value::TEMPLATEFUNCTIONREF:
-					return templateFunctionRefParentType() == value.templateFunctionRefParentType() && templateFunctionRefName() == value.templateFunctionRefName() &&
-						templateFunctionRefFunctionType() == value.templateFunctionRefFunctionType();
-				case Value::METHODOBJECT:
-					return methodObject() == value.methodObject() && methodOwner() == value.methodOwner();
-				case Value::INTERFACEMETHODOBJECT:
-					return interfaceMethodObject() == value.interfaceMethodObject() && interfaceMethodOwner() == value.interfaceMethodOwner();
-				case Value::STATICINTERFACEMETHODOBJECT:
-					return staticInterfaceMethodObject() == value.staticInterfaceMethodObject() && staticInterfaceMethodOwner() == value.staticInterfaceMethodOwner();
-				case Value::CASTDUMMYOBJECT:
-					return true;
-				case Value::NONE:
-					return true;
-			}
-			
-			throw std::logic_error("Unknown value kind.");
-		}*/
-		
 		static Value basicCopyValue(const Value& value) {
 			switch (value.kind()) {
 				case Value::ZEROINITIALISE:
@@ -974,6 +918,8 @@ namespace locic {
 					return Value::This(value.type());
 				case Value::CONSTANT:
 					return Value::Constant(value.constant(), value.type());
+				case Value::PREDICATE:
+					return Value::PredicateExpr(value.predicate().copy(), value.type());
 				case Value::LOCALVAR:
 					return Value::LocalVar(value.localVar(), value.type());
 				case Value::UNIONTAG:
@@ -1057,6 +1003,32 @@ namespace locic {
 			return copyValue;
 		}
 		
+		bool Value::dependsOnAny(const TemplateVarArray& array) const {
+			switch (kind()) {
+				case CONSTANT:
+					return false;
+				case TYPEREF:
+					return typeRefType()->dependsOnAny(array);
+				case TEMPLATEVARREF:
+					return array.contains(const_cast<TemplateVar*>(templateVar()));
+				default:
+					assert(false && "dependsOnAny() not implemented for this value kind.");
+			}
+		}
+		
+		bool Value::dependsOnOnly(const TemplateVarArray& array) const {
+			switch (kind()) {
+				case CONSTANT:
+					return true;
+				case TYPEREF:
+					return typeRefType()->dependsOnOnly(array);
+				case TEMPLATEVARREF:
+					return array.contains(const_cast<TemplateVar*>(templateVar()));
+				default:
+					assert(false && "dependsOnOnly() not implemented for this value kind.");
+			}
+		}
+		
 		std::string Value::toString() const {
 			switch (kind()) {
 				case ZEROINITIALISE:
@@ -1069,6 +1041,8 @@ namespace locic {
 					return "this";
 				case CONSTANT:
 					return makeString("Constant(%s)", constant().toString().c_str());
+				case PREDICATE:
+					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
 				case UNIONTAG:
@@ -1134,11 +1108,12 @@ namespace locic {
 						callValue().toString().c_str(),
 						makeArrayString(callParameters()).c_str());
 				case FUNCTIONREF:
-					return makeString("FunctionRef(name: %s, parentType: %s)",
+					return makeString("FunctionRef(name: %s, parentType: %s, templateArgs: %s)",
 						functionRefFunction()->name().toString().c_str(),
 						functionRefParentType() != nullptr ?
 							functionRefParentType()->toString().c_str() :
-							"[NONE]");
+							"[NONE]",
+						makeArrayString(functionRefTemplateArguments()).c_str());
 				case TEMPLATEFUNCTIONREF:
 					return makeString("TemplateFunctionRef(name: %s, parentType: %s)",
 						templateFunctionRefName().c_str(),

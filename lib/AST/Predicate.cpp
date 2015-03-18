@@ -34,6 +34,13 @@ namespace locic {
 			return predicate;
 		}
 		
+		Predicate* Predicate::Or(const Node<Predicate>& left, const Node<Predicate>& right) {
+			Predicate* predicate = new Predicate(OR);
+			predicate->or_.left = left;
+			predicate->or_.right = right;
+			return predicate;
+		}
+		
 		Predicate::Kind Predicate::kind() const {
 			return kind_;
 		}
@@ -66,6 +73,16 @@ namespace locic {
 		const Node<Predicate>& Predicate::andRight() const {
 			assert(kind() == AND);
 			return and_.right;
+		}
+		
+		const Node<Predicate>& Predicate::orLeft() const {
+			assert(kind() == OR);
+			return or_.left;
+		}
+		
+		const Node<Predicate>& Predicate::orRight() const {
+			assert(kind() == OR);
+			return or_.right;
 		}
 		
 	}

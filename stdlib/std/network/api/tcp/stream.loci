@@ -7,8 +7,15 @@ import std.network 0.1.0 {
 			exception socket_error(std::string error);
 			
 			template <typename T>
-			interface buffer {
-				T* data() const;
+			interface in_buffer {
+				const T* data() const;
+				
+				size_t size() const;
+			}
+			
+			template <typename T>
+			interface out_buffer {
+				T* data();
 				
 				size_t size() const;
 			}
@@ -27,9 +34,9 @@ import std.network 0.1.0 {
 				
 				endpoint peer() const noexcept;
 				
-				size_t read_some(buffer<uint8_t>& destBuffer);
+				size_t read_some(out_buffer<uint8_t>& destBuffer);
 				
-				size_t write_some(const buffer<const uint8_t>& sourceBuffer);
+				size_t write_some(const in_buffer<const uint8_t>& sourceBuffer);
 			}
 			
 		}

@@ -11,9 +11,9 @@ export std.concurrency 0.1.0 {
 			template <typename T>
 			require (T : runnable and T : movable)
 			class fiber(T runnable) {
-				static create(T runnable) {
+				static create(T runnableObject) {
 					// TODO!
-					return @(move runnable);
+					return @(move runnableObject);
 				}
 				
 				void cancel() {

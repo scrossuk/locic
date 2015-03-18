@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <llvm/ADT/Triple.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
@@ -39,8 +40,6 @@ namespace llvm_abi {
 			
 			virtual std::string name() const = 0;
 			
-			virtual const llvm::DataLayout& dataLayout() const = 0;
-			
 			virtual size_t typeSize(Type* type) const = 0;
 			
 			virtual size_t typeAlign(Type* type) const = 0;
@@ -57,7 +56,7 @@ namespace llvm_abi {
 		
 	};
 	
-	std::unique_ptr<ABI> createABI(llvm::Module* module, const std::string& targetTriple);
+	std::unique_ptr<ABI> createABI(llvm::Module* module, const llvm::Triple& targetTriple);
 
 }
 

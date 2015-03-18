@@ -1,14 +1,14 @@
 #ifndef LOCIC_SEM_VALUE_HPP
 #define LOCIC_SEM_VALUE_HPP
 
-#include <unordered_map>
-
 #include <locic/Constant.hpp>
-#include <locic/Support/Map.hpp>
 #include <locic/Debug/ValueInfo.hpp>
 #include <locic/SEM/ExitStates.hpp>
+#include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/Support/HeapArray.hpp>
+#include <locic/Support/Map.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
@@ -31,6 +31,7 @@ namespace locic {
 					SELF,
 					THIS,
 					CONSTANT,
+					PREDICATE,
 					LOCALVAR,
 					UNIONTAG,
 					SIZEOF,
@@ -98,6 +99,13 @@ namespace locic {
 				 * A constant value (e.g. 0, 1.2, true etc.).
 				 */
 				static Value Constant(Constant constant, const Type* type);
+				
+				/**
+				 * \brief Predicate
+				 * 
+				 * A predicate value.
+				 */
+				static Value PredicateExpr(Predicate value, const Type* boolType);
 				
 				/**
 				 * \brief Local Variable
@@ -352,6 +360,9 @@ namespace locic {
 				bool isConstant() const;
 				const locic::Constant& constant() const;
 				
+				bool isPredicate() const;
+				const Predicate& predicate() const;
+				
 				bool isLocalVarRef() const;
 				const Var& localVar() const;
 				
@@ -460,7 +471,9 @@ namespace locic {
 					return !(*this == value);
 				}
 				
-				//bool operator<(const Value& other) const;
+				bool dependsOn(const TemplateVar* const templateVar) const;
+				bool dependsOnAny(const TemplateVarArray& array) const;
+				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
 				std::string toString() const;
 				
@@ -477,6 +490,7 @@ namespace locic {
 				Optional<Debug::ValueInfo> debugInfo_;
 				
 				std::unique_ptr<Value> value0_, value1_, value2_;
+				Optional<Predicate> predicate_;
 				TypeArray typeArray_;
 				HeapArray<Value> valueArray_;
 				

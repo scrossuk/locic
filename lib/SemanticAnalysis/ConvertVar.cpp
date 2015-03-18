@@ -11,17 +11,18 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/SearchResult.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Debug::VarInfo makeVarInfo(Debug::VarInfo::Kind kind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
-			assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+		Debug::VarInfo makeVarInfo(const Debug::VarInfo::Kind kind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+			assert(astTypeVarNode->isNamed());
 			
 			Debug::VarInfo varInfo;
 			varInfo.kind = kind;
-			varInfo.name = astTypeVarNode->namedVar.name;
+			varInfo.name = astTypeVarNode->name();
 			varInfo.declLocation = astTypeVarNode.location();
 			
 			// TODO
@@ -31,16 +32,20 @@ namespace locic {
 		
 		namespace {
 			
-			bool insertVar(const ScopeElement& element, const String& name, SEM::Var* var) {
+			std::pair<FastMap<String, SEM::Var*>::iterator, bool> insertVar(const ScopeElement& element, const String& name, SEM::Var* var) {
 				if (element.isScope()) {
-					return element.scope()->namedVariables().insert(std::make_pair(name, var)).second;
+					return element.scope()->namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isSwitchCase()) {
-					return element.switchCase()->namedVariables().insert(std::make_pair(name, var)).second;
+					return element.switchCase()->namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isCatchClause()) {
-					return element.catchClause()->namedVariables().insert(std::make_pair(name, var)).second;
+					return element.catchClause()->namedVariables().insert(std::make_pair(name, var));
+				} else if (element.isFunction()) {
+					return element.function()->namedVariables().insert(std::make_pair(name, var));
+				} else if (element.isTypeInstance()) {
+					return element.typeInstance()->namedVariables().insert(std::make_pair(name, var));
 				} else {
 					assert(false && "Invalid element kind for inserting var.");
-					return false;
+					throw std::logic_error("Invalid element kind for inserting var.");
 				}
 			}
 			
@@ -51,9 +56,11 @@ namespace locic {
 			assert(var->isBasic());
 			
 			const auto insertResult = insertVar(context.scopeStack().back(), name, var);
-			if (!insertResult) {
-				throw ErrorException(makeString("Variable name '%s' already exists at position %s.",
-					name.c_str(), astTypeVarNode.location().toString().c_str()));
+			if (!insertResult.second) {
+				const auto existingVar = insertResult.first->second;
+				throw ErrorException(makeString("Variable name '%s' at position %s duplicates existing variable of the same name at position %s.",
+					name.c_str(), astTypeVarNode.location().toString().c_str(),
+					existingVar->debugInfo()->declLocation.toString().c_str()));
 			}
 			
 			// TODO: add support for member and parameter variables.
@@ -71,23 +78,25 @@ namespace locic {
 				return value.type();
 			}
 			
-			SEM::Var* ConvertInitialisedVarRecurse(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
+			SEM::Var* ConvertInitialisedVarRecurse(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
 				const auto& location = astTypeVarNode.location();
 				
-				switch (astTypeVarNode->kind) {
+				switch (astTypeVarNode->kind()) {
 					case AST::TypeVar::ANYVAR: {
 						return SEM::Var::Any(initialiseType);
 					}
 					
 					case AST::TypeVar::NAMEDVAR: {
-						const auto& varName = astTypeVarNode->namedVar.name;
+						const auto& varName = astTypeVarNode->name();
 						
-						if (!performSearch(context, Name::Relative() + varName).isNone()) {
+						// Search all scopes outside of the current scope.
+						const auto searchStartPosition = 1;
+						if (!isMember && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
 							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 								varName.c_str(), location.toString().c_str()));
 						}
 						
-						const auto varDeclType = ConvertType(context, astTypeVarNode->namedVar.type)->resolveAliases();
+						const auto varDeclType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
@@ -95,22 +104,24 @@ namespace locic {
 						
 						if (varType->isBuiltInVoid()) {
 							throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
-								astTypeVarNode->namedVar.name.c_str(), location.toString().c_str()));
+								astTypeVarNode->name().c_str(), location.toString().c_str()));
 						}
 						
-						// 'final' keyword uses an unmodifiable type.
-						const bool isFinalLval = astTypeVarNode->namedVar.isFinal;
+						// 'final' keyword uses a different lval type (which doesn't support
+						// moving or re-assignment).
+						const bool isFinalLval = astTypeVarNode->isFinal();
 						
 						const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 						
 						const auto var = SEM::Var::Basic(varType, lvalType);
-						var->setMarkedUnused(astTypeVarNode->namedVar.isUnused);
+						var->setMarkedUnused(astTypeVarNode->isUnused());
+						var->setOverrideConst(astTypeVarNode->isOverrideConst());
 						attachVar(context, varName, astTypeVarNode, var);
 						return var;
 					}
 					
 					case AST::TypeVar::PATTERNVAR: {
-						const auto varDeclType = ConvertType(context, astTypeVarNode->patternVar.type)->resolveAliases();
+						const auto varDeclType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
 							throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
@@ -121,7 +132,7 @@ namespace locic {
 						// 'auto' in the variable's type.
 						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
-						const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
+						const auto& astChildTypeVars = astTypeVarNode->typeVarList();
 						const auto& typeChildVars = varType->getObjectType()->variables();
 						
 						if (astChildTypeVars->size() != typeChildVars.size()) {
@@ -154,48 +165,53 @@ namespace locic {
 			
 		}
 		
-		SEM::Var* ConvertVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+		SEM::Var* ConvertVar(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			const auto& location = astTypeVarNode.location();
 			
-			switch (astTypeVarNode->kind) {
+			switch (astTypeVarNode->kind()) {
 				case AST::TypeVar::ANYVAR: {
 					throw ErrorException("'Any' vars not yet implemented for uninitialised variables.");
 				}
 				
 				case AST::TypeVar::NAMEDVAR: {
-					const auto& varName = astTypeVarNode->namedVar.name;
+					const auto& varName = astTypeVarNode->name();
 					
-					if (!performSearch(context, Name::Relative() + varName).isNone()) {
+					// Search all scopes outside of the current scope.
+					const auto searchStartPosition = 1;
+					if (!isMember && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
 						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}
 					
-					const auto varType = ConvertType(context, astTypeVarNode->namedVar.type)->resolveAliases();
+					const auto varType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
 					
 					if (varType->isBuiltInVoid()) {
 						throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}
 					
-					// 'final' keyword makes the default lval const.
-					const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
+					// 'final' keyword uses a different lval type (which doesn't support
+					// moving or re-assignment).
+					const bool isFinalLval = astTypeVarNode->isFinal();
 					
-					const auto lvalType = makeLvalType(context, isMember, isLvalConst, varType);
+					const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 					
 					const auto var = SEM::Var::Basic(varType, lvalType);
+					var->setMarkedUnused(astTypeVarNode->isUnused());
+					var->setOverrideConst(astTypeVarNode->isOverrideConst());
 					attachVar(context, varName, astTypeVarNode, var);
 					return var;
 				}
 				
 				case AST::TypeVar::PATTERNVAR: {
-					const auto varType = ConvertType(context, astTypeVarNode->patternVar.type)->resolveAliases();
+					const auto varType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
 					
 					if (!varType->isDatatype()) {
 						throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
 							varType->toString().c_str(), location.toString().c_str()));
 					}
 					
-					const auto& astChildTypeVars = astTypeVarNode->patternVar.typeVarList;
+					const auto& astChildTypeVars = astTypeVarNode->typeVarList();
 					const auto& typeChildVars = varType->getObjectType()->variables();
 					
 					if (astChildTypeVars->size() != typeChildVars.size()) {
@@ -222,7 +238,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::Var* ConvertInitialisedVar(Context& context, bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType) {
+		SEM::Var* ConvertInitialisedVar(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, isMember, astTypeVarNode, initialiseType, isTopLevel);
 		}

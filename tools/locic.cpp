@@ -16,6 +16,7 @@
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
+#include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
 
 using namespace locic;
@@ -88,6 +89,15 @@ int main(int argc, char* argv[]) {
 		std::vector<std::string> inputFileNames;
 		int optimisationLevel = 0;
 		std::string outputFileName;
+		
+		// Target
+		std::string targetArchString;
+		std::string targetCPUString;
+		std::string targetFloatABIString;
+		std::string targetFPUString;
+		std::string targetTripleString;
+		
+		// Debug
 		std::string astDebugFileName;
 		std::string semDebugFileName;
 		std::string codeGenDebugFileName;
@@ -98,12 +108,17 @@ int main(int argc, char* argv[]) {
 		("help,h", "Display help information")
 		("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
 		("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
+		("target", po::value<std::string>(&targetTripleString), "Target Triple")
+		("march", po::value<std::string>(&targetArchString), "Target Architecture")
+		("mcpu", po::value<std::string>(&targetCPUString), "Target CPU")
+		("mfloat-abi", po::value<std::string>(&targetFloatABIString), "Target Float ABI")
+		("mfpu", po::value<std::string>(&targetFPUString), "Target FPU")
+		("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
+		("timings", "Print out timings of the compiler stages")
 		("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
 		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
 		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
-		("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
-		("timings", "Print out timings of the compiler stages")
 		;
 		
 		po::options_description hiddenOptions;
@@ -240,11 +255,15 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
-		// TODO: name this based on output file name.
-		const auto outputName = "output";
+		CodeGen::TargetOptions targetOptions;
+		targetOptions.triple = targetTripleString;
+		targetOptions.arch = targetArchString;
+		targetOptions.cpu = targetCPUString;
+		targetOptions.floatABI = targetFloatABIString;
+		targetOptions.fpu = targetFPUString;
 		
-		CodeGen::Context codeGenContext(stringHost);
-		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputName, debugModule, buildOptions);
+		CodeGen::Context codeGenContext(stringHost, targetOptions);
+		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputFileName, debugModule, buildOptions);
 		
 		{
 			Timer timer;

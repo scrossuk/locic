@@ -3,6 +3,7 @@
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
@@ -163,12 +164,12 @@ namespace locic {
 			}
 		}
 		
-		SearchResult performSearch(Context& context, const Name& name) {
+		SearchResult performSearch(Context& context, const Name& name, const size_t searchStartPosition) {
 			assert(!name.empty());
 			
 			const auto& scopeStack = context.scopeStack();
 			
-			const size_t startPosition = name.isAbsolute() ? scopeStack.size() - 1 : 0;
+			const size_t startPosition = name.isAbsolute() ? scopeStack.size() - 1 : searchStartPosition;
 			for (size_t i = startPosition; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto result = performInnerSearch(scopeStack[pos], name);

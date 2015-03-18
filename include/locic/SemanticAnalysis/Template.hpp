@@ -14,7 +14,7 @@ namespace locic {
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
-		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables);
+		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateVarArray& templateVariables);
 		
 		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray);
 		

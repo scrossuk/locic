@@ -21,7 +21,7 @@ namespace locic {
 		struct TemplateTypeVar;
 		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
 		
-		struct TypeVar;
+		class TypeVar;
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
 		struct TypeInstance;

@@ -187,7 +187,8 @@ export std.string 0.1.0 {
 				return false;
 			}
 			
-			lval<T> ptr_lval<T> front() const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) noexcept {
 				return *@ptr;
 			}
 			

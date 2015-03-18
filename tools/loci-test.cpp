@@ -21,6 +21,7 @@
 #include <locic/CodeGen/Interpreter.hpp>
 #include <locic/CodeGen/Linker.hpp>
 #include <locic/CodeGen/ModulePtr.hpp>
+#include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
 #include <locic/Support/StringHost.hpp>
 
@@ -267,7 +268,8 @@ int main(int argc, char* argv[]) {
 		// Perform code generation.
 		printf("Performing code generation...\n");
 		
-		CodeGen::Context codeGenContext(stringHost);
+		// Use default (host) target options.
+		CodeGen::Context codeGenContext(stringHost, CodeGen::TargetOptions());
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());

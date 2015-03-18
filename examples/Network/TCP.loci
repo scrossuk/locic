@@ -6,7 +6,8 @@ class UnitData(T data) {
 		return @data;
 	}
 	
-	T* data() const {
+	template <bool IsConst>
+	const<IsConst>(T)* data() const(IsConst) {
 		return &@data;
 	}
 	

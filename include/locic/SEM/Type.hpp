@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -125,6 +126,10 @@ namespace locic {
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* makeTemplatedFunction() const;
 				const Type* resolveAliases() const;
+				
+				bool dependsOn(const TemplateVar* const templateVar) const;
+				bool dependsOnAny(const TemplateVarArray& array) const;
+				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
 				std::string nameToString() const;
 				

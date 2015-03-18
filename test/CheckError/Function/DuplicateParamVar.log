@@ -1,0 +1,1 @@
+Variable name 'value' at position SourceLocation\(filename = (.*)/DuplicateParamVar\.loci, range = \(line 1, column 25\) to \(line 1, column 34\)\) duplicates existing variable of the same name at position SourceLocation\(filename = (.*)/DuplicateParamVar\.loci, range = \(line 1, column 14\) to \(line 1, column 23\)\)\.

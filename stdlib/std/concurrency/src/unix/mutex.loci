@@ -60,9 +60,9 @@ export std.concurrency 0.1.0 {
 			}
 			
 			class unique_lock(mutex& mutex) {
-				static unique_lock create(mutex& mutex) {
-					mutex.lock();
-					return @(mutex);
+				static unique_lock create(mutex& mutexObject) {
+					mutexObject.lock();
+					return @(mutexObject);
 				}
 				
 				~ {

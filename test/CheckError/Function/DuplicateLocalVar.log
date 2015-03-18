@@ -1,0 +1,1 @@
+Variable name 'value' at position SourceLocation\(filename = (.*)/DuplicateLocalVar\.loci, range = \(line 3, column 2\) to \(line 3, column 11\)\) duplicates existing variable of the same name at position SourceLocation\(filename = (.*)/DuplicateLocalVar\.loci, range = \(line 2, column 2\) to \(line 2, column 11\)\)\.

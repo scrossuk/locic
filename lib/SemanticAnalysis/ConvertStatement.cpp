@@ -223,7 +223,7 @@ namespace locic {
 						
 						const auto& astVar = astCatch->var;
 						
-						if (astVar->kind != AST::TypeVar::NAMEDVAR) {
+						if (!astVar->isNamed()) {
 							throw ErrorException(makeString("Try statement catch clauses may only "
 								"contain named variables (no pattern matching) at position %s.",
 								location.toString().c_str()));
@@ -231,7 +231,7 @@ namespace locic {
 						
 						// Special case handling for catch variables,
 						// since they don't use lvalues.
-						const auto varType = ConvertType(context, astVar->namedVar.type);
+						const auto varType = ConvertType(context, astVar->namedType());
 						if (!varType->isException()) {
 							throw ErrorException(makeString("Type '%s' is not an exception type and therefore "
 								"cannot be used in a catch clause at position %s.",
@@ -239,7 +239,7 @@ namespace locic {
 						}
 						
 						const auto semVar = SEM::Var::Basic(varType, varType);
-						attachVar(context, astVar->namedVar.name, astVar, semVar);
+						attachVar(context, astVar->name(), astVar, semVar);
 						
 						semCatch->setVar(semVar);
 						semCatch->setScope(ConvertScope(context, astCatch->scope));

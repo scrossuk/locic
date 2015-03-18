@@ -128,7 +128,7 @@ const T& GETSYM(T* value) {
 // Obviously the former case will be preferred, but this
 // technical ambiguity generates reduce/reduce conflicts.
 // This applies for the following tokens: '*', '&', '(' and ')'.
-%expect-rr 4
+%expect-rr 7
 
 %lex-param {void * scanner}
 %lex-param {locic::Parser::Context * parserContext}
@@ -412,14 +412,19 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision0
 %type <type> type
 
-%type <typeList> emptyTypeList
-%type <typeList> nonEmptyTypeList
-%type <typeList> typeList
 %type <typeVar> patternTypeVar
+%type <typeVar> basicTypeVar
+%type <typeVar> overrideConstTypeVar
+%type <typeVar> finalTypeVar
+%type <typeVar> unusedTypeVar
 %type <typeVar> typeVar
 %type <typeVarList> nonEmptyTypeVarList
 %type <typeVarList> typeVarList
 %type <typeVarList> cTypeVarList
+
+%type <typeList> emptyTypeList
+%type <typeList> nonEmptyTypeList
+%type <typeList> typeList
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarList> templateTypeVarList
 
@@ -686,6 +691,10 @@ predicateExpr_precedence1:
 	| predicateExpr_precedence1 AND predicateExpr_precedence0
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::And(GETSYM($1), GETSYM($3))));
+	}
+	| predicateExpr_precedence1 OR predicateExpr_precedence0
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Or(GETSYM($1), GETSYM($3))));
 	}
 	;
 
@@ -1397,7 +1406,17 @@ emptyTemplateArgumentList:
 	;
 
 templateArgument:
-	type
+	/**
+	 * If a symbol is seen treat it as a value rather than a type.
+	 * 
+	 * (At some point this should be replaced with a solution that
+	 * doesn't generate parser conflicts.)
+	 */
+	symbol %dprec 2
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(GETSYM($1))));
+	}
+	| type %dprec 1
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
 	}
@@ -1445,22 +1464,53 @@ patternTypeVar:
 	}
 	;
 
-typeVar:
+basicTypeVar:
 	type NAME
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::NamedVar(GETSYM($1), $2)));
 	}
-	| FINAL type NAME
+	;
+
+overrideConstTypeVar:
+	basicTypeVar
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::FinalNamedVar(GETSYM($2), $3)));
+		$$ = $1;
 	}
-	| UNUSED type NAME
+	| OVERRIDE_CONST basicTypeVar
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::UnusedNamedVar(GETSYM($2), $3)));
+		(GETSYM($2))->setOverrideConst();
+		$$ = $2;
 	}
-	| UNUSED FINAL type NAME
+	;
+
+finalTypeVar:
+	overrideConstTypeVar
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::UnusedFinalNamedVar(GETSYM($3), $4)));
+		$$ = $1;
+	}
+	| FINAL overrideConstTypeVar
+	{
+		(GETSYM($2))->setFinal();
+		$$ = $2;
+	}
+	;
+
+unusedTypeVar:
+	finalTypeVar
+	{
+		$$ = $1;
+	}
+	| UNUSED finalTypeVar
+	{
+		(GETSYM($2))->setUnused();
+		$$ = $2;
+	}
+	;
+
+typeVar:
+	unusedTypeVar
+	{
+		$$ = $1;
 	}
 	| patternTypeVar
 	{
@@ -1471,7 +1521,7 @@ typeVar:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::Any()));
 	}
 	;
-	
+
 typeVarList:
 	// empty
 	{

@@ -19,10 +19,11 @@ namespace locic {
 		
 		Module::Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: context_(context), module_(new llvm::Module(name.c_str(), context.llvmContext())),
-			  abi_(llvm_abi::createABI(module_.get(), llvm::sys::getDefaultTargetTriple())),
+			  abi_(llvm_abi::createABI(module_.get(), context.targetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
-			module_->setDataLayout(abi_->dataLayout().getStringRepresentation());
-			module_->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+			
+			module_->setDataLayout(context.dataLayout().getStringRepresentation());
+			module_->setTargetTriple(context.targetTriple().getTriple());
 			
 #ifndef LLVM_3_3
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);

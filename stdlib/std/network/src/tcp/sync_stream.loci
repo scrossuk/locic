@@ -23,7 +23,7 @@ export std.network 0.1.0 {
 			class sync_stream(stream& underlyingStream) {
 				static create = default;
 				
-				void sync_read(buffer<uint8_t>& dest_buffer) {
+				void sync_read(out_buffer<uint8_t>& dest_buffer) {
 					size_t position = 0u;
 					final uint8_t* data = dest_buffer.data();
 					const size_t size = dest_buffer.size();
@@ -44,7 +44,7 @@ export std.network 0.1.0 {
 					}
 				}
 				
-				void sync_write(const buffer<const uint8_t>& source_buffer) {
+				void sync_write(const in_buffer<const uint8_t>& source_buffer) {
 					size_t position = 0u;
 					const uint8_t* data = source_buffer.data();
 					const size_t size = source_buffer.size();

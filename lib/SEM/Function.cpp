@@ -71,11 +71,11 @@ namespace locic {
 			return isStaticMethod_;
 		}
 		
-		std::vector<TemplateVar*>& Function::templateVariables() {
+		TemplateVarArray& Function::templateVariables() {
 			return templateVariables_;
 		}
 		
-		const std::vector<TemplateVar*>& Function::templateVariables() const {
+		const TemplateVarArray& Function::templateVariables() const {
 			return templateVariables_;
 		}
 		

@@ -10,6 +10,7 @@
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/FastMap.hpp>
@@ -98,8 +99,8 @@ namespace locic {
 				std::vector<TypeInstance*>& variants();
 				const std::vector<TypeInstance*>& variants() const;
 				
-				std::vector<TemplateVar*>& templateVariables();
-				const std::vector<TemplateVar*>& templateVariables() const;
+				TemplateVarArray& templateVariables();
+				const TemplateVarArray& templateVariables() const;
 				
 				FastMap<String, TemplateVar*>& namedTemplateVariables();
 				const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
@@ -146,7 +147,7 @@ namespace locic {
 				
 				std::vector<TypeInstance*> variants_;
 				
-				std::vector<TemplateVar*> templateVariables_;
+				TemplateVarArray templateVariables_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
 				

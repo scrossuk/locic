@@ -54,7 +54,8 @@ export std.container 0.1.0 {
 				return @size == 0u;
 			}
 			
-			T* data() const noexcept {
+			template <bool IsConst>
+			const<IsConst>(T)* data() const(IsConst) noexcept {
 				return @data;
 			}
 			
@@ -62,7 +63,8 @@ export std.container 0.1.0 {
 				return @size;
 			}
 			
-			lval<T> ptr_lval<T> index(size_t index) const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept {
 				assert index < @size;
 				return @data[index];
 			}
@@ -86,7 +88,8 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).__destroy_value();
 			}
 			
-			varray<T> copy() const require(T : movable and T: copyable<T>) {
+			template <bool IsConst>
+			varray<const<IsConst>(T)> copy() const(IsConst) require(T : movable and T: copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
@@ -95,15 +98,16 @@ export std.container 0.1.0 {
 				return move array;
 			}
 			
-			varray_range<T> all() const noexcept {
-				return varray_range<T>(self);
+			template <bool IsConst>
+			varray_range<T, IsConst> all() const(IsConst) noexcept {
+				return varray_range<T, IsConst>(self);
 			}
 			
 		}
 		
-		template <typename T>
-		class varray_range(const varray<T>& array, size_t begin, size_t end) {
-			static create(const varray<T>& array) noexcept {
+		template <typename T, bool IsArrayConst>
+		class varray_range(const<IsArrayConst>(varray<T>)& array, size_t begin, size_t end) {
+			static create(const<IsArrayConst>(varray<T>)& array) noexcept {
 				return @(array, 0u, array.size());
 			}
 			
@@ -118,7 +122,8 @@ export std.container 0.1.0 {
 				@begin += 1u;
 			}
 			
-			lval<T> ptr_lval<T> front() const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> front() const(IsConst) noexcept {
 				assert !self.empty();
 				return @array[@begin];
 			}
@@ -128,7 +133,8 @@ export std.container 0.1.0 {
 				@end -= 1u;
 			}
 			
-			lval<T> ptr_lval<T> back() const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> back() const(IsConst) noexcept {
 				assert !self.empty();
 				return @array[@end - 1u];
 			}

@@ -29,9 +29,6 @@ namespace locic {
 		
 		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
 		
-		// TODO: take a value rather than a reference.
-		SEM::Predicate simplifyPredicate(const SEM::Predicate& predicate);
-		
 	}
 	
 }

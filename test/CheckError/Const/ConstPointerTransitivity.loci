@@ -1,0 +1,7 @@
+struct S {
+	int* p;
+};
+
+void f(const S* value) {
+	*(value->p) = 1;
+}

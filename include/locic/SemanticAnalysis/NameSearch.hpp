@@ -1,17 +1,18 @@
 #ifndef LOCIC_SEMANTICANALYSIS_NAMESEARCH_HPP
 #define LOCIC_SEMANTICANALYSIS_NAMESEARCH_HPP
 
-#include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
-
-#include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/SearchResult.hpp>
+#include <cstddef>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		SearchResult performSearch(Context& context, const Name& name);
+	class Name;
+	
+	namespace SemanticAnalysis {
+		
+		class Context;
+		class SearchResult;
+		
+		SearchResult performSearch(Context& context, const Name& name, size_t searchStartPosition = 0);
 		
 	}
 	

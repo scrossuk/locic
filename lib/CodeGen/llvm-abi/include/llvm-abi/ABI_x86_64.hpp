@@ -24,8 +24,6 @@ namespace llvm_abi {
 			
 			std::string name() const;
 			
-			const llvm::DataLayout& dataLayout() const;
-			
 			size_t typeSize(Type* type) const;
 			
 			size_t typeAlign(Type* type) const;
@@ -47,7 +45,6 @@ namespace llvm_abi {
 			mutable ABITypeCache abiTypeCache_;
 			mutable ABISizeCache alignOfCache_;
 			mutable ABISizeCache sizeOfCache_;
-			llvm::DataLayout dataLayout_;
 			llvm::Value* memcpyIntrinsic_;
 		
 	};

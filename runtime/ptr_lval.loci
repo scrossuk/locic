@@ -1,8 +1,12 @@
 template <typename T>
 __primitive ptr_lval {
-	T* address() const noexcept;
+	template <bool IsConst>
+	const<IsConst>(T)* address() const(IsConst) noexcept;
+	
 	void assign(T value) noexcept require(T : movable);
-	T& dissolve() const noexcept;
+	
+	template <bool IsConst>
+	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
 	
 	void __set_value(T value) noexcept require(T : movable);
 	T __extract_value() noexcept require(T : movable);

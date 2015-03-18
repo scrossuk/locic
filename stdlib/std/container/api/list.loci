@@ -5,11 +5,13 @@ import std.container 0.1.0 {
 	
 		template <typename T>
 		class list_range {
-			lval<T> ptr_lval<T> front() const;
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst);
 			
 			void skip_front();
 			
-			lval<T> ptr_lval<T> back() const;
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst);
 			
 			void skip_back();
 			
@@ -29,9 +31,11 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept;
 			
-			lval<T> ptr_lval<T> front();
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst);
 			
-			lval<T> ptr_lval<T> back();
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst);
 			
 			void push_front(T value);
 			

@@ -3,13 +3,19 @@ __primitive __ptr {
 	static __ptr<T> null() noexcept;
 	
 	__ptr<T> implicit_copy() const noexcept;
-	__ptr<T> copy() const noexcept;
 	
-	lval<T> ptr_lval<T> deref() const noexcept;
+	template <bool IsConst>
+	__ptr<const<IsConst>(T)> copy() const(IsConst) noexcept;
 	
-	lval<T> ptr_lval<T> index(size_t index) const noexcept;
+	template <bool IsConst>
+	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
 	
-	__ptr<T> add(const ptrdiff_t& v) const noexcept;
+	template <bool IsConst>
+	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
+	
+	template <bool IsConst>
+	__ptr<const<IsConst>(T)> add(const ptrdiff_t& v) const(IsConst) noexcept;
+	
 	ptrdiff_t subtract(const __ptr<T>& v) const noexcept;
 	
 	bool equal(const __ptr<T>& value) const noexcept;

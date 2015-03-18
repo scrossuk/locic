@@ -1,0 +1,4 @@
+int function(int value, int value) {
+	return value;
+}
+

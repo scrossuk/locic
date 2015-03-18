@@ -8,9 +8,11 @@ import std.memory 0.1.0 {
 			
 			static unique_ptr<T> null() noexcept;
 			
-			lval<T> ptr_lval<T> deref() const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
 			
-			T* get() noexcept;
+			template <bool IsConst>
+			const<IsConst>(T)* get() const(IsConst) noexcept;
 			
 			void reset(T* pointer) noexcept;
 			

@@ -10,10 +10,11 @@ namespace locic {
 	namespace CodeGen {
 		
 		class InternalContext;
+		struct TargetOptions;
 		
 		class Context {
 			public:
-				Context(const StringHost& stringHost);
+				Context(const StringHost& stringHost, const TargetOptions& targetOptions);
 				~Context();
 				
 				InternalContext& internal();

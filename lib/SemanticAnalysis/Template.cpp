@@ -15,6 +15,7 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TemplateInst.hpp>
 
@@ -152,7 +153,7 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const std::vector<SEM::TemplateVar*>& templateVariables) {
+		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateVarArray& templateVariables) {
 			SEM::ValueArray templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {

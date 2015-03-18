@@ -23,6 +23,7 @@
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TemplateInst.hpp>
 
@@ -153,7 +154,7 @@ namespace locic {
 				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
 					variantTypeInstance->setParent(semTypeInstance);
-					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables();
+					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables().copy();
 					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables().copy();
 					semTypeInstance->variants().push_back(variantTypeInstance);
 				}
@@ -409,29 +410,14 @@ namespace locic {
 			}
 			
 			for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
-				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
-				
-				const auto& varName = astTypeVarNode->namedVar.name;
-				const auto iterator = semTypeInstance->namedVariables().find(varName);
-				if (iterator != semTypeInstance->namedVariables().end()) {
-					throw ErrorException(makeString("Member variable '%s' clashes with existing "
-							"member variable of the same name, at location %s.",
-						varName.c_str(), astTypeVarNode.location().toString().c_str()));
+				if (!astTypeVarNode->isNamed()) {
+					throw ErrorException(makeString("Pattern variables not supported (yet!) for member variables, at location %s.",
+						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				const auto semType = ConvertType(context, astTypeVarNode->namedVar.type);
-				
 				const bool isMemberVar = true;
-				
-				// 'final' keyword makes the default lval const.
-				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
-				
-				const auto lvalType = makeLvalType(context, isMemberVar, isLvalConst, semType);
-				
-				const auto var = SEM::Var::Basic(semType, lvalType);
-				
-				// Add mapping from name to variable.
-				semTypeInstance->namedVariables().insert(std::make_pair(varName, var));
+				const auto var = ConvertVar(context, isMemberVar, astTypeVarNode);
+				assert(var->isBasic());
 				
 				// Add mapping from position to variable.
 				semTypeInstance->variables().push_back(var);
@@ -543,26 +529,7 @@ namespace locic {
 			const auto& astParametersNode = astFunctionNode->parameters();
 			
 			assert(astParametersNode->size() == semFunction->parameters().size());
-			
-			for (size_t i = 0; i < astParametersNode->size(); i++) {
-				const auto& astTypeVarNode = astParametersNode->at(i);
-				const auto& semVar = semFunction->parameters().at(i);
-				
-				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
-				
-				const auto& varName = astTypeVarNode->namedVar.name;
-				
-				const auto iterator = semFunction->namedVariables().find(varName);
-				if (iterator != semFunction->namedVariables().end()) {
-					throw ParamVariableClashException(fullName.copy(), varName);
-				}
-				
-				semFunction->namedVariables().insert(std::make_pair(varName, semVar));
-				
-				const auto varInfo = makeVarInfo(Debug::VarInfo::VAR_ARG, astTypeVarNode);
-				semVar->setDebugInfo(varInfo);
-			}
-			
+			assert(astParametersNode->size() == semFunction->namedVariables().size());
 			assert(semFunction->isDeclaration());
 			
 			return semFunction;
@@ -729,7 +696,7 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			typeAlias->setRequiresPredicate(simplifyPredicate(predicate));
+			typeAlias->setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
@@ -759,8 +726,6 @@ namespace locic {
 				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar, semSpecType);
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
-			
-			predicate = simplifyPredicate(predicate);
 			
 			// Copy requires predicate to all variant types.
 			for (const auto variantTypeInstance: typeInstance->variants()) {
@@ -835,7 +800,7 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			function->setRequiresPredicate(simplifyPredicate(predicate));
+			function->setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {

@@ -6,19 +6,6 @@ import std.container 0.1.0 {
 		template <typename T0 : movable, typename T1 : movable>
 		datatype pair(T0 first, T1 second);
 		
-		template <typename Key : movable, typename Value : movable>
-		class map_range {
-			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> front();
-			
-			void skip_front();
-			
-			lval<pair<Key, Value>> ptr_lval<pair<Key, Value>> back();
-			
-			void skip_back();
-			
-			bool empty() const noexcept;
-		}
-		
 		template <typename T>
 		interface comparable {
 			compare_result_t compare(const T& other) const noexcept;
@@ -43,7 +30,8 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept;
 			
-			lval<Value> ptr_lval<Value> index(const Key& key) const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept;
 			
 			void insert(pair<Key, Value> value);
 			
@@ -51,7 +39,25 @@ import std.container 0.1.0 {
 			
 			Value& get_or_insert(const Key& key) require(Key : copyable<Key> and Value : default_constructible<Value>);
 			
-			map_range<Key, Value> all() const noexcept;
+			template <bool IsConst>
+			map_range<Key, Value, IsConst> all() const(IsConst) noexcept;
+		}
+		
+		template <typename Key : movable, typename Value : movable, bool IsMapConst>
+		class map_range {
+			map_range<Key, Value, IsMapConst> implicitCopy() const noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> front() const(IsConst);
+			
+			void skip_front();
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> back() const(IsConst);
+			
+			void skip_back();
+			
+			bool empty() const noexcept;
 		}
 		
 	}

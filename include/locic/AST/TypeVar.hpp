@@ -12,46 +12,64 @@ namespace locic {
 
 	namespace AST {
 	
-		struct TypeVar;
+		class TypeVar;
 		
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
-		struct TypeVar {
+		class TypeVar {
+		public:
 			enum Kind {
 				NAMEDVAR,
 				PATTERNVAR,
 				ANYVAR
-			} kind;
+			};
+			
+			static TypeVar* NamedVar(const Node<Type>& type, String name);
+			
+			static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
+			
+			static TypeVar* Any();
+			
+			Kind kind() const;
+			
+			bool isNamed() const;
+			const Node<Type>& namedType() const;
+			const String& name() const;
+			
+			bool isFinal() const;
+			void setFinal();
+			
+			bool isOverrideConst() const;
+			void setOverrideConst();
+			
+			bool isUnused() const;
+			void setUnused();
+			
+			bool isPattern() const;
+			const Node<Type>& patternType() const;
+			const Node<TypeVarList>& typeVarList() const;
+			
+			bool isAny() const;
+			
+			std::string toString() const;
+			
+		private:
+			TypeVar(Kind pKind);
+			
+			Kind kind_;
 			
 			struct {
 				bool isFinal;
+				bool isOverrideConst;
 				bool isUnused;
 				Node<Type> type;
 				String name;
-			} namedVar;
+			} namedVar_;
 			
 			struct {
 				Node<Type> type;
 				Node<TypeVarList> typeVarList;
-			} patternVar;
-			
-			public:
-				static TypeVar* NamedVar(const Node<Type>& type, String name);
-				
-				static TypeVar* FinalNamedVar(const Node<Type>& type, String name);
-				
-				static TypeVar* UnusedNamedVar(const Node<Type>& type, String name);
-				
-				static TypeVar* UnusedFinalNamedVar(const Node<Type>& type, String name);
-				
-				static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
-				
-				static TypeVar* Any();
-				
-				std::string toString() const;
-			
-			private:
-				TypeVar(Kind pKind);
+			} patternVar_;
 			
 		};
 		

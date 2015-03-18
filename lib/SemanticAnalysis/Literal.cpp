@@ -16,6 +16,7 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {

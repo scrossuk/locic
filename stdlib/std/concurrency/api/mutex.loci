@@ -13,7 +13,7 @@ import std.concurrency 0.1.0 {
 			}
 			
 			class unique_lock {
-				static unique_lock create(mutex& mutex);
+				static unique_lock create(mutex& mutex_object);
 				
 				mutex& internal_mutex() noexcept;
 			}

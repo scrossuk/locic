@@ -99,6 +99,7 @@ namespace locic {
 				// Get the actual function so we can refer to it.
 				const auto function = targetType->getObjectType()->functions().at(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
+				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function, {}, function->type()->substitute(functionTypeTemplateMap)), location);
 				
 				if (targetType->isInterface()) {
@@ -179,24 +180,36 @@ namespace locic {
 			if (type->isObject()) {
 				// Get the actual function so we can check its template arguments and refer to it.
 				const auto function = type->getObjectType()->functions().at(canonicalMethodName);
-				const auto templateVariables = function->templateVariables();
+				const auto& templateVariables = function->templateVariables();
+				
+				auto templateVariableAssignments = type->generateTemplateVarMap();
+				
+				const auto objectConstPredicate = type->constPredicate().substitute(templateVariableAssignments);
 				
 				if (templateVariables.size() != templateArguments.size()) {
-					throw ErrorException(makeString("Incorrect number of template "
-						"arguments provided for method '%s'; %llu were required, "
-						"but %llu were provided at position %s.",
-						function->name().toString().c_str(),
-						(unsigned long long) templateVariables.size(),
-						(unsigned long long) templateArguments.size(),
-						location.toString().c_str()));
+					// Try to apply some basic deduction...
+					if (templateVariables.size() == 1 && templateArguments.size() == 0 &&
+						function->constPredicate().isVariable() &&
+						function->constPredicate().variableTemplateVar() == templateVariables[0]
+					) {
+						const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
+					} else {
+						throw ErrorException(makeString("Incorrect number of template "
+							"arguments provided for method '%s'; %llu were required, "
+							"but %llu were provided at position %s.",
+							function->name().toString().c_str(),
+							(unsigned long long) templateVariables.size(),
+							(unsigned long long) templateArguments.size(),
+							location.toString().c_str()));
+					}
 				}
 				
 				// Create map from variables to values for both the method
 				// and its parent type.
-				auto templateVariableAssignments = type->generateTemplateVarMap();
 				for (size_t i = 0; i < templateArguments.size(); i++) {
 					const auto templateVariable = templateVariables.at(i);
-					auto& templateValue = templateArguments.at(i);
+					const auto& templateValue = templateArguments.at(i);
 					
 					if (templateValue.isTypeRef()) {
 						const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
@@ -210,9 +223,9 @@ namespace locic {
 								location.toString().c_str()));
 						}
 						
-						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateArguments.at(i).type())));
+						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateValue.type())));
 					} else {
-						templateVariableAssignments.insert(std::make_pair(templateVariable, std::move(templateValue)));
+						templateVariableAssignments.insert(std::make_pair(templateVariable, templateValue.copy()));
 					}
 				}
 				
@@ -223,6 +236,10 @@ namespace locic {
 				const bool satisfiesRequiresDefault = false;
 				
 				if (!evaluatePredicateWithDefault(context, requiresPredicate, templateVariableAssignments, satisfiesRequiresDefault)) {
+					for (const auto& argPair: templateVariableAssignments) {
+						printf("\n%s\n\n", argPair.second.toString().c_str());
+					}
+					
 					throw ErrorException(makeString("Template arguments do not satisfy "
 						"requires predicate '%s' of method '%s' at position %s.",
 						requiresPredicate.toString().c_str(),
@@ -230,17 +247,9 @@ namespace locic {
 						location.toString().c_str()));
 				}
 				
-				// Conservatively assume object type is const if result is undetermined.
-				const bool isConstObjectDefault = true;
+				const auto methodConstPredicate = function->constPredicate().substitute(templateVariableAssignments);
 				
-				const bool isConstObject = evaluatePredicateWithDefault(context, type->constPredicate(), templateVariableAssignments, isConstObjectDefault);
-				
-				// Conservatively assume method is not const if result is undetermined.
-				const bool isConstMethodDefault = false;
-				
-				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), templateVariableAssignments, isConstMethodDefault);
-				
-				if (isConstObject && !isConstMethod) {
+				if (!objectConstPredicate.implies(methodConstPredicate)) {
 					throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
 						methodName.c_str(),
 						type->toString().c_str(),

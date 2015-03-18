@@ -12,7 +12,8 @@ import std.memory 0.1.0 {
 			
 			shared_ptr<T> implicit_copy() const noexcept;
 			
-			lval<T> ptr_lval<T> deref() const noexcept;
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
 		}
 		
 		template <typename T : movable>

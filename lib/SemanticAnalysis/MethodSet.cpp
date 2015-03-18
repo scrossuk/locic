@@ -20,22 +20,30 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		MethodSetElement::MethodSetElement(
-				const bool pIsConst, const bool pIsNoExcept, const bool pIsStatic,
-				const SEM::Type* const pReturnType,
-				SEM::TypeArray pParameterTypes
+				SEM::TemplateVarArray argTemplateVariables,
+				SEM::Predicate argConstPredicate,
+				const bool argIsNoExcept,
+				const bool argIsStatic,
+				const SEM::Type* const argReturnType,
+				SEM::TypeArray argParameterTypes
 			)
-			: isConst_(pIsConst),
-			isNoExcept_(pIsNoExcept),
-			isStatic_(pIsStatic),
-			returnType_(pReturnType),
-			parameterTypes_(std::move(pParameterTypes)) { }
+			: templateVariables_(std::move(argTemplateVariables)),
+			constPredicate_(std::move(argConstPredicate)),
+			isNoExcept_(argIsNoExcept),
+			isStatic_(argIsStatic),
+			returnType_(argReturnType),
+			parameterTypes_(std::move(argParameterTypes)) { }
 		
 		MethodSetElement MethodSetElement::copy() const {
-			return MethodSetElement(isConst(), isNoExcept(), isStatic(), returnType(), parameterTypes().copy());
+			return MethodSetElement(templateVariables().copy(), constPredicate().copy(), isNoExcept(), isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		bool MethodSetElement::isConst() const {
-			return isConst_;
+		const SEM::TemplateVarArray& MethodSetElement::templateVariables() const {
+			return templateVariables_;
+		}
+		
+		const SEM::Predicate& MethodSetElement::constPredicate() const {
+			return constPredicate_;
 		}
 		
 		bool MethodSetElement::isNoExcept() const {
@@ -63,7 +71,8 @@ namespace locic {
 		std::size_t MethodSetElement::hash() const {
 			std::size_t seed = 0;
 			
-			boost::hash_combine(seed, isConst());
+			boost::hash_combine(seed, templateVariables().hash());
+			boost::hash_combine(seed, constPredicate().hash());
 			boost::hash_combine(seed, isNoExcept());
 			boost::hash_combine(seed, isStatic());
 			boost::hash_combine(seed, returnType());
@@ -76,31 +85,12 @@ namespace locic {
 		}
 		
 		bool MethodSetElement::operator==(const MethodSetElement& methodSetElement) const {
-			return returnType() == methodSetElement.returnType() &&
+			return templateVariables() == methodSetElement.templateVariables() &&
+				constPredicate() == methodSetElement.constPredicate() &&
+				returnType() == methodSetElement.returnType() &&
 				parameterTypes() == methodSetElement.parameterTypes() &&
-				isConst() == methodSetElement.isConst() &&
 				isNoExcept() == methodSetElement.isNoExcept() &&
 				isStatic() == methodSetElement.isStatic();
-		}
-		
-		bool MethodSetElement::operator<(const MethodSetElement& methodSetElement) const {
-			if (isConst() != methodSetElement.isConst()) {
-				return isConst() < methodSetElement.isConst();
-			}
-			
-			if (isNoExcept() != methodSetElement.isNoExcept()) {
-				return isNoExcept() < methodSetElement.isNoExcept();
-			}
-			
-			if (isStatic() != methodSetElement.isStatic()) {
-				return isStatic() < methodSetElement.isStatic();
-			}
-			
-			if (returnType() != methodSetElement.returnType()) {
-				return returnType() < methodSetElement.returnType();
-			}
-			
-			return parameterTypes() < methodSetElement.parameterTypes();
 		}
 		
 		const MethodSet* MethodSet::getEmpty(const Context& context) {
@@ -215,15 +205,7 @@ namespace locic {
 			return filters_ == methodSet.filters_ && elements_ == methodSet.elements_;
 		}
 		
-		bool MethodSet::operator<(const MethodSet& methodSet) const {
-			if (filters_ != methodSet.filters_) {
-				return filters_ < methodSet.filters_;
-			} else {
-				return elements_ < methodSet.elements_;
-			}
-		}
-		
-		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const SEM::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate) {
+		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const SEM::TemplateVar* const templateVar, const SEM::Predicate& requiresPredicate) {
 			switch (requiresPredicate.kind()) {
 				case SEM::Predicate::TRUE:
 				case SEM::Predicate::FALSE:
@@ -236,6 +218,12 @@ namespace locic {
 					const auto leftMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.andLeft());
 					const auto rightMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.andRight());
 					return unionMethodSets(leftMethodSet, rightMethodSet);
+				}
+				case SEM::Predicate::OR:
+				{
+					const auto leftMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.orLeft());
+					const auto rightMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.orRight());
+					return intersectMethodSets(leftMethodSet, rightMethodSet);
 				}
 				case SEM::Predicate::SATISFIES:
 				{
@@ -282,29 +270,34 @@ namespace locic {
 				const auto& functionName = functionPair.first;
 				const auto& function = functionPair.second;
 				
-				auto methodTemplateVarMap = templateVarMap.copy();
-				for (const auto& methodTemplateVar: function->templateVariables()) {
-					methodTemplateVarMap.insert(std::make_pair(methodTemplateVar, methodTemplateVar->selfRefValue()));
-				}
-				
-				// Conservatively assume method is not const if result is undetermined.
+				// Conservatively assume methods are not const if result is undetermined.
 				const bool isConstMethodDefault = false;
 				
-				const bool isConstMethod = evaluatePredicateWithDefault(context, function->constPredicate(), methodTemplateVarMap, isConstMethodDefault);
+				auto constPredicate = function->constPredicate().substitute(templateVarMap).reduceToDependencies(function->templateVariables(), isConstMethodDefault);
+				assert(constPredicate.dependsOnOnly(function->templateVariables()));
 				
-				// TODO: also skip unsatisfied requirement specifiers.
-				if (isConstObject && !isConstMethod && !function->isStaticMethod()) {
+				// Evaluate the const predicate; this may not be possible if the
+				// relevant template variables aren't instantiated.
+				const Optional<bool> isConstMethodOptional = evaluatePredicate(context, constPredicate, templateVarMap);
+				
+				// If the method is already known to NOT be const, and the
+				// parent object is const, then we can eliminate this method.
+				if (isConstObject && isConstMethodOptional && !(*isConstMethodOptional) && !function->isStaticMethod()) {
 					// Filter out this function.
 					filters.push_back(std::make_pair(functionName, MethodSet::IsMutator));
 					continue;
 				}
+				
+				// TODO: also skip unsatisfied requirement specifiers.
 				
 				const auto functionType = function->type()->substitute(templateVarMap);
 				
 				const bool isNoExcept = functionType->isFunctionNoExcept();
 				const bool isStatic = function->isStaticMethod();
 				MethodSetElement functionElement(
-					isConstMethod, isNoExcept, isStatic,
+					function->templateVariables().copy(),
+					std::move(constPredicate),
+					isNoExcept, isStatic,
 					functionType->getFunctionReturnType(),
 					functionType->getFunctionParameterTypes().copy());
 				
@@ -406,6 +399,28 @@ namespace locic {
 			return MethodSet::get(setA->context(), std::move(elements), std::move(filters));
 		}
 		
+		SEM::TemplateVarMap generateSatisfyTemplateVarMap(const MethodSetElement& checkElement, const MethodSetElement& requireElement) {
+			SEM::TemplateVarMap templateVarMap;
+			
+			// Very basic template deduction.
+			for (const auto& templateVar: checkElement.templateVariables()) {
+				auto selfRefValue = templateVar->selfRefValue();
+				
+				if (checkElement.constPredicate().isVariable() && checkElement.constPredicate().variableTemplateVar() == templateVar &&
+					(requireElement.constPredicate().isTrue() || requireElement.constPredicate().isFalse())
+				) {
+					const bool chosenValue = requireElement.constPredicate().isTrue() ? true : false;
+					const auto chosenConstant = chosenValue ? Constant::True() : Constant::False();
+					auto value = SEM::Value::Constant(chosenConstant, selfRefValue.type());
+					templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
+				} else {
+					templateVarMap.insert(std::make_pair(templateVar, std::move(selfRefValue)));
+				}
+			}
+			
+			return templateVarMap;
+		}
+		
 		bool methodSetSatisfiesRequirement(const MethodSet* const checkSet, const MethodSet* const requireSet) {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
@@ -430,11 +445,18 @@ namespace locic {
 					continue;
 				}
 				
-				// Can't cast mutator method to const method.
-				if (!checkFunctionElement.isConst() && requireFunctionElement.isConst()) {
-					printf("\n\nNot const-compatible:\n\n%s\n\n%s\n\n",
+				const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
+				
+				// The requirement method's const predicate needs to imply the
+				// const predicate of the provided method (e.g. if the requirement
+				// method is const, then the provided method must also be, but not
+				// vice versa).
+				if (!requireFunctionElement.constPredicate().implies(checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap))) {
+					printf("\n\nNot const-compatible:\n\n%s : %s\n\n%s : %s\n\n",
 						checkFunctionName.c_str(),
-						requireFunctionName.c_str());
+						checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap).toString().c_str(),
+						requireFunctionName.c_str(),
+						requireFunctionElement.constPredicate().toString().c_str());
 					return false;
 				}
 				
@@ -458,9 +480,9 @@ namespace locic {
 				const auto& secondList = requireFunctionElement.parameterTypes();
 				
 				for (size_t i = 0; i < firstList.size(); i++) {
-					if (firstList.at(i) != secondList.at(i)) {
+					if (firstList.at(i)->substitute(satisfyTemplateVarMap) != secondList.at(i)) {
 						printf("\n\nParameter type not compatible:\n\n%s : %s\n\n%s : %s\n\n",
-							checkFunctionName.c_str(), firstList.at(i)->toString().c_str(),
+							checkFunctionName.c_str(), firstList.at(i)->substitute(satisfyTemplateVarMap)->toString().c_str(),
 							requireFunctionName.c_str(), secondList.at(i)->toString().c_str());
 						return false;
 					}
@@ -468,7 +490,7 @@ namespace locic {
 				
 				const auto castReturnType =
 					ImplicitCastTypeFormatOnly(
-						checkFunctionElement.returnType(),
+						checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap),
 						requireFunctionElement.returnType(),
 						Debug::SourceLocation::Null()
 					);
@@ -476,7 +498,7 @@ namespace locic {
 				if (castReturnType == nullptr) {
 					printf("\n\nReturn type not compatible:\n\n%s : %s\n\n%s : %s\n\n",
 						checkFunctionName.c_str(),
-						checkFunctionElement.returnType()->toString().c_str(),
+						checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap)->toString().c_str(),
 						requireFunctionName.c_str(),
 						requireFunctionElement.returnType()->toString().c_str()
       					);

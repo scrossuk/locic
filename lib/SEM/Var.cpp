@@ -35,7 +35,8 @@ namespace locic {
 			return var;
 		}
 		
-		Var::Var() : kind_(ANY), constructType_(NULL), type_(NULL), isUsed_(false), isMarkedUnused_(false) { }
+		Var::Var() : kind_(ANY), constructType_(NULL), type_(NULL),
+		isUsed_(false), isMarkedUnused_(false), isOverrideConst_(false) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
@@ -100,6 +101,14 @@ namespace locic {
 		
 		void Var::setMarkedUnused(const bool argIsMarkedUnused) {
 			isMarkedUnused_ = argIsMarkedUnused;
+		}
+		
+		bool Var::isOverrideConst() const {
+			return isOverrideConst_;
+		}
+		
+		void Var::setOverrideConst(const bool argIsOverrideConst) {
+			isOverrideConst_ = argIsOverrideConst;
 		}
 		
 		void Var::setDebugInfo(const Debug::VarInfo newDebugInfo) {

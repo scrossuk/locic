@@ -17,6 +17,10 @@ namespace locic {
 
 	namespace SEM {
 		
+		Predicate Predicate::FromBool(const bool boolValue) {
+			return boolValue ? True() : False();
+		}
+		
 		Predicate Predicate::True() {
 			return Predicate(TRUE);
 		}
@@ -26,7 +30,42 @@ namespace locic {
 		}
 		
 		Predicate Predicate::And(Predicate left, Predicate right) {
+			if (left.isFalse() || right.isFalse()) {
+				return Predicate::False();
+			} else if (left.isTrue()) {
+				return right;
+			} else if (right.isTrue()) {
+				return left;
+			} else if (left == right) {
+				return left;
+			} else if (left.isAnd() && (left.andLeft() == right || left.andRight() == right)) {
+				return left;
+			} else if (right.isAnd() && (right.andLeft() == left || right.andRight() == left)) {
+				return right;
+			}
+			
 			Predicate predicate(AND);
+			predicate.left_ = std::unique_ptr<Predicate>(new Predicate(std::move(left)));
+			predicate.right_ = std::unique_ptr<Predicate>(new Predicate(std::move(right)));
+			return predicate;
+		}
+		
+		Predicate Predicate::Or(Predicate left, Predicate right) {
+			if (left.isTrue() || right.isTrue()) {
+				return Predicate::True();
+			} else if (left.isFalse()) {
+				return right;
+			} else if (right.isFalse()) {
+				return left;
+			} else if (left == right) {
+				return left;
+			} else if (left.isOr() && (left.orLeft() == right || left.orRight() == right)) {
+				return left;
+			} else if (right.isOr() && (right.orLeft() == left || right.orRight() == left)) {
+				return right;
+			}
+			
+			Predicate predicate(OR);
 			predicate.left_ = std::unique_ptr<Predicate>(new Predicate(std::move(left)));
 			predicate.right_ = std::unique_ptr<Predicate>(new Predicate(std::move(right)));
 			return predicate;
@@ -61,6 +100,10 @@ namespace locic {
 				{
 					return Predicate::And(andLeft().copy(), andRight().copy());
 				}
+				case OR:
+				{
+					return Predicate::Or(orLeft().copy(), orRight().copy());
+				}
 				case SATISFIES:
 				{
 					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement());
@@ -88,6 +131,10 @@ namespace locic {
 				{
 					return Predicate::And(andLeft().substitute(templateVarMap), andRight().substitute(templateVarMap));
 				}
+				case OR:
+				{
+					return Predicate::Or(orLeft().substitute(templateVarMap), orRight().substitute(templateVarMap));
+				}
 				case SATISFIES:
 				{
 					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement()->substitute(templateVarMap));
@@ -105,8 +152,12 @@ namespace locic {
 					if (templateValue.isConstant()) {
 						assert(templateValue.constant().kind() == Constant::BOOLEAN);
 						return templateValue.constant().boolValue() ? Predicate::True() : Predicate::False();
+					} else if (templateValue.isPredicate()) {
+						return templateValue.predicate().copy();
+					} else if (templateValue.isTemplateVarRef()) {
+						return Predicate::Variable(const_cast<TemplateVar*>(templateValue.templateVar()));
 					} else {
-						return Predicate::Variable(variableTemplateVar());
+						throw std::logic_error(makeString("Unknown substitution value kind: %s.", templateValue.toString().c_str()));
 					}
 				}
 			}
@@ -114,28 +165,238 @@ namespace locic {
 			throw std::logic_error("Unknown predicate kind.");
 		}
 		
+		/*bool Predicate::isEvaluatable() const {
+			
+		}
+		
+		Optional<bool> Predicate::evaluate() const {
+			switch (kind()) {
+				case TRUE:
+				{
+					return make_optional(true);
+				}
+				case FALSE:
+				{
+					return make_optional(false);
+				}
+				case AND:
+				{
+					const auto leftIsTrue = predicate.andLeft().evaluate();
+					if (!leftIsTrue) {
+						return None;
+					}
+					
+					const auto rightIsTrue = evaluatePredicate(context, predicate.andRight(), variableAssignments);
+					if (!rightIsTrue) {
+						return None;
+					}
+					
+					return make_optional(*leftIsTrue && *rightIsTrue);
+				}
+				case OR:
+				{
+					const auto leftIsTrue = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
+					if (!leftIsTrue) {
+						return None;
+					}
+					
+					const auto rightIsTrue = evaluatePredicate(context, predicate.orRight(), variableAssignments);
+					if (!rightIsTrue) {
+						return None;
+					}
+					
+					return make_optional(*leftIsTrue || *rightIsTrue);
+				}
+				case SATISFIES:
+				{
+					const auto templateVar = predicate.satisfiesTemplateVar();
+					const auto requireType = predicate.satisfiesRequirement();
+					
+					const auto templateValue = variableAssignments.at(templateVar).typeRefType()->resolveAliases();
+					if (templateValue->isAuto()) {
+						// Presumably this will work.
+						return make_optional(true);
+					}
+					
+					// Some of the requirements can depend on the template values provided.
+					const auto substitutedRequireType = requireType->substitute(variableAssignments);
+					
+					const auto sourceMethodSet = getTypeMethodSet(context, templateValue);
+					const auto requireMethodSet = getTypeMethodSet(context, substitutedRequireType);
+					
+					return make_optional(methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet));
+				}
+				case VARIABLE:
+				{
+					const auto templateVar = predicate.variableTemplateVar();
+					const auto iterator = variableAssignments.find(templateVar);
+					
+					if (iterator == variableAssignments.end()) {
+						// Unknown result since we don't know the variable's value.
+						return None;
+					}
+					
+					const auto& templateValue = iterator->second;
+					
+					if (templateValue.isConstant()) {
+						assert(templateValue.constant().kind() == Constant::BOOLEAN);
+						return make_optional(templateValue.constant().boolValue());
+					} else {
+						// Unknown result since we don't know the variable's value.
+						return None;
+					}
+				}
+			}
+		}
+		
+		bool Predicate::evaluateWithDefault(const bool defaultValue) const {
+			
+		}*/
+		
+		bool Predicate::dependsOn(const TemplateVar* const templateVar) const {
+			switch (kind()) {
+				case TRUE:
+				case FALSE:
+				{
+					return false;
+				}
+				case AND:
+				{
+					return andLeft().dependsOn(templateVar) || andRight().dependsOn(templateVar);
+				}
+				case OR:
+				{
+					return orLeft().dependsOn(templateVar) || orRight().dependsOn(templateVar);
+				}
+				case SATISFIES:
+				{
+					return templateVar == satisfiesTemplateVar() || satisfiesRequirement()->dependsOn(templateVar);
+				}
+				case VARIABLE:
+				{
+					return templateVar == variableTemplateVar();
+				}
+			}
+			
+			throw std::logic_error("Unknown predicate kind.");
+		}
+		
+		bool Predicate::dependsOnAny(const TemplateVarArray& array) const {
+			for (const auto& templateVar: array) {
+				if (dependsOn(templateVar)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		bool Predicate::dependsOnOnly(const TemplateVarArray& array) const {
+			switch (kind()) {
+				case TRUE:
+				case FALSE:
+				{
+					return true;
+				}
+				case AND:
+				{
+					return andLeft().dependsOnOnly(array) && andRight().dependsOnOnly(array);
+				}
+				case OR:
+				{
+					return orLeft().dependsOnOnly(array) && orRight().dependsOnOnly(array);
+				}
+				case SATISFIES:
+				{
+					return array.contains(satisfiesTemplateVar()) && satisfiesRequirement()->dependsOnOnly(array);
+				}
+				case VARIABLE:
+				{
+					return array.contains(variableTemplateVar());
+				}
+			}
+		}
+		
+		Predicate Predicate::reduceToDependencies(const TemplateVarArray& array, const bool conservativeDefault) const {
+			switch (kind()) {
+				case TRUE:
+				case FALSE:
+				{
+					return copy();
+				}
+				case AND:
+				{
+					return And(andLeft().reduceToDependencies(array, conservativeDefault), andRight().reduceToDependencies(array, conservativeDefault));
+				}
+				case OR:
+				{
+					return Or(orLeft().reduceToDependencies(array, conservativeDefault), orRight().reduceToDependencies(array, conservativeDefault));
+				}
+				case SATISFIES:
+				{
+					if (array.contains(satisfiesTemplateVar()) && satisfiesRequirement()->dependsOnOnly(array)) {
+						return copy();
+					} else {
+						return Predicate::FromBool(conservativeDefault);
+					}
+				}
+				case VARIABLE:
+				{
+					if (array.contains(variableTemplateVar())) {
+						return copy();
+					} else {
+						return Predicate::FromBool(conservativeDefault);
+					}
+				}
+			}
+		}
+		
+		bool Predicate::implies(const SEM::Predicate& other) const {
+			// TODO: actually prove in the general case that one implies the other.
+			
+			if (*this == other) {
+				// Equivalent predicates imply each other.
+				return true;
+			} else if (isFalse() || other.isTrue()) {
+				// F => anything
+				// anything => T
+				return true;
+			} else if (other.isOr() && (other.orLeft() == *this || other.orRight() == *this)) {
+				// A => A or B
+				return true;
+			} else if (isAnd() && (andLeft() == other || andRight() == other)) {
+				// A and B => A
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
 		Predicate::Kind Predicate::kind() const {
 			return kind_;
 		}
 		
 		bool Predicate::isTrue() const {
-			return kind_ == TRUE;
+			return kind() == TRUE;
 		}
 		
 		bool Predicate::isFalse() const {
-			return kind_ == FALSE;
+			return kind() == FALSE;
 		}
 		
 		bool Predicate::isAnd() const {
-			return kind_ == AND;
+			return kind() == AND;
+		}
+		
+		bool Predicate::isOr() const {
+			return kind() == OR;
 		}
 		
 		bool Predicate::isSatisfies() const {
-			return kind_ == SATISFIES;
+			return kind() == SATISFIES;
 		}
 		
 		bool Predicate::isVariable() const {
-			return kind_ == VARIABLE;
+			return kind() == VARIABLE;
 		}
 		
 		const Predicate& Predicate::andLeft() const {
@@ -145,6 +406,16 @@ namespace locic {
 		
 		const Predicate& Predicate::andRight() const {
 			assert(isAnd());
+			return *right_;
+		}
+		
+		const Predicate& Predicate::orLeft() const {
+			assert(isOr());
+			return *left_;
+		}
+		
+		const Predicate& Predicate::orRight() const {
+			assert(isOr());
 			return *right_;
 		}
 		
@@ -178,6 +449,10 @@ namespace locic {
 				{
 					return andLeft() == other.andLeft() && andRight() == other.andRight();
 				}
+				case OR:
+				{
+					return orLeft() == other.orLeft() && orRight() == other.orRight();
+				}
 				case SATISFIES:
 				{
 					return satisfiesTemplateVar() == other.satisfiesTemplateVar() &&
@@ -206,6 +481,12 @@ namespace locic {
 				{
 					hasher.add(andLeft());
 					hasher.add(andRight());
+					break;
+				}
+				case OR:
+				{
+					hasher.add(orLeft());
+					hasher.add(orRight());
 					break;
 				}
 				case SATISFIES:
@@ -239,6 +520,12 @@ namespace locic {
 					return makeString("and(%s, %s)",
 						andLeft().toString().c_str(),
 						andRight().toString().c_str());
+				}
+				case OR:
+				{
+					return makeString("or(%s, %s)",
+						orLeft().toString().c_str(),
+						orRight().toString().c_str());
 				}
 				case SATISFIES:
 				{

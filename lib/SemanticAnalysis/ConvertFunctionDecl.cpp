@@ -7,6 +7,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
@@ -110,30 +111,21 @@ namespace locic {
 			
 			std::vector<SEM::Var*> parameterVars;
 			parameterVars.reserve(astFunctionNode->parameters()->size());
+			
 			SEM::TypeArray parameterTypes;
 			parameterTypes.reserve(astFunctionNode->parameters()->size());
 			
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters())) {
-				assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
-				
-				const auto& astParamTypeNode = astTypeVarNode->namedVar.type;
-				
-				const auto semParamType = ConvertType(context, astParamTypeNode);
-				
-				if (semParamType->isBuiltInVoid()) {
-					throw ParamVoidTypeException(fullName.copy(), astTypeVarNode->namedVar.name);
+				if (!astTypeVarNode->isNamed()) {
+					throw ErrorException(makeString("Pattern variables not supported (yet!) for parameter variables, at location %s.",
+						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				parameterTypes.push_back(semParamType);
+				const bool isMemberVar = false;
+				const auto paramVar = ConvertVar(context, isMemberVar, astTypeVarNode);
+				assert(paramVar->isBasic());
 				
-				const bool isMember = false;
-				
-				// 'final' keyword makes the default lval const.
-				const bool isLvalConst = astTypeVarNode->namedVar.isFinal;
-				
-				const auto lvalType = makeLvalType(context, isMember, isLvalConst, semParamType);
-				const auto paramVar = SEM::Var::Basic(semParamType, lvalType);
-				paramVar->setMarkedUnused(astTypeVarNode->namedVar.isUnused);
+				parameterTypes.push_back(paramVar->constructType());
 				parameterVars.push_back(paramVar);
 			}
 			

@@ -3,6 +3,7 @@
 
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/Triple.h>
 #include <llvm/Analysis/Passes.h>
 
 #if defined(LLVM_3_5) || defined(LLVM_3_6)
@@ -57,6 +58,8 @@
 #else
 #include <llvm/Linker.h>
 #endif
+
+#include <llvm/MC/SubtargetFeature.h>
 
 #include <llvm/PassManager.h>
 #include <llvm/Support/Dwarf.h>

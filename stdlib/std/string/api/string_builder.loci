@@ -4,7 +4,7 @@ import std.string 0.1.0 {
 		
 		template <typename T>
 		interface readable_lval {
-			T& dissolve() const;
+			const T& dissolve() const;
 		}
 		
 		/**

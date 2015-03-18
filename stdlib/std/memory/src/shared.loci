@@ -4,9 +4,9 @@ export std.memory 0.1.0 {
 		
 		template <typename T>
 		// TODO: use atomic counter.
-		class shared_ptr(size_t* countField, T* ptr) {
+		class shared_ptr(__override_const size_t* countField, T* ptr) {
 			static create(T value) require(T : movable) {
-				return @(new_raw<size_t>(1u), std::new_raw<T>(move value));
+				return @(new_raw<size_t>(1u), new_raw<T>(move value));
 			}
 			
 			static from_ptr(T* ptr) {
@@ -34,7 +34,8 @@ export std.memory 0.1.0 {
 				return @(@countField, @ptr);
 			}
 			
-			lval<T> ptr_lval<T> deref() const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept {
 				return *@ptr;
 			}
 		}

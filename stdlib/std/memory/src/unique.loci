@@ -18,11 +18,13 @@ export std.memory 0.1.0 {
 				}
 			}
 			
-			lval<T> ptr_lval<T> deref() const noexcept {
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept {
 				return *@ptr;
 			}
 			
-			T* get() noexcept {
+			template <bool IsConst>
+			const<IsConst>(T)* get() const(IsConst) noexcept {
 				return @ptr;
 			}
 			
@@ -42,7 +44,7 @@ export std.memory 0.1.0 {
 		
 		template <typename T : movable>
 		unique_ptr<T> new_unique(T value) {
-			return unique_ptr<T>::create(move value);
+			return unique_ptr<T>(move value);
 		}
 		
 	}

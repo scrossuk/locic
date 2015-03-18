@@ -50,9 +50,9 @@ namespace locic {
 				for (size_t i = 0; i < astParametersNode->size(); i++) {
 					const auto& astTypeVarNode = astParametersNode->at(i);
 					const auto& semVar = semParameters.at(i);
-					assert(astTypeVarNode->kind == AST::TypeVar::NAMEDVAR);
+					assert(astTypeVarNode->isNamed());
 					
-					const auto& varName = astTypeVarNode->namedVar.name;
+					const auto& varName = astTypeVarNode->name();
 					
 					const auto insertResult = function->namedVariables().insert(std::make_pair(varName, semVar));
 					if (!insertResult.second) {

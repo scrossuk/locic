@@ -78,7 +78,8 @@ namespace CR {
 			return true;
 		}
 		
-		lval<Value> ptr_lval<Value> index(Position position) const noexcept {
+		template <bool IsConst>
+		lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(Position position) const(IsConst) noexcept {
 			return @data[position.x + position.y * @size.width];
 		}
 		

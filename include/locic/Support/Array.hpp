@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <locic/Support/Copy.hpp>
+#include <locic/Support/Hasher.hpp>
 
 namespace locic{
 	
@@ -20,7 +21,7 @@ namespace locic{
 	 * potentially a large number expensive heap allocations, while still
 	 * allowing abnormally large arrays to grow using the heap.
 	 * 
-	 * Given that std::vector<T> has only a dynamically allocated
+	 * Given that std::vector<T> has only dynamically allocated storage
 	 * it can't be used (although is used by this array internally),
 	 * hence a custom array type was needed.
 	 * 
@@ -134,6 +135,16 @@ namespace locic{
 			
 			inline const_iterator end() const {
 				return data() + size();
+			}
+			
+			bool contains(const T& value) const {
+				for (const auto& element: *this) {
+					if (value == element) {
+						return true;
+					}
+				}
+				
+				return false;
 			}
 			
 			inline T& operator[](const size_t index) {
@@ -317,6 +328,14 @@ namespace locic{
 				}
 				
 				return false;
+			}
+			
+			size_t hash() const {
+				Hasher hasher;
+				for (const auto& element: *this) {
+					hasher.add(element);
+				}
+				return hasher.get();
 			}
 			
 		private:

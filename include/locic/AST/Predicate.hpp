@@ -15,7 +15,8 @@ namespace locic {
 					BRACKET,
 					TYPESPEC,
 					VARIABLE,
-					AND
+					AND,
+					OR
 				};
 				
 				static Predicate* Bracket(const Node<Predicate>& expr);
@@ -25,6 +26,8 @@ namespace locic {
 				static Predicate* Variable(const String& name);
 				
 				static Predicate* And(const Node<Predicate>& left, const Node<Predicate>& right);
+				
+				static Predicate* Or(const Node<Predicate>& left, const Node<Predicate>& right);
 				
 				Kind kind() const;
 				
@@ -37,6 +40,9 @@ namespace locic {
 				
 				const Node<Predicate>& andLeft() const;
 				const Node<Predicate>& andRight() const;
+				
+				const Node<Predicate>& orLeft() const;
+				const Node<Predicate>& orRight() const;
 				
 			private:
 				Kind kind_;
@@ -58,6 +64,11 @@ namespace locic {
 					Node<Predicate> left;
 					Node<Predicate> right;
 				} and_;
+				
+				struct {
+					Node<Predicate> left;
+					Node<Predicate> right;
+				} or_;
 			
 				Predicate(Kind pKind) : kind_(pKind) { }
 		};
