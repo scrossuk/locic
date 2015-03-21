@@ -53,21 +53,21 @@ namespace locic {
 			return nullptr;
 		}
 		
-		const SEM::Predicate& lookupRequiresPredicate(const ScopeStack& scopeStack) {
+		const SEM::TemplatedObject& lookupTemplatedObject(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto& element = scopeStack[pos];
 				
 				if (element.isFunction()) {
-					return element.function()->requiresPredicate();
+					return *(element.function());
 				} else if (element.isTypeAlias()) {
-					return element.typeAlias()->requiresPredicate();
+					return *(element.typeAlias());
 				} else if (element.isTypeInstance()) {
-					return element.typeInstance()->requiresPredicate();
+					return *(element.typeInstance());
 				}
 			}
 			
-			throw std::runtime_error("Failed to find requires predicate.");
+			throw std::runtime_error("Failed to find templated object.");
 		}
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {

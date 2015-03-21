@@ -158,6 +158,7 @@ namespace locic {
 			}
 			
 			const auto methodSet = getTypeMethodSet(context, type);
+			const auto& objectConstPredicate = methodSet->constPredicate();
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
 			const auto methodIterator = methodSet->find(canonicalMethodName);
@@ -177,7 +178,98 @@ namespace locic {
 					location.toString().c_str()));
 			}
 			
-			if (type->isObject()) {
+			auto templateVariableAssignments = type->generateTemplateVarMap();
+			
+			const auto function = type->isObject() ? type->getObjectType()->functions().at(canonicalMethodName).get() : nullptr;
+			
+			if (function != nullptr) {
+				const auto& templateVariables = function->templateVariables();
+				if (templateVariables.size() != templateArguments.size()) {
+					// Try to apply some basic deduction...
+					if (templateVariables.size() == 1 && templateArguments.size() == 0 &&
+						function->constPredicate().isVariable() &&
+						function->constPredicate().variableTemplateVar() == templateVariables[0]
+					) {
+						const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
+					} else {
+						throw ErrorException(makeString("Incorrect number of template "
+							"arguments provided for method '%s'; %llu were required, "
+							"but %llu were provided at position %s.",
+							function->name().toString().c_str(),
+							(unsigned long long) templateVariables.size(),
+							(unsigned long long) templateArguments.size(),
+							location.toString().c_str()));
+					}
+				}
+				
+				// Add function template variable => argument mapping.
+				for (size_t i = 0; i < templateArguments.size(); i++) {
+					const auto templateVariable = templateVariables.at(i);
+					const auto& templateValue = templateArguments.at(i);
+					
+					if (templateValue.isTypeRef()) {
+						const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
+						
+						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
+							throw ErrorException(makeString("Invalid type '%s' passed "
+								"as template parameter '%s' for method '%s' at position %s.",
+								templateTypeValue->toString().c_str(),
+								templateVariable->name().toString().c_str(),
+								function->name().toString().c_str(),
+								location.toString().c_str()));
+						}
+						
+						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateValue.type())));
+					} else {
+						templateVariableAssignments.insert(std::make_pair(templateVariable, templateValue.copy()));
+					}
+				}
+			} else {
+				assert(templateArguments.empty());
+			}
+			
+			const auto methodConstPredicate = methodElement.constPredicate().substitute(templateVariableAssignments);
+			
+			if (!objectConstPredicate.implies(methodConstPredicate)) {
+				throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
+					methodName.c_str(),
+					type->toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			// Now check the template arguments satisfy the requires predicate.
+			const auto& requirePredicate = methodElement.requirePredicate();
+			
+			// Conservatively assume require predicate is not satisified if result is undetermined.
+			const bool satisfiesRequireDefault = false;
+			
+			if (!evaluatePredicateWithDefault(context, requirePredicate, templateVariableAssignments, satisfiesRequireDefault)) {
+				throw ErrorException(makeString("Template arguments do not satisfy "
+					"require predicate '%s' of method '%s' at position %s.",
+					requirePredicate.substitute(templateVariableAssignments).toString().c_str(),
+					methodName.c_str(),
+					location.toString().c_str()));
+			}
+			
+			if (function != nullptr) {
+				const auto functionType = simplifyFunctionType(context, function->type()->substitute(templateVariableAssignments));
+				
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionType), location);
+				
+				if (type->isInterface()) {
+					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
+				} else {
+					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
+				}
+			} else {
+				const bool isTemplated = true;
+				const auto functionType = methodElement.createFunctionType(isTemplated);
+				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
+				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
+			}
+			
+			/*if (type->isObject()) {
 				// Get the actual function so we can check its template arguments and refer to it.
 				const auto& function = type->getObjectType()->functions().at(canonicalMethodName);
 				const auto& templateVariables = function->templateVariables();
@@ -266,7 +358,7 @@ namespace locic {
 				const auto functionType = methodElement.createFunctionType(isTemplated);
 				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
 				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
-			}
+			}*/
 		}
 		
 		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {

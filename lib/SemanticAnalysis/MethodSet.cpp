@@ -43,6 +43,13 @@ namespace locic {
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
+		MethodSetElement MethodSetElement::withRequirement(SEM::Predicate requirement) const {
+			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
+				noexceptPredicate().copy(),
+				SEM::Predicate::And(requirePredicate().copy(), std::move(requirement)),
+				isStatic(), returnType(), parameterTypes().copy());
+		}
+		
 		const SEM::TemplateVarArray& MethodSetElement::templateVariables() const {
 			return templateVariables_;
 		}
@@ -113,18 +120,45 @@ namespace locic {
 		}
 		
 		const MethodSet* MethodSet::getEmpty(const Context& context) {
-			return MethodSet::get(context, {});
+			return MethodSet::get(context, SEM::Predicate::False(), {});
 		}
 		
-		const MethodSet* MethodSet::get(const Context& context, ElementSet elements) {
-			return context.getMethodSet(MethodSet(context, std::move(elements)));
+		const MethodSet* MethodSet::get(const Context& context, SEM::Predicate constPredicate, ElementSet elements) {
+			return context.getMethodSet(MethodSet(context, std::move(constPredicate), std::move(elements)));
 		}
 		
-		MethodSet::MethodSet(const Context& pContext, ElementSet elements)
-			: context_(pContext), elements_(std::move(elements)) { }
+		const MethodSet* MethodSet::withConstPredicate(SEM::Predicate addConstPredicate) const {
+			auto newConstPredicate = SEM::Predicate::Or(constPredicate().copy(), std::move(addConstPredicate));
+			if (constPredicate() == newConstPredicate) {
+				return this;
+			}
+			
+			return MethodSet::get(context(), std::move(newConstPredicate), elements_.copy());
+		}
+		
+		const MethodSet* MethodSet::withRequirement(const SEM::Predicate requirement) const {
+			ElementSet newElements;
+			newElements.reserve(size());
+			
+			for (const auto& elementPair: *this) {
+				const auto& element = elementPair.second;
+				auto newElement = element.withRequirement(requirement.copy());
+				newElements.push_back(std::make_pair(elementPair.first, std::move(newElement)));
+			}
+			
+			return MethodSet::get(context(), constPredicate().copy(), std::move(newElements));
+		}
+		
+		MethodSet::MethodSet(const Context& pContext, SEM::Predicate argConstPredicate, ElementSet argElements)
+			: context_(pContext), constPredicate_(std::move(argConstPredicate)),
+			elements_(std::move(argElements)) { }
 		
 		const Context& MethodSet::context() const {
 			return context_;
+		}
+		
+		const SEM::Predicate& MethodSet::constPredicate() const {
+			return constPredicate_;
 		}
 		
 		MethodSet::iterator MethodSet::begin() const {
@@ -177,6 +211,8 @@ namespace locic {
 		std::size_t MethodSet::hash() const {
 			std::size_t seed = 0;
 			
+			boost::hash_combine(seed, constPredicate().hash());
+			
 			for (const auto& element: elements_) {
 				boost::hash_combine(seed, element.first.hash());
 				boost::hash_combine(seed, element.second.hash());
@@ -186,7 +222,7 @@ namespace locic {
 		}
 		
 		bool MethodSet::operator==(const MethodSet& methodSet) const {
-			return elements_ == methodSet.elements_;
+			return constPredicate() == methodSet.constPredicate() && elements_ == methodSet.elements_;
 		}
 		
 		std::string MethodSet::toString() const {
@@ -204,10 +240,37 @@ namespace locic {
 					element.second.toString().c_str());
 			}
 			
-			return makeString("MethodSet(elements: { %s })",
+			return makeString("MethodSet(constPredicate: %s, elements: { %s })",
+				constPredicate().toString().c_str(),
 				elementsString.c_str());
 		}
 		
+		/**
+		 * \brief Get predicate for satisfies requirement.
+		 * 
+		 * This function takes two method sets and computes
+		 * what is required of the first method set to
+		 * satisfy the second method set. This can then be
+		 * used to generate a method set for a template
+		 * variable.
+		 * 
+		 * For example:
+		 * 
+		 * template <typename T>
+		 * require(pair<T, T> : movable)
+		 * void function();
+		 * 
+		 * In this case we can get a method set for 'pair<T, T>'
+		 * and for 'movable'. This will then identify that
+		 * 'T : movable' must be true for 'pair<T, T> : movable'
+		 * to be true, and hence we can conclude that T must
+		 * be movable.
+		 * 
+		 * Note that it's possible that the given method set
+		 * NEVER satisfies the requirement method set, and in
+		 * that case no functionality can be assumed about the
+		 * template variable (not handled here).
+		 */
 		SEM::Predicate getPredicateForSatisfyRequirements(Context& /*context*/, const MethodSet* const checkSet, const MethodSet* const requireSet) {
 			auto predicate = SEM::Predicate::True();
 			
@@ -218,7 +281,8 @@ namespace locic {
 				const auto& requireFunctionName = requireIterator->first;
 				
 				if (checkIterator == checkSet->end()) {
-					break;
+					// Method set can't be satisfied (method is missing!), so can't obtain any information from this.
+					return SEM::Predicate::False();
 				}
 				
 				const auto& checkFunctionName = checkIterator->first;
@@ -228,8 +292,6 @@ namespace locic {
 					continue;
 				}
 				
-				// TODO: this probably needs to consider whether the requirement
-				// method set element is actually satisfied.
 				predicate = SEM::Predicate::And(std::move(predicate), checkFunctionElement.requirePredicate().copy());
 				
 				++requireIterator;
@@ -254,6 +316,28 @@ namespace locic {
 			
 		};
 		
+		/**
+		 * \brief Extract method set from require() predicate.
+		 * 
+		 * This function looks at a predicate to determine the
+		 * supported methods for a template variable.
+		 * 
+		 * For example:
+		 * 
+		 * interface HasCustomMethod {
+		 *     void customMethod();
+		 * }
+		 * 
+		 * template <typename T>
+		 * require(T : HasCustomMethod)
+		 * void function(T& object) {
+		 *     object.customMethod();
+		 * }
+		 * 
+		 * In this case we look at the predicate 'T : HasCustomMethod'
+		 * and hence determine that template variable 'T' must
+		 * have the method 'customMethod' inside the function.
+		 */
 		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const SEM::TemplateVar* const templateVar, const SEM::Predicate& requiresPredicate) {
 			// Avoid cycles such as:
 			// 
@@ -295,22 +379,59 @@ namespace locic {
 				case SEM::Predicate::SATISFIES:
 				{
 					if (requiresPredicate.satisfiesType()->isTemplateVar()) {
+						// The case of 'T : SomeRequirement', where T is a template
+						// variable. Hence we just get the method set for the required
+						// type since T must support that.
 						if (requiresPredicate.satisfiesType()->getTemplateVar() == templateVar) {
 							return getTypeMethodSet(context, requiresPredicate.satisfiesRequirement());
 						} else {
+							// It's not the template variable we were looking for, so ignore.
 							return MethodSet::getEmpty(context);
 						}
 					} else {
-						const auto sourceSet = getMethodSetForObjectType(context, requiresPredicate.satisfiesType());
-						const auto requireSet = getMethodSetForObjectType(context, requiresPredicate.satisfiesRequirement());
+						// This case is a little more complex; you can have something like:
+						// 
+						// template <typename T>
+						// require(pair<T, T> : movable)
+						// void function();
+						// 
+						// Hence we generate the method sets of both 'pair<T, T>' and
+						// 'movable', and then determine what must be true of 'pair<T, T>'
+						// to satisfy 'movable' by computing a new require() predicate
+// 						// predicate, from which we can then calculate a method set.
+						const auto sourceSet = getTypeMethodSet(context, requiresPredicate.satisfiesType());
+						const auto requireSet = getTypeMethodSet(context, requiresPredicate.satisfiesRequirement());
 						
+						// Compute what must be true in order for the source method set
+						// to satisfy the required method set.
 						const auto nextLevelRequires = getPredicateForSatisfyRequirements(context, sourceSet, requireSet);
-						return getMethodSetForRequiresPredicate(context, templateVar, nextLevelRequires);
+						
+						// Use the new set of requirements (as a predicate) to generate a
+						// method set for our template variable.
+						const auto satisfyMethodSet = getMethodSetForRequiresPredicate(context, templateVar, nextLevelRequires);
+						
+						// Add a requirement to every method in the set that this satisfy
+						// expression evaluates to TRUE; this prevents a user specifying a
+						// predicate that is always false and hence confusing us into
+						// assuming the template variable has the capabilities specified.
+						return satisfyMethodSet->withRequirement(requiresPredicate.copy());
 					}
 				}
 			}
 			
 			throw std::logic_error("Unknown predicate kind.");
+		}
+		
+		const MethodSet* getMethodSetForTemplateVarType(Context& context, const SEM::Type* const templateVarType, const SEM::TemplatedObject& templatedObject) {
+			assert(templateVarType->isTemplateVar());
+			
+			// Look in the require() predicate to see what methods this
+			// template variable supports.
+			const auto methodSet = getMethodSetForRequiresPredicate(context, templateVarType->getTemplateVar(), templatedObject.requiresPredicate());
+			
+			// The template variable may be const, in which case add its predicate to
+			// the method set's const predicate.
+			return methodSet->withConstPredicate(templateVarType->constPredicate().copy());
 		}
 		
 		namespace {
@@ -325,21 +446,10 @@ namespace locic {
 		const MethodSet* getMethodSetForObjectType(Context& context, const SEM::Type* const objectType) {
 			assert(objectType->isObject());
 			
-			const auto existingMethodSet = context.findMethodSet(objectType);
-			if (existingMethodSet != nullptr) {
-				return existingMethodSet;
-			}
-			
 			MethodSet::ElementSet elements;
 			
 			const auto typeInstance = objectType->getObjectType();
 			const auto templateVarMap = objectType->generateTemplateVarMap();
-			
-			// Conservatively assume object type is const if result is undetermined.
-			const bool isConstObjectDefault = true;
-			
-			// TODO: also push this into the method set so that no predicate evaluation is performed in this function.
-			const bool isConstObject = evaluatePredicateWithDefault(context, objectType->constPredicate(), templateVarMap, isConstObjectDefault);
 			
 			for (const auto& functionPair: typeInstance->functions()) {
 				const auto& functionName = functionPair.first;
@@ -348,15 +458,9 @@ namespace locic {
 				auto constPredicate = function->constPredicate().substitute(templateVarMap);
 				auto noexceptPredicate = function->type()->functionNoExceptPredicate().substitute(templateVarMap);
 				auto requirePredicate = function->requiresPredicate().substitute(templateVarMap);
-				
-				if (isConstObject && !function->isStaticMethod()) {
-					// Method needs to be const.
-					requirePredicate = SEM::Predicate::And(std::move(requirePredicate), constPredicate.copy());
-				}
-				
 				const auto functionType = function->type()->substitute(templateVarMap);
-				
 				const bool isStatic = function->isStaticMethod();
+				
 				MethodSetElement functionElement(
 					function->templateVariables().copy(),
 					std::move(constPredicate),
@@ -372,9 +476,9 @@ namespace locic {
 			// Sort the elements.
 			std::sort(elements.begin(), elements.end(), comparePairKeys<MethodSet::Element>);
 			
-			const auto result = MethodSet::get(context, std::move(elements));
-			context.addMethodSet(objectType, result);
-			return result;
+			auto constObjectPredicate = objectType->constPredicate().substitute(templateVarMap);
+			
+			return MethodSet::get(context, std::move(constObjectPredicate), std::move(elements));
 		}
 		
 		const MethodSet* getTypeMethodSet(Context& context, const SEM::Type* const rawType) {
@@ -383,14 +487,20 @@ namespace locic {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject() || type->isTemplateVar());
 			
-			if (type->isObject()) {
-				return getMethodSetForObjectType(context, type);
-			} else {
-				const auto& requiresPredicate = lookupRequiresPredicate(context.scopeStack());
-				
-				// TODO: need to filter out non-const methods!
-				return getMethodSetForRequiresPredicate(context, type->getTemplateVar(), requiresPredicate);
+			const auto& templatedObject = lookupTemplatedObject(context.scopeStack());
+			
+			const auto existingMethodSet = context.findMethodSet(templatedObject, type);
+			if (existingMethodSet != nullptr) {
+				return existingMethodSet;
 			}
+			
+			const auto methodSet =
+				type->isObject() ?
+					getMethodSetForObjectType(context, type) :
+					getMethodSetForTemplateVarType(context, type, templatedObject);
+			
+			context.addMethodSet(templatedObject, type, methodSet);
+			return methodSet;
 		}
 		
 		const MethodSet* intersectMethodSets(const MethodSet* setA, const MethodSet* setB) {
@@ -415,7 +525,8 @@ namespace locic {
 			// Ignore any methods left over, since we're only concerned
 			// about methods that exist in both sets.
 			
-			return MethodSet::get(setA->context(), std::move(elements));
+			auto constObjectPredicate = SEM::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
+			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
 		const MethodSet* unionMethodSets(const MethodSet* setA, const MethodSet* setB) {
@@ -454,7 +565,8 @@ namespace locic {
 				++addIterator;
 			}
 			
-			return MethodSet::get(setA->context(), std::move(elements));
+			auto constObjectPredicate = SEM::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
+			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
 		SEM::TemplateVarMap generateSatisfyTemplateVarMap(const MethodSetElement& checkElement, const MethodSetElement& requireElement) {
@@ -488,10 +600,24 @@ namespace locic {
 		constexpr bool DEBUG_METHOD_SET_ELEMENT = false;
 		constexpr bool DEBUG_METHOD_SET = false;
 		
-		bool methodSetElementSatisfiesRequirement(Context& context, const String& functionName, const MethodSetElement& checkFunctionElement, const MethodSetElement& requireFunctionElement) {
+		bool methodSetElementSatisfiesRequirement(Context& context, const SEM::Predicate& checkConstPredicate, const String& functionName,
+				const MethodSetElement& checkFunctionElement, const MethodSetElement& requireFunctionElement) {
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
 			
 			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap));
+			
+			// The method set's const predicate needs to imply the method's
+			// const predicate.
+			if (!checkConstPredicate.implies(reducedConstPredicate)) {
+				if (DEBUG_METHOD_SET_ELEMENT) {
+					printf("\nConst parent predicate implication failed for '%s'.\n    Parent: %s\n    Method: %s\n\n",
+					       functionName.c_str(),
+					       checkConstPredicate.toString().c_str(),
+					       reducedConstPredicate.toString().c_str()
+					);
+				}
+				return false;
+			}
 			
 			// The requirement method's const predicate needs to imply the
 			// const predicate of the provided method (e.g. if the requirement
@@ -602,6 +728,9 @@ namespace locic {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			
+			const auto checkConstPredicate = reducePredicate(context, checkSet->constPredicate().copy());
+			const auto requireConstPredicate = reducePredicate(context, requireSet->constPredicate().copy());
+			
 			for (; requireIterator != requireSet->end(); ++checkIterator) {
 				const auto& requireFunctionName = requireIterator->first;
 				const auto& requireFunctionElement = requireIterator->second;
@@ -629,7 +758,16 @@ namespace locic {
 					continue;
 				}
 				
-				if (!methodSetElementSatisfiesRequirement(context, checkFunctionName, checkFunctionElement, requireFunctionElement)) {
+				const auto requireMethodConstPredicate = reducePredicate(context, requireFunctionElement.constPredicate().copy());
+				
+				if (!requireConstPredicate.implies(requireMethodConstPredicate)) {
+					// Skip because required method is non-const inside
+					// const parent.
+					continue;
+				}
+				
+				if (!methodSetElementSatisfiesRequirement(context, checkConstPredicate, checkFunctionName,
+						checkFunctionElement, requireFunctionElement)) {
 					if (DEBUG_METHOD_SET) {
 						printf("\n...in methodSetSatisfiesRequirement:\n    Source: %s\n    Require: %s\n\n",
 							formatMessage(checkSet->toString()).c_str(),

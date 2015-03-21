@@ -24,6 +24,8 @@ namespace locic {
 				
 				MethodSetElement copy() const;
 				
+				MethodSetElement withRequirement(SEM::Predicate requirement) const;
+				
 				const SEM::TemplateVarArray& templateVariables() const;
 				const SEM::Predicate& constPredicate() const;
 				const SEM::Predicate& noexceptPredicate() const;
@@ -62,12 +64,17 @@ namespace locic {
 				
 				static const MethodSet* getEmpty(const Context& context);
 				
-				static const MethodSet* get(const Context& context, ElementSet elements);
+				static const MethodSet* get(const Context& context, SEM::Predicate constPredicate, ElementSet elements);
 				
 				MethodSet(MethodSet&&) = default;
 				MethodSet& operator=(MethodSet&&) = default;
 				
 				const Context& context() const;
+				
+				const MethodSet* withConstPredicate(SEM::Predicate constPredicate) const;
+				const MethodSet* withRequirement(SEM::Predicate requirement) const;
+				
+				const SEM::Predicate& constPredicate() const;
 				
 				iterator begin() const;
 				iterator end() const;
@@ -89,9 +96,10 @@ namespace locic {
 				MethodSet(const MethodSet&) = delete;
 				MethodSet& operator=(const MethodSet&) = delete;
 				
-				MethodSet(const Context& context, ElementSet elements);
+				MethodSet(const Context& context, SEM::Predicate constPredicate, ElementSet elements);
 				
 				const Context& context_;
+				SEM::Predicate constPredicate_;
 				ElementSet elements_;
 				
 		};

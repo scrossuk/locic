@@ -1,0 +1,1 @@
+Template arguments do not satisfy require predicate 'satisfies\(type: TestClass<TemplateVarType\(templateVar: TemplateVar\(name = ::function::T, index = 0\)\)>, requirement: Requirements\)' of method 'methodA' at position SourceLocation\(filename = (.*)/InferTemplateVarMethodSetIncorrectParamCount\.loci, range = \(line 18, column 2\) to \(line 18, column 16\)\)\.

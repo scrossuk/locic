@@ -73,7 +73,11 @@ namespace locic {
 			std::set<String> validVarArgTypes;
 			mutable StableSet<MethodSet> methodSets;
 			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
-			std::unordered_map<std::pair<const SEM::Type*, size_t>, const MethodSet*, hashPair<const SEM::Type*, size_t>> methodSetMap;
+			
+			std::unordered_map<const SEM::Type*, const MethodSet*> objectMethodSetMap;
+			std::unordered_map<std::pair<const SEM::TemplatedObject*, const SEM::Type*>, const MethodSet*,
+				hashPair<const SEM::TemplatedObject*, const SEM::Type*>> templateVarMethodSetMap;
+			
 			std::vector<std::pair<const SEM::Type*, const SEM::Type*>> assumedSatisfyPairs;
 			std::vector<std::pair<const SEM::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
@@ -103,19 +107,36 @@ namespace locic {
 			return impl_->semContext;
 		}
 		
-		const MethodSet* Context::findMethodSet(const SEM::Type* const type) const {
-			assert(type->isObject());
-			const auto typeInstance = type->getObjectType();
+		const MethodSet* Context::findMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* const type) const {
+			assert(methodSetsComplete());
+			assert(type->isObject() || type->isTemplateVar());
 			
-			const auto iterator = impl_->methodSetMap.find(std::make_pair(type, typeInstance->functions().size()));
-			return iterator != impl_->methodSetMap.end() ? iterator->second : nullptr;
+			if (type->isObject()) {
+				const auto iterator = impl_->objectMethodSetMap.find(type);
+				return iterator != impl_->objectMethodSetMap.end() ? iterator->second : nullptr;
+			} else {
+				const auto iterator = impl_->templateVarMethodSetMap.find(std::make_pair(&templatedObject, type));
+				return iterator != impl_->templateVarMethodSetMap.end() ? iterator->second : nullptr;
+			}
 		}
 		
-		void Context::addMethodSet(const SEM::Type* const type, const MethodSet* const methodSet) {
-			assert(type->isObject());
-			const auto typeInstance = type->getObjectType();
+		void Context::addMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* const type, const MethodSet* const methodSet) {
+			assert(methodSetsComplete());
+			assert(type->isObject() || type->isTemplateVar());
 			
-			impl_->methodSetMap.insert(std::make_pair(std::make_pair(type, typeInstance->functions().size()), methodSet));
+			if (type->isObject()) {
+				const auto result = impl_->objectMethodSetMap.insert(std::make_pair(type, methodSet));
+				if (!result.second) {
+					// Overwrite any existing element.
+					result.first->second = methodSet;
+				}
+			} else {
+				const auto result = impl_->templateVarMethodSetMap.insert(std::make_pair(std::make_pair(&templatedObject, type), methodSet));
+				if (!result.second) {
+					// Overwrite any existing element.
+					result.first->second = methodSet;
+				}
+			}
 		}
 		
 		std::vector<TemplateInst>& Context::templateInstantiations() {
