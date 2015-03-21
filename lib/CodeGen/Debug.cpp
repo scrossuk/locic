@@ -86,7 +86,7 @@ namespace locic {
 		}
 		
 		llvm::DIType DebugBuilder::createNullType() {
-#if defined(LLVM_3_3)
+#if LOCIC_LLVM_VERSION < 304
 			return builder_.createNullPtrType("null");
 #else
 			return builder_.createNullPtrType();
@@ -123,7 +123,7 @@ namespace locic {
 		}
 		
 		llvm::DIType DebugBuilder::createFunctionType(llvm::DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
-#if defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 306
 			return builder_.createSubroutineType(file, builder_.getOrCreateTypeArray(parameters));
 #else
 			return builder_.createSubroutineType(file, builder_.getOrCreateArray(parameters));
@@ -131,7 +131,7 @@ namespace locic {
 		}
 		
 		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue) {
-#if defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 306
 			const auto declareInstruction = builder_.insertDeclare(varValue, variable, builder_.createExpression(), function.getEntryBuilder().GetInsertPoint());
 #else
 			const auto declareInstruction = builder_.insertDeclare(varValue, variable, function.getEntryBuilder().GetInsertPoint());

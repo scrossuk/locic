@@ -25,7 +25,7 @@ namespace locic {
 			module_->setDataLayout(context.dataLayout().getStringRepresentation());
 			module_->setTargetTriple(context.targetTriple().getTriple());
 			
-#ifndef LLVM_3_3
+#if LOCIC_LLVM_VERSION >= 304
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
 #endif
 			
@@ -218,7 +218,7 @@ namespace locic {
 		void Module::verify() const {
 			// Only verify modules when built in debug mode.
 #if !defined(NDEBUG)
-#if defined(LLVM_3_5) || defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 305
 			llvm::raw_os_ostream cerrStream(std::cerr);
 			const bool result = llvm::verifyModule(*module_, &cerrStream);
 			if (result)

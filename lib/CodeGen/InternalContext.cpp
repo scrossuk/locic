@@ -181,7 +181,11 @@ namespace locic {
 		}
 		
 		const llvm::DataLayout& InternalContext::dataLayout() const {
+#if LOCIC_LLVM_VERSION >= 306
+			return *(targetMachine().getSubtargetImpl()->getDataLayout());
+#else
 			return *(targetMachine().getDataLayout());
+#endif
 		}
 		
 	}

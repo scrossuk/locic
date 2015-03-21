@@ -341,6 +341,8 @@ namespace locic {
 					return predicate;
 				}
 			}
+			
+			throw std::logic_error("Unknown predicate kind.");
 		}
 		
 	}

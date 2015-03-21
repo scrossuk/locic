@@ -7,7 +7,7 @@
 #include <llvm/ADT/Triple.h>
 #include <llvm/Analysis/Passes.h>
 
-#if defined(LLVM_3_5) || defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 305
 #include <llvm/IR/Verifier.h>
 #else
 #include <llvm/Analysis/Verifier.h>
@@ -15,18 +15,18 @@
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
-#if defined(LLVM_3_5) || defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 305
 #include <llvm/DebugInfo/DIContext.h>
 #else
 #include <llvm/DebugInfo.h>
 #endif
 
-#if defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 306
 #include <llvm/IR/DiagnosticInfo.h>
 #include <llvm/IR/DiagnosticPrinter.h>
 #endif
 
-#if (defined(LLVM_3_5) || defined(LLVM_3_6)) && defined(LLVM_DIBUILDER_IN_IR)
+#if LOCIC_LLVM_VERSION >= 305 && defined(LLVM_DIBUILDER_IN_IR)
 #include <llvm/IR/DIBuilder.h>
 #else
 #include <llvm/DIBuilder.h>
@@ -34,7 +34,7 @@
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 
-#if !defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION < 306
 #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
@@ -54,7 +54,7 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IRReader/IRReader.h>
 
-#if (defined(LLVM_3_5) || defined(LLVM_3_6)) && defined(LLVM_LINKER_IN_LINKER)
+#if LOCIC_LLVM_VERSION >= 305 && defined(LLVM_LINKER_IN_LINKER)
 #include <llvm/Linker/Linker.h>
 #else
 #include <llvm/Linker.h>
@@ -71,6 +71,11 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
+
+#if LOCIC_LLVM_VERSION >= 306
+#include <llvm/Target/TargetSubtargetInfo.h>
+#endif
+
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>

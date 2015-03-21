@@ -9,7 +9,13 @@ namespace locic {
 	namespace CodeGen {
 		
 		std::unique_ptr<llvm::Module> loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
-#if defined(LLVM_3_3)
+#if LOCIC_LLVM_VERSION >= 306
+			llvm::SMDiagnostic error;
+			return llvm::parseIRFile(fileName, error, context);
+#elif LOCIC_LLVM_VERSION >= 304
+			llvm::SMDiagnostic error;
+			return std::unique_ptr<llvm::Module>(llvm::ParseIRFile(fileName, error, context));
+#else
 			llvm::sys::Path fileNamePath;
 			if (!fileNamePath.set(fileName)) {
 				throw Exception(STR("Invalid file name '%s'.", fileName.c_str()));
@@ -17,12 +23,6 @@ namespace locic {
 			
 			llvm::SMDiagnostic error;
 			return std::unique_ptr<llvm::Module>(llvm::ParseIRFile(fileNamePath.str(), error, context));
-#elif defined(LLVM_3_6)
-			llvm::SMDiagnostic error;
-			return llvm::parseIRFile(fileName, error, context);
-#else
-			llvm::SMDiagnostic error;
-			return std::unique_ptr<llvm::Module>(llvm::ParseIRFile(fileName, error, context));
 #endif
 		}
 		
@@ -62,7 +62,7 @@ namespace locic {
 			}
 			
 			std::string errorMessage;
-#if defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 306
 			const bool linkFailed = llvm::Linker::LinkModules(impl_->linkedModule().getLLVMModulePtr(), loadedModule.release(),
 				[&](const llvm::DiagnosticInfo& info) {
 					llvm::raw_string_ostream rawStream(errorMessage);

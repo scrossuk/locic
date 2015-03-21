@@ -30,7 +30,7 @@ namespace locic {
 		class Function;
 		class Module;
 		
-#if defined(LLVM_3_6)
+#if LOCIC_LLVM_VERSION >= 306
 		using LLVMMetadataValue = llvm::Metadata;
 #else
 		using LLVMMetadataValue = llvm::Value;

@@ -314,6 +314,8 @@ namespace locic {
 					return array.contains(variableTemplateVar());
 				}
 			}
+			
+			throw std::logic_error("Unknown predicate kind.");
 		}
 		
 		Predicate Predicate::reduceToDependencies(const TemplateVarArray& array, const bool conservativeDefault) const {
@@ -348,6 +350,8 @@ namespace locic {
 					}
 				}
 			}
+			
+			throw std::logic_error("Unknown predicate kind.");
 		}
 		
 		bool Predicate::implies(const SEM::Predicate& other) const {

@@ -47,11 +47,11 @@ namespace locic {
 			llvm::InitializeNativeTargetAsmPrinter();
 			
 			llvm::TargetOptions targetOptions;
-#ifdef LLVM_3_3
+#if LOCIC_LLVM_VERSION < 304
 			targetOptions.JITExceptionHandling = true;
 #endif
 
-#ifdef LLVM_3_6
+#if LOCIC_LLVM_VERSION >= 306
 			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule());
 #else
 			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule().release());
@@ -60,7 +60,7 @@ namespace locic {
 			engineBuilder.setEngineKind(llvm::EngineKind::JIT);
 			engineBuilder.setTargetOptions(targetOptions);
 			
-#ifndef LLVM_3_6
+#if LOCIC_LLVM_VERSION < 306
 			engineBuilder.setUseMCJIT(true);
 #endif
 			
