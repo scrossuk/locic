@@ -1,0 +1,24 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+datatype TestData(bool v);
+
+void checkValue(TestData data) {
+	if (data == TestData(false)) {
+		testPrint(C"checkValue: TestData(false)");
+		return;
+	}
+	
+	if (data == TestData(true)) {
+		testPrint(C"checkValue: TestData(true)");
+		return;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	checkValue(TestData(false));
+	checkValue(TestData(true));
+	return 0;
+}
+

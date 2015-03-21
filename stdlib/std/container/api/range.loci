@@ -4,7 +4,7 @@ import std.container 0.1.0 {
 		
 		template <typename T>
 		interface output_range {
-			void push_back(T value);
+			void push_back(T value) require(T : movable);
 		}
 		
 		template <typename T, typename LvalType>

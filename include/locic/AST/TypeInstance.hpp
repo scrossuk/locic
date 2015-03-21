@@ -48,7 +48,9 @@ namespace locic {
 			Node<TypeVarList> variables;
 			Node<FunctionList> functions;
 			Node<ExceptionInitializer> initializer;
+			Node<RequireSpecifier> moveSpecifier;
 			Node<RequireSpecifier> requireSpecifier;
+			Node<StringList> noTagSet;
 			
 			public:
 				static TypeInstance* Primitive(const String& name, const Node<FunctionList>& functions);
@@ -71,8 +73,10 @@ namespace locic {
 				
 				static TypeInstance* Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
 				
+				void setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier);
 				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
+				void setNoTagSet(const Node<StringList>& pNoTagSet);
 				
 				std::string toString() const;
 				

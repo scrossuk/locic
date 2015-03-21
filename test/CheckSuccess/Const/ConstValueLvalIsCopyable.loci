@@ -1,0 +1,10 @@
+template <typename T>
+require(notag(T) : movable and T : implicit_copyable<T>)
+class CheckIsCopyable() { }
+
+import CheckIsCopyable<value_lval<int>> checkMutableValueLvalIsCopyable();
+import CheckIsCopyable<value_lval<const int>> checkInnerConstValueLvalIsCopyable();
+import CheckIsCopyable<const value_lval<int>> checkOuterConstValueLvalIsCopyable();
+import CheckIsCopyable<const value_lval<const int>> checkBothConstValueLvalIsCopyable();
+import CheckIsCopyable<const value_lval<value_lval<int>>> checkDoubleNestedConstValueLvalIsCopyable();
+import CheckIsCopyable<const value_lval<value_lval<value_lval<int>>>> checkTripleNestedConstValueLvalIsCopyable();

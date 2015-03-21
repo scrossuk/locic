@@ -10,9 +10,11 @@ add_library(locic-sem
 	Statement.cpp
 	SwitchCase.cpp
 	TemplateVar.cpp
+	TemplateVarMap.cpp
 	Type.cpp
 	TypeAlias.cpp
 	TypeInstance.cpp
 	Value.cpp
-	Var.cpp)
+	Var.cpp
+)
 

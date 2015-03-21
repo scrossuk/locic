@@ -36,11 +36,16 @@ namespace locic {
 		
 		Value TemplateVar::selfRefValue() const {
 			if (type()->isBuiltInTypename()) {
-				const auto templateVarRef = SEM::Type::TemplateVarRef(this);
+				const auto templateVarRef = selfRefType();
 				return SEM::Value::TypeRef(templateVarRef, type()->createStaticRefType(templateVarRef));
 			} else {
 				return SEM::Value::TemplateVarRef(this, type());
 			}
+		}
+		
+		const Type* TemplateVar::selfRefType() const {
+			assert(type()->isBuiltInTypename());
+			return SEM::Type::TemplateVarRef(this);
 		}
 		
 		void TemplateVar::setDebugInfo(const Debug::TemplateVarInfo newDebugInfo) {

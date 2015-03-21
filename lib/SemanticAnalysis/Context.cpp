@@ -26,7 +26,7 @@ namespace locic {
 		public:
 			ContextImpl(const StringHost& argStringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext)
 			: stringHost(argStringHost), debugModule(pDebugModule), semContext(pSemContext),
-			templateRequirementsComplete(false) {
+			methodSetsComplete(false), templateRequirementsComplete(false) {
 				validVarArgTypes.insert(String(stringHost, "byte_t"));
 				validVarArgTypes.insert(String(stringHost, "ubyte_t"));
 				validVarArgTypes.insert(String(stringHost, "short_t"));
@@ -67,12 +67,15 @@ namespace locic {
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
 			SEM::Context& semContext;
+			bool methodSetsComplete;
 			bool templateRequirementsComplete;
 			std::vector<TemplateInst> templateInstantiations;
 			std::set<String> validVarArgTypes;
 			mutable StableSet<MethodSet> methodSets;
 			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
 			std::unordered_map<std::pair<const SEM::Type*, size_t>, const MethodSet*, hashPair<const SEM::Type*, size_t>> methodSetMap;
+			std::vector<std::pair<const SEM::Type*, const SEM::Type*>> assumedSatisfyPairs;
+			std::vector<std::pair<const SEM::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
 		Context::Context(const StringHost& argStringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext)
@@ -124,7 +127,17 @@ namespace locic {
 		}
 		
 		void Context::setTemplateRequirementsComplete() {
+			assert(!impl_->templateRequirementsComplete);
 			impl_->templateRequirementsComplete = true;
+		}
+		
+		bool Context::methodSetsComplete() const {
+			return impl_->methodSetsComplete;
+		}
+		
+		void Context::setMethodSetsComplete() {
+			assert(!impl_->methodSetsComplete);
+			impl_->methodSetsComplete = true;
 		}
 		
 		const std::set<String>& Context::validVarArgTypes() const {
@@ -149,6 +162,42 @@ namespace locic {
 			(void) impl_->capabilities.insert(std::make_pair(std::make_pair(type, capability), isCapable));
 		}
 		
+		bool Context::isComputingMethodSet(const SEM::TemplateVar* const templateVar, const SEM::Predicate& predicate) const {
+			for (const auto& computingMethodSetPair: impl_->computingMethodSetTemplateVars) {
+				if (templateVar == computingMethodSetPair.first && predicate == *(computingMethodSetPair.second)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		void Context::pushComputingMethodSet(const SEM::TemplateVar* const  templateVar, const SEM::Predicate& predicate) {
+			impl_->computingMethodSetTemplateVars.push_back(std::make_pair(templateVar, &predicate));
+		}
+		
+		void Context::popComputingMethodSet() {
+			impl_->computingMethodSetTemplateVars.pop_back();
+		}
+		
+		bool Context::isAssumedSatisfies(const SEM::Type* const checkType, const SEM::Type* const requireType) const {
+			const auto pair = std::make_pair(checkType, requireType);
+			for (const auto& assumedSatisfyPair: impl_->assumedSatisfyPairs) {
+				if (pair == assumedSatisfyPair) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		void Context::pushAssumeSatisfies(const SEM::Type* const checkType, const SEM::Type* const requireType) {
+			const auto pair = std::make_pair(checkType, requireType);
+			impl_->assumedSatisfyPairs.push_back(pair);
+		}
+		
+		void Context::popAssumeSatisfies() {
+			impl_->assumedSatisfyPairs.pop_back();
+		}
+		
 		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
@@ -163,7 +212,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance->selfType();
-			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
+			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
 			return createSelfRef(context, selfConstType);
 		}
 		
@@ -182,7 +231,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance->selfType();
-			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
+			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
 			return SEM::Value::This(getBuiltInType(context, context.getCString("__ptr"), { selfConstType }));
 		}
 		

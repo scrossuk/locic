@@ -41,7 +41,7 @@ namespace locic {
 			
 			const auto searchResult = performSearch(context, name);
 			
-			const auto templateVarMap = GenerateTemplateVarMap(context, symbol);
+			const auto templateVarMap = GenerateSymbolTemplateVarMap(context, symbol);
 			
 			if (searchResult.isTypeInstance()) {
 				const auto typeInstance = searchResult.typeInstance();
@@ -78,16 +78,15 @@ namespace locic {
 					return SEM::Type::Auto(context.semContext());
 				}
 				case AST::Type::CONST: {
-					return ConvertType(context, type->getConstTarget())->createConstType(SEM::Predicate::True());
+					return ConvertType(context, type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
 				}
 				case AST::Type::CONSTPREDICATE: {
 					auto constPredicate = ConvertPredicate(context, type->getConstPredicate());
 					const auto constTarget = ConvertType(context, type->getConstPredicateTarget());
-					return constTarget->createConstType(std::move(constPredicate));
+					return constTarget->createTransitiveConstType(std::move(constPredicate));
 				}
-				case AST::Type::MUTABLE: {
-					// Mutable is the default so doesn't affect the type.
-					return ConvertType(context, type->getMutableTarget());
+				case AST::Type::NOTAG: {
+					return ConvertType(context, type->getNoTagTarget())->createNoTagType();
 				}
 				case AST::Type::LVAL: {
 					auto targetType = ConvertType(context, type->getLvalTarget());
@@ -146,9 +145,9 @@ namespace locic {
 					const bool isTemplated = false;
 					
 					// Currently no syntax exists to express a type with 'noexcept'.
-					const bool isNoExcept = false;
+					auto noexceptPredicate = SEM::Predicate::False();
 					
-					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, isNoExcept, returnType, std::move(parameterTypes));
+					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate), returnType, std::move(parameterTypes));
 				}
 			}
 			

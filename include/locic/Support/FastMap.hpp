@@ -80,6 +80,10 @@ namespace locic {
 			return map_.empty();
 		}
 		
+		void erase(const Key& key) {
+			(void) map_.erase(key);
+		}
+		
 		void clear() {
 			map_.clear();
 		}

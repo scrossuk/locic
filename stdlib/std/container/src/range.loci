@@ -2,35 +2,35 @@ export std.container 0.1.0 {
 
 	namespace std {
 		
-		template <typename T>
+		template <typename T, typename LvalType>
 		interface forward_range {
 			bool empty() const;
 			
 			void skip_front();
 			
-			lval<T> value_lval<T> front() const;
+			lval<T> LvalType front() const require(LvalType : movable);
 		}
 		
-		template <typename T>
+		template <typename T, typename LvalType>
 		interface backward_range {
 			bool empty() const;
 			
 			void skip_back();
 			
-			lval<T> value_lval<T> back() const;
+			lval<T> LvalType back() const require(LvalType : movable);
 		}
 		
-		template <typename T>
+		template <typename T, typename LvalType>
 		interface bidirectional_range {
 			bool empty() const;
 			
 			void skip_front();
 			
-			lval<T> value_lval<T> front() const;
+			lval<T> LvalType front() const require(LvalType : movable);
 			
 			void skip_back();
 			
-			lval<T> value_lval<T> back() const;
+			lval<T> LvalType back() const require(LvalType : movable);
 		}
 		
 	}

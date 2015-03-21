@@ -25,6 +25,7 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
+		class Predicate;
 		class TemplatedObject;
 		class TemplateVar;
 		class Type;
@@ -69,6 +70,9 @@ namespace locic {
 				bool templateRequirementsComplete() const;
 				void setTemplateRequirementsComplete();
 				
+				bool methodSetsComplete() const;
+				void setMethodSetsComplete();
+				
 				const std::set<String>& validVarArgTypes() const;
 				
 				const MethodSet* getMethodSet(MethodSet methodSet) const;
@@ -76,6 +80,16 @@ namespace locic {
 				Optional<bool> getCapability(const SEM::Type* type, const String& capability) const;
 				
 				void setCapability(const SEM::Type* type, const String& capability, bool isCapable);
+				
+				// For handling cycles in method set computation.
+				bool isComputingMethodSet(const SEM::TemplateVar* templateVar, const SEM::Predicate& predicate) const;
+				void pushComputingMethodSet(const SEM::TemplateVar* templateVar, const SEM::Predicate& predicate);
+				void popComputingMethodSet();
+				
+				// For handling cycles in require predicates.
+				bool isAssumedSatisfies(const SEM::Type* checkType, const SEM::Type* requireType) const;
+				void pushAssumeSatisfies(const SEM::Type* checkType, const SEM::Type* requireType);
+				void popAssumeSatisfies();
 				
 			private:
 				// Non-copyable.

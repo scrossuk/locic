@@ -12,46 +12,46 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SearchResult performFunctionSearch(SEM::Function* function, const Name& name, size_t pos) {
+		SearchResult performFunctionSearch(SEM::Function& function, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::Function(function);
+			if (size == 0) return SearchResult::Function(&function);
 			
 			return SearchResult::None();
 		}
 		
-		SearchResult performTypeAliasSearch(SEM::TypeAlias* typeAlias, const Name& name, size_t pos) {
+		SearchResult performTypeAliasSearch(SEM::TypeAlias& typeAlias, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::TypeAlias(typeAlias);
+			if (size == 0) return SearchResult::TypeAlias(&typeAlias);
 			
 			return SearchResult::None();
 		}
 		
-		SearchResult performTypeInstanceSearch(SEM::TypeInstance* typeInstance, const Name& name, size_t pos) {
+		SearchResult performTypeInstanceSearch(SEM::TypeInstance& typeInstance, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::TypeInstance(typeInstance);
+			if (size == 0) return SearchResult::TypeInstance(&typeInstance);
 			
 			const auto canonicalName = CanonicalizeMethodName(name.at(pos));
-			const auto iterator = typeInstance->functions().find(canonicalName);
-			if (iterator != typeInstance->functions().end()) {
-				const auto function = iterator->second;
+			const auto iterator = typeInstance.functions().find(canonicalName);
+			if (iterator != typeInstance.functions().end()) {
+				auto& function = iterator->second;
 				if (function->isStaticMethod()) {
-					return performFunctionSearch(function, name, pos + 1);
+					return performFunctionSearch(*function, name, pos + 1);
 				}
 			}
 			
 			return SearchResult::None();
 		}
 		
-		SearchResult performNamespaceSearch(SEM::Namespace* nameSpace, const Name& name, size_t pos) {
+		SearchResult performNamespaceSearch(SEM::Namespace& nameSpace, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
 			if (size == 0) return SearchResult::None();
 			
-			const auto iterator = nameSpace->items().find(name.at(pos));
-			if (iterator != nameSpace->items().end()) {
+			const auto iterator = nameSpace.items().find(name.at(pos));
+			if (iterator != nameSpace.items().end()) {
 				const auto& item = iterator->second;
 				if (item.isFunction()) {
 					return performFunctionSearch(item.function(), name, pos + 1);
@@ -67,21 +67,21 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerFunctionSearch(SEM::Function* function, const Name& name) {
+		SearchResult performInnerFunctionSearch(SEM::Function& function, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			// Search template variables.
 			{
-				const auto iterator = function->namedTemplateVariables().find(name.at(0));
-				if (iterator != function->namedTemplateVariables().end()) {
+				const auto iterator = function.namedTemplateVariables().find(name.at(0));
+				if (iterator != function.namedTemplateVariables().end()) {
 					return SearchResult::TemplateVar(iterator->second);
 				}
 			}
 			
 			// Search parameter variables.
 			{
-				const auto iterator = function->namedVariables().find(name.at(0));
-				if (iterator != function->namedVariables().end()) {
+				const auto iterator = function.namedVariables().find(name.at(0));
+				if (iterator != function.namedVariables().end()) {
 					return SearchResult::Var(iterator->second);
 				}
 			}
@@ -89,22 +89,22 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerTypeAliasSearch(SEM::TypeAlias* typeAlias, const Name& name) {
+		SearchResult performInnerTypeAliasSearch(SEM::TypeAlias& typeAlias, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
-			const auto iterator = typeAlias->namedTemplateVariables().find(name.at(0));
-			if (iterator != typeAlias->namedTemplateVariables().end()) {
+			const auto iterator = typeAlias.namedTemplateVariables().find(name.at(0));
+			if (iterator != typeAlias.namedTemplateVariables().end()) {
 				return SearchResult::TemplateVar(iterator->second);
 			}
 			
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerTypeInstanceSearch(SEM::TypeInstance* typeInstance, const Name& name) {
+		SearchResult performInnerTypeInstanceSearch(SEM::TypeInstance& typeInstance, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
-			const auto iterator = typeInstance->namedTemplateVariables().find(name.at(0));
-			if (iterator != typeInstance->namedTemplateVariables().end()) {
+			const auto iterator = typeInstance.namedTemplateVariables().find(name.at(0));
+			if (iterator != typeInstance.namedTemplateVariables().end()) {
 				return SearchResult::TemplateVar(iterator->second);
 			}
 			
@@ -146,13 +146,13 @@ namespace locic {
 		
 		SearchResult performInnerSearch(const ScopeElement& element, const Name& name) {
 			if (element.isNamespace()) {
-				return performNamespaceSearch(element.nameSpace(), name, 0);
+				return performNamespaceSearch(*(element.nameSpace()), name, 0);
 			} else if (element.isFunction()) {
-				return performInnerFunctionSearch(element.function(), name);
+				return performInnerFunctionSearch(*(element.function()), name);
 			} else if (element.isTypeAlias()) {
-				return performInnerTypeAliasSearch(element.typeAlias(), name);
+				return performInnerTypeAliasSearch(*(element.typeAlias()), name);
 			} else if (element.isTypeInstance()) {
-				return performInnerTypeInstanceSearch(element.typeInstance(), name);
+				return performInnerTypeInstanceSearch(*(element.typeInstance()), name);
 			} else if (element.isScope()) {
 				return performInnerScopeSearch(element.scope(), name);
 			} else if (element.isSwitchCase()) {

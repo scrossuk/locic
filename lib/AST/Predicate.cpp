@@ -1,8 +1,10 @@
+#include <stdexcept>
 #include <string>
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/Support/MakeString.hpp>
 
 namespace locic {
 
@@ -14,10 +16,10 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate* Predicate::TypeSpec(const String& name, const Node<Type>& specType) {
+		Predicate* Predicate::TypeSpec(const Node<Type>& type, const Node<Type>& requireType) {
 			Predicate* predicate = new Predicate(TYPESPEC);
-			predicate->typeSpec_.name = name;
-			predicate->typeSpec_.type = specType;
+			predicate->typeSpec_.type = type;
+			predicate->typeSpec_.requireType = requireType;
 			return predicate;
 		}
 		
@@ -50,14 +52,14 @@ namespace locic {
 			return bracket_.expr;
 		}
 		
-		const String& Predicate::typeSpecName() const {
-			assert(kind() == TYPESPEC);
-			return typeSpec_.name;
-		}
-		
 		const Node<Type>& Predicate::typeSpecType() const {
 			assert(kind() == TYPESPEC);
 			return typeSpec_.type;
+		}
+		
+		const Node<Type>& Predicate::typeSpecRequireType() const {
+			assert(kind() == TYPESPEC);
+			return typeSpec_.requireType;
 		}
 		
 		const String& Predicate::variableName() const {
@@ -83,6 +85,23 @@ namespace locic {
 		const Node<Predicate>& Predicate::orRight() const {
 			assert(kind() == OR);
 			return or_.right;
+		}
+		
+		std::string Predicate::toString() const {
+			switch (kind()) {
+				case  BRACKET:
+					return makeString("Bracket(%s)", bracketExpr().toString().c_str());
+				case TYPESPEC:
+					return makeString("TypeSpec(type: %s, require: %s)", typeSpecType().toString().c_str(), typeSpecRequireType().toString().c_str());
+				case VARIABLE:
+					return makeString("Variable(name: %s)", variableName().c_str());
+				case AND:
+					return makeString("And(left: %s, right: %s)", andLeft().toString().c_str(), andRight().toString().c_str());
+				case OR:
+					return makeString("Or(left: %s, right: %s)", orLeft().toString().c_str(), orRight().toString().c_str());
+			}
+			
+			throw std::logic_error("Unknown predicate kind.");
 		}
 		
 	}

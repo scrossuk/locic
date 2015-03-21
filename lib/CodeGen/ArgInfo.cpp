@@ -239,7 +239,7 @@ namespace locic {
 			return isTypeSizeAlwaysKnown(module, type) && !typeHasCustomMove(module, type);
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* functionType) {
+		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* const functionType) {
 			assert(functionType->isFunction());
 			
 			const auto semReturnType = functionType->getFunctionReturnType();
@@ -260,7 +260,13 @@ namespace locic {
 			
 			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
 			
-			if (functionType->isFunctionNoExcept()) {
+			// Some functions will only be noexcept in certain cases but for
+			// CodeGen purposes we're looking for a guarantee of noexcept
+			// in all cases, hence we look for always-true noexcept predicates.
+			if (!functionType->functionNoExceptPredicate().isTrivialBool()) {
+				assert(!functionType->functionNoExceptPredicate().dependsOnOnly({}));
+			}
+			if (functionType->functionNoExceptPredicate().isTrue()) {
 				argInfo = argInfo.withNoExcept();
 			}
 			

@@ -21,20 +21,22 @@ namespace locic {
 	
 		struct Function {
 			public:
-				static Function* Decl(bool isVarArg, bool isStatic, bool isNoExcept,
+				static Function* Decl(bool isVarArg, bool isStatic,
 						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
 						const Node<ConstSpecifier>& constSpecifier,
+						const Node<RequireSpecifier>& noexceptSpecifier,
 						const Node<RequireSpecifier>& requireSpecifier);
 				
-				static Function* Def(bool isVarArg, bool isStatic, bool isNoExcept,
+				static Function* Def(bool isVarArg, bool isStatic,
 						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
 						const Node<Scope>& scope,
 						const Node<ConstSpecifier>& constSpecifier,
+						const Node<RequireSpecifier>& noexceptSpecifier,
 						const Node<RequireSpecifier>& requireSpecifier);
 				
-				static Function* DefaultStaticMethodDef(const Node<Name>& name);
+				static Function* DefaultStaticMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);
 				
-				static Function* DefaultMethodDef(const Node<Name>& name);
+				static Function* DefaultMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);
 				
 				static Function* Destructor(const Node<Name>& name, const Node<Scope>& scope);
 				
@@ -55,6 +57,7 @@ namespace locic {
 				const Node<TypeVarList>& parameters() const;
 				const Node<Scope>& scope() const;
 				const Node<ConstSpecifier>& constSpecifier() const;
+				const Node<RequireSpecifier>& noexceptSpecifier() const;
 				const Node<RequireSpecifier>& requireSpecifier() const;
 				
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
@@ -66,8 +69,8 @@ namespace locic {
 			private:
 				explicit Function(const Node<Name>& pName);
 				
-				bool isDefinition_, isDefaultDefinition_, isVarArg_;
-				bool isStatic_, isNoExcept_;
+				bool isDefinition_, isDefaultDefinition_;
+				bool isVarArg_, isStatic_;
 				bool isImported_, isExported_;
 				
 				Node<Name> name_;
@@ -76,6 +79,7 @@ namespace locic {
 				Node<TypeVarList> parameters_;
 				Node<Scope> scope_;
 				Node<ConstSpecifier> constSpecifier_;
+				Node<RequireSpecifier> noexceptSpecifier_;
 				Node<RequireSpecifier> requireSpecifier_;
 				
 		};

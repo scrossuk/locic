@@ -24,7 +24,6 @@ set(RUNTIME_FILES
 	long_t.loci
 	member_lval.loci
 	movable.loci
-	noexcept_copyable.loci
 	null_t.loci
 	ptrdiff_t.loci
 	ptr.loci

@@ -251,7 +251,7 @@ namespace locic {
 			const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
 			
 			if (methodIterator != typeInstance->functions().end()) {
-				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second);
+				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second.get());
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 							std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
 							std::vector<llvm::Value*> { contextValue };

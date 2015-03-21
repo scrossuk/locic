@@ -1,6 +1,9 @@
 template <typename T>
+notag(T)
 __primitive final_lval {
-	static final_lval<T> __empty() noexcept;
+	static final_lval<T> __empty() noexcept require(T : movable);
+	
+	final_lval<notag(T)> implicit_copy() const noexcept(T : noexcept_implicit_copyable<T>) require(notag(T) : movable and T : implicit_copyable<T>);
 	
 	T* address() const noexcept;
 	T& dissolve() const noexcept;

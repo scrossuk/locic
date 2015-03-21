@@ -162,10 +162,10 @@ namespace locic {
 			const bool isVarArg = false;
 			const bool isMethod = false;
 			const bool isTemplated = false;
-			const bool isNoExcept = true;
+			auto noexceptPredicate = SEM::Predicate::True();
 			const auto returnType = castToType;
 			const SEM::TypeArray parameterTypes = castFromValue != nullptr ? SEM::TypeArray{ castFromType } : SEM::TypeArray{};
-			const auto functionType = SEM::Type::Function(isVarArg, isMethod, isTemplated, isNoExcept, returnType, parameterTypes.copy());
+			const auto functionType = SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, parameterTypes.copy());
 			
 			MethodInfo methodInfo(castToType, targetMethodName, functionType, {});
 			
@@ -260,7 +260,16 @@ namespace locic {
 			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
 			
-			if (methodName == "create") {
+			if (methodName == "__move_to") {
+				const auto moveToPtr = args[1].resolve(function);
+				const auto moveToPosition = args[2].resolve(function);
+				
+				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+				
+				genMoveStore(function, methodOwner, castedDestPtr, type);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "create") {
 				assert(args.empty());
 				return ConstantGenerator(module).getI1(false);
 			} else if (isUnaryOp(methodName)) {

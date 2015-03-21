@@ -30,6 +30,7 @@ namespace locic {
 				const Type* type() const;
 				
 				Value selfRefValue() const;
+				const Type* selfRefType() const;
 				
 				void setDebugInfo(Debug::TemplateVarInfo debugInfo);
 				Optional<Debug::TemplateVarInfo> debugInfo() const;

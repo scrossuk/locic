@@ -70,8 +70,8 @@ namespace locic {
 					
 					if (changed) {
 						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(),
-							type->isFunctionNoExcept(), returnType, std::move(args));
+							type->isFunctionTemplated(), type->functionNoExceptPredicate().copy(),
+							returnType, std::move(args));
 					} else {
 						return type;
 					}
@@ -143,6 +143,10 @@ namespace locic {
 			
 			const auto basicType = preFunction(doApplyType<CheckFunction, PreFunction, PostFunction>(type, checkFunction, preFunction, postFunction));
 			
+			if (type->isNoTag()) {
+				return basicType->createNoTagType();
+			}
+			
 			const auto constType = basicType->createConstType(SEM::Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
 			
 			const auto lvalType = type->isLval() ?
@@ -195,17 +199,17 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Function(const bool isVarArg, const bool isMethod, const bool isTemplated, const bool isNoExcept, const Type* const returnType, TypeArray parameterTypes) {
+		const Type* Type::Function(const bool isVarArg, const bool isMethod, const bool isTemplated, Predicate noExceptPredicate, const Type* const returnType, TypeArray parameterTypes) {
 			assert(returnType != nullptr);
 			
 			auto& context = returnType->context();
 			
 			Type type(context, FUNCTION);
 			
+			type.noExceptPredicate_ = std::move(noExceptPredicate);
 			type.data_.functionType.isVarArg = isVarArg;
 			type.data_.functionType.isMethod = isMethod;
 			type.data_.functionType.isTemplated = isTemplated;
-			type.data_.functionType.isNoExcept = isNoExcept;
 			type.data_.functionType.returnType = returnType;
 			type.typeArray_ = std::move(parameterTypes);
 			
@@ -246,9 +250,10 @@ namespace locic {
 		}
 		
 		Type::Type(const Context& pContext, const Kind pKind) :
-			context_(pContext), kind_(pKind),
+			context_(pContext), kind_(pKind), isNoTag_(false),
 			constPredicate_(Predicate::False()), lvalTarget_(nullptr),
-			refTarget_(nullptr), staticRefTarget_(nullptr) { }
+			refTarget_(nullptr), staticRefTarget_(nullptr),
+			noExceptPredicate_(Predicate::False()) { }
 		
 		const Context& Type::context() const {
 			return context_;
@@ -260,6 +265,10 @@ namespace locic {
 		
 		const Predicate& Type::constPredicate() const {
 			return constPredicate_;
+		}
+		
+		bool Type::isNoTag() const {
+			return isNoTag_;
 		}
 		
 		bool Type::isLval() const {
@@ -300,13 +309,58 @@ namespace locic {
 					staticRefTarget();
 		}
 		
+		const Type* Type::createTransitiveConstType(const Predicate predicate) const {
+			return applyType(this,
+				[] (const Type* const) {
+					return true;
+				},
+				[] (const Type* const type) {
+					return type;
+				},
+				[&](const Type* const type) {
+					if (type->constPredicate() != predicate) {
+						return type->createConstType(SEM::Predicate::Or(type->constPredicate().copy(), predicate.copy()));
+					} else {
+						return type;
+					}
+				});
+		}
+		
 		const Type* Type::createConstType(Predicate predicate) const {
 			if (constPredicate() == predicate) {
 				return this;
 			}
 			
 			Type typeCopy = copy();
+			typeCopy.isNoTag_ = false;
 			typeCopy.constPredicate_ = std::move(predicate);
+			return context_.getType(std::move(typeCopy));
+		}
+		
+		const Type* Type::createNoTagType() const {
+			if (isNoTag()) {
+				assert(constPredicate().isFalse() && !isLval() && !isRef() && !isStaticRef());
+				return this;
+			}
+			
+			Type typeCopy = copy();
+			typeCopy.isNoTag_ = true;
+			typeCopy.constPredicate_ = Predicate::False();
+			typeCopy.lvalTarget_ = nullptr;
+			typeCopy.refTarget_ = nullptr;
+			typeCopy.staticRefTarget_ = nullptr;
+			
+			// For objects, also add 'notag()' to the relevant template variables.
+			if (isObject()) {
+				for (const auto& noTagTemplateVar: getObjectType()->noTagSet()) {
+					const auto templateVarIndex = noTagTemplateVar->index();
+					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
+					assert(existingTemplateArgument.isTypeRef());
+					
+					existingTemplateArgument = SEM::Value::TypeRef(existingTemplateArgument.typeRefType()->createNoTagType(), existingTemplateArgument.type());
+				}
+			}
+			
 			return context_.getType(std::move(typeCopy));
 		}
 		
@@ -316,6 +370,7 @@ namespace locic {
 			}
 			
 			Type typeCopy = copy();
+			typeCopy.isNoTag_ = false;
 			typeCopy.lvalTarget_ = targetType;
 			return context_.getType(std::move(typeCopy));
 		}
@@ -326,6 +381,7 @@ namespace locic {
 			}
 			
 			Type typeCopy = copy();
+			typeCopy.isNoTag_ = false;
 			typeCopy.refTarget_ = targetType;
 			return context_.getType(std::move(typeCopy));
 		}
@@ -336,6 +392,7 @@ namespace locic {
 			}
 			
 			Type typeCopy = copy();
+			typeCopy.isNoTag_ = false;
 			typeCopy.staticRefTarget_ = targetType;
 			return context_.getType(std::move(typeCopy));
 		}
@@ -456,8 +513,16 @@ namespace locic {
 			return valueArray_;
 		}
 		
+		bool Type::isBuiltIn(const String& typeName) const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == typeName;
+		}
+		
 		bool Type::isBuiltInVoid() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "void_t";
+		}
+		
+		bool Type::isBuiltInBool() const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "bool";
 		}
 		
 		bool Type::isBuiltInReference() const {
@@ -487,9 +552,9 @@ namespace locic {
 			return data_.functionType.isTemplated;
 		}
 		
-		bool Type::isFunctionNoExcept() const {
+		const Predicate& Type::functionNoExceptPredicate() const {
 			assert(isFunction());
-			return data_.functionType.isNoExcept;
+			return noExceptPredicate_;
 		}
 		
 		const Type* Type::getFunctionReturnType() const {
@@ -695,7 +760,7 @@ namespace locic {
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			switch (type->kind()) {
 				case Type::AUTO: {
-					return type;
+					return type->withoutTags();
 				}
 				
 				case Type::OBJECT: {
@@ -705,28 +770,15 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg: type->templateArguments()) {
-						if (templateArg.isTypeRef()) {
-							const auto appliedArg = templateArg.typeRefType()->substitute(templateVarMap);
-							changed |= (appliedArg != templateArg.typeRefType());
-							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
-						} else if (templateArg.isTemplateVarRef()) {
-							const auto iterator = templateVarMap.find(templateArg.templateVar());
-							if (iterator != templateVarMap.end()) {
-								const auto& substituteValue = iterator->second;
-								changed = true;
-								templateArgs.push_back(substituteValue.copy());
-							} else {
-								templateArgs.push_back(templateArg.copy());
-							}
-						} else {
-							templateArgs.push_back(templateArg.copy());
-						}
+						auto appliedArg = templateArg.substitute(templateVarMap);
+						changed |= (appliedArg != templateArg);
+						templateArgs.push_back(std::move(appliedArg));
 					}
 					
 					if (changed) {
 						return Type::Object(type->getObjectType(), std::move(templateArgs));
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -745,12 +797,15 @@ namespace locic {
 					const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
 					changed |= (returnType != type->getFunctionReturnType());
 					
+					auto noexceptPredicate = type->functionNoExceptPredicate().substitute(templateVarMap);
+					changed |= (noexceptPredicate != type->functionNoExceptPredicate());
+					
 					if (changed) {
 						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(),
-							type->isFunctionNoExcept(), returnType, std::move(args));
+							type->isFunctionTemplated(), std::move(noexceptPredicate),
+							returnType, std::move(args));
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -759,7 +814,7 @@ namespace locic {
 					if (appliedType != type->getMethodFunctionType()) {
 						return Type::Method(appliedType);
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -768,7 +823,7 @@ namespace locic {
 					if (appliedType != type->getInterfaceMethodFunctionType()) {
 						return Type::InterfaceMethod(appliedType);
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -777,7 +832,7 @@ namespace locic {
 					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
 						return Type::StaticInterfaceMethod(appliedType);
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -788,7 +843,7 @@ namespace locic {
 						assert(substituteValue.isTypeRef());
 						return substituteValue.typeRefType();
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 				
@@ -799,19 +854,15 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg : type->typeAliasArguments()) {
-						if (templateArg.isTypeRef()) {
-							const auto appliedArg = templateArg.typeRefType()->substitute(templateVarMap);
-							changed |= (appliedArg != templateArg.typeRefType());
-							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
-						} else {
-							templateArgs.push_back(templateArg.copy());
-						}
+						auto appliedArg = templateArg.substitute(templateVarMap);
+						changed |= (appliedArg != templateArg);
+						templateArgs.push_back(std::move(appliedArg));
 					}
 					
 					if (changed) {
 						return Type::Alias(type->getTypeAlias(), std::move(templateArgs));
 					} else {
-						return type;
+						return type->withoutTags();
 					}
 				}
 			}
@@ -822,7 +873,17 @@ namespace locic {
 		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			const auto basicType = basicSubstitute(type, templateVarMap);
 			
-			const auto constType = basicType->createConstType(SEM::Predicate::Or(basicType->constPredicate().substitute(templateVarMap), type->constPredicate().substitute(templateVarMap)));
+			if (type->isNoTag()) {
+				return basicType->createNoTagType();
+			}
+			
+			const auto constType =
+				basicType->createTransitiveConstType(
+					SEM::Predicate::Or(
+						basicType->constPredicate().substitute(templateVarMap),
+						type->constPredicate().substitute(templateVarMap)
+					)
+				);
 			
 			const auto lvalType = type->isLval() ?
 				constType->createLvalType(type->lvalTarget()->substitute(templateVarMap)) :
@@ -851,7 +912,7 @@ namespace locic {
 			assert(isFunction());
 			const bool isTemplated = true;
 			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
-				isFunctionNoExcept(), getFunctionReturnType(), getFunctionParameterTypes().copy());
+				functionNoExceptPredicate().copy(), getFunctionReturnType(), getFunctionParameterTypes().copy());
 		}
 		
 		const Type* Type::resolveAliases() const {
@@ -920,6 +981,11 @@ namespace locic {
 					if (getFunctionReturnType()->dependsOnAny(array)) {
 						return true;
 					}
+					
+					if (functionNoExceptPredicate().dependsOnAny(array)) {
+						return true;
+					}
+					
 					for (const auto& paramType: getFunctionParameterTypes()) {
 						if (paramType->dependsOnAny(array)) {
 							return true;
@@ -981,6 +1047,10 @@ namespace locic {
 				
 				case FUNCTION: {
 					if (!getFunctionReturnType()->dependsOnOnly(array)) {
+						return false;
+					}
+					
+					if (!functionNoExceptPredicate().dependsOnOnly(array)) {
 						return false;
 					}
 					
@@ -1048,11 +1118,12 @@ namespace locic {
 				}
 				
 				case FUNCTION:
-					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
-									  getFunctionReturnType()->nameToString().c_str(),
-									  makeNameArrayString(getFunctionParameterTypes()).c_str(),
-									  isFunctionVarArg() ? "Yes" : "No");
-									  
+					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
+						getFunctionReturnType()->nameToString().c_str(),
+						makeNameArrayString(getFunctionParameterTypes()).c_str(),
+						isFunctionVarArg() ? "Yes" : "No",
+						functionNoExceptPredicate().toString().c_str()
+ 					);
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->nameToString().c_str());
@@ -1136,11 +1207,12 @@ namespace locic {
 					}
 				}
 				case FUNCTION:
-					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s)",
-									  getFunctionReturnType()->toString().c_str(),
-									  makeArrayPtrString(getFunctionParameterTypes()).c_str(),
-									  isFunctionVarArg() ? "Yes" : "No");
-									  
+					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
+						getFunctionReturnType()->toString().c_str(),
+						makeArrayPtrString(getFunctionParameterTypes()).c_str(),
+						isFunctionVarArg() ? "Yes" : "No",
+						functionNoExceptPredicate().toString().c_str()
+ 					);
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->toString().c_str());
@@ -1187,13 +1259,15 @@ namespace locic {
 		}
 		
 		std::string Type::toString() const {
+			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToString().c_str()) : basicToString();
+			
 			const std::string constStr =
 				constPredicate().isTrue() ?
-					makeString("const(%s)", basicToString().c_str()) :
+					makeString("const(%s)", noTagStr.c_str()) :
 					constPredicate().isFalse() ?
-						basicToString() :
+						noTagStr :
 						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
-							basicToString().c_str());
+							noTagStr.c_str());
 			
 			const std::string lvalStr =
 				isLval() ?
@@ -1216,6 +1290,7 @@ namespace locic {
 		std::size_t Type::hash() const {
 			std::size_t seed = 0;
 			boost::hash_combine(seed, kind());
+			boost::hash_combine(seed, isNoTag());
 			boost::hash_combine(seed, constPredicate().hash());
 			boost::hash_combine(seed, isLval() ? lvalTarget() : NULL);
 			boost::hash_combine(seed, isRef() ? refTarget() : NULL);
@@ -1259,7 +1334,7 @@ namespace locic {
 					boost::hash_combine(seed, isFunctionVarArg());
 					boost::hash_combine(seed, isFunctionMethod());
 					boost::hash_combine(seed, isFunctionTemplated());
-					boost::hash_combine(seed, isFunctionNoExcept());
+					boost::hash_combine(seed, functionNoExceptPredicate().hash());
 					break;
 				}
 				
@@ -1311,9 +1386,9 @@ namespace locic {
 					type.data_.functionType.isVarArg = isFunctionVarArg();
 					type.data_.functionType.isMethod = isFunctionMethod();
 					type.data_.functionType.isTemplated = isFunctionTemplated();
-					type.data_.functionType.isNoExcept = isFunctionNoExcept();
 					type.data_.functionType.returnType = getFunctionReturnType();
 					type.typeArray_ = getFunctionParameterTypes().copy();
+					type.noExceptPredicate_ = functionNoExceptPredicate().copy();
 					break;
 				}
 				
@@ -1338,6 +1413,7 @@ namespace locic {
 				}
 			}
 			
+			type.isNoTag_ = isNoTag();
 			type.constPredicate_ = constPredicate().copy();
 			type.lvalTarget_ = isLval() ? lvalTarget() : nullptr;
 			type.refTarget_ = isRef() ? refTarget() : nullptr;
@@ -1347,6 +1423,10 @@ namespace locic {
 		
 		bool Type::operator==(const Type& type) const {
 			if (kind() != type.kind()) {
+				return false;
+			}
+			
+			if (isNoTag() != type.isNoTag()) {
 				return false;
 			}
 			
@@ -1435,7 +1515,7 @@ namespace locic {
 						return false;
 					}
 					
-					if (isFunctionNoExcept() != type.isFunctionNoExcept()) {
+					if (functionNoExceptPredicate() != type.functionNoExceptPredicate()) {
 						return false;
 					}
 					

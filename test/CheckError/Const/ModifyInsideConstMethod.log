@@ -1,1 +1,1 @@
-Cannot refer to mutator method 'assign' from const object of type 'lval<int_t>\(const\(member_lval<int_t>\)\)' at position SourceLocation\(filename = (.*)/ModifyInsideConstMethod\.loci, range = \(line 5, column 3\) to \(line 5, column 15\)\)\.
+Cannot refer to mutator method 'assign' from const object of type 'lval<const\(int_t\)>\(const\(member_lval<const\(int_t\)>\)\)' at position SourceLocation\(filename = (.*)/ModifyInsideConstMethod\.loci, range = \(line 5, column 3\) to \(line 5, column 15\)\)\.

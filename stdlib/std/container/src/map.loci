@@ -3,11 +3,12 @@ export std.container 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T0 : movable, typename T1 : movable>
+		template <typename T0, typename T1>
+		move(T0 : movable and T1 : movable)
 		datatype pair(T0 first, T1 second);
 		
-		template <typename Key : movable, typename Value : movable, bool IsMapConst>
-		class map_range(varray_range<pair<Key, Value>, IsMapConst> range) {
+		template <typename Key, typename Value, bool IsMapConst>
+		class map_range(varray_range<const<IsMapConst>(pair<Key, Value>), IsMapConst> range) {
 			static create = default;
 			
 			implicitCopy = default;
@@ -48,8 +49,8 @@ export std.container 0.1.0 {
 		/**
 		 * \brief Map.
 		 */
-		template <typename Key: comparable<Key>, typename Value : movable>
-		require(Key : movable)
+		template <typename Key, typename Value>
+		//require(Key : movable)
 		// TODO: use a proper tree structure rather than an array!
 		class map(std::varray<pair<Key, Value>> array) {
 			static map<Key, Value> create() {
@@ -69,7 +70,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept {
+			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept require(Key : comparable<Key>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == key) {
 						return *(&(@array[i].second));
@@ -78,14 +79,14 @@ export std.container 0.1.0 {
 				unreachable;
 			}
 			
-			void insert(pair<Key, Value> value) {
+			void insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					assert @array[i].first != value.first;
 				}
 				@array.push_back(move value);
 			}
 			
-			bool try_insert(pair<Key, Value> value) {
+			bool try_insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == value.first) {
 						return false;
@@ -95,7 +96,7 @@ export std.container 0.1.0 {
 				return true;
 			}
 			
-			Value& get_or_insert(const Key& key) require(Key : copyable<Key> and Value : default_constructible<Value>) {
+			Value& get_or_insert(const Key& key) require(Key : movable and Key : comparable<Key> and Key : copyable<Key> and Value : default_constructible<Value> and Value : movable) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == key) {
 						return @array[i].second;

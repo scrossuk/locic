@@ -71,9 +71,9 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate Predicate::Satisfies(TemplateVar* templateVar, const Type* requirement) {
+		Predicate Predicate::Satisfies(const Type* const type, const Type* const requirement) {
 			Predicate predicate(SATISFIES);
-			predicate.templateVar_ = templateVar;
+			predicate.type_ = type;
 			predicate.requirement_ = requirement;
 			return predicate;
 		}
@@ -106,7 +106,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement());
+					return Predicate::Satisfies(satisfiesType(), satisfiesRequirement());
 				}
 				case VARIABLE:
 				{
@@ -137,7 +137,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return Predicate::Satisfies(satisfiesTemplateVar(), satisfiesRequirement()->substitute(templateVarMap));
+					return Predicate::Satisfies(satisfiesType()->substitute(templateVarMap), satisfiesRequirement()->substitute(templateVarMap));
 				}
 				case VARIABLE:
 				{
@@ -209,7 +209,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					const auto templateVar = predicate.satisfiesTemplateVar();
+					const auto templateVar = predicate.satisfiesType();
 					const auto requireType = predicate.satisfiesRequirement();
 					
 					const auto templateValue = variableAssignments.at(templateVar).typeRefType()->resolveAliases();
@@ -270,7 +270,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return templateVar == satisfiesTemplateVar() || satisfiesRequirement()->dependsOn(templateVar);
+					return satisfiesType()->dependsOn(templateVar) || satisfiesRequirement()->dependsOn(templateVar);
 				}
 				case VARIABLE:
 				{
@@ -307,7 +307,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return array.contains(satisfiesTemplateVar()) && satisfiesRequirement()->dependsOnOnly(array);
+					return satisfiesType()->dependsOnOnly(array) && satisfiesRequirement()->dependsOnOnly(array);
 				}
 				case VARIABLE:
 				{
@@ -333,7 +333,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					if (array.contains(satisfiesTemplateVar()) && satisfiesRequirement()->dependsOnOnly(array)) {
+					if (satisfiesType()->dependsOnOnly(array) && satisfiesRequirement()->dependsOnOnly(array)) {
 						return copy();
 					} else {
 						return Predicate::FromBool(conservativeDefault);
@@ -351,28 +351,64 @@ namespace locic {
 		}
 		
 		bool Predicate::implies(const SEM::Predicate& other) const {
-			// TODO: actually prove in the general case that one implies the other.
+			switch (kind()) {
+				case TRUE:
+					// Drop through.
+					break;
+				case FALSE:
+					return true;
+				case AND:
+					// (A and B) => C is true iff ((A => C) or (B => C)).
+					return andLeft().implies(other) || andRight().implies(other);
+				case OR:
+					// (A or B) => C is true iff ((A => C) and (B => C)).
+					return orLeft().implies(other) && orRight().implies(other);
+				case SATISFIES:
+				case VARIABLE:
+					// Drop through.
+					break;
+			}
 			
-			if (*this == other) {
-				// Equivalent predicates imply each other.
-				return true;
-			} else if (isFalse() || other.isTrue()) {
-				// F => anything
-				// anything => T
-				return true;
-			} else if (other.isOr() && (other.orLeft() == *this || other.orRight() == *this)) {
-				// A => A or B
-				return true;
-			} else if (isAnd() && (andLeft() == other || andRight() == other)) {
-				// A and B => A
-				return true;
-			} else {
+			switch (other.kind()) {
+				case TRUE:
+					return true;
+				case FALSE:
+					return false;
+				case AND:
+					// A => (B and C) is true iff ((A => B) and (A => C)).
+					return implies(other.andLeft()) && implies(other.andRight());
+				case OR:
+					// A => (B or C) is true iff ((A => B) or (A => C)).
+					return implies(other.orLeft()) || implies(other.orRight());
+				case SATISFIES:
+				case VARIABLE:
+					// Drop through.
+					break;
+			}
+			
+			if (kind() != other.kind()) {
 				return false;
+			}
+			
+			switch (kind()) {
+				case SATISFIES:
+					// TODO: this needs to be improved to allow covariant
+					// treatment of the requirement type (e.g. T : copyable_and_movable<T>
+					// implies T : movable).
+					return satisfiesType() == other.satisfiesType() && satisfiesRequirement() == other.satisfiesRequirement();
+				case VARIABLE:
+					return variableTemplateVar() == other.variableTemplateVar();
+				default:
+					throw std::logic_error("Reached unreachable block in 'implies'.");
 			}
 		}
 		
 		Predicate::Kind Predicate::kind() const {
 			return kind_;
+		}
+		
+		bool Predicate::isTrivialBool() const {
+			return isTrue() || isFalse();
 		}
 		
 		bool Predicate::isTrue() const {
@@ -419,9 +455,9 @@ namespace locic {
 			return *right_;
 		}
 		
-		TemplateVar* Predicate::satisfiesTemplateVar() const {
+		const Type* Predicate::satisfiesType() const {
 			assert(isSatisfies());
-			return templateVar_;
+			return type_;
 		}
 		
 		const Type* Predicate::satisfiesRequirement() const {
@@ -455,7 +491,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return satisfiesTemplateVar() == other.satisfiesTemplateVar() &&
+					return satisfiesType() == other.satisfiesType() &&
 						satisfiesRequirement() == other.satisfiesRequirement();
 				}
 				case VARIABLE:
@@ -491,7 +527,7 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					hasher.add(satisfiesTemplateVar());
+					hasher.add(satisfiesType());
 					hasher.add(satisfiesRequirement());
 					break;
 				}
@@ -529,8 +565,8 @@ namespace locic {
 				}
 				case SATISFIES:
 				{
-					return makeString("satisfies(templateVar: %s, requirement: %s)",
-						satisfiesTemplateVar()->toString().c_str(),
+					return makeString("satisfies(type: %s, requirement: %s)",
+						satisfiesType()->toString().c_str(),
 						satisfiesRequirement()->toString().c_str());
 				}
 				case VARIABLE:

@@ -173,12 +173,12 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::InternalConstruct(const TypeInstance* const typeInstance, HeapArray<Value> parameters) {
+		Value Value::InternalConstruct(const Type* const parentType, HeapArray<Value> parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
 				exitStates |= param.exitStates();
 			}
-			Value value(INTERNALCONSTRUCT, typeInstance->selfType(), exitStates);
+			Value value(INTERNALCONSTRUCT, parentType, exitStates);
 			value.valueArray_ = std::move(parameters);
 			return value;
 		}
@@ -206,12 +206,16 @@ namespace locic {
 		}
 		
 		Value Value::TypeRef(const Type* const targetType, const Type* const type) {
+			assert(type->isStaticRef() && type->isBuiltInTypename());
+			
 			Value value(TYPEREF, type, ExitStates::Normal());
 			value.union_.typeRef_.targetType = targetType;
 			return value;
 		}
 		
 		Value Value::TemplateVarRef(const TemplateVar* const targetVar, const Type* const type) {
+			assert(type->isBuiltInBool());
+			
 			Value value(TEMPLATEVARREF, type, ExitStates::Normal());
 			value.union_.templateVarRef_.templateVar = targetVar;
 			return value;
@@ -225,7 +229,8 @@ namespace locic {
 				exitStates |= param.exitStates();
 			}
 			
-			if (!functionType->isFunctionNoExcept()) {
+			// TODO: this needs to store the noexcept predicate somehow...
+			if (!functionType->functionNoExceptPredicate().isTrue()) {
 				exitStates |= ExitStates::Throw();
 			}
 			
@@ -958,7 +963,7 @@ namespace locic {
 					for (const auto& parameter: value.internalConstructParameters()) {
 						parameters.push_back(parameter.copy());
 					}
-					return Value::InternalConstruct(value.type()->getObjectType(), std::move(parameters));
+					return Value::InternalConstruct(value.type(), std::move(parameters));
 				}
 				case Value::MEMBERACCESS:
 					return Value::MemberAccess(value.memberAccessObject().copy(), value.memberAccessVar(), value.type());
@@ -1026,6 +1031,25 @@ namespace locic {
 					return array.contains(const_cast<TemplateVar*>(templateVar()));
 				default:
 					assert(false && "dependsOnOnly() not implemented for this value kind.");
+			}
+		}
+		
+		Value Value::substitute(const TemplateVarMap& templateVarMap) const {
+			switch (kind()) {
+				case CONSTANT:
+					return copy();
+				case TYPEREF:
+					return SEM::Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
+				case TEMPLATEVARREF: {
+					const auto iterator = templateVarMap.find(templateVar());
+					if (iterator != templateVarMap.end()) {
+						return iterator->second.copy();
+					} else {
+						return copy();
+					}
+				}
+				default:
+					assert(false && "substitute() not implemented for this value kind.");
 			}
 		}
 		

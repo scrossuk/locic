@@ -44,7 +44,7 @@ namespace locic {
 				
 				static Predicate Or(Predicate left, Predicate right);
 				
-				static Predicate Satisfies(TemplateVar* templateVar, const Type* requirement);
+				static Predicate Satisfies(const Type* type, const Type* requirement);
 				
 				static Predicate Variable(TemplateVar* templateVar);
 				
@@ -97,6 +97,7 @@ namespace locic {
 				
 				Kind kind() const;
 				
+				bool isTrivialBool() const;
 				bool isTrue() const;
 				bool isFalse() const;
 				bool isAnd() const;
@@ -110,7 +111,7 @@ namespace locic {
 				const Predicate& orLeft() const;
 				const Predicate& orRight() const;
 				
-				TemplateVar* satisfiesTemplateVar() const;
+				const Type* satisfiesType() const;
 				const Type* satisfiesRequirement() const;
 				
 				TemplateVar* variableTemplateVar() const;
@@ -131,6 +132,7 @@ namespace locic {
 				std::unique_ptr<Predicate> left_, right_;
 				
 				TemplateVar* templateVar_;
+				const Type* type_;
 				const Type* requirement_;
 				
 		};

@@ -114,7 +114,7 @@ namespace locic {
 						return nullptr;
 					}
 					
-					if (!sourceType->isFunctionNoExcept() && destType->isFunctionNoExcept()) {
+					if (!destType->functionNoExceptPredicate().implies(sourceType->functionNoExceptPredicate())) {
 						return nullptr;
 					}
 					
@@ -127,8 +127,8 @@ namespace locic {
 					}
 					
 					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionMethod(),
-						sourceType->isFunctionTemplated(),
-						sourceType->isFunctionNoExcept(), returnType, std::move(paramTypes));
+						sourceType->isFunctionTemplated(), destType->functionNoExceptPredicate().copy(),
+						returnType, std::move(paramTypes));
 				}
 				case SEM::Type::METHOD: {
 					const auto functionType = ImplicitCastTypeFormatOnlyChain(sourceType->getMethodFunctionType(), destType->getMethodFunctionType(), hasConstChain, location);
@@ -243,7 +243,7 @@ location, bool isTopLevel) {
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
-			return resultType->createConstType(SEM::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
+			return resultType->createTransitiveConstType(SEM::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
 		
 		inline static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
@@ -288,7 +288,7 @@ location, bool isTopLevel) {
 			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
-			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
+			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
 				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
 				Optional<SEM::Value>();
 		}
@@ -303,7 +303,7 @@ location, bool isTopLevel) {
 			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
-			return methodSetSatisfiesRequirement(sourceMethodSet, destMethodSet) ?
+			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
 				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
 				Optional<SEM::Value>();
 		}
@@ -317,13 +317,13 @@ location, bool isTopLevel) {
 			const auto destDerefType = getDerefType(destType)->createConstType(SEM::Predicate::False());
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
-				const auto castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
+				const auto& castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
 				
 				const auto& requiresPredicate = castFunction->requiresPredicate();
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
 				const auto& castTemplateVar = castFunction->templateVariables().front();
-				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type())));
+				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
 				
 				// Conservatively assume require predicate is not satisified if result is undetermined.
 				const bool satisfiesRequiresDefault = false;

@@ -43,7 +43,8 @@ namespace sf {
 			sfRectangleShape_destroy(@shape);
 		}
 		
-		sfRectangleShape* raw() const noexcept {
+		template <bool IsConst>
+		const<IsConst>(sfRectangleShape)* raw() const(IsConst) noexcept {
 			return @shape;
 		}
 		

@@ -15,8 +15,9 @@ namespace locic {
 		
 		class MethodSetElement {
 			public:
-				MethodSetElement(Array<SEM::TemplateVar*, 8> templateVariables, SEM::Predicate constPredicate,
-					bool isNoExcept, bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
+				MethodSetElement(Array<SEM::TemplateVar*, 8> templateVariables,
+					SEM::Predicate constPredicate, SEM::Predicate noexceptPredicate, SEM::Predicate requirePredicate,
+					bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
 				
 				MethodSetElement(MethodSetElement&&) = default;
 				MethodSetElement& operator=(MethodSetElement&&) = default;
@@ -25,8 +26,9 @@ namespace locic {
 				
 				const SEM::TemplateVarArray& templateVariables() const;
 				const SEM::Predicate& constPredicate() const;
+				const SEM::Predicate& noexceptPredicate() const;
+				const SEM::Predicate& requirePredicate() const;
 				
-				bool isNoExcept() const;
 				bool isStatic() const;
 				const SEM::Type* returnType() const;
 				const SEM::TypeArray& parameterTypes() const;
@@ -37,38 +39,30 @@ namespace locic {
 				
 				bool operator==(const MethodSetElement& methodSetElement) const;
 				
-				//bool operator<(const MethodSetElement& methodSetElement) const;
+				std::string toString() const;
 				
 			private:
 				SEM::TemplateVarArray templateVariables_;
 				SEM::Predicate constPredicate_;
-				bool isNoExcept_, isStatic_;
+				SEM::Predicate noexceptPredicate_;
+				SEM::Predicate requirePredicate_;
+				bool isStatic_;
 				const SEM::Type* returnType_;
 				SEM::TypeArray parameterTypes_;
 				
 		};
 		
 		constexpr size_t MethodSetElementBaseSize = 32;
-		constexpr size_t MethodSetFilterBaseSize = 8;
 		
 		class MethodSet {
 			public:
-				enum FilterReason {
-					NotFiltered,
-					NotFound,
-					IsMutator
-				};
-				
 				typedef std::pair<String, MethodSetElement> Element;
 				typedef Array<Element, MethodSetElementBaseSize> ElementSet;
 				typedef ElementSet::const_iterator iterator;
 				
-				typedef std::pair<String, FilterReason> Filter;
-				typedef Array<Filter, MethodSetFilterBaseSize> FilterSet;
-				
 				static const MethodSet* getEmpty(const Context& context);
 				
-				static const MethodSet* get(const Context& context, ElementSet elements, FilterSet filters);
+				static const MethodSet* get(const Context& context, ElementSet elements);
 				
 				MethodSet(MethodSet&&) = default;
 				MethodSet& operator=(MethodSet&&) = default;
@@ -84,27 +78,21 @@ namespace locic {
 				
 				bool hasMethod(const String& name) const;
 				
-				const FilterSet& filterSet() const;
-				FilterReason getFilterReason(const String& name) const;
-				
-				const MethodSet* substitute(const SEM::TemplateVarMap& templateAssignments) const;
-				
 				std::size_t hash() const;
 				
 				bool operator==(const MethodSet& methodSet) const;
 				
-				//bool operator<(const MethodSet& methodSet) const;
+				std::string toString() const;
 				
 			private:
 				// Non-copyable.
 				MethodSet(const MethodSet&) = delete;
 				MethodSet& operator=(const MethodSet&) = delete;
 				
-				MethodSet(const Context& context, ElementSet elements, FilterSet filters);
+				MethodSet(const Context& context, ElementSet elements);
 				
 				const Context& context_;
 				ElementSet elements_;
-				FilterSet filters_;
 				
 		};
 		
@@ -118,7 +106,7 @@ namespace locic {
 		
 		const MethodSet* unionMethodSets(const MethodSet* setA, const MethodSet* setB);
 		
-		bool methodSetSatisfiesRequirement(const MethodSet* checkSet, const MethodSet* requireSet);
+		bool methodSetSatisfiesRequirement(Context& context, const MethodSet* checkSet, const MethodSet* requireSet);
 		
 	}
 	

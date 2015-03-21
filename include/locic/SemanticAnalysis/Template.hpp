@@ -12,7 +12,11 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
+		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+			SEM::ValueArray values, const Debug::SourceLocation& location,
+			SEM::TemplateVarMap variableAssignments = SEM::TemplateVarMap());
+		
+		SEM::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
 		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateVarArray& templateVariables);
 		

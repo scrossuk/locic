@@ -1,15 +1,24 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CONVERTFUNCTIONDECL_HPP
 #define LOCIC_SEMANTICANALYSIS_CONVERTFUNCTIONDECL_HPP
 
+#include <memory>
+
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
-#include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& function, SEM::ModuleScope moduleScope);
+	namespace SEM {
+		
+		class Function;
+		class ModuleScope;
+		
+	}
+	
+	namespace SemanticAnalysis {
+		
+		class Context;
+		
+		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& function, SEM::ModuleScope moduleScope);
 		
 	}
 	

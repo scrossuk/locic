@@ -1,0 +1,8 @@
+# Datatype tests.
+
+test_check_error(CompareMultiLevelNonComparableDatatype)
+test_check_error(CompareNonComparableDatatype)
+test_check_error(ComparePartiallyNonComparableDatatype)
+test_check_error(CopyMultiLevelNonCopyableDatatype)
+test_check_error(CopyNonCopyableDatatype)
+test_check_error(CopyPartiallyNonCopyableDatatype)

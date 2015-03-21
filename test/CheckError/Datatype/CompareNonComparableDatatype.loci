@@ -1,0 +1,9 @@
+class TestClass() {
+	// Not comparable.
+}
+
+datatype TestDatatype(TestClass object);
+
+bool doCompare(const TestDatatype& a, const TestDatatype& b) {
+	return a == b;
+}

@@ -14,16 +14,30 @@ namespace locic {
 			public:
 				enum Kind {
 					NONE,
+					NOPREDICATE,
 					EXPR
 				};
 				
+				// Not specified.
 				static RequireSpecifier* None();
 				
+				// Specified without a predicate.
+				static RequireSpecifier* NoPredicate();
+				
+				// Specified with a predicate.
 				static RequireSpecifier* Expr(const Node<Predicate>& expr);
 				
 				Kind kind() const;
 				
+				bool isNone() const;
+				
+				bool isNoPredicate() const;
+				
+				bool isExpr() const;
+				
 				const Node<Predicate>& expr() const;
+				
+				std::string toString() const;
 				
 			private:
 				Kind kind_;

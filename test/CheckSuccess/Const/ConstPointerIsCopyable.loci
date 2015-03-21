@@ -1,0 +1,6 @@
+template <typename T>
+require(notag(T) : movable and T : implicit_copyable<T>)
+class CheckIsCopyable() { }
+
+import CheckIsCopyable<int*> checkMutablePointerIsCopyable();
+import CheckIsCopyable<const(int*)> checkConstPointerIsCopyable();

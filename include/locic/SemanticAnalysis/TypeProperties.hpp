@@ -34,8 +34,6 @@ namespace locic {
 		
 		SEM::Value CallValue(Context& context, SEM::Value value, HeapArray<SEM::Value> args, const Debug::SourceLocation& location);
 		
-		bool supportsNullConstruction(Context& context, const SEM::Type* type);
-		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type);
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* type);

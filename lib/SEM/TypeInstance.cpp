@@ -9,6 +9,7 @@
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -120,6 +121,14 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
+		const Optional<Predicate>& TypeInstance::movePredicate() const {
+			return movePredicate_;
+		}
+		
+		void TypeInstance::setMovePredicate(Predicate predicate) {
+			movePredicate_ = make_optional(std::move(predicate));
+		}
+		
 		const Predicate& TypeInstance::requiresPredicate() const {
 			return requiresPredicate_;
 		}
@@ -152,11 +161,11 @@ namespace locic {
 			return variables_;
 		}
 		
-		FastMap<String, Function*>& TypeInstance::functions() {
+		FastMap<String, std::unique_ptr<Function>>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const FastMap<String, Function*>& TypeInstance::functions() const {
+		const FastMap<String, std::unique_ptr<Function>>& TypeInstance::functions() const {
 			return functions_;
 		}
 		
@@ -196,6 +205,14 @@ namespace locic {
 		
 		const Type* TypeInstance::parentType() const {
 			return parentType_;
+		}
+		
+		const TemplateVarArray& TypeInstance::noTagSet() const {
+			return noTagSet_;
+		}
+		
+		void TypeInstance::setNoTagSet(TemplateVarArray newNoTagSet) {
+			noTagSet_ = std::move(newNoTagSet);
 		}
 		
 		void TypeInstance::setDebugInfo(const Debug::TypeInstanceInfo newDebugInfo) {
@@ -259,7 +276,7 @@ namespace locic {
 							  refToString().c_str(),
 							  makeArrayPtrString(templateVariables_).c_str(),
 							  makeArrayPtrString(variables_).c_str(),
-							  makeMapPtrString(functions_).c_str());
+							  makeMapString(functions_).c_str());
 		}
 		
 	}

@@ -1,0 +1,2 @@
+checkValue: TestData<bool>(false)
+checkValue: TestData<bool>(true)

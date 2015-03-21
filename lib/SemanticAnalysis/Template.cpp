@@ -40,7 +40,84 @@ namespace locic {
 			
 		}
 		
-		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+				SEM::ValueArray values, const Debug::SourceLocation& location, SEM::TemplateVarMap variableAssignments) {
+			const auto& templateVariables = templatedObject.templateVariables();
+			
+			assert(templateVariables.size() == values.size());
+			
+			for (size_t i = 0; i < templateVariables.size(); i++) {
+				const auto& templateVar = templateVariables[i];
+				auto& templateValue = values[i];
+				
+				if (templateVar->type() != templateValue.type()->withoutTags()) {
+					throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
+						templateValue.toString().c_str(), templateValue.type()->toString().c_str(),
+						templateVar->type()->toString().c_str(),
+						templateVar->name().toString().c_str(), location.toString().c_str()));
+				}
+				
+				if (templateValue.isTypeRef()) {
+					const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
+					
+					// Presumably auto will always work...
+					if (!templateTypeValue->isAuto()) {
+						if (!templateTypeValue->isObjectOrTemplateVar()) {
+							throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
+								"as template parameter %llu for function or type '%s' at position %s.",
+								templateTypeValue->toString().c_str(),
+								(unsigned long long) i,
+								templatedObject.name().toString().c_str(),
+								location.toString().c_str()));
+						}
+						
+						if (templateTypeValue->isInterface()) {
+							throw ErrorException(makeString("Cannot use abstract type '%s' "
+								"as template parameter %llu for function or type '%s' at position %s.",
+								templateTypeValue->getObjectType()->name().toString().c_str(),
+								(unsigned long long) i,
+								templatedObject.name().toString().c_str(),
+								location.toString().c_str()));
+						}
+					}
+				}
+				
+				variableAssignments.insert(std::make_pair(templateVar, std::move(templateValue)));
+			}
+			
+			// Check the assignments satisfy the requires predicate.
+			// 
+			// It's possible that we get to this point before the requires predicate
+			// is actually known, so we have to save the types provided and a pointer
+			// to the templated object (e.g. a type instance) so the requires predicate
+			// can be queried from it later.
+			// 
+			// This is then checked as part of a Semantic Analysis pass that runs when
+			// all the requires predicates are guaranteed to be known.
+			if (context.templateRequirementsComplete()) {
+				// Requires predicate is already known so check it immediately.
+				const auto& requiresPredicate = templatedObject.requiresPredicate();
+				
+				// Conservatively assume require predicate is not satisified if result is undetermined.
+				const bool satisfiesRequiresDefault = false;
+				
+				if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
+					throw ErrorException(makeString("Template arguments do not satisfy "
+						"requires predicate '%s' of function or type '%s' at position %s.",
+						requiresPredicate.substitute(variableAssignments).toString().c_str(),
+						templatedObject.name().toString().c_str(),
+						location.toString().c_str()));
+				}
+			} else {
+				// Record this instantiation to be checked later.
+				context.templateInstantiations().push_back(
+					TemplateInst(context.scopeStack().copy(), variableAssignments.copy(), &templatedObject, templatedObject.name().copy(), location));
+			}
+			
+			return variableAssignments;
+		}
+		
+		SEM::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
 			const auto& location = astSymbol.location();
 			
 			const Name fullName = astSymbol->createName();
@@ -71,73 +148,12 @@ namespace locic {
 							location.toString().c_str()));
 					}
 					
-					// Add template var -> value assignments to map.
-					for (size_t j = 0; j < templateVariables.size(); j++) {
-						const auto& templateVar = templateVariables[j];
-						auto templateValue = ConvertValue(context, astTemplateArgs->at(j));
-						
-						if (templateVar->type() != templateValue.type()->withoutTags()) {
-							throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
-								templateValue.toString().c_str(), templateValue.type()->toString().c_str(),
-								templateVar->type()->toString().c_str(),
-								templateVar->name().toString().c_str(), location.toString().c_str()));
-						}
-						
-						// Presumably auto will always work...
-						if (templateValue.isTypeRef()) {
-							const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
-							if (!templateTypeValue->isAuto()) {
-								if (!templateTypeValue->isObjectOrTemplateVar()) {
-									throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
-										"as template parameter %llu for function or type '%s' at position %s.",
-										templateTypeValue->toString().c_str(),
-										(unsigned long long) j,
-										name.toString().c_str(),
-										location.toString().c_str()));
-								}
-								
-								if (templateTypeValue->isInterface()) {
-									throw ErrorException(makeString("Cannot use abstract type '%s' "
-										"as template parameter %llu for function or type '%s' at position %s.",
-										templateTypeValue->getObjectType()->name().toString().c_str(),
-										(unsigned long long) j,
-										name.toString().c_str(),
-										location.toString().c_str()));
-								}
-							}
-						}
-						
-						variableAssignments.insert(std::make_pair(templateVariables.at(j), std::move(templateValue)));
+					SEM::ValueArray templateValues;
+					for (const auto& astTemplateArg: *astTemplateArgs) {
+						templateValues.push_back(ConvertValue(context, astTemplateArg));
 					}
 					
-					// Check the assignments satisfy the requires predicate.
-					// 
-					// It's possible that we get to this point before the requires predicate
-					// is actually known, so we have to save the types provided and a pointer
-					// to the templated object (e.g. a type instance) so the requires predicate
-					// can be queried from it later.
-					// 
-					// This is then checked as part of a Semantic Analysis pass that runs when
-					// all the requires predicates are guaranteed to be known.
-					if (context.templateRequirementsComplete()) {
-						// Requires predicate is already known so check it immediately.
-						const auto& requiresPredicate = templatedObject->requiresPredicate();
-						
-						// Conservatively assume require predicate is not satisified if result is undetermined.
-						const bool satisfiesRequiresDefault = false;
-						
-						if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
-							throw ErrorException(makeString("Template arguments do not satisfy "
-								"requires predicate '%s' of function or type '%s' at position %s.",
-								requiresPredicate.toString().c_str(),
-								name.toString().c_str(),
-								location.toString().c_str()));
-						}
-					} else {
-						// Record this instantiation to be checked later.
-						context.templateInstantiations().push_back(
-							TemplateInst(context.scopeStack().copy(), variableAssignments.copy(), templatedObject, name.copy(), location));
-					}
+					variableAssignments = GenerateTemplateVarMap(context, *templatedObject, std::move(templateValues), location, std::move(variableAssignments));
 				} else {
 					if (numTemplateArguments > 0) {
 						throw ErrorException(makeString("%llu template "
@@ -169,7 +185,7 @@ namespace locic {
 			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 			
 			for (const auto& arg: typeArray) {
-				templateArguments.push_back(SEM::Value::TypeRef(arg, typenameType));
+				templateArguments.push_back(SEM::Value::TypeRef(arg, typenameType->createStaticRefType(arg)));
 			}
 			
 			return templateArguments;

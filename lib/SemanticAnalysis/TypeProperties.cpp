@@ -63,6 +63,19 @@ namespace locic {
 			
 		}
 		
+		const SEM::Type* simplifyFunctionType(Context& context, const SEM::Type* const oldFunctionType) {
+			assert(oldFunctionType->isFunction());
+			
+			const bool isVarArg = oldFunctionType->isFunctionVarArg();
+			const bool isMethod = oldFunctionType->isFunctionMethod();
+			const bool isTemplated = oldFunctionType->isFunctionTemplated();
+			auto noexceptPredicate = reducePredicate(context, oldFunctionType->functionNoExceptPredicate().copy());
+			const auto returnType = oldFunctionType->getFunctionReturnType();
+			const auto& argTypes = oldFunctionType->getFunctionParameterTypes();
+			
+			return SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, argTypes.copy());
+		}
+		
 		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
@@ -97,10 +110,12 @@ namespace locic {
 			
 			if (targetType->isObject()) {
 				// Get the actual function so we can refer to it.
-				const auto function = targetType->getObjectType()->functions().at(canonicalMethodName);
+				const auto& function = targetType->getObjectType()->functions().at(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function, {}, function->type()->substitute(functionTypeTemplateMap)), location);
+				const auto functionType = simplifyFunctionType(context, function->type()->substitute(functionTypeTemplateMap));
+				
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionType), location);
 				
 				if (targetType->isInterface()) {
 					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value)), location);
@@ -142,31 +157,16 @@ namespace locic {
 					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
 			}
 			
-			// TODO: only get method set for template variables, since object
-			// methods can have templated methods.
 			const auto methodSet = getTypeMethodSet(context, type);
 			
 			const auto canonicalMethodName = CanonicalizeMethodName(methodName);
 			const auto methodIterator = methodSet->find(canonicalMethodName);
 			
 			if (methodIterator == methodSet->end()) {
-				// The method may have been filtered out, so let's find out why.
-				const auto filterReason = methodSet->getFilterReason(canonicalMethodName);
-				
-				if (filterReason == MethodSet::IsMutator) {
-					// Only check for template variables.
-					if (!type->isObject()) {
-						throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
-							methodName.c_str(),
-							type->toString().c_str(),
-							location.toString().c_str()));
-					}
-				} else {
-					throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
-						methodName.c_str(),
-						type->toString().c_str(),
-						location.toString().c_str()));
-				}
+				throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
+					methodName.c_str(),
+					type->toString().c_str(),
+					location.toString().c_str()));
 			}
 			
 			const auto& methodElement = methodIterator->second;
@@ -179,7 +179,7 @@ namespace locic {
 			
 			if (type->isObject()) {
 				// Get the actual function so we can check its template arguments and refer to it.
-				const auto function = type->getObjectType()->functions().at(canonicalMethodName);
+				const auto& function = type->getObjectType()->functions().at(canonicalMethodName);
 				const auto& templateVariables = function->templateVariables();
 				
 				auto templateVariableAssignments = type->generateTemplateVarMap();
@@ -229,24 +229,6 @@ namespace locic {
 					}
 				}
 				
-				// Now check the template arguments satisfy the requires predicate.
-				const auto& requiresPredicate = function->requiresPredicate();
-				
-				// Conservatively assume require predicate is not satisified if result is undetermined.
-				const bool satisfiesRequiresDefault = false;
-				
-				if (!evaluatePredicateWithDefault(context, requiresPredicate, templateVariableAssignments, satisfiesRequiresDefault)) {
-					for (const auto& argPair: templateVariableAssignments) {
-						printf("\n%s\n\n", argPair.second.toString().c_str());
-					}
-					
-					throw ErrorException(makeString("Template arguments do not satisfy "
-						"requires predicate '%s' of method '%s' at position %s.",
-						requiresPredicate.toString().c_str(),
-						function->name().toString().c_str(),
-						location.toString().c_str()));
-				}
-				
 				const auto methodConstPredicate = function->constPredicate().substitute(templateVariableAssignments);
 				
 				if (!objectConstPredicate.implies(methodConstPredicate)) {
@@ -256,7 +238,23 @@ namespace locic {
 						location.toString().c_str()));
 				}
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), function->type()->substitute(templateVariableAssignments)), location);
+				// Now check the template arguments satisfy the requires predicate.
+				const auto& requiresPredicate = function->requiresPredicate();
+				
+				// Conservatively assume require predicate is not satisified if result is undetermined.
+				const bool satisfiesRequiresDefault = false;
+				
+				if (!evaluatePredicateWithDefault(context, requiresPredicate, templateVariableAssignments, satisfiesRequiresDefault)) {
+					throw ErrorException(makeString("Template arguments do not satisfy "
+						"requires predicate '%s' of method '%s' at position %s.",
+						requiresPredicate.substitute(templateVariableAssignments).toString().c_str(),
+						function->name().toString().c_str(),
+						location.toString().c_str()));
+				}
+				
+				const auto functionType = simplifyFunctionType(context, function->type()->substitute(templateVariableAssignments));
+				
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function.get(), std::move(templateArguments), functionType), location);
 				
 				if (type->isInterface()) {
 					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
@@ -329,13 +327,9 @@ namespace locic {
 			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);
 			
-			const bool result = methodSetSatisfiesRequirement(sourceMethodSet, requireMethodSet);
+			const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 			context.setCapability(type, capability, result);
 			return result;
-		}
-		
-		bool supportsNullConstruction(Context& context, const SEM::Type* type) {
-			return checkCapability(context, type, context.getCString("null_constructible"), {});
 		}
 		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
@@ -351,7 +345,7 @@ namespace locic {
 					const auto methodIterator = typeInstance->functions().find(context.getCString("implicitcast"));
 					if (methodIterator == typeInstance->functions().end()) return false;
 					
-					const auto function = methodIterator->second;
+					const auto& function = methodIterator->second;
 					if (function->type()->isFunctionVarArg()) return false;
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;
@@ -377,19 +371,23 @@ namespace locic {
 		}
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("implicit_copyable"), { type->resolveAliases()->withoutTags() });
+			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
+				checkCapability(context, type, context.getCString("implicit_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("noexcept_implicit_copyable"), { type->resolveAliases()->withoutTags() });
+			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
+				checkCapability(context, type, context.getCString("noexcept_implicit_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("copyable"), { type->resolveAliases()->withoutTags() });
+			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
+				checkCapability(context, type, context.getCString("copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("noexcept_copyable"), { type->resolveAliases()->withoutTags() });
+			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
+				checkCapability(context, type, context.getCString("noexcept_copyable"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsCompare(Context& context, const SEM::Type* const type) {

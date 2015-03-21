@@ -29,9 +29,10 @@ export std.memory 0.1.0 {
 				}
 			}
 			
-			shared_ptr<T> implicit_copy() const noexcept {
+			template <bool IsConst>
+			shared_ptr<const<IsConst>(T)> implicit_copy() const(IsConst) noexcept {
 				(*@countField) += 1u;
-				return @(@countField, @ptr);
+				return @<const<IsConst>(T)>(@countField, @ptr);
 			}
 			
 			template <bool IsConst>

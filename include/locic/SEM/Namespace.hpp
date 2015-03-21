@@ -2,6 +2,7 @@
 #define LOCIC_SEM_NAMESPACE_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include <locic/Support/FastMap.hpp>
@@ -26,13 +27,18 @@ namespace locic {
 					TYPEINSTANCE
 				};
 				
-				static NamespaceItem Function(Function* function);
+				static NamespaceItem Function(std::unique_ptr<Function> function);
 				
-				static NamespaceItem Namespace(Namespace* nameSpace);
+				static NamespaceItem Namespace(std::unique_ptr<Namespace> nameSpace);
 				
-				static NamespaceItem TypeAlias(TypeAlias* typeAlias);
+				static NamespaceItem TypeAlias(std::unique_ptr<TypeAlias> typeAlias);
 				
-				static NamespaceItem TypeInstance(TypeInstance* typeInstance);
+				static NamespaceItem TypeInstance(std::unique_ptr<TypeInstance> typeInstance);
+				
+				NamespaceItem(NamespaceItem&&) = default;
+				NamespaceItem& operator=(NamespaceItem&) = default;
+				
+				~NamespaceItem();
 				
 				Kind kind() const;
 				
@@ -41,15 +47,18 @@ namespace locic {
 				bool isTypeAlias() const;
 				bool isTypeInstance() const;
 				
-				SEM::Function* function() const;
-				SEM::Namespace* nameSpace() const;
-				SEM::TypeAlias* typeAlias() const;
-				SEM::TypeInstance* typeInstance() const;
+				SEM::Function& function() const;
+				SEM::Namespace& nameSpace() const;
+				SEM::TypeAlias& typeAlias() const;
+				SEM::TypeInstance& typeInstance() const;
 				
 				std::string toString() const;
 				
 			private:
 				NamespaceItem(Kind pKind);
+				
+				NamespaceItem(const NamespaceItem&) = delete;
+				NamespaceItem& operator=(const NamespaceItem&) = delete;
 				
 				Kind kind_;
 				

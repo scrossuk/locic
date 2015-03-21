@@ -11,8 +11,10 @@
 
 namespace locic {
 	
-	namespace SEM {
+	class String;
 	
+	namespace SEM {
+		
 		class Context;
 		class TemplateVar;
 		class Type;
@@ -38,7 +40,7 @@ namespace locic {
 				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
-				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, bool isNoExcept, const Type* returnType, TypeArray parameterTypes);
+				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, Predicate noExceptPredicate, const Type* returnType, TypeArray parameterTypes);
 				static const Type* Method(const Type* functionType);
 				static const Type* InterfaceMethod(const Type* functionType);
 				static const Type* StaticInterfaceMethod(const Type* functionType);
@@ -48,6 +50,7 @@ namespace locic {
 				
 				const Predicate& constPredicate() const;
 				
+				bool isNoTag() const;
 				bool isLval() const;
 				bool isRef() const;
 				bool isStaticRef() const;
@@ -58,7 +61,10 @@ namespace locic {
 				const Type* staticRefTarget() const;
 				const Type* lvalOrRefTarget() const;
 				
+				const Type* createTransitiveConstType(Predicate predicate) const;
 				const Type* createConstType(Predicate predicate) const;
+				
+				const Type* createNoTagType() const;
 				const Type* createLvalType(const Type* targetType) const;
 				const Type* createRefType(const Type* targetType) const;
 				const Type* createStaticRefType(const Type* targetType) const;
@@ -74,7 +80,9 @@ namespace locic {
 				const SEM::TypeAlias* getTypeAlias() const;
 				const ValueArray& typeAliasArguments() const;
 				
+				bool isBuiltIn(const String& typeName) const;
 				bool isBuiltInVoid() const;
+				bool isBuiltInBool() const;
 				bool isBuiltInReference() const;
 				bool isBuiltInTypename() const;
 				
@@ -82,7 +90,7 @@ namespace locic {
 				bool isFunctionVarArg() const;
 				bool isFunctionMethod() const;
 				bool isFunctionTemplated() const;
-				bool isFunctionNoExcept() const;
+				const Predicate& functionNoExceptPredicate() const;
 				const Type* getFunctionReturnType() const;
 				const TypeArray& getFunctionParameterTypes() const;
 				
@@ -143,7 +151,6 @@ namespace locic {
 				bool operator!=(const Type& type) const {
 					return !(*this == type);
 				}
-				//bool operator<(const Type& type) const;
 				
 			private:
 				Type(const Context& pContext, Kind pKind);
@@ -152,11 +159,13 @@ namespace locic {
 				
 				const Context& context_;
 				Kind kind_;
+				bool isNoTag_;
 				Predicate constPredicate_;
 				const Type* lvalTarget_;
 				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
+				Predicate noExceptPredicate_;
 				TypeArray typeArray_;
 				ValueArray valueArray_;
 				
@@ -173,7 +182,6 @@ namespace locic {
 						bool isVarArg;
 						bool isMethod;
 						bool isTemplated;
-						bool isNoExcept;
 						const Type* returnType;
 					} functionType;
 					

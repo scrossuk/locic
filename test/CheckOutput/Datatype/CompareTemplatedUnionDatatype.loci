@@ -1,0 +1,33 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+template <typename T>
+datatype TestData =
+	TestData1() |
+	TestData2(T v);
+
+void checkValue(TestData<bool> data) {
+	if (data == TestData1<bool>()) {
+		testPrint(C"checkValue: TestData1<bool>()");
+		return;
+	}
+	
+	if (data == TestData2<bool>(false)) {
+		testPrint(C"checkValue: TestData2<bool>(false)");
+		return;
+	}
+	
+	if (data == TestData2<bool>(true)) {
+		testPrint(C"checkValue: TestData2<bool>(true)");
+		return;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	checkValue(TestData1<bool>());
+	checkValue(TestData2<bool>(false));
+	checkValue(TestData2<bool>(true));
+	return 0;
+}
+

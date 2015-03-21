@@ -20,6 +20,7 @@ namespace locic {
 			: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
 			  variants(makeDefaultNode<TypeInstanceList>()),
 			  variables(v), functions(f),
+			  moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
 			  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())) { }
 		
 		TypeInstance* TypeInstance::Primitive(const String& name, const Node<FunctionList>& functions) {
@@ -68,12 +69,20 @@ namespace locic {
 			return typeInstance;
 		}
 		
+		void TypeInstance::setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier) {
+			moveSpecifier = pMoveSpecifier;
+		}
+		
 		void TypeInstance::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
 			requireSpecifier = pRequireSpecifier;
 		}
 		
 		void TypeInstance::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
 			templateVariables = pTemplateVariables;
+		}
+		
+		void TypeInstance::setNoTagSet(const Node<StringList>& pNoTagSet) {
+			noTagSet = pNoTagSet;
 		}
 		
 		std::string TypeInstance::toString() const {

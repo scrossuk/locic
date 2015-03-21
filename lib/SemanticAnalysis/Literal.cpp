@@ -167,7 +167,7 @@ namespace locic {
 					const auto byteType = getBuiltInType(context, context.getCString("ubyte_t"), {});
 					
 					// Generate type 'const ubyte'.
-					const auto constByteType = byteType->createConstType(SEM::Predicate::True());
+					const auto constByteType = byteType->createTransitiveConstType(SEM::Predicate::True());
 					
 					// Generate type 'const ubyte *'.
 					return getBuiltInType(context, context.getCString("__ptr"), { constByteType });

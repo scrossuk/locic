@@ -78,13 +78,13 @@ namespace locic {
 			const bool isVarArg = false;
 			const bool isDynamicMethod = false;
 			const bool isTemplatedMethod = !semTypeInstance->templateVariables().empty();
-			const bool isNoExcept = false;
+			auto noExceptPredicate = SEM::Predicate::False();
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
 			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			semFunction->setParameters(getParameters(context, constructTypes));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, semTypeInstance->selfType(), std::move(constructTypes)));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), semTypeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		
@@ -132,7 +132,7 @@ namespace locic {
 				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));
 			}
 			
-			auto returnValue = SEM::Value::InternalConstruct(semTypeInstance, std::move(constructValues));
+			auto returnValue = SEM::Value::InternalConstruct(semTypeInstance->selfType(), std::move(constructValues));
 			
 			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
 			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));

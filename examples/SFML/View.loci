@@ -41,7 +41,8 @@ namespace sf {
 			sfView_destroy(@view);
 		}
 		
-		sfView* raw() const noexcept {
+		template <bool IsConst>
+		const<IsConst>(sfView)* raw() const(IsConst) noexcept {
 			return @view;
 		}
 		

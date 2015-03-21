@@ -1,0 +1,1 @@
+Unable to copy type 'TestDatatype' because it doesn't have a valid 'implicitcopy' method, in cast from type ref<TestDatatype>\(TestDatatype&\) to type TestDatatype at position SourceLocation\(filename = (.*)/CopyNonCopyableDatatype\.loci, range = \(line 8, column 2\) to \(line 8, column 14\)\)\.

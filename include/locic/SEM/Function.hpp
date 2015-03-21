@@ -29,7 +29,21 @@ namespace locic {
 		class TypeInstance;
 		class Var;
 		
-		class Function: public TemplatedObject {
+		/**
+		 * \brief Function
+		 * 
+		 * This class encapsulates all of the properties of
+		 * a function, including:
+		 * 
+		 * - A name
+		 * - Whether it's a static method, definition etc.
+		 * - Template variables
+		 * - Parameter variables
+		 * - Const predicate
+		 * - Require predicate
+		 * - A scope containing statements
+		 */
+		class Function final: public TemplatedObject {
 			public:
 				Function(Name pName, ModuleScope pModuleScope);
 				

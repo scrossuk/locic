@@ -2,6 +2,7 @@
 #define LOCIC_MAKESTRING_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -9,6 +10,25 @@ namespace locic{
 
 	std::string makeString(const char * format, ...)
 		__attribute__((format(printf, 1, 2)));
+	
+	template <typename T>
+	inline std::string typeToString(const T& value) {
+		return value.toString();
+	}
+	
+	template <typename T>
+	inline std::string typeToString(T* const value) {
+		return value->toString();
+	}
+	
+	template <typename T>
+	inline std::string typeToString(const std::unique_ptr<T>& value) {
+		return value->toString();
+	}
+	
+	inline std::string typeToString(const std::string& value) {
+		return value;
+	}
 	
 	template <typename T>
 	std::string makeArrayString(const T& array){
@@ -58,31 +78,8 @@ namespace locic{
 			}
 			
 			s += makeString("%s: %s",
-				pair.first.toString().c_str(),
-				pair.second.toString().c_str());
-		}
-		
-		s += "}";
-		
-		return s;
-	}
-	
-	template <typename T>
-	std::string makeMapPtrString(const T& map){
-		auto s = makeString("Map [size = %llu] {",
-			(unsigned long long) map.size());
-		
-		bool isFirst = true;
-		for (const auto& pair: map) {
-			if (isFirst) {
-				isFirst = false;
-			} else {
-				s += ", ";
-			}
-			
-			s += makeString("%s: %s",
-				pair.first.c_str(),
-				pair.second->toString().c_str());
+				typeToString(pair.first).c_str(),
+				typeToString(pair.second).c_str());
 		}
 		
 		s += "}";

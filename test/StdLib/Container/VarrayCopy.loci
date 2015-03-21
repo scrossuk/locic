@@ -17,16 +17,55 @@ class TestClass(int value) {
 	}
 }
 
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+void testCopyMutableArray() {
+	testPrint(C"---- testCopyMutableArray");
+	
 	auto varray = std::varray<TestClass>();
 	
-	for (auto i: std::counter<int>(50, 500, 50)) {
+	for (auto i: std::counter<int>(5, 15, 5)) {
 		varray.push_back(TestClass(i));
 	}
 	
 	unused auto varrayCopy = varray.copy();
+}
+
+std::varray<const TestClass> copyConstElementArray(const std::varray<TestClass>& array) {
+	return array.copy();
+}
+
+void testCopyConstElementArray() {
+	testPrint(C"---- testCopyConstElementArray");
 	
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(5, 15, 5)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	unused auto varrayCopy = copyConstElementArray(varray);
+}
+
+std::varray<TestClass> copyConstArray(const std::varray<TestClass>& array) {
+	return array.copy();
+}
+
+void testCopyConstArray() {
+	testPrint(C"---- testCopyConstArray");
+	
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(5, 15, 5)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	unused auto varrayCopy = copyConstArray(varray);
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testCopyMutableArray();
+	testCopyConstElementArray();
+	testCopyConstArray();
 	return 0;
 }
 

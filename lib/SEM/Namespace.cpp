@@ -1,3 +1,4 @@
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -6,6 +7,7 @@
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
+#include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
@@ -13,28 +15,45 @@ namespace locic {
 
 	namespace SEM {
 	
-		NamespaceItem NamespaceItem::Function(SEM::Function* function) {
+		NamespaceItem NamespaceItem::Function(std::unique_ptr<SEM::Function> function) {
 			NamespaceItem item(FUNCTION);
-			item.data_.function = function;
+			item.data_.function = function.release();
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::Namespace(SEM::Namespace* nameSpace) {
+		NamespaceItem NamespaceItem::Namespace(std::unique_ptr<SEM::Namespace> nameSpace) {
 			NamespaceItem item(NAMESPACE);
-			item.data_.nameSpace = nameSpace;
+			item.data_.nameSpace = nameSpace.release();
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::TypeAlias(SEM::TypeAlias* typeAlias) {
+		NamespaceItem NamespaceItem::TypeAlias(std::unique_ptr<SEM::TypeAlias> typeAlias) {
 			NamespaceItem item(TYPEALIAS);
-			item.data_.typeAlias = typeAlias;
+			item.data_.typeAlias = typeAlias.release();
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::TypeInstance(SEM::TypeInstance* typeInstance) {
+		NamespaceItem NamespaceItem::TypeInstance(std::unique_ptr<SEM::TypeInstance> typeInstance) {
 			NamespaceItem item(TYPEINSTANCE);
-			item.data_.typeInstance = typeInstance;
+			item.data_.typeInstance = typeInstance.release();
 			return item;
+		}
+		
+		NamespaceItem::~NamespaceItem() {
+			switch (kind()) {
+				case FUNCTION:
+					//delete data_.function;
+					return;
+				case NAMESPACE:
+					//delete data_.nameSpace;
+					return;
+				case TYPEALIAS:
+					//delete data_.typeAlias;
+					return;
+				case TYPEINSTANCE:
+					//delete data_.typeInstance;
+					return;
+			}
 		}
 		
 		NamespaceItem::Kind NamespaceItem::kind() const {
@@ -57,39 +76,39 @@ namespace locic {
 			return kind() == TYPEINSTANCE;
 		}
 		
-		Function* NamespaceItem::function() const {
+		Function& NamespaceItem::function() const {
 			assert(isFunction());
-			return data_.function;
+			return *(data_.function);
 		}
 		
-		Namespace* NamespaceItem::nameSpace() const {
+		Namespace& NamespaceItem::nameSpace() const {
 			assert(isNamespace());
-			return data_.nameSpace;
+			return *(data_.nameSpace);
 		}
 		
-		TypeAlias* NamespaceItem::typeAlias() const {
+		TypeAlias& NamespaceItem::typeAlias() const {
 			assert(isTypeAlias());
-			return data_.typeAlias;
+			return *(data_.typeAlias);
 		}
 		
-		TypeInstance* NamespaceItem::typeInstance() const {
+		TypeInstance& NamespaceItem::typeInstance() const {
 			assert(isTypeInstance());
-			return data_.typeInstance;
+			return *(data_.typeInstance);
 		}
 		
 		std::string NamespaceItem::toString() const {
 			switch (kind()) {
 				case FUNCTION:
-					return function()->toString();
+					return function().toString();
 				case NAMESPACE:
-					return nameSpace()->toString();
+					return nameSpace().toString();
 				case TYPEALIAS:
-					return typeAlias()->toString();
+					return typeAlias().toString();
 				case TYPEINSTANCE:
-					return typeInstance()->toString();
-				default:
-					return "";
+					return typeInstance().toString();
 			}
+			
+			throw std::logic_error("Unknown NamespaceItem kind.");
 		}
 		
 		NamespaceItem::NamespaceItem(Kind pKind)

@@ -137,7 +137,9 @@ namespace locic {
 			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
-					throw MissingReturnStatementException(semFunction->name().copy());
+					throw ErrorException(makeString("Control reaches end of function '%s' with non-void return type; it needs a return statement, at location %s.",
+						semFunction->name().toString().c_str(),
+						astFunctionNode.location().toString().c_str()));
 				} else {
 					// Need to add a void return statement if the program didn't.
 					semScope->statements().push_back(SEM::Statement::ReturnVoid());
@@ -146,7 +148,7 @@ namespace locic {
 			
 			DeadCodeSearchScope(context, *semScope);
 			
-			if (semFunction->type()->isFunctionNoExcept() && exitStates.hasThrowExit()) {
+			if (!semFunction->type()->functionNoExceptPredicate().isFalse() && exitStates.hasThrowExit()) {
 				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
 					semFunction->name().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));

@@ -37,36 +37,36 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genNamespaceTypes(Module& module, SEM::Namespace* nameSpace) {
-			for (const auto& itemPair: nameSpace->items()) {
+		void genNamespaceTypes(Module& module, const SEM::Namespace& nameSpace) {
+			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isNamespace()) {
 					genNamespaceTypes(module, item.nameSpace());
 				} else if (item.isTypeInstance()) {
-					const auto typeInstance = item.typeInstance();
+					const auto& typeInstance = item.typeInstance();
 					
-					if (typeInstance->isPrimitive()) {
+					if (typeInstance.isPrimitive()) {
 						// Can't generate primitive types.
 						continue;
 					}
 					
-					if (typeInstance->isInterface()) {
+					if (typeInstance.isInterface()) {
 						// Can't generate interface types.
 						continue;
 					}
 					
-					(void) genTypeInstance(module, typeInstance);
+					(void) genTypeInstance(module, &typeInstance);
 				}
 			}
 		}
 		
-		void genTypeInstanceFunctions(Module& module, SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isInterface()) {
+		void genTypeInstanceFunctions(Module& module, const SEM::TypeInstance& typeInstance) {
+			if (typeInstance.isInterface()) {
 				// Can't generate interface types.
 				return;
 			}
 			
-			const auto& functions = typeInstance->functions();
+			const auto& functions = typeInstance.functions();
 			
 			for (const auto& functionPair: functions) {
 				const auto& function = functionPair.second;
@@ -76,18 +76,23 @@ namespace locic {
 					continue;
 				}
 				
-				(void) genFunctionDef(module, typeInstance, function);
+				if (function->requiresPredicate().isFalse()) {
+					// Don't generate functions that are always invalid.
+					continue;
+				}
+				
+				(void) genFunctionDef(module, &typeInstance, function.get());
 			}
 			
 			// Only generate primitives as needed.
-			if (!typeInstance->isPrimitive()) {
-				(void) genDestructorFunctionDef(module, typeInstance);
-				(void) genAlignMaskFunction(module, typeInstance);
-				(void) genSizeOfFunction(module, typeInstance);
+			if (!typeInstance.isPrimitive()) {
+				(void) genDestructorFunctionDef(module, &typeInstance);
+				(void) genAlignMaskFunction(module, &typeInstance);
+				(void) genSizeOfFunction(module, &typeInstance);
 				
-				if (!typeInstance->templateVariables().empty()) {
-					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(typeInstance));
-					(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(typeInstance), templateBuilder);
+				if (!typeInstance.templateVariables().empty()) {
+					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));
+					(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(&typeInstance), templateBuilder);
 					
 					// Update all instructions needing the bits required value
 					// with the correct value (now it is known).
@@ -96,12 +101,12 @@ namespace locic {
 			}
 		}
 		
-		void genNamespaceFunctions(Module& module, SEM::Namespace* nameSpace) {
-			for (const auto& itemPair: nameSpace->items()) {
+		void genNamespaceFunctions(Module& module, const SEM::Namespace& nameSpace) {
+			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isFunction()) {
 					const auto parent = nullptr;
-					(void) genFunctionDef(module, parent, item.function());
+					(void) genFunctionDef(module, parent, &(item.function()));
 				} else if (item.isTypeInstance()) {
 					genTypeInstanceFunctions(module, item.typeInstance());
 				} else if (item.isNamespace()) {
@@ -146,8 +151,8 @@ namespace locic {
 		}
 		
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
-			genNamespaceTypes(*module_, nameSpace);
-			genNamespaceFunctions(*module_, nameSpace);
+			genNamespaceTypes(*module_, *nameSpace);
+			genNamespaceFunctions(*module_, *nameSpace);
 			module_->debugBuilder().finalize();
 			module_->verify();
 		}

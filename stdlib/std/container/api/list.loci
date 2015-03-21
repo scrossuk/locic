@@ -3,15 +3,15 @@ import std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T>
+		template <typename T, bool IsListConst>
 		class list_range {
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst);
+			lval<const<IsConst or IsListConst>(T)> ptr_lval<const<IsConst or IsListConst>(T)> front() const(IsConst);
 			
 			void skip_front();
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst);
+			lval<const<IsConst or IsListConst>(T)> ptr_lval<const<IsConst or IsListConst>(T)> back() const(IsConst);
 			
 			void skip_back();
 			
@@ -37,15 +37,16 @@ import std.container 0.1.0 {
 			template <bool IsConst>
 			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst);
 			
-			void push_front(T value);
+			void push_front(T value) require(T : movable);
 			
 			void pop_front() noexcept;
 			
-			void push_back(T value);
+			void push_back(T value) require(T : movable);
 			
 			void pop_back() noexcept;
 			
-			list_range<T> all() const noexcept;
+			template <bool IsConst>
+			list_range<T, IsConst> all() const(IsConst) noexcept;
 			
 		}
 		

@@ -2,15 +2,15 @@ export std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T : movable>
+		template <typename T>
 		datatype list_node(list_node<T>* previous, list_node<T>* next, T value);
 		
-		template <typename T : movable>
-		class list_range (list_node<T>* begin, list_node<T>* end) {
+		template <typename T, bool IsListConst>
+		class list_range (const<IsListConst>(list_node<T>)* begin, const<IsListConst>(list_node<T>)* end) {
 			static create = default;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) {
+			lval<const<IsConst or IsListConst>(T)> ptr_lval<const<IsConst or IsListConst>(T)> front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
@@ -26,7 +26,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) {
+			lval<const<IsConst or IsListConst>(T)> ptr_lval<const<IsConst or IsListConst>(T)> back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -49,7 +49,7 @@ export std.container 0.1.0 {
 		/**
 		 * \brief Doubly-linked list.
 		 */
-		template <typename T : movable>
+		template <typename T>
 		class list(size_t size, list_node<T>* begin, list_node<T>* end) {
 			static create() {
 				return @(0u, null, null);
@@ -97,7 +97,7 @@ export std.container 0.1.0 {
 				return *(&(@end->value));
 			}
 			
-			void push_front(T value) {
+			void push_front(T value) require(T : movable) {
 				final auto new_node = new_raw<list_node<T>>(list_node<T>(null, @begin, move value));
 				if (self.empty()) {
 					@begin = new_node;
@@ -125,7 +125,7 @@ export std.container 0.1.0 {
 				@size -= 1u;
 			}
 			
-			void push_back(T value) {
+			void push_back(T value) require(T : movable) {
 				final auto new_node = new_raw<list_node<T>>(list_node<T>(@end, null, move value));
 				if (self.empty()) {
 					@begin = new_node;
@@ -153,8 +153,9 @@ export std.container 0.1.0 {
 				@size -= 1u;
 			}
 			
-			list_range<T> all() const noexcept {
-				return list_range<T>(@begin, @end);
+			template <bool IsConst>
+			list_range<T, IsConst> all() const(IsConst) noexcept {
+				return list_range<T, IsConst>(@begin, @end);
 			}
 			
 		}

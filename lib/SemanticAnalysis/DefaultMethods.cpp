@@ -10,6 +10,7 @@
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
+#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -18,10 +19,130 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
+		
+		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			auto requirePredicate = SEM::Predicate::True();
+			
+			const auto movableType = getBuiltInType(context, context.getCString("movable"), {});
+			
+			// All member variables need to be movable.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->constructType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+			}
+			
+			// All variants need to be movable.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+			}
+			
+			return requirePredicate;
+		}
+		
+		SEM::Predicate getDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->movePredicate()) {
+				// Use a user-provided move predicate if available.
+				return typeInstance->movePredicate()->copy();
+			} else {
+				// Otherwise automatically generate a move predicate.
+				return getAutoDefaultMovePredicate(context, typeInstance);
+			}
+		}
+		
+		// A similar version of the move predicate but uses notag() to get non-const type.
+		SEM::Predicate getDefaultCopyMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			auto requirePredicate = SEM::Predicate::True();
+			
+			const auto movableType = getBuiltInType(context, context.getCString("movable"), {});
+			
+			// All member variables need to be movable.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->constructType()->createNoTagType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+			}
+			
+			// All variants need to be movable.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType()->createNoTagType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+			}
+			
+			return requirePredicate;
+		}
+		
+		SEM::Predicate getDefaultCopyPredicate(Context& context, const SEM::TypeInstance* const typeInstance, const String& propertyName) {
+			// Types must be movable to be copyable.
+			auto predicate = getDefaultCopyMovePredicate(context, typeInstance);
+			
+			// All member variables need to be copyable.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->constructType()->withoutTags();
+				const auto copyableType = getBuiltInType(context, propertyName, { varType });
+				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+			}
+			
+			// All variants need to be copyable.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType();
+				const auto copyableType = getBuiltInType(context, propertyName, { varType });
+				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+			}
+			
+			return predicate;
+		}
+		
+		SEM::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_implicit_copyable"));
+		}
+		
+		SEM::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("implicit_copyable"));
+		}
+		
+		SEM::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_copyable"));
+		}
+		
+		SEM::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("copyable"));
+		}
+		
+		SEM::Predicate getDefaultComparePredicate(Context& context, const SEM::TypeInstance* const typeInstance, const String& propertyName) {
+			auto predicate = SEM::Predicate::True();
+			
+			// All member variables need to be copyable.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->constructType()->withoutTags();
+				const auto copyableType = getBuiltInType(context, propertyName, { varType });
+				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+			}
+			
+			// All variants need to be copyable.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType();
+				const auto copyableType = getBuiltInType(context, propertyName, { varType });
+				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+			}
+			
+			return predicate;
+		}
+		
+		SEM::Predicate getDefaultCompareNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			const auto propertyName = context.getCString("noexcept_comparable");
+			return getDefaultComparePredicate(context, typeInstance, propertyName);
+		}
+		
+		SEM::Predicate getDefaultCompareRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			const auto propertyName = context.getCString("comparable");
+			return getDefaultComparePredicate(context, typeInstance, propertyName);
+		}
+		
 		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
-			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
+			
+			// This method requires move, so add the move predicate.
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -32,7 +153,7 @@ namespace locic {
 			
 			// Default constructor only moves, and since moves never
 			// throw the constructor never throws.
-			const bool isNoExcept = true;
+			auto noExceptPredicate = SEM::Predicate::True();
 			
 			auto constructTypes = typeInstance->constructTypes();
 			
@@ -44,13 +165,14 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), std::move(constructTypes)));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), typeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
-			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
+			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
 			
 			semFunction->setMethod(true);
 			
@@ -59,7 +181,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Move never throws.
-			const bool isNoExcept = true;
+			auto noExceptPredicate = SEM::Predicate::True();
 			
 			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 			const auto voidPtrType = getBuiltInType(context, context.getCString("__ptr"), { voidType });
@@ -85,69 +207,14 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, voidType, std::move(argTypes)));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), voidType, std::move(argTypes)));
 			return semFunction;
-		}
-		
-		bool HasNoExceptImplicitCopy(Context& context, SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasNoExceptImplicitCopy(context, variantTypeInstance)) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (const auto& var: typeInstance->variables()) {
-					if (!supportsNoExceptImplicitCopy(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
-		}
-		
-		bool HasNoExceptExplicitCopy(Context& context, SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasNoExceptExplicitCopy(context, variantTypeInstance)) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (const auto& var: typeInstance->variables()) {
-					if (!supportsNoExceptExplicitCopy(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
-		}
-		
-		bool HasNoExceptCompare(Context& context, SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasNoExceptCompare(context, variantTypeInstance)) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (const auto& var: typeInstance->variables()) {
-					if (!supportsNoExceptCompare(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
 		}
 		
 		SEM::Function* CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultImplicitCopyRequirePredicate(context, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -158,15 +225,20 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			const bool isNoExcept = HasNoExceptImplicitCopy(context, typeInstance);
+			auto noExceptPredicate = getDefaultImplicitCopyNoExceptPredicate(context, typeInstance);
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
+			// Implicit copy should return a notag() type.
+			const auto returnType = typeInstance->selfType()->createNoTagType();
+			
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), returnType, {}));
 			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
 			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultExplicitCopyRequirePredicate(context, typeInstance)));
+			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
 			
@@ -176,14 +248,19 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			const bool isNoExcept = HasNoExceptExplicitCopy(context, typeInstance);
+			auto noExceptPredicate = getDefaultExplicitCopyNoExceptPredicate(context, typeInstance);
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, typeInstance->selfType(), {}));
+			// Implicit copy should return a notag() type.
+			const auto returnType = typeInstance->selfType()->createNoTagType();
+			
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), returnType, {}));
 			return semFunction;
 		}
 		
 		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultCompareRequirePredicate(context, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -194,17 +271,17 @@ namespace locic {
 			
 			// Default compare method may throw since it
 			// may call child compare methods that throw.
-			const bool isNoExcept = HasNoExceptCompare(context, typeInstance);
+			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context, selfType->createConstType(SEM::Predicate::True()));
+			const auto argType = createReferenceType(context, selfType->createTransitiveConstType(SEM::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(1);
 			argTypes.push_back(argType);
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, isNoExcept, compareResultType, std::move(argTypes)));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), compareResultType, std::move(argTypes)));
 			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
 			return semFunction;
 		}
@@ -221,6 +298,13 @@ namespace locic {
 				}
 				
 				return CreateDefaultConstructorDecl(context, typeInstance, name);
+			} else if (canonicalName == "__moveto") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				return CreateDefaultMoveDecl(context, typeInstance, name);
 			} else if (canonicalName == "implicitcopy") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
@@ -248,91 +332,50 @@ namespace locic {
 				name.toString().c_str(), location.toString().c_str()));
 		}
 		
-		bool HasDefaultConstructor(Context&, SEM::TypeInstance* const typeInstance) {
-			return typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct() || typeInstance->isUnion();
+		bool HasDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+			return typeInstance->isDatatype() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct() ||
+				typeInstance->isUnion();
 		}
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(!typeInstance->isInterface() &&
-				!typeInstance->isPrimitive());
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
 			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
 			return typeInstance->functions().find(context.getCString("__moveto")) == typeInstance->functions().end();
 		}
 		
-		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(!typeInstance->isClassDecl() &&
-				!typeInstance->isInterface() &&
-				!typeInstance->isPrimitive());
-			
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasDefaultImplicitCopy(context, variantTypeInstance)) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (auto var: typeInstance->variables()) {
-					if (!supportsImplicitCopy(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
+		bool HasDefaultImplicitCopy(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+			return typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isEnum() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct() ||
+				typeInstance->isUnion() ||
+				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultExplicitCopy(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(!typeInstance->isClassDecl() &&
-				!typeInstance->isInterface() &&
-				!typeInstance->isPrimitive());
-			
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!HasDefaultExplicitCopy(context, variantTypeInstance)) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (auto var: typeInstance->variables()) {
-					if (!supportsExplicitCopy(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
+		bool HasDefaultExplicitCopy(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+			return typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isEnum() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct() ||
+				typeInstance->isUnion() ||
+				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultCompare(Context& context, SEM::TypeInstance* const typeInstance) {
-			assert(!typeInstance->isClassDecl() &&
-				!typeInstance->isInterface() &&
-				!typeInstance->isPrimitive());
-			
-			if (typeInstance->isUnion()) {
-				// No compare method for unions.
-				return false;
-			}
-			
-			if (typeInstance->isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance->variants()) {
-					if (!supportsCompare(context, variantTypeInstance->selfType())) {
-						return false;
-					}
-				}
-				return true;
-			} else {
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
-				for (auto var: typeInstance->variables()) {
-					if (!supportsCompare(context, var->constructType())) {
-						return false;
-					}
-				}
-				return true;
-			}
+		bool HasDefaultCompare(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+			return typeInstance->isClassDef() ||
+				typeInstance->isDatatype() ||
+				typeInstance->isEnum() ||
+				typeInstance->isException() ||
+				typeInstance->isStruct() ||
+				typeInstance->isUnionDatatype();
 		}
 		
 		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
@@ -352,7 +395,7 @@ namespace locic {
 					constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), context.getCString("move"), location), {}, location));
 				}
 				
-				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));
+				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
 				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 				
 				function->setScope(std::move(functionScope));
@@ -460,23 +503,44 @@ namespace locic {
 					copyValues.push_back(std::move(copyResult));
 				}
 				
-				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(copyValues));
+				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(copyValues));
 				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			}
 			
 			function->setScope(std::move(functionScope));
 		}
 		
-		void CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			if (!typeInstance->isClassDef() && !supportsImplicitCopy(context, typeInstance->selfType())) {
+				// Can't actually do implicit copy (presumably member types don't support it).
+				// We still try to generate the method for class definitions since the user
+				// requested these to be generated and hence will want to see the error.
+				return false;
+			}
 			CreateDefaultCopy(context, context.getCString("implicitcopy"), typeInstance, function, location);
+			return true;
 		}
 		
-		void CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+			if (!typeInstance->isClassDef() && !supportsExplicitCopy(context, typeInstance->selfType())) {
+				// Can't actually do copy (presumably member types don't support it).
+				// We still try to generate the method for class definitions since the user
+				// requested these to be generated and hence will want to see the error.
+				return false;
+			}
 			CreateDefaultCopy(context, context.getCString("copy"), typeInstance, function, location);
+			return true;
 		}
 		
-		void CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
+			if (!typeInstance->isClassDef() && !supportsCompare(context, typeInstance->selfType())) {
+				// Can't actually do compare (presumably member types don't support it).
+				// We still try to generate the method for class definitions since the user
+				// requested these to be generated and hence will want to see the error.
+				return false;
+			}
+			
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
 			
 			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
@@ -552,40 +616,45 @@ namespace locic {
 			}
 			
 			function->setScope(std::move(functionScope));
+			return true;
 		}
 		
-		void CreateDefaultMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+		bool CreateDefaultMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl() && !typeInstance->isInterface());
 			assert(function->isDeclaration());
+			
+			PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(function));
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "__moveto") {
 				CreateDefaultMove(context, typeInstance, function, location);
+				return true;
 			} else if (canonicalName == "create") {
 				assert(!typeInstance->isException());
 				CreateDefaultConstructor(context, typeInstance, function, location);
+				return true;
 			} else if (canonicalName == "implicitcopy") {
 				if (!HasDefaultImplicitCopy(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				CreateDefaultImplicitCopy(context, typeInstance, function, location);
+				return CreateDefaultImplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "copy") {
 				if (!HasDefaultExplicitCopy(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				CreateDefaultExplicitCopy(context, typeInstance, function, location);
+				return CreateDefaultExplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "compare") {
 				if (!HasDefaultCompare(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' cannot be generated because member types do not support it, at position %s.",
+					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
 						name.toString().c_str(), location.toString().c_str()));
 				}
 				
-				CreateDefaultCompare(context, typeInstance, function, location);
+				return CreateDefaultCompare(context, typeInstance, function, location);
 			} else {
 				throw std::runtime_error(makeString("Unknown default method '%s'.", name.toString().c_str()));
 			}

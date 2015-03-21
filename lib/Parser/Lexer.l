@@ -123,6 +123,7 @@ nolval                  { return NOLVAL; }
 ref                     { return REF; }
 staticref               { return STATICREF; }
 noref                   { return NOREF; }
+notag                   { return NOTAG; }
 
 using                   { return USING; }
 static                  { return STATIC; }

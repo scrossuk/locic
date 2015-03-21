@@ -28,7 +28,7 @@ namespace locic {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
-				hashMap.insert(CreateMethodNameHash(functionPair.first), functionPair.second);
+				hashMap.insert(CreateMethodNameHash(functionPair.first), functionPair.second.get());
 			}
 			
 			return hashMap;

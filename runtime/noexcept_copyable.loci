@@ -1,9 +1,0 @@
-template <typename T: movable>
-interface noexcept_copyable {
-	T copy() const noexcept;
-}
-
-template <typename T: movable>
-interface noexcept_implicit_copyable {
-	T implicit_copy() const noexcept;
-}

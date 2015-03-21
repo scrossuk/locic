@@ -84,26 +84,26 @@ namespace locic {
 			const auto iterator = rootElement.nameSpace()->items().find(typeName);
 			assert(iterator != rootElement.nameSpace()->items().end() && "Failed to find built-in type!");
 			
-			const auto value = iterator->second;
+			const auto& value = iterator->second;
 			assert(value.isTypeInstance() || value.isTypeAlias());
 			
 			SEM::ValueArray templateArgValues;
 			templateArgValues.reserve(templateArgs.size());
 			
-			const auto& templateVariables = (value.isTypeInstance() ? value.typeInstance()->templateVariables() : value.typeAlias()->templateVariables());
+			const auto& templateVariables = (value.isTypeInstance() ? value.typeInstance().templateVariables() : value.typeAlias().templateVariables());
 			
 			for (size_t i = 0; i < templateArgs.size(); i++) {
 				const auto& argVar = templateVariables[i];
 				const auto& argType = templateArgs[i];
-				templateArgValues.push_back(SEM::Value::TypeRef(argType, argVar->type()));
+				templateArgValues.push_back(SEM::Value::TypeRef(argType, argVar->type()->createStaticRefType(argType)));
 			}
 			
 			if (value.isTypeInstance()) {
-				assert(templateArgs.size() == value.typeInstance()->templateVariables().size());
-				return SEM::Type::Object(value.typeInstance(), std::move(templateArgValues));
+				assert(templateArgs.size() == value.typeInstance().templateVariables().size());
+				return SEM::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
 			} else {
-				assert(templateArgs.size() == value.typeAlias()->templateVariables().size());
-				return SEM::Type::Alias(value.typeAlias(), std::move(templateArgValues));
+				assert(templateArgs.size() == value.typeAlias().templateVariables().size());
+				return SEM::Type::Alias(&(value.typeAlias()), std::move(templateArgValues));
 			}
 		}
 		

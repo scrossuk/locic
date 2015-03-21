@@ -5,6 +5,25 @@ namespace locic {
 
 	namespace SEM {
 		
+		/**
+		 * \brief Exit States
+		 * 
+		 * Every statement and value can be exited in zero
+		 * (for the unreachable statement) or more ways;
+		 * this class represents the set of states by
+		 * which a statement or value can be exited.
+		 * 
+		 * The include:
+		 * 
+		 * - 'Normally' (i.e. continue to next statement
+		 *               or evaluate outer value).
+		 * - Return: Exit the function via a return.
+		 * - Break: Exit an enclosing control flow scope.
+		 * - Continue: Go to the beginning on an enclosing
+		 *             control flow scope.
+		 * - Throw: Exit the function via a throw.
+		 * - Rethrow: Exit a catch scope via a re-throw.
+		 */
 		class ExitStates {
 		public:
 			static ExitStates None() {

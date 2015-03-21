@@ -78,6 +78,8 @@ namespace locic {
 				assert(typeInstance == nullptr);
 			}
 			
+			assert(!function->requiresPredicate().isFalse());
+			
 			{
 				const auto iterator = module.getFunctionDeclMap().find(function);
 				

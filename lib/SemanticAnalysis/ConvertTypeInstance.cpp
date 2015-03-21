@@ -5,6 +5,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -13,7 +14,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const size_t value) {
+		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function& function, const size_t value) {
 			assert(typeInstance->isEnum());
 			
 			auto functionScope = SEM::Scope::Create();
@@ -24,10 +25,19 @@ namespace locic {
 			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
 			constructValues.push_back(SEM::Value::Constant(intConstant, intType));
 			
-			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance, std::move(constructValues));
+			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
 			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			
-			function->setScope(std::move(functionScope));
+			function.setScope(std::move(functionScope));
+		}
+		
+		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+			const bool created = CreateDefaultMethod(context, typeInstance, function, location);
+			if (!created) {
+				// Make sure that the require predicate is false so
+				// CodeGen understands not to generate this function.
+				function->setRequiresPredicate(SEM::Predicate::False());
+			}
 		}
 		
 		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
@@ -43,9 +53,9 @@ namespace locic {
 					createdMove = true;
 				}
 				
-				const auto semChildFunction = semTypeInstance->functions().at(methodName);
+				auto& semChildFunction = semTypeInstance->functions().at(methodName);
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction.get()));
 				ConvertFunctionDef(context, astFunctionNode);
 			}
 			
@@ -55,7 +65,7 @@ namespace locic {
 				for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
 					const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
 					CreateEnumConstructorMethod(context, semTypeInstance,
-						semTypeInstance->functions().at(canonicalMethodName), enumValue++);
+						*(semTypeInstance->functions().at(canonicalMethodName)), enumValue++);
 				}
 			}
 			
@@ -63,14 +73,14 @@ namespace locic {
 			if ((semTypeInstance->isClassDef() || semTypeInstance->isException() || semTypeInstance->isStruct() ||
 					semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype() ||
 					semTypeInstance->isEnum() || semTypeInstance->isUnion()) && !createdMove) {
-				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(moveString), astTypeInstanceNode.location());
+				(void) CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(moveString).get(), astTypeInstanceNode.location());
 			}
 			
 			// Generate default constructor for applicable types.
 			if (semTypeInstance->isException()) {
-				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")));
+				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")).get());
 			} else if (semTypeInstance->isDatatype() || semTypeInstance->isStruct() || semTypeInstance->isUnion()) {
-				CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")), astTypeInstanceNode.location());
+				(void) CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")).get(), astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
@@ -78,7 +88,7 @@ namespace locic {
 					semTypeInstance->isUnionDatatype() || semTypeInstance->isUnion()) {
 				const auto iterator = semTypeInstance->functions().find(context.getCString("implicitcopy"));
 				if (iterator != semTypeInstance->functions().end()) {
-					CreateDefaultMethod(context, semTypeInstance, iterator->second, astTypeInstanceNode.location());
+					CreateDefaultMethodOrRemove(context, semTypeInstance, iterator->second.get(), astTypeInstanceNode.location());
 				}
 			}
 			
@@ -86,8 +96,29 @@ namespace locic {
 			if (semTypeInstance->isEnum() || semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
 				const auto iterator = semTypeInstance->functions().find(context.getCString("compare"));
 				if (iterator != semTypeInstance->functions().end()) {
-					CreateDefaultMethod(context, semTypeInstance, iterator->second, astTypeInstanceNode.location());
+					CreateDefaultMethodOrRemove(context, semTypeInstance, iterator->second.get(), astTypeInstanceNode.location());
 				}
+			}
+			
+			// Simplify all predicates to avoid confusing CodeGen.
+			for (auto& functionPair: semTypeInstance->functions()) {
+				auto& function = *(functionPair.second);
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(&function));
+				function.setConstPredicate(reducePredicate(context, function.constPredicate().copy()));
+				function.setRequiresPredicate(reducePredicate(context, function.requiresPredicate().copy()));
+				
+				// Simplify function type noexcept predicate.
+				const auto oldFunctionType = function.type();
+				
+				const bool isVarArg = oldFunctionType->isFunctionVarArg();
+				const bool isMethod = oldFunctionType->isFunctionMethod();
+				const bool isTemplated = oldFunctionType->isFunctionTemplated();
+				auto noexceptPredicate = reducePredicate(context, oldFunctionType->functionNoExceptPredicate().copy());
+				const auto returnType = oldFunctionType->getFunctionReturnType();
+				const auto& argTypes = oldFunctionType->getFunctionParameterTypes();
+				
+				const auto newFunctionType = SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, argTypes.copy());
+				function.setType(newFunctionType);
 			}
 		}
 		

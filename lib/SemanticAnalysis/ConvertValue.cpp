@@ -145,10 +145,8 @@ namespace locic {
 			
 			const auto methodSet = getTypeMethodSet(context, derefType);
 			
-			const auto filterReason = methodSet->getFilterReason(CanonicalizeMethodName(memberName));
-			
 			// Look for methods.
-			if (filterReason != MethodSet::NotFound) {
+			if (methodSet->hasMethod(CanonicalizeMethodName(memberName))) {
 				if (getDerefType(value.type())->isStaticRef()) {
 					return GetStaticMethod(context, std::move(value), memberName, location);
 				} else {
@@ -215,7 +213,7 @@ namespace locic {
 					const auto searchResult = performSymbolLookup(context, name);
 					
 					// Get a map from template variables to their values (i.e. types).
-					const auto templateVarMap = GenerateTemplateVarMap(context, astSymbolNode);
+					const auto templateVarMap = GenerateSymbolTemplateVarMap(context, astSymbolNode);
 					
 					if (searchResult.isNone()) {
 						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
@@ -571,6 +569,7 @@ namespace locic {
 					return SEM::Value::NoRef(std::move(sourceValue));
 				}
 				case AST::Value::INTERNALCONSTRUCT: {
+					const auto& astTemplateArgs = astValueNode->internalConstruct.templateArgs;
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					
 					const auto thisTypeInstance = lookupParentType(context.scopeStack());
@@ -579,6 +578,31 @@ namespace locic {
 						throw ErrorException(makeString("Cannot call internal constructor in non-method at position %s.",
 							location.toString().c_str()));
 					}
+					
+					if (!astTemplateArgs->empty() && astTemplateArgs->size() != thisTypeInstance->templateVariables().size()) {
+						throw ErrorException(makeString("Internal constructor given "
+							   "incorrect number of template arguments; received %llu, expected %llu at position %s.",
+							(unsigned long long) astTemplateArgs->size(),
+							(unsigned long long) thisTypeInstance->templateVariables().size(),
+							location.toString().c_str()));
+					}
+					
+					SEM::ValueArray templateArgs;
+					templateArgs.reserve(thisTypeInstance->templateVariables().size());
+					
+					if (!astTemplateArgs->empty()) {
+						assert(astTemplateArgs->size() == thisTypeInstance->templateVariables().size());
+						for (const auto& astTemplateArg: *astTemplateArgs) {
+							templateArgs.push_back(ConvertValue(context, astTemplateArg));
+						}
+					} else {
+						for (const auto& templateVar: thisTypeInstance->templateVariables()) {
+							templateArgs.push_back(templateVar->selfRefValue());
+						}
+					}
+					
+					const auto templateVarMap = GenerateTemplateVarMap(context, *thisTypeInstance, std::move(templateArgs), location);
+					const auto thisType = SEM::Type::Object(thisTypeInstance, GetTemplateValues(templateVarMap, thisTypeInstance->templateVariables()));
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
 						throw ErrorException(makeString("Internal constructor called "
@@ -594,11 +618,11 @@ namespace locic {
 					for (size_t i = 0; i < thisTypeInstance->variables().size(); i++) {
 						const auto semVar = thisTypeInstance->variables().at(i);
 						auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						auto semParam = ImplicitCast(context, std::move(semValue), semVar->constructType(), location);
+						auto semParam = ImplicitCast(context, std::move(semValue), semVar->constructType()->substitute(templateVarMap), location);
 						semValues.push_back(std::move(semParam));
 					}
 					
-					return SEM::Value::InternalConstruct(thisTypeInstance, std::move(semValues));
+					return SEM::Value::InternalConstruct(thisType, std::move(semValues));
 				}
 				case AST::Value::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;

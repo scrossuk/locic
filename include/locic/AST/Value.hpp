@@ -143,6 +143,7 @@ namespace locic {
 			} makeNoRef;
 			
 			struct {
+				Node<ValueList> templateArgs;
 				Node<ValueList> parameters;
 			} internalConstruct;
 			
@@ -269,8 +270,9 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* InternalConstruct(const Node<ValueList>& parameters) {
+			static Value* InternalConstruct(const Node<ValueList>& templateArgs, const Node<ValueList>& parameters) {
 				Value* value = new Value(INTERNALCONSTRUCT);
+				value->internalConstruct.templateArgs = templateArgs;
 				value->internalConstruct.parameters = parameters;
 				return value;
 			}

@@ -12,7 +12,7 @@ import {
 	
 	void sfRenderWindow_clear(sfRenderWindow* renderWindow, sfColor color) noexcept;
 	
-	sfVector2i sfRenderWindow_getSize(sfRenderWindow* renderWindow) noexcept;
+	sfVector2i sfRenderWindow_getSize(const sfRenderWindow* renderWindow) noexcept;
 	
 	void sfRenderWindow_setFramerateLimit(sfRenderWindow* renderWindow, int limit) noexcept;
 	

@@ -1,0 +1,4 @@
+class SomeClass() { }
+
+template <SomeClass T>
+using TestAlias = int;

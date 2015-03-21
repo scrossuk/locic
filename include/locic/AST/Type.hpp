@@ -29,7 +29,7 @@ namespace locic {
 				AUTO,
 				CONST,
 				CONSTPREDICATE,
-				MUTABLE,
+				NOTAG,
 				LVAL,
 				REF,
 				STATICREF,
@@ -53,7 +53,7 @@ namespace locic {
 			
 			struct {
 				Node<Type> targetType;
-			} mutableType;
+			} noTagType;
 			
 			struct {
 				Node<Type> targetType;
@@ -122,9 +122,9 @@ namespace locic {
 				return type;
 			}
 			
-			inline static Type* Mutable(Node<Type> targetType) {
-				Type* type = new Type(MUTABLE);
-				type->mutableType.targetType = targetType;
+			inline static Type* NoTag(Node<Type> targetType) {
+				Type* type = new Type(NOTAG);
+				type->noTagType.targetType = targetType;
 				return type;
 			}
 			
@@ -227,13 +227,13 @@ namespace locic {
 				return constPredicateType.targetType;
 			}
 			
-			inline bool isMutable() const {
-				return typeEnum == MUTABLE;
+			inline bool isNoTag() const {
+				return typeEnum == NOTAG;
 			}
 			
-			inline Node<Type> getMutableTarget() const {
-				assert(isMutable());
-				return mutableType.targetType;
+			inline Node<Type> getNoTagTarget() const {
+				assert(isNoTag());
+				return noTagType.targetType;
 			}
 			
 			inline bool isLval() const {

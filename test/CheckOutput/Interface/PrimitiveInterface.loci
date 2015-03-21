@@ -1,9 +1,10 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-template <typename T : movable>
+template <typename T>
+require(notag(T) : movable)
 interface PrimitiveInterface {
-	T add(const T& value) const;
+	notag(T) add(const T& value) const;
 }
 
 void polymorphicAddAndPrint(const PrimitiveInterface<int>& value1, int value2) {

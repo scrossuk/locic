@@ -16,7 +16,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Function* findNamespaceFunction(Context& context, const Name& name) {
+		SEM::Function& findNamespaceFunction(Context& context, const Name& name) {
 			assert(!name.empty());
 			const auto semNamespace = context.scopeStack().back().nameSpace();
 			if (name.size() == 1) {
@@ -25,7 +25,7 @@ namespace locic {
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name.getPrefix());
-				return searchResult.typeInstance()->functions().at(CanonicalizeMethodName(name.last()));
+				return *(searchResult.typeInstance()->functions().at(CanonicalizeMethodName(name.last())));
 			}
 		}
 		
@@ -35,8 +35,8 @@ namespace locic {
 			
 			if (name->size() == 1) {
 				// Normal namespace function.
-				const auto semChildFunction = semNamespace->items().at(name->last()).function();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				auto& semChildFunction = semNamespace->items().at(name->last()).function();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(&semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			} else {
 				// Extension method.
@@ -45,9 +45,9 @@ namespace locic {
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
 				
-				const auto semChildFunction = semTypeInstance->functions().at(CanonicalizeMethodName(name->last()));
+				auto& semChildFunction = semTypeInstance->functions().at(CanonicalizeMethodName(name->last()));
 				
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction.get()));
 				
 				ConvertFunctionDef(context, astFunctionNode);
 			}
@@ -65,24 +65,24 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				const auto semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
 				ConvertNamespaceData(context, astNamespaceNode->data);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					const auto semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+					auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
 					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
 					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 				
 				for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					const auto semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
+					auto& semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
 					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semVariantTypeInstance));
 					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 			}

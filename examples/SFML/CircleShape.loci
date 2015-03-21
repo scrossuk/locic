@@ -43,7 +43,8 @@ namespace sf {
 			sfCircleShape_destroy(@shape);
 		}
 		
-		sfCircleShape* raw() const noexcept {
+		template <bool IsConst>
+		const<IsConst>(sfCircleShape)* raw() const(IsConst) noexcept {
 			return @shape;
 		}
 		

@@ -27,7 +27,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Function* ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
+		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
 			const SEM::Type* semReturnType = NULL;
@@ -37,7 +37,7 @@ namespace locic {
 			const auto& name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
-			const auto semFunction = new SEM::Function(fullName.copy(), std::move(moduleScope));
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(fullName.copy(), std::move(moduleScope)));
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
@@ -82,6 +82,14 @@ namespace locic {
 				// Also adding the function template variable type here.
 				const auto& astVarType = astTemplateVarNode->varType;
 				const auto semVarType = ConvertType(context, astVarType);
+				
+				if (!semVarType->isBuiltInBool() && !semVarType->isBuiltInTypename()) {
+					throw ErrorException(makeString("Template variable '%s' in function '%s' has invalid type '%s', at position %s.",
+						templateVarName.c_str(), semFunction->name().toString().c_str(),
+						semVarType->toString().c_str(),
+						astTemplateVarNode.location().toString().c_str()));
+				}
+				
 				semTemplateVar->setType(semVarType);
 				
 				semFunction->templateVariables().push_back(semTemplateVar);
@@ -89,7 +97,7 @@ namespace locic {
 			}
 			
 			// Enable lookups for function template variables.
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semFunction));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semFunction.get()));
 			
 			// Convert const specifier.
 			if (!astFunctionNode->constSpecifier().isNull()) {
@@ -131,13 +139,14 @@ namespace locic {
 			
 			semFunction->setParameters(std::move(parameterVars));
 			
+			auto noexceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
 			const bool isDynamicMethod = isMethod && !astFunctionNode->isStatic();
 			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
 			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(),
 				isDynamicMethod, isTemplatedMethod,
-				astFunctionNode->isNoExcept(), semReturnType, std::move(parameterTypes));
+				std::move(noexceptPredicate), semReturnType, std::move(parameterTypes));
 			semFunction->setType(functionType);
 			
 			assert(semFunction->isDeclaration());

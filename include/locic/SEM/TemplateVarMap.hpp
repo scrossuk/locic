@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <string>
 
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/Array.hpp>
@@ -101,6 +102,8 @@ namespace locic {
 					}
 					return array_.end();
 				}
+				
+				std::string toString() const;
 				
 			private:
 				ArrayType array_;

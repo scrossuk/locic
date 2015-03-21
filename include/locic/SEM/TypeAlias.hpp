@@ -21,7 +21,7 @@ namespace locic {
 		class Type;
 		class TypeAlias;
 		
-		class TypeAlias: public TemplatedObject {
+		class TypeAlias final: public TemplatedObject {
 			public:
 				TypeAlias(Context& context, Name name);
 				

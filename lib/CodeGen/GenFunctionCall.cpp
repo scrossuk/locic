@@ -123,7 +123,16 @@ namespace locic {
 			
 			llvm::Value* encodedCallReturnValue = nullptr;
 			
-			if (!functionType->isFunctionNoExcept() && anyUnwindActions(function, UnwindStateThrow)) {
+			// Some functions will only be noexcept in certain cases but for
+			// CodeGen purposes we're looking for a guarantee of noexcept
+			// in all cases, hence we look for always-true noexcept predicates.
+			if (!functionType->functionNoExceptPredicate().isTrivialBool()) {
+				assert(!functionType->functionNoExceptPredicate().dependsOnOnly({}));
+			}
+			
+			// If the function can throw and we have pending unwind actions, generate a
+			// landing pad to execute those actions.
+			if (!functionType->functionNoExceptPredicate().isTrue() && anyUnwindActions(function, UnwindStateThrow)) {
 				const auto successPath = function.createBasicBlock("");
 				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
@@ -259,7 +268,7 @@ namespace locic {
 					
 					return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(newArgs), debugLoc, hintResultValue);
 				} else {
-					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name));
+					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name)).get();
 					const auto argInfo = getFunctionArgInfo(function.module(), methodInfo.functionType);
 					const auto functionPtr = genFunctionRef(function, type, targetFunction, methodInfo.functionType);
 					

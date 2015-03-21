@@ -210,7 +210,7 @@ namespace locic {
 			}
 			
 			// Use custom 'moveto' method if available.
-			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto"));
+			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
 			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
 			
 			module.getMoveFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));

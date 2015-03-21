@@ -88,8 +88,7 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).__destroy_value();
 			}
 			
-			template <bool IsConst>
-			varray<const<IsConst>(T)> copy() const(IsConst) require(T : movable and T: copyable<T>) {
+			varray<notag(T)> copy() const require(notag(T) : movable and T : copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {

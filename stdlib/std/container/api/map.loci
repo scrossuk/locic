@@ -3,7 +3,8 @@ import std.container 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T0 : movable, typename T1 : movable>
+		template <typename T0, typename T1>
+		move(T0 : movable and T1 : movable)
 		datatype pair(T0 first, T1 second);
 		
 		template <typename T>
@@ -19,8 +20,7 @@ import std.container 0.1.0 {
 		/**
 		 * \brief Map.
 		 */
-		template <typename Key: comparable<Key>, typename Value : movable>
-		require(Key : movable)
+		template <typename Key, typename Value>
 		class map {
 			static map<Key, Value> create();
 			
@@ -33,17 +33,17 @@ import std.container 0.1.0 {
 			template <bool IsConst>
 			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept;
 			
-			void insert(pair<Key, Value> value);
+			void insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable);
 			
-			bool try_insert(pair<Key, Value> value);
+			bool try_insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable);
 			
-			Value& get_or_insert(const Key& key) require(Key : copyable<Key> and Value : default_constructible<Value>);
+			Value& get_or_insert(const Key& key) require(Key : movable and Key : comparable<Key> and Key : copyable<Key> and Value : default_constructible<Value> and Value : movable);
 			
 			template <bool IsConst>
 			map_range<Key, Value, IsConst> all() const(IsConst) noexcept;
 		}
 		
-		template <typename Key : movable, typename Value : movable, bool IsMapConst>
+		template <typename Key, typename Value, bool IsMapConst>
 		class map_range {
 			map_range<Key, Value, IsMapConst> implicitCopy() const noexcept;
 			

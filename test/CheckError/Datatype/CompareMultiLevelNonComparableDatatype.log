@@ -1,0 +1,1 @@
+Template arguments do not satisfy requires predicate 'satisfies\(type: TestDatatype2, requirement: comparable<TestDatatype2>\)' of method '::TestDatatype3::compare' at position SourceLocation\(filename = (.*)/CompareMultiLevelNonComparableDatatype\.loci, range = \(line 12, column 9\) to \(line 12, column 15\)\)\.

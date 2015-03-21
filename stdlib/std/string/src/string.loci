@@ -172,7 +172,7 @@ export std.string 0.1.0 {
 			return serialize(self);
 		}
 		
-		std::string serialize(const ulonglong_t value) {
+		std::string serialize(ulonglong_t value) {
 			auto bytes = std::varray<ubyte>();
 			bytes.resize(10u);
 			unused_result sprintf(bytes.data(), C"%llu", value);

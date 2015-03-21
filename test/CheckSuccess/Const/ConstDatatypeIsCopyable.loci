@@ -1,0 +1,8 @@
+template <typename T>
+require(notag(T) : movable and T : implicit_copyable<T>)
+class CheckIsCopyable() { }
+
+datatype Data(int value);
+
+import CheckIsCopyable<Data> checkMutableDataIsCopyable();
+import CheckIsCopyable<const Data> checkConstDataIsCopyable();

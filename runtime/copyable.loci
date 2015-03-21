@@ -1,9 +1,23 @@
-template <typename T: movable>
+template <typename T>
+require(notag(T) : movable)
 interface copyable {
-	T copy() const;
+	notag(T) copy() const;
 }
 
-template <typename T: movable>
+template <typename T>
+require(notag(T) : movable)
 interface implicit_copyable {
-	T implicit_copy() const;
+	notag(T) implicit_copy() const;
+}
+
+template <typename T>
+require(notag(T) : movable)
+interface noexcept_copyable {
+	notag(T) copy() const noexcept;
+}
+
+template <typename T>
+require(notag(T) : movable)
+interface noexcept_implicit_copyable {
+	notag(T) implicit_copy() const noexcept;
 }

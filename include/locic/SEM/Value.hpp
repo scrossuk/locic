@@ -247,7 +247,7 @@ namespace locic {
 				 * This creates an instance of the parent object type using
 				 * the 'internal constructor', a special auto-generated method.
 				 */
-				static Value InternalConstruct(const TypeInstance* typeInstance, HeapArray<Value> parameters);
+				static Value InternalConstruct(const Type* parentType, HeapArray<Value> parameters);
 				
 				/**
 				 * \brief Access member variable
@@ -474,6 +474,8 @@ namespace locic {
 				bool dependsOn(const TemplateVar* const templateVar) const;
 				bool dependsOnAny(const TemplateVarArray& array) const;
 				bool dependsOnOnly(const TemplateVarArray& array) const;
+				
+				Value substitute(const TemplateVarMap& templateVarMap) const;
 				
 				std::string toString() const;
 				

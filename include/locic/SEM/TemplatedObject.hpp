@@ -5,6 +5,8 @@
 
 namespace locic {
 	
+	class Name;
+	
 	namespace SEM {
 		
 		class Predicate;
@@ -12,6 +14,8 @@ namespace locic {
 		
 		class TemplatedObject {
 			public:
+				virtual const Name& name() const = 0;
+				
 				virtual TemplateVarArray& templateVariables() = 0;
 				
 				virtual const TemplateVarArray& templateVariables() const = 0;

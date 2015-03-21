@@ -12,7 +12,7 @@ class TestClass(int value) {
 	}
 }
 
-class OwnerClass(int id, std::shared_ptr<TestClass> ptr) {
+class OwnerClass(int id, std::shared_ptr<const TestClass> ptr) {
 	static create(int id, std::shared_ptr<TestClass> ptr) {
 		testPrint(C"Create owner%d.", id);
 		return @(id, move ptr);

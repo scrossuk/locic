@@ -14,68 +14,72 @@ namespace locic {
 
 	namespace AST {
 	
-		Function* Function::Decl(bool isVarArg, bool isStatic, bool isNoExcept,
+		Function* Function::Decl(bool isVarArg, bool isStatic,
 				const Node<Type>& returnType, const Node<Name>& name,
 				const Node<TypeVarList>& parameters,
 				const Node<ConstSpecifier>& constSpecifier,
+				const Node<RequireSpecifier>& noexceptSpecifier,
 				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = false;
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = isVarArg;
 			function->isStatic_ = isStatic;
-			function->isNoExcept_ = isNoExcept;
 			function->returnType_ = returnType;
 			function->parameters_ = parameters;
 			function->scope_ = Node<Scope>();
 			function->constSpecifier_ = constSpecifier;
+			function->noexceptSpecifier_ = noexceptSpecifier;
 			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
 		
-		Function* Function::Def(bool isVarArg, bool isStatic, bool isNoExcept,
+		Function* Function::Def(bool isVarArg, bool isStatic,
 				const Node<Type>& returnType, const Node<Name>& name,
 				const Node<TypeVarList>& parameters,
 				const Node<Scope>& scope,
 				const Node<ConstSpecifier>& constSpecifier,
+				const Node<RequireSpecifier>& noexceptSpecifier,
 				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = isVarArg;
 			function->isStatic_ = isStatic;
-			function->isNoExcept_ = isNoExcept;
 			function->returnType_ = returnType;
 			function->parameters_ = parameters;
 			function->scope_ = scope;
 			function->constSpecifier_ = constSpecifier;
+			function->noexceptSpecifier_ = noexceptSpecifier;
 			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
 		
-		Function* Function::DefaultStaticMethodDef(const Node<Name>& name) {
+		Function* Function::DefaultStaticMethodDef(const Node<Name>& name,
+				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
 			function->isStatic_ = true;
-			function->isNoExcept_ = false;
 			function->returnType_ = Node<Type>();
 			function->parameters_ = Node<TypeVarList>();
 			function->scope_ = Node<Scope>();
+			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
 		
-		Function* Function::DefaultMethodDef(const Node<Name>& name) {
+		Function* Function::DefaultMethodDef(const Node<Name>& name,
+				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
 			function->isDefinition_ = true;
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
 			function->isStatic_ = false;
-			function->isNoExcept_ = false;
 			function->returnType_ = Node<Type>();
 			function->parameters_ = Node<TypeVarList>();
 			function->scope_ = Node<Scope>();
+			function->requireSpecifier_ = requireSpecifier;
 			return function;
 		}
 		
@@ -85,7 +89,6 @@ namespace locic {
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = false;
 			function->isStatic_ = false;
-			function->isNoExcept_ = true;
 			function->returnType_ = makeNode(scope.location(), Type::Void());
 			function->parameters_ = makeDefaultNode<TypeVarList>();
 			function->scope_ = scope;
@@ -95,7 +98,7 @@ namespace locic {
 		Function::Function(const Node<Name>& pName) :
 			isDefinition_(false), isDefaultDefinition_(false),
 			isVarArg_(false), isStatic_(false),
-			isNoExcept_(false), isImported_(false), isExported_(false),
+			isImported_(false), isExported_(false),
 			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()) { }
 		
 		bool Function::isDeclaration() const {
@@ -116,10 +119,6 @@ namespace locic {
 		
 		bool Function::isVarArg() const {
 			return isVarArg_;
-		}
-		
-		bool Function::isNoExcept() const {
-			return isNoExcept_;
 		}
 		
 		bool Function::isImported() const {
@@ -155,6 +154,10 @@ namespace locic {
 		
 		const Node<ConstSpecifier>& Function::constSpecifier() const {
 			return constSpecifier_;
+		}
+		
+		const Node<RequireSpecifier>& Function::noexceptSpecifier() const {
+			return noexceptSpecifier_;
 		}
 		
 		const Node<RequireSpecifier>& Function::requireSpecifier() const {
