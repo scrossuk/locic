@@ -57,22 +57,24 @@ function(loci_link name binary_name flags primary_module)
 			${LLVM_OPT_EXECUTABLE} -internalize -internalize-public-api-file="${primary_module}.unsafe.symbols.txt" -o "${binary_name}_linked_unsafe.bc" "${binary_name}_linked_unsafe_raw.bc"
 		COMMAND
 			# Run 'opt' multiple times for maximum optimisation.
-			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_linked_unsafe.bc -o ${binary_name}_opt0.bc &&
-			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc &&
-			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc &&
-			
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_linked_unsafe.bc -o ${binary_name}_opt0.bc
+		COMMAND
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt0.bc -o ${binary_name}_opt1.bc
+		COMMAND
+			${LLVM_OPT_EXECUTABLE} -O3 ${binary_name}_opt1.bc -o ${binary_name}_final.bc
+		COMMAND
 			# Disassemble for debugging.
-			${LLVM_DIS_EXECUTABLE} ${binary_name}_final.bc -o ${binary_name}_final.ll &&
-			
+			${LLVM_DIS_EXECUTABLE} ${binary_name}_final.bc -o ${binary_name}_final.ll
+		COMMAND
 			# Use 'llc' to generate non-optimised platform object file.
-			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc &&
-			
-			# Use 'clang' to generate non-optimised platform binary.
-			${CLANG_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm ${flags} &&
-			
+			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}.o ${binary_name}_linked.bc
+		COMMAND
 			# Use 'llc' to generate optimised platform object file.
-			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc &&
-			
+			${LLVM_LLC_EXECUTABLE} -filetype=obj -o ${binary_name}_optimised.o ${binary_name}_final.bc
+		COMMAND
+			# Use 'clang' to generate non-optimised platform binary.
+			${CLANG_EXECUTABLE} -o ${binary_name} ${binary_name}.o -lm ${flags}
+		COMMAND
 			# Use 'clang' to generate optimised platform binary.
 			${CLANG_EXECUTABLE} -s -o ${binary_name}_optimised ${binary_name}_optimised.o -lm ${flags}
 		DEPENDS ${primary_module} ${primary_module}.unsafe.bc ${${name}_Sources} loci-runtime-bc

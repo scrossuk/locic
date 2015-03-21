@@ -1,0 +1,8 @@
+exception TestError();
+
+class TestClass() {
+	~ {
+		throw TestError();
+	}
+}
+

@@ -76,8 +76,7 @@ namespace locic {
 						
 						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("front"), location), {}, location);
 						
-						const bool isMember = false;
-						const auto loopVar = ConvertInitialisedVar(context, isMember, astTypeVarNode, currentValue.type());
+						const auto loopVar = ConvertInitialisedVar(context, astTypeVarNode, currentValue.type());
 						iterationScope->variables().push_back(loopVar);
 						
 						iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(loopVar,

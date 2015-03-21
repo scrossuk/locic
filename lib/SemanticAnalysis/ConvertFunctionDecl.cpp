@@ -129,8 +129,7 @@ namespace locic {
 						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				const bool isMemberVar = false;
-				const auto paramVar = ConvertVar(context, isMemberVar, astTypeVarNode);
+				const auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astTypeVarNode);
 				assert(paramVar->isBasic());
 				
 				parameterTypes.push_back(paramVar->constructType());
@@ -140,6 +139,11 @@ namespace locic {
 			semFunction->setParameters(std::move(parameterVars));
 			
 			auto noexceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
+			if (name == "__destructor") {
+				// Destructors are always noexcept.
+				noexceptPredicate = SEM::Predicate::True();
+			}
+			
 			const bool isDynamicMethod = isMethod && !astFunctionNode->isStatic();
 			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());

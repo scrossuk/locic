@@ -453,8 +453,7 @@ namespace locic {
 						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				const bool isMemberVar = true;
-				const auto var = ConvertVar(context, isMemberVar, astTypeVarNode);
+				const auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astTypeVarNode);
 				assert(var->isBasic());
 				
 				// Add mapping from position to variable.

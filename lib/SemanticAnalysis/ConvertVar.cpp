@@ -52,7 +52,7 @@ namespace locic {
 		}
 		
 		// Attach the variable to the SemanticAnalysis node tree.
-		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var) {
+		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* const var, const Debug::VarInfo::Kind varKind) {
 			assert(var->isBasic());
 			
 			const auto insertResult = insertVar(context.scopeStack().back(), name, var);
@@ -63,8 +63,7 @@ namespace locic {
 					existingVar->debugInfo()->declLocation.toString().c_str()));
 			}
 			
-			// TODO: add support for member and parameter variables.
-			var->setDebugInfo(makeVarInfo(Debug::VarInfo::VAR_AUTO, astTypeVarNode));
+			var->setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
 		}
 		
 		namespace {
@@ -78,7 +77,7 @@ namespace locic {
 				return value.type();
 			}
 			
-			SEM::Var* ConvertInitialisedVarRecurse(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
+			SEM::Var* ConvertInitialisedVarRecurse(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
 				const auto& location = astTypeVarNode.location();
 				
 				switch (astTypeVarNode->kind()) {
@@ -91,7 +90,7 @@ namespace locic {
 						
 						// Search all scopes outside of the current scope.
 						const auto searchStartPosition = 1;
-						if (!isMember && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
+						if (!performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
 							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 								varName.c_str(), location.toString().c_str()));
 						}
@@ -111,12 +110,13 @@ namespace locic {
 						// moving or re-assignment).
 						const bool isFinalLval = astTypeVarNode->isFinal();
 						
+						const bool isMember = false;
 						const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 						
 						const auto var = SEM::Var::Basic(varType, lvalType);
 						var->setMarkedUnused(astTypeVarNode->isUnused());
 						var->setOverrideConst(astTypeVarNode->isOverrideConst());
-						attachVar(context, varName, astTypeVarNode, var);
+						attachVar(context, varName, astTypeVarNode, var, Debug::VarInfo::VAR_LOCAL);
 						return var;
 					}
 					
@@ -153,7 +153,7 @@ namespace locic {
 							
 							const auto childInitialiseType = semVar->constructType()->substitute(templateVarMap);
 							const bool childIsTopLevel = false;
-							children.push_back(ConvertInitialisedVarRecurse(context, isMember, astVar, childInitialiseType, childIsTopLevel));
+							children.push_back(ConvertInitialisedVarRecurse(context, astVar, childInitialiseType, childIsTopLevel));
 						}
 						
 						return SEM::Var::Composite(varType, children);
@@ -165,7 +165,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Var* ConvertVar(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+		SEM::Var* ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			const auto& location = astTypeVarNode.location();
 			
 			switch (astTypeVarNode->kind()) {
@@ -178,7 +178,7 @@ namespace locic {
 					
 					// Search all scopes outside of the current scope.
 					const auto searchStartPosition = 1;
-					if (!isMember && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
+					if (varKind != Debug::VarInfo::VAR_MEMBER && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
 						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}
@@ -194,12 +194,13 @@ namespace locic {
 					// moving or re-assignment).
 					const bool isFinalLval = astTypeVarNode->isFinal();
 					
+					const bool isMember = (varKind == Debug::VarInfo::VAR_MEMBER);
 					const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
 					
 					const auto var = SEM::Var::Basic(varType, lvalType);
 					var->setMarkedUnused(astTypeVarNode->isUnused());
 					var->setOverrideConst(astTypeVarNode->isOverrideConst());
-					attachVar(context, varName, astTypeVarNode, var);
+					attachVar(context, varName, astTypeVarNode, var, varKind);
 					return var;
 				}
 				
@@ -228,7 +229,7 @@ namespace locic {
 					
 					for (size_t i = 0; i < typeChildVars.size(); i++) {
 						const auto& astVar = astChildTypeVars->at(i);
-						children.push_back(ConvertVar(context, isMember, astVar));
+						children.push_back(ConvertVar(context, varKind, astVar));
 					}
 					
 					return SEM::Var::Composite(varType, children);
@@ -238,9 +239,9 @@ namespace locic {
 			std::terminate();
 		}
 		
-		SEM::Var* ConvertInitialisedVar(Context& context, const bool isMember, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* const initialiseType) {
+		SEM::Var* ConvertInitialisedVar(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
-			return ConvertInitialisedVarRecurse(context, isMember, astTypeVarNode, initialiseType, isTopLevel);
+			return ConvertInitialisedVarRecurse(context, astTypeVarNode, initialiseType, isTopLevel);
 		}
 		
 	}

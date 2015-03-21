@@ -103,8 +103,7 @@ namespace locic {
 						{
 							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(semCase));
 							
-							const bool isMember = false;
-							semCase->setVar(ConvertVar(context, isMember, astCase->var));
+							semCase->setVar(ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var));
 							semCase->setScope(ConvertScope(context, astCase->scope));
 						}
 						
@@ -239,7 +238,7 @@ namespace locic {
 						}
 						
 						const auto semVar = SEM::Var::Basic(varType, varType);
-						attachVar(context, astVar->name(), astVar, semVar);
+						attachVar(context, astVar->name(), astVar, semVar, Debug::VarInfo::VAR_LOCAL);
 						
 						semCatch->setVar(semVar);
 						semCatch->setScope(ConvertScope(context, astCatch->scope));
@@ -280,8 +279,7 @@ namespace locic {
 					auto semValue = ConvertValue(context, astInitialValueNode);
 					
 					// Convert the AST type var.
-					const bool isMemberVar = false;
-					const auto semVar = ConvertInitialisedVar(context, isMemberVar, astTypeVarNode, semValue.type());
+					const auto semVar = ConvertInitialisedVar(context, astTypeVarNode, semValue.type());
 					assert(!semVar->isAny());
 					
 					// Cast the initialise value to the variable's type.

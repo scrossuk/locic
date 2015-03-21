@@ -10,8 +10,8 @@ namespace locic {
 		
 		struct VarInfo {
 			enum Kind {
-				VAR_AUTO,
-				VAR_ARG,
+				VAR_LOCAL,
+				VAR_ARGUMENT,
 				VAR_MEMBER
 			} kind;
 			String name;
@@ -19,7 +19,7 @@ namespace locic {
 			SourceLocation scopeLocation;
 			
 			VarInfo()
-			: kind(VAR_AUTO), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
+			: kind(VAR_LOCAL), declLocation(SourceLocation::Null()), scopeLocation(SourceLocation::Null()) { }
 		};
 		
 	}
