@@ -1396,7 +1396,7 @@ namespace locic {
 			}
 		}
 		
-		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* semFunction, llvm::Function& llvmFunction) {
+		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* const semFunction, llvm::Function& llvmFunction) {
 			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
 			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			

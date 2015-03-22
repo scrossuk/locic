@@ -82,10 +82,12 @@ namespace locic {
 		
 		void genStatement(Function& function, const SEM::Statement& statement) {
 			auto& module = function.module();
-			const auto debugInfo = statement.debugInfo();
-			const auto debugSourceLocation = debugInfo ? debugInfo->location : Debug::SourceLocation::Null();
-			const auto debugStartPosition = debugSourceLocation.range().start();
-			const auto debugLocation = debugInfo ? make_optional(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo())) : None;
+			const auto& debugInfo = statement.debugInfo();
+			if (debugInfo) {
+				const auto debugSourceLocation = debugInfo->location;
+				const auto debugStartPosition = debugSourceLocation.range().start();
+				function.getBuilder().SetCurrentDebugLocation(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
+			}
 			
 			switch (statement.kind()) {
 				case SEM::Statement::VALUE: {
@@ -105,7 +107,7 @@ namespace locic {
 					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
 					const auto value = genValue(function, statement.getInitialiseValue(), castVarAlloca);
-					genVarInitialise(function, var, value, debugLocation);
+					genVarInitialise(function, var, value);
 					return;
 				}
 				
@@ -241,8 +243,8 @@ namespace locic {
 					if (isSwitchValueRef) {
 						switchValuePtr = llvmSwitchValue;
 					} else {
-						switchValuePtr = genAlloca(function, switchType, debugLocation);
-						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType, debugLocation);
+						switchValuePtr = genAlloca(function, switchType);
+						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType);
 					}
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
@@ -280,9 +282,9 @@ namespace locic {
 						
 						{
 							ScopeLifetime switchCaseLifetime(function);
-							genVarAlloca(function, switchCase->var(), debugLocation);
+							genVarAlloca(function, switchCase->var());
 							genVarInitialise(function, switchCase->var(),
-								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()), debugLocation);
+								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
 						}
 						
@@ -367,10 +369,7 @@ namespace locic {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
 						genUnwind(function, UnwindStateReturn);
 					} else {
-						const auto returnInst = function.getBuilder().CreateRetVoid();
-						if (debugInfo) {
-							returnInst->setDebugLoc(*debugLocation);
-						}
+						function.getBuilder().CreateRetVoid();
 					}
 					return;
 				}
@@ -382,7 +381,7 @@ namespace locic {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type(), debugLocation);
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
 								
@@ -394,26 +393,20 @@ namespace locic {
 						
 						genUnwind(function, UnwindStateReturn);
 					} else {
-						llvm::Instruction* returnInst = nullptr;
-						
 						if (!statement.getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type(), debugLocation);
+								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
 								
-								returnInst = function.getBuilder().CreateRetVoid();
+								function.getBuilder().CreateRetVoid();
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
-								returnInst = function.returnValue(returnValue);
+								function.returnValue(returnValue);
 							}
 						} else {
-							returnInst = function.getBuilder().CreateRetVoid();
-						}
-						
-						if (debugInfo) {
-							returnInst->setDebugLoc(*debugLocation);
+							function.getBuilder().CreateRetVoid();
 						}
 					}
 					
@@ -537,7 +530,7 @@ namespace locic {
 					
 					// Store value into allocated space.
 					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
-					genMoveStore(function, exceptionValue, castedAllocatedException, throwType, debugLocation);
+					genMoveStore(function, exceptionValue, castedAllocatedException, throwType);
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
@@ -553,20 +546,12 @@ namespace locic {
 						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
 						throwInvoke->setDoesNotReturn();
 						
-						if (debugInfo) {
-							throwInvoke->setDebugLoc(*debugLocation);
-						}
-						
 						// 'throw' function should never return normally.
 						function.selectBasicBlock(noThrowPath);
 						function.getBuilder().CreateUnreachable();
 					} else {
 						const auto callInst = function.getBuilder().CreateCall(throwFunction, args);
 						callInst->setDoesNotReturn();
-						
-						if (debugInfo) {
-							callInst->setDebugLoc(*debugLocation);
-						}
 						
 						// 'throw' function should never return normally.
 						function.getBuilder().CreateUnreachable();
@@ -603,20 +588,12 @@ namespace locic {
 						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
 						throwInvoke->setDoesNotReturn();
 						
-						if (debugInfo) {
-							throwInvoke->setDebugLoc(*debugLocation);
-						}
-						
 						// 'rethrow' function should never return normally.
 						function.selectBasicBlock(noThrowPath);
 						function.getBuilder().CreateUnreachable();
 					} else {
 						const auto callInst = function.getBuilder().CreateCall(rethrowFunction, args);
 						callInst->setDoesNotReturn();
-						
-						if (debugInfo) {
-							callInst->setDebugLoc(*debugLocation);
-						}
 						
 						// 'rethrow' function should never return normally.
 						function.getBuilder().CreateUnreachable();

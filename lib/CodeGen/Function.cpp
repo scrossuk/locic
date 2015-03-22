@@ -245,6 +245,10 @@ namespace locic {
 				
 				createdEntryBlock_ = true;
 			}
+			
+			// Update debug location.
+			entryBuilder_.SetCurrentDebugLocation(builder_.getCurrentDebugLocation());
+			
 			return entryBuilder_;
 		}
 		
@@ -358,6 +362,7 @@ namespace locic {
 		}
 		
 		llvm::DISubprogram Function::debugInfo() const {
+			assert(debugInfo_ != nullptr);
 			return debugInfo_;
 		}
 		

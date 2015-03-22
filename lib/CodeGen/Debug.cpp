@@ -61,6 +61,7 @@ namespace locic {
 		llvm::DISubprogram DebugBuilder::createFunction(llvm::DIFile file, const unsigned int lineNumber,
 				const bool isInternal, const bool isDefinition, const Name& name,
 				llvm::DIType functionType, llvm::Function* const function) {
+			assert(function != nullptr);
 			const bool isLocalToUnit = isInternal;
 			const auto scopeLine = lineNumber;
 			const auto flags = llvm::DIDescriptor::FlagPrototyped;
@@ -179,16 +180,6 @@ namespace locic {
 			const auto debugInfo = semFunction.debugInfo();
 			if (debugInfo) {
 				const auto debugSourceLocation = debugInfo->declLocation;
-				return make_optional(getDebugLocation(function, debugSourceLocation));
-			} else {
-				return None;
-			}
-		}
-		
-		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function, const SEM::Value& value) {
-			const auto debugInfo = value.debugInfo();
-			if (debugInfo) {
-				const auto debugSourceLocation = debugInfo->location;
 				return make_optional(getDebugLocation(function, debugSourceLocation));
 			} else {
 				return None;

@@ -38,7 +38,7 @@ namespace locic {
 			functionInfo.declLocation = astFunctionNode.location();
 			
 			// TODO
-			functionInfo.scopeLocation = Debug::SourceLocation::Null();
+			functionInfo.scopeLocation = astFunctionNode.location();
 			return functionInfo;
 		}
 		
@@ -690,6 +690,7 @@ namespace locic {
 				}
 				
 				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(std::move(fullName), semTypeInstance->moduleScope().copy()));
+				semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
 				
 				semFunction->setMethod(true);
 				semFunction->setStaticMethod(true);
@@ -983,7 +984,7 @@ namespace locic {
 			// Add default move method.
 			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
 			if (hasDefaultMove) {
-				std::unique_ptr<SEM::Function> methodDecl(CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto")));
+				auto methodDecl = CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto"));
 				typeInstance.functions().insert(std::make_pair(context.getCString("__moveto"), std::move(methodDecl)));
 			}
 			
@@ -998,23 +999,23 @@ namespace locic {
 				if (HasDefaultConstructor(context, &typeInstance)) {
 					// Add constructor for exception types using initializer;
 					// for other types just add a default constructor.
-					std::unique_ptr<SEM::Function> methodDecl(
+					auto methodDecl =
 						typeInstance.isException() ?
 							CreateExceptionConstructorDecl(context, &typeInstance) :
-							CreateDefaultConstructorDecl(context, &typeInstance, typeInstance.name() + context.getCString("create")));
+							CreateDefaultConstructorDecl(context, &typeInstance, typeInstance.name() + context.getCString("create"));
 					typeInstance.functions().insert(std::make_pair(context.getCString("create"), std::move(methodDecl)));
 				}
 				
 				if (!typeInstance.isException()) {
 					// Add default implicit copy if available.
 					if (HasDefaultImplicitCopy(context, &typeInstance)) {
-						std::unique_ptr<SEM::Function> methodDecl(CreateDefaultImplicitCopyDecl(context, &typeInstance, typeInstance.name() + context.getCString("implicitcopy")));
+						auto methodDecl = CreateDefaultImplicitCopyDecl(context, &typeInstance, typeInstance.name() + context.getCString("implicitcopy"));
 						typeInstance.functions().insert(std::make_pair(context.getCString("implicitcopy"), std::move(methodDecl)));
 					}
 					
 					// Add default compare for datatypes if available.
 					if (HasDefaultCompare(context, &typeInstance)) {
-						std::unique_ptr<SEM::Function> methodDecl(CreateDefaultCompareDecl(context, &typeInstance, typeInstance.name() + context.getCString("compare")));
+						auto methodDecl = CreateDefaultCompareDecl(context, &typeInstance, typeInstance.name() + context.getCString("compare"));
 						typeInstance.functions().insert(std::make_pair(context.getCString("compare"), std::move(methodDecl)));
 					}
 				}

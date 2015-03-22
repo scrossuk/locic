@@ -44,7 +44,7 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(SEM::Function* function, const AST::Node<AST::TypeVarList>& astParametersNode, const std::vector<SEM::Var*>& semParameters) {
+			void attachParameters(SEM::Function& function, const AST::Node<AST::TypeVarList>& astParametersNode, const std::vector<SEM::Var*>& semParameters) {
 				assert(astParametersNode->size() == semParameters.size());
 				
 				for (size_t i = 0; i < astParametersNode->size(); i++) {
@@ -54,22 +54,24 @@ namespace locic {
 					
 					const auto& varName = astTypeVarNode->name();
 					
-					const auto insertResult = function->namedVariables().insert(std::make_pair(varName, semVar));
+					const auto insertResult = function.namedVariables().insert(std::make_pair(varName, semVar));
 					if (!insertResult.second) {
-						throw ParamVariableClashException(function->name().copy(), varName);
+						throw ParamVariableClashException(function.name().copy(), varName);
 					}
 				}
 			}
 			
 		}
 		
-		SEM::Function* CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
+		std::unique_ptr<SEM::Function> CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + context.getCString("create"));
 			}
 			
-			const auto semFunction = new SEM::Function(semTypeInstance->name() + context.getCString("create"), semTypeInstance->moduleScope().copy());
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(semTypeInstance->name() + context.getCString("create"), semTypeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
+			
 			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
 			
 			semFunction->setMethod(true);
@@ -107,7 +109,7 @@ namespace locic {
 			assert(semTypeInstance->parentType() != nullptr);
 			
 			// Attach parameters to the function.
-			attachParameters(function, astTypeInstanceNode->variables, function->parameters());
+			attachParameters(*function, astTypeInstanceNode->variables, function->parameters());
 			
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));

@@ -66,7 +66,7 @@ namespace locic {
 			}
 		}
 		
-		void performScopeExitAction(Function& function, size_t position, UnwindState unwindState) {
+		void performScopeExitAction(Function& function, const size_t position, const UnwindState unwindState) {
 			const auto& unwindAction = function.unwindStack().at(position);
 			
 			if (!unwindAction.isActiveForState(unwindState)) {
@@ -238,7 +238,7 @@ namespace locic {
 			return false;
 		}
 		
-		size_t unwindStartPosition(Function& function, UnwindState unwindState) {
+		size_t unwindStartPosition(Function& function, const UnwindState unwindState) {
 			const auto& unwindStack = function.unwindStack();
 			
 			for (size_t i = 0; i < unwindStack.size(); i++) {
@@ -254,7 +254,7 @@ namespace locic {
 			llvm_unreachable("Couldn't find unwind terminator action.");
 		}
 		
-		llvm::BasicBlock* genTopUnwindAction(Function& function, size_t position, UnwindState unwindState) {
+		llvm::BasicBlock* genTopUnwindAction(Function& function, const size_t position, const UnwindState unwindState) {
 			auto& unwindStack = function.unwindStack();
 			
 			auto& topUnwindAction = unwindStack.at(position);
@@ -273,7 +273,7 @@ namespace locic {
 			return actionBB;
 		}
 		
-		llvm::BasicBlock* genUnwindBlock(Function& function, UnwindState unwindState) {
+		llvm::BasicBlock* genUnwindBlock(Function& function, const UnwindState unwindState) {
 			auto& module = function.module();
 			auto& unwindStack = function.unwindStack();
 			

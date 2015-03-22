@@ -193,9 +193,8 @@ namespace locic {
 			}
 			
 			const auto debugSubprogram = genDebugFunctionInfo(module, function, llvmFunction);
-			if (debugSubprogram) {
-				functionGenerator.attachDebugInfo(*debugSubprogram);
-			}
+			assert(debugSubprogram);
+			functionGenerator.attachDebugInfo(*debugSubprogram);
 			
 			// Generate allocas for parameters.
 			for (const auto paramVar : function->parameters()) {

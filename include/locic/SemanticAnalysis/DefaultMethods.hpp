@@ -1,30 +1,47 @@
 #ifndef LOCIC_SEMANTICANALYSIS_DEFAULTMETHODS_HPP
 #define LOCIC_SEMANTICANALYSIS_DEFAULTMETHODS_HPP
 
-#include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
-
-#include <locic/SemanticAnalysis/Context.hpp>
+#include <memory>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+	class Name;
+	
+	namespace Debug {
 		
-		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		struct FunctionInfo;
+		class SourceLocation;
 		
-		SEM::Function* CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+	}
+	
+	namespace SEM {
 		
-		SEM::Function* CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		class Function;
+		class TypeInstance;
 		
-		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+	}
+	
+	namespace SemanticAnalysis {
 		
-		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location);
+		class Context;
 		
-		bool HasDefaultConstructor(Context&, SEM::TypeInstance* typeInstance);
+		Debug::FunctionInfo makeDefaultFunctionInfo(const SEM::TypeInstance& parentType, const SEM::Function& function);
 		
-		bool HasDefaultMove(Context&, SEM::TypeInstance* typeInstance);
+		std::unique_ptr<SEM::Function> CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location);
+		
+		bool HasDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance);
+		
+		bool HasDefaultMove(Context& context, SEM::TypeInstance* typeInstance);
 		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance);
 		

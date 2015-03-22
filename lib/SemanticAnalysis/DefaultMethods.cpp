@@ -20,6 +20,15 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
+		Debug::FunctionInfo makeDefaultFunctionInfo(const SEM::TypeInstance& parentType, const SEM::Function& function) {
+			Debug::FunctionInfo functionInfo;
+			functionInfo.isDefinition = !parentType.isClassDecl();
+			functionInfo.name = function.name().copy();
+			functionInfo.declLocation = parentType.debugInfo()->location;
+			functionInfo.scopeLocation = parentType.debugInfo()->location;
+			return functionInfo;
+		}
+		
 		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
@@ -138,8 +147,9 @@ namespace locic {
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		
-		SEM::Function* CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+		std::unique_ptr<SEM::Function> CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction( new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			// This method requires move, so add the move predicate.
 			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
@@ -169,8 +179,9 @@ namespace locic {
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
 			
@@ -211,8 +222,9 @@ namespace locic {
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultImplicitCopyRequirePredicate(context, typeInstance)));
 			
@@ -234,8 +246,9 @@ namespace locic {
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+		std::unique_ptr<SEM::Function> CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultExplicitCopyRequirePredicate(context, typeInstance)));
 			
@@ -257,8 +270,9 @@ namespace locic {
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
-			const auto semFunction = new SEM::Function(name.copy(), typeInstance->moduleScope().copy());
+		std::unique_ptr<SEM::Function> CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultCompareRequirePredicate(context, typeInstance)));
 			
@@ -286,7 +300,7 @@ namespace locic {
 			return semFunction;
 		}
 		
-		SEM::Function* CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
+		std::unique_ptr<SEM::Function> CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl());
 			assert(!typeInstance->isInterface());
 			
