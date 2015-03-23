@@ -140,11 +140,12 @@ namespace locic {
 			return declareInstruction;
 		}
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function, const bool isInternal) {
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType,
+				llvm::Function* function, const bool isInternal, const bool isDefinition) {
 			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
 			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
 			return module.debugBuilder().createFunction(file, lineNumber, isInternal,
-				functionInfo.isDefinition, functionInfo.name, functionType, function);
+				isDefinition, functionInfo.name, functionType, function);
 		}
 		
 		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* const function, llvm::Function* const llvmFunction) {
@@ -154,7 +155,8 @@ namespace locic {
 				const auto debugSubprogramType = genDebugType(module, function->type());
 				const auto& functionInfo = *debugInfo;
 				const bool isInternal = function->moduleScope().isInternal();
-				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal));
+				const bool isDefinition = functionInfo.isDefinition || function->isPrimitive();
+				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal, isDefinition));
 			} else {
 				return None;
 			}

@@ -1,7 +1,6 @@
 #ifndef LOCIC_CODEGEN_MODULE_HPP
 #define LOCIC_CODEGEN_MODULE_HPP
 
-#include <fstream>
 #include <map>
 #include <memory>
 #include <string>
@@ -13,19 +12,27 @@
 #include <llvm-abi/ABI.hpp>
 
 #include <locic/BuildOptions.hpp>
-#include <locic/Support/FastMap.hpp>
-#include <locic/Support/Map.hpp>
-#include <locic/SEM.hpp>
-#include <locic/Support/String.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
+#include <locic/Support/FastMap.hpp>
+#include <locic/Support/Map.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
 	namespace Debug {
 		
 		class Module;
+		
+	}
+	
+	namespace SEM {
+		
+		class Function;
+		class Type;
+		class TypeInstance;
+		class Var;
 		
 	}
 	

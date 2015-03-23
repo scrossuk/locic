@@ -366,6 +366,15 @@ namespace locic {
 			return debugInfo_;
 		}
 		
+		void Function::setDebugPosition(const Debug::SourcePosition& position) {
+			const auto debugLoc = llvm::DebugLoc::get(position.lineNumber(), position.column(), debugInfo());
+			getBuilder().SetCurrentDebugLocation(debugLoc);
+		}
+		
+		llvm::DebugLoc Function::getDebugLoc() const {
+			return builder_.getCurrentDebugLocation();
+		}
+		
 	}
 	
 }

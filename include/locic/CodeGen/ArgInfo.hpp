@@ -1,22 +1,26 @@
 #ifndef LOCIC_CODEGEN_ARGINFO_HPP
 #define LOCIC_CODEGEN_ARGINFO_HPP
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include <llvm-abi/Type.hpp>
 
-#include <locic/SEM.hpp>
-
-#include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
-
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace SEM {
+		
+		class Function;
+		class Type;
+		
+	}
+	
+	namespace CodeGen {
+		
+		class Module;
+		typedef std::pair<llvm_abi::Type*, llvm::Type*> TypePair;
+		
 		TypePair voidTypePair(Module& module);
 		
 		TypePair sizeTypePair(Module& module);

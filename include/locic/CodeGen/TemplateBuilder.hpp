@@ -2,15 +2,12 @@
 #define LOCIC_CODEGEN_TEMPLATEBUILDER_HPP
 
 #include <map>
+#include <vector>
 
-#include <locic/SEM.hpp>
-
-#include <locic/CodeGen/LLVMIncludes.hpp>
-#include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplatedObject.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
 		typedef std::map<TemplateInst, size_t> TemplateUseMap;

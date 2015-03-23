@@ -73,7 +73,7 @@ namespace locic {
 			return argInfo.withNoExcept();
 		}
 		
-		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value, Optional<llvm::DebugLoc> debugLoc) {
+		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -82,7 +82,7 @@ namespace locic {
 				}
 				
 				if (type->isPrimitive()) {
-					genPrimitiveDestructorCall(function, type, value, debugLoc);
+					genPrimitiveDestructorCall(function, type, value);
 					return;
 				}
 				
@@ -98,11 +98,11 @@ namespace locic {
 				}
 				args.push_back(castValue);
 				
-				(void) genRawFunctionCall(function, argInfo, destructorFunction, args, debugLoc);
+				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
-				VirtualCall::generateDestructorCall(function, typeInfo, castValue, debugLoc);
+				VirtualCall::generateDestructorCall(function, typeInfo, castValue);
 			}
 		}
 		
@@ -219,8 +219,7 @@ namespace locic {
 			
 			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, llvmFunction);
 			function.attachDebugInfo(debugInfo);
-			const auto position = getDebugDestructorPosition(module, *typeInstance);
-			function.getBuilder().SetCurrentDebugLocation(llvm::DebugLoc::get(position.lineNumber(), position.column(), debugInfo));
+			function.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
 			
 			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
 			
@@ -275,8 +274,7 @@ namespace locic {
 			
 			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, llvmFunction);
 			function.attachDebugInfo(debugInfo);
-			const auto position = getDebugDestructorPosition(module, *typeInstance);
-			function.getBuilder().SetCurrentDebugLocation(llvm::DebugLoc::get(position.lineNumber(), position.column(), debugInfo));
+			function.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
 			
 			if (typeInstance->isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);

@@ -1,9 +1,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
-#include <locic/SEM.hpp>
-
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -18,6 +15,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
 
@@ -81,17 +79,17 @@ namespace locic {
 			return function.getBuilder().CreatePointerCast(rawMoveDest, genType(function.module(), type));
 		}
 		
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
 			if (typeHasCustomMove(function.module(), type)) {
 				// Can't load since we need to run the move method.
 				return var;
 			} else {
 				// Use a normal load.
-				return genLoad(function, var, type, debugLoc);
+				return genLoad(function, var, type);
 			}
 		}
 		
-		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type, Optional<llvm::DebugLoc> debugLoc) {
+		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -108,10 +106,10 @@ namespace locic {
 				
 				// Use 0 for the position value since this is the top level of the move.
 				const auto positionValue = ConstantGenerator(function.module()).getSizeTValue(0);
-				genMoveCall(function, type, value, var, positionValue, debugLoc);
+				genMoveCall(function, type, value, var, positionValue);
 			} else {
 				// Use a normal store.
-				genStore(function, value, var, type, debugLoc);
+				genStore(function, value, var, type);
 			}
 		}
 		
@@ -133,25 +131,25 @@ namespace locic {
 		
 		namespace {
 			
-			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
+			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
 				const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
-				const auto loadedValue = genLoad(function, sourceValue, type, debugLoc);
-				genStore(function, loadedValue, destValue, type, debugLoc);
+				const auto loadedValue = genLoad(function, sourceValue, type);
+				genStore(function, loadedValue, destValue, type);
 			}
 			
 		}
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
+		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
 				if (!typeHasCustomMove(module, type)) {
-					genBasicMove(function, type, sourceValue, destValue, positionValue, debugLoc);
+					genBasicMove(function, type, sourceValue, destValue, positionValue);
 					return;
 				}
 				
 				if (type->isPrimitive()) {
-					genPrimitiveMoveCall(function, type, sourceValue, destValue, positionValue, debugLoc);
+					genPrimitiveMoveCall(function, type, sourceValue, destValue, positionValue);
 					return;
 				}
 				
@@ -170,12 +168,12 @@ namespace locic {
 				args.push_back(castDestValue);
                                 args.push_back(positionValue);
 				
-				(void) genRawFunctionCall(function, argInfo, moveFunction, args, debugLoc);
+				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getI8PtrType());
 				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getI8PtrType());
-				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue, debugLoc);
+				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue);
 			}
 		}
 		
@@ -192,12 +190,28 @@ namespace locic {
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString(""));
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			Function function(module, *llvmFunction, argInfo);
+			Function functionGenerator(module, *llvmFunction, argInfo);
 			
-			genRawFunctionCall(function, moveArgInfo(module, typeInstance), moveFunction,
-				std::vector<llvm::Value*> { function.getRawContextValue(), function.getArg(0), function.getArg(1) });
+			const auto moveSEMFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
 			
-			function.getBuilder().CreateRetVoid();
+			auto functionInfo = *(moveSEMFunction->debugInfo());
+			functionInfo.isDefinition = true;
+			functionInfo.name = functionInfo.name + module.getCString("vtableentry");
+			
+			const bool isDefinition = true;
+			const bool isInternal = true;
+			
+			const auto debugSubprogramType = genDebugType(module, moveSEMFunction->type());
+			const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType,
+				llvmFunction, isInternal, isDefinition);
+			functionGenerator.attachDebugInfo(debugSubprogram);
+			
+			functionGenerator.setDebugPosition(moveSEMFunction->debugInfo()->scopeLocation.range().start());
+			
+			genRawFunctionCall(functionGenerator, moveArgInfo(module, typeInstance), moveFunction,
+				std::vector<llvm::Value*> { functionGenerator.getRawContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
+			
+			functionGenerator.getBuilder().CreateRetVoid();
 			
 			return llvmFunction;
 		}

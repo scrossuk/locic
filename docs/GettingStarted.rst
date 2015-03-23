@@ -1,20 +1,20 @@
 Getting Started
 ===============
 
-This document explains how to build/install the Loci compiler tools and its dependencies, which should be a fairly simple process. Currently the compiler tools are only known to build in a Unix environment, though given almost all of the code is cross-platform it's unlikely to be difficult to port it to other platforms.
+This document explains how to build/install the Loci Compiler Tools and their dependencies, which should be a fairly simple process. Currently the compiler tools are only known to build in a Unix environment, though given almost all of the code is cross-platform it's unlikely to be difficult to port it to other platforms.
 
 Dependencies
 ------------
 
-Before building and using LOCIC, it's first necessary to build and install its dependencies. This release of LOCIC depends on the following:
+Before building and using the Loci Compiler Tools, it's first necessary to build and install their dependencies. This release depends on the following:
 
 * CMake (build system) - *debian package: cmake*
 * Boost Filesystem - *debian package: libboost-filesystem-dev*
 * Boost Program Options - *debian package: libboost-program-options-dev*
 * Boost Regex - *debian package: libboost-regex-dev*
 * Boost System - *debian package: libboost-system-dev*
-* LLVM 3.3/3.4/3.5 (development build) - *debian package: llvm-dev*
-* Clang 3.3/3.4/3.5 - *debian package: clang*
+* LLVM 3.3/3.4/3.5/3.6 (development build) - *debian package: llvm-dev*
+* Clang 3.3/3.4/3.5/3.6 - *debian package: clang*
 * Sphinx (documentation) - *debian package: python-sphinx*
 * Bison (parser generator) - *debian package: bison*
 
@@ -24,7 +24,7 @@ Also, the following dependencies are optional:
 
 Specific versions of LLVM are given since its API tends to be incompatible between releases. The version of Clang used should match the version of LLVM.
 
-LOCIC is written in C++11, and hence must be built by a C++ compiler with C++11 support.
+The Loci Compiler Tools are written in C++11, and hence must be built by a C++ compiler with C++11 support.
 
 How to build
 ------------

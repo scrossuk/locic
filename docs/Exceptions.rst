@@ -113,80 +113,16 @@ Consider a violation of this specifier:
 
 This code is not valid and will be **rejected** by the compiler, since the *noexcept* property is statically checked.
 
-Exception Specifiers
---------------------
-
-*noexcept* is actually just a special case of Loci's *exception specifiers*, which follow a similar syntax to C++ but that are **statically checked** by the compiler. For example:
+You can use predicates in the *noexcept* specifier:
 
 .. code-block:: c++
 
-	import custom.library 1.0.0 {
-		exception FileOpenFailedException();
-		
-		class File {
-			static File open(const std::string& fileName) throw(FileOpenFailedException);
-		}
+	template <typename T : comparable>
+	bool are_backwards(const T& a, const T& b) noexcept(T : noexcept_comparable) {
+		return b < a;
 	}
 
-This code is very clear that *openFile* may only throw exceptions of type *FileOpenFailedException* (or derived exception types). As previously mentioned, this property will be statically checked by the compiler.
-
-Here is the equivalent of the above *noexcept* using an *exception specifier* (though the former is recommended):
-
-.. code-block:: c++
-
-	int addInts(int a, int b) throw() {
-		return a + b;
-	}
-
-The main reason to use specifiers is to produce APIs with clear failure modes, such as the file opening example expressed above. Omitting the exception specifier means that the function may throw any exception:
-
-.. code-block:: c++
-
-	import custom.library 1.0.0 {
-		class File {
-			static File open(const std::string& fileName);
-		}
-	}
-
-This means that developers can choose to use exception specifiers where appropriate and avoid them otherwise. Typically, specifiers are appropriate for use in heavily used core APIs (such as the standard library), but inappropriate as part of application logic or a custom rarely used API.
-
-In regard to :doc:`Module API versions <Modules>`, any changes to exception specifiers should be made in a new API version; for this reason it may be appropriate to use a generic exception type in exception specifiers (from which the client can obtain information about the error) and then throw derived exception types internally. For example:
-
-.. code-block:: c++
-
-	import custom.library 1.0.0 {
-		exception FileException(std::string what);
-		
-		class File {
-			static File open(const std::string& fileName) throw(FileException);
-		}
-	}
-
-The *open* constructor method could now be implemented as:
-
-.. code-block:: c++
-
-	export custom.library 1.0.0 {
-		exception FileException(std::string what);
-		exception FileNotFoundException() : FileException("File not found.");
-		exception FileAccessDeniedException() : FileException("File access denied.");
-		
-		class File(/* ... */) {
-			static File open(const std::string& fileName) throw(FileException) {
-				if (!fileExists(fileName)) {
-					throw FileNotFoundException();
-				}
-				
-				if (!fileIsAccessible(fileName)) {
-					throw FileAccessDeniedException();
-				}
-				
-				// etc...
-			}
-		}
-	}
-
-Note that any change to the derived exception types (i.e. with an unchanged exception specifier) thrown by a function is generally *not* considered a breaking change to the API.
+In this case the function will not throw if the compare method of the template type doesn't throw. This means that users with non-throwing comparisons (which should be almost all cases) will be able to use a *noexcept* function (and hence this works well with the compiler's static analysis) but those cases with throwing comparisons also work.
 
 Overriding Static Analysis with Assert
 --------------------------------------
@@ -231,7 +167,7 @@ The compiler will reject this code as invalid, since *readFile* may throw but *r
 
 This means the compiler will generate code to check this property at run-time when configured to do so (e.g. for a debug build), and otherwise trust the programmer and assume the property is true. Hence no error will be produced by the compiler in this case. Given that this overrides the assistance of static analysis, this should be done **with great care!**
 
-A similar construct can be used for exception specifiers:
+A similar construct can be used for exception specifications (see below):
 
 .. code-block:: c++
 
@@ -439,3 +375,80 @@ This will output:
 	Scope exit!
 
 Note that it's not possible (without the assert statements described above) to throw from a *scope(exit)* or *scope(failure)* block since these may be executed in the case of an exception being thrown, and it's not possible to throw multiple exceptions simultaneously.
+
+Exception Specifications
+------------------------
+
+**NOTE**: Feature not currently implemented; awaiting further design consideration.
+
+*noexcept* is actually just a special case of Loci's *exception specifications*, which follow a similar syntax to C++ but that are **statically checked** by the compiler. For example:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		exception FileOpenFailedException();
+		
+		class File {
+			static File open(const std::string& fileName) throw(FileOpenFailedException);
+		}
+	}
+
+This code is very clear that *File.open* may only throw exceptions of type *FileOpenFailedException* (or derived exception types). As previously mentioned, this property will be statically checked by the compiler.
+
+Here is the equivalent of the above *noexcept* using an *exception specification* (though the former is recommended):
+
+.. code-block:: c++
+
+	int addInts(int a, int b) throw() {
+		return a + b;
+	}
+
+The main reason to use specifications is to produce APIs with clear failure modes, such as the file opening example expressed above. Omitting the exception specification means that the function may throw any exception:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		class File {
+			static File open(const std::string& fileName);
+		}
+	}
+
+This means that developers can choose to use exception specifications where appropriate and avoid them otherwise. Typically, specifications are appropriate for use in heavily used core APIs (such as the standard library), but inappropriate as part of application logic or a custom rarely used API.
+
+In regard to :doc:`Module API versions <Modules>`, any changes to exception specifications should be made in a new API version; for this reason it may be appropriate to use a generic exception type in exception specifications (from which the client can obtain information about the error) and then throw derived exception types internally. For example:
+
+.. code-block:: c++
+
+	import custom.library 1.0.0 {
+		exception FileException(std::string what);
+		
+		class File {
+			static File open(const std::string& fileName) throw(FileException);
+		}
+	}
+
+The *open* constructor method could now be implemented as:
+
+.. code-block:: c++
+
+	export custom.library 1.0.0 {
+		exception FileException(std::string what);
+		exception FileNotFoundException() : FileException("File not found.");
+		exception FileAccessDeniedException() : FileException("File access denied.");
+		
+		class File(/* ... */) {
+			static File open(const std::string& fileName) throw(FileException) {
+				if (!fileExists(fileName)) {
+					throw FileNotFoundException();
+				}
+				
+				if (!fileIsAccessible(fileName)) {
+					throw FileAccessDeniedException();
+				}
+				
+				// etc...
+			}
+		}
+	}
+
+Note that any change to the derived exception types (i.e. with an unchanged exception specification) thrown by a function is generally *not* considered a breaking change to the API.

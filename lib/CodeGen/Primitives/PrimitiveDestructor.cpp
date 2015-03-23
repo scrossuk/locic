@@ -20,17 +20,19 @@ namespace locic {
 		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
-			Function function(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
+			Function functionGenerator(module, llvmFunction, destructorArgInfo(module, typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
-			// TODO: add debug info.
-			const auto debugInfo = None;
-			genPrimitiveDestructorCall(function, typeInstance->selfType(), function.getRawContextValue(), debugInfo);
-			function.getBuilder().CreateRetVoid();
+			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, &llvmFunction);
+			functionGenerator.attachDebugInfo(debugInfo);
+			functionGenerator.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
 			
-			function.verify();
+			genPrimitiveDestructorCall(functionGenerator, typeInstance->selfType(), functionGenerator.getRawContextValue());
+			functionGenerator.getBuilder().CreateRetVoid();
+			
+			functionGenerator.verify();
 		}
 		
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value, Optional<llvm::DebugLoc> debugLoc) {
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
 			auto& builder = function.getBuilder();
@@ -59,13 +61,13 @@ namespace locic {
 				
 				// If it is live, run the child value's destructor.
 				function.selectBasicBlock(isLiveBB);
-				genDestructorCall(function, targetType, objectPointer, debugLoc);
+				genDestructorCall(function, targetType, objectPointer);
 				builder.CreateBr(afterBB);
 				
 				function.selectBasicBlock(afterBB);
 			} else if (typeName == "final_lval" || typeName == "member_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
-				genDestructorCall(function, targetType, value, debugLoc);
+				genDestructorCall(function, targetType, value);
 			}
 		}
 		

@@ -269,6 +269,8 @@ It's possible to specify a :doc:`predicate <Predicates>` within the const declar
 Casting Const Away
 ------------------
 
+**NOTE**: Feature not currently implemented; awaiting further design consideration.
+
 Const can be cast away if needed with 'const_cast', but doing so could be very dangerous, since the compiler may be performing transformations as above. This means that the only valid use for const_cast is to modify the type of a pointer to support an API that fails to use 'const', but it is guaranteed that the API does not modify the object:
 
 .. code-block:: c++

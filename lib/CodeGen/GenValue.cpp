@@ -37,21 +37,11 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function, const SEM::Value& value) {
-			const auto debugInfo = value.debugInfo();
-			if (debugInfo) {
-				const auto debugSourceLocation = debugInfo->location;
-				return make_optional(getDebugLocation(function, debugSourceLocation));
-			} else {
-				return None;
-			}
-		}
-		
 		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
-			const auto debugLoc = getValueDebugLocation(function, value);
-			if (debugLoc) {
-				function.getBuilder().SetCurrentDebugLocation(*debugLoc);
+			const auto& debugInfo = value.debugInfo();
+			if (debugInfo) {
+				function.setDebugPosition(debugInfo->location.range().start());
 			}
 			
 			switch (value.kind()) {
@@ -455,20 +445,20 @@ namespace locic {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						return VirtualCall::generateCall(function, semCallValue.type(), methodComponents, llvmArgs, None, hintResultValue);
+						return VirtualCall::generateCall(function, semCallValue.type(), methodComponents, llvmArgs, hintResultValue);
 					}
 					
 					assert(semCallValue.type()->isFunction() || semCallValue.type()->isMethod());
 					
 					if (isTrivialFunction(module, semCallValue)) {
-						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), None, hintResultValue);
+						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semCallValue);
 					const auto functionType = semCallValue.type()->isMethod() ?
 						semCallValue.type()->getMethodFunctionType() : semCallValue.type();
 					
-					return genFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), None, hintResultValue);
+					return genFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), hintResultValue);
 				}
 				
 				case SEM::Value::FUNCTIONREF:

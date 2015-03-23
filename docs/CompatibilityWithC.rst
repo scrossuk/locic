@@ -122,7 +122,7 @@ Similarly, typedefs are much clearer in Loci:
 .. code-block:: c
 
 	typedef ReturnType (*NewName)(ParamType param); // C
-	typedef (*)(ReturnType)(ParamType) NewName; // Loci
+	using NewName = (*)(ReturnType)(ParamType); // Loci
 
 Some types (such as structs and datatypes) also support pattern matching, with the following (rough) structure:
 
@@ -150,6 +150,52 @@ This facilities code like the following:
 	void function(Example value) {
 		Example(int x, _) = value;
 	}
+
+Enums
+-----
+
+Loci supports C's enums. For example:
+
+.. code-block:: c
+
+	enum Color {
+		RED,
+		GREEN,
+		BLUE
+	}
+
+This actually effectively builds an object type (in Loci all values are essentially objects, with some internal state and a set of methods). You can construct values using the automatically generated constructors:
+
+.. code-block:: c++
+
+	Color function() {
+		return Color.RED();
+		// Or: Color::Red() if you prefer that.
+	}
+
+Unions
+------
+
+Loci supports C's unions, though as in C care must be taken with this particular feature. Here's an example:
+
+.. code-block:: c
+
+	union IntOrFloat {
+		int intValue;
+		float floatValue;
+	}
+
+In this case there is a default ('create') constructor that zero-initialises the union.
+
+.. code-block:: c++
+
+	IntOrFloat function() {
+		auto value = IntOrFloat();
+		value.intValue = 100;
+		return value;
+	}
+
+This feature exists for compatibility with C and it is **strongly** advised in the vast majority of cases to use :doc:`Algebraic Datatypes <AlgebraicDatatypes>` as a safer alternative.
 
 Calling to/from C
 -----------------

@@ -1,13 +1,18 @@
 #ifndef LOCIC_CODEGEN_TYPESIZEKNOWLEDGE_HPP
 #define LOCIC_CODEGEN_TYPESIZEKNOWLEDGE_HPP
 
-#include <locic/SEM.hpp>
-
-#include <locic/CodeGen/Module.hpp>
-
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class Type;
+		class TypeInstance;
+		
+	}
+	
 	namespace CodeGen {
+		
+		class Module;
 		
 		bool isObjectTypeSizeKnownInThisModule(Module& module, const SEM::TypeInstance* objectType);
 		

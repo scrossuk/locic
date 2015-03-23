@@ -1,13 +1,22 @@
 #ifndef LOCIC_CODEGEN_METHODINFO_HPP
 #define LOCIC_CODEGEN_METHODINFO_HPP
 
-#include <locic/SEM.hpp>
-
+#include <locic/SEM/Value.hpp>
+#include <locic/Support/HeapArray.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
 	
+	namespace SEM {
+		
+		class Type;
+		class Value;
+		
+	}
+	
 	namespace CodeGen {
+		
+		class Function;
 		
 		struct MethodInfo {
 			const SEM::Type* parentType;

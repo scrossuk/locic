@@ -196,6 +196,8 @@ namespace locic {
 			assert(debugSubprogram);
 			functionGenerator.attachDebugInfo(*debugSubprogram);
 			
+			functionGenerator.setDebugPosition(function->debugInfo()->scopeLocation.range().start());
+			
 			// Generate allocas for parameters.
 			for (const auto paramVar : function->parameters()) {
 				genVarAlloca(functionGenerator, paramVar);
@@ -241,7 +243,7 @@ namespace locic {
 		 * subsequently referenced.
 		 */
 		llvm::Function* genTemplateFunctionStub(Module& module, const SEM::TemplateVar* templateVar, const String& functionName,
-				const SEM::Type* const functionType, Optional<llvm::DebugLoc> debugLoc) {
+				const SEM::Type* const functionType, llvm::DebugLoc debugLoc) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("templateFunctionStub"));
@@ -271,6 +273,7 @@ namespace locic {
 			// --- Generate function code.
 			
 			Function functionGenerator(module, *llvmFunction, argInfo);
+			functionGenerator.getBuilder().SetCurrentDebugLocation(debugLoc);
 			
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
 			
@@ -286,7 +289,7 @@ namespace locic {
 			const auto argList = functionGenerator.getArgList();
 			
 			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
-			const auto result = VirtualCall::generateCall(functionGenerator, functionType, methodComponents, argList, debugLoc, hintResultValue);
+			const auto result = VirtualCall::generateCall(functionGenerator, functionType, methodComponents, argList, hintResultValue);
 			
 			if (hasReturnVar) {
 				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType->getFunctionReturnType());

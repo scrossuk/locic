@@ -15,7 +15,7 @@ before_install:
   # Ensure add-apt-repository is installed.
   - sudo apt-get install python-software-properties
 
-  # LLVM 3.4 / 3.5 / snapshots
+  # LLVM
   - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main' >> /etc/apt/sources.list"
   - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main' >> /etc/apt/sources.list"
   - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"
@@ -77,15 +77,18 @@ env:
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.4 llvm-3.4-dev" CLANG_VERSION="3.4"
 
   # Build with LLVM 3.5
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_VERSION="3.5"
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_VERSION="3.5"
 
   # Build with LLVM 3.6
   - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
 
+  # Build with LLVM 3.7
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.7 llvm-3.7-dev" CLANG_VERSION="3.7"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.7 llvm-3.7-dev" CLANG_VERSION="3.7"
+
 matrix:
   allow_failures:
-  # Allow failures when using LLVM 3.6 since it's in development.
-  - env: BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
-  - env: BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
+  # Allow failures when using LLVM 3.7 since it's in development.
+  - env: BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.7 llvm-3.7-dev" CLANG_VERSION="3.6"
+  - env: BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.7 llvm-3.7-dev" CLANG_VERSION="3.6"

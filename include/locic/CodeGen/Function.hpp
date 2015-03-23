@@ -15,6 +15,12 @@ namespace locic {
 	
 	class String;
 	
+	namespace Debug {
+		
+		class SourcePosition;
+		
+	}
+	
 	namespace SEM {
 		
 		class Type;
@@ -176,6 +182,10 @@ namespace locic {
 				void attachDebugInfo(llvm::DISubprogram subprogram);
 				
 				llvm::DISubprogram debugInfo() const;
+				
+				void setDebugPosition(const Debug::SourcePosition& position);
+				
+				llvm::DebugLoc getDebugLoc() const;
 				
 			private:
 				// Non-copyable.

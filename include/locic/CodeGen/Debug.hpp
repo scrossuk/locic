@@ -81,7 +81,8 @@ namespace locic {
 		
 		std::pair<std::string, std::string> splitPath(const std::string& path);
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType, llvm::Function* function, bool isInternal);
+		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType,
+			llvm::Function* function, bool isInternal, bool isDefinition);
 		
 		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* function, llvm::Function* llvmFunction);
 		

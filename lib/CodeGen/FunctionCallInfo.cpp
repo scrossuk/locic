@@ -234,7 +234,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genTrivialMethodCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
-				Optional<PendingResult> contextValue, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+				Optional<PendingResult> contextValue, llvm::Value* const hintResultValue) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					PendingResultArray args;
@@ -250,7 +250,7 @@ namespace locic {
 					if (value.functionRefFunction()->isPrimitive()) {
 						MethodInfo methodInfo(value.functionRefParentType(), value.functionRefFunction()->name().last(),
 							value.type(), value.functionRefTemplateArguments().copy());
-						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), debugLoc, hintResultValue);
+						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 					}
 					
 					llvm_unreachable("Unknown trivial function.");
@@ -259,7 +259,7 @@ namespace locic {
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
 					auto dataResult = genCallValue(function, dataValue);
-					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)), debugLoc, hintResultValue);
+					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)), hintResultValue);
 				}
 				
 				default: {
@@ -269,14 +269,13 @@ namespace locic {
 		}
 		
 		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
-				Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
-			return genTrivialMethodCall(function, value, valueArgs, None, debugLoc, hintResultValue);
+				llvm::Value* const hintResultValue) {
+			return genTrivialMethodCall(function, value, valueArgs, None, hintResultValue);
 		}
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
-			const auto debugLoc = getValueDebugLocation(function, value);
 			
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
@@ -314,7 +313,7 @@ namespace locic {
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
-					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, debugLoc);
+					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, function.getDebugLoc());
 					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
 					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
 					

@@ -1,25 +1,24 @@
-#include <assert.h>
-
+#include <cassert>
 #include <stdexcept>
-
-#include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVar.hpp>
-#include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
+
+#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 	
-		void genVarAlloca(Function& function, SEM::Var* const var, Optional<llvm::DebugLoc> debugLoc) {
+		void genVarAlloca(Function& function, SEM::Var* const var) {
 			if (var->isAny()) {
 				return;
 			}
@@ -28,7 +27,7 @@ namespace locic {
 				auto& module = function.module();
 				
 				// Create an alloca for this variable.
-				const auto stackObject = genAlloca(function, var->type(), debugLoc);
+				const auto stackObject = genAlloca(function, var->type());
 				
 				// Generate debug information for the variable
 				// if any is available.
@@ -49,31 +48,31 @@ namespace locic {
 			} else if (var->isComposite()) {
 				// Generate child vars.
 				for (const auto childVar: var->children()) {
-					genVarAlloca(function, childVar, debugLoc);
+					genVarAlloca(function, childVar);
 				}
 			} else {
 				throw std::runtime_error("Unknown variable kind.");
 			}
 		}
 		
-		void genVarInitialise(Function& function, SEM::Var* const var, llvm::Value* initialiseValue, Optional<llvm::DebugLoc> debugLoc) {
+		void genVarInitialise(Function& function, SEM::Var* const var, llvm::Value* initialiseValue) {
 			auto& module = function.module();
 			
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
 				// should be called for the value.
-				genDestructorCall(function, var->constructType(), initialiseValue, debugLoc);
+				genDestructorCall(function, var->constructType(), initialiseValue);
 			} else if (var->isBasic()) {
 				const auto varValue = function.getLocalVarMap().get(var);
-				genStoreVar(function, initialiseValue, varValue, var, debugLoc);
+				genStoreVar(function, initialiseValue, varValue, var);
 				
 				// Add this to the list of variables to be
 				// destroyed at the end of the function.
 				scheduleDestructorCall(function, var->type(), varValue);
 			} else if (var->isComposite()) {
 				if (!initialiseValue->getType()->isPointerTy()) {
-					const auto initialisePtr = genAlloca(function, var->constructType(), debugLoc);
-					genStore(function, initialiseValue, initialisePtr, var->constructType(), debugLoc);
+					const auto initialisePtr = genAlloca(function, var->constructType());
+					genStore(function, initialiseValue, initialisePtr, var->constructType());
 					initialiseValue = initialisePtr;
 				}
 				
@@ -87,7 +86,7 @@ namespace locic {
 					const auto childInitialiseValue = function.getBuilder().CreateInBoundsGEP(castInitialiseValue, memberOffsetValue);
 					const auto castChildInitialiseValue = function.getBuilder().CreatePointerCast(childInitialiseValue, genPointerType(module, childVar->constructType()));
 					const auto loadedChildInitialiseValue = genMoveLoad(function, castChildInitialiseValue, childVar->constructType());
-					genVarInitialise(function, childVar, loadedChildInitialiseValue, debugLoc);
+					genVarInitialise(function, childVar, loadedChildInitialiseValue);
 				}
 			} else {
 				throw std::runtime_error("Unknown var kind.");

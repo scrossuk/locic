@@ -84,9 +84,7 @@ namespace locic {
 			auto& module = function.module();
 			const auto& debugInfo = statement.debugInfo();
 			if (debugInfo) {
-				const auto debugSourceLocation = debugInfo->location;
-				const auto debugStartPosition = debugSourceLocation.range().start();
-				function.getBuilder().SetCurrentDebugLocation(llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo()));
+				function.setDebugPosition(debugInfo->location.range().start());
 			}
 			
 			switch (statement.kind()) {

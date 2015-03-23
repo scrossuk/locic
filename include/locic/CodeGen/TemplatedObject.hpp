@@ -4,8 +4,6 @@
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/Array.hpp>
 
-#include <locic/CodeGen/LLVMIncludes.hpp>
-
 namespace locic {
 	
 	namespace SEM {

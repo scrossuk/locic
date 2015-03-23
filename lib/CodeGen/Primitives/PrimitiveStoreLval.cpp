@@ -17,7 +17,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genStoreValueLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType, Optional<llvm::DebugLoc> debugLoc) {
+		void genStoreValueLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			// A value lval contains the target type and
 			// a boolean 'liveness' indicator, which records
 			// whether the lval currently holds a value.
@@ -35,39 +35,39 @@ namespace locic {
 			
 			// Store the new child value.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genMoveStore(function, value, targetPtr, varType->lvalTarget(), debugLoc);
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
-		void genStoreMemberLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType, Optional<llvm::DebugLoc> debugLoc) {
+		void genStoreMemberLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			// A member lval just contains its target type,
 			// so just store that directly.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genMoveStore(function, value, targetPtr, varType->lvalTarget(), debugLoc);
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
-		void genStoreFinalLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType, Optional<llvm::DebugLoc> debugLoc) {
+		void genStoreFinalLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			// A final lval just contains its target type,
 			// so just store that directly.
 			const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-			genMoveStore(function, value, targetPtr, varType->lvalTarget(), debugLoc);
+			genMoveStore(function, value, targetPtr, varType->lvalTarget());
 		}
 		
-		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType, Optional<llvm::DebugLoc> debugLoc) {
+		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
 			const auto& typeName = varType->getObjectType()->name().last();
 			if (typeName == "value_lval") {
-				genStoreValueLval(function, value, var, varType, debugLoc);
+				genStoreValueLval(function, value, var, varType);
 			} else if (typeName == "member_lval") {
-				genStoreMemberLval(function, value, var, varType, debugLoc);
+				genStoreMemberLval(function, value, var, varType);
 			} else if (typeName == "final_lval") {
-				genStoreFinalLval(function, value, var, varType, debugLoc);
+				genStoreFinalLval(function, value, var, varType);
 			} else {
 				llvm_unreachable("Unknown primitive lval kind.");
 			}

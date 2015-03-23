@@ -113,7 +113,7 @@ namespace locic {
 			}
 			
 			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, llvm::Value* returnVarPointer,
-					const VirtualMethodComponents methodComponents, llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc) {
+					const VirtualMethodComponents methodComponents, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				
@@ -166,11 +166,11 @@ namespace locic {
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters, debugLoc);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
 			}
 			
 			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, const VirtualMethodComponents methodComponents,
-					llvm::ArrayRef<llvm::Value*> args, Optional<llvm::DebugLoc> debugLoc, llvm::Value* const hintResultValue) {
+					llvm::ArrayRef<llvm::Value*> args, llvm::Value* const hintResultValue) {
 				const auto functionType = callableType->getCallableFunctionType();
 				assert(functionType->isFunction());
 				
@@ -184,13 +184,13 @@ namespace locic {
 				const auto returnVarValue = hasReturnVar ?
 					(hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType)) : constGen.getNullPointer(i8PtrType);
 				
-				generateCallWithReturnVar(function, functionType, returnVarValue, methodComponents, args, debugLoc);
+				generateCallWithReturnVar(function, functionType, returnVarValue, methodComponents, args);
 				
 				// If the return type isn't void, load the return value from the stack.
 				return hasReturnVar ? genMoveLoad(function, returnVarValue, returnType) : constGen.getVoidUndef();
 			}
 			
-			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind, Optional<llvm::DebugLoc> debugLoc) {
+			llvm::Value* generateCountFnCall(Function& function, llvm::Value* typeInfoValue, CountFnKind kind) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -213,7 +213,7 @@ namespace locic {
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue }, debugLoc);
+				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue });
 			}
 			
 			ArgInfo virtualMoveArgInfo(Module& module) {
@@ -222,7 +222,7 @@ namespace locic {
 			}
 			
 			void generateMoveCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* sourceValue,
-					llvm::Value* destValue, llvm::Value* positionValue, Optional<llvm::DebugLoc> debugLoc) {
+					llvm::Value* destValue, llvm::Value* positionValue) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -246,14 +246,14 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args, debugLoc);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			
 			ArgInfo virtualDestructorArgInfo(Module& module) {
 				return ArgInfo::VoidTemplateAndContext(module).withNoExcept();
 			}
 			
-			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue, Optional<llvm::DebugLoc> debugLoc) {
+			void generateDestructorCall(Function& function, llvm::Value* typeInfoValue, llvm::Value* objectValue) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
@@ -277,7 +277,7 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, objectValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args, debugLoc);
+				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, const SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {

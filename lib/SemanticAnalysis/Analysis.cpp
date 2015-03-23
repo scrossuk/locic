@@ -593,8 +593,8 @@ namespace locic {
 				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				return std::unique_ptr<SEM::Function>(CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
-					fullName, astFunctionNode.location()));
+				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
+					fullName, astFunctionNode.location());
 			}
 			
 			auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope.copy());
