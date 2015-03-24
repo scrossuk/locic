@@ -154,9 +154,8 @@ namespace locic {
 			const auto endBB = function.createBasicBlock("end");
 			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
 			
-			std::vector<llvm::BasicBlock*> caseBlocks;
-			
-			uint8_t tag = 0;
+			// Start from 1 so that 0 can represent 'empty'.
+			uint8_t tag = 1;
 			
 			for (const auto variantTypeInstance : typeInstance->variants()) {
 				const auto matchBB = function.createBasicBlock("tagMatch");

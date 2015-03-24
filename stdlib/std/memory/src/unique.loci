@@ -18,6 +18,10 @@ export std.memory 0.1.0 {
 				}
 			}
 			
+			bool __is_live() const noexcept {
+				return @ptr != null;
+			}
+			
 			template <bool IsConst>
 			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept {
 				return *@ptr;

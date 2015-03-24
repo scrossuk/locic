@@ -258,7 +258,9 @@ namespace locic {
 					
 					for (auto switchCase : statement.getSwitchCaseList()) {
 						const auto caseType = switchCase->var()->constructType();
-						uint8_t tag = 0;
+						
+						// Start from 1 so 0 can represent 'empty'.
+						uint8_t tag = 1;
 						
 						for (auto variantTypeInstance : switchType->getObjectType()->variants()) {
 							if (variantTypeInstance == caseType->getObjectType()) {

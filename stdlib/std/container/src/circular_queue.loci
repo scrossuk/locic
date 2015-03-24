@@ -1,0 +1,152 @@
+export std.container 0.1.0 {
+	
+	namespace std {
+	
+		template <typename T>
+		class circular_queue(T* data, size_t capacity, size_t read_pos, size_t write_pos, bool read_pos_msb, bool write_pos_msb) {
+			static circular_queue<T> create(const size_t size) {
+				return @(reinterpret_cast<void*, T*>(allocate(sizeof(T) * size)), size, 0u, 0u, false, false);
+			}
+			
+			~ {
+				self.clear();
+				release(reinterpret_cast<T*, void*>(@data));
+			}
+			
+			bool __is_live() const noexcept {
+				return @data == null;
+			}
+			
+			bool empty() const noexcept {
+				return @read_pos == @write_pos && @read_pos_msb == @write_pos_msb;
+			}
+			
+			bool full() const noexcept {
+				return @read_pos == @write_pos && @read_pos_msb != @write_pos_msb;
+			}
+			
+			size_t size() const noexcept {
+				if (@read_pos < @write_pos) {
+					return @write_pos - @read_pos;
+				} else if (@read_pos > @write_pos) {
+					return self.capacity() - (@read_pos - @write_pos);
+				} else {
+					assert @read_pos == @write_pos;
+					return self.full() ? self.capacity() : 0u;
+				}
+			}
+			
+			size_t capacity() const noexcept {
+				return @capacity;
+			}
+			
+			size_t contiguous_data_length() const noexcept {
+				if (@read_pos < @write_pos) {
+					return @write_pos - @read_pos;
+				} else if (@read_pos > @write_pos) {
+					return self.capacity() - @read_pos;
+				} else {
+					assert @read_pos == @write_pos;
+					return self.full() ? self.capacity() - @read_pos : 0u;
+				}
+			}
+			
+			size_t contiguous_space_length() const noexcept {
+				if (@write_pos < @read_pos) {
+					return @read_pos - @write_pos;
+				} else if (@write_pos > @read_pos)  {
+					return self.capacity() - @write_pos;
+				} else {
+					assert @read_pos == @write_pos;
+					return self.empty() ? self.capacity() - @write_pos : 0u;
+				}
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) noexcept {
+				assert !self.empty();
+				return self[0u];
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) noexcept {
+				assert !self.empty();
+				return self[self.size() - 1u];
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const size_t index) const(IsConst) noexcept {
+				if (index >= self.contiguous_data_length()) {
+					// Wrap around to start of array.
+					return @data[index - self.contiguous_data_length()];
+				} else {
+					return @data[@read_pos + index];
+				}
+			}
+			
+			void clear() noexcept {
+				while (!self.empty()) {
+					self.pop_front();
+				}
+			}
+			
+			void push_back(T value) noexcept require(T : movable) {
+				assert !self.full();
+				nolval(self.back()).__set_value(move value);
+				@write_pos++;
+				if (@write_pos == self.capacity()) {
+					// Wrap around to start of array.
+					@write_pos = 0u;
+					@write_pos_msb = !@write_pos_msb;
+				}
+			}
+			
+			void pop_front() noexcept {
+				assert !self.empty();
+				nolval(self.front()).__destroy_value();
+				@read_pos++;
+				if (@read_pos == self.capacity()) {
+					// Wrap around to start of array.
+					@read_pos = 0u;
+					@read_pos_msb = !@read_pos_msb;
+				}
+			}
+			
+			template <bool IsConst>
+			circular_queue_range<T, IsConst> all() const(IsConst) noexcept {
+				return circular_queue_range<T, IsConst>(@data, self.capacity(), @read_pos, self.size());
+			}
+		}
+		
+		template <typename T, bool IsQueueConst>
+		class circular_queue_range(const<IsQueueConst>(T)* data, size_t capacity, size_t position, size_t size) {
+			static create = default;
+			
+			implicit_copy = default;
+			
+			copy = default;
+			
+			bool empty() const noexcept {
+				return @size == 0u;
+			}
+			
+			void skip_front() {
+				assert !self.empty();
+				@position++;
+				@size--;
+				
+				if (@position == @capacity) {
+					@position = 0u;
+				}
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsQueueConst>(T)> ptr_lval<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept {
+				return @data[@position];
+			}
+		}
+		
+	}
+	
+}
+

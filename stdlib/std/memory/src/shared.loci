@@ -29,6 +29,10 @@ export std.memory 0.1.0 {
 				}
 			}
 			
+			bool __is_live() const noexcept {
+				return @ptr != null;
+			}
+			
 			template <bool IsConst>
 			shared_ptr<const<IsConst>(T)> implicit_copy() const(IsConst) noexcept {
 				(*@countField) += 1u;

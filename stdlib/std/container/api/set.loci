@@ -3,28 +3,10 @@ import std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T>
-		class set_range {
-			lval<T> ptr_lval<T> front();
-			
-			void pop_front();
-			
-			lval<T> ptr_lval<T> back();
-			
-			void pop_back();
-			
-			bool empty() const noexcept;
-		}
-		
-		template <typename T>
-		interface comparable {
-			compare_result_t compare(const T& other) const noexcept;
-		}
-		
 		/**
 		 * \brief Set.
 		 */
-		template <typename T: comparable<T>>
+		template <typename T>
 		class set {
 			static set<T> create();
 			
@@ -34,11 +16,34 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept;
 			
-			void insert(T value);
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(T : comparable<T>);
 			
-			bool try_insert(T value);
+			void insert(T value) require(T : comparable<T> and T : movable);
 			
-			set_range<T> range() const noexcept;
+			bool try_insert(T value) require(T : comparable<T> and T : movable);
+			
+			T& get_or_insert(T value) require(T : movable and T : comparable<T>);
+			
+			template <bool IsConst>
+			set_range<T, IsConst> all() const(IsConst) noexcept;
+		}
+		
+		template <typename T, bool IsSetConst>
+		class set_range {
+			set_range<T, IsSetConst> implicit_copy() const noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsSetConst>(T)> ptr_lval<const<IsConst or IsSetConst>(T)> front() const(IsConst);
+			
+			void skip_front();
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsSetConst>(T)> ptr_lval<const<IsConst or IsSetConst>(T)> back() const(IsConst);
+			
+			void skip_back();
+			
+			bool empty() const noexcept;
 		}
 		
 	}

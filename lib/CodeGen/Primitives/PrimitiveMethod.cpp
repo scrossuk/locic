@@ -1142,34 +1142,46 @@ namespace locic {
 				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
 				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
 				
-				// Check the 'liveness indicator' which indicates whether
-				// child value's move method should be run.
-				const auto livenessIndicatorPtr = typeSizeIsKnown ?
-					builder.CreateConstInBoundsGEP2_32(sourceObjectPointer, 0, 1) :
-					builder.CreateInBoundsGEP(sourceObjectPointer, genSizeOf(function, targetType));
-				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
-				const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
+				const bool usingLivenessIndicator = needsLivenessIndicator(module, targetType);
 				
-				// Store the 'liveness indicator' into the new object.
-				const auto rawDestPointer = makeRawMoveDest(function, destValue, positionValue);
-				const auto destPointer = builder.CreatePointerCast(rawDestPointer, castType);
-				const auto isLiveRawDestPointer = typeSizeIsKnown ?
-					builder.CreateConstInBoundsGEP2_32(destPointer, 0, 1) :
-					builder.CreateInBoundsGEP(destPointer, genSizeOf(function, targetType));
-				const auto isLiveDestPointer = builder.CreatePointerCast(isLiveRawDestPointer, TypeGenerator(module).getI1Type()->getPointerTo());
-				builder.CreateStore(isLive, isLiveDestPointer);
-				
-				const auto isLiveBB = function.createBasicBlock("is_live");
-				const auto afterBB = function.createBasicBlock("");
-				
-				builder.CreateCondBr(isLive, isLiveBB, afterBB);
-				
-				// If it is live, run the child value's move method.
-				function.selectBasicBlock(isLiveBB);
-				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
-				builder.CreateBr(afterBB);
-				
-				function.selectBasicBlock(afterBB);
+				if (usingLivenessIndicator) {
+					// Check the 'liveness indicator' which indicates whether
+					// child value's move method should be run.
+					const auto livenessIndicatorPtr = typeSizeIsKnown ?
+						builder.CreateConstInBoundsGEP2_32(sourceObjectPointer, 0, 1) :
+						builder.CreateInBoundsGEP(sourceObjectPointer, genSizeOf(function, targetType));
+					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
+					const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
+					
+					// Store the 'liveness indicator' into the new object.
+					const auto rawDestPointer = makeRawMoveDest(function, destValue, positionValue);
+					const auto destPointer = builder.CreatePointerCast(rawDestPointer, castType);
+					const auto isLiveRawDestPointer = typeSizeIsKnown ?
+						builder.CreateConstInBoundsGEP2_32(destPointer, 0, 1) :
+						builder.CreateInBoundsGEP(destPointer, genSizeOf(function, targetType));
+					const auto isLiveDestPointer = builder.CreatePointerCast(isLiveRawDestPointer, TypeGenerator(module).getI1Type()->getPointerTo());
+					builder.CreateStore(isLive, isLiveDestPointer);
+					
+					const auto isDefinitelyLiveBB = function.createBasicBlock("is_definitely_live");
+					const auto isProbablyNotLiveBB = function.createBasicBlock("is_probably_not_live");
+					const auto afterBB = function.createBasicBlock("");
+					
+					builder.CreateCondBr(isLive, isDefinitelyLiveBB, isProbablyNotLiveBB);
+					
+					// If it is live, run the child value's move method.
+					function.selectBasicBlock(isDefinitelyLiveBB);
+					genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
+					builder.CreateBr(afterBB);
+					
+					function.selectBasicBlock(isProbablyNotLiveBB);
+					// TODO...
+					builder.CreateBr(afterBB);
+					
+					function.selectBasicBlock(afterBB);
+				} else {
+					// Generate the move just to copy the relevant data.
+					genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
+				}
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {

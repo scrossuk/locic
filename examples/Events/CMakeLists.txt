@@ -7,7 +7,7 @@ loci_module(Events_Module events.bc ""
 	${STD_CONTAINER_API_FILES}
 	${STD_EVENT_API_FILES}
 	${STD_STRING_API_FILES}
-	)
+)
 
 loci_link(Events events "-pthread"
 	events.bc
@@ -16,7 +16,7 @@ loci_link(Events events "-pthread"
 	${STD_STRING_BINARY_FILES}
 	${STD_CONTAINER_BINARY_FILES}
 	${STD_MEMORY_BINARY_FILES}
-	)
+)
 
-add_dependencies(Events std.concurrency std.event std.string std.container)
+add_dependencies(Events std.concurrency std.event std.string std.container std.memory)
 

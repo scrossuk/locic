@@ -16,7 +16,7 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 
 #if LOCIC_LLVM_VERSION >= 305
-#include <llvm/DebugInfo/DIContext.h>
+#include <llvm/IR/DebugInfo.h>
 #else
 #include <llvm/DebugInfo.h>
 #endif

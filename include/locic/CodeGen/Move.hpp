@@ -86,6 +86,8 @@ namespace locic {
 		
 		llvm::Function* genMoveFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
 		
+		llvm::Function* genMoveFunctionDef(Module& module, const SEM::TypeInstance* typeInstance);
+		
 	}
 	
 }

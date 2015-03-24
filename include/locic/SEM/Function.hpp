@@ -58,6 +58,9 @@ namespace locic {
 				
 				bool isDefinition() const;
                                 
+				void setDefault(bool pIsDefault);
+				bool isDefault() const;
+				
                                 void setPrimitive(bool pIsPrimitive);
                                 bool isPrimitive() const;
 				
@@ -94,7 +97,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				bool isPrimitive_;
+				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;
 				const Type* type_;
 				Name name_;

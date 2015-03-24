@@ -76,7 +76,7 @@ namespace locic {
 		
 		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue, const SEM::Type* type) {
 			const auto rawMoveDest = makeRawMoveDest(function, startDestValue, positionValue);
-			return function.getBuilder().CreatePointerCast(rawMoveDest, genType(function.module(), type));
+			return function.getBuilder().CreatePointerCast(rawMoveDest, genPointerType(function.module(), type));
 		}
 		
 		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
@@ -139,7 +139,7 @@ namespace locic {
 			
 		}
 		
-		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
+		void genMoveCall(Function& function, const SEM::Type* const type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -227,8 +227,110 @@ namespace locic {
 			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
 			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
 			
+			const auto argInfo = moveArgInfo(module, typeInstance);
+			if (argInfo.hasTemplateGeneratorArgument()) {
+				// Always inline templated destructors.
+				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			}
+			
 			module.getMoveFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
+			return llvmFunction;
+		}
+		
+		llvm::Function* genMoveFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto llvmFunction = genMoveFunctionDecl(module, typeInstance);
+			
+			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
+			
+			if (semFunction->isDefinition()) {
+				// Custom move method; generated in genFunctionDef().
+				return llvmFunction;
+			}
+			
+			if (semFunction->isPrimitive()) {
+				// Generated in genFunctionDecl().
+				return llvmFunction;
+			}
+			
+			if (typeInstance->isClassDecl()) {
+				// Don't generate code for imported functionality.
+				return llvmFunction;
+			}
+			
+			const auto argInfo = moveArgInfo(module, typeInstance);
+			llvmFunction->addFnAttr(llvm::Attribute::InlineHint);
+			
+			Function functionGenerator(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
+			
+			const auto debugSubprogram = genDebugFunctionInfo(module, semFunction, llvmFunction);
+			assert(debugSubprogram);
+			functionGenerator.attachDebugInfo(*debugSubprogram);
+			
+			functionGenerator.setDebugPosition(semFunction->debugInfo()->scopeLocation.range().start());
+			
+			auto& builder = functionGenerator.getBuilder();
+			const auto type = typeInstance->selfType();
+			
+			const auto sourceValue = functionGenerator.getContextValue(typeInstance);
+			const auto destValue = functionGenerator.getArg(0);
+			const auto positionValue = functionGenerator.getArg(1);
+			
+			if (typeInstance->isUnion()) {
+				// Basically just do a memcpy.
+				genBasicMove(functionGenerator, type, sourceValue, destValue, positionValue);
+			} else if (typeInstance->isUnionDatatype()) {
+				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator, type, sourceValue);
+				const auto loadedTag = builder.CreateLoad(unionDatatypePointers.first);
+				
+				// Store tag.
+				builder.CreateStore(loadedTag, makeRawMoveDest(functionGenerator, destValue, positionValue));
+				
+				// Set previous tag to zero.
+				builder.CreateStore(ConstantGenerator(module).getI8(0), unionDatatypePointers.first);
+				
+				// Offset of union datatype data is equivalent to its alignment size.
+				const auto unionDataOffset = genAlignOf(functionGenerator, type);
+				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
+				
+				const auto endBB = functionGenerator.createBasicBlock("end");
+				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
+				
+				// Start from 1 so that 0 can represent 'empty'.
+				uint8_t tag = 1;
+				
+				for (const auto& variantTypeInstance: typeInstance->variants()) {
+					const auto matchBB = functionGenerator.createBasicBlock("tagMatch");
+					const auto tagValue = ConstantGenerator(module).getI8(tag++);
+					
+					switchInstruction->addCase(tagValue, matchBB);
+					
+					functionGenerator.selectBasicBlock(matchBB);
+					
+					const auto variantType = variantTypeInstance->selfType();
+					const auto unionValueType = genType(module, variantType);
+					const auto castedUnionValuePtr = builder.CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
+					
+					genMoveCall(functionGenerator, variantType, castedUnionValuePtr, destValue, adjustedPositionValue);
+					
+					builder.CreateBr(endBB);
+				}
+				
+				functionGenerator.selectBasicBlock(endBB);
+			} else {
+				const auto& memberVars = typeInstance->variables();
+				
+				// Move member variables.
+				for (const auto& memberVar: memberVars) {
+					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto ptrToMember = genMemberPtr(functionGenerator, sourceValue, type, memberIndex);
+					const auto memberOffsetValue = genMemberOffset(functionGenerator, type, memberIndex);
+					const auto adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
+					genMoveCall(functionGenerator, memberVar->type(), ptrToMember, destValue, adjustedPositionValue);
+				}
+			}
+			
+			functionGenerator.getBuilder().CreateRetVoid();
 			return llvmFunction;
 		}
 		

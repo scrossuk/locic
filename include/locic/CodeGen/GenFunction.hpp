@@ -18,7 +18,7 @@ namespace locic {
 		
 		class Module;
 		
-		llvm::GlobalValue::LinkageTypes getFunctionLinkage(SEM::Function* function);
+		llvm::GlobalValue::LinkageTypes getFunctionLinkage(const SEM::TypeInstance* typeInstance, const SEM::Function* function);
 		
 		llvm::GlobalValue::LinkageTypes getTypeInstanceLinkage(const SEM::TypeInstance* typeInstance);
 		

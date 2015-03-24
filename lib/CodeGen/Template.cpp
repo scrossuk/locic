@@ -386,7 +386,7 @@ namespace locic {
 			if (templatedObject.isTypeInstance()) {
 				return getTypeInstanceLinkage(templatedObject.typeInstance());
 			} else {
-				return getFunctionLinkage(templatedObject.function());
+				return getFunctionLinkage(templatedObject.parentTypeInstance(), templatedObject.function());
 			}
 		}
 		

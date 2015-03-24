@@ -7,41 +7,96 @@ import {
 	int pthread_join(pthread_t thread, void** retval) noexcept;
 }
 
-interface thread_runnable {
-	void run_internal();
+interface internal_thread_api {
+	void start();
+	
+	void run();
+	
+	void destroy_self() noexcept;
+	
+	void cancel();
+	
+	void join();
 	
 	std::event::source event_source() const noexcept;
 }
 
-datatype runnable_header(lval<thread_runnable&> member_lval<thread_runnable&> selfRef);
+datatype thread_ref(lval<internal_thread_api&> member_lval<internal_thread_api&> thread);
+
+static thread_ref thread_ref::empty() noexcept {
+	return @(lval<internal_thread_api&>(member_lval<internal_thread_api&>.__empty()));
+}
 
 template <typename T>
 require(T : std::concurrency::runnable and T : movable)
-class internal_runnable(lval<thread_runnable&> member_lval<thread_runnable&> selfRef, lval<T> value_lval<T> runnable, std::event::generator terminateGenerator) {
+class internal_thread(thread_ref self_ref,
+		pthread_t thread_object,
+		std::concurrency::mutex mutex,
+		std::concurrency::mutex joinMutex,
+		lval<T> value_lval<T> runnable,
+		bool is_finished,
+		bool has_joined,
+		std::event::generator terminate_generator) {
+	
 	static create(T runnable) {
-		return @(lval<thread_runnable&>(member_lval<thread_runnable&>.__empty()), lval<T>(value_lval<T>(move runnable)), std::event::generator());
+		return @(thread_ref.empty(), 0u, std::concurrency::mutex(), std::concurrency::mutex(), lval<T>(value_lval<T>(move runnable)), false, false, std::event::generator());
 	}
 	
-	void run_internal() {
+	// Slightly dangerous; need to use unique reference once they're implemented.
+	void destroy_self() noexcept {
+		std::delete_raw<internal_thread<T>>(this);
+	}
+	
+	void start() {
+		@self_ref.thread = self;
+		const int result = pthread_create(&@thread_object, null, threadFunction, reinterpret_cast<thread_ref*, void*>(&@self_ref));
+		if (result != 0) {
+			throw std::concurrency::create_failed(result);
+		}
+	}
+	
+	void join() {
+		// Prevent concurrent joins (make them all wait for the first join to finish).
+		unused auto join_lock = std::concurrency::unique_lock(@joinMutex);
+		
+		if (@has_joined) {
+			return;
+		}
+		
+		const int result = pthread_join(@thread_object, null);
+		if (result != 0) {
+			throw std::concurrency::join_failed(result);
+		}
+		
+		@has_joined = true;
+	}
+	
+	void run() {
 		{
 			T runnable = move @runnable;
 			runnable.run();
+			
+			unused auto lock = std::concurrency::unique_lock(@mutex);
+			@is_finished = true;
 		}
-		@terminateGenerator.notify();
+		@terminate_generator.notify();
 	}
 	
-	void set_self_ref() {
-		nolval(@selfRef).__set_value(self);
+	void cancel() {
+		unused auto lock = std::concurrency::unique_lock(@mutex);
+		if (!@is_finished) {
+			// TODO...
+		}
 	}
 	
 	std::event::source event_source() const noexcept {
-		return @terminateGenerator.event_source();
+		return @terminate_generator.event_source();
 	}
 }
 
-void threadFunction(void* objectPtr) {
-	auto runnablePtr = reinterpret_cast<void*, runnable_header*>(objectPtr);
-	runnablePtr->selfRef.run_internal();
+void threadFunction(void* object_pointer) {
+	auto run_pointer = reinterpret_cast<void*, thread_ref*>(object_pointer);
+	run_pointer->thread.run();
 }
 
 export std.concurrency 0.1.0 {
@@ -58,50 +113,32 @@ export std.concurrency 0.1.0 {
 			exception create_failed(int result);
 			exception join_failed(int result);
 			
-			class thread(thread_runnable& internalRunnable, mutex mutex, bool hasJoined, pthread_t threadObject) {
+			class thread(internal_thread_api& internal_thread) {
 				template <typename T>
-				static create(T runnableObject) require(T : runnable and T : movable) {
-					auto internalRunnable = new_unique<internal_runnable<T>>(internal_runnable<T>(move runnableObject));
-					internalRunnable->set_self_ref();
-					
-					pthread_t threadObject = 0u;
-					final int result = pthread_create(&threadObject, null, threadFunction, reinterpret_cast<internal_runnable<T>*, void*>(internalRunnable.get()));
-					if (result != 0) {
-						throw create_failed(result);
-					}
-					
-					thread_runnable& internalRunnableRef = *internalRunnable;
-					
-					// TODO: fix this!
-					unused_result internalRunnable.release();
-					
-					return @(internalRunnableRef, mutex(), false, threadObject);
+				static create(T runnable_object) require(T : runnable and T : movable) {
+					auto internal_thread_ptr = new_unique<internal_thread<T>>(internal_thread<T>(move runnable_object));
+					internal_thread_ptr->start();
+					return @(*(internal_thread_ptr.release()));
 				}
 				
 				~ {
-					//self.cancel();
-					//self.join();
+					assert noexcept {
+						@internal_thread.cancel();
+						@internal_thread.join();
+					}
+					@internal_thread.destroy_self();
 				}
 				
 				void cancel() {
-					unused auto lock = unique_lock(@mutex);
-					// TODO...
+					@internal_thread.cancel();
 				}
 				
 				void join() {
-					unused auto lock = unique_lock(@mutex);
-					if (!@hasJoined) {
-						final int result = pthread_join(@threadObject, null);
-						if (result != 0) {
-							throw join_failed(result);
-						}
-						
-						@hasJoined = true;
-					}
+					@internal_thread.join();
 				}
 				
 				event::source event_source() const noexcept {
-					return @internalRunnable.event_source();
+					return @internal_thread.event_source();
 				}
 			}
 			

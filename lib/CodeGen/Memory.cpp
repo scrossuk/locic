@@ -99,6 +99,12 @@ namespace locic {
 						(void) function.getBuilder().CreateStore(value, var);
 						return;
 					} else {
+						if (value->stripPointerCasts() == var->stripPointerCasts()) {
+							// Source and destination are same pointer, so no
+							// move operation required!
+							return;
+						}
+						
 						if (isTypeSizeKnownInThisModule(function.module(), type)) {
 							// If the type size is known now, it's
 							// better to generate an explicit load

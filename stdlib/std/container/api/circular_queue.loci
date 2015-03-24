@@ -1,0 +1,54 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+	
+		/**
+		 * \brief Circular Queue
+		 */
+		template <typename T>
+		class circular_queue {
+			static circular_queue<T> create(size_t size);
+			
+			bool empty() const noexcept;
+			bool full() const noexcept;
+			
+			size_t size() const noexcept;
+			size_t capacity() const noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
+			
+			void clear() noexcept;
+			
+			void push_back(T value) noexcept require(T : movable);
+			
+			void pop_front() noexcept;
+			
+			template <bool IsConst>
+			circular_queue_range<T, IsConst> all() const(IsConst) noexcept;
+			
+		}
+		
+		template <typename T, bool IsQueueConst>
+		class circular_queue_range {
+			circular_queue_range<T, IsQueueConst> implicit_copy() const noexcept;
+			
+			bool empty() const noexcept;
+			
+			void skip_front();
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsQueueConst>(T)> ptr_lval<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept;
+		}
+		
+	}
+	
+}
+

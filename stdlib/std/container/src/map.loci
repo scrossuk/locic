@@ -11,23 +11,23 @@ export std.container 0.1.0 {
 		class map_range(varray_range<const<IsMapConst>(pair<Key, Value>), IsMapConst> range) {
 			static create = default;
 			
-			implicitCopy = default;
+			implicit_copy = default;
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> front() const(IsConst) {
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> front() const(IsConst) noexcept {
 				return @range.front();
 			}
 			
-			void skip_front() {
+			void skip_front() noexcept {
 				@range.skip_front();
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> back() const(IsConst) {
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval<const<IsConst or IsMapConst>(pair<Key, Value>)> back() const(IsConst) noexcept {
 				return @range.back();
 			}
 			
-			void skip_back() {
+			void skip_back() noexcept {
 				@range.skip_back();
 			}
 			

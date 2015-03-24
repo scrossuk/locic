@@ -1,0 +1,60 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief Fixed size array.
+		 */
+		template <typename T>
+		notag(T)
+		class fixed_array {
+			static fixed_array<T> create(size_t size) noexcept;
+			
+			size_t capacity() const noexcept;
+			
+			void resize(size_t size);
+			
+			bool empty() const noexcept;
+			
+			template <bool IsConst>
+			const<IsConst>(T)* data() const(IsConst) noexcept;
+			
+			size_t size() const noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
+			
+			void clear() noexcept;
+			
+			void push_back(T value) require (T : movable);
+			
+			void pop_back() noexcept;
+			
+			fixed_array<notag(T)> copy() const require(notag(T) : movable and T : copyable<T>);
+			
+			template <bool IsConst>
+			fixed_array_range<T, IsConst> all() const(IsConst) noexcept;
+		}
+		
+		template <typename T, bool IsArrayConst>
+		class fixed_array_range {
+			fixed_array_range<T, IsArrayConst> implicitCopy() const noexcept;
+			
+			bool empty() const noexcept;
+			
+			void skip_front() noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> front() const(IsConst) noexcept;
+			
+			void skip_back() noexcept;
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsArrayConst>(T)> ptr_lval<const<IsConst or IsArrayConst>(T)> back() const(IsConst) noexcept;
+		}
+		
+	}
+	
+}
+

@@ -1,5 +1,7 @@
 
-// Class members can't be const since
-// this would affect the movability
+// Class members can't (or at least, shouldn't)
+// be const since this affects the movability
 // of the object.
 class TestClass(const int value) { }
+
+import TestClass getValue();

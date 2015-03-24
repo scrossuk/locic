@@ -116,6 +116,11 @@ namespace locic {
 					structMembers.push_back(genType(module, var->type()));
 				}
 				
+				if (structMembers.empty()) {
+					// All datatypes must be at least one byte in size.
+					structMembers.push_back(TypeGenerator(module).getI8Type());
+				}
+				
 				structType->setBody(structMembers);
 			}
 			

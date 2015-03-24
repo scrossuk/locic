@@ -11,7 +11,8 @@ namespace locic {
 	namespace SEM {
 	
 		Function::Function(Name pName, ModuleScope pModuleScope)
-			: isPrimitive_(false),
+			: isDefault_(false),
+			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
 			  type_(nullptr),
@@ -44,7 +45,15 @@ namespace locic {
 			return scope_.get() != nullptr;
 		}
 		
-		void Function::setPrimitive(bool pIsPrimitive) {
+		void Function::setDefault(const bool pIsDefault) {
+			isDefault_ = pIsDefault;
+		}
+		
+		bool Function::isDefault() const {
+			return isDefault_;
+		}
+		
+		void Function::setPrimitive(const bool pIsPrimitive) {
 			isPrimitive_ = pIsPrimitive;
 		}
 		
@@ -52,7 +61,7 @@ namespace locic {
 			return isPrimitive_;
 		}
 		
-		void Function::setMethod(bool pIsMethod) {
+		void Function::setMethod(const bool pIsMethod) {
 			isMethod_ = pIsMethod;
 		}
 		

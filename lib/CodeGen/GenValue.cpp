@@ -246,7 +246,8 @@ namespace locic {
 							}
 							
 							if (sourceType->isDatatype() && destType->isUnionDatatype()) {
-								uint8_t variantKind = 0;
+								// Start from 1 so 0 can be used to represent 'empty'.
+								uint8_t variantKind = 1;
 								for (auto variantTypeInstance: destType->getObjectType()->variants()) {
 									if (variantTypeInstance == sourceType->getObjectType()) break;
 									variantKind++;

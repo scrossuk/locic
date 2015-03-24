@@ -62,7 +62,7 @@ Released on [TODO] March 2015, version 1.2 provides:
 
 **Other**
 
-* Continuous Integration - verifying support for LLVM 3.3/3.4/3.5/3.6
+* `Continuous Integration <https://travis-ci.org/scross99/locic>`_ - verifying support for LLVM 3.3/3.4/3.5/3.6
 
 **Dependencies**
 
@@ -145,6 +145,7 @@ Planned for Summer 2015, version 1.3 aims to provide:
 
 **Language features**
 
+* Live/not-live objects (reduces number of moves and enables moving with all lvalues)
 * Named predicates
 * Value-templates
 * Variadic templates
@@ -171,7 +172,7 @@ Planned for Summer 2015, version 1.3 aims to provide:
 **Compiler**
 
 * Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>` - mostly related to improving Semantic Analysis
-* Move default method generation into CodeGen
+* Move default method generation (for 'implicitcopy', 'copy' etc.) into CodeGen
 * Add CMake module files to make it easier to create Loci projects
 
 **Primitives**
@@ -185,6 +186,11 @@ Planned for Summer 2015, version 1.3 aims to provide:
 
 * Generation of :doc:`imports from exports <Modules>`
 * Generation of Loci imports from C (and potentially C++) headers
+
+**Test**
+
+* Tests for primitives (e.g. integer overflow)
+* More standard library tests
 
 In Consideration
 ~~~~~~~~~~~~~~~~

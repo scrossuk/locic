@@ -21,8 +21,10 @@ namespace locic {
 			assert(sourceValue->getType()->isPointerTy());
 			assert(destValue->getType()->isPointerTy());
 			
-			auto& builder = function.getBuilder();
 			auto& module = function.module();
+			
+			/*
+			auto& builder = function.getBuilder();
 			const auto& typeName = type->getObjectType()->name().last();
 			
 			if (typeName == "value_lval") {
@@ -55,7 +57,23 @@ namespace locic {
 			} else if (typeName == "final_lval" || typeName == "member_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				genMoveCall(function, targetType, sourceValue, destValue, positionValue);
-			}
+			}*/
+			
+			assert(type->isPrimitive());
+			const auto canonicalMethodName = module.getCString("__moveto");
+			const auto functionType = type->getObjectType()->functions().at(canonicalMethodName)->type();
+			
+			const auto methodName = module.getCString("__move_to");
+			MethodInfo methodInfo(type, methodName, functionType, {});
+			
+			PendingResultArray arguments;
+			arguments.push_back(sourceValue);
+			arguments.push_back(destValue);
+			arguments.push_back(positionValue);
+			
+			llvm::Value* const hintResultValue = nullptr;
+			
+			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments), hintResultValue);
 		}
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type) {
