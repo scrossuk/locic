@@ -6,9 +6,17 @@
 #include <locic/CodeGen/Module.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace CodeGen {
+		
+#if LOCIC_LLVM_VERSION >= 307
+		using FunctionPassManager = llvm::legacy::FunctionPassManager;
+		using PassManager = llvm::legacy::PassManager;
+#else
+		using FunctionPassManager = llvm::FunctionPassManager;
+		using PassManager = llvm::PassManager;
+#endif
+		
 		class Optimisations {
 			public:
 				inline Optimisations(Module& module)
@@ -48,8 +56,8 @@ namespace locic {
 				
 			private:
 				llvm::Module& llvmModule_;
-				llvm::FunctionPassManager functionPassManager_;
-				llvm::PassManager modulePassManager_;
+				FunctionPassManager functionPassManager_;
+				PassManager modulePassManager_;
 				
 		};
 		
