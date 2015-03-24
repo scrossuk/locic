@@ -62,7 +62,12 @@
 
 #include <llvm/MC/SubtargetFeature.h>
 
+#if LOCIC_LLVM_VERSION >= 307
+#include <llvm/IR/LegacyPassManager.h>
+#else
 #include <llvm/PassManager.h>
+#endif
+
 #include <llvm/Support/Dwarf.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/MemoryBuffer.h>
