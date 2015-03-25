@@ -1,5 +1,6 @@
 find_package(LLVM REQUIRED)
 find_package(Clang REQUIRED)
+find_package(CSFML 2.1 COMPONENTS graphics window system)
 
 set(LOCIC "${CMAKE_BINARY_DIR}/tools/locic")
 
@@ -106,11 +107,15 @@ set(SFML_API_FILES
 )
 
 add_subdirectory(Calculator)
-add_subdirectory(ChainReversi)
 add_subdirectory(CommandLine)
 add_subdirectory(Events)
 add_subdirectory(Looper)
 add_subdirectory(Network)
-add_subdirectory(Simulations)
 add_subdirectory(SplitModule)
 
+if(CSFML_FOUND)
+	add_subdirectory(ChainReversi)
+	add_subdirectory(Simulations)
+else()
+	message(WARNING "Failed to find CSFML so can't build ChainReversi or Simulations examples.")
+endif()

@@ -31,4 +31,3 @@ loci_link(Simulations simulations "-lcsfml-graphics -lcsfml-window -lcsfml-syste
 )
 
 add_dependencies(Simulations std.container std.memory std.string)
-

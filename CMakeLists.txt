@@ -44,6 +44,16 @@ message(STATUS "Building Loci Compiler Tools version ${LOCIC_VERSION} using buil
 message(STATUS "    Source directory is '${PROJECT_SOURCE_DIR}'.")
 message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
 
+# --- Options
+
+set(LOCIC_BUILD_EXAMPLES ON CACHE BOOL "Build Loci examples")
+
+if(LOCIC_BUILD_EXAMPLES)
+	message(STATUS "Building examples is ENABLED (use -DLOCIC_BUILD_EXAMPLES=OFF to disable).")
+else()
+	message(STATUS "Building examples is DISABLED (use -DLOCIC_BUILD_EXAMPLES=ON to enable).")
+endif()
+
 # --- Compiler Flags
 
 add_definitions(
@@ -256,8 +266,10 @@ set (STD_STRING_BINARY_FILES
 # Documentation.
 add_subdirectory(docs)
 
-# Loci examples that are build by the compiler.
-add_subdirectory(examples)
+if(LOCIC_BUILD_EXAMPLES)
+	# Loci examples that are build by the compiler.
+	add_subdirectory(examples)
+endif(LOCIC_BUILD_EXAMPLES)
 
 # Compiler libraries (e.g. SemanticAnalysis).
 add_subdirectory(lib)

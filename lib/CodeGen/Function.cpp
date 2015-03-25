@@ -275,9 +275,9 @@ namespace locic {
 		void Function::verify() const {
 			// Only verify functions when built in debug mode.
 #if !defined(NDEBUG)
-			// This causes lots of failures in LLVM 3.6 due to debugging information.
-#if LOCIC_LLVM_VERSION == 306
-			// This causes lots of failures in LLVM 3.6 due to debugging information.
+#if LOCIC_LLVM_VERSION == 306 || LOCIC_LLVM_VERSION == 307
+			// This causes lots of failures in LLVM 3.6/3.7 due to debugging information.
+			// TODO: find a way to fix this (if possible).
 #elif LOCIC_LLVM_VERSION >= 305
 			llvm::raw_os_ostream cerrStream(std::cerr);
 			const bool result = llvm::verifyFunction(function_, &cerrStream);
