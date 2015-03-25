@@ -109,17 +109,14 @@ find_package(LLVM REQUIRED ${LLVM_REQ_COMPONENTS})
 # Check LLVM version.
 set(LLVM_VERSION_SIMPLE_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
 
-if(NOT "${LLVM_VERSION_SIMPLE_STRING}" MATCHES "^3\\.[3-6]")
-	if (" ${LLVM_VERSION_SIMPLE_STRING}" STREQUAL " 3.7")
-		message(WARNING "Support for LLVM ${LLVM_VERSION_SIMPLE_STRING} is experimental...")
-	else()
-		message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported.")
-	endif()
+if("${LLVM_VERSION_SIMPLE_STRING}" VERSION_LESS "3.3")
+	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported (first supported version is 3.3).")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" VERSION_GREATER "3.6")
+	message(WARNING "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not officially supported for this release (last supported version is 3.6).")
 endif()
 
 math(EXPR LOCIC_LLVM_VERSION ${LLVM_VERSION_MAJOR}*100+${LLVM_VERSION_MINOR})
-
-message(STATUS "Using LLVM ${LLVM_VERSION_SIMPLE_STRING} (name is ${LOCIC_LLVM_VERSION}).")
+message(STATUS "Using LLVM ${LLVM_VERSION_SIMPLE_STRING} (version integer is ${LOCIC_LLVM_VERSION}).")
 
 add_definitions(
 	-DLOCIC_LLVM_VERSION=${LOCIC_LLVM_VERSION}
