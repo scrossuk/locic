@@ -46,7 +46,9 @@ namespace locic {
 			  useEntryBuilder_(false),
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
+#if LOCIC_LLVM_VERSION < 307
 			  debugInfo_(nullptr),
+#endif
 			  exceptionInfo_(nullptr),
 			  returnValuePtr_(nullptr),
 			  templateArgs_(nullptr),
