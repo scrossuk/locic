@@ -223,3 +223,97 @@ If this is some C code, then you can call into it from Loci with essentially ide
 	void doSomeProcessingInC(CStruct* data) noexcept;
 
 Note that the :doc:`noexcept qualifier <Exceptions>` has been added to the function in Loci; this is not required but clearly represents the fact that the C function won't throw an exception and this aids static analysis of exception safety in Loci.
+
+Manually calling into Loci
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike C++, you can absolutely call Loci functions/methods directly from C by applying the appropriate :doc:`Name Mangling <NameMangling>`. For example, consider calling into this function:
+
+.. code-block:: c++
+
+	namespace Namespace {
+		void function();
+	}
+
+This would be achieved by:
+
+.. code-block:: c
+
+	void cfunction() {
+		F2N9NamespaceN8function();
+	}
+
+There's nothing wrong with this and indeed it facilitates effective compatibility with C (and all the other languages that are also compatible with C). This gets a little more complex if the function returns a class type:
+
+.. code-block:: c++
+
+	namespace Namespace {
+		class TestClass {
+			void method();
+			
+			// etc.
+		}
+		
+		TestClass function();
+	}
+
+The C code then must allocate the necessary space for the class and pass a pointer to this as the first parameter. This is required because the size of classes are not in general known until run-time, which facilitates omitting . You can query the size/alignment of the class by calling the relevant functions:
+
+.. code-block:: c
+
+	void cfunction() {
+		const size_t size = MT2N9NamespaceN9TestClassF1N8__sizeof();
+		
+		// Not needed in the case of heap allocation, but queried for completeness.
+		const size_t alignMask = MT2N9NamespaceN9TestClassF1N11__alignmask();
+		
+		// A heap allocation isn't necessary - Loci-generated code uses
+		// stack allocations - but it's simpler to demonstrate here.
+		void* objectPointer = malloc(size);
+		
+		// The function will write to the given pointer.
+		F2N9NamespaceN8function(objectPointer);
+		
+		// Call a method on the class.
+		MT2N9NamespaceN9TestClassF1N6method(objectPointer);
+		
+		// Must call class destructor!
+		MT2N9NamespaceN9TestClassF1N9__destroy(objectPointer);
+		
+		free(objectPointer);
+	}
+
+An alignment mask is just the alignment (which is always a power of 2) minus one, which is useful because calculating the maximum alignment of a set of fields (e.g. when computing the alignment of a class) just involves a bitwise OR of the alignment masks and then adding one.
+
+It's worth noting at this point that the mangling and method names are not yet fully standardised but that it is expected this will occur soon (i.e. version 1.3).
+
+C Strings
+---------
+
+Loci supports C strings, which essentially just involves manipulating pointers to *ubyte* (the type *char* is renamed to *byte* and Loci treats ASCII character bytes as unsigned). For example:
+
+.. code-block:: c++
+
+	size_t get_cstring_length(const ubyte* ptr) {
+		size_t length = 0u;
+		while (*ptr != 0u) {
+			length++;
+			ptr++;
+		}
+		return length;
+	}
+
+Needless to say, it's recommended to use standard library :doc:`Strings <Strings>` rather than trying to manipulate C strings (an extremely error-prone process).
+
+Note that C string :doc:`literals <Literals>` must use the 'C' prefix or suffix:
+
+.. code-block:: c++
+
+	// Prefix:
+	const size_t length = get_cstring_length(C"Hello world!");
+	
+	// Suffix:
+	const size_t length = get_cstring_length("Hello world!"C);
+
+Without the prefix or suffix Loci will try to find a function called 'string_literal', which conveniently gives std.string a hook to provide a standard library string when no prefix/suffix is specified.
+

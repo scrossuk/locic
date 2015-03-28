@@ -7,6 +7,10 @@ import std.string 0.1.0 {
 			const T& dissolve() const;
 		}
 		
+		interface serializable {
+			void serialize(string_builder& builder) const;
+		}
+		
 		/**
 		 * \brief String Builder
 		 * 
@@ -35,11 +39,19 @@ import std.string 0.1.0 {
 			size_t length() const noexcept;
 			
 			/**
+			 * \brief Append a serializable value.
+			 * 
+			 * \param The value to append.
+			 */
+			template <typename T>
+			void append(const T& value) require(T : serializable);
+			
+			/**
 			 * \brief Append a unicode character.
 			 * 
 			 * \param The character to append.
 			 */
-			void append(unichar character);
+			void append_char(unichar character);
 			
 			/**
 			 * \brief Append a range of unicode characters.
@@ -55,7 +67,38 @@ import std.string 0.1.0 {
 			 * \return A string value containing the string builder's contents.
 			 */
 			string str() const;
+			
+			/**
+			 * \brief Create a UTF-8 buffer for the string builder.
+			 * 
+			 * This function is typically used to create C strings.
+			 * 
+			 * \return A UTF-8 buffer equivalent of the string builder's contents.
+			 */
+			utf8_buffer make_buffer() const;
 		}
+		
+		void int8_t::serialize(string_builder& builder) const;
+		void int16_t::serialize(string_builder& builder) const;
+		void int32_t::serialize(string_builder& builder) const;
+		void int64_t::serialize(string_builder& builder) const;
+		void short_t::serialize(string_builder& builder) const;
+		void int_t::serialize(string_builder& builder) const;
+		void long_t::serialize(string_builder& builder) const;
+		void longlong_t::serialize(string_builder& builder) const;
+		
+		void uint8_t::serialize(string_builder& builder) const;
+		void uint16_t::serialize(string_builder& builder) const;
+		void uint32_t::serialize(string_builder& builder) const;
+		void uint64_t::serialize(string_builder& builder) const;
+		void ushort_t::serialize(string_builder& builder) const;
+		void uint_t::serialize(string_builder& builder) const;
+		void ulong_t::serialize(string_builder& builder) const;
+		void ulonglong_t::serialize(string_builder& builder) const;
+		
+		void float_t::serialize(string_builder& builder) const;
+		void double_t::serialize(string_builder& builder) const;
+		void longdouble_t::serialize(string_builder& builder) const;
 		
 	}
 	

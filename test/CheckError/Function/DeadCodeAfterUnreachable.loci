@@ -1,0 +1,5 @@
+int function() {
+	unreachable;
+	return 10;
+}
+

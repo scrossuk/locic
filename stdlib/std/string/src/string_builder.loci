@@ -7,6 +7,10 @@ export std.string 0.1.0 {
 			T& dissolve() const;
 		}
 		
+		interface serializable {
+			void serialize(string_builder& builder) const;
+		}
+		
 		class string_builder (utf8_buffer buffer) {
 			static create() {
 				return @(utf8_buffer());
@@ -20,7 +24,12 @@ export std.string 0.1.0 {
 				return @buffer.length();
 			}
 			
-			void append(final unichar character) {
+			template <typename T>
+			void append(const T& value) require(T : serializable) {
+				value.serialize(self);
+			}
+			
+			void append_char(const unichar character) {
 				@buffer.append(character);
 			}
 			
@@ -31,6 +40,139 @@ export std.string 0.1.0 {
 			
 			string str() const {
 				return string::cstring(@buffer.c_str());
+			}
+			
+			utf8_buffer make_buffer() const {
+				return @buffer.copy();
+			}
+		}
+		
+		void int8_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void int16_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void int32_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void int64_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void short_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void int_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void long_t::serialize(string_builder& builder) const {
+			const longlong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void longlong_t::serialize(string_builder& builder) const {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(10u, 0u);
+			unused_result sprintf(bytes.data(), C"%lld", self);
+			
+			const ubyte* data = bytes.data();
+			while (*data != 0u) {
+				builder.append_char(*data);
+				data++;
+			}
+		}
+		
+		void uint8_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void uint16_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void uint32_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void uint64_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void ushort_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void uint_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void ulong_t::serialize(string_builder& builder) const {
+			const ulonglong_t value = self;
+			value.serialize(builder);
+		}
+		
+		void ulonglong_t::serialize(string_builder& builder) const {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(10u, 0u);
+			unused_result sprintf(bytes.data(), C"%llu", self);
+			
+			const ubyte* data = bytes.data();
+			while (*data != 0u) {
+				builder.append_char(*data);
+			}
+		}
+		
+		void float_t::serialize(string_builder& builder) const {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(50u, 0u);
+			unused_result sprintf(bytes.data(), C"%f", self);
+			
+			const ubyte* data = bytes.data();
+			while (*data != 0u) {
+				builder.append_char(*data);
+				data++;
+			}
+		}
+		
+		void double_t::serialize(string_builder& builder) const {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(50u, 0u);
+			unused_result sprintf(bytes.data(), C"%f", self);
+			
+			const ubyte* data = bytes.data();
+			while (*data != 0u) {
+				builder.append_char(*data);
+				data++;
+			}
+		}
+		
+		void longdouble_t::serialize(string_builder& builder) const {
+			auto bytes = std::varray<ubyte>();
+			bytes.resize(50u, 0u);
+			unused_result sprintf(bytes.data(), C"%Lf", self);
+			
+			const ubyte* data = bytes.data();
+			while (*data != 0u) {
+				builder.append_char(*data);
+				data++;
 			}
 		}
 		

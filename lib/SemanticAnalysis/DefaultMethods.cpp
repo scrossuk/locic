@@ -426,74 +426,6 @@ namespace locic {
 			}
 		}
 		
-		void CreateDefaultMove(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
-			const auto selfValue = createSelfRef(context, typeInstance->selfType());
-			
-			auto functionScope = SEM::Scope::Create();
-			
-			const auto ptrVar = function->parameters().at(0);
-			const auto ptrValue = createLocalVarRef(context, *ptrVar);
-			
-			const auto positionVar = function->parameters().at(1);
-			const auto positionValue = createLocalVarRef(context, *positionVar);
-			
-			const auto ubyteType = getBuiltInType(context, context.getCString("ubyte_t"), {});
-			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
-			
-			if (typeInstance->isUnion()) {
-				// TODO!
-				functionScope->statements().push_back(SEM::Statement::ReturnVoid());
-			} else if (typeInstance->isUnionDatatype()) {
-				{
-					// Move the tag.
-					auto tagValue = SEM::Value::UnionTag(selfValue.copy(), ubyteType);
-					auto tagRefValue = bindReference(context, std::move(tagValue));
-					
-					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), positionValue.copy() );
-					
-					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(tagRefValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
-					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
-				}
-				
-				// Calculate the position of the union data so that this
-				// can be passed to the move methods of the union types.
-				auto unionDataOffset = SEM::Value::UnionDataOffset(typeInstance, sizeType);
-				const auto unionDataPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeHeapArray( std::move(unionDataOffset) ), location);
-				
-				std::vector<SEM::SwitchCase*> switchCases;
-				for (const auto variantTypeInstance: typeInstance->variants()) {
-					const auto variantType = variantTypeInstance->selfType();
-					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					auto caseVarValue = createLocalVarRef(context, *caseVar);
-					
-					auto caseScope = SEM::Scope::Create();
-					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), unionDataPosition.copy() );
-					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(caseVarValue), context.getCString("__moveto"), location), std::move(moveArgs), location);
-					caseScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
-					caseScope->statements().push_back(SEM::Statement::ReturnVoid());
-					
-					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
-				}
-				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), switchCases, nullptr));
-			} else {
-				for (size_t i = 0; i < typeInstance->variables().size(); i++) {
-					const auto& memberVar = typeInstance->variables().at(i);
-					auto memberOffset = SEM::Value::MemberOffset(typeInstance, i, sizeType);
-					auto memberPosition = CallValue(context, GetMethod(context, positionValue.copy(), context.getCString("add"), location), makeHeapArray( std::move(memberOffset) ), location);
-					
-					HeapArray<SEM::Value> moveArgs = makeHeapArray( ptrValue.copy(), std::move(memberPosition) );
-					auto selfMember = createMemberVarRef(context, selfValue.copy(), *memberVar);
-					auto moveResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), context.getCString("__moveto"), location), std::move(moveArgs), location);
-					
-					functionScope->statements().push_back(SEM::Statement::ValueStmt(std::move(moveResult)));
-				}
-				
-				functionScope->statements().push_back(SEM::Statement::ReturnVoid());
-			}
-			
-			function->setScope(std::move(functionScope));
-		}
-		
 		void CreateDefaultCopy(Context& context, const String& functionName, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			const auto selfType = typeInstance->selfType();
 			const auto selfValue = createSelfRef(context, selfType);
@@ -652,7 +584,7 @@ namespace locic {
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "__moveto") {
-				//CreateDefaultMove(context, typeInstance, function, location);
+				// Generate by CodeGen.
 				return true;
 			} else if (canonicalName == "create") {
 				assert(!typeInstance->isException());

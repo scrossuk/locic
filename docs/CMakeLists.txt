@@ -1,3 +1,48 @@
+set(SPHINX_INPUT_FILES
+	AlgebraicDatatypes.rst
+	AssertStatement.rst
+	Classes.rst
+	ClassInheritance.rst
+	CompatibilityWithC.rst
+	CompilerDesign.rst
+	Concurrency.rst
+	Const.rst
+	Containers.rst
+	ControlFlow.rst
+	DynamicDispatch.rst
+	Exceptions.rst
+	FunctionOverloading.rst
+	GarbageCollection.rst
+	GettingStarted.rst
+	HeapMemoryManagement.rst
+	ImplicitOperations.rst
+	index.rst
+	LanguageGoals.rst
+	Literals.rst
+	LLVMIntro.rst
+	LvaluesAndRvalues.rst
+	Modules.rst
+	MoveVersusCopy.rst
+	MultiPassCompilation.rst
+	NamedParameters.rst
+	NameMangling.rst
+	OperatorOverloading.rst
+	Predicates.rst
+	PrimitiveObjects.rst
+	References.rst
+	Releases.rst
+	RTTI.rst
+	Strings.rst
+	StructuralTyping.rst
+	TemplateGenerators.rst
+	Templates.rst
+	Tuples.rst
+	UnusedValues.rst
+	ValueGenerators.rst
+	VectorTypes.rst
+	VtableGeneration.rst
+)
+
 # Utility function (copied from LLVM).
 function (add_sphinx_target builder)
 	set(SPHINX_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${builder}")
@@ -6,7 +51,6 @@ function (add_sphinx_target builder)
 	
 	set(SPHINX_BUILDER_TARGET_NAME docs-${builder})
 	
-	file(GLOB SPHINX_INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
 	list(APPEND SPHINX_INPUT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/conf.py")
 	
 	if ("${builder}" STREQUAL "pdf")

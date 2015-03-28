@@ -1,0 +1,43 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+void testIntToIntMap() {
+	testPrint(C"testIntToIntMap");
+	
+	auto map = std::map<int, int>();
+	map.insert(std::pair<int, int>(1, 10));
+	map.insert(std::pair<int, int>(2, 20));
+	map.insert(std::pair<int, int>(3, 30));
+	map.insert(std::pair<int, int>(4, 40));
+	
+	testPrint(C"Map values = {");
+	for (const auto& value: map.all()) {
+		testPrint(C"  %d => %d", value.first, value.second);
+	}
+	testPrint(C"}");
+	
+	testPrint(C"map[1] = %d", map[1]);
+	testPrint(C"map[2] = %d", map[2]);
+	testPrint(C"map[3] = %d", map[3]);
+	testPrint(C"map[4] = %d", map[4]);
+	
+	const bool was_inserted = map.try_insert(std::pair<int, int>(1, 11));
+	testPrint(C"map.try_insert(std::pair<int, int>(1, 11)) = %s", was_inserted ? C"true" : C"false");
+	
+	map.erase(2);
+	
+	map.insert(std::pair<int, int>(2, 22));
+	
+	testPrint(C"Map values = {");
+	for (const auto& value: map.all()) {
+		testPrint(C"  %d => %d", value.first, value.second);
+	}
+	testPrint(C"}");
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testIntToIntMap();
+	return 0;
+}
+

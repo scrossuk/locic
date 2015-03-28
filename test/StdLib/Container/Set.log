@@ -1,0 +1,14 @@
+testIntSet
+Set values = {
+  1
+  2
+  3
+  4
+}
+set.try_insert(1) = false
+Set values = {
+  1
+  2
+  3
+  4
+}

@@ -13,13 +13,13 @@ Note that 'typename' is the only valid specifier for a type; 'class' is not vali
 Type Properties
 ---------------
 
-Loci allows type properties to be expressed through the use of interfaces. For example:
+Loci allows type properties to be expressed through the use of :doc:`Predicates <Predicates>`. For example:
 
 .. code-block:: c++
 
 	template <typename T>
 	interface Comparable {
-		int compare(const T& v) const;
+		compare_result_t compare(const T& v) const;
 	}
 	
 	template <typename T: Comparable<T>>
@@ -35,7 +35,7 @@ Loci allows type properties to be expressed through the use of interfaces. For e
 
 The interface, which is itself templated, requires that the parameter type 'T' to class 'Class' has the comparison operator specified. Note that constructors specified in interfaces can only be used in the context of template type parameters; it is meaningless (and will cause a compile-time error) to attempt to construct an interface itself outside of a template.
 
-Since primitive types are modelled as objects, even with their implementation being identical to C, they can also be used as template parameters:
+Since :doc:`primitive types are objects <PrimitiveObjects>`, even with their implementation being identical to C, they can also be used as template parameters:
 
 .. code-block:: c++
 
@@ -52,15 +52,31 @@ Loci also supports templated functions, e.g.:
 .. code-block:: c++
 
 	template <typename T>
-	interface Comparable {
-		int compare(const T& v) const;
-	}
-	
-	template <typename T: Comparable<T>>
+	require(T : movable and T : comparable<T>)
 	T getMin(T first, T second) {
-		return first.lessThan(second) ?
+		return first < second ?
 			move first :
 			move second;
+	}
+
+Similarly, it's possible to use templates with methods:
+
+.. code-block:: c++
+
+	template <typename T : movable>
+	interface CastFromTestClass {
+		static T castFromTestClass(const TestClass& object);
+	}
+	
+	class TestClass() {
+		// Etc.
+		
+		template <typename T>
+		T cast() const require(T : movable and T : CastFromTestClass<T>) {
+			return T.castFromTestClass(self);
+		}
+		
+		// Etc.
 	}
 
 Template Generation
@@ -99,6 +115,7 @@ In Loci the compiler only creates one instance of the class, which works correct
 	import A 1.0.0 {
 		
 		template <typename T>
+		move(T : movable) // Type is only movable if T is movable.
 		class ExampleClass {
 			static ExampleClass<T> create(T value);
 		}

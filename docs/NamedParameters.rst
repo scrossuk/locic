@@ -1,7 +1,7 @@
 Named Parameters
 ================
 
-(Not currently implemented! Likely to appear in version 1.2+.)
+**NOTE**: Feature not currently implemented; awaiting further design consideration.
 
 There are often cases where it is difficult to ascertain the purpose of parameters passed to a function, or where it is difficult to remember the order of parameters to a function. For example:
 

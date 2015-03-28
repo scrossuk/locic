@@ -1,7 +1,7 @@
 RTTI
 ====
 
-(Not currently implemented! Likely to appear in version 1.3+.)
+**NOTE**: Feature not currently implemented; awaiting implementation.
 
 Loci provides far more comprehensive run-time type information than C++, giving extra functionality as well as efficiency to developers.
 

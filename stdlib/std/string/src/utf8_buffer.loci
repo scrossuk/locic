@@ -9,6 +9,8 @@ export std.string 0.1.0 {
 				return @(0u, move byteArray);
 			}
 			
+			copy = default;
+			
 			bool empty() const noexcept {
 				return @length == 0u;
 			}

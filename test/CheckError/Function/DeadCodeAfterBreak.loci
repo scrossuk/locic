@@ -1,0 +1,7 @@
+void function() {
+	while (true) {
+		break;
+		unused int i = 10;
+	}
+}
+

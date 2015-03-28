@@ -91,14 +91,18 @@ Here are some more examples of references:
 		}
 		
 		{
-			// Invalid - can't convert rvalue to non-const
-			// lvalue reference.
+			// Valid.
+			// Binds value to non-const reference.
+			// Note the difference to C++, which only allows binding to const references.
 			int& reference = 1;
+			
+			// ...which is basically equivalent to this.
+			int __unnamed_value = 1;
+			int& reference = __unamed_value;
 		}
 		
-		{	
-			// Valid - uses a special cast from rvalue to const
-			// reference...
+		{
+			// Valid (same as above).
 			const int& reference = 5;
 			
 			// ...which is basically equivalent to this.

@@ -1,0 +1,18 @@
+testIntToIntMap
+Map values = {
+  1 => 10
+  2 => 20
+  3 => 30
+  4 => 40
+}
+map[1] = 10
+map[2] = 20
+map[3] = 30
+map[4] = 40
+map.try_insert(std::pair<int, int>(1, 11)) = false
+Map values = {
+  1 => 10
+  2 => 22
+  3 => 30
+  4 => 40
+}

@@ -15,7 +15,7 @@ import std.container 0.1.0 {
 			
 			size_t capacity() const noexcept;
 			
-			void resize(size_t size);
+			void resize(size_t size, T element) require(notag(T) : movable and T : copyable<T>);
 			
 			bool empty() const noexcept;
 			

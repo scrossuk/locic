@@ -841,6 +841,45 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
+			if (methodName == "increment") {
+				const auto methodOwnerPointer = args[0].resolve(function);
+				const auto methodOwner = builder.CreateLoad(methodOwnerPointer);
+				
+				const auto targetType = type->templateArguments().front().typeRefType();
+				
+				if (isTypeSizeKnownInThisModule(module, targetType)) {
+					const auto one = ConstantGenerator(module).getI32(1);
+					const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
+					builder.CreateStore(newPointer, methodOwnerPointer);
+				} else {
+					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+					const auto targetSize = genSizeOf(function, targetType);
+					const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, targetSize);
+					const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+					builder.CreateStore(newPointer, methodOwnerPointer);
+				}
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "decrement") {
+				const auto methodOwnerPointer = args[0].resolve(function);
+				const auto methodOwner = builder.CreateLoad(methodOwnerPointer);
+				
+				const auto targetType = type->templateArguments().front().typeRefType();
+				
+				if (isTypeSizeKnownInThisModule(module, targetType)) {
+					const auto minusOne = ConstantGenerator(module).getI32(-1);
+					const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
+					builder.CreateStore(newPointer, methodOwnerPointer);
+				} else {
+					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+					const auto targetSize = genSizeOf(function, targetType);
+					const auto minusTargetSize = builder.CreateNeg(targetSize);
+					const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, minusTargetSize);
+					const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+					builder.CreateStore(newPointer, methodOwnerPointer);
+				}
+				return ConstantGenerator(module).getVoidUndef();
+			}
+			
 			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
 			
 			if (methodName == "__move_to") {

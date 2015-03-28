@@ -1,0 +1,38 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+void testIntSet() {
+	testPrint(C"testIntSet");
+	
+	auto set = std::set<int>();
+	set.insert(1);
+	set.insert(2);
+	set.insert(3);
+	set.insert(4);
+	
+	testPrint(C"Set values = {");
+	for (const auto& value: set.all()) {
+		testPrint(C"  %d", value);
+	}
+	testPrint(C"}");
+	
+	const bool was_inserted = set.try_insert(1);
+	testPrint(C"set.try_insert(1) = %s", was_inserted ? C"true" : C"false");
+	
+	set.erase(2);
+	
+	set.insert(2);
+	
+	testPrint(C"Set values = {");
+	for (const auto& value: set.all()) {
+		testPrint(C"  %d", value);
+	}
+	testPrint(C"}");
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testIntSet();
+	return 0;
+}
+

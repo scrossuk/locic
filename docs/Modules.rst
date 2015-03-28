@@ -7,8 +7,9 @@ All code in Loci is divided into sets of classes/functions called 'modules', whi
 
 It's typical for a module to consist of multiple source files and these are **all** provided to the Loci compiler at the **same** time and it will then analyse the source files together (with :doc:`Multi-pass Compilation <MultiPassCompilation>`). This means that the need for function/class declarations is reduced to those cases where functions or classes are part of a module API. Here's a diagram showing the compilation model of Loci:
 
-.. image:: LociCompilationModel.png
+.. image:: LociCompilationModel.svg
 	:align: center
+	:alt: Loci Compilation Model
 
 Here's a series of commands that might correspond with the steps in the diagram:
 

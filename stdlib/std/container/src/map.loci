@@ -50,7 +50,6 @@ export std.container 0.1.0 {
 		 * \brief Map.
 		 */
 		template <typename Key, typename Value>
-		//require(Key : movable)
 		// TODO: use a proper tree structure rather than an array!
 		class map(std::varray<pair<Key, Value>> array) {
 			static map<Key, Value> create() {
@@ -79,11 +78,25 @@ export std.container 0.1.0 {
 				unreachable;
 			}
 			
+			void __sort() require(Key : comparable<Key> and Key : movable and Value : movable) {
+				// Bubble sort! TODO: fix this!
+				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
+					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
+						if (@array[i].first < @array[i - 1u].first) {
+							auto tmp = nolval(@array[i]).__extract_value();
+							nolval(@array[i]).__set_value(nolval(@array[i - 1u]).__extract_value());
+							nolval(@array[i - 1u]).__set_value(move tmp);
+						}
+					}
+				}
+			}
+			
 			void insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					assert @array[i].first != value.first;
 				}
 				@array.push_back(move value);
+				self.__sort();
 			}
 			
 			bool try_insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
@@ -93,6 +106,7 @@ export std.container 0.1.0 {
 					}
 				}
 				@array.push_back(move value);
+				self.__sort();
 				return true;
 			}
 			
@@ -103,7 +117,18 @@ export std.container 0.1.0 {
 					}
 				}
 				@array.push_back(pair<Key, Value>(key.copy(), Value()));
-				return @array[@array.size() - 1u].second;
+				self.__sort();
+				return self[key];
+			}
+			
+			void erase(const Key& key) require(Key : comparable<Key> and Key : movable and Value : movable) {
+				auto array = std::varray<pair<Key, Value>>();
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i].first != key) {
+						array.push_back(nolval(@array[i]).__extract_value());
+					}
+				}
+				@array = move array;
 			}
 			
 			template <bool IsConst>

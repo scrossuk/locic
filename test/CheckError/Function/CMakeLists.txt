@@ -1,5 +1,10 @@
 # Function tests.
 
+test_check_error(DeadCodeAfterBreak)
+test_check_error(DeadCodeAfterContinue)
+test_check_error(DeadCodeAfterReturn)
+test_check_error(DeadCodeAfterThrow)
+test_check_error(DeadCodeAfterUnreachable)
 test_check_error(DuplicateLocalVar)
 test_check_error(DuplicateParamVar)
 test_check_error(ShadowLocalVar)

@@ -23,7 +23,7 @@ Loci supports operator overloading as a useful way to provide a clean syntax for
 	template <typename T: BasicNumber<T>>
 	void function(const T& a0, const T& a1, IntArray& array) {
 		// All following pairs are equivalent...
-		bool compare = a0.compare(a1).isLessThan();
+		bool compare = a0.compare(a1).is_less_than();
 		bool compare = a0 < a1;
 		
 		T a2 = a0.add(a1);
@@ -32,10 +32,10 @@ Loci supports operator overloading as a useful way to provide a clean syntax for
 		T a3 = a0.subtract(a1);
 		T a3 = a0 - a1;
 		
-		array.index(0).assign(5);
+		nolval(array.index(0)).assign(5);
 		array[0] = 5;
 		
-		int i = array.index(0).dissolve().implicitCopy();
+		int i = nolval(array.index(0)).dissolve().implicit_copy();
 		int i = array[0];
 	}
 

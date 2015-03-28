@@ -9,9 +9,9 @@ This section lists completed releases of the Loci Compiler Tools, in reverse ver
 v1.2
 ~~~~
 
-Available here: [TODO]
+Available here: `locic-1.2.src.tar.xz <http://loci-lang.org/releases/locic-1.2.src.tar.xz>`_
 
-Released on [TODO] March 2015, version 1.2 provides:
+Released on 28th March 2015, version 1.2 provides:
 
 **Language features**
 
@@ -174,10 +174,11 @@ Planned for Summer 2015, version 1.3 aims to provide:
 * Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>` - mostly related to improving Semantic Analysis
 * Move default method generation (for 'implicitcopy', 'copy' etc.) into CodeGen
 * Add CMake module files to make it easier to create Loci projects
+* Improve emitted debug information
 
 **Primitives**
 
-* Function/method/interface method types
+* Function/method/interface-method types
 * Statically sized array
 * :doc:`Vectorised types <VectorTypes>`
 * Min, max and range
@@ -210,6 +211,7 @@ The following features have not yet been assigned a release:
 * Run-time 'reflection'
 * Compile-time checking of assertions, invariants, pre-conditions and post-conditions
 * Null coalescing operator
+* Named parameters
 
 **Standard Library**
 

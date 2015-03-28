@@ -20,11 +20,11 @@ export std.container 0.1.0 {
 			}
 			
 			void reserve(size_t size) require (T : movable) {
-				if (size <= @capacity) {
+				if (size <= self.capacity()) {
 					return;
 				}
 				
-				T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
+				final T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
 					nolval(newData[i]).__set_value(nolval(@data[i]).__extract_value());
@@ -40,11 +40,15 @@ export std.container 0.1.0 {
 				return @capacity;
 			}
 			
-			void resize(size_t size) require (T : movable) {
+			void resize(size_t size, const T element) require(notag(T) : movable and T : copyable<T>) {
 				self.reserve(size);
-				if (size < @size) {
-					for (auto i: reverse_counter<size_t>(@size, size, 1u)) {
+				if (size < self.size()) {
+					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
 						nolval(@data[i]).__destroy_value();
+					}
+				} else {
+					for (auto i: counter<size_t>(self.size(), size, 1u)) {
+						nolval(@data[i]).__set_value(element.copy());
 					}
 				}
 				@size = size;

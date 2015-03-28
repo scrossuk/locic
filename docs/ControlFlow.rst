@@ -41,7 +41,7 @@ Here's an example:
 .. code-block:: c++
 
 	void example(std::varray<int> array) {
-		for (int element: array.range()) {
+		for (int element: array.all()) {
 			printf(C"element = %d\n", element);
 		}
 	}
@@ -71,12 +71,12 @@ In Loci the equivalent idiomatic code would be:
 		}
 	}
 
-These examples are very similar, though the latter is arguably better since it doesn't modify the variable *i*. For example, you could make *i* immutable:
+These examples are very similar, though the latter is arguably better since it doesn't modify the variable *i*. For example, you could make *i* const:
 
 .. code-block:: c++
 
 	void example() {
-		for (final int i: std::counter<int>(0, 5, 1)) {
+		for (const int i: std::counter<int>(0, 5, 1)) {
 			printf(C"i = %d\n", i);
 		}
 	}

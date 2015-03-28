@@ -70,14 +70,6 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::UnionTag(Value operand, const Type* const type) {
-			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
-			assert(operand.type()->refTarget()->isUnionDatatype());
-			Value value(UNIONTAG, type, operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
-			return value;
-		}
-		
 		Value Value::SizeOf(const Type* const targetType, const Type* const sizeType) {
 			Value value(SIZEOF, sizeType, ExitStates::Normal());
 			value.union_.sizeOf_.targetType = targetType;
@@ -291,7 +283,10 @@ namespace locic {
 			return Value(CASTDUMMYOBJECT, type, ExitStates::Normal());
 		}
 		
-		Value::Value() : kind_(NONE), exitStates_(ExitStates::None()), type_(NULL) { }
+		// Just set to something invalid to trigger later errors.
+		constexpr Value::Kind INVALID_KIND = static_cast<Value::Kind>(1000);
+		
+		Value::Value() : kind_(INVALID_KIND), exitStates_(ExitStates::None()), type_(NULL) { }
 		
 		Value::Value(const Kind argKind, const Type* const argType, const ExitStates argExitStates)
 		: kind_(argKind), exitStates_(argExitStates), type_(argType) {
@@ -358,15 +353,6 @@ namespace locic {
 		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
 			return *(union_.localVar_.var);
-		}
-		
-		bool Value::isUnionTag() const {
-			return kind() == UNIONTAG;
-		}
-		
-		const Value& Value::unionTagOperand() const {
-			assert(isUnionTag());
-			return *(value0_);
 		}
 		
 		bool Value::isSizeOf() const {
@@ -711,9 +697,6 @@ namespace locic {
 				case Value::LOCALVAR:
 					hasher.add(&(localVar()));
 					break;
-				case Value::UNIONTAG:
-					hasher.add(unionTagOperand());
-					break;
 				case Value::SIZEOF:
 					hasher.add(sizeOfType());
 					break;
@@ -817,8 +800,6 @@ namespace locic {
 					break;
 				case Value::CASTDUMMYOBJECT:
 					break;
-				case Value::NONE:
-					break;
 			}
 			
 			return hasher.get();
@@ -848,8 +829,6 @@ namespace locic {
 					return predicate() == value.predicate();
 				case Value::LOCALVAR:
 					return &(localVar()) == &(value.localVar());
-				case Value::UNIONTAG:
-					return unionTagOperand() == value.unionTagOperand();
 				case Value::SIZEOF:
 					return sizeOfType() == value.sizeOfType();
 				case Value::UNIONDATAOFFSET:
@@ -904,8 +883,6 @@ namespace locic {
 					return staticInterfaceMethodObject() == value.staticInterfaceMethodObject() && staticInterfaceMethodOwner() == value.staticInterfaceMethodOwner();
 				case Value::CASTDUMMYOBJECT:
 					return true;
-				case Value::NONE:
-					return true;
 			}
 			
 			throw std::logic_error("Unknown value kind.");
@@ -927,8 +904,6 @@ namespace locic {
 					return Value::PredicateExpr(value.predicate().copy(), value.type());
 				case Value::LOCALVAR:
 					return Value::LocalVar(value.localVar(), value.type());
-				case Value::UNIONTAG:
-					return Value::UnionTag(value.unionTagOperand().copy(), value.type());
 				case Value::SIZEOF:
 					return Value::SizeOf(value.sizeOfType(), value.type());
 				case Value::UNIONDATAOFFSET:
@@ -993,8 +968,6 @@ namespace locic {
 					return Value::StaticInterfaceMethodObject(value.staticInterfaceMethodObject().copy(), value.staticInterfaceMethodOwner().copy());
 				case Value::CASTDUMMYOBJECT:
 					return Value::CastDummy(value.type());
-				case Value::NONE:
-					return Value();
 			}
 			
 			throw std::logic_error("Unknown value kind.");
@@ -1069,8 +1042,6 @@ namespace locic {
 					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
-				case UNIONTAG:
-					return makeString("UnionTag(%s)", unionTagOperand().toString().c_str());
 				case SIZEOF:
 					return makeString("SizeOf(type: %s)", sizeOfType()->toString().c_str());
 				case UNIONDATAOFFSET:
@@ -1157,8 +1128,6 @@ namespace locic {
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",
 						type()->toString().c_str());
-				case NONE:
-					return "[NONE]";
 			}
 			
 			throw std::logic_error("Unknown value kind.");

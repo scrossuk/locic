@@ -25,7 +25,6 @@ namespace locic {
 		class Value {
 			public:
 				enum Kind {
-					NONE,
 					ZEROINITIALISE,
 					MEMCOPY,
 					SELF,
@@ -33,7 +32,6 @@ namespace locic {
 					CONSTANT,
 					PREDICATE,
 					LOCALVAR,
-					UNIONTAG,
 					SIZEOF,
 					UNIONDATAOFFSET,
 					MEMBEROFFSET,
@@ -113,15 +111,6 @@ namespace locic {
 				 * A reference to a local variable.
 				 */
 				static Value LocalVar(const Var& var, const Type* type);
-				
-				/**
-				 * \brief Union Tag
-				 * 
-				 * The tag value of a union, which is basically an enum
-				 * value that identifies which variant of a union
-				 * datatype a value contains.
-				 */
-				static Value UnionTag(Value operand, const Type* type);
 				
 				/**
 				 * \brief Size Of
@@ -365,9 +354,6 @@ namespace locic {
 				
 				bool isLocalVarRef() const;
 				const Var& localVar() const;
-				
-				bool isUnionTag() const;
-				const Value& unionTagOperand() const;
 				
 				bool isSizeOf() const;
 				const Type* sizeOfType() const;

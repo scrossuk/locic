@@ -24,59 +24,89 @@ Hence the likely implementation of strings is using a 'rope' data structure. The
 		auto f = "%0 is written as '%1'.".format({ 42, "fourty two" });
 	}
 
-Char Sequence
--------------
+String Builder
+--------------
 
-If developers are seeking O(1) append, they can use 'std::char_sequence', which has the following properties:
+If developers are seeking O(1) append, they can use 'std::string_builder', which has the following properties:
 
 * Mutable
 * Unicode support
-* Must use contiguous storage
-* Indexing is O(1)
 * Appending is O(1) amortized
 * No concatenation or substring
-* Iteration is O(N)
-* Can produce C strings ('const byte* const')
 * Can produce Loci strings ('std::string')
 
-Here's some code using 'std::char_sequence':
+Here's some code using 'std::string_builder':
 
 .. code-block:: c++
 
 	void function() {
 		{
-			auto sequence = std::char_sequence();
-			sequence.append("Hello");
-			sequence.append(" ");
-			sequence.append("world");
-			sequence.append("!");
+			auto builder = std::string_builder();
+			builder.append("Hello");
+			builder.append(" ");
+			builder.append("world");
+			builder.append("!");
 			
-			const byte* const cString = sequence.c_str();
-			const std::string lociString = sequence.str();
+			const std::string lociString = builder.str();
 		}
 		
 		{
-			auto sequence = std::char_sequence();
-			sequence.append(42);
-			sequence.append(" is written as '");
-			sequence.append("fourty two");
-			sequence.append("'.");
+			auto builder = std::string_builder();
+			builder.append(42);
+			builder.append(" is written as '");
+			builder.append("fourty two");
+			builder.append("'.");
+		}
+	}
+
+UTF-8 Buffer
+------------
+
+A UTF-8 buffer is a sequence of unicode characters represented in UTF-8 form.
+
+* Mutable
+* Unicode support
+* Appending is O(1) amortized
+* No concatenation or substring
+* Can produce C strings ('const ubyte*')
+* Can produce Loci strings ('std::string')
+
+UTF-8 Encoder
+-------------
+
+A UTF-8 encoder is a transform range that consumes unicode characters and produces UTF-8 encoded bytes.
+
+For example:
+
+.. code-block:: c++
+
+	void function(const std::varray<std::unichar>& unicodeCharacters) {
+		for (const auto utf8Byte: std::utf8_encoder(unicodeCharacters.all())) {
+			// Etc.
 		}
 	}
 
 Literals
 --------
 
-Loci breaks away from C by making string literals (without specifiers) be of type 'std::string', rather than type 'const byte * const'. However C string literals can be declared using the string literal specifier 'C':
+Loci breaks away from C by making string literals (without specifiers) be of type 'std::string', rather than type 'const ubyte*':
 
 .. code-block:: c++
 
-	void f(const byte * const cString) {
-		printf(C"%s", cString);
+	std::string f() {
+		return "Hello " + "world!";
+	}
+
+However, as discussed on :doc:`Compatibility with C <CompatibilityWithC>`, C string literals can be created using the string :doc:`literal specifier <Literals>` 'C':
+
+.. code-block:: c++
+
+	void f(const(ubyte*) cString) {
+		printf(C"String: %s\n", cString);
 	}
 	
 	void function() {
-		// Invalid - no implicit cast from std::string to const byte* const.
+		// Invalid - no implicit cast from std::string to const ubyte*.
 		f("Hello world!");
 		
 		// Valid - literal prefixed with 'C' gives C string.
@@ -86,4 +116,10 @@ Loci breaks away from C by making string literals (without specifiers) be of typ
 		f("Hello world!"C);
 	}
 
+Flyweight Strings
+-----------------
 
+It is planned to soon add support for 'flyweight strings', which are strings 'uniqued' by a flyweight factory object (this pattern is used in the Loci compiler itself). In this design the factory stores a collection of the actual objects, merging any identical objects and then pointers to those objects called 'flyweights' are manipulated in the code. The most significant gain is that copying and comparison operators become extremely cheap:
+
+* **Copying** - Copy the pointer.
+* **Comparison** - Compare the pointers.

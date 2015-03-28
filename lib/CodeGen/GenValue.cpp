@@ -130,16 +130,6 @@ namespace locic {
 					return genMoveLoad(function, refValue, value.type());
 				}
 				
-				case SEM::Value::UNIONTAG: {
-					const auto& unionRefValue = value.unionTagOperand();
-					assert(unionRefValue.type()->isRef() && unionRefValue.type()->isBuiltInReference());
-					const auto unionValuePtr = genValue(function, unionRefValue);
-					const auto unionType = unionRefValue.type()->refTarget();
-					
-					const auto unionDatatypePointers = getUnionDatatypePointers(function, unionType, unionValuePtr);
-					return function.getBuilder().CreateLoad(unionDatatypePointers.first);
-				}
-				
 				case SEM::Value::SIZEOF: {
 					return genSizeOf(function, value.sizeOfType());
 				}
@@ -520,9 +510,13 @@ namespace locic {
 					return makeStaticInterfaceMethodValue(function, typeRef, methodHashValue);
 				}
 				
-				default:
-					llvm_unreachable("Unknown value enum.");
+				case SEM::Value::PREDICATE:
+				case SEM::Value::TEMPLATEVARREF:
+				case SEM::Value::CASTDUMMYOBJECT:
+					llvm_unreachable("Invalid value enum for code generation.");
 			}
+			
+			llvm_unreachable("Unknown value enum.");
 		}
 		
 	}

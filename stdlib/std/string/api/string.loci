@@ -113,6 +113,13 @@ import std.string 0.1.0 {
 			 * \return A UTF-8 buffer equivalent of the string.
 			 */
 			utf8_buffer make_buffer() const;
+			
+			/**
+			 * \brief Serialize to string builder.
+			 * 
+			 * \param builder String builder to append to.
+			 */
+			void serialize(string_builder& builder) const;
 		}
 		
 		std::string uint8_t::to_string() const;

@@ -1,0 +1,129 @@
+
+export std.container 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T, bool IsSetConst>
+		class set_range(varray_range<const<IsSetConst>(T), IsSetConst> range) {
+			static create = default;
+			
+			implicit_copy = default;
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsSetConst>(T)> ptr_lval<const<IsConst or IsSetConst>(T)> front() const(IsConst) noexcept {
+				return @range.front();
+			}
+			
+			void skip_front() noexcept {
+				@range.skip_front();
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst or IsSetConst>(T)> ptr_lval<const<IsConst or IsSetConst>(T)> back() const(IsConst) noexcept {
+				return @range.back();
+			}
+			
+			void skip_back() noexcept {
+				@range.skip_back();
+			}
+			
+			bool empty() const noexcept {
+				return @range.empty();
+			}
+		}
+		
+		/**
+		 * \brief Set.
+		 */
+		template <typename T>
+		// TODO: use a proper tree structure rather than an array!
+		class set(std::varray<T> array) {
+			static set<T> create() {
+				return @(std::varray<T>());
+			}
+			
+			bool empty() const noexcept {
+				return @array.empty();
+			}
+			
+			size_t size() const noexcept {
+				return @array.size();
+			}
+			
+			void clear() noexcept {
+				@array.clear();
+			}
+			
+			template <bool IsConst>
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(T : comparable<T>) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i] == value) {
+						return *(&(@array[i]));
+					}
+				}
+				unreachable;
+			}
+			
+			void __sort() require(T : comparable<T> and T : movable) {
+				// Bubble sort! TODO: fix this!
+				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
+					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
+						if (@array[i] < @array[i - 1u]) {
+							auto tmp = nolval(@array[i]).__extract_value();
+							nolval(@array[i]).__set_value(nolval(@array[i - 1u]).__extract_value());
+							nolval(@array[i - 1u]).__set_value(move tmp);
+						}
+					}
+				}
+			}
+			
+			void insert(T value) require(T : comparable<T> and T : movable) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					assert @array[i] != value;
+				}
+				@array.push_back(move value);
+				self.__sort();
+			}
+			
+			bool try_insert(T value) require(T : comparable<T> and T : movable) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i] == value) {
+						return false;
+					}
+				}
+				@array.push_back(move value);
+				self.__sort();
+				return true;
+			}
+			
+			T& get_or_insert(const T& value) require(T : movable and T : comparable<T> and T : copyable<T> and T : default_constructible<T>) {
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i] == value) {
+						return @array[i];
+					}
+				}
+				@array.push_back(value.copy());
+				self.__sort();
+				return self[value];
+			}
+			
+			void erase(const T& value) require(T : comparable<T> and T : movable) {
+				auto array = std::varray<T>();
+				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+					if (@array[i] != value) {
+						array.push_back(nolval(@array[i]).__extract_value());
+					}
+				}
+				@array = move array;
+			}
+			
+			template <bool IsConst>
+			set_range<T, IsConst> all() const(IsConst) noexcept {
+				return set_range<T, IsConst>(@array.all());
+			}
+		}
+		
+	}
+	
+}
+

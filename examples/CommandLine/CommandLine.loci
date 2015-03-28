@@ -14,12 +14,12 @@ std::varray<std::string> readCommandLine() {
 	while (!isTerminated) {
 		auto commandBuffer = std::string_builder();
 		while (true) {
-			final int charInt = getchar();
+			const int charInt = getchar();
 			if (charInt == -1) {
 				throw EOFException();
 			}
 			
-			final ubyte charByte = charInt.cast<uint>().cast<ubyte>();
+			const ubyte charByte = charInt.cast<uint>().cast<ubyte>();
 			if (charByte == C'\n') {
 				isTerminated = true;
 				break;
@@ -29,7 +29,7 @@ std::varray<std::string> readCommandLine() {
 				break;
 			}
 			
-			commandBuffer.append(charByte);
+			commandBuffer.append_char(charByte);
 		}
 		
 		if (commandBuffer.length() > 0u) {
@@ -47,13 +47,13 @@ export int main(unused int argc, unused ubyte** argv) {
 		while (true) {
 			printf(C"$ ");
 			
-			final auto commandComponents = readCommandLine();
+			const auto commandComponents = readCommandLine();
 			
 			if (commandComponents.empty()) {
 				continue;
 			}
 			
-			final auto& command = commandComponents[0u];
+			const auto& command = commandComponents[0u];
 			
 			if (command == "add") {
 				if (commandComponents.size() != 2u) {
@@ -61,7 +61,7 @@ export int main(unused int argc, unused ubyte** argv) {
 					continue;
 				}
 				
-				final int value = atoi(commandComponents[1u].make_buffer().c_str());
+				const int value = atoi(commandComponents[1u].make_buffer().c_str());
 				values.push_back(value);
 				printf(C"Added value: %d\n", value);
 			} else if (command == "clear") {

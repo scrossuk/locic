@@ -68,7 +68,7 @@ You can then just run:
 
 (Note that the ‘-j’ option tells make how many recipes may execute at once; use this to your advantage to reduce the build time on multi-core machines.)
 
-If you want to build Locic for Debug or Release, add the relevant CMake variable:
+If you want to build Locic with a specific build type (default is Debug; options are Debug, Release, RelWithDebInfo and MinSizeRel), add the relevant CMake variable:
 
 .. code-block:: bash
 
@@ -88,15 +88,12 @@ Examples
 
 The /examples/ subdirectory gives an idea of how to use both the compiler tools and the Loci programming language.
 
-These build with the project and so after building LOCIC you should be able to run these straight away. A good way to learn the language is to modify the examples, re-build LOCIC (which will just re-build the examples) and then see your modifications in action.
+These build with the project and so after building LOCIC you should be able to run these straight away. A good way to learn the language is to modify the examples, re-build (which will just re-build the examples) and then see your modifications in action.
 
 Testing
 -------
 
-Various tests are include in the /test/ subdirectory. These
-tests are not run as part of building the project; they
-can be run after a successful build with one of the following
-commands:
+Various tests are include in the /test/ subdirectory. These tests are not run as part of building the project; they can be run after a successful build with one of the following commands:
 
 .. code-block:: bash
 

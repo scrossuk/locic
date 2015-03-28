@@ -8,10 +8,11 @@ Here's a relevant example:
 .. code-block:: c++
 
 	template <typename T>
-	class TestClass(/* ... */) {
+	require(T : movable)
+	class TestClass(T value) {
 		// ...
 		
-		TestClass<T> copy() const require(T: copyable<T>) {
+		TestClass<T> copy() const require(T : copyable<T>) {
 			return @(@value.copy());
 		}
 		
@@ -85,10 +86,23 @@ Sometimes a function or class will have requirements for a template argument, an
 	require(T : Startable and T : Stoppable)
 	void restartObject(T& object) {
 		object.stop();
-		f(object);
+		startObject(object);
 	}
 
 In this case the compiler proves that the predicate for *restartObject* implies the predicate for *startObject*; i.e. it proves :code:`(T : Startable and T : Stoppable) implies T : Startable`.
+
+Move predicates
+~~~~~~~~~~~~~~~
+
+Move predicates are just require() predicates for the type's implicitly generated :doc:`__moveto method <MoveVersusCopy>`. For example:
+
+.. code-block:: c++
+
+	template <typename T>
+	move(T : movable)
+	class TestClass { }
+
+This just says that TestClass is only movable if the type parameter T is movable.
 
 Const Predicates
 ----------------

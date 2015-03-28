@@ -26,6 +26,7 @@ This example appears quite trivial, but it's worth noting the automatic types gi
 
 * If less than or equal to maximum for int8_t (127), type is int8_t.
 * If less than or equal to maximum for int16_t (32767), type is int16_t.
+* If less than or equal to maximum for int32_t (2147483647), type is int32_t.
 * etc.
 
 The rules are similar for unsigned types. In the example above each integer variable is assigned its maximum literal; consider this:
@@ -40,7 +41,7 @@ The rules are similar for unsigned types. In the example above each integer vari
 		short s = 32768;
 		
 		// ERROR: no cast from 'int32_t' to 'int'.
-		int i = 32767;
+		int i = 32768;
 		
 		// ERROR: no cast from 'int64_t' to 'long'.
 		long l = 2147483648;

@@ -1,0 +1,42 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+void testIntStringBuilder() {
+	testPrint(C"testIntStringBuilder");
+	
+	auto builder = std::string_builder();
+	builder.append<std::string>("Three => ");
+	builder.append<int>(3);
+	builder.append<std::string>(", four point five => ");
+	builder.append<double>(4.5);
+	
+	testPrint(C"String = %s", builder.make_buffer().c_str());
+}
+
+void testUnicharStringBuilder() {
+	testPrint(C"testUnicharStringBuilder");
+	
+	auto builder = std::string_builder();
+	builder.append_char(72u);
+	builder.append_char(101u);
+	builder.append_char(108u);
+	builder.append_char(108u);
+	builder.append_char(111u);
+	builder.append_char(32u);
+	builder.append_char(119u);
+	builder.append_char(111u);
+	builder.append_char(114u);
+	builder.append_char(108u);
+	builder.append_char(100u);
+	builder.append_char(33u);
+	
+	testPrint(C"String = %s", builder.make_buffer().c_str());
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testIntStringBuilder();
+	testUnicharStringBuilder();
+	return 0;
+}
+

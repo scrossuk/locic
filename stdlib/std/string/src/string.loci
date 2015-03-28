@@ -11,6 +11,7 @@ export std.string 0.1.0 {
 		
 		exception out_of_range();
 		
+		// TODO: use rope data structure.
 		class string (size_t length, std::varray<ubyte> byteArray) {
 			static create() {
 				return string::cstring(C"");
@@ -138,6 +139,12 @@ export std.string 0.1.0 {
 				}
 				return move buffer;
 			}
+			
+			void serialize(string_builder& builder) const {
+				for (const auto char: self.all()) {
+					builder.append_char(char);
+				}
+			}
 		}
 		
 		std::string uint8_t::to_string() const {
@@ -174,7 +181,7 @@ export std.string 0.1.0 {
 		
 		std::string serialize(ulonglong_t value) {
 			auto bytes = std::varray<ubyte>();
-			bytes.resize(10u);
+			bytes.resize(10u, 0u);
 			unused_result sprintf(bytes.data(), C"%llu", value);
 			return std::string.cstring(bytes.data());
 		}

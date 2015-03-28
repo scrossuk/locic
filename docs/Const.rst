@@ -29,6 +29,45 @@ Here's another example of invalid code in both C++ and Loci:
 
 Again the template type of the dereferenced pointer lvalue is const and hence not movable.
 
+It's possible to specify that a value is const based on the result of a :doc:`predicate <Predicates>`:
+
+.. code-block:: c++
+
+	template <bool IsConst>
+	const<IsConst>(int)& function(const<IsConst>(int)* ptr) {
+		return *ptr;
+	}
+
+Methods
+-------
+
+Methods can be marked as 'const' to indicate they do not modify their owning object, as used above. Here's another example:
+
+.. code-block:: c++
+
+	class ClassObject {
+		void normalMethod();
+		void constMethod() const;
+	}
+	
+	void f(const ClassObject& object){
+		// Invalid - non-const method cannot
+		// be called on const object.
+		object.normalMethod();
+		
+		// Valid.
+		object.constMethod();
+	}
+
+It's possible to specify a :doc:`predicate <Predicates>` within the const declaration. For example:
+
+.. code-block:: c++
+
+	template <bool IsConst>
+	class ClassObject {
+		void method() const(IsConst);
+	}
+
 Transitivity
 ------------
 
@@ -129,14 +168,14 @@ Compilers are allowed to optimise (note also that optimisations can only be perf
 .. code-block:: c++
 
 	// A type alias.
-	using CString = const uchar *;
+	using CString = const ubyte *;
 	
 	void unknownStringOperation(const CString string);
 	void printSize(size_t size);
 	void printStringLength(const CString string) {
-		size_t length = 0;
+		size_t length = 0u;
 		CString ptr = string;
-		while(*ptr != 0x00u){
+		while (*ptr != 0u) {
 			length++;
 			ptr++;
 		}
@@ -144,7 +183,7 @@ Compilers are allowed to optimise (note also that optimisations can only be perf
 	}
 	
 	void function() {
-		// Prefix 'C' means 'C string'; this is explained later.
+		// Prefix 'C' means 'C string'.
 		const CString string = C"This is a string";
 		unknownStringOperation(string);
 		printStringLength(string);
@@ -165,15 +204,14 @@ Which, in combination with other transformations (such as inlining), leads to th
 
 .. code-block:: c++
 
-	// A type alias. Note that 'const CString' is actually 'char* const'.
-	using CString = char *;
+	using CString = const ubyte *;
 	
 	void unknownStringOperation(const CString string);
 	void printSize(size_t size);
 	
 	void function() {
 		unknownStringOperation(C"This is a string");
-		printSize(cast<size_t>(16));
+		printSize(16u);
 	}
 
 Overriding Const
@@ -189,18 +227,18 @@ As part of 'logical const', Loci provides the '__override_const' keyword, which 
 	};
 	
 	void function(const Struct& ref) {
-		// Invalid - 'normalField' is now const.
+		// Invalid.
 		ref.normalField = 1;
 		
-		// Valid - mutable keyword overrides const.
+		// Valid.
 		ref.mutableField = 1;
 	}
 
-Following the rules of logical const, '__override_const' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations occur based on const, it is important that developers only use '__override_const' when absolutely necessary and ensure correctness when it is used.
+Following the rules of logical const, '__override_const' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations are allowed to occur based on const, it is important that developers only use '__override_const' when absolutely necessary and ensure correctness when it is used.
 
 A good example of its correct use would be in a reference counting smart pointer class, in which the reference count field can (and should) be marked as '__override_const'. Considering the transformation above once again, it doesn't matter whether 'f' modifies the reference count (it could, for example, create a copy of the smart pointer and store it somewhere, increasing the reference count), because 'g' only depends on a count greater than 0 (and the reference counting invariant is intended to ensure that is always true until the last smart pointer object is destroyed).
 
-Marking class member variable mutexes as '__override_const' is another example of a good use of the keyword, since 'lock' and 'unlock' methods modify the external behaviour of the mutexfootnote{Consider calling 'lock' twice in a row, without calling 'unlock'.} and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
+Marking class member variable mutexes as '__override_const' is another example of a good use of the keyword, since 'lock' and 'unlock' methods modify the external behaviour of the mutex (consider calling 'lock' twice in a row, without calling 'unlock') and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
 
 .. code-block:: c++
 
@@ -231,39 +269,9 @@ Marking class member variable mutexes as '__override_const' is another example o
 		int getValue() const {
 			// 'Lock' object will call 'lock'
 			// and 'unlock' on the mutex.
-			auto lock = Lock(@mutex);
+			unused auto lock = Lock(@mutex);
 			return @value;
 		}
-	}
-
-Methods
--------
-
-Methods can be marked as 'const' to indicate they do not modify their owning object, as used above. Here's another example:
-
-.. code-block:: c++
-
-	class ClassObject {
-		void normalMethod();
-		void constMethod() const;
-	}
-	
-	void f(const ClassObject& object){
-		// Invalid - non-const method cannot
-		// be called on const object.
-		object.normalMethod();
-		
-		// Valid.
-		object.constMethod();
-	}
-
-It's possible to specify a :doc:`predicate <Predicates>` within the const declaration. For example:
-
-.. code-block:: c++
-
-	template <bool IsConst>
-	class ClassObject {
-		void method() const(IsConst);
 	}
 
 Casting Const Away

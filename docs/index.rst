@@ -24,11 +24,11 @@ Before going further, here’s some example code:
 		// Constructor with default implementation.
 		static create = default;
 		
-		int getA() const {
+		int getA() const noexcept {
 			return @a;
 		}
 		
-		int getB() const {
+		int getB() const noexcept {
 			return @b;
 		}
 	}
@@ -135,6 +135,8 @@ Standard Library
 .. toctree::
 	:maxdepth: 1
 	
+	Concurrency
+	Containers
 	HeapMemoryManagement
 	Strings
 	Tuples
@@ -173,7 +175,6 @@ Additional Topics
 	:maxdepth: 1
 	
 	ClassInheritance
-	ConcurrencyAndParallelism
 	FunctionOverloading
 	GarbageCollection
 

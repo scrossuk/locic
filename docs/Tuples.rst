@@ -1,6 +1,8 @@
 Tuples
 ======
 
+**NOTE**: Feature not currently implemented; awaiting implementation.
+
 Tuples are a useful way of passing around multiple values of different types together, particularly in the case of returning multiple values.
 
 .. code-block:: c++

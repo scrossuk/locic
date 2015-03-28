@@ -84,7 +84,7 @@ void runTCPExample() {
 	{
 		printf(C"Reading data from connect-side stream...\n");
 		auto readData = std::varray<uint8_t>();
-		readData.resize(buffer.size());
+		readData.resize(buffer.size(), 0u);
 		connectSyncStream.sync_read(readData);
 		
 		printf(C"Read data = %s\n", readData.data());

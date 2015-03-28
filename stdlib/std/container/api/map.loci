@@ -33,6 +33,8 @@ import std.container 0.1.0 {
 			
 			Value& get_or_insert(const Key& key) require(Key : movable and Key : comparable<Key> and Key : copyable<Key> and Value : default_constructible<Value> and Value : movable);
 			
+			void erase(const Key& key) require(Key : comparable<Key> and Key : movable and Value : movable);
+			
 			template <bool IsConst>
 			map_range<Key, Value, IsConst> all() const(IsConst) noexcept;
 		}

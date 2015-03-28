@@ -10,8 +10,12 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		std::string uintToString(size_t value) {
+		std::string uintToString(const size_t value) {
 			if (value < 20) {
+				// This is a fast path for small integers; this is
+				// very important for performance since mangling
+				// (and string manipulation in general) is one of
+				// the most costly parts of the compiler.
 				switch (value) {
 					case 0: return "0";
 					case 1: return "1";
