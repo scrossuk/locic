@@ -29,7 +29,7 @@ export std.memory 0.1.0 {
 				}
 			}
 			
-			bool __is_live() const noexcept {
+			bool __islive() const noexcept {
 				return @ptr != null;
 			}
 			
