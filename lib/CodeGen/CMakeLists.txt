@@ -1,5 +1,3 @@
-find_package(LLVMABI REQUIRED)
-
 include_directories(${LLVMABI_INCLUDE_DIRS})
 
 add_library(locic-codegen

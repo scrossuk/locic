@@ -176,6 +176,9 @@ if(LLVM_LINKER_H)
 	add_definitions(-DLLVM_LINKER_IN_LINKER)
 endif(LLVM_LINKER_H)
 
+# Build LLVM ABI
+include(LLVMABI)
+
 # --- Subdirectories
 
 # All headers are in the /include directory.

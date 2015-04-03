@@ -1,4 +1,3 @@
-find_package(LLVMABI REQUIRED)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
