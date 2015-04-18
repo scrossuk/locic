@@ -20,7 +20,7 @@ namespace locic {
 		 * This will allocate stack space for the given
 		 * type, and return a pointer to that space.
 		 */
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type);
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
 		
 		/**
 		 * \brief Load a value from a memory location.
@@ -60,7 +60,7 @@ namespace locic {
 		 * (This is typically used to generate a pointer
 		 * passed as the context pointer to methods.)
 		 */
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type);
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
 		
 	}
 	

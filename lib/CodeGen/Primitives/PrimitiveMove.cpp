@@ -23,42 +23,6 @@ namespace locic {
 			
 			auto& module = function.module();
 			
-			/*
-			auto& builder = function.getBuilder();
-			const auto& typeName = type->getObjectType()->name().last();
-			
-			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front().typeRefType();
-				const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
-				
-				const auto castType = typeSizeIsKnown ? genPointerType(module, type) : TypeGenerator(module).getI8PtrType();
-				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
-				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
-				
-				// Check the 'liveness indicator' which indicates whether
-				// child value's move method should be run.
-				const auto livenessIndicatorPtr = typeSizeIsKnown ?
-					builder.CreateConstInBoundsGEP2_32(sourceObjectPointer, 0, 1) :
-					builder.CreateInBoundsGEP(sourceObjectPointer, genSizeOf(function, targetType));
-				const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
-				const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
-				
-				const auto isLiveBB = function.createBasicBlock("is_live");
-				const auto afterBB = function.createBasicBlock("");
-				
-				builder.CreateCondBr(isLive, isLiveBB, afterBB);
-				
-				// If it is live, run the child value's move method.
-				function.selectBasicBlock(isLiveBB);
-				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
-				builder.CreateBr(afterBB);
-				
-				function.selectBasicBlock(afterBB);
-			} else if (typeName == "final_lval" || typeName == "member_lval") {
-				const auto targetType = type->templateArguments().front().typeRefType();
-				genMoveCall(function, targetType, sourceValue, destValue, positionValue);
-			}*/
-			
 			assert(type->isPrimitive());
 			const auto canonicalMethodName = module.getCString("__moveto");
 			const auto functionType = type->getObjectType()->functions().at(canonicalMethodName)->type();

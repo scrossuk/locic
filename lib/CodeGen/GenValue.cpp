@@ -411,7 +411,7 @@ namespace locic {
 				case SEM::Value::BIND_REFERENCE: {
 					const auto& dataValue = value.bindReferenceOperand();
 					const auto llvmDataValue = genValue(function, dataValue);
-					return genValuePtr(function, llvmDataValue, dataValue.type());
+					return genValuePtr(function, llvmDataValue, dataValue.type(), hintResultValue);
 				}
 				
 				case SEM::Value::TYPEREF: {

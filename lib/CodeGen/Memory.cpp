@@ -17,20 +17,30 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type) {
+		llvm::Value* genAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+			if (hintResultValue != nullptr) {
+				assert(hintResultValue->getType()->isPointerTy());
+				assert(hintResultValue->getType() == genPointerType(function.module(), type));
+				return hintResultValue;
+			}
+			
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
 			switch (type->kind()) {
 				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateAlloca(genType(module, type));
+					const auto llvmType = genType(module, type);
+					assert(!llvmType->isVoidTy());
+					return function.getBuilder().CreateAlloca(llvmType);
 				}
 				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
-						return function.getBuilder().CreateAlloca(genType(module, type));
+						const auto llvmType = genType(module, type);
+						assert(!llvmType->isVoidTy());
+						return function.getBuilder().CreateAlloca(llvmType);
 					} else {
 						const auto alloca =
 							function.getEntryBuilder().CreateAlloca(
@@ -42,7 +52,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::ALIAS: {
-					return genAlloca(function, type->resolveAliases());
+					return genAlloca(function, type->resolveAliases(), hintResultValue);
 				}
 				
 				default: {
@@ -51,7 +61,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
+		llvm::Value* genLoad(Function& function, llvm::Value* const var, const SEM::Type* const type) {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -80,7 +90,7 @@ namespace locic {
 			}
 		}
 		
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type) {
+		void genStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* const type) {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
@@ -146,10 +156,10 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type) {
+		llvm::Value* genValuePtr(Function& function, llvm::Value* const value, const SEM::Type* const type, llvm::Value* hintResultValue) {
 			// Members must have a pointer to the object, which
 			// may require generating a fresh 'alloca'.
-			const auto ptrValue = genAlloca(function, type);
+			const auto ptrValue = genAlloca(function, type, hintResultValue);
 			genMoveStore(function, value, ptrValue, type);
 			
 			// Call destructor for the object at the end of the current scope.

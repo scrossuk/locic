@@ -182,7 +182,8 @@ namespace locic {
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
 				const auto returnVarValue = hasReturnVar ?
-					(hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType)) : constGen.getNullPointer(i8PtrType);
+					genAlloca(function, returnType, hintResultValue) :
+					constGen.getNullPointer(i8PtrType);
 				
 				generateCallWithReturnVar(function, functionType, returnVarValue, methodComponents, args);
 				

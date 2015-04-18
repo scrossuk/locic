@@ -18,6 +18,7 @@
 #include <locic/CodeGen/Context.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 using namespace locic;
 
@@ -170,7 +171,7 @@ int main(int argc, char* argv[]) {
 		
 		inputFileNames.push_back("BuiltInTypes.loci");
 		
-		StringHost stringHost;
+		SharedMaps sharedMaps;
 		
 		AST::NamespaceList astRootNamespaceList;
 		
@@ -186,7 +187,7 @@ int main(int argc, char* argv[]) {
 					return 1;
 				}
 				
-				Parser::DefaultParser parser(stringHost, astRootNamespaceList, file, filename);
+				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
 				
 				if (!parser.parseFile()) {
 					const auto errors = parser.getErrors();
@@ -236,7 +237,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		{
 			Timer timer;
-			SemanticAnalysis::Run(stringHost, astRootNamespaceList, semContext, debugModule);
+			SemanticAnalysis::Run(sharedMaps.stringHost(), astRootNamespaceList, semContext, debugModule);
 			
 			if (timingsEnabled) {
 				printf("Semantic Analysis: %f seconds.\n", timer.getTime());
@@ -262,7 +263,7 @@ int main(int argc, char* argv[]) {
 		targetOptions.floatABI = targetFloatABIString;
 		targetOptions.fpu = targetFPUString;
 		
-		CodeGen::Context codeGenContext(stringHost, targetOptions);
+		CodeGen::Context codeGenContext(sharedMaps, targetOptions);
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputFileName, debugModule, buildOptions);
 		
 		{

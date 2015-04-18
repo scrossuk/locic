@@ -310,6 +310,50 @@ namespace locic {
 			return semFunction;
 		}
 		
+		std::unique_ptr<SEM::Function> CreateDefaultDeadDecl(Context& /*context*/, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDefault(true);
+			
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
+			
+			semFunction->setMethod(true);
+			semFunction->setStaticMethod(true);
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod = false;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// Never throws.
+			auto noExceptPredicate = SEM::Predicate::True();
+			
+			const auto selfType = typeInstance->selfType();
+			
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), selfType, {}));
+			return semFunction;
+		}
+		
+		std::unique_ptr<SEM::Function> CreateDefaultIsLiveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDefault(true);
+			
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
+			
+			semFunction->setMethod(true);
+			semFunction->setConstPredicate(SEM::Predicate::True());
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod =true;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// Never throws.
+			auto noExceptPredicate = SEM::Predicate::True();
+			
+			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+			
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), boolType, {}));
+			return semFunction;
+		}
+		
 		std::unique_ptr<SEM::Function> CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl());
 			assert(!typeInstance->isInterface());
@@ -350,6 +394,13 @@ namespace locic {
 				}
 				
 				return CreateDefaultCompareDecl(context, typeInstance, name);
+			} else if (canonicalName == "__islive") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				return CreateDefaultIsLiveDecl(context, typeInstance, name);
 			}
 			
 			throw ErrorException(makeString("Unknown default method '%s' at position %s.",
@@ -400,6 +451,26 @@ namespace locic {
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
 				typeInstance->isUnionDatatype();
+		}
+		
+		bool HasDefaultDead(Context& context, SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
+			
+			// There's only a default __dead method if the user
+			// hasn't specified a custom __dead method.
+			return typeInstance->functions().find(context.getCString("__dead")) == typeInstance->functions().end();
+		}
+		
+		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
+			
+			// There's only a default islive method if the user
+			// hasn't specified a custom islive method.
+			return typeInstance->functions().find(context.getCString("__islive")) == typeInstance->functions().end();
 		}
 		
 		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
@@ -583,7 +654,7 @@ namespace locic {
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
-			if (canonicalName == "__moveto") {
+			if (canonicalName == "__moveto" || canonicalName == "__dead" || canonicalName == "__islive") {
 				// Generate by CodeGen.
 				return true;
 			} else if (canonicalName == "create") {

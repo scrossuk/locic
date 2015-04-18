@@ -30,13 +30,13 @@ namespace locic {
 		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
 			llvm::ArrayRef<llvm::Value*> args);
 		
-		llvm::Value* genMethodCall(Function& function, MethodInfo methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
+		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
 			llvm::Value* const hintResultValue = nullptr);
 		
-		llvm::Value* genDynamicMethodCall(Function& function, MethodInfo methodInfo, PendingResult methodOwner, PendingResultArray args,
+		llvm::Value* genDynamicMethodCall(Function& function, const MethodInfo& methodInfo, PendingResult methodOwner, PendingResultArray args,
 			llvm::Value* const hintResultValue = nullptr);
 		
-		llvm::Value* genStaticMethodCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
+		llvm::Value* genStaticMethodCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
 			llvm::Value* const hintResultValue = nullptr);
 		
 	}

@@ -44,7 +44,9 @@ namespace locic {
 		llvm::PointerType* genPointerType(Module& module, const SEM::Type* rawTargetType) {
 			const auto targetType = rawTargetType->resolveAliases();
                         assert(!targetType->isInterface());
-			if (targetType->isTemplateVar()) {
+			if (targetType->isPrimitive()) {
+				return getPrimitivePointerType(module, targetType);
+			} else if (targetType->isTemplateVar()) {
 				return TypeGenerator(module).getI8PtrType();
 			} else {
 				const auto pointerType = genType(module, targetType);

@@ -1,4 +1,6 @@
 __primitive size_t {
+	static size_t __dead() noexcept;
+	
 	static size_t unit() noexcept;
 	
 	static size_t implicit_cast_uint8_t(uint8_t value) noexcept;
@@ -18,6 +20,8 @@ __primitive size_t {
 	
 	size_t implicit_copy() const noexcept;
 	size_t copy() const noexcept;
+	
+	bool __islive() const noexcept;
 	
 	template <typename T>
 	T implicit_cast() const noexcept require(T : __implicit_cast_from_size_t<T> and T : movable);

@@ -17,6 +17,10 @@ export std.memory 0.1.0 {
 				return @(null, null);
 			}
 			
+			static __dead() noexcept {
+				return @(null, null);
+			}
+			
 			~ {
 				if (@countField == null) {
 					return;

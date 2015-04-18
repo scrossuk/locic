@@ -5,7 +5,7 @@
 
 namespace locic {
 	
-	class StringHost;
+	class SharedMaps;
 	
 	namespace CodeGen {
 		
@@ -14,7 +14,7 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(const StringHost& stringHost, const TargetOptions& targetOptions);
+				Context(const SharedMaps& sharedMaps, const TargetOptions& targetOptions);
 				~Context();
 				
 				InternalContext& internal();

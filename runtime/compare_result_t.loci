@@ -1,10 +1,14 @@
 __primitive compare_result_t {
+	static compare_result_t __dead() noexcept;
+	
 	static compare_result_t equal() noexcept;
 	static compare_result_t less_than() noexcept;
 	static compare_result_t greater_than() noexcept;
 	
 	compare_result_t implicit_copy() const noexcept;
 	compare_result_t copy() const noexcept;
+	
+	bool __islive() const noexcept;
 	
 	bool is_equal() const noexcept;
 	bool is_not_equal() const noexcept;

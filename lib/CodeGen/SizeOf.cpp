@@ -384,11 +384,11 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		bool isPowerOf2(size_t value) {
+		static inline bool isPowerOf2(size_t value) {
 			return value != 0 && (value & (value - 1)) == 0;
 		}
 		
-		size_t roundUpToAlign(size_t position, size_t align) {
+		static inline size_t roundUpToAlign(size_t position, size_t align) {
 			assert(isPowerOf2(align));
 			return (position + (align - 1)) & (~(align - 1));
 		}

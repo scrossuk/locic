@@ -9,6 +9,7 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -18,9 +19,9 @@
 #include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace CodeGen {
+		
 		bool typeHasDestructor(Module& module, const SEM::Type* type) {
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
@@ -283,6 +284,19 @@ namespace locic {
 			
 			const auto contextValue = function.getRawContextValue();
 			
+			const auto isNotLiveBB = function.createBasicBlock("is_not_live");
+			const auto isLiveBB = function.createBasicBlock("is_live");
+			
+			// Check whether this object is in a 'live' state and only
+			// run the constructor if it is.
+			const auto isLive = genIsLive(function, typeInstance->selfType(), contextValue);
+			function.getBuilder().CreateCondBr(isLive, isLiveBB, isNotLiveBB);
+			
+			function.selectBasicBlock(isNotLiveBB);
+			function.getBuilder().CreateRetVoid();
+			
+			function.selectBasicBlock(isLiveBB);
+			
 			// Call the custom destructor function, if one exists.
 			const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
 			
@@ -297,7 +311,7 @@ namespace locic {
 			const auto& memberVars = typeInstance->variables();
 			
 			// Call destructors for all objects within the
-			// parent object, in *reverse order*.
+			// parent object, in *REVERSE* order.
 			for (size_t i = 0; i < memberVars.size(); i++) {
 				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 				const size_t memberIndex = module.getMemberVarMap().at(memberVar);

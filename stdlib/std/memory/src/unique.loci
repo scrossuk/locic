@@ -12,6 +12,10 @@ export std.memory 0.1.0 {
 				return @(null);
 			}
 			
+			static __dead() noexcept {
+				return @(null);
+			}
+			
 			~ {
 				if (@ptr != null) {
 					delete_raw<T>(@ptr);

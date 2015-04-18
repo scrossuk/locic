@@ -2,6 +2,8 @@
 
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
+#include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
@@ -65,17 +67,30 @@ namespace locic {
 			
 			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
 			
-			// Create mapping between member variables and their
-			// indexes within their parent.
-			for (size_t i = 0; i < typeInstance->variables().size(); i++) {
-				const auto var = typeInstance->variables().at(i);
-				const auto result = module.getMemberVarMap().insert(std::make_pair(var, i));
-				assert(result.second);
-				(void) result;
-			}
+			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
 			
 			// If the size isn't known then just return an opaque struct.
 			if (!isObjectTypeSizeKnownInThisModule(module, typeInstance)) {
+				size_t index = 0;
+				
+				if (livenessIndicator.isPrefixByte()) {
+					// Inserting the liveness indicator at the beginning.
+					index++;
+				}
+				
+				// Create mapping between member variables and their
+				// indexes within their parent.
+				for (const auto& var: typeInstance->variables()) {
+					if (livenessIndicator.isGapByte() && livenessIndicator.gapByteIndex() == index) {
+						// Inserting the liveness indicator in a gap.
+						index++;
+					}
+					
+					const auto result = module.getMemberVarMap().insert(std::make_pair(var, index++));
+					assert(result.second);
+					(void) result;
+				}
+				
 				return structType;
 			}
 			
@@ -85,6 +100,11 @@ namespace locic {
 				assert(!typeInstance->variables().empty());
 				
 				for (const auto& var: typeInstance->variables()) {
+					// All variables at 'index' 0.
+					const auto result = module.getMemberVarMap().insert(std::make_pair(var, 0));
+					assert(result.second);
+					(void) result;
+					
 					sizer.addType(genType(module, var->type()));
 				}
 				
@@ -112,8 +132,26 @@ namespace locic {
 				// hence the contents can be specified.
 				llvm::SmallVector<llvm::Type*, 10> structMembers;
 				
+				size_t index = 0;
+				
+				if (livenessIndicator.isPrefixByte()) {
+					// Inserting the liveness indicator at the beginning.
+					structMembers.push_back(TypeGenerator(module).getI8Type());
+					index++;
+				}
+				
 				for (const auto& var: typeInstance->variables()) {
+					const auto result = module.getMemberVarMap().insert(std::make_pair(var, index++));
+					assert(result.second);
+					(void) result;
+					
 					structMembers.push_back(genType(module, var->type()));
+					
+					if (livenessIndicator.isGapByte() && livenessIndicator.gapByteIndex() == index) {
+						// Inserting the liveness indicator in a gap.
+						structMembers.push_back(TypeGenerator(module).getI8Type());
+						index++;
+					}
 				}
 				
 				if (structMembers.empty()) {

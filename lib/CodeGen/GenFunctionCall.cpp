@@ -205,7 +205,7 @@ namespace locic {
 			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first, argInfo.returnType().second);
 		}
 		
-		llvm::Value* genTemplateMethodCall(Function& function, MethodInfo methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
+		llvm::Value* genTemplateMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
 				llvm::Value* const hintResultValue) {
 			const auto parentType = methodInfo.parentType;
 			assert(parentType->isTemplateVar());
@@ -241,7 +241,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genMethodCall(Function& function, MethodInfo methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
+		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
 				llvm::Value* const hintResultValue) {
 			const auto type = methodInfo.parentType;
 			
@@ -260,7 +260,7 @@ namespace locic {
 						newArgs.push_back(std::move(arg));
 					}
 					
-					return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(newArgs), hintResultValue);
+					return genTrivialPrimitiveFunctionCall(function, methodInfo, std::move(newArgs), hintResultValue);
 				} else {
 					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name)).get();
 					const auto argInfo = getFunctionArgInfo(function.module(), methodInfo.functionType);
@@ -270,8 +270,12 @@ namespace locic {
 					
 					llvm::Value* returnVar = nullptr;
 					if (argInfo.hasReturnVarArgument()) {
-						returnVar = hintResultValue != nullptr ? hintResultValue : genAlloca(function, methodInfo.functionType->getFunctionReturnType());
+						returnVar = genAlloca(function, methodInfo.functionType->getFunctionReturnType(), hintResultValue);
 						llvmArgs.push_back(returnVar);
+					}
+					
+					if (!type->getObjectType()->templateVariables().empty()) {
+						llvmArgs.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
 					}
 					
 					if (methodOwner) {
@@ -291,18 +295,18 @@ namespace locic {
 					}
 				}
 			} else {
-				return genTemplateMethodCall(function, std::move(methodInfo), std::move(methodOwner), std::move(args), hintResultValue);
+				return genTemplateMethodCall(function, methodInfo, std::move(methodOwner), std::move(args), hintResultValue);
 			}
 		}
 		
-		llvm::Value* genDynamicMethodCall(Function& function, MethodInfo methodInfo, PendingResult methodOwner, PendingResultArray args,
+		llvm::Value* genDynamicMethodCall(Function& function, const MethodInfo& methodInfo, PendingResult methodOwner, PendingResultArray args,
 				llvm::Value* const hintResultValue) {
-			return genMethodCall(function, std::move(methodInfo), Optional<PendingResult>(std::move(methodOwner)), std::move(args), hintResultValue);
+			return genMethodCall(function, methodInfo, Optional<PendingResult>(std::move(methodOwner)), std::move(args), hintResultValue);
 		}
 		
-		llvm::Value* genStaticMethodCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
+		llvm::Value* genStaticMethodCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
 				llvm::Value* const hintResultValue) {
-			return genMethodCall(function, std::move(methodInfo), None, std::move(args), hintResultValue);
+			return genMethodCall(function, methodInfo, None, std::move(args), hintResultValue);
 		}
 		
 	}

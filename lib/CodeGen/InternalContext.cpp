@@ -5,6 +5,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/Support/MakeString.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 namespace locic {
 
@@ -115,8 +116,8 @@ namespace locic {
 			}
 		}
 		
-		InternalContext::InternalContext(const StringHost& argStringHost, const TargetOptions& targetOptions)
-		: stringHost_(argStringHost),
+		InternalContext::InternalContext(const SharedMaps& argSharedMaps, const TargetOptions& targetOptions)
+		: sharedMaps_(argSharedMaps),
 		targetTriple_(parseTargetTripleString(targetOptions.triple)),
 		target_(nullptr) {
 			llvm::InitializeAllTargetInfos();
@@ -157,7 +158,11 @@ namespace locic {
 		InternalContext::~InternalContext() { }
 		
 		const StringHost& InternalContext::stringHost() const {
-			return stringHost_;
+			return sharedMaps_.stringHost();
+		}
+		
+		MethodID InternalContext::getMethodID(const String& name) const {
+			return sharedMaps_.methodIDMap().getMethodID(name);
 		}
 		
 		llvm::LLVMContext& InternalContext::llvmContext() {

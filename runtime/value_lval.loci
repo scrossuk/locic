@@ -1,4 +1,10 @@
 template <typename T>
+require(T : movable)
+interface deadstateable {
+	static T __dead() noexcept;
+}
+
+template <typename T>
 notag(T)
 __primitive value_lval {
 	static value_lval<T> create(T value) noexcept require(T : movable);
@@ -14,6 +20,10 @@ __primitive value_lval {
 	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
 	
 	T move() noexcept require(T : movable);
+	
+	void __set_value(T value) noexcept require(T : movable);
+	T __extract_value() noexcept require(T : movable);
+	void __destroy_value() noexcept;
 	
 	void __move_to(void* ptr, size_t position) noexcept require(T : movable);
 }

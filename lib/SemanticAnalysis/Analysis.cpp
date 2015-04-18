@@ -948,49 +948,33 @@ namespace locic {
 			}
 		}
 		
-		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance& typeInstance, std::unordered_set<SEM::TypeInstance*>& completedTypes) {
-			if (completedTypes.find(&typeInstance) != completedTypes.end()) {
-				return;
-			}
-			
-			completedTypes.insert(&typeInstance);
-			
+		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance& typeInstance) {
 			if (typeInstance.isInterface() || typeInstance.isPrimitive()) {
 				// Skip interfaces and primitives since default
 				// method generation doesn't apply to them.
 				return;
 			}
 			
-			// Get type properties for types that this
-			// type depends on, since this is needed for
-			// default method generation.
-			if (typeInstance.isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance.variants()) {
-					GenerateTypeDefaultMethods(context, *variantTypeInstance, completedTypes);
-				}
-			} else {
-				if (typeInstance.isException() && typeInstance.parentType() != nullptr) {
-					// TODO: remove const_cast
-					GenerateTypeDefaultMethods(context, *(const_cast<SEM::TypeInstance*>(typeInstance.parentType()->getObjectType())), completedTypes);
-				}
-				
-				for (const auto var: typeInstance.variables()) {
-					if (!var->constructType()->isObject()) continue;
-					// TODO: remove const_cast
-					GenerateTypeDefaultMethods(context, *(const_cast<SEM::TypeInstance*>(var->constructType()->getObjectType())), completedTypes);
-				}
-			}
-			
-			// Add default move method.
+			// Add default __moveto method.
 			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
 			if (hasDefaultMove) {
 				auto methodDecl = CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto"));
 				typeInstance.functions().insert(std::make_pair(context.getCString("__moveto"), std::move(methodDecl)));
 			}
 			
-			// Slightly hacky way to pass information to CodeGen about
-			// whether the move method is auto-generated.
-			typeInstance.setHasCustomMove(!hasDefaultMove);
+			// Add default __dead method.
+			const bool hasDefaultDead = HasDefaultDead(context, &typeInstance);
+			if (hasDefaultDead) {
+				auto methodDecl = CreateDefaultDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__dead"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__dead"), std::move(methodDecl)));
+			}
+			
+			// Add default __islive method.
+			const bool hasDefaultIsLive = HasDefaultIsLive(context, &typeInstance);
+			if (hasDefaultIsLive) {
+				auto methodDecl = CreateDefaultIsLiveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__islive"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__islive"), std::move(methodDecl)));
+			}
 			
 			// All non-class types can also get various other default methods implicitly
 			// (which must be specified explicitly for classes).
@@ -1022,21 +1006,20 @@ namespace locic {
 			}
 		}
 		
-		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace& nameSpace, std::unordered_set<SEM::TypeInstance*>& completedTypes) {
+		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace& nameSpace) {
 			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isNamespace()) {
-					GenerateNamespaceDefaultMethods(context, item.nameSpace(), completedTypes);
+					GenerateNamespaceDefaultMethods(context, item.nameSpace());
 				} else if (item.isTypeInstance()) {
-					GenerateTypeDefaultMethods(context, item.typeInstance(), completedTypes);
+					GenerateTypeDefaultMethods(context, item.typeInstance());
 				}
 			}
 		}
 		
 		void GenerateDefaultMethodsPass(Context& context) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
-			std::unordered_set<SEM::TypeInstance*> completedTypes;
-			GenerateNamespaceDefaultMethods(context, *semNamespace, completedTypes);
+			GenerateNamespaceDefaultMethods(context, *semNamespace);
 			
 			// All methods are now known so we can start producing method sets.
 			context.setMethodSetsComplete();

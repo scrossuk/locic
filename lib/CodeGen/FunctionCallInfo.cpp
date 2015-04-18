@@ -92,6 +92,7 @@ namespace locic {
 			
 			const bool needsReturnVar = (oldFunctionType->getNumParams() != newFunctionType->getNumParams());
 			
+			assert(!(needsReturnVar && newFunctionType->getReturnType()->isVoidTy()));
 			const auto returnVar = needsReturnVar ? builder.CreateAlloca(newFunctionType->getReturnType()) : nullptr;
 			
 			llvm::SmallVector<llvm::Value*, 10> args;
@@ -108,6 +109,7 @@ namespace locic {
 				
 				if (oldParamType->isPointerTy()) {
 					if (!newParamType->isPointerTy()) {
+						assert(!newParamType->isVoidTy());
 						const auto argAlloca = builder.CreateAlloca(newParamType);
 						builder.CreateStore(it, argAlloca);
 						args.push_back(builder.CreatePointerCast(argAlloca, oldParamType));

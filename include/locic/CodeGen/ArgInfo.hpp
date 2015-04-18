@@ -23,6 +23,8 @@ namespace locic {
 		
 		TypePair voidTypePair(Module& module);
 		
+		TypePair boolTypePair(Module& module);
+		
 		TypePair sizeTypePair(Module& module);
 		
 		TypePair pointerTypePair(Module& module);
@@ -36,6 +38,8 @@ namespace locic {
 				static ArgInfo VoidContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
 				
 				static ArgInfo VoidTemplateOnly(Module& module);
+				
+				static ArgInfo ContextOnly(Module& module, TypePair returnType);
 				
 				static ArgInfo Templated(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
 				

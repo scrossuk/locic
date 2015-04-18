@@ -15,6 +15,8 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -28,6 +30,7 @@
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
+#include <locic/Support/MethodID.hpp>
 
 namespace locic {
 
@@ -257,50 +260,56 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "create") {
-				assert(args.empty());
-				return ConstantGenerator(module).getI1(false);
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
-				} else if (methodName == "implicit_copy" || methodName == "copy") {
-					return methodOwner;
-				} else if (methodName == "not") {
-					return builder.CreateNot(methodOwner);
-				} else {
-					llvm_unreachable("Unknown bool unary op.");
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
+			
+			switch (methodID) {
+				case METHOD_DEAD:
+				case METHOD_CREATE: {
+					assert(args.empty());
+					return ConstantGenerator(module).getI1(false);
 				}
-			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolveWithoutBind(function, type);
-				
-				if (methodName == "compare") {
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+					
+					genMoveStore(function, methodOwner, castedDestPtr, type);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_IMPLICITCAST:
+				case METHOD_CAST:
+					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
+				case METHOD_IMPLICITCOPY:
+				case METHOD_COPY:
+					return methodOwner;
+				case METHOD_ISLIVE:
+					return ConstantGenerator(module).getI1(false);
+				case METHOD_NOT:
+					return builder.CreateNot(methodOwner);
+				case METHOD_COMPARE: {
+					const auto operand = args[1].resolveWithoutBind(function, type);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
 					const auto zeroResult = ConstantGenerator(module).getI8(0);
 					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
-							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
-				} else if (methodName == "equal") {
-					return builder.CreateICmpEQ(methodOwner, operand);
-				} else if (methodName == "not_equal") {
-					return builder.CreateICmpNE(methodOwner, operand);
-				} else {
-					llvm_unreachable("Unknown bool binary op.");
+						builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
-			} else {
-				llvm_unreachable("Unknown bool method.");
+				case METHOD_EQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function, type);
+					return builder.CreateICmpEQ(methodOwner, operand);
+				}
+				case METHOD_NOTEQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function, type);
+					return builder.CreateICmpNE(methodOwner, operand);
+				}
+				default:
+					llvm_unreachable("Unknown bool primitive method.");
 			}
 		}
 		
@@ -463,273 +472,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
-			
-			const auto& typeName = type->getObjectType()->name().first();
-			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
-			
-			const bool unsafe = module.buildOptions().unsafe;
-			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
-			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
-			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
-			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
-			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "increment") {
-				// TODO: add safety checks!
-				const auto methodOwnerPtr = args[0].resolve(function);
-				const auto incrementedValue = builder.CreateAdd(methodOwner, unit);
-				builder.CreateStore(incrementedValue, methodOwnerPtr);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "decrement") {
-				// TODO: add safety checks!
-				const auto methodOwnerPtr = args[0].resolve(function);
-				const auto decrementedValue = builder.CreateSub(methodOwner, unit);
-				builder.CreateStore(decrementedValue, methodOwnerPtr);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "create") {
-				return zero;
-			} else if (methodName == "zero") {
-				return zero;
-			} else if (methodName == "unit") {
-				return unit;
-			} else if (methodName == "leading_ones") {
-				const auto operand = args[0].resolve(function);
-				
-				if (!unsafe) {
-					// Check that operand <= sizeof(type) * 8.
-					const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
-					const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-					const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-					const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-					builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-					function.selectBasicBlock(exceedsMaxBB);
-					createTrap(function);
-					function.selectBasicBlock(doesNotExceedMaxBB);
-				}
-				
-				const bool isSigned = false;
-				
-				const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
-				const auto shift = builder.CreateSub(maxValue, operand);
-				
-				// Use a 128-bit integer type to avoid overflow.
-				const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
-				const auto shiftCasted = builder.CreateIntCast(shift, one128Bit->getType(), isSigned);
-				const auto shiftedValue = builder.CreateShl(one128Bit, shiftCasted);
-				const auto trailingOnesValue = builder.CreateSub(shiftedValue, one128Bit);
-				const auto result = builder.CreateNot(trailingOnesValue);
-				return builder.CreateIntCast(result, selfType, isSigned);
-			} else if (methodName == "trailing_ones") {
-				const auto operand = args[0].resolve(function);
-				
-				if (!unsafe) {
-					// Check that operand <= sizeof(type) * 8.
-					const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
-					const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-					const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-					const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-					builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-					function.selectBasicBlock(exceedsMaxBB);
-					createTrap(function);
-					function.selectBasicBlock(doesNotExceedMaxBB);
-				}
-				
-				// Use a 128-bit integer type to avoid overflow.
-				const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
-				const bool isSigned = false;
-				const auto operandCasted = builder.CreateIntCast(operand, one128Bit->getType(), isSigned);
-				const auto shiftedValue = builder.CreateShl(one128Bit, operandCasted);
-				const auto result = builder.CreateSub(shiftedValue, one128Bit);
-				return builder.CreateIntCast(result, selfType, isSigned);
-			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
-				const auto argType = functionType->getFunctionParameterTypes().front();
-				const auto operand = args[0].resolve(function);
-				if (isFloatType(module, argType)) {
-					return builder.CreateFPToUI(operand, selfType);
-				} else {
-					return builder.CreateZExtOrTrunc(operand, selfType);
-				}
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_cast" || methodName == "cast") {
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
-				} else if (methodName == "implicit_copy" || methodName == "copy") {
-					return methodOwner;
-				} else if (methodName == "isZero") {
-					return builder.CreateICmpEQ(methodOwner, zero);
-				} else if (methodName == "signed_value") {
-					return methodOwner;
-				} else if (methodName == "count_leading_zeroes") {
-					const auto bitCount = countLeadingZeroes(function, methodOwner);
-					
-					// Cast to size_t.
-					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
-				} else if (methodName == "count_leading_ones") {
-					const auto bitCount = countLeadingOnes(function, methodOwner);
-					
-					// Cast to size_t.
-					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
-				} else if (methodName == "count_trailing_zeroes") {
-					const auto bitCount = countTrailingZeroes(function, methodOwner);
-					
-					// Cast to size_t.
-					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
-				} else if (methodName == "count_trailing_ones") {
-					const auto bitCount = countTrailingOnes(function, methodOwner);
-					
-					// Cast to size_t.
-					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
-				}
-			} else if (isBinaryOp(methodName)) {
-				if (methodName == "left_shift") {
-					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-					const auto operand = args[1].resolveWithoutBindRaw(function, sizeTType);
-					
-					if (!unsafe) {
-						// Check that operand <= leading_zeroes(value).
-						
-						// Calculate leading zeroes, or produce sizeof(T) * 8 - 1 if value == 0
-						// (which prevents shifting 0 by sizeof(T) * 8).
-						const auto leadingZeroes = countLeadingZeroesBounded(function, methodOwner);
-						
-						const bool isSigned = false;
-						const auto leadingZeroesSizeT = builder.CreateIntCast(leadingZeroes, operand->getType(), isSigned);
-						
-						const auto exceedsLeadingZeroes = builder.CreateICmpUGT(operand, leadingZeroesSizeT);
-						const auto exceedsLeadingZeroesBB = function.createBasicBlock("exceedsLeadingZeroes");
-						const auto doesNotExceedLeadingZeroesBB = function.createBasicBlock("doesNotExceedLeadingZeroes");
-						builder.CreateCondBr(exceedsLeadingZeroes, exceedsLeadingZeroesBB, doesNotExceedLeadingZeroesBB);
-						function.selectBasicBlock(exceedsLeadingZeroesBB);
-						createTrap(function);
-						function.selectBasicBlock(doesNotExceedLeadingZeroesBB);
-					}
-					
-					const bool isSigned = false;
-					const auto operandCasted = builder.CreateIntCast(operand, selfType, isSigned);
-					
-					return builder.CreateShl(methodOwner, operandCasted);
-				} else if (methodName == "right_shift") {
-					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-					const auto operand = args[1].resolveWithoutBindRaw(function, sizeTType);
-					
-					if (!unsafe) {
-						// Check that operand < sizeof(type) * 8.
-						const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth - 1);
-						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-						function.selectBasicBlock(exceedsMaxBB);
-						createTrap(function);
-						function.selectBasicBlock(doesNotExceedMaxBB);
-					}
-					
-					const bool isSigned = false;
-					const auto operandCasted = builder.CreateIntCast(operand, selfType, isSigned);
-					
-					return builder.CreateLShr(methodOwner, operandCasted);
-				}
-				
-				const auto operand = args[1].resolveWithoutBind(function, type);
-				llvm::Value* const binaryArgs[] = { methodOwner, operand };
-				
-				if (methodName == "add") {
-					if (unsafe) {
-						return builder.CreateAdd(methodOwner, operand);
-					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
-					}
-				} else if (methodName == "subtract") {
-					if (unsafe) {
-						return builder.CreateSub(methodOwner, operand);
-					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
-					}
-				} else if (methodName == "multiply") {
-					if (unsafe) {
-						return builder.CreateMul(methodOwner, operand);
-					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, binaryArgs);
-					}
-				} else if (methodName == "divide") {
-					if (!unsafe) {
-						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
-						createTrap(function);
-						function.selectBasicBlock(isNotZeroBB);
-					}
-					return builder.CreateUDiv(methodOwner, operand);
-				} else if (methodName == "modulo") {
-					if (!unsafe) {
-						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
-						createTrap(function);
-						function.selectBasicBlock(isNotZeroBB);
-					}
-					return builder.CreateURem(methodOwner, operand);
-				} else if (methodName == "bitwise_and") {
-					return builder.CreateAnd(methodOwner, operand);
-				} else if (methodName == "bitwise_or") {
-					return builder.CreateOr(methodOwner, operand);
-				} else if (methodName == "equal") {
-					return builder.CreateICmpEQ(methodOwner, operand);
-				} else if (methodName == "not_equal") {
-					return builder.CreateICmpNE(methodOwner, operand);
-				} else if (methodName == "less_than") {
-					return builder.CreateICmpULT(methodOwner, operand);
-				} else if (methodName == "less_than_or_equal") {
-					return builder.CreateICmpULE(methodOwner, operand);
-				} else if (methodName == "greater_than") {
-					return builder.CreateICmpUGT(methodOwner, operand);
-				} else if (methodName == "greater_than_or_equal") {
-					return builder.CreateICmpUGE(methodOwner, operand);
-				} else if (methodName == "compare") {
-					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
-					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
-					const auto zeroResult = ConstantGenerator(module).getI8(0);
-					const auto plusOneResult = ConstantGenerator(module).getI8(1);
-					return builder.CreateSelect(isLessThan, minusOneResult,
-							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
-				}
-			} else if (methodName == "in_range") {
-				const auto leftOperand = args[1].resolve(function);
-				const auto rightOperand = args[2].resolve(function);
-				
-				return builder.CreateAnd(
-						builder.CreateICmpULE(leftOperand, methodOwner),
-						builder.CreateICmpULE(methodOwner, rightOperand)
-					);
-			} else {
-				printf("%s\n", methodName.c_str());
-				llvm_unreachable("Unknown primitive method.");
-			}
-		}
+				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
@@ -841,68 +584,63 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			if (methodName == "increment") {
-				const auto methodOwnerPointer = args[0].resolve(function);
-				const auto methodOwner = builder.CreateLoad(methodOwnerPointer);
-				
-				const auto targetType = type->templateArguments().front().typeRefType();
-				
-				if (isTypeSizeKnownInThisModule(module, targetType)) {
-					const auto one = ConstantGenerator(module).getI32(1);
-					const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
-					builder.CreateStore(newPointer, methodOwnerPointer);
-				} else {
-					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
-					const auto targetSize = genSizeOf(function, targetType);
-					const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, targetSize);
-					const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
-					builder.CreateStore(newPointer, methodOwnerPointer);
-				}
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "decrement") {
-				const auto methodOwnerPointer = args[0].resolve(function);
-				const auto methodOwner = builder.CreateLoad(methodOwnerPointer);
-				
-				const auto targetType = type->templateArguments().front().typeRefType();
-				
-				if (isTypeSizeKnownInThisModule(module, targetType)) {
-					const auto minusOne = ConstantGenerator(module).getI32(-1);
-					const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
-					builder.CreateStore(newPointer, methodOwnerPointer);
-				} else {
-					const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
-					const auto targetSize = genSizeOf(function, targetType);
-					const auto minusTargetSize = builder.CreateNeg(targetSize);
-					const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, minusTargetSize);
-					const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
-					builder.CreateStore(newPointer, methodOwnerPointer);
-				}
-				return ConstantGenerator(module).getVoidUndef();
-			}
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
+			const auto methodOwner = methodOwnerPointer != nullptr ? builder.CreateLoad(methodOwnerPointer) : nullptr;
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "null") {
-				return ConstantGenerator(module).getNull(genType(module, type));
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_copy" || methodName == "copy") {
+			switch (methodID) {
+				case METHOD_DEAD:
+				case METHOD_NULL:
+					return ConstantGenerator(module).getNull(genType(module, type));
+				case METHOD_COPY:
+				case METHOD_IMPLICITCOPY:
+				case METHOD_DEREF:
 					return methodOwner;
-				} else if (methodName == "deref") {
-					return methodOwner;
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+					
+					genMoveStore(function, methodOwner, castedDestPtr, type);
+					return ConstantGenerator(module).getVoidUndef();
 				}
-			} else if (isBinaryOp(methodName)) {
-				if (methodName == "add") {
+				case METHOD_INCREMENT: {
+					const auto targetType = type->templateArguments().front().typeRefType();
+					
+					if (isTypeSizeKnownInThisModule(module, targetType)) {
+						const auto one = ConstantGenerator(module).getI32(1);
+						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
+						builder.CreateStore(newPointer, methodOwnerPointer);
+					} else {
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto targetSize = genSizeOf(function, targetType);
+						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, targetSize);
+						const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+						builder.CreateStore(newPointer, methodOwnerPointer);
+					}
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_DECREMENT: {
+					const auto targetType = type->templateArguments().front().typeRefType();
+					
+					if (isTypeSizeKnownInThisModule(module, targetType)) {
+						const auto minusOne = ConstantGenerator(module).getI32(-1);
+						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
+						builder.CreateStore(newPointer, methodOwnerPointer);
+					} else {
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto targetSize = genSizeOf(function, targetType);
+						const auto minusTargetSize = builder.CreateNeg(targetSize);
+						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, minusTargetSize);
+						const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+						builder.CreateStore(newPointer, methodOwnerPointer);
+					}
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_ADD: {
 					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
 					const auto operand = args[1].resolveWithoutBindRaw(function, ptrDiffTType);
 					const auto targetType = type->templateArguments().front().typeRefType();
@@ -916,7 +654,8 @@ namespace locic {
 						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
 						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					}
-				} else if (methodName == "subtract") {
+				}
+				case METHOD_SUBTRACT: {
 					// TODO: should be intptr_t!
 					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
 					const auto operand = args[1].resolveWithoutBind(function, type);
@@ -925,7 +664,8 @@ namespace locic {
 					const auto secondPtrInt = builder.CreatePtrToInt(operand, ptrDiffTType);
 					
 					return builder.CreateSub(firstPtrInt, secondPtrInt);
-				} else if (methodName == "index") {
+				}
+				case METHOD_INDEX: {
 					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
 					const auto operand = args[1].resolve(function);
 					const auto targetType = type->templateArguments().front().typeRefType();
@@ -939,25 +679,32 @@ namespace locic {
 						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
 						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
 					}
-				} else if (methodName == "equal") {
+				}
+				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpEQ(methodOwner, operand);
-				} else if (methodName == "not_equal") {
+				}
+				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpNE(methodOwner, operand);
-				} else if (methodName == "less_than") {
+				}
+				case METHOD_LESSTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpULT(methodOwner, operand);
-				} else if (methodName == "less_than_or_equal") {
+				}
+				case METHOD_LESSTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpULE(methodOwner, operand);
-				} else if (methodName == "greater_than") {
+				}
+				case METHOD_GREATERTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpUGT(methodOwner, operand);
-				} else if (methodName == "greater_than_or_equal") {
+				}
+				case METHOD_GREATERTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					return builder.CreateICmpUGE(methodOwner, operand);
-				} else if (methodName == "compare") {
+				}
+				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function, type);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
@@ -966,41 +713,40 @@ namespace locic {
 					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
 				}
-			} else {
-				llvm_unreachable("Unknown primitive method.");
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown ptr primitive method.");
 			}
 		}
 		
 		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
-				PendingResultArray args) {
+				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto methodOwner = args[0].resolveWithoutBind(function, type);
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "address" || methodName == "dissolve") {
-					return methodOwner;
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
+			switch (methodID) {
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+					
+					genMoveStore(function, methodOwner, castedDestPtr, type);
+					return ConstantGenerator(module).getVoidUndef();
 				}
-			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolve(function);
-				
-				if (methodName == "assign") {
+				case METHOD_ADDRESS:
+				case METHOD_DISSOLVE:
+					return methodOwner;
+				case METHOD_ASSIGN: {
+					const auto operand = args[1].resolve(function);
+					
 					// Destroy existing value.
 					genDestructorCall(function, targetType, methodOwner);
 					
@@ -1008,61 +754,74 @@ namespace locic {
 					genMoveStore(function, operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
 				}
-			} else if (methodName == "__set_value") {
-				const auto operand = args[1].resolve(function);
-				
-				// Assign new value.
-				genMoveStore(function, operand, methodOwner, targetType);
-				
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "__extract_value") {
-				return genMoveLoad(function, methodOwner, targetType);
-			} else if (methodName == "__destroy_value") {
-				// Destroy existing value.
-				genDestructorCall(function, targetType, methodOwner);
-				return ConstantGenerator(module).getVoidUndef();
-			} else {
-				llvm_unreachable("Unknown primitive method.");
+				case METHOD_MOVE: {
+					const auto returnValuePtr = genAlloca(function, targetType, hintResultValue);
+					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
+					genMoveStore(function, loadedValue, returnValuePtr, targetType);
+					
+					// Store a dead value in the object.
+					const auto deadValue = genDeadValue(function, targetType, methodOwner);
+					genMoveStore(function, deadValue, methodOwner, targetType);
+					
+					return genMoveLoad(function, returnValuePtr, targetType);
+				}
+				case METHOD_SETVALUE: {
+					const auto operand = args[1].resolve(function);
+					
+					// Assign new value.
+					genMoveStore(function, operand, methodOwner, targetType);
+					
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_EXTRACTVALUE: {
+					return genMoveLoad(function, methodOwner, targetType);
+				}
+				case METHOD_DESTROYVALUE: {
+					// Destroy existing value.
+					genDestructorCall(function, targetType, methodOwner);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				default:
+					llvm_unreachable("Unknown ptr_lval primitive method.");
 			}
 		}
 		
 		llvm::Value* genMemberLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
-				PendingResultArray args) {
+				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
-			if (methodName == "__empty") {
-				return genMoveLoad(function, genAlloca(function, type), type);
-			}
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = args[0].resolve(function);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
-				
-				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				const auto loadedValue = genMoveLoad(function, targetPtr, targetType);
-				genMoveStore(function, loadedValue, castedDestPtr, targetType);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "address" || methodName == "dissolve") {
-					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
+			switch (methodID) {
+				case METHOD_DEAD: {
+					return genDeadValue(function, targetType, hintResultValue);
 				}
-			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolve(function);
-				
-				if (methodName == "assign") {
+				case METHOD_EMPTY:
+					return genMoveLoad(function, genAlloca(function, type, hintResultValue), type);
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
+					
+					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					const auto loadedValue = genMoveLoad(function, targetPtr, targetType);
+					genMoveStore(function, loadedValue, castedDestPtr, targetType);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_ADDRESS:
+				case METHOD_DISSOLVE:
+					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				case METHOD_ASSIGN: {
+					const auto operand = args[1].resolve(function);
+					
 					// Destroy existing value.
 					genDestructorCall(function, targetType, methodOwner);
 					
@@ -1071,98 +830,105 @@ namespace locic {
 					genMoveStore(function, operand, targetPtr, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
 				}
-			} else if (methodName == "__set_value") {
-				const auto operand = args[1].resolve(function);
-				
-				// Assign new value.
-				genMoveStore(function, operand, methodOwner, targetType);
-				
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "__extract_value") {
-				return genMoveLoad(function, methodOwner, targetType);
-			} else if (methodName == "__destroy_value") {
-				// Destroy existing value.
-				genDestructorCall(function, targetType, methodOwner);
-				return ConstantGenerator(module).getVoidUndef();
-			} else {
-				llvm_unreachable("Unknown primitive method.");
+				case METHOD_MOVE: {
+					const auto targetPointer =
+						isTypeSizeKnownInThisModule(module, targetType) ?
+							builder.CreateConstInBoundsGEP2_32(methodOwner, 0, 0) :
+							builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					
+					const auto returnValuePtr = genAlloca(function, targetType, hintResultValue);
+					const auto loadedValue = genMoveLoad(function, targetPointer, targetType);
+					genMoveStore(function, loadedValue, returnValuePtr, targetType);
+					
+					return genMoveLoad(function, returnValuePtr, targetType);
+				}
+				case METHOD_SETVALUE: {
+					const auto operand = args[1].resolve(function);
+					
+					// Assign new value.
+					genMoveStore(function, operand, methodOwner, targetType);
+					
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_EXTRACTVALUE: {
+					return genMoveLoad(function, methodOwner, targetType);
+				}
+				case METHOD_DESTROYVALUE: {
+					// Destroy existing value.
+					genDestructorCall(function, targetType, methodOwner);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown member_lval primitive method.");
 			}
 		}
 		
 		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
-				PendingResultArray args) {
+				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
-			if (methodName == "__empty") {
-				return genMoveLoad(function, genAlloca(function, type), type);
-			}
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = args[0].resolve(function);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
-				
-				const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				const auto loadedValue = genMoveLoad(function, targetPtr, targetType);
-				genMoveStore(function, loadedValue, castedDestPtr, targetType);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "address" || methodName == "dissolve") {
-					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
+			switch (methodID) {
+				case METHOD_EMPTY:
+					return genDeadValue(function, type, hintResultValue);
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
+					
+					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					const auto loadedValue = genMoveLoad(function, targetPtr, targetType);
+					genMoveStore(function, loadedValue, castedDestPtr, targetType);
+					return ConstantGenerator(module).getVoidUndef();
 				}
-			} else if (methodName == "__set_value") {
-				const auto operand = args[1].resolve(function);
-				
-				// Assign new value.
-				genMoveStore(function, operand, methodOwner, targetType);
-				
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "__extract_value") {
-				return genMoveLoad(function, methodOwner, targetType);
-			} else if (methodName == "__destroy_value") {
-				// Destroy existing value.
-				genDestructorCall(function, targetType, methodOwner);
-				return ConstantGenerator(module).getVoidUndef();
-			} else {
-				llvm_unreachable("Unknown primitive method.");
+				case METHOD_ADDRESS:
+				case METHOD_DISSOLVE:
+					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				case METHOD_SETVALUE: {
+					const auto operand = args[1].resolve(function);
+					
+					// Assign new value.
+					genMoveStore(function, operand, methodOwner, targetType);
+					
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_EXTRACTVALUE: {
+					return genMoveLoad(function, methodOwner, targetType);
+				}
+				case METHOD_DESTROYVALUE: {
+					// Destroy existing value.
+					genDestructorCall(function, targetType, methodOwner);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				default:
+					llvm_unreachable("Unknown final_lval primitive method.");
 			}
 		}
 		
 		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
-				PendingResultArray args) {
+				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			if (methodName == "create") {
-				const auto objectVar = genAlloca(function, type);
+				const auto objectVar = genAlloca(function, type, hintResultValue);
 				const auto operand = args[0].resolve(function);
 				
 				// Store the object.
 				const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
 				genMoveStore(function, operand, targetPtr, targetType);
-				
-				if (needsLivenessIndicator(module, targetType)) {
-					// Set the liveness indicator.
-					const auto objectPointerI8 = builder.CreatePointerCast(objectVar, TypeGenerator(module).getI8PtrType());
-					const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, genSizeOf(function, targetType));
-					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
-					builder.CreateStore(ConstantGenerator(module).getI1(true), castLivenessIndicatorPtr);
-				}
-				
 				return genMoveLoad(function, objectVar, type);
 			}
 			
@@ -1181,63 +947,20 @@ namespace locic {
 				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
 				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
 				
-				const bool usingLivenessIndicator = needsLivenessIndicator(module, targetType);
-				
-				if (usingLivenessIndicator) {
-					// Check the 'liveness indicator' which indicates whether
-					// child value's move method should be run.
-					const auto livenessIndicatorPtr = typeSizeIsKnown ?
-						builder.CreateConstInBoundsGEP2_32(sourceObjectPointer, 0, 1) :
-						builder.CreateInBoundsGEP(sourceObjectPointer, genSizeOf(function, targetType));
-					const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, TypeGenerator(module).getI1Type()->getPointerTo());
-					const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
-					
-					// Store the 'liveness indicator' into the new object.
-					const auto rawDestPointer = makeRawMoveDest(function, destValue, positionValue);
-					const auto destPointer = builder.CreatePointerCast(rawDestPointer, castType);
-					const auto isLiveRawDestPointer = typeSizeIsKnown ?
-						builder.CreateConstInBoundsGEP2_32(destPointer, 0, 1) :
-						builder.CreateInBoundsGEP(destPointer, genSizeOf(function, targetType));
-					const auto isLiveDestPointer = builder.CreatePointerCast(isLiveRawDestPointer, TypeGenerator(module).getI1Type()->getPointerTo());
-					builder.CreateStore(isLive, isLiveDestPointer);
-					
-					const auto isDefinitelyLiveBB = function.createBasicBlock("is_definitely_live");
-					const auto isProbablyNotLiveBB = function.createBasicBlock("is_probably_not_live");
-					const auto afterBB = function.createBasicBlock("");
-					
-					builder.CreateCondBr(isLive, isDefinitelyLiveBB, isProbablyNotLiveBB);
-					
-					// If it is live, run the child value's move method.
-					function.selectBasicBlock(isDefinitelyLiveBB);
-					genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
-					builder.CreateBr(afterBB);
-					
-					function.selectBasicBlock(isProbablyNotLiveBB);
-					// TODO...
-					builder.CreateBr(afterBB);
-					
-					function.selectBasicBlock(afterBB);
-				} else {
-					// Generate the move just to copy the relevant data.
-					genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
-				}
+				// Move contained type.
+				genMoveCall(function, targetType, sourceObjectPointer, destObjectPointer, positionValue);
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "address" || methodName == "dissolve") {
 					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 				} else if (methodName == "move") {
-					if (needsLivenessIndicator(module, targetType)) {
-						const auto objectPointerI8 = builder.CreatePointerCast(methodOwner, typeGen.getI8PtrType());
-						const auto objectSize = genSizeOf(function, targetType);
-						
-						// Reset the objects' liveness indicator.
-						const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, objectSize);
-						const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, typeGen.getI1Type()->getPointerTo());
-						builder.CreateStore(ConstantGenerator(module).getI1(false), castLivenessIndicatorPtr);
-					}
+					const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 					
-					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-					return genMoveLoad(function, targetPtr, targetType);
+					const auto returnValuePtr = genAlloca(function, targetType, hintResultValue);
+					const auto loadedValue = genMoveLoad(function, targetPointer, targetType);
+					genMoveStore(function, loadedValue, returnValuePtr, targetType);
+					
+					return genMoveLoad(function, returnValuePtr, targetType);
 				} else {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
@@ -1245,36 +968,13 @@ namespace locic {
 				const auto operand = args[1].resolve(function);
 				
 				if (methodName == "assign") {
-					if (needsLivenessIndicator(module, targetType)) {
-						const auto objectPointerI8 = builder.CreatePointerCast(methodOwner, typeGen.getI8PtrType());
-						
-						const auto livenessIndicatorPtr = builder.CreateInBoundsGEP(objectPointerI8, genSizeOf(function, targetType));
-						const auto castLivenessIndicatorPtr = builder.CreatePointerCast(livenessIndicatorPtr, typeGen.getI1Type()->getPointerTo());
-						
-						// Check if there is an existing value.
-						const auto isLive = builder.CreateLoad(castLivenessIndicatorPtr);
-						const auto isLiveBB = function.createBasicBlock("is_live");
-						const auto setValueBB = function.createBasicBlock("set_value");
-						
-						builder.CreateCondBr(isLive, isLiveBB, setValueBB);
-						
-						// If there is an existing value, run its destructor.
-						function.selectBasicBlock(isLiveBB);
-						genDestructorCall(function, targetType, objectPointerI8);
-						builder.CreateBr(setValueBB);
-						
-						// Now set the liveness indicator and store the value.
-						function.selectBasicBlock(setValueBB);
-						builder.CreateStore(constGen.getI1(true), castLivenessIndicatorPtr);
-					}
+					const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 					
-					if (isTypeSizeKnownInThisModule(module, targetType)) {
-						const auto targetPointer = builder.CreateConstInBoundsGEP2_32(methodOwner, 0, 0);
-						genMoveStore(function, operand, targetPointer, targetType);
-					} else {
-						const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-						genMoveStore(function, operand, targetPointer, targetType);
-					}
+					// Destroy existing value.
+					genDestructorCall(function, targetType, targetPointer);
+					
+					// Move new value in.
+					genMoveStore(function, operand, targetPointer, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				} else {
 					llvm_unreachable("Unknown primitive binary op.");
@@ -1288,25 +988,29 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBindRaw(function, llvmType);
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, methodOwner->getType()->getPointerTo());
-				
-				builder.CreateStore(methodOwner, castedDestPtr);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_copy" || methodName == "copy") {
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBindRaw(function, llvmType);
+			
+			switch (methodID) {
+				case METHOD_DEAD:
+					return ConstantGenerator(module).getNull(llvmType);
+				case METHOD_COPY:
+				case METHOD_IMPLICITCOPY:
 					return methodOwner;
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, methodOwner->getType()->getPointerTo());
+					
+					builder.CreateStore(methodOwner, castedDestPtr);
+					return ConstantGenerator(module).getVoidUndef();
 				}
-			} else {
-				llvm_unreachable("Unknown primitive method.");
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown ref primitive method.");
 			}
 		}
 		
@@ -1375,7 +1079,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, MethodInfo methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
 			const auto type = methodInfo.parentType;
@@ -1399,13 +1103,13 @@ namespace locic {
 				case PrimitiveBool:
 					return genBoolPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveValueLval:
-					return genValueLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genValueLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				case PrimitiveMemberLval:
-					return genMemberLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genMemberLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				case PrimitiveFinalLval:
-					return genFinalLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genFinalLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				case PrimitivePtrLval:
-					return genPtrLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genPtrLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				case PrimitivePtr:
 					return genPtrPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveInt8:

@@ -23,7 +23,7 @@
 #include <locic/CodeGen/ModulePtr.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
-#include <locic/Support/StringHost.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 using namespace locic;
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 	try {
 		AST::NamespaceList astRootNamespaceList;
 		
-		StringHost stringHost;
+		SharedMaps sharedMaps;
 		
 		std::stringstream parseErrors;
 		
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 				return EXIT_FAILURE;
 			}
 			
-			Parser::DefaultParser parser(stringHost, astRootNamespaceList, file, filename);
+			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
 			
 			if (!parser.parseFile()) {
 				const auto errors = parser.getErrors();
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		printf("Performing semantic analysis...\n");
 		SEM::Context semContext;
-		SemanticAnalysis::Run(stringHost, astRootNamespaceList, semContext, debugModule);
+		SemanticAnalysis::Run(sharedMaps.stringHost(), astRootNamespaceList, semContext, debugModule);
 		
 		// Dump SEM tree information.
 		const auto semDebugFileName = testName + "_semdebug.txt";
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
 		printf("Performing code generation...\n");
 		
 		// Use default (host) target options.
-		CodeGen::Context codeGenContext(stringHost, CodeGen::TargetOptions());
+		CodeGen::Context codeGenContext(sharedMaps, CodeGen::TargetOptions());
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());

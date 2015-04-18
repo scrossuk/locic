@@ -18,6 +18,7 @@ namespace locic {
 		class Function;
 		class Module;
 		class PendingResult;
+		struct TypeInfoComponents;
 		struct VirtualMethodComponents;
 		
 		/**

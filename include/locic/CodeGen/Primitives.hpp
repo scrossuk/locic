@@ -75,7 +75,7 @@ namespace locic {
 		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction);
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, MethodInfo methodInfo, PendingResultArray args,
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
 			llvm::Value* const hintResultValue = nullptr);
 		
 		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
@@ -85,6 +85,7 @@ namespace locic {
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind);
 		llvm::Type* getNamedPrimitiveType(Module& module, const String& name);
+		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* type);
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind);
@@ -100,8 +101,6 @@ namespace locic {
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type);
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, const SEM::Type* type);
-		
-		bool needsLivenessIndicator(Module& module, const SEM::Type* type);
 		
 	}
 	

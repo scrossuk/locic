@@ -21,6 +21,7 @@
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/ModulePtr.hpp>
@@ -90,6 +91,8 @@ namespace locic {
 				(void) genDestructorFunctionDef(module, &typeInstance);
 				(void) genAlignMaskFunction(module, &typeInstance);
 				(void) genSizeOfFunction(module, &typeInstance);
+				(void) genDeadDefaultFunctionDef(module, &typeInstance);
+				(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
 				
 				if (!typeInstance.templateVariables().empty()) {
 					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));

@@ -16,7 +16,29 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type) {
+		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* const type) {
+			const auto& name = type->getObjectType()->name().last();
+			const auto kind = module.primitiveKind(name);
+			
+			switch (kind) {
+				case PrimitiveValueLval:
+				case PrimitiveMemberLval:
+				case PrimitiveFinalLval: {
+					return genPointerType(module, type->templateArguments().front().typeRefType());
+				}
+				default: {
+					const auto pointerType = getPrimitiveType(module, type);
+					if (pointerType->isVoidTy()) {
+						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
+						return TypeGenerator(module).getI8PtrType();
+					} else {
+						return pointerType->getPointerTo();
+					}
+				}
+			}
+		}
+	
+		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* const type) {
 			const auto& name = type->getObjectType()->name().last();
 			const auto kind = module.primitiveKind(name);
 			
@@ -31,21 +53,10 @@ namespace locic {
 				case PrimitivePtr:
 				case PrimitivePtrLval:
 					return genPointerType(module, type->templateArguments().front().typeRefType());
-				case PrimitiveValueLval: {
-					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
-						TypeGenerator typeGen(module);
-						const auto targetType = genType(module, type->templateArguments().front().typeRefType());
-						llvm::Type* const types[] = { targetType, typeGen.getI1Type() };
-						return typeGen.getStructType(types);
-					}
-					break;
-				}
+				case PrimitiveValueLval:
 				case PrimitiveMemberLval:
 				case PrimitiveFinalLval: {
-					if (isPrimitiveTypeSizeKnownInThisModule(module, type)) {
-						return genType(module, type->templateArguments().front().typeRefType());
-					}
-					break;
+					return genType(module, type->templateArguments().front().typeRefType());
 				}
 				default:
 					break;
@@ -98,17 +109,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getLvalStruct(Module& module, const String& name) {
-			const auto iterator = module.getTypeMap().find(name);
-			if (iterator != module.getTypeMap().end()) {
-				return iterator->second;
-			}
-			
-			const auto type = TypeGenerator(module).getForwardDeclaredStructType(name);
-			module.getTypeMap().insert(std::make_pair(name, type));
-			return type;
-		}
-		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind) {
 			switch (kind) {
 				case PrimitiveVoid:
@@ -152,12 +152,6 @@ namespace locic {
 				case PrimitivePtr:
 				case PrimitivePtrLval:
 					return TypeGenerator(module).getI8PtrType();
-				case PrimitiveValueLval:
-					return getLvalStruct(module, module.getCString("value_lval"));
-				case PrimitiveMemberLval:
-					return getLvalStruct(module, module.getCString("member_lval"));
-				case PrimitiveFinalLval:
-					return getLvalStruct(module, module.getCString("final_lval"));
 				case PrimitiveTypename:
 					return typeInfoType(module).second;
 				default:
@@ -237,12 +231,7 @@ namespace locic {
 				case PrimitivePtr:
 				case PrimitivePtrLval:
 					return llvm_abi::Type::Pointer(abiContext);
-				case PrimitiveValueLval: {
-					llvm::SmallVector<llvm_abi::Type*, 2> members;
-					members.push_back(genABIType(module, type->templateArguments().front().typeRefType()));
-					members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Bool));
-					return llvm_abi::Type::AutoStruct(abiContext, members);
-				}
+				case PrimitiveValueLval:
 				case PrimitiveFinalLval:
 				case PrimitiveMemberLval:
 					return genABIType(module, type->templateArguments().front().typeRefType());

@@ -81,7 +81,6 @@ namespace locic {
 		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
-		typedef FastMap<SEM::TemplateVar*, const SEM::Type*> TemplateVarMap;
 		typedef FastMap<String, llvm::StructType*> TypeMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
@@ -90,6 +89,8 @@ namespace locic {
 		class Module {
 			public:
 				Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
+				
+				InternalContext& context();
 				
 				String getCString(const char* cString) const;
 				

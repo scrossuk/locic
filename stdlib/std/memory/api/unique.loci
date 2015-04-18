@@ -17,8 +17,6 @@ import std.memory 0.1.0 {
 			void reset(T* pointer) noexcept;
 			
 			T* release() noexcept;
-			
-			bool __islive() const noexcept;
 		}
 		
 		template <typename T : movable>

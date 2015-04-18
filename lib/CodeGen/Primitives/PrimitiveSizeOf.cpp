@@ -38,21 +38,10 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval" || name == "final_lval") {
+			if (name == "member_lval" || name == "final_lval" || name == "value_lval") {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     alignof(member_lval) = alignof(T).
-				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
-			} else if (name == "value_lval") {
-				// value_lval is struct { bool isLive; T value; }.
-				// Hence:
-				//     alignof(value_lval) = max(alignof(bool), alignof(T))
-				// 
-				// and given alignof(bool) = 1:
-				//     alignof(value_lval) = max(1, alignof(T))
-				// 
-				// and given alignof(T) >= 1:
-				//     alignof(value_lval) = alignof(T).
 				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "__ref") {
 				// Look at our template argument to see if it's virtual.
@@ -90,49 +79,11 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval" || name == "final_lval") {
+			if (name == "member_lval" || name == "final_lval" || name == "value_lval") {
 				// member_lval is struct { T value; }.
 				// Hence:
 				//     sizeof(member_lval) = sizeof(T).
 				function.getBuilder().CreateRet(genSizeOf(function, getFirstTemplateVarRef(typeInstance)));
-			} else if (name == "value_lval") {
-				// value_lval is struct { T value; bool isLive; }.
-				// Hence:
-				//     sizeof(value_lval) = makealigned(makealigned(sizeof(T), alignof(bool)) + sizeof(bool), alignof(T))
-				// 
-				// and given sizeof(bool) = 1:
-				//     sizeof(value_lval) = makealigned(makealigned(sizeof(T), 1) + sizeof(bool), alignof(T))
-				// 
-				// so:
-				//     sizeof(value_lval) = makealigned(sizeof(T) + 1, alignof(T))
-				// 
-				// and given that:
-				//     makealigned(position, align) = align * ((position + (align - 1)) div align)
-				// 
-				// so that:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((sizeof(T) + 1 + (alignof(T) - 1)) div alignof(T))
-				// 
-				// and:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((sizeof(T) + alignof(T)) div alignof(T))
-				// 
-				// let sizeof(T) = M * alignof(T) where M is integer >= 1:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * ((M * alignof(T) + alignof(T)) div alignof(T))
-				// 
-				// so:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * (((M + 1) * alignof(T)) div alignof(T))
-				// 
-				// hence:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) * (M + 1)
-				// 
-				// so...:
-				//     makealigned(sizeof(T) + 1, alignof(T)) = alignof(T) + M * alignof(T)
-				// 
-				// so this can be reduced to:
-				//     sizeof(value_lval) = alignof(T) + sizeof(T).
-				const auto templateVarRef = getFirstTemplateVarRef(typeInstance);
-				const auto templateVarAlign = genAlignOf(function, templateVarRef);
-				const auto templateVarSize = genSizeOf(function, templateVarRef);
-				function.getBuilder().CreateRet(function.getBuilder().CreateAdd(templateVarAlign, templateVarSize));
 			} else if (name == "__ref") {
 				// Look at our template argument to see if it's virtual.
 				const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { 0 });
@@ -167,10 +118,7 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			const auto& typeName = type->getObjectType()->name().last();
-			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front().typeRefType();
-				return genAlignMask(function, targetType);
-			} else if (typeName == "member_lval" || typeName == "final_lval") {
+			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genAlignMask(function, targetType);
 			} else {
@@ -183,10 +131,7 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			const auto& typeName = type->getObjectType()->name().last();
-			if (typeName == "value_lval") {
-				const auto targetType = type->templateArguments().front().typeRefType();
-				return function.getBuilder().CreateAdd(genAlignOf(function, targetType), genSizeOf(function, targetType));
-			} else if (typeName == "member_lval" || typeName == "final_lval") {
+			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genSizeOf(function, targetType);
 			} else {

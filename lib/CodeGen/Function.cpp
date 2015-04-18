@@ -209,6 +209,14 @@ namespace locic {
 			return getRawArg(argInfo_.returnVarArgumentOffset());
 		}
 		
+		llvm::Value* Function::getReturnVarOrNull() const {
+			if (argInfo_.hasReturnVarArgument()) {
+				return getReturnVar();
+			} else {
+				return nullptr;
+			}
+		}
+		
 		llvm::Value* Function::getRawContextValue() const {
 			assert(argInfo_.hasContextArgument());
 			return getRawArg(argInfo_.contextArgumentOffset());

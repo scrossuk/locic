@@ -7,6 +7,9 @@
 
 namespace locic {
 	
+	class MethodID;
+	class SharedMaps;
+	class String;
 	class StringHost;
 	
 	namespace CodeGen {
@@ -15,10 +18,12 @@ namespace locic {
 		
 		class InternalContext {
 			public:
-				InternalContext(const StringHost& stringHost, const TargetOptions& targetOptions);
+				InternalContext(const SharedMaps& sharedMaps, const TargetOptions& targetOptions);
 				~InternalContext();
 				
 				const StringHost& stringHost() const;
+				
+				MethodID getMethodID(const String& name) const;
 				
 				llvm::LLVMContext& llvmContext();
 				
@@ -33,7 +38,7 @@ namespace locic {
 				const llvm::DataLayout& dataLayout() const;
 				
 			private:
-				const StringHost& stringHost_;
+				const SharedMaps& sharedMaps_;
 				llvm::LLVMContext llvmContext_;
 				llvm_abi::Context llvmABIContext_;
 				llvm::Triple targetTriple_;

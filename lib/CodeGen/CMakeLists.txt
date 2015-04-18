@@ -24,6 +24,8 @@ add_library(locic-codegen
 	InternalContext.cpp
 	Interpreter.cpp
 	Linker.cpp
+	Liveness.cpp
+	LivenessIndicator.cpp
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp
@@ -39,7 +41,7 @@ add_library(locic-codegen
 	Primitives/PrimitiveStoreLval.cpp
 	Primitives/PrimitiveTypes.cpp
 	Primitives/PrimitiveTypeSizeKnowledge.cpp
-	Primitives/PrimitiveValueLval.cpp
+	Primitives/PrimitiveUnsignedIntegerMethod.cpp
 	Routines.cpp
 	ScopeExitActions.cpp
 	SizeOf.cpp

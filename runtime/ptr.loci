@@ -1,6 +1,10 @@
 template <typename T>
 __primitive __ptr {
+	static __ptr<T> __dead() noexcept;
+	
 	static __ptr<T> null() noexcept;
+	
+	bool __is_valid() const noexcept;
 	
 	__ptr<T> implicit_copy() const noexcept;
 	

@@ -24,6 +24,10 @@ namespace locic {
 			return std::make_pair(llvm_abi::Type::AutoStruct(module.abiContext(), {}), TypeGenerator(module).getVoidType());
 		}
 		
+		TypePair boolTypePair(Module& module) {
+			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Bool), TypeGenerator(module).getI1Type());
+		}
+		
 		TypePair sizeTypePair(Module& module) {
 			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::SizeT), getNamedPrimitiveType(module, module.getCString("size_t")));
 		}
@@ -46,6 +50,10 @@ namespace locic {
 		
 		ArgInfo ArgInfo::VoidTemplateOnly(Module& module) {
 			return ArgInfo(module, false, true, false, false, voidTypePair(module), {});
+		}
+		
+		ArgInfo ArgInfo::ContextOnly(Module& module, TypePair returnType) {
+			return ArgInfo(module, false, true, false, false, returnType, {});
 		}
 		
 		ArgInfo ArgInfo::Templated(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes) {

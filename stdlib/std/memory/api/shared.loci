@@ -14,8 +14,6 @@ import std.memory 0.1.0 {
 			
 			template <bool IsConst>
 			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
-			
-			bool __islive() const noexcept;
 		}
 		
 		template <typename T : movable>

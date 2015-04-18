@@ -17,13 +17,13 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		Module::Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
-			: context_(context), module_(new llvm::Module(name.c_str(), context.llvmContext())),
-			  abi_(llvm_abi::createABI(module_.get(), context.targetTriple())),
+		Module::Module(InternalContext& argContext, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
+			: context_(argContext), module_(new llvm::Module(name.c_str(), context_.llvmContext())),
+			  abi_(llvm_abi::createABI(module_.get(), context_.targetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
 			
-			module_->setDataLayout(context.dataLayout().getStringRepresentation());
-			module_->setTargetTriple(context.targetTriple().getTriple());
+			module_->setDataLayout(context_.dataLayout().getStringRepresentation());
+			module_->setTargetTriple(context_.targetTriple().getTriple());
 			
 #if LOCIC_LLVM_VERSION >= 304
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
@@ -66,6 +66,10 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("ulong_t"), PrimitiveULong));
 			primitiveMap_.insert(std::make_pair(getCString("ulonglong_t"), PrimitiveULongLong));
 			primitiveMap_.insert(std::make_pair(getCString("size_t"), PrimitiveSize));
+		}
+		
+		InternalContext& Module::context() {
+			return context_;
 		}
 		
 		String Module::getCString(const char* const cString) const {

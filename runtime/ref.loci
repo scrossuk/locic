@@ -1,7 +1,13 @@
 template <typename T>
 __primitive __ref {
+	static __ref<T> __dead() noexcept;
+	static __ref<T> __invalid() noexcept;
+	
 	__ref<T> implicit_copy() const noexcept;
 	__ref<T> copy() const noexcept;
+	
+	bool __is_live() const noexcept;
+	bool __is_valid() const noexcept;
 	
 	void __move_to(void* ptr, size_t position) noexcept;
 }

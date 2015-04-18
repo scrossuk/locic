@@ -116,6 +116,8 @@ namespace locic {
 				
 				llvm::Value* getReturnVar() const;
 				
+				llvm::Value* getReturnVarOrNull() const;
+				
 				llvm::Value* getRawContextValue() const;
 				
 				llvm::Value* getContextValue(const SEM::TypeInstance* typeInstance);
