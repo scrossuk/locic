@@ -41,6 +41,14 @@ namespace sf {
 			sfClock_destroy(@clock);
 		}
 		
+		void __setDead() noexcept {
+			@clock = null;
+		}
+		
+		bool __isLive() const noexcept {
+			return @clock != null;
+		}
+		
 		Time getElapsedTime() const {
 			return Time(sfClock_getElapsedTime(@clock));
 		}

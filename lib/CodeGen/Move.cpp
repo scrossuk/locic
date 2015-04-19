@@ -6,6 +6,8 @@
 #include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -26,11 +28,19 @@ namespace locic {
 				if (type->isPrimitive()) {
 					return primitiveTypeHasCustomMove(module, type);
 				} else {
-					return typeInstanceHasCustomMove(module, type->getObjectType());
+					return typeInstanceHasCustomMove(module, type->getObjectType())
+						// We have a custom move operation if there's a liveness indicator,
+						// since we need to set the source value to be dead.
+						|| typeInstanceHasLivenessIndicator(module, *(type->getObjectType()));
 				}
 			} else {
 				return type->isTemplateVar();
 			}
+		}
+		
+		bool typeInstanceHasCustomMoveMethod(Module& module, const SEM::TypeInstance& typeInstance) {
+			const auto moveFunction = typeInstance.functions().at(module.getCString("__moveto")).get();
+			return !moveFunction->isDefault();
 		}
 		
 		bool typeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* const typeInstance) {
@@ -43,6 +53,10 @@ namespace locic {
 				return primitiveTypeInstanceHasCustomMove(module, typeInstance);
 			}
 			
+			if (typeInstanceHasCustomMoveMethod(module, *typeInstance)) {
+				return true;
+			}
+			
 			if (typeInstance->isUnionDatatype()) {
 				for (const auto variantTypeInstance: typeInstance->variants()) {
 					if (typeInstanceHasCustomMove(module, variantTypeInstance)) {
@@ -52,12 +66,6 @@ namespace locic {
 				
 				return false;
 			} else {
-				// Semantic Analysis uses this to tell us whether
-				// it auto-generated a move method.
-				if (typeInstance->hasCustomMove()) {
-					return true;
-				}
-				
 				for (const auto var: typeInstance->variables()) {
 					if (typeHasCustomMove(module, var->type())) {
 						return true;
@@ -238,6 +246,66 @@ namespace locic {
 			return llvmFunction;
 		}
 		
+		void genInnerMoveFunction(Function& functionGenerator, const SEM::TypeInstance& typeInstance,
+				llvm::Value* const sourceValue, llvm::Value* const destValue, llvm::Value* const positionValue) {
+			auto& module = functionGenerator.module();
+			auto& builder = functionGenerator.getBuilder();
+			
+			const auto type = typeInstance.selfType();
+			
+			if (typeInstance.isUnion()) {
+				// Basically just do a memcpy.
+				genBasicMove(functionGenerator, type, sourceValue, destValue, positionValue);
+			} else if (typeInstance.isUnionDatatype()) {
+				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator, type, sourceValue);
+				const auto loadedTag = builder.CreateLoad(unionDatatypePointers.first);
+				
+				// Store tag.
+				builder.CreateStore(loadedTag, makeRawMoveDest(functionGenerator, destValue, positionValue));
+				
+				// Set previous tag to zero.
+				builder.CreateStore(ConstantGenerator(module).getI8(0), unionDatatypePointers.first);
+				
+				// Offset of union datatype data is equivalent to its alignment size.
+				const auto unionDataOffset = genAlignOf(functionGenerator, type);
+				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
+				
+				const auto endBB = functionGenerator.createBasicBlock("end");
+				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				
+				// Start from 1 so that 0 can represent 'empty'.
+				uint8_t tag = 1;
+				
+				for (const auto& variantTypeInstance: typeInstance.variants()) {
+					const auto matchBB = functionGenerator.createBasicBlock("tagMatch");
+					const auto tagValue = ConstantGenerator(module).getI8(tag++);
+					
+					switchInstruction->addCase(tagValue, matchBB);
+					
+					functionGenerator.selectBasicBlock(matchBB);
+					
+					const auto variantType = variantTypeInstance->selfType();
+					const auto unionValueType = genType(module, variantType);
+					const auto castedUnionValuePtr = builder.CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
+					
+					genMoveCall(functionGenerator, variantType, castedUnionValuePtr, destValue, adjustedPositionValue);
+					
+					builder.CreateBr(endBB);
+				}
+				
+				functionGenerator.selectBasicBlock(endBB);
+			} else {
+				// Move member variables.
+				for (const auto& memberVar: typeInstance.variables()) {
+					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto ptrToMember = genMemberPtr(functionGenerator, sourceValue, type, memberIndex);
+					const auto memberOffsetValue = genMemberOffset(functionGenerator, type, memberIndex);
+					const auto adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
+					genMoveCall(functionGenerator, memberVar->type(), ptrToMember, destValue, adjustedPositionValue);
+				}
+			}
+		}
+		
 		llvm::Function* genMoveFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto llvmFunction = genMoveFunctionDecl(module, typeInstance);
 			
@@ -276,61 +344,50 @@ namespace locic {
 			const auto destValue = functionGenerator.getArg(0);
 			const auto positionValue = functionGenerator.getArg(1);
 			
-			if (typeInstance->isUnion()) {
-				// Basically just do a memcpy.
-				genBasicMove(functionGenerator, type, sourceValue, destValue, positionValue);
-			} else if (typeInstance->isUnionDatatype()) {
-				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator, type, sourceValue);
-				const auto loadedTag = builder.CreateLoad(unionDatatypePointers.first);
-				
-				// Store tag.
-				builder.CreateStore(loadedTag, makeRawMoveDest(functionGenerator, destValue, positionValue));
-				
-				// Set previous tag to zero.
-				builder.CreateStore(ConstantGenerator(module).getI8(0), unionDatatypePointers.first);
-				
-				// Offset of union datatype data is equivalent to its alignment size.
-				const auto unionDataOffset = genAlignOf(functionGenerator, type);
-				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
-				
-				const auto endBB = functionGenerator.createBasicBlock("end");
-				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
-				
-				// Start from 1 so that 0 can represent 'empty'.
-				uint8_t tag = 1;
-				
-				for (const auto& variantTypeInstance: typeInstance->variants()) {
-					const auto matchBB = functionGenerator.createBasicBlock("tagMatch");
-					const auto tagValue = ConstantGenerator(module).getI8(tag++);
-					
-					switchInstruction->addCase(tagValue, matchBB);
-					
-					functionGenerator.selectBasicBlock(matchBB);
-					
-					const auto variantType = variantTypeInstance->selfType();
-					const auto unionValueType = genType(module, variantType);
-					const auto castedUnionValuePtr = builder.CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-					
-					genMoveCall(functionGenerator, variantType, castedUnionValuePtr, destValue, adjustedPositionValue);
-					
-					builder.CreateBr(endBB);
-				}
-				
-				functionGenerator.selectBasicBlock(endBB);
+			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
+			
+			if (livenessIndicator.isNone()) {
+				// No liveness indicator so just move the member values.
+				genInnerMoveFunction(functionGenerator, *typeInstance, sourceValue, destValue, positionValue);
+				functionGenerator.getBuilder().CreateRetVoid();
 			} else {
-				const auto& memberVars = typeInstance->variables();
+				const auto destPtr = builder.CreateInBoundsGEP(destValue, positionValue);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
-				// Move member variables.
-				for (const auto& memberVar: memberVars) {
-					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
-					const auto ptrToMember = genMemberPtr(functionGenerator, sourceValue, type, memberIndex);
-					const auto memberOffsetValue = genMemberOffset(functionGenerator, type, memberIndex);
-					const auto adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
-					genMoveCall(functionGenerator, memberVar->type(), ptrToMember, destValue, adjustedPositionValue);
-				}
+				const auto isLiveBB = functionGenerator.createBasicBlock("is_live");
+				const auto isNotLiveBB = functionGenerator.createBasicBlock("is_not_live");
+				const auto setSourceDeadBB = functionGenerator.createBasicBlock("set_source_dead");
+				
+				// Check whether the source object is in a 'live' state and
+				// only perform the move if it is.
+				const auto isLive = genIsLive(functionGenerator, type, sourceValue);
+				builder.CreateCondBr(isLive, isLiveBB, isNotLiveBB);
+				
+				functionGenerator.selectBasicBlock(isLiveBB);
+				
+				// Move member values.
+				genInnerMoveFunction(functionGenerator, *typeInstance, sourceValue, destValue, positionValue);
+				
+				// Set dest object to be valid.
+				setOuterLiveState(functionGenerator, *typeInstance, castedDestPtr);
+				
+				builder.CreateBr(setSourceDeadBB);
+				
+				functionGenerator.selectBasicBlock(isNotLiveBB);
+				
+				// If the source object is dead, just set dest object to be dead as well.
+				genSetDeadState(functionGenerator, type, castedDestPtr);
+				
+				builder.CreateBr(setSourceDeadBB);
+				
+				functionGenerator.selectBasicBlock(setSourceDeadBB);
+				
+				// Set the source object to dead state.
+				genSetDeadState(functionGenerator, type, sourceValue);
+				
+				functionGenerator.getBuilder().CreateRetVoid();
 			}
 			
-			functionGenerator.getBuilder().CreateRetVoid();
 			return llvmFunction;
 		}
 		

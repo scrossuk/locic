@@ -22,43 +22,47 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		bool typeHasDestructor(Module& module, const SEM::Type* type) {
+		bool typeInstanceHasCustomDestructor(Module& module, const SEM::TypeInstance& typeInstance) {
+			const auto methodIterator = typeInstance.functions().find(module.getCString("__destructor"));
+			return methodIterator != typeInstance.functions().end();
+		}
+		
+		bool typeHasDestructor(Module& module, const SEM::Type* const type) {
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
 					return primitiveTypeHasDestructor(module, type);
 				} else {
-					return typeInstanceHasDestructor(module, type->getObjectType());
+					return typeInstanceHasDestructor(module, *(type->getObjectType()));
 				}
 			} else {
 				return type->isTemplateVar();
 			}
 		}
 		
-		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
-			if (typeInstance->isClassDecl()) {
+		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance& typeInstance) {
+			if (typeInstance.isClassDecl()) {
 				// Assume a destructor exists.
 				return true;
 			}
 			
-			if (typeInstance->isPrimitive()) {
-				return primitiveTypeInstanceHasDestructor(module, typeInstance);
+			if (typeInstance.isPrimitive()) {
+				return primitiveTypeInstanceHasDestructor(module, &typeInstance);
 			}
 			
-			if (typeInstance->isUnionDatatype()) {
-				for (const auto variantTypeInstance: typeInstance->variants()) {
-					if (typeInstanceHasDestructor(module, variantTypeInstance)) {
+			if (typeInstance.isUnionDatatype()) {
+				for (const auto variantTypeInstance: typeInstance.variants()) {
+					if (typeInstanceHasDestructor(module, *variantTypeInstance)) {
 						return true;
 					}
 				}
 				
 				return false;
 			} else {
-				const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
-				if (methodIterator != typeInstance->functions().end()) {
+				if (typeInstanceHasCustomDestructor(module, typeInstance)) {
 					return true;
 				}
 				
-				for (const auto var: typeInstance->variables()) {
+				for (const auto var: typeInstance.variables()) {
 					if (typeHasDestructor(module, var->type())) {
 						return true;
 					}
@@ -68,13 +72,13 @@ namespace locic {
 			}
 		}
 		
-		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
-			const bool hasTemplateArgs = !typeInstance->templateVariables().empty();
+		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance& typeInstance) {
+			const bool hasTemplateArgs = !typeInstance.templateVariables().empty();
 			const auto argInfo = hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
 			return argInfo.withNoExcept();
 		}
 		
-		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
+		void genDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
@@ -87,9 +91,11 @@ namespace locic {
 					return;
 				}
 				
+				const auto& typeInstance = *(type->getObjectType());
+				
 				// Call destructor.
-				const auto argInfo = destructorArgInfo(module, type->getObjectType());
-				const auto destructorFunction = genDestructorFunctionDecl(module, type->getObjectType());
+				const auto argInfo = destructorArgInfo(module, typeInstance);
+				const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
 				
 				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
 				
@@ -124,16 +130,16 @@ namespace locic {
 			}
 		}
 		
-		llvm::DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance* const typeInstance, llvm::Function* const function) {
-			const auto& typeInstanceInfo = *(typeInstance->debugInfo());
+		llvm::DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function) {
+			const auto& typeInstanceInfo = *(typeInstance.debugInfo());
 			
-			const auto position = getDebugDestructorPosition(module, *typeInstance);
+			const auto position = getDebugDestructorPosition(module, typeInstance);
 			
 			const auto file = module.debugBuilder().createFile(typeInstanceInfo.location.fileName());
 			const auto lineNumber = position.lineNumber();
-			const bool isInternal = typeInstance->moduleScope().isInternal();
+			const bool isInternal = typeInstance.moduleScope().isInternal();
 			const bool isDefinition = true;
-			const auto functionName = typeInstance->name() + module.getCString("~");
+			const auto functionName = typeInstance.name() + module.getCString("~");
 			
 			std::vector<LLVMMetadataValue*> debugArgs;
 			debugArgs.push_back(module.debugBuilder().createVoidType());
@@ -144,21 +150,21 @@ namespace locic {
 				isDefinition, functionName, functionType, function);
 		}
 		
-		void genUnionDestructor(Function& function, const SEM::TypeInstance* const typeInstance) {
-			assert(typeInstance->isUnionDatatype());
+		void genUnionDestructor(Function& function, const SEM::TypeInstance& typeInstance) {
+			assert(typeInstance.isUnionDatatype());
 			
-			const auto contextValue = function.getContextValue(typeInstance);
-			const auto unionDatatypePointers = getUnionDatatypePointers(function, typeInstance->selfType(), contextValue);
+			const auto contextValue = function.getContextValue(&typeInstance);
+			const auto unionDatatypePointers = getUnionDatatypePointers(function, typeInstance.selfType(), contextValue);
 			
 			const auto loadedTag = function.getBuilder().CreateLoad(unionDatatypePointers.first);
 			
 			const auto endBB = function.createBasicBlock("end");
-			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance->variants().size());
+			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
 			
 			// Start from 1 so that 0 can represent 'empty'.
 			uint8_t tag = 1;
 			
-			for (const auto variantTypeInstance : typeInstance->variants()) {
+			for (const auto variantTypeInstance : typeInstance.variants()) {
 				const auto matchBB = function.createBasicBlock("tagMatch");
 				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
 				
@@ -199,14 +205,14 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance) {
 			if (!typeInstanceHasDestructor(module, typeInstance)) {
 				return getNullDestructorFunction(module);
 			}
 			
 			const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
 			
-			if (!typeInstance->templateVariables().empty()) {
+			if (!typeInstance.templateVariables().empty()) {
 				return destructorFunction;
 			}
 			
@@ -219,7 +225,7 @@ namespace locic {
 			
 			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, llvmFunction);
 			function.attachDebugInfo(debugInfo);
-			function.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
+			function.setDebugPosition(getDebugDestructorPosition(module, typeInstance));
 			
 			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
 			
@@ -228,17 +234,17 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance) {
-			const auto iterator = module.getDestructorMap().find(typeInstance);
+		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance& typeInstance) {
+			const auto iterator = module.getDestructorMap().find(&typeInstance);
 			
 			if (iterator != module.getDestructorMap().end()) {
 				return iterator->second;
 			}
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
-			const auto linkage = getTypeInstanceLinkage(typeInstance);
+			const auto linkage = getTypeInstanceLinkage(&typeInstance);
 			
-			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) + mangleDestructorName(module, typeInstance);
+			const auto mangledName = mangleModuleScope(module, typeInstance.moduleScope()) + mangleDestructorName(module, &typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
 			
 			if (argInfo.hasTemplateGeneratorArgument()) {
@@ -246,37 +252,37 @@ namespace locic {
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			
-			module.getDestructorMap().insert(std::make_pair(typeInstance, llvmFunction));
+			module.getDestructorMap().insert(std::make_pair(&typeInstance, llvmFunction));
 			
-			if (typeInstance->isPrimitive()) {
+			if (typeInstance.isPrimitive()) {
 				// This is a primitive method; needs special code generation.
-				createPrimitiveDestructor(module, typeInstance, *llvmFunction);
+				createPrimitiveDestructor(module, &typeInstance, *llvmFunction);
 			}
 			
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genDestructorFunctionDef(Module& module, const SEM::TypeInstance& typeInstance) {
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			const auto llvmFunction = genDestructorFunctionDecl(module, typeInstance);
 			
-			if (typeInstance->isPrimitive()) {
+			if (typeInstance.isPrimitive()) {
 				// Already generated in genDestructorFunctionDecl().
 				return llvmFunction;
 			}
 			
-			if (typeInstance->isClassDecl()) {
+			if (typeInstance.isClassDecl()) {
 				// Don't generate code for imported functionality.
 				return llvmFunction;
 			}
 			
-			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
+			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance))));
 			
 			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, llvmFunction);
 			function.attachDebugInfo(debugInfo);
-			function.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
+			function.setDebugPosition(getDebugDestructorPosition(module, typeInstance));
 			
-			if (typeInstance->isUnionDatatype()) {
+			if (typeInstance.isUnionDatatype()) {
 				genUnionDestructor(function, typeInstance);
 				function.getBuilder().CreateRetVoid();
 				return llvmFunction;
@@ -288,8 +294,8 @@ namespace locic {
 			const auto isLiveBB = function.createBasicBlock("is_live");
 			
 			// Check whether this object is in a 'live' state and only
-			// run the constructor if it is.
-			const auto isLive = genIsLive(function, typeInstance->selfType(), contextValue);
+			// run the destructor if it is.
+			const auto isLive = genIsLive(function, typeInstance.selfType(), contextValue);
 			function.getBuilder().CreateCondBr(isLive, isLiveBB, isNotLiveBB);
 			
 			function.selectBasicBlock(isNotLiveBB);
@@ -298,24 +304,24 @@ namespace locic {
 			function.selectBasicBlock(isLiveBB);
 			
 			// Call the custom destructor function, if one exists.
-			const auto methodIterator = typeInstance->functions().find(module.getCString("__destructor"));
+			const auto methodIterator = typeInstance.functions().find(module.getCString("__destructor"));
 			
-			if (methodIterator != typeInstance->functions().end()) {
-				const auto customDestructor = genFunctionDecl(module, typeInstance, methodIterator->second.get());
+			if (methodIterator != typeInstance.functions().end()) {
+				const auto customDestructor = genFunctionDecl(module, &typeInstance, methodIterator->second.get());
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 							std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
 							std::vector<llvm::Value*> { contextValue };
 				(void) genRawFunctionCall(function, argInfo, customDestructor, args);
 			}
 			
-			const auto& memberVars = typeInstance->variables();
+			const auto& memberVars = typeInstance.variables();
 			
 			// Call destructors for all objects within the
 			// parent object, in *REVERSE* order.
 			for (size_t i = 0; i < memberVars.size(); i++) {
 				const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 				const size_t memberIndex = module.getMemberVarMap().at(memberVar);
-				const auto memberOffsetValue = genMemberOffset(function, typeInstance->selfType(), memberIndex);
+				const auto memberOffsetValue = genMemberOffset(function, typeInstance.selfType(), memberIndex);
 				const auto ptrToMember = function.getBuilder().CreateInBoundsGEP(contextValue, memberOffsetValue);
 				genDestructorCall(function, memberVar->type(), ptrToMember);
 			}

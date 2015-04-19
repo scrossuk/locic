@@ -1,0 +1,18 @@
+---- checkSize()
+sizeof(TypeWithoutDestructor) = 1
+sizeof(TypeWithDestructor) = 1
+---- checkLive()
+Invalidatable::__is_valid : true
+Destructor called.
+---- checkDead()
+Invalidatable::__set_invalid
+Invalidatable::__is_valid : false
+---- checkMove()
+* Move object.
+Invalidatable::__is_valid : true
+Invalidatable::__set_invalid
+* Destroy moved object.
+Invalidatable::__is_valid : true
+Destructor called.
+* Destroy original object.
+Invalidatable::__is_valid : false

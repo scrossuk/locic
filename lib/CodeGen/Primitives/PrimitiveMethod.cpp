@@ -265,10 +265,13 @@ namespace locic {
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
 			
 			switch (methodID) {
-				case METHOD_DEAD:
 				case METHOD_CREATE: {
 					assert(args.empty());
 					return ConstantGenerator(module).getI1(false);
+				}
+				case METHOD_SETDEAD: {
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
@@ -347,7 +350,9 @@ namespace locic {
 			
 			const auto& typeName = type->getObjectType()->name().first();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
 			
 			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
@@ -368,6 +373,9 @@ namespace locic {
 				return zero;
 			} else if (methodName == "unit") {
 				return unit;
+			} else if (methodName == "__setdead" || methodName == "__set_dead") {
+				// Do nothing.
+				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
 				const auto argType = functionType->getFunctionParameterTypes().front();
 				const auto operand = args[0].resolve(function);
@@ -467,6 +475,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else {
+				printf("%s\n", methodName.c_str());
 				llvm_unreachable("Unknown primitive method.");
 			}
 		}
@@ -481,7 +490,9 @@ namespace locic {
 			
 			const auto& typeName = type->getObjectType()->name().first();
 			
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
 			
 			if (methodName == "__move_to") {
 				const auto moveToPtr = args[1].resolve(function);
@@ -494,6 +505,11 @@ namespace locic {
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName == "create") {
 				return ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+			} else if (methodName == "__setdead" || methodName == "__set_dead") {
+				// Do nothing.
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "__islive" || methodName == "__is_live") {
+				return ConstantGenerator(module).getI1(true);
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
 				const auto argType = functionType->getFunctionParameterTypes().front();
 				const auto operand = args[0].resolve(function);
@@ -575,6 +591,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else {
+				printf("%s\n", methodName.c_str());
 				llvm_unreachable("Unknown primitive method.");
 			}
 		}
@@ -590,13 +607,16 @@ namespace locic {
 			const auto methodOwner = methodOwnerPointer != nullptr ? builder.CreateLoad(methodOwnerPointer) : nullptr;
 			
 			switch (methodID) {
-				case METHOD_DEAD:
 				case METHOD_NULL:
 					return ConstantGenerator(module).getNull(genType(module, type));
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 				case METHOD_DEREF:
 					return methodOwner;
+				case METHOD_SETDEAD: {
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
@@ -759,11 +779,6 @@ namespace locic {
 					const auto returnValuePtr = genAlloca(function, targetType, hintResultValue);
 					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
 					genMoveStore(function, loadedValue, returnValuePtr, targetType);
-					
-					// Store a dead value in the object.
-					const auto deadValue = genDeadValue(function, targetType, methodOwner);
-					genMoveStore(function, deadValue, methodOwner, targetType);
-					
 					return genMoveLoad(function, returnValuePtr, targetType);
 				}
 				case METHOD_SETVALUE: {
@@ -799,11 +814,18 @@ namespace locic {
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			
 			switch (methodID) {
-				case METHOD_DEAD: {
-					return genDeadValue(function, targetType, hintResultValue);
-				}
 				case METHOD_EMPTY:
 					return genMoveLoad(function, genAlloca(function, type, hintResultValue), type);
+				case METHOD_SETDEAD: {
+					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					genSetDeadState(function, targetType, targetPtr);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_SETINVALID: {
+					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					genSetInvalidState(function, targetType, targetPtr);
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
@@ -832,10 +854,7 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVE: {
-					const auto targetPointer =
-						isTypeSizeKnownInThisModule(module, targetType) ?
-							builder.CreateConstInBoundsGEP2_32(methodOwner, 0, 0) :
-							builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 					
 					const auto returnValuePtr = genAlloca(function, targetType, hintResultValue);
 					const auto loadedValue = genMoveLoad(function, targetPointer, targetType);
@@ -877,8 +896,11 @@ namespace locic {
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			
 			switch (methodID) {
-				case METHOD_EMPTY:
-					return genDeadValue(function, type, hintResultValue);
+				case METHOD_EMPTY: {
+					const auto objectVar = genAlloca(function, targetType, hintResultValue);
+					genSetDeadState(function, targetType, objectVar);
+					return genMoveLoad(function, objectVar, targetType);
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
@@ -936,7 +958,10 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			const auto methodOwner = args[0].resolve(function);
 			
-			if (methodName == "__move_to") {
+			if (methodName == "__setdead" || methodName == "__set_dead") {
+				genSetDeadState(function, targetType, methodOwner);
+				return ConstantGenerator(module).getVoidUndef();
+			} else if (methodName == "__move_to") {
 				const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
 				
 				const auto sourceValue = methodOwner;
@@ -980,6 +1005,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive binary op.");
 				}
 			} else {
+				printf("%s\n", methodName.c_str());
 				llvm_unreachable("Unknown primitive method.");
 			}
 		}
@@ -993,11 +1019,32 @@ namespace locic {
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBindRaw(function, llvmType);
 			
 			switch (methodID) {
-				case METHOD_DEAD:
-					return ConstantGenerator(module).getNull(llvmType);
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 					return methodOwner;
+				case METHOD_ISVALID: {
+					if (llvmType->isPointerTy()) {
+						const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+						return builder.CreateICmpEQ(methodOwner, nullValue);
+					} else {
+						const auto pointerValue = builder.CreateExtractValue(methodOwner, { 0 });
+						const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
+						return builder.CreateICmpEQ(pointerValue, nullValue);
+					}
+				}
+				case METHOD_SETINVALID: {
+					const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+					const auto contextPointer = args[0].resolve(function);
+					builder.CreateStore(nullValue, contextPointer);
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_ISLIVE: {
+					return ConstantGenerator(module).getI1(true);
+				}
+				case METHOD_SETDEAD: {
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);

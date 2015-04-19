@@ -1,0 +1,63 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(uint8_t value8, uint32_t value32) {
+	static create() noexcept {
+		return @(0u, 0u);
+	}
+}
+
+class TypeWithDestructor(uint8_t value8, uint32_t value32) {
+	static create() noexcept {
+		return @(0u, 0u);
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which can be added as a gap byte
+		// since the alignment of the uint32_t leaves a
+		// 3 byte gap after the uint8_t value.
+		testPrint(C"Destructor called.");
+	}
+}
+
+void checkSize() {
+	testPrint(C"---- checkSize()");
+	testPrint(C"sizeof(TypeWithoutDestructor) = %llu",
+		sizeof(TypeWithoutDestructor).cast<ulonglong_t>());
+	
+	testPrint(C"sizeof(TypeWithDestructor) = %llu",
+		sizeof(TypeWithDestructor).cast<ulonglong_t>());
+}
+
+void checkLive() {
+	testPrint(C"---- checkLive()");
+	unused auto value = TypeWithDestructor();
+}
+
+void checkDead() {
+	testPrint(C"---- checkDead()");
+	auto value = TypeWithDestructor();
+	value.__setdead();
+}
+
+void checkMove() {
+	testPrint(C"---- checkMove()");
+	auto value = TypeWithDestructor();
+	{
+		testPrint(C"* Move object.");
+		unused auto movedValue = move value;
+		testPrint(C"* Destroy moved object.");
+	}
+	testPrint(C"* Destroy original object.");
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

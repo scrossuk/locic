@@ -73,19 +73,9 @@ namespace locic {
 			if (!isObjectTypeSizeKnownInThisModule(module, typeInstance)) {
 				size_t index = 0;
 				
-				if (livenessIndicator.isPrefixByte()) {
-					// Inserting the liveness indicator at the beginning.
-					index++;
-				}
-				
 				// Create mapping between member variables and their
 				// indexes within their parent.
 				for (const auto& var: typeInstance->variables()) {
-					if (livenessIndicator.isGapByte() && livenessIndicator.gapByteIndex() == index) {
-						// Inserting the liveness indicator in a gap.
-						index++;
-					}
-					
 					const auto result = module.getMemberVarMap().insert(std::make_pair(var, index++));
 					assert(result.second);
 					(void) result;
@@ -137,7 +127,6 @@ namespace locic {
 				if (livenessIndicator.isPrefixByte()) {
 					// Inserting the liveness indicator at the beginning.
 					structMembers.push_back(TypeGenerator(module).getI8Type());
-					index++;
 				}
 				
 				for (const auto& var: typeInstance->variables()) {
@@ -146,12 +135,6 @@ namespace locic {
 					(void) result;
 					
 					structMembers.push_back(genType(module, var->type()));
-					
-					if (livenessIndicator.isGapByte() && livenessIndicator.gapByteIndex() == index) {
-						// Inserting the liveness indicator in a gap.
-						structMembers.push_back(TypeGenerator(module).getI8Type());
-						index++;
-					}
 				}
 				
 				if (structMembers.empty()) {

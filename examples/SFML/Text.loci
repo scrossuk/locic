@@ -45,6 +45,14 @@ namespace sf {
 			sfText_destroy(@text);
 		}
 		
+		void __setDead() noexcept {
+			@text = null;
+		}
+		
+		bool __isLive() const noexcept {
+			return @text != null;
+		}
+		
 		const sfText* raw() const {
 			return @text;
 		}

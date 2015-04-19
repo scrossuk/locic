@@ -32,6 +32,15 @@ namespace locic {
 		/**
 		 * \brief Query whether a type instance has a custom move method.
 		 * 
+		 * This will determine whether the type has a custom move method;
+		 * it doesn't check whether any of the member values have custom
+		 * move methods.
+		 */
+		bool typeInstanceHasCustomMoveMethod(Module& module, const SEM::TypeInstance& typeInstance);
+		
+		/**
+		 * \brief Query whether a type instance has a custom move operation.
+		 * 
 		 * This will determine whether the type has a custom
 		 * move method. For class declarations this always returns
 		 * true, since we must assume they have a custom move

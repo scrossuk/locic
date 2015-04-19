@@ -1,8 +1,7 @@
 auto testInstance = TestClass(MemberClass());
 MemberClass.__move_to
 MemberClass.__move_to
-MemberClass.__move_to
 auto testInstanceMoved = move testInstance;
 MemberClass.__move_to
-auto testInstanceMovedAgain = move testInstanceMoved;
+auto extractedObject = testInstanceMoved.extract();
 MemberClass.__move_to

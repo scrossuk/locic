@@ -64,6 +64,15 @@ export std.container 0.1.0 {
 				}
 			}
 			
+			// Prevent the creation of a liveness indicator.
+			void __setdead() noexcept {
+				@begin = null;
+			}
+			
+			bool __islive() const noexcept {
+				return @begin != null;
+			}
+			
 			bool empty() const noexcept {
 				return @size == 0u;
 			}

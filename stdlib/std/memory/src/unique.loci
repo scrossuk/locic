@@ -12,17 +12,17 @@ export std.memory 0.1.0 {
 				return @(null);
 			}
 			
-			static __dead() noexcept {
-				return @(null);
-			}
-			
 			~ {
 				if (@ptr != null) {
 					delete_raw<T>(@ptr);
 				}
 			}
 			
-			bool __is_live() const noexcept {
+			void __setdead() noexcept {
+				@ptr = null;
+			}
+			
+			bool __islive() const noexcept {
 				return @ptr != null;
 			}
 			

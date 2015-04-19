@@ -62,7 +62,7 @@ namespace locic {
 			 * gaps in the middle of an object; these can be used
 			 * to indicate whether the object is valid.
 			 */
-			static LivenessIndicator GapByte(size_t index);
+			static LivenessIndicator GapByte(size_t offset);
 			
 			enum Kind {
 				NONE,
@@ -86,7 +86,7 @@ namespace locic {
 			
 			bool isGapByte() const;
 			
-			size_t gapByteIndex() const;
+			size_t gapByteOffset() const;
 			
 		private:
 			LivenessIndicator(Kind kind);
@@ -95,7 +95,7 @@ namespace locic {
 			
 			union {
 				const SEM::Var* memberVar;
-				size_t index;
+				size_t offset;
 			} data_;
 			
 		};

@@ -287,20 +287,6 @@ namespace locic {
 				void setNoTagSet(TemplateVarArray noTagSet);
 				
 				/**
-				 * \brief Get/set whether this type has a custom move.
-				 * 
-				 * This is a slightly hacky way of communicating
-				 * from Semantic Analysis to Code Generation that
-				 * the type has a custom move method; in the case
-				 * where no custom move exists CodeGen can perform
-				 * a trivial inline move.
-				 * 
-				 * \return Whether the type has a custom move.
-				 */
-				bool hasCustomMove() const;
-				void setHasCustomMove(bool pHasCustomMove);
-				
-				/**
 				 * \brief Get/set debugging info.
 				 * 
 				 * A type instance can have associated debugging
@@ -339,8 +325,6 @@ namespace locic {
 				FastMap<String, std::unique_ptr<Function>> functions_;
 				
 				TemplateVarArray noTagSet_;
-				
-				bool hasCustomMove_;
 				
 		};
 		

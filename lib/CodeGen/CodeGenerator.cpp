@@ -88,10 +88,10 @@ namespace locic {
 			// Only generate primitives as needed.
 			if (!typeInstance.isPrimitive()) {
 				(void) genMoveFunctionDef(module, &typeInstance);
-				(void) genDestructorFunctionDef(module, &typeInstance);
+				(void) genDestructorFunctionDef(module, typeInstance);
 				(void) genAlignMaskFunction(module, &typeInstance);
 				(void) genSizeOfFunction(module, &typeInstance);
-				(void) genDeadDefaultFunctionDef(module, &typeInstance);
+				(void) genSetDeadDefaultFunctionDef(module, &typeInstance);
 				(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
 				
 				if (!typeInstance.templateVariables().empty()) {

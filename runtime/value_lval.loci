@@ -1,7 +1,9 @@
-template <typename T>
-require(T : movable)
 interface deadstateable {
-	static T __dead() noexcept;
+	void __setdead() noexcept;
+}
+
+interface queryislive {
+	void __is_live() const noexcept;
 }
 
 template <typename T>
@@ -18,6 +20,9 @@ __primitive value_lval {
 	
 	template <bool IsConst>
 	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
+	
+	bool __is_live() const noexcept require(T : queryislive);
+	void __set_dead() noexcept require(T : deadstateable);
 	
 	T move() noexcept require(T : movable);
 	

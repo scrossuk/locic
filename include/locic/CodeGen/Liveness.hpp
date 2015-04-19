@@ -17,7 +17,9 @@ namespace locic {
 		/**
 		 * \brief Query whether a type has a liveness indicator.
 		 */
-		bool typeInstanceHasLivenessIndicator(const SEM::TypeInstance& typeInstance);
+		bool typeInstanceHasLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance);
+		
+		bool typeHasLivenessIndicator(Module& module, const SEM::Type* type);
 		
 		/**
 		 * \brief Get liveness indicator for type.
@@ -25,14 +27,35 @@ namespace locic {
 		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance);
 		
 		/**
-		 * \brief Create dead value of given type.
+		 * \brief Set outer live state.
+		 * 
+		 * Modifies the object pointer value to be in a live
+		 * state; note that this doesn't set any of the member
+		 * values into a live state.
 		 */
-		llvm::Value* genDeadValue(Function& function, const SEM::Type* type, llvm::Value* const hintResultValue);
+		void setOuterLiveState(Function& function, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue);
+		
+		/**
+		 * \brief Generate set-dead-state.
+		 * 
+		 * Emits code that modifies the object pointer value to
+		 * be in a 'dead' state, meaning that no destructors or
+		 * move operations will be performed for it.
+		 */
+		void genSetDeadState(Function& function, const SEM::Type* type, llvm::Value* const objectPointerValue);
+		
+		/**
+		 * \brief Generate set-invalid-state.
+		 * 
+		 * Emits code that modifies the object pointer value to
+		 * be in an 'invalid' state.
+		 */
+		void genSetInvalidState(Function& function, const SEM::Type* type, llvm::Value* const objectPointerValue);
 		
 		/**
 		 * \brief Create __dead function definition.
 		 */
-		llvm::Function* genDeadDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance);
+		llvm::Function* genSetDeadDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance);
 		
 		/**
 		 * \brief Determine whether an object is live.

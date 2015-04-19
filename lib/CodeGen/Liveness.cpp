@@ -1,4 +1,5 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
@@ -19,10 +20,15 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		bool typeInstanceHasLivenessIndicator(const SEM::TypeInstance& typeInstance) {
-			// TODO: enable when this all works...
-			//return typeInstance.isClassDef();
-			return false;
+		bool typeInstanceHasLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
+			// A liveness indicator is only required if the object has a custom destructor or move,
+			// since the indicator is used to determine whether the destructor/move is run.
+			return typeInstance.isClassDef() && (typeInstanceHasCustomMoveMethod(module, typeInstance) ||
+				typeInstanceHasCustomDestructor(module, typeInstance));
+		}
+		
+		bool typeHasLivenessIndicator(Module& module, const SEM::Type* const type) {
+			return type->isObject() && typeInstanceHasLivenessIndicator(module, *(type->getObjectType()));
 		}
 		
 		static inline bool isPowerOf2(size_t value) {
@@ -35,10 +41,11 @@ namespace locic {
 		}
 		
 		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
-			// Check if we have a custom __islive method.
+			// Check if we have custom __islive and __setdead methods.
 			const auto& isLiveMethod = typeInstance.functions().at(module.getCString("__islive"));
-			if (!isLiveMethod->isDefault()) {
-				// We can just call the __islive method.
+			const auto& setDeadMethod = typeInstance.functions().at(module.getCString("__setdead"));
+			if (!isLiveMethod->isDefault() && !setDeadMethod->isDefault()) {
+				// We can just call the __islive and __setdead methods.
 				return make_optional(LivenessIndicator::CustomMethods());
 			}
 			
@@ -49,7 +56,7 @@ namespace locic {
 		Optional<LivenessIndicator> getMemberLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
 			// See if one of the member variables has an invalid state we can use.
 			for (const auto& var: typeInstance.variables()) {
-				const auto type = var->type();
+				const auto type = var->constructType();
 				if (!type->isObject()) {
 					continue;
 				}
@@ -58,7 +65,7 @@ namespace locic {
 				const auto& functions = objectType->functions();
 				
 				// TODO: check these methods have the right types!
-				if (functions.find(module.getCString("__invalid")) != functions.end()
+				if (functions.find(module.getCString("__setinvalid")) != functions.end()
 					&& functions.find(module.getCString("__isvalid")) != functions.end()) {
 					// Member variable has invalid state, so just use
 					// that to determine whether the object is live.
@@ -71,7 +78,6 @@ namespace locic {
 		}
 		
 		Optional<LivenessIndicator> getGapByteLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
-			size_t index = 0;
 			size_t currentOffset = 0;
 			for (const auto& var: typeInstance.variables()) {
 				if (!isTypeSizeKnownInThisModule(module, var->type())) {
@@ -85,11 +91,10 @@ namespace locic {
 					// Found a gap of one or more bytes, so let's
 					// insert a byte field here to store the
 					// invalid state.
-					return make_optional(LivenessIndicator::GapByte(index));
+					return make_optional(LivenessIndicator::GapByte(currentOffset));
 				}
 				
 				currentOffset = nextOffset + module.abi().typeSize(abiType);
-				index++;
 			}
 			
 			// No gaps available.
@@ -97,15 +102,17 @@ namespace locic {
 		}
 		
 		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
-			if (!typeInstanceHasLivenessIndicator(typeInstance)) {
+			if (!typeInstanceHasLivenessIndicator(module, typeInstance)) {
 				// Only classes need liveness indicators because only they
 				// have custom destructors and move operations.
+				//printf("%s: NONE\n", typeInstance.name().toString().c_str());
 				return LivenessIndicator::None();
 			}
 			
 			// Prefer to use user-specified liveness indicator if available.
 			const auto customLivenessIndicator = getCustomLivenessIndicator(module, typeInstance);
 			if (customLivenessIndicator) {
+				//printf("%s: CUSTOM\n", typeInstance.name().toString().c_str());
 				return *customLivenessIndicator;
 			}
 			
@@ -113,27 +120,105 @@ namespace locic {
 			// to represent whether this object is live/dead.
 			const auto memberLivenessIndicator = getMemberLivenessIndicator(module, typeInstance);
 			if (memberLivenessIndicator) {
+				//printf("%s: MEMBER\n", typeInstance.name().toString().c_str());
 				return *memberLivenessIndicator;
 			}
 			
 			const auto gapByteLivenessIndicator = getGapByteLivenessIndicator(module, typeInstance);
 			if (gapByteLivenessIndicator) {
+				//printf("%s: GAP BYTE\n", typeInstance.name().toString().c_str());
 				return *gapByteLivenessIndicator;
 			}
 			
 			// Worst case scenario; just put a byte at the beginning.
+			//printf("%s: PREFIX BYTE\n", typeInstance.name().toString().c_str());
 			return LivenessIndicator::PrefixByte();
 		}
 		
-		llvm::Function* genDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto semFunction = typeInstance->functions().at(module.getCString("__dead")).get();
+		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto semFunction = typeInstance->functions().at(module.getCString("__setdead")).get();
 			return genFunctionDecl(module, typeInstance, semFunction);
 		}
 		
-		llvm::Function* genDeadDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto llvmFunction = genDeadFunctionDecl(module, typeInstance);
+		void setOuterLiveState(Function& functionGenerator, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue) {
+			auto& module = functionGenerator.module();
 			
-			const auto semFunction = typeInstance->functions().at(module.getCString("__dead")).get();
+			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			
+			switch (livenessIndicator.kind()) {
+				case LivenessIndicator::NONE: {
+					// Nothing to do.
+					break;
+				}
+				case LivenessIndicator::MEMBER_INVALID_STATE: {
+					// Nothing to do; the expectation is that the member is already in a valid state.
+					break;
+				}
+				case LivenessIndicator::CUSTOM_METHODS: {
+					// Nothing to do; the expectation is that the object is already in a live state
+					// (or that it is in a notionally 'dead' state but it doesn't matter).
+					break;
+				}
+				case LivenessIndicator::PREFIX_BYTE: {
+					auto& builder = functionGenerator.getBuilder();
+					// Store one into prefix byte to represent live state.
+					const auto prefixBytePtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+					builder.CreateStore(ConstantGenerator(module).getI8(1), prefixBytePtr);
+					break;
+				}
+				case LivenessIndicator::GAP_BYTE: {
+					auto& builder = functionGenerator.getBuilder();
+					// Store one into gap byte to represent live state.
+					const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
+					builder.CreateStore(ConstantGenerator(module).getI8(1), gapBytePtr);
+					break;
+				}
+			}
+		}
+		
+		void genSetDeadState(Function& functionGenerator, const SEM::Type* const type, llvm::Value* const value) {
+			auto& module = functionGenerator.module();
+			
+			// Call __setdead method.
+			if (type->isObject()) {
+				const auto methodName = module.getCString("__setdead");
+				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
+				
+				MethodInfo methodInfo(type, methodName, functionType, {});
+				genDynamicMethodCall(functionGenerator, methodInfo, value, {});
+				return;
+			} else if (type->isTemplateVar()) {
+				// TODO!
+				return;
+			}
+			
+			llvm_unreachable("Unknown __setdead value type.");
+		}
+		
+		void genSetInvalidState(Function& functionGenerator, const SEM::Type* const type, llvm::Value* const value) {
+			auto& module = functionGenerator.module();
+			
+			// Call __setinvalid method.
+			if (type->isObject()) {
+				const auto methodName = module.getCString("__setinvalid");
+				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
+				
+				MethodInfo methodInfo(type, methodName, functionType, {});
+				genDynamicMethodCall(functionGenerator, methodInfo, value, {});
+				return;
+			} else if (type->isTemplateVar()) {
+				// TODO!
+				return;
+			}
+			
+			llvm_unreachable("Unknown __setinvalid value type.");
+		}
+		
+		llvm::Function* genSetDeadDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto llvmFunction = genSetDeadFunctionDecl(module, typeInstance);
+			
+			const auto semFunction = typeInstance->functions().at(module.getCString("__setdead")).get();
 			
 			if (semFunction->isDefinition()) {
 				// Custom method; generated in genFunctionDef().
@@ -164,73 +249,54 @@ namespace locic {
 			auto& builder = functionGenerator.getBuilder();
 			const auto selfType = typeInstance->selfType();
 			
-			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
+			const auto objectPointerValue = functionGenerator.getContextValue(typeInstance);
 			
-			const auto deadValue = genAlloca(functionGenerator, selfType, functionGenerator.getReturnVarOrNull());
+			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
 			
 			switch (livenessIndicator.kind()) {
 				case LivenessIndicator::NONE: {
-					// Return object with dead members.
-					for (const auto& memberVar: typeInstance->variables()) {
-						const auto memberIndex = module.getMemberVarMap().at(memberVar);
-						const auto memberPtr = genMemberPtr(functionGenerator, deadValue, selfType, memberIndex);
-						const auto deadMemberValue = genDeadValue(functionGenerator, memberVar->type(), memberPtr);
-						genMoveStore(functionGenerator, deadMemberValue, memberPtr, memberVar->type());
-					}
-					break;
-				}
-				case LivenessIndicator::MEMBER_INVALID_STATE: {
-					// Return object with dead members.
-					for (const auto& memberVar: typeInstance->variables()) {
-						if (memberVar == &(livenessIndicator.memberVar())) {
-							// TODO: create invalid value!
-							llvm_unreachable("TODO: create invalid value");
-						} else {
+					// Set member values to dead state; this only needs to
+					// occur if any of the members have custom destructors
+					// or custom move methods.
+					if (typeInstanceHasDestructor(module, *typeInstance) || typeInstanceHasCustomMove(module, typeInstance)) {
+						for (const auto& memberVar: typeInstance->variables()) {
 							const auto memberIndex = module.getMemberVarMap().at(memberVar);
-							const auto memberPtr = genMemberPtr(functionGenerator, deadValue, selfType, memberIndex);
-							const auto deadMemberValue = genDeadValue(functionGenerator, memberVar->type(), memberPtr);
-							genMoveStore(functionGenerator, deadMemberValue, memberPtr, memberVar->type());
+							const auto memberPtr = genMemberPtr(functionGenerator, objectPointerValue, selfType, memberIndex);
+							genSetDeadState(functionGenerator, memberVar->type(), memberPtr);
 						}
 					}
 					break;
 				}
+				case LivenessIndicator::MEMBER_INVALID_STATE: {
+					// Set the relevant member into an invalid state.
+					const auto memberVar = &(livenessIndicator.memberVar());
+					const auto memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberPtr = genMemberPtr(functionGenerator, objectPointerValue, selfType, memberIndex);
+					genSetInvalidState(functionGenerator, memberVar->constructType(), memberPtr);
+					break;
+				}
 				case LivenessIndicator::CUSTOM_METHODS: {
-					llvm_unreachable("No custom __dead method exists for liveness indicator that references custom methods!");
+					llvm_unreachable("Shouldn't reach custom __setdead method invocation inside auto-generated method.");
+					break;
 				}
 				case LivenessIndicator::PREFIX_BYTE: {
-					// TODO!
-					llvm_unreachable("TODO: create dead value with prefix byte");
+					// Store zero into prefix byte to represent dead state.
+					const auto prefixBytePtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+					builder.CreateStore(ConstantGenerator(module).getI8(0), prefixBytePtr);
 					break;
 				}
 				case LivenessIndicator::GAP_BYTE: {
-					// TODO!
-					llvm_unreachable("TODO: create dead value with gap byte");
+					// Store zero into gap byte to represent dead state.
+					const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
+					builder.CreateStore(ConstantGenerator(module).getI8(0), gapBytePtr);
 					break;
 				}
 			}
 			
-			if (argInfo.hasReturnVarArgument()) {
-				builder.CreateRetVoid();
-			} else {
-				builder.CreateRet(genMoveLoad(functionGenerator, deadValue, selfType));
-			}
+			builder.CreateRetVoid();
 			
 			return llvmFunction;
-		}
-		
-		llvm::Value* genDeadValue(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			
-			// Call __dead method.
-			const bool isVarArg = false;
-			const bool isMethod = false;
-			const bool isTemplated = type->isObject() && !type->getObjectType()->templateVariables().empty();
-			auto noexceptPredicate = SEM::Predicate::True();
-			const auto returnType = type;
-			const auto functionType = SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, {});
-			
-			MethodInfo methodInfo(type, module.getCString("__dead"), functionType, {});
-			return genStaticMethodCall(function, methodInfo, {}, hintResultValue);
 		}
 		
 		llvm::Function* genIsLiveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
@@ -296,19 +362,18 @@ namespace locic {
 					llvm_unreachable("No custom __islive method exists for liveness indicator that references custom methods!");
 				}
 				case LivenessIndicator::PREFIX_BYTE: {
-					const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-					const auto castValue = builder.CreatePointerCast(contextValue, i8PtrType);
-					const auto byteValue = builder.CreateLoad(castValue);
-					builder.CreateRet(builder.CreateICmpNE(byteValue, ConstantGenerator(module).getI8(0)));
+					const auto prefixBytePtr = builder.CreatePointerCast(contextValue, TypeGenerator(module).getI8PtrType());
+					const auto prefixByteValue = builder.CreateLoad(prefixBytePtr);
+					// Live if prefix byte != 0.
+					builder.CreateRet(builder.CreateICmpNE(prefixByteValue, ConstantGenerator(module).getI8(0)));
 					break;
 				}
 				case LivenessIndicator::GAP_BYTE: {
-					const auto memberIndex = livenessIndicator.gapByteIndex();
-					const auto memberPtr = genMemberPtr(functionGenerator, contextValue, selfType, memberIndex);
-					const auto i8PtrType = TypeGenerator(module).getI8PtrType();
-					const auto castValue = builder.CreatePointerCast(memberPtr, i8PtrType);
-					const auto byteValue = builder.CreateLoad(castValue);
-					builder.CreateRet(builder.CreateICmpNE(byteValue, ConstantGenerator(module).getI8(0)));
+					const auto startPtr = builder.CreatePointerCast(contextValue, TypeGenerator(module).getI8PtrType());
+					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
+					const auto gapByteValue = builder.CreateLoad(gapBytePtr);
+					// Live if gap byte != 0.
+					builder.CreateRet(builder.CreateICmpNE(gapByteValue, ConstantGenerator(module).getI8(0)));
 					break;
 				}
 			}
@@ -321,7 +386,7 @@ namespace locic {
 			
 			// Call __islive method.
 			if (type->isObject()) {
-				if (!typeInstanceHasLivenessIndicator(*(type->getObjectType()))) {
+				if (!typeInstanceHasLivenessIndicator(module, *(type->getObjectType()))) {
 					// Assume value is always live.
 					return ConstantGenerator(module).getI1(true);
 				}
@@ -334,7 +399,7 @@ namespace locic {
 				return genDynamicMethodCall(function, methodInfo, value, {});
 			}
 			
-			llvm_unreachable("Unknown islive value type.");
+			llvm_unreachable("Unknown __islive value type.");
 		}
 		
 	}

@@ -43,6 +43,14 @@ namespace sf {
 			sfCircleShape_destroy(@shape);
 		}
 		
+		void __setDead() noexcept {
+			@shape = null;
+		}
+		
+		bool __isLive() const noexcept {
+			return @shape != null;
+		}
+		
 		template <bool IsConst>
 		const<IsConst>(sfCircleShape)* raw() const(IsConst) noexcept {
 			return @shape;

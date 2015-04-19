@@ -57,12 +57,26 @@ namespace locic {
 				bool isDeclaration() const;
 				
 				bool isDefinition() const;
-                                
+				
+				/**
+				 * \brief Get/set whether this function is auto-generated.
+				 * 
+				 * Default functions are generated for various types
+				 * and provide a generic implementation (e.g. copy an
+				 * object by copying each member value) that doesn't
+				 * have to be specified manually.
+				 */
 				void setDefault(bool pIsDefault);
 				bool isDefault() const;
 				
-                                void setPrimitive(bool pIsPrimitive);
-                                bool isPrimitive() const;
+				/**
+				 * \brief Get/set whether this function is primitive.
+				 * 
+				 * A primitive function is an 'axiom' of the language,
+				 * such as the methods of type 'int'.
+				 */
+				void setPrimitive(bool pIsPrimitive);
+				bool isPrimitive() const;
 				
 				void setMethod(bool pIsMethod);
 				bool isMethod() const;

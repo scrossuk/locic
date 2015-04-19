@@ -310,25 +310,24 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultDeadDecl(Context& /*context*/, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function> CreateDefaultSetDeadDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			semFunction->setMethod(true);
-			semFunction->setStaticMethod(true);
 			
 			const bool isVarArg = false;
-			const bool isDynamicMethod = false;
+			const bool isDynamicMethod = true;
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto selfType = typeInstance->selfType();
+			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), selfType, {}));
+			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), voidType, {}));
 			return semFunction;
 		}
 		
@@ -394,6 +393,13 @@ namespace locic {
 				}
 				
 				return CreateDefaultCompareDecl(context, typeInstance, name);
+			} else if (canonicalName == "__setdead") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				return CreateDefaultSetDeadDecl(context, typeInstance, name);
 			} else if (canonicalName == "__islive") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
@@ -453,14 +459,14 @@ namespace locic {
 				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultDead(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool HasDefaultSetDead(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
-			// There's only a default __dead method if the user
-			// hasn't specified a custom __dead method.
-			return typeInstance->functions().find(context.getCString("__dead")) == typeInstance->functions().end();
+			// There's only a default __setdead method if the user
+			// hasn't specified a custom __setdead method.
+			return typeInstance->functions().find(context.getCString("__setdead")) == typeInstance->functions().end();
 		}
 		
 		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* const typeInstance) {

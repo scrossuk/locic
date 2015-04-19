@@ -19,6 +19,19 @@ export std.container 0.1.0 {
 				release(reinterpret_cast<T*, void*>(@data));
 			}
 			
+			// Prevent the creation of a liveness indicator.
+			void __setdead() noexcept {
+				// TODO: this should work without setting
+				// size and capacity to 0.
+				@size = 0u;
+				@capacity = 0u;
+				@data = null;
+			}
+			
+			bool __islive() const noexcept {
+				return @data != null;
+			}
+			
 			void reserve(size_t size) require (T : movable) {
 				if (size <= self.capacity()) {
 					return;

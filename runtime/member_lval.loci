@@ -13,6 +13,9 @@ __primitive member_lval {
 	template <bool IsConst>
 	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
 	
+	bool __is_live() const noexcept require(T : queryislive);
+	void __set_dead() noexcept require(T : deadstateable);
+	
 	T move() noexcept require(T : movable);
 	
 	void __set_value(T value) noexcept require(T : movable);

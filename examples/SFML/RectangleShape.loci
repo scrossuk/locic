@@ -43,6 +43,14 @@ namespace sf {
 			sfRectangleShape_destroy(@shape);
 		}
 		
+		void __setDead() noexcept {
+			@shape = null;
+		}
+		
+		bool __isLive() const noexcept {
+			return @shape != null;
+		}
+		
 		template <bool IsConst>
 		const<IsConst>(sfRectangleShape)* raw() const(IsConst) noexcept {
 			return @shape;

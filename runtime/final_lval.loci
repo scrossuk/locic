@@ -8,6 +8,9 @@ __primitive final_lval {
 	T* address() const noexcept;
 	T& dissolve() const noexcept;
 	
+	bool __is_live() const noexcept require(T : queryislive);
+	void __set_dead() noexcept require(T : deadstateable);
+	
 	void __set_value(T value) noexcept require(T : movable);
 	T __extract_value() noexcept require(T : movable);
 	void __destroy_value() noexcept;

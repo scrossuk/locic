@@ -8,6 +8,8 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -63,6 +65,12 @@ namespace locic {
 							members.push_back(maxStructType);
 						} else {
 							members.reserve(typeInstance->variables().size());
+							const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
+							if (livenessIndicator.isPrefixByte()) {
+								// Add prefix byte.
+								members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
+							}
+							
 							for (const auto var: typeInstance->variables()) {
 								members.push_back(genABIType(module, var->type()));
 							}

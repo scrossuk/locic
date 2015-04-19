@@ -962,11 +962,11 @@ namespace locic {
 				typeInstance.functions().insert(std::make_pair(context.getCString("__moveto"), std::move(methodDecl)));
 			}
 			
-			// Add default __dead method.
-			const bool hasDefaultDead = HasDefaultDead(context, &typeInstance);
-			if (hasDefaultDead) {
-				auto methodDecl = CreateDefaultDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__dead"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__dead"), std::move(methodDecl)));
+			// Add default __setdead method.
+			const bool hasDefaultSetDead = HasDefaultSetDead(context, &typeInstance);
+			if (hasDefaultSetDead) {
+				auto methodDecl = CreateDefaultSetDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__setdead"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__setdead"), std::move(methodDecl)));
 			}
 			
 			// Add default __islive method.

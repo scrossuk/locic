@@ -37,7 +37,7 @@ namespace locic {
 		
 		std::unique_ptr<SEM::Function> CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
-		std::unique_ptr<SEM::Function> CreateDefaultDeadDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		std::unique_ptr<SEM::Function> CreateDefaultSetDeadDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
 		std::unique_ptr<SEM::Function> CreateDefaultIsLiveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
@@ -53,7 +53,7 @@ namespace locic {
 		
 		bool HasDefaultCompare(Context& context, SEM::TypeInstance* typeInstance);
 		
-		bool HasDefaultDead(Context& context, SEM::TypeInstance* typeInstance);
+		bool HasDefaultSetDead(Context& context, SEM::TypeInstance* typeInstance);
 		
 		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* typeInstance);
 		

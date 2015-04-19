@@ -59,6 +59,14 @@ namespace sf {
 			sfRenderWindow_destroy(@window);
 		}
 		
+		void __setDead() noexcept {
+			@window = null;
+		}
+		
+		bool __isLive() const noexcept {
+			return @window != null;
+		}
+		
 		void setVisible(bool visible) {
 			sfWindow_setVisible(@window, visible ? 1u : 0u);
 		}

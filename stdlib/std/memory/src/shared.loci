@@ -17,10 +17,6 @@ export std.memory 0.1.0 {
 				return @(null, null);
 			}
 			
-			static __dead() noexcept {
-				return @(null, null);
-			}
-			
 			~ {
 				if (@countField == null) {
 					return;
@@ -31,6 +27,11 @@ export std.memory 0.1.0 {
 					delete_raw<size_t>(@countField);
 					delete_raw<T>(@ptr);
 				}
+			}
+			
+			void __setdead() noexcept {
+				@countField = null;
+				@ptr = null;
 			}
 			
 			bool __islive() const noexcept {

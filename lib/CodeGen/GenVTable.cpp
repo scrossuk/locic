@@ -82,7 +82,7 @@ namespace locic {
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableMoveFunction(module, typeInstance), typeGen.getI8PtrType()));
 			
 			// Destructor.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, *typeInstance), typeGen.getI8PtrType()));
 			
 			// Alignmask.
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunction(module, typeInstance), typeGen.getI8PtrType()));

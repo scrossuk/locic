@@ -18,7 +18,6 @@ namespace locic {
 		METHOD_TRAILINGZEROES,
 		METHOD_IMPLICITCASTFROM,
 		METHOD_CASTFROM,
-		METHOD_DEAD,
 		
 		// Unary methods.
 		METHOD_IMPLICITCAST,
@@ -45,7 +44,10 @@ namespace locic {
 		METHOD_SQRT,
 		METHOD_INCREMENT,
 		METHOD_DECREMENT,
+		METHOD_SETDEAD,
 		METHOD_ISLIVE,
+		METHOD_SETINVALID,
+		METHOD_ISVALID,
 		
 		// Binary methods.
 		METHOD_ADD,
@@ -131,8 +133,6 @@ namespace locic {
 					return "implicitcast_?";
 				case METHOD_CASTFROM:
 					return "cast_?";
-				case METHOD_DEAD:
-					return "__dead";
 				
 				case METHOD_IMPLICITCAST:
 					return "implicitcast";
@@ -182,8 +182,14 @@ namespace locic {
 					return "increment";
 				case METHOD_DECREMENT:
 					return "decrement";
+				case METHOD_SETDEAD:
+					return "__setdead";
 				case METHOD_ISLIVE:
 					return "__islive";
+				case METHOD_SETINVALID:
+					return "__setinvalid";
+				case METHOD_ISVALID:
+					return "__isvalid";
 				
 				case METHOD_ADD:
 					return "add";

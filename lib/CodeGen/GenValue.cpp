@@ -19,6 +19,8 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
@@ -360,18 +362,22 @@ namespace locic {
 					const auto type = value.type();
 					assert(!type->isUnion());
 					
-					const auto objectValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, type);
+					const auto livenessIndicator = getLivenessIndicator(module, *(type->getObjectType()));
+					
+					const auto objectValue = genAlloca(function, type, hintResultValue);
 					
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
-							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+							const auto index = livenessIndicator.isPrefixByte() ? i + 1 : i;
+							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, index);
 							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
 					} else {
 						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
-						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
+						const size_t startOffset = livenessIndicator.isPrefixByte() ? 1 : 0;
+						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(startOffset);
 						
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
@@ -394,6 +400,9 @@ namespace locic {
 							}
 						}
 					}
+					
+					// Set object into live state.
+					setOuterLiveState(function, *(type->getObjectType()), objectValue);
 					
 					return genMoveLoad(function, objectValue, type);
 				}

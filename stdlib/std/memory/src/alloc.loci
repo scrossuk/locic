@@ -1,5 +1,6 @@
 import void* calloc(size_t num, size_t size) noexcept;
 import void free(void* ptr) noexcept;
+import void printf(const ubyte* format, ...) noexcept;
 
 export std.memory 0.1.0 {
 	
@@ -10,6 +11,7 @@ export std.memory 0.1.0 {
 		void* allocate(size_t size) {
 			final auto ptr = calloc(1u, size);
 			if (ptr == null) {
+				printf(C"Failed to allocate %llu bytes.\n", size.cast<ulonglong_t>());
 				throw bad_alloc();
 			}
 			return ptr;

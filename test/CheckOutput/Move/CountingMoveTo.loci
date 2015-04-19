@@ -8,7 +8,8 @@ class TestClass(int value) {
 	
 	void __move_to(void* ptr, size_t position) noexcept {
 		@value += 1;
-		@value.__move_to(ptr, position);
+		// TODO: remove the magic number!
+		@value.__move_to(ptr, position+4u);
 	}
 	
 	int value() const noexcept {

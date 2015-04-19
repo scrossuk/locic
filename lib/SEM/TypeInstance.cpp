@@ -26,8 +26,7 @@ namespace locic {
 			moduleScope_(std::move(m)),
 			parent_(nullptr),
 			parentType_(nullptr),
-			requiresPredicate_(Predicate::True()),
-			hasCustomMove_(false) { }
+			requiresPredicate_(Predicate::True()) { }
 		
 		Context& TypeInstance::context() const {
 			return context_;
@@ -181,14 +180,6 @@ namespace locic {
 				types.push_back(var->constructType());
 			}
 			return types;
-		}
-		
-		void TypeInstance::setHasCustomMove(bool pHasCustomMove) {
-			hasCustomMove_ = pHasCustomMove;
-		}
-		
-		bool TypeInstance::hasCustomMove() const {
-			return hasCustomMove_;
 		}
 		
 		void TypeInstance::setParent(const TypeInstance* const pParent) {

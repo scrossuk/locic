@@ -18,7 +18,6 @@ namespace locic {
 			case METHOD_TRAILINGZEROES:
 			case METHOD_IMPLICITCASTFROM:
 			case METHOD_CASTFROM:
-			case METHOD_DEAD:
 				return CONSTRUCTOR;
 			
 			case METHOD_IMPLICITCAST:
@@ -45,7 +44,10 @@ namespace locic {
 			case METHOD_SQRT:
 			case METHOD_INCREMENT:
 			case METHOD_DECREMENT:
+			case METHOD_SETDEAD:
 			case METHOD_ISLIVE:
+			case METHOD_SETINVALID:
+			case METHOD_ISVALID:
 				return UNARY;
 			
 			case METHOD_ADD:

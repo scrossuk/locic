@@ -1,0 +1,11 @@
+---- checkSize()
+sizeof(TypeWithoutDestructor) = 8
+sizeof(TypeWithDestructor) = 8
+---- checkLive()
+Destructor called.
+---- checkDead()
+---- checkMove()
+* Move object.
+* Destroy moved object.
+Destructor called.
+* Destroy original object.

@@ -31,9 +31,9 @@ namespace locic {
 			return indicator;
 		}
 		
-		LivenessIndicator LivenessIndicator::GapByte(const size_t index) {
+		LivenessIndicator LivenessIndicator::GapByte(const size_t offset) {
 			LivenessIndicator indicator(GAP_BYTE);
-			indicator.data_.index = index;
+			indicator.data_.offset = offset;
 			return indicator;
 		}
 		
@@ -69,9 +69,9 @@ namespace locic {
 			return kind() == GAP_BYTE;
 		}
 		
-		size_t LivenessIndicator::gapByteIndex() const {
+		size_t LivenessIndicator::gapByteOffset() const {
 			assert(isGapByte());
-			return data_.index;
+			return data_.offset;
 		}
 		
 	}

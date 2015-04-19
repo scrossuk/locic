@@ -1,6 +1,4 @@
 __primitive double_t {
-	static double_t __dead() noexcept;
-	
 	static double_t cast_byte_t(byte_t value) noexcept;
 	static double_t cast_uint8_t(uint8_t value) noexcept;
 	static double_t cast_short_t(short_t value) noexcept;
@@ -20,8 +18,9 @@ __primitive double_t {
 	
 	double_t implicit_copy() const noexcept;
 	double_t copy() const noexcept;
-	
-	bool __islive() const noexcept;
+		
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
 	
 	template <typename T>
 	T implicit_cast() const noexcept require(T : __implicit_cast_from_double_t<T> and T : movable);

@@ -59,7 +59,6 @@ namespace locic {
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
 			switch (methodID) {
-				case METHOD_DEAD:
 				case METHOD_CREATE:
 				case METHOD_ZERO:
 					return zero;
@@ -181,8 +180,12 @@ namespace locic {
 					builder.CreateStore(decrementedValue, methodOwnerPtr);
 					return ConstantGenerator(module).getVoidUndef();
 				}
+				case METHOD_SETDEAD: {
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_ISLIVE: {
-					return ConstantGenerator(module).getI1(false);
+					return ConstantGenerator(module).getI1(true);
 				}
 				
 				case METHOD_ADD: {

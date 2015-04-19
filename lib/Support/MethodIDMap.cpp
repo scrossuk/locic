@@ -34,7 +34,6 @@ namespace locic {
 		impl_->add(METHOD_TRAILINGONES);
 		impl_->add(METHOD_LEADINGZEROES);
 		impl_->add(METHOD_TRAILINGZEROES);
-		impl_->add(METHOD_DEAD);
 		
 		impl_->add(METHOD_IMPLICITCAST);
 		impl_->add(METHOD_CAST);
@@ -60,7 +59,10 @@ namespace locic {
 		impl_->add(METHOD_SQRT);
 		impl_->add(METHOD_INCREMENT);
 		impl_->add(METHOD_DECREMENT);
+		impl_->add(METHOD_SETDEAD);
 		impl_->add(METHOD_ISLIVE);
+		impl_->add(METHOD_SETINVALID);
+		impl_->add(METHOD_ISVALID);
 		
 		impl_->add(METHOD_ADD);
 		impl_->add(METHOD_SUBTRACT);

@@ -1,0 +1,80 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(bool isLive) {
+	static create() noexcept {
+		return @(true);
+	}
+	
+	void __setdead() noexcept {
+		@isLive = false;
+	}
+	
+	bool __islive() const noexcept {
+		return @isLive;
+	}
+}
+
+class TypeWithDestructor(bool isLive) {
+	static create() noexcept {
+		return @(true);
+	}
+	
+	void __setdead() noexcept {
+		testPrint(C"__setdead called.");
+		@isLive = false;
+	}
+	
+	bool __islive() const noexcept {
+		testPrint(C"__islive called.");
+		return @isLive;
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which just uses the __dead() and
+		// __islive() custom methods of this object.
+		testPrint(C"Destructor called.");
+	}
+}
+
+void checkSize() {
+	testPrint(C"---- checkSize()");
+	testPrint(C"sizeof(TypeWithoutDestructor) = %llu",
+		sizeof(TypeWithoutDestructor).cast<ulonglong_t>());
+	
+	testPrint(C"sizeof(TypeWithDestructor) = %llu",
+		sizeof(TypeWithDestructor).cast<ulonglong_t>());
+}
+
+void checkLive() {
+	testPrint(C"---- checkLive()");
+	unused auto value = TypeWithDestructor();
+}
+
+void checkDead() {
+	testPrint(C"---- checkDead()");
+	auto value = TypeWithDestructor();
+	value.__setdead();
+}
+
+void checkMove() {
+	testPrint(C"---- checkMove()");
+	auto value = TypeWithDestructor();
+	{
+		testPrint(C"* Move object.");
+		unused auto movedValue = move value;
+		testPrint(C"* Destroy moved object.");
+	}
+	testPrint(C"* Destroy original object.");
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

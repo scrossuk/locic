@@ -279,7 +279,10 @@ namespace locic {
 					}
 					
 					if (methodOwner) {
-						llvmArgs.push_back(methodOwner->resolve(function));
+						const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+						const auto resolvedMethodOwner = methodOwner->resolve(function);
+						const auto castMethodOwner = function.getBuilder().CreatePointerCast(resolvedMethodOwner, i8PtrType);
+						llvmArgs.push_back(castMethodOwner);
 					}
 					
 					for (auto& pendingResult: args) {
