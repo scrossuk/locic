@@ -29,6 +29,8 @@ namespace locic {
 		
 		llvm::Value* makeAligned(Function& function, llvm::Value* size, llvm::Value* alignMask);
 		
+		llvm::Value* genSuffixByteOffset(Function& function, const SEM::TypeInstance& typeInstance);
+		
 		llvm::Value* genMemberOffset(Function& function, const SEM::Type* type, size_t memberIndex);
 		
 		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, const SEM::Type* objectType, size_t memberIndex);

@@ -67,8 +67,6 @@ namespace locic {
 			
 			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
 			
-			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
-			
 			// If the size isn't known then just return an opaque struct.
 			if (!isObjectTypeSizeKnownInThisModule(module, typeInstance)) {
 				size_t index = 0;
@@ -124,17 +122,18 @@ namespace locic {
 				
 				size_t index = 0;
 				
-				if (livenessIndicator.isPrefixByte()) {
-					// Inserting the liveness indicator at the beginning.
-					structMembers.push_back(TypeGenerator(module).getI8Type());
-				}
-				
 				for (const auto& var: typeInstance->variables()) {
 					const auto result = module.getMemberVarMap().insert(std::make_pair(var, index++));
 					assert(result.second);
 					(void) result;
 					
 					structMembers.push_back(genType(module, var->type()));
+				}
+				
+				const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
+				if (livenessIndicator.isSuffixByte()) {
+					// Inserting the liveness indicator at the end.
+					structMembers.push_back(TypeGenerator(module).getI8Type());
 				}
 				
 				if (structMembers.empty()) {

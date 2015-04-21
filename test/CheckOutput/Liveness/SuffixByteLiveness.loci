@@ -7,6 +7,11 @@ class TypeWithoutDestructor(uint32_t value) {
 	}
 }
 
+struct WithSuffixByte {
+	uint32_t value;
+	uint8_t suffixByte;
+};
+
 class TypeWithDestructor(uint32_t value) {
 	static create() noexcept {
 		return @(0u);
@@ -15,9 +20,14 @@ class TypeWithDestructor(uint32_t value) {
 	~ {
 		// This destructor forces a liveness indicator to
 		// be created, which will have to be added as
-		// a prefix byte (since the 'value' member doesn't
+		// a suffix byte (since the 'value' member doesn't
 		// have an invalid state.
 		testPrint(C"Destructor called.");
+	}
+	
+	uint8_t getSuffixByte() const noexcept {
+		const auto ptr = reinterpret_cast<const TypeWithDestructor*, const WithSuffixByte*>(this);
+		return ptr->suffixByte;
 	}
 }
 
@@ -32,23 +42,28 @@ void checkSize() {
 
 void checkLive() {
 	testPrint(C"---- checkLive()");
-	unused auto value = TypeWithDestructor();
+	auto value = TypeWithDestructor();
+	testPrint(C"value.getSuffixByte() = %u", value.getSuffixByte());
 }
 
 void checkDead() {
 	testPrint(C"---- checkDead()");
 	auto value = TypeWithDestructor();
 	value.__setdead();
+	testPrint(C"value.getSuffixByte() = %u", value.getSuffixByte());
 }
 
 void checkMove() {
 	testPrint(C"---- checkMove()");
 	auto value = TypeWithDestructor();
+	testPrint(C"value.getSuffixByte() = %u", value.getSuffixByte());
 	{
 		testPrint(C"* Move object.");
-		unused auto movedValue = move value;
+		auto movedValue = move value;
+		testPrint(C"movedValue.getSuffixByte() = %u", movedValue.getSuffixByte());
 		testPrint(C"* Destroy moved object.");
 	}
+	testPrint(C"value.getSuffixByte() = %u", value.getSuffixByte());
 	testPrint(C"* Destroy original object.");
 }
 

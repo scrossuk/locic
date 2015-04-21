@@ -237,7 +237,7 @@ namespace locic {
 				const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
 				
 				// Add up all member variable sizes.
-				llvm::Value* classSize = livenessIndicator.isPrefixByte() ? one : zero;
+				llvm::Value* classSize = livenessIndicator.isSuffixByte() ? one : zero;
 				
 				// Also need to calculate class alignment so the
 				// correct amount of padding is added at the end.
@@ -363,12 +363,8 @@ namespace locic {
 			
 			const auto& typeVars = typeInstance->variables();
 			
-			const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
-			
-			// Add the sizes of all the previous member variables
-			// to the offset.
-			const size_t startOffset = livenessIndicator.isPrefixByte() ? 1 : 0;
-			llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(startOffset);
+			// Add the sizes of all the previous member variables to the offset.
+			llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
 			const auto memberIndexValue = function.getArg(0);
 			
 			for (size_t i = 0; i < typeVars.size(); i++) {
@@ -409,14 +405,41 @@ namespace locic {
 			return (position + (align - 1)) & (~(align - 1));
 		}
 		
+		llvm::Value* genSuffixByteOffset(Function& function, const SEM::TypeInstance& typeInstance) {
+			auto& module = function.module();
+			
+			const auto zero = ConstantGenerator(module).getSizeTValue(0);
+			
+			// Add up all member variable sizes.
+			llvm::Value* classSize = zero;
+			
+			// Also need to calculate class alignment so the
+			// correct amount of padding is added at the end.
+			llvm::Value* classAlignMask = zero;
+			
+			for (const auto& var: typeInstance.variables()) {
+				const auto memberAlignMask = genAlignMask(function, var->type());
+				
+				classAlignMask = function.getBuilder().CreateOr(classAlignMask, memberAlignMask);
+				
+				classSize = makeAligned(function, classSize, memberAlignMask);
+				
+				// Add can't overflow.
+				const bool hasNoUnsignedWrap = true;
+				const bool hasNoSignedWrap = false;
+				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()),
+									    "", hasNoUnsignedWrap, hasNoSignedWrap);
+			}
+			
+			return makeAligned(function, classSize, classAlignMask);
+		}
+		
 		llvm::Value* genMemberOffset(Function& function, const SEM::Type* const type, const size_t memberIndex) {
 			assert(type->isObject());
 			
 			auto& module = function.module();
 			
-			const auto livenessIndicator = getLivenessIndicator(module, *(type->getObjectType()));
-			
-			if (!livenessIndicator.isPrefixByte() && (memberIndex == 0 || type->isUnion())) {
+			if (memberIndex == 0 || type->isUnion()) {
 				return ConstantGenerator(module).getSizeTValue(0);
 			}
 			
@@ -426,10 +449,6 @@ namespace locic {
 				assert(memberIndex < objectType->variables().size());
 				
 				size_t offset = 0;
-				
-				if (livenessIndicator.isPrefixByte()) {
-					offset++;
-				}
 				
 				for (size_t i = 0; i < memberIndex; i++) {
 					const auto memberVar = objectType->variables().at(i);
@@ -475,22 +494,14 @@ namespace locic {
 			return callResult;
 		}
 		
-		size_t translateMemberIndex(Module& module, const SEM::TypeInstance& typeInstance, const size_t index) {
-			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
-			// Prefix byte requires modifying member index.
-			return livenessIndicator.isPrefixByte() ? index + 1 : index;
-		}
-		
 		llvm::Value* genMemberPtr(Function& function, llvm::Value* const objectPointer, const SEM::Type* const objectType, const size_t memberIndex) {
 			assert(objectType->isObject());
 			auto& module = function.module();
 			
 			if (isTypeSizeKnownInThisModule(module, objectType) && !objectType->isUnion()) {
-				const auto translatedIndex = translateMemberIndex(module, *(objectType->getObjectType()), memberIndex);
-				
 				const auto llvmObjectPointerType = genPointerType(module, objectType);
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
-				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, translatedIndex);
+				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
 			} else {
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getI8PtrType());
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);

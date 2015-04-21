@@ -130,14 +130,33 @@ namespace locic {
 				return *gapByteLivenessIndicator;
 			}
 			
-			// Worst case scenario; just put a byte at the beginning.
-			//printf("%s: PREFIX BYTE\n", typeInstance.name().toString().c_str());
-			return LivenessIndicator::PrefixByte();
+			// Worst case scenario; just put a byte at the end.
+			//printf("%s: SUFFIX BYTE\n", typeInstance.name().toString().c_str());
+			return LivenessIndicator::SuffixByte();
 		}
 		
 		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto semFunction = typeInstance->functions().at(module.getCString("__setdead")).get();
 			return genFunctionDecl(module, typeInstance, semFunction);
+		}
+		
+		llvm::Value* getLivenessByteOffset(Function& function, const SEM::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
+			if (livenessIndicator.isSuffixByte()) {
+				return genSuffixByteOffset(function, typeInstance);
+			} else if (livenessIndicator.isGapByte()) {
+				return ConstantGenerator(function.module()).getI64(livenessIndicator.gapByteOffset());
+			} else {
+				llvm_unreachable("Cannot get byte offset of non-byte liveness indicator.");
+			}
+		}
+		
+		llvm::Value* getLivenessBytePtr(Function& function, const SEM::TypeInstance& typeInstance,
+				const LivenessIndicator livenessIndicator, llvm::Value* const objectPointerValue) {
+			auto& module = function.module();
+			auto& builder = function.getBuilder();
+			const auto byteOffsetValue = getLivenessByteOffset(function, typeInstance, livenessIndicator);
+			const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+			return builder.CreateInBoundsGEP(startPtr, byteOffsetValue);
 		}
 		
 		void setOuterLiveState(Function& functionGenerator, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue) {
@@ -159,19 +178,12 @@ namespace locic {
 					// (or that it is in a notionally 'dead' state but it doesn't matter).
 					break;
 				}
-				case LivenessIndicator::PREFIX_BYTE: {
-					auto& builder = functionGenerator.getBuilder();
-					// Store one into prefix byte to represent live state.
-					const auto prefixBytePtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
-					builder.CreateStore(ConstantGenerator(module).getI8(1), prefixBytePtr);
-					break;
-				}
+				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
 					auto& builder = functionGenerator.getBuilder();
-					// Store one into gap byte to represent live state.
-					const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
-					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
-					builder.CreateStore(ConstantGenerator(module).getI8(1), gapBytePtr);
+					// Store one into gap/suffix byte to represent live state.
+					const auto bytePtr = getLivenessBytePtr(functionGenerator, typeInstance, livenessIndicator, objectPointerValue);
+					builder.CreateStore(ConstantGenerator(module).getI8(1), bytePtr);
 					break;
 				}
 			}
@@ -279,17 +291,11 @@ namespace locic {
 					llvm_unreachable("Shouldn't reach custom __setdead method invocation inside auto-generated method.");
 					break;
 				}
-				case LivenessIndicator::PREFIX_BYTE: {
-					// Store zero into prefix byte to represent dead state.
-					const auto prefixBytePtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
-					builder.CreateStore(ConstantGenerator(module).getI8(0), prefixBytePtr);
-					break;
-				}
+				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
-					// Store zero into gap byte to represent dead state.
-					const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
-					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
-					builder.CreateStore(ConstantGenerator(module).getI8(0), gapBytePtr);
+					// Store zero into suffix/gap byte to represent dead state.
+					const auto bytePtr = getLivenessBytePtr(functionGenerator, *typeInstance, livenessIndicator, objectPointerValue);
+					builder.CreateStore(ConstantGenerator(module).getI8(0), bytePtr);
 					break;
 				}
 			}
@@ -361,19 +367,12 @@ namespace locic {
 				case LivenessIndicator::CUSTOM_METHODS: {
 					llvm_unreachable("No custom __islive method exists for liveness indicator that references custom methods!");
 				}
-				case LivenessIndicator::PREFIX_BYTE: {
-					const auto prefixBytePtr = builder.CreatePointerCast(contextValue, TypeGenerator(module).getI8PtrType());
-					const auto prefixByteValue = builder.CreateLoad(prefixBytePtr);
-					// Live if prefix byte != 0.
-					builder.CreateRet(builder.CreateICmpNE(prefixByteValue, ConstantGenerator(module).getI8(0)));
-					break;
-				}
+				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
-					const auto startPtr = builder.CreatePointerCast(contextValue, TypeGenerator(module).getI8PtrType());
-					const auto gapBytePtr = builder.CreateConstInBoundsGEP1_64(startPtr, livenessIndicator.gapByteOffset());
-					const auto gapByteValue = builder.CreateLoad(gapBytePtr);
-					// Live if gap byte != 0.
-					builder.CreateRet(builder.CreateICmpNE(gapByteValue, ConstantGenerator(module).getI8(0)));
+					const auto bytePtr = getLivenessBytePtr(functionGenerator, *typeInstance, livenessIndicator, contextValue);
+					const auto byteValue = builder.CreateLoad(bytePtr);
+					// Live if suffix/gap byte != 0.
+					builder.CreateRet(builder.CreateICmpNE(byteValue, ConstantGenerator(module).getI8(0)));
 					break;
 				}
 			}

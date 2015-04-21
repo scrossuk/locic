@@ -64,15 +64,16 @@ namespace locic {
 							
 							members.push_back(maxStructType);
 						} else {
-							members.reserve(typeInstance->variables().size());
-							const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
-							if (livenessIndicator.isPrefixByte()) {
-								// Add prefix byte.
-								members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
-							}
+							members.reserve(typeInstance->variables().size() + 1);
 							
 							for (const auto var: typeInstance->variables()) {
 								members.push_back(genABIType(module, var->type()));
+							}
+							
+							const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
+							if (livenessIndicator.isSuffixByte()) {
+								// Add suffix byte.
+								members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
 							}
 						}
 						

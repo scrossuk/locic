@@ -362,22 +362,18 @@ namespace locic {
 					const auto type = value.type();
 					assert(!type->isUnion());
 					
-					const auto livenessIndicator = getLivenessIndicator(module, *(type->getObjectType()));
-					
 					const auto objectValue = genAlloca(function, type, hintResultValue);
 					
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
-							const auto index = livenessIndicator.isPrefixByte() ? i + 1 : i;
-							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, index);
+							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
 							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
 					} else {
 						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
-						const size_t startOffset = livenessIndicator.isPrefixByte() ? 1 : 0;
-						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(startOffset);
+						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
 						
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
@@ -401,7 +397,7 @@ namespace locic {
 						}
 					}
 					
-					// Set object into live state.
+					// Set object into live state (e.g. set gap byte to 1).
 					setOuterLiveState(function, *(type->getObjectType()), objectValue);
 					
 					return genMoveLoad(function, objectValue, type);

@@ -26,8 +26,8 @@ namespace locic {
 			return indicator;
 		}
 		
-		LivenessIndicator LivenessIndicator::PrefixByte() {
-			LivenessIndicator indicator(PREFIX_BYTE);
+		LivenessIndicator LivenessIndicator::SuffixByte() {
+			LivenessIndicator indicator(SUFFIX_BYTE);
 			return indicator;
 		}
 		
@@ -61,8 +61,8 @@ namespace locic {
 			return kind() == CUSTOM_METHODS;
 		}
 		
-		bool LivenessIndicator::isPrefixByte() const {
-			return kind() == PREFIX_BYTE;
+		bool LivenessIndicator::isSuffixByte() const {
+			return kind() == SUFFIX_BYTE;
 		}
 		
 		bool LivenessIndicator::isGapByte() const {

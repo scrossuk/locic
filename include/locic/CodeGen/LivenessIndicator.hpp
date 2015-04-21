@@ -43,17 +43,17 @@ namespace locic {
 			 * 
 			 * The user can specify methods manually, which helps
 			 * in situations where the compiler might otherwise
-			 * have to add a prefix byte.
+			 * have to add a suffix byte.
 			 */
 			static LivenessIndicator CustomMethods();
 			
 			/**
-			 * \brief Use a prefix byte.
+			 * \brief Use a suffix byte.
 			 * 
 			 * This is the worst case (and should be rare), since the
 			 * object must contain an extra byte to indicate liveness.
 			 */
-			static LivenessIndicator PrefixByte();
+			static LivenessIndicator SuffixByte();
 			
 			/**
 			 * \brief Use a gap byte.
@@ -68,7 +68,7 @@ namespace locic {
 				NONE,
 				MEMBER_INVALID_STATE,
 				CUSTOM_METHODS,
-				PREFIX_BYTE,
+				SUFFIX_BYTE,
 				GAP_BYTE
 			};
 			
@@ -82,7 +82,7 @@ namespace locic {
 			
 			bool isCustomMethods() const;
 			
-			bool isPrefixByte() const;
+			bool isSuffixByte() const;
 			
 			bool isGapByte() const;
 			
