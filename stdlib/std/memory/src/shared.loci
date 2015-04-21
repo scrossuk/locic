@@ -30,7 +30,6 @@ export std.memory 0.1.0 {
 			}
 			
 			void __setdead() noexcept {
-				@countField = null;
 				@ptr = null;
 			}
 			

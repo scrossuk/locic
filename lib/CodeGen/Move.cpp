@@ -368,15 +368,20 @@ namespace locic {
 				// Move member values.
 				genInnerMoveFunction(functionGenerator, *typeInstance, sourceValue, destValue, positionValue);
 				
-				// Set dest object to be valid.
+				// Set dest object to be valid (e.g. may need to set gap byte to 1).
 				setOuterLiveState(functionGenerator, *typeInstance, castedDestPtr);
 				
 				builder.CreateBr(setSourceDeadBB);
 				
 				functionGenerator.selectBasicBlock(isNotLiveBB);
 				
-				// If the source object is dead, just set dest object to be dead as well.
-				genSetDeadState(functionGenerator, type, castedDestPtr);
+				// If the source object is dead, just copy it straight to the destination.
+				// 
+				// Note that the *entire* object is copied since the object could have
+				// a custom __islive method and hence it may not actually be dead (the
+				// __setdead method is only required to set the object to a dead state,
+				// which may lead to undefined behaviour if used).
+				genBasicMove(functionGenerator, type, sourceValue, destValue, positionValue);
 				
 				builder.CreateBr(setSourceDeadBB);
 				

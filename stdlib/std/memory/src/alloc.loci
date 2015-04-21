@@ -8,7 +8,7 @@ export std.memory 0.1.0 {
 		
 		exception bad_alloc();
 		
-		void* allocate(size_t size) {
+		void* allocate(const size_t size) {
 			final auto ptr = calloc(1u, size);
 			if (ptr == null) {
 				printf(C"Failed to allocate %llu bytes.\n", size.cast<ulonglong_t>());
@@ -17,7 +17,7 @@ export std.memory 0.1.0 {
 			return ptr;
 		}
 		
-		void release(void* ptr) noexcept {
+		void release(final void* ptr) noexcept {
 			free(ptr);
 		}
 		
