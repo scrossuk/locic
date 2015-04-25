@@ -18,13 +18,15 @@ namespace locic {
 		
 		class TemplateVar {
 			public:
-				TemplateVar(Context& pContext, Name name, size_t i);
+				TemplateVar(Context& pContext, Name name, size_t index, bool isVirtual);
 				
 				Context& context() const;
 				
 				const Name& name() const;
 				
 				size_t index() const;
+				
+				bool isVirtual() const;
 				
 				void setType(const Type* type);
 				const Type* type() const;
@@ -42,6 +44,7 @@ namespace locic {
 				const Type* type_;
 				Name name_;
 				size_t index_;
+				bool isVirtual_;
 				Optional<Debug::TemplateVarInfo> debugInfo_;
 				
 		};

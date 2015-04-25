@@ -198,7 +198,8 @@ namespace locic {
 				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
-				genDynamicMethodCall(functionGenerator, methodInfo, value, {});
+				const auto contextArg = RefPendingResult(value, type);
+				genDynamicMethodCall(functionGenerator, methodInfo, contextArg, {});
 				return;
 			} else if (type->isTemplateVar()) {
 				// TODO!
@@ -217,7 +218,8 @@ namespace locic {
 				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
-				genDynamicMethodCall(functionGenerator, methodInfo, value, {});
+				const auto contextArg = RefPendingResult(value, type);
+				genDynamicMethodCall(functionGenerator, methodInfo, contextArg, {});
 				return;
 			} else if (type->isTemplateVar()) {
 				// TODO!
@@ -361,7 +363,8 @@ namespace locic {
 					const auto memberType = memberVar.constructType();
 					const auto functionType = semFunction->type();
 					const MethodInfo methodInfo(memberType, module.getCString("__isvalid"), functionType, {});
-					builder.CreateRet(genDynamicMethodCall(functionGenerator, methodInfo, memberPtr, {}));
+					const auto contextArg = RefPendingResult(memberPtr, memberType);
+					builder.CreateRet(genDynamicMethodCall(functionGenerator, methodInfo, contextArg, {}));
 					break;
 				}
 				case LivenessIndicator::CUSTOM_METHODS: {
@@ -395,7 +398,8 @@ namespace locic {
 				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
-				return genDynamicMethodCall(function, methodInfo, value, {});
+				const auto contextArg = RefPendingResult(value, type);
+				return genDynamicMethodCall(function, methodInfo, contextArg, {});
 			}
 			
 			llvm_unreachable("Unknown __islive value type.");

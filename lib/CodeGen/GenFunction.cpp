@@ -197,8 +197,19 @@ namespace locic {
 			functionGenerator.setDebugPosition(function->debugInfo()->scopeLocation.range().start());
 			
 			// Generate allocas for parameters.
-			for (const auto paramVar : function->parameters()) {
-				genVarAlloca(functionGenerator, paramVar);
+			for (size_t i = 0; i < function->parameters().size(); i++) {
+				const auto& paramVar = function->parameters()[i];
+				
+				// If value can't be passed by value it will be
+				// passed by pointer, which can be re-used for
+				// a variable to avoid an alloca.
+				const auto hintResultValue =
+					canPassByValue(module, paramVar->constructType()) ?
+						nullptr :
+						functionGenerator.getArg(i);
+				
+				genVarAlloca(functionGenerator, paramVar,
+					hintResultValue);
 			}
 			
 			genFunctionCode(functionGenerator, function);

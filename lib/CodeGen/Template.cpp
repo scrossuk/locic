@@ -245,7 +245,7 @@ namespace locic {
 				// Insert garbage value for bits required; this will be replaced
 				// later by the template builder when the actual number of bits
 				// required is known.
-				const auto bitsRequiredGarbageValue = constGen.getI32(1000);
+				const auto bitsRequiredGarbageValue = constGen.getI32(4242);
 				
 				const auto shiftedPath = builder.CreateShl(path, bitsRequiredGarbageValue);
 				

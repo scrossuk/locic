@@ -17,8 +17,8 @@
 namespace locic {
 
 	namespace CodeGen {
-	
-		void genVarAlloca(Function& function, SEM::Var* const var) {
+		
+		void genVarAlloca(Function& function, SEM::Var* const var, llvm::Value* hintResultValue) {
 			if (var->isAny()) {
 				return;
 			}
@@ -27,7 +27,7 @@ namespace locic {
 				auto& module = function.module();
 				
 				// Create an alloca for this variable.
-				const auto stackObject = genAlloca(function, var->type());
+				const auto stackObject = genAlloca(function, var->type(), hintResultValue);
 				
 				// Generate debug information for the variable
 				// if any is available.

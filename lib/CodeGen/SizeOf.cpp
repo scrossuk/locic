@@ -287,7 +287,10 @@ namespace locic {
 					}
 					
 					if (type->isPrimitive()) {
-						return genPrimitiveSizeOf(function, type);
+						const auto sizeValue = genPrimitiveSizeOf(function, type);
+						if (sizeValue != nullptr) {
+							return sizeValue;
+						}
 					}
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());

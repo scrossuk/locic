@@ -126,7 +126,8 @@ namespace locic {
 			const auto encodedValue = values.at(0);
 			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(encodedValue->getType());
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(encodedValue->getType(),
+				                                                 nullptr, "returnvalueptr");
 			}
 			
 			getBuilder().CreateStore(encodedValue, returnValuePtr_);
@@ -138,7 +139,8 @@ namespace locic {
 			}
 			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(function_.getFunctionType()->getReturnType());
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(function_.getFunctionType()->getReturnType(),
+				                                                 nullptr, "returnvalueptr");
 			}
 			
 			return getBuilder().CreateLoad(returnValuePtr_);

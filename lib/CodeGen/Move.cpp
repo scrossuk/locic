@@ -99,6 +99,12 @@ namespace locic {
 		
 		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
+			if (var->getType() != genPointerType(function.module(), type)) {
+				var->dump();
+				var->getType()->dump();
+				genPointerType(function.module(), type)->dump();
+			}
+			
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			if (typeHasCustomMove(function.module(), type)) {

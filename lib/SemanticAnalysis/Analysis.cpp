@@ -130,10 +130,12 @@ namespace locic {
 			size_t templateVarIndex = 0;
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
+				// TODO!
+				const bool isVirtual = (typeInstanceName == "__ref");
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
 						fullTypeName + templateVarName,
-						templateVarIndex++);
+						templateVarIndex++, isVirtual);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semTypeInstance->namedTemplateVariables().end()) {
@@ -250,10 +252,13 @@ namespace locic {
 				size_t templateVarIndex = 0;
 				for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
 					const auto& templateVarName = astTemplateVarNode->name;
+					
+					// TODO!
+					const bool isVirtual = false;
 					const auto semTemplateVar =
 						new SEM::TemplateVar(context.semContext(),
 							fullTypeName + templateVarName,
-							templateVarIndex++);
+							templateVarIndex++, isVirtual);
 					
 					const auto templateVarIterator = semTypeAlias->namedTemplateVariables().find(templateVarName);
 					if (templateVarIterator != semTypeAlias->namedTemplateVariables().end()) {

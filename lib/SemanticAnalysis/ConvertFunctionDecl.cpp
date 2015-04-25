@@ -67,10 +67,13 @@ namespace locic {
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
 			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
+				
+				// TODO!
+				const bool isVirtual = false;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
 						semFunction->name() + templateVarName,
-						templateVarIndex++);
+						templateVarIndex++, isVirtual);
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {

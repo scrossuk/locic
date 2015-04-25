@@ -15,29 +15,67 @@ namespace locic {
 		
 		class Function;
 		
-		class PendingAction {
+		class PendingResultBase {
 		public:
-			enum Kind {
-				BIND
-			};
+			/**
+			 * \brief Generate value.
+			 * 
+			 * This requests that a value is generated, which would
+			 * ideally be constructed in the hint result value given
+			 * (if it isn't null).
+			 * 
+			 * \param function The function generator.
+			 * \param hintResultValue A hint of where the result
+			 *                        should be constructed to
+			 *                        minimise moves, if not null.
+			 * \return The generated LLVM value.
+			 */
+			virtual llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const = 0;
 			
-			static PendingAction Bind(const SEM::Type* type);
+			/**
+			 * \brief Generate loaded value.
+			 * 
+			 * This requests that a value is generated and loaded;
+			 * it exists alongside 'generate' since it is possible
+			 * in some cases to avoid store-load pairs by knowing
+			 * in advance that they need to be loaded.
+			 * 
+			 * \param function The function generator.
+			 * \return The generated LLVM value.
+			 */
+			virtual llvm::Value* generateLoadedValue(Function& function) const = 0;
 			
-			Kind kind() const;
+		protected:
+			// Prevent destruction via this class.
+			~PendingResultBase() { }
 			
-			bool isBind() const;
-			const SEM::Type* bindType() const;
+		};
+		
+		class RefPendingResult: public PendingResultBase {
+		public:
+			RefPendingResult(llvm::Value* value, const SEM::Type* refTargetType);
 			
-			llvm::Value* resolve(Function& function, llvm::Value* input) const;
+			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
+			
+			llvm::Value* generateLoadedValue(Function& function) const;
 			
 		private:
-			PendingAction(Kind kind);
+			llvm::Value* value_;
+			const SEM::Type* refTargetType_;
 			
-			Kind kind_;
+		};
+		
+		class ValuePendingResult: public PendingResultBase {
+		public:
+			ValuePendingResult(llvm::Value* value, const SEM::Type* type);
 			
-			union {
-				const SEM::Type* type;
-			} union_;
+			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
+			
+			llvm::Value* generateLoadedValue(Function& function) const;
+			
+		private:
+			llvm::Value* value_;
+			const SEM::Type* type_;
 			
 		};
 		
@@ -60,25 +98,17 @@ namespace locic {
 		 */
 		class PendingResult {
 		public:
-			PendingResult(llvm::Value* value);
+			PendingResult(const PendingResultBase& base);
 			
-			PendingResult(PendingResult&&) = default;
-			PendingResult& operator=(PendingResult&&) = default;
+			llvm::Value* resolve(Function& function, llvm::Value* hintResultValue = nullptr);
 			
-			void add(PendingAction action);
-			
-			llvm::Value* resolve(Function& function);
-			
-			llvm::Value* resolveWithoutBind(Function& function, const SEM::Type* type);
-			
-			llvm::Value* resolveWithoutBindRaw(Function& function, llvm::Type* type);
+			llvm::Value* resolveWithoutBind(Function& function);
 			
 		private:
-			PendingResult(const PendingResult&) = delete;
-			PendingResult& operator=(const PendingResult&) = delete;
-			
-			llvm::Value* value_;
-			Array<PendingAction, 10> actions_;
+			const PendingResultBase* base_;
+			llvm::Value* cacheLastHintResultValue_;
+			llvm::Value* cacheLastResolvedValue_;
+			llvm::Value* cacheLastResolvedWithoutBindValue_;
 			
 		};
 		

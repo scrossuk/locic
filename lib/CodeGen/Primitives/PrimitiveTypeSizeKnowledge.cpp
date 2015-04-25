@@ -22,6 +22,11 @@ namespace locic {
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeAlwaysKnown(module, type->templateArguments().front().typeRefType());
+				case PrimitiveRef: {
+					const auto refTargetType = type->templateArguments().front().typeRefType();
+					return !refTargetType->isTemplateVar()
+						|| !refTargetType->getTemplateVar()->isVirtual();
+				}
 				default:
 					return true;
 			}
@@ -38,6 +43,11 @@ namespace locic {
 				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeKnownInThisModule(module, type->templateArguments().front().typeRefType());
+				case PrimitiveRef: {
+					const auto refTargetType = type->templateArguments().front().typeRefType();
+					return !refTargetType->isTemplateVar()
+						|| !refTargetType->getTemplateVar()->isVirtual();
+				}
 				default:
 					return true;
 			}

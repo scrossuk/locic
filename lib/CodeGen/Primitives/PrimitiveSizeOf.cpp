@@ -56,12 +56,12 @@ namespace locic {
 				// If it has a virtual argument, then it will store
 				// the type information internally.
 				const auto virtualAlign = module.abi().typeAlign(interfaceStructType(module).first);
-				const auto virtualAlignValue = ConstantGenerator(module).getSizeTValue(virtualAlign);
+				const auto virtualAlignValue = ConstantGenerator(module).getSizeTValue(virtualAlign - 1);
 				
 				// If the argument is statically known, then the
 				// type information is provided via template generators.
 				const auto nonVirtualAlign = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
-				const auto nonVirtualAlignValue = ConstantGenerator(module).getSizeTValue(nonVirtualAlign);
+				const auto nonVirtualAlignValue = ConstantGenerator(module).getSizeTValue(nonVirtualAlign - 1);
 				
 				function.getBuilder().CreateRet(function.getBuilder().CreateSelect(isVirtualCondition, virtualAlignValue, nonVirtualAlignValue));
 			} else {
@@ -121,9 +121,18 @@ namespace locic {
 			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genAlignMask(function, targetType);
-			} else {
-				return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
 			}
+			
+			if (typeName == "__ref") {
+				const auto targetType = type->templateArguments().front().typeRefType();
+				if (targetType->isTemplateVar() && targetType->getTemplateVar()->isVirtual()) {
+					// Unknown alignment since don't know whether
+					// target type is virtual or not.
+					return nullptr;
+				}
+			}
+			
+			return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
 		}
 		
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* const type) {
@@ -134,9 +143,18 @@ namespace locic {
 			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genSizeOf(function, targetType);
-			} else {
-				return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
 			}
+			
+			if (typeName == "__ref") {
+				const auto targetType = type->templateArguments().front().typeRefType();
+				if (targetType->isTemplateVar() && targetType->getTemplateVar()->isVirtual()) {
+					// Unknown size since don't know whether
+					// target type is virtual or not.
+					return nullptr;
+				}
+			}
+			
+			return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
 		}
 		
 	}

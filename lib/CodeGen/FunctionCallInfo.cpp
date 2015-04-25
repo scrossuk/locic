@@ -8,20 +8,27 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunction.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
+		
+		static bool checkImplies(const bool a, const bool b) {
+			return !a || b;
+		}
 		
 		/**
 		 * \brief Create translation function stub.
@@ -66,73 +73,98 @@ namespace locic {
 		 * \param newFunctionType The function signature we'd like to use.
 		 * \return The translation function stub.
 		 */
-		llvm::Function* genFunctionPtrStub(Module& module, llvm::Function* functionRefPtr, llvm::FunctionType* newFunctionType) {
-			const auto stubIdPair = std::make_pair(functionRefPtr, newFunctionType);
+		llvm::Function* genFunctionPtrStub(Module& module, llvm::Function* functionRefPtr,
+		                                   const SEM::Type* const oldFunctionType,
+		                                   const SEM::Type* const newFunctionType) {
+			assert(oldFunctionType->isFunction());
+			assert(newFunctionType->isFunction());
+			
+			const auto llvmNewFunctionType = genFunctionType(module, newFunctionType);
+			
+			const auto stubIdPair = std::make_pair(functionRefPtr, llvmNewFunctionType);
 			const auto iterator = module.functionPtrStubMap().find(stubIdPair);
 			if (iterator != module.functionPtrStubMap().end()) {
 				return iterator->second;
 			}
 			
-			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
-			
 			const auto functionName = module.getCString("translateStub_") + functionRefPtr->getName();
-			const auto llvmFunction = llvm::Function::Create(newFunctionType, llvm::Function::InternalLinkage, functionName.c_str(), module.getLLVMModulePtr());
+			const auto linkage = llvm::Function::InternalLinkage;
+			
+			const auto oldArgInfo = getFunctionArgInfo(module, oldFunctionType);
+			const auto newArgInfo = getFunctionArgInfo(module, newFunctionType);
+			const auto llvmFunction = createLLVMFunction(module, newArgInfo, linkage, functionName);
 			
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			
 			// Always inline if possible.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const auto entryBB = llvm::BasicBlock::Create(module.getLLVMContext(), "", llvmFunction);
-			llvm::IRBuilder<> builder(module.getLLVMContext());
-			builder.SetInsertPoint(entryBB);
+			Function functionGenerator(module, *llvmFunction, newArgInfo);
+			auto& builder = functionGenerator.getBuilder();
 			
-			assert(oldFunctionType->getNumParams() == newFunctionType->getNumParams() ||
-				oldFunctionType->getNumParams() == (newFunctionType->getNumParams() + 1));
+			const auto& oldParameterTypes = oldFunctionType->getFunctionParameterTypes();
+			const auto& newParameterTypes = newFunctionType->getFunctionParameterTypes();
+			assert(oldParameterTypes.size() == newParameterTypes.size());
 			
-			const bool needsReturnVar = (oldFunctionType->getNumParams() != newFunctionType->getNumParams());
-			
-			assert(!(needsReturnVar && newFunctionType->getReturnType()->isVoidTy()));
-			const auto returnVar = needsReturnVar ? builder.CreateAlloca(newFunctionType->getReturnType()) : nullptr;
+			const auto returnVar =
+				oldArgInfo.hasReturnVarArgument() ?
+					newArgInfo.hasReturnVarArgument() ?
+						functionGenerator.getReturnVar() :
+						genAlloca(functionGenerator, newFunctionType->getFunctionReturnType())
+					: nullptr;
 			
 			llvm::SmallVector<llvm::Value*, 10> args;
 			
-			if (needsReturnVar) {
-				args.push_back(builder.CreatePointerCast(returnVar, TypeGenerator(module).getI8PtrType()));
+			if (oldArgInfo.hasReturnVarArgument()) {
+				const auto llvmOldReturnType = genArgType(module, oldFunctionType->getFunctionReturnType());
+				args.push_back(builder.CreatePointerCast(returnVar, llvmOldReturnType));
 			}
 			
-			size_t offset = needsReturnVar ? 1 : 0;
+			if (newArgInfo.hasTemplateGeneratorArgument()) {
+				args.push_back(functionGenerator.getTemplateGenerator());
+			}
 			
-			for (auto it = llvmFunction->arg_begin(); it != llvmFunction->arg_end(); ++it) {
-				const auto oldParamType = oldFunctionType->getParamType(offset);
-				const auto newParamType = it->getType();
+			if (newArgInfo.hasContextArgument()) {
+				args.push_back(functionGenerator.getRawContextValue());
+			}
+			
+			for (size_t i = 0; i < oldParameterTypes.size(); i++) {
+				const auto oldParameterType = oldParameterTypes[i];
+				const auto newParameterType = newParameterTypes[i];
 				
-				if (oldParamType->isPointerTy()) {
-					if (!newParamType->isPointerTy()) {
-						assert(!newParamType->isVoidTy());
-						const auto argAlloca = builder.CreateAlloca(newParamType);
-						builder.CreateStore(it, argAlloca);
-						args.push_back(builder.CreatePointerCast(argAlloca, oldParamType));
-					} else {
-						// Make sure our pointers have the right type.
-						args.push_back(builder.CreatePointerCast(it, oldParamType));
-					}
+				const auto llvmOldParameterType = genArgType(module, oldParameterType);
+				const auto llvmNewParameterType = genArgType(module, newParameterType);
+				
+				// Being able to pass the old parameter type by value must imply
+				// that the new parameter type can be passed by value.
+				assert(checkImplies(canPassByValue(module, oldParameterType), canPassByValue(module, newParameterType)));
+				
+				const auto argValue = functionGenerator.getArg(i);
+				
+				if (!canPassByValue(module, oldParameterType) && canPassByValue(module, newParameterType)) {
+					// Create an alloca to hold the parameter so it can be passed by pointer
+					// into the target function.
+					const auto argAlloca = genAlloca(functionGenerator, newParameterType);
+					genStore(functionGenerator, argValue, argAlloca, newParameterType);
+					args.push_back(builder.CreatePointerCast(argAlloca, llvmOldParameterType));
+				} else if (llvmOldParameterType->isPointerTy() && llvmNewParameterType->isPointerTy()) {
+					// Make sure our pointers have the right type.
+					args.push_back(builder.CreatePointerCast(argValue, llvmOldParameterType));
 				} else {
-					args.push_back(it);
+					args.push_back(argValue);
 				}
-				offset++;
 			}
 			
-			const auto result = builder.CreateCall(functionRefPtr, args);
+			const auto result = genRawFunctionCall(functionGenerator, oldArgInfo, functionRefPtr, args);
 			
-			if (needsReturnVar) {
+			if (oldArgInfo.hasReturnVarArgument() && !newArgInfo.hasReturnVarArgument()) {
 				builder.CreateRet(builder.CreateLoad(returnVar));
 			} else {
-				if (newFunctionType->getReturnType()->isVoidTy()) {
+				if (llvmNewFunctionType->getReturnType()->isVoidTy()) {
 					builder.CreateRetVoid();
 				} else {
 					if (result->getType()->isPointerTy()) {
-						builder.CreateRet(builder.CreatePointerCast(result, newFunctionType->getReturnType()));
+						builder.CreateRet(builder.CreatePointerCast(result, llvmNewFunctionType->getReturnType()));
 					} else {
 						builder.CreateRet(result);
 					}
@@ -142,28 +174,45 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		bool doFunctionTypesMatch(llvm::FunctionType* firstType, llvm::FunctionType* secondType) {
-			if (firstType->getNumParams() != secondType->getNumParams()) {
-				return false;
-			}
+		bool areTypesFunctionallyEquivalent(Module& module,
+		                                    const SEM::Type* const firstType,
+		                                    const SEM::Type* const secondType) {
+			return firstType == secondType || genArgType(module, firstType) == genArgType(module, secondType);
+		}
+		
+		bool doFunctionTypesMatch(Module& module,
+		                          const SEM::Type* const firstType,
+		                          const SEM::Type* const secondType) {
+			assert(firstType->isFunction());
+			assert(secondType->isFunction());
+			assert(firstType->isFunctionTemplated() == secondType->isFunctionTemplated());
 			
-			for (unsigned int i = 0; i < firstType->getNumParams(); i++) {
-				const auto firstParamType = firstType->getParamType(i);
-				const auto secondParamType = secondType->getParamType(i);
-				
-				if (firstParamType->isPointerTy() != secondParamType->isPointerTy()) {
+			const auto& firstParameterTypes = firstType->getFunctionParameterTypes();
+			const auto& secondParameterTypes = secondType->getFunctionParameterTypes();
+			assert(firstParameterTypes.size() == secondParameterTypes.size());
+			
+			for (size_t i = 0; i < firstParameterTypes.size(); i++) {
+				const auto& firstParameterType = firstParameterTypes[i];
+				const auto& secondParameterType = secondParameterTypes[i];
+				if (!areTypesFunctionallyEquivalent(module, firstParameterType, secondParameterType)) {
 					return false;
 				}
 			}
 			
-			return true;
+			return areTypesFunctionallyEquivalent(module, firstType->getFunctionReturnType(), secondType->getFunctionReturnType());
 		}
 		
-		llvm::Value* genFunctionPtr(Function& function, llvm::Function* functionRefPtr, llvm::Type* functionPtrType) {
-			const auto oldFunctionType = llvm::cast<llvm::FunctionType>(functionRefPtr->getType()->getPointerElementType());
-			const auto newFunctionType = llvm::cast<llvm::FunctionType>(functionPtrType->getPointerElementType());
+		llvm::Value* genFunctionPtr(Function& function, llvm::Function* functionRefPtr,
+		                            const SEM::Type* const oldFunctionType,
+		                            const SEM::Type* const newFunctionType) {
+			assert(oldFunctionType->isFunction());
+			assert(newFunctionType->isFunction());
+			assert(oldFunctionType->isFunctionTemplated() == newFunctionType->isFunctionTemplated());
 			
-			if (doFunctionTypesMatch(oldFunctionType, newFunctionType)) {
+			auto& module = function.module();
+			
+			if (doFunctionTypesMatch(module, oldFunctionType, newFunctionType)) {
+				const auto functionPtrType = genFunctionType(module, newFunctionType)->getPointerTo();
 				return function.getBuilder().CreatePointerCast(functionRefPtr, functionPtrType);
 			} else {
 				// This case means that the function is templated on the
@@ -172,7 +221,7 @@ namespace locic {
 				// a return var but the function reference expects it
 				// to return the primitive directly. We need to fix this
 				// by creating a stub that translates between them.
-				return genFunctionPtrStub(function.module(), functionRefPtr, newFunctionType);
+				return genFunctionPtrStub(module, functionRefPtr, oldFunctionType, newFunctionType);
 			}
 		}
 		
@@ -187,37 +236,48 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* const semFunction, const SEM::Type* const functionType) {
+			assert(functionType->isFunction());
+			
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, semFunction);
-			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();
 			
 			// There may need to be a stub generated to handle issues with types being
 			// passed/returned by value versus via a pointer (which happens when primitives
 			// are used in templates).
-			return genFunctionPtr(function, functionRefPtr, functionPtrType);
+			return genFunctionPtr(function, functionRefPtr, semFunction->type(), functionType);
 		}
 		
-		PendingResult genCallValue(Function& function, const SEM::Value& value) {
-			switch (value.kind()) {
-				case SEM::Value::CAST: {
-					if (value.castOperand().type()->isDatatype()) {
-						return PendingResult(genValue(function, value));
-					} else {
-						return genCallValue(function, value.castOperand());
-					}
-				}
-				
-				case SEM::Value::BIND_REFERENCE: {
-					auto result = genCallValue(function, value.bindReferenceOperand());
-					result.add(PendingAction::Bind(value.bindReferenceOperand().type()));
-					return result;
-				}
-				
-				default: {
-					return PendingResult(genValue(function, value));
-				}
+		class CallValuePendingResult: public PendingResultBase {
+		public:
+			CallValuePendingResult(const SEM::Value& value)
+			: value_(value) { }
+			
+			llvm::Value* generateValue(Function& function, llvm::Value* const hintResultValue) const {
+				return genValue(function, value_, hintResultValue);
 			}
-		}
+			
+			llvm::Value* generateLoadedValue(Function& function) const {
+				assert(value_.type()->isRef());
+				if (value_.isCast() && !value_.castOperand().type()->isDatatype()) {
+					// Some cast operations have no effect, so just pass
+					// straight through them.
+					return CallValuePendingResult(value_.castOperand()).generateLoadedValue(function);
+				}
+				
+				if (value_.isBindReference()) {
+					// Just don't perform 'bind' operation and hence
+					// avoid an unnecessary store-load pair.
+					return genValue(function, value_.bindReferenceOperand());
+				}
+				
+				const auto result = genValue(function, value_);
+				return genMoveLoad(function, result, value_.type()->refTarget());
+			}
+			
+		private:
+			const SEM::Value& value_;
+			
+		};
 		
 		bool isTrivialFunction(Module& module, const SEM::Value& value) {
 			switch (value.kind()) {
@@ -235,18 +295,25 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialMethodCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
-				Optional<PendingResult> contextValue, llvm::Value* const hintResultValue) {
+		llvm::Value* genTrivialMethodCall(Function& function, const SEM::Value& value,
+		                                  llvm::ArrayRef<SEM::Value> valueArgs,
+		                                  Optional<PendingResult> contextValue,
+		                                  llvm::Value* const hintResultValue) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					PendingResultArray args;
 					
 					if (contextValue) {
-						args.push_back(std::move(*contextValue));
+						args.push_back(*contextValue);
 					}
 					
+					// Need an array to store all the pending results
+					// being referred to in 'genTrivialPrimitiveFunctionCall'.
+					Array<CallValuePendingResult, 10> pendingResultArgs;
+					
 					for (const auto& valueArg: valueArgs) {
-						args.push_back(genCallValue(function, valueArg));
+						pendingResultArgs.push_back(CallValuePendingResult(valueArg));
+						args.push_back(pendingResultArgs.back());
 					}
 					
 					if (value.functionRefFunction()->isPrimitive()) {
@@ -260,8 +327,8 @@ namespace locic {
 				
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
-					auto dataResult = genCallValue(function, dataValue);
-					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(std::move(dataResult)), hintResultValue);
+					const PendingResult dataResult = CallValuePendingResult(dataValue);
+					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(dataResult), hintResultValue);
 				}
 				
 				default: {
@@ -316,8 +383,7 @@ namespace locic {
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
 					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, function.getDebugLoc());
-					const auto functionPtrType = genFunctionType(module, value.type())->getPointerTo();
-					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionPtrType);
+					callInfo.functionPtr = genFunctionPtr(function, functionRefPtr, functionType, value.type());
 					
 					// The stub will extract the template variable's value for the
 					// current function's template context, so we can just use the

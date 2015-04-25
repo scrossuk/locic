@@ -44,9 +44,23 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveRef: {
-					if (type->templateArguments().front().typeRefType()->isInterface()) {
+					const auto argType = type->templateArguments().front().typeRefType();
+					if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
+						// Unknown whether the argument type is virtual, so use an opaque struct type.
+						const auto iterator = module.typeInstanceMap().find(type->getObjectType());
+						if (iterator != module.typeInstanceMap().end()) {
+							return iterator->second;
+						}
+						
+						const auto structType = TypeGenerator(module).getForwardDeclaredStructType(module.getCString("ref_t"));
+						
+						module.typeInstanceMap().insert(std::make_pair(type->getObjectType(), structType));
+						return structType;
+					} else if (type->templateArguments().front().typeRefType()->isInterface()) {
+						// Argument type is definitely virtual.
 						return interfaceStructType(module).second;
 					} else {
+						// Argument type is definitely not virtual.
 						return genPointerType(module, type->templateArguments().front().typeRefType());
 					}
 				}

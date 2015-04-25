@@ -21,8 +21,8 @@ class MemberClass() {
 	void __move_to(void* ptr, size_t position) noexcept {
 		testPrint(C"MemberClass.__move_to");
 		// TODO: this should be auto-generated!
-		reinterpret_cast<void*, uint8_t*>(ptr)->__moveto(ptr, position);
-		*(reinterpret_cast<void*, uint8_t*>(ptr)) = 0u;
+		reinterpret_cast<MemberClass*, uint8_t*>(this)->__moveto(ptr, position);
+		*(reinterpret_cast<MemberClass*, uint8_t*>(this)) = 0u;
 	}
 }
 

@@ -50,7 +50,7 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
@@ -189,7 +189,7 @@ namespace locic {
 				}
 				
 				case METHOD_ADD: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					llvm::Value* const binaryArgs[] = { methodOwner, operand };
 					if (unsafe) {
 						return builder.CreateAdd(methodOwner, operand);
@@ -198,7 +198,7 @@ namespace locic {
 					}
 				}
 				case METHOD_SUBTRACT: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					llvm::Value* const binaryArgs[] = { methodOwner, operand };
 					if (unsafe) {
 						return builder.CreateSub(methodOwner, operand);
@@ -207,7 +207,7 @@ namespace locic {
 					}
 				}
 				case METHOD_MULTIPLY: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					llvm::Value* const binaryArgs[] = { methodOwner, operand };
 					if (unsafe) {
 						return builder.CreateMul(methodOwner, operand);
@@ -216,7 +216,7 @@ namespace locic {
 					}
 				}
 				case METHOD_DIVIDE: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
 						const auto isZeroBB = function.createBasicBlock("isZero");
@@ -229,7 +229,7 @@ namespace locic {
 					return builder.CreateUDiv(methodOwner, operand);
 				}
 				case METHOD_MODULO: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
 						const auto isZeroBB = function.createBasicBlock("isZero");
@@ -242,7 +242,7 @@ namespace locic {
 					return builder.CreateURem(methodOwner, operand);
 				}
 				case METHOD_COMPARE: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
@@ -252,40 +252,39 @@ namespace locic {
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
 				case METHOD_EQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpEQ(methodOwner, operand);
 				}
 				case METHOD_NOTEQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpNE(methodOwner, operand);
 				}
 				case METHOD_LESSTHAN: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpULT(methodOwner, operand);
 				}
 				case METHOD_LESSTHANOREQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpULE(methodOwner, operand);
 				}
 				case METHOD_GREATERTHAN: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpUGT(methodOwner, operand);
 				}
 				case METHOD_GREATERTHANOREQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpUGE(methodOwner, operand);
 				}
 				case METHOD_BITWISEAND: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateAnd(methodOwner, operand);
 				}
 				case METHOD_BITWISEOR: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateOr(methodOwner, operand);
 				}
 				case METHOD_LEFTSHIFT: {
-					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-					const auto operand = args[1].resolveWithoutBindRaw(function, sizeTType);
+					const auto operand = args[1].resolveWithoutBind(function);
 					
 					if (!unsafe) {
 						// Check that operand <= leading_zeroes(value).
@@ -312,8 +311,7 @@ namespace locic {
 					return builder.CreateShl(methodOwner, operandCasted);
 				}
 				case METHOD_RIGHTSHIFT: {
-					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
-					const auto operand = args[1].resolveWithoutBindRaw(function, sizeTType);
+					const auto operand = args[1].resolveWithoutBind(function);
 					
 					if (!unsafe) {
 						// Check that operand < sizeof(type) * 8.

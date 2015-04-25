@@ -10,8 +10,15 @@ namespace locic {
 
 	namespace SEM {
 	
-		TemplateVar::TemplateVar(Context& argContext, Name argName, size_t i)
-			: context_(argContext), type_(nullptr), name_(std::move(argName)), index_(i) { }
+		TemplateVar::TemplateVar(Context& argContext,
+		                         Name argName,
+		                         const size_t argIndex,
+		                         const bool argIsVirtual)
+			: context_(argContext),
+			  type_(nullptr),
+			  name_(std::move(argName)),
+			  index_(argIndex),
+			  isVirtual_(argIsVirtual) { }
 		
 		Context& TemplateVar::context() const {
 			return context_;
@@ -23,6 +30,10 @@ namespace locic {
 		
 		size_t TemplateVar::index() const {
 			return index_;
+		}
+		
+		bool TemplateVar::isVirtual() const {
+			return isVirtual_;
 		}
 		
 		void TemplateVar::setType(const Type* const argType) {

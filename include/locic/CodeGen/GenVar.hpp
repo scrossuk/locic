@@ -13,7 +13,8 @@ namespace locic {
 		
 		class Function;
 		
-		void genVarAlloca(Function& function, SEM::Var* var);
+		void genVarAlloca(Function& function, SEM::Var* var,
+			llvm::Value* hintResultValue = nullptr);
 		
 		void genVarInitialise(Function& function, SEM::Var* var, llvm::Value* initialiseValue);
 		

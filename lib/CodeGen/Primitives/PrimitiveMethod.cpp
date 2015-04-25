@@ -173,7 +173,7 @@ namespace locic {
 			
 			PendingResultArray args;
 			if (castFromValue != nullptr) {
-				args.push_back(castFromValue);
+				args.push_back(ValuePendingResult(castFromValue, castFromType));
 			}
 			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 		}
@@ -200,7 +200,9 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/, PendingResultArray args) {
+		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* /*type*/,
+		                                                 const String& methodName, const SEM::Type* const /*functionType*/,
+		                                                 PendingResultArray args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
@@ -219,7 +221,7 @@ namespace locic {
 				return greaterThanValue;
 			}
 			
-			const auto methodOwner = args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = args[0].resolveWithoutBind(function);
 			
 			if (methodName == "implicit_copy" || methodName == "copy") {
 				return methodOwner;
@@ -262,7 +264,7 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			switch (methodID) {
 				case METHOD_CREATE: {
@@ -294,7 +296,7 @@ namespace locic {
 				case METHOD_NOT:
 					return builder.CreateNot(methodOwner);
 				case METHOD_COMPARE: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
@@ -304,11 +306,11 @@ namespace locic {
 						builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
 				case METHOD_EQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpEQ(methodOwner, operand);
 				}
 				case METHOD_NOTEQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpNE(methodOwner, operand);
 				}
 				default:
@@ -352,7 +354,7 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
@@ -407,7 +409,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolveWithoutBind(function, type);
+				const auto operand = args[1].resolveWithoutBind(function);
 				llvm::Value* const binaryArgs[] = { methodOwner, operand };
 				
 				if (methodName == "add") {
@@ -492,7 +494,7 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			if (methodName == "__move_to") {
 				const auto moveToPtr = args[1].resolve(function);
@@ -555,7 +557,7 @@ namespace locic {
 					llvm_unreachable("Unknown primitive unary op.");
 				}
 			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolveWithoutBind(function, type);
+				const auto operand = args[1].resolveWithoutBind(function);
 				
 				if (methodName == "add") {
 					return builder.CreateFAdd(methodOwner, operand);
@@ -661,8 +663,7 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_ADD: {
-					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
-					const auto operand = args[1].resolveWithoutBindRaw(function, ptrDiffTType);
+					const auto operand = args[1].resolveWithoutBind(function);
 					const auto targetType = type->templateArguments().front().typeRefType();
 					
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
@@ -678,7 +679,7 @@ namespace locic {
 				case METHOD_SUBTRACT: {
 					// TODO: should be intptr_t!
 					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					
 					const auto firstPtrInt = builder.CreatePtrToInt(methodOwner, ptrDiffTType);
 					const auto secondPtrInt = builder.CreatePtrToInt(operand, ptrDiffTType);
@@ -701,31 +702,31 @@ namespace locic {
 					}
 				}
 				case METHOD_EQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpEQ(methodOwner, operand);
 				}
 				case METHOD_NOTEQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpNE(methodOwner, operand);
 				}
 				case METHOD_LESSTHAN: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpULT(methodOwner, operand);
 				}
 				case METHOD_LESSTHANOREQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpULE(methodOwner, operand);
 				}
 				case METHOD_GREATERTHAN: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpUGT(methodOwner, operand);
 				}
 				case METHOD_GREATERTHANOREQUAL: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpUGE(methodOwner, operand);
 				}
 				case METHOD_COMPARE: {
-					const auto operand = args[1].resolveWithoutBind(function, type);
+					const auto operand = args[1].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
@@ -745,7 +746,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto methodOwner = args[0].resolveWithoutBind(function, type);
+			const auto methodOwner = args[0].resolveWithoutBind(function);
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
@@ -946,7 +947,7 @@ namespace locic {
 			
 			if (methodName == "create") {
 				const auto objectVar = genAlloca(function, type, hintResultValue);
-				const auto operand = args[0].resolve(function);
+				const auto operand = args[0].resolve(function, hintResultValue);
 				
 				// Store the object.
 				const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
@@ -1010,70 +1011,74 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genRefBasicPrimitiveMethodCall(Function& function, llvm::Type* const llvmType, const String& methodName, PendingResultArray& args) {
-			auto& builder = function.getBuilder();
-			auto& module = function.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
-			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBindRaw(function, llvmType);
-			
-			switch (methodID) {
-				case METHOD_COPY:
-				case METHOD_IMPLICITCOPY:
-					return methodOwner;
-				case METHOD_ISVALID: {
-					if (llvmType->isPointerTy()) {
-						const auto nullValue = ConstantGenerator(module).getNull(llvmType);
-						return builder.CreateICmpEQ(methodOwner, nullValue);
-					} else {
-						const auto pointerValue = builder.CreateExtractValue(methodOwner, { 0 });
-						const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
-						return builder.CreateICmpEQ(pointerValue, nullValue);
-					}
-				}
-				case METHOD_SETINVALID: {
-					const auto nullValue = ConstantGenerator(module).getNull(llvmType);
-					const auto contextPointer = args[0].resolve(function);
-					builder.CreateStore(nullValue, contextPointer);
-					return ConstantGenerator(module).getVoidUndef();
-				}
-				case METHOD_ISLIVE: {
-					return ConstantGenerator(module).getI1(true);
-				}
-				case METHOD_SETDEAD: {
-					// Do nothing.
-					return ConstantGenerator(module).getVoidUndef();
-				}
-				case METHOD_MOVETO: {
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, methodOwner->getType()->getPointerTo());
-					
-					builder.CreateStore(methodOwner, castedDestPtr);
-					return ConstantGenerator(module).getVoidUndef();
-				}
-				default:
-					printf("%s\n", methodName.c_str());
-					llvm_unreachable("Unknown ref primitive method.");
-			}
+		bool isVirtualnessKnown(const SEM::Type* const type) {
+			// Virtual template variables may or may not be
+			// instantiated with virtual types.
+			return !type->isTemplateVar() ||
+				!type->getTemplateVar()->isVirtual();
 		}
 		
-		llvm::Value* genRefPrimitiveMethodCall(Function& function, const SEM::Type* const type, const String& methodName, const SEM::Type* const /*functionType*/, PendingResultArray args) {
-			auto& module = function.module();
+		bool isRefVirtualnessKnown(const SEM::Type* const type) {
+			const auto refTarget = type->templateArguments().at(0).typeRefType();
+			assert(!refTarget->isAlias());
+			
+			return isVirtualnessKnown(refTarget);
+		}
+		
+		bool isRefVirtual(const SEM::Type* const type) {
+			assert(isRefVirtualnessKnown(type));
 			
 			const auto refTarget = type->templateArguments().at(0).typeRefType();
 			assert(!refTarget->isAlias());
-			if (!refTarget->isTemplateVar()
-				// TODO: remove this and implement other methods (such as implicit copy) properly!
-				|| methodName != "__move_to") {
-				// A reference has a different type depending on whether its
-				// argument type is virtual (i.e. an interface) or not.
-				const auto llvmType = refTarget->isInterface() ? interfaceStructType(module).second : genPointerType(module, refTarget);
-				return genRefBasicPrimitiveMethodCall(function, llvmType, methodName, args);
+			
+			return refTarget->isInterface();
+		}
+		
+		llvm::Type* getVirtualRefLLVMType(Module& module) {
+			return interfaceStructType(module).second;
+		}
+		
+		llvm::Type* getNotVirtualLLVMType(Module& module, const SEM::Type* const type) {
+			const auto refTarget = type->templateArguments().at(0).typeRefType();
+			assert(!refTarget->isAlias());
+			return genPointerType(module, refTarget);
+		}
+		
+		llvm::Type* getRefLLVMType(Module& module, const SEM::Type* const type) {
+			const auto refTarget = type->templateArguments().at(0).typeRefType();
+			assert(!refTarget->isAlias());
+			return isRefVirtual(type) ?
+				getVirtualRefLLVMType(module) :
+				getNotVirtualLLVMType(module, type);
+		}
+		
+		llvm::Value* fixRefType(Function& function, llvm::Value* const value, llvm::Type* const type, llvm::Type* const fixType) {
+			if (value->getType()->isPointerTy() && value->getType()->getPointerElementType() == type) {
+				return function.getBuilder().CreatePointerCast(value, fixType->getPointerTo());
+			} else {
+				return value;
 			}
+		}
+		
+		template <typename Fn>
+		llvm::Value* genRefPrimitiveMethodForVirtualCases(Function& function, const SEM::Type* const type, Fn f) {
+			auto& module = function.module();
+			
+			if (isRefVirtualnessKnown(type)) {
+				// If the reference target type is not a virtual template variable,
+				// we already know whether it's a simple pointer or a 'fat'
+				// pointer (i.e. a struct containing a pointer to the object
+				// as well as the vtable and the template generator), so we
+				// only generate for this known case.
+				return f(getRefLLVMType(module, type));
+			}
+			
+			// If the reference target type is a template variable, we need
+			// to query the virtual-ness of it at run-time and hence we must
+			// emit code to handle both cases.
+			
+			const auto refTarget = type->templateArguments().at(0).typeRefType();
+			assert(!refTarget->isAlias());
 			
 			// Look at our template argument to see if it's virtual.
 			const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) refTarget->getTemplateVar()->index() });
@@ -1091,29 +1096,186 @@ namespace locic {
 			function.getBuilder().CreateCondBr(isVirtualCondition, ifVirtualBlock, ifNotVirtualBlock);
 			
 			function.selectBasicBlock(ifVirtualBlock);
-			const auto virtualResult = genRefBasicPrimitiveMethodCall(function, interfaceStructType(module).second, methodName, args);
+			const auto virtualType = getVirtualRefLLVMType(module);
+			const auto virtualResult = fixRefType(function, f(virtualType), virtualType, genType(module, type));
 			function.getBuilder().CreateBr(mergeBlock);
 			
 			function.selectBasicBlock(ifNotVirtualBlock);
-			const auto notVirtualResult = genRefBasicPrimitiveMethodCall(function, genPointerType(module, refTarget), methodName, args);
+			const auto notVirtualType = getNotVirtualLLVMType(module, type);
+			const auto notVirtualResult = fixRefType(function, f(notVirtualType), notVirtualType, genType(module, type));
 			function.getBuilder().CreateBr(mergeBlock);
 			
 			function.selectBasicBlock(mergeBlock);
 			
 			if (!virtualResult->getType()->isVoidTy()) {
 				assert(!notVirtualResult->getType()->isVoidTy());
-				const auto phiNode = function.getBuilder().CreatePHI(virtualResult->getType(), 2);
-				phiNode->addIncoming(virtualResult, ifVirtualBlock);
-				phiNode->addIncoming(notVirtualResult, ifNotVirtualBlock);
-				return phiNode;
+				if (virtualResult == notVirtualResult) {
+					return virtualResult;
+				} else {
+					const auto phiNode = function.getBuilder().CreatePHI(virtualResult->getType(), 2);
+					phiNode->addIncoming(virtualResult, ifVirtualBlock);
+					phiNode->addIncoming(notVirtualResult, ifNotVirtualBlock);
+					return phiNode;
+				}
 			} else {
 				assert(notVirtualResult->getType()->isVoidTy());
 				return ConstantGenerator(module).getVoidUndef();
 			}
 		}
 		
-		llvm::Value* genTypenamePrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/, PendingResultArray args) {
-			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function, type);
+		class RefMethodOwner {
+		public:
+			static RefMethodOwner AsRef(Function& function, const SEM::Type* const type, PendingResultArray& args) {
+				return RefMethodOwner(function, type, args, false);
+			}
+			
+			static RefMethodOwner AsValue(Function& function, const SEM::Type* const type, PendingResultArray& args) {
+				return RefMethodOwner(function, type, args, true);
+			}
+			
+		private:
+			RefMethodOwner(Function& function, const SEM::Type* const type, PendingResultArray& args, const bool loaded)
+			: function_(function), type_(type), args_(args), loaded_(loaded), value_(nullptr) {
+				if (loaded_) {
+					// If the virtual-ness of the reference is known
+					// then we can load the reference-to-reference
+					// here, otherwise we need to wait until the
+					// two cases are evaluated.
+					if (isRefVirtualnessKnown(type_)) {
+						value_ = args[0].resolveWithoutBind(function);
+					} else {
+						value_ = args[0].resolve(function);
+					}
+				} else {
+					value_ = args[0].resolve(function);
+				}
+			}
+			
+		public:
+			llvm::Value* get(llvm::Type* const llvmType) {
+				if (loaded_) {
+					// If the virtual-ness of the reference is known
+					// then the reference is already loaded, otherwise it
+					// needs to be loaded here.
+					if (isRefVirtualnessKnown(type_)) {
+						return value_;
+					} else {
+						auto& builder = function_.getBuilder();
+						const auto pointerType = llvmType->getPointerTo();
+						const auto result = builder.CreatePointerCast(value_, pointerType);
+						return builder.CreateLoad(result);
+					}
+				} else {
+					auto& builder = function_.getBuilder();
+					const auto pointerType = llvmType->getPointerTo();
+					return builder.CreatePointerCast(value_, pointerType);
+				}
+			}
+			
+		private:
+			Function& function_;
+			const SEM::Type* const type_;
+			PendingResultArray& args_;
+			bool loaded_;
+			llvm::Value* value_;
+			
+		};
+		
+		llvm::Value* genRefPrimitiveMethodCall(Function& function,
+		                                       const SEM::Type* const type,
+		                                       const String& methodName,
+		                                       const SEM::Type* const /*functionType*/,
+		                                       PendingResultArray args,
+		                                       llvm::Value* const hintResultValue) {
+			auto& builder = function.getBuilder();
+			auto& module = function.module();
+			
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
+			switch (methodID) {
+				case METHOD_COPY:
+				case METHOD_IMPLICITCOPY: {
+					// If the virtualness of the reference is known, we
+					// can load it, otherwise we have to keep accessing
+					// it by pointer.
+					if (!isRefVirtualnessKnown(type) && hintResultValue == nullptr) {
+						return args[0].resolve(function);
+					}
+					
+					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
+					
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							const auto loadedValue = methodOwner.get(llvmType);
+							if (!isRefVirtualnessKnown(type)) {
+								assert(hintResultValue != nullptr);
+								const auto castPtr = builder.CreatePointerCast(hintResultValue, llvmType->getPointerTo());
+								builder.CreateStore(loadedValue, castPtr);
+								return hintResultValue;
+							} else {
+								return loadedValue;
+							}
+						});
+				}
+				case METHOD_ISVALID: {
+					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
+					
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							const auto methodOwnerValue = methodOwner.get(llvmType);
+							if (llvmType->isPointerTy()) {
+								const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+								return builder.CreateICmpEQ(methodOwnerValue, nullValue);
+							} else {
+								const auto pointerValue = builder.CreateExtractValue(methodOwnerValue, { 0 });
+								const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
+								return builder.CreateICmpEQ(pointerValue, nullValue);
+							}
+						});
+				}
+				case METHOD_SETINVALID: {
+					auto methodOwner = RefMethodOwner::AsRef(function, type, args);
+					
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							const auto methodOwnerPtr = methodOwner.get(llvmType);
+							const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+							builder.CreateStore(nullValue, methodOwnerPtr);
+							return ConstantGenerator(module).getVoidUndef();
+						});
+				}
+				case METHOD_ISLIVE: {
+					return ConstantGenerator(module).getI1(true);
+				}
+				case METHOD_SETDEAD: {
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
+				}
+				case METHOD_MOVETO: {
+					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							const auto castedDestPtr = builder.CreatePointerCast(destPtr, llvmType->getPointerTo());
+							builder.CreateStore(methodOwner.get(llvmType), castedDestPtr);
+							return ConstantGenerator(module).getVoidUndef();
+						});
+				}
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown ref primitive method.");
+			}
+		}
+		
+		llvm::Value* genTypenamePrimitiveMethodCall(Function& function,
+		                                            const SEM::Type* /*type*/,
+		                                            const String& methodName,
+		                                            const SEM::Type* const /*functionType*/,
+		                                            PendingResultArray args) {
+			const auto methodOwner = isConstructor(methodName) ? nullptr : args[0].resolveWithoutBind(function);
 			
 			if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_copy" || methodName == "copy") {
@@ -1189,7 +1351,7 @@ namespace locic {
 				case PrimitiveTypename:
 					return genTypenamePrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveRef:
-					return genRefPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genRefPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				default:
 					printf("%s\n", typeName.c_str());
 					llvm_unreachable("Unknown trivial primitive function.");
@@ -1211,15 +1373,25 @@ namespace locic {
 				templateArgs.push_back(templateVar->selfRefValue());
 			}
 			
-			// Collect together arguments and whether they're reference arguments.
 			PendingResultArray args;
+			const auto contextValue =
+				argInfo.hasContextArgument() ?
+					function.getContextValue(typeInstance) :
+					nullptr;
+			RefPendingResult contextPendingResult(contextValue, typeInstance->selfType());
 			if (argInfo.hasContextArgument()) {
-				args.push_back(function.getContextValue(typeInstance));
+				args.push_back(contextPendingResult);
 			}
+			
+			// Need an array to store all the pending results
+			// being referred to in 'genTrivialPrimitiveFunctionCall'.
+			Array<ValuePendingResult, 10> pendingResultArgs;
 			
 			const auto& argTypes = semFunction->type()->getFunctionParameterTypes();
 			for (size_t i = 0; i < argTypes.size(); i++) {
-				args.push_back(function.getArg(i));
+				const auto argValue = function.getArg(i);
+				pendingResultArgs.push_back(ValuePendingResult(argValue, argTypes[i]));
+				args.push_back(pendingResultArgs.back());
 			}
 			
 			MethodInfo methodInfo(typeInstance->selfType(), semFunction->name().last(), semFunction->type(), std::move(templateArgs));
