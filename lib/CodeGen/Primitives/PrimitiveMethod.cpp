@@ -172,8 +172,9 @@ namespace locic {
 			MethodInfo methodInfo(castToType, targetMethodName, functionType, {});
 			
 			PendingResultArray args;
+			const ValuePendingResult contextPendingResult(castFromValue, castFromType);
 			if (castFromValue != nullptr) {
-				args.push_back(ValuePendingResult(castFromValue, castFromType));
+				args.push_back(contextPendingResult);
 			}
 			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 		}

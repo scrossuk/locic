@@ -66,8 +66,7 @@ before_script:
 script:
   # Make sure we use the correct Clang binary.
   - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="clang-$CLANG_VERSION" ..
-  - make
-  - ctest --output-on-failure
+  - make && ctest --output-on-failure
 
 env:
   # Build with LLVM 3.3; use Clang 3.4 since Clang 3.3 can't build the exception runtime code.

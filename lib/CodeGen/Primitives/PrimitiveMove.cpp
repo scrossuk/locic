@@ -31,9 +31,15 @@ namespace locic {
 			MethodInfo methodInfo(type, methodName, functionType, {});
 			
 			PendingResultArray arguments;
-			arguments.push_back(RefPendingResult(sourceValue, type));
-			arguments.push_back(ValuePendingResult(destValue, nullptr));
-			arguments.push_back(ValuePendingResult(positionValue, nullptr));
+			
+			const RefPendingResult contextPendingResult(sourceValue, type);
+			arguments.push_back(contextPendingResult);
+			
+			const ValuePendingResult destValuePendingResult(destValue, nullptr);
+			arguments.push_back(destValuePendingResult);
+			
+			const ValuePendingResult positionValuePendingResult(positionValue, nullptr);
+			arguments.push_back(positionValuePendingResult);
 			
 			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
 		}

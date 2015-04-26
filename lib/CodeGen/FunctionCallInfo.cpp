@@ -327,8 +327,9 @@ namespace locic {
 				
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
-					const PendingResult dataResult = CallValuePendingResult(dataValue);
-					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(dataResult), hintResultValue);
+					const CallValuePendingResult dataResult(dataValue);
+					const PendingResult dataPendingResult(dataResult);
+					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(dataPendingResult), hintResultValue);
 				}
 				
 				default: {
