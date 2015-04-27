@@ -82,6 +82,7 @@ namespace locic {
 				argLLVMTypes.push_back(typePair.second);
 			}
 			
+			SetUseEntryBuilder useEntryBuilder(*this);
 			// Decode arguments according to ABI.
 			decodeABIValues(argValues_, argABITypes, argLLVMTypes);
 		}
