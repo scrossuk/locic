@@ -65,6 +65,33 @@ namespace locic {
 			return countTrailingZeroes(function, invertedValue, isMaxUndef);
 		}
 		
+		void callTrapIntrinsic(Function& function) {
+			const auto intrinsicDeclaration = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::trap);
+			function.getBuilder().CreateCall(intrinsicDeclaration, std::vector<llvm::Value*>{});
+			function.getBuilder().CreateUnreachable();
+		}
+		
+		llvm::Value* callArithmeticNoOverflowIntrinsic(Function& function, llvm::Intrinsic::ID id, llvm::ArrayRef<llvm::Value*> args) {
+			assert(args.size() == 2);
+			
+			auto& builder = function.getBuilder();
+			
+			llvm::Type* const intrinsicTypes[] = { args.front()->getType() };
+			const auto arithmeticIntrinsic = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), id, intrinsicTypes);
+			const auto arithmeticResult = builder.CreateCall(arithmeticIntrinsic, args);
+			const unsigned overflowPosition[] = { 1 };
+			const auto arithmeticDidOverflow = builder.CreateExtractValue(arithmeticResult, overflowPosition);
+			const auto overflowBB = function.createBasicBlock("overflow");
+			const auto normalBB = function.createBasicBlock("normal");
+			
+			builder.CreateCondBr(arithmeticDidOverflow, overflowBB, normalBB);
+			function.selectBasicBlock(overflowBB);
+			callTrapIntrinsic(function);
+			function.selectBasicBlock(normalBB);
+			const unsigned resultPosition[] = { 0 };
+			return builder.CreateExtractValue(arithmeticResult, resultPosition);
+		}
+		
 	}
 	
 }

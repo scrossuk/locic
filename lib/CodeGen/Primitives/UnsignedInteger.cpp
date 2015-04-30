@@ -1,5 +1,4 @@
-#include <assert.h>
-
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -29,17 +28,13 @@
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
 		bool isFloatType(Module& module, const SEM::Type* const rawType);
 		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& methodName, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
-		
-		void createTrap(Function& function);
-		
-		llvm::Value* genOverflowIntrinsic(Function& function, llvm::Intrinsic::ID id, llvm::ArrayRef<llvm::Value*> args);
 		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
@@ -75,7 +70,7 @@ namespace locic {
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
 						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
 						function.selectBasicBlock(exceedsMaxBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					
@@ -103,7 +98,7 @@ namespace locic {
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
 						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
 						function.selectBasicBlock(exceedsMaxBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					
@@ -194,7 +189,7 @@ namespace locic {
 					if (unsafe) {
 						return builder.CreateAdd(methodOwner, operand);
 					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
+						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
 					}
 				}
 				case METHOD_SUBTRACT: {
@@ -203,7 +198,7 @@ namespace locic {
 					if (unsafe) {
 						return builder.CreateSub(methodOwner, operand);
 					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
+						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
 					}
 				}
 				case METHOD_MULTIPLY: {
@@ -212,7 +207,7 @@ namespace locic {
 					if (unsafe) {
 						return builder.CreateMul(methodOwner, operand);
 					} else {
-						return genOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, binaryArgs);
+						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::umul_with_overflow, binaryArgs);
 					}
 				}
 				case METHOD_DIVIDE: {
@@ -223,7 +218,7 @@ namespace locic {
 						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
 						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
 						function.selectBasicBlock(isZeroBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateUDiv(methodOwner, operand);
@@ -236,7 +231,7 @@ namespace locic {
 						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
 						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
 						function.selectBasicBlock(isZeroBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateURem(methodOwner, operand);
@@ -301,7 +296,7 @@ namespace locic {
 						const auto doesNotExceedLeadingZeroesBB = function.createBasicBlock("doesNotExceedLeadingZeroes");
 						builder.CreateCondBr(exceedsLeadingZeroes, exceedsLeadingZeroesBB, doesNotExceedLeadingZeroesBB);
 						function.selectBasicBlock(exceedsLeadingZeroesBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(doesNotExceedLeadingZeroesBB);
 					}
 					
@@ -321,7 +316,7 @@ namespace locic {
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
 						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
 						function.selectBasicBlock(exceedsMaxBB);
-						createTrap(function);
+						callTrapIntrinsic(function);
 						function.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					

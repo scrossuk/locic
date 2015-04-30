@@ -64,6 +64,33 @@ namespace locic {
 		 */
 		llvm::Value* countTrailingOnes(Function& function, llvm::Value* value, bool isMaxUndef = false);
 		
+		/**
+		 * \brief Call trap intrinsic.
+		 * 
+		 * Calls an intrinsic which 'traps' (i.e. aborts).
+		 */
+		void callTrapIntrinsic(Function& function);
+		
+		/**
+		 * \brief Call arithmetic no-overflow intrinsic.
+		 * 
+		 * Creates an arithmetic operation that traps on overflow.
+		 * 
+		 * Intrinsic ID can be one of:
+		 * 
+		 * llvm::Intrinsic::sadd_with_overflow
+		 * llvm::Intrinsic::ssub_with_overflow
+		 * llvm::Intrinsic::smul_with_overflow
+		 * llvm::Intrinsic::uadd_with_overflow
+		 * llvm::Intrinsic::usub_with_overflow
+		 * llvm::Intrinsic::umul_with_overflow
+		 * 
+		 * etc.
+		 */
+		llvm::Value* callArithmeticNoOverflowIntrinsic(Function& function, llvm::Intrinsic::ID id, llvm::ArrayRef<llvm::Value*> args);
+		
+		
+		
 	}
 	
 }

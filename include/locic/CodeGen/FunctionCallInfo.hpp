@@ -47,7 +47,7 @@ namespace locic {
 		 * 
 		 * This call returns a function pointer to the given function;
 		 * note that this might be *INDIRECT* since in some cases a
-		 * stub function must be generated.
+		 * translation stub function must be generated.
 		 * 
 		 * For example:
 		 * 

@@ -11,6 +11,7 @@ add_library(locic-codegen
 	Exception.cpp
 	Function.cpp
 	FunctionCallInfo.cpp
+	FunctionTranslationStub.cpp
 	GenABIType.cpp
 	GenFunction.cpp
 	GenFunctionCall.cpp
@@ -34,6 +35,12 @@ add_library(locic-codegen
 	ModulePtr.cpp
 	Move.cpp
 	PendingResult.cpp
+	Primitives/Bool.cpp
+	Primitives/CompareResult.cpp
+	Primitives/FinalLval.cpp
+	Primitives/Float.cpp
+	Primitives/MemberLval.cpp
+	Primitives/Null.cpp
 	Primitives/PrimitiveDestructor.cpp
 	Primitives/PrimitiveMethod.cpp
 	Primitives/PrimitiveMove.cpp
@@ -41,7 +48,14 @@ add_library(locic-codegen
 	Primitives/PrimitiveStoreLval.cpp
 	Primitives/PrimitiveTypes.cpp
 	Primitives/PrimitiveTypeSizeKnowledge.cpp
-	Primitives/PrimitiveUnsignedIntegerMethod.cpp
+	Primitives/Ptr.cpp
+	Primitives/PtrLval.cpp
+	Primitives/Ref.cpp
+	Primitives/SignedInteger.cpp
+	Primitives/Typename.cpp
+	Primitives/UnsignedInteger.cpp
+	Primitives/ValueLval.cpp
+	Primitives/Void.cpp
 	Routines.cpp
 	ScopeExitActions.cpp
 	SizeOf.cpp
