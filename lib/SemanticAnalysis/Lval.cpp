@@ -19,21 +19,17 @@ namespace locic {
 			return getBuiltInType(context, context.getCString("value_lval"), { valueType })->createLvalType(valueType);
 		}
 		
-		const SEM::Type* makeMemberLvalType(Context& context, const SEM::Type* const valueType) {
-			return getBuiltInType(context, context.getCString("member_lval"), { valueType })->createLvalType(valueType);
-		}
-		
 		const SEM::Type* makeFinalLvalType(Context& context, const SEM::Type* const valueType) {
 			return getBuiltInType(context, context.getCString("final_lval"), { valueType })->createLvalType(valueType);
 		}
 		
-		const SEM::Type* makeLvalType(Context& context, const bool isMember, const bool isFinal, const SEM::Type* const valueType) {
-			if (getDerefType(valueType)->isLval()) return valueType;
+		const SEM::Type* makeLvalType(Context& context, const bool isFinal, const SEM::Type* const valueType) {
+			if (getDerefType(valueType)->isLval()) {
+				return valueType;
+			}
 			
 			if (isFinal) {
 				return makeFinalLvalType(context, valueType);
-			} else if (isMember) {
-				return makeMemberLvalType(context, valueType);
 			} else {
 				return makeValueLvalType(context, valueType);
 			}

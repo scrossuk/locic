@@ -48,14 +48,14 @@ namespace locic {
 			assert(type->isPrimitive());
 			const auto& name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
+			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
 		}
 		
 		bool primitiveTypeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval);
+			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
 		}
 		
 	}

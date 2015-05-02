@@ -8,7 +8,7 @@ class TemplatedClass(T object) {
 		return @(move object);
 	}
 	
-	lval<T> member_lval<T>& get() noexcept {
+	lval<T> value_lval<T>& get() noexcept {
 		return @object;
 	}
 }

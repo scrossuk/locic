@@ -1,0 +1,1 @@
+Can't implicitly cast type 'ref<lval<const\(TestClass\)>\(value_lval<const\(TestClass\)>\)>\(lval<const\(TestClass\)>\(value_lval<const\(TestClass\)>\)&\)' to type 'ref<TestClass>\(TestClass&\)' at position SourceLocation\(filename = (.*)/ConstRefLocalVarImplicitDissolve\.loci, range = \(line 15, column 9\) to \(line 15, column 28\)\)\.

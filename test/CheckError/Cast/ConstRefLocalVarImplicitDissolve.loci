@@ -1,0 +1,19 @@
+// Class definition.
+class TestClass() {
+	static create() noexcept {
+		return @();
+	}
+	
+	TestClass implicitCopy() const noexcept {
+		return @();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	const TestClass value = TestClass();
+	const TestClass& valueRef = value;
+	unused TestClass& value1Ref = valueRef;
+	return 0;
+}
+

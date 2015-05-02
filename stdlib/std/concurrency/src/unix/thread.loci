@@ -21,10 +21,10 @@ interface internal_thread_api {
 	std::event::source event_source() const noexcept;
 }
 
-datatype thread_ref(lval<internal_thread_api&> member_lval<internal_thread_api&> thread);
+datatype thread_ref(lval<internal_thread_api&> value_lval<internal_thread_api&> thread);
 
 static thread_ref thread_ref::empty() noexcept {
-	return @(lval<internal_thread_api&>(member_lval<internal_thread_api&>.__empty()));
+	return @(lval<internal_thread_api&>(value_lval<internal_thread_api&>.__empty()));
 }
 
 template <typename T>

@@ -19,7 +19,6 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveFinalLval:
-				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeAlwaysKnown(module, type->templateArguments().front().typeRefType());
 				case PrimitiveRef: {
@@ -40,7 +39,6 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveFinalLval:
-				case PrimitiveMemberLval:
 				case PrimitiveValueLval:
 					return isTypeSizeKnownInThisModule(module, type->templateArguments().front().typeRefType());
 				case PrimitiveRef: {

@@ -1,0 +1,42 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TestClass(MemberClass member) {
+	static create(MemberClass value) noexcept {
+		return @(move value);
+	}
+	
+	MemberClass extract() noexcept {
+		return move @member;
+	}
+}
+
+class MemberClass() {
+	static create = default;
+	
+	~ {
+		testPrint(C"MemberClass.~");
+	}
+	
+	void __move_to(void* ptr, size_t position) noexcept {
+		testPrint(C"MemberClass.__move_to");
+		// TODO: this should be auto-generated!
+		reinterpret_cast<MemberClass*, uint8_t*>(this)->__moveto(ptr, position);
+		*(reinterpret_cast<MemberClass*, uint8_t*>(this)) = 0u;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"TestClass testInstance = TestClass(MemberClass());");
+	TestClass testInstance = TestClass(MemberClass());
+	
+	testPrint(C"TestClass testInstanceMoved = move testInstance;");
+	TestClass testInstanceMoved = move testInstance;
+	
+	testPrint(C"auto extractedObject = testInstanceMoved.extract();");
+	unused auto extractedObject = testInstanceMoved.extract();
+	
+	return 0;
+}
+

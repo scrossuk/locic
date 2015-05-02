@@ -1,0 +1,17 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TestClass() {
+	static create = default;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	final auto testInstance = TestClass();
+	
+	// Error; can't assign to final_lval!
+	testInstance = TestClass();
+	
+	return 0;
+}
+

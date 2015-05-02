@@ -1,0 +1,24 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass() {
+	static create() noexcept {
+		testPrint(C"TestClass::create()");
+		return @();
+	}
+	
+	TestClass implicitCopy() const noexcept {
+		testPrint(C"TestClass::implicitCopy()");
+		return @();
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	TestClass value0 = TestClass();
+	TestClass value1 = value0;
+	unused TestClass value2 = value1;
+	return 0;
+}
+

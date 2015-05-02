@@ -38,10 +38,8 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval" || name == "final_lval" || name == "value_lval") {
-				// member_lval is struct { T value; }.
-				// Hence:
-				//     alignof(member_lval) = alignof(T).
+			if (name == "final_lval" || name == "value_lval") {
+				// lval is struct { T value; }.
 				function.getBuilder().CreateRet(genAlignMask(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "__ref") {
 				// Look at our template argument to see if it's virtual.
@@ -79,10 +77,8 @@ namespace locic {
 			
 			const auto& name = typeInstance->name().first();
 			
-			if (name == "member_lval" || name == "final_lval" || name == "value_lval") {
-				// member_lval is struct { T value; }.
-				// Hence:
-				//     sizeof(member_lval) = sizeof(T).
+			if (name == "final_lval" || name == "value_lval") {
+				// lval is struct { T value; }.
 				function.getBuilder().CreateRet(genSizeOf(function, getFirstTemplateVarRef(typeInstance)));
 			} else if (name == "__ref") {
 				// Look at our template argument to see if it's virtual.
@@ -118,7 +114,7 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			const auto& typeName = type->getObjectType()->name().last();
-			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
+			if (typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genAlignMask(function, targetType);
 			}
@@ -140,7 +136,7 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			const auto& typeName = type->getObjectType()->name().last();
-			if (typeName == "member_lval" || typeName == "final_lval" || typeName == "value_lval") {
+			if (typeName == "final_lval" || typeName == "value_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				return genSizeOf(function, targetType);
 			}

@@ -1,0 +1,11 @@
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	unsigned byte unsignedByteValue = 1u;
+	unsigned short unsignedShortValue = unsignedByteValue;
+	unsigned int unsignedIntValue = unsignedShortValue;
+	unsigned long unsignedLongValue = unsignedIntValue;
+	unused unsigned long long unsignedLongLongValue = unsignedLongValue;
+	return 0;
+}
+

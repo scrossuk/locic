@@ -22,7 +22,6 @@ namespace locic {
 			
 			switch (kind) {
 				case PrimitiveValueLval:
-				case PrimitiveMemberLval:
 				case PrimitiveFinalLval: {
 					return genPointerType(module, type->templateArguments().front().typeRefType());
 				}
@@ -68,7 +67,6 @@ namespace locic {
 				case PrimitivePtrLval:
 					return genPointerType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveValueLval:
-				case PrimitiveMemberLval:
 				case PrimitiveFinalLval: {
 					return genType(module, type->templateArguments().front().typeRefType());
 				}
@@ -247,7 +245,6 @@ namespace locic {
 					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval:
-				case PrimitiveMemberLval:
 					return genABIType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveTypename:
 					return typeInfoType(module).first;

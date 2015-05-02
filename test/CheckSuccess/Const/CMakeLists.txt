@@ -3,7 +3,6 @@
 test_check_success(ConstDatatypeIsCopyable)
 test_check_success(ConstFinalLvalIsCopyable)
 test_check_success(ConstIntIsCopyable)
-test_check_success(ConstMemberLvalIsCopyable)
 test_check_success(ConstPointerIsCopyable)
 test_check_success(ConstTemplatedDatatypeIsCopyable)
 test_check_success(ConstValueLvalIsCopyable)

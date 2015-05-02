@@ -39,7 +39,6 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("__ptr"), PrimitivePtr));
 			primitiveMap_.insert(std::make_pair(getCString("ptr_lval"), PrimitivePtrLval));
 			primitiveMap_.insert(std::make_pair(getCString("value_lval"), PrimitiveValueLval));
-			primitiveMap_.insert(std::make_pair(getCString("member_lval"), PrimitiveMemberLval));
 			primitiveMap_.insert(std::make_pair(getCString("final_lval"), PrimitiveFinalLval));
 			primitiveMap_.insert(std::make_pair(getCString("typename_t"), PrimitiveTypename));
 			primitiveMap_.insert(std::make_pair(getCString("compare_result_t"), PrimitiveCompareResult));

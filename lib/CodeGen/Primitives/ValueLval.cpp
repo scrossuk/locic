@@ -20,6 +20,15 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		llvm::Value* genValueLvalEmptyMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
+			auto& builder = functionGenerator.getBuilder();
+			auto& module = functionGenerator.module();
+			
+			const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
+			genSetDeadState(functionGenerator, targetType, objectVar);
+			return genMoveLoad(functionGenerator, objectVar, targetType);
+		}
+		
 		llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& builder = functionGenerator.getBuilder();
 			auto& module = functionGenerator.module();
@@ -112,6 +121,8 @@ namespace locic {
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			switch (methodID) {
+				case METHOD_EMPTY:
+					return genValueLvalEmptyMethod(functionGenerator, targetType, hintResultValue);
 				case METHOD_CREATE:
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), hintResultValue);
 				case METHOD_SETDEAD:

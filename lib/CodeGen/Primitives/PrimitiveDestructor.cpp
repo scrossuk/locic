@@ -37,7 +37,7 @@ namespace locic {
 			
 			const auto& typeName = type->getObjectType()->name().last();
 			
-			if (typeName == "value_lval" || typeName == "final_lval" || typeName == "member_lval") {
+			if (typeName == "value_lval" || typeName == "final_lval") {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				genDestructorCall(function, targetType, value);
 			}
@@ -47,14 +47,14 @@ namespace locic {
 			assert(type->isPrimitive());
 			const auto& name = type->getObjectType()->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front().typeRefType());
+			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front().typeRefType());
 		}
 		
 		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
 			assert(typeInstance->isPrimitive());
 			const auto& name = typeInstance->name().first();
 			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveMemberLval || kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
+			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
 		}
 		
 	}

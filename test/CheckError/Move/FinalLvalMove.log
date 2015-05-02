@@ -1,0 +1,1 @@
+Cannot find method 'move' for type 'lval<TestClass>\(final_lval<TestClass>\)' at position SourceLocation\(filename = (.*).loci, range = \(line 13, column 27\) to \(line 13, column 44\)\)\.

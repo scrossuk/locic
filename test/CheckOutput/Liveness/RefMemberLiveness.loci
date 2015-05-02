@@ -1,0 +1,79 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(int& member) {
+	static create(int& value) noexcept {
+		return @(value);
+	}
+}
+
+// TODO: remove need for this function...
+const int& removeLval(const int& refValue) noexcept {
+	return refValue;
+}
+
+class TypeWithDestructor(int& member) {
+	static create(int& value) noexcept {
+		return @(value);
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which can be aliased with the invalid
+		// state of the reference member variable.
+		testPrint(C"Destructor called.");
+	}
+	
+	bool isRefValid() const noexcept {
+		return noref(removeLval(@member)).__isvalid();
+	}
+}
+
+void checkSize() {
+	testPrint(C"---- checkSize()");
+	const auto withoutDestructorSize = sizeof(TypeWithoutDestructor);
+	const auto withDestructorSize = sizeof(TypeWithDestructor);
+	
+	testPrint(C"Type sizes match: %s", withoutDestructorSize == withDestructorSize ? C"yes" : C"no");
+}
+
+void checkLive() {
+	int i = 0;
+	testPrint(C"---- checkLive()");
+	auto value = TypeWithDestructor(i);
+	testPrint(C"value.isRefValid() = %s", value.isRefValid() ? C"yes" : C"no");
+}
+
+void checkDead() {
+	int i = 0;
+	testPrint(C"---- checkDead()");
+	auto value = TypeWithDestructor(i);
+	value.__setdead();
+	testPrint(C"value.isRefValid() = %s", value.isRefValid() ? C"yes" : C"no");
+}
+
+void checkMove() {
+	int i = 0;
+	testPrint(C"---- checkMove()");
+	auto value = TypeWithDestructor(i);
+	testPrint(C"value.isRefValid() = %s", value.isRefValid() ? C"yes" : C"no");
+	{
+		testPrint(C"* Move object.");
+		auto movedValue = move value;
+		testPrint(C"movedValue.isRefValid() = %s", movedValue.isRefValid() ? C"yes" : C"no");
+		testPrint(C"value.isRefValid() = %s", value.isRefValid() ? C"yes" : C"no");
+		testPrint(C"* Destroy moved object.");
+	}
+	testPrint(C"value.isRefValid() = %s", value.isRefValid() ? C"yes" : C"no");
+	testPrint(C"* Destroy original object.");
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

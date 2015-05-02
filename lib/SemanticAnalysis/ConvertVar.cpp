@@ -110,8 +110,7 @@ namespace locic {
 						// moving or re-assignment).
 						const bool isFinalLval = astTypeVarNode->isFinal();
 						
-						const bool isMember = false;
-						const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
+						const auto lvalType = makeLvalType(context, isFinalLval, varType);
 						
 						const auto var = SEM::Var::Basic(varType, lvalType);
 						var->setMarkedUnused(astTypeVarNode->isUnused());
@@ -194,8 +193,7 @@ namespace locic {
 					// moving or re-assignment).
 					const bool isFinalLval = astTypeVarNode->isFinal();
 					
-					const bool isMember = (varKind == Debug::VarInfo::VAR_MEMBER);
-					const auto lvalType = makeLvalType(context, isMember, isFinalLval, varType);
+					const auto lvalType = makeLvalType(context, isFinalLval, varType);
 					
 					const auto var = SEM::Var::Basic(varType, lvalType);
 					var->setMarkedUnused(astTypeVarNode->isUnused());

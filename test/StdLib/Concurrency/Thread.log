@@ -1,0 +1,4 @@
+testCreateThread
+Creating thread.
+TestRunnable::run()
+Joined thread.

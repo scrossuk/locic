@@ -226,11 +226,11 @@ namespace locic {
 							const auto methodOwnerValue = methodOwner.get(llvmType);
 							if (llvmType->isPointerTy()) {
 								const auto nullValue = ConstantGenerator(module).getNull(llvmType);
-								return builder.CreateICmpEQ(methodOwnerValue, nullValue);
+								return builder.CreateICmpNE(methodOwnerValue, nullValue);
 							} else {
 								const auto pointerValue = builder.CreateExtractValue(methodOwnerValue, { 0 });
 								const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
-								return builder.CreateICmpEQ(pointerValue, nullValue);
+								return builder.CreateICmpNE(pointerValue, nullValue);
 							}
 						});
 				}

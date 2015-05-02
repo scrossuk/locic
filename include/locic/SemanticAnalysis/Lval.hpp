@@ -11,12 +11,10 @@ namespace locic {
 	
 		const SEM::Type* makeValueLvalType(Context& context, const SEM::Type* valueType);
 		
-		const SEM::Type* makeMemberLvalType(Context& context, const SEM::Type* valueType);
-		
 		// Wraps the given type in a default implicit lval, unless
 		// the type is itself an lval (or some number of refs that lead
 		// to an lval).
-		const SEM::Type* makeLvalType(Context& context, bool isMember, bool isFinal, const SEM::Type* valueType);
+		const SEM::Type* makeLvalType(Context& context, bool isFinal, const SEM::Type* valueType);
 		
 		size_t getLvalCount(const SEM::Type* type);
 		

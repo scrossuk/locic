@@ -1,0 +1,23 @@
+testFibonacciMessageQueue
+Sending value: 1
+Received value: 1
+Sending value: 2
+Received value: 2
+Sending value: 3
+Received value: 3
+Sending value: 5
+Received value: 5
+Sending value: 8
+Received value: 8
+Sending value: 13
+Received value: 13
+Sending value: 21
+Received value: 21
+Sending value: 34
+Received value: 34
+Sending value: 55
+Received value: 55
+Sending value: 89
+Received value: 89
+Sending value: 144
+Received value: 144

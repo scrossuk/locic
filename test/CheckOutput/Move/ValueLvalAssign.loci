@@ -28,14 +28,11 @@ class MemberClass() {
 
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	testPrint(C"auto testInstance = TestClass(MemberClass());");
-	auto testInstance = TestClass(MemberClass());
+	testPrint(C"TestClass testInstance = TestClass(MemberClass());");
+	TestClass testInstance = TestClass(MemberClass());
 	
-	testPrint(C"auto testInstanceMoved = move testInstance;");
-	auto testInstanceMoved = move testInstance;
-	
-	testPrint(C"auto extractedObject = testInstanceMoved.extract();");
-	unused auto extractedObject = testInstanceMoved.extract();
+	testPrint(C"testInstance = TestClass(MemberClass());");
+	testInstance = TestClass(MemberClass());
 	
 	return 0;
 }

@@ -9,6 +9,8 @@ interface queryislive {
 template <typename T>
 notag(T)
 __primitive value_lval {
+	static value_lval<T> __empty() noexcept require(T : deadstateable and T : movable);
+	
 	static value_lval<T> create(T value) noexcept require(T : movable);
 	
 	value_lval<notag(T)> implicit_copy() const noexcept(T : noexcept_implicit_copyable<T>) require(notag(T) : movable and T : implicit_copyable<T>);

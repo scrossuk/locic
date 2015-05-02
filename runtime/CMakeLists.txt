@@ -22,7 +22,6 @@ set(RUNTIME_FILES
 	longdouble_t.loci
 	longlong_t.loci
 	long_t.loci
-	member_lval.loci
 	movable.loci
 	null_t.loci
 	ptrdiff_t.loci
