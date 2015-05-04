@@ -14,11 +14,8 @@ class MemberClass() {
 		testPrint(C"MemberClass.~");
 	}
 	
-	void __move_to(void* ptr, size_t position) noexcept {
+	void __move_to(unused void* ptr, unused size_t position) noexcept {
 		testPrint(C"MemberClass.__move_to");
-		// TODO: this should be auto-generated!
-		reinterpret_cast<MemberClass*, uint8_t*>(this)->__moveto(ptr, position);
-		*(reinterpret_cast<MemberClass*, uint8_t*>(this)) = 0u;
 	}
 }
 

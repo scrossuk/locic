@@ -69,6 +69,46 @@ namespace locic {
 			}
 		}
 		
+		llvm::Function* createNamedFunction(Module& module, const String& name, const SEM::Type* const type, const llvm::GlobalValue::LinkageTypes linkage) {
+			const auto argInfo = getFunctionArgInfo(module, type);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, name);
+			
+			if (!canPassByValue(module, type->getFunctionReturnType())) {
+				// Class return values are allocated by the caller,
+				// which passes a pointer to the callee. The caller
+				// and callee must, for the sake of optimisation,
+				// ensure that the following attributes hold...
+				
+				// Caller must ensure pointer is always valid.
+				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
+				
+				// Caller must ensure pointer does not alias with
+				// any other arguments.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
+				
+				// Callee must not capture the pointer.
+				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
+			}
+			
+			return llvmFunction;
+		}
+		
+		llvm::Function* getNamedFunction(Module& module, const String& name, const SEM::Type* const type, const llvm::GlobalValue::LinkageTypes linkage) {
+			{
+				const auto iterator = module.getFunctionMap().find(name);
+				
+				if (iterator != module.getFunctionMap().end()) {
+					return iterator->second;
+				}
+			}
+			
+			const auto llvmFunction = createNamedFunction(module, name, type, linkage);
+			
+			module.getFunctionMap().insert(std::make_pair(name, llvmFunction));
+			
+			return llvmFunction;
+		}
+		
 		llvm::Function* genFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
 			if (function->isMethod()) {
 				assert(typeInstance != nullptr);
@@ -92,37 +132,10 @@ namespace locic {
 				 mangleMethodName(module, typeInstance, function->name().last()) :
 				 mangleFunctionName(module, function->name()));
 			
-			{
-				const auto iterator = module.getFunctionMap().find(mangledName);
-				
-				if (iterator != module.getFunctionMap().end()) {
-					return iterator->second;
-				}
-			}
-			
-			const auto argInfo = getFunctionArgInfo(module, function->type());
 			const auto linkage = getFunctionLinkage(typeInstance, function);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
+			const auto llvmFunction = getNamedFunction(module, mangledName, function->type(), linkage);
 			
-			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			module.getFunctionDeclMap().insert(std::make_pair(function, llvmFunction));
-			
-			if (!canPassByValue(module, function->type()->getFunctionReturnType())) {
-				// Class return values are allocated by the caller,
-				// which passes a pointer to the callee. The caller
-				// and callee must, for the sake of optimisation,
-				// ensure that the following attributes hold...
-				
-				// Caller must ensure pointer is always valid.
-				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
-				
-				// Caller must ensure pointer does not alias with
-				// any other arguments.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
-				
-				// Callee must not capture the pointer.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
-			}
 			
 			if (function->isPrimitive()) {
 				// Generate primitive methods as needed.
@@ -130,6 +143,37 @@ namespace locic {
 			}
 			
 			return llvmFunction;
+		}
+		
+		bool isInnerMethodFunction(const String& name) {
+			return name == "__moveto" || name == "__move_to";
+		}
+		
+		String mangleUserFunctionName(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			if (isInnerMethodFunction(function->name().last())) {
+				assert(function->isMethod());
+				return mangleModuleScope(module, function->moduleScope()) +
+					mangleMethodName(module, typeInstance, function->name().last() + "_internal");
+			} else {
+				return mangleModuleScope(module, function->moduleScope()) +
+					(function->isMethod() ?
+						mangleMethodName(module, typeInstance, function->name().last()) :
+						mangleFunctionName(module, function->name()));
+			}
+		}
+		
+		llvm::Function* genUserFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			if (function->isMethod()) {
+				assert(typeInstance != nullptr);
+			} else {
+				assert(typeInstance == nullptr);
+			}
+			
+			assert(!function->requiresPredicate().isFalse());
+			
+			const auto mangledName = mangleUserFunctionName(module, typeInstance, function);
+			const auto linkage = getFunctionLinkage(typeInstance, function);
+			return getNamedFunction(module, mangledName, function->type(), linkage);
 		}
 		
 		namespace {
@@ -160,10 +204,26 @@ namespace locic {
 			
 		}
 		
-		llvm::Function* genFunctionDef(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
-			const auto llvmFunction = genFunctionDecl(module, typeInstance, function);
+		void genFunctionParameterAllocas(Function& functionGenerator, SEM::Function* function) {
+			auto& module = functionGenerator.module();
 			
-			// --- Generate function code.
+			for (size_t i = 0; i < function->parameters().size(); i++) {
+				const auto& paramVar = function->parameters()[i];
+				
+				// If value can't be passed by value it will be
+				// passed by pointer, which can be re-used for
+				// a variable to avoid an alloca.
+				const auto hintResultValue =
+					canPassByValue(module, paramVar->constructType()) ?
+						nullptr :
+						functionGenerator.getArg(i);
+				
+				genVarAlloca(functionGenerator, paramVar, hintResultValue);
+			}
+		}
+		
+		llvm::Function* genFunctionDef(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function) {
+			const auto llvmFunction = genUserFunctionDecl(module, typeInstance, function);
 			
 			if (function->isPrimitive()) {
 				// Already generated in genFunctionDecl().
@@ -196,22 +256,7 @@ namespace locic {
 			
 			functionGenerator.setDebugPosition(function->debugInfo()->scopeLocation.range().start());
 			
-			// Generate allocas for parameters.
-			for (size_t i = 0; i < function->parameters().size(); i++) {
-				const auto& paramVar = function->parameters()[i];
-				
-				// If value can't be passed by value it will be
-				// passed by pointer, which can be re-used for
-				// a variable to avoid an alloca.
-				const auto hintResultValue =
-					canPassByValue(module, paramVar->constructType()) ?
-						nullptr :
-						functionGenerator.getArg(i);
-				
-				genVarAlloca(functionGenerator, paramVar,
-					hintResultValue);
-			}
-			
+			genFunctionParameterAllocas(functionGenerator, function);
 			genFunctionCode(functionGenerator, function);
 			
 			if (!function->templateVariables().empty()) {
@@ -222,7 +267,6 @@ namespace locic {
 				templateBuilder.updateAllInstructions(module);
 			}
 			
-			// Check the generated function is correct.
 			functionGenerator.verify();
 			
 			return llvmFunction;

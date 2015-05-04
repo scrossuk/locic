@@ -26,7 +26,6 @@ namespace locic {
 			if (var->isBasic()) {
 				auto& module = function.module();
 				
-				// Create an alloca for this variable.
 				const auto stackObject = genAlloca(function, var->type(), hintResultValue);
 				
 				// Generate debug information for the variable
@@ -46,7 +45,6 @@ namespace locic {
 				// any SEM vars can be mapped to the actual value.
 				function.getLocalVarMap().insert(var, stackObject);
 			} else if (var->isComposite()) {
-				// Generate child vars.
 				for (const auto childVar: var->children()) {
 					genVarAlloca(function, childVar);
 				}
@@ -65,9 +63,6 @@ namespace locic {
 			} else if (var->isBasic()) {
 				const auto varValue = function.getLocalVarMap().get(var);
 				genStoreVar(function, initialiseValue, varValue, var);
-				
-				// Add this to the list of variables to be
-				// destroyed at the end of the function.
 				scheduleDestructorCall(function, var->type(), varValue);
 			} else if (var->isComposite()) {
 				if (!initialiseValue->getType()->isPointerTy()) {

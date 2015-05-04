@@ -23,7 +23,12 @@ export std.memory 0.1.0 {
 			}
 			
 			bool __islive() const noexcept {
-				return @ptr != null;
+				// Always run destructor/move method, since
+				// in the 'dead' case (i.e. pointers being null)
+				// the destructor will just do nothing; this
+				// avoids a liveness indicator byte being added
+				// to the object.
+				return true;
 			}
 			
 			template <bool IsConst>
