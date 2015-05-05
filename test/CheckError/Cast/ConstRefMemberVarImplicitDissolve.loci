@@ -1,28 +1,7 @@
-// Class definition.
-class MemberClass() {
-	static create() noexcept {
-		return @();
-	}
-	
-	MemberClass implicitCopy() const noexcept {
-		return @();
+
+class TestClass(int& member) {
+	int& getRef() const {
+		// Error: member is const here.
+		return @member;
 	}
 }
-
-class TestClass(MemberClass& member) {
-	static create = default;
-	
-	MemberClass& getRef() const {
-		MemberClass& valueRef = @member;
-		return valueRef;
-	}
-}
-
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	MemberClass member = MemberClass();
-	TestClass value = TestClass(member);
-	unused_result value.getRef();
-	return 0;
-}
-

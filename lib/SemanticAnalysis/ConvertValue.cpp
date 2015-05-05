@@ -12,7 +12,7 @@
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
-#include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>

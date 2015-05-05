@@ -7,7 +7,7 @@
 #include <locic/AST.hpp>
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
-#include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertForLoop.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>

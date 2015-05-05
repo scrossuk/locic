@@ -8,7 +8,7 @@
 
 #include <locic/SEM.hpp>
 
-#include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>

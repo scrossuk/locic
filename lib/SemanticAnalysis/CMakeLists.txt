@@ -1,6 +1,6 @@
 add_library(locic-semanalysis
 	Analysis.cpp
-	CanCast.cpp
+	Cast.cpp
 	Context.cpp
 	ConvertException.cpp
 	ConvertForLoop.cpp
@@ -25,5 +25,6 @@ add_library(locic-semanalysis
 	SearchResult.cpp
 	Template.cpp
 	TypeProperties.cpp
-	VarArgCast.cpp)
+	VarArgCast.cpp
+)
 

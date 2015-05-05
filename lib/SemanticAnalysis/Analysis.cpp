@@ -10,7 +10,7 @@
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 
-#include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDecl.hpp>

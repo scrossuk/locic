@@ -7,7 +7,8 @@
 #include <locic/Support/String.hpp>
 #include <locic/SEM.hpp>
 
-#include <locic/SemanticAnalysis/CanCast.hpp>
+#include <locic/SemanticAnalysis/Cast.hpp>
+#include <locic/SemanticAnalysis/CastException.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -276,7 +277,7 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly = false);
+		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly = false);
 		
 		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
 			const auto sourceType = value.type();
@@ -309,7 +310,7 @@ location, bool isTopLevel) {
 		}
 		
 		// User-defined casts.
-		Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value rawValue, const SEM::Type* destType, const Debug::SourceLocation& location) {
+		Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value rawValue, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
 			
@@ -317,6 +318,11 @@ location, bool isTopLevel) {
 			const auto destDerefType = getDerefType(destType)->createConstType(SEM::Predicate::False());
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
+				if (destDerefType->isObject() && sourceDerefType->getObjectType() == destDerefType->getObjectType()) {
+					// Can't cast to same type.
+					return Optional<SEM::Value>();
+				}
+				
 				const auto& castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
 				
 				const auto& requiresPredicate = castFunction->requiresPredicate();
@@ -334,7 +340,7 @@ location, bool isTopLevel) {
 					auto castValue = CallValue(context, std::move(method), {}, location);
 					
 					// There still might be some aspects to cast with the constructed type.
-					return ImplicitCastConvert(context, errors, std::move(castValue), destType, location);
+					return ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 				} else {
 					errors.push_back(makeString("User cast failed from type '%s' to type '%s' at position %s.",
 						sourceDerefType->toString().c_str(), destDerefType->toString().c_str(), location.toString().c_str()));
@@ -358,7 +364,7 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
@@ -387,7 +393,7 @@ location, bool isTopLevel) {
 					
 					if (found) {
 						auto castValue = SEM::Value::Cast(destDerefType, value.copy());
-						auto castResult = ImplicitCastConvert(context, errors, std::move(castValue), destType, location);
+						auto castResult = ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 						if (castResult) {
 							return castResult;
 						}
@@ -411,7 +417,7 @@ location, bool isTopLevel) {
 						reducedValue = derefOne(std::move(reducedValue));
 					}
 					
-					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location);
+					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location, allowBind);
 					if (castResult) {
 						return castResult;
 					}
@@ -431,7 +437,7 @@ location, bool isTopLevel) {
 						reducedValue = dissolveLval(context, derefValue(std::move(reducedValue)), location);
 					}
 					
-					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location);
+					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location, allowBind);
 					if (castResult) {
 						return castResult;
 					}
@@ -478,7 +484,8 @@ location, bool isTopLevel) {
 						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
 						std::move(copyValue);
 					
-					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyRefValue), destType, location);
+					const bool nextAllowBind = false;
+					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyRefValue), destType, location, nextAllowBind);
 					if (convertCast) {
 						return convertCast;
 					}
@@ -515,19 +522,20 @@ location, bool isTopLevel) {
 						SEM::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
 						std::move(copyRefValue);
 				
-				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyStaticRefValue), destType, location);
+				const bool nextAllowBind = false;
+				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyStaticRefValue), destType, location, nextAllowBind);
 				if (convertCast) {
 					return convertCast;
 				}
 			}
 			
 			// Try to bind value to reference (e.g. T -> T&).
-			if (!sourceType->isLval() && !sourceType->isRef() && destType->isRef() &&
+			if (allowBind && !sourceType->isLval() && !sourceType->isRef() && destType->isRef() &&
 					destType->isBuiltInReference() &&
 					doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->refTarget()->constPredicate()) &&
 					isStructurallyEqual(sourceType, destType->refTarget())) {
 				auto refValue = bindReference(context, value.copy());
-				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location);
+				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location, allowBind);
 				if (castResult) {
 					return castResult;
 				}
@@ -535,7 +543,7 @@ location, bool isTopLevel) {
 			
 			// Try a user cast.
 			{
-				auto castResult = ImplicitCastUser(context, errors, value.copy(), destType, location);
+				auto castResult = ImplicitCastUser(context, errors, value.copy(), destType, location, allowBind);
 				if (castResult) {
 					return castResult;
 				}
@@ -548,7 +556,8 @@ location, bool isTopLevel) {
 			std::vector<std::string> errors;
 			const auto valueKind = value.kind();
 			const auto valueType = value.type();
-			auto result = ImplicitCastConvert(context, errors, std::move(value), destType->resolveAliases(), location, formatOnly);
+			const bool allowBind = true;
+			auto result = ImplicitCastConvert(context, errors, std::move(value), destType->resolveAliases(), location, allowBind, formatOnly);
 			if (result) {
 				return std::move(*result);
 			}
@@ -571,9 +580,10 @@ location, bool isTopLevel) {
 		}
 		
 		bool CanDoImplicitCast(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
-			const auto formatOnly = false;
+			const bool allowBind = true;
+			const bool formatOnly = false;
 			std::vector<std::string> errors;
-			const auto result = ImplicitCastConvert(context, errors, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
+			const auto result = ImplicitCastConvert(context, errors, SEM::Value::CastDummy(sourceType), destType, location, allowBind, formatOnly);
 			return result;
 		}
 		
