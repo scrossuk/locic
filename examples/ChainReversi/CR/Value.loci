@@ -7,8 +7,8 @@ namespace CR {
 		| Red()
 		| Blue();
 	
-	Value opposite(Value value) noexcept {
-		switch (value) {
+	Value Value::opposite() const noexcept {
+		switch (self) {
 			case Red() {
 				return Blue();
 			}

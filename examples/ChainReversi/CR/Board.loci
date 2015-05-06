@@ -59,7 +59,7 @@ namespace CR {
 		}
 		
 		Value opponent() const noexcept {
-			return opposite(@currentPlayer);
+			return @currentPlayer.opposite();
 		}
 		
 		BoardSize size() const noexcept {
