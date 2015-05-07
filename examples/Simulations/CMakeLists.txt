@@ -1,4 +1,13 @@
+find_package(CSFML 2.1 COMPONENTS graphics window system)
+
+if(NOT CSFML_FOUND)
+	message(WARNING "Failed to find CSFML so can't build Simulations example.")
+	return()
+endif()
+
 file(COPY Data DESTINATION .)
+
+loci_get_3rdparty_api_files(SFML_API_FILES SFML)
 
 loci_module(Simulations_Module simulations.bc ""
 	main.loci

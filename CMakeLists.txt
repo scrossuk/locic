@@ -2,6 +2,9 @@
 
 cmake_minimum_required (VERSION 2.8)
 
+# Use new comparison behaviour.
+cmake_policy(SET CMP0054 NEW)
+
 # Use Debug build by default.
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
@@ -263,6 +266,9 @@ set (STD_STRING_API_FILES
 set (STD_STRING_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/string/std_string.bc"
 )
+
+# 3rd-party library Loci bindings.
+add_subdirectory(3rdparty)
 
 # Documentation.
 add_subdirectory(docs)

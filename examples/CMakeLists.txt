@@ -1,6 +1,5 @@
 find_package(LLVM REQUIRED)
 find_package(Clang REQUIRED)
-find_package(CSFML 2.1 COMPONENTS graphics window system)
 
 set(LOCIC "${CMAKE_BINARY_DIR}/tools/locic")
 
@@ -90,32 +89,11 @@ function(loci_example name binary_name flags)
 	loci_link("${name}" "${binary_name}" "${flags}" "${binary_name}.bc")
 endfunction(loci_example)
 
-set(SFML_API_FILES
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/CircleShape.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Clock.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Color.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Event.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Font.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Mouse.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Rect.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/RectangleShape.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/RenderWindow.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Text.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/Vector.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/VideoMode.loci"
-	"${CMAKE_CURRENT_SOURCE_DIR}/SFML/View.loci"
-)
-
 add_subdirectory(Calculator)
+add_subdirectory(ChainReversi)
 add_subdirectory(CommandLine)
 add_subdirectory(Events)
 add_subdirectory(Looper)
 add_subdirectory(Network)
+add_subdirectory(Simulations)
 add_subdirectory(SplitModule)
-
-if(CSFML_FOUND)
-	add_subdirectory(ChainReversi)
-	add_subdirectory(Simulations)
-else()
-	message(WARNING "Failed to find CSFML so can't build ChainReversi or Simulations examples.")
-endif()
