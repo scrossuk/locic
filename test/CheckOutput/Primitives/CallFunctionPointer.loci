@@ -1,0 +1,19 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+void functionToBeCalled(int value) {
+	testPrint(C"value = %d", value);
+}
+
+void callFunction((*)(void)(int) function, int value) {
+	function(value);
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) noexcept {
+	auto function = functionToBeCalled;
+	callFunction(function, 1);
+	callFunction(functionToBeCalled, 2);
+	return 0;
+}
+
