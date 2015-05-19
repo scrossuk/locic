@@ -43,6 +43,16 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("typename_t"), PrimitiveTypename));
 			primitiveMap_.insert(std::make_pair(getCString("compare_result_t"), PrimitiveCompareResult));
 			
+			primitiveMap_.insert(std::make_pair(getCString("function0_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function1_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function2_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function3_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function4_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function5_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function6_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function7_ptr_t"), PrimitiveFunctionPtr));
+			primitiveMap_.insert(std::make_pair(getCString("function8_ptr_t"), PrimitiveFunctionPtr));
+			
 			primitiveMap_.insert(std::make_pair(getCString("int8_t"), PrimitiveInt8));
 			primitiveMap_.insert(std::make_pair(getCString("int16_t"), PrimitiveInt16));
 			primitiveMap_.insert(std::make_pair(getCString("int32_t"), PrimitiveInt32));
@@ -214,7 +224,10 @@ namespace locic {
 		
 		PrimitiveKind Module::primitiveKind(const String& name) const {
 			const auto iterator = primitiveMap_.find(name);
-			assert(iterator != primitiveMap_.end() && "Failed to find primitive type!");
+			if (iterator == primitiveMap_.end()) {
+				printf("%s\n", name.c_str());
+				llvm_unreachable("Failed to find primitive type.");
+			}
 			return iterator->second;
 		}
 		

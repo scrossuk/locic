@@ -6,11 +6,17 @@
 #include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
 
-#include <locic/SEM.hpp>
-
 namespace locic {
 	
 	class String;
+	
+	namespace SEM {
+		
+		class Function;
+		class Type;
+		class TypeInstance;
+		
+	}
 	
 	namespace CodeGen {
 		
@@ -19,6 +25,8 @@ namespace locic {
 			PrimitiveNull,
 			PrimitiveBool,
 			PrimitiveCompareResult,
+			
+			PrimitiveFunctionPtr,
 			
 			PrimitiveInt8,
 			PrimitiveUInt8,
@@ -56,6 +64,7 @@ namespace locic {
 			PrimitiveTypename
 		};
 		
+		class ArgInfo;
 		class Function;
 		class Module;
 		

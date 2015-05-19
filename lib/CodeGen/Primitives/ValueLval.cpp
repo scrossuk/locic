@@ -21,9 +21,6 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* genValueLvalEmptyMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
-			auto& builder = functionGenerator.getBuilder();
-			auto& module = functionGenerator.module();
-			
 			const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
 			genSetDeadState(functionGenerator, targetType, objectVar);
 			return genMoveLoad(functionGenerator, objectVar, targetType);
@@ -112,7 +109,7 @@ namespace locic {
 			return ConstantGenerator(module).getVoidUndef();
 		}
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& functionGenerator, const SEM::Type* type, const String& methodName, const SEM::Type* const /*functionType*/,
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& functionGenerator, const SEM::Type* type, const String& methodName, SEM::FunctionType /*functionType*/,
 				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = functionGenerator.module();
 			

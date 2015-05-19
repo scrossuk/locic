@@ -177,7 +177,7 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), typeInstance->selfType(), std::move(constructTypes)));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), typeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		
@@ -222,7 +222,7 @@ namespace locic {
 			}
 			
 			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), voidType, std::move(argTypes)));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, std::move(argTypes)));
 			return semFunction;
 		}
 		
@@ -248,7 +248,7 @@ namespace locic {
 			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType()->createNoTagType();
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), returnType, {}));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
 			return semFunction;
 		}
 		
@@ -274,7 +274,7 @@ namespace locic {
 			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType()->createNoTagType();
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), returnType, {}));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
 			return semFunction;
 		}
 		
@@ -305,7 +305,7 @@ namespace locic {
 			argTypes.reserve(1);
 			argTypes.push_back(argType);
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), compareResultType, std::move(argTypes)));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), compareResultType, std::move(argTypes)));
 			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
 			return semFunction;
 		}
@@ -327,7 +327,7 @@ namespace locic {
 			
 			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), voidType, {}));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, {}));
 			return semFunction;
 		}
 		
@@ -349,7 +349,7 @@ namespace locic {
 			
 			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
 			
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), boolType, {}));
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), boolType, {}));
 			return semFunction;
 		}
 		

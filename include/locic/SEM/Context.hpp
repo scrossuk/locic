@@ -4,9 +4,11 @@
 #include <memory>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace SEM {
+		
+		class FunctionType;
+		class FunctionTypeData;
 		class Namespace;
 		class Type;
 		
@@ -14,6 +16,8 @@ namespace locic {
 			public:
 				Context();
 				~Context();
+				
+				FunctionType getFunctionType(FunctionTypeData functionType) const;
 				
 				const Type* getType(Type type) const;
 				

@@ -441,20 +441,19 @@ namespace locic {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						return VirtualCall::generateCall(function, semCallValue.type(), methodComponents, llvmArgs, hintResultValue);
+						return VirtualCall::generateCall(function, semCallValue.type()->asFunctionType(), methodComponents, llvmArgs, hintResultValue);
 					}
 					
 					assert(semCallValue.type()->isFunction() || semCallValue.type()->isMethod());
 					
+					// TODO: merge this with the call below.
 					if (isTrivialFunction(module, semCallValue)) {
 						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 					}
 					
 					const auto callInfo = genFunctionCallInfo(function, semCallValue);
-					const auto functionType = semCallValue.type()->isMethod() ?
-						semCallValue.type()->getMethodFunctionType() : semCallValue.type();
-					
-					return genFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), hintResultValue);
+					const auto functionType = semCallValue.type()->asFunctionType();
+					return genSEMFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), hintResultValue);
 				}
 				
 				case SEM::Value::FUNCTIONREF:

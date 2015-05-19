@@ -45,7 +45,7 @@ namespace locic {
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& methodName, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
+		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -73,7 +73,7 @@ namespace locic {
 			} else if (methodName == "__islive" || methodName == "__is_live") {
 				return ConstantGenerator(module).getI1(true);
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
-				const auto argType = functionType->getFunctionParameterTypes().front();
+				const auto argType = functionType.parameterTypes().front();
 				const auto operand = args[0].resolve(function);
 				const auto selfType = genType(module, type);
 				if (isFloatType(module, argType)) {

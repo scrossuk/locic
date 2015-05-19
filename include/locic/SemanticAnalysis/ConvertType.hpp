@@ -5,11 +5,17 @@
 
 #include <locic/AST.hpp>
 #include <locic/Support/Map.hpp>
-#include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class FunctionType;
+		class Type;
+		
+	}
+	
 	namespace SemanticAnalysis {
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
@@ -20,6 +26,8 @@ namespace locic {
 		 * \brief Convert symbol to semantic object type.
 		 */
 		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol);
+		
+		const SEM::Type* createFunctionType(Context& context, SEM::FunctionType builtInFunctionType);
 		
 		/**
 		 * \brief Convert AST type annotation to a semantic type definition.

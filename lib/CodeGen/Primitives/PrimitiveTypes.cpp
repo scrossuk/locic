@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <locic/Support/String.hpp>
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -66,6 +67,9 @@ namespace locic {
 				case PrimitivePtr:
 				case PrimitivePtrLval:
 					return genPointerType(module, type->templateArguments().front().typeRefType());
+				case PrimitiveFunctionPtr: {
+					return getFunctionArgInfo(module, type->asFunctionType()).makeFunctionType()->getPointerTo();
+				}
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval: {
 					return genType(module, type->templateArguments().front().typeRefType());
@@ -162,6 +166,7 @@ namespace locic {
 				case PrimitiveLongDouble:
 					return TypeGenerator(module).getLongDoubleType();
 				case PrimitivePtr:
+				case PrimitiveFunctionPtr:
 				case PrimitivePtrLval:
 					return TypeGenerator(module).getI8PtrType();
 				case PrimitiveTypename:
@@ -183,6 +188,8 @@ namespace locic {
 					// TODO: use a void type?
 					return llvm_abi::Type::Struct(abiContext, {});
 				case PrimitiveNull:
+				case PrimitivePtr:
+				case PrimitiveFunctionPtr:
 					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveCompareResult:
 				case PrimitiveBool:
@@ -241,6 +248,7 @@ namespace locic {
 					}
 				}
 				case PrimitivePtr:
+				case PrimitiveFunctionPtr:
 				case PrimitivePtrLval:
 					return llvm_abi::Type::Pointer(abiContext);
 				case PrimitiveValueLval:

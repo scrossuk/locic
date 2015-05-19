@@ -6,6 +6,9 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/SEM/TemplateVar.hpp>
+#include <locic/SEM/Type.hpp>
+#include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
 

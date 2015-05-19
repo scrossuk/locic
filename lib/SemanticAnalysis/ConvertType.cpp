@@ -72,6 +72,40 @@ namespace locic {
 			return getBuiltInType(context, context.getCString("__ptr"), { varType });
 		}
 		
+		const SEM::Type* createFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			const auto& parameterTypes = builtInFunctionType.parameterTypes();
+			
+			SEM::ValueArray templateArgs;
+			templateArgs.reserve(1 + parameterTypes.size());
+			
+			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+			templateArgs.push_back(SEM::Value::PredicateExpr(builtInFunctionType.attributes().noExceptPredicate().copy(), boolType));
+			
+			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+			
+			const auto returnType = builtInFunctionType.returnType();
+			templateArgs.push_back(SEM::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
+			
+			for (const auto& paramType: parameterTypes) {
+				templateArgs.push_back(SEM::Value::TypeRef(paramType, typenameType->createStaticRefType(paramType)));
+			}
+			
+			const auto functionTypeName = makeString("function%llu_ptr_t", static_cast<unsigned long long>(parameterTypes.size()));
+			
+			return getBuiltInTypeWithValueArgs(context, context.getString(functionTypeName), std::move(templateArgs));
+		}
+		
+		const SEM::Type* createFunctionType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			const auto& attributes = builtInFunctionType.attributes();
+			
+			if (attributes.isTemplated() || attributes.isMethod() || attributes.isVarArg()) {
+				// Temporary path for complex function types while function primitive types are being built.
+				return SEM::Type::Function(builtInFunctionType);
+			}
+			
+			return createFunctionPointerType(context, builtInFunctionType);
+		}
+		
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			switch(type->typeEnum) {
 				case AST::Type::AUTO: {
@@ -147,7 +181,12 @@ namespace locic {
 					// Currently no syntax exists to express a type with 'noexcept'.
 					auto noexceptPredicate = SEM::Predicate::False();
 					
-					return SEM::Type::Function(type->functionType.isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate), returnType, std::move(parameterTypes));
+					const bool isVarArg = type->functionType.isVarArg;
+					
+					SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate));
+					const SEM::FunctionType builtInFunctionType(std::move(attributes),  returnType, std::move(parameterTypes));
+					
+					return createFunctionType(context, builtInFunctionType);
 				}
 			}
 			

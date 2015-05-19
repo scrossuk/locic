@@ -104,9 +104,9 @@ namespace locic {
 			
 			const auto functionType = semFunction->type();
 			
-			if (!supportsMove(context, functionType->getFunctionReturnType())) {
+			if (!supportsMove(context, functionType.returnType())) {
 				throw ErrorException(makeString("Return type '%s' of function '%s' is not movable, at position %s.",
-					functionType->getFunctionReturnType()->toString().c_str(),
+					functionType.returnType()->toString().c_str(),
 					semFunction->name().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));
 			}
@@ -126,8 +126,7 @@ namespace locic {
 			// (which will then generate its contents etc.)
 			auto semScope = ConvertScope(context, astFunctionNode->scope());
 			
-			const auto returnType = semFunction->type()->getFunctionReturnType();
-			
+			const auto returnType = functionType.returnType();
 			const auto exitStates = semScope->exitStates();
 			
 			assert(!exitStates.hasBreakExit());
@@ -148,7 +147,7 @@ namespace locic {
 			
 			DeadCodeSearchScope(context, *semScope);
 			
-			if (!semFunction->type()->functionNoExceptPredicate().isFalse() && exitStates.hasThrowExit()) {
+			if (!functionType.attributes().noExceptPredicate().isFalse() && exitStates.hasThrowExit()) {
 				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
 					semFunction->name().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));

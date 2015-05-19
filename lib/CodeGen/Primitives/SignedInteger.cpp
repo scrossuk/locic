@@ -45,7 +45,7 @@ namespace locic {
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& methodName, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::Type* const functionType,
+		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
@@ -79,7 +79,7 @@ namespace locic {
 				// Do nothing.
 				return ConstantGenerator(module).getVoidUndef();
 			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
-				const auto argType = functionType->getFunctionParameterTypes().front();
+				const auto argType = functionType.parameterTypes().front();
 				const auto operand = args[0].resolve(function);
 				if (isFloatType(module, argType)) {
 					return builder.CreateFPToSI(operand, selfType);

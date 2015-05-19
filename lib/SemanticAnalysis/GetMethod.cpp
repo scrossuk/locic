@@ -1,58 +1,21 @@
-#include <assert.h>
-
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <cassert>
 
 #include <locic/SEM.hpp>
-#include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
+#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
-#include <locic/SemanticAnalysis/VarArgCast.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 		
 		namespace {
-			
-			HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments, const SEM::TypeArray& types, const Debug::SourceLocation& location) {
-				HeapArray<SEM::Value> castValues;
-				castValues.reserve(arguments.size());
-				
-				for (size_t i = 0; i < arguments.size(); i++) {
-					auto& argumentValue = arguments.at(i);
-					
-					// Cast arguments to the function type's corresponding
-					// argument type; var-arg arguments should be cast to
-					// one of the allowed types (since there's no specific
-					// destination type).
-					auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(context, std::move(argumentValue), types.at(i), location) :
-						VarArgCast(context, std::move(argumentValue), location);
-					
-					castValues.push_back(std::move(castArgumentValue));
-				}
-				
-				return castValues;
-			}
-			
-			bool isCallableType(const SEM::Type* const type) {
-				switch (type->kind()) {
-					case SEM::Type::FUNCTION:
-					case SEM::Type::METHOD:
-					case SEM::Type::INTERFACEMETHOD:
-					case SEM::Type::STATICINTERFACEMETHOD:
-						return true;
-					default:
-						return false;
-				}
-			}
 			
 			SEM::Value addDebugInfo(SEM::Value value, const Debug::SourceLocation& location) {
 				Debug::ValueInfo valueInfo;
@@ -63,17 +26,15 @@ namespace locic {
 			
 		}
 		
-		const SEM::Type* simplifyFunctionType(Context& context, const SEM::Type* const oldFunctionType) {
-			assert(oldFunctionType->isFunction());
+		SEM::FunctionType simplifyFunctionType(Context& context, const SEM::FunctionType oldFunctionType) {
+			const bool isVarArg = oldFunctionType.attributes().isVarArg();
+			const bool isMethod = oldFunctionType.attributes().isMethod();
+			const bool isTemplated = oldFunctionType.attributes().isTemplated();
+			auto noexceptPredicate = reducePredicate(context, oldFunctionType.attributes().noExceptPredicate().copy());
+			const auto returnType = oldFunctionType.returnType();
+			const auto& argTypes = oldFunctionType.parameterTypes();
 			
-			const bool isVarArg = oldFunctionType->isFunctionVarArg();
-			const bool isMethod = oldFunctionType->isFunctionMethod();
-			const bool isTemplated = oldFunctionType->isFunctionTemplated();
-			auto noexceptPredicate = reducePredicate(context, oldFunctionType->functionNoExceptPredicate().copy());
-			const auto returnType = oldFunctionType->getFunctionReturnType();
-			const auto& argTypes = oldFunctionType->getFunctionParameterTypes();
-			
-			return SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, argTypes.copy());
+			return SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate)), returnType, argTypes.copy());
 		}
 		
 		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
@@ -113,9 +74,10 @@ namespace locic {
 				const auto& function = targetType->getObjectType()->functions().at(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
-				const auto functionType = simplifyFunctionType(context, function->type()->substitute(functionTypeTemplateMap));
+				const auto functionType = simplifyFunctionType(context, function->type().substitute(functionTypeTemplateMap));
+				const auto functionRefType = createFunctionType(context, functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionType), location);
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
 					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value)), location);
@@ -253,9 +215,10 @@ namespace locic {
 			}
 			
 			if (function != nullptr) {
-				const auto functionType = simplifyFunctionType(context, function->type()->substitute(templateVariableAssignments));
+				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
+				const auto functionRefType = createFunctionType(context, functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionType), location);
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
 				
 				if (type->isInterface()) {
 					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
@@ -268,145 +231,6 @@ namespace locic {
 				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
 				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
 			}
-		}
-		
-		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {
-			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
-			
-			if (getDerefType(value.type())->isStaticRef()) {
-				return CallValue(context, GetStaticMethod(context, std::move(value), context.getCString("create"), location), std::move(args), location);
-			}
-			
-			if (!isCallableType(value.type())) {
-				throw ErrorException(makeString("Can't call value '%s' that isn't a function or a method at position %s.",
-					value.toString().c_str(), location.toString().c_str()));
-			}
-			
-			const auto functionType = value.type()->getCallableFunctionType();
-			const auto& typeList = functionType->getFunctionParameterTypes();
-			
-			if (functionType->isFunctionVarArg()) {
-				if (args.size() < typeList.size()) {
-					throw ErrorException(makeString("Var Arg Function [%s] called with %llu "
-						"parameters; expected at least %llu at position %s.",
-						value.toString().c_str(),
-						(unsigned long long) args.size(),
-						(unsigned long long) typeList.size(),
-						location.toString().c_str()));
-				}
-			} else {
-				if (args.size() != typeList.size()) {
-					throw ErrorException(makeString("Function [%s] called with %llu "
-						"parameters; expected %llu at position %s.",
-						value.toString().c_str(),
-						(unsigned long long) args.size(),
-						(unsigned long long) typeList.size(),
-						location.toString().c_str()));
-				}
-			}
-			
-			return addDebugInfo(SEM::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
-		}
-		
-		bool checkCapability(Context& context, const SEM::Type* const rawType, const String& capability, SEM::TypeArray templateArgs) {
-			const auto type = rawType->resolveAliases();
-			if (!type->isObject() && !type->isTemplateVar()) {
-				return false;
-			}
-			
-			const Optional<bool> previousResult = context.getCapability(type, capability);
-			if (previousResult) {
-				return *previousResult;
-			}
-			
-			for (auto& arg: templateArgs) {
-				arg = arg->resolveAliases();
-			}
-			
-			const auto requireType = getBuiltInType(context, capability, std::move(templateArgs))->resolveAliases();
-			
-			const auto sourceMethodSet = getTypeMethodSet(context, type);
-			const auto requireMethodSet = getTypeMethodSet(context, requireType);
-			
-			const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
-			context.setCapability(type, capability, result);
-			return result;
-		}
-		
-		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::TEMPLATEVAR:
-					return false;
-					
-				case SEM::Type::OBJECT: {
-					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find(context.getCString("implicitcast"));
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto& function = methodIterator->second;
-					if (function->type()->isFunctionVarArg()) return false;
-					if (!function->isMethod()) return false;
-					if (function->isStaticMethod()) return false;
-					
-					// Conservatively assume method is not const if result is undetermined.
-					const bool isConstMethodDefault = false;
-					
-					if (!evaluatePredicateWithDefault(context, function->constPredicate(), type->generateTemplateVarMap(), isConstMethodDefault)) return false;
-					if (!function->parameters().empty()) return false;
-					if (function->templateVariables().size() != 1) return false;
-					
-					const auto returnType = function->type()->getFunctionReturnType()->substitute(type->generateTemplateVarMap());
-					
-					if (!returnType->isTemplateVar()) return false;
-					if (returnType->getTemplateVar() != function->templateVariables().front()) return false;
-					
-					return true;
-				}
-					
-				default:
-					throw std::runtime_error("Unknown SEM type kind.");
-			}
-		}
-		
-		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("implicit_copyable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("noexcept_implicit_copyable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("copyable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
-			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("noexcept_copyable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("comparable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsNoExceptCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("noexcept_comparable"), { type->resolveAliases()->withoutTags() });
-		}
-		
-		bool supportsMove(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("movable"), {});
-		}
-		
-		bool supportsDissolve(Context& context, const SEM::Type* const type) {
-			assert(type->isLval());
-			return checkCapability(context, type, context.getCString("dissolvable"), { type->lvalTarget() }) ||
-				checkCapability(context, type, context.getCString("const_dissolvable"), { type->lvalTarget() });
 		}
 		
 	}

@@ -397,8 +397,8 @@ namespace locic {
 						// 
 						// Hence we generate the method sets of both 'pair<T, T>' and
 						// 'movable', and then determine what must be true of 'pair<T, T>'
-						// to satisfy 'movable' by computing a new require() predicate
-// 						// predicate, from which we can then calculate a method set.
+						// to satisfy 'movable' by computing a new require() predicate,
+// 						// from which we can then calculate a method set.
 						const auto sourceSet = getTypeMethodSet(context, requiresPredicate.satisfiesType());
 						const auto requireSet = getTypeMethodSet(context, requiresPredicate.satisfiesRequirement());
 						
@@ -456,9 +456,9 @@ namespace locic {
 				const auto& function = functionPair.second;
 				
 				auto constPredicate = function->constPredicate().substitute(templateVarMap);
-				auto noexceptPredicate = function->type()->functionNoExceptPredicate().substitute(templateVarMap);
+				auto noexceptPredicate = function->type().attributes().noExceptPredicate().substitute(templateVarMap);
 				auto requirePredicate = function->requiresPredicate().substitute(templateVarMap);
-				const auto functionType = function->type()->substitute(templateVarMap);
+				const auto functionType = function->type().substitute(templateVarMap);
 				const bool isStatic = function->isStaticMethod();
 				
 				MethodSetElement functionElement(
@@ -467,8 +467,8 @@ namespace locic {
 					std::move(noexceptPredicate),
 					std::move(requirePredicate),
 					isStatic,
-					functionType->getFunctionReturnType(),
-					functionType->getFunctionParameterTypes().copy());
+					functionType.returnType(),
+					functionType.parameterTypes().copy());
 				
 				elements.push_back(std::make_pair(functionName, std::move(functionElement)));
 			}

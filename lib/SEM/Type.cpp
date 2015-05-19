@@ -10,6 +10,7 @@
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
+#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -206,18 +207,22 @@ namespace locic {
 			
 			Type type(context, FUNCTION);
 			
-			type.noExceptPredicate_ = std::move(noExceptPredicate);
-			type.data_.functionType.isVarArg = isVarArg;
-			type.data_.functionType.isMethod = isMethod;
-			type.data_.functionType.isTemplated = isTemplated;
-			type.data_.functionType.returnType = returnType;
-			type.typeArray_ = std::move(parameterTypes);
+			FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
+			type.functionType_ = FunctionType(std::move(attributes), returnType, std::move(parameterTypes));
 			
 			return context.getType(std::move(type));
 		}
 		
+		const Type* Type::Function(const FunctionType functionType) {
+			auto& context = functionType.context();
+			
+			Type type(context, FUNCTION);
+			type.functionType_ = functionType;
+			return context.getType(std::move(type));
+		}
+		
 		const Type* Type::Method(const Type* const functionType) {
-			assert(functionType->isFunction());
+			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
 			auto& context = functionType->context();
 			
 			Type type(context, METHOD);
@@ -228,7 +233,7 @@ namespace locic {
 		}
 		
 		const Type* Type::InterfaceMethod(const Type* const functionType) {
-			assert(functionType->isFunction());
+			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
 			auto& context = functionType->context();
 			
 			Type type(context, INTERFACEMETHOD);
@@ -239,7 +244,7 @@ namespace locic {
 		}
 		
 		const Type* Type::StaticInterfaceMethod(const Type* const functionType) {
-			assert(functionType->isFunction());
+			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
 			auto& context = functionType->context();
 			
 			Type type(context, STATICINTERFACEMETHOD);
@@ -252,8 +257,7 @@ namespace locic {
 		Type::Type(const Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
 			constPredicate_(Predicate::False()), lvalTarget_(nullptr),
-			refTarget_(nullptr), staticRefTarget_(nullptr),
-			noExceptPredicate_(Predicate::False()) { }
+			refTarget_(nullptr), staticRefTarget_(nullptr) { }
 		
 		const Context& Type::context() const {
 			return context_;
@@ -525,6 +529,10 @@ namespace locic {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "bool";
 		}
 		
+		bool Type::isBuiltInFunctionPtr() const {
+			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last().starts_with("function");
+		}
+		
 		bool Type::isBuiltInReference() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
 		}
@@ -539,32 +547,32 @@ namespace locic {
 		
 		bool Type::isFunctionVarArg() const {
 			assert(isFunction());
-			return data_.functionType.isVarArg;
+			return functionType_.attributes().isVarArg();
 		}
 		
 		bool Type::isFunctionMethod() const {
 			assert(isFunction());
-			return data_.functionType.isMethod;
+			return functionType_.attributes().isMethod();
 		}
 		
 		bool Type::isFunctionTemplated() const {
 			assert(isFunction());
-			return data_.functionType.isTemplated;
+			return functionType_.attributes().isTemplated();
 		}
 		
 		const Predicate& Type::functionNoExceptPredicate() const {
 			assert(isFunction());
-			return noExceptPredicate_;
+			return functionType_.attributes().noExceptPredicate();
 		}
 		
 		const Type* Type::getFunctionReturnType() const {
 			assert(isFunction());
-			return data_.functionType.returnType;
+			return functionType_.returnType();
 		}
 		
 		const TypeArray& Type::getFunctionParameterTypes() const {
 			assert(isFunction());
-			return typeArray_;
+			return functionType_.parameterTypes();
 		}
 		
 		bool Type::isMethod() const {
@@ -755,6 +763,46 @@ namespace locic {
 			}
 			
 			return templateVarMap;
+		}
+		
+		Predicate getValuePredicate(const Value& value) {
+			if (value.isConstant()) {
+				assert(value.constant().kind() == Constant::BOOLEAN);
+				return value.constant().boolValue() ? Predicate::True() : Predicate::False();
+			} else if (value.isPredicate()) {
+				return value.predicate().copy();
+			} else if (value.isTemplateVarRef()) {
+				return Predicate::Variable(const_cast<TemplateVar*>(value.templateVar()));
+			} else {
+				throw std::logic_error(makeString("Unknown predicate value kind: %s.", value.toString().c_str()));
+			}
+		}
+		
+		FunctionType Type::asFunctionType() const {
+			if (isFunction()) {
+				return functionType_;
+			} else if (isMethod()) {
+				return getMethodFunctionType()->asFunctionType();
+			} else if (isInterfaceMethod()) {
+				return getInterfaceMethodFunctionType()->asFunctionType();
+			} else if (isStaticInterfaceMethod()) {
+				return getStaticInterfaceMethodFunctionType()->asFunctionType();
+			} else {
+				assert(isBuiltInFunctionPtr());
+				const bool isVarArg = false;
+				const bool isMethod = false;
+				const bool isTemplated = false;
+				
+				Predicate noexceptPredicate = getValuePredicate(templateArguments()[0]);
+				
+				SEM::TypeArray parameterTypes;
+				for (size_t i = 2; i < templateArguments().size(); i++) {
+					parameterTypes.push_back(templateArguments()[i].typeRefType());
+				}
+				
+				FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate));
+				return FunctionType(std::move(attributes), templateArguments()[1].typeRefType(), std::move(parameterTypes));
+			}
 		}
 		
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
@@ -1383,12 +1431,7 @@ namespace locic {
 				}
 				
 				case FUNCTION: {
-					type.data_.functionType.isVarArg = isFunctionVarArg();
-					type.data_.functionType.isMethod = isFunctionMethod();
-					type.data_.functionType.isTemplated = isFunctionTemplated();
-					type.data_.functionType.returnType = getFunctionReturnType();
-					type.typeArray_ = getFunctionParameterTypes().copy();
-					type.noExceptPredicate_ = functionNoExceptPredicate().copy();
+					type.functionType_ = functionType_;
 					break;
 				}
 				

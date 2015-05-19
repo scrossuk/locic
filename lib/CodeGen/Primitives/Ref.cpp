@@ -5,7 +5,10 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Support.hpp>
+
+#include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
@@ -185,7 +188,7 @@ namespace locic {
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
 		                                       const SEM::Type* const type,
 		                                       const String& methodName,
-		                                       const SEM::Type* const /*functionType*/,
+		                                       SEM::FunctionType /*functionType*/,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();

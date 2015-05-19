@@ -152,7 +152,7 @@ namespace locic {
 			const auto debugInfo = function->debugInfo();
 			
 			if (debugInfo) {
-				const auto debugSubprogramType = genDebugType(module, function->type());
+				const auto debugSubprogramType = genDebugFunctionType(module, function->type());
 				const auto& functionInfo = *debugInfo;
 				const bool isInternal = function->moduleScope().isInternal();
 				const bool isDefinition = functionInfo.isDefinition || function->isPrimitive();

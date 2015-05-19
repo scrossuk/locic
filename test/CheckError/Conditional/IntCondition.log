@@ -1,1 +1,1 @@
-User cast failed from type 'int8_t' to type 'bool' at position SourceLocation\(filename = (.*)/IntCondition.loci, range = \(line 6, column 2\) to \(line 8, column 3\)\)\.
+User cast failed from type 'int8_t' to type 'notag\(bool\)' at position SourceLocation\(filename = (.*)/IntCondition.loci, range = \(line 6, column 2\) to \(line 8, column 3\)\)\.

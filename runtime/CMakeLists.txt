@@ -14,6 +14,7 @@ set(RUNTIME_FILES
 	double_t.loci
 	final_lval.loci
 	float_t.loci
+	function_ptr_t.loci
 	int16_t.loci
 	int32_t.loci
 	int64_t.loci

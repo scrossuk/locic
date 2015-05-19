@@ -214,7 +214,7 @@ namespace locic {
 		}
 		
 		Value Value::Call(Value functionValue, HeapArray<Value> parameters) {
-			const auto functionType = functionValue.type()->getCallableFunctionType();
+			const auto functionType = functionValue.type()->getCallableFunctionType()->asFunctionType();
 			
 			ExitStates exitStates = functionValue.exitStates();
 			for (const auto& param: parameters) {
@@ -222,11 +222,11 @@ namespace locic {
 			}
 			
 			// TODO: this needs to store the noexcept predicate somehow...
-			if (!functionType->functionNoExceptPredicate().isTrue()) {
+			if (!functionType.attributes().noExceptPredicate().isTrue()) {
 				exitStates |= ExitStates::Throw();
 			}
 			
-			Value value(CALL, functionType->getFunctionReturnType(), exitStates);
+			Value value(CALL, functionType.returnType(), exitStates);
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(functionValue)));
 			value.valueArray_ = std::move(parameters);
 			return value;
@@ -234,7 +234,7 @@ namespace locic {
 		
 		Value Value::FunctionRef(const Type* const parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
-			assert(type != NULL && type->isFunction());
+			//assert(type != NULL && type->isFunction());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
 			value.union_.functionRef_.parentType = parentType;
 			value.union_.functionRef_.function = function;
@@ -252,7 +252,7 @@ namespace locic {
 		}
 		
 		Value Value::MethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction());
+			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			Value value(METHODOBJECT, SEM::Type::Method(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
@@ -261,7 +261,7 @@ namespace locic {
 		}
 		
 		Value Value::InterfaceMethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction());
+			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodOwner.type()->refTarget()->isInterface());
 			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
@@ -271,7 +271,7 @@ namespace locic {
 		}
 		
 		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction());
+			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
@@ -1103,8 +1103,9 @@ namespace locic {
 						callValue().toString().c_str(),
 						makeArrayString(callParameters()).c_str());
 				case FUNCTIONREF:
-					return makeString("FunctionRef(name: %s, parentType: %s, templateArgs: %s)",
+					return makeString("FunctionRef(name: %s, type: %s, parentType: %s, templateArgs: %s)",
 						functionRefFunction()->name().toString().c_str(),
+						type()->toString().c_str(),
 						functionRefParentType() != nullptr ?
 							functionRefParentType()->toString().c_str() :
 							"[NONE]",

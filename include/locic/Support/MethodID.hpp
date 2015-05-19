@@ -70,6 +70,7 @@ namespace locic {
 		METHOD_RIGHTSHIFT,
 		
 		// Util methods.
+                METHOD_CALL,
 		METHOD_MOVETO,
 		METHOD_INRANGE,
 		METHOD_SETVALUE,
@@ -228,6 +229,8 @@ namespace locic {
 				case METHOD_RIGHTSHIFT:
 					return "rightshift";
 				
+				case METHOD_CALL:
+					return "call";
 				case METHOD_MOVETO:
 					return "__moveto";
 				case METHOD_INRANGE:

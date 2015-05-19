@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
@@ -16,6 +17,7 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
+		class FunctionType;
 		class TemplateVar;
 		class Type;
 		class TypeAlias;
@@ -41,6 +43,7 @@ namespace locic {
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, Predicate noExceptPredicate, const Type* returnType, TypeArray parameterTypes);
+				static const Type* Function(const FunctionType functionType);
 				static const Type* Method(const Type* functionType);
 				static const Type* InterfaceMethod(const Type* functionType);
 				static const Type* StaticInterfaceMethod(const Type* functionType);
@@ -83,6 +86,7 @@ namespace locic {
 				bool isBuiltIn(const String& typeName) const;
 				bool isBuiltInVoid() const;
 				bool isBuiltInBool() const;
+				bool isBuiltInFunctionPtr() const;
 				bool isBuiltInReference() const;
 				bool isBuiltInTypename() const;
 				
@@ -131,6 +135,8 @@ namespace locic {
 				
 				TemplateVarMap generateTemplateVarMap() const;
 				
+				FunctionType asFunctionType() const;
+				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* makeTemplatedFunction() const;
 				const Type* resolveAliases() const;
@@ -165,7 +171,7 @@ namespace locic {
 				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
-				Predicate noExceptPredicate_;
+				FunctionType functionType_;
 				TypeArray typeArray_;
 				ValueArray valueArray_;
 				
@@ -177,13 +183,6 @@ namespace locic {
 					struct {
 						const TypeInstance* typeInstance;
 					} objectType;
-					
-					struct FunctionType {
-						bool isVarArg;
-						bool isMethod;
-						bool isTemplated;
-						const Type* returnType;
-					} functionType;
 					
 					struct {
 						const Type* functionType;

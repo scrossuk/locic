@@ -40,14 +40,15 @@ namespace locic {
 			return values.at(0);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, FunctionCallInfo callInfo, const SEM::Type* functionType, llvm::ArrayRef<SEM::Value> args,
-				llvm::Value* const hintResultValue) {
+		// TODO: merge the duplicated code in this function into genFunctionCall().
+		llvm::Value* genSEMFunctionCall(Function& function, const FunctionCallInfo callInfo, SEM::FunctionType functionType, llvm::ArrayRef<SEM::Value> args,
+		                                llvm::Value* const hintResultValue) {
 			assert(callInfo.functionPtr != nullptr);
 			
 			auto& module = function.module();
 			auto& abiContext = module.abiContext();
 			
-			const auto returnType = functionType->getFunctionReturnType();
+			const auto returnType = functionType.returnType();
 			
 			const auto llvmFunctionType = callInfo.functionPtr->getType()->getPointerElementType();
 			assert(llvmFunctionType->isFunctionTy());
@@ -120,13 +121,13 @@ namespace locic {
 			// Some functions will only be noexcept in certain cases but for
 			// CodeGen purposes we're looking for a guarantee of noexcept
 			// in all cases, hence we look for always-true noexcept predicates.
-			if (!functionType->functionNoExceptPredicate().isTrivialBool()) {
-				assert(!functionType->functionNoExceptPredicate().dependsOnOnly({}));
+			if (!functionType.attributes().noExceptPredicate().isTrivialBool()) {
+				assert(!functionType.attributes().noExceptPredicate().dependsOnOnly({}));
 			}
 			
 			// If the function can throw and we have pending unwind actions, generate a
 			// landing pad to execute those actions.
-			if (!functionType->functionNoExceptPredicate().isTrue() && anyUnwindActions(function, UnwindStateThrow)) {
+			if (!functionType.attributes().noExceptPredicate().isTrue() && anyUnwindActions(function, UnwindStateThrow)) {
 				const auto successPath = function.createBasicBlock("");
 				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
@@ -205,6 +206,41 @@ namespace locic {
 			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first, argInfo.returnType().second);
 		}
 		
+		llvm::Value* genFunctionCall(Function& function, SEM::FunctionType functionType, const FunctionCallInfo callInfo,
+		                             PendingResultArray args, llvm::Value* const hintResultValue) {
+			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
+			
+			llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+			
+			llvm::Value* returnVar = nullptr;
+			if (argInfo.hasReturnVarArgument()) {
+				returnVar = genAlloca(function, functionType.returnType(), hintResultValue);
+				llvmArgs.push_back(returnVar);
+			}
+			
+			if (argInfo.hasTemplateGeneratorArgument()) {
+				assert(callInfo.templateGenerator != nullptr);
+				llvmArgs.push_back(callInfo.templateGenerator);
+			}
+			
+			if (argInfo.hasContextArgument()) {
+				assert(callInfo.contextPointer != nullptr);
+				llvmArgs.push_back(callInfo.contextPointer);
+			}
+			
+			for (auto& pendingResult: args) {
+				llvmArgs.push_back(pendingResult.resolve(function));
+			}
+			
+			const auto result = genRawFunctionCall(function, argInfo, callInfo.functionPtr, llvmArgs);
+			
+			if (argInfo.hasReturnVarArgument()) {
+				return genMoveLoad(function, returnVar, functionType.returnType());
+			} else {
+				return result;
+			}
+		}
+		
 		llvm::Value* genTemplateMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
 				llvm::Value* const hintResultValue) {
 			const auto parentType = methodInfo.parentType;
@@ -227,18 +263,7 @@ namespace locic {
 			
 			const VirtualObjectComponents objectComponents(getTypeInfoComponents(function, typeInfo), contextPointer);
 			const VirtualMethodComponents methodComponents(objectComponents, methodHashValue);
-			
-			if (methodOwner) {
-				// A dynamic method.
-				assert(methodInfo.functionType->isFunctionMethod());
-				const auto interfaceMethodType = SEM::Type::InterfaceMethod(methodInfo.functionType);
-				return VirtualCall::generateCall(function, interfaceMethodType, methodComponents, llvmArgs, hintResultValue);
-			} else {
-				// A static method.
-				assert(!methodInfo.functionType->isFunctionMethod());
-				const auto staticInterfaceMethodType = SEM::Type::StaticInterfaceMethod(methodInfo.functionType);
-				return VirtualCall::generateCall(function, staticInterfaceMethodType, methodComponents, llvmArgs, hintResultValue);
-			}
+			return VirtualCall::generateCall(function, methodInfo.functionType, methodComponents, llvmArgs, hintResultValue);
 		}
 		
 		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
@@ -247,7 +272,6 @@ namespace locic {
 			
 			assert(type != nullptr);
 			assert(type->isObjectOrTemplateVar());
-			assert(methodInfo.functionType->isFunction());
 			
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
@@ -262,40 +286,22 @@ namespace locic {
 					
 					return genTrivialPrimitiveFunctionCall(function, methodInfo, std::move(newArgs), hintResultValue);
 				} else {
+					FunctionCallInfo callInfo;
+					
 					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name)).get();
-					const auto argInfo = getFunctionArgInfo(function.module(), methodInfo.functionType);
-					const auto functionPtr = genFunctionRef(function, type, targetFunction, methodInfo.functionType);
-					
-					llvm::SmallVector<llvm::Value*, 10> llvmArgs;
-					
-					llvm::Value* returnVar = nullptr;
-					if (argInfo.hasReturnVarArgument()) {
-						returnVar = genAlloca(function, methodInfo.functionType->getFunctionReturnType(), hintResultValue);
-						llvmArgs.push_back(returnVar);
-					}
+					callInfo.functionPtr = genFunctionRef(function, type, targetFunction, methodInfo.functionType);
 					
 					if (!type->getObjectType()->templateVariables().empty()) {
-						llvmArgs.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
+						callInfo.templateGenerator = getTemplateGenerator(function, TemplateInst::Type(type));
 					}
 					
 					if (methodOwner) {
 						const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
 						const auto resolvedMethodOwner = methodOwner->resolve(function);
-						const auto castMethodOwner = function.getBuilder().CreatePointerCast(resolvedMethodOwner, i8PtrType);
-						llvmArgs.push_back(castMethodOwner);
+						callInfo.contextPointer = function.getBuilder().CreatePointerCast(resolvedMethodOwner, i8PtrType);
 					}
 					
-					for (auto& pendingResult: args) {
-						llvmArgs.push_back(pendingResult.resolve(function));
-					}
-					
-					const auto result = genRawFunctionCall(function, argInfo, functionPtr, llvmArgs);
-					
-					if (argInfo.hasReturnVarArgument()) {
-						return genMoveLoad(function, returnVar, methodInfo.functionType->getFunctionReturnType());
-					} else {
-						return result;
-					}
+					return genFunctionCall(function, methodInfo.functionType, callInfo, std::move(args), hintResultValue);
 				}
 			} else {
 				return genTemplateMethodCall(function, methodInfo, std::move(methodOwner), std::move(args), hintResultValue);

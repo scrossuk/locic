@@ -314,8 +314,8 @@ location, bool isTopLevel) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
 			
-			// Use a mutable type for the destination so that it's movable.
-			const auto destDerefType = getDerefType(destType)->createConstType(SEM::Predicate::False());
+			// Use notag() to make destination type non-const so that it's movable.
+			const auto destDerefType = getDerefType(destType)->createNoTagType();
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
 				if (destDerefType->isObject() && sourceDerefType->getObjectType() == destDerefType->getObjectType()) {

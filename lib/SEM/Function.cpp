@@ -15,7 +15,6 @@ namespace locic {
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
-			  type_(nullptr),
 			  name_(std::move(pName)),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
@@ -25,11 +24,11 @@ namespace locic {
 			return name_;
 		}
 		
-		void Function::setType(const Type* const pType) {
+		void Function::setType(const FunctionType pType) {
 			type_ = pType;
 		}
 		
-		const Type* Function::type() const {
+		const FunctionType& Function::type() const {
 			return type_;
 		}
 		
@@ -153,14 +152,14 @@ namespace locic {
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
 								  constPredicate().toString().c_str(),
-								  type()->toString().c_str());
+								  type().toString().c_str());
 			} else {
 				return makeString("FunctionDefinition(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s, scope: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
 								  constPredicate().toString().c_str(),
-								  type()->toString().c_str(),
+								  type().toString().c_str(),
 								  scope().toString().c_str());
 			}
 		}

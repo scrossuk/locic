@@ -1,7 +1,5 @@
 #include <cassert>
 
-#include <locic/SEM.hpp>
-
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -22,6 +20,11 @@
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
+#include <locic/SEM/Function.hpp>
+#include <locic/SEM/FunctionType.hpp>
+#include <locic/SEM/Type.hpp>
+#include <locic/SEM/Value.hpp>
+
 namespace locic {
 
 	namespace CodeGen {
@@ -36,9 +39,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* const semFunction, const SEM::Type* const functionType) {
-			assert(functionType->isFunction());
-			
+		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* const semFunction, const SEM::FunctionType functionType) {
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, semFunction);
 			
@@ -119,7 +120,7 @@ namespace locic {
 					
 					if (value.functionRefFunction()->isPrimitive()) {
 						MethodInfo methodInfo(value.functionRefParentType(), value.functionRefFunction()->name().last(),
-							value.type(), value.functionRefTemplateArguments().copy());
+							value.type()->asFunctionType(), value.functionRefTemplateArguments().copy());
 						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 					}
 					
@@ -153,13 +154,14 @@ namespace locic {
 					FunctionCallInfo callInfo;
 					
 					const auto parentType = value.functionRefParentType();
+					const auto functionType = value.type()->asFunctionType();
 					
 					// There may need to be a stub generated to handle issues with types being
 					// passed/returned by value versus via a pointer (which happens when primitives
 					// are used in templates).
-					callInfo.functionPtr = genFunctionRef(function, parentType, value.functionRefFunction(), value.type());
+					callInfo.functionPtr = genFunctionRef(function, parentType, value.functionRefFunction(), functionType);
 					
-					if (value.type()->isFunctionTemplated()) {
+					if (functionType.attributes().isTemplated()) {
 						if (!value.functionRefTemplateArguments().empty()) {
 							// The function is templated on the function (and potentially also the parent object).
 							const auto templateInst = TemplateInst::Function(parentType, value.functionRefFunction(), arrayRef(value.functionRefTemplateArguments()));
@@ -178,14 +180,14 @@ namespace locic {
 					
 					const auto parentType = value.templateFunctionRefParentType();
 					const auto& functionName = value.templateFunctionRefName();
-					const auto functionType = value.templateFunctionRefFunctionType();
+					const auto functionType = value.templateFunctionRefFunctionType()->asFunctionType();
 					
 					// Template function references involve creating a stub that performs
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
 					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, function.getDebugLoc());
-					callInfo.functionPtr = genTranslatedFunctionPointer(function, functionRefPtr, functionType, value.type());
+					callInfo.functionPtr = genTranslatedFunctionPointer(function, functionRefPtr, functionType, value.type()->asFunctionType());
 					
 					// The stub will extract the template variable's value for the
 					// current function's template context, so we can just use the

@@ -5,7 +5,7 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Type;
+		class FunctionType;
 		
 	}
 	
@@ -60,8 +60,8 @@ namespace locic {
 		 */
 		llvm::Function* genFunctionTranslationStub(Module& module,
 		                                           llvm::Function* function,
-		                                           const SEM::Type* const functionType,
-		                                           const SEM::Type* const translatedFunctionType);
+		                                           SEM::FunctionType functionType,
+		                                           SEM::FunctionType translatedFunctionType);
 		
 		/**
 		 * \brief Get pointer to function with translated type.
@@ -83,8 +83,8 @@ namespace locic {
 		 */
 		llvm::Value* genTranslatedFunctionPointer(Function& functionGenerator,
 		                                          llvm::Function* function,
-		                                          const SEM::Type* const functionType,
-		                                          const SEM::Type* const translatedFunctionType);
+		                                          SEM::FunctionType functionType,
+		                                          SEM::FunctionType translatedFunctionType);
 		
 	}
 	

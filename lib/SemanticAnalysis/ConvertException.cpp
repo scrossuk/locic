@@ -86,7 +86,9 @@ namespace locic {
 			// since the first variable will store the parent.
 			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			semFunction->setParameters(getParameters(context, constructTypes));
-			semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), semTypeInstance->selfType(), std::move(constructTypes)));
+			
+			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+			semFunction->setType(SEM::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
 			return semFunction;
 		}
 		

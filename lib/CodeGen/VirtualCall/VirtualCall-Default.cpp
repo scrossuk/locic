@@ -112,7 +112,7 @@ namespace locic {
 				return argsStructPtr;
 			}
 			
-			void generateCallWithReturnVar(Function& function, const SEM::Type* functionType, llvm::Value* returnVarPointer,
+			void generateCallWithReturnVar(Function& function, const SEM::FunctionType functionType, llvm::Value* returnVarPointer,
 					const VirtualMethodComponents methodComponents, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
@@ -162,19 +162,16 @@ namespace locic {
 				
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
-				const auto argsStructPtr = makeArgsStruct(function, arrayRef(functionType->getFunctionParameterTypes()), args);
+				const auto argsStructPtr = makeArgsStruct(function, arrayRef(functionType.parameterTypes()), args);
 				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
 				
 				// Call the stub function.
 				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
 			}
 			
-			llvm::Value* generateCall(Function& function, const SEM::Type* callableType, const VirtualMethodComponents methodComponents,
+			llvm::Value* generateCall(Function& function, const SEM::FunctionType functionType, const VirtualMethodComponents methodComponents,
 					llvm::ArrayRef<llvm::Value*> args, llvm::Value* const hintResultValue) {
-				const auto functionType = callableType->getCallableFunctionType();
-				assert(functionType->isFunction());
-				
-				const auto returnType = functionType->getFunctionReturnType();
+				const auto returnType = functionType.returnType();
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
 				
 				ConstantGenerator constGen(function.module());
@@ -317,8 +314,8 @@ namespace locic {
 					const auto llvmMethod = genFunctionDecl(module, typeInstance, semMethod);
 					
 					const auto functionType = semMethod->type();
-					const auto returnType = functionType->getFunctionReturnType();
-					const auto& paramTypes = functionType->getFunctionParameterTypes();
+					const auto returnType = functionType.returnType();
+					const auto& paramTypes = functionType.parameterTypes();
 					
 					llvm::SmallVector<llvm::Value*, 10> parameters;
 					
@@ -340,7 +337,7 @@ namespace locic {
 						parameters.push_back(function.getRawContextValue());
 					}
 					
-					const auto numArgs = functionType->getFunctionParameterTypes().size();
+					const auto numArgs = functionType.parameterTypes().size();
 					
 					// Build the args struct type, which is just a struct
 					// containing i8* for each parameter.

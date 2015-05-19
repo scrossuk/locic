@@ -52,6 +52,8 @@ namespace locic {
 		
 		bool supportsDissolve(Context& context, const SEM::Type* const type);
 		
+		bool supportsCall(Context& context, const SEM::Type* const type);
+		
 	}
 	
 }

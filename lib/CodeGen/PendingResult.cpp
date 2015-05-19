@@ -1,5 +1,6 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
+#include <locic/SEM/Type.hpp>
 
 namespace locic {
 	

@@ -69,11 +69,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* createNamedFunction(Module& module, const String& name, const SEM::Type* const type, const llvm::GlobalValue::LinkageTypes linkage) {
-			const auto argInfo = getFunctionArgInfo(module, type);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, name);
-			
-			if (!canPassByValue(module, type->getFunctionReturnType())) {
+		void addStandardFunctionAttributes(Module& module, SEM::FunctionType type, llvm::Function* const llvmFunction) {
+			if (!canPassByValue(module, type.returnType())) {
 				// Class return values are allocated by the caller,
 				// which passes a pointer to the callee. The caller
 				// and callee must, for the sake of optimisation,
@@ -89,11 +86,16 @@ namespace locic {
 				// Callee must not capture the pointer.
 				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
 			}
-			
+		}
+		
+		llvm::Function* createNamedFunction(Module& module, const String& name, SEM::FunctionType type, const llvm::GlobalValue::LinkageTypes linkage) {
+			const auto argInfo = getFunctionArgInfo(module, type);
+			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, name);
+			addStandardFunctionAttributes(module, type, llvmFunction);
 			return llvmFunction;
 		}
 		
-		llvm::Function* getNamedFunction(Module& module, const String& name, const SEM::Type* const type, const llvm::GlobalValue::LinkageTypes linkage) {
+		llvm::Function* getNamedFunction(Module& module, const String& name, SEM::FunctionType type, const llvm::GlobalValue::LinkageTypes linkage) {
 			{
 				const auto iterator = module.getFunctionMap().find(name);
 				
@@ -296,7 +298,7 @@ namespace locic {
 		 * subsequently referenced.
 		 */
 		llvm::Function* genTemplateFunctionStub(Module& module, const SEM::TemplateVar* templateVar, const String& functionName,
-				const SEM::Type* const functionType, llvm::DebugLoc debugLoc) {
+				SEM::FunctionType functionType, llvm::DebugLoc debugLoc) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module, functionType);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("templateFunctionStub"));
@@ -304,24 +306,7 @@ namespace locic {
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const bool hasReturnVar = !canPassByValue(module, functionType->getFunctionReturnType());
-			
-			if (hasReturnVar) {
-				// Class return values are allocated by the caller,
-				// which passes a pointer to the callee. The caller
-				// and callee must, for the sake of optimisation,
-				// ensure that the following attributes hold...
-				
-				// Caller must ensure pointer is always valid.
-				llvmFunction->addAttribute(1, llvm::Attribute::StructRet);
-				
-				// Caller must ensure pointer does not alias with
-				// any other arguments.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoAlias);
-				
-				// Callee must not capture the pointer.
-				llvmFunction->addAttribute(1, llvm::Attribute::NoCapture);
-			}
+			addStandardFunctionAttributes(module, functionType, llvmFunction);
 			
 			// --- Generate function code.
 			
@@ -341,11 +326,12 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
+			const bool hasReturnVar = !canPassByValue(module, functionType.returnType());
 			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
 			const auto result = VirtualCall::generateCall(functionGenerator, functionType, methodComponents, argList, hintResultValue);
 			
 			if (hasReturnVar) {
-				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType->getFunctionReturnType());
+				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType.returnType());
 				functionGenerator.getBuilder().CreateRetVoid();
 			} else if (result->getType()->isVoidTy()) {
 				functionGenerator.getBuilder().CreateRetVoid();

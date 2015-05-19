@@ -215,7 +215,7 @@ namespace locic {
 			const bool isDefinition = true;
 			const bool isInternal = true;
 			
-			const auto debugSubprogramType = genDebugType(module, moveSEMFunction->type());
+			const auto debugSubprogramType = genDebugFunctionType(module, moveSEMFunction->type());
 			const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType,
 				llvmFunction, isInternal, isDefinition);
 			functionGenerator.attachDebugInfo(debugSubprogram);

@@ -7,11 +7,14 @@
 #include <vector>
 
 #include <locic/Debug/FunctionInfo.hpp>
+
+#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/TemplateVarArray.hpp>
+
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
@@ -25,7 +28,6 @@ namespace locic {
 	namespace SEM {
 	
 		class Scope;
-		class Type;
 		class TypeInstance;
 		class Var;
 		
@@ -49,8 +51,8 @@ namespace locic {
 				
 				const Name& name() const;
 				
-				void setType(const Type* pType);
-				const Type* type() const;
+				void setType(FunctionType type);
+				const FunctionType& type() const;
 				
 				const ModuleScope& moduleScope() const;
 				
@@ -113,7 +115,7 @@ namespace locic {
 			private:
 				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;
-				const Type* type_;
+				FunctionType type_;
 				Name name_;
 				Optional<Debug::FunctionInfo> debugInfo_;
 				

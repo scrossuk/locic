@@ -91,6 +91,10 @@ namespace locic {
 			return String(impl_->stringHost, cString);
 		}
 		
+		String Context::getString(const std::string& string) const {
+			return String(impl_->stringHost, string);
+		}
+		
 		Debug::Module& Context::debugModule() {
 			return impl_->debugModule;
 		}

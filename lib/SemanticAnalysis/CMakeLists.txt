@@ -1,5 +1,6 @@
 add_library(locic-semanalysis
 	Analysis.cpp
+	CallValue.cpp
 	Cast.cpp
 	Context.cpp
 	ConvertException.cpp
@@ -15,6 +16,7 @@ add_library(locic-semanalysis
 	ConvertValue.cpp
 	ConvertVar.cpp
 	DefaultMethods.cpp
+	GetMethod.cpp
 	Literal.cpp
 	Lval.cpp
 	MethodSet.cpp
@@ -24,7 +26,6 @@ add_library(locic-semanalysis
 	ScopeStack.cpp
 	SearchResult.cpp
 	Template.cpp
-	TypeProperties.cpp
+	TypeCapabilities.cpp
 	VarArgCast.cpp
 )
-

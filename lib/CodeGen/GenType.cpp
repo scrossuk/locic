@@ -27,7 +27,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::FunctionType* genFunctionType(Module& module, const SEM::Type* type) {
+		llvm::FunctionType* genFunctionType(Module& module, SEM::FunctionType type) {
 			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
@@ -68,7 +68,7 @@ namespace locic {
 				case SEM::Type::FUNCTION: {
 					// Generate struct of function pointer and template
 					// generator if function type is templated.
-					const auto functionPtrType = genFunctionType(module, type)->getPointerTo();
+					const auto functionPtrType = genFunctionType(module, type->asFunctionType())->getPointerTo();
 					if (type->isFunctionTemplated()) {
 						llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
 						return TypeGenerator(module).getStructType(memberTypes);
@@ -115,6 +115,20 @@ namespace locic {
 					llvm_unreachable("Unknown type enum for generating type.");
 				}
 			}
+		}
+		
+		llvm::DIType genDebugFunctionType(Module& module, SEM::FunctionType type) {
+			// TODO!
+			const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
+			
+			std::vector<LLVMMetadataValue*> parameterTypes;
+			parameterTypes.push_back(genDebugType(module, type.returnType()));
+			
+			for (const auto& paramType: type.parameterTypes()) {
+				parameterTypes.push_back(genDebugType(module, paramType));
+			}
+			
+			return module.debugBuilder().createFunctionType(file, parameterTypes);
 		}
 		
 		llvm::DIType genDebugType(Module& module, const SEM::Type* const type) {

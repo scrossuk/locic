@@ -141,20 +141,18 @@ namespace locic {
 			
 			semFunction->setParameters(std::move(parameterVars));
 			
-			auto noexceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
+			auto noExceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
 			if (name == "__destructor") {
 				// Destructors are always noexcept.
-				noexceptPredicate = SEM::Predicate::True();
+				noExceptPredicate = SEM::Predicate::True();
 			}
 			
 			const bool isDynamicMethod = isMethod && !astFunctionNode->isStatic();
 			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
-			const auto functionType = SEM::Type::Function(astFunctionNode->isVarArg(),
-				isDynamicMethod, isTemplatedMethod,
-				std::move(noexceptPredicate), semReturnType, std::move(parameterTypes));
-			semFunction->setType(functionType);
+			SEM::FunctionAttributes attributes(astFunctionNode->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+			semFunction->setType(SEM::FunctionType(std::move(attributes), semReturnType, std::move(parameterTypes)));
 			
 			assert(semFunction->isDeclaration());
 			

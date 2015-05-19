@@ -110,15 +110,15 @@ namespace locic {
 				// Simplify function type noexcept predicate.
 				const auto oldFunctionType = function.type();
 				
-				const bool isVarArg = oldFunctionType->isFunctionVarArg();
-				const bool isMethod = oldFunctionType->isFunctionMethod();
-				const bool isTemplated = oldFunctionType->isFunctionTemplated();
-				auto noexceptPredicate = reducePredicate(context, oldFunctionType->functionNoExceptPredicate().copy());
-				const auto returnType = oldFunctionType->getFunctionReturnType();
-				const auto& argTypes = oldFunctionType->getFunctionParameterTypes();
+				const bool isVarArg = oldFunctionType.attributes().isVarArg();
+				const bool isMethod = oldFunctionType.attributes().isMethod();
+				const bool isTemplated = oldFunctionType.attributes().isTemplated();
+				auto noExceptPredicate = reducePredicate(context, oldFunctionType.attributes().noExceptPredicate().copy());
+				const auto returnType = oldFunctionType.returnType();
+				const auto& argTypes = oldFunctionType.parameterTypes();
 				
-				const auto newFunctionType = SEM::Type::Function(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate), returnType, argTypes.copy());
-				function.setType(newFunctionType);
+				SEM::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
+				function.setType(SEM::FunctionType(std::move(attributes), returnType, argTypes.copy()));
 			}
 		}
 		

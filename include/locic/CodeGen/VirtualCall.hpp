@@ -7,7 +7,8 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Type;
+		class FunctionType;
+		class TypeInstance;
 		
 	}
 	
@@ -19,7 +20,7 @@ namespace locic {
 			
 			llvm::Constant* generateVTableSlot(Module& module, const SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods);
 			
-			llvm::Value* generateCall(Function& function, const SEM::Type* functionType, VirtualMethodComponents methodComponents,
+			llvm::Value* generateCall(Function& function, SEM::FunctionType functionType, VirtualMethodComponents methodComponents,
 				llvm::ArrayRef<llvm::Value*> args, llvm::Value* hintResultValue = nullptr);
 			
 			enum CountFnKind {

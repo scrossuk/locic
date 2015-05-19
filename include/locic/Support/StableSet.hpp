@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <locic/Support/Array.hpp>
+#include <locic/Support/Hash.hpp>
 
 namespace locic{
 	
@@ -271,8 +272,7 @@ namespace locic{
 		
 		struct hashTypePtr {
 			inline std::size_t operator()(const Value* const value) const {
-				std::hash<Value> hashFn;
-				return hashFn(*value);
+				return hashObject<Value>(*value);
 			}
 		};
 		

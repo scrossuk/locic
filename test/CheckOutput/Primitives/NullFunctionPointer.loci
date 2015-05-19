@@ -7,6 +7,12 @@ void functionToBeCalled0() {
 
 void callFunction0((*)(void)() function) {
 	testPrint(C"callFunction0");
+	
+	if (function == null) {
+		testPrint(C"function = null!");
+		return;
+	}
+	
 	function();
 }
 
@@ -17,6 +23,12 @@ void functionToBeCalled1(int value0) {
 
 void callFunction1((*)(void)(int) function, int value0) {
 	testPrint(C"callFunction1");
+	
+	if (function == null) {
+		testPrint(C"function = null!");
+		return;
+	}
+	
 	function(value0);
 }
 
@@ -28,6 +40,12 @@ void functionToBeCalled2(int value0, int value1) {
 
 void callFunction2((*)(void)(int, int) function, int value0, int value1) {
 	testPrint(C"callFunction2");
+	
+	if (function == null) {
+		testPrint(C"function = null!");
+		return;
+	}
+	
 	function(value0, value1);
 }
 
@@ -40,29 +58,31 @@ void functionToBeCalled3(int value0, int value1, int value2) {
 
 void callFunction3((*)(void)(int, int, int) function, int value0, int value1, int value2) {
 	testPrint(C"callFunction3");
+	
+	if (function == null) {
+		testPrint(C"function = null!");
+		return;
+	}
+	
 	function(value0, value1, value2);
 }
 
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	{
-		auto function = functionToBeCalled0;
-		callFunction0(function);
+		callFunction0(null);
 		callFunction0(functionToBeCalled0);
 	}
 	{
-		auto function = functionToBeCalled1;
-		callFunction1(function, 1);
+		callFunction1(null, 1);
 		callFunction1(functionToBeCalled1, 2);
 	}
 	{
-		auto function = functionToBeCalled2;
-		callFunction2(function, 1, 3);
+		callFunction2(null, 1, 3);
 		callFunction2(functionToBeCalled2, 2, 4);
 	}
 	{
-		auto function = functionToBeCalled3;
-		callFunction3(function, 1, 3, 5);
+		callFunction3(null, 1, 3, 5);
 		callFunction3(functionToBeCalled3, 2, 4, 6);
 	}
 	return 0;

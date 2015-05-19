@@ -83,6 +83,7 @@ namespace locic {
 		impl_->add(METHOD_LEFTSHIFT);
 		impl_->add(METHOD_RIGHTSHIFT);
 		
+		impl_->add(METHOD_CALL);
 		impl_->add(METHOD_MOVETO);
 		impl_->add(METHOD_INRANGE);
 		impl_->add(METHOD_SETVALUE);

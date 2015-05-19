@@ -45,6 +45,7 @@ namespace locic {
 				~Context();
 				
 				String getCString(const char* cString) const;
+				String getString(const std::string& string) const;
 				
 				Debug::Module& debugModule();
 				

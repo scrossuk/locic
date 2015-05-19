@@ -3,6 +3,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
+#include <locic/SEM/Type.hpp>
 
 namespace locic {
 

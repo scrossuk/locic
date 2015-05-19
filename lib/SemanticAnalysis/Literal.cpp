@@ -11,6 +11,7 @@
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Literal.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
@@ -194,7 +195,9 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, searchResult.function()->type());
+			const auto functionRefType = createFunctionType(context, searchResult.function()->type());
+			
+			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
 		}
 		

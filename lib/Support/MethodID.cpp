@@ -70,6 +70,7 @@ namespace locic {
 			case METHOD_RIGHTSHIFT:
 				return BINARY;
 			
+			case METHOD_CALL:
 			case METHOD_MOVETO:
 			case METHOD_INRANGE:
 			case METHOD_SETVALUE:

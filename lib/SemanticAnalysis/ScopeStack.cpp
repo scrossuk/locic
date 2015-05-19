@@ -73,7 +73,7 @@ namespace locic {
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
 			const auto function = lookupParentFunction(scopeStack);
 			assert(function != nullptr);
-			return function->type()->getFunctionReturnType();
+			return function->type().returnType();
 		}
 		
 		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs) {
@@ -103,6 +103,28 @@ namespace locic {
 				return SEM::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
 			} else {
 				assert(templateArgs.size() == value.typeAlias().templateVariables().size());
+				return SEM::Type::Alias(&(value.typeAlias()), std::move(templateArgValues));
+			}
+		}
+		
+		const SEM::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues) {
+			const auto& scopeStack = context.scopeStack();
+			const auto rootElement = scopeStack[0];
+			assert(rootElement.isNamespace());
+			
+			const auto iterator = rootElement.nameSpace()->items().find(typeName);
+			if (iterator == rootElement.nameSpace()->items().end()) {
+				throw std::runtime_error(makeString("Failed to find built-in type '%s'.", typeName.c_str()));
+			}
+			
+			const auto& value = iterator->second;
+			assert(value.isTypeInstance() || value.isTypeAlias());
+			
+			if (value.isTypeInstance()) {
+				assert(templateArgValues.size() == value.typeInstance().templateVariables().size());
+				return SEM::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
+			} else {
+				assert(templateArgValues.size() == value.typeAlias().templateVariables().size());
 				return SEM::Type::Alias(&(value.typeAlias()), std::move(templateArgValues));
 			}
 		}

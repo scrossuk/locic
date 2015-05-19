@@ -705,7 +705,9 @@ namespace locic {
 				const bool isTemplatedMethod = false;
 				auto noExceptPredicate = SEM::Predicate::True();
 				const auto returnType = semTypeInstance->selfType();
-				semFunction->setType(SEM::Type::Function(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate), returnType, {}));
+				
+				SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+				semFunction->setType(SEM::FunctionType(std::move(attributes), returnType, {}));
 				
 				semTypeInstance->functions().insert(std::make_pair(canonicalMethodName, std::move(semFunction)));
 			}

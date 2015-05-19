@@ -246,22 +246,23 @@ namespace locic {
 			return isTypeSizeAlwaysKnown(module, type) && !typeHasCustomMove(module, type);
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, const SEM::Type* const functionType) {
-			assert(functionType->isFunction());
+		ArgInfo getFunctionArgInfo(Module& module, SEM::FunctionType functionType) {
+			const auto semReturnType = functionType.returnType();
 			
-			const auto semReturnType = functionType->getFunctionReturnType();
+			const auto& attributes = functionType.attributes();
 			
-			const bool isVarArg = functionType->isFunctionVarArg();
-			const bool hasReturnVarArg = !canPassByValue(module, semReturnType);
-			const bool hasTemplateGeneratorArg = functionType->isFunctionTemplated();
-			const bool hasContextArg = functionType->isFunctionMethod();
+			const bool isVarArg = attributes.isVarArg();
+			const bool hasTemplateGeneratorArg = attributes.isTemplated();
+			const bool hasContextArg = attributes.isMethod();
+			
+			const bool hasReturnVarArg = !canPassByValue(module, functionType.returnType());
 			
 			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
 			
 			std::vector<TypePair> argTypes;
-			argTypes.reserve(functionType->getFunctionParameterTypes().size());
+			argTypes.reserve(functionType.parameterTypes().size());
 			
-			for (const auto paramType: functionType->getFunctionParameterTypes()) {
+			for (const auto& paramType: functionType.parameterTypes()) {
 				argTypes.push_back(std::make_pair(genABIArgType(module, paramType), genArgType(module, paramType)));
 			}
 			
@@ -270,10 +271,11 @@ namespace locic {
 			// Some functions will only be noexcept in certain cases but for
 			// CodeGen purposes we're looking for a guarantee of noexcept
 			// in all cases, hence we look for always-true noexcept predicates.
-			if (!functionType->functionNoExceptPredicate().isTrivialBool()) {
-				assert(!functionType->functionNoExceptPredicate().dependsOnOnly({}));
+			if (!attributes.noExceptPredicate().isTrivialBool()) {
+				assert(!attributes.noExceptPredicate().dependsOnOnly({}));
 			}
-			if (functionType->functionNoExceptPredicate().isTrue()) {
+			
+			if (attributes.noExceptPredicate().isTrue()) {
 				argInfo = argInfo.withNoExcept();
 			}
 			

@@ -1,26 +1,20 @@
 callFunction0
-functionToBeCalled0
+function = null!
 callFunction0
 functionToBeCalled0
 callFunction1
-functionToBeCalled1
-value0 = 1
+function = null!
 callFunction1
 functionToBeCalled1
 value0 = 2
 callFunction2
-functionToBeCalled2
-value0 = 1
-value1 = 3
+function = null!
 callFunction2
 functionToBeCalled2
 value0 = 2
 value1 = 4
 callFunction3
-functionToBeCalled3
-value0 = 1
-value1 = 3
-value2 = 5
+function = null!
 callFunction3
 functionToBeCalled3
 value0 = 2

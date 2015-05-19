@@ -8,6 +8,7 @@ namespace locic {
 	namespace SEM {
 		
 		class Function;
+		class FunctionType;
 		class TemplateVar;
 		class TypeInstance;
 		class Type;
@@ -29,7 +30,7 @@ namespace locic {
 		llvm::Function* genFunctionDef(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function);
 		
 		llvm::Function* genTemplateFunctionStub(Module& module, const SEM::TemplateVar* templateVar, const String& functionName,
-			const SEM::Type* functionType, llvm::DebugLoc debugLoc);
+			SEM::FunctionType functionType, llvm::DebugLoc debugLoc);
 		
 	}
 	

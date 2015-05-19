@@ -1,12 +1,12 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-exception ExampleError(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j, int k, int l);
+exception ExampleError(int a, int b, int c, int d, int e, int f, int g, int h);
 
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	try {
-		throw ExampleError(1,2,3,4,5,6,7,8,9,10,11,12);
+		throw ExampleError(1,2,3,4,5,6,7,8);
 	} catch (ExampleError error) {
 		testPrint(C"Caught exception!");
 		testPrint(C"    a = %d", error.a);
@@ -17,10 +17,6 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 		testPrint(C"    f = %d", error.f);
 		testPrint(C"    g = %d", error.g);
 		testPrint(C"    h = %d", error.h);
-		testPrint(C"    i = %d", error.i);
-		testPrint(C"    j = %d", error.j);
-		testPrint(C"    k = %d", error.k);
-		testPrint(C"    l = %d", error.l);
 	}
 	return 0;
 }
