@@ -73,7 +73,7 @@ function (add_sphinx_target builder)
 			# (Suppressing Makefile output since it is very verbose,
 			# and we can probably assume that Sphinx will produce
 			# valid LaTex).
-			COMMAND make -C "${CMAKE_CURRENT_BINARY_DIR}/pdf" all-pdf > /dev/null
+			COMMAND make -C "${CMAKE_CURRENT_BINARY_DIR}/pdf" all-pdf
 			DEPENDS ${SPHINX_INPUT_FILES}
 			COMMENT
 				"Generating PDF (from LaTeX) Sphinx documentation")
