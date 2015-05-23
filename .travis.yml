@@ -12,8 +12,6 @@ compiler:
 before_install:
   - sudo apt-get update
 
-  - curl "ftp://$ARTIFACT_FTP_DOMAIN" --user "$ARTIFACT_FTP_USER":"$ARTIFACT_FTP_PASSWORD"
-
   # Ensure add-apt-repository is installed.
   - sudo apt-get install python-software-properties
 
@@ -67,8 +65,14 @@ before_script:
 
 script:
   # Make sure we use the correct Clang binary.
-  - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="clang-$CLANG_VERSION" ..
+  - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="clang-$CLANG_VERSION" -DCMAKE_INSTALL_PREFIX=./artifacts/locic ..
   - make && ctest --output-on-failure
+  - make install
+
+after_success:
+  - export LOCIC_ARTIFACTS_ARCHIVE="locic-artifacts-$TRAVIS_JOB_NUMBER-$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.xz"
+  - tar cfJ "$LOCIC_ARTIFACTS_ARCHIVE" -C ./artifacts locic
+  - ../utils/upload_artifacts.py "$ARTIFACT_FTP_DOMAIN" "$ARTIFACT_FTP_USER" "$ARTIFACT_FTP_PASSWORD" "$LOCIC_ARTIFACTS_ARCHIVE"
 
 env:
   # Build with LLVM 3.3; use Clang 3.4 since Clang 3.3 can't build the exception runtime code.

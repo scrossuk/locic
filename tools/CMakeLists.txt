@@ -32,6 +32,10 @@ target_link_libraries(locic
 	${REQ_LIBS}
 )
 
+install(TARGETS locic
+	DESTINATION bin
+)
+
 # Build test tool.
 add_executable(loci-test
 	loci-test.cpp
