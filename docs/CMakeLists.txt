@@ -121,13 +121,25 @@ add_custom_target(sphinx ALL)
 
 if (${SPHINX_OUTPUT_HTML})
 	add_sphinx_target(html)
+	
+	install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html"
+		DESTINATION share/locic
+	)
 endif()
 
 if (${SPHINX_OUTPUT_MAN})
 	add_sphinx_target(man)
+	
+	install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/man"
+		DESTINATION share/locic
+	)
 endif()
 
 if (${SPHINX_OUTPUT_PDF})
 	add_sphinx_target(pdf)
+	
+	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pdf/LociCompilerTools.pdf"
+		DESTINATION share/locic/pdf
+	)
 endif()
 

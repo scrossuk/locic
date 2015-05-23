@@ -43,6 +43,7 @@ set(LOCIC_VERSION ${LOCIC_VERSION_MAJOR}.${LOCIC_VERSION_MINOR}.${LOCIC_VERSION_
 message(STATUS "Building Loci Compiler Tools version ${LOCIC_VERSION} using build type '${CMAKE_BUILD_TYPE}'.")
 message(STATUS "    Source directory is '${PROJECT_SOURCE_DIR}'.")
 message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
+message(STATUS "    Install path is '${CMAKE_INSTALL_PREFIX}' (set -DCMAKE_INSTALL_PREFIX=<path> to change).")
 
 # --- Options
 

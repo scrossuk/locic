@@ -8,7 +8,7 @@ Circular Queue
 
 A circular queue uses a fixed size array to hold a queue, in which the read and write positions advance to the end of the buffer and wrap-around when they reach the end. As an addition to the normal queue operations it is possible to access elements by index.
 
-.. image:: CircularQueue.svg
+.. image:: CircularQueue.*
 	:align: center
 	:alt: Circular Queue Data Structure
 
@@ -55,7 +55,7 @@ List
 
 A linked list data structure.
 
-.. image:: LinkedList.svg
+.. image:: LinkedList.*
 	:align: center
 	:alt: Linked List Data Structure
 
@@ -99,7 +99,7 @@ Map
 
 An associative map from unique keys (which must have an ordering) to values.
 
-.. image:: Map.svg
+.. image:: Map.*
 	:align: center
 	:alt: Map Data Structure
 
@@ -141,7 +141,7 @@ Set
 
 A set of unique values (which must have an ordering).
 
-.. image:: Set.svg
+.. image:: Set.*
 	:align: center
 	:alt: Set Data Structure
 
@@ -183,7 +183,7 @@ Varray
 
 A 'varray' is a dynamically resizable array type; this is essentially the equivalent of C++'s std::vector, named to clearly identify it as an array and to not clash with a geometry 'vector'.
 
-.. image:: Varray.svg
+.. image:: Varray.*
 	:align: center
 	:alt: Variable-length Array Data Structure
 
