@@ -75,12 +75,12 @@ namespace locic {
 			       noExceptPredicate() == other.noExceptPredicate();
 		}
 		
-		FunctionTypeData::FunctionTypeData(FunctionAttributes attributes,
-		                                   const Type* const returnType,
-		                                   TypeArray parameterTypes)
-		: attributes_(std::move(attributes)),
-		returnType_(returnType),
-		parameterTypes_(std::move(parameterTypes)) { }
+		FunctionTypeData::FunctionTypeData(FunctionAttributes argAttributes,
+		                                   const Type* const argReturnType,
+		                                   TypeArray argParameterTypes)
+		: attributes_(std::move(argAttributes)),
+		returnType_(argReturnType),
+		parameterTypes_(std::move(argParameterTypes)) { }
 		
 		FunctionTypeData FunctionTypeData::copy() const {
 			return FunctionTypeData(attributes().copy(),
