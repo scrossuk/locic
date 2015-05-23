@@ -4,6 +4,8 @@ import ftplib
 import os
 import sys
 
+server_path = "http://loci-lang.org/travis"
+
 if len(sys.argv) != 5:
 	print "Usage: %s [host] [username] [password] [file]" % sys.argv[0]
 	sys.exit(1)
@@ -21,9 +23,10 @@ def show_files(ftp):
 def upload_file(ftp, filename):
 	file = open(filename, 'rb')
 	dest_filename = os.path.basename(filename)
-	print "Uploading file '%s' to '<server>/%s'..." % (filename, dest_filename)
+	server_file_path = os.path.join(server_path, dest_filename)
+	print "Uploading artifacts file '%s' to server..." % filename
 	ftp.storbinary('STOR %s' % os.path.basename(filename), file)
-	print "Done!"
+	print "Done! File available at %s" % server_file_path
 	file.close()
 
 upload_file(ftp, filename)
