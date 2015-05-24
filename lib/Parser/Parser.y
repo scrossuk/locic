@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <list>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,7 @@
 
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Parser/Context.hpp>
+#include <locic/Support/MakeString.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
@@ -45,7 +47,11 @@ static locic::String readString(const locic::Parser::Context* const parserContex
 	std::vector<char> data;
 	data.resize(length + 1);
 	fseek(handle, locationInfo->first_byte, SEEK_SET);
-	(void) fread(data.data(), 1, length, handle);
+	const size_t readSize = fread(data.data(), 1, length, handle);
+	if (readSize != length) {
+		throw std::runtime_error(locic::makeString("Failed to read string in file '%s'.", fileName.c_str()));
+	}
+	
 	data.at(length) = '\0';
 	
 	fclose(handle);

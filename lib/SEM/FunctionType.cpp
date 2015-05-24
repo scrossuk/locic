@@ -128,12 +128,14 @@ namespace locic {
 			       parameterTypes() == other.parameterTypes();
 		}
 		
-		FunctionType::FunctionType(FunctionAttributes attributes, const Type* const returnType, TypeArray parameterTypes)
+		FunctionType::FunctionType(FunctionAttributes argAttributes,
+		                           const Type* const argReturnType,
+		                           TypeArray argParameterTypes)
 		: data_(nullptr) {
-			FunctionTypeData functionTypeData(std::move(attributes),
-			                                  returnType,
-			                                  std::move(parameterTypes));
-			*this = returnType->context().getFunctionType(std::move(functionTypeData));
+			FunctionTypeData functionTypeData(std::move(argAttributes),
+			                                  argReturnType,
+			                                  std::move(argParameterTypes));
+			*this = argReturnType->context().getFunctionType(std::move(functionTypeData));
 		}
 		
 		FunctionType FunctionType::substitute(const TemplateVarMap& templateVarMap) const {

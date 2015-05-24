@@ -790,7 +790,7 @@ namespace locic {
 			} else {
 				assert(isBuiltInFunctionPtr());
 				const bool isVarArg = false;
-				const bool isMethod = false;
+				const bool isFunctionMethod = false;
 				const bool isTemplated = false;
 				
 				Predicate noexceptPredicate = getValuePredicate(templateArguments()[0]);
@@ -800,7 +800,7 @@ namespace locic {
 					parameterTypes.push_back(templateArguments()[i].typeRefType());
 				}
 				
-				FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate));
+				FunctionAttributes attributes(isVarArg, isFunctionMethod, isTemplated, std::move(noexceptPredicate));
 				return FunctionType(std::move(attributes), templateArguments()[1].typeRefType(), std::move(parameterTypes));
 			}
 		}

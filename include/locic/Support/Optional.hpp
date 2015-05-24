@@ -2,6 +2,7 @@
 #define LOCIC_SUPPORT_OPTIONAL_HPP
 
 #include <cassert>
+#include <cstring>
 #include <type_traits>
 
 namespace locic{
@@ -30,6 +31,7 @@ namespace locic{
 			
 			Optional(Optional<Value>&& other)
 			: hasValue_(false) {
+				memset(&data_, 0, sizeof(data_));
 				swap(other);
 			}
 			
