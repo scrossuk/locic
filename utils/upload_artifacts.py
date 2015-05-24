@@ -58,7 +58,7 @@ def delete_old_artifacts(ftp):
 	for artifact_file in artifact_archives:
 		if artifact_file.build_number in delete_branch_builds[artifact_file.branch]:
 			sys.stdout.write("Deleting old artifact '%s'..." % artifact_file.get_filename())
-			ftp.delete(release_file.get_filename())
+			ftp.delete(artifact_file.get_filename())
 			sys.stdout.write(" done!\n")
 
 if len(sys.argv) != 5:
