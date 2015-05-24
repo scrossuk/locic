@@ -7,5 +7,4 @@ loci_module(std.concurrency std_concurrency.bc ""
 	${STD_CONTAINER_API_FILES}
 	${STD_EVENT_API_FILES}
 	${STD_MEMORY_API_FILES}
-	)
-
+)

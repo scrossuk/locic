@@ -5,5 +5,5 @@ loci_module(std.event std_event.bc ""
 	src/unix/internal_wait.c
 	src/unix/source.loci
 	src/unix/wait_set.loci
-	)
+)
 
