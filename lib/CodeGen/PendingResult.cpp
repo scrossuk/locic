@@ -29,7 +29,9 @@ namespace locic {
 		}
 		
 		llvm::Value* ValuePendingResult::generateLoadedValue(Function& function) const {
-			assert(type_ != nullptr && "This pending result wasn't supposed to be loaded.");
+			if (type_ == nullptr) {
+				llvm_unreachable("This pending result wasn't supposed to be loaded.");
+			}
 			assert(type_->isBuiltInReference());
 			assert(value_->getType()->isPointerTy());
 			return function.getBuilder().CreateLoad(value_);

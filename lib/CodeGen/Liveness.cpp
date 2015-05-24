@@ -15,6 +15,7 @@
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/SEM/TypeInstance.hpp>
+#include <locic/Support/Utils.hpp>
 
 namespace locic {
 	
@@ -29,15 +30,6 @@ namespace locic {
 		
 		bool typeHasLivenessIndicator(Module& module, const SEM::Type* const type) {
 			return type->isObject() && typeInstanceHasLivenessIndicator(module, *(type->getObjectType()));
-		}
-		
-		static inline bool isPowerOf2(size_t value) {
-			return value != 0 && (value & (value - 1)) == 0;
-		}
-		
-		static inline size_t roundUpToAlign(size_t position, size_t align) {
-			assert(isPowerOf2(align));
-			return (position + (align - 1)) & (~(align - 1));
 		}
 		
 		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {

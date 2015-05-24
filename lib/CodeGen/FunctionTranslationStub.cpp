@@ -11,6 +11,7 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/SEM/FunctionType.hpp>
+#include <locic/Support/Utils.hpp>
 
 namespace locic {
 
@@ -57,10 +58,6 @@ namespace locic {
 			} else {
 				return genFunctionTranslationStub(module, function, functionType, translatedFunctionType);
 			}
-		}
-		
-		static bool checkImplies(const bool a, const bool b) {
-			return !a || b;
 		}
 		
 		using TranslatedArguments = llvm::SmallVector<llvm::Value*, 10>;

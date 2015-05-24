@@ -608,7 +608,7 @@ namespace locic {
 			semFunction->setDebugInfo(functionInfo);
 			
 			const auto& astParametersNode = astFunctionNode->parameters();
-			
+			(void) astParametersNode;
 			assert(astParametersNode->size() == semFunction->parameters().size());
 			assert(astParametersNode->size() == semFunction->namedVariables().size());
 			assert(semFunction->isDeclaration());

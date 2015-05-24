@@ -22,20 +22,19 @@ namespace locic {
 				!type->getTemplateVar()->isVirtual();
 		}
 		
-		bool isRefVirtualnessKnown(const SEM::Type* const type) {
+		const SEM::Type* getRefTarget(const SEM::Type* const type) {
 			const auto refTarget = type->templateArguments().at(0).typeRefType();
 			assert(!refTarget->isAlias());
-			
-			return isVirtualnessKnown(refTarget);
+			return refTarget;
+		}
+		
+		bool isRefVirtualnessKnown(const SEM::Type* const type) {
+			return isVirtualnessKnown(getRefTarget(type));
 		}
 		
 		bool isRefVirtual(const SEM::Type* const type) {
 			assert(isRefVirtualnessKnown(type));
-			
-			const auto refTarget = type->templateArguments().at(0).typeRefType();
-			assert(!refTarget->isAlias());
-			
-			return refTarget->isInterface();
+			return getRefTarget(type)->isInterface();
 		}
 		
 		llvm::Type* getVirtualRefLLVMType(Module& module) {
@@ -43,14 +42,10 @@ namespace locic {
 		}
 		
 		llvm::Type* getNotVirtualLLVMType(Module& module, const SEM::Type* const type) {
-			const auto refTarget = type->templateArguments().at(0).typeRefType();
-			assert(!refTarget->isAlias());
-			return genPointerType(module, refTarget);
+			return genPointerType(module, getRefTarget(type));
 		}
 		
 		llvm::Type* getRefLLVMType(Module& module, const SEM::Type* const type) {
-			const auto refTarget = type->templateArguments().at(0).typeRefType();
-			assert(!refTarget->isAlias());
 			return isRefVirtual(type) ?
 				getVirtualRefLLVMType(module) :
 				getNotVirtualLLVMType(module, type);
@@ -81,8 +76,7 @@ namespace locic {
 			// to query the virtual-ness of it at run-time and hence we must
 			// emit code to handle both cases.
 			
-			const auto refTarget = type->templateArguments().at(0).typeRefType();
-			assert(!refTarget->isAlias());
+			const auto refTarget = getRefTarget(type);
 			
 			// Look at our template argument to see if it's virtual.
 			const auto argTypeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) refTarget->getTemplateVar()->index() });

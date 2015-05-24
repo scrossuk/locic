@@ -990,7 +990,7 @@ namespace locic {
 				case TEMPLATEVARREF:
 					return array.contains(const_cast<TemplateVar*>(templateVar()));
 				default:
-					assert(false && "dependsOnAny() not implemented for this value kind.");
+					throw std::logic_error(makeString("dependsOnAny() not implemented for: %s", toString().c_str()));
 			}
 		}
 		
@@ -1003,7 +1003,7 @@ namespace locic {
 				case TEMPLATEVARREF:
 					return array.contains(const_cast<TemplateVar*>(templateVar()));
 				default:
-					assert(false && "dependsOnOnly() not implemented for this value kind.");
+					throw std::logic_error(makeString("dependsOnOnly() not implemented for: %s", toString().c_str()));
 			}
 		}
 		
@@ -1022,7 +1022,7 @@ namespace locic {
 					}
 				}
 				default:
-					assert(false && "substitute() not implemented for this value kind.");
+					throw std::logic_error(makeString("substitute() not implemented for: %s", toString().c_str()));
 			}
 		}
 		
