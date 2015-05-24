@@ -37,7 +37,7 @@ install:
   - sudo apt-get update
 
   # Install package dependencies.
-  - sudo apt-get install -y $LLVM_PACKAGE "clang-$CLANG_VERSION" libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev texlive-latex-recommended texlive-fonts-recommended
+  - sudo apt-get install -y $LLVM_PACKAGE "clang-$CLANG_VERSION" libconfig++8-dev python-sphinx libboost-program-options1.55-dev libboost-regex1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libcsfml-dev texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra
 
   # Install a recent version of g++ to build the compiler (with C++11 support).
   -
