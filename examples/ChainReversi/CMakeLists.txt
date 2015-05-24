@@ -1,4 +1,4 @@
-find_package(CSFML 2.1 COMPONENTS graphics window system)
+find_package(CSFML 2.0 COMPONENTS graphics window system)
 
 if(NOT CSFML_FOUND)
 	message(WARNING "Failed to find CSFML so can't build ChainReversi example.")
