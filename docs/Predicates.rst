@@ -30,12 +30,12 @@ A predicate consists of an expression that given particular inputs (i.e. templat
 
 The following expressions are allowed in a predicate:
 
-* :code:`true` or :code:`false` - Constant literals for true and false cases.
-* :code:`Var` - True if the boolean template argument is true.
-* :code:`Type : RequireType` - True if 'Type' provides all the methods in 'RequireType'.
-* :code:`Expression and Expression` - True if both subexpressions are true.
-* :code:`Expression or Expression` - True if at least one subexpression is true.
-* :code:`( Expression )` - True if the enclosed expression is true (brackets used for precedence).
+* ``true`` or ``false`` - Constant literals for true and false cases.
+* ``Var`` - True if the boolean template argument is true.
+* ``Type : RequireType`` - True if 'Type' provides all the methods in 'RequireType'.
+* ``Expression and Expression`` - True if both subexpressions are true.
+* ``Expression or Expression`` - True if at least one subexpression is true.
+* ``( Expression )`` - True if the enclosed expression is true (brackets used for precedence).
 
 *and* and *or* expressions both have left associativity; *and* expressions have 'tighter' binding.
 
@@ -89,7 +89,7 @@ Sometimes a function or class will have requirements for a template argument, an
 		startObject(object);
 	}
 
-In this case the compiler proves that the predicate for *restartObject* implies the predicate for *startObject*; i.e. it proves :code:`(T : Startable and T : Stoppable) implies T : Startable`.
+In this case the compiler proves that the predicate for *restartObject* implies the predicate for *startObject*; i.e. it proves ``(T : Startable and T : Stoppable) implies T : Startable``.
 
 Move predicates
 ~~~~~~~~~~~~~~~
@@ -149,7 +149,7 @@ In Loci, *const* predicates are used to solve this problem without having to wri
 
 This code has a predicate based on the boolean template argument that determines whether the method returns a const or non-const pointer.
 
-When the compiler analyses the method using the const predicate it is looking to ensure that a non-const pointer is never returned when the class instance is const (a :code:`const(false)` type can be cast to a :code:`const(true)` type but not vice versa). Hence it will attempt to prove that when 'IsConst' is true, that the returned pointer's const predicate (also 'IsConst') is also true. In other words it proves that :code:`IsConst implies isConst`, which is clearly a trivial operation.
+When the compiler analyses the method using the const predicate it is looking to ensure that a non-const pointer is never returned when the class instance is const (a ``const(false)`` type can be cast to a ``const(true)`` type but not vice versa). Hence it will attempt to prove that when 'IsConst' is true, that the returned pointer's const predicate (also 'IsConst') is also true. In other words it proves that ``IsConst implies isConst``, which is clearly a trivial operation.
 
 The useful aspect of this code is that the code is only written once and the compiler will prove its correctness for both const and non-const forms.
 
@@ -168,4 +168,4 @@ Much like the above cases it's possible to use predicates inside a *noexcept* qu
 		f<IsNoExcept>();
 	}
 
-The compiler will try to prove that the caller function's *noexcept* predicate implies the called function's *noexcept* predicate (a :code:`noexcept(false)` can call a :code:`noexcept(true)` function but not vice versa), hence in this case :code:`IsNoExcept implies IsNoExcept`.
+The compiler will try to prove that the caller function's *noexcept* predicate implies the called function's *noexcept* predicate (a ``noexcept(false)`` can call a ``noexcept(true)`` function but not vice versa), hence in this case ``IsNoExcept implies IsNoExcept``.

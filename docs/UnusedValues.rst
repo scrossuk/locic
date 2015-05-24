@@ -29,7 +29,7 @@ Here the compiler determines that *b* is not used, but the programmer has not ma
 * Add a use for the variable.
 * Mark the variable as unused.
 
-In this case the programmer may have intended to compute :code:`a + b`, hence the compiler error directs the programmer to fix the problem:
+In this case the programmer may have intended to compute ``a + b``, hence the compiler error directs the programmer to fix the problem:
 
 .. code-block:: c++
 
