@@ -99,16 +99,16 @@ namespace locic {
 			return getBuiltInTypeWithValueArgs(context, context.getString(functionTypeName), getFunctionTemplateArgs(context, builtInFunctionType));
 		}
 		
-		const SEM::Type* createFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+		const SEM::Type* createTrivialFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
 			return createPrimitiveCallableType(context, builtInFunctionType, "function", "ptr_t");
-		}
-		
-		const SEM::Type* createMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "methodfunction", "ptr_t");
 		}
 		
 		const SEM::Type* createTemplatedFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
 			return createPrimitiveCallableType(context, builtInFunctionType, "templatedfunction", "ptr_t");
+		}
+		
+		const SEM::Type* createMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "methodfunction", "ptr_t");
 		}
 		
 		const SEM::Type* createTemplatedMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
@@ -119,7 +119,7 @@ namespace locic {
 			return createPrimitiveCallableType(context, builtInFunctionType, "varargfunction", "ptr_t");
 		}
 		
-		const SEM::Type* createFunctionType(Context& context, const SEM::FunctionType builtInFunctionType) {
+		const SEM::Type* createFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
 			const auto& attributes = builtInFunctionType.attributes();
 			
 			if (attributes.isVarArg()) {
@@ -134,8 +134,28 @@ namespace locic {
 				if (attributes.isTemplated()) {
 					return createTemplatedFunctionPointerType(context, builtInFunctionType);
 				} else {
-					return createFunctionPointerType(context, builtInFunctionType);
+					return createTrivialFunctionPointerType(context, builtInFunctionType);
 				}
+			}
+		}
+		
+		const SEM::Type* createTrivialMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "method", "t");
+		}
+		
+		const SEM::Type* createTemplatedMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "templatedmethod", "t");
+		}
+		
+		const SEM::Type* createMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			const auto& attributes = builtInFunctionType.attributes();
+			assert(!attributes.isVarArg());
+			assert(attributes.isMethod());
+			
+			if (attributes.isTemplated()) {
+				return createTemplatedMethodType(context, builtInFunctionType);
+			} else {
+				return createTrivialMethodType(context, builtInFunctionType);
 			}
 		}
 		
@@ -219,7 +239,7 @@ namespace locic {
 					SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate));
 					const SEM::FunctionType builtInFunctionType(std::move(attributes),  returnType, std::move(parameterTypes));
 					
-					return createFunctionType(context, builtInFunctionType);
+					return createFunctionPointerType(context, builtInFunctionType);
 				}
 			}
 			

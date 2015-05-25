@@ -29,7 +29,6 @@ namespace locic {
 					AUTO,
 					ALIAS,
 					OBJECT,
-					METHOD,
 					INTERFACEMETHOD,
 					STATICINTERFACEMETHOD,
 					TEMPLATEVAR
@@ -41,7 +40,6 @@ namespace locic {
 				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
-				static const Type* Method(const FunctionType functionType);
 				static const Type* InterfaceMethod(const FunctionType functionType);
 				static const Type* StaticInterfaceMethod(const FunctionType functionType);
 				
@@ -84,14 +82,15 @@ namespace locic {
 				bool isBuiltInVoid() const;
 				bool isBuiltInBool() const;
 				bool isBuiltInFunctionPtr() const;
+				bool isBuiltInMethod() const;
 				bool isBuiltInMethodFunctionPtr() const;
 				bool isBuiltInReference() const;
 				bool isBuiltInTemplatedFunctionPtr() const;
+				bool isBuiltInTemplatedMethod() const;
 				bool isBuiltInTemplatedMethodFunctionPtr() const;
 				bool isBuiltInTypename() const;
 				bool isBuiltInVarArgFunctionPtr() const;
 				
-				bool isMethod() const;
 				bool isInterfaceMethod() const;
 				bool isStaticInterfaceMethod() const;
 				
@@ -122,6 +121,12 @@ namespace locic {
 				TemplateVarMap generateTemplateVarMap() const;
 				
 				bool isCallable() const;
+				bool isCallableMethod() const;
+				bool isCallableMethodFunctionPointer() const;
+				bool isCallableMethodObject() const;
+				bool isCallableTemplated() const;
+				bool isCallableVarArg() const;
+				
 				FunctionType asFunctionType() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;

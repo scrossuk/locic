@@ -53,6 +53,16 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("function7_ptr_t"), PrimitiveFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("function8_ptr_t"), PrimitiveFunctionPtr));
 			
+			primitiveMap_.insert(std::make_pair(getCString("method0_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method1_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method2_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method3_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method4_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method5_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method6_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method7_t"), PrimitiveMethod));
+			primitiveMap_.insert(std::make_pair(getCString("method8_t"), PrimitiveMethod));
+			
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction0_ptr_t"), PrimitiveMethodFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction1_ptr_t"), PrimitiveMethodFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction2_ptr_t"), PrimitiveMethodFunctionPtr));
@@ -72,6 +82,16 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("templatedfunction6_ptr_t"), PrimitiveTemplatedFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("templatedfunction7_ptr_t"), PrimitiveTemplatedFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("templatedfunction8_ptr_t"), PrimitiveTemplatedFunctionPtr));
+			
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod0_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod1_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod2_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod3_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod4_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod5_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod6_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod7_t"), PrimitiveTemplatedMethod));
+			primitiveMap_.insert(std::make_pair(getCString("templatedmethod8_t"), PrimitiveTemplatedMethod));
 			
 			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction0_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction1_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));

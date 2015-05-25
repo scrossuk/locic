@@ -24,6 +24,7 @@ set(RUNTIME_FILES
 	longdouble_t.loci
 	longlong_t.loci
 	long_t.loci
+	method_t.loci
 	methodfunction_ptr_t.loci
 	movable.loci
 	null_t.loci
@@ -36,6 +37,7 @@ set(RUNTIME_FILES
 	ssize_t.loci
 	templatedfunction_ptr_t.loci
 	templatedmethodfunction_ptr_t.loci
+	templatedmethod_t.loci
 	typename_t.loci
 	ubyte_t.loci
 	uint16_t.loci

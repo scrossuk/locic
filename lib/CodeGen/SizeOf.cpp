@@ -122,11 +122,6 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::METHOD: {
-					// Subtract 1 because this is producing a mask.
-					return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
-				}
-				
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
@@ -275,10 +270,6 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::METHOD: {
-					return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
-				}
-				
 				case SEM::Type::OBJECT: {
 					if (isTypeSizeKnownInThisModule(module, type)) {
 						return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));

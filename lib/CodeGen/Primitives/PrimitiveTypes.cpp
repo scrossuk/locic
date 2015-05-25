@@ -37,7 +37,20 @@ namespace locic {
 				}
 			}
 		}
-	
+		
+		llvm::Type* getFunctionPointerType(Module& module, const SEM::FunctionType functionType) {
+			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();
+			if (functionType.attributes().isTemplated()) {
+				llvm::Type* const memberTypes[] = {
+					functionPtrType,
+					templateGeneratorType(module).second
+				};
+				return TypeGenerator(module).getStructType(memberTypes);
+			} else {
+				return functionPtrType;
+			}
+		}
+		
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* const type) {
 			const auto& name = type->getObjectType()->name().last();
 			const auto kind = module.primitiveKind(name);
@@ -69,13 +82,17 @@ namespace locic {
 					return genPointerType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr: {
-					return getFunctionArgInfo(module, type->asFunctionType()).makeFunctionType()->getPointerTo();
-				}
+				case PrimitiveVarArgFunctionPtr:
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
-					const auto functionPtr = getFunctionArgInfo(module, type->asFunctionType()).makeFunctionType()->getPointerTo();
-					llvm::Type* const memberTypes[] = { functionPtr, templateGeneratorType(module).second };
+					return getFunctionPointerType(module, type->asFunctionType());
+				}
+				case PrimitiveMethod:
+				case PrimitiveTemplatedMethod: {
+					llvm::Type* const memberTypes[] = {
+						TypeGenerator(module).getI8PtrType(),
+						getFunctionPointerType(module, type->asFunctionType())
+					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
 				case PrimitiveValueLval:
@@ -181,7 +198,24 @@ namespace locic {
 					return TypeGenerator(module).getI8PtrType();
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
-					llvm::Type* const memberTypes[] = { TypeGenerator(module).getI8PtrType(), templateGeneratorType(module).second };
+					llvm::Type* const memberTypes[] = {
+						TypeGenerator(module).getI8PtrType(),
+						templateGeneratorType(module).second
+					};
+					return TypeGenerator(module).getStructType(memberTypes);
+				}
+				case PrimitiveMethod: {
+					llvm::Type* const memberTypes[] = {
+						TypeGenerator(module).getI8PtrType(),
+						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr)
+					};
+					return TypeGenerator(module).getStructType(memberTypes);
+				}
+				case PrimitiveTemplatedMethod: {
+					llvm::Type* const memberTypes[] = {
+						TypeGenerator(module).getI8PtrType(),
+						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr)
+					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
 				case PrimitiveTypename:
@@ -214,6 +248,20 @@ namespace locic {
 					types.reserve(2);
 					types.push_back(llvm_abi::Type::Pointer(abiContext));
 					types.push_back(templateGeneratorType(module).first);
+					return llvm_abi::Type::AutoStruct(abiContext, types);
+				}
+				case PrimitiveMethod: {
+					std::vector<llvm_abi::Type*> types;
+					types.reserve(2);
+					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(getBasicPrimitiveABIType(module, PrimitiveMethodFunctionPtr));
+					return llvm_abi::Type::AutoStruct(abiContext, types);
+				}
+				case PrimitiveTemplatedMethod: {
+					std::vector<llvm_abi::Type*> types;
+					types.reserve(2);
+					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr));
 					return llvm_abi::Type::AutoStruct(abiContext, types);
 				}
 				case PrimitiveCompareResult:

@@ -197,7 +197,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::METHODOBJECT: {
-					assert(value.type()->isMethod());
+					assert(value.type()->isCallableMethodObject());
 					
 					FunctionCallInfo callInfo;
 					
@@ -225,11 +225,11 @@ namespace locic {
 					
 					FunctionCallInfo callInfo;
 					
-					callInfo.contextPointer = value.type()->isMethod() ?
+					callInfo.contextPointer = value.type()->isCallableMethodObject() ?
 						builder.CreateExtractValue(llvmValue, { 0 }) :
 						nullptr;
 					
-					const auto functionValue = value.type()->isMethod() ?
+					const auto functionValue = value.type()->isCallableMethodObject() ?
 						builder.CreateExtractValue(llvmValue, { 1 }) :
 						llvmValue;
 					

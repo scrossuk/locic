@@ -223,7 +223,7 @@ namespace locic {
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
 						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
-						const auto functionType = createFunctionType(context, function->type().substitute(templateVarMap));
+						const auto functionType = createFunctionPointerType(context, function->type().substitute(templateVarMap));
 						
 						if (function->isMethod()) {
 							if (!function->isStaticMethod()) {

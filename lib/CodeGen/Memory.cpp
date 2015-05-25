@@ -28,12 +28,6 @@ namespace locic {
 			
 			auto& module = function.module();
 			switch (type->kind()) {
-				case SEM::Type::METHOD: {
-					const auto llvmType = genType(module, type);
-					assert(!llvmType->isVoidTy());
-					return function.getBuilder().CreateAlloca(llvmType);
-				}
-				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeKnownInThisModule(function.module(), type)) {
@@ -65,10 +59,6 @@ namespace locic {
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
-				case SEM::Type::METHOD: {
-					return function.getBuilder().CreateLoad(var);
-				}
-				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {
@@ -93,11 +83,6 @@ namespace locic {
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
-				case SEM::Type::METHOD: {
-					(void) function.getBuilder().CreateStore(value, var);
-					return;
-				}
-				
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					if (isTypeSizeAlwaysKnown(function.module(), type)) {

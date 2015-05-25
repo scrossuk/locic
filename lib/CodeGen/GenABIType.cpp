@@ -95,14 +95,6 @@ namespace locic {
 					}
 				}
 				
-				case SEM::Type::METHOD: {
-					std::vector<llvm_abi::Type*> types;
-					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
-					types.push_back(genABIFunctionType(module, type->asFunctionType()));
-					return llvm_abi::Type::AutoStruct(abiContext, types);
-				}
-				
 				case SEM::Type::INTERFACEMETHOD: {
 					return interfaceMethodType(module).first;
 				}

@@ -135,10 +135,6 @@ namespace locic {
 					
 					return SEM::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
 				}
-				case SEM::Type::METHOD: {
-					const auto functionType = ImplicitCastFunctionType(sourceType->asFunctionType(), destType->asFunctionType(), hasConstChain, location);
-					return functionType ? SEM::Type::Method(*functionType) : nullptr;
-				}
 				case SEM::Type::INTERFACEMETHOD: {
 					const auto functionType = ImplicitCastFunctionType(sourceType->asFunctionType(), destType->asFunctionType(), hasConstChain, location);
 					return functionType ? SEM::Type::InterfaceMethod(*functionType) : nullptr;

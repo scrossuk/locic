@@ -253,10 +253,10 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::MethodObject(Value method, Value methodOwner) {
+		Value Value::MethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
-			Value value(METHODOBJECT, SEM::Type::Method(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
+			Value value(METHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
@@ -963,7 +963,7 @@ namespace locic {
 				case Value::TEMPLATEFUNCTIONREF:
 					return Value::TemplateFunctionRef(value.templateFunctionRefParentType(), value.templateFunctionRefName(), value.templateFunctionRefFunctionType());
 				case Value::METHODOBJECT:
-					return Value::MethodObject(value.methodObject().copy(), value.methodOwner().copy());
+					return Value::MethodObject(value.methodObject().copy(), value.methodOwner().copy(), value.type());
 				case Value::INTERFACEMETHODOBJECT:
 					return Value::InterfaceMethodObject(value.interfaceMethodObject().copy(), value.interfaceMethodOwner().copy());
 				case Value::STATICINTERFACEMETHODOBJECT:

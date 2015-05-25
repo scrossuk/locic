@@ -39,8 +39,6 @@ namespace locic {
 		
 		bool isTypeSizeKnownInThisModule(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
-				case SEM::Type::METHOD:
-					return true;
 				case SEM::Type::OBJECT: {
 					const auto objectType = type->getObjectType();
 					if (objectType->isPrimitive()) {
@@ -85,8 +83,6 @@ namespace locic {
 		
 		bool isTypeSizeAlwaysKnown(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
-				case SEM::Type::METHOD:
-					return true;
 				case SEM::Type::OBJECT:
 					if (type->isPrimitive()) {
 						return isPrimitiveTypeSizeAlwaysKnown(module, type);

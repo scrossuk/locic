@@ -195,7 +195,7 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			const auto functionRefType = createFunctionType(context, searchResult.function()->type());
+			const auto functionRefType = createFunctionPointerType(context, searchResult.function()->type());
 			
 			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);

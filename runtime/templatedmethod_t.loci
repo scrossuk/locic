@@ -1,0 +1,155 @@
+
+// TODO: implement variadic templates!
+
+template <bool IsNoExcept, typename ReturnType : movable>
+notag(ReturnType)
+__primitive templatedmethod0_t {
+	static templatedmethod0_t<IsNoExcept, ReturnType> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod0_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
+	templatedmethod0_t<IsNoExcept, ReturnType> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod0_t<IsNoExcept, ReturnType>& value) const noexcept;
+	
+	ReturnType call() const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0>
+notag(ReturnType)
+__primitive templatedmethod1_t {
+	static templatedmethod1_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod1_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
+	templatedmethod1_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod1_t<IsNoExcept, ReturnType, Arg0>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1>
+notag(ReturnType)
+__primitive templatedmethod2_t {
+	static templatedmethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
+	templatedmethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod2_t<IsNoExcept, ReturnType, Arg0, Arg1>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2>
+notag(ReturnType)
+__primitive templatedmethod3_t {
+	static templatedmethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
+	templatedmethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+notag(ReturnType)
+__primitive templatedmethod4_t {
+	static templatedmethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
+	templatedmethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+notag(ReturnType)
+__primitive templatedmethod5_t {
+	static templatedmethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
+	templatedmethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+notag(ReturnType)
+__primitive templatedmethod6_t {
+	static templatedmethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
+	templatedmethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+notag(ReturnType)
+__primitive templatedmethod7_t {
+	static templatedmethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
+	templatedmethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+notag(ReturnType)
+__primitive templatedmethod8_t {
+	static templatedmethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	templatedmethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
+	templatedmethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;
+	
+	compare_result_t compare(const templatedmethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) const noexcept(IsNoExcept);
+}

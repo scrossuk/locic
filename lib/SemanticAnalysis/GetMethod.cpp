@@ -75,7 +75,7 @@ namespace locic {
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(functionTypeTemplateMap));
-				const auto functionRefType = createFunctionType(context, functionType);
+				const auto functionRefType = createFunctionPointerType(context, functionType);
 				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionRefType), location);
 				
@@ -86,7 +86,7 @@ namespace locic {
 				}
 			} else {
 				const bool isTemplated = true;
-				const auto functionType = createFunctionType(context, methodElement.createFunctionType(isTemplated));
+				const auto functionType = createFunctionPointerType(context, methodElement.createFunctionType(isTemplated));
 				return addDebugInfo(SEM::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
 			}
 		}
@@ -216,20 +216,24 @@ namespace locic {
 			
 			if (function != nullptr) {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
-				const auto functionRefType = createFunctionType(context, functionType);
+				const auto functionRefType = createFunctionPointerType(context, functionType);
 				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
 				
 				if (type->isInterface()) {
 					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
 				} else {
-					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
+					const auto methodType = createMethodType(context, functionType);
+					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 				}
 			} else {
 				const bool isTemplated = true;
-				const auto functionType = createFunctionType(context, methodElement.createFunctionType(isTemplated));
-				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
-				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
+				const auto functionType = methodElement.createFunctionType(isTemplated);
+				const auto functionRefType = createFunctionPointerType(context, functionType);
+				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
+				
+				const auto methodType = createMethodType(context, functionType);
+				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 			}
 		}
 		

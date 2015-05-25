@@ -38,7 +38,6 @@ namespace locic {
 					return type->getObjectType()->isInterface() || isRootTypeList(arrayRef(type->templateArguments()));
 				}
 				
-				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD: {
 					const auto functionType = type->asFunctionType();
 					return isRootType(functionType.returnType()) && isRootTypeList(arrayRef(functionType.parameterTypes()));

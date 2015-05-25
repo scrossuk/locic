@@ -32,6 +32,9 @@ namespace locic {
 			PrimitiveTemplatedMethodFunctionPtr,
 			PrimitiveVarArgFunctionPtr,
 			
+			PrimitiveMethod,
+			PrimitiveTemplatedMethod,
+			
 			PrimitiveInt8,
 			PrimitiveUInt8,
 			PrimitiveInt16,

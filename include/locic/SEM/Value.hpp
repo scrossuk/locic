@@ -299,7 +299,7 @@ namespace locic {
 				 * reference and the parent object instance value (must be
 				 * a reference to the object).
 				 */
-				static Value MethodObject(Value method, Value methodOwner);
+				static Value MethodObject(Value method, Value methodOwner, const Type* const type);
 				
 				/**
 				 * \brief Interface Method Reference

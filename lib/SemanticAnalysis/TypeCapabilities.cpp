@@ -39,7 +39,6 @@ namespace locic {
 		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
 				case SEM::Type::TEMPLATEVAR:
 					return false;

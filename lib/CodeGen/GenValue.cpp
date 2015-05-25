@@ -259,10 +259,6 @@ namespace locic {
 							return nullptr;
 						}
 						
-						case SEM::Type::METHOD: {
-							return codeValue;
-						}
-						
 						case SEM::Type::TEMPLATEVAR: {
 							return codeValue;
 						}
