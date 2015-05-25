@@ -74,7 +74,7 @@ after_success:
   - tar cfJ "$LOCIC_ARTIFACTS_ARCHIVE" -C ./artifacts locic
   - ../utils/upload_artifacts.py "$ARTIFACT_FTP_DOMAIN" "$ARTIFACT_FTP_USER" "$ARTIFACT_FTP_PASSWORD" "$LOCIC_ARTIFACTS_ARCHIVE"
   -
-    if [ -z "$LOCIC_UPLOAD_DOCS" ]; then
+    if [ -n "$LOCIC_UPLOAD_DOCS" ]; then
       ../utils/upload_docs.py "$ARTIFACT_FTP_DOMAIN" "$ARTIFACT_FTP_USER" "$ARTIFACT_FTP_PASSWORD" "$TRAVIS_BRANCH" "./docs/html";
     fi
 
