@@ -73,6 +73,10 @@ after_success:
   - export LOCIC_ARTIFACTS_ARCHIVE="locic-artifacts-$TRAVIS_JOB_NUMBER-$TRAVIS_OS_NAME-$TRAVIS_BRANCH.tar.xz"
   - tar cfJ "$LOCIC_ARTIFACTS_ARCHIVE" -C ./artifacts locic
   - ../utils/upload_artifacts.py "$ARTIFACT_FTP_DOMAIN" "$ARTIFACT_FTP_USER" "$ARTIFACT_FTP_PASSWORD" "$LOCIC_ARTIFACTS_ARCHIVE"
+  -
+    if [ -z "$LOCIC_UPLOAD_DOCS" ]; then
+      ../utils/upload_docs.py "$ARTIFACT_FTP_DOMAIN" "$ARTIFACT_FTP_USER" "$ARTIFACT_FTP_PASSWORD" "$TRAVIS_BRANCH" "./docs/html"
+    fi
 
 env:
   # Build with LLVM 3.3; use Clang 3.4 since Clang 3.3 can't build the exception runtime code.
@@ -85,7 +89,7 @@ env:
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.5 llvm-3.5-dev" CLANG_VERSION="3.5"
 
   # Build with LLVM 3.6
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6" LOCIC_UPLOAD_DOCS=1
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.6 llvm-3.6-dev" CLANG_VERSION="3.6"
 
   # Build with LLVM 3.7
