@@ -39,7 +39,8 @@ namespace locic {
 				}
 				
 				case SEM::Type::FUNCTION: {
-					return isRootType(type->getFunctionReturnType()) && isRootTypeList(arrayRef(type->getFunctionParameterTypes()));
+					const auto functionType = type->asFunctionType();
+					return isRootType(functionType.returnType()) && isRootTypeList(arrayRef(functionType.parameterTypes()));
 				}
 				
 				case SEM::Type::METHOD: {

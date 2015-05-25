@@ -69,7 +69,7 @@ namespace locic {
 					// Generate struct of function pointer and template
 					// generator if function type is templated.
 					const auto functionPtrType = genFunctionType(module, type->asFunctionType())->getPointerTo();
-					if (type->isFunctionTemplated()) {
+					if (type->asFunctionType().attributes().isTemplated()) {
 						llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
 						return TypeGenerator(module).getStructType(memberTypes);
 					} else {
@@ -172,9 +172,9 @@ namespace locic {
 					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 					
 					std::vector<LLVMMetadataValue*> parameterTypes;
-					parameterTypes.push_back(genDebugType(module, type->getFunctionReturnType()));
+					parameterTypes.push_back(genDebugType(module, type->asFunctionType().returnType()));
 					
-					for (const auto paramType: type->getFunctionParameterTypes()) {
+					for (const auto paramType: type->asFunctionType().parameterTypes()) {
 						parameterTypes.push_back(genDebugType(module, paramType));
 					}
 					

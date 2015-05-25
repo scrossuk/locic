@@ -233,9 +233,8 @@ namespace locic {
 						builder.CreateExtractValue(llvmValue, { 1 }) :
 						llvmValue;
 					
-					const auto functionType = value.type()->isMethod() ?
-						value.type()->getMethodFunctionType() : value.type();
-					const bool isTemplatedMethod = functionType->isFunctionTemplated();
+					const auto functionType = value.type()->asFunctionType();
+					const bool isTemplatedMethod = functionType.attributes().isTemplated();
 					callInfo.functionPtr = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 0 }) : functionValue;
 					callInfo.templateGenerator = isTemplatedMethod ? builder.CreateExtractValue(functionValue, { 1 }) : nullptr;
 					return callInfo;

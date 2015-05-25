@@ -92,12 +92,6 @@ namespace locic {
 				bool isBuiltInTypename() const;
 				
 				bool isFunction() const;
-				bool isFunctionVarArg() const;
-				bool isFunctionMethod() const;
-				bool isFunctionTemplated() const;
-				const Predicate& functionNoExceptPredicate() const;
-				const Type* getFunctionReturnType() const;
-				const TypeArray& getFunctionParameterTypes() const;
 				
 				bool isMethod() const;
 				const Type* getMethodFunctionType() const;

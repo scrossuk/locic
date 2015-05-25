@@ -89,11 +89,14 @@ namespace locic {
 				}
 				case SEM::Type::FUNCTION: {
 					// Check return type.
-					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceType->getFunctionReturnType(), destType->getFunctionReturnType(), hasConstChain, location);
+					const auto sourceFunctionType = sourceType->asFunctionType();
+					const auto destFunctionType = destType->asFunctionType();
+					
+					auto returnType = ImplicitCastTypeFormatOnlyChain(sourceFunctionType.returnType(), destFunctionType.returnType(), hasConstChain, location);
 					if (returnType == nullptr) return nullptr;
 					
-					const auto& sourceList = sourceType->getFunctionParameterTypes();
-					const auto& destList = destType->getFunctionParameterTypes();
+					const auto& sourceList = sourceFunctionType.parameterTypes();
+					const auto& destList = destFunctionType.parameterTypes();
 					
 					if (sourceList.size() != destList.size()) {
 						// throw CastFunctionParameterNumberMismatchException(sourceType, destType);
@@ -110,25 +113,25 @@ namespace locic {
 						paramTypes.push_back(paramType);
 					}
 					
-					if (sourceType->isFunctionVarArg() != destType->isFunctionVarArg()) {
+					if (sourceFunctionType.attributes().isVarArg() != destFunctionType.attributes().isVarArg()) {
 						// throw CastFunctionVarArgsMismatchException(sourceType, destType);
 						return nullptr;
 					}
 					
-					if (!destType->functionNoExceptPredicate().implies(sourceType->functionNoExceptPredicate())) {
+					if (!sourceFunctionType.attributes().noExceptPredicate().implies(destFunctionType.attributes().noExceptPredicate())) {
 						return nullptr;
 					}
 					
-					if (!sourceType->isFunctionMethod() && destType->isFunctionMethod()) {
+					if (sourceFunctionType.attributes().isMethod() != destFunctionType.attributes().isMethod()) {
 						return nullptr;
 					}
 					
-					if (!sourceType->isFunctionTemplated() && destType->isFunctionTemplated()) {
+					if (!sourceFunctionType.attributes().isTemplated() && destFunctionType.attributes().isTemplated()) {
 						return nullptr;
 					}
 					
-					return SEM::Type::Function(sourceType->isFunctionVarArg(), sourceType->isFunctionMethod(),
-						sourceType->isFunctionTemplated(), destType->functionNoExceptPredicate().copy(),
+					return SEM::Type::Function(sourceFunctionType.attributes().isVarArg(), sourceFunctionType.attributes().isMethod(),
+						sourceFunctionType.attributes().isTemplated(), destFunctionType.attributes().noExceptPredicate().copy(),
 						returnType, std::move(paramTypes));
 				}
 				case SEM::Type::METHOD: {

@@ -56,22 +56,25 @@ namespace locic {
 				
 				case Type::FUNCTION: {
 					TypeArray args;
-					args.reserve(type->getFunctionParameterTypes().size());
+					const auto functionType = type->asFunctionType();
+					const auto& attributes = functionType.attributes();
+					
+					args.reserve(functionType.parameterTypes().size());
 					
 					bool changed = false;
 					
-					for (const auto& paramType: type->getFunctionParameterTypes()) {
+					for (const auto& paramType: functionType.parameterTypes()) {
 						const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(paramType, checkFunction, preFunction, postFunction);
 						changed |= (appliedType != paramType);
 						args.push_back(appliedType);
 					}
 					
-					const auto returnType = applyType<CheckFunction, PreFunction, PostFunction>(type->getFunctionReturnType(), checkFunction, preFunction, postFunction);
-					changed |= (returnType != type->getFunctionReturnType());
+					const auto returnType = applyType<CheckFunction, PreFunction, PostFunction>(functionType.returnType(), checkFunction, preFunction, postFunction);
+					changed |= (returnType != functionType.returnType());
 					
 					if (changed) {
-						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(), type->functionNoExceptPredicate().copy(),
+						return Type::Function(attributes.isVarArg(), attributes.isMethod(),
+							attributes.isTemplated(), attributes.noExceptPredicate().copy(),
 							returnType, std::move(args));
 					} else {
 						return type;
@@ -553,36 +556,6 @@ namespace locic {
 			return kind() == FUNCTION;
 		}
 		
-		bool Type::isFunctionVarArg() const {
-			assert(isFunction());
-			return functionType_.attributes().isVarArg();
-		}
-		
-		bool Type::isFunctionMethod() const {
-			assert(isFunction());
-			return functionType_.attributes().isMethod();
-		}
-		
-		bool Type::isFunctionTemplated() const {
-			assert(isFunction());
-			return functionType_.attributes().isTemplated();
-		}
-		
-		const Predicate& Type::functionNoExceptPredicate() const {
-			assert(isFunction());
-			return functionType_.attributes().noExceptPredicate();
-		}
-		
-		const Type* Type::getFunctionReturnType() const {
-			assert(isFunction());
-			return functionType_.returnType();
-		}
-		
-		const TypeArray& Type::getFunctionParameterTypes() const {
-			assert(isFunction());
-			return functionType_.parameterTypes();
-		}
-		
 		bool Type::isMethod() const {
 			return kind() == METHOD;
 		}
@@ -852,25 +825,28 @@ namespace locic {
 				
 				case Type::FUNCTION: {
 					TypeArray args;
-					args.reserve(type->getFunctionParameterTypes().size());
+					const auto functionType = type->asFunctionType();
+					const auto& attributes = functionType.attributes();
+					
+					args.reserve(functionType.parameterTypes().size());
 					
 					bool changed = false;
 					
-					for (const auto& paramType: type->getFunctionParameterTypes()) {
+					for (const auto& paramType: functionType.parameterTypes()) {
 						const auto appliedType = paramType->substitute(templateVarMap);
 						changed |= (appliedType != paramType);
 						args.push_back(appliedType);
 					}
 					
-					const auto returnType = type->getFunctionReturnType()->substitute(templateVarMap);
-					changed |= (returnType != type->getFunctionReturnType());
+					const auto returnType = functionType.returnType()->substitute(templateVarMap);
+					changed |= (returnType != functionType.returnType());
 					
-					auto noexceptPredicate = type->functionNoExceptPredicate().substitute(templateVarMap);
-					changed |= (noexceptPredicate != type->functionNoExceptPredicate());
+					auto noexceptPredicate = attributes.noExceptPredicate().substitute(templateVarMap);
+					changed |= (noexceptPredicate != attributes.noExceptPredicate());
 					
 					if (changed) {
-						return Type::Function(type->isFunctionVarArg(), type->isFunctionMethod(),
-							type->isFunctionTemplated(), std::move(noexceptPredicate),
+						return Type::Function(attributes.isVarArg(), attributes.isMethod(),
+							attributes.isTemplated(), std::move(noexceptPredicate),
 							returnType, std::move(args));
 					} else {
 						return type->withoutTags();
@@ -978,9 +954,16 @@ namespace locic {
 		
 		const Type* Type::makeTemplatedFunction() const {
 			assert(isFunction());
+			
+			const auto functionType = asFunctionType();
+			
 			const bool isTemplated = true;
-			return Type::Function(isFunctionVarArg(), isFunctionMethod(), isTemplated,
-				functionNoExceptPredicate().copy(), getFunctionReturnType(), getFunctionParameterTypes().copy());
+			return Type::Function(functionType.attributes().isVarArg(),
+			                      functionType.attributes().isMethod(),
+			                      isTemplated,
+			                      functionType.attributes().noExceptPredicate().copy(),
+			                      functionType.returnType(),
+			                      functionType.parameterTypes().copy());
 		}
 		
 		const Type* Type::resolveAliases() const {
@@ -1046,22 +1029,23 @@ namespace locic {
 				}
 				
 				case FUNCTION: {
-					if (getFunctionReturnType()->dependsOnAny(array)) {
+					const auto functionType = asFunctionType();
+					if (functionType.returnType()->dependsOnAny(array)) {
 						return true;
 					}
 					
-					if (functionNoExceptPredicate().dependsOnAny(array)) {
+					if (functionType.attributes().noExceptPredicate().dependsOnAny(array)) {
 						return true;
 					}
 					
-					for (const auto& paramType: getFunctionParameterTypes()) {
+					for (const auto& paramType: functionType.parameterTypes()) {
 						if (paramType->dependsOnAny(array)) {
 							return true;
 						}
 					}
 					return false;
 				}
-									  
+				
 				case METHOD:
 					return getMethodFunctionType()->dependsOnAny(array);
 									  
@@ -1114,15 +1098,16 @@ namespace locic {
 				}
 				
 				case FUNCTION: {
-					if (!getFunctionReturnType()->dependsOnOnly(array)) {
+					const auto functionType = asFunctionType();
+					if (!functionType.returnType()->dependsOnOnly(array)) {
 						return false;
 					}
 					
-					if (!functionNoExceptPredicate().dependsOnOnly(array)) {
+					if (!functionType.attributes().noExceptPredicate().dependsOnOnly(array)) {
 						return false;
 					}
 					
-					for (const auto& paramType: getFunctionParameterTypes()) {
+					for (const auto& paramType: functionType.parameterTypes()) {
 						if (!paramType->dependsOnOnly(array)) {
 							return false;
 						}
@@ -1185,13 +1170,15 @@ namespace locic {
 					}
 				}
 				
-				case FUNCTION:
+				case FUNCTION: {
+					const auto functionType = asFunctionType();
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
-						getFunctionReturnType()->nameToString().c_str(),
-						makeNameArrayString(getFunctionParameterTypes()).c_str(),
-						isFunctionVarArg() ? "Yes" : "No",
-						functionNoExceptPredicate().toString().c_str()
+						functionType.returnType()->nameToString().c_str(),
+						makeNameArrayString(functionType.parameterTypes()).c_str(),
+						functionType.attributes().isVarArg() ? "Yes" : "No",
+						functionType.attributes().noExceptPredicate().toString().c_str()
  					);
+				}
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->nameToString().c_str());
@@ -1274,13 +1261,15 @@ namespace locic {
 						return stream.str();
 					}
 				}
-				case FUNCTION:
+				case FUNCTION: {
+					const auto functionType = asFunctionType();
 					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
-						getFunctionReturnType()->toString().c_str(),
-						makeArrayPtrString(getFunctionParameterTypes()).c_str(),
-						isFunctionVarArg() ? "Yes" : "No",
-						functionNoExceptPredicate().toString().c_str()
+						functionType.returnType()->toString().c_str(),
+						makeArrayPtrString(functionType.parameterTypes()).c_str(),
+						functionType.attributes().isVarArg() ? "Yes" : "No",
+						functionType.attributes().noExceptPredicate().toString().c_str()
  					);
+				}
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
 									  getMethodFunctionType()->toString().c_str());
@@ -1390,7 +1379,8 @@ namespace locic {
 				}
 				
 				case FUNCTION: {
-					const auto& paramList = getFunctionParameterTypes();
+					const auto functionType = asFunctionType();
+					const auto& paramList = functionType.parameterTypes();
 					
 					boost::hash_combine(seed, paramList.size());
 					
@@ -1398,11 +1388,11 @@ namespace locic {
 						boost::hash_combine(seed, paramList.at(i));
 					}
 					
-					boost::hash_combine(seed, getFunctionReturnType());
-					boost::hash_combine(seed, isFunctionVarArg());
-					boost::hash_combine(seed, isFunctionMethod());
-					boost::hash_combine(seed, isFunctionTemplated());
-					boost::hash_combine(seed, functionNoExceptPredicate().hash());
+					boost::hash_combine(seed, functionType.returnType());
+					boost::hash_combine(seed, functionType.attributes().isVarArg());
+					boost::hash_combine(seed, functionType.attributes().isMethod());
+					boost::hash_combine(seed, functionType.attributes().isTemplated());
+					boost::hash_combine(seed, functionType.attributes().noExceptPredicate().hash());
 					break;
 				}
 				
@@ -1555,10 +1545,13 @@ namespace locic {
 				}
 				
 				case FUNCTION: {
-					const auto& firstList = getFunctionParameterTypes();
-					const auto& secondList = type.getFunctionParameterTypes();
+					const auto firstFunctionType = asFunctionType();
+					const auto secondFunctionType = type.asFunctionType();
 					
-					if (getFunctionReturnType() != type.getFunctionReturnType()) {
+					const auto& firstList = firstFunctionType.parameterTypes();
+					const auto& secondList = secondFunctionType.parameterTypes();
+					
+					if (firstFunctionType.returnType() != secondFunctionType.returnType()) {
 						return false;
 					}
 					
@@ -1566,19 +1559,19 @@ namespace locic {
 						return false;
 					}
 					
-					if (isFunctionVarArg() != type.isFunctionVarArg()) {
+					if (firstFunctionType.attributes().isVarArg() != secondFunctionType.attributes().isVarArg()) {
 						return false;
 					}
 					
-					if (isFunctionMethod() != type.isFunctionMethod()) {
+					if (firstFunctionType.attributes().isMethod() != secondFunctionType.attributes().isMethod()) {
 						return false;
 					}
 					
-					if (isFunctionTemplated() != type.isFunctionTemplated()) {
+					if (firstFunctionType.attributes().isTemplated() != secondFunctionType.attributes().isTemplated()) {
 						return false;
 					}
 					
-					if (functionNoExceptPredicate() != type.functionNoExceptPredicate()) {
+					if (firstFunctionType.attributes().noExceptPredicate() != secondFunctionType.attributes().noExceptPredicate()) {
 						return false;
 					}
 					
