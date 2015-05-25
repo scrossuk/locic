@@ -232,11 +232,6 @@ namespace locic {
 								return codeValue;
 							}
 							
-							if (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t" && destType->isFunction()) {
-								return function.getBuilder().CreatePointerCast(codeValue,
-									genType(module, destType));
-							}
-							
 							if (sourceType->isDatatype() && destType->isUnionDatatype()) {
 								// Start from 1 so 0 can be used to represent 'empty'.
 								uint8_t variantKind = 1;
@@ -262,10 +257,6 @@ namespace locic {
 							
 							assert(false && "Casts between named types not implemented.");
 							return nullptr;
-						}
-						
-						case SEM::Type::FUNCTION: {
-							return codeValue;
 						}
 						
 						case SEM::Type::METHOD: {

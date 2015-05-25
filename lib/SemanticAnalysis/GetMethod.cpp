@@ -86,7 +86,7 @@ namespace locic {
 				}
 			} else {
 				const bool isTemplated = true;
-				const auto functionType = methodElement.createFunctionType(isTemplated);
+				const auto functionType = createFunctionType(context, methodElement.createFunctionType(isTemplated));
 				return addDebugInfo(SEM::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
 			}
 		}
@@ -227,7 +227,7 @@ namespace locic {
 				}
 			} else {
 				const bool isTemplated = true;
-				const auto functionType = methodElement.createFunctionType(isTemplated);
+				const auto functionType = createFunctionType(context, methodElement.createFunctionType(isTemplated));
 				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionType), location);
 				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value)), location);
 			}

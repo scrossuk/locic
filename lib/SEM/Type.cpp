@@ -25,6 +25,29 @@ namespace locic {
 		const Type* applyType(const Type* type, PreFunction preFunction, PostFunction postFunction);
 		
 		template <typename CheckFunction, typename PreFunction, typename PostFunction>
+		FunctionType applyFunctionType(const FunctionType functionType, CheckFunction checkFunction, PreFunction preFunction, PostFunction postFunction) {
+			TypeArray args;
+			args.reserve(functionType.parameterTypes().size());
+			
+			bool changed = false;
+			
+			for (const auto& paramType: functionType.parameterTypes()) {
+				const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(paramType, checkFunction, preFunction, postFunction);
+				changed |= (appliedType != paramType);
+				args.push_back(appliedType);
+			}
+			
+			const auto returnType = applyType<CheckFunction, PreFunction, PostFunction>(functionType.returnType(), checkFunction, preFunction, postFunction);
+			changed |= (returnType != functionType.returnType());
+			
+			if (changed) {
+				return FunctionType(functionType.attributes().copy(), returnType, std::move(args));
+			} else {
+				return functionType;
+			}
+		}
+		
+		template <typename CheckFunction, typename PreFunction, typename PostFunction>
 		const Type* doApplyType(const Type* const type, CheckFunction checkFunction, PreFunction preFunction, PostFunction postFunction) {
 			switch (type->kind()) {
 				case Type::AUTO: {
@@ -54,36 +77,9 @@ namespace locic {
 					}
 				}
 				
-				case Type::FUNCTION: {
-					TypeArray args;
-					const auto functionType = type->asFunctionType();
-					const auto& attributes = functionType.attributes();
-					
-					args.reserve(functionType.parameterTypes().size());
-					
-					bool changed = false;
-					
-					for (const auto& paramType: functionType.parameterTypes()) {
-						const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(paramType, checkFunction, preFunction, postFunction);
-						changed |= (appliedType != paramType);
-						args.push_back(appliedType);
-					}
-					
-					const auto returnType = applyType<CheckFunction, PreFunction, PostFunction>(functionType.returnType(), checkFunction, preFunction, postFunction);
-					changed |= (returnType != functionType.returnType());
-					
-					if (changed) {
-						return Type::Function(attributes.isVarArg(), attributes.isMethod(),
-							attributes.isTemplated(), attributes.noExceptPredicate().copy(),
-							returnType, std::move(args));
-					} else {
-						return type;
-					}
-				}
-				
 				case Type::METHOD: {
-					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getMethodFunctionType(), checkFunction, preFunction, postFunction);
-					if (appliedType != type->getMethodFunctionType()) {
+					const auto appliedType = applyFunctionType<CheckFunction, PreFunction, PostFunction>(type->asFunctionType(), checkFunction, preFunction, postFunction);
+					if (appliedType != type->asFunctionType()) {
 						return Type::Method(appliedType);
 					} else {
 						return type;
@@ -91,8 +87,8 @@ namespace locic {
 				}
 				
 				case Type::INTERFACEMETHOD: {
-					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getInterfaceMethodFunctionType(), checkFunction, preFunction, postFunction);
-					if (appliedType != type->getInterfaceMethodFunctionType()) {
+					const auto appliedType = applyFunctionType<CheckFunction, PreFunction, PostFunction>(type->asFunctionType(), checkFunction, preFunction, postFunction);
+					if (appliedType != type->asFunctionType()) {
 						return Type::InterfaceMethod(appliedType);
 					} else {
 						return type;
@@ -100,8 +96,8 @@ namespace locic {
 				}
 				
 				case Type::STATICINTERFACEMETHOD: {
-					const auto appliedType = applyType<CheckFunction, PreFunction, PostFunction>(type->getStaticInterfaceMethodFunctionType(), checkFunction, preFunction, postFunction);
-					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
+					const auto appliedType = applyFunctionType<CheckFunction, PreFunction, PostFunction>(type->asFunctionType(), checkFunction, preFunction, postFunction);
+					if (appliedType != type->asFunctionType()) {
 						return Type::StaticInterfaceMethod(appliedType);
 					} else {
 						return type;
@@ -203,57 +199,27 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Function(const bool isVarArg, const bool isMethod, const bool isTemplated, Predicate noExceptPredicate, const Type* const returnType, TypeArray parameterTypes) {
-			assert(returnType != nullptr);
-			
-			auto& context = returnType->context();
-			
-			Type type(context, FUNCTION);
-			
-			FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
-			type.functionType_ = FunctionType(std::move(attributes), returnType, std::move(parameterTypes));
-			
-			return context.getType(std::move(type));
-		}
-		
-		const Type* Type::Function(const FunctionType functionType) {
+		const Type* Type::Method(const FunctionType functionType) {
 			auto& context = functionType.context();
 			
-			Type type(context, FUNCTION);
+			Type type(context, METHOD);
 			type.functionType_ = functionType;
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Method(const Type* const functionType) {
-			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
-			auto& context = functionType->context();
-			
-			Type type(context, METHOD);
-			
-			type.data_.methodType.functionType = functionType;
-			
-			return context.getType(std::move(type));
-		}
-		
-		const Type* Type::InterfaceMethod(const Type* const functionType) {
-			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
-			auto& context = functionType->context();
+		const Type* Type::InterfaceMethod(const FunctionType functionType) {
+			auto& context = functionType.context();
 			
 			Type type(context, INTERFACEMETHOD);
-			
-			type.data_.interfaceMethodType.functionType = functionType;
-			
+			type.functionType_ = functionType;
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::StaticInterfaceMethod(const Type* const functionType) {
-			assert(functionType->isFunction() || functionType->isBuiltInFunctionPtr());
-			auto& context = functionType->context();
+		const Type* Type::StaticInterfaceMethod(const FunctionType functionType) {
+			auto& context = functionType.context();
 			
 			Type type(context, STATICINTERFACEMETHOD);
-			
-			type.data_.staticInterfaceMethodType.functionType = functionType;
-			
+			type.functionType_ = functionType;
 			return context.getType(std::move(type));
 		}
 		
@@ -538,6 +504,12 @@ namespace locic {
 			       getObjectType()->name().last().ends_with("ptr_t");
 		}
 		
+		bool Type::isBuiltInMethodFunctionPtr() const {
+			return isObject() && getObjectType()->name().size() == 1 &&
+			       getObjectType()->name().last().starts_with("methodfunction") &&
+			       getObjectType()->name().last().ends_with("ptr_t");
+		}
+		
 		bool Type::isBuiltInReference() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
 		}
@@ -548,39 +520,32 @@ namespace locic {
 			       getObjectType()->name().last().ends_with("ptr_t");
 		}
 		
+		bool Type::isBuiltInTemplatedMethodFunctionPtr() const {
+			return isObject() && getObjectType()->name().size() == 1 &&
+			       getObjectType()->name().last().starts_with("templatedmethodfunction") &&
+			       getObjectType()->name().last().ends_with("ptr_t");
+		}
+		
 		bool Type::isBuiltInTypename() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "typename_t";
 		}
 		
-		bool Type::isFunction() const {
-			return kind() == FUNCTION;
+		bool Type::isBuiltInVarArgFunctionPtr() const {
+			return isObject() && getObjectType()->name().size() == 1 &&
+			       getObjectType()->name().last().starts_with("varargfunction") &&
+			       getObjectType()->name().last().ends_with("ptr_t");
 		}
 		
 		bool Type::isMethod() const {
 			return kind() == METHOD;
 		}
 		
-		const Type* Type::getMethodFunctionType() const {
-			assert(isMethod());
-			return data_.methodType.functionType;
-		}
-		
 		bool Type::isInterfaceMethod() const {
 			return kind() == INTERFACEMETHOD;
 		}
 		
-		const Type* Type::getInterfaceMethodFunctionType() const {
-			assert(isInterfaceMethod());
-			return data_.interfaceMethodType.functionType;
-		}
-		
 		bool Type::isStaticInterfaceMethod() const {
 			return kind() == STATICINTERFACEMETHOD;
-		}
-		
-		const Type* Type::getStaticInterfaceMethodFunctionType() const {
-			assert(isStaticInterfaceMethod());
-			return data_.staticInterfaceMethodType.functionType;
 		}
 		
 		const TemplateVar* Type::getTemplateVar() const {
@@ -600,21 +565,6 @@ namespace locic {
 		const ValueArray& Type::templateArguments() const {
 			assert(isObject());
 			return valueArray_;
-		}
-		
-		const Type* Type::getCallableFunctionType() const {
-			switch (kind()) {
-				case Type::FUNCTION:
-					return this;
-				case Type::METHOD:
-					return getMethodFunctionType();
-				case Type::INTERFACEMETHOD:
-					return getInterfaceMethodFunctionType();
-				case Type::STATICINTERFACEMETHOD:
-					return getStaticInterfaceMethodFunctionType();
-				default:
-					throw std::runtime_error("Unknown callable type kind.");
-			}
 		}
 		
 		bool Type::isTypeInstance(const TypeInstance* typeInstance) const {
@@ -761,30 +711,27 @@ namespace locic {
 		
 		bool Type::isCallable() const {
 			switch (kind()) {
-				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD:
 				case SEM::Type::INTERFACEMETHOD:
 				case SEM::Type::STATICINTERFACEMETHOD:
 					return true;
 				default:
-					return isBuiltInFunctionPtr() || isBuiltInTemplatedFunctionPtr();
+					return isBuiltInFunctionPtr() ||
+						isBuiltInMethodFunctionPtr() ||
+						isBuiltInTemplatedFunctionPtr() ||
+						isBuiltInTemplatedMethodFunctionPtr() ||
+						isBuiltInVarArgFunctionPtr();
 			}
 		}
 		
 		FunctionType Type::asFunctionType() const {
-			if (isFunction()) {
+			assert(isCallable());
+			if (isMethod() || isInterfaceMethod() || isStaticInterfaceMethod()) {
 				return functionType_;
-			} else if (isMethod()) {
-				return getMethodFunctionType()->asFunctionType();
-			} else if (isInterfaceMethod()) {
-				return getInterfaceMethodFunctionType()->asFunctionType();
-			} else if (isStaticInterfaceMethod()) {
-				return getStaticInterfaceMethodFunctionType()->asFunctionType();
 			} else {
-				assert(isBuiltInFunctionPtr() || isBuiltInTemplatedFunctionPtr());
-				const bool isVarArg = false;
-				const bool isFunctionPtrMethod = false;
-				const bool isTemplated = isBuiltInTemplatedFunctionPtr();
+				const bool isVarArg = isBuiltInVarArgFunctionPtr();
+				const bool isFunctionPtrMethod = isBuiltInMethodFunctionPtr() || isBuiltInTemplatedMethodFunctionPtr();
+				const bool isTemplated = isBuiltInTemplatedFunctionPtr() || isBuiltInTemplatedMethodFunctionPtr();
 				
 				Predicate noexceptPredicate = getValuePredicate(templateArguments()[0]);
 				
@@ -823,58 +770,12 @@ namespace locic {
 					}
 				}
 				
-				case Type::FUNCTION: {
-					TypeArray args;
-					const auto functionType = type->asFunctionType();
-					const auto& attributes = functionType.attributes();
-					
-					args.reserve(functionType.parameterTypes().size());
-					
-					bool changed = false;
-					
-					for (const auto& paramType: functionType.parameterTypes()) {
-						const auto appliedType = paramType->substitute(templateVarMap);
-						changed |= (appliedType != paramType);
-						args.push_back(appliedType);
-					}
-					
-					const auto returnType = functionType.returnType()->substitute(templateVarMap);
-					changed |= (returnType != functionType.returnType());
-					
-					auto noexceptPredicate = attributes.noExceptPredicate().substitute(templateVarMap);
-					changed |= (noexceptPredicate != attributes.noExceptPredicate());
-					
-					if (changed) {
-						return Type::Function(attributes.isVarArg(), attributes.isMethod(),
-							attributes.isTemplated(), std::move(noexceptPredicate),
-							returnType, std::move(args));
-					} else {
-						return type->withoutTags();
-					}
-				}
-				
-				case Type::METHOD: {
-					const auto appliedType = type->getMethodFunctionType()->substitute(templateVarMap);
-					if (appliedType != type->getMethodFunctionType()) {
-						return Type::Method(appliedType);
-					} else {
-						return type->withoutTags();
-					}
-				}
-				
-				case Type::INTERFACEMETHOD: {
-					const auto appliedType = type->getInterfaceMethodFunctionType()->substitute(templateVarMap);
-					if (appliedType != type->getInterfaceMethodFunctionType()) {
-						return Type::InterfaceMethod(appliedType);
-					} else {
-						return type->withoutTags();
-					}
-				}
-				
+				case Type::METHOD:
+				case Type::INTERFACEMETHOD:
 				case Type::STATICINTERFACEMETHOD: {
-					const auto appliedType = type->getStaticInterfaceMethodFunctionType()->substitute(templateVarMap);
-					if (appliedType != type->getStaticInterfaceMethodFunctionType()) {
-						return Type::StaticInterfaceMethod(appliedType);
+					const auto appliedType = type->asFunctionType().substitute(templateVarMap);
+					if (appliedType != type->asFunctionType()) {
+						return Type::Method(appliedType);
 					} else {
 						return type->withoutTags();
 					}
@@ -952,20 +853,6 @@ namespace locic {
 			return doSubstitute(this, templateVarMap);
 		}
 		
-		const Type* Type::makeTemplatedFunction() const {
-			assert(isFunction());
-			
-			const auto functionType = asFunctionType();
-			
-			const bool isTemplated = true;
-			return Type::Function(functionType.attributes().isVarArg(),
-			                      functionType.attributes().isMethod(),
-			                      isTemplated,
-			                      functionType.attributes().noExceptPredicate().copy(),
-			                      functionType.returnType(),
-			                      functionType.parameterTypes().copy());
-		}
-		
 		const Type* Type::resolveAliases() const {
 			return applyType(this,
 				[] (const Type* const) {
@@ -1028,32 +915,14 @@ namespace locic {
 					return false;
 				}
 				
-				case FUNCTION: {
-					const auto functionType = asFunctionType();
-					if (functionType.returnType()->dependsOnAny(array)) {
-						return true;
-					}
-					
-					if (functionType.attributes().noExceptPredicate().dependsOnAny(array)) {
-						return true;
-					}
-					
-					for (const auto& paramType: functionType.parameterTypes()) {
-						if (paramType->dependsOnAny(array)) {
-							return true;
-						}
-					}
-					return false;
-				}
-				
 				case METHOD:
-					return getMethodFunctionType()->dependsOnAny(array);
+					return asFunctionType().dependsOnAny(array);
 									  
 				case INTERFACEMETHOD:
-					return getInterfaceMethodFunctionType()->dependsOnAny(array);
+					return asFunctionType().dependsOnAny(array);
 									  
 				case STATICINTERFACEMETHOD:
-					return getStaticInterfaceMethodFunctionType()->dependsOnAny(array);
+					return asFunctionType().dependsOnAny(array);
 					
 				case TEMPLATEVAR:
 					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
@@ -1097,34 +966,15 @@ namespace locic {
 					return true;
 				}
 				
-				case FUNCTION: {
-					const auto functionType = asFunctionType();
-					if (!functionType.returnType()->dependsOnOnly(array)) {
-						return false;
-					}
-					
-					if (!functionType.attributes().noExceptPredicate().dependsOnOnly(array)) {
-						return false;
-					}
-					
-					for (const auto& paramType: functionType.parameterTypes()) {
-						if (!paramType->dependsOnOnly(array)) {
-							return false;
-						}
-					}
-					
-					return true;
-				}
-									  
 				case METHOD:
-					return getMethodFunctionType()->dependsOnOnly(array);
-									  
+					return asFunctionType().dependsOnOnly(array);
+				
 				case INTERFACEMETHOD:
-					return getInterfaceMethodFunctionType()->dependsOnOnly(array);
+					return asFunctionType().dependsOnOnly(array);
 				
 				case STATICINTERFACEMETHOD:
-					return getStaticInterfaceMethodFunctionType()->dependsOnOnly(array);
-					
+					return asFunctionType().dependsOnOnly(array);
+				
 				case TEMPLATEVAR:
 					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
 				
@@ -1170,27 +1020,15 @@ namespace locic {
 					}
 				}
 				
-				case FUNCTION: {
-					const auto functionType = asFunctionType();
-					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
-						functionType.returnType()->nameToString().c_str(),
-						makeNameArrayString(functionType.parameterTypes()).c_str(),
-						functionType.attributes().isVarArg() ? "Yes" : "No",
-						functionType.attributes().noExceptPredicate().toString().c_str()
- 					);
-				}
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
-									  getMethodFunctionType()->nameToString().c_str());
-									  
+					                  asFunctionType().nameToString().c_str());
 				case INTERFACEMETHOD:
 					return makeString("InterfaceMethodType(functionType: %s)",
-									  getInterfaceMethodFunctionType()->toString().c_str());
-									  
+					                  asFunctionType().nameToString().c_str());
 				case STATICINTERFACEMETHOD:
 					return makeString("StaticInterfaceMethodType(functionType: %s)",
-									  getStaticInterfaceMethodFunctionType()->toString().c_str());
-									  
+					                  asFunctionType().nameToString().c_str());
 				case TEMPLATEVAR:
 					return "TemplateVarType(templateVar: [possible loop])";
 				
@@ -1261,30 +1099,18 @@ namespace locic {
 						return stream.str();
 					}
 				}
-				case FUNCTION: {
-					const auto functionType = asFunctionType();
-					return makeString("FunctionType(return: %s, args: %s, isVarArg: %s, noexceptPredicate: %s)",
-						functionType.returnType()->toString().c_str(),
-						makeArrayPtrString(functionType.parameterTypes()).c_str(),
-						functionType.attributes().isVarArg() ? "Yes" : "No",
-						functionType.attributes().noExceptPredicate().toString().c_str()
- 					);
-				}
 				case METHOD:
 					return makeString("MethodType(functionType: %s)",
-									  getMethodFunctionType()->toString().c_str());
-									  
+					                  asFunctionType().toString().c_str());
 				case INTERFACEMETHOD:
 					return makeString("InterfaceMethodType(functionType: %s)",
-									  getInterfaceMethodFunctionType()->toString().c_str());
-									  
+					                  asFunctionType().toString().c_str());
 				case STATICINTERFACEMETHOD:
 					return makeString("StaticInterfaceMethodType(functionType: %s)",
-									  getStaticInterfaceMethodFunctionType()->toString().c_str());
-									  
+					                  asFunctionType().toString().c_str());
 				case TEMPLATEVAR:
 					return makeString("TemplateVarType(templateVar: %s)",
-									  getTemplateVar()->toString().c_str());
+					                  getTemplateVar()->toString().c_str());
 				
 				case ALIAS: {
 					const auto aliasName = getTypeAlias()->name().toString(false);
@@ -1345,13 +1171,13 @@ namespace locic {
 		}
 		
 		std::size_t Type::hash() const {
-			std::size_t seed = 0;
-			boost::hash_combine(seed, kind());
-			boost::hash_combine(seed, isNoTag());
-			boost::hash_combine(seed, constPredicate().hash());
-			boost::hash_combine(seed, isLval() ? lvalTarget() : NULL);
-			boost::hash_combine(seed, isRef() ? refTarget() : NULL);
-			boost::hash_combine(seed, isStaticRef() ? staticRefTarget() : NULL);
+			Hasher hasher;
+			hasher.add(kind());
+			hasher.add(isNoTag());
+			hasher.add(constPredicate().hash());
+			hasher.add(isLval() ? lvalTarget() : NULL);
+			hasher.add(isRef() ? refTarget() : NULL);
+			hasher.add(isStaticRef() ? staticRefTarget() : NULL);
 			
 			switch (kind()) {
 				case AUTO: {
@@ -1359,65 +1185,39 @@ namespace locic {
 				}
 				
 				case ALIAS: {
-					boost::hash_combine(seed, typeAliasArguments().size());
+					hasher.add(typeAliasArguments().size());
 					
 					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
-						boost::hash_combine(seed, typeAliasArguments().at(i).hash());
+						hasher.add(typeAliasArguments().at(i).hash());
 					}
 					
 					break;
 				}
 				
 				case OBJECT: {
-					boost::hash_combine(seed, templateArguments().size());
+					hasher.add(templateArguments().size());
 					
 					for (size_t i = 0; i < templateArguments().size(); i++) {
-						boost::hash_combine(seed, templateArguments().at(i).hash());
+						hasher.add(templateArguments().at(i).hash());
 					}
 					
 					break;
 				}
 				
-				case FUNCTION: {
-					const auto functionType = asFunctionType();
-					const auto& paramList = functionType.parameterTypes();
-					
-					boost::hash_combine(seed, paramList.size());
-					
-					for (size_t i = 0; i < paramList.size(); i++) {
-						boost::hash_combine(seed, paramList.at(i));
-					}
-					
-					boost::hash_combine(seed, functionType.returnType());
-					boost::hash_combine(seed, functionType.attributes().isVarArg());
-					boost::hash_combine(seed, functionType.attributes().isMethod());
-					boost::hash_combine(seed, functionType.attributes().isTemplated());
-					boost::hash_combine(seed, functionType.attributes().noExceptPredicate().hash());
-					break;
-				}
-				
-				case METHOD: {
-					boost::hash_combine(seed, getMethodFunctionType());
-					break;
-				}
-				
-				case INTERFACEMETHOD: {
-					boost::hash_combine(seed, getInterfaceMethodFunctionType());
-					break;
-				}
-				
+				case METHOD:
+				case INTERFACEMETHOD:
 				case STATICINTERFACEMETHOD: {
-					boost::hash_combine(seed, getStaticInterfaceMethodFunctionType());
+					hasher.add(asFunctionType());
 					break;
 				}
 				
 				case TEMPLATEVAR: {
-					boost::hash_combine(seed, getTemplateVar());
+					hasher.add(getTemplateVar());
 					break;
 				}
 			}
 			
-			return seed;
+			return hasher.get();
 		}
 		
 		Type Type::copy() const {
@@ -1440,23 +1240,10 @@ namespace locic {
 					break;
 				}
 				
-				case FUNCTION: {
-					type.functionType_ = functionType_;
-					break;
-				}
-				
-				case METHOD: {
-					type.data_.methodType.functionType = getMethodFunctionType();
-					break;
-				}
-				
-				case INTERFACEMETHOD: {
-					type.data_.interfaceMethodType.functionType = getInterfaceMethodFunctionType();
-					break;
-				}
-				
+				case METHOD:
+				case INTERFACEMETHOD:
 				case STATICINTERFACEMETHOD: {
-					type.data_.staticInterfaceMethodType.functionType = getStaticInterfaceMethodFunctionType();
+					type.functionType_ = asFunctionType();
 					break;
 				}
 				
@@ -1544,50 +1331,10 @@ namespace locic {
 					return true;
 				}
 				
-				case FUNCTION: {
-					const auto firstFunctionType = asFunctionType();
-					const auto secondFunctionType = type.asFunctionType();
-					
-					const auto& firstList = firstFunctionType.parameterTypes();
-					const auto& secondList = secondFunctionType.parameterTypes();
-					
-					if (firstFunctionType.returnType() != secondFunctionType.returnType()) {
-						return false;
-					}
-					
-					if (firstList != secondList) {
-						return false;
-					}
-					
-					if (firstFunctionType.attributes().isVarArg() != secondFunctionType.attributes().isVarArg()) {
-						return false;
-					}
-					
-					if (firstFunctionType.attributes().isMethod() != secondFunctionType.attributes().isMethod()) {
-						return false;
-					}
-					
-					if (firstFunctionType.attributes().isTemplated() != secondFunctionType.attributes().isTemplated()) {
-						return false;
-					}
-					
-					if (firstFunctionType.attributes().noExceptPredicate() != secondFunctionType.attributes().noExceptPredicate()) {
-						return false;
-					}
-					
-					return true;
-				}
-				
-				case METHOD: {
-					return getMethodFunctionType() == type.getMethodFunctionType();
-				}
-				
-				case INTERFACEMETHOD: {
-					return getInterfaceMethodFunctionType() == type.getInterfaceMethodFunctionType();
-				}
-				
+				case METHOD:
+				case INTERFACEMETHOD:
 				case STATICINTERFACEMETHOD: {
-					return getStaticInterfaceMethodFunctionType() == type.getStaticInterfaceMethodFunctionType();
+					return asFunctionType() == type.asFunctionType();
 				}
 				
 				case TEMPLATEVAR: {

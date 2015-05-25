@@ -59,22 +59,20 @@ namespace locic {
 			}
 		}
 		
+		llvm::Type* genFunctionStructType(Module& module, const SEM::FunctionType functionType) {
+			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();
+			if (functionType.attributes().isTemplated()) {
+				llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
+				return TypeGenerator(module).getStructType(memberTypes);
+			} else {
+				return functionPtrType;
+			}
+		}
+		
 		llvm::Type* genType(Module& module, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type);
-				}
-				
-				case SEM::Type::FUNCTION: {
-					// Generate struct of function pointer and template
-					// generator if function type is templated.
-					const auto functionPtrType = genFunctionType(module, type->asFunctionType())->getPointerTo();
-					if (type->asFunctionType().attributes().isTemplated()) {
-						llvm::Type* const memberTypes[] = { functionPtrType, templateGeneratorType(module).second };
-						return TypeGenerator(module).getStructType(memberTypes);
-					} else {
-						return functionPtrType;
-					}
 				}
 				
 				case SEM::Type::METHOD: {
@@ -95,7 +93,7 @@ namespace locic {
 					*/
 					llvm::SmallVector<llvm::Type*, 2> types;
 					types.push_back(TypeGenerator(module).getI8PtrType());
-					types.push_back(genType(module, type->getMethodFunctionType()));
+					types.push_back(genFunctionStructType(module, type->asFunctionType()));
 					return TypeGenerator(module).getStructType(types);
 				}
 				
@@ -149,6 +147,24 @@ namespace locic {
 								return module.debugBuilder().createIntType(module.getCString("int_t"));
 							case PrimitiveRef:
 								return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
+							case PrimitiveFunctionPtr:
+							case PrimitiveMethodFunctionPtr:
+							case PrimitiveTemplatedFunctionPtr:
+							case PrimitiveTemplatedMethodFunctionPtr:
+							case PrimitiveVarArgFunctionPtr: {
+								const auto functionType = type->asFunctionType();
+								// TODO!
+								const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
+								
+								std::vector<LLVMMetadataValue*> parameterTypes;
+								parameterTypes.push_back(genDebugType(module, functionType.returnType()));
+								
+								for (const auto paramType: functionType.parameterTypes()) {
+									parameterTypes.push_back(genDebugType(module, paramType));
+								}
+								
+								return module.debugBuilder().createFunctionType(file, parameterTypes);
+							}
 							default:
 								break;
 						}
@@ -165,20 +181,6 @@ namespace locic {
 					} else {
 						return module.debugBuilder().createUnspecifiedType(objectType->name().last());
 					}
-				}
-				
-				case SEM::Type::FUNCTION: {
-					// TODO!
-					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
-					
-					std::vector<LLVMMetadataValue*> parameterTypes;
-					parameterTypes.push_back(genDebugType(module, type->asFunctionType().returnType()));
-					
-					for (const auto paramType: type->asFunctionType().parameterTypes()) {
-						parameterTypes.push_back(genDebugType(module, paramType));
-					}
-					
-					return module.debugBuilder().createFunctionType(file, parameterTypes);
 				}
 				
 				case SEM::Type::METHOD: {

@@ -78,10 +78,11 @@ namespace locic {
 			return parameterTypes_;
 		}
 		
-		const SEM::Type* MethodSetElement::createFunctionType(const bool isTemplated) const {
+		SEM::FunctionType MethodSetElement::createFunctionType(const bool isTemplated) const {
 			const bool isVarArg = false;
 			const bool isMethod = !isStatic();
-			return SEM::Type::Function(isVarArg, isMethod, isTemplated, noexceptPredicate().copy(), returnType(), parameterTypes().copy());
+			SEM::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, noexceptPredicate().copy());
+			return SEM::FunctionType(std::move(attributes), returnType(), parameterTypes().copy());
 		}
 		
 		std::size_t MethodSetElement::hash() const {

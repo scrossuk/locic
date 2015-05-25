@@ -29,7 +29,6 @@ namespace locic {
 					AUTO,
 					ALIAS,
 					OBJECT,
-					FUNCTION,
 					METHOD,
 					INTERFACEMETHOD,
 					STATICINTERFACEMETHOD,
@@ -42,11 +41,9 @@ namespace locic {
 				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
-				static const Type* Function(bool isVarArg, bool isMethod, bool isTemplated, Predicate noExceptPredicate, const Type* returnType, TypeArray parameterTypes);
-				static const Type* Function(const FunctionType functionType);
-				static const Type* Method(const Type* functionType);
-				static const Type* InterfaceMethod(const Type* functionType);
-				static const Type* StaticInterfaceMethod(const Type* functionType);
+				static const Type* Method(const FunctionType functionType);
+				static const Type* InterfaceMethod(const FunctionType functionType);
+				static const Type* StaticInterfaceMethod(const FunctionType functionType);
 				
 				const Context& context() const;
 				Kind kind() const;
@@ -87,20 +84,16 @@ namespace locic {
 				bool isBuiltInVoid() const;
 				bool isBuiltInBool() const;
 				bool isBuiltInFunctionPtr() const;
+				bool isBuiltInMethodFunctionPtr() const;
 				bool isBuiltInReference() const;
 				bool isBuiltInTemplatedFunctionPtr() const;
+				bool isBuiltInTemplatedMethodFunctionPtr() const;
 				bool isBuiltInTypename() const;
-				
-				bool isFunction() const;
+				bool isBuiltInVarArgFunctionPtr() const;
 				
 				bool isMethod() const;
-				const Type* getMethodFunctionType() const;
-				
 				bool isInterfaceMethod() const;
-				const Type* getInterfaceMethodFunctionType() const;
-				
 				bool isStaticInterfaceMethod() const;
-				const Type* getStaticInterfaceMethodFunctionType() const;
 				
 				bool isObject() const;
 				const TypeInstance* getObjectType() const;
@@ -108,8 +101,6 @@ namespace locic {
 				
 				bool isTemplateVar() const;
 				const TemplateVar* getTemplateVar() const;
-				
-				const Type* getCallableFunctionType() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
 				
@@ -134,7 +125,6 @@ namespace locic {
 				FunctionType asFunctionType() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
-				const Type* makeTemplatedFunction() const;
 				const Type* resolveAliases() const;
 				
 				bool dependsOn(const TemplateVar* const templateVar) const;
@@ -179,18 +169,6 @@ namespace locic {
 					struct {
 						const TypeInstance* typeInstance;
 					} objectType;
-					
-					struct {
-						const Type* functionType;
-					} methodType;
-					
-					struct {
-						const Type* functionType;
-					} interfaceMethodType;
-					
-					struct {
-						const Type* functionType;
-					} staticInterfaceMethodType;
 					
 					struct {
 						const TemplateVar* templateVar;

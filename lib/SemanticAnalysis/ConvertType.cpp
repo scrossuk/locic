@@ -103,22 +103,39 @@ namespace locic {
 			return createPrimitiveCallableType(context, builtInFunctionType, "function", "ptr_t");
 		}
 		
+		const SEM::Type* createMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "methodfunction", "ptr_t");
+		}
+		
 		const SEM::Type* createTemplatedFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
 			return createPrimitiveCallableType(context, builtInFunctionType, "templatedfunction", "ptr_t");
+		}
+		
+		const SEM::Type* createTemplatedMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "templatedmethodfunction", "ptr_t");
+		}
+		
+		const SEM::Type* createVarArgFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
+			return createPrimitiveCallableType(context, builtInFunctionType, "varargfunction", "ptr_t");
 		}
 		
 		const SEM::Type* createFunctionType(Context& context, const SEM::FunctionType builtInFunctionType) {
 			const auto& attributes = builtInFunctionType.attributes();
 			
-			if (attributes.isMethod() || attributes.isVarArg()) {
-				// Temporary path for complex function types while function primitive types are being built.
-				return SEM::Type::Function(builtInFunctionType);
-			}
-			
-			if (attributes.isTemplated()) {
-				return createTemplatedFunctionPointerType(context, builtInFunctionType);
+			if (attributes.isVarArg()) {
+				return createVarArgFunctionPointerType(context, builtInFunctionType);
+			} else if (attributes.isMethod()) {
+				if (attributes.isTemplated()) {
+					return createTemplatedMethodFunctionPointerType(context, builtInFunctionType);
+				} else {
+					return createMethodFunctionPointerType(context, builtInFunctionType);
+				}
 			} else {
-				return createFunctionPointerType(context, builtInFunctionType);
+				if (attributes.isTemplated()) {
+					return createTemplatedFunctionPointerType(context, builtInFunctionType);
+				} else {
+					return createFunctionPointerType(context, builtInFunctionType);
+				}
 			}
 		}
 		

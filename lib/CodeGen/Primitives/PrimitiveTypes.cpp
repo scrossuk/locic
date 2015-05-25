@@ -67,10 +67,13 @@ namespace locic {
 				case PrimitivePtr:
 				case PrimitivePtrLval:
 					return genPointerType(module, type->templateArguments().front().typeRefType());
-				case PrimitiveFunctionPtr: {
+				case PrimitiveFunctionPtr:
+				case PrimitiveMethodFunctionPtr:
+				case PrimitiveVarArgFunctionPtr: {
 					return getFunctionArgInfo(module, type->asFunctionType()).makeFunctionType()->getPointerTo();
 				}
-				case PrimitiveTemplatedFunctionPtr: {
+				case PrimitiveTemplatedFunctionPtr:
+				case PrimitiveTemplatedMethodFunctionPtr: {
 					const auto functionPtr = getFunctionArgInfo(module, type->asFunctionType()).makeFunctionType()->getPointerTo();
 					llvm::Type* const memberTypes[] = { functionPtr, templateGeneratorType(module).second };
 					return TypeGenerator(module).getStructType(memberTypes);
@@ -172,9 +175,12 @@ namespace locic {
 					return TypeGenerator(module).getLongDoubleType();
 				case PrimitivePtr:
 				case PrimitiveFunctionPtr:
+				case PrimitiveMethodFunctionPtr:
+				case PrimitiveVarArgFunctionPtr:
 				case PrimitivePtrLval:
 					return TypeGenerator(module).getI8PtrType();
-				case PrimitiveTemplatedFunctionPtr: {
+				case PrimitiveTemplatedFunctionPtr:
+				case PrimitiveTemplatedMethodFunctionPtr: {
 					llvm::Type* const memberTypes[] = { TypeGenerator(module).getI8PtrType(), templateGeneratorType(module).second };
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
@@ -199,8 +205,11 @@ namespace locic {
 				case PrimitiveNull:
 				case PrimitivePtr:
 				case PrimitiveFunctionPtr:
+				case PrimitiveMethodFunctionPtr:
+				case PrimitiveVarArgFunctionPtr:
 					return llvm_abi::Type::Pointer(abiContext);
-				case PrimitiveTemplatedFunctionPtr: {
+				case PrimitiveTemplatedFunctionPtr:
+				case PrimitiveTemplatedMethodFunctionPtr: {
 					std::vector<llvm_abi::Type*> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::Type::Pointer(abiContext));

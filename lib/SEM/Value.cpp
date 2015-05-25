@@ -235,7 +235,7 @@ namespace locic {
 		
 		Value Value::FunctionRef(const Type* const parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
-			//assert(type != NULL && type->isFunction());
+			assert(type != NULL && type->isCallable());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
 			value.union_.functionRef_.parentType = parentType;
 			value.union_.functionRef_.function = function;
@@ -245,6 +245,7 @@ namespace locic {
 		
 		Value Value::TemplateFunctionRef(const Type* const parentType, const String& name, const Type* const functionType) {
 			assert(parentType->isTemplateVar());
+			assert(functionType != NULL && functionType->isCallable());
 			Value value(TEMPLATEFUNCTIONREF, functionType, ExitStates::Normal());
 			value.union_.templateFunctionRef_.parentType = parentType;
 			value.union_.templateFunctionRef_.name = name;
@@ -253,28 +254,28 @@ namespace locic {
 		}
 		
 		Value Value::MethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
+			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
-			Value value(METHODOBJECT, SEM::Type::Method(method.type()), method.exitStates() | methodOwner.exitStates());
+			Value value(METHODOBJECT, SEM::Type::Method(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
 		Value Value::InterfaceMethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
+			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodOwner.type()->refTarget()->isInterface());
-			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
+			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
 		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner) {
-			assert(method.type()->isFunction() || method.type()->isBuiltInFunctionPtr());
+			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
-			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()), method.exitStates() | methodOwner.exitStates());
+			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;

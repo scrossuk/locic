@@ -63,6 +63,8 @@ namespace locic {
 			
 			std::string toString() const;
 			
+			std::string nameToString() const;
+			
 			std::size_t hash() const;
 			
 			bool operator==(const FunctionTypeData& other) const;
@@ -106,8 +108,18 @@ namespace locic {
 			
 			FunctionType substitute(const TemplateVarMap& templateVarMap) const;
 			
+			FunctionType makeTemplated() const;
+			
+			bool dependsOnAny(const TemplateVarArray& array) const;
+			
+			bool dependsOnOnly(const TemplateVarArray& array) const;
+			
 			std::string toString() const {
 				return data_->toString();
+			}
+			
+			std::string nameToString() const {
+				return data_->nameToString();
 			}
 			
 			std::size_t hash() const;

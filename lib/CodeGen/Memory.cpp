@@ -28,7 +28,6 @@ namespace locic {
 			
 			auto& module = function.module();
 			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					const auto llvmType = genType(module, type);
 					assert(!llvmType->isVoidTy());
@@ -66,7 +65,6 @@ namespace locic {
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					return function.getBuilder().CreateLoad(var);
 				}
@@ -95,7 +93,6 @@ namespace locic {
 			assert(var->getType() == genPointerType(function.module(), type));
 			
 			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
 				case SEM::Type::METHOD: {
 					(void) function.getBuilder().CreateStore(value, var);
 					return;

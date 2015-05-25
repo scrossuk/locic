@@ -219,7 +219,7 @@ namespace locic {
 				}
 				
 				default: {
-					assert(value.type()->isFunction() || value.type()->isMethod());
+					assert(value.type()->isCallable());
 					
 					const auto llvmValue = genValue(function, value);
 					

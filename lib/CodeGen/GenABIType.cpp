@@ -28,6 +28,20 @@ namespace locic {
 			}
 		}
 		
+		llvm_abi::Type* genABIFunctionType(Module& module, const SEM::FunctionType functionType) {
+			auto& abiContext = module.abiContext();
+			
+			if (functionType.attributes().isTemplated()) {
+				std::vector<llvm_abi::Type*> types;
+				types.reserve(2);
+				types.push_back(llvm_abi::Type::Pointer(abiContext));
+				types.push_back(templateGeneratorType(module).first);
+				return llvm_abi::Type::AutoStruct(abiContext, types);
+			} else {
+				return llvm_abi::Type::Pointer(abiContext);
+			}
+		}
+		
 		llvm_abi::Type* genABIType(Module& module, const SEM::Type* type) {
 			auto& abiContext = module.abiContext();
 			
@@ -81,25 +95,11 @@ namespace locic {
 					}
 				}
 				
-				case SEM::Type::FUNCTION: {
-					// Generate struct of function pointer and template
-					// generator if function type is templated.
-					if (type->asFunctionType().attributes().isTemplated()) {
-						std::vector<llvm_abi::Type*> types;
-						types.reserve(2);
-						types.push_back(llvm_abi::Type::Pointer(abiContext));
-						types.push_back(templateGeneratorType(module).first);
-						return llvm_abi::Type::AutoStruct(abiContext, types);
-					} else {
-						return llvm_abi::Type::Pointer(abiContext);
-					}
-				}
-				
 				case SEM::Type::METHOD: {
 					std::vector<llvm_abi::Type*> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::Type::Pointer(abiContext));
-					types.push_back(genABIType(module, type->getMethodFunctionType()));
+					types.push_back(genABIFunctionType(module, type->asFunctionType()));
 					return llvm_abi::Type::AutoStruct(abiContext, types);
 				}
 				

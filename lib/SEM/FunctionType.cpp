@@ -114,6 +114,16 @@ namespace locic {
 			                  makeArrayPtrString(parameterTypes()).c_str());
 		}
 		
+		std::string FunctionTypeData::nameToString() const {
+			return makeString("FunctionType("
+			                  "attributes: %s, "
+			                  "returnType: %s, "
+			                  "parameterTypes: %s)",
+			                  attributes().toString().c_str(),
+			                  returnType()->nameToString().c_str(),
+			                  makeNameArrayString(parameterTypes()).c_str());
+		}
+		
 		std::size_t FunctionTypeData::hash() const {
 			Hasher hasher;
 			hasher.add(attributes());
@@ -163,6 +173,55 @@ namespace locic {
 			} else {
 				return *this;
 			}
+		}
+		
+		FunctionType FunctionType::makeTemplated() const {
+			if (attributes().isTemplated()) {
+				return *this;
+			}
+			
+			const bool newIsTemplated = true;
+			FunctionAttributes newAttributes(attributes().isVarArg(),
+			                                 attributes().isMethod(),
+			                                 newIsTemplated,
+			                                 attributes().noExceptPredicate().copy());
+			return FunctionType(std::move(newAttributes), returnType(), parameterTypes().copy());
+		}
+		
+		bool FunctionType::dependsOnAny(const TemplateVarArray& array) const {
+			if (returnType()->dependsOnAny(array)) {
+				return true;
+			}
+			
+			if (attributes().noExceptPredicate().dependsOnAny(array)) {
+				return true;
+			}
+			
+			for (const auto& paramType: parameterTypes()) {
+				if (paramType->dependsOnAny(array)) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		bool FunctionType::dependsOnOnly(const TemplateVarArray& array) const {
+			if (!returnType()->dependsOnOnly(array)) {
+				return false;
+			}
+			
+			if (!attributes().noExceptPredicate().dependsOnOnly(array)) {
+				return false;
+			}
+			
+			for (const auto& paramType: parameterTypes()) {
+				if (!paramType->dependsOnOnly(array)) {
+					return false;
+				}
+			}
+			
+			return true;
 		}
 		
 		std::size_t FunctionType::hash() const {
