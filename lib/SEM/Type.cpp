@@ -530,11 +530,19 @@ namespace locic {
 		}
 		
 		bool Type::isBuiltInFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last().starts_with("function");
+			return isObject() && getObjectType()->name().size() == 1 &&
+			       getObjectType()->name().last().starts_with("function") &&
+			       getObjectType()->name().last().ends_with("ptr_t");
 		}
 		
 		bool Type::isBuiltInReference() const {
 			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
+		}
+		
+		bool Type::isBuiltInTemplatedFunctionPtr() const {
+			return isObject() && getObjectType()->name().size() == 1 &&
+			       getObjectType()->name().last().starts_with("templatedfunction") &&
+			       getObjectType()->name().last().ends_with("ptr_t");
 		}
 		
 		bool Type::isBuiltInTypename() const {
@@ -778,6 +786,18 @@ namespace locic {
 			}
 		}
 		
+		bool Type::isCallable() const {
+			switch (kind()) {
+				case SEM::Type::FUNCTION:
+				case SEM::Type::METHOD:
+				case SEM::Type::INTERFACEMETHOD:
+				case SEM::Type::STATICINTERFACEMETHOD:
+					return true;
+				default:
+					return isBuiltInFunctionPtr() || isBuiltInTemplatedFunctionPtr();
+			}
+		}
+		
 		FunctionType Type::asFunctionType() const {
 			if (isFunction()) {
 				return functionType_;
@@ -788,10 +808,10 @@ namespace locic {
 			} else if (isStaticInterfaceMethod()) {
 				return getStaticInterfaceMethodFunctionType()->asFunctionType();
 			} else {
-				assert(isBuiltInFunctionPtr());
+				assert(isBuiltInFunctionPtr() || isBuiltInTemplatedFunctionPtr());
 				const bool isVarArg = false;
 				const bool isFunctionPtrMethod = false;
-				const bool isTemplated = false;
+				const bool isTemplated = isBuiltInTemplatedFunctionPtr();
 				
 				Predicate noexceptPredicate = getValuePredicate(templateArguments()[0]);
 				

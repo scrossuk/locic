@@ -88,6 +88,7 @@ namespace locic {
 				bool isBuiltInBool() const;
 				bool isBuiltInFunctionPtr() const;
 				bool isBuiltInReference() const;
+				bool isBuiltInTemplatedFunctionPtr() const;
 				bool isBuiltInTypename() const;
 				
 				bool isFunction() const;
@@ -135,6 +136,7 @@ namespace locic {
 				
 				TemplateVarMap generateTemplateVarMap() const;
 				
+				bool isCallable() const;
 				FunctionType asFunctionType() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;

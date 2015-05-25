@@ -214,7 +214,8 @@ namespace locic {
 		}
 		
 		Value Value::Call(Value functionValue, HeapArray<Value> parameters) {
-			const auto functionType = functionValue.type()->getCallableFunctionType()->asFunctionType();
+			assert(functionValue.type()->isCallable());
+			const auto functionType = functionValue.type()->asFunctionType();
 			
 			ExitStates exitStates = functionValue.exitStates();
 			for (const auto& param: parameters) {

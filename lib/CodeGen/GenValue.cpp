@@ -444,8 +444,6 @@ namespace locic {
 						return VirtualCall::generateCall(function, semCallValue.type()->asFunctionType(), methodComponents, llvmArgs, hintResultValue);
 					}
 					
-					assert(semCallValue.type()->isFunction() || semCallValue.type()->isMethod());
-					
 					// TODO: merge this with the call below.
 					if (isTrivialFunction(module, semCallValue)) {
 						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);

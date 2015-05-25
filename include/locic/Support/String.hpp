@@ -72,6 +72,25 @@ namespace locic{
 			return true;
 		}
 		
+		bool ends_with(const std::string& other) const {
+			if (string_ == nullptr) {
+				return false;
+			}
+			
+			if (other.size() > size()) {
+				return false;
+			}
+			
+			const size_t startPosition = size() - other.size();
+			for (size_t i = 0; i < other.size(); i++) {
+				if ((*this)[startPosition + i] != other[i]) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
 		String operator+(const String& other) const {
 			assert(string_ != nullptr);
 			return String(host(), *string_ + *(other.string_));

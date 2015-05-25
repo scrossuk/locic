@@ -45,18 +45,6 @@ namespace locic {
 			return castValues;
 		}
 		
-		bool isCallableType(const SEM::Type* const type) {
-			switch (type->kind()) {
-				case SEM::Type::FUNCTION:
-				case SEM::Type::METHOD:
-				case SEM::Type::INTERFACEMETHOD:
-				case SEM::Type::STATICINTERFACEMETHOD:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
@@ -64,12 +52,12 @@ namespace locic {
 				return CallValue(context, GetStaticMethod(context, std::move(value), context.getCString("create"), location), std::move(args), location);
 			}
 			
-			if (!isCallableType(value.type())) {
+			if (!value.type()->isCallable()) {
 				// Try to use 'call' method.
 				return CallValue(context, GetMethod(context, std::move(value), context.getCString("call"), location), std::move(args), location);
 			}
 			
-			const auto functionType = value.type()->getCallableFunctionType()->asFunctionType();
+			const auto functionType = value.type()->asFunctionType();
 			const auto& typeList = functionType.parameterTypes();
 			
 			if (functionType.attributes().isVarArg()) {

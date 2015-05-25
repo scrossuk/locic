@@ -246,7 +246,7 @@ namespace locic {
 			return isTypeSizeAlwaysKnown(module, type) && !typeHasCustomMove(module, type);
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::FunctionType functionType) {
+		ArgInfo getFunctionArgInfo(Module& module, const SEM::FunctionType functionType) {
 			const auto semReturnType = functionType.returnType();
 			
 			const auto& attributes = functionType.attributes();

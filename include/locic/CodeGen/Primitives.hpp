@@ -27,6 +27,7 @@ namespace locic {
 			PrimitiveCompareResult,
 			
 			PrimitiveFunctionPtr,
+			PrimitiveTemplatedFunctionPtr,
 			
 			PrimitiveInt8,
 			PrimitiveUInt8,

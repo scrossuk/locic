@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 set(RUNTIME_FILES
 	bool_t.loci
 	byte_t.loci
+	callable.loci
 	comparable.loci
 	compare_result_t.loci
 	copyable.loci
@@ -32,6 +33,7 @@ set(RUNTIME_FILES
 	short_t.loci
 	size_t.loci
 	ssize_t.loci
+	templatedfunction_ptr_t.loci
 	typename_t.loci
 	ubyte_t.loci
 	uint16_t.loci

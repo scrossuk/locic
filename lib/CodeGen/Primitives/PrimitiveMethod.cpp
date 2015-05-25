@@ -273,6 +273,7 @@ namespace locic {
 				case PrimitivePtr:
 					return genPtrPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveFunctionPtr:
+				case PrimitiveTemplatedFunctionPtr:
 					return genFunctionPtrPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 				case PrimitiveInt8:
 				case PrimitiveInt16:

@@ -71,8 +71,15 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionPtrCallMethod(Function& function, const SEM::Type* type, PendingResultArray args, llvm::Value* hintResultValue) {
+			const auto functionValue = args[0].resolveWithoutBind(function);
+			
 			FunctionCallInfo callInfo;
-			callInfo.functionPtr = args[0].resolveWithoutBind(function);
+			if (type->isBuiltInTemplatedFunctionPtr()) {
+				callInfo.functionPtr = function.getBuilder().CreateExtractValue(functionValue, { 0 });
+				callInfo.templateGenerator = function.getBuilder().CreateExtractValue(functionValue, { 1 });
+			} else {
+				callInfo.functionPtr = functionValue;
+			}
 			
 			PendingResultArray callArgs;
 			for (size_t i = 1; i < args.size(); i++) {
