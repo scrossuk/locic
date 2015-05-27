@@ -7,6 +7,7 @@ add_library(locic-semanalysis
 	ConvertForLoop.cpp
 	ConvertFunctionDecl.cpp
 	ConvertFunctionDef.cpp
+	ConvertModuleScope.cpp
 	ConvertNamespace.cpp
 	ConvertPredicate.cpp
 	ConvertScope.cpp
@@ -21,6 +22,15 @@ add_library(locic-semanalysis
 	Lval.cpp
 	MethodSet.cpp
 	NameSearch.cpp
+	Passes/AddAliasValuesPass.cpp
+	Passes/AddFunctionDeclsPass.cpp
+	Passes/AddGlobalStructuresPass.cpp
+	Passes/AddTemplateVariableTypesPass.cpp
+	Passes/AddTypeMemberVariablesPass.cpp
+	Passes/CheckTemplateInstantiationsPass.cpp
+	Passes/CompleteFunctionTemplateVariableRequirementsPass.cpp
+	Passes/CompleteTypeTemplateVariableRequirementsPass.cpp
+	Passes/GenerateDefaultMethodsPass.cpp
 	Ref.cpp
 	ScopeElement.cpp
 	ScopeStack.cpp
